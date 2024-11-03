@@ -25,19 +25,20 @@ public:
 	void StartRecording();
 
 	inline unsigned char* GetStreamBuffer(void) { return m_StreamBuffer; }
-	inline int GetCurrentFrame(void) { return m_FrameCounter; }
-	inline int GetFirstCountPoint(void) { return m_FirstCountPoint; }
-	inline int GetSecondCountPoint(void) { return m_SecondCountPoint; }
-	inline int GetThirdCountPoint(void) { return m_ThirdCountPoint; }
+    inline const unsigned char* GetConstStreamBuffer(void) const { return m_StreamBuffer; };
+	inline int GetCurrentFrame(void) const { return m_FrameCounter; }
+	inline int GetFirstCountPoint(void) const { return m_FirstCountPoint; }
+	inline int GetSecondCountPoint(void) const { return m_SecondCountPoint; }
+	inline int GetThirdCountPoint(void) const { return m_ThirdCountPoint; }
 
-	inline bool IsRecording() { return m_recordState != STREAM_STATE::STOP; }
-	inline bool IsWriting() { return m_recordState == STREAM_STATE::WRITE; }
+	inline bool IsRecording() const { return m_recordState != STREAM_STATE::STOP; }
+	inline bool IsWriting() const { return m_recordState == STREAM_STATE::WRITE; }
 	inline void SetState(STREAM_STATE newState) { m_recordState = newState; }
-	inline int LoopCount() { return m_SongLoopedCounter; }
+	inline int LoopCount() const { return m_SongLoopedCounter; }
 
-	inline int GetSonglineCount() { return m_SonglineCounter; }
-	inline int GetFramesPerSongline(int songLine) { return m_FramesPerSongline[songLine]; }
-	inline int GetOffsetPerSongline(int songLine) { return m_OffsetPerSongline[songLine]; }
+	inline int GetSonglineCount() const { return m_SonglineCounter; }
+	inline int GetFramesPerSongline(int songLine) const { return m_FramesPerSongline[songLine]; }
+	inline int GetOffsetPerSongline(int songLine) const { return m_OffsetPerSongline[songLine]; }
 
 	int SwitchIntoRecording();
 	int SwitchIntoStop();
