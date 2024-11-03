@@ -282,7 +282,7 @@ int LoadBinaryBlock(std::ifstream& in, unsigned char* memory, WORD& fromAddr, WO
 	return toAddr-fromAddr+1;
 }
 
-int LoadBinaryFile(char* fname, unsigned char* memory, WORD& minadr, WORD& maxadr)
+int LoadBinaryFile(const char* fname, unsigned char* memory, WORD& minadr, WORD& maxadr)
 {
 	int fsize,blen;
 	
