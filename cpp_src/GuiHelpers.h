@@ -10,6 +10,9 @@
 
 
 extern void SetStatusBarText(const char* text);
+extern void ClearStatusBar();
+extern void SendErrorMessage(const char* title, const char* message);
+
 extern BOOL RefreshScreen(int frameskip = 0);
 
 extern int EditText(int vk, int shift, int control, char* txt, int& cur, int max);

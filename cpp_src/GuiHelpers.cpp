@@ -5,12 +5,20 @@
 
 #include "GuiHelpers.h"
 
-#include "global.h"
+#include "Global.h"
 
 void SetStatusBarText(const char* text)
 {
 	CStatusBar& sb = ((CMainFrame*)AfxGetApp()->GetMainWnd())->m_wndStatusBar;
 	sb.SetWindowText(text);
+}
+
+void ClearStatusBar() {
+    SetStatusBarText("");
+}
+
+void SendErrorMessage(const char* title, const char* message){
+    MessageBox(g_hwnd, message, title, MB_ICONERROR);
 }
 
 static int lastTick;
