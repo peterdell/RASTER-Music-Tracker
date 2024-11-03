@@ -12,6 +12,13 @@
 
 extern CInstruments	g_Instruments;
 
+class CASMFile {
+
+public:
+    static constexpr LPCSTR EOL = "\n"; // EOL in ASM format is platform dependent
+};
+
+
 // ============================================================================
 // Code to export RMT song data as
 // - simple notation assembler
@@ -45,11 +52,11 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 	TTrack tempTrack;	// temporary track
 
 	ou << ";ASM notation source";
-	ou << EOL << "XXX\tequ $FF\t;empty note value";
+	ou << CASMFile::EOL << "XXX\tequ $FF\t;empty note value";
 	if (!g_PrefixForAllAsmLabels.IsEmpty())
 	{
 		s.Format("%s_data", g_PrefixForAllAsmLabels);
-		ou << EOL << s;
+		ou << CASMFile::EOL << s;
 	}
 	//
 	if (dlg.m_exportType == 1 /* Tracks only*/)
@@ -63,11 +70,11 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 				continue;
 
 			s.Format(";Track $%02X", trackNr);
-			ou << EOL << s;
+			ou << CASMFile::EOL << s;
 			if (!g_PrefixForAllAsmLabels.IsEmpty())
 			{
 				s.Format("%s_track%02X", g_PrefixForAllAsmLabels, trackNr);
-				ou << EOL << s;
+				ou << CASMFile::EOL << s;
 			}
 
 			tempTrack = *g_Tracks.GetTrack(trackNr);
@@ -79,7 +86,7 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 			{
 				if (ova >= maxova)
 				{
-					ou << EOL << "\tdta ";
+					ou << CASMFile::EOL << "\tdta ";
 					ova = 0;
 				}
 				note = tempTrack.note[idx];
@@ -102,7 +109,7 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 						if (ova >= maxova)
 						{
 							ova = 0;
-							ou << EOL << "\tdta XXX";
+							ou << CASMFile::EOL << "\tdta XXX";
 						}
 						else
 							ou << ",XXX";
@@ -137,17 +144,17 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 			int sline = 0;
 			const char* cnames[] = { "L1","L2","L3","L4","R1","R2","R3","R4" };
 			s.Format(";Song column %s", cnames[clm]);
-			ou << EOL << s;
+			ou << CASMFile::EOL << s;
 			if (!g_PrefixForAllAsmLabels.IsEmpty())
 			{
 				s.Format("%s_column%s", g_PrefixForAllAsmLabels, cnames[clm]);
-				ou << EOL << s;
+				ou << CASMFile::EOL << s;
 			}
 			while (sline >= 0 && sline < SONGLEN && !finished[sline])
 			{
 				finished[sline] = 1;
 				s.Format(";Song line $%02X", sline);
-				ou << EOL << s;
+				ou << CASMFile::EOL << s;
 				if (m_songgo[sline] >= 0)
 				{
 					sline = m_songgo[sline]; //GOTO line
@@ -173,7 +180,7 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 					if (!g_PrefixForAllAsmLabels.IsEmpty())
 					{
 						s.Format("%s_column%s_line%02X", g_PrefixForAllAsmLabels, cnames[clm], sline);
-						ou << EOL << s;
+						ou << CASMFile::EOL << s;
 					}
 					if (dlg.m_durationsType == 1)
 					{
@@ -182,7 +189,7 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 							if (ova >= maxova)
 							{
 								ova = 0;
-								ou << EOL << "\tdta XXX";
+								ou << CASMFile::EOL << "\tdta XXX";
 							}
 							else
 								ou << ",XXX";
@@ -191,14 +198,14 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 					else
 						if (dlg.m_durationsType == 2)
 						{
-							ou << EOL << "\tdta XXX,";
+							ou << CASMFile::EOL << "\tdta XXX,";
 							ou << trackslen;
 							ova += 2;
 						}
 						else
 							if (dlg.m_durationsType == 3)
 							{
-								ou << EOL << "\tdta ";
+								ou << CASMFile::EOL << "\tdta ";
 								ou << trackslen << ",XXX";
 								ova += 2;
 							}
@@ -211,7 +218,7 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 				if (!g_PrefixForAllAsmLabels.IsEmpty())
 				{
 					s.Format("%s_column%s_line%02X", g_PrefixForAllAsmLabels, cnames[clm], sline);
-					ou << EOL << s;
+					ou << CASMFile::EOL << s;
 				}
 
 				tempTrack = *g_Tracks.GetTrack(t);
@@ -222,7 +229,7 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 					if (ova >= maxova)
 					{
 						ova = 0;
-						ou << EOL << "\tdta ";
+						ou << CASMFile::EOL << "\tdta ";
 					}
 
 					anot= tempTrack.note[i];
@@ -245,7 +252,7 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 							if (ova >= maxova)
 							{
 								ova = 0;
-								ou << EOL << "\tdta XXX";
+								ou << CASMFile::EOL << "\tdta XXX";
 							}
 							else
 								ou << ",XXX";
@@ -273,7 +280,7 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 			}
 		}
 	}
-	ou << EOL;
+	ou << CASMFile::EOL;
 
 	return true;
 }
@@ -351,7 +358,7 @@ bool CSong::ExportAsRelocatableAsmForRmtPlayer(std::ofstream& ou, tExportDescrip
 	if (!isGood)
 		return false;
 
-	ou << strAsmForModule << EOL;
+    ou << strAsmForModule << CASMFile::EOL;
 
 	return true;
 }
