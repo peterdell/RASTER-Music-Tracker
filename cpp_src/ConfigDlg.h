@@ -7,6 +7,8 @@
 // ConfigDlg.h : header file
 //
 
+#include "General.h"
+
 extern CString g_defaultSongsPath;			// Default path for songs
 extern CString g_defaultInstrumentsPath;	// Default path for instruments
 extern CString g_defaultTracksPath;			// Default path for tracks
@@ -35,7 +37,7 @@ public:
 	int		m_trackLinePrimaryHighlight;
 	int		m_trackLineSecondaryHighlight;
 	int     m_scaling_percentage;
-	int		m_trackerDriverVersion;
+    TrackerDriverVersion m_trackerDriverVersion;
 	BOOL	m_ntsc;
 	BOOL	m_doSmoothScrolling;
 	BOOL	m_displayflatnotes;

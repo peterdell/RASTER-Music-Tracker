@@ -1,5 +1,5 @@
 //
-// global.h
+// Global.h
 // originally made by Raster, 2002-2009
 // experimental changes and additions by VinsCool, 2021-2022
 //
@@ -155,7 +155,7 @@ extern BOOL g_viewVolumeAnalyzer;			//1 yes, 0 no
 extern BOOL g_viewPokeyRegisters;		//1 yes, 0 no
 extern BOOL g_viewInstrumentEditHelp;	//1 yes, 0 no
 
-extern int g_trackerDriverVersion;
+extern TrackerDriverVersion g_trackerDriverVersion;
 extern int g_timerGlobalCount;	// Initialised once, ticking forever
 extern long g_playtime;				//1 yes, 0 no
 

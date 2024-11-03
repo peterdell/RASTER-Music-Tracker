@@ -365,11 +365,14 @@
 // Most of these were not official versions of the RMT driver, but patches with few changes
 // For optimal results, the Altirra Emulator plugins are recommended
 //
-#define TRACKER_DRIVER_NONE						0
-#define	TRACKER_DRIVER_UNPATCHED				1
-#define	TRACKER_DRIVER_UNPATCHED_WITH_TUNING	2
-#define TRACKER_DRIVER_PATCH3_INSTRUMENTARIUM	3
-#define	TRACKER_DRIVER_PATCH6					4
-#define	TRACKER_DRIVER_PATCH8					5
-#define	TRACKER_DRIVER_PATCH16					6
-#define	TRACKER_DRIVER_PATCH_PRINCE_OF_PERSIA	7
+enum TrackerDriverVersion : int
+{
+    NONE = 0,
+    UNPATCHED = 1,
+    UNPATCHED_WITH_TUNING = 2,
+    PATCH3_INSTRUMENTARIUM = 3,
+    PATCH6 = 4,
+    PATCH8 = 5,
+    PATCH16 = 6,
+    PATCH_PRINCE_OF_PERSIA = 7
+};

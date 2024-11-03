@@ -249,8 +249,8 @@ CRmtView::CRmtView()
 
 CRmtView::~CRmtView()
 {
-	if (g_mem_dc) g_mem_dc->SelectObject(m_penorig);		//The return of the original Pen
-	if (m_pen1) delete m_pen1;							//unloaded m_pen1
+    if (g_mem_dc) { g_mem_dc->SelectObject(m_penorig); }    // Reset to the original pen
+    if (m_pen1) { delete m_pen1; }
 }
 
 void CRmtView::OnDestroy()
@@ -265,18 +265,18 @@ void CRmtView::OnDestroy()
 	if (m_timerDisplay)
 	{
 		KillTimer(m_timerDisplay);
-		m_timerDisplay = 0;
+		m_timerDisplay = NULL;
 	}
 	CView::OnDestroy();
 }
 
 void CRmtView::OnTimer(UINT_PTR nIDEvent)
 {
-	if (nIDEvent == m_timerDisplay)
-	{
-		KillTimer(m_timerDisplay);
-		m_timerDisplay = SetTimer(1, m_timerDisplayTick[g_timerGlobalCount % 3], NULL);
-		RefreshScreen();
+    if (nIDEvent == m_timerDisplay)
+    {
+        KillTimer(m_timerDisplay);
+        m_timerDisplay = SetTimer(1, m_timerDisplayTick[g_timerGlobalCount % 3], NULL);
+        RefreshScreen();
 	}
 
 	CView::OnTimer(nIDEvent);
@@ -453,7 +453,7 @@ void CRmtView::ReadRMTConfig()
 		if (NAME("NTSC_SYSTEM")) { g_ntsc = atoi(value); continue; }
 		if (NAME("SMOOTH_SCROLL")) { g_viewDoSmoothScrolling = atoi(value); continue; }
 		if (NAME("NOHWSOUNDBUFFER")) { g_nohwsoundbuffer = atoi(value); continue; }
-		if (NAME("TRACKERDRIVERVERSION")) { g_trackerDriverVersion = atoi(value); continue; }
+        if (NAME("TRACKERDRIVERVERSION")) { g_trackerDriverVersion = (TrackerDriverVersion)atoi(value); continue; }
 
 		// KEYBOARD
 		if (NAME("KEYBOARD_LAYOUT")) { g_keyboard_layout = atoi(value); continue; }
@@ -561,7 +561,7 @@ void CRmtView::ResetRMTConfig()
 	g_linesafter = 1;							// Number of lines to scroll after inserting a note 
 	g_ntsc = 0;									// NTSC (60Hz)
 	g_nohwsoundbuffer = 0;						// Don't use hardware soundbuffer
-	g_trackerDriverVersion = TRACKER_DRIVER_PATCH16;
+	g_trackerDriverVersion = PATCH16;           // Tracker driver version
 	g_displayflatnotes = 0;						// Display accidentals as Flats instead of Sharps
 	g_usegermannotation = 0;					// Display H notes instead of B
 	g_viewMainToolbar = 1;						// Display the Main Toolbar

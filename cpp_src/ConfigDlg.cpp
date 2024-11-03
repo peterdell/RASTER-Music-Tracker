@@ -36,7 +36,7 @@ CConfigDlg::CConfigDlg(CWnd* pParent /*=NULL*/)
 	m_keyboard_escresetatarisound = FALSE;
 	m_keyboard_askwhencontrol_s = FALSE;
 	m_viewDebugDisplay = FALSE;
-	m_trackerDriverVersion = FALSE;
+	m_trackerDriverVersion = NONE;
 	//}}AFX_DATA_INIT
 }
 
@@ -126,7 +126,7 @@ void CConfigDlg::OnOK()
 {
 	m_midi_device = m_midi_c_device.GetCurSel()-1;
 	m_keyboard_layout = m_keyboard_c_layout.GetCurSel();
-	m_trackerDriverVersion = m_trackerDriver_c_Version.GetCurSel();
+	m_trackerDriverVersion = (TrackerDriverVersion)m_trackerDriver_c_Version.GetCurSel();
 	CDialog::OnOK();
 }
 

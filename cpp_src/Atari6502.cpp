@@ -108,28 +108,28 @@ int Atari_LoadRMTRoutines()
 
 	switch (g_trackerDriverVersion)
 	{
-	case TRACKER_DRIVER_UNPATCHED:
-	case TRACKER_DRIVER_UNPATCHED_WITH_TUNING: 
+	case UNPATCHED:
+	case UNPATCHED_WITH_TUNING: 
 		bin = tracker_Unpatched; size = sizeof tracker_Unpatched; 
 		break;
 
-	case TRACKER_DRIVER_PATCH3_INSTRUMENTARIUM:
+	case PATCH3_INSTRUMENTARIUM:
 		bin = tracker_Patch3_Instrumentarium; size = sizeof tracker_Patch3_Instrumentarium;
 		break;
 
-	case TRACKER_DRIVER_PATCH6:
+	case PATCH6:
 		bin = tracker_Patch6; size = sizeof tracker_Patch6;
 		break;
 
-	case TRACKER_DRIVER_PATCH8:
+	case PATCH8:
 		bin = tracker_Patch8; size = sizeof tracker_Patch8;
 		break;
 
-	case TRACKER_DRIVER_PATCH16:
+	case PATCH16:
 		bin = tracker_Patch16; size = sizeof tracker_Patch16;
 		break;
 
-	case TRACKER_DRIVER_PATCH_PRINCE_OF_PERSIA:
+	case PATCH_PRINCE_OF_PERSIA:
 		bin = tracker_PatchPoP; size = sizeof tracker_PatchPoP;
 		break;
 
