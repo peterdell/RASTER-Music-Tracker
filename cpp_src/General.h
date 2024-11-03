@@ -177,8 +177,6 @@
 #define ASSEMBLER_FORMAT_ATASM	0
 #define ASSEMBLER_FORMAT_XASM	1
 
-#define MAXSUBSONGS			128		//in exported SAP maximum number of subsongs
-
 //bits in TRACKFLAG
 #define TF_NOEMPTY		1
 #define TF_USED			2
