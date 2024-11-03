@@ -1,6 +1,8 @@
 Debug/
+Debug64/
 Release/
 Release64/
+enc_temp_folder/
 .vs
 *.ncb
 *.aps

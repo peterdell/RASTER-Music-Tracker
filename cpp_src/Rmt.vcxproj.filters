@@ -321,6 +321,9 @@
     <None Include="res\cursorgo.cur">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include=".gitignore">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="moduleformatdescription.txt" />
