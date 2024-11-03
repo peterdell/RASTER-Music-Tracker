@@ -8,6 +8,7 @@
 //
 #include "resource.h"
 #include "General.h"
+#include "SAPFile.h"
 
 class CSong;
 
@@ -20,6 +21,8 @@ class CExpSAPDlg : public CDialog
 // Construction
 public:
 	CExpSAPDlg(CWnd* pParent = NULL);   // standard constructor
+
+    static bool Show(const CSong& song, CSAPFile& sapFile);
 
 // Dialog Data
     CString m_title;
