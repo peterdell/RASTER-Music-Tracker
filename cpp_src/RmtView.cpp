@@ -276,8 +276,11 @@ void CRmtView::OnTimer(UINT_PTR nIDEvent)
     {
         KillTimer(m_timerDisplay);
         m_timerDisplay = SetTimer(1, m_timerDisplayTick[g_timerGlobalCount % 3], NULL);
-        RefreshScreen();
-	}
+        if (m_mem_dc != NULL)
+        {
+            RefreshScreen();
+        }
+    }
 
 	CView::OnTimer(nIDEvent);
 }
