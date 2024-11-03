@@ -27,6 +27,7 @@
 #include "RmtMidi.h"
 
 #include "Wavefile.h"
+#include "SongExporter.h"
 
 extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
@@ -1311,7 +1312,7 @@ bool CSong::ExportV2(std::ofstream& ou, int iotype, LPCTSTR filename)
 
     // Create a module, if it fails stop the export
     int maxAddr = MakeModule(exportDesc.mem, exportDesc.targetAddrOfModule, iotype, exportDesc.instrumentSavedFlags, exportDesc.trackSavedFlags);
-    if (maxAddr < 0) 
+    if (maxAddr < 0)
     {
         return false;								// If the module could not be created, the export process is immediately aborted
     }
@@ -1323,9 +1324,9 @@ bool CSong::ExportV2(std::ofstream& ou, int iotype, LPCTSTR filename)
     case IOTYPE_RMTSTRIPPED: return ExportAsStrippedRMT(ou, &exportDesc, filename);
     case IOTYPE_ASM: return ExportAsAsm(ou, &exportDesc);
     case IOTYPE_ASM_RMTPLAYER: return ExportAsRelocatableAsmForRmtPlayer(ou, &exportDesc);
-    case IOTYPE_SAPR: return ExportSAP_R(*this, ou);
+    case IOTYPE_SAPR: return CSongExporter::ExportSAP_R(*this, ou);
     case IOTYPE_LZSS: return ExportLZSS(*this, ou, filename);
-    case IOTYPE_LZSS_SAP: return ExportSAP_B_LZSS(*this, ou);
+    case IOTYPE_LZSS_SAP: return CSongExporter::ExportSAP_B_LZSS(*this, ou);
     case IOTYPE_LZSS_XEX: return ExportLZSS_XEX(*this, ou);
     case IOTYPE_WAV: return ExportWav(ou, filename);
     }
@@ -1527,13 +1528,13 @@ bool CSong::LoadRMT(std::ifstream& in)
     return true;
 }
 
-bool CSong::CreateExportMetadata(int iotype, struct TExportMetadata* metadata)
+bool CSong::CreateExportMetadata(const CSong& song, int iotype, struct TExportMetadata* metadata)
 {
-    memcpy(metadata->songname, m_songname, SONG_NAME_MAX_LEN);
+    memcpy(metadata->songname, song.GetName(), SONG_NAME_MAX_LEN); // TODO: Cleaning/padding
     metadata->currentTime = CTime::GetCurrentTime();
-    metadata->isNTSC = g_ntsc;
-    metadata->isStereo = (g_tracks4_8 == 8);
-    metadata->instrspeed = m_instrumentSpeed;
+    metadata->isNTSC = song.IsNTSC ();
+    metadata->isStereo = song.IsStereo();
+    metadata->instrspeed = song.GetInstrumentSpeed();
 
     switch (iotype)
     {

@@ -231,12 +231,12 @@ public:
     void FileTrackSave();
     void FileTrackLoad();
 
-    void StrToAtariVideo(char* txt, int count);
+    static void StrToAtariVideo(char* txt, int count);
     int SongToAta(unsigned char* dest, int max, int adr);
     BOOL AtaToSong(unsigned char* sour, int len, int adr);
 
-    bool CreateExportMetadata(int iotype, struct TExportMetadata* metadata);
-    bool WriteToXEX(struct TExportMetadata* metadata);
+    static bool CreateExportMetadata(const CSong& song, int iotype, struct TExportMetadata* metadata);
+    static bool WriteToXEX(struct TExportMetadata* metadata);
 
     bool SaveTxt(std::ofstream& ou);
     bool SaveRMW(std::ofstream& ou);
@@ -256,17 +256,14 @@ public:
 
     // Export method shall be separeated from song itself
     // CSong argument is not yet const, because the DumpPokey... methods change its state
-    static bool ExportSAP_R(CSong& song, std::ofstream& ou);
-    static bool ExportSAP_B_LZSS(CSong& song, std::ofstream& ou);
-
-    bool ExportLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename);
-    bool ExportCompactLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename);
-    bool ExportLZSS_XEX(CSong& song, std::ofstream& ou);
+    static bool ExportLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename);
+    static bool ExportCompactLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename);
+    static bool ExportLZSS_XEX(CSong& song, std::ofstream& ou);
 
     bool ExportWav(std::ofstream& ou, LPCTSTR filename);
 
     void DumpSongToPokeyStream(CPokeyStream& pokeyStream, int playmode = MPLAY_SONG, int songline = 0, int trackline = 0);
-    int BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigned char* dst);
+    static int BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigned char* dst);
 
     bool TestBeforeFileSave();
     int GetSubsongParts(CString& resultstr) const;

@@ -9,14 +9,11 @@
 #include "ExportDlgs.h"
 
 #include "Atari6502.h"
-#include "XPokey.h"
 #include "PokeyStream.h"
 
 #include "Global.h"
 
 #include "ChannelControl.h"
-#include "SAPFile.h"
-#include "SAPFileExporter.h"
 
 #include "lzssp.h"
 #include "lzss_sap.h"
@@ -25,54 +22,6 @@ extern CInstruments	g_Instruments;
 
 #include "VUPlayer.h"
 
-
-/// <summary>
-/// Export the Pokey registers to the SAP Type R format (data stream)
-/// </summary>
-/// <param name="ou">Output stream</param>
-/// <returns>true if the file was written</returns>
-bool CSong::ExportSAP_R(CSong& song, std::ofstream& ou)
-{
-
-    CSAPFile sapFile;
-    sapFile.m_type = "R";
-    if (!CExpSAPDlg::Show(song, sapFile)) {
-        return false;
-    }
-
-    CPokeyStream pokeyStream;
-    song.DumpSongToPokeyStream(pokeyStream);
-
-    bool result = CSAPFileExporter::ExportSAP_R(song, pokeyStream, sapFile, ou);
-
-    // Clear the memory and reset the dumper to its initial setup for the next time it will be called
-    pokeyStream.FinishedRecording();
-
-    return result;
-}
-
-
-/// <summary>
-/// Export the Pokey registers to a SAP TYPE B format
-/// </summary>
-/// <param name="ou">Output stream</param>
-/// <returns>true if the file was written</returns>
-bool CSong::ExportSAP_B_LZSS(CSong& song, std::ofstream& ou)
-{
-    CSAPFile sapFile;
-    sapFile.m_type = "B";
-    if (!CExpSAPDlg::Show(song, sapFile)) {
-        return false;
-    }
-
-    CPokeyStream pokeyStream;
-    song.DumpSongToPokeyStream(pokeyStream);
-
-    bool result = CSAPFileExporter::ExportSAP_B_LZSS(song, pokeyStream, sapFile, ou);
-
-    pokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
-    return result;
-}
 
 /// <summary>
 /// Generate a SAP-R data stream and compress it with LZSS
@@ -259,7 +208,7 @@ bool CSong::ExportLZSS_XEX(CSong& song, std::ofstream& ou)
 
     MemoryAddress addressFrom, addressTo;
 
-    int subsongs = GetSubsongParts(t);
+    int subsongs = song.GetSubsongParts(t);
     int count = 0;
 
     int subtune[256]{};
@@ -289,7 +238,7 @@ bool CSong::ExportLZSS_XEX(CSong& song, std::ofstream& ou)
 
     // Create the export metadata for songname, Atari text, parameters, etc
     TExportMetadata metadata;
-    if (!CreateExportMetadata(IOTYPE_LZSS_XEX, &metadata))
+    if (!CreateExportMetadata(song, IOTYPE_LZSS_XEX, &metadata))
         return false;
 
     // LZSS buffers for each ones of the tune parts being reconstructed.
