@@ -47,7 +47,7 @@ public:
 	bool CallFromPlayBeat(int trackLine);
 
 	void Record();
-	void WriteToFile(std::ofstream& ou, int frames, int offset);
+	void WriteToFile(std::ofstream& ou, int frames, int offset) const;
 	void FinishedRecording();
 
 private:

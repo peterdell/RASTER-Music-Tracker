@@ -220,7 +220,7 @@ void CPokeyStream::Record()
 	m_FrameCounter++;
 }
 
-void CPokeyStream::WriteToFile(std::ofstream& ou, int frames, int offset)
+void CPokeyStream::WriteToFile(std::ofstream& ou, int frames, int offset) const
 {
 	if (m_StreamBuffer == NULL) return;
 

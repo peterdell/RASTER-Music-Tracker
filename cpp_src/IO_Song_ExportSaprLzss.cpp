@@ -32,26 +32,48 @@ extern CPokeyStream g_PokeyStream;
 /// </summary>
 /// <param name="ou">Output stream</param>
 /// <returns>true if the file was written</returns>
-bool CSong::ExportSAP_R(std::ofstream& ou)
+bool CSong::ExportSAP_R(CSong& song, std::ofstream& ou)
 {
 
     CSAPFile sapFile;
     sapFile.m_type = "R";
-    if (!CExpSAPDlg::Show(g_Song, sapFile)) {
+    if (!CExpSAPDlg::Show(song, sapFile)) {
         return false;
     }
 
-    sapFile.Export(ou);;
 
-    DumpSongToPokeyBuffer();
+    song.DumpSongToPokeyBuffer();
 
-    // Write the SAP-R stream to the output file defined in the path dialog with the data specified above
-    g_PokeyStream.WriteToFile(ou, g_PokeyStream.GetFirstCountPoint(), 0);
+    sapFile.Export(ou);
+
+    bool result = CSAPFileExporter::ExportSAP_R(song, g_PokeyStream, sapFile, ou);
 
     // Clear the memory and reset the dumper to its initial setup for the next time it will be called
     g_PokeyStream.FinishedRecording();
 
-    return true;
+    return result;
+}
+
+
+/// <summary>
+/// Export the Pokey registers to a SAP TYPE B format
+/// </summary>
+/// <param name="ou">Output stream</param>
+/// <returns>true if the file was written</returns>
+bool CSong::ExportSAP_B_LZSS(CSong& song, std::ofstream& ou)
+{
+    CSAPFile sapFile;
+    sapFile.m_type = "B";
+    if (!CExpSAPDlg::Show(song, sapFile)) {
+        return false;
+    }
+
+    song.DumpSongToPokeyBuffer();
+
+    bool result = CSAPFileExporter::ExportSAP_B_LZSS(song, g_PokeyStream, sapFile, ou);
+
+    g_PokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
+    return result;
 }
 
 /// <summary>
@@ -108,7 +130,7 @@ bool CSong::ExportLZSS(std::ofstream& ou, LPCTSTR filename)
 
     g_PokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
 
-    SetStatusBarText("");
+    ClearStatusBar();
 
     return true;
 }
@@ -220,28 +242,9 @@ bool CSong::ExportCompactLZSS(std::ofstream& ou, LPCTSTR filename)
 
     g_PokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
 
-    SetStatusBarText("");
+    ClearStatusBar();
 
     return true;
-}
-
-/// <summary>
-/// Export the Pokey registers to a SAP TYPE B format
-/// </summary>
-/// <param name="ou">Output stream</param>
-/// <returns>true if the file was written</returns>
-bool CSong::ExportLZSS_SAP(std::ofstream& ou)
-{
-    CSAPFile sapFile;
-    sapFile.m_type = "B";
-    if (!CExpSAPDlg::Show(*this, sapFile)) {
-        return false;
-    }
-
-    DumpSongToPokeyBuffer();
-
-    return CSAPFileExporter::ExportSAP_B_LZSS(*this, g_PokeyStream, sapFile, ou);
-    g_PokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
 }
 
 
@@ -291,8 +294,9 @@ bool CSong::ExportLZSS_XEX(std::ofstream& ou)
 
     // LZSS buffers for each ones of the tune parts being reconstructed.
     // Because the buffers are large, they are allocated on hte heap instead of the stack.
-    byte* buff2 = new byte[0xFFFFF]{};
-    byte* buff3 = new byte[0xFFFFF]{};
+    const size_t LZSS_BUFFER_SIZE = 0xFFFFF;
+    byte* buff2 = new byte[LZSS_BUFFER_SIZE]{};
+    byte* buff3 = new byte[LZSS_BUFFER_SIZE]{};
 
     while (count < subsongs)
     {
@@ -454,7 +458,7 @@ bool CSong::ExportLZSS_XEX(std::ofstream& ou)
 /// GUI is disabled but MFC messages are being pumped, so the screen is updated
 /// </summary>
 /// <returns></returns>
-void CSong::DumpSongToPokeyBuffer(int playmode, int songline, int trackline)
+void CSong::DumpSongToPokeyBuffer(int playmode, int songline, int trackline) 
 {
     CString statusBarLog;
 

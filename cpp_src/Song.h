@@ -256,10 +256,13 @@ public:
     bool ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDesc);
     bool ExportAsRelocatableAsmForRmtPlayer(std::ofstream& ou, tExportDescription* exportStrippedDesc);
 
-    bool ExportSAP_R(std::ofstream& ou);
+    // Export method shall be separeated from song itself
+    // CSong argument is not yet const, because the DumpPokey... methods change its state
+    static bool ExportSAP_R(CSong& song, std::ofstream& ou);
+    static bool ExportSAP_B_LZSS(CSong& song, std::ofstream& ou);
+
     bool ExportLZSS(std::ofstream& ou, LPCTSTR filename);
     bool ExportCompactLZSS(std::ofstream& ou, LPCTSTR filename);
-    bool ExportLZSS_SAP(std::ofstream& ou);
     bool ExportLZSS_XEX(std::ofstream& ou);
 
     bool ExportWav(std::ofstream& ou, LPCTSTR filename);

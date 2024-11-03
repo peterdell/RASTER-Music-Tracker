@@ -47,7 +47,7 @@ bool CSAPFileExporter::ExportSAP_B_LZSS(const CSong& song, const CPokeyStream& p
     int lzss_offset = (intro > 16) ? targetAddrOfModule + intro : targetAddrOfModule;
     int lzss_end = lzss_offset + loop;													// this sets the address that defines where the data stream has reached its end
 
-    SetStatusBarText("");
+    ClearStatusBar();
 
     // If the size is too big, abort the process and show an error message
     // JAC! Have same error handling
@@ -114,6 +114,16 @@ bool CSAPFileExporter::ExportSAP_B_LZSS(const CSong& song, const CPokeyStream& p
 
     // Overwrite the LZSS data region with both the pointers for subtunes index, and the actual LZSS streams until the end of file
     SaveBinaryBlock(ou, memory, LZSS_POINTER, lzss_end, 0);
+
+    return true;
+}
+
+bool CSAPFileExporter::ExportSAP_R(const CSong& song, const CPokeyStream& pokeyStream, CSAPFile& sapFile, std::ofstream& ou) {
+
+    sapFile.Export(ou);;
+
+    // Write the SAP-R stream to the output file defined in the path dialog with the data specified above
+    pokeyStream.WriteToFile(ou, pokeyStream.GetFirstCountPoint(), 0);
 
     return true;
 }
