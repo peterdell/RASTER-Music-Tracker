@@ -83,13 +83,15 @@ int Atari6502_Init()
 // Load an Atari executable to memory
 int Atari_LoadOBX(int obx, unsigned char* mem, WORD& minadr, WORD& maxadr)
 {
-	int size;
-	unsigned char* bin;
+	WORD size;
+	byte* bin;
 
 	switch (obx)
 	{
 	case IOTYPE_LZSS_XEX:
-		bin = export_VUPlayer_LZSS; size = sizeof export_VUPlayer_LZSS;
+        if (!CRmtAtariBinaries::GetVUPlayerBinary(bin, size)) {
+            return 0;
+        }
 		break;
 
 	default:
@@ -103,46 +105,20 @@ int Atari_LoadOBX(int obx, unsigned char* mem, WORD& minadr, WORD& maxadr)
 int Atari_LoadRMTRoutines()
 {
 	WORD min, max;
-	int size;
-	unsigned char* bin;
-
-	switch (g_trackerDriverVersion)
-	{
-	case UNPATCHED:
-	case UNPATCHED_WITH_TUNING: 
-		bin = tracker_Unpatched; size = sizeof tracker_Unpatched; 
-		break;
-
-	case PATCH3_INSTRUMENTARIUM:
-		bin = tracker_Patch3_Instrumentarium; size = sizeof tracker_Patch3_Instrumentarium;
-		break;
-
-	case PATCH6:
-		bin = tracker_Patch6; size = sizeof tracker_Patch6;
-		break;
-
-	case PATCH8:
-		bin = tracker_Patch8; size = sizeof tracker_Patch8;
-		break;
-
-	case PATCH16:
-		bin = tracker_Patch16; size = sizeof tracker_Patch16;
-		break;
-
-	case PATCH_PRINCE_OF_PERSIA:
-		bin = tracker_PatchPoP; size = sizeof tracker_PatchPoP;
-		break;
-
-	default:
-		return 0;
-	}
+	WORD size;
+	byte* bin;
+    if (!CRmtAtariBinaries::GetTrackerDriverBinary(g_trackerDriverVersion, bin, size)) {
+        return 0;
+    }
 
 	return LoadDataAsBinaryFile(bin, size, g_atarimem, min, max);
 }
 
 int Atari_InitRMTRoutine()
 {
-	if (!g_is6502) return 0;
+    if (!g_is6502) {
+        return 0;
+    }
 
 	g_Tuning.init_tuning();	//input the A-4 frequency for the tuning and generate all the lookup tables needed for the player routines
 

@@ -43,6 +43,9 @@
     <Filter Include="Source Files\IO - Load/Save/Export/Import/Midi\SAP-R Compressor">
       <UniqueIdentifier>{b1ac240f-8bfa-4b7f-9f1a-67e475c4a76e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assembly Files">
+      <UniqueIdentifier>{7a4c5235-815a-4b0b-9c9b-8240245f1f43}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StdAfx.cpp">
@@ -165,6 +168,9 @@
     <ClCompile Include="WaveFile.cpp">
       <Filter>Source Files\Sound Generator</Filter>
     </ClCompile>
+    <ClCompile Include="RmtAtariBinaries.cpp">
+      <Filter>Source Files\Sound Generator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
@@ -260,10 +266,10 @@
     <ClInclude Include="lzssp.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
-    <ClInclude Include="RmtAtariBinaries.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClInclude>
     <ClInclude Include="WaveFile.h">
+      <Filter>Source Files\Sound Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="RmtAtariBinaries.h">
       <Filter>Source Files\Sound Generator</Filter>
     </ClInclude>
   </ItemGroup>
