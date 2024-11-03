@@ -185,7 +185,7 @@ void CSong::ClearSong(int numOfTracks)
 
 //---
 
-int CSong::GetSubsongParts(CString& resultstr)
+int CSong::GetSubsongParts(CString& resultstr) const
 {
 	CString s;
 	int songp[SONGLEN];

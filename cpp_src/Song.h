@@ -58,9 +58,15 @@ typedef struct
 
 } tExportDescription;
 
+// Forward delcaration. Instead of being friends, CSong should have Get... methods.
+
+class CSAPFile;
+
 class CSong
 {
 public:
+    friend CSAPFile;
+
 	CSong();
 	~CSong();
 
@@ -243,7 +249,7 @@ public:
 	int BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigned char* dst);
 
 	bool TestBeforeFileSave();
-	int GetSubsongParts(CString& resultstr);
+	int GetSubsongParts(CString& resultstr) const;
 
 	void ComposeRMTFEATstring(CString& dest, const char* filename, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags, BOOL sfx, BOOL gvf, BOOL nos, int assemblerFormat);
 
