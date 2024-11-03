@@ -19,9 +19,6 @@
     <Filter Include="Copy to Build Folder\RMT Binaries">
       <UniqueIdentifier>{a2f10bad-f640-4755-9632-a9eee2b9728d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Helpers">
-      <UniqueIdentifier>{4139ef6f-85a8-4e4f-aa78-fb5152aa902a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Tuning">
       <UniqueIdentifier>{4c4d791e-b9e3-49ec-ba38-fb7c8e30b9b4}</UniqueIdentifier>
     </Filter>
@@ -236,7 +233,7 @@
     <ClInclude Include="Clipboard.h">
       <Filter>Source Files\Data</Filter>
     </ClInclude>
-    <ClInclude Include="global.h">
+    <ClInclude Include="Global.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="GuiHelpers.h">

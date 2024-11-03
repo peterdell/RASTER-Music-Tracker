@@ -543,7 +543,7 @@
     <ClInclude Include="FileNewDlg.h" />
     <ClInclude Include="FilePathDlg.h" />
     <ClInclude Include="General.h" />
-    <ClInclude Include="global.h" />
+    <ClInclude Include="Global.h" />
     <ClInclude Include="GuiHelpers.h" />
     <ClInclude Include="ChannelControl.h" />
     <ClInclude Include="Instruments.h" />
