@@ -1,18 +1,18 @@
 #pragma once
 #include "stdafx.h"
-#include <fstream>
 
 #include "General.h"
 
 #include "Undo.h"
 #include "Instruments.h"
 #include "Tracks.h"
-
+#include "PokeyStream.h"
 
 // These two should be song attributes instead
 extern int g_tracks4_8;
 extern BOOL g_ntsc;				//NTSC (60Hz)
 
+static constexpr int SONG_NAME_MAX_LEN = 64;	// maximum length of song name
 
 struct TBookmark
 {
@@ -63,9 +63,6 @@ typedef struct
 
 } tExportDescription;
 
-// Forward delcaration. Instead of being friends, CSong should have Get... methods.
-
-class CSAPFile;
 
 class CSong
 {
@@ -74,6 +71,7 @@ public:
     ~CSong();
 
     CString GetName() const {
+        CString result;
         return m_songname;
     }
 
@@ -261,13 +259,13 @@ public:
     static bool ExportSAP_R(CSong& song, std::ofstream& ou);
     static bool ExportSAP_B_LZSS(CSong& song, std::ofstream& ou);
 
-    bool ExportLZSS(std::ofstream& ou, LPCTSTR filename);
-    bool ExportCompactLZSS(std::ofstream& ou, LPCTSTR filename);
-    bool ExportLZSS_XEX(std::ofstream& ou);
+    bool ExportLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename);
+    bool ExportCompactLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename);
+    bool ExportLZSS_XEX(CSong& song, std::ofstream& ou);
 
     bool ExportWav(std::ofstream& ou, LPCTSTR filename);
 
-    void DumpSongToPokeyBuffer(int playmode = MPLAY_SONG, int songline = 0, int trackline = 0);
+    void DumpSongToPokeyStream(CPokeyStream& pokeyStream, int playmode = MPLAY_SONG, int songline = 0, int trackline = 0);
     int BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigned char* dst);
 
     bool TestBeforeFileSave();
@@ -390,6 +388,7 @@ private:
     int m_song[SONGLEN][SONGTRACKS];
     int m_songgo[SONGLEN];						// If >= 0, then GO applies
 
+    CPokeyStream* volatile m_pokeyStream;       // NULL or the stream to which we are currently recording
     BOOL volatile m_followplay;
     int volatile m_play;
     int m_songactiveline;
@@ -397,8 +396,8 @@ private:
 
     int m_trackactiveline;
     int volatile m_trackplayline;				// Which line of a track is currenyly being played
-    int m_trackactivecol;						//0-7
-    int m_trackactivecur;						//0-2
+    int m_trackactivecol;						// 0-7
+    int m_trackactivecur;						// 0-2
 
     int m_trackplayblockstart;
     int m_trackplayblockend;

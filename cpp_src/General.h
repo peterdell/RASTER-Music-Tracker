@@ -126,7 +126,6 @@
 #define NOTE_TABLE_MAX_LEN		32		// maximum 32 steps in the note table
 
 #define INSTRUMENT_NAME_MAX_LEN	32		// maximum length of instrument name
-#define SONG_NAME_MAX_LEN		64		// maximum length of song name
 #define TRACKMAXSPEED	256		//maximum speed values, highest the slowest
 
 #define MAXATAINSTRLEN	256		//16+(ENVCOLS*3)	//atari instrument has a maximum of 16 parameters + 32 * 3 bytes envelope

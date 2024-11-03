@@ -3,7 +3,7 @@
 #include "XPokey.h"
 #include "RmtView.h"
 #include "Atari6502.h"
-#include "PokeyStream.h"
+
 #include "global.h"
 
 unsigned char g_atarimem[65536];
@@ -192,7 +192,6 @@ CInstruments	g_Instruments;
 CTracks			g_Tracks;
 CTrackClipboard g_TrackClipboard;
 CTuning			g_Tuning;			// Tuning calculations and POKEY tuning lookup tables generation
-CPokeyStream	g_PokeyStream;
 
 /*
 void UpdateShiftControlKeys()

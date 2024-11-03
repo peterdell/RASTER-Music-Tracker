@@ -22,7 +22,6 @@
 #include "lzss_sap.h"
 
 extern CInstruments	g_Instruments;
-extern CPokeyStream g_PokeyStream;
 
 #include "VUPlayer.h"
 
@@ -41,15 +40,13 @@ bool CSong::ExportSAP_R(CSong& song, std::ofstream& ou)
         return false;
     }
 
+    CPokeyStream pokeyStream;
+    song.DumpSongToPokeyStream(pokeyStream);
 
-    song.DumpSongToPokeyBuffer();
-
-    sapFile.Export(ou);
-
-    bool result = CSAPFileExporter::ExportSAP_R(song, g_PokeyStream, sapFile, ou);
+    bool result = CSAPFileExporter::ExportSAP_R(song, pokeyStream, sapFile, ou);
 
     // Clear the memory and reset the dumper to its initial setup for the next time it will be called
-    g_PokeyStream.FinishedRecording();
+    pokeyStream.FinishedRecording();
 
     return result;
 }
@@ -68,11 +65,12 @@ bool CSong::ExportSAP_B_LZSS(CSong& song, std::ofstream& ou)
         return false;
     }
 
-    song.DumpSongToPokeyBuffer();
+    CPokeyStream pokeyStream;
+    song.DumpSongToPokeyStream(pokeyStream);
 
-    bool result = CSAPFileExporter::ExportSAP_B_LZSS(song, g_PokeyStream, sapFile, ou);
+    bool result = CSAPFileExporter::ExportSAP_B_LZSS(song, pokeyStream, sapFile, ou);
 
-    g_PokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
+    pokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
     return result;
 }
 
@@ -82,9 +80,10 @@ bool CSong::ExportSAP_B_LZSS(CSong& song, std::ofstream& ou)
 /// <param name="ou">File to output the compressed data to</param>
 /// <param name="filename">Filename to output additional files, required for splitting the Intro and Loop sections of a song</param>
 /// <returns></returns>
-bool CSong::ExportLZSS(std::ofstream& ou, LPCTSTR filename)
+bool CSong::ExportLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename)
 {
-    DumpSongToPokeyBuffer();
+    CPokeyStream pokeyStream;
+    song.DumpSongToPokeyStream(pokeyStream);
 
     SetStatusBarText("Compressing data ...");
 
@@ -102,7 +101,7 @@ bool CSong::ExportLZSS(std::ofstream& ou, LPCTSTR filename)
     fn = fn.Left(fn.GetLength() - 5);	// In order to keep the filename without the extention 
 
     // Full tune playback up to its loop point
-    int full = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer(), g_PokeyStream.GetFirstCountPoint() * frameSize, compressedData);
+    int full = lzssData.LZSS_SAP(pokeyStream.GetStreamBuffer(), pokeyStream.GetFirstCountPoint() * frameSize, compressedData);
     if (full > 16)
     {
         //ou.open(fn + "_FULL.lzss", ios::binary);	// Create a new file for the Full section
@@ -111,7 +110,7 @@ bool CSong::ExportLZSS(std::ofstream& ou, LPCTSTR filename)
     ou.close();	// Close the file, if successful, it should not be empty 
 
     // Intro section playback, up to the start of the detected loop point
-    int intro = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer(), g_PokeyStream.GetThirdCountPoint() * frameSize, compressedData);
+    int intro = lzssData.LZSS_SAP(pokeyStream.GetStreamBuffer(), pokeyStream.GetThirdCountPoint() * frameSize, compressedData);
     if (intro > 16)
     {
         ou.open(fn + "_INTRO.lzss", std::ios::binary);	// Create a new file for the Intro section
@@ -120,7 +119,7 @@ bool CSong::ExportLZSS(std::ofstream& ou, LPCTSTR filename)
     ou.close();	// Close the file, if successful, it should not be empty 
 
     // Looped section playback, this part is virtually seamless to itself
-    int loop = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer() + (g_PokeyStream.GetFirstCountPoint() * frameSize), g_PokeyStream.GetSecondCountPoint() * frameSize, compressedData);
+    int loop = lzssData.LZSS_SAP(pokeyStream.GetStreamBuffer() + (pokeyStream.GetFirstCountPoint() * frameSize), pokeyStream.GetSecondCountPoint() * frameSize, compressedData);
     if (loop > 16)
     {
         ou.open(fn + "_LOOP.lzss", std::ios::binary);	// Create a new file for the Loop section
@@ -128,7 +127,7 @@ bool CSong::ExportLZSS(std::ofstream& ou, LPCTSTR filename)
     }
     ou.close();	// Close the file, if successful, it should not be empty 
 
-    g_PokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
+    pokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
 
     ClearStatusBar();
 
@@ -143,18 +142,19 @@ bool CSong::ExportLZSS(std::ofstream& ou, LPCTSTR filename)
 /// <param name="ou">File to output the compressed data to</param>
 /// <param name="filename">Filename to use for saving the data output</param>
 /// <returns></returns>
-bool CSong::ExportCompactLZSS(std::ofstream& ou, LPCTSTR filename)
+bool CSong::ExportCompactLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename)
 {
     // TODO: everything related to exporting the stream buffer into small files and compress them to LZSS
 
-    DumpSongToPokeyBuffer();
+    CPokeyStream pokeyStream;
+    song.DumpSongToPokeyStream(pokeyStream);
 
     SetStatusBarText("Compressing data ...");
 
     int frameSize = (g_tracks4_8 == 8) ? 18 : 9;	//SAP-R bytes to copy, Stereo doubles the number
 
     int indexToSongline = 0;
-    int songlineCount = g_PokeyStream.GetSonglineCount();
+    int songlineCount = pokeyStream.GetSonglineCount();
 
     // Since 0 is also a valid offset, the initial values are set to -1 to prevent conflicts
     int listOfMatches[256];
@@ -173,10 +173,10 @@ bool CSong::ExportCompactLZSS(std::ofstream& ou, LPCTSTR filename)
     // For all songlines to index, process with comparisons and find duplicates 
     while (indexToSongline < songlineCount)
     {
-        int bytesCount = g_PokeyStream.GetFramesPerSongline(indexToSongline) * frameSize;
+        int bytesCount = pokeyStream.GetFramesPerSongline(indexToSongline) * frameSize;
 
-        int index1 = g_PokeyStream.GetOffsetPerSongline(indexToSongline);
-        unsigned char* buff1 = g_PokeyStream.GetStreamBuffer() + (index1 * frameSize);
+        int index1 = pokeyStream.GetOffsetPerSongline(indexToSongline);
+        unsigned char* buff1 = pokeyStream.GetStreamBuffer() + (index1 * frameSize);
 
         // If there is no index already, assume the Index1 to be the first occurence 
         if (listOfMatches[indexToSongline] == -1)
@@ -186,11 +186,11 @@ bool CSong::ExportCompactLZSS(std::ofstream& ou, LPCTSTR filename)
         for (int i = 0; i < songlineCount; i++)
         {
             // If the bytes count between 2 songlines isn't matching, don't even bother trying
-            if (bytesCount != g_PokeyStream.GetFramesPerSongline(i) * frameSize)
+            if (bytesCount != pokeyStream.GetFramesPerSongline(i) * frameSize)
                 continue;
 
-            int index2 = g_PokeyStream.GetOffsetPerSongline(i);
-            unsigned char* buff2 = g_PokeyStream.GetStreamBuffer() + (index2 * frameSize);
+            int index2 = pokeyStream.GetOffsetPerSongline(i);
+            unsigned char* buff2 = pokeyStream.GetStreamBuffer() + (index2 * frameSize);
 
             // If there is a match, the second index will adopt the offset of the first index
             if (!memcmp(buff1, buff2, bytesCount))
@@ -231,16 +231,16 @@ bool CSong::ExportCompactLZSS(std::ofstream& ou, LPCTSTR filename)
     for (int i = 0; i < songlineCount; i++)
     {
         ou << "Index: " << PADHEX(2, i);
-        ou << ",\t Offset (real): " << PADHEX(4, g_PokeyStream.GetOffsetPerSongline(i));
+        ou << ",\t Offset (real): " << PADHEX(4, pokeyStream.GetOffsetPerSongline(i));
         ou << ",\t Offset (dupe): " << PADHEX(4, listOfMatches[i]);
-        ou << ",\t Bytes (uncompressed): " << PADDEC(1, g_PokeyStream.GetFramesPerSongline(i) * frameSize);
-        ou << ",\t Bytes (LZ16 compressed): " << PADDEC(1, lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer() + (g_PokeyStream.GetOffsetPerSongline(i) * frameSize), g_PokeyStream.GetFramesPerSongline(i) * frameSize, compressedData));
+        ou << ",\t Bytes (uncompressed): " << PADDEC(1, pokeyStream.GetFramesPerSongline(i) * frameSize);
+        ou << ",\t Bytes (LZ16 compressed): " << PADDEC(1, lzssData.LZSS_SAP(pokeyStream.GetStreamBuffer() + (pokeyStream.GetOffsetPerSongline(i) * frameSize), pokeyStream.GetFramesPerSongline(i) * frameSize, compressedData));
         ou << std::endl;
     }
 
     ou.close();
 
-    g_PokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
+    pokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
 
     ClearStatusBar();
 
@@ -253,7 +253,7 @@ bool CSong::ExportCompactLZSS(std::ofstream& ou, LPCTSTR filename)
 /// </summary>
 /// <param name="ou">File to output the compressed data to</param>
 /// <returns></returns>
-bool CSong::ExportLZSS_XEX(std::ofstream& ou)
+bool CSong::ExportLZSS_XEX(CSong& song, std::ofstream& ou)
 {
     CString s, t;
 
@@ -304,27 +304,28 @@ bool CSong::ExportLZSS_XEX(std::ofstream& ou)
         int intro = 0, loop = 0;
 
         // LZSS buffers for each ones of the tune parts being reconstructed
-        DumpSongToPokeyBuffer(MPLAY_FROM, subtune[count], 0);
+        CPokeyStream pokeyStream;
+        song.DumpSongToPokeyStream(pokeyStream, MPLAY_FROM, subtune[count], 0);
 
         //SetStatusBarText("Compressing data ...");
 
         // There is an Intro section 
-        if (g_PokeyStream.GetThirdCountPoint())
+        if (pokeyStream.GetThirdCountPoint())
         {
-            intro = BruteforceOptimalLZSS(g_PokeyStream.GetStreamBuffer(), g_PokeyStream.GetThirdCountPoint() * frameSize, buff2);
+            intro = BruteforceOptimalLZSS(pokeyStream.GetStreamBuffer(), pokeyStream.GetThirdCountPoint() * frameSize, buff2);
         }
 
         // There is a Loop section
-        if (g_PokeyStream.GetFirstCountPoint())
+        if (pokeyStream.GetFirstCountPoint())
         {
-            loop = BruteforceOptimalLZSS(g_PokeyStream.GetStreamBuffer() + (g_PokeyStream.GetFirstCountPoint() * frameSize), g_PokeyStream.GetSecondCountPoint() * frameSize, buff3);
+            loop = BruteforceOptimalLZSS(pokeyStream.GetStreamBuffer() + (pokeyStream.GetFirstCountPoint() * frameSize), pokeyStream.GetSecondCountPoint() * frameSize, buff3);
         }
 
         // Add the number of frames recorded to the total count
-        framescount += g_PokeyStream.GetFirstCountPoint();
+        framescount += pokeyStream.GetFirstCountPoint();
 
         // Clear the SAP-R dumper memory and reset RMT routines
-        g_PokeyStream.FinishedRecording();
+        pokeyStream.FinishedRecording();
 
         // Some additional variables that will be used below
         int targetAddrOfModule = VU_PLAYER_SONGDATA + lzss_chunk;	// All the LZSS data will be written starting from this address
@@ -348,8 +349,8 @@ bool CSong::ExportLZSS_XEX(std::ofstream& ou)
         // Set the song section and timer index 
         int index = LZSS_POINTER + count * 4;
         int timerindex = VU_PLAYER_SOUNGTIMER + count * 4;
-        int subtunetimetotal = 0xFFFFFF / g_PokeyStream.GetFirstCountPoint();
-        int subtunelooppoint = subtunetimetotal * g_PokeyStream.GetThirdCountPoint();
+        int subtunetimetotal = 0xFFFFFF / pokeyStream.GetFirstCountPoint();
+        int subtunelooppoint = subtunetimetotal * pokeyStream.GetThirdCountPoint();
         int chunk = 0;
 
         mem[index + 0] = section & 0xFF;
@@ -458,7 +459,7 @@ bool CSong::ExportLZSS_XEX(std::ofstream& ou)
 /// GUI is disabled but MFC messages are being pumped, so the screen is updated
 /// </summary>
 /// <returns></returns>
-void CSong::DumpSongToPokeyBuffer(int playmode, int songline, int trackline) 
+void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, int playmode, int songline, int trackline)
 {
     CString statusBarLog;
 
@@ -466,7 +467,9 @@ void CSong::DumpSongToPokeyBuffer(int playmode, int songline, int trackline)
     Atari_InitRMTRoutine();	// Reset the RMT routines 
     SetChannelOnOff(-1, 0);	// Switch all channels off 
 
-    g_PokeyStream.StartRecording();
+    // Activate stream recording mode.
+    m_pokeyStream = &pokeyStream;
+    m_pokeyStream->StartRecording();
 
     // Play song using the chosen playback parameters
     // If no argument was passed, Play from start will be assumed
@@ -496,7 +499,7 @@ void CSong::DumpSongToPokeyBuffer(int playmode, int songline, int trackline)
                 Atari_PlayRMT();
             }
             // Transfer from g_atarimem to POKEY buffer
-            g_PokeyStream.Record();
+            pokeyStream.Record();
         }
 
         // Update the screen only once every few frames
@@ -506,14 +509,17 @@ void CSong::DumpSongToPokeyBuffer(int playmode, int songline, int trackline)
         }
 
         // Display the number of frames dumped so far
-        statusBarLog.Format("Generating Pokey stream, playing song in quick mode... %i frames recorded", g_PokeyStream.GetCurrentFrame());
+        statusBarLog.Format("Generating Pokey stream, playing song in quick mode... %i frames recorded", pokeyStream.GetCurrentFrame());
         SetStatusBarText(statusBarLog);
     }
 
     // End playback now, the SAP-R data should have been dumped successfully!
     Stop();
 
-    statusBarLog.Format("Done... %i frames recorded in total, Loop point found at frame %i", g_PokeyStream.GetCurrentFrame(), g_PokeyStream.GetFirstCountPoint());
+    // Deactivate stream recording.
+    m_pokeyStream = nullptr;
+
+    statusBarLog.Format("Done... %i frames recorded in total, Loop point found at frame %i", pokeyStream.GetCurrentFrame(), pokeyStream.GetFirstCountPoint());
     SetStatusBarText(statusBarLog);
 
     SetCursor(oldCursor);

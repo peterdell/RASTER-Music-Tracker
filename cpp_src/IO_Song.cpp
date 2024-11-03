@@ -32,7 +32,6 @@ extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 extern CXPokey g_Pokey;
 extern CRmtMidi g_Midi;
-extern CPokeyStream g_PokeyStream;
 
 void CSong::StrToAtariVideo(char* txt, int count)
 {
@@ -1307,14 +1306,15 @@ bool CSong::TestBeforeFileSave()
 bool CSong::ExportV2(std::ofstream& ou, int iotype, LPCTSTR filename)
 {
     // Init the export data container
-    tExportDescription exportDesc;
-    memset(&exportDesc, 0, sizeof(tExportDescription));
+    tExportDescription exportDesc{};
     exportDesc.targetAddrOfModule = 0x4000;		// Standard RMT modules are set to start @ $4000
 
     // Create a module, if it fails stop the export
     int maxAddr = MakeModule(exportDesc.mem, exportDesc.targetAddrOfModule, iotype, exportDesc.instrumentSavedFlags, exportDesc.trackSavedFlags);
-    if (maxAddr < 0)
+    if (maxAddr < 0) 
+    {
         return false;								// If the module could not be created, the export process is immediately aborted
+    }
     exportDesc.firstByteAfterModule = maxAddr;
 
     switch (iotype)
@@ -1324,9 +1324,9 @@ bool CSong::ExportV2(std::ofstream& ou, int iotype, LPCTSTR filename)
     case IOTYPE_ASM: return ExportAsAsm(ou, &exportDesc);
     case IOTYPE_ASM_RMTPLAYER: return ExportAsRelocatableAsmForRmtPlayer(ou, &exportDesc);
     case IOTYPE_SAPR: return ExportSAP_R(*this, ou);
-    case IOTYPE_LZSS: return ExportLZSS(ou, filename);
+    case IOTYPE_LZSS: return ExportLZSS(*this, ou, filename);
     case IOTYPE_LZSS_SAP: return ExportSAP_B_LZSS(*this, ou);
-    case IOTYPE_LZSS_XEX: return ExportLZSS_XEX(ou);
+    case IOTYPE_LZSS_XEX: return ExportLZSS_XEX(*this, ou);
     case IOTYPE_WAV: return ExportWav(ou, filename);
     }
 
@@ -1629,10 +1629,11 @@ bool CSong::ExportWav(std::ofstream& ou, LPCTSTR filename)
     }
 
     // Dump the POKEY registers from full song playback
-    DumpSongToPokeyBuffer();
+    CPokeyStream pokeyStream;
+    DumpSongToPokeyStream(pokeyStream);
 
     // Busy writing! TODO: Fix the timing overlap causing conflicts
-    g_PokeyStream.SetState(CPokeyStream::WRITE);
+    pokeyStream.SetState(CPokeyStream::WRITE);
 
     Atari_InitRMTRoutine();	// Reset the Atari memory 
     SetChannelOnOff(-1, 1);	// Unmute all channels
@@ -1641,10 +1642,10 @@ bool CSong::ExportWav(std::ofstream& ou, LPCTSTR filename)
     buffer = new BYTE[BUFFER_SIZE];
     memset(buffer, 0x80, BUFFER_SIZE);
 
-    while (frames < g_PokeyStream.GetFirstCountPoint())
+    while (frames < pokeyStream.GetFirstCountPoint())
     {
         // Copy the SAP-R bytes to g_atarimem for this frame
-        streambuffer = g_PokeyStream.GetStreamBuffer() + frames * frameSize;
+        streambuffer = pokeyStream.GetStreamBuffer() + frames * frameSize;
 
         //for (int i = 0; i < frameSize; i++)
         //{
@@ -1672,7 +1673,7 @@ bool CSong::ExportWav(std::ofstream& ou, LPCTSTR filename)
     }
 
     // Clear the SAP-R dumper memory and reset RMT routines
-    g_PokeyStream.FinishedRecording();
+    pokeyStream.FinishedRecording();
 
     // Finished doing WAV things...
     wavefile.CloseFile();
