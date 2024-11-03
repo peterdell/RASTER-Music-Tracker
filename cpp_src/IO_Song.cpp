@@ -628,7 +628,9 @@ void CSong::FileExportAs()
 		if (!exportResult)
 		{
 			DeleteFile(fn);
-			MessageBox(g_hwnd, "Export aborted.\nFile was deleted, beware of data loss!", "Export aborted", MB_ICONEXCLAMATION);
+            CString message;
+            message.Format("Incomplete export file '%s' was deleted.", fn);
+			MessageBox(g_hwnd, message, "Export aborted", MB_ICONEXCLAMATION);
 		}
 	}
 }
@@ -1545,6 +1547,8 @@ bool CSong::CreateExportMetadata(int iotype, struct TExportMetadata* metadata)
 // The XEX dialog process was split to a different function for clarity, same will be done for SAP later...
 bool CSong::WriteToXEX(struct TExportMetadata* metadata)
 {
+    CString EOL = "\n";
+
 	CExpMSXDlg dlg;
 	CString str;
 
@@ -1557,12 +1561,11 @@ bool CSong::WriteToXEX(struct TExportMetadata* metadata)
 	}
 	else
 	{
-		dlg.m_txt = str + EOL;
-		if (metadata->isStereo) dlg.m_txt += "STEREO";
+        dlg.m_txt = str + EOL;
+        if (metadata->isStereo) { dlg.m_txt += "STEREO"; }
 		dlg.m_txt += EOL + metadata->currentTime.Format("%d/%m/%Y");
-		dlg.m_txt += EOL;
-		dlg.m_txt += "Author: (press SHIFT key)" EOL;
-		dlg.m_txt += "Author: ???";
+		dlg.m_txt += EOL + "Author: (press SHIFT key)";
+		dlg.m_txt += EOL + "Author: ???";
 	}
 	str = "Playback speed will be adjusted to ";
 	str += metadata->isNTSC ? "60" : "50";

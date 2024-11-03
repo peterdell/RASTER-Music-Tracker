@@ -66,8 +66,6 @@
 #define CONFIG_FILENAME "rmt.ini"
 #define TUNING_FILENAME "tuning.ini"
 
-#define EOL "\x0d\x0a"			//Carriage Return (\r) and Line Feed (\n), for strings used during Exports
-
 // This macro was shamelessly stolen from this stackoverflow post: https://stackoverflow.com/a/42450151 
 #define PADHEX(width, val) "0x"  << std::setfill('0') << std::setw(width) << std::hex << std::uppercase << (unsigned)val
 #define PADDEC(width, val) std::setfill('0') << std::setw(width) << std::dec << (unsigned)val
