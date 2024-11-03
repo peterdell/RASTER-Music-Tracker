@@ -12,9 +12,11 @@
 #include "XPokey.h"
 #include "PokeyStream.h"
 
-#include "global.h"
+#include "Global.h"
 
 #include "ChannelControl.h"
+#include "SAPFile.h"
+#include "SAPFileExporter.h"
 
 #include "lzssp.h"
 #include "lzss_sap.h"
@@ -22,30 +24,8 @@
 extern CInstruments	g_Instruments;
 extern CPokeyStream g_PokeyStream;
 
-#define VU_PLAYER_LOOP_FLAG		LZSSP_LOOP_COUNT		// VUPlayer's address for the Loop flag
-#define VU_PLAYER_STEREO_FLAG	LZSSP_IS_STEREO_FLAG	// VUPlayer's address for the Stereo flag 
-#define VU_PLAYER_SONG_SPEED	LZSSP_PLAYER_SONG_SPEED	// VUPlayer's address for setting the song speed
-#define VU_PLAYER_DO_PLAY_ADDR	LZSSP_DO_PLAY			// VUPlayer's address for Play, for SAP exports bypassing the mainloop code
-#define VU_PLAYER_RTS_NOP		LZSSP_VU_PLAYER_RTS_NOP	// VUPlayer's address for JMP loop being patched to RTS NOP NOP with the SAP format
-#define VU_PLAYER_INIT_SAP		NULL					// VUPlayer SAP initialisation hack
+#include "VUPlayer.h"
 
-#define LZSS_POINTER			LZSSP_SONGINDEX			// All the LZSS subtunes index will occupy this memory page
-#define VU_PLAYER_SEQUENCE		LZSSP_SONGSEQUENCE
-#define VU_PLAYER_SECTION		LZSSP_SONGSECTION
-#define VU_PLAYER_SONGDATA		LZSSP_LZ_DTA
-
-#define VU_PLAYER_REGION		LZSSP_PLAYER_REGION_INIT// VUPlayer's address for the region initialisation
-#define VU_PLAYER_RASTER_BAR	LZSSP_RASTERBAR_TOGGLER	// VUPlayer's address for the rasterbar display
-#define VU_PLAYER_COLOUR		LZSSP_RASTERBAR_COLOUR	// VUPlayer's address for the rasterbar colour
-#define VU_PLAYER_SONGTOTAL		LZSSP_SONGTOTAL			// VUPlayer's address for the total number of subtunes that could be played back
-
-#define VU_PLAYER_SOUNGTIMER	LZSSP_SONGTIMERCOUNT
-
-
-typedef unsigned short MemoryAddress;
-
-constexpr size_t RAM_SIZE = 65536; 					    // Default RAM size for most Atari XL/XE machines
-constexpr MemoryAddress RAM_MAX_ADDRESS = 0xBFFF;
 
 /// <summary>
 /// Export the Pokey registers to the SAP Type R format (data stream)
@@ -54,86 +34,16 @@ constexpr MemoryAddress RAM_MAX_ADDRESS = 0xBFFF;
 /// <returns>true if the file was written</returns>
 bool CSong::ExportSAP_R(std::ofstream& ou)
 {
-    DumpSongToPokeyBuffer();
 
-    CString s;
-    CExpSAPDlg dlg;
-    s = m_songname;
-    s.TrimRight();			//cuts spaces after the name
-    s.Replace('"', '\'');	//replaces quotation marks with an apostrophe
-    dlg.m_name = s;
-
-    dlg.m_author = "???";
-
-    CTime time = CTime::GetCurrentTime();
-    dlg.m_date = time.Format("%d/%m/%Y");
-
-    if (dlg.DoModal() != IDOK)
-    {
-        // Clear the Pokey dumper memory and reset RMT routines
-        g_PokeyStream.FinishedRecording();
+    CSAPFile sapFile;
+    sapFile.m_type = "R";
+    if (!CExpSAPDlg::Show(g_Song, sapFile)) {
         return false;
     }
 
-    ou << "SAP" << EOL;
+    sapFile.Export(ou);;
 
-    s = dlg.m_author;
-    s.TrimRight();
-    s.Replace('"', '\'');
-
-    ou << "AUTHOR \"" << s << "\"" << EOL;
-
-    s = dlg.m_name;
-    s.TrimRight();
-    s.Replace('"', '\'');
-
-    ou << "NAME \"" << s << " (" << g_PokeyStream.GetFirstCountPoint() << " frames)" << "\"" << EOL;	//display the total frames recorded
-
-    s = dlg.m_date;
-    s.TrimRight();
-    s.Replace('"', '\'');
-
-    ou << "DATE \"" << s << "\"" << EOL;
-
-    s.MakeUpper();
-
-    ou << "TYPE R" << EOL;
-
-    if (g_tracks4_8 > 4)
-    {	//stereo module
-        ou << "STEREO" << EOL;
-    }
-
-    if (g_ntsc)
-    {	//NTSC module
-        ou << "NTSC" << EOL;
-    }
-
-    if (m_instrumentSpeed > 1)
-    {
-        ou << "FASTPLAY ";
-        switch (m_instrumentSpeed)
-        {
-        case 2:
-            ou << ((g_ntsc) ? "131" : "156");
-            break;
-
-        case 3:
-            ou << ((g_ntsc) ? "87" : "104");
-            break;
-
-        case 4:
-            ou << ((g_ntsc) ? "66" : "78");
-            break;
-
-        default:
-            ou << ((g_ntsc) ? "262" : "312");
-            break;
-        }
-        ou << EOL;
-    }
-    // A double EOL is necessary for making the SAP-R export functional
-    ou << EOL;
+    DumpSongToPokeyBuffer();
 
     // Write the SAP-R stream to the output file defined in the path dialog with the data specified above
     g_PokeyStream.WriteToFile(ou, g_PokeyStream.GetFirstCountPoint(), 0);
@@ -322,220 +232,18 @@ bool CSong::ExportCompactLZSS(std::ofstream& ou, LPCTSTR filename)
 /// <returns>true if the file was written</returns>
 bool CSong::ExportLZSS_SAP(std::ofstream& ou)
 {
+    CSAPFile sapFile;
+    sapFile.m_type = "B";
+    if (!CExpSAPDlg::Show(*this, sapFile)) {
+        return false;
+    }
+
     DumpSongToPokeyBuffer();
 
-    SetStatusBarText("Compressing data ...");
-
-    const int frameSize = (g_tracks4_8 == 8) ? 18 : 9;	// SAP-R bytes to copy, Stereo doubles the number
-
-    byte buff1[RAM_SIZE];	// LZSS buffers for each ones of the tune parts being reconstructed
-    byte buff2[RAM_SIZE];	// they are used for parts labeled: full, intro, and loop 
-    byte buff3[RAM_SIZE];	// a LZSS export will typically make use of intro and loop only, unless specified otherwise
-
-    CCompressLzss lzssData;
-
-    // Now, create LZSS files using the SAP-R dump created earlier
-    int full = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer(), g_PokeyStream.GetFirstCountPoint() * frameSize, buff1);
-    int intro = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer(), g_PokeyStream.GetThirdCountPoint() * frameSize, buff2);
-    int loop = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer() + (g_PokeyStream.GetFirstCountPoint() * frameSize), g_PokeyStream.GetSecondCountPoint() * frameSize, buff3);
-
+    return CSAPFileExporter::ExportSAP_B_LZSS(*this, g_PokeyStream, sapFile, ou);
     g_PokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
-
-    // Some additional variables that will be used below
-    int targetAddrOfModule = VU_PLAYER_SONGDATA;											// All the LZSS data will be written starting from this address
-    //int lzss_offset = (intro) ? targetAddrOfModule + intro : targetAddrOfModule + full;	// Calculate the offset for the export process between the subtune parts, at the moment only 1 tune at the time can be exported
-    int lzss_offset = (intro > 16) ? targetAddrOfModule + intro : targetAddrOfModule;
-    int lzss_end = lzss_offset + loop;													// this sets the address that defines where the data stream has reached its end
-
-    SetStatusBarText("");
-
-    // If the size is too big, abort the process and show an error message
-    // JAC! Have same error handling
-    if (lzss_end > RAM_MAX_ADDRESS)
-    {
-        MessageBox(g_hwnd,
-            "Error, LZSS data is too big to fit in memory!\n\n"
-            "High Instrument Speed and/or Stereo greatly inflate memory usage, even when data is compressed",
-            "Error, Buffer Overflow!", MB_ICONERROR);
-        return false;
-    }
-
-    byte mem[RAM_SIZE]{};
-
-    WORD addressFrom;
-    WORD addressTo;
-
-    if (!LoadBinaryFile(((LPCSTR)(g_prgpath + "RMT Binaries/VUPlayer (LZSS Export).obx")), mem, addressFrom, addressTo))
-    {
-        MessageBox(g_hwnd, "Fatal error with RMT LZSS system routines.\nCouldn't load 'RMT Binaries/VUPlayer (LZSS Export).obx'.", "Export aborted", MB_ICONERROR);
-        return false;
-    }
-
-    CExpSAPDlg dlg;
-    CString str;
-    str = m_songname;
-    str.TrimRight();			//cuts spaces after the name
-    str.Replace('"', '\'');	//replaces quotation marks with an apostrophe
-    dlg.m_name = str;
-
-    dlg.m_author = "???";
-    GetSubsongParts(dlg.m_subsongs);
-
-    CTime time = CTime::GetCurrentTime();
-    dlg.m_date = time.Format("%d/%m/%Y");
-
-    if (dlg.DoModal() != IDOK)
-    {
-        return false;
-    }
-
-    // Output things in SAP format
-    ou << "SAP" << EOL;
-
-    str = dlg.m_author;
-    str.TrimRight();
-    str.Replace('"', '\'');
-
-    ou << "AUTHOR \"" << str << "\"" << EOL;
-
-    str = dlg.m_name;
-    str.TrimRight();
-    str.Replace('"', '\'');
-
-    ou << "NAME \"" << str << " (" << g_PokeyStream.GetFirstCountPoint() << " frames)" << "\"" << EOL;	//display the total frames recorded
-
-    str = dlg.m_date;
-    str.TrimRight();
-    str.Replace('"', '\'');
-
-    ou << "DATE \"" << str << "\"" << EOL;
-
-    str = dlg.m_subsongs + " ";		//space after the last character due to parsing
-
-    str.MakeUpper();
-    int subsongs = 0;
-    byte subpos[MAXSUBSONGS];
-    subpos[0] = 0;					//start at songline 0 by default
-    byte n = 0, isn = 0;
-
-    // Parses the "Subsongs" line from the ExportSAP dialog
-    for (int i = 0; i < str.GetLength(); i++)
-    {
-        char a = str.GetAt(i);
-        if (a >= '0' && a <= '9') { n = (n << 4) + (a - '0'); isn = 1; }
-        else
-            if (a >= 'A' && a <= 'F') { n = (n << 4) + (a - 'A' + 10); isn = 1; }
-            else
-            {
-                if (isn)
-                {
-                    subpos[subsongs] = n;
-                    subsongs++;
-                    if (subsongs >= MAXSUBSONGS) break;
-                    isn = 0;
-                }
-            }
-    }
-    if (subsongs > 1)
-    {
-        ou << "SONGS " << subsongs << EOL;
-    }
-    ou << "TYPE B" << EOL;
-    str.Format("INIT %04X", VU_PLAYER_INIT_SAP);
-    ou << str << EOL;
-    str.Format("PLAYER %04X", VU_PLAYER_DO_PLAY_ADDR);
-    ou << str << EOL;
-
-    if (g_tracks4_8 > 4)
-    {
-        ou << "STEREO" << EOL;
-    }
-
-    if (g_ntsc)
-    {
-        ou << "NTSC" << EOL;
-    }
-
-    if (m_instrumentSpeed > 1)
-    {
-        ou << "FASTPLAY ";
-        switch (m_instrumentSpeed)
-        {
-        case 2:
-            ou << ((g_ntsc) ? "131" : "156");
-            break;
-
-        case 3:
-            ou << ((g_ntsc) ? "87" : "104");
-            break;
-
-        case 4:
-            ou << ((g_ntsc) ? "66" : "78");
-            break;
-
-        default:
-            ou << ((g_ntsc) ? "262" : "312");
-            break;
-        }
-        ou << EOL;
-    }
-
-    // A double EOL is necessary for making the SAP export functional
-    ou << EOL;
-
-    // Patch: change a JMP [label] to a RTS with 2 NOPs
-    byte saprtsnop[3] = { 0x60,0xEA,0xEA };
-    for (int i = 0; i < 3; i++) { mem[VU_PLAYER_RTS_NOP + i] = saprtsnop[i]; }
-
-    // Patch: change a $00 to $FF to force the LOOP flag to be infinite
-    mem[VU_PLAYER_LOOP_FLAG] = 0xFF;
-
-    // SAP initialisation patch, running from address 0x3080 in Atari executable 
-    byte sapbytes[14] =
-    {
-        0x8D,LZSSP_SONGIDX & 0xff,LZSSP_SONGIDX >> 8,									// STA SongIdx
-        0xA2,0x00,																	// LDX #0
-        0x8E,LZSSP_IS_FADEING_OUT & 0xff, LZSSP_IS_FADEING_OUT >> 8,					// STX is_fadeing_out
-        0x8E,LZSSP_STOP_ON_FADE_END & 0xff, LZSSP_STOP_ON_FADE_END >> 8,				// STX stop_on_fade_end
-        0x4C,LZSSP_SETNEWSONGPTRSFULL & 0xff, LZSSP_SETNEWSONGPTRSFULL >> 8	// JMP SetNewSongPtrsLoopsOnly
-    };
-    memcpy(mem + VU_PLAYER_INIT_SAP, sapbytes, 14);
-
-    mem[VU_PLAYER_SONG_SPEED] = m_instrumentSpeed;						// Song speed
-    mem[VU_PLAYER_STEREO_FLAG] = (g_tracks4_8 > 4) ? 0xFF : 0x00;		// Is the song stereo?
-
-    // Reconstruct the export binary 
-    SaveBinaryBlock(ou, mem, 0x1900, 0x1EFF, 1);	// LZSS Driver, and some free bytes for later if needed
-    SaveBinaryBlock(ou, mem, 0x2000, 0x27FF, 0);	// VUPlayer only
-
-    // SongStart pointers
-    mem[LZSS_POINTER] = targetAddrOfModule >> 8;			// SongsSHIPtrs
-    mem[LZSS_POINTER] = lzss_offset >> 8;					// SongsIndexEnd
-    mem[LZSS_POINTER] = targetAddrOfModule & 0xFF;			// SongsSLOPtrs
-    mem[LZSS_POINTER] = lzss_offset & 0xFF;					// SongsDummyEnd
-
-    // SongEnd pointers
-    mem[LZSS_POINTER] = lzss_offset >> 8;					// LoopsIndexStart
-    mem[LZSS_POINTER] = lzss_end >> 8;						// LoopsIndexEnd
-    mem[LZSS_POINTER] = lzss_offset & 0xFF;					// LoopsSLOPtrs
-    mem[LZSS_POINTER] = lzss_end & 0xFF;					// LoopsDummyEnd
-
-    if (intro > 16)
-    {
-        memcpy(mem + targetAddrOfModule, buff2, intro);
-        memcpy(mem + lzss_offset, buff3, loop);
-    }
-    else
-    {
-        //memcpy(mem + targetAddrOfModule, buff1, full);
-        memcpy(mem + lzss_offset, buff3, loop);
-    }
-
-    // Overwrite the LZSS data region with both the pointers for subtunes index, and the actual LZSS streams until the end of file
-    SaveBinaryBlock(ou, mem, LZSS_POINTER, lzss_end, 0);
-
-    return true;
 }
+
 
 /// <summary>
 /// Generate a SAP-R data stream, compress it and export to VUPlayer xex
@@ -546,7 +254,7 @@ bool CSong::ExportLZSS_XEX(std::ofstream& ou)
 {
     CString s, t;
 
-    WORD addressFrom, addressTo;
+    MemoryAddress addressFrom, addressTo;
 
     int subsongs = GetSubsongParts(t);
     int count = 0;
@@ -583,8 +291,8 @@ bool CSong::ExportLZSS_XEX(std::ofstream& ou)
 
     // LZSS buffers for each ones of the tune parts being reconstructed.
     // Because the buffers are large, they are allocated on hte heap instead of the stack.
-    byte* buff2= new byte[0xFFFFF]{};
-    byte* buff3=new byte[0xFFFFF]{};
+    byte* buff2 = new byte[0xFFFFF]{};
+    byte* buff3 = new byte[0xFFFFF]{};
 
     while (count < subsongs)
     {
@@ -780,8 +488,9 @@ void CSong::DumpSongToPokeyBuffer(int playmode, int songline, int trackline)
         {
             // 1 VBI of RMT routine (for instruments)
             if (g_rmtroutine)
+            {
                 Atari_PlayRMT();
-
+            }
             // Transfer from g_atarimem to POKEY buffer
             g_PokeyStream.Record();
         }

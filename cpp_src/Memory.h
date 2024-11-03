@@ -1,5 +1,7 @@
 #pragma once
 
+// Central definition of 8-bit memory related types and constants
+
 typedef unsigned short MemoryAddress;
 typedef size_t MemorySize;
 

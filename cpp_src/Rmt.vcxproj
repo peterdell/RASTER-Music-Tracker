@@ -325,6 +325,8 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
     </ClCompile>
+    <ClCompile Include="SAPFile.cpp" />
+    <ClCompile Include="SAPFileExporter.cpp" />
     <ClCompile Include="EffectsDlg.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">_DEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
@@ -538,6 +540,10 @@
     <ClInclude Include="Atari6502.h" />
     <ClInclude Include="Clipboard.h" />
     <ClInclude Include="ConfigDlg.h" />
+    <ClInclude Include="RmtFile.h" />
+    <ClInclude Include="Memory.h" />
+    <ClInclude Include="SAPFile.h" />
+    <ClInclude Include="SAPFileExporter.h" />
     <ClInclude Include="RmtAtariBinaries.h" />
     <ClInclude Include="EffectsDlg.h" />
     <ClInclude Include="ExportDlgs.h" />
@@ -566,6 +572,7 @@
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="TuningDlg.h" />
     <ClInclude Include="Undo.h" />
+    <ClInclude Include="VUPlayer.h" />
     <ClInclude Include="WaveFile.h" />
     <ClInclude Include="XPokey.h" />
   </ItemGroup>

@@ -171,15 +171,18 @@
     <ClCompile Include="RmtAtariBinaries.cpp">
       <Filter>Source Files\Sound Generator</Filter>
     </ClCompile>
+    <ClCompile Include="SAPFileExporter.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClCompile>
+    <ClCompile Include="SAPFile.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="EffectsDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ExportDlgs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FileNewDlg.h">
@@ -271,6 +274,24 @@
     </ClInclude>
     <ClInclude Include="RmtAtariBinaries.h">
       <Filter>Source Files\Sound Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="SAPFileExporter.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClInclude>
+    <ClInclude Include="SAPFile.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClInclude>
+    <ClInclude Include="RmtFile.h">
+      <Filter>Source Files\RMT Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="ExportDlgs.h">
+      <Filter>Source Files\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="VUPlayer.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
