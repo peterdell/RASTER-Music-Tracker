@@ -86,7 +86,7 @@ void CTrackClipboard::BlockDeselect()
 	if (IsBlockSelected())
 	{
 		m_selcol = -1;
-		SetStatusBarText("");
+        ClearStatusBar();
 	}
 }
 

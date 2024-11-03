@@ -1778,7 +1778,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         {
             SetStatusBarText("Load...");
             OnFileOpen();
-            SetStatusBarText("");
+            ClearStatusBar();
         }
         else
             goto AllModesDefaultKey;
@@ -1817,7 +1817,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             Sleep(128);
 
         end_save_control_s:
-            SetStatusBarText("");
+            ClearStatusBar();
         }
         else
             goto AllModesDefaultKey;
