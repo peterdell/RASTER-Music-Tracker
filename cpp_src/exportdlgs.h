@@ -22,6 +22,7 @@ public:
 	CExpSAPDlg(CWnd* pParent = NULL);   // standard constructor
 
 // Dialog Data
+    CString m_title;
 	//{{AFX_DATA(CExpSAPDlg)
 	enum { IDD = IDD_EXPSAP };
 	CString	m_author;
@@ -46,6 +47,12 @@ protected:
 		// NOTE: the ClassWizard will add member functions here
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
+
+    virtual BOOL OnInitDialog() override {
+        CDialog::OnInitDialog(); 
+        SetWindowText(m_title);
+        return TRUE;
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////
