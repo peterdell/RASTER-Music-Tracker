@@ -9,52 +9,57 @@
 #include "Tracks.h"
 
 
+// These two should be song attributes instead
+extern int g_tracks4_8;
+extern BOOL g_ntsc;				//NTSC (60Hz)
+
+
 struct TBookmark
 {
-	int songline;
-	int trackline;
-	int speed;
+    int songline;
+    int trackline;
+    int speed;
 };
 
 struct TSong	//due to Undo
 {
-	int song[SONGLEN][SONGTRACKS];
-	int songgo[SONGLEN];					//if> = 0, then GO applies
-	TBookmark bookmark;
+    int song[SONGLEN][SONGTRACKS];
+    int songgo[SONGLEN];					//if> = 0, then GO applies
+    TBookmark bookmark;
 };
 
 struct TInfo
 {
-	char songname[SONG_NAME_MAX_LEN + 1];
-	int speed;
-	int mainspeed;
-	int instrspeed;
-	int songnamecur; //to return the cursor to the appropriate position when undo changes in the song name
+    char songname[SONG_NAME_MAX_LEN + 1];
+    int speed;
+    int mainspeed;
+    int instrspeed;
+    int songnamecur; //to return the cursor to the appropriate position when undo changes in the song name
 };
 
 struct TExportMetadata
 {
-	char songname[SONG_NAME_MAX_LEN + 1];
-	CTime currentTime;
-	int instrspeed;
-	bool isStereo;
-	bool isNTSC;
-	bool autoRegion;
-	bool displayRasterbar;
-	int rasterbarColour;
-	char atariText[5 * 40];
+    char songname[SONG_NAME_MAX_LEN + 1];
+    CTime currentTime;
+    int instrspeed;
+    bool isStereo;
+    bool isNTSC;
+    bool autoRegion;
+    bool displayRasterbar;
+    int rasterbarColour;
+    char atariText[5 * 40];
 };
 
 
 typedef struct
 {
-	unsigned char mem[65536];				// default RAM size for most 800xl/xe machines
+    unsigned char mem[65536];				// default RAM size for most 800xl/xe machines
 
-	int targetAddrOfModule;					// Start of RMT module in memory [$4000]
-	int firstByteAfterModule;				// Hmm, 1st byte after the RMT module
+    int targetAddrOfModule;					// Start of RMT module in memory [$4000]
+    int firstByteAfterModule;				// Hmm, 1st byte after the RMT module
 
-	BYTE instrumentSavedFlags[INSTRSNUM];
-	BYTE trackSavedFlags[TRACKSNUM];
+    BYTE instrumentSavedFlags[INSTRSNUM];
+    BYTE trackSavedFlags[TRACKSNUM];
 
 } tExportDescription;
 
@@ -65,375 +70,389 @@ class CSAPFile;
 class CSong
 {
 public:
-    friend CSAPFile;
+    CSong();
+    ~CSong();
 
-	CSong();
-	~CSong();
+    CString GetName() const {
+        return m_songname;
+    }
 
-	void StopTimer();
-	void ChangeTimer(int ms);
-	void KillTimer();
+    int GetInstrumentSpeed() const {
+        return m_instrumentSpeed;
+    }
 
-	void ClearSong(int numoftracks);
+    bool IsStereo() const {
+        return (g_tracks4_8 > 4);
+    }
 
-	void MidiEvent(DWORD dwParam);
+    bool IsNTSC() const {
+        return g_ntsc;
+    }
 
-	void DrawSong();				// Draw the song line info on the right
-	void DrawTracks();
-	void DrawInstrument();
-	void DrawInfo();			//top left corner
-	void DrawAnalyzer();
-	void DrawPlayTimeCounter();
+    void StopTimer();
+    void ChangeTimer(int ms);
+    void KillTimer();
 
-	BOOL InfoKey(int vk, int shift, int control);
-	BOOL InfoCursorGotoSongname(int x);
-	BOOL InfoCursorGotoSpeed(int x);
-	BOOL InfoCursorGotoHighlight(int x);
-	BOOL InfoCursorGotoOctaveSelect(int x, int y);
-	BOOL InfoCursorGotoVolumeSelect(int x, int y);
-	BOOL InfoCursorGotoInstrumentSelect(int x, int y);
+    void ClearSong(int numoftracks);
 
-	BOOL InstrKey(int vk, int shift, int control);
-	void ActiveInstrSet(int instr);
-	void ActiveInstrPrev() { g_Undo.Separator(); int instr = (m_activeinstr - 1) & 0x3f; ActiveInstrSet(instr); };
-	void ActiveInstrNext() { g_Undo.Separator(); int instr = (m_activeinstr + 1) & 0x3f; ActiveInstrSet(instr); };
+    void MidiEvent(DWORD dwParam);
 
-	int GetActiveInstr() { return m_activeinstr; };
-	int GetActiveColumn() { return m_trackactivecol; };
-	int GetActiveLine() { return m_trackactiveline; };
-	int GetPlayLine() { return m_trackplayline; };
-	void SetActiveLine(int line) { m_trackactiveline = line; };
-	void SetPlayLine(int line) { m_trackplayline = line; };
+    void DrawSong();				// Draw the song line info on the right
+    void DrawTracks();
+    void DrawInstrument();
+    void DrawInfo();			//top left corner
+    void DrawAnalyzer();
+    void DrawPlayTimeCounter();
 
-	BOOL CursorToSpeedColumn();
-	BOOL ProveKey(int vk, int shift, int control);
-	BOOL TrackKey(int vk, int shift, int control);
-	BOOL TrackCursorGoto(CPoint point);
-	BOOL TrackUp(int lines);
-	BOOL TrackDown(int lines, BOOL stoponlastline = 1);
-	BOOL TrackLeft(BOOL column = 0);
-	BOOL TrackRight(BOOL column = 0);
-	BOOL TrackDelNoteInstrVolSpeed(int noteinstrvolspeed) { return g_Tracks.DelNoteInstrVolSpeed(noteinstrvolspeed, SongGetActiveTrack(), m_trackactiveline); };
-	BOOL TrackSetNoteActualInstrVol(int note) { return g_Tracks.SetNoteInstrVol(note, m_activeinstr, m_volume, SongGetActiveTrack(), m_trackactiveline); };
-	BOOL TrackSetNoteInstrVol(int note, int instr, int vol) { return g_Tracks.SetNoteInstrVol(note, instr, vol, SongGetActiveTrack(), m_trackactiveline); };
-	BOOL TrackSetInstr(int instr) { return g_Tracks.SetInstr(instr, SongGetActiveTrack(), m_trackactiveline); };
-	BOOL TrackSetVol(int vol) { return g_Tracks.SetVol(vol, SongGetActiveTrack(), m_trackactiveline); };
-	BOOL TrackSetSpeed(int speed) { return g_Tracks.SetSpeed(speed, SongGetActiveTrack(), m_trackactiveline); };
-	int TrackGetNote() { return g_Tracks.GetNote(SongGetActiveTrack(), m_trackactiveline); };
-	int TrackGetInstr() { return g_Tracks.GetInstr(SongGetActiveTrack(), m_trackactiveline); };
-	int TrackGetVol() { return g_Tracks.GetVol(SongGetActiveTrack(), m_trackactiveline); };
-	int TrackGetSpeed() { return g_Tracks.GetSpeed(SongGetActiveTrack(), m_trackactiveline); };
-	BOOL TrackSetEnd() { return g_Tracks.SetEnd(SongGetActiveTrack(), m_trackactiveline + 1); };
-	int TrackGetLastLine() { return g_Tracks.GetLastLine(SongGetActiveTrack()); };
-	BOOL TrackSetGo() { return g_Tracks.SetGo(SongGetActiveTrack(), m_trackactiveline); };
-	int TrackGetGoLine() { return g_Tracks.GetGoLine(SongGetActiveTrack()); };
-	void RespectBoundaries();
-	void TrackGetLoopingNoteInstrVol(int track, int& note, int& instr, int& vol);
+    BOOL InfoKey(int vk, int shift, int control);
+    BOOL InfoCursorGotoSongname(int x);
+    BOOL InfoCursorGotoSpeed(int x);
+    BOOL InfoCursorGotoHighlight(int x);
+    BOOL InfoCursorGotoOctaveSelect(int x, int y);
+    BOOL InfoCursorGotoVolumeSelect(int x, int y);
+    BOOL InfoCursorGotoInstrumentSelect(int x, int y);
 
-	int* GetUECursor(int part);
-	void SetUECursor(int part, int* cursor);
-	BOOL UECursorIsEqual(int* cursor1, int* cursor2, int part);
-	BOOL Undo() { return g_Undo.Undo(); };
-	int	 UndoGetUndoSteps() { return g_Undo.GetUndoSteps(); };
-	BOOL Redo() { return g_Undo.Redo(); };
-	int  UndoGetRedoSteps() { return g_Undo.GetRedoSteps(); };
+    BOOL InstrKey(int vk, int shift, int control);
+    void ActiveInstrSet(int instr);
+    void ActiveInstrPrev() { g_Undo.Separator(); int instr = (m_activeinstr - 1) & 0x3f; ActiveInstrSet(instr); };
+    void ActiveInstrNext() { g_Undo.Separator(); int instr = (m_activeinstr + 1) & 0x3f; ActiveInstrSet(instr); };
 
-	BOOL SongKey(int vk, int shift, int control);
-	BOOL SongCursorGoto(CPoint point);
-	BOOL SongUp();
-	BOOL SongDown();
-	BOOL SongSubsongPrev();
-	BOOL SongSubsongNext();
-	BOOL SongTrackSet(int t);
-	BOOL SongTrackSetByNum(int num);
-	BOOL SongTrackDec();
-	BOOL SongTrackInc();
-	BOOL SongTrackEmpty();
-	int SongGetActiveTrack() { return (m_songgo[m_songactiveline] >= 0) ? -1 : m_song[m_songactiveline][m_trackactivecol]; };
-	int SongGetTrack(int songline, int trackcol) { return IsValidSongline(songline) && !IsSongGo(songline) ? m_song[songline][trackcol] : -1; };
-	int SongGetActiveTrackInColumn(int column) { return m_song[m_songactiveline][column]; };
-	int SongGetActiveLine() { return m_songactiveline; };
-	int SongGetPlayLine() { return m_songplayline; };
-	void SongSetActiveLine(int line) { m_songactiveline = line; };
-	void SongSetPlayLine(int line) { m_songplayline = line; };
+    int GetActiveInstr() { return m_activeinstr; };
+    int GetActiveColumn() { return m_trackactivecol; };
+    int GetActiveLine() { return m_trackactiveline; };
+    int GetPlayLine() { return m_trackplayline; };
+    void SetActiveLine(int line) { m_trackactiveline = line; };
+    void SetPlayLine(int line) { m_trackplayline = line; };
 
-	BOOL SongTrackGoOnOff();
-	int SongGetGo() { return m_songgo[m_songactiveline]; };
-	int SongGetGo(int songline) { return m_songgo[songline]; };
-	void SongTrackGoDec() { m_songgo[m_songactiveline] = (m_songgo[m_songactiveline] - 1) & 0xff; };
-	void SongTrackGoInc() { m_songgo[m_songactiveline] = (m_songgo[m_songactiveline] + 1) & 0xff; };
+    BOOL CursorToSpeedColumn();
+    BOOL ProveKey(int vk, int shift, int control);
+    BOOL TrackKey(int vk, int shift, int control);
+    BOOL TrackCursorGoto(CPoint point);
+    BOOL TrackUp(int lines);
+    BOOL TrackDown(int lines, BOOL stoponlastline = 1);
+    BOOL TrackLeft(BOOL column = 0);
+    BOOL TrackRight(BOOL column = 0);
+    BOOL TrackDelNoteInstrVolSpeed(int noteinstrvolspeed) { return g_Tracks.DelNoteInstrVolSpeed(noteinstrvolspeed, SongGetActiveTrack(), m_trackactiveline); };
+    BOOL TrackSetNoteActualInstrVol(int note) { return g_Tracks.SetNoteInstrVol(note, m_activeinstr, m_volume, SongGetActiveTrack(), m_trackactiveline); };
+    BOOL TrackSetNoteInstrVol(int note, int instr, int vol) { return g_Tracks.SetNoteInstrVol(note, instr, vol, SongGetActiveTrack(), m_trackactiveline); };
+    BOOL TrackSetInstr(int instr) { return g_Tracks.SetInstr(instr, SongGetActiveTrack(), m_trackactiveline); };
+    BOOL TrackSetVol(int vol) { return g_Tracks.SetVol(vol, SongGetActiveTrack(), m_trackactiveline); };
+    BOOL TrackSetSpeed(int speed) { return g_Tracks.SetSpeed(speed, SongGetActiveTrack(), m_trackactiveline); };
+    int TrackGetNote() { return g_Tracks.GetNote(SongGetActiveTrack(), m_trackactiveline); };
+    int TrackGetInstr() { return g_Tracks.GetInstr(SongGetActiveTrack(), m_trackactiveline); };
+    int TrackGetVol() { return g_Tracks.GetVol(SongGetActiveTrack(), m_trackactiveline); };
+    int TrackGetSpeed() { return g_Tracks.GetSpeed(SongGetActiveTrack(), m_trackactiveline); };
+    BOOL TrackSetEnd() { return g_Tracks.SetEnd(SongGetActiveTrack(), m_trackactiveline + 1); };
+    int TrackGetLastLine() { return g_Tracks.GetLastLine(SongGetActiveTrack()); };
+    BOOL TrackSetGo() { return g_Tracks.SetGo(SongGetActiveTrack(), m_trackactiveline); };
+    int TrackGetGoLine() { return g_Tracks.GetGoLine(SongGetActiveTrack()); };
+    void RespectBoundaries();
+    void TrackGetLoopingNoteInstrVol(int track, int& note, int& instr, int& vol);
 
-	BOOL SongInsertLine(int line);
-	BOOL SongDeleteLine(int line);
-	BOOL SongInsertCopyOrCloneOfSongLines(int& line);
-	BOOL SongPrepareNewLine(int& line, int sourceline = -1, BOOL alsoemptycolumns = 1);
-	int FindNearTrackBySongLineAndColumn(int songline, int column, BYTE* arrayTRACKSNUM);
-	BOOL SongPutnewemptyunusedtrack();
-	BOOL SongMaketracksduplicate();
+    int* GetUECursor(int part);
+    void SetUECursor(int part, int* cursor);
+    BOOL UECursorIsEqual(int* cursor1, int* cursor2, int part);
+    BOOL Undo() { return g_Undo.Undo(); };
+    int	 UndoGetUndoSteps() { return g_Undo.GetUndoSteps(); };
+    BOOL Redo() { return g_Undo.Redo(); };
+    int  UndoGetRedoSteps() { return g_Undo.GetRedoSteps(); };
 
-	BOOL OctaveUp() { if (m_octave < 4) { m_octave++; return 1; } else return 0; };
-	BOOL OctaveDown() { if (m_octave > 0) { m_octave--; return 1; } else return 0; };
+    BOOL SongKey(int vk, int shift, int control);
+    BOOL SongCursorGoto(CPoint point);
+    BOOL SongUp();
+    BOOL SongDown();
+    BOOL SongSubsongPrev();
+    BOOL SongSubsongNext();
+    BOOL SongTrackSet(int t);
+    BOOL SongTrackSetByNum(int num);
+    BOOL SongTrackDec();
+    BOOL SongTrackInc();
+    BOOL SongTrackEmpty();
+    int SongGetActiveTrack() { return (m_songgo[m_songactiveline] >= 0) ? -1 : m_song[m_songactiveline][m_trackactivecol]; };
+    int SongGetTrack(int songline, int trackcol) { return IsValidSongline(songline) && !IsSongGo(songline) ? m_song[songline][trackcol] : -1; };
+    int SongGetActiveTrackInColumn(int column) { return m_song[m_songactiveline][column]; };
+    int SongGetActiveLine() { return m_songactiveline; };
+    int SongGetPlayLine() { return m_songplayline; };
+    void SongSetActiveLine(int line) { m_songactiveline = line; };
+    void SongSetPlayLine(int line) { m_songplayline = line; };
 
-	BOOL VolumeUp() { if (m_volume < MAXVOLUME) { m_volume++; return 1; } else return 0; };
-	BOOL VolumeDown() { if (m_volume > 0) { m_volume--; return 1; } else return 0; };
+    BOOL SongTrackGoOnOff();
+    int SongGetGo() { return m_songgo[m_songactiveline]; };
+    int SongGetGo(int songline) { return m_songgo[songline]; };
+    void SongTrackGoDec() { m_songgo[m_songactiveline] = (m_songgo[m_songactiveline] - 1) & 0xff; };
+    void SongTrackGoInc() { m_songgo[m_songactiveline] = (m_songgo[m_songactiveline] + 1) & 0xff; };
 
-	void ClearBookmark() { m_bookmark.songline = m_bookmark.trackline = m_bookmark.speed = -1; };
-	BOOL IsBookmark() { return (m_bookmark.speed > 0 && m_bookmark.trackline < g_Tracks.GetMaxTrackLength()); };
-	BOOL SetBookmark();
+    BOOL SongInsertLine(int line);
+    BOOL SongDeleteLine(int line);
+    BOOL SongInsertCopyOrCloneOfSongLines(int& line);
+    BOOL SongPrepareNewLine(int& line, int sourceline = -1, BOOL alsoemptycolumns = 1);
+    int FindNearTrackBySongLineAndColumn(int songline, int column, BYTE* arrayTRACKSNUM);
+    BOOL SongPutnewemptyunusedtrack();
+    BOOL SongMaketracksduplicate();
 
-	BOOL Play(int mode, BOOL follow, int special = 0);
-	void Stop();
-	BOOL SongPlayNextLine();
+    BOOL OctaveUp() { if (m_octave < 4) { m_octave++; return 1; } else return 0; };
+    BOOL OctaveDown() { if (m_octave > 0) { m_octave--; return 1; } else return 0; };
 
-	BOOL PlayBeat();
-	BOOL PlayVBI();
+    BOOL VolumeUp() { if (m_volume < MAXVOLUME) { m_volume++; return 1; } else return 0; };
+    BOOL VolumeDown() { if (m_volume > 0) { m_volume--; return 1; } else return 0; };
 
-	BOOL PlayPressedTonesInit();
-	BOOL SetPlayPressedTonesTNIV(int t, int n, int i, int v) { m_playptnote[t] = n; m_playptinstr[t] = i; m_playptvolume[t] = v; return 1; }
-	BOOL SetPlayPressedTonesV(int t, int v) { m_playptvolume[t] = v; return 1; };
-	BOOL SetPlayPressedTonesSilence();
-	BOOL PlayPressedTones();
+    void ClearBookmark() { m_bookmark.songline = m_bookmark.trackline = m_bookmark.speed = -1; };
+    BOOL IsBookmark() { return (m_bookmark.speed > 0 && m_bookmark.trackline < g_Tracks.GetMaxTrackLength()); };
+    BOOL SetBookmark();
 
-	void TimerRoutine();
+    BOOL Play(int mode, BOOL follow, int special = 0);
+    void Stop();
+    BOOL SongPlayNextLine();
 
-	void SetRMTTitle();
+    BOOL PlayBeat();
+    BOOL PlayVBI();
 
-	void FileOpen(const char* filename = NULL, BOOL warnOfUnsavedChanges = TRUE);
-	void FileReload();
-	BOOL FileCanBeReloaded() { return (m_filename != "") /*&& (!m_fileunsaved)*/ /*&& g_changes*/; };
-	int WarnUnsavedChanges();
+    BOOL PlayPressedTonesInit();
+    BOOL SetPlayPressedTonesTNIV(int t, int n, int i, int v) { m_playptnote[t] = n; m_playptinstr[t] = i; m_playptvolume[t] = v; return 1; }
+    BOOL SetPlayPressedTonesV(int t, int v) { m_playptvolume[t] = v; return 1; };
+    BOOL SetPlayPressedTonesSilence();
+    BOOL PlayPressedTones();
 
-	void FileSave();
-	void FileSaveAs();
-	void FileNew();
-	void FileImport();
-	void FileExportAs();
+    void TimerRoutine();
 
-	void FileInstrumentSave();
-	void FileInstrumentLoad();
-	void FileTrackSave();
-	void FileTrackLoad();
+    void SetRMTTitle();
 
-	void StrToAtariVideo(char* txt, int count);
-	int SongToAta(unsigned char* dest, int max, int adr);
-	BOOL AtaToSong(unsigned char* sour, int len, int adr);
+    void FileOpen(const char* filename = NULL, BOOL warnOfUnsavedChanges = TRUE);
+    void FileReload();
+    BOOL FileCanBeReloaded() { return (m_filename != "") /*&& (!m_fileunsaved)*/ /*&& g_changes*/; };
+    int WarnUnsavedChanges();
 
-	bool CreateExportMetadata(int iotype, struct TExportMetadata* metadata);
-	bool WriteToXEX(struct TExportMetadata* metadata);
+    void FileSave();
+    void FileSaveAs();
+    void FileNew();
+    void FileImport();
+    void FileExportAs();
 
-	bool SaveTxt(std::ofstream& ou);
-	bool SaveRMW(std::ofstream& ou);
+    void FileInstrumentSave();
+    void FileInstrumentLoad();
+    void FileTrackSave();
+    void FileTrackLoad();
 
-	bool LoadRMT(std::ifstream& in);
-	bool LoadTxt(std::ifstream& in);
-	bool LoadRMW(std::ifstream& in);
+    void StrToAtariVideo(char* txt, int count);
+    int SongToAta(unsigned char* dest, int max, int adr);
+    BOOL AtaToSong(unsigned char* sour, int len, int adr);
 
-	int ImportTMC(std::ifstream& in);
-	int ImportMOD(std::ifstream& in);
+    bool CreateExportMetadata(int iotype, struct TExportMetadata* metadata);
+    bool WriteToXEX(struct TExportMetadata* metadata);
 
-	bool ExportV2(std::ofstream& ou, int iotype, LPCTSTR filename = NULL);
-	bool ExportAsRMT(std::ofstream& ou, tExportDescription* exportDesc);
-	bool ExportAsStrippedRMT(std::ofstream& ou, tExportDescription* exportDesc, LPCTSTR filename);
-	bool ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDesc);
-	bool ExportAsRelocatableAsmForRmtPlayer(std::ofstream& ou, tExportDescription* exportStrippedDesc);
+    bool SaveTxt(std::ofstream& ou);
+    bool SaveRMW(std::ofstream& ou);
 
-	bool ExportSAP_R(std::ofstream& ou);
-	bool ExportLZSS(std::ofstream& ou, LPCTSTR filename);
-	bool ExportCompactLZSS(std::ofstream& ou, LPCTSTR filename);
-	bool ExportLZSS_SAP(std::ofstream& ou);
-	bool ExportLZSS_XEX(std::ofstream& ou);
+    bool LoadRMT(std::ifstream& in);
+    bool LoadTxt(std::ifstream& in);
+    bool LoadRMW(std::ifstream& in);
 
-	bool ExportWav(std::ofstream& ou, LPCTSTR filename);
+    int ImportTMC(std::ifstream& in);
+    int ImportMOD(std::ifstream& in);
 
-	void DumpSongToPokeyBuffer(int playmode = MPLAY_SONG, int songline = 0, int trackline = 0);
-	int BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigned char* dst);
+    bool ExportV2(std::ofstream& ou, int iotype, LPCTSTR filename = NULL);
+    bool ExportAsRMT(std::ofstream& ou, tExportDescription* exportDesc);
+    bool ExportAsStrippedRMT(std::ofstream& ou, tExportDescription* exportDesc, LPCTSTR filename);
+    bool ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDesc);
+    bool ExportAsRelocatableAsmForRmtPlayer(std::ofstream& ou, tExportDescription* exportStrippedDesc);
 
-	bool TestBeforeFileSave();
-	int GetSubsongParts(CString& resultstr) const;
+    bool ExportSAP_R(std::ofstream& ou);
+    bool ExportLZSS(std::ofstream& ou, LPCTSTR filename);
+    bool ExportCompactLZSS(std::ofstream& ou, LPCTSTR filename);
+    bool ExportLZSS_SAP(std::ofstream& ou);
+    bool ExportLZSS_XEX(std::ofstream& ou);
 
-	void ComposeRMTFEATstring(CString& dest, const char* filename, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags, BOOL sfx, BOOL gvf, BOOL nos, int assemblerFormat);
+    bool ExportWav(std::ofstream& ou, LPCTSTR filename);
 
-	BOOL BuildRelocatableAsm(CString& dest,
-		tExportDescription* exportDesc,
-		CString strAsmStartLabel,
-		CString strTracksLabel,
-		CString strSongLinesLabel,
-		CString strInstrumentsLabel,
-		int assemblerFormat,
-		BOOL sfx,
-		BOOL gvf,
-		BOOL nos,
-		bool bWantSizeInfoOnly);
+    void DumpSongToPokeyBuffer(int playmode = MPLAY_SONG, int songline = 0, int trackline = 0);
+    int BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigned char* dst);
 
-	int BuildInstrumentData(
-		CString& strCode,
-		CString strInstrumentsLabel,
-		unsigned char* buf,
-		int from,
-		int to,
-		int* info,
-		int assemblerFormat
-	);
+    bool TestBeforeFileSave();
+    int GetSubsongParts(CString& resultstr) const;
 
-	int BuildTracksData(
-		CString& strCode,
-		CString strTracksLabel,
-		unsigned char* buf,
-		int from,
-		int to,
-		int* track_pos,
-		int assemblerFormat);
+    void ComposeRMTFEATstring(CString& dest, const char* filename, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags, BOOL sfx, BOOL gvf, BOOL nos, int assemblerFormat);
 
-	int BuildSongData(
-		CString& strCode,
-		CString strSongLinesLabel,
-		unsigned char* buf,
-		int offsetSong,
-		int len,
-		int start,
-		int numTracks,
-		int assemblerFormat
-	);
+    BOOL BuildRelocatableAsm(CString& dest,
+        tExportDescription* exportDesc,
+        CString strAsmStartLabel,
+        CString strTracksLabel,
+        CString strSongLinesLabel,
+        CString strInstrumentsLabel,
+        int assemblerFormat,
+        BOOL sfx,
+        BOOL gvf,
+        BOOL nos,
+        bool bWantSizeInfoOnly);
 
-	void MarkTF_USED(BYTE* arrayTRACKSNUM);
-	void MarkTF_NOEMPTY(BYTE* arrayTRACKSNUM);
+    int BuildInstrumentData(
+        CString& strCode,
+        CString strInstrumentsLabel,
+        unsigned char* buf,
+        int from,
+        int to,
+        int* info,
+        int assemblerFormat
+    );
 
-	int MakeTuningBlock(unsigned char* mem, int addr);
-	int DecodeTuningBlock(unsigned char* mem, int fromAddr, int endAddr);
-	void ResetTuningVariables();
+    int BuildTracksData(
+        CString& strCode,
+        CString strTracksLabel,
+        unsigned char* buf,
+        int from,
+        int to,
+        int* track_pos,
+        int assemblerFormat);
 
-	int MakeModule(unsigned char* mem, int adr, int iotype, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags);
-	int MakeRMFModule(unsigned char* mem, int adr, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags);
-	int DecodeModule(unsigned char* mem, int adrfrom, int adrend, BYTE* instrumentLoadedFlags, BYTE* trackLoadedFlags);
+    int BuildSongData(
+        CString& strCode,
+        CString strSongLinesLabel,
+        unsigned char* buf,
+        int offsetSong,
+        int len,
+        int start,
+        int numTracks,
+        int assemblerFormat
+    );
 
-	void TrackCopy();
-	void TrackPaste();
-	void TrackCut();
-	void TrackDelete();
-	void TrackCopyFromTo(int fromtrack, int totrack);
-	void TrackSwapFromTo(int fromtrack, int totrack);
+    void MarkTF_USED(BYTE* arrayTRACKSNUM);
+    void MarkTF_NOEMPTY(BYTE* arrayTRACKSNUM);
 
-	void BlockPaste(int special = 0);
+    int MakeTuningBlock(unsigned char* mem, int addr);
+    int DecodeTuningBlock(unsigned char* mem, int fromAddr, int endAddr);
+    void ResetTuningVariables();
 
-	void InstrCopy();
-	void InstrPaste(int special = 0);
-	void InstrCut();
-	void InstrDelete();
+    int MakeModule(unsigned char* mem, int adr, int iotype, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags);
+    int MakeRMFModule(unsigned char* mem, int adr, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags);
+    int DecodeModule(unsigned char* mem, int adrfrom, int adrend, BYTE* instrumentLoadedFlags, BYTE* trackLoadedFlags);
 
-	void InstrInfo(int instr, TInstrInfo* iinfo = NULL, int instrto = -1);
-	void InstrChange(int instr);
-	void TrackInfo(int track);
+    void TrackCopy();
+    void TrackPaste();
+    void TrackCut();
+    void TrackDelete();
+    void TrackCopyFromTo(int fromtrack, int totrack);
+    void TrackSwapFromTo(int fromtrack, int totrack);
 
-	void SongCopyLine();
-	void SongPasteLine();
-	void SongClearLine();
+    void BlockPaste(int special = 0);
 
-	void TracksOrderChange();
-	void Songswitch4_8(int tracks4_8);
-	int GetEffectiveMaxtracklen();
-	int GetSmallestMaxtracklen(int songline);
-	void ChangeMaxtracklen(int maxtracklen);
-	void TracksAllBuildLoops(int& tracksmodified, int& beatsreduced);
-	void TracksAllExpandLoops(int& tracksmodified, int& loopsexpanded);
-	void SongClearUnusedTracksAndParts(int& clearedtracks, int& truncatedtracks, int& truncatedbeats);
+    void InstrCopy();
+    void InstrPaste(int special = 0);
+    void InstrCut();
+    void InstrDelete();
 
-	int SongClearDuplicatedTracks();
-	int SongClearUnusedTracks();
-	int ClearAllInstrumentsUnusedInAnyTrack();
+    void InstrInfo(int instr, TInstrInfo* iinfo = NULL, int instrto = -1);
+    void InstrChange(int instr);
+    void TrackInfo(int track);
 
-	void RenumberAllTracks(int type);
-	void RenumberAllInstruments(int type);
+    void SongCopyLine();
+    void SongPasteLine();
+    void SongClearLine();
 
-	CString GetFilename() { return m_filename; };
-	int GetFiletype() { return m_filetype; };
+    void TracksOrderChange();
+    void Songswitch4_8(int tracks4_8);
+    int GetEffectiveMaxtracklen();
+    int GetSmallestMaxtracklen(int songline);
+    void ChangeMaxtracklen(int maxtracklen);
+    void TracksAllBuildLoops(int& tracksmodified, int& beatsreduced);
+    void TracksAllExpandLoops(int& tracksmodified, int& loopsexpanded);
+    void SongClearUnusedTracksAndParts(int& clearedtracks, int& truncatedtracks, int& truncatedbeats);
 
-	int(*GetSong())[SONGLEN][SONGTRACKS]{ return &m_song; };
-	int(*GetSongGo())[SONGLEN] { return &m_songgo; };
-	TBookmark* GetBookmark() { return &m_bookmark; };
+    int SongClearDuplicatedTracks();
+    int SongClearUnusedTracks();
+    int ClearAllInstrumentsUnusedInAnyTrack();
 
-	int GetPlayMode() { return m_play; };
-	void SetPlayMode(int mode) { m_play = mode; };
-	BOOL GetFollowPlayMode() { return m_followplay; };
-	void SetFollowPlayMode(BOOL follow) { m_followplay = follow; };
+    void RenumberAllTracks(int type);
+    void RenumberAllInstruments(int type);
 
-	void GetSongInfoPars(TInfo* info) { memcpy(info->songname, m_songname, SONG_NAME_MAX_LEN); info->speed = m_speed; info->mainspeed = m_mainSpeed; info->instrspeed = m_instrumentSpeed; info->songnamecur = m_songnamecur; };
-	void SetSongInfoPars(TInfo* info) { memcpy(m_songname, info->songname, SONG_NAME_MAX_LEN); m_speed = info->speed; m_mainSpeed = info->mainspeed; m_instrumentSpeed = info->instrspeed; m_songnamecur = info->songnamecur; };
+    CString GetFilename() { return m_filename; };
+    int GetFiletype() { return m_filetype; };
 
-	BOOL IsValidSongline(int songline) { return songline >= 0 && songline < SONGLEN; };
-	BOOL IsSongGo(int songline) { return IsValidSongline(songline) ? m_songgo[songline] >= 0 : 0; };
+    int(*GetSong())[SONGLEN][SONGTRACKS]{ return &m_song; };
+    int(*GetSongGo())[SONGLEN] { return &m_songgo; };
+    TBookmark* GetBookmark() { return &m_bookmark; };
 
-	void SongJump(int lines);
+    int GetPlayMode() { return m_play; };
+    void SetPlayMode(int mode) { m_play = mode; };
+    BOOL GetFollowPlayMode() { return m_followplay; };
+    void SetFollowPlayMode(BOOL follow) { m_followplay = follow; };
+
+    void GetSongInfoPars(TInfo* info) { memcpy(info->songname, m_songname, SONG_NAME_MAX_LEN); info->speed = m_speed; info->mainspeed = m_mainSpeed; info->instrspeed = m_instrumentSpeed; info->songnamecur = m_songnamecur; };
+    void SetSongInfoPars(TInfo* info) { memcpy(m_songname, info->songname, SONG_NAME_MAX_LEN); m_speed = info->speed; m_mainSpeed = info->mainspeed; m_instrumentSpeed = info->instrspeed; m_songnamecur = info->songnamecur; };
+
+    BOOL IsValidSongline(int songline) { return songline >= 0 && songline < SONGLEN; };
+    BOOL IsSongGo(int songline) { return IsValidSongline(songline) ? m_songgo[songline] >= 0 : 0; };
+
+    void SongJump(int lines);
 
 private:
-	int m_song[SONGLEN][SONGTRACKS];
-	int m_songgo[SONGLEN];						// If >= 0, then GO applies
+    int m_song[SONGLEN][SONGTRACKS];
+    int m_songgo[SONGLEN];						// If >= 0, then GO applies
 
-	BOOL volatile m_followplay;
-	int volatile m_play;
-	int m_songactiveline;
-	int volatile m_songplayline;				// Which line of the song is currently being played
+    BOOL volatile m_followplay;
+    int volatile m_play;
+    int m_songactiveline;
+    int volatile m_songplayline;				// Which line of the song is currently being played
 
-	int m_trackactiveline;
-	int volatile m_trackplayline;				// Which line of a track is currenyly being played
-	int m_trackactivecol;						//0-7
-	int m_trackactivecur;						//0-2
+    int m_trackactiveline;
+    int volatile m_trackplayline;				// Which line of a track is currenyly being played
+    int m_trackactivecol;						//0-7
+    int m_trackactivecur;						//0-2
 
-	int m_trackplayblockstart;
-	int m_trackplayblockend;
+    int m_trackplayblockstart;
+    int m_trackplayblockend;
 
-	int m_activeinstr;
-	int m_volume;
-	int m_octave;
+    int m_activeinstr;
+    int m_volume;
+    int m_octave;
 
-	//MIDI input variables, used for tests through MIDI CH15 
-	int m_mod_wheel = 0;
-	int m_vol_slider = 0;
-	int m_heldkeys = 0;
-	int m_midi_distortion = 0;
-	BOOL m_ch_offset = 0;
+    //MIDI input variables, used for tests through MIDI CH15 
+    int m_mod_wheel = 0;
+    int m_vol_slider = 0;
+    int m_heldkeys = 0;
+    int m_midi_distortion = 0;
+    BOOL m_ch_offset = 0;
 
-	//POKEY EXPLORER variables, used for tests involving pitch calculations and sound debugging displayed on screen
-	int e_ch_idx = 0;
-	int e_modoffset = 1;
-	int e_coarse_divisor = 1;
-	int e_modulo = 0;
-	BOOL e_valid = 1;
-	double e_divisor = 1;
-	double e_pitch = 0;
+    //POKEY EXPLORER variables, used for tests involving pitch calculations and sound debugging displayed on screen
+    int e_ch_idx = 0;
+    int e_modoffset = 1;
+    int e_coarse_divisor = 1;
+    int e_modulo = 0;
+    BOOL e_valid = 1;
+    double e_divisor = 1;
+    double e_pitch = 0;
 
-	int m_infoact;						// Which part of the info area is active for editing: 0 = name, 
-	char m_songname[SONG_NAME_MAX_LEN + 1];
-	int m_songnamecur;
+    int m_infoact;						// Which part of the info area is active for editing: 0 = name, 
+    char m_songname[SONG_NAME_MAX_LEN + 1];
+    int m_songnamecur;
 
-	TBookmark m_bookmark;
+    TBookmark m_bookmark;
 
-	double m_avgspeed[8] = { 0 };		//use for calculating average BPM
+    double m_avgspeed[8] = { 0 };		//use for calculating average BPM
 
-	int volatile m_mainSpeed;
-	int volatile m_speed;
-	int volatile m_speeda;
+    int volatile m_mainSpeed;
+    int volatile m_speed;
+    int volatile m_speeda;
 
-	int volatile m_instrumentSpeed;
+    int volatile m_instrumentSpeed;
 
-	int volatile m_quantization_note;
-	int volatile m_quantization_instr;
-	int volatile m_quantization_vol;
+    int volatile m_quantization_note;
+    int volatile m_quantization_instr;
+    int volatile m_quantization_vol;
 
-	int m_playptnote[SONGTRACKS];
-	int m_playptinstr[SONGTRACKS];
-	int m_playptvolume[SONGTRACKS];
+    int m_playptnote[SONGTRACKS];
+    int m_playptinstr[SONGTRACKS];
+    int m_playptvolume[SONGTRACKS];
 
-	TInstrument m_instrclipboard;
-	int m_songlineclipboard[SONGTRACKS];
-	int m_songgoclipboard;
+    TInstrument m_instrclipboard;
+    int m_songlineclipboard[SONGTRACKS];
+    int m_songgoclipboard;
 
-	UINT m_timerRoutine;
-	const BYTE m_timerRoutineTick[3] = { 17, 17, 16 };
+    UINT m_timerRoutine;
+    const BYTE m_timerRoutineTick[3] = { 17, 17, 16 };
 
-	CString m_filename;
-	int m_filetype;
-	int m_lastExportType;					// Which data format was used to export a file the last time?
+    CString m_filename;
+    int m_filetype;
+    int m_lastExportType;					// Which data format was used to export a file the last time?
 
-	int m_TracksOrderChange_songlinefrom; //is defined as a member variable to keep in use
-	int m_TracksOrderChange_songlineto;	  //the last values used remain
+    int m_TracksOrderChange_songlinefrom; //is defined as a member variable to keep in use
+    int m_TracksOrderChange_songlineto;	  //the last values used remain
 };
