@@ -10,7 +10,6 @@
 #include "Atari6502.h"
 #include "global.h"
 #include "ChannelControl.h"
-#include "PokeyStream.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -66,8 +65,6 @@ int ntscRegionSetOnDriver = g_ntsc;
 
 static LPDIRECTSOUND          g_lpds;
 static LPDIRECTSOUNDBUFFER    g_lpdsbPrimary;
-
-extern CPokeyStream g_PokeyStream;
 
 CXPokey::CXPokey()
 {
