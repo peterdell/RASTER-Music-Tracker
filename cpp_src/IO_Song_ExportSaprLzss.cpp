@@ -41,6 +41,12 @@ extern CPokeyStream g_PokeyStream;
 
 #define VU_PLAYER_SOUNGTIMER	LZSSP_SONGTIMERCOUNT
 
+
+typedef unsigned short MemoryAddress;
+
+constexpr size_t RAM_SIZE = 65536; 					    // Default RAM size for most Atari XL/XE machines
+constexpr MemoryAddress RAM_MAX_ADDRESS = 0xBFFF;
+
 /// <summary>
 /// Export the Pokey registers to the SAP Type R format (data stream)
 /// </summary>
@@ -48,94 +54,94 @@ extern CPokeyStream g_PokeyStream;
 /// <returns>true if the file was written</returns>
 bool CSong::ExportSAP_R(std::ofstream& ou)
 {
-	DumpSongToPokeyBuffer();
+    DumpSongToPokeyBuffer();
 
-	CString s;
-	CExpSAPDlg dlg;
-	s = m_songname;
-	s.TrimRight();			//cuts spaces after the name
-	s.Replace('"', '\'');	//replaces quotation marks with an apostrophe
-	dlg.m_name = s;
+    CString s;
+    CExpSAPDlg dlg;
+    s = m_songname;
+    s.TrimRight();			//cuts spaces after the name
+    s.Replace('"', '\'');	//replaces quotation marks with an apostrophe
+    dlg.m_name = s;
 
-	dlg.m_author = "???";
+    dlg.m_author = "???";
 
-	CTime time = CTime::GetCurrentTime();
-	dlg.m_date = time.Format("%d/%m/%Y");
+    CTime time = CTime::GetCurrentTime();
+    dlg.m_date = time.Format("%d/%m/%Y");
 
-	if (dlg.DoModal() != IDOK)
-	{
-		// Clear the Pokey dumper memory and reset RMT routines
-		g_PokeyStream.FinishedRecording();
-		return false;
-	}
+    if (dlg.DoModal() != IDOK)
+    {
+        // Clear the Pokey dumper memory and reset RMT routines
+        g_PokeyStream.FinishedRecording();
+        return false;
+    }
 
-	ou << "SAP" << EOL;
+    ou << "SAP" << EOL;
 
-	s = dlg.m_author;
-	s.TrimRight();
-	s.Replace('"', '\'');
+    s = dlg.m_author;
+    s.TrimRight();
+    s.Replace('"', '\'');
 
-	ou << "AUTHOR \"" << s << "\"" << EOL;
+    ou << "AUTHOR \"" << s << "\"" << EOL;
 
-	s = dlg.m_name;
-	s.TrimRight();
-	s.Replace('"', '\'');
+    s = dlg.m_name;
+    s.TrimRight();
+    s.Replace('"', '\'');
 
-	ou << "NAME \"" << s << " (" << g_PokeyStream.GetFirstCountPoint() << " frames)" << "\"" << EOL;	//display the total frames recorded
+    ou << "NAME \"" << s << " (" << g_PokeyStream.GetFirstCountPoint() << " frames)" << "\"" << EOL;	//display the total frames recorded
 
-	s = dlg.m_date;
-	s.TrimRight();
-	s.Replace('"', '\'');
+    s = dlg.m_date;
+    s.TrimRight();
+    s.Replace('"', '\'');
 
-	ou << "DATE \"" << s << "\"" << EOL;
+    ou << "DATE \"" << s << "\"" << EOL;
 
-	s.MakeUpper();
+    s.MakeUpper();
 
-	ou << "TYPE R" << EOL;
+    ou << "TYPE R" << EOL;
 
-	if (g_tracks4_8 > 4)
-	{	//stereo module
-		ou << "STEREO" << EOL;
-	}
+    if (g_tracks4_8 > 4)
+    {	//stereo module
+        ou << "STEREO" << EOL;
+    }
 
-	if (g_ntsc)
-	{	//NTSC module
-		ou << "NTSC" << EOL;
-	}
+    if (g_ntsc)
+    {	//NTSC module
+        ou << "NTSC" << EOL;
+    }
 
-	if (m_instrumentSpeed > 1)
-	{
-		ou << "FASTPLAY ";
-		switch (m_instrumentSpeed)
-		{
-		case 2:
-			ou << ((g_ntsc) ? "131" : "156");
-			break;
+    if (m_instrumentSpeed > 1)
+    {
+        ou << "FASTPLAY ";
+        switch (m_instrumentSpeed)
+        {
+        case 2:
+            ou << ((g_ntsc) ? "131" : "156");
+            break;
 
-		case 3:
-			ou << ((g_ntsc) ? "87" : "104");
-			break;
+        case 3:
+            ou << ((g_ntsc) ? "87" : "104");
+            break;
 
-		case 4:
-			ou << ((g_ntsc) ? "66" : "78");
-			break;
+        case 4:
+            ou << ((g_ntsc) ? "66" : "78");
+            break;
 
-		default:
-			ou << ((g_ntsc) ? "262" : "312");
-			break;
-		}
-		ou << EOL;
-	}
-	// A double EOL is necessary for making the SAP-R export functional
-	ou << EOL;
+        default:
+            ou << ((g_ntsc) ? "262" : "312");
+            break;
+        }
+        ou << EOL;
+    }
+    // A double EOL is necessary for making the SAP-R export functional
+    ou << EOL;
 
-	// Write the SAP-R stream to the output file defined in the path dialog with the data specified above
-	g_PokeyStream.WriteToFile(ou, g_PokeyStream.GetFirstCountPoint(), 0);
+    // Write the SAP-R stream to the output file defined in the path dialog with the data specified above
+    g_PokeyStream.WriteToFile(ou, g_PokeyStream.GetFirstCountPoint(), 0);
 
-	// Clear the memory and reset the dumper to its initial setup for the next time it will be called
-	g_PokeyStream.FinishedRecording();
+    // Clear the memory and reset the dumper to its initial setup for the next time it will be called
+    g_PokeyStream.FinishedRecording();
 
-	return true;
+    return true;
 }
 
 /// <summary>
@@ -146,55 +152,55 @@ bool CSong::ExportSAP_R(std::ofstream& ou)
 /// <returns></returns>
 bool CSong::ExportLZSS(std::ofstream& ou, LPCTSTR filename)
 {
-	DumpSongToPokeyBuffer();
+    DumpSongToPokeyBuffer();
 
-	SetStatusBarText("Compressing data ...");
+    SetStatusBarText("Compressing data ...");
 
-	int frameSize = (g_tracks4_8 == 8) ? 18 : 9;	//SAP-R bytes to copy, Stereo doubles the number
+    int frameSize = (g_tracks4_8 == 8) ? 18 : 9;	//SAP-R bytes to copy, Stereo doubles the number
 
-	// Now, create LZSS files using the SAP-R dump created earlier
-	unsigned char compressedData[65536];
+    // Now, create LZSS files using the SAP-R dump created earlier
+    byte compressedData[RAM_SIZE]{};
 
-	CCompressLzss lzssData;
+    CCompressLzss lzssData;
 
-	// TODO: add a Dialog box for proper standalone LZSS exports
-	// This is a hacked up method that was added only out of necessity for a project making use of song sections separately
-	// I refuse to touch RMT2LZSS ever again
-	CString fn = filename;
-	fn = fn.Left(fn.GetLength() - 5);	// In order to keep the filename without the extention 
+    // TODO: add a Dialog box for proper standalone LZSS exports
+    // This is a hacked up method that was added only out of necessity for a project making use of song sections separately
+    // I refuse to touch RMT2LZSS ever again
+    CString fn = filename;
+    fn = fn.Left(fn.GetLength() - 5);	// In order to keep the filename without the extention 
 
-	// Full tune playback up to its loop point
-	int full = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer(), g_PokeyStream.GetFirstCountPoint() * frameSize, compressedData);
-	if (full > 16)
-	{
-		//ou.open(fn + "_FULL.lzss", ios::binary);	// Create a new file for the Full section
-		ou.write((char*)compressedData, full);	// Write the buffer contents to the export file
-	}
-	ou.close();	// Close the file, if successful, it should not be empty 
+    // Full tune playback up to its loop point
+    int full = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer(), g_PokeyStream.GetFirstCountPoint() * frameSize, compressedData);
+    if (full > 16)
+    {
+        //ou.open(fn + "_FULL.lzss", ios::binary);	// Create a new file for the Full section
+        ou.write((char*)compressedData, full);	// Write the buffer contents to the export file
+    }
+    ou.close();	// Close the file, if successful, it should not be empty 
 
-	// Intro section playback, up to the start of the detected loop point
-	int intro = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer(), g_PokeyStream.GetThirdCountPoint() * frameSize, compressedData);
-	if (intro > 16)
-	{
-		ou.open(fn + "_INTRO.lzss", std::ios::binary);	// Create a new file for the Intro section
-		ou.write((char*)compressedData, intro);		// Write the buffer contents to the export file
-	}
-	ou.close();	// Close the file, if successful, it should not be empty 
+    // Intro section playback, up to the start of the detected loop point
+    int intro = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer(), g_PokeyStream.GetThirdCountPoint() * frameSize, compressedData);
+    if (intro > 16)
+    {
+        ou.open(fn + "_INTRO.lzss", std::ios::binary);	// Create a new file for the Intro section
+        ou.write((char*)compressedData, intro);		// Write the buffer contents to the export file
+    }
+    ou.close();	// Close the file, if successful, it should not be empty 
 
-	// Looped section playback, this part is virtually seamless to itself
-	int loop = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer() + (g_PokeyStream.GetFirstCountPoint() * frameSize), g_PokeyStream.GetSecondCountPoint() * frameSize, compressedData);
-	if (loop > 16)
-	{
-		ou.open(fn + "_LOOP.lzss", std::ios::binary);	// Create a new file for the Loop section
-		ou.write((char*)compressedData, loop);		// Write the buffer contents to the export file
-	}
-	ou.close();	// Close the file, if successful, it should not be empty 
+    // Looped section playback, this part is virtually seamless to itself
+    int loop = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer() + (g_PokeyStream.GetFirstCountPoint() * frameSize), g_PokeyStream.GetSecondCountPoint() * frameSize, compressedData);
+    if (loop > 16)
+    {
+        ou.open(fn + "_LOOP.lzss", std::ios::binary);	// Create a new file for the Loop section
+        ou.write((char*)compressedData, loop);		// Write the buffer contents to the export file
+    }
+    ou.close();	// Close the file, if successful, it should not be empty 
 
-	g_PokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
+    g_PokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
 
-	SetStatusBarText("");
+    SetStatusBarText("");
 
-	return true;
+    return true;
 }
 
 /// <summary>
@@ -207,106 +213,106 @@ bool CSong::ExportLZSS(std::ofstream& ou, LPCTSTR filename)
 /// <returns></returns>
 bool CSong::ExportCompactLZSS(std::ofstream& ou, LPCTSTR filename)
 {
-	// TODO: everything related to exporting the stream buffer into small files and compress them to LZSS
+    // TODO: everything related to exporting the stream buffer into small files and compress them to LZSS
 
-	DumpSongToPokeyBuffer();
+    DumpSongToPokeyBuffer();
 
-	SetStatusBarText("Compressing data ...");
+    SetStatusBarText("Compressing data ...");
 
-	int frameSize = (g_tracks4_8 == 8) ? 18 : 9;	//SAP-R bytes to copy, Stereo doubles the number
+    int frameSize = (g_tracks4_8 == 8) ? 18 : 9;	//SAP-R bytes to copy, Stereo doubles the number
 
-	int indexToSongline = 0;
-	int songlineCount = g_PokeyStream.GetSonglineCount();
+    int indexToSongline = 0;
+    int songlineCount = g_PokeyStream.GetSonglineCount();
 
-	// Since 0 is also a valid offset, the initial values are set to -1 to prevent conflicts
-	int listOfMatches[256];
-	memset(listOfMatches, -1, sizeof(listOfMatches));
+    // Since 0 is also a valid offset, the initial values are set to -1 to prevent conflicts
+    int listOfMatches[256];
+    memset(listOfMatches, -1, sizeof(listOfMatches));
 
-	// Now, create LZSS files using the SAP-R dump created earlier
-	unsigned char compressedData[65536];
+    // Now, create LZSS files using the SAP-R dump created earlier
+    unsigned char compressedData[RAM_SIZE];
 
-	CCompressLzss lzssData;
+    CCompressLzss lzssData;
 
-	// TODO: add a Dialog box for proper standalone LZSS exports
-	CString fn = filename;
-	fn = fn.Left(fn.GetLength() - 5);	// In order to keep the filename without the extention 
-	ou.close();
+    // TODO: add a Dialog box for proper standalone LZSS exports
+    CString fn = filename;
+    fn = fn.Left(fn.GetLength() - 5);	// In order to keep the filename without the extention 
+    ou.close();
 
-	// For all songlines to index, process with comparisons and find duplicates 
-	while (indexToSongline < songlineCount)
-	{
-		int bytesCount = g_PokeyStream.GetFramesPerSongline(indexToSongline) * frameSize;
+    // For all songlines to index, process with comparisons and find duplicates 
+    while (indexToSongline < songlineCount)
+    {
+        int bytesCount = g_PokeyStream.GetFramesPerSongline(indexToSongline) * frameSize;
 
-		int index1 = g_PokeyStream.GetOffsetPerSongline(indexToSongline);
-		unsigned char* buff1 = g_PokeyStream.GetStreamBuffer() + (index1 * frameSize);
+        int index1 = g_PokeyStream.GetOffsetPerSongline(indexToSongline);
+        unsigned char* buff1 = g_PokeyStream.GetStreamBuffer() + (index1 * frameSize);
 
-		// If there is no index already, assume the Index1 to be the first occurence 
-		if (listOfMatches[indexToSongline] == -1)
-			listOfMatches[indexToSongline] = index1;
+        // If there is no index already, assume the Index1 to be the first occurence 
+        if (listOfMatches[indexToSongline] == -1)
+            listOfMatches[indexToSongline] = index1;
 
-		// Compare all indexes available and overwrite matching songline streams with index1's offset
-		for (int i = 0; i < songlineCount; i++)
-		{
-			// If the bytes count between 2 songlines isn't matching, don't even bother trying
-			if (bytesCount != g_PokeyStream.GetFramesPerSongline(i) * frameSize)
-				continue;
+        // Compare all indexes available and overwrite matching songline streams with index1's offset
+        for (int i = 0; i < songlineCount; i++)
+        {
+            // If the bytes count between 2 songlines isn't matching, don't even bother trying
+            if (bytesCount != g_PokeyStream.GetFramesPerSongline(i) * frameSize)
+                continue;
 
-			int index2 = g_PokeyStream.GetOffsetPerSongline(i);
-			unsigned char* buff2 = g_PokeyStream.GetStreamBuffer() + (index2 * frameSize);
+            int index2 = g_PokeyStream.GetOffsetPerSongline(i);
+            unsigned char* buff2 = g_PokeyStream.GetStreamBuffer() + (index2 * frameSize);
 
-			// If there is a match, the second index will adopt the offset of the first index
-			if (!memcmp(buff1, buff2, bytesCount))
-				listOfMatches[i] = index1;
-		}
+            // If there is a match, the second index will adopt the offset of the first index
+            if (!memcmp(buff1, buff2, bytesCount))
+                listOfMatches[i] = index1;
+        }
 
-		// Process to the next songline index until they are all processed
-		indexToSongline++;
-	}
-	indexToSongline = 0;
+        // Process to the next songline index until they are all processed
+        indexToSongline++;
+    }
+    indexToSongline = 0;
 
-	// From here, data blocs based on the Songline index and offset will be written to file
-	// This should strip away every duplicated chunks, but save just enough data for reconstructing everything 
-	while (indexToSongline < songlineCount)
-	{
-		// Get the current index to Songline offset from the current position
-		int index = listOfMatches[indexToSongline];
+    // From here, data blocs based on the Songline index and offset will be written to file
+    // This should strip away every duplicated chunks, but save just enough data for reconstructing everything 
+    while (indexToSongline < songlineCount)
+    {
+        // Get the current index to Songline offset from the current position
+        int index = listOfMatches[indexToSongline];
 
-		// Find if this offset was already processed from a previous Songline
-		for (int i = 0; i < songlineCount; i++)
-		{
-			// As soon as a match is found, increment the counter for how many times the index was referenced
-			if (index == listOfMatches[i] && indexToSongline > i)
-			{
-				// I don't know anymore, at this point...
-			}
-		}
+        // Find if this offset was already processed from a previous Songline
+        for (int i = 0; i < songlineCount; i++)
+        {
+            // As soon as a match is found, increment the counter for how many times the index was referenced
+            if (index == listOfMatches[i] && indexToSongline > i)
+            {
+                // I don't know anymore, at this point...
+            }
+        }
 
-		// Process to the next songline index until they are all processed
-		indexToSongline++;
-	}
+        // Process to the next songline index until they are all processed
+        indexToSongline++;
+    }
 
-	// Create a new file for logging everything related to the procedure
-	ou.open(fn + ".txt", std::ios::binary);
-	ou << "This is a test that displays all duplicated SAP-R bytes from m_StreamBuffer." << std::endl;
-	ou << "Each ones of the Buffer Chunks are indexed into memory using Songlines.\n" << std::endl;
+    // Create a new file for logging everything related to the procedure
+    ou.open(fn + ".txt", std::ios::binary);
+    ou << "This is a test that displays all duplicated SAP-R bytes from m_StreamBuffer." << std::endl;
+    ou << "Each ones of the Buffer Chunks are indexed into memory using Songlines.\n" << std::endl;
 
-	for (int i = 0; i < songlineCount; i++)
-	{
-		ou << "Index: " << PADHEX(2, i);
-		ou << ",\t Offset (real): " << PADHEX(4, g_PokeyStream.GetOffsetPerSongline(i));
-		ou << ",\t Offset (dupe): " << PADHEX(4, listOfMatches[i]);
-		ou << ",\t Bytes (uncompressed): " << PADDEC(1, g_PokeyStream.GetFramesPerSongline(i) * frameSize);
-		ou << ",\t Bytes (LZ16 compressed): " << PADDEC(1, lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer() + (g_PokeyStream.GetOffsetPerSongline(i) * frameSize), g_PokeyStream.GetFramesPerSongline(i) * frameSize, compressedData));
-		ou << std::endl;
-	}
+    for (int i = 0; i < songlineCount; i++)
+    {
+        ou << "Index: " << PADHEX(2, i);
+        ou << ",\t Offset (real): " << PADHEX(4, g_PokeyStream.GetOffsetPerSongline(i));
+        ou << ",\t Offset (dupe): " << PADHEX(4, listOfMatches[i]);
+        ou << ",\t Bytes (uncompressed): " << PADDEC(1, g_PokeyStream.GetFramesPerSongline(i) * frameSize);
+        ou << ",\t Bytes (LZ16 compressed): " << PADDEC(1, lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer() + (g_PokeyStream.GetOffsetPerSongline(i) * frameSize), g_PokeyStream.GetFramesPerSongline(i) * frameSize, compressedData));
+        ou << std::endl;
+    }
 
-	ou.close();
+    ou.close();
 
-	g_PokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
+    g_PokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
 
-	SetStatusBarText("");
+    SetStatusBarText("");
 
-	return true;
+    return true;
 }
 
 /// <summary>
@@ -316,216 +322,219 @@ bool CSong::ExportCompactLZSS(std::ofstream& ou, LPCTSTR filename)
 /// <returns>true if the file was written</returns>
 bool CSong::ExportLZSS_SAP(std::ofstream& ou)
 {
-	DumpSongToPokeyBuffer();
+    DumpSongToPokeyBuffer();
 
-	SetStatusBarText("Compressing data ...");
+    SetStatusBarText("Compressing data ...");
 
-	int frameSize = (g_tracks4_8 == 8) ? 18 : 9;	//SAP-R bytes to copy, Stereo doubles the number
+    const int frameSize = (g_tracks4_8 == 8) ? 18 : 9;	// SAP-R bytes to copy, Stereo doubles the number
 
-	unsigned char buff1[65536];			// LZSS buffers for each ones of the tune parts being reconstructed
-	unsigned char buff2[65536];			// they are used for parts labeled: full, intro, and loop 
-	unsigned char buff3[65536];			// a LZSS export will typically make use of intro and loop only, unless specified otherwise
+    byte buff1[RAM_SIZE];	// LZSS buffers for each ones of the tune parts being reconstructed
+    byte buff2[RAM_SIZE];	// they are used for parts labeled: full, intro, and loop 
+    byte buff3[RAM_SIZE];	// a LZSS export will typically make use of intro and loop only, unless specified otherwise
 
-	CCompressLzss lzssData;
+    CCompressLzss lzssData;
 
-	// Now, create LZSS files using the SAP-R dump created earlier
-	int full = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer(), g_PokeyStream.GetFirstCountPoint() * frameSize, buff1);
-	int intro = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer(), g_PokeyStream.GetThirdCountPoint() * frameSize, buff2);
-	int loop = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer() + (g_PokeyStream.GetFirstCountPoint() * frameSize), g_PokeyStream.GetSecondCountPoint() * frameSize, buff3);
+    // Now, create LZSS files using the SAP-R dump created earlier
+    int full = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer(), g_PokeyStream.GetFirstCountPoint() * frameSize, buff1);
+    int intro = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer(), g_PokeyStream.GetThirdCountPoint() * frameSize, buff2);
+    int loop = lzssData.LZSS_SAP(g_PokeyStream.GetStreamBuffer() + (g_PokeyStream.GetFirstCountPoint() * frameSize), g_PokeyStream.GetSecondCountPoint() * frameSize, buff3);
 
-	g_PokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
+    g_PokeyStream.FinishedRecording();	// Clear the SAP-R dumper memory and reset RMT routines
 
-	// Some additional variables that will be used below
-	int targetAddrOfModule = VU_PLAYER_SONGDATA;											// All the LZSS data will be written starting from this address
-	//int lzss_offset = (intro) ? targetAddrOfModule + intro : targetAddrOfModule + full;	// Calculate the offset for the export process between the subtune parts, at the moment only 1 tune at the time can be exported
-	int lzss_offset = (intro > 16) ? targetAddrOfModule + intro : targetAddrOfModule;
-	int lzss_end = lzss_offset + loop;													// this sets the address that defines where the data stream has reached its end
+    // Some additional variables that will be used below
+    int targetAddrOfModule = VU_PLAYER_SONGDATA;											// All the LZSS data will be written starting from this address
+    //int lzss_offset = (intro) ? targetAddrOfModule + intro : targetAddrOfModule + full;	// Calculate the offset for the export process between the subtune parts, at the moment only 1 tune at the time can be exported
+    int lzss_offset = (intro > 16) ? targetAddrOfModule + intro : targetAddrOfModule;
+    int lzss_end = lzss_offset + loop;													// this sets the address that defines where the data stream has reached its end
 
-	SetStatusBarText("");
+    SetStatusBarText("");
 
-	// If the size is too big, abort the process and show an error message
-	if (lzss_end > 0xBFFF)
-	{
-		MessageBox(g_hwnd,
-			"Error, LZSS data is too big to fit in memory!\n\n"
-			"High Instrument Speed and/or Stereo greatly inflate memory usage, even when data is compressed",
-			"Error, Buffer Overflow!", MB_ICONERROR);
-		return false;
-	}
+    // If the size is too big, abort the process and show an error message
+    // JAC! Have same error handling
+    if (lzss_end > RAM_MAX_ADDRESS)
+    {
+        MessageBox(g_hwnd,
+            "Error, LZSS data is too big to fit in memory!\n\n"
+            "High Instrument Speed and/or Stereo greatly inflate memory usage, even when data is compressed",
+            "Error, Buffer Overflow!", MB_ICONERROR);
+        return false;
+    }
 
-	unsigned char mem[65536];					// Default RAM size for most 800xl/xe machines
-	memset(mem, 0, sizeof(mem));
+    byte mem[RAM_SIZE]{};
 
-	WORD addressFrom;
-	WORD addressTo;
+    WORD addressFrom;
+    WORD addressTo;
 
-	if (!LoadBinaryFile((char*)((LPCSTR)(g_prgpath + "RMT Binaries/VUPlayer (LZSS Export).obx")), mem, addressFrom, addressTo))
-	{
-		MessageBox(g_hwnd, "Fatal error with RMT LZSS system routines.\nCouldn't load 'RMT Binaries/VUPlayer (LZSS Export).obx'.", "Export aborted", MB_ICONERROR);
-		return false;
-	}
+    if (!LoadBinaryFile(((LPCSTR)(g_prgpath + "RMT Binaries/VUPlayer (LZSS Export).obx")), mem, addressFrom, addressTo))
+    {
+        MessageBox(g_hwnd, "Fatal error with RMT LZSS system routines.\nCouldn't load 'RMT Binaries/VUPlayer (LZSS Export).obx'.", "Export aborted", MB_ICONERROR);
+        return false;
+    }
 
-	CExpSAPDlg dlg;
-	CString str;
-	str = m_songname;
-	str.TrimRight();			//cuts spaces after the name
-	str.Replace('"', '\'');	//replaces quotation marks with an apostrophe
-	dlg.m_name = str;
+    CExpSAPDlg dlg;
+    CString str;
+    str = m_songname;
+    str.TrimRight();			//cuts spaces after the name
+    str.Replace('"', '\'');	//replaces quotation marks with an apostrophe
+    dlg.m_name = str;
 
-	dlg.m_author = "???";
-	GetSubsongParts(dlg.m_subsongs);
+    dlg.m_author = "???";
+    GetSubsongParts(dlg.m_subsongs);
 
-	CTime time = CTime::GetCurrentTime();
-	dlg.m_date = time.Format("%d/%m/%Y");
+    CTime time = CTime::GetCurrentTime();
+    dlg.m_date = time.Format("%d/%m/%Y");
 
-	if (dlg.DoModal() != IDOK)
-		return false;
+    if (dlg.DoModal() != IDOK)
+    {
+        return false;
+    }
 
-	// Output things in SAP format
-	ou << "SAP" << EOL;
+    // Output things in SAP format
+    ou << "SAP" << EOL;
 
-	str = dlg.m_author;
-	str.TrimRight();
-	str.Replace('"', '\'');
+    str = dlg.m_author;
+    str.TrimRight();
+    str.Replace('"', '\'');
 
-	ou << "AUTHOR \"" << str << "\"" << EOL;
+    ou << "AUTHOR \"" << str << "\"" << EOL;
 
-	str = dlg.m_name;
-	str.TrimRight();
-	str.Replace('"', '\'');
+    str = dlg.m_name;
+    str.TrimRight();
+    str.Replace('"', '\'');
 
-	ou << "NAME \"" << str << " (" << g_PokeyStream.GetFirstCountPoint() << " frames)" << "\"" << EOL;	//display the total frames recorded
+    ou << "NAME \"" << str << " (" << g_PokeyStream.GetFirstCountPoint() << " frames)" << "\"" << EOL;	//display the total frames recorded
 
-	str = dlg.m_date;
-	str.TrimRight();
-	str.Replace('"', '\'');
+    str = dlg.m_date;
+    str.TrimRight();
+    str.Replace('"', '\'');
 
-	ou << "DATE \"" << str << "\"" << EOL;
+    ou << "DATE \"" << str << "\"" << EOL;
 
-	str = dlg.m_subsongs + " ";		//space after the last character due to parsing
+    str = dlg.m_subsongs + " ";		//space after the last character due to parsing
 
-	str.MakeUpper();
-	int subsongs = 0;
-	BYTE subpos[MAXSUBSONGS];
-	subpos[0] = 0;					//start at songline 0 by default
-	BYTE a, n = 0, isn = 0;
+    str.MakeUpper();
+    int subsongs = 0;
+    byte subpos[MAXSUBSONGS];
+    subpos[0] = 0;					//start at songline 0 by default
+    byte n = 0, isn = 0;
 
-	// Parses the "Subsongs" line from the ExportSAP dialog
-	for (int i = 0; i < str.GetLength(); i++)
-	{
-		a = str.GetAt(i);
-		if (a >= '0' && a <= '9') { n = (n << 4) + (a - '0'); isn = 1; }
-		else
-		if (a >= 'A' && a <= 'F') { n = (n << 4) + (a - 'A' + 10); isn = 1; }
-		else
-		{
-			if (isn)
-			{
-				subpos[subsongs] = n;
-				subsongs++;
-				if (subsongs >= MAXSUBSONGS) break;
-				isn = 0;
-			}
-		}
-	}
-	if (subsongs > 1)
-		ou << "SONGS " << subsongs << EOL;
+    // Parses the "Subsongs" line from the ExportSAP dialog
+    for (int i = 0; i < str.GetLength(); i++)
+    {
+        char a = str.GetAt(i);
+        if (a >= '0' && a <= '9') { n = (n << 4) + (a - '0'); isn = 1; }
+        else
+            if (a >= 'A' && a <= 'F') { n = (n << 4) + (a - 'A' + 10); isn = 1; }
+            else
+            {
+                if (isn)
+                {
+                    subpos[subsongs] = n;
+                    subsongs++;
+                    if (subsongs >= MAXSUBSONGS) break;
+                    isn = 0;
+                }
+            }
+    }
+    if (subsongs > 1)
+    {
+        ou << "SONGS " << subsongs << EOL;
+    }
+    ou << "TYPE B" << EOL;
+    str.Format("INIT %04X", VU_PLAYER_INIT_SAP);
+    ou << str << EOL;
+    str.Format("PLAYER %04X", VU_PLAYER_DO_PLAY_ADDR);
+    ou << str << EOL;
 
-	ou << "TYPE B" << EOL;
-	str.Format("INIT %04X", VU_PLAYER_INIT_SAP);
-	ou << str << EOL;
-	str.Format("PLAYER %04X", VU_PLAYER_DO_PLAY_ADDR);
-	ou << str << EOL;
+    if (g_tracks4_8 > 4)
+    {
+        ou << "STEREO" << EOL;
+    }
 
-	if (g_tracks4_8 > 4)
-	{
-		ou << "STEREO" << EOL;
-	}
+    if (g_ntsc)
+    {
+        ou << "NTSC" << EOL;
+    }
 
-	if (g_ntsc)
-	{
-		ou << "NTSC" << EOL;
-	}
+    if (m_instrumentSpeed > 1)
+    {
+        ou << "FASTPLAY ";
+        switch (m_instrumentSpeed)
+        {
+        case 2:
+            ou << ((g_ntsc) ? "131" : "156");
+            break;
 
-	if (m_instrumentSpeed > 1)
-	{
-		ou << "FASTPLAY ";
-		switch (m_instrumentSpeed)
-		{
-		case 2:
-			ou << ((g_ntsc) ? "131" : "156");
-			break;
+        case 3:
+            ou << ((g_ntsc) ? "87" : "104");
+            break;
 
-		case 3:
-			ou << ((g_ntsc) ? "87" : "104");
-			break;
+        case 4:
+            ou << ((g_ntsc) ? "66" : "78");
+            break;
 
-		case 4:
-			ou << ((g_ntsc) ? "66" : "78");
-			break;
+        default:
+            ou << ((g_ntsc) ? "262" : "312");
+            break;
+        }
+        ou << EOL;
+    }
 
-		default:
-			ou << ((g_ntsc) ? "262" : "312");
-			break;
-		}
-		ou << EOL;
-	}
+    // A double EOL is necessary for making the SAP export functional
+    ou << EOL;
 
-	// A double EOL is necessary for making the SAP export functional
-	ou << EOL;
+    // Patch: change a JMP [label] to a RTS with 2 NOPs
+    byte saprtsnop[3] = { 0x60,0xEA,0xEA };
+    for (int i = 0; i < 3; i++) { mem[VU_PLAYER_RTS_NOP + i] = saprtsnop[i]; }
 
-	// Patch: change a JMP [label] to a RTS with 2 NOPs
-	unsigned char saprtsnop[3] = { 0x60,0xEA,0xEA };
-	for (int i = 0; i < 3; i++) mem[VU_PLAYER_RTS_NOP + i] = saprtsnop[i];
+    // Patch: change a $00 to $FF to force the LOOP flag to be infinite
+    mem[VU_PLAYER_LOOP_FLAG] = 0xFF;
 
-	// Patch: change a $00 to $FF to force the LOOP flag to be infinite
-	mem[VU_PLAYER_LOOP_FLAG] = 0xFF;
+    // SAP initialisation patch, running from address 0x3080 in Atari executable 
+    byte sapbytes[14] =
+    {
+        0x8D,LZSSP_SONGIDX & 0xff,LZSSP_SONGIDX >> 8,									// STA SongIdx
+        0xA2,0x00,																	// LDX #0
+        0x8E,LZSSP_IS_FADEING_OUT & 0xff, LZSSP_IS_FADEING_OUT >> 8,					// STX is_fadeing_out
+        0x8E,LZSSP_STOP_ON_FADE_END & 0xff, LZSSP_STOP_ON_FADE_END >> 8,				// STX stop_on_fade_end
+        0x4C,LZSSP_SETNEWSONGPTRSFULL & 0xff, LZSSP_SETNEWSONGPTRSFULL >> 8	// JMP SetNewSongPtrsLoopsOnly
+    };
+    memcpy(mem + VU_PLAYER_INIT_SAP, sapbytes, 14);
 
-	// SAP initialisation patch, running from address 0x3080 in Atari executable 
-	unsigned char sapbytes[14] =
-	{
-		0x8D,LZSSP_SONGIDX & 0xff,LZSSP_SONGIDX>>8,									// STA SongIdx
-		0xA2,0x00,																	// LDX #0
-		0x8E,LZSSP_IS_FADEING_OUT & 0xff, LZSSP_IS_FADEING_OUT>>8,					// STX is_fadeing_out
-		0x8E,LZSSP_STOP_ON_FADE_END & 0xff, LZSSP_STOP_ON_FADE_END>>8,				// STX stop_on_fade_end
-		0x4C,LZSSP_SETNEWSONGPTRSFULL & 0xff, LZSSP_SETNEWSONGPTRSFULL>>8	// JMP SetNewSongPtrsLoopsOnly
-	};
-	memcpy(mem + VU_PLAYER_INIT_SAP, sapbytes, 14);
+    mem[VU_PLAYER_SONG_SPEED] = m_instrumentSpeed;						// Song speed
+    mem[VU_PLAYER_STEREO_FLAG] = (g_tracks4_8 > 4) ? 0xFF : 0x00;		// Is the song stereo?
 
-	mem[VU_PLAYER_SONG_SPEED] = m_instrumentSpeed;						// Song speed
-	mem[VU_PLAYER_STEREO_FLAG] = (g_tracks4_8 > 4) ? 0xFF : 0x00;		// Is the song stereo?
+    // Reconstruct the export binary 
+    SaveBinaryBlock(ou, mem, 0x1900, 0x1EFF, 1);	// LZSS Driver, and some free bytes for later if needed
+    SaveBinaryBlock(ou, mem, 0x2000, 0x27FF, 0);	// VUPlayer only
 
-	// Reconstruct the export binary 
-	SaveBinaryBlock(ou, mem, 0x1900, 0x1EFF, 1);	// LZSS Driver, and some free bytes for later if needed
-	SaveBinaryBlock(ou, mem, 0x2000, 0x27FF, 0);	// VUPlayer only
+    // SongStart pointers
+    mem[LZSS_POINTER] = targetAddrOfModule >> 8;			// SongsSHIPtrs
+    mem[LZSS_POINTER] = lzss_offset >> 8;					// SongsIndexEnd
+    mem[LZSS_POINTER] = targetAddrOfModule & 0xFF;			// SongsSLOPtrs
+    mem[LZSS_POINTER] = lzss_offset & 0xFF;					// SongsDummyEnd
 
-	// SongStart pointers
-	mem[LZSS_POINTER] = targetAddrOfModule >> 8;				// SongsSHIPtrs
-	mem[LZSS_POINTER] = lzss_offset >> 8;					// SongsIndexEnd
-	mem[LZSS_POINTER] = targetAddrOfModule & 0xFF;			// SongsSLOPtrs
-	mem[LZSS_POINTER] = lzss_offset & 0xFF;					// SongsDummyEnd
+    // SongEnd pointers
+    mem[LZSS_POINTER] = lzss_offset >> 8;					// LoopsIndexStart
+    mem[LZSS_POINTER] = lzss_end >> 8;						// LoopsIndexEnd
+    mem[LZSS_POINTER] = lzss_offset & 0xFF;					// LoopsSLOPtrs
+    mem[LZSS_POINTER] = lzss_end & 0xFF;					// LoopsDummyEnd
 
-	// SongEnd pointers
-	mem[LZSS_POINTER] = lzss_offset >> 8;					// LoopsIndexStart
-	mem[LZSS_POINTER] = lzss_end >> 8;						// LoopsIndexEnd
-	mem[LZSS_POINTER] = lzss_offset & 0xFF;					// LoopsSLOPtrs
-	mem[LZSS_POINTER] = lzss_end & 0xFF;						// LoopsDummyEnd
+    if (intro > 16)
+    {
+        memcpy(mem + targetAddrOfModule, buff2, intro);
+        memcpy(mem + lzss_offset, buff3, loop);
+    }
+    else
+    {
+        //memcpy(mem + targetAddrOfModule, buff1, full);
+        memcpy(mem + lzss_offset, buff3, loop);
+    }
 
-	if (intro > 16)
-	{
-		memcpy(mem + targetAddrOfModule, buff2, intro);
-		memcpy(mem + lzss_offset, buff3, loop);
-	}
-	else
-	{
-		//memcpy(mem + targetAddrOfModule, buff1, full);
-		memcpy(mem + lzss_offset, buff3, loop);
-	}
+    // Overwrite the LZSS data region with both the pointers for subtunes index, and the actual LZSS streams until the end of file
+    SaveBinaryBlock(ou, mem, LZSS_POINTER, lzss_end, 0);
 
-	// Overwrite the LZSS data region with both the pointers for subtunes index, and the actual LZSS streams until the end of file
-	SaveBinaryBlock(ou, mem, LZSS_POINTER, lzss_end, 0);
-
-	return true;
+    return true;
 }
 
 /// <summary>
@@ -535,199 +544,201 @@ bool CSong::ExportLZSS_SAP(std::ofstream& ou)
 /// <returns></returns>
 bool CSong::ExportLZSS_XEX(std::ofstream& ou)
 {
-	CString s, t;
+    CString s, t;
 
-	WORD addressFrom, addressTo;
-	BYTE* buff2, * buff3;
+    WORD addressFrom, addressTo;
 
-	int subsongs = GetSubsongParts(t);
-	int count = 0;
+    int subsongs = GetSubsongParts(t);
+    int count = 0;
 
-	int subtune[256];
-	memset(subtune, 0, sizeof(subtune));
+    int subtune[256]{};
 
-	int lzss_chunk = 0;	// Subtune size will be added to be used as the offset to the next one
-	int lzss_total = 0;	// Final offset for LZSS bytes to export
-	int framescount = 0;
+    int lzss_chunk = 0;	// Subtune size will be added to be used as the offset to the next one
+    int lzss_total = 0;	// Final offset for LZSS bytes to export
+    int framescount = 0;
 
-	int frameSize = (g_tracks4_8 == 8) ? 18 : 9;	// SAP-R bytes to copy, Stereo doubles the number
-	int section = VU_PLAYER_SECTION;
-	int sequence = VU_PLAYER_SEQUENCE;
+    int frameSize = (g_tracks4_8 == 8) ? 18 : 9;	// SAP-R bytes to copy, Stereo doubles the number
+    int section = VU_PLAYER_SECTION;
+    int sequence = VU_PLAYER_SEQUENCE;
 
-	unsigned char mem[65536];					// Default RAM size for most 800xl/xe machines
-	memset(mem, 0, sizeof(mem));
+    byte mem[RAM_SIZE]{};					// Default RAM size for most 800xl/xe machines
 
-	// GetSubsongParts returns a CString, so the values must be converted back to int first, FIXME
-	for (int i = 0; i < subsongs; i++)
-	{
-		char c[3];
-		c[0] = t[i * 3];
-		c[1] = t[i * 3 + 1];
-		c[2] = '\0';
-		subtune[i] = strtoul(c, NULL, 16);
-	}
+    // GetSubsongParts returns a CString, so the values must be converted back to int first, FIXME
+    for (int i = 0; i < subsongs; i++)
+    {
+        char c[3];
+        c[0] = t[i * 3];
+        c[1] = t[i * 3 + 1];
+        c[2] = '\0';
+        subtune[i] = strtoul(c, NULL, 16);
+    }
 
-	// Load VUPlayerLZSS to memory
-	Atari_LoadOBX(IOTYPE_LZSS_XEX, mem, addressFrom, addressTo);
+    // Load VUPlayerLZSS to memory
+    Atari_LoadOBX(IOTYPE_LZSS_XEX, mem, addressFrom, addressTo);
 
-	// Create the export metadata for songname, Atari text, parameters, etc
-	TExportMetadata metadata;
-	if (!CreateExportMetadata(IOTYPE_LZSS_XEX, &metadata))
-		return false;
+    // Create the export metadata for songname, Atari text, parameters, etc
+    TExportMetadata metadata;
+    if (!CreateExportMetadata(IOTYPE_LZSS_XEX, &metadata))
+        return false;
 
-	// LZSS buffers for each ones of the tune parts being reconstructed
-	buff2 = new BYTE[0xFFFFF];
-	buff3 = new BYTE[0xFFFFF];
+    // LZSS buffers for each ones of the tune parts being reconstructed.
+    // Because the buffers are large, they are allocated on hte heap instead of the stack.
+    byte* buff2= new byte[0xFFFFF]{};
+    byte* buff3=new byte[0xFFFFF]{};
 
-	while (count < subsongs)
-	{
-		// a LZSS export will typically make use of intro and loop only, unless specified otherwise
-		int intro = 0, loop = 0;
+    while (count < subsongs)
+    {
+        // a LZSS export will typically make use of intro and loop only, unless specified otherwise
+        int intro = 0, loop = 0;
 
-		// LZSS buffers for each ones of the tune parts being reconstructed
-		//unsigned char buff2[65536], buff3[65536];
+        // LZSS buffers for each ones of the tune parts being reconstructed
+        DumpSongToPokeyBuffer(MPLAY_FROM, subtune[count], 0);
 
-		DumpSongToPokeyBuffer(MPLAY_FROM, subtune[count], 0);
+        //SetStatusBarText("Compressing data ...");
 
-		//SetStatusBarText("Compressing data ...");
+        // There is an Intro section 
+        if (g_PokeyStream.GetThirdCountPoint())
+        {
+            intro = BruteforceOptimalLZSS(g_PokeyStream.GetStreamBuffer(), g_PokeyStream.GetThirdCountPoint() * frameSize, buff2);
+        }
 
-		// There is an Intro section 
-		if (g_PokeyStream.GetThirdCountPoint())
-			intro = BruteforceOptimalLZSS(g_PokeyStream.GetStreamBuffer(), g_PokeyStream.GetThirdCountPoint() * frameSize, buff2);
+        // There is a Loop section
+        if (g_PokeyStream.GetFirstCountPoint())
+        {
+            loop = BruteforceOptimalLZSS(g_PokeyStream.GetStreamBuffer() + (g_PokeyStream.GetFirstCountPoint() * frameSize), g_PokeyStream.GetSecondCountPoint() * frameSize, buff3);
+        }
 
-		// There is a Loop section
-		if (g_PokeyStream.GetFirstCountPoint())
-			loop = BruteforceOptimalLZSS(g_PokeyStream.GetStreamBuffer() + (g_PokeyStream.GetFirstCountPoint() * frameSize), g_PokeyStream.GetSecondCountPoint() * frameSize, buff3);
+        // Add the number of frames recorded to the total count
+        framescount += g_PokeyStream.GetFirstCountPoint();
 
-		// Add the number of frames recorded to the total count
-		framescount += g_PokeyStream.GetFirstCountPoint();	
+        // Clear the SAP-R dumper memory and reset RMT routines
+        g_PokeyStream.FinishedRecording();
 
-		// Clear the SAP-R dumper memory and reset RMT routines
-		g_PokeyStream.FinishedRecording();	
+        // Some additional variables that will be used below
+        int targetAddrOfModule = VU_PLAYER_SONGDATA + lzss_chunk;	// All the LZSS data will be written starting from this address
+        int lzss_startAddress = targetAddrOfModule + intro;
+        int lzss_endAddress = lzss_startAddress + loop;							// this sets the address that defines where the data stream has reached its end
 
-		// Some additional variables that will be used below
-		int targetAddrOfModule = VU_PLAYER_SONGDATA + lzss_chunk;	// All the LZSS data will be written starting from this address
-		int lzss_offset = targetAddrOfModule + intro;
-		int lzss_end = lzss_offset + loop;							// this sets the address that defines where the data stream has reached its end
+        SetStatusBarText("");
 
-		SetStatusBarText("");
+        // If the size is too big, abort the process and show an error message
+        // JAC! Output memory boundaries
+        if (lzss_endAddress > RAM_MAX_ADDRESS)
+        {
+            CString message;
+            message.Format("Error, LZSS data ($%04X - $%04X) is too big to fit in memory!\n\nHigh Instrument Speed and/or Stereo greatly inflate memory usage, even when data is compressed", lzss_startAddress, lzss_endAddress);
+            MessageBox(g_hwnd,
+                message,
+                "Error, Buffer Overflow!", MB_ICONERROR);
+            return false;
+        }
 
-		// If the size is too big, abort the process and show an error message
-		if (lzss_end > 0xBFFF)
-		{
-			MessageBox(g_hwnd,
-				"Error, LZSS data is too big to fit in memory!\n\n"
-				"High Instrument Speed and/or Stereo greatly inflate memory usage, even when data is compressed",
-				"Error, Buffer Overflow!", MB_ICONERROR);
-			return false;
-		}
+        // Set the song section and timer index 
+        int index = LZSS_POINTER + count * 4;
+        int timerindex = VU_PLAYER_SOUNGTIMER + count * 4;
+        int subtunetimetotal = 0xFFFFFF / g_PokeyStream.GetFirstCountPoint();
+        int subtunelooppoint = subtunetimetotal * g_PokeyStream.GetThirdCountPoint();
+        int chunk = 0;
 
-		// Set the song section and timer index 
-		int index = LZSS_POINTER + count * 4;
-		int timerindex = VU_PLAYER_SOUNGTIMER + count * 4;
-		int subtunetimetotal = 0xFFFFFF / g_PokeyStream.GetFirstCountPoint();
-		int subtunelooppoint = subtunetimetotal * g_PokeyStream.GetThirdCountPoint();
-		int chunk = 0;
+        mem[index + 0] = section & 0xFF;
+        mem[index + 1] = section >> 8;
+        mem[index + 2] = sequence & 0xFF;
+        mem[index + 3] = sequence >> 8;
+        mem[timerindex + 0] = subtunetimetotal >> 16;
+        mem[timerindex + 1] = subtunetimetotal >> 8;
+        mem[timerindex + 2] = subtunetimetotal & 0xFF;
+        mem[timerindex + 3] = subtunelooppoint >> 16;
 
-		mem[index + 0] = section & 0xFF;
-		mem[index + 1] = section >> 8;
-		mem[index + 2] = sequence & 0xFF;
-		mem[index + 3] = sequence >> 8;
-		mem[timerindex + 0] = subtunetimetotal >> 16;
-		mem[timerindex + 1] = subtunetimetotal >> 8;
-		mem[timerindex + 2] = subtunetimetotal & 0xFF;
-		mem[timerindex + 3] = subtunelooppoint >> 16;
+        // If there is an Intro section...
+        if (intro)
+        {
+            memcpy(mem + targetAddrOfModule, buff2, intro);
+            lzss_chunk += intro;
+            mem[section + 0] = targetAddrOfModule & 0xFF;
+            mem[section + 1] = targetAddrOfModule >> 8;
+            mem[sequence] = chunk;
+            section += 2;
+            sequence += 1;
+            chunk += 1;
+        }
 
-		// If there is an Intro section...
-		if (intro)
-		{
-			memcpy(mem + targetAddrOfModule, buff2, intro);
-			lzss_chunk += intro;
-			mem[section + 0] = targetAddrOfModule & 0xFF;
-			mem[section + 1] = targetAddrOfModule >> 8;
-			mem[sequence] = chunk;
-			section += 2;
-			sequence += 1;
-			chunk += 1;
-		}
+        // If there is a Loop section...
+        if (loop)
+        {
+            memcpy(mem + lzss_startAddress, buff3, loop);
+            lzss_chunk += loop;
+            mem[section + 0] = lzss_startAddress & 0xFF;
+            mem[section + 1] = lzss_startAddress >> 8;
+            mem[sequence] = chunk;
+            section += 2;
+            sequence += 1;
+            chunk += 1;
+        }
 
-		// If there is a Loop section...
-		if (loop)
-		{
-			memcpy(mem + lzss_offset, buff3, loop);
-			lzss_chunk += loop;
-			mem[section + 0] = lzss_offset & 0xFF;
-			mem[section + 1] = lzss_offset >> 8;
-			mem[sequence] = chunk;
-			section += 2;
-			sequence += 1;
-			chunk += 1;
-		}
+        // End of data, will be overwritten if there is more data to export
+        mem[section + 0] = lzss_endAddress & 0xFF;
+        mem[section + 1] = lzss_endAddress >> 8;
+        section += 2;
+        mem[sequence] = (chunk | 0x80) - 1;
+        sequence += 1;
 
-		// End of data, will be overwritten if there is more data to export
-		mem[section + 0] = lzss_end & 0xFF;
-		mem[section + 1] = lzss_end >> 8;
-		section += 2;
-		mem[sequence] = (chunk | 0x80) - 1;
-		sequence += 1;
+        // Update the subtune offsets to export the next one
+        lzss_total = lzss_endAddress;
+        count++;
+    }
 
-		// Update the subtune offsets to export the next one
-		lzss_total = lzss_end;
-		count++;
-	}
+    // Delete buffers on heap
+    delete buff2;
+    delete buff3;
 
-	// Write the Atari Video text to memory, for 5 lines of 40 characters
-	memcpy(mem + LZSSP_LINE_1, metadata.atariText, 40 * 5);
+    // Write the Atari Video text to memory, for 5 lines of 40 characters
+    memcpy(mem + LZSSP_LINE_1, metadata.atariText, 40 * 5);
 
-	// Write the total framescount on the top line, next to the Region and VBI speed, for 28 characters
-	memset(mem + LZSSP_LINE_0 + 0x0B, 32, 28);
-	char framesdisplay[28] = { 0 };
-	sprintf(framesdisplay, "(%i frames total)", framescount);
-	for (int i = 0; i < 28; i++) mem[LZSSP_LINE_0 + 0x0B + i] = framesdisplay[i];
-	StrToAtariVideo((char*)mem + LZSSP_LINE_0 + 0x0B, 28);
+    // Write the total framescount on the top line, next to the Region and VBI speed, for 28 characters
+    memset(mem + LZSSP_LINE_0 + 0x0B, 32, 28);
+    char framesdisplay[28] = { 0 };
+    sprintf(framesdisplay, "(%i frames total)", framescount);
+    for (int i = 0; i < 28; i++) mem[LZSSP_LINE_0 + 0x0B + i] = framesdisplay[i];
+    StrToAtariVideo((char*)mem + LZSSP_LINE_0 + 0x0B, 28);
 
-	// I know the binary I have is currently set to NTSC, so I'll just convert to PAL and keep this going for now...
-	if (!metadata.isNTSC)
-	{
-		unsigned char regionbytes[18] =
-		{
-			0xB9,(LZSSP_TABPPPAL - 1) & 0xff,(LZSSP_TABPPPAL - 1) >> 8,			// LDA tabppPAL-1,y
-			0x8D,LZSSP_ACPAPX2 & 0xFF,LZSSP_ACPAPX2 >> 8,						// STA acpapx2
-			0xE0,0x9B,															// CPX #$9B
-			0x30,0x05,															// BMI set_ntsc
-			0xB9,(LZSSP_TABPPPALFIX - 1) & 0xff,(LZSSP_TABPPPALFIX - 1) >> 8,	// LDA tabppPALfix-1,y
-			0xD0,0x03,															// BNE region_done
-			0xB9,(LZSSP_TABPPNTSCFIX - 1) & 0xFF,(LZSSP_TABPPNTSCFIX - 1) >> 8	// LDA tabppNTSCfix-1,y
-		};
-		for (int i = 0; i < 18; i++) mem[VU_PLAYER_REGION + i] = regionbytes[i];
-	}
+    // I know the binary I have is currently set to NTSC, so I'll just convert to PAL and keep this going for now...
+    if (!metadata.isNTSC)
+    {
+        unsigned char regionbytes[18] =
+        {
+            0xB9,(LZSSP_TABPPPAL - 1) & 0xff,(LZSSP_TABPPPAL - 1) >> 8,			// LDA tabppPAL-1,y
+            0x8D,LZSSP_ACPAPX2 & 0xFF,LZSSP_ACPAPX2 >> 8,						// STA acpapx2
+            0xE0,0x9B,															// CPX #$9B
+            0x30,0x05,															// BMI set_ntsc
+            0xB9,(LZSSP_TABPPPALFIX - 1) & 0xff,(LZSSP_TABPPPALFIX - 1) >> 8,	// LDA tabppPALfix-1,y
+            0xD0,0x03,															// BNE region_done
+            0xB9,(LZSSP_TABPPNTSCFIX - 1) & 0xFF,(LZSSP_TABPPNTSCFIX - 1) >> 8	// LDA tabppNTSCfix-1,y
+        };
+        for (int i = 0; i < 18; i++) mem[VU_PLAYER_REGION + i] = regionbytes[i];
+    }
 
-	// Additional patches from the Export Dialog...
-	mem[VU_PLAYER_SONG_SPEED] = metadata.instrspeed;						// Song speed
-	mem[VU_PLAYER_RASTER_BAR] = metadata.displayRasterbar ? 0x80 : 0x00;	// Display the rasterbar for CPU level
-	mem[VU_PLAYER_COLOUR] = metadata.rasterbarColour;						// Rasterbar colour 
-	mem[VU_PLAYER_STEREO_FLAG] = metadata.isStereo ? 0xFF : 0x00;			// Is the song stereo?
-	mem[VU_PLAYER_SONGTOTAL] = subsongs;									// Total number of subtunes
-	if (!metadata.autoRegion)												// Automatically adjust speed between regions?
-		for (int i = 0; i < 4; i++) mem[VU_PLAYER_REGION + 6 + i] = 0xEA;	// set the 4 bytes to NOPs to disable it
-	
+    // Additional patches from the Export Dialog...
+    mem[VU_PLAYER_SONG_SPEED] = metadata.instrspeed;						// Song speed
+    mem[VU_PLAYER_RASTER_BAR] = metadata.displayRasterbar ? 0x80 : 0x00;	// Display the rasterbar for CPU level
+    mem[VU_PLAYER_COLOUR] = metadata.rasterbarColour;						// Rasterbar colour 
+    mem[VU_PLAYER_STEREO_FLAG] = metadata.isStereo ? 0xFF : 0x00;			// Is the song stereo?
+    mem[VU_PLAYER_SONGTOTAL] = subsongs;									// Total number of subtunes
+    if (!metadata.autoRegion) {											// Automatically adjust speed between regions?
+        for (int i = 0; i < 4; i++) mem[VU_PLAYER_REGION + 6 + i] = 0xEA;	// set the 4 bytes to NOPs to disable it
+    }
 
-	// Reconstruct the export binary for the LZSS Driver, VUPlayer, and all the included data
-	SaveBinaryBlock(ou, mem, LZSSP_PLAYLZ16BEGIN, LZSSP_SONGINDEX, 1);
+    // Reconstruct the export binary for the LZSS Driver, VUPlayer, and all the included data
+    SaveBinaryBlock(ou, mem, LZSSP_PLAYLZ16BEGIN, LZSSP_SONGINDEX, 1);
 
-	// Set the run address to VUPlayer 
-	mem[0x2e0] = LZSSP_VUPLAYER & 0xff;
-	mem[0x2e1] = LZSSP_VUPLAYER >> 8;
-	SaveBinaryBlock(ou, mem, 0x2e0, 0x2e1, 0);
+    // Set the run address to VUPlayer 
+    mem[0x2e0] = LZSSP_VUPLAYER & 0xff;
+    mem[0x2e1] = LZSSP_VUPLAYER >> 8;
+    SaveBinaryBlock(ou, mem, 0x2e0, 0x2e1, 0);
 
-	// Overwrite the LZSS data region with both the pointers for subtunes index, and the actual LZSS streams until the end of file
-	SaveBinaryBlock(ou, mem, LZSS_POINTER, lzss_total, 0);
+    // Overwrite the LZSS data region with both the pointers for subtunes index, and the actual LZSS streams until the end of file
+    SaveBinaryBlock(ou, mem, LZSS_POINTER, lzss_total, 0);
 
-	// Delete buffers
-	delete buff2;
-	delete buff3;
-
-	return true;
+    return true;
 }
 
 /// <summary>
@@ -737,96 +748,99 @@ bool CSong::ExportLZSS_XEX(std::ofstream& ou)
 /// <returns></returns>
 void CSong::DumpSongToPokeyBuffer(int playmode, int songline, int trackline)
 {
-	CString statusBarLog;
+    CString statusBarLog;
 
-	Stop();					// Make sure RMT is stopped 
-	Atari_InitRMTRoutine();	// Reset the RMT routines 
-	SetChannelOnOff(-1, 0);	// Switch all channels off 
+    Stop();					// Make sure RMT is stopped 
+    Atari_InitRMTRoutine();	// Reset the RMT routines 
+    SetChannelOnOff(-1, 0);	// Switch all channels off 
 
-	g_PokeyStream.StartRecording();
+    g_PokeyStream.StartRecording();
 
-	// Play song using the chosen playback parameters
-	// If no argument was passed, Play from start will be assumed
-	m_songactiveline = songline;
-	m_trackactiveline = trackline;
-	Play(playmode, m_followplay);
+    // Play song using the chosen playback parameters
+    // If no argument was passed, Play from start will be assumed
+    m_songactiveline = songline;
+    m_trackactiveline = trackline;
+    Play(playmode, m_followplay);
 
-	// Wait in a tight loop pumping messages until the playback stops
-	EnableWindow(g_hwnd, FALSE);
+    // Wait in a tight loop pumping messages until the playback stops
+    EnableWindow(g_hwnd, FALSE);
+    HCURSOR oldCursor = SetCursor(LoadCursor(0, IDC_WAIT)); // JAC! Use everyhwere
 
-	// The SAP-R dumper is running during that time...
-	while (m_play != MPLAY_STOP)
-	{
-		// 1 VBI of module playback
-		PlayVBI();
+    // The SAP-R dumper is running during that time...
+    while (m_play != MPLAY_STOP)
+    {
+        // 1 VBI of module playback
+        PlayVBI();
 
-		// Increment the timer shown during playback
-		g_playtime++;
+        // Increment the timer shown during playback
+        g_playtime++;
 
-		// Multiple RMT routine calls will be processed if needed
-		for (int i = 0; i < m_instrumentSpeed; i++)
-		{
-			// 1 VBI of RMT routine (for instruments)
-			if (g_rmtroutine)
-				Atari_PlayRMT();
+        // Multiple RMT routine calls will be processed if needed
+        for (int i = 0; i < m_instrumentSpeed; i++)
+        {
+            // 1 VBI of RMT routine (for instruments)
+            if (g_rmtroutine)
+                Atari_PlayRMT();
 
-			// Transfer from g_atarimem to POKEY buffer
-			g_PokeyStream.Record();
-		}
+            // Transfer from g_atarimem to POKEY buffer
+            g_PokeyStream.Record();
+        }
 
-		// Update the screen only once every few frames
-		// Displaying everything in real time slows things down considerably!
-		if (!RefreshScreen(1))
-			continue;
+        // Update the screen only once every few frames
+        // Displaying everything in real time slows things down considerably!
+        if (!RefreshScreen(1)) {
+            continue;
+        }
 
-		// Display the number of frames dumped so far
-		statusBarLog.Format("Generating Pokey stream, playing song in quick mode... %i frames recorded", g_PokeyStream.GetCurrentFrame());
-		SetStatusBarText(statusBarLog);
-	}
+        // Display the number of frames dumped so far
+        statusBarLog.Format("Generating Pokey stream, playing song in quick mode... %i frames recorded", g_PokeyStream.GetCurrentFrame());
+        SetStatusBarText(statusBarLog);
+    }
 
-	// End playback now, the SAP-R data should have been dumped successfully!
-	Stop();
+    // End playback now, the SAP-R data should have been dumped successfully!
+    Stop();
 
-	statusBarLog.Format("Done... %i frames recorded in total, Loop point found at frame %i", g_PokeyStream.GetCurrentFrame(), g_PokeyStream.GetFirstCountPoint());
-	SetStatusBarText(statusBarLog);
+    statusBarLog.Format("Done... %i frames recorded in total, Loop point found at frame %i", g_PokeyStream.GetCurrentFrame(), g_PokeyStream.GetFirstCountPoint());
+    SetStatusBarText(statusBarLog);
 
-	EnableWindow(g_hwnd, TRUE);
+    SetCursor(oldCursor);
+    EnableWindow(g_hwnd, TRUE);
 }
 
 // A dumb SAP-R LZSS optimisations bruteforcer, returns the optimal value and buffer
 int CSong::BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigned char* dst)
 {
-	CString statusBarLog;
-	CCompressLzss lzssData;
+    CString statusBarLog;
+    CCompressLzss lzssData;
 
-	// Start from a high value to force the first pattern to be the best one
-	int bestScore = 0xFFFFFF;
-	int optimal = 0;
+    // Start from a high value to force the first pattern to be the best one
+    int bestScore = 0xFFFFFF;
+    int optimal = 0;
 
-	EnableWindow(g_hwnd, FALSE);
+    EnableWindow(g_hwnd, FALSE);
 
-	for (int i = 0; i < SAPR_OPTIMISATIONS_COUNT; i++)
-	{
-		int bruteforced = lzssData.LZSS_SAP(src, srclen, dst, i);
+    for (int i = 0; i < SAPR_OPTIMISATIONS_COUNT; i++)
+    {
+        int bruteforced = lzssData.LZSS_SAP(src, srclen, dst, i);
 
-		if (bruteforced < bestScore)
-		{
-			bestScore = bruteforced;
-			optimal = i;
-		}
+        if (bruteforced < bestScore)
+        {
+            bestScore = bruteforced;
+            optimal = i;
+        }
 
-		// Always refresh the screen after each iteration
-		RefreshScreen();
+        // Always refresh the screen after each iteration
+        RefreshScreen();
 
-		statusBarLog.Format("Compressing %i bytes, bruteforcing optimisation pattern %i... Current best: %i bytes with optimisation pattern %i", srclen, i, bestScore, optimal);
-		SetStatusBarText(statusBarLog);
-	}
+        statusBarLog.Format("Compressing %i bytes, bruteforcing optimisation pattern %i... Current best: %i bytes with optimisation pattern %i", srclen, i, bestScore, optimal);
+        SetStatusBarText(statusBarLog);
+    }
 
-	// Bruteforcing was completed, display some stats
-	statusBarLog.Format("Done... %i bytes were shrunk to %i bytes using the optimisation pattern %i", srclen, bestScore, optimal);
-	SetStatusBarText(statusBarLog);
+    // Bruteforcing was completed, display some stats
+    statusBarLog.Format("Done... %i bytes were shrunk to %i bytes using the optimisation pattern %i", srclen, bestScore, optimal);
+    SetStatusBarText(statusBarLog);
 
-	EnableWindow(g_hwnd, TRUE);
+    EnableWindow(g_hwnd, TRUE);
 
-	return lzssData.LZSS_SAP(src, srclen, dst, optimal);
+    return lzssData.LZSS_SAP(src, srclen, dst, optimal);
 }
