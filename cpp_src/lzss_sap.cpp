@@ -349,7 +349,7 @@ void CCompressLzss::Optimise_AUDF(uint8_t* buf)
 }
 
 // Hacked up version of main() by VinsCool, stripping out most options that aren't needed for RMT 
-int CCompressLzss::LZSS_SAP(unsigned char* src, int srclen, unsigned char* dst, int optimisations)
+int CCompressLzss::LZSS_SAP(const unsigned char* src, int srclen, unsigned char* dst, int optimisations)
 {
     struct bf b;
     uint8_t buf[9], * data[9];

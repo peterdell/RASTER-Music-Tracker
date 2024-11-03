@@ -46,7 +46,7 @@ class CCompressLzss
 {
 public:
     CCompressLzss();
-    int LZSS_SAP(unsigned char* src, int srclen, unsigned char* dst, int optimisations = SAPR_OPTIMISATIONS_AUDC);
+    int LZSS_SAP(const unsigned char* src, int srclen, unsigned char* dst, int optimisations = SAPR_OPTIMISATIONS_AUDC);
 
 private:
     int bits_moff;                              // Number of bits used for OFFSET
