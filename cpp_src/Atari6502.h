@@ -30,7 +30,7 @@
 #define MAXSCREENCYCLES_NTSC	114*262
 #define MAXSCREENCYCLES_PAL 	114*312
 
-extern void Memory_Clear();
+extern void Atari_ClearMemory();
 
 extern int Atari_LoadRMTRoutines();
 extern int Atari_InitRMTRoutine();

@@ -210,7 +210,7 @@ void Atari_InstrumentTurnOff(int instr)
 	}
 }
 
-void Memory_Clear()
+void Atari_ClearMemory()
 {
-	memset(g_atarimem,0,65536);
+	memset(g_atarimem,0,RAM_SIZE);
 }

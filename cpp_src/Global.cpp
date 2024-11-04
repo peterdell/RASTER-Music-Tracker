@@ -3,11 +3,12 @@
 #include "XPokey.h"
 #include "RmtView.h"
 #include "Atari6502.h"
+#include "Memory.h"
 
 #include "global.h"
 
-unsigned char g_atarimem[65536];
-char g_debugmem[65536];	//debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
+unsigned char g_atarimem[RAM_SIZE];
+char g_debugmem[RAM_SIZE];	//debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
 
 BOOL g_closeApplication = 0;			// Set when the application is busy shutting down
 CDC* g_mem_dc = NULL;

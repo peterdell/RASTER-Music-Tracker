@@ -1011,7 +1011,7 @@ void CRmtView::OnInitialUpdate()
     }
 
     //INITIALISATION OF ATARI RMT ROUTINES
-    Memory_Clear();
+    Atari_ClearMemory();
     Atari_LoadRMTRoutines();
     Atari_InitRMTRoutine();
     g_Song.SetRMTTitle();
