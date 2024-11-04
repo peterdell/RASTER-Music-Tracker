@@ -6,8 +6,6 @@
 
 // MFC interface code
 #include "FileNewDlg.h"
-#include "ExportDlgs.h"
-#include "importdlgs.h"
 #include "EffectsDlg.h"
 #include "MainFrm.h"
 
@@ -17,8 +15,7 @@
 #include "Instruments.h"
 #include "Clipboard.h"
 #include "global.h"
-#include "Keyboard2NoteMapping.h"
-#include "ChannelControl.h"
+
 #include "PokeyStream.h"
 #include "SongExporter.h"
 
@@ -26,6 +23,7 @@ extern CSong g_Song;
 extern CInstruments g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 extern CXPokey g_Pokey;
+extern CString g_PrefixForAllAsmLabels;
 
 static BOOL busyInTimer = 0;
 

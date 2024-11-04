@@ -10,6 +10,20 @@ class CSongExporter {
 
 public:
 
+
+    struct TExportMetadata
+    {
+        char songname[SONG_NAME_MAX_LEN + 1];
+        CTime currentTime;
+        int instrspeed;
+        bool isStereo;
+        bool isNTSC;
+        bool autoRegion;
+        bool displayRasterbar;
+        int rasterbarColour;
+        char atariText[5 * 40];
+    };
+
     /// <summary>
     /// Generate a SAP-R data stream and compress it with LZSS
     /// </summary>

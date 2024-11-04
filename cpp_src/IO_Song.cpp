@@ -1,12 +1,10 @@
 #include "StdAfx.h"
-#include <fstream>
-#include <memory.h>
 
 #include "Song.h"
+#include "Memory.h"
 
-// MFC interface code
 #include "FileNewDlg.h"
-#include "ExportDlgs.h"
+
 #include "ImportDlgs.h"
 
 #include "Atari6502.h"
@@ -23,6 +21,8 @@
 #include "RmtMidi.h"
 
 #include "SongExporter.h"
+#include "ASMFileExporter.h"
+
 
 extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
@@ -1305,8 +1305,8 @@ bool CSong::ExportV2(CSong& song, std::ofstream& ou, int iotype, LPCTSTR filenam
     {
     case IOTYPE_RMT: return ExportAsRMT(song, ou, &exportDesc);
     case IOTYPE_RMTSTRIPPED: return ExportAsStrippedRMT(song, ou, &exportDesc, filename);
-    case IOTYPE_ASM: return ExportAsAsm(song, ou, &exportDesc);
-    case IOTYPE_ASM_RMTPLAYER: return ExportAsRelocatableAsmForRmtPlayer(song, ou, &exportDesc);
+    case IOTYPE_ASM: return CASMFileExporter::ExportAsAsm(song, ou, &exportDesc);
+    case IOTYPE_ASM_RMTPLAYER: return CASMFileExporter::ExportAsRelocatableAsmForRmtPlayer(song, ou, &exportDesc);
     case IOTYPE_SAPR: return CSongExporter::ExportSAP_R(song, ou);
     case IOTYPE_LZSS: return CSongExporter::ExportLZSS(song, ou, filename);
     case IOTYPE_LZSS_SAP: return CSongExporter::ExportSAP_B_LZSS(song, ou);
@@ -1357,77 +1357,6 @@ bool CSong::ExportAsRMT(CSong& song, std::ofstream& ou, TExportDescription* expo
     return true;
 }
 
-/// <summary>
-/// Export the song data as assembler source code.
-/// </summary>
-/// <param name="ou">Output stream</param>
-/// <param name="exportStrippedDesc">Data about the packed RMT module</param>
-/// <param name="filename"></param>
-/// <returns>true is the save went ok</returns>
-bool CSong::ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDescription* exportStrippedDesc, LPCTSTR filename)
-{
-    TExportDescription exportTempDescription;
-    memset(&exportTempDescription, 0, sizeof(TExportDescription));
-    exportTempDescription.targetAddrOfModule = 0x4000;		// Standard RMT modules are set to start @ $4000
-
-    // Create a variant for SFX (ie. including unused instruments and tracks)
-    exportTempDescription.firstByteAfterModule = song.MakeModule(exportTempDescription.mem, exportTempDescription.targetAddrOfModule, IOTYPE_RMT, exportTempDescription.instrumentSavedFlags, exportTempDescription.trackSavedFlags);
-    if (exportTempDescription.firstByteAfterModule < 0) return false;	// if the module could not be created
-
-    // Show the dialog to control the stripped output parameters
-    CExportStrippedRMTDialog dlg;
-    // Common data
-    dlg.m_exportAddr = g_rmtstripped_adr_module;	//global, so that it remains the same on repeated export
-    dlg.m_globalVolumeFade = g_rmtstripped_gvf;
-    dlg.m_noStartingSongLine = g_rmtstripped_nos;
-    dlg.m_song = &song;
-    dlg.m_filename = (char*)filename;
-    dlg.m_sfxSupport = g_rmtstripped_sfx;
-    dlg.m_assemblerFormat = g_AsmFormat;
-
-    // Stripped RMT data
-    dlg.m_moduleLengthForStrippedRMT = exportStrippedDesc->firstByteAfterModule - exportStrippedDesc->targetAddrOfModule;
-    dlg.m_savedInstrFlagsForStrippedRMT = exportStrippedDesc->instrumentSavedFlags;
-    dlg.m_savedTracksFlagsForStrippedRMT = exportStrippedDesc->trackSavedFlags;
-
-    // Full RMT/SFX data
-    dlg.m_moduleLengthForSFX = exportTempDescription.firstByteAfterModule - exportTempDescription.targetAddrOfModule;
-    dlg.m_savedInstrFlagsForSFX = exportTempDescription.instrumentSavedFlags;
-    dlg.m_savedTracksFlagsForSFX = exportTempDescription.trackSavedFlags;
-
-    // Show the dialog and get the stripped RMT configuration parameters
-    if (dlg.DoModal() != IDOK) return false;
-
-    // Save the configurations for later reuse
-    int targetAddrOfModule = dlg.m_exportAddr;
-
-    g_rmtstripped_adr_module = dlg.m_exportAddr;
-    g_rmtstripped_sfx = dlg.m_sfxSupport;
-    g_rmtstripped_gvf = dlg.m_globalVolumeFade;
-    g_rmtstripped_nos = dlg.m_noStartingSongLine;
-    g_AsmFormat = dlg.m_assemblerFormat;
-
-    // Now we can regenerate the RMT module with the selected configuration
-    // - known start address
-    // - know if we want to strip out unused instruments and tracks => IOTYPE_RMTSTRIPPED : IOTYPE_RMT
-    memset(&exportTempDescription, 0, sizeof(TExportDescription));			// Clear it all again
-    exportTempDescription.targetAddrOfModule = g_rmtstripped_adr_module;	// Standard RMT modules are set to start @ $4000
-
-    exportTempDescription.firstByteAfterModule =
-        song.MakeModule(
-            exportTempDescription.mem,
-            exportTempDescription.targetAddrOfModule,
-            g_rmtstripped_sfx ? IOTYPE_RMTSTRIPPED : IOTYPE_RMT,
-            exportTempDescription.instrumentSavedFlags,
-            exportTempDescription.trackSavedFlags
-        );
-    if (exportTempDescription.firstByteAfterModule < 0) return false;	// if the module could not be created
-
-    // And save the RMT module block
-    SaveBinaryBlock(ou, exportTempDescription.mem, exportTempDescription.targetAddrOfModule, exportTempDescription.firstByteAfterModule, TRUE);
-
-    return true;		// Indicate that data was saved
-}
 
 /// <summary>
 /// Load a RMT file.

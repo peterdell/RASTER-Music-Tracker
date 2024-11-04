@@ -98,16 +98,6 @@ BOOL g_rmtstripped_sfx;			//sfx offshoot RMT stripped file
 BOOL g_rmtstripped_gvf;			//gvs GlobalVolumeFade for feat
 BOOL g_rmtstripped_nos;			//nos NoStartingSongline for feat
 
-CString g_PrefixForAllAsmLabels;	//label prefix for export ASM simple notation
-
-CString g_AsmLabelForStartOfSong;	// Label for relocatable ASM for RMTPlayer.asm
-BOOL g_AsmWantRelocatableInstruments = 0;
-BOOL g_AsmWantRelocatableTracks = 0;
-BOOL g_AsmWantRelocatableSongLines = 0;
-CString g_AsmInstrumentsLabel;
-CString g_AsmTracksLabel;
-CString g_AsmSongLinesLabel;
-int g_AsmFormat = ASSEMBLER_FORMAT_XASM;
 
 
 int last_active_ti;			//if equal to g_active_ti, no screen clear necessary

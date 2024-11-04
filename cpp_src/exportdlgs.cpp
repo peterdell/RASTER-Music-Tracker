@@ -2,10 +2,10 @@
 //
 
 #include "stdafx.h"
-#include "Rmt.h"
 #include "Song.h"
 #include "ExportDlgs.h"
 #include "General.h"
+#include "ASMFileExporter.h"
 
 
 extern CSong			g_Song;
@@ -212,7 +212,7 @@ void CExportStrippedRMTDialog::ChangeParams()
 
     BYTE* instrsav = (m_sfxSupport) ? m_savedInstrFlagsForSFX : m_savedInstrFlagsForStrippedRMT;
     BYTE* tracksav = (m_sfxSupport) ? m_savedTracksFlagsForSFX : m_savedTracksFlagsForStrippedRMT;
-    m_song->ComposeRMTFEATstring(*m_song,  s, m_filename, instrsav, tracksav, m_sfxSupport, m_globalVolumeFade, m_noStartingSongLine, m_assemblerFormat);
+    CASMFileExporter::ComposeRMTFEATstring(*m_song,  s, m_filename, instrsav, tracksav, m_sfxSupport, m_globalVolumeFade, m_noStartingSongLine, m_assemblerFormat);
     m_c_rmtfeat.SetWindowText(s);
 }
 
@@ -665,7 +665,7 @@ void CExportRelocatableAsmForRmtPlayer::ChangeParams()
     BYTE* instrsav = (m_sfxSupport) ? m_exportDescWithSFX->instrumentSavedFlags : m_exportDescStripped->trackSavedFlags;
     BYTE* tracksav = (m_sfxSupport) ? m_exportDescWithSFX->trackSavedFlags : m_exportDescStripped->trackSavedFlags;
 
-    m_song->BuildRelocatableAsm(
+    CASMFileExporter::BuildRelocatableAsm(
         *m_song,
         s,
         m_sfxSupport ? m_exportDescWithSFX : m_exportDescStripped,

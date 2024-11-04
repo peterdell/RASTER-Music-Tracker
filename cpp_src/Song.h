@@ -37,20 +37,6 @@ struct TInfo
     int songnamecur; //to return the cursor to the appropriate position when undo changes in the song name
 };
 
-struct TExportMetadata
-{
-    char songname[SONG_NAME_MAX_LEN + 1];
-    CTime currentTime;
-    int instrspeed;
-    bool isStereo;
-    bool isNTSC;
-    bool autoRegion;
-    bool displayRasterbar;
-    int rasterbarColour;
-    char atariText[5 * 40];
-};
-
-
 struct TExportDescription
 {
     unsigned char mem[65536];				// default RAM size for most 800xl/xe machines
@@ -64,9 +50,13 @@ struct TExportDescription
 } ;
 
 
+class CASMFileExporter;
+
 class CSong
 {
 public:
+    friend CASMFileExporter; // JAC! TODO Remove
+
     CSong();
     ~CSong();
 
@@ -251,30 +241,12 @@ public:
     static bool ExportV2(CSong& song, std::ofstream& ou, int iotype, LPCTSTR filename = NULL);
     static bool ExportAsRMT(CSong& song, std::ofstream& ou, TExportDescription* exportDesc);
     static bool ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDescription* exportDesc, LPCTSTR filename);
-    static bool ExportAsAsm(const CSong& song, std::ofstream& ou, TExportDescription* exportStrippedDesc);
-    static bool ExportAsRelocatableAsmForRmtPlayer(CSong& song, std::ofstream& ou, TExportDescription* exportStrippedDesc);
 
     void DumpSongToPokeyStream(CPokeyStream& pokeyStream, int playmode = MPLAY_SONG, int songline = 0, int trackline = 0);
 
 
     bool TestBeforeFileSave();
     int GetSubsongParts(CString& resultstr) const;
-
-    void static ComposeRMTFEATstring(const CSong& song, CString& dest, const char* filename, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags, BOOL sfx, BOOL gvf, BOOL nos, int assemblerFormat);
-
-    static BOOL BuildRelocatableAsm(
-        const CSong& song, CString& dest,
-        TExportDescription* exportDesc,
-        CString strAsmStartLabel,
-        CString strTracksLabel,
-        CString strSongLinesLabel,
-        CString strInstrumentsLabel,
-        int assemblerFormat,
-        BOOL sfx,
-        BOOL gvf,
-        BOOL nos,
-        bool bWantSizeInfoOnly);
-
 
     void MarkTF_USED(BYTE* arrayTRACKSNUM) const;
     void MarkTF_NOEMPTY(BYTE* arrayTRACKSNUM) const;
