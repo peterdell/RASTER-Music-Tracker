@@ -143,18 +143,18 @@
 #define MPLAY_SEEK_NEXT	6	//added for Media keys
 #define MPLAY_SEEK_PREV	7	//added for Media keys
 
-#define MPLAY_SAPR_SONG		255	//SAPR dump from song start
-#define MPLAY_SAPR_FROM		254	//SAPR dump from song cursor position
-#define MPLAY_SAPR_TRACK	253	//SAPR dump from track (loop optional)
-#define MPLAY_SAPR_BLOCK	252	//SAPR dump from selection block (loop optional)
-#define MPLAY_SAPR_BOOKMARK	251	//SAPR dump from bookmak position
+#define MPLAY_SAPR_SONG		255	// SAPR dump from song start
+#define MPLAY_SAPR_FROM		254	// SAPR dump from song cursor position
+#define MPLAY_SAPR_TRACK	253	// SAPR dump from track (loop optional)
+#define MPLAY_SAPR_BLOCK	252	// SAPR dump from selection block (loop optional)
+#define MPLAY_SAPR_BOOKMARK	251	// SAPR dump from bookmak position
 
 #define IOTYPE_NONE			0			// No export has been done yet
 #define IOTYPE_RMT			1
 #define IOTYPE_RMW			2
 #define IOTYPE_RMTSTRIPPED	3
 #define IOTYPE_SAP			4
-#define IOTYPE_XEX			5
+#define IOTYPE_XEX			5			// Not used anymore? Old RMT 1.28 XEX export is disabled?
 #define IOTYPE_TXT			6
 #define IOTYPE_ASM			7
 #define IOTYPE_RMF			8
@@ -167,11 +167,11 @@
 
 #define IOTYPE_WAV			20
 
-#define IOTYPE_TMC			101		//import TMC
+#define IOTYPE_TMC			101		// import TMC
 
-#define IOINSTR_RTI			1		//corresponding IOTYPE_RMT
-#define IOINSTR_RMW			2		//corresponding IOTYPE_RMW
-#define IOINSTR_TXT			6		//corresponding IOTYPE_TXT
+#define IOINSTR_RTI			1		// corresponding IOTYPE_RMT
+#define IOINSTR_RMW			2		// corresponding IOTYPE_RMW
+#define IOINSTR_TXT			6		// corresponding IOTYPE_TXT
 
 #define ASSEMBLER_FORMAT_ATASM	0
 #define ASSEMBLER_FORMAT_XASM	1

@@ -2,19 +2,16 @@
 #include <fstream>
 #include <memory.h>
 
-#include "GuiHelpers.h"
 #include "Song.h"
 
 // MFC interface code
 #include "FileNewDlg.h"
 #include "ExportDlgs.h"
-#include "importdlgs.h"
-#include "EffectsDlg.h"
-#include "MainFrm.h"
+#include "ImportDlgs.h"
 
 #include "Atari6502.h"
 #include "XPokey.h"
-#include "PokeyStream.h"
+
 #include "IOHelpers.h"
 
 #include "Instruments.h"
@@ -22,11 +19,9 @@
 
 #include "global.h"
 
-#include "Keyboard2NoteMapping.h"
 #include "ChannelControl.h"
 #include "RmtMidi.h"
 
-#include "Wavefile.h"
 #include "SongExporter.h"
 
 extern CInstruments	g_Instruments;
@@ -34,19 +29,7 @@ extern CTrackClipboard g_TrackClipboard;
 extern CXPokey g_Pokey;
 extern CRmtMidi g_Midi;
 
-void CSong::StrToAtariVideo(char* txt, int count)
-{
-    char a;
-    for (int i = 0; i < count; i++)
-    {
-        a = txt[i] & 0x7f;
-        if (a < 32) { a = 0; }
-        else {
-            if (a < 96) { a -= 32; }
-        }
-        txt[i] = a;
-    }
-}
+
 
 int CSong::SongToAta(unsigned char* dest, int max, int adr)
 {
@@ -1325,10 +1308,10 @@ bool CSong::ExportV2(std::ofstream& ou, int iotype, LPCTSTR filename)
     case IOTYPE_ASM: return ExportAsAsm(ou, &exportDesc);
     case IOTYPE_ASM_RMTPLAYER: return ExportAsRelocatableAsmForRmtPlayer(ou, &exportDesc);
     case IOTYPE_SAPR: return CSongExporter::ExportSAP_R(*this, ou);
-    case IOTYPE_LZSS: return ExportLZSS(*this, ou, filename);
+    case IOTYPE_LZSS: return CSongExporter::ExportLZSS(*this, ou, filename);
     case IOTYPE_LZSS_SAP: return CSongExporter::ExportSAP_B_LZSS(*this, ou);
-    case IOTYPE_LZSS_XEX: return ExportLZSS_XEX(*this, ou);
-    case IOTYPE_WAV: return ExportWav(ou, filename);
+    case IOTYPE_LZSS_XEX: return CSongExporter::ExportXEX_LZSS(*this, ou);
+    case IOTYPE_WAV: return CSongExporter::ExportWAV(*this, ou, filename, g_Pokey, g_atarimem);
     }
 
     return false;	// Failed
@@ -1455,8 +1438,7 @@ bool CSong::ExportAsStrippedRMT(std::ofstream& ou, tExportDescription* exportStr
 /// <returns>true if the load went ok</returns>
 bool CSong::LoadRMT(std::ifstream& in)
 {
-    unsigned char mem[65536];
-    memset(mem, 0, 65536);
+    byte mem[RAM_SIZE]{};
     WORD fromAddr, toAddr;
     WORD bto_mainblock;
 
@@ -1528,159 +1510,3 @@ bool CSong::LoadRMT(std::ifstream& in)
     return true;
 }
 
-bool CSong::CreateExportMetadata(const CSong& song, int iotype, struct TExportMetadata* metadata)
-{
-    memcpy(metadata->songname, song.GetName(), SONG_NAME_MAX_LEN); // TODO: Cleaning/padding
-    metadata->currentTime = CTime::GetCurrentTime();
-    metadata->isNTSC = song.IsNTSC ();
-    metadata->isStereo = song.IsStereo();
-    metadata->instrspeed = song.GetInstrumentSpeed();
-
-    switch (iotype)
-    {
-    case IOTYPE_XEX:
-    case IOTYPE_LZSS_XEX:
-        return WriteToXEX(metadata);
-    }
-
-    return false;
-}
-
-// The XEX dialog process was split to a different function for clarity, same will be done for SAP later...
-bool CSong::WriteToXEX(struct TExportMetadata* metadata)
-{
-    CString EOL = "\n";
-
-    CExpMSXDlg dlg;
-    CString str;
-
-    str = metadata->songname;
-    str.TrimRight();
-
-    if (g_rmtmsxtext != "")
-    {
-        dlg.m_txt = g_rmtmsxtext;	// same from last time, making repeated exports faster
-    }
-    else
-    {
-        dlg.m_txt = str + EOL;
-        if (metadata->isStereo) { dlg.m_txt += "STEREO"; }
-        dlg.m_txt += EOL + metadata->currentTime.Format("%d/%m/%Y");
-        dlg.m_txt += EOL + "Author: (press SHIFT key)";
-        dlg.m_txt += EOL + "Author: ???";
-    }
-    str = "Playback speed will be adjusted to ";
-    str += metadata->isNTSC ? "60" : "50";
-    str += "Hz on both PAL and NTSC systems.";
-    dlg.m_speedinfo = str;
-
-    if (dlg.DoModal() != IDOK)
-    {
-        return false;
-    }
-    g_rmtmsxtext = dlg.m_txt;
-    g_rmtmsxtext.Replace("\x0d\x0d", "\x0d");	//13, 13 => 13
-
-    // This block of code will handle all the user input text that will be inserted in the binary during the export process
-    memset(metadata->atariText, 32, 40 * 5);	// 5 lines of 40 characters at the user text address
-    int p = 0, q = 0;
-    char a;
-    for (int i = 0; i < dlg.m_txt.GetLength(); i++)
-    {
-        a = dlg.m_txt.GetAt(i);
-        if (a == '\n') { p += 40; q = 0; }
-        else
-        {
-            metadata->atariText[p + q] = a;
-            q++;
-        }
-        if (p + q >= 5 * 40) break;
-    }
-    StrToAtariVideo((char*)metadata->atariText, 200);
-
-    metadata->rasterbarColour = dlg.m_metercolor;
-    metadata->displayRasterbar = dlg.m_meter;
-    metadata->autoRegion = dlg.m_region_auto;
-
-    return true;
-}
-
-bool CSong::ExportWav(std::ofstream& ou, LPCTSTR filename)
-{
-    CWaveFile wavefile{};
-
-    BYTE* buffer = NULL;
-    BYTE* streambuffer = NULL;
-    WAVEFORMATEX* wfm = NULL;
-    int length = 0, frames = 0, offset = 0;
-    int frameSize = (g_tracks4_8 == 8) ? 18 : 9;	// SAP-R bytes to copy, Stereo doubles the number
-
-    ou.close();	// hack, just to be able to actually use the filename for now...
-
-    if (!(wfm = g_Pokey.GetSoundFormat()))
-    {
-        MessageBox(g_hwnd, "Could not get sound format!", "ExportWav", MB_ICONWARNING);
-        return false;
-    }
-
-    if (!wavefile.OpenFile((LPTSTR)filename, wfm->nSamplesPerSec, wfm->wBitsPerSample, wfm->nChannels))
-    {
-        MessageBox(g_hwnd, "Wav file could not be created!", "ExportWav", MB_ICONWARNING);
-        return false;
-    }
-
-    // Dump the POKEY registers from full song playback
-    CPokeyStream pokeyStream;
-    DumpSongToPokeyStream(pokeyStream);
-
-    // Busy writing! TODO: Fix the timing overlap causing conflicts
-    pokeyStream.SetState(CPokeyStream::WRITE);
-
-    Atari_InitRMTRoutine();	// Reset the Atari memory 
-    SetChannelOnOff(-1, 1);	// Unmute all channels
-
-    // Create the sound buffer to copy from and to
-    buffer = new BYTE[BUFFER_SIZE];
-    memset(buffer, 0x80, BUFFER_SIZE);
-
-    while (frames < pokeyStream.GetFirstCountPoint())
-    {
-        // Copy the SAP-R bytes to g_atarimem for this frame
-        streambuffer = pokeyStream.GetStreamBuffer() + frames * frameSize;
-
-        //for (int i = 0; i < frameSize; i++)
-        //{
-        //	g_atarimem[0xd200 + i] = streambuffer[i];
-        //}
-
-        g_atarimem[RMTPLAYR_TRACKN_AUDF + 0] = streambuffer[0x00];
-        g_atarimem[RMTPLAYR_TRACKN_AUDF + 1] = streambuffer[0x02];
-        g_atarimem[RMTPLAYR_TRACKN_AUDF + 2] = streambuffer[0x04];
-        g_atarimem[RMTPLAYR_TRACKN_AUDF + 3] = streambuffer[0x06];
-        g_atarimem[RMTPLAYR_TRACKN_AUDC + 0] = streambuffer[0x01];
-        g_atarimem[RMTPLAYR_TRACKN_AUDC + 1] = streambuffer[0x03];
-        g_atarimem[RMTPLAYR_TRACKN_AUDC + 2] = streambuffer[0x05];
-        g_atarimem[RMTPLAYR_TRACKN_AUDC + 3] = streambuffer[0x07];
-        g_atarimem[RMTPLAYR_V_AUDCTL] = streambuffer[0x08];
-
-        // Fill the POKEY buffer with 1 rendered chunk
-        g_Pokey.RenderSoundV2(m_instrumentSpeed, buffer, length);
-
-        // Write the buffer to WAV file
-        wavefile.WriteWave(buffer, length);
-
-        // Update the PokeyStream offset for the next frame
-        frames++;
-    }
-
-    // Clear the SAP-R dumper memory and reset RMT routines
-    pokeyStream.FinishedRecording();
-
-    // Finished doing WAV things...
-    wavefile.CloseFile();
-
-    // Also make sure to delete the buffer once it's no longer needed
-    delete buffer;
-
-    return true;
-}

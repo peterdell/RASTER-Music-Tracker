@@ -72,7 +72,9 @@ public:
 
     CString GetName() const {
         CString result;
-        return m_songname;
+        result = m_songname;
+        result.TrimRight();
+        return result;
     }
 
     int GetInstrumentSpeed() const {
@@ -231,12 +233,8 @@ public:
     void FileTrackSave();
     void FileTrackLoad();
 
-    static void StrToAtariVideo(char* txt, int count);
     int SongToAta(unsigned char* dest, int max, int adr);
     BOOL AtaToSong(unsigned char* sour, int len, int adr);
-
-    static bool CreateExportMetadata(const CSong& song, int iotype, struct TExportMetadata* metadata);
-    static bool WriteToXEX(struct TExportMetadata* metadata);
 
     bool SaveTxt(std::ofstream& ou);
     bool SaveRMW(std::ofstream& ou);
@@ -248,22 +246,16 @@ public:
     int ImportTMC(std::ifstream& in);
     int ImportMOD(std::ifstream& in);
 
+    // Export methods shall be separeated from song itself
+    // CSong argument is not yet const, because the DumpPokey... methods change its state
     bool ExportV2(std::ofstream& ou, int iotype, LPCTSTR filename = NULL);
     bool ExportAsRMT(std::ofstream& ou, tExportDescription* exportDesc);
     bool ExportAsStrippedRMT(std::ofstream& ou, tExportDescription* exportDesc, LPCTSTR filename);
     bool ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDesc);
     bool ExportAsRelocatableAsmForRmtPlayer(std::ofstream& ou, tExportDescription* exportStrippedDesc);
 
-    // Export method shall be separeated from song itself
-    // CSong argument is not yet const, because the DumpPokey... methods change its state
-    static bool ExportLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename);
-    static bool ExportCompactLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename);
-    static bool ExportLZSS_XEX(CSong& song, std::ofstream& ou);
-
-    bool ExportWav(std::ofstream& ou, LPCTSTR filename);
-
     void DumpSongToPokeyStream(CPokeyStream& pokeyStream, int playmode = MPLAY_SONG, int songline = 0, int trackline = 0);
-    static int BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigned char* dst);
+
 
     bool TestBeforeFileSave();
     int GetSubsongParts(CString& resultstr) const;

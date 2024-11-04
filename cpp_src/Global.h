@@ -104,7 +104,6 @@ extern BOOL g_rmtstripped_sfx;			//sfx offshoot RMT stripped file
 extern BOOL g_rmtstripped_gvf;			//gvs GlobalVolumeFade for feat
 extern BOOL g_rmtstripped_nos;			//nos NoStartingSongline for feat
 
-extern CString g_rmtmsxtext;
 extern CString g_PrefixForAllAsmLabels;		// Label prefix for export ASM simple notation
 extern CString g_AsmLabelForStartOfSong;	// Label for relocatable ASM for RMTPlayer.asm
 extern BOOL g_AsmWantRelocatableInstruments;

@@ -20,7 +20,7 @@
 #include "Keyboard2NoteMapping.h"
 #include "ChannelControl.h"
 #include "PokeyStream.h"
-
+#include "SongExporter.h"
 
 extern CSong g_Song;
 extern CInstruments g_Instruments;
@@ -116,7 +116,7 @@ void CSong::ClearSong(int numOfTracks)
     g_rmtstripped_adr_module = 0x4000;	// Default standard address for stripped RMT modules
     g_rmtstripped_sfx = 0;				// Is not a standard sfx variety stripped RMT
     g_rmtstripped_gvf = 0;				// Default does not use Feat GlobalVolumeFade
-    g_rmtmsxtext = "";					// Clear the text for MSX export
+    g_rmtmsxtext = "";					// Clear the text for XEX export
     g_PrefixForAllAsmLabels = "MUSIC";	// Default label prefix for exporting simple ASM notation
 
     PlayPressedTonesInit();

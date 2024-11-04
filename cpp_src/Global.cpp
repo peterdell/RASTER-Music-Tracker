@@ -98,7 +98,6 @@ BOOL g_rmtstripped_sfx;			//sfx offshoot RMT stripped file
 BOOL g_rmtstripped_gvf;			//gvs GlobalVolumeFade for feat
 BOOL g_rmtstripped_nos;			//nos NoStartingSongline for feat
 
-CString g_rmtmsxtext;
 CString g_PrefixForAllAsmLabels;	//label prefix for export ASM simple notation
 
 CString g_AsmLabelForStartOfSong;	// Label for relocatable ASM for RMTPlayer.asm

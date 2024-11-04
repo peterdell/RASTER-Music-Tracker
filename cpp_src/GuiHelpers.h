@@ -9,9 +9,20 @@
 #define NO_SCREENUPDATE g_screenupdate = 0
 
 
+class DisableEventSection {
+public:
+    DisableEventSection();
+    ~DisableEventSection();
+
+    void Begin();
+};
+
 extern void SetStatusBarText(const char* text);
 extern void ClearStatusBar();
 extern void SendErrorMessage(const char* title, const char* message);
+
+extern void DisableEvents();
+extern void EnableEvents();
 
 extern BOOL RefreshScreen(int frameskip = 0);
 
