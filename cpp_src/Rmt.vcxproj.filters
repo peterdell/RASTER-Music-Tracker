@@ -46,6 +46,15 @@
     <Filter Include="Assembly Files">
       <UniqueIdentifier>{7a4c5235-815a-4b0b-9c9b-8240245f1f43}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\IO - Load/Save/Export/Import/Midi\ASM">
+      <UniqueIdentifier>{fa3a6452-25cf-4e48-88b5-67530bd65b93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\IO - Load/Save/Export/Import/Midi\SAP">
+      <UniqueIdentifier>{d8813ff3-13fe-4e69-8965-c8030568b027}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\IO - Load/Save/Export/Import/Midi\XEX">
+      <UniqueIdentifier>{f7de0c39-64bb-46c6-9664-9e9d7fc47399}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StdAfx.cpp">
@@ -153,12 +162,6 @@
     <ClCompile Include="Midi_Song.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClCompile>
-    <ClCompile Include="IO_Song_ExportAsm.cpp">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClCompile>
-    <ClCompile Include="IO_Song_ExportSaprLzss.cpp">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClCompile>
     <ClCompile Include="PokeyStream.cpp">
       <Filter>Source Files\Sound Generator</Filter>
     </ClCompile>
@@ -168,29 +171,38 @@
     <ClCompile Include="RmtAtariBinaries.cpp">
       <Filter>Source Files\Sound Generator</Filter>
     </ClCompile>
+    <ClCompile Include="ASMFile.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\ASM</Filter>
+    </ClCompile>
+    <ClCompile Include="ASMFileBuilder.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\ASM</Filter>
+    </ClCompile>
+    <ClCompile Include="ASMFileExporter.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\ASM</Filter>
+    </ClCompile>
+    <ClCompile Include="SAPFile.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP</Filter>
+    </ClCompile>
+    <ClCompile Include="SAPFileExportDialog.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP</Filter>
+    </ClCompile>
+    <ClCompile Include="SAPFileExporter.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP</Filter>
+    </ClCompile>
+    <ClCompile Include="lzss_sap.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP-R Compressor</Filter>
+    </ClCompile>
+    <ClCompile Include="IO_Song_ExportAsm.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\ASM</Filter>
+    </ClCompile>
+    <ClCompile Include="IO_Song_ExportSaprLzss.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP</Filter>
+    </ClCompile>
     <ClCompile Include="SongExporter.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClCompile>
-    <ClCompile Include="SAPFileExporter.cpp">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClCompile>
-    <ClCompile Include="SAPFile.cpp">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClCompile>
-    <ClCompile Include="lzss_sap.cpp">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClCompile>
-    <ClCompile Include="ASMFileExporter.cpp">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClCompile>
-    <ClCompile Include="ASMFileBuilder.cpp">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClCompile>
-    <ClCompile Include="ASMFile.cpp">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClCompile>
-    <ClCompile Include="SAPFileExportDialog.cpp">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    <ClCompile Include="AtariIO.cpp">
+      <Filter>Source Files\Sound Generator</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -293,35 +305,38 @@
     <ClInclude Include="ExportDlgs.h">
       <Filter>Source Files\Dialogs</Filter>
     </ClInclude>
-    <ClInclude Include="VUPlayer.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClInclude>
-    <ClInclude Include="SongExporter.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClInclude>
-    <ClInclude Include="SAPFileExporter.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClInclude>
-    <ClInclude Include="SAPFile.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClInclude>
     <ClInclude Include="Memory.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
     <ClInclude Include="lzssp.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP-R Compressor</Filter>
     </ClInclude>
-    <ClInclude Include="ASMFileExporter.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    <ClInclude Include="ASMFile.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\ASM</Filter>
     </ClInclude>
     <ClInclude Include="ASMFileBuilder.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\ASM</Filter>
     </ClInclude>
-    <ClInclude Include="ASMFile.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    <ClInclude Include="ASMFileExporter.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\ASM</Filter>
+    </ClInclude>
+    <ClInclude Include="SAPFile.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP</Filter>
     </ClInclude>
     <ClInclude Include="SAPFileExportDialog.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP</Filter>
+    </ClInclude>
+    <ClInclude Include="SAPFileExporter.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP</Filter>
+    </ClInclude>
+    <ClInclude Include="VUPlayer.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\XEX</Filter>
+    </ClInclude>
+    <ClInclude Include="SongExporter.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariIO.h">
+      <Filter>Source Files\Sound Generator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

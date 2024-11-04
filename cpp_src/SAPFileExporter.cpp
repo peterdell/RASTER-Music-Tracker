@@ -2,11 +2,8 @@
 #include "SAPFileExporter.h"
 #include "Memory.h"
 #include "lzss_sap.h"
-
 #include "VUPlayer.h"
-
-#include "Atari6502.h" // TODO: Make class
-
+#include "AtariIO.h"
 #include "GuiHelpers.h"
 
 extern CString g_prgpath;
@@ -18,7 +15,7 @@ bool CSAPFileExporter::ExportSAP_B_LZSS(const CSong& song, const CPokeyStream& p
     MemoryAddress addressTo;
 
     CString binaryFilePath = g_prgpath + "RMT Binaries/VUPlayer (LZSS Export).obx";
-    if (!LoadBinaryFile(binaryFilePath, memory, addressFrom, addressTo))
+    if (!CAtariIO::LoadBinaryFile(binaryFilePath, memory, addressFrom, addressTo))
     {
         CString message;
         message.Format("Fatal error with RMT LZSS system routines.\nCouldn't load '%s'.", binaryFilePath);
@@ -86,8 +83,8 @@ bool CSAPFileExporter::ExportSAP_B_LZSS(const CSong& song, const CPokeyStream& p
     memory[VU_PLAYER_STEREO_FLAG] = (g_tracks4_8 > 4) ? 0xFF : 0x00;		// Is the song stereo?
 
     // Reconstruct the export binary 
-    SaveBinaryBlock(ou, memory, 0x1900, 0x1EFF, 1);	// LZSS Driver, and some free bytes for later if needed
-    SaveBinaryBlock(ou, memory, 0x2000, 0x27FF, 0);	// VUPlayer only
+    CAtariIO::SaveBinaryBlock(ou, memory, 0x1900, 0x1EFF, 1);	// LZSS Driver, and some free bytes for later if needed
+    CAtariIO::SaveBinaryBlock(ou, memory, 0x2000, 0x27FF, 0);	// VUPlayer only
 
     // SongStart pointers
     memory[LZSS_POINTER] = targetAddrOfModule >> 8;			// SongsSHIPtrs
@@ -113,7 +110,7 @@ bool CSAPFileExporter::ExportSAP_B_LZSS(const CSong& song, const CPokeyStream& p
     }
 
     // Overwrite the LZSS data region with both the pointers for subtunes index, and the actual LZSS streams until the end of file
-    SaveBinaryBlock(ou, memory, LZSS_POINTER, lzss_end, 0);
+    CAtariIO::SaveBinaryBlock(ou, memory, LZSS_POINTER, lzss_end, 0);
 
     return true;
 }

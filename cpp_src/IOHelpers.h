@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fstream>
+
 extern CString GetFilePath(CString pathandfilename);
 
 extern BOOL NextSegment(std::ifstream& in);

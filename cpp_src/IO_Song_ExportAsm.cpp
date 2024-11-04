@@ -1,11 +1,6 @@
 #include "StdAfx.h"
-
-
 #include "Song.h"
-#include "Instruments.h"
-
-#include "Atari6502.h"
-
+#include "AtariIO.h"
 #include "ExportDlgs.h"
 
 
@@ -81,10 +76,13 @@ bool CSong::ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDescripti
             exportTempDescription.instrumentSavedFlags,
             exportTempDescription.trackSavedFlags
         );
-    if (exportTempDescription.firstByteAfterModule < 0) return false;	// if the module could not be created
+    if (exportTempDescription.firstByteAfterModule < 0)
+    {
+        return false;	// if the module could not be created
+    }
 
     // And save the RMT module block
-    SaveBinaryBlock(ou, exportTempDescription.mem, exportTempDescription.targetAddrOfModule, exportTempDescription.firstByteAfterModule, TRUE);
+    CAtariIO::SaveBinaryBlock(ou, exportTempDescription.mem, exportTempDescription.targetAddrOfModule, exportTempDescription.firstByteAfterModule, TRUE);
 
     return true;		// Indicate that data was saved
 }

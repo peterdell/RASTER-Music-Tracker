@@ -2,6 +2,7 @@
 #include "SongExporter.h"
 
 #include "Atari6502.h"
+#include "AtariIO.h"
 
 #include "ChannelControl.h" // TODO: Is still global
 
@@ -547,15 +548,15 @@ bool CSongExporter::ExportXEX_LZSS(CSong& song, std::ofstream& ou)
     }
 
     // Reconstruct the export binary for the LZSS Driver, VUPlayer, and all the included data
-    SaveBinaryBlock(ou, mem, LZSSP_PLAYLZ16BEGIN, LZSSP_SONGINDEX, 1);
+    CAtariIO::SaveBinaryBlock(ou, mem, LZSSP_PLAYLZ16BEGIN, LZSSP_SONGINDEX, 1);
 
     // Set the run address to VUPlayer 
     mem[0x2e0] = LZSSP_VUPLAYER & 0xff;
     mem[0x2e1] = LZSSP_VUPLAYER >> 8;
-    SaveBinaryBlock(ou, mem, 0x2e0, 0x2e1, 0);
+    CAtariIO::SaveBinaryBlock(ou, mem, 0x2e0, 0x2e1, 0);
 
     // Overwrite the LZSS data region with both the pointers for subtunes index, and the actual LZSS streams until the end of file
-    SaveBinaryBlock(ou, mem, LZSS_POINTER, lzss_total, 0);
+    CAtariIO::SaveBinaryBlock(ou, mem, LZSS_POINTER, lzss_total, 0);
 
     return true;
 }

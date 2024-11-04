@@ -1,8 +1,6 @@
 #include "stdafx.h"
-#include "resource.h"
-#include <fstream>
 
-#include "Atari6502.h"
+#include "AtariIO.h"
 
 #include "importdlgs.h"
 
@@ -196,7 +194,7 @@ int CSong::ImportTMC(std::ifstream& in)
 	int len, i, j, k;
 	char a;
 
-	len = LoadBinaryBlock(in, mem, bfrom, bto);
+	len = CAtariIO::LoadBinaryBlock(in, mem, bfrom, bto);
 
 	if (len <= 0)
 	{

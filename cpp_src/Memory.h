@@ -2,7 +2,8 @@
 
 // Central definition of 8-bit memory related types and constants
 
-typedef unsigned short MemoryAddress;
+typedef unsigned short MemoryWord;
+typedef MemoryWord MemoryAddress;
 typedef size_t MemorySize;
 
 constexpr MemorySize RAM_SIZE = 65536; 					    // Default RAM size for most Atari XL/XE machines

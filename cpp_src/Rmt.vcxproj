@@ -314,6 +314,7 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
     </ClCompile>
+    <ClCompile Include="AtariIO.cpp" />
     <ClCompile Include="ChannelControl.cpp" />
     <ClCompile Include="Clipboard.cpp" />
     <ClCompile Include="ConfigDlg.cpp">
@@ -546,6 +547,7 @@
     <ClInclude Include="ASMFileBuilder.h" />
     <ClInclude Include="ASMFileExporter.h" />
     <ClInclude Include="Atari6502.h" />
+    <ClInclude Include="AtariIO.h" />
     <ClInclude Include="Clipboard.h" />
     <ClInclude Include="ConfigDlg.h" />
     <ClInclude Include="RmtFile.h" />

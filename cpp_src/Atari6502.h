@@ -31,10 +31,6 @@
 #define MAXSCREENCYCLES_PAL 	114*312
 
 extern void Memory_Clear();
-extern int LoadBinaryBlock(std::ifstream& in,unsigned char* memory,WORD& fromadr, WORD& toadr);
-extern int LoadBinaryFile(const char *fname, unsigned char *memory,WORD& minadr,WORD& maxadr);
-extern int LoadDataAsBinaryFile(unsigned char *data, WORD size, unsigned char *memory,WORD& minadr,WORD& maxadr);
-extern int SaveBinaryBlock(std::ofstream& out, unsigned char* memory, WORD fromAddr, WORD toAddr, BOOL withBinaryBlockHeader);
 
 extern int Atari_LoadRMTRoutines();
 extern int Atari_InitRMTRoutine();

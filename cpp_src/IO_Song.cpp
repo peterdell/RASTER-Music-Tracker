@@ -8,6 +8,7 @@
 #include "ImportDlgs.h"
 
 #include "Atari6502.h"
+#include "AtariIO.h"
 #include "XPokey.h"
 
 #include "IOHelpers.h"
@@ -1327,7 +1328,7 @@ bool CSong::ExportV2(CSong& song, std::ofstream& ou, int iotype, LPCTSTR filenam
 bool CSong::ExportAsRMT(CSong& song, std::ofstream& ou, TExportDescription* exportDesc)
 {
     // Save the 1st RMT module block: Song, Tracks & Instruments
-    SaveBinaryBlock(ou, exportDesc->mem, exportDesc->targetAddrOfModule, exportDesc->firstByteAfterModule - 1, TRUE);
+    CAtariIO::SaveBinaryBlock(ou, exportDesc->mem, exportDesc->targetAddrOfModule, exportDesc->firstByteAfterModule - 1, TRUE);
 
     // Save the 2nd RMT module block: Song and Instrument Names
     // The individual names are truncated by spaces and terminated by a zero
@@ -1352,7 +1353,7 @@ bool CSong::ExportAsRMT(CSong& song, std::ofstream& ou, TExportDescription* expo
         }
     }
     // and now, save the 2nd block
-    SaveBinaryBlock(ou, exportDesc->mem, addrOfSongName, addrInstrumentNames - 1, FALSE);
+    CAtariIO::SaveBinaryBlock(ou, exportDesc->mem, addrOfSongName, addrInstrumentNames - 1, FALSE);
 
     return true;
 }
@@ -1379,7 +1380,7 @@ bool CSong::LoadRMT(std::ifstream& in)
     // RMT header+song data is the first main block of an RMT song
     // There has to be 1 binary block with the header, song, instrument and track data
     // Optional block with instrument and song name information
-    len = LoadBinaryBlock(in, mem, fromAddr, toAddr);
+    len = CAtariIO::LoadBinaryBlock(in, mem, fromAddr, toAddr);
 
     if (len > 0)
     {
@@ -1400,7 +1401,7 @@ bool CSong::LoadRMT(std::ifstream& in)
     }
 
     // RMT - now read the second block with names
-    len = LoadBinaryBlock(in, mem, fromAddr, toAddr);
+    len = CAtariIO::LoadBinaryBlock(in, mem, fromAddr, toAddr);
     if (len < 1)
     {
         CString msg;
