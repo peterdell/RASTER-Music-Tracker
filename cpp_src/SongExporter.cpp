@@ -542,7 +542,7 @@ bool CSongExporter::ExportXEX_LZSS(CSong& song, std::ofstream& ou)
     mem[VU_PLAYER_COLOUR] = metadata.rasterbarColour;						// Rasterbar colour 
     mem[VU_PLAYER_STEREO_FLAG] = metadata.isStereo ? 0xFF : 0x00;			// Is the song stereo?
     mem[VU_PLAYER_SONGTOTAL] = subsongs;									// Total number of subtunes
-    if (!metadata.autoRegion) {											// Automatically adjust speed between regions?
+    if (!metadata.autoRegion) {												// Automatically adjust speed between regions?
         for (int i = 0; i < 4; i++) mem[VU_PLAYER_REGION + 6 + i] = 0xEA;	// set the 4 bytes to NOPs to disable it
     }
 

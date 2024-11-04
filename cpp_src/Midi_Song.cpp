@@ -1,29 +1,10 @@
 #include "StdAfx.h"
-#include <fstream>
-
-#include "GuiHelpers.h"
 #include "Song.h"
-
-// MFC interface code
-#include "FileNewDlg.h"
-#include "ExportDlgs.h"
-#include "importdlgs.h"
-#include "EffectsDlg.h"
-#include "MainFrm.h"
-
-
 #include "Atari6502.h"
 #include "XPokey.h"
-#include "IOHelpers.h"
-
 #include "Instruments.h"
 #include "Clipboard.h"
-
-
 #include "global.h"
-
-#include "Keyboard2NoteMapping.h"
-#include "ChannelControl.h"
 #include "RmtMidi.h"
 
 
