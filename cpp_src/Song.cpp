@@ -246,7 +246,7 @@ int CSong::GetSubsongParts(CString& resultstr) const
 /// Mark all tracks that are referenced in the song as USED
 /// </summary>
 /// <param name="arrayTRACKSNUM">Array where each used track if marked off</param>
-void CSong::MarkTF_USED(BYTE* arrayTRACKSNUM)
+void CSong::MarkTF_USED(BYTE* arrayTRACKSNUM) const
 {
     //all tracks used in the song
     for (int i = 0; i < SONGLEN; i++)
@@ -256,17 +256,23 @@ void CSong::MarkTF_USED(BYTE* arrayTRACKSNUM)
             for (int channelNr = 0; channelNr < g_tracks4_8; channelNr++)
             {
                 int tr = m_song[i][channelNr];
-                if (tr >= 0 && tr < TRACKSNUM) arrayTRACKSNUM[tr] = TF_USED;
+                if (tr >= 0 && tr < TRACKSNUM)
+                { 
+                    arrayTRACKSNUM[tr] = TF_USED;
+                }
             }
         }
     }
 }
 
-void CSong::MarkTF_NOEMPTY(BYTE* arrayTRACKSNUM)
+void CSong::MarkTF_NOEMPTY(BYTE* arrayTRACKSNUM) const 
 {
     for (int i = 0; i < TRACKSNUM; i++)
     {
-        if (g_Tracks.CalculateNotEmpty(i)) arrayTRACKSNUM[i] |= TF_NOEMPTY;
+        if (g_Tracks.CalculateNotEmpty(i))
+        {
+            arrayTRACKSNUM[i] |= TF_NOEMPTY;
+        }
     }
 }
 

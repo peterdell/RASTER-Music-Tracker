@@ -75,9 +75,6 @@
     <ClCompile Include="ImportDlgs.cpp">
       <Filter>Source Files\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="lzss_sap.cpp">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP-R Compressor</Filter>
-    </ClCompile>
     <ClCompile Include="Tuning.cpp">
       <Filter>Source Files\Tuning</Filter>
     </ClCompile>
@@ -171,13 +168,19 @@
     <ClCompile Include="RmtAtariBinaries.cpp">
       <Filter>Source Files\Sound Generator</Filter>
     </ClCompile>
+    <ClCompile Include="SongExporter.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClCompile>
     <ClCompile Include="SAPFileExporter.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClCompile>
     <ClCompile Include="SAPFile.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClCompile>
-    <ClCompile Include="SongExporter.cpp">
+    <ClCompile Include="lzss_sap.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClCompile>
+    <ClCompile Include="ASMFileExporter.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClCompile>
   </ItemGroup>
@@ -269,23 +272,11 @@
     <ClInclude Include="PokeyStream.h">
       <Filter>Source Files\Sound Generator</Filter>
     </ClInclude>
-    <ClInclude Include="lzssp.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClInclude>
     <ClInclude Include="WaveFile.h">
       <Filter>Source Files\Sound Generator</Filter>
     </ClInclude>
     <ClInclude Include="RmtAtariBinaries.h">
       <Filter>Source Files\Sound Generator</Filter>
-    </ClInclude>
-    <ClInclude Include="SAPFileExporter.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClInclude>
-    <ClInclude Include="SAPFile.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClInclude>
-    <ClInclude Include="Memory.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
     <ClInclude Include="RmtFile.h">
       <Filter>Source Files\RMT Interface</Filter>
@@ -297,6 +288,21 @@
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
     <ClInclude Include="SongExporter.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClInclude>
+    <ClInclude Include="SAPFileExporter.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClInclude>
+    <ClInclude Include="SAPFile.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClInclude>
+    <ClInclude Include="lzssp.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP-R Compressor</Filter>
+    </ClInclude>
+    <ClInclude Include="ASMFileExporter.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
   </ItemGroup>

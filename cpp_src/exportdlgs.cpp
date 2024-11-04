@@ -191,7 +191,9 @@ void CExportStrippedRMTDialog::ChangeParams()
     if (!m_sfxSupport)
     {
         if (adr > 0x10000 - m_moduleLengthForStrippedRMT)
+        {
             adr = 0x10000 - m_moduleLengthForStrippedRMT;
+        }
         m_exportAddr = adr;
         s.Format("=>  $%04X - $%04X , length $%04X (%u bytes)", m_exportAddr, m_exportAddr + m_moduleLengthForStrippedRMT - 1, m_moduleLengthForStrippedRMT, m_moduleLengthForStrippedRMT);
         m_c_warning.SetWindowText("Warning:\nThis output file doesn't contain any unused or empty tracks and instruments, song name and names of all instruments.");
@@ -210,7 +212,7 @@ void CExportStrippedRMTDialog::ChangeParams()
 
     BYTE* instrsav = (m_sfxSupport) ? m_savedInstrFlagsForSFX : m_savedInstrFlagsForStrippedRMT;
     BYTE* tracksav = (m_sfxSupport) ? m_savedTracksFlagsForSFX : m_savedTracksFlagsForStrippedRMT;
-    m_song->ComposeRMTFEATstring(s, m_filename, instrsav, tracksav, m_sfxSupport, m_globalVolumeFade, m_noStartingSongLine, m_assemblerFormat);
+    m_song->ComposeRMTFEATstring(*m_song,  s, m_filename, instrsav, tracksav, m_sfxSupport, m_globalVolumeFade, m_noStartingSongLine, m_assemblerFormat);
     m_c_rmtfeat.SetWindowText(s);
 }
 
@@ -664,6 +666,7 @@ void CExportRelocatableAsmForRmtPlayer::ChangeParams()
     BYTE* tracksav = (m_sfxSupport) ? m_exportDescWithSFX->trackSavedFlags : m_exportDescStripped->trackSavedFlags;
 
     m_song->BuildRelocatableAsm(
+        *m_song,
         s,
         m_sfxSupport ? m_exportDescWithSFX : m_exportDescStripped,
         "",

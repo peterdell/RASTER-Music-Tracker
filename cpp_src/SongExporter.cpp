@@ -53,7 +53,7 @@ int CSongExporter::BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigne
     int optimal = 0;
     bool result;
     {
-        DisableEventSection section();
+        DisableEventSection section;
 
         for (int i = 0; i < SAPR_OPTIMISATIONS_COUNT; i++)
         {

@@ -51,7 +51,7 @@ struct TExportMetadata
 };
 
 
-typedef struct
+struct TExportDescription
 {
     unsigned char mem[65536];				// default RAM size for most 800xl/xe machines
 
@@ -61,7 +61,7 @@ typedef struct
     BYTE instrumentSavedFlags[INSTRSNUM];
     BYTE trackSavedFlags[TRACKSNUM];
 
-} tExportDescription;
+} ;
 
 
 class CSong
@@ -248,11 +248,11 @@ public:
 
     // Export methods shall be separeated from song itself
     // CSong argument is not yet const, because the DumpPokey... methods change its state
-    bool ExportV2(std::ofstream& ou, int iotype, LPCTSTR filename = NULL);
-    bool ExportAsRMT(std::ofstream& ou, tExportDescription* exportDesc);
-    bool ExportAsStrippedRMT(std::ofstream& ou, tExportDescription* exportDesc, LPCTSTR filename);
-    bool ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDesc);
-    bool ExportAsRelocatableAsmForRmtPlayer(std::ofstream& ou, tExportDescription* exportStrippedDesc);
+    static bool ExportV2(CSong& song, std::ofstream& ou, int iotype, LPCTSTR filename = NULL);
+    static bool ExportAsRMT(CSong& song, std::ofstream& ou, TExportDescription* exportDesc);
+    static bool ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDescription* exportDesc, LPCTSTR filename);
+    static bool ExportAsAsm(const CSong& song, std::ofstream& ou, TExportDescription* exportStrippedDesc);
+    static bool ExportAsRelocatableAsmForRmtPlayer(CSong& song, std::ofstream& ou, TExportDescription* exportStrippedDesc);
 
     void DumpSongToPokeyStream(CPokeyStream& pokeyStream, int playmode = MPLAY_SONG, int songline = 0, int trackline = 0);
 
@@ -260,10 +260,11 @@ public:
     bool TestBeforeFileSave();
     int GetSubsongParts(CString& resultstr) const;
 
-    void ComposeRMTFEATstring(CString& dest, const char* filename, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags, BOOL sfx, BOOL gvf, BOOL nos, int assemblerFormat);
+    void static ComposeRMTFEATstring(const CSong& song, CString& dest, const char* filename, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags, BOOL sfx, BOOL gvf, BOOL nos, int assemblerFormat);
 
-    BOOL BuildRelocatableAsm(CString& dest,
-        tExportDescription* exportDesc,
+    static BOOL BuildRelocatableAsm(
+        const CSong& song, CString& dest,
+        TExportDescription* exportDesc,
         CString strAsmStartLabel,
         CString strTracksLabel,
         CString strSongLinesLabel,
@@ -274,38 +275,9 @@ public:
         BOOL nos,
         bool bWantSizeInfoOnly);
 
-    int BuildInstrumentData(
-        CString& strCode,
-        CString strInstrumentsLabel,
-        unsigned char* buf,
-        int from,
-        int to,
-        int* info,
-        int assemblerFormat
-    );
 
-    int BuildTracksData(
-        CString& strCode,
-        CString strTracksLabel,
-        unsigned char* buf,
-        int from,
-        int to,
-        int* track_pos,
-        int assemblerFormat);
-
-    int BuildSongData(
-        CString& strCode,
-        CString strSongLinesLabel,
-        unsigned char* buf,
-        int offsetSong,
-        int len,
-        int start,
-        int numTracks,
-        int assemblerFormat
-    );
-
-    void MarkTF_USED(BYTE* arrayTRACKSNUM);
-    void MarkTF_NOEMPTY(BYTE* arrayTRACKSNUM);
+    void MarkTF_USED(BYTE* arrayTRACKSNUM) const;
+    void MarkTF_NOEMPTY(BYTE* arrayTRACKSNUM) const;
 
     int MakeTuningBlock(unsigned char* mem, int addr);
     int DecodeTuningBlock(unsigned char* mem, int fromAddr, int endAddr);

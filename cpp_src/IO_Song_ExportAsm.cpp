@@ -8,7 +8,8 @@
 
 #include "ExportDlgs.h"
 
-#include "global.h"
+#include "Global.h"
+#include "ASMFileExporter.h"
 
 extern CInstruments	g_Instruments;
 
@@ -31,7 +32,7 @@ public:
 /// <param name="ou">Output stream</param>
 /// <param name="exportStrippedDesc">Data about the packed RMT module</param>
 /// <returns>true if the save went ok</returns>
-bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDesc)
+bool CSong::ExportAsAsm(const CSong& song, std::ofstream& ou, TExportDescription* exportStrippedDesc)
 {
 	// Setup the ASM export dialog
 	CExportAsmDlg dlg;
@@ -47,7 +48,7 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 
 	BYTE tracksFlags[TRACKSNUM];
 	memset(tracksFlags, 0, TRACKSNUM); // init
-	MarkTF_USED(tracksFlags);
+	song.MarkTF_USED(tracksFlags);
 
 	TTrack tempTrack;	// temporary track
 
@@ -155,9 +156,9 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 				finished[sline] = 1;
 				s.Format(";Song line $%02X", sline);
 				ou << CASMFile::EOL << s;
-				if (m_songgo[sline] >= 0)
+				if (song.m_songgo[sline] >= 0)
 				{
-					sline = m_songgo[sline]; //GOTO line
+					sline = song.m_songgo[sline]; //GOTO line
 					s.Format(" Go to line $%02X", sline);
 					ou << s;
 					continue;
@@ -165,7 +166,7 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 				int trackslen = g_Tracks.GetMaxTrackLength();
 				for (int i = 0; i < g_tracks4_8; i++)
 				{
-					int at = m_song[sline][i];
+					int at = song.m_song[sline][i];
 					if (at < 0 || at >= TRACKSNUM) continue;
 					if (g_Tracks.GetGoLine(at) >= 0) continue;
 					int al = g_Tracks.GetLastLine(at) + 1;
@@ -173,7 +174,7 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 				}
 				int t, i, j, anot, dur, ins;
 				int ova = maxova;
-				t = m_song[sline][clm];
+				t = song.m_song[sline][clm];
 				if (t < 0)
 				{
 					ou << " Track --";
@@ -292,14 +293,14 @@ bool CSong::ExportAsAsm(std::ofstream& ou, tExportDescription* exportStrippedDes
 /// <param name="ou">Output stream</param>
 /// <param name="exportDescStripped">Data about the packed RMT module</param>
 /// <returns>true if the save went ok</returns>
-bool CSong::ExportAsRelocatableAsmForRmtPlayer(std::ofstream& ou, tExportDescription* exportDescStripped)
+bool CSong::ExportAsRelocatableAsmForRmtPlayer(CSong& song, std::ofstream& ou, TExportDescription* exportDescStripped)
 {
-	tExportDescription exportDescWithSFX;
-	memset(&exportDescWithSFX, 0, sizeof(tExportDescription));
+    TExportDescription exportDescWithSFX;
+	memset(&exportDescWithSFX, 0, sizeof(TExportDescription));
 	exportDescWithSFX.targetAddrOfModule = 0x4000;		// Standard RMT modules are set to start @ $4000
 
 	// Create a variant for SFX (ie. including unused instruments and tracks)
-	exportDescWithSFX.firstByteAfterModule = MakeModule(exportDescWithSFX.mem, exportDescWithSFX.targetAddrOfModule, IOTYPE_RMT, exportDescWithSFX.instrumentSavedFlags, exportDescWithSFX.trackSavedFlags);
+	exportDescWithSFX.firstByteAfterModule = song.MakeModule(exportDescWithSFX.mem, exportDescWithSFX.targetAddrOfModule, IOTYPE_RMT, exportDescWithSFX.instrumentSavedFlags, exportDescWithSFX.trackSavedFlags);
 	if (exportDescWithSFX.firstByteAfterModule < 0) return false;	// if the module could not be created
 
 	CExportRelocatableAsmForRmtPlayer dlg;
@@ -318,7 +319,7 @@ bool CSong::ExportAsRelocatableAsmForRmtPlayer(std::ofstream& ou, tExportDescrip
 	dlg.m_sfxSupport = g_rmtstripped_sfx;
 	dlg.m_globalVolumeFade = g_rmtstripped_gvf;
 	dlg.m_noStartingSongLine = g_rmtstripped_nos;
-	dlg.m_song = this;
+	dlg.m_song = &song;
 	dlg.m_filename = "";
 
 	if (dlg.DoModal() != IDOK) return false;
@@ -342,6 +343,7 @@ bool CSong::ExportAsRelocatableAsmForRmtPlayer(std::ofstream& ou, tExportDescrip
 	CString strAsmForModule;
 
 	BOOL isGood = BuildRelocatableAsm(
+        song,
 		strAsmForModule,
 		dlg.m_sfxSupport ? &exportDescWithSFX : exportDescStripped,
 		dlg.m_strAsmLabelForStartOfSong,
@@ -387,8 +389,9 @@ static int rword(unsigned char* data, int i)
 /// <param name="nos"></param>
 /// <returns></returns>
 BOOL CSong::BuildRelocatableAsm(
+    const CSong& song,
 	CString& addCodeHere,
-	tExportDescription* exportDesc,
+    TExportDescription* exportDesc,
 	CString strAsmStartLabel,
 	CString strTracksLabel,
 	CString strSongLinesLabel,
@@ -432,7 +435,7 @@ BOOL CSong::BuildRelocatableAsm(
 	);
 
 	CString str;
-	ComposeRMTFEATstring(str, "", exportDesc->instrumentSavedFlags, exportDesc->trackSavedFlags, sfx, gvf, nos, assemblerFormat);
+	ComposeRMTFEATstring(song, str, "", exportDesc->instrumentSavedFlags, exportDesc->trackSavedFlags, sfx, gvf, nos, assemblerFormat);
 	strCode += str;
 	//
 	unsigned char* buf = &exportDesc->mem[exportDesc->targetAddrOfModule];
@@ -637,14 +640,14 @@ BOOL CSong::BuildRelocatableAsm(
 	// First dump all the sequencial code, relocated data is dumped after this
 	if (strInstrumentsLabel.IsEmpty())
 	{
-		sizeInstruments = BuildInstrumentData(str, "", buf, first_instr, first_track, instr_pos, assemblerFormat);
+		sizeInstruments = CASMFileExporter::BuildInstrumentData(str, "", buf, first_instr, first_track, instr_pos, assemblerFormat);
 		strCode += str;
 
 		strModuleSequence += "  Instruments\n";
 	}
 	if (strTracksLabel.IsEmpty())
 	{
-		sizeTrack = BuildTracksData(str, "", buf, first_track, offsetSong, track_pos, assemblerFormat);
+		sizeTrack = CASMFileExporter::BuildTracksData(str, "", buf, first_track, offsetSong, track_pos, assemblerFormat);
 		if (sizeTrack == 0)
 			return 0;
 		strCode += str;
@@ -652,7 +655,7 @@ BOOL CSong::BuildRelocatableAsm(
 	}
 	if (strSongLinesLabel.IsEmpty())
 	{
-		sizeSongLines = BuildSongData(str, "", buf, offsetSong, len, start, numTracks, assemblerFormat);
+		sizeSongLines = CASMFileExporter::BuildSongData(str, "", buf, offsetSong, len, start, numTracks, assemblerFormat);
 		strCode += str;
 		strModuleSequence += "  Song Lines\n";
 	}
@@ -660,13 +663,13 @@ BOOL CSong::BuildRelocatableAsm(
 	// Dump the relocated data
 	if (strInstrumentsLabel.IsEmpty() == false)
 	{
-		sizeInstruments = BuildInstrumentData(str, strInstrumentsLabel, buf, first_instr, first_track, instr_pos, assemblerFormat);
+		sizeInstruments = CASMFileExporter::BuildInstrumentData(str, strInstrumentsLabel, buf, first_instr, first_track, instr_pos, assemblerFormat);
 		strCode += str;
 		strModuleSequence += "Relocated Instruments\n";
 	}
 	if (strTracksLabel.IsEmpty() == false)
 	{
-		sizeTrack = BuildTracksData(str, strTracksLabel, buf, first_track, offsetSong, track_pos, assemblerFormat);
+        sizeTrack = CASMFileExporter::BuildTracksData(str, strTracksLabel, buf, first_track, offsetSong, track_pos, assemblerFormat);
 		if (sizeTrack == 0)
 			return 0;
 		strCode += str;
@@ -674,7 +677,7 @@ BOOL CSong::BuildRelocatableAsm(
 	}
 	if (strSongLinesLabel.IsEmpty() == false)
 	{
-		sizeSongLines = BuildSongData(str, strSongLinesLabel, buf, offsetSong, len, start, numTracks, assemblerFormat);
+		sizeSongLines = CASMFileExporter::BuildSongData(str, strSongLinesLabel, buf, offsetSong, len, start, numTracks, assemblerFormat);
 		strCode += str;
 		strModuleSequence += "Relocated Song Lines\n";
 	}
@@ -710,176 +713,6 @@ BOOL CSong::BuildRelocatableAsm(
 	return 1;
 }
 
-int CSong::BuildInstrumentData(
-	CString& strCode,
-	CString strInstrumentsLabel,
-	unsigned char* buf,
-	int from,
-	int to,
-	int* info,
-	int assemblerFormat
-)
-{
-	strCode = "\n\n; Instrument data\n";
-
-	int sizeInstruments = 0;
-	CString str;
-	if (strInstrumentsLabel.IsEmpty() == false)
-	{
-		// Make the instruments relocatable
-		str.Format(assemblerFormat == ASSEMBLER_FORMAT_ATASM ? "* = %s\n" : "org %s\n", (LPCTSTR)strInstrumentsLabel);
-		strCode += str;
-	}
-
-	for (int i = from, l = 0; i < to; i++, l++)
-	{
-		if (info[i])
-		{
-			str.Format("\n?Instrument_%d", info[i] - 1);
-			strCode += str;
-			info[i] = 0;
-			l = 0;
-		}
-		if (l % 16 == 0)
-			strCode += "\n    {{byte}} ";
-		else
-			strCode += ",";
-		str.Format("$%02x", buf[i]);
-		strCode += str;
-
-		++sizeInstruments;
-	}
-
-	return sizeInstruments;
-}
-
-int CSong::BuildTracksData(
-	CString& strCode,
-	CString strTracksLabel,
-	unsigned char* buf,
-	int from,
-	int to,
-	int* track_pos,
-	int assemblerFormat
-)
-{
-	strCode = "\n\n; Track data";
-
-	int sizeTrack = 0;
-	CString str;
-
-	if (strTracksLabel.IsEmpty() == false)
-	{
-		// Make the track data relocatable
-		str.Format(assemblerFormat == ASSEMBLER_FORMAT_ATASM ? "\n* = %s\n" : "\norg %s\n", (LPCTSTR)strTracksLabel);
-	}
-	strCode += str;
-	for (int i = from, l = 0; i < to; i++, l++)
-	{
-		if (track_pos[i])
-		{
-			str.Format("\n?Track_%02x", track_pos[i] - 1);
-			strCode += str;
-			track_pos[i] = 0;
-			l = 0;
-		}
-		if (l % 16 == 0)
-			strCode += "\n    {{byte}} ";
-		else
-			strCode += ",";
-		str.Format("$%02x", buf[i]);
-		strCode += str;
-
-		++sizeTrack;
-	}
-	for (int i = 0; i < 65536; i++)
-	{
-		if (track_pos[i] != 0)
-			return 0;
-	}
-	return sizeTrack;
-}
-
-int CSong::BuildSongData(
-	CString& strCode,
-	CString strSongLinesLabel,
-	unsigned char* buf,
-	int offsetSong,
-	int len,
-	int start,
-	int numTracks,
-	int assemblerFormat
-)
-{
-	strCode = "\n\n; Song data\n";
-
-	int sizeSongLines = 0;
-	CString str;
-	if (strSongLinesLabel.IsEmpty() == false)
-	{
-		str.Format(assemblerFormat == ASSEMBLER_FORMAT_ATASM ? "\n* = %s\n" : "\norg %s\n", (LPCTSTR)strSongLinesLabel);
-	}
-	strCode += str;
-
-	strCode += "?SongData";
-	int jmp = 0, l = 0;
-	for (int i = offsetSong; i < len; i++, l++)
-	{
-		if (jmp == -2)
-		{
-			jmp = 0x10000 + buf[i];
-			continue;
-		}
-		else if (jmp > 0)
-		{
-			jmp = (0xFFFF & (jmp | (buf[i] << 8))) - start;
-			if (0 == ((jmp - offsetSong) % numTracks) && jmp >= offsetSong && jmp < len)
-			{
-				int lnum = (jmp - offsetSong) / numTracks;
-				str.Format(assemblerFormat == ASSEMBLER_FORMAT_ATASM ? ",<?line_%02x,>?line_%02x" : ",l(__line_%02x),h(__line_%02x)", lnum, lnum);
-				strCode += str;
-			}
-			else
-			{
-				str.Format("; ERROR malformed file(song jump bad $ % 04x[% x:% x])\n", jmp, offsetSong, len);
-				strCode += str;
-				str.Format(assemblerFormat == ASSEMBLER_FORMAT_ATASM ? ",<($%x+?SongData),>($%x+?SongData)" : ",l($%x+__SongData),h($%x+__SongData)", jmp, jmp);
-				strCode += str;
-			}
-			jmp = 0;
-			// Allows terminating song on last JUMP
-			if (i + 1 == len && numTracks == 8)
-				l += 4;
-
-			continue;
-		}
-		else if (jmp == -1)
-			jmp = -2;
-
-		if (l % numTracks == 0)
-		{
-			str.Format("\n?Line_%02x  {{byte}} ", l / numTracks);
-			strCode += str;
-		}
-		else
-			strCode += ",";
-		str.Format("$%02x", buf[i]);
-		strCode += str;
-
-		if (buf[i] == 0xfe)
-		{
-			if ((l % numTracks) != 0)
-				return 0;
-			else
-				jmp = -1;
-		}
-
-		++sizeSongLines;
-	}
-	strCode += "\n";
-
-	return sizeSongLines;
-}
 
 /// <summary>
 /// Create Assembler code to describe which features
@@ -894,6 +727,7 @@ int CSong::BuildSongData(
 /// <param name="noStartingSongLine">Flag to indicate if there is a starting song line</param>
 /// <param name="assemblerFormat">Which assembler format is to be used ATASM or XASM</param>
 void CSong::ComposeRMTFEATstring(
+    const CSong& song,
 	CString& dest,
 	//char* filename,
 	const char* filename,
@@ -939,11 +773,11 @@ void CSong::ComposeRMTFEATstring(
 
 	for (int songLineNr = 0; songLineNr < SONGLEN; songLineNr++)
 	{
-		if (m_songgo[songLineNr] >= 0) continue;	// goto line
+		if (song.m_songgo[songLineNr] >= 0) continue;	// goto line
 		for (int channelNr = 0; channelNr < g_tracks4_8; channelNr++)
 		{
 			// Get the track# that is at the song line and at the channel
-			int trackNr = m_song[songLineNr][channelNr];
+			int trackNr = song.m_song[songLineNr][channelNr];
 			if (trackNr < 0 || trackNr >= TRACKSNUM) continue;
 
 			TTrack* tt = g_Tracks.GetTrack(trackNr);		// Get the track data
@@ -1050,9 +884,9 @@ void CSong::ComposeRMTFEATstring(
 
 	s.Format("FEAT_NOSTARTINGSONGLINE\t%s %u\n", equal, noStartingSongLine); dest += s;
 
-	s.Format("FEAT_INSTRSPEED\t\t%s %i\n", equal, m_instrumentSpeed); dest += s;
+	s.Format("FEAT_INSTRSPEED\t\t%s %i\n", equal, song.GetInstrumentSpeed()); dest += s;
 
-	s.Format("FEAT_CONSTANTSPEED\t\t%s %i\t\t;(%i times)\n", equal, (howManySpeedChanges == 0) ? m_mainSpeed : 0, howManySpeedChanges); dest += s;
+	s.Format("FEAT_CONSTANTSPEED\t\t%s %i\t\t;(%i times)\n", equal, (howManySpeedChanges == 0) ? song.m_mainSpeed : 0, howManySpeedChanges); dest += s;
 
 	// Commands 1-6
 	for (int i = 1; i <= 6; i++)
