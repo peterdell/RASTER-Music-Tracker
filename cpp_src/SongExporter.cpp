@@ -314,7 +314,7 @@ bool CSongExporter::ExportWAV(CSong& song, std::ofstream& ou, LPCTSTR filename, 
     // Busy writing! TODO: Fix the timing overlap causing conflicts
     pokeyStream.SetState(CPokeyStream::WRITE);
 
-    Atari_InitRMTRoutine();	// Reset the Atari memory 
+    CAtari::InitRMTRoutine();	// Reset the Atari memory 
     SetChannelOnOff(-1, 1);	// Unmute all channels
 
     // Create the sound buffer to copy from and to
@@ -395,7 +395,7 @@ bool CSongExporter::ExportXEX_LZSS(CSong& song, std::ofstream& ou)
     }
 
     // Load VUPlayerLZSS to memory
-    Atari_LoadOBX(IOTYPE_LZSS_XEX, mem, addressFrom, addressTo);
+    CAtari::LoadOBX(IOTYPE_LZSS_XEX, mem, addressFrom, addressTo);
 
     // Create the export metadata for songname, Atari text, parameters, etc
     TExportMetadata metadata;

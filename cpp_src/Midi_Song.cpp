@@ -29,7 +29,7 @@ void CSong::MidiEvent(DWORD dwParam)
 			{
 				//System Reset
 			MIDISystemReset:
-				Atari_InitRMTRoutine(); //reinit RMT routines
+                CAtari::InitRMTRoutine(); //reinit RMT routines
 				for (int i = 1; i < 16; i++)	//from 1, because it is MULTITIMBRAL 2-16
 				{
 					g_Midi.m_LastNoteOnChannel[i] = -1;	//last pressed keys on each channel

@@ -155,7 +155,7 @@ BOOL CXPokey::RenderSound1_50(int instrspeed)
 	for (; instrspeed > 0; instrspeed--)
 	{
 		//--- RMT - instrument play ---/
-		if (g_rmtroutine) Atari_PlayRMT();	//one run RMT routine (instruments)
+        if (g_rmtroutine) { CAtari::PlayRMT(); }	//one run RMT routine (instruments)
 		MemToPokey();			//transfer from g_atarimem to POKEY (mono or stereo)
 		renderpartsize = (rendersize / instrspeed) & 0xfffe;	//just the numbers
 
@@ -221,7 +221,7 @@ void CXPokey::RenderSoundV2(int instrspeed, BYTE* buffer, int& length)
 
 	for (; instrspeed > 0; instrspeed--)
 	{
-		Atari_SetPokey();
+        CAtari::SetPokey();
 		MemToPokey();
 		renderpartsize = (rendersize / instrspeed) & 0xfffe;
 

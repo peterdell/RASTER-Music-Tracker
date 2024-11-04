@@ -195,14 +195,14 @@
     <ClCompile Include="IO_Song_ExportAsm.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\ASM</Filter>
     </ClCompile>
-    <ClCompile Include="IO_Song_ExportSaprLzss.cpp">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP</Filter>
-    </ClCompile>
     <ClCompile Include="SongExporter.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClCompile>
     <ClCompile Include="AtariIO.cpp">
       <Filter>Source Files\Sound Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="Song_DumpSong.cpp">
+      <Filter>Source Files\Data</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

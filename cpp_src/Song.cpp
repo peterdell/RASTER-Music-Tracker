@@ -180,7 +180,7 @@ void CSong::ClearSong(int numOfTracks)
     g_changes = 0;
 
     // Initialise RMT routine, to clear anything leftover in Atari memory
-    Atari_InitRMTRoutine();
+    CAtari::InitRMTRoutine();
 }
 
 //---
@@ -927,9 +927,13 @@ BOOL CSong::PlayPressedTones()
             n = m_playptnote[t];
             i = m_playptinstr[t];
             if (n >= 0 && i >= 0)
-                Atari_SetTrack_NoteInstrVolume(t, n, i, v);
+            {
+                CAtari::SetTrack_NoteInstrVolume(t, n, i, v);
+            }
             else
-                Atari_SetTrack_Volume(t, v);
+            {
+                CAtari::SetTrack_Volume(t, v);
+            }
             SetPlayPressedTonesTNIV(t, -1, -1, -1);
         }
     }
@@ -1814,7 +1818,7 @@ void CSong::InstrPaste(int special)
 
     TInstrument* ai = g_Instruments.GetInstrument(i);
 
-    Atari_InstrumentTurnOff(i); //turns off this instrument on all channels
+    CAtari::InstrumentTurnOff(i); //turns off this instrument on all channels
 
     int x, y;
     BOOL bl = 0, br = 0, ep = 0;
@@ -2420,9 +2424,14 @@ void CSong::Songswitch4_8(int tracks4_8)
         }
     }
     else
-        if (tracks4_8 == 8) g_tracks4_8 = 8;
+    {
+        if (tracks4_8 == 8)
+        {
+            g_tracks4_8 = 8;
+        }
+    }
 
-    Atari_InitRMTRoutine();
+    CAtari::InitRMTRoutine();
 }
 
 int CSong::GetEffectiveMaxtracklen()
@@ -3034,7 +3043,7 @@ BOOL CSong::Play(int mode, BOOL follow, int special)
     switch (mode)
     {
     case MPLAY_SONG: //whole song from the beginning including initialization (due to portamentum etc.)
-        Atari_InitRMTRoutine();
+        CAtari::InitRMTRoutine();
         m_songplayline = 0;
         m_trackplayline = 0;
         m_speed = m_mainSpeed;
@@ -3215,14 +3224,14 @@ TrackLine:
         int v = vol[t];
         if (v >= 0 && v < 16)
         {
-            if (n >= 0 && n < NOTESNUM /*&& i>=0 && i<INSTRSNUM*/)		//adjustment for routine compatibility
+            if (n >= 0 && n < NOTESNUM /*&& i>=0 && i<INSTRSNUM*/)		// adjustment for routine compatibility
             {
-                if (i < 0 || i >= INSTRSNUM) i = 255;						//adjustment for routine compatibility
-                Atari_SetTrack_NoteInstrVolume(t, n, i, v);
+                if (i < 0 || i >= INSTRSNUM) { i = 255; }				// adjustment for routine compatibility
+                CAtari::SetTrack_NoteInstrVolume(t, n, i, v);
             }
             else
             {
-                Atari_SetTrack_Volume(t, v);
+                CAtari::SetTrack_Volume(t, v);
             }
         }
     }

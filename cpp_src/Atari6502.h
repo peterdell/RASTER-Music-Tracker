@@ -1,7 +1,7 @@
 /*
-	Atari6502.h
-	CPU EMULATION INTERFACE + ATARI BINARY FILE FUNCTIONS
-	(c) Raster/C.P.U. 2003
+    Atari6502.h
+    CPU EMULATION INTERFACE + ATARI BINARY FILE FUNCTIONS
+    (c) Raster/C.P.U. 2003
 */
 
 #ifndef __ATARI6502__
@@ -30,20 +30,27 @@
 #define MAXSCREENCYCLES_NTSC	114*262
 #define MAXSCREENCYCLES_PAL 	114*312
 
-extern void Atari_ClearMemory();
+class CAtari {
 
-extern int Atari_LoadRMTRoutines();
-extern int Atari_InitRMTRoutine();
-extern void Atari_PlayRMT();
-extern void Atari_SetPokey();
-extern void Atari_Silence();
-extern void Atari_SetTrack_NoteInstrVolume(int t,int n,int i,int v);
-extern void Atari_SetTrack_Volume(int t,int v);
-extern void Atari_InstrumentTurnOff(int instr);
 
-extern int Atari6502_Init();
-extern void Atari6502_DeInit();
+public:
 
-extern int Atari_LoadOBX(int obx, unsigned char* mem, WORD& minadr, WORD& maxadr);
+    static int Init();
+    static void DeInit();
+
+    static void ClearMemory();
+    static int LoadOBX(int obx, unsigned char* mem, WORD& minadr, WORD& maxadr);
+
+    static int LoadRMTRoutines();
+    static int InitRMTRoutine();
+    static void PlayRMT();
+    static void SetPokey();
+    static void Silence();
+    static void SetTrack_NoteInstrVolume(int t, int n, int i, int v);
+    static void SetTrack_Volume(int t, int v);
+    static void InstrumentTurnOff(int instr);
+
+
+};
 
 #endif

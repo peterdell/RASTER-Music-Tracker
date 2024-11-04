@@ -1772,7 +1772,7 @@ ParameterInc:
 
 ChangeInstrumentPar:
 				//because there has been some change in the instrument parameter => stop this instrument in all channels
-				Atari_InstrumentTurnOff(m_activeinstr);
+                CAtari::InstrumentTurnOff(m_activeinstr);
 				g_Instruments.CheckInstrumentParameters(m_activeinstr);
 				g_Instruments.WasModified(m_activeinstr);
 				return 1;

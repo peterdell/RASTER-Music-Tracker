@@ -243,6 +243,6 @@ void CPokeyStream::FinishedRecording()
 		m_StreamBuffer = NULL;
 	}
 
-	Atari_InitRMTRoutine();	//reset the Atari memory 
+    CAtari::InitRMTRoutine();	//reset the Atari memory 
 	SetChannelOnOff(-1, 1);	//switch all channels back on, since they were purposefully turned off during the recording
 }

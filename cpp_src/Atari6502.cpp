@@ -22,7 +22,7 @@ C6502_Initialise_PROC C6502_Initialise;
 C6502_JSR_PROC C6502_JSR;
 C6502_About_PROC C6502_About;
 
-void Atari6502_DeInit()
+void CAtari::DeInit()
 {
 	g_is6502 = 0;
 
@@ -34,15 +34,15 @@ void Atari6502_DeInit()
 	g_about6502 = "No Atari 6502 CPU emulation.";
 }
 
-int Atari6502_Init()
+int CAtari::Init()
 {
-	if (g_c6502_dll) Atari6502_DeInit();	//just in case
+    if (g_c6502_dll) { DeInit(); }//just in case
 
 	g_c6502_dll=LoadLibrary("sa_c6502.dll");
 	if(!g_c6502_dll)
 	{
 		MessageBox(g_hwnd,"Warning:\n'sa_c6502.dll' library not found.\nTherefore, the Atari sound routines can't be performed.","LoadLibrary error",MB_ICONEXCLAMATION);
-		Atari6502_DeInit();
+		DeInit();
 		return 1;
 	}
 
@@ -60,7 +60,7 @@ int Atari6502_Init()
 	if (wrn!="")
 	{
 		MessageBox(g_hwnd,"Error:\n'sa_c6502.dll' is not compatible.\nTherefore, the Atari sound routines can't be performed.\nIncompatibility with:" +wrn,"C6502 library error",MB_ICONEXCLAMATION);
-		Atari6502_DeInit();
+		DeInit();
 		return 1;
 	}
 
@@ -79,8 +79,14 @@ int Atari6502_Init()
 	return 1;
 }
 
+
+void CAtari::ClearMemory()
+{
+    memset(g_atarimem, 0, RAM_SIZE);
+}
+
 // Load an Atari executable to memory
-int Atari_LoadOBX(int obx, unsigned char* mem, WORD& minadr, WORD& maxadr)
+int CAtari::LoadOBX(int obx, unsigned char* mem, WORD& minadr, WORD& maxadr)
 {
 	WORD size;
 	byte* bin;
@@ -101,7 +107,7 @@ int Atari_LoadOBX(int obx, unsigned char* mem, WORD& minadr, WORD& maxadr)
 }
 
 // Load RMT routine to $3400, setnoteinstrvol to $3d00, and setvol to $3e00
-int Atari_LoadRMTRoutines()
+int CAtari::LoadRMTRoutines()
 {
 	WORD min, max;
 	WORD size;
@@ -113,7 +119,7 @@ int Atari_LoadRMTRoutines()
 	return CAtariIO::LoadDataAsBinaryFile(bin, size, g_atarimem, min, max);
 }
 
-int Atari_InitRMTRoutine()
+int CAtari::InitRMTRoutine()
 {
     if (!g_is6502) {
         return 0;
@@ -130,7 +136,7 @@ int Atari_InitRMTRoutine()
 	return (int)a;
 }
 
-void Atari_PlayRMT()
+void CAtari::PlayRMT()
 {
 	if (!g_is6502) return;
 
@@ -144,7 +150,7 @@ void Atari_PlayRMT()
 	C6502_JSR(&adr,&a,&x,&y,&cycles);			//adr,A,X,Y
 }
 
-void Atari_SetPokey()
+void CAtari::SetPokey()
 {
 	if (!g_is6502) return;
 
@@ -154,7 +160,7 @@ void Atari_SetPokey()
 	C6502_JSR(&adr, &a, &x, &y, &cycles);
 }
 
-void Atari_Silence()
+void CAtari::Silence()
 {
 	if (!g_is6502) return;
 
@@ -165,7 +171,7 @@ void Atari_Silence()
 	C6502_JSR(&adr,&a,&x,&y,&cycles);			//adr,A,X,Y
 }
 
-void Atari_SetTrack_NoteInstrVolume(int t,int n,int i,int v)
+void CAtari::SetTrack_NoteInstrVolume(int t,int n,int i,int v)
 {
 	if (!g_is6502) return;
 
@@ -182,7 +188,7 @@ void Atari_SetTrack_NoteInstrVolume(int t,int n,int i,int v)
 	g_rmtinstr[t]=i;
 }
 
-void Atari_SetTrack_Volume(int t,int v)
+void CAtari::SetTrack_Volume(int t,int v)
 {
 	if (!g_is6502) return;
 
@@ -192,7 +198,7 @@ void Atari_SetTrack_Volume(int t,int v)
 	C6502_JSR(&adr,&a,&x,&y,&cycles);			//adr,A,X,Y
 }
 
-void Atari_InstrumentTurnOff(int instr)
+void CAtari::InstrumentTurnOff(int instr)
 {
 	if (!g_is6502) return;
 
@@ -208,9 +214,4 @@ void Atari_InstrumentTurnOff(int instr)
 			g_rmtinstr[i]=-1;
 		}
 	}
-}
-
-void Atari_ClearMemory()
-{
-	memset(g_atarimem,0,RAM_SIZE);
 }

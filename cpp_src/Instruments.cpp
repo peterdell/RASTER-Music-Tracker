@@ -101,7 +101,7 @@ void CInstruments::ClearInstrument(int instrNr)
 	if (!instrument) return;
 
 	// Turn off this instrument on all channels
-	Atari_InstrumentTurnOff(instrNr);
+    CAtari::InstrumentTurnOff(instrNr);
 
 	// Clear everything/All zero
 	memset(instrument, 0, sizeof(TInstrument));

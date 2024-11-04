@@ -496,7 +496,7 @@ void CSong::FileImport()
     SetChannelOnOff(-1, 1);		// -1 = all, 1 = on
 
     // Initialise RMT routine
-    Atari_InitRMTRoutine();
+    CAtari::InitRMTRoutine();
 }
 
 /// <summary>

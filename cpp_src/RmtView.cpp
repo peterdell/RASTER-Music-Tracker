@@ -259,7 +259,7 @@ void CRmtView::OnDestroy()
     g_Pokey.DeInitSound();
 
     // Unload 6502 DLL
-    Atari6502_DeInit();
+    CAtari::DeInit();
 
     // Turn off the timer
     if (m_timerDisplay)
@@ -735,7 +735,7 @@ void CRmtView::OnViewConfiguration()
         if (g_nohwsoundbuffer != dlg.m_nohwsoundbuffer)
         {
             g_Pokey.ReInitSound();	//the sound needs to be reinitialized
-            Atari_InitRMTRoutine(); //reset RMT routines
+            CAtari::InitRMTRoutine(); //reset RMT routines
         }
         g_nohwsoundbuffer = dlg.m_nohwsoundbuffer;
 
@@ -744,7 +744,7 @@ void CRmtView::OnViewConfiguration()
             // PAL or NTSC
             g_ntsc = dlg.m_ntsc;
             g_basetuning = (g_ntsc) ? (g_basetuning * FREQ_17_NTSC) / FREQ_17_PAL : (g_basetuning * FREQ_17_PAL) / FREQ_17_NTSC;
-            Atari_InitRMTRoutine(); //reset RMT routines
+            CAtari::InitRMTRoutine(); //reset RMT routines
         }
         g_ntsc = dlg.m_ntsc;
 
@@ -752,8 +752,8 @@ void CRmtView::OnViewConfiguration()
         {
             // Something here to reset the thing
             g_trackerDriverVersion = dlg.m_trackerDriverVersion;
-            Atari_LoadRMTRoutines();
-            Atari_InitRMTRoutine();
+            CAtari::LoadRMTRoutines();
+            CAtari::InitRMTRoutine();
         }
         g_trackerDriverVersion = dlg.m_trackerDriverVersion;
 
@@ -1004,16 +1004,16 @@ void CRmtView::OnInitialUpdate()
     }
 
     //INITIAL 6502 INITIALIZATION (DLL)
-    if (!Atari6502_Init())
+    if (!CAtari::Init())
     {
-        Atari6502_DeInit();
+        CAtari::DeInit();
         exit(1);
     }
 
     //INITIALISATION OF ATARI RMT ROUTINES
-    Atari_ClearMemory();
-    Atari_LoadRMTRoutines();
-    Atari_InitRMTRoutine();
+    CAtari::ClearMemory();
+    CAtari::LoadRMTRoutines();
+    CAtari::InitRMTRoutine();
     g_Song.SetRMTTitle();
 
     // RMTView Timer Initialisation
@@ -1172,7 +1172,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
         {
             g_ntsc ^= 1;
             g_basetuning = (g_ntsc) ? (g_basetuning * FREQ_17_NTSC) / FREQ_17_PAL : (g_basetuning * FREQ_17_PAL) / FREQ_17_NTSC;
-            Atari_InitRMTRoutine(); //reset RMT routines
+            CAtari::InitRMTRoutine(); //reset RMT routines
         }
         return 6;
     }
@@ -1603,7 +1603,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         g_Song.Stop();	//stops everything
         if (g_keyboard_escresetatarisound)
         {
-            Atari_InitRMTRoutine(); //reset RMT routines automatically
+            CAtari::InitRMTRoutine(); //reset RMT routines automatically
         }
         if (g_Song.GetPlayMode() == 0) //only if the module is stopped
         {
@@ -1722,7 +1722,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         {
             g_ntsc ^= 1;
             g_basetuning = (g_ntsc) ? (g_basetuning * FREQ_17_NTSC) / FREQ_17_PAL : (g_basetuning * FREQ_17_PAL) / FREQ_17_NTSC;
-            Atari_InitRMTRoutine(); //reset RMT routines
+            CAtari::InitRMTRoutine(); //reset RMT routines
         }
         else OnPlayfollow(); //toggle follow position
         break;

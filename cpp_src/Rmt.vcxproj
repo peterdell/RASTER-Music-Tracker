@@ -403,7 +403,7 @@
     <ClCompile Include="IO_Instruments.cpp" />
     <ClCompile Include="IO_Song.cpp" />
     <ClCompile Include="IO_Song_ExportAsm.cpp" />
-    <ClCompile Include="IO_Song_ExportSaprLzss.cpp" />
+    <ClCompile Include="Song_DumpSong.cpp" />
     <ClCompile Include="IO_Tracks.cpp" />
     <ClCompile Include="Keyboard2NoteMapping.cpp" />
     <ClCompile Include="lzss_sap.cpp">
