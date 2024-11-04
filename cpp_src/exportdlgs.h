@@ -265,8 +265,8 @@ public:
 
 	BOOL m_InitPhase;
 
-	tExportDescription* m_exportDescStripped;
-	tExportDescription* m_exportDescWithSFX;
+    TExportDescription* m_exportDescStripped;
+    TExportDescription* m_exportDescWithSFX;
 
 	void ChangeParams();
 
