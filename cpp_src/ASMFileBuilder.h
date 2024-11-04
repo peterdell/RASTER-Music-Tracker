@@ -12,7 +12,7 @@ public:
         int from,
         int to,
         int* info,
-        int assemblerFormat
+        AssemblerFormat assemblerFormat
     );
 
     static int BuildTracksData(
@@ -22,7 +22,7 @@ public:
         int from,
         int to,
         int* track_pos,
-        int assemblerFormat);
+        AssemblerFormat assemblerFormat);
 
     static int BuildSongData(
         CString& strCode,
@@ -32,7 +32,7 @@ public:
         int len,
         int start,
         int numTracks,
-        int assemblerFormat
+        AssemblerFormat assemblerFormat
     );
 };
 

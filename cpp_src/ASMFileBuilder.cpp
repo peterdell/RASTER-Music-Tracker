@@ -11,7 +11,7 @@ int CASMFileBuilder::BuildInstrumentData(
     int from,
     int to,
     int* info,
-    int assemblerFormat
+    AssemblerFormat assemblerFormat
 )
 {
     strCode = "\n\n; Instrument data\n";
@@ -21,7 +21,7 @@ int CASMFileBuilder::BuildInstrumentData(
     if (strInstrumentsLabel.IsEmpty() == false)
     {
         // Make the instruments relocatable
-        str.Format(assemblerFormat == ASSEMBLER_FORMAT_ATASM ? "* = %s\n" : "org %s\n", (LPCTSTR)strInstrumentsLabel);
+        str.Format(assemblerFormat == ATASM ? "* = %s\n" : "org %s\n", (LPCTSTR)strInstrumentsLabel);
         strCode += str;
     }
 
@@ -54,7 +54,7 @@ int CASMFileBuilder::BuildTracksData(
     int from,
     int to,
     int* track_pos,
-    int assemblerFormat
+    AssemblerFormat assemblerFormat
 )
 {
     strCode = "\n\n; Track data";
@@ -65,7 +65,7 @@ int CASMFileBuilder::BuildTracksData(
     if (strTracksLabel.IsEmpty() == false)
     {
         // Make the track data relocatable
-        str.Format(assemblerFormat == ASSEMBLER_FORMAT_ATASM ? "\n* = %s\n" : "\norg %s\n", (LPCTSTR)strTracksLabel);
+        str.Format(assemblerFormat == ATASM ? "\n* = %s\n" : "\norg %s\n", (LPCTSTR)strTracksLabel);
     }
     strCode += str;
     for (int i = from, l = 0; i < to; i++, l++)
@@ -102,7 +102,7 @@ int CASMFileBuilder::BuildSongData(
     int len,
     int start,
     int numTracks,
-    int assemblerFormat
+    AssemblerFormat assemblerFormat
 )
 {
     strCode = "\n\n; Song data\n";
@@ -111,7 +111,7 @@ int CASMFileBuilder::BuildSongData(
     CString str;
     if (strSongLinesLabel.IsEmpty() == false)
     {
-        str.Format(assemblerFormat == ASSEMBLER_FORMAT_ATASM ? "\n* = %s\n" : "\norg %s\n", (LPCTSTR)strSongLinesLabel);
+        str.Format(assemblerFormat == ATASM ? "\n* = %s\n" : "\norg %s\n", (LPCTSTR)strSongLinesLabel);
     }
     strCode += str;
 
@@ -130,14 +130,14 @@ int CASMFileBuilder::BuildSongData(
             if (0 == ((jmp - offsetSong) % numTracks) && jmp >= offsetSong && jmp < len)
             {
                 int lnum = (jmp - offsetSong) / numTracks;
-                str.Format(assemblerFormat == ASSEMBLER_FORMAT_ATASM ? ",<?line_%02x,>?line_%02x" : ",l(__line_%02x),h(__line_%02x)", lnum, lnum);
+                str.Format(assemblerFormat == ATASM ? ",<?line_%02x,>?line_%02x" : ",l(__line_%02x),h(__line_%02x)", lnum, lnum);
                 strCode += str;
             }
             else
             {
                 str.Format("; ERROR malformed file(song jump bad $ % 04x[% x:% x])\n", jmp, offsetSong, len);
                 strCode += str;
-                str.Format(assemblerFormat == ASSEMBLER_FORMAT_ATASM ? ",<($%x+?SongData),>($%x+?SongData)" : ",l($%x+__SongData),h($%x+__SongData)", jmp, jmp);
+                str.Format(assemblerFormat == ATASM ? ",<($%x+?SongData),>($%x+?SongData)" : ",l($%x+__SongData),h($%x+__SongData)", jmp, jmp);
                 strCode += str;
             }
             jmp = 0;

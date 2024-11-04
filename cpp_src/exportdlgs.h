@@ -84,7 +84,7 @@ public:
 	int m_moduleLengthForStrippedRMT;
 	int m_moduleLengthForSFX;
 
-	int m_assemblerFormat;						// 0 = Atasm, 1 = Xasm
+	AssemblerFormat m_assemblerFormat;
 
 	BOOL m_sfxSupport;
 	BOOL m_globalVolumeFade;
@@ -254,7 +254,7 @@ public:
 	CString m_strAsmTracksLabel;
 	CString m_strAsmSongLinesLabel;
 
-	int m_assemblerFormat;						// 0 = Atasm, 1 = Xasm
+    AssemblerFormat m_assemblerFormat;						// 0 = Atasm, 1 = Xasm
 
 	BOOL m_sfxSupport;
 	BOOL m_globalVolumeFade;

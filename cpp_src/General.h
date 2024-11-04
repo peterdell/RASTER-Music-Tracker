@@ -173,8 +173,12 @@
 #define IOINSTR_RMW			2		// corresponding IOTYPE_RMW
 #define IOINSTR_TXT			6		// corresponding IOTYPE_TXT
 
-#define ASSEMBLER_FORMAT_ATASM	0
-#define ASSEMBLER_FORMAT_XASM	1
+
+enum AssemblerFormat : int
+{
+    ATASM = 0,
+    XASM = 1
+};
 
 //bits in TRACKFLAG
 #define TF_NOEMPTY		1

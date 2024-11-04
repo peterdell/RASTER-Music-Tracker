@@ -504,7 +504,7 @@ void CSong::FileImport()
 void CSong::FileExportAs()
 {
     // Stop the music first
-    //Stop();
+    Stop();
 
     // Verify the integrity of the .rmt module to save first, so it won't be saved if it's not meeting the conditions for it
     if (!TestBeforeFileSave())

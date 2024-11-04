@@ -14,7 +14,7 @@ BOOL g_AsmWantRelocatableSongLines = 0;
 CString g_AsmInstrumentsLabel;
 CString g_AsmTracksLabel;
 CString g_AsmSongLinesLabel;
-int g_AsmFormat = ASSEMBLER_FORMAT_XASM;
+AssemblerFormat g_AsmFormat = XASM;
 
 extern BOOL g_rmtstripped_sfx;			//sfx offshoot RMT stripped file
 extern BOOL g_rmtstripped_gvf;			//gvs GlobalVolumeFade for feat
@@ -385,7 +385,7 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
     CString strTracksLabel,
     CString strSongLinesLabel,
     CString strInstrumentsLabel,
-    int assemblerFormat,
+    AssemblerFormat assemblerFormat,
     BOOL sfx,
     BOOL gvf,
     BOOL nos,
@@ -408,7 +408,7 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
     // Assembler type setup
     BOOL hasDotLocal = 0;
     const char* _byte = "dta";
-    if (assemblerFormat == ASSEMBLER_FORMAT_ATASM)
+    if (assemblerFormat == ATASM)
     {
         hasDotLocal = 1;
         _byte = ".byte";
@@ -420,7 +420,7 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
         strAsmStartLabel = "RMT_SONG_DATA";
 
     strCode.Format("; Cut and paste the data from the line ';* --------BEGIN--------'  to the line ';* --------END--------'\n; into rmt_feat%s\n",
-        assemblerFormat == ASSEMBLER_FORMAT_ATASM ? ".asm" : "./65"
+        assemblerFormat == ATASM ? ".asm" : "./65"
     );
 
     CString str;
@@ -506,7 +506,7 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
     );
     strCode += str;
 
-    if (assemblerFormat == ASSEMBLER_FORMAT_ATASM)
+    if (assemblerFormat == ATASM)
         str.Format("    {{byte}} \"RMT%c\"\n", buf[3]);
     else
         str.Format("    dta c'RMT%c'\n", buf[3]);
@@ -524,7 +524,7 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
     );
     strCode += str;
     strCode += "; ptrs to tables\n";
-    if (assemblerFormat == ASSEMBLER_FORMAT_ATASM)
+    if (assemblerFormat == ATASM)
     {
         // Atasm
         str.Format(
@@ -558,10 +558,10 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
         if (loc >= first_instr && loc < first_track && loc < len)
         {
             instr_pos[loc] = (i >> 1) + 1;
-            str.Format(assemblerFormat == ASSEMBLER_FORMAT_ATASM ? "?Instrument_%d" : "a(?Instrument_%d)", i >> 1);
+            str.Format(assemblerFormat == ATASM ? "?Instrument_%d" : "a(?Instrument_%d)", i >> 1);
         }
         else if (loc == -start)
-            str = (assemblerFormat == ASSEMBLER_FORMAT_ATASM ? "  $0000" : " a($0000)");
+            str = (assemblerFormat == ATASM ? "  $0000" : " a($0000)");
         else
         {
             return 0;
@@ -569,7 +569,7 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
 
         sizeIntro += 2;		// 2 bytes per used instrument
 
-        strCode += (assemblerFormat == ASSEMBLER_FORMAT_ATASM ? "\n    .word " : "\n    dta ");
+        strCode += (assemblerFormat == ATASM ? "\n    .word " : "\n    dta ");
         strCode += str;
         str.Format("\t\t; %s", g_Instruments.GetName(i >> 1));
         strCode += str;
@@ -583,13 +583,13 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
     {
         int loc = buf[i + offsetTrackPtrTableLow] + (buf[i + offsetTrackPtrTableHigh] << 8) - start;
         if (i % 8 == 0)
-            strCode += (assemblerFormat == ASSEMBLER_FORMAT_ATASM ? "\n    .byte " : "\n    dta ");
+            strCode += (assemblerFormat == ATASM ? "\n    .byte " : "\n    dta ");
         else
             strCode += ",";
         if (loc >= first_track && loc < offsetSong && loc < len)
         {
             track_pos[loc] = i + 1;
-            str.Format(assemblerFormat == ASSEMBLER_FORMAT_ATASM ? "<?Track_%02x" : "l(__Track_%02x)", i);
+            str.Format(assemblerFormat == ATASM ? "<?Track_%02x" : "l(__Track_%02x)", i);
             strCode += str;
         }
         else if (loc == -start)
@@ -606,12 +606,12 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
     {
         int loc = buf[i + offsetTrackPtrTableLow] + (buf[i + offsetTrackPtrTableHigh] << 8) - start;
         if (i % 8 == 0)
-            strCode += (assemblerFormat == ASSEMBLER_FORMAT_ATASM ? "\n    .byte " : "\n    dta ");
+            strCode += (assemblerFormat == ATASM ? "\n    .byte " : "\n    dta ");
         else
             strCode += ",";
         if (loc >= first_track && loc < offsetSong && loc < len)
         {
-            str.Format(assemblerFormat == ASSEMBLER_FORMAT_ATASM ? ">?Track_%02x" : "h(__Track_%02x)", i);
+            str.Format(assemblerFormat == ATASM ? ">?Track_%02x" : "h(__Track_%02x)", i);
             strCode += str;
         }
         else if (loc == -start)
@@ -674,7 +674,7 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
     strCode.Replace("{{byte}}", _byte);
     strCode.Replace("?", "__");
 
-    if (assemblerFormat == ASSEMBLER_FORMAT_XASM)
+    if (assemblerFormat == XASM)
         strCode.Replace(".local", "");
 
 
@@ -725,13 +725,13 @@ void CASMFileExporter::ComposeRMTFEATstring(
     BOOL soundFXSupport,
     BOOL globalVolumeFade,
     BOOL noStartingSongLine,
-    int assemblerFormat
+    AssemblerFormat assemblerFormat
 )
 {
     // Depending on the assembler format: equ or =
     //char* equal = "equ";
     const char* equal = "equ";
-    if (assemblerFormat == ASSEMBLER_FORMAT_ATASM)
+    if (assemblerFormat == ATASM)
         equal = "=";
 
 #define DEST(var,str)	s.Format("%s\t\t%s %i\t\t;(%i times)\n",str,equal,(var>0),var); dest+=s;

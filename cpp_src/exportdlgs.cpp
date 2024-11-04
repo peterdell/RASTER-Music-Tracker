@@ -161,12 +161,12 @@ BOOL CExportStrippedRMTDialog::OnInitDialog()
 
     // Setup the assembler formats
     int idx = m_cmbAsmFormat.AddString("Atasm");
-    m_cmbAsmFormat.SetItemData(idx, ASSEMBLER_FORMAT_ATASM);
+    m_cmbAsmFormat.SetItemData(idx, ATASM);
     idx = m_cmbAsmFormat.AddString("Xasm");
-    m_cmbAsmFormat.SetItemData(idx, ASSEMBLER_FORMAT_XASM);
+    m_cmbAsmFormat.SetItemData(idx, XASM);
 
-    if (m_assemblerFormat < 0) m_assemblerFormat = 0;
-    if (m_assemblerFormat > 1) m_assemblerFormat = 1;
+    if (m_assemblerFormat < 0) { m_assemblerFormat = ATASM; }
+    if (m_assemblerFormat > 1) { m_assemblerFormat = XASM; }
     m_cmbAsmFormat.SetCurSel(m_assemblerFormat);
 
     ChangeParams();
@@ -185,7 +185,7 @@ void CExportStrippedRMTDialog::ChangeParams()
     int adr = strtoul(s, &ptrToEndInString, 16);		// Parse the HEX address
 
     int idx = m_cmbAsmFormat.GetCurSel();
-    m_assemblerFormat = (int)m_cmbAsmFormat.GetItemData(idx);
+    m_assemblerFormat = (AssemblerFormat)(int)m_cmbAsmFormat.GetItemData(idx);
 
     m_sfxSupport = m_ctrlWithSfx.GetCheck();
     if (!m_sfxSupport)
@@ -601,12 +601,12 @@ BOOL CExportRelocatableAsmForRmtPlayer::OnInitDialog()
 
     // Setup the assembler formats
     int idx = m_cmbAsmFormat.AddString("Atasm");
-    m_cmbAsmFormat.SetItemData(idx, ASSEMBLER_FORMAT_ATASM);
+    m_cmbAsmFormat.SetItemData(idx, ATASM);
     idx = m_cmbAsmFormat.AddString("Xasm");
-    m_cmbAsmFormat.SetItemData(idx, ASSEMBLER_FORMAT_XASM);
+    m_cmbAsmFormat.SetItemData(idx, XASM);
 
-    if (m_assemblerFormat < 0) m_assemblerFormat = 0;
-    if (m_assemblerFormat > 1) m_assemblerFormat = 1;
+    if (m_assemblerFormat < 0) { m_assemblerFormat = ATASM; }
+    if (m_assemblerFormat > 1) { m_assemblerFormat = XASM; }
     m_cmbAsmFormat.SetCurSel(m_assemblerFormat);
 
     //
@@ -657,7 +657,7 @@ void CExportRelocatableAsmForRmtPlayer::ChangeParams()
     m_c_info.SetWindowText(s);
 
     int idx = m_cmbAsmFormat.GetCurSel();
-    m_assemblerFormat = (int)m_cmbAsmFormat.GetItemData(idx);
+    m_assemblerFormat = (AssemblerFormat)(int)m_cmbAsmFormat.GetItemData(idx);
 
     m_globalVolumeFade = m_c_gvf.GetCheck();
     m_noStartingSongLine = m_c_nos.GetCheck();

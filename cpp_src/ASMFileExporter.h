@@ -27,7 +27,7 @@ public:
 
 
     // TODO: Used by export dialog
-    void static ComposeRMTFEATstring(const CSong& song, CString& dest, const char* filename, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags, BOOL sfx, BOOL gvf, BOOL nos, int assemblerFormat);
+    void static ComposeRMTFEATstring(const CSong& song, CString& dest, const char* filename, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags, BOOL sfx, BOOL gvf, BOOL nos, AssemblerFormat assemblerFormat);
 
     static BOOL BuildRelocatableAsm(
         const CSong& song, CString& dest,
@@ -36,7 +36,7 @@ public:
         CString strTracksLabel,
         CString strSongLinesLabel,
         CString strInstrumentsLabel,
-        int assemblerFormat,
+        AssemblerFormat assemblerFormat,
         BOOL sfx,
         BOOL gvf,
         BOOL nos,
