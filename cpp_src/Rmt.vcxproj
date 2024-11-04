@@ -329,6 +329,7 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
     </ClCompile>
     <ClCompile Include="SAPFile.cpp" />
+    <ClCompile Include="SAPFileExportDialog.cpp" />
     <ClCompile Include="SAPFileExporter.cpp" />
     <ClCompile Include="EffectsDlg.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">_DEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
@@ -550,6 +551,7 @@
     <ClInclude Include="RmtFile.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="SAPFile.h" />
+    <ClInclude Include="SAPFileExportDialog.h" />
     <ClInclude Include="SAPFileExporter.h" />
     <ClInclude Include="RmtAtariBinaries.h" />
     <ClInclude Include="EffectsDlg.h" />

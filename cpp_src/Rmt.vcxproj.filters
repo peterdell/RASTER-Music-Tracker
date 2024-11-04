@@ -189,6 +189,9 @@
     <ClCompile Include="ASMFile.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClCompile>
+    <ClCompile Include="SAPFileExportDialog.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
@@ -315,6 +318,9 @@
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
     <ClInclude Include="ASMFile.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClInclude>
+    <ClInclude Include="SAPFileExportDialog.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
   </ItemGroup>

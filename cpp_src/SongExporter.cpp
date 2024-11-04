@@ -7,7 +7,9 @@
 
 #include "GuiHelpers.h"
 
-#include "exportdlgs.h"
+#include "ExportDlgs.h"
+#include "SAPFileExportDialog.h"
+
 #include "lzss_sap.h"
 
 #include "SAPFile.h"
@@ -246,7 +248,7 @@ bool CSongExporter::ExportSAP_R(CSong& song, std::ofstream& ou)
 
     CSAPFile sapFile;
     sapFile.m_type = "R";
-    if (!CExpSAPDlg::Show(song, sapFile)) {
+    if (!CSAPFileExportDialog::Show(song, sapFile)) {
         return false;
     }
 
@@ -266,7 +268,7 @@ bool CSongExporter::ExportSAP_B_LZSS(CSong& song, std::ofstream& ou)
 {
     CSAPFile sapFile;
     sapFile.m_type = "B";
-    if (!CExpSAPDlg::Show(song, sapFile)) {
+    if (!CSAPFileExportDialog::Show(song, sapFile)) {
         return false;
     }
 
