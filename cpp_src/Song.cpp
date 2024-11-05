@@ -34,7 +34,7 @@ static BOOL busyInTimer = 0;
 /// <summary>
 /// Wait for the Timer Routine to run at least once
 /// </summary>
-void WaitForTimerRoutineProcessed()
+static void WaitForTimerRoutineProcessed()
 {
     g_timerRoutineProcessed = 0;
     while (!g_timerRoutineProcessed && !g_closeApplication);	// Waiting
@@ -195,7 +195,7 @@ void CSong::ClearSong(int numOfTracks)
     }
 
     // Empty clipboards
-    g_TrackClipboard.Empty();
+    g_TrackClipboard.Clear();
     m_instrclipboard.activeEditSection = -1;	// According to -1 it knows that it is empty
     m_songgoclipboard = -2;						// According to -2 it knows that it is empty
 

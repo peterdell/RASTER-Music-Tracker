@@ -7,9 +7,9 @@ class CTrackClipboard
 {
 public:
 	CTrackClipboard();
-	void Empty();
-	BOOL IsBlockSelected() { return (m_selcol >= 0); };
-	BOOL IsTrackSelected() { return (m_seltrack >= 0); };
+	void Clear();
+    BOOL IsBlockSelected() const;
+    BOOL IsTrackSelected() const;
 	BOOL BlockSetBegin(int col, int track, int line);
 	BOOL BlockSetEnd(int line);
 	void BlockDeselect();
