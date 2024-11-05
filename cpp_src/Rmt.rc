@@ -191,11 +191,11 @@ BEGIN
     CONTROL         "Display rasterbar for CPU usage",IDC_RASTERLINE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,164,147,10
     LTEXT           "Text displayed on screen during music playback. 4+1 lines, 40 characters per line.\nThe 5th line of text is shown instead of 4th line when the Shift key is held down.",IDC_STATIC,7,7,266,18
     CTEXT           "MSX screen preview",IDC_STATIC,7,88,266,8
-    LTEXT           "Colour:",IDC_STATIC,8,177,23,8
+    LTEXT           "Color:",IDC_STATIC,8,177,23,8
     LTEXT           "123...",IDC_COLORNUMBER,186,177,82,8
     SCROLLBAR       IDC_SCROLLBAR1,32,176,149,11,WS_TABSTOP
     LTEXT           "Speed info...",IDC_SPEEDINFO,7,196,266,8
-    CONTROL         "Shuffle the rasterbar colours",IDC_MSXSHUFFLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,155,164,124,10
+    CONTROL         "Shuffle the rasterbar colors",IDC_MSXSHUFFLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,155,164,124,10
     CONTROL         "Automatically adjust playback speed",IDC_MSXREGIONAUTO,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,210,151,10
 END
