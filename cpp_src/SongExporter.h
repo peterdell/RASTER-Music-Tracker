@@ -13,6 +13,7 @@ public:
 
     struct TExportMetadata
     {
+        static const size_t ATARI_TEXT_SIZE = 5 * 40;
         char songname[SONG_NAME_MAX_LEN + 1];
         CTime currentTime;
         int instrspeed;
@@ -21,7 +22,7 @@ public:
         bool autoRegion;
         bool displayRasterbar;
         int rasterbarColour;
-        char atariText[5 * 40];
+        char atariText[ATARI_TEXT_SIZE];
     };
 
     /// <summary>
@@ -71,10 +72,9 @@ public:
 private:
     static void StrToAtariVideo(char* txt, int count);
 
-    static void CreateExportMetadata(const CSong& song, TExportMetadata& metadata);
-
     // A dumb SAP-R LZSS optimisations bruteforcer, returns the optimal value and buffer
     static int BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigned char* dst);
+    static void CreateExportMetadata(const CSong& song, TExportMetadata& metadata);
     static bool ExportXEX_LZSS(TExportMetadata& metadata);
 };
 

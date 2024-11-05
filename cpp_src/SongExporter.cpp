@@ -54,7 +54,7 @@ int CSongExporter::BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigne
     // Start from a high value to force the first pattern to be the best one
     int bestScore = 0xFFFFFF;
     int optimal = 0;
-    bool result;
+    int result;
     {
         DisableEventSection section;
 
@@ -366,6 +366,7 @@ bool CSongExporter::ExportWAV(CSong& song, std::ofstream& ou, LPCTSTR filename, 
 
 bool CSongExporter::ExportXEX_LZSS(CSong& song, std::ofstream& ou)
 {
+
     CString s, t;
 
     MemoryAddress addressFrom, addressTo;
@@ -388,10 +389,7 @@ bool CSongExporter::ExportXEX_LZSS(CSong& song, std::ofstream& ou)
     // GetSubsongParts returns a CString, so the values must be converted back to int first, FIXME
     for (int i = 0; i < subsongs; i++)
     {
-        char c[3];
-        c[0] = t[i * 3];
-        c[1] = t[i * 3 + 1];
-        c[2] = '\0';
+        char c[3]{ t[i * 3], t[i * 3 + 1], '\0' };
         subtune[i] = strtoul(c, NULL, 16);
     }
 
@@ -400,7 +398,12 @@ bool CSongExporter::ExportXEX_LZSS(CSong& song, std::ofstream& ou)
 
     // Create the export metadata for songname, Atari text, parameters, etc
     TExportMetadata metadata;
-    CSongExporter::CreateExportMetadata(song, metadata);
+    CreateExportMetadata(song, metadata);
+
+    if (!ExportXEX_LZSS(metadata))
+    {
+        return false;
+    }
 
     // LZSS buffers for each ones of the tune parts being reconstructed.
     // Because the buffers are large, they are allocated on hte heap instead of the stack.
@@ -440,12 +443,11 @@ bool CSongExporter::ExportXEX_LZSS(CSong& song, std::ofstream& ou)
         // Some additional variables that will be used below
         int targetAddrOfModule = VU_PLAYER_SONGDATA + lzss_chunk;	// All the LZSS data will be written starting from this address
         int lzss_startAddress = targetAddrOfModule + intro;
-        int lzss_endAddress = lzss_startAddress + loop;							// this sets the address that defines where the data stream has reached its end
+        int lzss_endAddress = lzss_startAddress + loop;				// this sets the address that defines where the data stream has reached its end
 
         SetStatusBarText("");
 
         // If the size is too big, abort the process and show an error message
-        // JAC! Output memory boundaries
         if (lzss_endAddress > RAM_MAX_ADDRESS)
         {
             CString message;
@@ -513,10 +515,10 @@ bool CSongExporter::ExportXEX_LZSS(CSong& song, std::ofstream& ou)
     delete buff3;
 
     // Write the Atari Video text to memory, for 5 lines of 40 characters
-    memcpy(mem + LZSSP_LINE_1, metadata.atariText, 40 * 5);
+    memcpy(&mem[LZSSP_LINE_1], metadata.atariText, TExportMetadata::ATARI_TEXT_SIZE);
 
     // Write the total framescount on the top line, next to the Region and VBI speed, for 28 characters
-    memset(mem + LZSSP_LINE_0 + 0x0B, 32, 28);
+    memset(&mem[ LZSSP_LINE_0 + 0x0B], 32, 28);
     char framesdisplay[28] = { 0 };
     sprintf(framesdisplay, "(%i frames total)", framescount);
     for (int i = 0; i < 28; i++) mem[LZSSP_LINE_0 + 0x0B + i] = framesdisplay[i];
@@ -525,7 +527,7 @@ bool CSongExporter::ExportXEX_LZSS(CSong& song, std::ofstream& ou)
     // I know the binary I have is currently set to NTSC, so I'll just convert to PAL and keep this going for now...
     if (!metadata.isNTSC)
     {
-        unsigned char regionbytes [] =
+        unsigned char regionbytes[] =
         {
             0xB9,(LZSSP_TABPPPAL - 1) & 0xff,(LZSSP_TABPPPAL - 1) >> 8,			// LDA tabppPAL-1,y
             0x8D,LZSSP_ACPAPX2 & 0xFF,LZSSP_ACPAPX2 >> 8,						// STA acpapx2
@@ -535,8 +537,7 @@ bool CSongExporter::ExportXEX_LZSS(CSong& song, std::ofstream& ou)
             0xD0,0x03,															// BNE region_done
             0xB9,(LZSSP_TABPPNTSCFIX - 1) & 0xFF,(LZSSP_TABPPNTSCFIX - 1) >> 8	// LDA tabppNTSCfix-1,y
         };
-        // TODO: Check if this is reall 18 now JAC!
-        for (int i = 0; i < sizeof(regionbytes); i++) mem[VU_PLAYER_REGION + i] = regionbytes[i];
+        memcpy(&mem[VU_PLAYER_REGION], regionbytes, sizeof(regionbytes));
     }
 
     // Additional patches from the Export Dialog...
@@ -598,7 +599,7 @@ bool CSongExporter::ExportXEX_LZSS(TExportMetadata& metadata)
     g_rmtmsxtext.Replace("\x0d\x0d", "\x0d");	//13, 13 => 13
 
     // This block of code will handle all the user input text that will be inserted in the binary during the export process
-    memset(metadata.atariText, 32, 40 * 5);	// 5 lines of 40 characters at the user text address
+    memset(metadata.atariText, ' ', TExportMetadata::ATARI_TEXT_SIZE);
     int p = 0, q = 0;
     char a;
     for (int i = 0; i < dlg.m_txt.GetLength(); i++)
@@ -612,7 +613,7 @@ bool CSongExporter::ExportXEX_LZSS(TExportMetadata& metadata)
         }
         if (p + q >= 5 * 40) break;
     }
-    StrToAtariVideo((char*)metadata.atariText, 200);
+    StrToAtariVideo((char*)metadata.atariText, TExportMetadata::ATARI_TEXT_SIZE);
 
     metadata.rasterbarColour = dlg.m_metercolor;
     metadata.displayRasterbar = dlg.m_meter;
