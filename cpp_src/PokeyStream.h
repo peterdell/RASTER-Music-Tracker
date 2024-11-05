@@ -1,5 +1,7 @@
 #pragma once
 
+class CSong;
+
 /// <summary>
 /// Helper class to record the 9 (mono) or 18 (stereo) Pokey registers
 /// into a large memory buffer.
@@ -22,7 +24,7 @@ public:
 
 	void Clear();
 
-	void StartRecording();
+	void StartRecording(const CSong& song);
 
 	inline unsigned char* GetStreamBuffer(void) { return m_StreamBuffer; }
     inline const unsigned char* GetConstStreamBuffer(void) const { return m_StreamBuffer; };
@@ -54,8 +56,10 @@ private:
 	STREAM_STATE m_recordState;		// What state is the recorder in?
 
 	unsigned char* m_StreamBuffer;	// Ptr to the buffer to hold the Pokey values
+    int m_BufferSize;				// What size if the m_StreamBuffer currently
 
-	int m_FrameCounter;				// How many Pokey frames have been recorded?
+    int m_frameSize;
+    int m_FrameCounter;				// How many Pokey frames have been recorded?
 
 	int m_SongLoopedCounter;		// How may times has the song been looped?
 
@@ -69,6 +73,5 @@ private:
 	int m_SecondCountPoint;			// How many frames until we hit the second loop point
 	int m_ThirdCountPoint;			// How many frames between the first and second loop point
 
-	int m_BufferSize;				// What size if the m_StreamBuffer currently
 };
 
