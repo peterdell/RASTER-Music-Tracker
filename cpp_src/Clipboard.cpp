@@ -1,15 +1,7 @@
 #include "stdafx.h"
-#include <fstream>
-
-#include "resource.h"
-
 #include "Clipboard.h"
-
 #include "Song.h"
-
-#include "MainFrm.h"
 #include "EffectsDlg.h"
-
 #include "GuiHelpers.h"
 
 
