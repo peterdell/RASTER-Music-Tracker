@@ -1,7 +1,6 @@
 #pragma once
 #include "stdafx.h"
-#include <fstream>
-
+#include <iosfwd>
 #include "General.h"
 
 

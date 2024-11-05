@@ -2,7 +2,7 @@
 
 // ----------------------------------------------------------------------------
 // GUI color setup
-// The text is defined in IDB_GFX as bitmap font in various colours
+// The text is defined in IDB_GFX as bitmap font in various colors
 // Text color is defined as a vertical offset in the bitmap font file
 
 #define TEXT_COLOR_WHITE 0
@@ -19,9 +19,9 @@
 #define TEXT_COLOR_BLUE 13
 #define TEXT_COLOR_TURQUOISE 14
 
-#define COLOR_SELECTED			TEXT_COLOR_INVERSE_RED		// Highlight colour
-#define COLOR_SELECTED_PROVE	TEXT_COLOR_INVERSE_BLUE		// Highlight colour in PROVE mode
-#define COLOR_HOVERED			TEXT_COLOR_INVERSE_WHITE	// Highlight colour from cursor hover
+#define COLOR_SELECTED			TEXT_COLOR_INVERSE_RED		// Highlight color
+#define COLOR_SELECTED_PROVE	TEXT_COLOR_INVERSE_BLUE		// Highlight color in PROVE mode
+#define COLOR_HOVERED			TEXT_COLOR_INVERSE_WHITE	// Highlight color from cursor hover
 
 #define TEXT_MINI_COLOR_GRAY 0
 #define TEXT_MINI_COLOR_BLUE 1
@@ -67,6 +67,7 @@
 #define TUNING_FILENAME "tuning.ini"
 
 // This macro was shamelessly stolen from this stackoverflow post: https://stackoverflow.com/a/42450151 
+// Requires #include <iomanip>
 #define PADHEX(width, val) "0x"  << std::setfill('0') << std::setw(width) << std::hex << std::uppercase << (unsigned)val
 #define PADDEC(width, val) std::setfill('0') << std::setw(width) << std::dec << (unsigned)val
 

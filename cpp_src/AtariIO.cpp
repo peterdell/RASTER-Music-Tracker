@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "AtariIO.h"
+#include <fstream>
 
 
 bool CAtariIO::LoadWord(std::ifstream& in, MemoryWord& w)

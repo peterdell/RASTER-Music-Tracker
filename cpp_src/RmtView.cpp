@@ -8,7 +8,7 @@
 #include "RmtDoc.h"
 #include <chrono>
 #include "Clipboard.h"
-
+#include <iomanip>
 #include "RmtView.h"
 #include "MainFrm.h"
 #include "ConfigDlg.h"
@@ -349,8 +349,7 @@ void CRmtView::OnDraw(CDC* pDC)
 
 void CRmtView::DrawAll()
 {
-    // Clear the screen with the background colour
-    // JAC!
+    // Clear the screen with the background color
     if (m_mem_dc.m_hDC == NULL) {
         return;
     }

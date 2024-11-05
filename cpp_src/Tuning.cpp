@@ -5,9 +5,9 @@
 //
 // TODO: further cleanup, better documentation, better structure, fix any bug I may have missed so far
 
-#include "tuning.h"
-#include "global.h"
-
+#include "Tuning.h"
+#include "Global.h"
+#include "Atari6502.h"
 
 /// <summary> Generate the POKEY audio pitch using the given parameters </summary>
 /// <param name = "audc"> POKEY Distortion and Volume output mode </param>

@@ -16,7 +16,7 @@
 
 #define VU_PLAYER_REGION		LZSSP_PLAYER_REGION_INIT// VUPlayer's address for the region initialisation
 #define VU_PLAYER_RASTER_BAR	LZSSP_RASTERBAR_TOGGLER	// VUPlayer's address for the rasterbar display
-#define VU_PLAYER_COLOUR		LZSSP_RASTERBAR_COLOUR	// VUPlayer's address for the rasterbar colour
+#define VU_PLAYER_COLOR		    LZSSP_RASTERBAR_COLOUR	// VUPlayer's address for the rasterbar color, TODO: Rename to COLOR
 #define VU_PLAYER_SONGTOTAL		LZSSP_SONGTOTAL			// VUPlayer's address for the total number of subtunes that could be played back
 
 #define VU_PLAYER_SOUNGTIMER	LZSSP_SONGTIMERCOUNT

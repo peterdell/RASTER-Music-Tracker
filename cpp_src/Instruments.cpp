@@ -1,14 +1,8 @@
 #include "stdafx.h"
-#include "resource.h"
-#include <fstream>
 
 #include "Atari6502.h"
-#include "IOHelpers.h"
-
 #include "Instruments.h"
 #include "global.h"
-
-#include "GuiHelpers.h"
 
 /// <summary>
 /// Define information about each instrument parameter (not envelope table)

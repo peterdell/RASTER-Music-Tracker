@@ -134,12 +134,12 @@ void CTracks::DrawTrackLine(int col, int x, int y, int tr, int line, int aline, 
 			s[13] = CharL4(n);
 		}
 
-		// Display the line highlight colours only in valid patterns
+		// Display the line highlight colors only in valid patterns
 		if (line % g_trackLineSecondaryHighlight == 0)  color = TEXT_COLOR_GREEN;
 		if (line % g_trackLinePrimaryHighlight == 0) color = TEXT_COLOR_CYAN;
 	}
 
-	// The displayed colours are set from lowest to highest priority, depending on the matching conditions
+	// The displayed colors are set from lowest to highest priority, depending on the matching conditions
 	if (line >= len) color = TEXT_COLOR_GRAY;
 	if (line == pline) color = TEXT_COLOR_YELLOW;
 	if (line == aline) color = (g_prove) ? TEXT_COLOR_BLUE : TEXT_COLOR_RED;

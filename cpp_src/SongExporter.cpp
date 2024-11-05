@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "SongExporter.h"
+#include <iomanip>
 
 #include "Atari6502.h"
 #include "AtariIO.h"
@@ -543,7 +544,7 @@ bool CSongExporter::ExportXEX_LZSS(CSong& song, std::ofstream& ou)
     // Additional patches from the Export Dialog...
     mem[VU_PLAYER_SONG_SPEED] = metadata.instrspeed;						// Song speed
     mem[VU_PLAYER_RASTER_BAR] = metadata.displayRasterbar ? 0x80 : 0x00;	// Display the rasterbar for CPU level
-    mem[VU_PLAYER_COLOUR] = metadata.rasterbarColour;						// Rasterbar colour 
+    mem[VU_PLAYER_COLOR] = metadata.rasterbarColor;						    // Rasterbar colur 
     mem[VU_PLAYER_STEREO_FLAG] = metadata.isStereo ? 0xFF : 0x00;			// Is the song stereo?
     mem[VU_PLAYER_SONGTOTAL] = subsongs;									// Total number of subtunes
     if (!metadata.autoRegion) {												// Automatically adjust speed between regions?
@@ -615,7 +616,7 @@ bool CSongExporter::ExportXEX_LZSS(TExportMetadata& metadata)
     }
     StrToAtariVideo((char*)metadata.atariText, TExportMetadata::ATARI_TEXT_SIZE);
 
-    metadata.rasterbarColour = dlg.m_metercolor;
+    metadata.rasterbarColor = dlg.m_metercolor;
     metadata.displayRasterbar = dlg.m_meter;
     metadata.autoRegion = dlg.m_region_auto;
 

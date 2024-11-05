@@ -4,18 +4,8 @@
 
 #pragma once
 
-#include <iostream>
-#include <iomanip>
-#include <cstdio>
-#include <fstream>
-#include <cmath>
-#include <limits>
-
-#include "StdAfx.h"
-#include "Rmt.h"
-#include "XPokey.h"
-#include "Atari6502.h"
 #include "Song.h"
+#include "XPokey.h"
 
 const double temperament_preset[TUNING_PRESETS][PRESETS_LENGTH] =
 {

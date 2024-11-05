@@ -21,7 +21,7 @@ public:
         bool isNTSC;
         bool autoRegion;
         bool displayRasterbar;
-        int rasterbarColour;
+        int rasterbarColor;
         char atariText[ATARI_TEXT_SIZE];
     };
 

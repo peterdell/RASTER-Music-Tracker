@@ -1,6 +1,7 @@
 #pragma once
 
-#include <fstream>
+#include <iosfwd>
+
 #include "Memory.h"
 
 class CAtariIO

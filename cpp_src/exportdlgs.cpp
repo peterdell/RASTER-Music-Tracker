@@ -329,8 +329,8 @@ void CExpMSXDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
         const char* bar[] = { "Gray","Rust","Orange","Red-orange","Pink","Purple","Cobalt blue","Blue",
             "Medium blue","Dark blue","Blue-grey","Olive green","Medium green","Dark green","Orange-green","Brown" };
 
-        //NTSC colour names may or may not be correct yet
-        //const char *bar[]={"Black","Rust","Red-orange","Dark-orange","Red","Lavender","Cobalt blue","Ultramarine",
+        // NTSC color names may or may not be correct yet
+        // const char *bar[]={"Black","Rust","Red-orange","Dark-orange","Red","Lavender","Cobalt blue","Ultramarine",
         //	"Medium blue","Dark blue","Blue-grey","Olive green","Medium green","Dark green","Orange-green","Orange"};		
 
         s.Format("%i = %s %i", g_msxcol, bar[g_msxcol / 16], g_msxcol % 16);
