@@ -204,6 +204,9 @@
     <ClCompile Include="Song_DumpSong.cpp">
       <Filter>Source Files\Data</Filter>
     </ClCompile>
+    <ClCompile Include="LZSSFile.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP-R Compressor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
@@ -337,6 +340,9 @@
     </ClInclude>
     <ClInclude Include="AtariIO.h">
       <Filter>Source Files\Sound Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="LZSSFile.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP-R Compressor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

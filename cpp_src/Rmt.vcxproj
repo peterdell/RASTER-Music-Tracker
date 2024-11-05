@@ -329,6 +329,7 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
     </ClCompile>
+    <ClCompile Include="LZSSFile.cpp" />
     <ClCompile Include="SAPFile.cpp" />
     <ClCompile Include="SAPFileExportDialog.cpp" />
     <ClCompile Include="SAPFileExporter.cpp" />
@@ -550,6 +551,7 @@
     <ClInclude Include="AtariIO.h" />
     <ClInclude Include="Clipboard.h" />
     <ClInclude Include="ConfigDlg.h" />
+    <ClInclude Include="LZSSFile.h" />
     <ClInclude Include="RmtFile.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="SAPFile.h" />

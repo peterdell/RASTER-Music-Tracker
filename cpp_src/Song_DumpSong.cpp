@@ -27,7 +27,7 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, int playmode, int s
 
     // Activate stream recording mode.
     m_pokeyStream = &pokeyStream;
-    m_pokeyStream->StartRecording();
+    m_pokeyStream->StartRecording(*this);
 
     // Play song using the chosen playback parameters
     // If no argument was passed, Play from start will be assumed

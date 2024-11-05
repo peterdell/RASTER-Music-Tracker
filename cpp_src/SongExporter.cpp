@@ -5,13 +5,13 @@
 #include "AtariIO.h"
 
 #include "ChannelControl.h" // TODO: Is still global
-
 #include "GuiHelpers.h"
 
 #include "ExportDlgs.h"
 #include "SAPFileExportDialog.h"
 
 #include "lzss_sap.h"
+#include "LZSSFile.h"
 
 #include "SAPFile.h"
 #include "SAPFileExporter.h"
@@ -92,7 +92,8 @@ bool CSongExporter::ExportLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename)
 
     SetStatusBarText("Compressing data ...");
 
-    int frameSize = (g_tracks4_8 == 8) ? 18 : 9;	//SAP-R bytes to copy, Stereo doubles the number
+    const int frameSize = CLZSSFile::GetFrameSize(song);
+
 
     // Now, create LZSS files using the SAP-R dump created earlier
     byte compressedData[RAM_SIZE]{};
@@ -148,7 +149,7 @@ bool CSongExporter::ExportCompactLZSS(CSong& song, std::ofstream& ou, LPCTSTR fi
 
     SetStatusBarText("Compressing data ...");
 
-    int frameSize = (g_tracks4_8 == 8) ? 18 : 9;	//SAP-R bytes to copy, Stereo doubles the number
+    const int frameSize = CLZSSFile::GetFrameSize(song);
 
     int indexToSongline = 0;
     int songlineCount = pokeyStream.GetSonglineCount();
@@ -291,7 +292,7 @@ bool CSongExporter::ExportWAV(CSong& song, std::ofstream& ou, LPCTSTR filename, 
     BYTE* streambuffer = NULL;
     WAVEFORMATEX* wfm = NULL;
     int length = 0, frames = 0, offset = 0;
-    int frameSize = (g_tracks4_8 == 8) ? 18 : 9;	// SAP-R bytes to copy, Stereo doubles the number
+    const int frameSize = CLZSSFile::GetFrameSize(song);
 
     ou.close();	// hack, just to be able to actually use the filename for now...
 
@@ -378,7 +379,7 @@ bool CSongExporter::ExportXEX_LZSS(CSong& song, std::ofstream& ou)
     int lzss_total = 0;	// Final offset for LZSS bytes to export
     int framescount = 0;
 
-    int frameSize = (g_tracks4_8 == 8) ? 18 : 9;	// SAP-R bytes to copy, Stereo doubles the number
+    const int frameSize = CLZSSFile::GetFrameSize(song);
     int section = VU_PLAYER_SECTION;
     int sequence = VU_PLAYER_SEQUENCE;
 
@@ -524,7 +525,7 @@ bool CSongExporter::ExportXEX_LZSS(CSong& song, std::ofstream& ou)
     // I know the binary I have is currently set to NTSC, so I'll just convert to PAL and keep this going for now...
     if (!metadata.isNTSC)
     {
-        unsigned char regionbytes[18] =
+        unsigned char regionbytes [] =
         {
             0xB9,(LZSSP_TABPPPAL - 1) & 0xff,(LZSSP_TABPPPAL - 1) >> 8,			// LDA tabppPAL-1,y
             0x8D,LZSSP_ACPAPX2 & 0xFF,LZSSP_ACPAPX2 >> 8,						// STA acpapx2
@@ -534,7 +535,8 @@ bool CSongExporter::ExportXEX_LZSS(CSong& song, std::ofstream& ou)
             0xD0,0x03,															// BNE region_done
             0xB9,(LZSSP_TABPPNTSCFIX - 1) & 0xFF,(LZSSP_TABPPNTSCFIX - 1) >> 8	// LDA tabppNTSCfix-1,y
         };
-        for (int i = 0; i < 18; i++) mem[VU_PLAYER_REGION + i] = regionbytes[i];
+        // TODO: Check if this is reall 18 now JAC!
+        for (int i = 0; i < sizeof(regionbytes); i++) mem[VU_PLAYER_REGION + i] = regionbytes[i];
     }
 
     // Additional patches from the Export Dialog...

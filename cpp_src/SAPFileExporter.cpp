@@ -2,6 +2,7 @@
 #include "SAPFileExporter.h"
 #include "Memory.h"
 #include "lzss_sap.h"
+#include "LZSSFile.h"
 #include "VUPlayer.h"
 #include "AtariIO.h"
 #include "GuiHelpers.h"
@@ -25,7 +26,7 @@ bool CSAPFileExporter::ExportSAP_B_LZSS(const CSong& song, const CPokeyStream& p
 
     SetStatusBarText("Compressing data ...");
 
-    const int frameSize = (g_tracks4_8 == 8) ? 18 : 9;	// SAP-R bytes to copy, Stereo doubles the number
+    const int frameSize = CLZSSFile::GetFrameSize(song);
 
     byte buff1[RAM_SIZE];	// LZSS buffers for each ones of the tune parts being reconstructed
     byte buff2[RAM_SIZE];	// they are used for parts labeled: full, intro, and loop 
@@ -79,8 +80,8 @@ bool CSAPFileExporter::ExportSAP_B_LZSS(const CSong& song, const CPokeyStream& p
     };
     memcpy(memory + VU_PLAYER_INIT_SAP, sapbytes, 14);
 
-    memory[VU_PLAYER_SONG_SPEED] = song.GetInstrumentSpeed();				// Song speed
-    memory[VU_PLAYER_STEREO_FLAG] = (g_tracks4_8 > 4) ? 0xFF : 0x00;		// Is the song stereo?
+    memory[VU_PLAYER_SONG_SPEED] = song.GetInstrumentSpeed();			// Song speed
+    memory[VU_PLAYER_STEREO_FLAG] = song.IsStereo() ? 0xFF : 0x00;		// Is the song stereo?
 
     // Reconstruct the export binary 
     CAtariIO::SaveBinaryBlock(ou, memory, 0x1900, 0x1EFF, 1);	// LZSS Driver, and some free bytes for later if needed
@@ -88,14 +89,14 @@ bool CSAPFileExporter::ExportSAP_B_LZSS(const CSong& song, const CPokeyStream& p
 
     // SongStart pointers
     memory[LZSS_POINTER] = targetAddrOfModule >> 8;			// SongsSHIPtrs
-    memory[LZSS_POINTER] = lzss_offset >> 8;					// SongsIndexEnd
-    memory[LZSS_POINTER] = targetAddrOfModule & 0xFF;			// SongsSLOPtrs
-    memory[LZSS_POINTER] = lzss_offset & 0xFF;					// SongsDummyEnd
+    memory[LZSS_POINTER] = lzss_offset >> 8;				// SongsIndexEnd
+    memory[LZSS_POINTER] = targetAddrOfModule & 0xFF;		// SongsSLOPtrs
+    memory[LZSS_POINTER] = lzss_offset & 0xFF;				// SongsDummyEnd
 
     // SongEnd pointers
-    memory[LZSS_POINTER] = lzss_offset >> 8;					// LoopsIndexStart
-    memory[LZSS_POINTER] = lzss_end >> 8;						// LoopsIndexEnd
-    memory[LZSS_POINTER] = lzss_offset & 0xFF;					// LoopsSLOPtrs
+    memory[LZSS_POINTER] = lzss_offset >> 8;				// LoopsIndexStart
+    memory[LZSS_POINTER] = lzss_end >> 8;					// LoopsIndexEnd
+    memory[LZSS_POINTER] = lzss_offset & 0xFF;				// LoopsSLOPtrs
     memory[LZSS_POINTER] = lzss_end & 0xFF;					// LoopsDummyEnd
 
     if (intro > 16)

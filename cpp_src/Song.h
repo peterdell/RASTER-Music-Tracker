@@ -8,10 +8,6 @@
 #include "Tracks.h"
 #include "PokeyStream.h"
 
-// These two should be song attributes instead
-extern int g_tracks4_8;
-extern BOOL g_ntsc;				//NTSC (60Hz)
-
 static constexpr int SONG_NAME_MAX_LEN = 64;	// maximum length of song name
 
 struct TBookmark
@@ -47,7 +43,7 @@ struct TExportDescription
     BYTE instrumentSavedFlags[INSTRSNUM];
     BYTE trackSavedFlags[TRACKSNUM];
 
-} ;
+};
 
 
 class CASMFileExporter;
@@ -60,24 +56,11 @@ public:
     CSong();
     ~CSong();
 
-    CString GetName() const {
-        CString result;
-        result = m_songname;
-        result.TrimRight();
-        return result;
-    }
-
-    int GetInstrumentSpeed() const {
-        return m_instrumentSpeed;
-    }
-
-    bool IsStereo() const {
-        return (g_tracks4_8 > 4);
-    }
-
-    bool IsNTSC() const {
-        return g_ntsc;
-    }
+    CString GetName() const;
+    int GetTracks() const;
+    bool IsStereo() const;
+    bool IsNTSC() const;
+    int GetInstrumentSpeed() const;
 
     void StopTimer();
     void ChangeTimer(int ms);
@@ -104,15 +87,15 @@ public:
 
     BOOL InstrKey(int vk, int shift, int control);
     void ActiveInstrSet(int instr);
-    void ActiveInstrPrev() { g_Undo.Separator(); int instr = (m_activeinstr - 1) & 0x3f; ActiveInstrSet(instr); };
-    void ActiveInstrNext() { g_Undo.Separator(); int instr = (m_activeinstr + 1) & 0x3f; ActiveInstrSet(instr); };
+    void ActiveInstrPrev();
+    void ActiveInstrNext();
 
-    int GetActiveInstr() { return m_activeinstr; };
-    int GetActiveColumn() { return m_trackactivecol; };
-    int GetActiveLine() { return m_trackactiveline; };
-    int GetPlayLine() { return m_trackplayline; };
-    void SetActiveLine(int line) { m_trackactiveline = line; };
-    void SetPlayLine(int line) { m_trackplayline = line; };
+    int GetActiveInstr() const;
+    int GetActiveColumn() const;
+    int GetActiveLine() const;
+    int GetPlayLine() const;
+    void SetActiveLine(int line);
+    void SetPlayLine(int line);
 
     BOOL CursorToSpeedColumn();
     BOOL ProveKey(int vk, int shift, int control);
@@ -137,7 +120,7 @@ public:
     BOOL TrackSetGo() { return g_Tracks.SetGo(SongGetActiveTrack(), m_trackactiveline); };
     int TrackGetGoLine() { return g_Tracks.GetGoLine(SongGetActiveTrack()); };
     void RespectBoundaries();
-    void TrackGetLoopingNoteInstrVol(int track, int& note, int& instr, int& vol);
+    void TrackGetLoopingNoteInstrVol(int track, int& note, int& instr, int& vol) const;
 
     int* GetUECursor(int part);
     void SetUECursor(int part, int* cursor);
@@ -167,10 +150,10 @@ public:
     void SongSetPlayLine(int line) { m_songplayline = line; };
 
     BOOL SongTrackGoOnOff();
-    int SongGetGo() { return m_songgo[m_songactiveline]; };
-    int SongGetGo(int songline) { return m_songgo[songline]; };
-    void SongTrackGoDec() { m_songgo[m_songactiveline] = (m_songgo[m_songactiveline] - 1) & 0xff; };
-    void SongTrackGoInc() { m_songgo[m_songactiveline] = (m_songgo[m_songactiveline] + 1) & 0xff; };
+    int SongGetGo() const;
+    int SongGetGo(int songline) const;
+    void SongTrackGoDec();
+    void SongTrackGoInc();
 
     BOOL SongInsertLine(int line);
     BOOL SongDeleteLine(int line);
