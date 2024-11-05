@@ -24,6 +24,10 @@ extern CInstruments g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 extern CXPokey g_Pokey;
 extern CString g_PrefixForAllAsmLabels;
+// These two should be song attributes instead
+
+extern int g_tracks4_8;
+extern BOOL g_ntsc;				//NTSC (60Hz)
 
 static BOOL busyInTimer = 0;
 
@@ -65,6 +69,32 @@ CSong::~CSong()
 {
     //KillTimer();
 }
+
+CString CSong::GetName() const {
+    CString result;
+    result = m_songname;
+    result.TrimRight();
+    return result;
+}
+
+int CSong::GetTracks() const {
+    return g_tracks4_8;
+
+}
+
+bool CSong::IsStereo() const {
+    return (GetTracks() > 4);
+}
+
+bool CSong::IsNTSC() const {
+    return g_ntsc;
+}
+
+
+int CSong::GetInstrumentSpeed() const {
+    return m_instrumentSpeed;
+}
+
 
 /// <summary>
 /// Stop the timer and make sure that the timer event is not running
@@ -188,7 +218,7 @@ void CSong::ClearSong(int numOfTracks)
 int CSong::GetSubsongParts(CString& resultstr) const
 {
     CString s;
-    int songp[SONGLEN];
+    int songp[SONGLEN]{};
     int i, j, n, lastgo, apos, asub;
     BOOL ok;
     lastgo = -1;
@@ -255,7 +285,7 @@ void CSong::MarkTF_USED(BYTE* arrayTRACKSNUM) const
             {
                 int tr = m_song[i][channelNr];
                 if (tr >= 0 && tr < TRACKSNUM)
-                { 
+                {
                     arrayTRACKSNUM[tr] = TF_USED;
                 }
             }
@@ -263,7 +293,7 @@ void CSong::MarkTF_USED(BYTE* arrayTRACKSNUM) const
     }
 }
 
-void CSong::MarkTF_NOEMPTY(BYTE* arrayTRACKSNUM) const 
+void CSong::MarkTF_NOEMPTY(BYTE* arrayTRACKSNUM) const
 {
     for (int i = 0; i < TRACKSNUM; i++)
     {
@@ -948,7 +978,41 @@ void CSong::ActiveInstrSet(int instr)
     g_Instruments.RememberOctaveAndVolume(m_activeinstr, m_octave, m_volume);
 }
 
+void CSong::ActiveInstrPrev()
+{
+    g_Undo.Separator(); int instr = (m_activeinstr - 1) & 0x3f; ActiveInstrSet(instr);
+};
 
+void CSong::ActiveInstrNext()
+{
+    g_Undo.Separator(); int instr = (m_activeinstr + 1) & 0x3f; ActiveInstrSet(instr);
+};
+
+
+int CSong::GetActiveInstr() const
+{
+    return m_activeinstr;
+};
+
+int CSong::GetActiveColumn() const
+{
+    return m_trackactivecol;
+};
+
+int CSong::GetActiveLine() const
+{
+    return m_trackactiveline;
+};
+
+int CSong::GetPlayLine() const
+{
+    return m_trackplayline;
+};
+void CSong::SetActiveLine(int line)
+{
+    m_trackactiveline = line;
+};
+void CSong::SetPlayLine(int line) { m_trackplayline = line; };
 
 BOOL CSong::TrackUp(int lines)
 {
@@ -1071,7 +1135,7 @@ void CSong::RespectBoundaries()
     SongSetActiveLine(songline);
 }
 
-void CSong::TrackGetLoopingNoteInstrVol(int track, int& note, int& instr, int& vol)
+void CSong::TrackGetLoopingNoteInstrVol(int track, int& note, int& instr, int& vol) const
 {
     // Set the current visible note to a possible goto loop
     int line, len, go;
@@ -1427,6 +1491,26 @@ BOOL CSong::SongTrackGoOnOff()
     m_songgo[m_songactiveline] = (m_songgo[m_songactiveline] < 0) ? 0 : -1;
     return 1;
 }
+
+int  CSong::SongGetGo() const
+{
+    return m_songgo[m_songactiveline];
+};
+
+int  CSong::SongGetGo(int songline) const
+{
+    return m_songgo[songline];
+};
+
+void  CSong::SongTrackGoDec()
+{
+    m_songgo[m_songactiveline] = (m_songgo[m_songactiveline] - 1) & 0xff;
+};
+
+void  CSong::SongTrackGoInc()
+{
+    m_songgo[m_songactiveline] = (m_songgo[m_songactiveline] + 1) & 0xff;
+};
 
 BOOL CSong::SongInsertLine(int line)
 {
@@ -2544,15 +2628,15 @@ void CSong::SongClearUnusedTracksAndParts(int& clearedtracks, int& truncatedtrac
 {
     int i, j, ch;
     int ttracks = 0, tbeats = 0, ctracks = 0;
-    int tracklen[TRACKSNUM];
-    BOOL trackused[TRACKSNUM];
+    int tracklen[TRACKSNUM]{};
+    BOOL trackused[TRACKSNUM]{};
     TTrack* tr;
 
     // Initialise
     for (i = 0; i < TRACKSNUM; i++)
     {
         tracklen[i] = -1;
-        trackused[i] = 0;
+        trackused[i] = FALSE;
     }
 
     for (int sline = 0; sline < SONGLEN; sline++)
@@ -2700,7 +2784,7 @@ int CSong::SongClearUnusedTracks()
         }
     }
 
-    //delete all tracks unused in the song
+    // Delete all tracks unused in the song
     int clearedtracks = 0;
     for (i = 0; i < TRACKSNUM; i++)
     {
@@ -2723,7 +2807,7 @@ void CSong::RenumberAllTracks(int type) //1..after columns, 2..after lines
 
     int order = 0;
 
-    //test the song
+    // Test the song
     if (type == 2)
     {
         //horizontally along the lines
