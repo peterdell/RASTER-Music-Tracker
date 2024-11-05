@@ -40,9 +40,6 @@
     <Filter Include="Source Files\IO - Load/Save/Export/Import/Midi">
       <UniqueIdentifier>{dc8cf6d4-3fac-46f9-9a26-9661e293011b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\IO - Load/Save/Export/Import/Midi\SAP-R Compressor">
-      <UniqueIdentifier>{b1ac240f-8bfa-4b7f-9f1a-67e475c4a76e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Assembly Files">
       <UniqueIdentifier>{7a4c5235-815a-4b0b-9c9b-8240245f1f43}</UniqueIdentifier>
     </Filter>
@@ -54,6 +51,9 @@
     </Filter>
     <Filter Include="Source Files\IO - Load/Save/Export/Import/Midi\XEX">
       <UniqueIdentifier>{f7de0c39-64bb-46c6-9664-9e9d7fc47399}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\IO - Load/Save/Export/Import/Midi\LZSS">
+      <UniqueIdentifier>{b1ac240f-8bfa-4b7f-9f1a-67e475c4a76e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -190,7 +190,7 @@
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP</Filter>
     </ClCompile>
     <ClCompile Include="lzss_sap.cpp">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP-R Compressor</Filter>
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\LZSS</Filter>
     </ClCompile>
     <ClCompile Include="IO_Song_ExportAsm.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\ASM</Filter>
@@ -205,7 +205,7 @@
       <Filter>Source Files\Data</Filter>
     </ClCompile>
     <ClCompile Include="LZSSFile.cpp">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP-R Compressor</Filter>
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\LZSS</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -228,9 +228,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="importdlgs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="lzss_sap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Tuning.h">
@@ -312,7 +309,7 @@
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
     <ClInclude Include="lzssp.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP-R Compressor</Filter>
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\LZSS</Filter>
     </ClInclude>
     <ClInclude Include="ASMFile.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\ASM</Filter>
@@ -342,7 +339,10 @@
       <Filter>Source Files\Sound Generator</Filter>
     </ClInclude>
     <ClInclude Include="LZSSFile.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP-R Compressor</Filter>
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\LZSS</Filter>
+    </ClInclude>
+    <ClInclude Include="lzss_sap.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\LZSS</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

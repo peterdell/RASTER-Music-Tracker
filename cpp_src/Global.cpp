@@ -1,7 +1,8 @@
 #include "stdafx.h"
 #include "Rmt.h"
 #include "XPokey.h"
-#include "RmtView.h"
+#include "RmtMidi.h"
+#include "Clipboard.h"
 #include "Atari6502.h"
 #include "Memory.h"
 

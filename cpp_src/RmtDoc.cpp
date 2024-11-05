@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "Rmt.h"
 #include "RmtDoc.h"
-#include "RmtView.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

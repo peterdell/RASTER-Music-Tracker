@@ -3,9 +3,9 @@
 
 #if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
-// ConfigDlg.h : header file
-//
+#endif 
+
+#include "resource.h"
 
 #include "General.h"
 

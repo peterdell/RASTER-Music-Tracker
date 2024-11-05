@@ -5,9 +5,9 @@
 //
 
 #include "stdafx.h"
-#include "Rmt.h"
 #include "RmtDoc.h"
 #include <chrono>
+#include "Clipboard.h"
 
 #include "RmtView.h"
 #include "MainFrm.h"
@@ -16,7 +16,7 @@
 #include "TuningDlg.h"
 #include "Atari6502.h"
 #include "XPokey.h"
-
+#include "RmtMidi.h"
 #include "EffectsDlg.h"
 
 #include "global.h"

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Song.h"
-#include <fstream>
+#include <iosfwd>
 #include "XPokey.h"
 
 extern CString g_rmtmsxtext;

@@ -9,15 +9,6 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "General.h"
-
-#include "Undo.h"
-#include "Instruments.h"
-#include "Tracks.h"
-#include "Song.h"
-#include "Clipboard.h"
-
-#include "RmtMidi.h"
 #include "RmtDoc.h"
 
 class CRmtView : public CView

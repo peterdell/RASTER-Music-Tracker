@@ -4,12 +4,11 @@
 //
 
 #include "stdafx.h"
-#include "Rmt.h"
 #include "MainFrm.h"
-#include "RmtDoc.h"
 #include "RmtView.h"
-#include "GuiHelpers.h"
-#include "global.h"
+#include "Song.h"
+#include "Global.h"
+#include "Resource.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

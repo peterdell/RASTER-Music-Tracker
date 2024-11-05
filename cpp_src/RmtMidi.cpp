@@ -10,6 +10,8 @@
 #include <mmsystem.h>
 #include "RmtMidi.h"
 #include "global.h"
+#include "Song.h"
+
 
 extern CSong	g_Song;
 
