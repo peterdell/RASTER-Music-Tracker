@@ -134,7 +134,7 @@ bool CASMFileExporter::ExportAsAsm(const CSong& song, std::ofstream& ou, TExport
     {
         // song columns
         int clm;
-        for (clm = 0; clm < g_tracks4_8; clm++)
+        for (clm = 0; clm < song.GetTracks(); clm++)
         {
             BYTE finished[SONGLEN];
             memset(finished, 0, SONGLEN);
@@ -160,7 +160,7 @@ bool CASMFileExporter::ExportAsAsm(const CSong& song, std::ofstream& ou, TExport
                     continue;
                 }
                 int trackslen = g_Tracks.GetMaxTrackLength();
-                for (int i = 0; i < g_tracks4_8; i++)
+                for (int i = 0; i < song.GetTracks(); i++)
                 {
                     int at = song.m_song[sline][i];
                     if (at < 0 || at >= TRACKSNUM) continue;
@@ -763,7 +763,7 @@ void CASMFileExporter::ComposeRMTFEATstring(
     for (int songLineNr = 0; songLineNr < SONGLEN; songLineNr++)
     {
         if (song.m_songgo[songLineNr] >= 0) continue;	// goto line
-        for (int channelNr = 0; channelNr < g_tracks4_8; channelNr++)
+        for (int channelNr = 0; channelNr < song.GetTracks(); channelNr++)
         {
             // Get the track# that is at the song line and at the channel
             int trackNr = song.m_song[songLineNr][channelNr];
@@ -802,7 +802,7 @@ void CASMFileExporter::ComposeRMTFEATstring(
                     if (ai->envelope[j][ENV_X] == 0x08 && ai->envelope[j][ENV_Y] == 0x00)
                     {
                         usedCommand7_VolumeOnly++;
-                        for (int channelNr = 0; channelNr < g_tracks4_8; channelNr++)
+                        for (int channelNr = 0; channelNr < song.GetTracks(); channelNr++)
                         {
                             if (instrumentUsedOnChannelX[instrumentNr][channelNr])
                                 usedCommand7_VolumeOnlyOnChannelX[channelNr]++;
@@ -819,7 +819,7 @@ void CASMFileExporter::ComposeRMTFEATstring(
                 if (ai->envelope[j][ENV_FILTER])
                 {
                     usedFilter++;
-                    for (int channelNr = 0; channelNr < g_tracks4_8; channelNr++)
+                    for (int channelNr = 0; channelNr < song.GetTracks(); channelNr++)
                     {
                         if (instrumentUsedOnChannelX[instrumentNr][channelNr])
                             usedFilterOnChannelX[channelNr]++;
@@ -830,7 +830,7 @@ void CASMFileExporter::ComposeRMTFEATstring(
                 if (ai->envelope[j][ENV_DISTORTION] == 6)
                 {
                     usedBass16++;
-                    for (int channelNr = 0; channelNr < g_tracks4_8; channelNr++)
+                    for (int channelNr = 0; channelNr < song.GetTracks(); channelNr++)
                     {
                         if (instrumentUsedOnChannelX[instrumentNr][channelNr])
                             usedBass16OnChannelX[channelNr]++;
