@@ -295,8 +295,8 @@ public:
     void GetSongInfoPars(TInfo* info) { memcpy(info->songname, m_songname, SONG_NAME_MAX_LEN); info->speed = m_speed; info->mainspeed = m_mainSpeed; info->instrspeed = m_instrumentSpeed; info->songnamecur = m_songnamecur; };
     void SetSongInfoPars(TInfo* info) { memcpy(m_songname, info->songname, SONG_NAME_MAX_LEN); m_speed = info->speed; m_mainSpeed = info->mainspeed; m_instrumentSpeed = info->instrspeed; m_songnamecur = info->songnamecur; };
 
-    BOOL IsValidSongline(int songline) { return songline >= 0 && songline < SONGLEN; };
-    BOOL IsSongGo(int songline) { return IsValidSongline(songline) ? m_songgo[songline] >= 0 : 0; };
+    BOOL IsValidSongline(int songline) const { return songline >= 0 && songline < SONGLEN; };
+    BOOL IsSongGo(int songline) const { return IsValidSongline(songline) ? m_songgo[songline] >= 0 : 0; };
 
     void SongJump(int lines);
 

@@ -9,7 +9,7 @@
 
 extern CString g_prgpath;
 
-bool CSAPFileExporter::ExportSAP_B_LZSS(const CSong& song, const CPokeyStream& pokeyStream, CSAPFile& sapFile, std::ofstream& ou) {
+bool CSAPFileExporter::ExportSAP_B_LZSS( CSongExport& songExport, CSAPFile& sapFile, std::ofstream& ou) {
 
     byte memory[RAM_SIZE]{};
     MemoryAddress addressFrom;
@@ -26,7 +26,7 @@ bool CSAPFileExporter::ExportSAP_B_LZSS(const CSong& song, const CPokeyStream& p
 
     SetStatusBarText("Compressing data ...");
 
-    const int frameSize = CLZSSFile::GetFrameSize(song);
+    const int frameSize = CLZSSFile::GetFrameSize(songExport.GetSong());
 
     byte buff1[RAM_SIZE];	// LZSS buffers for each ones of the tune parts being reconstructed
     byte buff2[RAM_SIZE];	// they are used for parts labeled: full, intro, and loop 
@@ -35,6 +35,7 @@ bool CSAPFileExporter::ExportSAP_B_LZSS(const CSong& song, const CPokeyStream& p
     CCompressLzss lzssData;
 
     // Now, create LZSS files using the SAP-R dump created earlier
+    const CPokeyStream& pokeyStream = songExport.GetPokeyStream();
     int full = lzssData.LZSS_SAP(pokeyStream.GetConstStreamBuffer(), pokeyStream.GetFirstCountPoint() * frameSize, buff1);
     int intro = lzssData.LZSS_SAP(pokeyStream.GetConstStreamBuffer(), pokeyStream.GetThirdCountPoint() * frameSize, buff2);
     int loop = lzssData.LZSS_SAP(pokeyStream.GetConstStreamBuffer() + (pokeyStream.GetFirstCountPoint() * frameSize), pokeyStream.GetSecondCountPoint() * frameSize, buff3);
@@ -80,8 +81,8 @@ bool CSAPFileExporter::ExportSAP_B_LZSS(const CSong& song, const CPokeyStream& p
     };
     memcpy(memory + VU_PLAYER_INIT_SAP, sapbytes, 14);
 
-    memory[VU_PLAYER_SONG_SPEED] = song.GetInstrumentSpeed();			// Song speed
-    memory[VU_PLAYER_STEREO_FLAG] = song.IsStereo() ? 0xFF : 0x00;		// Is the song stereo?
+    memory[VU_PLAYER_SONG_SPEED] = songExport.GetSong().GetInstrumentSpeed();			// Song speed
+    memory[VU_PLAYER_STEREO_FLAG] = songExport.GetSong().IsStereo() ? 0xFF : 0x00;		// Is the song stereo?
 
     // Reconstruct the export binary 
     CAtariIO::SaveBinaryBlock(ou, memory, 0x1900, 0x1EFF, 1);	// LZSS Driver, and some free bytes for later if needed
@@ -116,11 +117,12 @@ bool CSAPFileExporter::ExportSAP_B_LZSS(const CSong& song, const CPokeyStream& p
     return true;
 }
 
-bool CSAPFileExporter::ExportSAP_R(const CSong& song, const CPokeyStream& pokeyStream, CSAPFile& sapFile, std::ofstream& ou) {
+bool CSAPFileExporter::ExportSAP_R(CSongExport& songExport, CSAPFile& sapFile, std::ofstream& ou) {
 
-    sapFile.Export(ou);;
+    sapFile.Export(ou);
 
     // Write the SAP-R stream to the output file defined in the path dialog with the data specified above
+    const CPokeyStream& pokeyStream = songExport.GetPokeyStream();
     pokeyStream.WriteToFile(ou, pokeyStream.GetFirstCountPoint(), 0);
 
     return true;

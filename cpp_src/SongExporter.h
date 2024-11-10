@@ -3,6 +3,7 @@
 #include "Song.h"
 #include <iosfwd>
 #include "XPokey.h"
+#include "SongExport.h"
 
 extern CString g_rmtmsxtext;
 
@@ -33,7 +34,7 @@ public:
     /// <param name="ou">File to output the compressed data to</param>
     /// <param name="filename">Filename to output additional files, required for splitting the Intro and Loop sections of a song</param>
     /// <returns></returns>
-    bool ExportLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename);
+    bool ExportLZSS(CSongExport& songExport, std::ofstream& ou);
 
 
     /// <summary>
@@ -44,31 +45,31 @@ public:
     /// <param name="ou">File to output the compressed data to</param>
     /// <param name="filename">Filename to use for saving the data output</param>
     /// <returns></returns>
-    bool ExportCompactLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename); // TODO: What is this? Currently unsued?
+    bool ExportCompactLZSS(CSongExport& songExport, std::ofstream& ou); // TODO: What is this? Currently unsued?
 
     /// <summary>
     /// Export the Pokey registers to the SAP Type R format (data stream)
     /// </summary>
     /// <param name="ou">Output stream</param>
     /// <returns>true if the file was written</returns>
-    bool ExportSAP_R(CSong& song, std::ofstream& ou);
+    bool ExportSAP_R(CSongExport& songExport, std::ofstream& ou);
 
     /// <summary>
     /// Export the Pokey registers to a SAP TYPE B format
     /// </summary>
     /// <param name="ou">Output stream</param>
     /// <returns>true if the file was written</returns>
-    bool ExportSAP_B_LZSS(CSong& song, std::ofstream& ou);
+    bool ExportSAP_B_LZSS(CSongExport& songExport, std::ofstream& ou);
 
     // Pokey and memory are modified
-    bool ExportWAV(CSong& song, std::ofstream& ou, LPCTSTR filename, CXPokey& pokey, byte* memory);
+    bool ExportWAV(CSongExport& songExport, std::ofstream& ou, CXPokey& pokey, byte* memory);
 
     /// <summary>
     /// Generate a SAP-R data stream, compress it and export to VUPlayer xex
     /// </summary>
     /// <param name="ou">File to output the compressed data to</param>
     /// <returns></returns>
-    bool ExportXEX_LZSS(CSong& song, std::ofstream& ou);
+    bool ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou);
 
 
 

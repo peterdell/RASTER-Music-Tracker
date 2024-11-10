@@ -2,6 +2,9 @@
 #include "SongExporterTest.h"
 
 #include "Song.h"
+#include "SongContainer.h"
+
+#include "SongExport.h"
 
 void AssertTrue(bool actual) {
     if (actual != true) {
@@ -21,6 +24,7 @@ void CSongExporterTest::Test(CSong& song) {
 
     static const CString SEPARATOR = "\\";
 
+    CSongContainer songContainer(song);
     // TODO: Some global state and references point to g_Song. Therefore using a local song does not yet work.
     //CSong song;
     //std::ifstream in;
@@ -43,28 +47,28 @@ void CSongExporterTest::Test(CSong& song) {
     //songExporter.ExportCompactLZSS(song, os, outFilePath);
     CString outFilePathPrefix = outFolderName + SEPARATOR + outFileName;
     CString outFilePath = outFilePathPrefix + ".lzss";
-    os.open(outFilePath);
-    songExporter.ExportLZSS(song, os, outFilePath);
+    os.open(outFilePath, std::ofstream::binary);
+    songExporter.ExportLZSS(CSongExport(songContainer, outFilePath), os);
     os.close();
 
     outFilePath = outFilePathPrefix + "-Type-B-LZSS.sap";
-    os.open(outFilePath);
-    songExporter.ExportSAP_B_LZSS(song, os);
+    os.open(outFilePath, std::ofstream::binary);
+    songExporter.ExportSAP_B_LZSS(CSongExport(songContainer, outFilePath), os);
     os.close();
 
     outFilePath = outFilePathPrefix + "-Type-R.sap";
-    os.open(outFilePath);
-    songExporter.ExportSAP_R(song, os);
+    os.open(outFilePath, std::ofstream::binary);
+    songExporter.ExportSAP_R(CSongExport(songContainer, outFilePath), os);
     os.close();
 
     // TODO: Export WAV
     outFilePath = outFilePathPrefix + ".wav";
-    os.open(outFilePath);
-    //songExporter.ExportWAV(song, os, outFileName);
+    os.open(outFilePath, std::ofstream::binary);
+    //songExporter.ExportWAV(CSongExport(songContainer, outFilePath), os);
     os.close();
 
     outFilePath = outFilePathPrefix + "-LZSS.xex";
-    os.open(outFilePath);
-    songExporter.ExportXEX_LZSS(song, os);
+    os.open(outFilePath, std::ofstream::binary);
+    songExporter.ExportXEX_LZSS(CSongExport(songContainer, outFilePath), os);
     os.close();
 }
