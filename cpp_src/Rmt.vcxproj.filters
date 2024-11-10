@@ -213,6 +213,9 @@
     <ClCompile Include="AboutDialog.cpp">
       <Filter>Source Files\RMT Interface</Filter>
     </ClCompile>
+    <ClCompile Include="RmtCommandLineInfo.cpp">
+      <Filter>Source Files\RMT Interface</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
@@ -354,6 +357,9 @@
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
     <ClInclude Include="AboutDialog.h">
+      <Filter>Source Files\RMT Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="RmtCommandLineInfo.h">
       <Filter>Source Files\RMT Interface</Filter>
     </ClInclude>
   </ItemGroup>

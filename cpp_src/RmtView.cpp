@@ -932,32 +932,7 @@ void CRmtView::OnInitialUpdate()
 {
     CView::OnInitialUpdate();
 
-    //command line
-    CString cmdl = GetCommandLine();
-    CString commandLineFilename = "";
-    g_prgpath = "";
     g_lastLoadPath_Songs = g_lastLoadPath_Instruments = g_lastLoadPath_Tracks = "";
-    if (cmdl != "")
-    {
-        int i1 = 0, i2 = 0;
-        GetCommandLineItem(cmdl, i2, i1);	//path/name.exe
-        if (i1 != i2)
-        {
-            CString exefilename = cmdl.Mid(i2, i1 - i2);
-            int l = exefilename.ReverseFind('/');
-            if (l < 0) l = exefilename.ReverseFind('\\');
-            if (l >= 0)
-            {
-                g_prgpath = exefilename.Left(l + 1);	//including slash
-            }
-        }
-        i1++;
-        GetCommandLineItem(cmdl, i1, i2);	//parameter
-        if (i1 != i2)
-        {
-            commandLineFilename = cmdl.Mid(i1, i2 - i1);
-        }
-    }
 
     CDC* dc = GetDC();
     m_gfx_bitmap.LoadBitmap(MAKEINTRESOURCE(IDB_GFX));
@@ -1028,23 +1003,8 @@ void CRmtView::OnInitialUpdate()
     g_Midi.MidiInit();
     g_Midi.MidiOn();
 
-    //Pal or NTSC
-    g_Song.ChangeTimer((g_ntsc) ? 17 : 20);
-
-    //If the tracker was started with an argument, it attempts to load the file, and will return an error if the extention isn't .rmt. 
-    //When no argument is passed, the initialisation continues like normal.
-    if (commandLineFilename != "")
-    {
-        if (commandLineFilename.Right(4) == ".rmt")
-        {
-            g_Song.FileOpen((LPCTSTR)commandLineFilename, FALSE);
-        }
-        else
-        {
-            MessageBox("Invalid .rmt file!", "Error", MB_ICONERROR);
-            exit(1);
-        }
-    }
+    // Pal or NTSC
+    g_Song.ChangeTimer((g_Song.IsNTSC()) ? 17 : 20);
 }
 
 int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)

@@ -12,6 +12,7 @@
 #include "SongExporterTest.h"
 #include "AboutDialog.h"
 #include "GuiHelpers.h" // For g_statusBar
+#include "RmtCommandLineInfo.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -19,11 +20,25 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+
+extern CString g_prgpath;					//path to the directory from which the program was started (including a slash at the end)
+
+
 // Some information for the about box is supplied by components outside this file
 extern CString g_aboutpokey;
 extern CString g_about6502;
 
 extern CSong g_Song;
+
+
+//bool IsSwitch(const CString& switchString, const CString& switchName)
+
+
+
+CString CRmtCommandLineInfo::GetScriptFilePath() const
+{
+    return m_scriptFilePath;
+}
 
 /////////////////////////////////////////////////////////////////////////////
 // CRmtApp
@@ -90,19 +105,31 @@ BOOL CRmtApp::InitInstance()
 
     g_Song.ClearSong(8);
 
-    // TODO Control via command line
-    //CSongExporterTest::Test();
-    //return FALSE;
+
+    CString fullPath;
+    DWORD pathLen = ::GetModuleFileName(NULL, fullPath.GetBufferSetLength(MAX_PATH + 1), MAX_PATH);
+    fullPath.ReleaseBuffer(pathLen); // Note that ReleaseBuffer doesn't need a +1 for the null byte.
+    int nPos = fullPath.ReverseFind('\\');
+    if (nPos != -1) {
+        g_prgpath = fullPath.Left(nPos + 1);
+
+    }
+    else {
+        g_prgpath = fullPath;
+    }
 
     // Parse command line for standard shell commands, DDE, file open
-    CCommandLineInfo cmdInfo;
+    CRmtCommandLineInfo cmdInfo;
     ParseCommandLine(cmdInfo);
 
-    // Dispatch commands specified on the command line
+    // Dispatch standard commands specified on the command line.
+    // Will return FALSE if app was launched with /RegServer, /Register, /Unregserver or /Unregister.
     if (!ProcessShellCommand(cmdInfo))
     {
         return FALSE;
     }
+
+
 
     // The one and only window has been initialized, so show and update it.
     CMainFrame* mainFrame = (CMainFrame*)GetMainWnd();
@@ -112,6 +139,26 @@ BOOL CRmtApp::InitInstance()
 
     // Initialization of a random number
     srand((unsigned)time(NULL));
+
+
+    // Dispatch additional interactive commands specified on the command line.
+    switch (cmdInfo.m_nShellCommand) {
+    case CCommandLineInfo::FileOpen: {
+        g_Song.FileOpen(cmdInfo.m_strFileName, FALSE);
+        break;
+    }
+    }
+
+    // Dispatch additional commands specified on the command line.
+    if (cmdInfo.IsScriptFileSpecified()) {
+        CFile scriptFile;
+        if (!scriptFile.Open(cmdInfo.GetScriptFilePath(), CFile::modeRead)) {
+            SendErrorMessage("Command Line Parameter Invalid", "The script file \"" + scriptFile.GetFilePath() + "\" specified via the command line switch /SCRIPT cannot be opened for reading.");
+            return FALSE;
+        }
+        CSongExporterTest::Test(g_Song);
+        return FALSE;
+    }
 
     //PostMessage(m_pMainWnd->m_hWnd,WM_COMMAND,ID_APP_ABOUT,0); //so that the dialogue can be triggered first
 

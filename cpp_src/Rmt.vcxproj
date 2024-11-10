@@ -331,6 +331,7 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
     </ClCompile>
     <ClCompile Include="LZSSFile.cpp" />
+    <ClCompile Include="RmtCommandLineInfo.cpp" />
     <ClCompile Include="SAPFile.cpp" />
     <ClCompile Include="SAPFileExportDialog.cpp" />
     <ClCompile Include="SAPFileExporter.cpp" />
@@ -555,6 +556,7 @@
     <ClInclude Include="Clipboard.h" />
     <ClInclude Include="ConfigDlg.h" />
     <ClInclude Include="LZSSFile.h" />
+    <ClInclude Include="RmtCommandLineInfo.h" />
     <ClInclude Include="RmtFile.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="SAPFile.h" />

@@ -9,28 +9,31 @@ void AssertTrue(bool actual) {
     }
 }
 
-CString GetNameWithoutExtension(const CString& fileName) {
+CString GetFileNameWithoutExtension(const CString& fileName) {
     int nPos = fileName.Find('.');
     if (nPos != -1) {
-        return fileName.Left(nPos + 1);
+        return fileName.Left(nPos);
     }
     return fileName;
 }
 
-void CSongExporterTest::Test() {
+void CSongExporterTest::Test(CSong& song) {
 
     static const CString SEPARATOR = "\\";
 
-    CSong song;
-    CSongExporter songExporter;
-    std::ifstream in;
-    CString inFilePath = "C:\\Users\\JAC\\Desktop\\ASMA-Input\\Test.rmt";
-    in.open(inFilePath);
-    AssertTrue(song.LoadRMT(in));
-    in.close();
+    // TODO: Some global state and references point to g_Song. Therefore using a local song does not yet work.
+    //CSong song;
+    //std::ifstream in;
+    //CString inFilePath = "C:\\Users\\JAC\\Desktop\\ASMA-Input\\Test.rmt";
+    //in.open(inFilePath);
+    //AssertTrue(song.LoadRMT(in));
+    //in.close();
 
+    CSongExporter songExporter;
+
+    CString inFilePath = song.GetFilename();
     CString inFileName = CFile(inFilePath, CFile::modeRead).GetFileName();
-    CString outFileName = GetNameWithoutExtension(inFileName);
+    CString outFileName = GetFileNameWithoutExtension(inFileName);
 
     CString outFolderName = "C:\\Users\\JAC\\Desktop\\ASMA-Input\\out";
 
