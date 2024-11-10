@@ -94,7 +94,6 @@ extern int g_altkey;	//unfinished implementation, doesn't work yet for some reas
 extern int g_tracks4_8;
 extern BOOL volatile g_screenupdate;
 extern BOOL volatile g_rmtroutine;
-extern BOOL volatile g_timerRoutineProcessed;
 
 extern int volatile g_prove;			//test notes without editing (0 = off, 1 = mono, 2 = stereo)
 extern int volatile g_respectvolume;	//does not change the volume if it is already there

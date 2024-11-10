@@ -34,10 +34,16 @@ static BOOL busyInTimer = 0;
 /// <summary>
 /// Wait for the Timer Routine to run at least once
 /// </summary>
-static void WaitForTimerRoutineProcessed()
+void CSong::WaitForTimerRoutineProcessed()
 {
-    g_timerRoutineProcessed = 0;
-    while (!g_timerRoutineProcessed && !g_closeApplication);	// Waiting
+    // If there is any timer at all
+    if (m_timerRoutine)
+    {
+        m_timerRoutineProcessed = false;
+        while (!m_timerRoutineProcessed && !g_closeApplication) {
+            // Busy Waiting
+        };
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -58,7 +64,7 @@ CSong::CSong()
 
     // Initialise Timer
     m_timerRoutine = 0;
-    g_timerRoutineProcessed = 0;
+    m_timerRoutineProcessed = false;
 
     m_quantization_note = -1; // init
     m_quantization_instr = -1;
@@ -3415,5 +3421,5 @@ void CSong::TimerRoutine()
     ChangeTimer(g_ntsc ? m_timerRoutineTick[g_timerGlobalCount % 3] : 20);
 
     g_timerGlobalCount++;			// Increment by one each time Timer Routine was processed
-    g_timerRoutineProcessed = 1;	// TimerRoutine took place
+    m_timerRoutineProcessed = true;	// TimerRoutine took place
 }

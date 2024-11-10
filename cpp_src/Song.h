@@ -365,7 +365,9 @@ private:
     int m_songgoclipboard;
 
     UINT m_timerRoutine;
+    bool volatile m_timerRoutineProcessed;
     const BYTE m_timerRoutineTick[3] = { 17, 17, 16 };
+    void WaitForTimerRoutineProcessed();
 
     CString m_filename;
     int m_filetype;
