@@ -291,6 +291,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="ASMFile.cpp" />
     <ClCompile Include="ASMFileBuilder.cpp" />
     <ClCompile Include="ASMFileExporter.cpp" />
@@ -545,6 +546,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AboutDialog.h" />
     <ClInclude Include="ASMFile.h" />
     <ClInclude Include="ASMFileBuilder.h" />
     <ClInclude Include="ASMFileExporter.h" />

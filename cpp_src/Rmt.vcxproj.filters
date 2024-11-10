@@ -210,6 +210,9 @@
     <ClCompile Include="SongExporterTest.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClCompile>
+    <ClCompile Include="AboutDialog.cpp">
+      <Filter>Source Files\RMT Interface</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
@@ -349,6 +352,9 @@
     </ClInclude>
     <ClInclude Include="SongExporterTest.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClInclude>
+    <ClInclude Include="AboutDialog.h">
+      <Filter>Source Files\RMT Interface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
