@@ -40,7 +40,7 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, 
         DisableEventSection section;
 
         // The SAP-R dumper is running during that time...
-        while (m_play != MPLAY_STOP)
+        while (m_play != PLAY_STOP)
         {
             // 1 VBI of module playback
             PlayVBI();

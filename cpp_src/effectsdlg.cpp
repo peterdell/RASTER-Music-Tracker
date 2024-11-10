@@ -235,7 +235,7 @@ void CEffectsDlg::OnPlaystop()
 	if (g_Song.GetPlayMode())
 		g_Song.Stop();
 	else
-		g_Song.Play(MPLAY_BLOCK, g_Song.GetFollowPlayMode());
+		g_Song.Play(PLAY_BLOCK, g_Song.GetFollowPlayMode());
 }
 
 void CEffectsDlg::PerformEffect()

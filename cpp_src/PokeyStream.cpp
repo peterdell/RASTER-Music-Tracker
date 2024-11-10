@@ -97,7 +97,7 @@ void CPokeyStream::CallFromPlay(int playerState, int trackLine, int songLine)
     if (m_recordState == STREAM_STATE::START)
     {
         memset(m_PlayCount, 0, sizeof(m_PlayCount));	// Reset lines play counter first
-        if (playerState == MPLAY_BLOCK)
+        if (playerState == PLAY_BLOCK)
             m_PlayCount[trackLine] += 1;				// Increment the track line play count early, so it will be detected as the selection block loop
         else
             m_PlayCount[songLine] += 1;					// Increment the line play count early, to ensure that same line will be detected again as the loop point

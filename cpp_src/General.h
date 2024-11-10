@@ -136,20 +136,20 @@
 
 enum PlayMode : int {
 
-    MPLAY_STOP = 0,
-    MPLAY_SONG = 1,
-    MPLAY_FROM = 2,
-    MPLAY_TRACK = 3,
-    MPLAY_BLOCK = 4,
-    MPLAY_BOOKMARK = 5,
-    MPLAY_SEEK_NEXT = 6,	//added for Media keys
-    MPLAY_SEEK_PREV = 7,	//added for Media keys
+    PLAY_STOP = 0,
+    PLAY_SONG = 1,
+    PLAY_FROM = 2,
+    PLAY_TRACK = 3,
+    PLAY_BLOCK = 4,
+    PLAY_BOOKMARK = 5,
+    PLAY_SEEK_NEXT = 6,	//added for Media keys
+    PLAY_SEEK_PREV = 7,	//added for Media keys
 
-    MPLAY_SAPR_SONG = 255,	// SAPR dump from song start
-    MPLAY_SAPR_FROM = 254,	// SAPR dump from song cursor position
-    MPLAY_SAPR_TRACK = 253,	// SAPR dump from track (loop optional)
-    MPLAY_SAPR_BLOCK = 252,	// SAPR dump from selection block (loop optional)
-    MPLAY_SAPR_BOOKMARK = 251,	// SAPR dump from bookmak position
+    PLAY_SAPR_SONG = 255,	// SAPR dump from song start
+    PLAY_SAPR_FROM = 254,	// SAPR dump from song cursor position
+    PLAY_SAPR_TRACK = 253,	// SAPR dump from track (loop optional)
+    PLAY_SAPR_BLOCK = 252,	// SAPR dump from selection block (loop optional)
+    PLAY_SAPR_BOOKMARK = 251,	// SAPR dump from bookmak position
 
 };
 

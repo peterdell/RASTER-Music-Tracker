@@ -7,7 +7,7 @@ CSongContainer::CSongContainer(CSong& song) {
     m_song = &song;
     m_pokeyStreamReady = false;
 
-    if (m_song->GetPlayMode() != MPLAY_STOP) {
+    if (m_song->GetPlayMode() != PLAY_STOP) {
         AfxThrowInvalidArgException();
     }
 }
@@ -27,7 +27,7 @@ const CPokeyStream& CSongContainer::GetPokeyStream() {
 CPokeyStream& CSongContainer::GetModifiablePokeyStream() {
     if (!m_pokeyStreamReady) {
         SetStatusBarText("Generating stream data ...");
-        m_song->DumpSongToPokeyStream(m_pokeyStream, MPLAY_SONG, 0, 0);
+        m_song->DumpSongToPokeyStream(m_pokeyStream, PLAY_SONG, 0, 0);
         m_pokeyStreamReady = true;
     }
     return m_pokeyStream;

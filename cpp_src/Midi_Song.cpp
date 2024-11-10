@@ -126,7 +126,7 @@ void CSong::MidiEvent(DWORD dwParam)
 
 				case 115:	//LOOP key
 					if (!pr2) break;	//no key press
-					Play(MPLAY_TRACK, m_followplay, 0);
+					Play(PLAY_TRACK, m_followplay, 0);
 					break;
 
 				case 116:	//STOP key
@@ -136,7 +136,7 @@ void CSong::MidiEvent(DWORD dwParam)
 
 				case 117:	//PLAY key
 					if (!pr2) break;	//no key press
-					Play(MPLAY_SONG, m_followplay, 0);
+					Play(PLAY_SONG, m_followplay, 0);
 					break;
 
 				case 118:	//REC key

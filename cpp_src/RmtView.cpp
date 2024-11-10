@@ -1634,17 +1634,17 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             g_prove = PROVE_POKEY_EXPLORER_MODE;	//POKEY EXPLORER MODE -- KEYBOARD INPUT AND FORMULAE DISPLAY
             break;
         }
-        g_Song.Play(MPLAY_SONG, g_Song.GetFollowPlayMode());	//play song from start
+        g_Song.Play(PLAY_SONG, g_Song.GetFollowPlayMode());	//play song from start
         break;
 
     case VK_F6:
-        if (g_shiftkey) g_Song.Play(MPLAY_BLOCK, g_Song.GetFollowPlayMode());	//play block and follow
-        else g_Song.Play(MPLAY_TRACK, g_Song.GetFollowPlayMode());				//play pattern and follow	
+        if (g_shiftkey) g_Song.Play(PLAY_BLOCK, g_Song.GetFollowPlayMode());	//play block and follow
+        else g_Song.Play(PLAY_TRACK, g_Song.GetFollowPlayMode());				//play pattern and follow	
         break;
 
     case VK_F7:
-        if (g_Song.IsBookmark() && g_shiftkey) g_Song.Play(MPLAY_BOOKMARK, g_Song.GetFollowPlayMode());	//play song from bookmark
-        else g_Song.Play(MPLAY_FROM, g_Song.GetFollowPlayMode());							//play song from current position
+        if (g_Song.IsBookmark() && g_shiftkey) g_Song.Play(PLAY_BOOKMARK, g_Song.GetFollowPlayMode());	//play song from bookmark
+        else g_Song.Play(PLAY_FROM, g_Song.GetFollowPlayMode());							//play song from current position
         break;
 
     case VK_F8:
@@ -1688,16 +1688,16 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
     case VK_MEDIA_PLAY_PAUSE:
         if (g_Song.GetPlayMode() == 0)
-            g_Song.Play(MPLAY_SONG, g_Song.GetFollowPlayMode());	//play song from start
+            g_Song.Play(PLAY_SONG, g_Song.GetFollowPlayMode());	//play song from start
         else g_Song.Stop();								//if playing, stop
         break;
 
     case VK_MEDIA_NEXT_TRACK:
-        g_Song.Play(MPLAY_SEEK_NEXT, g_Song.GetFollowPlayMode()); //seek next and play from track
+        g_Song.Play(PLAY_SEEK_NEXT, g_Song.GetFollowPlayMode()); //seek next and play from track
         break;
 
     case VK_MEDIA_PREV_TRACK:
-        g_Song.Play(MPLAY_SEEK_PREV, g_Song.GetFollowPlayMode()); //seek prev and play from track
+        g_Song.Play(PLAY_SEEK_PREV, g_Song.GetFollowPlayMode()); //seek prev and play from track
         break;
 
     case VK_SHIFT:
@@ -2167,22 +2167,22 @@ void CRmtView::OnUpdateSongMaketracksduplicate(CCmdUI* pCmdUI)
 
 void CRmtView::OnPlay0()
 {
-    g_Song.Play(MPLAY_BOOKMARK, g_Song.GetFollowPlayMode());	//from the bookmark - with respect to followplay
+    g_Song.Play(PLAY_BOOKMARK, g_Song.GetFollowPlayMode());	//from the bookmark - with respect to followplay
 }
 
 void CRmtView::OnPlay1()
 {
-    g_Song.Play(MPLAY_SONG, g_Song.GetFollowPlayMode());		//whole song from start - with respect to followplay
+    g_Song.Play(PLAY_SONG, g_Song.GetFollowPlayMode());		//whole song from start - with respect to followplay
 }
 
 void CRmtView::OnPlay2()
 {
-    g_Song.Play(MPLAY_FROM, g_Song.GetFollowPlayMode());		//from the current position - with respect to followplay
+    g_Song.Play(PLAY_FROM, g_Song.GetFollowPlayMode());		//from the current position - with respect to followplay
 }
 
 void CRmtView::OnPlay3()
 {
-    g_Song.Play(MPLAY_TRACK, g_Song.GetFollowPlayMode());		//current pattern and loop - with respect to followplay
+    g_Song.Play(PLAY_TRACK, g_Song.GetFollowPlayMode());		//current pattern and loop - with respect to followplay
 }
 
 void CRmtView::OnPlaystop()
@@ -2227,7 +2227,7 @@ void CRmtView::OnUpdatePlay0(CCmdUI* pCmdUI)
 {
     int ch = g_Song.IsBookmark();
     pCmdUI->Enable(ch);
-    ch = (g_Song.GetPlayMode() == MPLAY_BOOKMARK);
+    ch = (g_Song.GetPlayMode() == PLAY_BOOKMARK);
     pCmdUI->SetCheck(ch);
 }
 
@@ -2475,7 +2475,7 @@ void CRmtView::OnUpdateBlockBackup(CCmdUI* pCmdUI)
 
 void CRmtView::OnBlockPlay()
 {
-    g_Song.Play(MPLAY_BLOCK, g_Song.GetFollowPlayMode());	//selected block and loop - with respect to followplay
+    g_Song.Play(PLAY_BLOCK, g_Song.GetFollowPlayMode());	//selected block and loop - with respect to followplay
 }
 
 void CRmtView::OnUpdateBlockPlay(CCmdUI* pCmdUI)

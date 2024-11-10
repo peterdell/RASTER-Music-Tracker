@@ -1301,7 +1301,7 @@ BOOL CSong::SongUp()
     if (m_play && m_followplay)
     {
         // Play track in loop, else, play from cursor position
-        auto mode = (m_play == MPLAY_TRACK) ? MPLAY_TRACK : MPLAY_FROM;
+        auto mode = (m_play == PLAY_TRACK) ? PLAY_TRACK : PLAY_FROM;
         Stop();
 
         // This is a Gotoline, skip another line above it
@@ -1336,7 +1336,7 @@ BOOL CSong::SongDown()
     if (m_play && m_followplay)
     {
         // Play track in loop, else, play from cursor position
-        auto mode = (m_play == MPLAY_TRACK) ? MPLAY_TRACK : MPLAY_FROM;
+        auto mode = (m_play == PLAY_TRACK) ? PLAY_TRACK : PLAY_FROM;
         Stop();
 
         // This is a Gotoline, skip another line below it
@@ -1378,7 +1378,7 @@ BOOL CSong::SongSubsongPrev()
     m_trackactiveline = 0;
     if (m_play && m_followplay)
     {
-        auto mode = (m_play == MPLAY_TRACK) ? MPLAY_TRACK : MPLAY_FROM;	//play track in loop, else, play from cursor position
+        auto mode = (m_play == PLAY_TRACK) ? PLAY_TRACK : PLAY_FROM;	//play track in loop, else, play from cursor position
         Stop();
         m_songplayline = m_songactiveline;
         m_trackplayline = m_trackactiveline = 0;
@@ -1405,7 +1405,7 @@ BOOL CSong::SongSubsongNext()
     }
     if (m_play && m_followplay)
     {
-        auto mode = (m_play == MPLAY_TRACK) ? MPLAY_TRACK : MPLAY_FROM;	//play track in loop, else, play from cursor position
+        auto mode = (m_play == PLAY_TRACK) ? PLAY_TRACK : PLAY_FROM;	//play track in loop, else, play from cursor position
         Stop();
         m_songplayline = m_songactiveline;
         m_trackplayline = m_trackactiveline = 0;
@@ -3124,11 +3124,11 @@ BOOL CSong::Play(PlayMode mode, BOOL follow, int special)
 {
     g_Undo.Separator();
 
-    if (mode == MPLAY_BOOKMARK && !IsBookmark()) return 0; //if there is no bookmark, then nothing.
+    if (mode == PLAY_BOOKMARK && !IsBookmark()) return 0; //if there is no bookmark, then nothing.
 
     if (m_play)
     {
-        if (mode != MPLAY_FROM) Stop(); //already playing and wants something other than play from edited pos.
+        if (mode != PLAY_FROM) Stop(); //already playing and wants something other than play from edited pos.
         else if (!m_followplay) Stop(); //is playing and wants to play from edited pos. but not followplay
     }
 
@@ -3136,31 +3136,31 @@ BOOL CSong::Play(PlayMode mode, BOOL follow, int special)
 
     switch (mode)
     {
-    case MPLAY_SONG: //whole song from the beginning including initialization (due to portamentum etc.)
+    case PLAY_SONG: //whole song from the beginning including initialization (due to portamentum etc.)
         CAtari::InitRMTRoutine();
         m_songplayline = 0;
         m_trackplayline = 0;
         m_speed = m_mainSpeed;
         break;
-    case MPLAY_FROM: //song from the current position
+    case PLAY_FROM: //song from the current position
         if (m_play && m_followplay) //is playing with follow play
         {
-            m_play = MPLAY_FROM;
+            m_play = PLAY_FROM;
             m_followplay = follow;
             return 1;
         }
         m_songplayline = m_songactiveline;
         m_trackplayline = m_trackactiveline;
         break;
-    case MPLAY_TRACK: //just the current tracks around
+    case PLAY_TRACK: //just the current tracks around
     Play3:
         m_songplayline = m_songactiveline;
         m_trackplayline = (special == 0) ? 0 : m_trackactiveline;
         break;
-    case MPLAY_BLOCK: //only in the block
+    case PLAY_BLOCK: //only in the block
         if (!g_TrackClipboard.IsBlockSelected())
         {	//no block is selected, so the track plays
-            mode = MPLAY_TRACK;
+            mode = PLAY_TRACK;
             goto Play3;
         }
         else
@@ -3172,26 +3172,26 @@ BOOL CSong::Play(PlayMode mode, BOOL follow, int special)
             m_trackplayblockend = bto;
         }
         break;
-    case MPLAY_BOOKMARK: //from the bookmark
+    case PLAY_BOOKMARK: //from the bookmark
         m_songplayline = m_bookmark.songline;
         m_trackplayline = m_bookmark.trackline;
         //m_speed = m_bookmark.speed; //comment out so bookmark keep the same speed in memory, won't force it to reset it each time
         break;
 
-    case MPLAY_SEEK_NEXT: //from seeking next
+    case PLAY_SEEK_NEXT: //from seeking next
         m_songactiveline++;
         if (m_songactiveline > 255) m_songactiveline = 255;
         m_songplayline = m_songactiveline;
         m_trackplayline = m_trackactiveline = 0;
-        if (mode == MPLAY_SEEK_NEXT) mode = MPLAY_FROM;
+        if (mode == PLAY_SEEK_NEXT) mode = PLAY_FROM;
         break;
 
-    case MPLAY_SEEK_PREV: //from seeking prev
+    case PLAY_SEEK_PREV: //from seeking prev
         m_songactiveline--;
         if (m_songactiveline < 0) m_songactiveline = 0;
         m_songplayline = m_songactiveline;
         m_trackplayline = m_trackactiveline = 0;
-        if (mode == MPLAY_SEEK_PREV) mode = MPLAY_FROM;
+        if (mode == PLAY_SEEK_PREV) mode = PLAY_FROM;
         break;
 
     }
@@ -3228,9 +3228,9 @@ BOOL CSong::Play(PlayMode mode, BOOL follow, int special)
 
 void CSong::Stop()
 {
-    if (GetPlayMode() != MPLAY_STOP)
+    if (GetPlayMode() != PLAY_STOP)
     {
-        SetPlayMode(MPLAY_STOP);
+        SetPlayMode(PLAY_STOP);
         g_Undo.Separator();
         m_quantization_note = m_quantization_instr = m_quantization_vol = -1;
         SetPlayPressedTonesSilence();
@@ -3243,7 +3243,7 @@ BOOL CSong::SongPlayNextLine()
     m_trackplayline = 0;	//first track pattern line 
 
     // Normal play, play from current position, or play from bookmark => shift to the next line  
-    if (m_play == MPLAY_SONG || m_play == MPLAY_FROM || m_play == MPLAY_BOOKMARK)
+    if (m_play == PLAY_SONG || m_play == PLAY_FROM || m_play == PLAY_BOOKMARK)
     {
         m_songplayline++;		// Increment the song line by 1
         if (m_songplayline > 255)
@@ -3257,7 +3257,7 @@ BOOL CSong::SongPlayNextLine()
     if (m_pokeyStream && m_pokeyStream->TrackSongLine(m_songplayline) == true)
     {
         // Song is done, so stop the play back
-        m_play = MPLAY_STOP;					// Stop the player
+        m_play = PLAY_STOP;					// Stop the player
     }
     return 1;
 }
@@ -3292,7 +3292,7 @@ TrackLine:
             else
             {
                 //if it is the end of the track, but it is a block play or the first PlayBeat call (when m_play = 0)
-                if (m_play == MPLAY_BLOCK || m_play == MPLAY_STOP) { note[t] = -1; instr[t] = -1; vol[t] = -1; continue; }
+                if (m_play == PLAY_BLOCK || m_play == PLAY_STOP) { note[t] = -1; instr[t] = -1; vol[t] = -1; continue; }
                 //otherwise a normal predecision to the next line in the song
                 SongPlayNextLine();
                 goto TrackLine;
@@ -3330,12 +3330,12 @@ TrackLine:
         }
     }
 
-    if (m_play == MPLAY_BLOCK)
+    if (m_play == PLAY_BLOCK)
     {
         if (m_pokeyStream && m_pokeyStream->CallFromPlayBeat(m_trackplayline) == true)
         {
             // Song is done, so stop the play back
-            m_play = MPLAY_STOP;					// Stop the player
+            m_play = PLAY_STOP;					// Stop the player
         }
     }
 
@@ -3352,7 +3352,7 @@ BOOL CSong::PlayVBI()
     m_trackplayline++;
 
     //m_play mode 4 => only plays range in block
-    if (m_play == MPLAY_BLOCK && m_trackplayline > m_trackplayblockend) m_trackplayline = m_trackplayblockstart;
+    if (m_play == PLAY_BLOCK && m_trackplayline > m_trackplayblockend) m_trackplayline = m_trackplayblockstart;
 
     // If none of the tracks end with "end", then it will end when reaching m_maxtracklen
     if (m_trackplayline >= g_Tracks.GetMaxTrackLength())

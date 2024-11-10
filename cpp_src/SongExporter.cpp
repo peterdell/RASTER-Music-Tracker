@@ -399,7 +399,7 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
 
         // LZSS buffers for each ones of the tune parts being reconstructed
         CPokeyStream pokeyStream;
-        songExport.GetSong().DumpSongToPokeyStream(pokeyStream, MPLAY_FROM, subtune[count], 0);
+        songExport.GetSong().DumpSongToPokeyStream(pokeyStream, PLAY_FROM, subtune[count], 0);
 
         //SetStatusBarText("Compressing data ...");
 
