@@ -165,7 +165,7 @@ extern CString g_defaultSongsPath;		//default path for songs
 extern CString g_defaultInstrumentsPath;	//default path for instruments
 extern CString g_defaultTracksPath;		//default path for tracks
 
-extern int g_keyboard_layout;			//Keyboard layout is used by RMT. eg: QWERTY, AZERTY, etc
+extern KeyboardLayout g_keyboard_layout;			//Keyboard layout is used by RMT. eg: QWERTY, AZERTY, etc
 extern BOOL g_keyboard_swapenter;		//1 yes, 0 no, probably not needed anymore but will be kept for now
 extern BOOL g_keyboard_playautofollow;	//1 yes, 0 no
 extern BOOL g_keyboard_updowncontinue;	//1 yes, 0 no

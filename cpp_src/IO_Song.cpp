@@ -867,7 +867,7 @@ void CSong::FileTrackLoad()
 	&g_displayflatnotes,										\
 	&g_usegermannotation,										\
 	&g_cursoractview,											\
-	&g_keyboard_layout,											\
+	(int*)&g_keyboard_layout,											\
 	&g_keyboard_escresetatarisound,								\
 	&g_keyboard_swapenter,										\
 	&g_keyboard_playautofollow,									\

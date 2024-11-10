@@ -459,7 +459,7 @@ void CRmtView::ReadRMTConfig()
         if (NAME("TRACKERDRIVERVERSION")) { g_trackerDriverVersion = (TrackerDriverVersion)atoi(value); continue; }
 
         // KEYBOARD
-        if (NAME("KEYBOARD_LAYOUT")) { g_keyboard_layout = atoi(value); continue; }
+        if (NAME("KEYBOARD_LAYOUT")) { g_keyboard_layout = (KeyboardLayout)atoi(value); continue; }
         if (NAME("KEYBOARD_UPDOWNCONTINUE")) { g_keyboard_updowncontinue = atoi(value); continue; }
         if (NAME("KEYBOARD_REMEMBEROCTAVESANDVOLUMES")) { g_keyboard_RememberOctavesAndVolumes = atoi(value); continue; }
         if (NAME("KEYBOARD_ESCRESETATARISOUND")) { g_keyboard_escresetatarisound = atoi(value); continue; }
@@ -522,7 +522,7 @@ void CRmtView::WriteRMTConfig()
     ou << "TRACKERDRIVERVERSION = " << g_trackerDriverVersion << std::endl;
 
     ou << "\n# KEYBOARD\n" << std::endl;
-    ou << "KEYBOARD_LAYOUT = " << g_keyboard_layout << std::endl;
+    ou << "KEYBOARD_LAYOUT = " << (int)g_keyboard_layout << std::endl;
     ou << "KEYBOARD_UPDOWNCONTINUE = " << g_keyboard_updowncontinue << std::endl;
     ou << "KEYBOARD_REMEMBEROCTAVESANDVOLUMES = " << g_keyboard_RememberOctavesAndVolumes << std::endl;
     ou << "KEYBOARD_ESCRESETATARISOUND = " << g_keyboard_escresetatarisound << std::endl;
@@ -582,7 +582,9 @@ void CRmtView::ResetRMTConfig()
     g_defaultSongsPath = "";					// Default path for songs
     g_defaultInstrumentsPath = "";				// Default path for instruments
     g_defaultTracksPath = "";					// Default path for tracks
-    g_keyboard_layout = KEYBOARD_QWERTY;		// Keyboard layout used by RMT. eg: QWERTY, AZERTY, etc 
+
+    // TODO: Why is the default here different from Global.cpp
+    g_keyboard_layout = KeyboardLayout::QWERTY; // Keyboard layout used by RMT. eg: QWERTY, AZERTY, etc 
     g_keyboard_updowncontinue = 1;				// Scroll to the next/previous Songline when the Pattern limits are crossed 
     g_keyboard_RememberOctavesAndVolumes = 1;	// Remember the last octave and volume values used with an Instrument 
     g_keyboard_escresetatarisound = 1;			// Reset the RMT Atari routines if the ESC key is pressed 

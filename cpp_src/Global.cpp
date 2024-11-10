@@ -163,7 +163,7 @@ CString g_defaultSongsPath;				// Default path for songs
 CString g_defaultInstrumentsPath;		// Default path for instruments
 CString g_defaultTracksPath;			// Default path for tracks
 
-int g_keyboard_layout = 1;	//Keyboard layout is used by RMT. eg: QWERTY, AZERTY, etc
+KeyboardLayout g_keyboard_layout = KeyboardLayout::AZERTY;	// Keyboard layout is used by RMT. eg: QWERTY, AZERTY, etc
 BOOL g_keyboard_swapenter = 0;	//1 yes, 0 no, probably not needed anymore but will be kept for now
 BOOL g_keyboard_playautofollow = 1;	//1 yes, 0 no
 BOOL g_keyboard_updowncontinue = 1;	//1 yes, 0 no

@@ -102,7 +102,7 @@ BOOL CConfigDlg::OnInitDialog()
 
 	m_keyboard_c_layout.AddString("QWERTY Layout");
 	m_keyboard_c_layout.AddString("AZERTY Layout");
-	m_keyboard_c_layout.SetCurSel(m_keyboard_layout);
+	m_keyboard_c_layout.SetCurSel((int)m_keyboard_layout);
 
 	m_trackerDriver_c_Version.AddString("No RMT Driver");
 	m_trackerDriver_c_Version.AddString("RMT 1.28 Unpatched by Raster");
@@ -125,7 +125,7 @@ BOOL CConfigDlg::OnInitDialog()
 void CConfigDlg::OnOK() 
 {
 	m_midi_device = m_midi_c_device.GetCurSel()-1;
-	m_keyboard_layout = m_keyboard_c_layout.GetCurSel();
+	m_keyboard_layout = (KeyboardLayout)m_keyboard_c_layout.GetCurSel();
 	m_trackerDriverVersion = (TrackerDriverVersion)m_trackerDriver_c_Version.GetCurSel();
 	CDialog::OnOK();
 }

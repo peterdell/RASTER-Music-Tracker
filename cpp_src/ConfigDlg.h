@@ -52,8 +52,8 @@ public:
 	BOOL	m_viewDebugDisplay;
 	//}}AFX_DATA
 
-	int		m_midi_device;
-	int		m_keyboard_layout;
+	int		        m_midi_device;
+	KeyboardLayout	m_keyboard_layout;
 
 // Overrides
 	// ClassWizard generated virtual function overrides

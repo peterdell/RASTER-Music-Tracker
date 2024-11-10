@@ -53,8 +53,10 @@
 
 // ----------------------------------------------------------------------------
 // Keyboard layouts that may be used with RMT for Notes input
-#define KEYBOARD_QWERTY	0
-#define KEYBOARD_AZERTY	1
+enum class KeyboardLayout : int {
+    QWERTY = 0,
+    AZERTY = 1
+};
 
 // ----------------------------------------------------------------------------
 // TODO: add more keys definition to simplify things
