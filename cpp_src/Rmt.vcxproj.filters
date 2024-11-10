@@ -207,6 +207,9 @@
     <ClCompile Include="LZSSFile.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\LZSS</Filter>
     </ClCompile>
+    <ClCompile Include="SongExporterTest.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
@@ -343,6 +346,9 @@
     </ClInclude>
     <ClInclude Include="lzss_sap.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\LZSS</Filter>
+    </ClInclude>
+    <ClInclude Include="SongExporterTest.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

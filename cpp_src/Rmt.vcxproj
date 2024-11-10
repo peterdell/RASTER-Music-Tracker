@@ -404,6 +404,7 @@
     <ClCompile Include="IO_Instruments.cpp" />
     <ClCompile Include="IO_Song.cpp" />
     <ClCompile Include="IO_Song_ExportAsm.cpp" />
+    <ClCompile Include="SongExporterTest.cpp" />
     <ClCompile Include="Song_DumpSong.cpp" />
     <ClCompile Include="IO_Tracks.cpp" />
     <ClCompile Include="Keyboard2NoteMapping.cpp" />
@@ -574,6 +575,7 @@
     <ClInclude Include="PokeyStream.h" />
     <ClInclude Include="Song.h" />
     <ClInclude Include="SongExporter.h" />
+    <ClInclude Include="SongExporterTest.h" />
     <ClInclude Include="Tracks.h" />
     <ClInclude Include="Tuning.h" />
     <ClInclude Include="importdlgs.h" />
