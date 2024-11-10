@@ -25,13 +25,15 @@ public:
         char atariText[ATARI_TEXT_SIZE];
     };
 
+    CSongExporter();
+
     /// <summary>
     /// Generate a SAP-R data stream and compress it with LZSS
     /// </summary>
     /// <param name="ou">File to output the compressed data to</param>
     /// <param name="filename">Filename to output additional files, required for splitting the Intro and Loop sections of a song</param>
     /// <returns></returns>
-    static bool ExportLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename);
+    bool ExportLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename);
 
 
     /// <summary>
@@ -42,32 +44,33 @@ public:
     /// <param name="ou">File to output the compressed data to</param>
     /// <param name="filename">Filename to use for saving the data output</param>
     /// <returns></returns>
-    static bool ExportCompactLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename); // TODO: What is this? Currently unsued?
+    bool ExportCompactLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename); // TODO: What is this? Currently unsued?
 
     /// <summary>
     /// Export the Pokey registers to the SAP Type R format (data stream)
     /// </summary>
     /// <param name="ou">Output stream</param>
     /// <returns>true if the file was written</returns>
-    static bool ExportSAP_R(CSong& song, std::ofstream& ou);
+    bool ExportSAP_R(CSong& song, std::ofstream& ou);
 
     /// <summary>
     /// Export the Pokey registers to a SAP TYPE B format
     /// </summary>
     /// <param name="ou">Output stream</param>
     /// <returns>true if the file was written</returns>
-    static bool ExportSAP_B_LZSS(CSong& song, std::ofstream& ou);
+    bool ExportSAP_B_LZSS(CSong& song, std::ofstream& ou);
 
-    static bool ExportWAV(CSong& song, std::ofstream& ou, LPCTSTR filename, CXPokey& pokey, byte* memory);
+    // Pokey and memory are modified
+    bool ExportWAV(CSong& song, std::ofstream& ou, LPCTSTR filename, CXPokey& pokey, byte* memory);
 
     /// <summary>
     /// Generate a SAP-R data stream, compress it and export to VUPlayer xex
     /// </summary>
     /// <param name="ou">File to output the compressed data to</param>
     /// <returns></returns>
-    static bool ExportXEX_LZSS(CSong& song, std::ofstream& ou);
+    bool ExportXEX_LZSS(CSong& song, std::ofstream& ou);
 
-    // TODO: Private
+
 
 private:
     static void StrToAtariVideo(char* txt, int count);

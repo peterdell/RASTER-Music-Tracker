@@ -24,6 +24,10 @@
 // TODO: Find a better place and name
 CString g_rmtmsxtext;
 
+CSongExporter::CSongExporter() {
+
+}
+
 void CSongExporter::StrToAtariVideo(char* txt, int count)
 {
     char a;
@@ -88,6 +92,8 @@ int CSongExporter::BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigne
 
 bool CSongExporter::ExportLZSS(CSong& song, std::ofstream& ou, LPCTSTR filename)
 {
+    SetStatusBarText("Generating data ...");
+
     CPokeyStream pokeyStream;
     song.DumpSongToPokeyStream(pokeyStream);
 
@@ -291,7 +297,7 @@ bool CSongExporter::ExportWAV(CSong& song, std::ofstream& ou, LPCTSTR filename, 
 
     BYTE* buffer = NULL;
     BYTE* streambuffer = NULL;
-    WAVEFORMATEX* wfm = NULL;
+    const WAVEFORMATEX* wfm = NULL;
     int length = 0, frames = 0, offset = 0;
     const int frameSize = CLZSSFile::GetFrameSize(song);
 
