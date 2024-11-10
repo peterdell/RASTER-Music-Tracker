@@ -1532,7 +1532,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
 
     if (!control && !shift && NumbKey(vk) >= 0)
     {
-        if (ai->activeEditSection == INSTRUMENT_SECTION_PARAMETERS) //parameters
+        if (ai->activeEditSection == InstrumentSection::PARAMETERS) //parameters
         {
             int pmax = shpar[ai->editParameterNr].maxParameterValue;
             int pfrom = shpar[ai->editParameterNr].displayOffset;
@@ -1555,7 +1555,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             ap = i;
             goto ChangeInstrumentPar;
         }
-        else if (ai->activeEditSection == INSTRUMENT_SECTION_ENVELOPE) //envelope
+        else if (ai->activeEditSection == InstrumentSection::ENVELOPE) //envelope
         {
             int eand = shenv[ai->editEnvelopeY].pand;
             int num = NumbKey(vk);
@@ -1569,7 +1569,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             ai->editEnvelopeX = i;
             goto ChangeInstrumentEnv;
         }
-        else if (ai->activeEditSection == INSTRUMENT_SECTION_NOTETABLE) //table
+        else if (ai->activeEditSection == InstrumentSection::NOTETABLE) //table
         {
             int num = NumbKey(vk);
             i = ((at << 4) | num) & 0xff;
@@ -1584,25 +1584,25 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
     {
     case VK_TAB:
         if (control) break;	//do nothing
-        if (ai->activeEditSection == INSTRUMENT_SECTION_NAME) {
+        if (ai->activeEditSection == InstrumentSection::NAME) {
             break;	//is editing text
         }
         if (shift)
         {
-            ai->activeEditSection = INSTRUMENT_SECTION_NAME;	//Shift+TAB => Name
+            ai->activeEditSection = InstrumentSection::NAME;	//Shift+TAB => Name
             g_isEditingInstrumentName = 1;
         }
         else
         {
             switch (ai->activeEditSection) {  //TAB 1,2,3
-            case INSTRUMENT_SECTION_PARAMETERS:
-                ai->activeEditSection = INSTRUMENT_SECTION_ENVELOPE;
+            case InstrumentSection::PARAMETERS:
+                ai->activeEditSection = InstrumentSection::ENVELOPE;
                 break;
-            case INSTRUMENT_SECTION_ENVELOPE:
-                ai->activeEditSection = INSTRUMENT_SECTION_NOTETABLE;
+            case InstrumentSection::ENVELOPE:
+                ai->activeEditSection = InstrumentSection::NOTETABLE;
                 break;
-            case INSTRUMENT_SECTION_NOTETABLE:
-                ai->activeEditSection = INSTRUMENT_SECTION_PARAMETERS;
+            case InstrumentSection::NOTETABLE:
+                ai->activeEditSection = InstrumentSection::PARAMETERS;
                 break;
             }
 
@@ -1632,7 +1632,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
         if (CAPSLOCK && shift) break;
 
         if (shift && !control) return 0;	//the combination Shift + Control + UP / DOWN is enabled for edit ENVELOPE and TABLE
-        if (shift && control && ai->activeEditSection == INSTRUMENT_SECTION_PARAMETERS) return 0;	//except for edit PARAM, is not allowed there
+        if (shift && control && ai->activeEditSection == InstrumentSection::PARAMETERS) return 0;	//except for edit PARAM, is not allowed there
         break;
 
     case VK_MULTIPLY:
@@ -1654,9 +1654,9 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
         {
             g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
             BOOL br = 0, bl = 0;
-            if (ai->activeEditSection == INSTRUMENT_SECTION_ENVELOPE && ai->editEnvelopeY == ENV_VOLUMER) br = 1;
+            if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == ENV_VOLUMER) br = 1;
             else
-                if (ai->activeEditSection == INSTRUMENT_SECTION_ENVELOPE && ai->editEnvelopeY == ENV_VOLUMEL) bl = 1;
+                if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == ENV_VOLUMEL) bl = 1;
                 else
                     br = bl = 1;
             for (int i = 0; i <= ai->parameters[PAR_ENV_LENGTH]; i++)
@@ -1676,9 +1676,9 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
         {
             g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
             BOOL br = 0, bl = 0;
-            if (ai->activeEditSection == INSTRUMENT_SECTION_ENVELOPE && ai->editEnvelopeY == ENV_VOLUMER) br = 1;
+            if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == ENV_VOLUMER) br = 1;
             else
-                if (ai->activeEditSection == INSTRUMENT_SECTION_ENVELOPE && ai->editEnvelopeY == ENV_VOLUMEL) bl = 1;
+                if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == ENV_VOLUMEL) bl = 1;
                 else
                     br = bl = 1;
             for (int i = 0; i <= ai->parameters[PAR_ENV_LENGTH]; i++)
@@ -1695,7 +1695,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
     }
 
     //and now only for special parts
-    if (ai->activeEditSection == INSTRUMENT_SECTION_NAME)
+    if (ai->activeEditSection == InstrumentSection::NAME)
     {
         g_isEditingInstrumentName = 1;
         //NAME
@@ -1704,12 +1704,12 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
         }
         if (EditText(vk, shift, control, ai->name, ai->editNameCursorPos, INSTRUMENT_NAME_MAX_LEN)) {
-            ai->activeEditSection = INSTRUMENT_SECTION_PARAMETERS;
+            ai->activeEditSection = InstrumentSection::PARAMETERS;
         }
 
         return 1;
     }
-    else if (ai->activeEditSection == INSTRUMENT_SECTION_PARAMETERS)
+    else if (ai->activeEditSection == InstrumentSection::PARAMETERS)
     {
         // Parameter section is active
 
@@ -1783,7 +1783,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             return 1;
         }
     }
-    else if (ai->activeEditSection == INSTRUMENT_SECTION_ENVELOPE)
+    else if (ai->activeEditSection == InstrumentSection::ENVELOPE)
     {
         g_isEditingInstrumentName = 0;
         //ENVELOPE
@@ -1972,7 +1972,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             return 1;
         }
     }
-    if (ai->activeEditSection == INSTRUMENT_SECTION_NOTETABLE)
+    if (ai->activeEditSection == InstrumentSection::NOTETABLE)
     {
         g_isEditingInstrumentName = 0;
         //TABLE

@@ -2025,7 +2025,7 @@ void CRmtView::OnUpdateInstrumentPastespecialInsertvolenvsandenvparstocurpos(CCm
     //to cur pos
     int i = g_Song.GetActiveInstr();
     TInstrument* ai = g_Instruments.GetInstrument(i);
-    pCmdUI->Enable(g_activepart == PART_INSTRUMENTS && (ai->activeEditSection == 2)); //when the envelope is being edited
+    pCmdUI->Enable(g_activepart == PART_INSTRUMENTS && (ai->activeEditSection == InstrumentSection::ENVELOPE)); //when the envelope is being edited
 }
 
 void CRmtView::OnUpdateInstrumentPastespecialVolumelenvelopeonly(CCmdUI* pCmdUI)

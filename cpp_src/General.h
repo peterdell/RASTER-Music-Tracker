@@ -104,13 +104,13 @@
 #define PART_SONG			3
 
 // Which section of an instrument's data is currently being editied (is active)
-enum InstrumentSection : int
+enum class InstrumentSection : int
 {
-    INSTRUMENT_SECTION_NONE = -1,
-    INSTRUMENT_SECTION_NAME = 0,
-    INSTRUMENT_SECTION_PARAMETERS = 1,
-    INSTRUMENT_SECTION_ENVELOPE = 2,
-    INSTRUMENT_SECTION_NOTETABLE = 3
+    NONE = -1,
+    NAME = 0,
+    PARAMETERS = 1,
+    ENVELOPE = 2,
+    NOTETABLE = 3
 };
 
 // ----------------------------------------------------------------------------

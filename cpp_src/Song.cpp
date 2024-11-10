@@ -202,7 +202,7 @@ void CSong::ClearSong(int numOfTracks)
 
     // Empty clipboards
     g_TrackClipboard.Clear();
-    m_instrclipboard.activeEditSection = InstrumentSection::INSTRUMENT_SECTION_NONE;	// According to -1 it knows that it is empty
+    m_instrclipboard.activeEditSection = InstrumentSection::NONE;	// According to -1 it knows that it is empty
     m_songgoclipboard = -2;						// According to -2 it knows that it is empty
 
     // Delete all tracks and instruments
@@ -1191,7 +1191,7 @@ int* CSong::GetUECursor(int part)
         cursor = new int[6];
         cursor[0] = m_activeinstr;
         TInstrument* in = g_Instruments.GetInstrument(m_activeinstr);
-        cursor[1] = in->activeEditSection;
+        cursor[1] = (int)in->activeEditSection;
         cursor[2] = in->editEnvelopeX;
         cursor[3] = in->editEnvelopeY;
         cursor[4] = in->editParameterNr;
@@ -1904,7 +1904,9 @@ void CSong::InstrCopy()
 
 void CSong::InstrPaste(int special)
 {
-    if (m_instrclipboard.activeEditSection < 0) return;	//he has never been filled with anything
+    if (m_instrclipboard.activeEditSection == InstrumentSection::NONE) {
+        return;	// it has never been filled with anything
+    }
 
     int i = GetActiveInstr();
 
@@ -1922,7 +1924,7 @@ void CSong::InstrPaste(int special)
     {
     case 0: //normal paste
         memcpy(ai, &m_instrclipboard, sizeof(TInstrument));
-        ai->activeEditSection = InstrumentSection::INSTRUMENT_SECTION_NAME;
+        ai->activeEditSection = InstrumentSection::NAME;
         ai->editNameCursorPos = 0; //so that the cursor is at the beginning of the instrument name
         break;
 

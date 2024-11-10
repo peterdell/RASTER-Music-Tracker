@@ -107,7 +107,7 @@ void CInstruments::ClearInstrument(int instrNr)
 	memset(instrument->name + len, ' ', INSTRUMENT_NAME_MAX_LEN - len);
 
 	// Set some initial values
-	instrument->activeEditSection = INSTRUMENT_SECTION_ENVELOPE;	// Activate on the Envelope, so testing instruments wouldn't cause accidental rename
+	instrument->activeEditSection = InstrumentSection::ENVELOPE;	// Activate on the Envelope, so testing instruments wouldn't cause accidental rename
 	instrument->editNameCursorPos = 0;								// 0 character name
 	instrument->editParameterNr = PAR_ENV_LENGTH;					// Envelope length is the default parameter to edit
 	instrument->editEnvelopeX = 0;
