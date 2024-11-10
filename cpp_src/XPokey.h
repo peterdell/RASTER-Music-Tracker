@@ -38,7 +38,7 @@ public:
 	void RenderSoundV2(int instrspeed, BYTE* buffer, int& length);
 	void MemToPokey();
 	bool IsSoundDriverLoaded() { return m_soundDriverId; }
-	WAVEFORMATEX* GetSoundFormat() { return &m_SoundFormat; };
+	const WAVEFORMATEX* GetSoundFormat() const  { return &m_SoundFormat; };
 
 private:
 	int volatile		m_soundDriverId;
