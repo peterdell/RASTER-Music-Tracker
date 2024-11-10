@@ -202,7 +202,7 @@ void CSong::ClearSong(int numOfTracks)
 
     // Empty clipboards
     g_TrackClipboard.Clear();
-    m_instrclipboard.activeEditSection = -1;	// According to -1 it knows that it is empty
+    m_instrclipboard.activeEditSection = InstrumentSection::INSTRUMENT_SECTION_NONE;	// According to -1 it knows that it is empty
     m_songgoclipboard = -2;						// According to -2 it knows that it is empty
 
     // Delete all tracks and instruments
@@ -1922,7 +1922,8 @@ void CSong::InstrPaste(int special)
     {
     case 0: //normal paste
         memcpy(ai, &m_instrclipboard, sizeof(TInstrument));
-        ai->activeEditSection = ai->editNameCursorPos = 0; //so that the cursor is at the beginning of the instrument name
+        ai->activeEditSection = InstrumentSection::INSTRUMENT_SECTION_NAME;
+        ai->editNameCursorPos = 0; //so that the cursor is at the beginning of the instrument name
         break;
 
     case 1: //volume L/R

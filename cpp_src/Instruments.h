@@ -48,7 +48,7 @@ struct TInstrInfo
 
 typedef struct TInstrument
 {
-	int activeEditSection;					// Which section (name, parameters, envelope, note table) is being edited
+	InstrumentSection activeEditSection;					// Which section (name, parameters, envelope, note table) is being edited
 
 	// Name section
 	char name[INSTRUMENT_NAME_MAX_LEN + 1];	// Instrument name

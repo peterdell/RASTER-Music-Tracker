@@ -104,11 +104,14 @@
 #define PART_SONG			3
 
 // Which section of an instrument's data is currently being editied (is active)
-#define INSTRUMENT_SECTION_NAME			0
-#define INSTRUMENT_SECTION_PARAMETERS	1
-#define INSTRUMENT_SECTION_ENVELOPE		2
-#define INSTRUMENT_SECTION_NOTETABLE	3
-
+enum InstrumentSection : int
+{
+    INSTRUMENT_SECTION_NONE = -1,
+    INSTRUMENT_SECTION_NAME = 0,
+    INSTRUMENT_SECTION_PARAMETERS = 1,
+    INSTRUMENT_SECTION_ENVELOPE = 2,
+    INSTRUMENT_SECTION_NOTETABLE = 3
+};
 
 // ----------------------------------------------------------------------------
 // RMT file format
