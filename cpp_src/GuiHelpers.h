@@ -1,6 +1,7 @@
 #pragma once
 
 #include "General.h"
+class CStatusBar;
 
 // Helper defines to make the code a bit more readabl
 #define SCALE(x) ((x) * g_scaling_percentage) / 100
@@ -17,6 +18,7 @@ public:
     void Begin();
 };
 
+extern CStatusBar* g_statusBar;
 extern void SetStatusBarText(const char* text);
 extern void ClearStatusBar();
 extern void SendErrorMessage(const char* title, const char* message);

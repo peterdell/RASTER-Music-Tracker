@@ -7,10 +7,17 @@
 
 #include "Global.h"
 
+CStatusBar* g_statusBar = nullptr;
+
 void SetStatusBarText(const char* text)
 {
-    CStatusBar& sb = ((CMainFrame*)AfxGetApp()->GetMainWnd())->m_wndStatusBar;
-    sb.SetWindowText(text);
+    if (g_statusBar == nullptr) {
+        OutputDebugString(text);
+        OutputDebugString("\n");
+    }
+    else {
+        g_statusBar->SetWindowText(text);
+    }
 }
 
 void ClearStatusBar() {

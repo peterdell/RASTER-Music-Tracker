@@ -9,6 +9,8 @@
 #include "RmtDoc.h"
 #include "RmtView.h"
 #include "Song.h"
+#include "SongExporterTest.h"
+#include "GuiHelpers.h" // For g_statusBar
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -43,8 +45,7 @@ END_MESSAGE_MAP()
 
 CRmtApp::CRmtApp()
 {
-    // TODO: add construction code here,
-    // Place all significant initialization in InitInstance
+    // Place all significant initialization in InitInstance.
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -59,8 +60,8 @@ BOOL CRmtApp::InitInstance()
 {
     // Standard initialization
     // If you are not using these features and wish to reduce the size
-    //  of your final executable, you should remove from the following
-    //  the specific initialization routines you do not need.
+    // of your final executable, you should remove from the following
+    // the specific initialization routines you do not need.
 
 #ifdef _AFXDLL
 //	Enable3dControls();			// Call this when using MFC in a shared DLL
@@ -68,9 +69,8 @@ BOOL CRmtApp::InitInstance()
     Enable3dControlsStatic();	// Call this when linking to MFC statically
 #endif
 
-    // Change the registry key under which our settings are stored.
-    // TODO: You should modify this string to be something appropriate
-    // such as the name of your company or organization.
+    // Set the registry key under which our settings are stored.
+    // TODO: Are we storing something there really?
     SetRegistryKey(_T("RASTER Music Tracker"));
 
     LoadStdProfileSettings();  // Load standard INI file options (including MRU)
@@ -89,15 +89,23 @@ BOOL CRmtApp::InitInstance()
 
     g_Song.ClearSong(8);
 
+    // TODO Control via command line
+    CSongExporterTest::Test();
+    return FALSE;
+
     // Parse command line for standard shell commands, DDE, file open
     CCommandLineInfo cmdInfo;
     ParseCommandLine(cmdInfo);
 
     // Dispatch commands specified on the command line
     if (!ProcessShellCommand(cmdInfo))
+    {
         return FALSE;
+    }
 
     // The one and only window has been initialized, so show and update it.
+    CMainFrame* mainFrame = (CMainFrame*)GetMainWnd();
+    g_statusBar = &mainFrame->m_wndStatusBar;
     m_pMainWnd->ShowWindow(SW_SHOW);
     m_pMainWnd->UpdateWindow();
 
