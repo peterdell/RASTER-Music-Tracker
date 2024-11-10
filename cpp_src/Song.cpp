@@ -1301,16 +1301,18 @@ BOOL CSong::SongUp()
     if (m_play && m_followplay)
     {
         // Play track in loop, else, play from cursor position
-        int mode = (m_play == MPLAY_TRACK) ? MPLAY_TRACK : MPLAY_FROM;
+        auto mode = (m_play == MPLAY_TRACK) ? MPLAY_TRACK : MPLAY_FROM;
         Stop();
 
         // This is a Gotoline, skip another line above it
-        if (IsSongGo(m_songactiveline))
+        if (IsSongGo(m_songactiveline)){
             m_songactiveline--;
+        }
 
         // If the line is no longer valid, force it to the last line instead
-        if (!IsValidSongline(m_songactiveline))
+        if (!IsValidSongline(m_songactiveline)){
             m_songactiveline = SONGLEN - 1;
+        }
 
         m_songplayline = m_songactiveline;
         m_trackplayline = m_trackactiveline = 0;
@@ -1334,16 +1336,18 @@ BOOL CSong::SongDown()
     if (m_play && m_followplay)
     {
         // Play track in loop, else, play from cursor position
-        int mode = (m_play == MPLAY_TRACK) ? MPLAY_TRACK : MPLAY_FROM;
+        auto mode = (m_play == MPLAY_TRACK) ? MPLAY_TRACK : MPLAY_FROM;
         Stop();
 
         // This is a Gotoline, skip another line below it
-        if (IsSongGo(m_songactiveline))
+        if (IsSongGo(m_songactiveline)){
             m_songactiveline++;
+        }
 
         // If the line is no longer valid, force it to the first line instead
-        if (!IsValidSongline(m_songactiveline))
+        if (!IsValidSongline(m_songactiveline)) {
             m_songactiveline = 0;
+        }
 
         m_songplayline = m_songactiveline;
         m_trackplayline = m_trackactiveline = 0;
@@ -1374,7 +1378,7 @@ BOOL CSong::SongSubsongPrev()
     m_trackactiveline = 0;
     if (m_play && m_followplay)
     {
-        int mode = (m_play == MPLAY_TRACK) ? MPLAY_TRACK : MPLAY_FROM;	//play track in loop, else, play from cursor position
+        auto mode = (m_play == MPLAY_TRACK) ? MPLAY_TRACK : MPLAY_FROM;	//play track in loop, else, play from cursor position
         Stop();
         m_songplayline = m_songactiveline;
         m_trackplayline = m_trackactiveline = 0;
@@ -1401,7 +1405,7 @@ BOOL CSong::SongSubsongNext()
     }
     if (m_play && m_followplay)
     {
-        int mode = (m_play == MPLAY_TRACK) ? MPLAY_TRACK : MPLAY_FROM;	//play track in loop, else, play from cursor position
+        auto mode = (m_play == MPLAY_TRACK) ? MPLAY_TRACK : MPLAY_FROM;	//play track in loop, else, play from cursor position
         Stop();
         m_songplayline = m_songactiveline;
         m_trackplayline = m_trackactiveline = 0;
@@ -3116,7 +3120,7 @@ BOOL CSong::SetBookmark()
     return 0;
 }
 
-BOOL CSong::Play(int mode, BOOL follow, int special)
+BOOL CSong::Play(PlayMode mode, BOOL follow, int special)
 {
     g_Undo.Separator();
 

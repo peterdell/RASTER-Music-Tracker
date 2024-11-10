@@ -17,7 +17,7 @@ extern long g_playtime;
 /// GUI is disabled but MFC messages are being pumped, so the screen is updated
 /// </summary>
 /// <returns></returns>
-void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, int playmode, int songline, int trackline)
+void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, int songline, int trackline)
 {
     CString statusBarLog;
 
@@ -33,7 +33,7 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, int playmode, int s
     // If no argument was passed, Play from start will be assumed
     m_songactiveline = songline;
     m_trackactiveline = trackline;
-    Play(playmode, m_followplay);
+    Play(playMode, m_followplay);
 
     // Wait in a tight loop pumping messages until the playback stops
     {

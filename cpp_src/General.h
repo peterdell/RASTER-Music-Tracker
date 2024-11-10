@@ -134,21 +134,24 @@
 #define MAXATASONGLEN	SONGTRACKS*SONGLEN	//maximum data size atari song part
 
 
+enum PlayMode : int {
 
-#define MPLAY_STOP	0
-#define MPLAY_SONG	1
-#define MPLAY_FROM	2
-#define MPLAY_TRACK	3
-#define MPLAY_BLOCK	4
-#define MPLAY_BOOKMARK 5
-#define MPLAY_SEEK_NEXT	6	//added for Media keys
-#define MPLAY_SEEK_PREV	7	//added for Media keys
+    MPLAY_STOP = 0,
+    MPLAY_SONG = 1,
+    MPLAY_FROM = 2,
+    MPLAY_TRACK = 3,
+    MPLAY_BLOCK = 4,
+    MPLAY_BOOKMARK = 5,
+    MPLAY_SEEK_NEXT = 6,	//added for Media keys
+    MPLAY_SEEK_PREV = 7,	//added for Media keys
 
-#define MPLAY_SAPR_SONG		255	// SAPR dump from song start
-#define MPLAY_SAPR_FROM		254	// SAPR dump from song cursor position
-#define MPLAY_SAPR_TRACK	253	// SAPR dump from track (loop optional)
-#define MPLAY_SAPR_BLOCK	252	// SAPR dump from selection block (loop optional)
-#define MPLAY_SAPR_BOOKMARK	251	// SAPR dump from bookmak position
+    MPLAY_SAPR_SONG = 255,	// SAPR dump from song start
+    MPLAY_SAPR_FROM = 254,	// SAPR dump from song cursor position
+    MPLAY_SAPR_TRACK = 253,	// SAPR dump from track (loop optional)
+    MPLAY_SAPR_BLOCK = 252,	// SAPR dump from selection block (loop optional)
+    MPLAY_SAPR_BOOKMARK = 251,	// SAPR dump from bookmak position
+
+};
 
 #define IOTYPE_NONE			0			// No export has been done yet
 #define IOTYPE_RMT			1

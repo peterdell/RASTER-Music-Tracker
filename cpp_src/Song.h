@@ -173,7 +173,7 @@ public:
     BOOL IsBookmark() { return (m_bookmark.speed > 0 && m_bookmark.trackline < g_Tracks.GetMaxTrackLength()); };
     BOOL SetBookmark();
 
-    BOOL Play(int mode, BOOL follow, int special = 0);
+    BOOL Play(PlayMode mode, BOOL follow, int special = 0);
     void Stop();
     BOOL SongPlayNextLine();
 
@@ -225,7 +225,7 @@ public:
     static bool ExportAsRMT(CSong& song, std::ofstream& ou, TExportDescription* exportDesc);
     static bool ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDescription* exportDesc, LPCTSTR filename);
 
-    void DumpSongToPokeyStream(CPokeyStream& pokeyStream, int playmode, int songline, int trackline);
+    void DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, int songline, int trackline);
 
 
     bool TestBeforeFileSave();
@@ -287,8 +287,8 @@ public:
     int(*GetSongGo())[SONGLEN] { return &m_songgo; };
     TBookmark* GetBookmark() { return &m_bookmark; };
 
-    int GetPlayMode() { return m_play; };
-    void SetPlayMode(int mode) { m_play = mode; };
+    PlayMode GetPlayMode() { return m_play; };
+    void SetPlayMode(PlayMode mode) { m_play = mode; };
     BOOL GetFollowPlayMode() { return m_followplay; };
     void SetFollowPlayMode(BOOL follow) { m_followplay = follow; };
 
@@ -306,7 +306,7 @@ private:
 
     CPokeyStream* volatile m_pokeyStream;       // NULL or the stream to which we are currently recording
     BOOL volatile m_followplay;
-    int volatile m_play;
+    PlayMode volatile m_play;
     int m_songactiveline;
     int volatile m_songplayline;				// Which line of the song is currently being played
 

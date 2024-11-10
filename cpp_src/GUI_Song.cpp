@@ -3616,7 +3616,7 @@ BOOL CSong::SongCursorGoto(CPoint point)
 			g_activepart = PART_SONG;
 			if (m_play && m_followplay)
 			{
-				int mode = (m_play == MPLAY_TRACK) ? MPLAY_TRACK : MPLAY_FROM;	//play track in loop, else, play from cursor position
+				auto mode = (m_play == MPLAY_TRACK) ? MPLAY_TRACK : MPLAY_FROM;	//play track in loop, else, play from cursor position
 				Stop();
 				m_songplayline = m_songactiveline = y;
 				m_trackplayline = m_trackactiveline = 0;
