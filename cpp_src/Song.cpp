@@ -160,7 +160,7 @@ void CSong::ClearSong(int numOfTracks)
     m_mainSpeed = m_speed = m_speeda = 16;
     m_instrumentSpeed = 1;
 
-    g_activepart = g_active_ti = PART_TRACKS;
+    g_activepart = g_active_ti = Part::PART_TRACKS;
 
     m_songplayline = m_songactiveline = 0;
     m_trackactiveline = m_trackplayline = 0;
@@ -1167,12 +1167,12 @@ void CSong::TrackGetLoopingNoteInstrVol(int track, int& note, int& instr, int& v
     vol = g_Tracks.GetVol(track, line);
 }
 
-int* CSong::GetUECursor(int part)
+int* CSong::GetUECursor(Part part)
 {
     int* cursor;
     switch (part)
     {
-    case PART_TRACKS:
+    case Part::PART_TRACKS:
         cursor = new int[4];
         cursor[0] = m_songactiveline;
         cursor[1] = m_trackactiveline;
@@ -1180,13 +1180,13 @@ int* CSong::GetUECursor(int part)
         cursor[3] = m_trackactivecur;
         break;
 
-    case PART_SONG:
+    case Part::PART_SONG:
         cursor = new int[2];
         cursor[0] = m_songactiveline;
         cursor[1] = m_trackactivecol;
         break;
 
-    case PART_INSTRUMENTS:
+    case Part::PART_INSTRUMENTS:
     {
         cursor = new int[6];
         cursor[0] = m_activeinstr;
@@ -1200,7 +1200,7 @@ int* CSong::GetUECursor(int part)
     }
     break;
 
-    case PART_INFO:
+    case Part::PART_INFO:
     {
         cursor = new int[1];
         cursor[0] = (int)m_infoact;
@@ -1213,33 +1213,33 @@ int* CSong::GetUECursor(int part)
     return cursor;
 }
 
-void CSong::SetUECursor(int part, int* cursor)
+void CSong::SetUECursor(Part part, int* cursor)
 {
     switch (part)
     {
-    case PART_TRACKS:
+    case Part::PART_TRACKS:
         m_songactiveline = cursor[0];
         m_trackactiveline = cursor[1];
         m_trackactivecol = cursor[2];
         m_trackactivecur = cursor[3];
-        g_activepart = g_active_ti = PART_TRACKS;
+        g_activepart = g_active_ti = Part::PART_TRACKS;
         break;
 
-    case PART_SONG:
+    case Part::PART_SONG:
         m_songactiveline = cursor[0];
         m_trackactivecol = cursor[1];
-        g_activepart = PART_SONG;
+        g_activepart = Part::PART_SONG;
         break;
 
-    case PART_INSTRUMENTS:
+    case Part::PART_INSTRUMENTS:
         m_activeinstr = cursor[0];
         //the other parameters 1-5 are within the instrument (TInstrument structure), so it is not necessary to set
-        g_activepart = g_active_ti = PART_INSTRUMENTS;
+        g_activepart = g_active_ti = Part::PART_INSTRUMENTS;
         break;
 
-    case PART_INFO:
+    case Part::PART_INFO:
         m_infoact = (EditArea)cursor[0];
-        g_activepart = PART_INFO;
+        g_activepart = Part::PART_INFO;
         break;
 
     default:
@@ -1248,18 +1248,22 @@ void CSong::SetUECursor(int part, int* cursor)
     }
 }
 
-BOOL CSong::UECursorIsEqual(int* cursor1, int* cursor2, int part)
+BOOL CSong::UECursorIsEqual(int* cursor1, int* cursor2, Part part)
 {
     int len;
     switch (part)
     {
-    case PART_TRACKS:	len = 4;
+    case Part::PART_TRACKS:
+        len = 4;
         break;
-    case PART_SONG:		len = 2;
+    case Part::PART_SONG:
+        len = 2;
         break;
-    case PART_INSTRUMENTS:	len = 6;
+    case Part::PART_INSTRUMENTS:
+        len = 6;
         break;
-    case PART_INFO:		len = 1;
+    case Part::PART_INFO:
+        len = 1;
         break;
     default:
         return 0;
@@ -1305,12 +1309,12 @@ BOOL CSong::SongUp()
         Stop();
 
         // This is a Gotoline, skip another line above it
-        if (IsSongGo(m_songactiveline)){
+        if (IsSongGo(m_songactiveline)) {
             m_songactiveline--;
         }
 
         // If the line is no longer valid, force it to the last line instead
-        if (!IsValidSongline(m_songactiveline)){
+        if (!IsValidSongline(m_songactiveline)) {
             m_songactiveline = SONGLEN - 1;
         }
 
@@ -1340,7 +1344,7 @@ BOOL CSong::SongDown()
         Stop();
 
         // This is a Gotoline, skip another line below it
-        if (IsSongGo(m_songactiveline)){
+        if (IsSongGo(m_songactiveline)) {
             m_songactiveline++;
         }
 

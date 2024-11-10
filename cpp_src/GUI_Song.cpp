@@ -135,19 +135,19 @@ void CSong::DrawAnalyzer()
 {
     if (!g_viewVolumeAnalyzer) return;	//the analyser won't be displayed without the setting enabled first
 
-    int MINIMAL_WIDTH_TRACKS = (g_tracks4_8 > 4 && g_active_ti == PART_TRACKS) ? 1420 : 960;
-    int MINIMAL_WIDTH_INSTRUMENTS = (g_tracks4_8 > 4 && g_active_ti == PART_INSTRUMENTS) ? 1220 : 1220;
-    int WINDOW_OFFSET = (g_width < 1320 && g_tracks4_8 > 4 && g_active_ti == PART_TRACKS) ? -250 : 0;	//test displacement with the window size
-    int INSTRUMENT_OFFSET = (g_active_ti == PART_INSTRUMENTS && g_tracks4_8 > 4) ? -250 : 0;
-    if (g_tracks4_8 == 4 && g_active_ti == PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) INSTRUMENT_OFFSET = 260;
+    int MINIMAL_WIDTH_TRACKS = (g_tracks4_8 > 4 && g_active_ti == Part::PART_TRACKS) ? 1420 : 960;
+    int MINIMAL_WIDTH_INSTRUMENTS = (g_tracks4_8 > 4 && g_active_ti == Part::PART_INSTRUMENTS) ? 1220 : 1220;
+    int WINDOW_OFFSET = (g_width < 1320 && g_tracks4_8 > 4 && g_active_ti == Part::PART_TRACKS) ? -250 : 0;	//test displacement with the window size
+    int INSTRUMENT_OFFSET = (g_active_ti == Part::PART_INSTRUMENTS && g_tracks4_8 > 4) ? -250 : 0;
+    if (g_tracks4_8 == 4 && g_active_ti == Part::PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) INSTRUMENT_OFFSET = 260;
     int SONG_OFFSET = SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((g_tracks4_8 == 4) ? -200 : 310);	//displace the SONG block depending on certain parameters
 
     BOOL DEBUG_POKEY = 1;	//registers debug display
     BOOL DEBUG_MEMORY = 0;	//memory debug display
     BOOL DEBUG_SOUND = (g_prove == PROVE_POKEY_EXPLORER_MODE) ? 1 : 0;	//POKEY EXPLORER MODE
 
-    if (g_width < MINIMAL_WIDTH_TRACKS && g_active_ti == PART_TRACKS) DEBUG_POKEY = DEBUG_MEMORY = 0;
-    if (g_width < MINIMAL_WIDTH_INSTRUMENTS && g_active_ti == PART_INSTRUMENTS) DEBUG_POKEY = DEBUG_MEMORY = 0;
+    if (g_width < MINIMAL_WIDTH_TRACKS && g_active_ti == Part::PART_TRACKS) DEBUG_POKEY = DEBUG_MEMORY = 0;
+    if (g_width < MINIMAL_WIDTH_INSTRUMENTS && g_active_ti == Part::PART_INSTRUMENTS) DEBUG_POKEY = DEBUG_MEMORY = 0;
 
 #define ANALYZER_X	(TRACKS_X+6*8+4)		// 68
 #define ANALYZER_Y	(TRACKS_Y-8)			// Line 8 = 128
@@ -198,7 +198,7 @@ void CSong::DrawAnalyzer()
     int b;
     COLORREF acol;
 
-    if (g_active_ti == PART_TRACKS) //bigger look for track edit mode
+    if (g_active_ti == Part::PART_TRACKS) //bigger look for track edit mode
     {
         // In tracks drawing mode
         // Draw bridge connections between channels. For each connection we move 2 pixels up.
@@ -271,7 +271,7 @@ void CSong::DrawAnalyzer()
             if (g_tracks4_8 > 4) NumberMiniXY(g_atarimem[0xd21f], ANALYZER_X + 23 + 5 * 8 * 16 + 80, ANALYZER_Y - 0);	// Stereo
         }
     }
-    else if (g_active_ti == PART_INSTRUMENTS) //smaller appearance for instrument edit mode
+    else if (g_active_ti == Part::PART_INSTRUMENTS) //smaller appearance for instrument edit mode
     {
         // In instrument drawing mode
 
@@ -697,10 +697,10 @@ void CSong::DrawSong()
 
     BOOL smooth_scroll = g_viewDoSmoothScrolling;	//TODO: make smooth scrolling an option that can be saved to .ini file
 
-    int MINIMAL_WIDTH_INSTRUMENTS = (g_tracks4_8 > 4 && g_active_ti == PART_INSTRUMENTS) ? 1220 : 1220;
-    int WINDOW_OFFSET = (g_width < 1320 && g_tracks4_8 > 4 && g_active_ti == PART_TRACKS) ? -250 : 0;	//test displacement with the window size
-    int INSTRUMENT_OFFSET = (g_active_ti == PART_INSTRUMENTS && g_tracks4_8 > 4) ? -250 : 0;
-    if (g_tracks4_8 == 4 && g_active_ti == PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) INSTRUMENT_OFFSET = 260;
+    int MINIMAL_WIDTH_INSTRUMENTS = (g_tracks4_8 > 4 && g_active_ti == Part::PART_INSTRUMENTS) ? 1220 : 1220;
+    int WINDOW_OFFSET = (g_width < 1320 && g_tracks4_8 > 4 && g_active_ti == Part::PART_TRACKS) ? -250 : 0;	//test displacement with the window size
+    int INSTRUMENT_OFFSET = (g_active_ti == Part::PART_INSTRUMENTS && g_tracks4_8 > 4) ? -250 : 0;
+    if (g_tracks4_8 == 4 && g_active_ti == Part::PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) INSTRUMENT_OFFSET = 260;
     int SONG_OFFSET = SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((g_tracks4_8 == 4) ? -200 : 310);	//displace the SONG block depending on certain parameters
 
     BOOL active_smooth = (smooth_scroll && m_play && m_followplay) ? 1 : 0;	//could also be used as an offset
@@ -747,8 +747,8 @@ void CSong::DrawSong()
             color = (isOutOfBounds) ? TEXT_COLOR_DARK_GRAY : TEXT_COLOR_WHITE;	//white, for the number used, or gray if out of bounds
             if (line == m_songactiveline)
             {
-                if (g_prove) color = (g_activepart == PART_SONG) ? COLOR_SELECTED_PROVE : TEXT_COLOR_BLUE;
-                else color = (g_activepart == PART_SONG) ? COLOR_SELECTED : TEXT_COLOR_RED;
+                if (g_prove) color = (g_activepart == Part::PART_SONG) ? COLOR_SELECTED_PROVE : TEXT_COLOR_BLUE;
+                else color = (g_activepart == Part::PART_SONG) ? COLOR_SELECTED : TEXT_COLOR_RED;
             }
             szBuffer[0] = CharH4(j);
             szBuffer[1] = CharL4(j);
@@ -779,8 +779,8 @@ void CSong::DrawSong()
 
                 if (line == m_songactiveline && j == m_trackactivecol)
                 {
-                    if (g_prove) color = (g_activepart == PART_SONG) ? COLOR_SELECTED_PROVE : TEXT_COLOR_BLUE;
-                    else color = (g_activepart == PART_SONG) ? COLOR_SELECTED : TEXT_COLOR_RED;
+                    if (g_prove) color = (g_activepart == Part::PART_SONG) ? COLOR_SELECTED_PROVE : TEXT_COLOR_BLUE;
+                    else color = (g_activepart == Part::PART_SONG) ? COLOR_SELECTED : TEXT_COLOR_RED;
                 }
                 else color = (line == m_songplayline) ? TEXT_COLOR_YELLOW : TEXT_COLOR_WHITE;
                 if (isOutOfBounds) color = TEXT_COLOR_DARK_GRAY;	//darker gray, out of bounds
@@ -866,8 +866,8 @@ void CSong::DrawTracks()
     {
         int TRACKS_OFFSET = (g_tracks4_8 == 8) ? 62 : 30;
         TextXY("GO TO LINE ", TRACKS_X + TRACKS_OFFSET * 8, TRACKS_Y + 8 * 16, TEXT_COLOR_TURQUOISE);
-        if (g_prove) color = (g_activepart == PART_TRACKS) ? COLOR_SELECTED_PROVE : TEXT_COLOR_BLUE;
-        else color = (g_activepart == PART_TRACKS) ? COLOR_SELECTED : TEXT_COLOR_RED;
+        if (g_prove) color = (g_activepart == Part::PART_TRACKS) ? COLOR_SELECTED_PROVE : TEXT_COLOR_BLUE;
+        else color = (g_activepart == Part::PART_TRACKS) ? COLOR_SELECTED : TEXT_COLOR_RED;
         sprintf(s, "%02X", SongGetGo());
         TextXY(s, TRACKS_X + TRACKS_OFFSET * 8 + 11 * 8, TRACKS_Y + 8 * 16, color);
         return;
@@ -1146,11 +1146,11 @@ void CSong::DrawInfo()
     color = g_prove ? COLOR_SELECTED_PROVE : COLOR_SELECTED;
 
     sprintf(szBuffer, "%02X", g_trackLinePrimaryHighlight);
-    selected = (g_activepart == PART_INFO && m_infoact == EditArea::FIRST_HIGHLIGHT) ? TRUE : FALSE;
+    selected = (g_activepart == Part::PART_INFO && m_infoact == EditArea::FIRST_HIGHLIGHT) ? TRUE : FALSE;
     TextXY(szBuffer, 344 + 11 * 8, INFO_Y_LINE_1, (selected) ? color : TEXT_COLOR_TURQUOISE);
 
     sprintf(szBuffer, "%02X", g_trackLineSecondaryHighlight);
-    selected = (g_activepart == PART_INFO && m_infoact == EditArea::SECOND_HIGHLIGHT) ? TRUE : FALSE;
+    selected = (g_activepart == Part::PART_INFO && m_infoact == EditArea::SECOND_HIGHLIGHT) ? TRUE : FALSE;
     TextXY(szBuffer, 344 + 14 * 8, INFO_Y_LINE_1, (selected) ? color : TEXT_COLOR_TURQUOISE);
 
     if (printdebug)
@@ -1161,7 +1161,7 @@ void CSong::DrawInfo()
     }
 
     // Line 2: Name
-    if (g_activepart == PART_INFO && m_infoact == EditArea::NAME) //info? && edit name?
+    if (g_activepart == Part::PART_INFO && m_infoact == EditArea::NAME) //info? && edit name?
     {
         is_editing_infos = 1;
         i = m_songnamecur;
@@ -1182,15 +1182,15 @@ void CSong::DrawInfo()
     color = g_prove ? COLOR_SELECTED_PROVE : COLOR_SELECTED;
 
     sprintf(szBuffer, "%02X", m_speed);
-    selected = (g_activepart == PART_INFO && m_infoact == EditArea::SPEED) ? TRUE : FALSE;
+    selected = (g_activepart == Part::PART_INFO && m_infoact == EditArea::SPEED) ? TRUE : FALSE;
     TextXY(szBuffer, INFO_X + 13 * 8, INFO_Y_LINE_3, (selected) ? color : TEXT_COLOR_TURQUOISE);
 
     sprintf(szBuffer, "%02X", m_mainSpeed);
-    selected = (g_activepart == PART_INFO && m_infoact == EditArea::MAIN_SPEED) ? TRUE : FALSE;
+    selected = (g_activepart == Part::PART_INFO && m_infoact == EditArea::MAIN_SPEED) ? TRUE : FALSE;
     TextXY(szBuffer, INFO_X + 16 * 8, INFO_Y_LINE_3, (selected) ? color : TEXT_COLOR_TURQUOISE);
 
     sprintf(szBuffer, "%X", m_instrumentSpeed);
-    selected = (g_activepart == PART_INFO && m_infoact == EditArea::INSTR_SPEED) ? TRUE : FALSE;
+    selected = (g_activepart == Part::PART_INFO && m_infoact == EditArea::INSTR_SPEED) ? TRUE : FALSE;
     TextXY(szBuffer, INFO_X + 19 * 8, INFO_Y_LINE_3, (selected) ? color : TEXT_COLOR_TURQUOISE);
 
     // Max Track Length @ 40 chars
@@ -2147,7 +2147,7 @@ BOOL CSong::InfoCursorGotoSongname(int x)
     if (x >= 0 && x < SONG_NAME_MAX_LEN)
     {
         m_songnamecur = x;
-        g_activepart = PART_INFO;
+        g_activepart = Part::PART_INFO;
         m_infoact = EditArea::NAME;
         is_editing_infos = 1;	//Song Name is being edited
         return 1;
@@ -2161,7 +2161,7 @@ BOOL CSong::InfoCursorGotoSpeed(int x)
     if (x < 2) m_infoact = EditArea::SPEED;
     else if (x < 5) m_infoact = EditArea::MAIN_SPEED;
     else m_infoact = EditArea::INSTR_SPEED;
-    g_activepart = PART_INFO;
+    g_activepart = Part::PART_INFO;
     is_editing_infos = 0;	//Song Speed is being edited
     return 1;
 }
@@ -2171,7 +2171,7 @@ BOOL CSong::InfoCursorGotoHighlight(int x)
     x = (x - 4) / 8;
     if (x < 2) m_infoact = EditArea::FIRST_HIGHLIGHT;
     else m_infoact = EditArea::SECOND_HIGHLIGHT;
-    g_activepart = PART_INFO;
+    g_activepart = Part::PART_INFO;
     is_editing_infos = 0;	//Song Highlight is being edited
     return 1;
 }
@@ -2234,7 +2234,7 @@ BOOL CSong::InfoCursorGotoInstrumentSelect(int x, int y)
 
 BOOL CSong::CursorToSpeedColumn()
 {
-    if (g_activepart != PART_TRACKS || SongGetActiveTrack() < 0) return 0;
+    if (g_activepart != Part::PART_TRACKS || SongGetActiveTrack() < 0) return 0;
     BLOCKDESELECT;
     m_trackactivecur = 3;
     return 1;
@@ -2458,7 +2458,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         if (control) break;	//do nothing
         if (shift)
             ActiveInstrPrev();
-        else if (g_activepart != 1)	//anywhere but tracks
+        else if (g_activepart != Part::PART_TRACKS)	//anywhere but tracks
             TrackLeft(1);
         else
             TrackLeft();
@@ -2468,7 +2468,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         if (control) break;	//do nothing
         if (shift)
             ActiveInstrNext();
-        else if (g_activepart != 1)	//anywhere but tracks
+        else if (g_activepart != Part::PART_TRACKS)	//anywhere but tracks
             TrackRight(1);
         else
             TrackRight();
@@ -2476,7 +2476,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
 
     case VK_UP:
         if (shift) break;	//do nothing
-        if (control || g_activepart != 1)	//anywhere but tracks
+        if (control || g_activepart != Part::PART_TRACKS)	//anywhere but tracks
         {
             SongUp();
         }
@@ -2489,7 +2489,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
 
     case VK_DOWN:
         if (shift) break;	//do nothing
-        if (control || g_activepart != 1)	//anywhere but tracks
+        if (control || g_activepart != Part::PART_TRACKS)	//anywhere but tracks
         {
             SongDown();
         }
@@ -2530,7 +2530,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         break;
 
     case VK_PAGE_UP:
-        if (g_activepart != 1)
+        if (g_activepart != Part::PART_TRACKS)
         {
             if (shift)
                 SongSubsongPrev();
@@ -2541,7 +2541,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
             break;
         }
         else
-            if (g_activepart == 1)
+            if (g_activepart == Part::PART_TRACKS)
             {
                 if (!shift && control)
                 {
@@ -2565,7 +2565,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         break;
 
     case VK_PAGE_DOWN:
-        if (g_activepart != 1)
+        if (g_activepart != Part::PART_TRACKS)
         {
             if (shift)
                 SongSubsongNext();
@@ -2576,7 +2576,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
             break;
         }
         else
-            if (g_activepart == 1)
+            if (g_activepart == Part::PART_TRACKS)
             {
                 if (!shift && control)
                 {
@@ -2600,15 +2600,15 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
 
     case VK_HOME:
         if (control || shift) break; //do nothing
-        if (g_activepart == 1)	//tracks
+        if (g_activepart == Part::PART_TRACKS)	//tracks
             m_trackactiveline = 0;		//line 0
-        else if (g_activepart == 3)	//song lines
+        else if (g_activepart == Part::PART_SONG)	//song lines
             m_songactiveline = 0;
         break;
 
     case VK_END:
         if (control || shift) break; //do nothing
-        if (g_activepart == 1)	//tracks
+        if (g_activepart == Part::PART_TRACKS)	//tracks
         {
             if (TrackGetGoLine() >= 0)
                 m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1; //last line
@@ -2616,7 +2616,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
                 m_trackactiveline = TrackGetLastLine();	//end line
             if (m_trackactiveline < 0) m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1; //failsafe in case the active line is out of bounds
         }
-        else if (g_activepart == 3)	//song lines
+        else if (g_activepart == Part::PART_SONG)	//song lines
         {
             int i, j, la = 0;
             for (j = 0; j < SONGLEN; j++)
@@ -2629,7 +2629,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         break;
 
     case 13:		//VK_ENTER:
-        if (g_activepart == 1)
+        if (g_activepart == Part::PART_TRACKS)
         {
             int instr, vol;
             if ((BOOL)control != (BOOL)g_keyboard_swapenter)	//control+Enter => plays a whole line (all tracks)
@@ -2662,7 +2662,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
             TrackDown(1, 0);	//move down 1 step always
         }
         else
-            if (g_activepart != 1)
+            if (g_activepart != Part::PART_TRACKS)
             {
                 g_activepart = g_active_ti;
                 return 1;
@@ -3457,7 +3457,7 @@ notracklinechange:
         m_trackactivecur = 3;
         break;
     }
-    g_activepart = PART_TRACKS;
+    g_activepart = Part::PART_TRACKS;
     return 1;
 }
 
@@ -3648,7 +3648,7 @@ BOOL CSong::SongCursorGoto(CPoint point)
         if (xch >= 0 && xch < g_tracks4_8) m_trackactivecol = xch;
         if (y != m_songactiveline)
         {
-            g_activepart = PART_SONG;
+            g_activepart = Part::PART_SONG;
             if (m_play && m_followplay)
             {
                 auto mode = (m_play == PLAY_TRACK) ? PLAY_TRACK : PLAY_FROM;	//play track in loop, else, play from cursor position
@@ -3665,6 +3665,6 @@ BOOL CSong::SongCursorGoto(CPoint point)
     else
         return 0;
     m_trackactivecol = xch;
-    g_activepart = PART_SONG;
+    g_activepart = Part::PART_SONG;
     return 1;
 }

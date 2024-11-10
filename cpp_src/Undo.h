@@ -27,7 +27,7 @@
 
 struct TUndoEvent
 {
-	int part;		//the part in which the editing is performed
+    Part part;		//the part in which the editing is performed
 	int* cursor;	//cursor
 	int type;		//type of changed data
 	int* pos;		//position of changed data

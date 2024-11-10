@@ -122,9 +122,9 @@ public:
     void RespectBoundaries();
     void TrackGetLoopingNoteInstrVol(int track, int& note, int& instr, int& vol) const;
 
-    int* GetUECursor(int part);
-    void SetUECursor(int part, int* cursor);
-    BOOL UECursorIsEqual(int* cursor1, int* cursor2, int part);
+    int* GetUECursor(Part part);
+    void SetUECursor(Part part, int* cursor);
+    BOOL UECursorIsEqual(int* cursor1, int* cursor2, Part part);
     BOOL Undo() { return g_Undo.Undo(); };
     int	 UndoGetUndoSteps() { return g_Undo.GetUndoSteps(); };
     BOOL Redo() { return g_Undo.Redo(); };

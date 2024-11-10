@@ -103,21 +103,21 @@ extern BOOL g_rmtstripped_sfx;			//sfx offshoot RMT stripped file
 extern BOOL g_rmtstripped_gvf;			//gvs GlobalVolumeFade for feat
 extern BOOL g_rmtstripped_nos;			//nos NoStartingSongline for feat
 
-extern int last_active_ti;			//if equal to g_active_ti, no screen clear necessary
-extern int last_activepart;		//if equal to g_activepart, no block clear necessary
+extern Part last_activepart;		    //if equal to g_activepart, no block clear necessary
+extern Part last_active_ti;			    //if equal to g_active_ti, no screen clear necessary
 extern uint64_t last_ms;
 extern uint64_t last_sec;
 extern int real_fps;
 extern double last_fps;
 extern double avg_fps[120];
 
-extern int g_activepart;			//0 info, 1 edittracks, 2 editinstruments, 3 song
-extern int g_active_ti;			//1 tracks, 2 instrs
+extern Part g_activepart;			    // 0 info, 1 edittracks, 2 editinstruments, 3 song
+extern Part g_active_ti;			    // 1 tracks, 2 instrs
 
 extern BOOL g_isEditingInstrumentName;		//0 no, 1 instrument name is edited
-extern BOOL is_editing_infos;		//0 no, 1 song name is edited
+extern BOOL is_editing_infos;		    //0 no, 1 song name is edited
 
-extern int g_line_y;			//active line coordinate, used to reference g_cursoractview to the correct position
+extern int g_line_y;			    //active line coordinate, used to reference g_cursoractview to the correct position
 
 extern int g_trackLinePrimaryHighlight;	//primary line highlighted every x lines
 extern int g_trackLineSecondaryHighlight;	//secondary line highlighted every x lines

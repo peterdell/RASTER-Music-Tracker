@@ -100,16 +100,16 @@ BOOL g_rmtstripped_nos;			//nos NoStartingSongline for feat
 
 
 
-int last_active_ti;			//if equal to g_active_ti, no screen clear necessary
-int last_activepart;		//if equal to g_activepart, no block clear necessary
+Part last_activepart;		//if equal to g_activepart, no block clear necessary
+Part last_active_ti;			//if equal to g_active_ti, no screen clear necessary
 uint64_t last_ms = 0;
 uint64_t last_sec = 0;
 int real_fps = 0;
 double last_fps = 0;
 double avg_fps[120] = { 0 };
 
-int g_activepart;			//0 info, 1 edittracks, 2 editinstruments, 3 song
-int g_active_ti;			//1 tracks, 2 instrs
+Part g_activepart;			// 0 info, 1 edittracks, 2 editinstruments, 3 song
+Part g_active_ti;			// 1 tracks, 2 instrs
 
 BOOL g_isEditingInstrumentName;		//0 no, 1 instrument name is edited
 BOOL is_editing_infos;		//0 no, 1 song name is edited

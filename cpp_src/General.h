@@ -102,10 +102,12 @@ enum class EditArea : int {
 };
 
 // Which part of the data is currently active/visible/primary
-#define PART_INFO			0
-#define PART_TRACKS			1
-#define PART_INSTRUMENTS	2
-#define PART_SONG			3
+enum class Part : int {
+    PART_INFO = 0,
+    PART_TRACKS = 1,
+    PART_INSTRUMENTS = 2,
+    PART_SONG = 3
+};
 
 // Which section of an instrument's data is currently being editied (is active)
 enum class InstrumentSection : int

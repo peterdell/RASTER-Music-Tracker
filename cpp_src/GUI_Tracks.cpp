@@ -147,7 +147,7 @@ void CTracks::DrawTrackLine(int col, int x, int y, int tr, int line, int aline, 
 
 	// Output the constructed row once it's ready, using the cursor position for highlighted column 
 	//TextXYCol(s, x, y, colac[g_activepart == PART_TRACKS && (isactive && line == aline && !oob) ? acu : 4], color);
-	TextXYCol(s, x, y, g_activepart == PART_TRACKS && (isactive && line == aline && !oob) ? acu : -1, color);
+	TextXYCol(s, x, y, g_activepart == Part::PART_TRACKS && (isactive && line == aline && !oob) ? acu : -1, color);
 
 	// Mark the end of a pattern here, if it ends on the next line
 	if (line + 1 == last && len > 0 && last != m_maxTrackLength)

@@ -252,7 +252,7 @@ void CInstruments::DrawName(int instrNr)
 	int cursorPos = -1;
 	int color = TEXT_COLOR_TURQUOISE;
 
-	if (g_activepart == PART_INSTRUMENTS && GetActiveEditSection(instrNr) == InstrumentSection::NAME)  // is an active change of instrument name
+	if (g_activepart == Part::PART_INSTRUMENTS && GetActiveEditSection(instrNr) == InstrumentSection::NAME)  // is an active change of instrument name
 	{
 		cursorPos = GetNameCursorPosition(instrNr);
 		color = g_prove ? TEXT_COLOR_BLUE : TEXT_COLOR_RED;
@@ -282,7 +282,7 @@ void CInstruments::DrawParameter(int p, int instrNr)
 	x += 8 * (s.GetLength() + 1);
 
 	// If the cursor is on the main parameters
-	if (g_activepart == PART_INSTRUMENTS && GetActiveEditSection(instrNr) == InstrumentSection::PARAMETERS && GetParameterNumber(instrNr) == p)
+	if (g_activepart == Part::PART_INSTRUMENTS && GetActiveEditSection(instrNr) == InstrumentSection::PARAMETERS && GetParameterNumber(instrNr) == p)
 	{
 		color = (g_prove) ? COLOR_SELECTED_PROVE : COLOR_SELECTED;
 	}
@@ -304,7 +304,7 @@ BOOL CInstruments::CursorGoto(int instrNr, CPoint point, int pzone)
 	{
 		case 0:
 			//envelope large table
-			g_activepart = PART_INSTRUMENTS;
+			g_activepart = Part::PART_INSTRUMENTS;
 			tt->activeEditSection = InstrumentSection::ENVELOPE;	//the envelope is active
 			x = point.x / 8;
 			if (x >= 0 && x <= tt->parameters[PAR_ENV_LENGTH]) tt->editEnvelopeX = x;
@@ -313,7 +313,7 @@ BOOL CInstruments::CursorGoto(int instrNr, CPoint point, int pzone)
 			return 1;
 		case 1:
 			//envelope line volume number of the right channel
-			g_activepart = PART_INSTRUMENTS;
+			g_activepart = Part::PART_INSTRUMENTS;
 			tt->activeEditSection = InstrumentSection::ENVELOPE;	//the envelope is active
 			x = point.x / 8;
 			if (x >= 0 && x <= tt->parameters[PAR_ENV_LENGTH]) tt->editEnvelopeX = x;
@@ -321,14 +321,14 @@ BOOL CInstruments::CursorGoto(int instrNr, CPoint point, int pzone)
 			return 1;
 		case 2:
 			//TABLE
-			g_activepart = PART_INSTRUMENTS;
+			g_activepart = Part::PART_INSTRUMENTS;
 			tt->activeEditSection = InstrumentSection::NOTETABLE;	//the table is active
 			x = (point.x + 4) / (3 * 8);
 			if (x >= 0 && x <= tt->parameters[PAR_TBL_LENGTH]) tt->editNoteTableCursorPos = x;
 			return 1;
 		case 3:
 			//INSTRUMENT NAME
-			g_activepart = PART_INSTRUMENTS;
+			g_activepart = Part::PART_INSTRUMENTS;
 			tt->activeEditSection = InstrumentSection::NAME;	//the name is active 
 			g_isEditingInstrumentName = 1;	//instrument name is being edited
 			x = point.x / 8 - 6;
@@ -352,7 +352,7 @@ BOOL CInstruments::CursorGoto(int instrNr, CPoint point, int pzone)
 			if (p >= 0 && p < NUMBER_OF_PARAMS)
 			{
 				tt->editParameterNr = p;
-				g_activepart = PART_INSTRUMENTS;
+				g_activepart = Part::PART_INSTRUMENTS;
 				tt->activeEditSection = InstrumentSection::PARAMETERS;	//parameters are active
 				return 1;
 			}
@@ -507,7 +507,7 @@ void CInstruments::DrawEnv(int e, int it)
 		else
 			s[0] = CharL4(in->envelope[e][j]);
 
-		if (j == ay && g_activepart == PART_INSTRUMENTS)
+		if (j == ay && g_activepart == Part::PART_INSTRUMENTS)
 		{
 			color = (g_prove) ? COLOR_SELECTED_PROVE : COLOR_SELECTED;
 		}
@@ -543,7 +543,7 @@ void CInstruments::DrawNoteTableValue(int noteIdx, int instrNr)
 	sprintf(szBuffer, "%02X", data->noteTable[noteIdx]);
 
 	int color = TEXT_COLOR_WHITE;
-	if (data->activeEditSection == InstrumentSection::NOTETABLE && data->editNoteTableCursorPos == noteIdx && g_activepart == PART_INSTRUMENTS)
+	if (data->activeEditSection == InstrumentSection::NOTETABLE && data->editNoteTableCursorPos == noteIdx && g_activepart == Part::PART_INSTRUMENTS)
 	{
 		color = (g_prove) ? COLOR_SELECTED_PROVE : COLOR_SELECTED;
 	}

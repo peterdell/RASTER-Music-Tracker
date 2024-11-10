@@ -341,7 +341,7 @@ void CSong::MidiEvent(DWORD dwParam)
 
 				if (note >= 0 && note < NOTESNUM)		//only within this range
 				{
-					if (g_activepart != PART_TRACKS || g_prove || g_shiftkey || g_controlkey) goto Prove_midi_test;	//play notes but do not record them if the active screen is not TRACKS, or if any other PROVE combo is detected
+					if (g_activepart != Part::PART_TRACKS || g_prove || g_shiftkey || g_controlkey) goto Prove_midi_test;	//play notes but do not record them if the active screen is not TRACKS, or if any other PROVE combo is detected
 
 					if (vol > 0)
 					{
@@ -591,7 +591,7 @@ void CSong::MidiEvent(DWORD dwParam)
 
 			if (note >= 0 && note < NOTESNUM)		//only within this range
 			{
-				if (g_activepart != PART_TRACKS || g_prove || g_shiftkey || g_controlkey) goto Prove_midi;	//play notes but do not record them if the active screen is not TRACKS, or if any other PROVE combo is detected
+				if (g_activepart != Part::PART_TRACKS || g_prove || g_shiftkey || g_controlkey) goto Prove_midi;	//play notes but do not record them if the active screen is not TRACKS, or if any other PROVE combo is detected
 
 				if (vol > 0)
 				{
