@@ -15,7 +15,7 @@
 #include "Clipboard.h"
 
 #include "global.h"
-
+#include "Tuning.h"
 #include "Keyboard2NoteMapping.h"
 #include "ChannelControl.h"
 
@@ -1146,11 +1146,11 @@ void CSong::DrawInfo()
     color = g_prove ? COLOR_SELECTED_PROVE : COLOR_SELECTED;
 
     sprintf(szBuffer, "%02X", g_trackLinePrimaryHighlight);
-    selected = (g_activepart == PART_INFO && m_infoact == INFO_ACTIVE_1ST_HIGHLIGHT) ? TRUE : FALSE;
+    selected = (g_activepart == PART_INFO && m_infoact == EditArea::FIRST_HIGHLIGHT) ? TRUE : FALSE;
     TextXY(szBuffer, 344 + 11 * 8, INFO_Y_LINE_1, (selected) ? color : TEXT_COLOR_TURQUOISE);
 
     sprintf(szBuffer, "%02X", g_trackLineSecondaryHighlight);
-    selected = (g_activepart == PART_INFO && m_infoact == INFO_ACTIVE_2ND_HIGHLIGHT) ? TRUE : FALSE;
+    selected = (g_activepart == PART_INFO && m_infoact == EditArea::SECOND_HIGHLIGHT) ? TRUE : FALSE;
     TextXY(szBuffer, 344 + 14 * 8, INFO_Y_LINE_1, (selected) ? color : TEXT_COLOR_TURQUOISE);
 
     if (printdebug)
@@ -1161,7 +1161,7 @@ void CSong::DrawInfo()
     }
 
     // Line 2: Name
-    if (g_activepart == PART_INFO && m_infoact == INFO_ACTIVE_NAME) //info? && edit name?
+    if (g_activepart == PART_INFO && m_infoact == EditArea::NAME) //info? && edit name?
     {
         is_editing_infos = 1;
         i = m_songnamecur;
@@ -1182,15 +1182,15 @@ void CSong::DrawInfo()
     color = g_prove ? COLOR_SELECTED_PROVE : COLOR_SELECTED;
 
     sprintf(szBuffer, "%02X", m_speed);
-    selected = (g_activepart == PART_INFO && m_infoact == INFO_ACTIVE_SPEED) ? TRUE : FALSE;
+    selected = (g_activepart == PART_INFO && m_infoact == EditArea::SPEED) ? TRUE : FALSE;
     TextXY(szBuffer, INFO_X + 13 * 8, INFO_Y_LINE_3, (selected) ? color : TEXT_COLOR_TURQUOISE);
 
     sprintf(szBuffer, "%02X", m_mainSpeed);
-    selected = (g_activepart == PART_INFO && m_infoact == INFO_ACTIVE_MAIN_SPEED) ? TRUE : FALSE;
+    selected = (g_activepart == PART_INFO && m_infoact == EditArea::MAIN_SPEED) ? TRUE : FALSE;
     TextXY(szBuffer, INFO_X + 16 * 8, INFO_Y_LINE_3, (selected) ? color : TEXT_COLOR_TURQUOISE);
 
     sprintf(szBuffer, "%X", m_instrumentSpeed);
-    selected = (g_activepart == PART_INFO && m_infoact == INFO_ACTIVE_INSTR_SPEED) ? TRUE : FALSE;
+    selected = (g_activepart == PART_INFO && m_infoact == EditArea::INSTR_SPEED) ? TRUE : FALSE;
     TextXY(szBuffer, INFO_X + 19 * 8, INFO_Y_LINE_3, (selected) ? color : TEXT_COLOR_TURQUOISE);
 
     // Max Track Length @ 40 chars
@@ -1335,17 +1335,26 @@ void CSong::DrawPlayTimeCounter()
     //if (pDC) pDC->BitBlt( SCALE(PLAYTC_X), SCALE(PLAYTC_Y), SCALE(PLAYTC_W), SCALE(PLAYTC_H), g_mem_dc, SCALE(PLAYTC_X), SCALE(PLAYTC_Y), SRCCOPY);
 }
 
+void NextEditArea(EditArea& editArea) {
+    ((int&)editArea)++;
+}
+
+void PreviousEditArea(EditArea& editArea) {
+    ((int&)editArea)--;
+
+}
 
 BOOL CSong::InfoKey(int vk, int shift, int control)
 {
     int i, num;
     int volatile* infptab[] = { &m_speed, &m_mainSpeed, &m_instrumentSpeed, &g_trackLinePrimaryHighlight, &g_trackLineSecondaryHighlight };
     int infandtab[] = { 0xFF, 0xFF, 0x08, g_Tracks.GetMaxTrackLength() / 2, g_Tracks.GetMaxTrackLength() / 2 };	//maximum current speed, main speed, instrument speed, primary and secondary line highlights
-    int volatile& infp = *infptab[m_infoact - 1];
-    int infand = infandtab[m_infoact - 1];
+    int areaIndex = (int)m_infoact;
+    int volatile& infp = *infptab[areaIndex - 1];
+    int infand = infandtab[areaIndex - 1];
     BOOL CAPSLOCK = GetKeyState(20);	//VK_CAPS_LOCK
 
-    if (m_infoact == INFO_ACTIVE_NAME)
+    if (m_infoact == EditArea::NAME)
     {
         is_editing_infos = 1;
         if (vk == VK_DIVIDE || vk == VK_MULTIPLY || vk == VK_ADD || vk == VK_SUBTRACT) goto edit_ok;	//a workaround so the Octave and Volume can be set anywhere
@@ -1354,13 +1363,13 @@ BOOL CSong::InfoKey(int vk, int shift, int control)
         {	//saves undo only if it is not cursor movement
             g_Undo.ChangeInfo(0, UETYPE_INFODATA);
         }
-        if (EditText(vk, shift, control, m_songname, m_songnamecur, SONG_NAME_MAX_LEN)) m_infoact = INFO_ACTIVE_SPEED;
+        if (EditText(vk, shift, control, m_songname, m_songnamecur, SONG_NAME_MAX_LEN)) { m_infoact = EditArea::SPEED; }
         return 1;
     }
 
     if ((num = NumbKey(vk)) >= 0 && num <= infand)
     {
-        if (m_infoact >= INFO_ACTIVE_SPEED && m_infoact <= INFO_ACTIVE_INSTR_SPEED)
+        if (m_infoact >= EditArea::SPEED && m_infoact <= EditArea::INSTR_SPEED)
         {
             i = infp & 0x0f; //lower digit (hex)
             if (infand < 0x0f)
@@ -1371,7 +1380,7 @@ BOOL CSong::InfoKey(int vk, int shift, int control)
                 i = ((i << 4) | num) & infand;
         }
         //couldn't quite get decimal to work yet... 
-        else if (m_infoact == INFO_ACTIVE_1ST_HIGHLIGHT || m_infoact == INFO_ACTIVE_2ND_HIGHLIGHT)
+        else if (m_infoact == EditArea::FIRST_HIGHLIGHT || m_infoact == EditArea::SECOND_HIGHLIGHT)
         {
             //if (num > 9) return 0;	//must only accept characters between 0 and 9
             //i = infp & 9; //lower digit (dec)
@@ -1402,12 +1411,19 @@ edit_ok:
         if (control) break;	//do nothing
         if (shift)
         {
-            m_infoact = INFO_ACTIVE_NAME;	//Shift+TAB => Name
+            m_infoact = EditArea::NAME;	//Shift+TAB => Name
             is_editing_infos = 1;
         }
         else
         {
-            if (m_infoact < INFO_ACTIVE_2ND_HIGHLIGHT) m_infoact++; else m_infoact = INFO_ACTIVE_SPEED; //TAB => Speed variables 1, 2 or 3, or line highlights 4 or 5 
+            //TAB => Speed variables 1, 2 or 3, or line highlights 4 or 5 
+            if (m_infoact < EditArea::SECOND_HIGHLIGHT) {
+                auto value = (int)m_infoact; // TODO: Rather have a switch/case chain
+                m_infoact = (EditArea)(value++);
+            }
+            else {
+                m_infoact = EditArea::SPEED;
+            }
             is_editing_infos = 0;
         }
         return 1;
@@ -1440,14 +1456,19 @@ edit_ok:
         }
         else
         {
-            if (m_infoact > INFO_ACTIVE_SPEED)
+            if (m_infoact > EditArea::SPEED)
             {
-                m_infoact--;
-                if (m_infoact == INFO_ACTIVE_1ST_HIGHLIGHT - 1) m_infoact = INFO_ACTIVE_2ND_HIGHLIGHT;
+                if (m_infoact == EditArea::FIRST_HIGHLIGHT)
+                {
+                    m_infoact = EditArea::SECOND_HIGHLIGHT;
+                }
+                else {
+                    PreviousEditArea(m_infoact);
+                }
             }
             else
             {
-                m_infoact = INFO_ACTIVE_INSTR_SPEED;
+                m_infoact = EditArea::INSTR_SPEED;
             }
         }
     }
@@ -1471,15 +1492,17 @@ edit_ok:
         }
         else
         {
-            if (m_infoact >= INFO_ACTIVE_SPEED && m_infoact < INFO_ACTIVE_1ST_HIGHLIGHT)
+            if (m_infoact >= EditArea::SPEED && m_infoact < EditArea::FIRST_HIGHLIGHT)
             {
-                m_infoact++;
-                if (m_infoact > INFO_ACTIVE_INSTR_SPEED) m_infoact = INFO_ACTIVE_SPEED;
+                NextEditArea(m_infoact);
+                if (m_infoact > EditArea::INSTR_SPEED) {
+                    m_infoact = EditArea::SPEED;
+                }
             }
-            else if (m_infoact >= INFO_ACTIVE_1ST_HIGHLIGHT)
+            else if (m_infoact >= EditArea::FIRST_HIGHLIGHT)
             {
-                m_infoact++;
-                if (m_infoact > INFO_ACTIVE_2ND_HIGHLIGHT) m_infoact = INFO_ACTIVE_1ST_HIGHLIGHT;
+                NextEditArea(m_infoact);
+                if (m_infoact > EditArea::SECOND_HIGHLIGHT) { m_infoact = EditArea::FIRST_HIGHLIGHT; }
             }
         }
     }
@@ -2125,7 +2148,7 @@ BOOL CSong::InfoCursorGotoSongname(int x)
     {
         m_songnamecur = x;
         g_activepart = PART_INFO;
-        m_infoact = INFO_ACTIVE_NAME;
+        m_infoact = EditArea::NAME;
         is_editing_infos = 1;	//Song Name is being edited
         return 1;
     }
@@ -2135,9 +2158,9 @@ BOOL CSong::InfoCursorGotoSongname(int x)
 BOOL CSong::InfoCursorGotoSpeed(int x)
 {
     x = (x - 4) / 8;
-    if (x < 2) m_infoact = INFO_ACTIVE_SPEED;
-    else if (x < 5) m_infoact = INFO_ACTIVE_MAIN_SPEED;
-    else m_infoact = INFO_ACTIVE_INSTR_SPEED;
+    if (x < 2) m_infoact = EditArea::SPEED;
+    else if (x < 5) m_infoact = EditArea::MAIN_SPEED;
+    else m_infoact = EditArea::INSTR_SPEED;
     g_activepart = PART_INFO;
     is_editing_infos = 0;	//Song Speed is being edited
     return 1;
@@ -2146,8 +2169,8 @@ BOOL CSong::InfoCursorGotoSpeed(int x)
 BOOL CSong::InfoCursorGotoHighlight(int x)
 {
     x = (x - 4) / 8;
-    if (x < 2) m_infoact = INFO_ACTIVE_1ST_HIGHLIGHT;
-    else m_infoact = INFO_ACTIVE_2ND_HIGHLIGHT;
+    if (x < 2) m_infoact = EditArea::FIRST_HIGHLIGHT;
+    else m_infoact = EditArea::SECOND_HIGHLIGHT;
     g_activepart = PART_INFO;
     is_editing_infos = 0;	//Song Highlight is being edited
     return 1;

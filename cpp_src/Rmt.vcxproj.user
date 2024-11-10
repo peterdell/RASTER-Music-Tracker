@@ -5,7 +5,7 @@
     <RESOURCE_FILE>Rmt.rc</RESOURCE_FILE>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>/SCRIPT:"C:\Users\JAC\Desktop\ASMA-Input\Test-Script.txt" C:\Users\JAC\Desktop\ASMA-Input\Test4.rmt</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>/SCRIPT2:"C:\Users\JAC\Desktop\ASMA-Input\Test-Script.txt" C:\Users\JAC\Desktop\ASMA-Input\Test4.rmt</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

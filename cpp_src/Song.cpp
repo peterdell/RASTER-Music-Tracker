@@ -171,7 +171,7 @@ void CSong::ClearSong(int numOfTracks)
 
     ClearBookmark();
 
-    m_infoact = INFO_ACTIVE_NAME;
+    m_infoact = EditArea::NAME;
 
     memset(m_songname, ' ', SONG_NAME_MAX_LEN);
     strncpy(m_songname, "Noname song", 11);
@@ -1203,7 +1203,7 @@ int* CSong::GetUECursor(int part)
     case PART_INFO:
     {
         cursor = new int[1];
-        cursor[0] = m_infoact;
+        cursor[0] = (int)m_infoact;
     }
     break;
 
@@ -1238,7 +1238,7 @@ void CSong::SetUECursor(int part, int* cursor)
         break;
 
     case PART_INFO:
-        m_infoact = cursor[0];
+        m_infoact = (EditArea)cursor[0];
         g_activepart = PART_INFO;
         break;
 

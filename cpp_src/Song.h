@@ -338,13 +338,13 @@ private:
     double e_divisor = 1;
     double e_pitch = 0;
 
-    int m_infoact;						// Which part of the info area is active for editing: 0 = name, 
+    EditArea m_infoact;					// Which part of the info area is active for editing: 0 = name, 
     char m_songname[SONG_NAME_MAX_LEN + 1];
     int m_songnamecur;
 
     TBookmark m_bookmark;
 
-    double m_avgspeed[8] = { 0 };		//use for calculating average BPM
+    double m_avgspeed[8] = { 0 };		// Use for calculating average BPM
 
     int volatile m_mainSpeed;
     int volatile m_speed;

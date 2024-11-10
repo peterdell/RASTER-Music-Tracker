@@ -92,13 +92,13 @@ enum class KeyboardLayout : int {
 #define INFO_Y_LINE_6	INFO_Y+5*16
 
 // Which part of the info area is active for editing (drawn in red)
-enum InfoArea : int {
-    INFO_ACTIVE_NAME = 0,			// song name can be edited
-    INFO_ACTIVE_SPEED = 1,			// song speed can be changed
-    INFO_ACTIVE_MAIN_SPEED = 2,			// over all song speed
-    INFO_ACTIVE_INSTR_SPEED = 3,			// How many times per frame is the instrument code called (1-8)
-    INFO_ACTIVE_1ST_HIGHLIGHT = 4,			// Primary line highlight can be edited
-    INFO_ACTIVE_2ND_HIGHLIGHT = 5			// Secondary line highlight can be edited
+enum class EditArea : int {
+    NAME = 0,			// Song name can be edited
+    SPEED = 1,			// Song speed can be changed
+    MAIN_SPEED = 2,		// Over all song speed can be edited
+    INSTR_SPEED = 3,	// Speed, i, e. how many times per frame is the instrument code called (1-8), can be edited
+    FIRST_HIGHLIGHT = 4,	// Primary line highlight can be edited
+    SECOND_HIGHLIGHT = 5	// Secondary line highlight can be edited
 };
 
 // Which part of the data is currently active/visible/primary

@@ -876,7 +876,7 @@ void CSong::FileTrackLoad()
 	&g_keyboard_escresetatarisound,								\
 	&m_trackactivecol,&m_trackactivecur,						\
 	&m_activeinstr,&m_volume,&m_octave,							\
-	&m_infoact,&m_songnamecur									\
+	(int*)&m_infoact,&m_songnamecur									\
 }
 
 bool CSong::SaveRMW(std::ofstream& ou)
