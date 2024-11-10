@@ -293,10 +293,10 @@ bool CSongExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CXPoke
     }
 
     // Dump the POKEY registers from full song playback
-    CPokeyStream pokeyStream;
-    songExport.GetSong().DumpSongToPokeyStream(pokeyStream);
+    CPokeyStream& pokeyStream = songExport.GetSongContainer().GetModifiablePokeyStream();
 
     // Busy writing! TODO: Fix the timing overlap causing conflicts
+    // JAC! Does this problem really still exist?
     pokeyStream.SetState(CPokeyStream::WRITE);
 
     CAtari::InitRMTRoutine();	// Reset the Atari memory 
@@ -335,9 +335,6 @@ bool CSongExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CXPoke
         // Update the PokeyStream offset for the next frame
         frames++;
     }
-
-    // Clear the SAP-R dumper memory and reset RMT routines
-    pokeyStream.FinishedRecording();
 
     // Finished doing WAV things...
     wavefile.CloseFile();

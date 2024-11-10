@@ -12,7 +12,7 @@ public:
 
     CSong& GetSong();
     const CPokeyStream& GetPokeyStream();
-
+    CPokeyStream& GetModifiablePokeyStream(); // TODO: Probably obsolete workaround for WAV generation
 
 private:
     CSong* m_song;

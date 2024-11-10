@@ -21,9 +21,13 @@ CSong& CSongContainer::GetSong() {
 }
 
 const CPokeyStream& CSongContainer::GetPokeyStream() {
+    return GetModifiablePokeyStream();
+}
+
+CPokeyStream& CSongContainer::GetModifiablePokeyStream() {
     if (!m_pokeyStreamReady) {
         SetStatusBarText("Generating stream data ...");
-        m_song->DumpSongToPokeyStream(m_pokeyStream);
+        m_song->DumpSongToPokeyStream(m_pokeyStream, MPLAY_SONG, 0, 0);
         m_pokeyStreamReady = true;
     }
     return m_pokeyStream;

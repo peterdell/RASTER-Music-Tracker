@@ -225,7 +225,7 @@ public:
     static bool ExportAsRMT(CSong& song, std::ofstream& ou, TExportDescription* exportDesc);
     static bool ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDescription* exportDesc, LPCTSTR filename);
 
-    void DumpSongToPokeyStream(CPokeyStream& pokeyStream, int playmode = MPLAY_SONG, int songline = 0, int trackline = 0);
+    void DumpSongToPokeyStream(CPokeyStream& pokeyStream, int playmode, int songline, int trackline);
 
 
     bool TestBeforeFileSave();

@@ -8,6 +8,8 @@ class CSongExport
 public:
     CSongExport(CSongContainer& songContainer, CString filePath);
 
+    CSongContainer& GetSongContainer();
+
     CSong& GetSong();
     const CPokeyStream& GetPokeyStream();
     CString GetFilePath() const;
