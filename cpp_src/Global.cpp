@@ -1,12 +1,11 @@
 #include "stdafx.h"
-#include "Rmt.h"
 #include "XPokey.h"
 #include "RmtMidi.h"
 #include "Clipboard.h"
-#include "Atari6502.h"
+#include "Tuning.h"
 #include "Memory.h"
-
-#include "global.h"
+#include "Global.h"
+#include "Undo.h"
 
 unsigned char g_atarimem[RAM_SIZE];
 char g_debugmem[RAM_SIZE];	//debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 

@@ -5,7 +5,6 @@
 #pragma once
 
 #include "Song.h"
-#include "XPokey.h"
 
 const double temperament_preset[TUNING_PRESETS][PRESETS_LENGTH] =
 {

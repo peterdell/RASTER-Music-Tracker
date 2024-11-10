@@ -19,11 +19,15 @@
 #include "RmtMidi.h"
 #include "EffectsDlg.h"
 
-#include "global.h"
+#include "Global.h"
 
 #include "GuiHelpers.h"
 #include "Keyboard2NoteMapping.h"
 #include "ChannelControl.h"
+#include "Undo.h"
+#include "Song.h"
+#include "Tuning.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

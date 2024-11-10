@@ -10,6 +10,8 @@
 #include "Atari6502.h"
 #include "AtariIO.h"
 
+#include "Tuning.h"
+
 #include "RmtAtariBinaries.h"
 #include "General.h"
 #include "global.h"
@@ -138,13 +140,16 @@ int CAtari::InitRMTRoutine()
 
 void CAtari::PlayRMT()
 {
-	if (!g_is6502) return;
+    if (!g_is6502) {
+        return;
+    }
 
 	WORD adr=RMT_P3; //(without SetPokey) one run of RMT routine but from rmt_p3 (wrap processing)
 	BYTE a=0, x=0, y=0;
 	int cycles = (g_ntsc) ? MAXSCREENCYCLES_NTSC : MAXSCREENCYCLES_PAL;
-	if (g_prove < PROVE_EDIT_AND_JAM_MODES) // this is only good for tests, this trigger prevents the RMT driver running at all, leaving only SetPokey available
-		C6502_JSR(&adr,&a,&x,&y,&cycles);			//adr,A,X,Y
+    if (g_prove < PROVE_EDIT_AND_JAM_MODES) { // this is only good for tests, this trigger prevents the RMT driver running at all, leaving only SetPokey available
+        C6502_JSR(&adr, &a, &x, &y, &cycles);			//adr,A,X,Y
+    }
 	adr=RMT_SETPOKEY;
 	a=x=y=0;
 	C6502_JSR(&adr,&a,&x,&y,&cycles);			//adr,A,X,Y
@@ -152,7 +157,9 @@ void CAtari::PlayRMT()
 
 void CAtari::SetPokey()
 {
-	if (!g_is6502) return;
+    if (!g_is6502) {
+        return;
+    }
 
 	WORD adr = RMT_SETPOKEY;
 	BYTE a = 0, x = 0, y = 0;
@@ -162,7 +169,9 @@ void CAtari::SetPokey()
 
 void CAtari::Silence()
 {
-	if (!g_is6502) return;
+    if (!g_is6502) {
+        return;
+    }
 
 	//Silence routine
 	WORD adr=RMT_SILENCE;
@@ -173,7 +182,9 @@ void CAtari::Silence()
 
 void CAtari::SetTrack_NoteInstrVolume(int t,int n,int i,int v)
 {
-	if (!g_is6502) return;
+    if (!g_is6502) {
+        return;
+    }
 
 	WORD adr=RMT_ATA_SETNOTEINSTR;
 	BYTE a=n, x=t, y=i;
@@ -190,7 +201,9 @@ void CAtari::SetTrack_NoteInstrVolume(int t,int n,int i,int v)
 
 void CAtari::SetTrack_Volume(int t,int v)
 {
-	if (!g_is6502) return;
+    if (!g_is6502) {
+        return;
+    }
 
 	WORD adr=RMT_ATA_SETVOLUME;
 	BYTE a=v, x=t, y=0;
@@ -200,7 +213,9 @@ void CAtari::SetTrack_Volume(int t,int v)
 
 void CAtari::InstrumentTurnOff(int instr)
 {
-	if (!g_is6502) return;
+    if (!g_is6502) {
+        return;
+    }
 
 	int cycles = (g_ntsc) ? MAXSCREENCYCLES_NTSC : MAXSCREENCYCLES_PAL;
 	for(int i=0; i<SONGTRACKS; i++)
