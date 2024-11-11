@@ -1363,8 +1363,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,34,0,0
- PRODUCTVERSION 1,34,0,0
+ FILEVERSION 1,34,0,1
+ PRODUCTVERSION 1,34,0,1
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x9L
@@ -1385,7 +1385,7 @@ BEGIN
             VALUE "LegalCopyright", "Copyright (C) 2002-2009, 2021-2024"
             VALUE "OriginalFilename", "Rmt.exe"
             VALUE "ProductName", "RASTER Music Tracker"
-            VALUE "ProductVersion", "1.34.0.0"
+            VALUE "ProductVersion", "1.34.0.1"
         END
     END
     BLOCK "VarFileInfo"
