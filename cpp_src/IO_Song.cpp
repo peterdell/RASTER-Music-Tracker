@@ -1304,17 +1304,18 @@ bool CSong::ExportV2(CSong& song, std::ofstream& ou, int iotype, LPCTSTR filenam
 
     CSongContainer songContainer(song);
     CSongExporter songExporter;
+    CSongExport songExport(songContainer, filename);
     switch (iotype)
     {
     case IOTYPE_RMT: return ExportAsRMT(song, ou, &exportDesc);
     case IOTYPE_RMTSTRIPPED: return ExportAsStrippedRMT(song, ou, &exportDesc, filename);
     case IOTYPE_ASM: return CASMFileExporter::ExportAsAsm(song, ou, &exportDesc);
     case IOTYPE_ASM_RMTPLAYER: return CASMFileExporter::ExportAsRelocatableAsmForRmtPlayer(song, ou, &exportDesc);
-    case IOTYPE_SAPR: return songExporter.ExportSAP_R(CSongExport(songContainer, filename), ou);
-    case IOTYPE_LZSS: return songExporter.ExportLZSS(CSongExport(songContainer, filename), ou);
-    case IOTYPE_LZSS_SAP: return songExporter.ExportSAP_B_LZSS(CSongExport(songContainer, filename), ou);
-    case IOTYPE_LZSS_XEX: return songExporter.ExportXEX_LZSS(CSongExport(songContainer, filename), ou);
-    case IOTYPE_WAV: return songExporter.ExportWAV(CSongExport(songContainer, filename), ou, g_Pokey, g_atarimem);
+    case IOTYPE_SAPR: return songExporter.ExportSAP_R(songExport, ou);
+    case IOTYPE_LZSS: return songExporter.ExportLZSS(songExport, ou);
+    case IOTYPE_LZSS_SAP: return songExporter.ExportSAP_B_LZSS(songExport, ou);
+    case IOTYPE_LZSS_XEX: return songExporter.ExportXEX_LZSS(songExport, ou);
+    case IOTYPE_WAV: return songExporter.ExportWAV(songExport, ou, g_Pokey, g_atarimem);
     }
 
     return false;	// Failed

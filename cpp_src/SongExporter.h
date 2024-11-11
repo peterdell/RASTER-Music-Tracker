@@ -21,7 +21,7 @@ public:
     int rasterbarColor;
     char atariText[ATARI_TEXT_SIZE];
 
-    void CXEXFile::InitFromSong(const CSong& song);
+    void InitFromSong(const CSong& song);
 };
 
 class CSongExporter {

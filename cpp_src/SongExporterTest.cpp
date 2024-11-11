@@ -60,27 +60,42 @@ void CSongExporterTest::Test(CSong& song) {
 
     outFilePath = outFilePathPrefix + ".lzss";
     os.open(outFilePath, std::ofstream::binary);
-    songExporter.ExportLZSS(CSongExport(songContainer, outFilePath), os);
+    {
+        CSongExport songExport(songContainer, outFilePath);
+        songExporter.ExportLZSS(songExport, os);
+    }
     os.close();
 
     outFilePath = outFilePathPrefix + "-Type-B-LZSS.sap";
     os.open(outFilePath, std::ofstream::binary);
-    songExporter.ExportSAP_B_LZSS(CSongExport(songContainer, outFilePath), os);
-    os.close();
+    {
+        CSongExport songExport(songContainer, outFilePath);
+        songExporter.ExportSAP_B_LZSS(songExport, os);
+    }    os.close();
+
 
     outFilePath = outFilePathPrefix + "-Type-R.sap";
     os.open(outFilePath, std::ofstream::binary);
-    songExporter.ExportSAP_R(CSongExport(songContainer, outFilePath), os);
+    {
+        CSongExport songExport(songContainer, outFilePath);
+        songExporter.ExportSAP_R(songExport, os);
+    }
     os.close();
 
     // TODO: Make it work for WAV
     outFilePath = outFilePathPrefix + ".wav";
     os.open(outFilePath, std::ofstream::binary);
-    songExporter.ExportWAV(CSongExport(songContainer, outFilePath), os, g_Pokey, g_atarimem);
+    {
+        CSongExport songExport(songContainer, outFilePath);
+        songExporter.ExportWAV(songExport, os, g_Pokey, g_atarimem);
+    }
     os.close();
 
     outFilePath = outFilePathPrefix + "-LZSS.xex";
     os.open(outFilePath, std::ofstream::binary);
-    songExporter.ExportXEX_LZSS(CSongExport(songContainer, outFilePath), os);
+    {
+        CSongExport songExport(songContainer, outFilePath);
+        songExporter.ExportXEX_LZSS(songExport, os);
+    }
     os.close();
 }
