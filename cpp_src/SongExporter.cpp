@@ -5,7 +5,6 @@
 #include "Atari6502.h"
 #include "AtariIO.h"
 
-#include "ChannelControl.h" // TODO: Is still global
 #include "GuiHelpers.h"
 
 #include "ExportDlgs.h"
@@ -19,10 +18,20 @@
 
 #include "VUPlayer.h"
 
-#include "WaveFile.h"
+#include "WaveFileExporter.h"
+
 
 // TODO: Find a better place and name
 CString g_rmtmsxtext;
+
+void CXEXFile::InitFromSong(const CSong& song) {
+    memcpy(this->songname, song.GetName(), SONG_NAME_MAX_LEN);
+    this->songname[SONG_NAME_MAX_LEN] = 0;
+    this->currentTime = CTime::GetCurrentTime(); // Use song time
+    this->isNTSC = song.IsNTSC();
+    this->isStereo = song.IsStereo();
+    this->instrspeed = song.GetInstrumentSpeed();
+}
 
 CSongExporter::CSongExporter() {
 
@@ -42,14 +51,6 @@ void CSongExporter::StrToAtariVideo(char* txt, int count)
     }
 }
 
-void CSongExporter::CreateExportMetadata(const CSong& song, TExportMetadata& metadata) {
-    memcpy(metadata.songname, song.GetName(), SONG_NAME_MAX_LEN);
-    metadata.songname[SONG_NAME_MAX_LEN] = 0;
-    metadata.currentTime = CTime::GetCurrentTime();
-    metadata.isNTSC = song.IsNTSC();
-    metadata.isStereo = song.IsStereo();
-    metadata.instrspeed = song.GetInstrumentSpeed();
-}
 
 int CSongExporter::BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigned char* dst)
 {
@@ -270,83 +271,18 @@ bool CSongExporter::ExportSAP_B_LZSS(CSongExport& songExport, std::ofstream& ou)
 
 bool CSongExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CXPokey& pokey, byte* memory)
 {
-    CWaveFile wavefile{};
-
-    BYTE* buffer = NULL;
-    BYTE* streambuffer = NULL;
-    const WAVEFORMATEX* wfm = NULL;
-    int length = 0, frames = 0, offset = 0;
-    const int frameSize = CLZSSFile::GetFrameSize(songExport.GetSong());
-
-    ou.close();	// hack, just to be able to actually use the filename for now...
-
-    if (!(wfm = pokey.GetSoundFormat()))
-    {
-        SendErrorMessage("Wave Export Failed", "Could not get sound format!");
-        return false;
-    }
-
-    if (!wavefile.OpenFile(songExport.GetFilePath().GetBuffer(), wfm->nSamplesPerSec, wfm->wBitsPerSample, wfm->nChannels))
-    {
-        SendErrorMessage("Wave Export Failed", "Could not get sound format!");
-        return false;
-    }
-
-    // Dump the POKEY registers from full song playback
-    CPokeyStream& pokeyStream = songExport.GetSongContainer().GetModifiablePokeyStream();
-
-    // Busy writing! TODO: Fix the timing overlap causing conflicts
-    // JAC! Does this problem really still exist?
-    pokeyStream.SetState(CPokeyStream::WRITE);
-
-    CAtari::InitRMTRoutine();	// Reset the Atari memory 
-    SetChannelOnOff(-1, 1);	// Unmute all channels
-
-    // Create the sound buffer to copy from and to
-    buffer = new BYTE[BUFFER_SIZE];
-    memset(buffer, 0x80, BUFFER_SIZE);
-
-    while (frames < pokeyStream.GetFirstCountPoint())
-    {
-        // Copy the SAP-R bytes to g_atarimem for this frame
-        streambuffer = pokeyStream.GetStreamBuffer() + frames * frameSize;
-
-        //for (int i = 0; i < frameSize; i++)
-        //{
-        //	g_atarimem[0xd200 + i] = streambuffer[i];
-        //}
-
-        memory[RMTPLAYR_TRACKN_AUDF + 0] = streambuffer[0x00];
-        memory[RMTPLAYR_TRACKN_AUDF + 1] = streambuffer[0x02];
-        memory[RMTPLAYR_TRACKN_AUDF + 2] = streambuffer[0x04];
-        memory[RMTPLAYR_TRACKN_AUDF + 3] = streambuffer[0x06];
-        memory[RMTPLAYR_TRACKN_AUDC + 0] = streambuffer[0x01];
-        memory[RMTPLAYR_TRACKN_AUDC + 1] = streambuffer[0x03];
-        memory[RMTPLAYR_TRACKN_AUDC + 2] = streambuffer[0x05];
-        memory[RMTPLAYR_TRACKN_AUDC + 3] = streambuffer[0x07];
-        memory[RMTPLAYR_V_AUDCTL] = streambuffer[0x08];
-
-        // Fill the POKEY buffer with 1 rendered chunk
-        pokey.RenderSoundV2(songExport.GetSong().GetInstrumentSpeed(), buffer, length);
-
-        // Write the buffer to WAV file
-        wavefile.WriteWave(buffer, length);
-
-        // Update the PokeyStream offset for the next frame
-        frames++;
-    }
-
-    // Finished doing WAV things...
-    wavefile.CloseFile();
-
-    // Also make sure to delete the buffer once it's no longer needed
-    delete buffer;
-
-    return true;
+    return CWaveFileExporter::ExportWAV(songExport, ou, pokey, memory);
 }
 
 bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
 {
+    // Create the export metadata for songname, Atari text, parameters, etc
+    CXEXFile xexFile;
+
+    if (!ShowXEXExportDialog(songExport.GetSong(), xexFile))
+    {
+        return false;
+    }
 
     CString s, t;
 
@@ -377,14 +313,6 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
     // Load VUPlayerLZSS to memory
     CAtari::LoadOBX(IOTYPE_LZSS_XEX, mem, addressFrom, addressTo);
 
-    // Create the export metadata for songname, Atari text, parameters, etc
-    TExportMetadata metadata;
-    CreateExportMetadata(songExport.GetSong(), metadata);
-
-    if (!ExportXEX_LZSS(metadata))
-    {
-        return false;
-    }
 
     // LZSS buffers for each ones of the tune parts being reconstructed.
     // Because the buffers are large, they are allocated on hte heap instead of the stack.
@@ -496,17 +424,17 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
     delete buff3;
 
     // Write the Atari Video text to memory, for 5 lines of 40 characters
-    memcpy(&mem[LZSSP_LINE_1], metadata.atariText, TExportMetadata::ATARI_TEXT_SIZE);
+    memcpy(&mem[LZSSP_LINE_1], xexFile.atariText, CXEXFile::ATARI_TEXT_SIZE);
 
     // Write the total framescount on the top line, next to the Region and VBI speed, for 28 characters
-    memset(&mem[ LZSSP_LINE_0 + 0x0B], 32, 28);
+    memset(&mem[LZSSP_LINE_0 + 0x0B], 32, 28);
     char framesdisplay[28] = { 0 };
     sprintf(framesdisplay, "(%i frames total)", framescount);
     for (int i = 0; i < 28; i++) mem[LZSSP_LINE_0 + 0x0B + i] = framesdisplay[i];
     CSongExporter::StrToAtariVideo((char*)mem + LZSSP_LINE_0 + 0x0B, 28);
 
     // I know the binary I have is currently set to NTSC, so I'll just convert to PAL and keep this going for now...
-    if (!metadata.isNTSC)
+    if (!xexFile.isNTSC)
     {
         unsigned char regionbytes[] =
         {
@@ -522,12 +450,12 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
     }
 
     // Additional patches from the Export Dialog...
-    mem[VU_PLAYER_SONG_SPEED] = metadata.instrspeed;						// Song speed
-    mem[VU_PLAYER_RASTER_BAR] = metadata.displayRasterbar ? 0x80 : 0x00;	// Display the rasterbar for CPU level
-    mem[VU_PLAYER_COLOR] = metadata.rasterbarColor;						    // Rasterbar colur 
-    mem[VU_PLAYER_STEREO_FLAG] = metadata.isStereo ? 0xFF : 0x00;			// Is the song stereo?
+    mem[VU_PLAYER_SONG_SPEED] = xexFile.instrspeed;						// Song speed
+    mem[VU_PLAYER_RASTER_BAR] = xexFile.displayRasterbar ? 0x80 : 0x00;	// Display the rasterbar for CPU level
+    mem[VU_PLAYER_COLOR] = xexFile.rasterbarColor;						    // Rasterbar colur 
+    mem[VU_PLAYER_STEREO_FLAG] = xexFile.isStereo ? 0xFF : 0x00;			// Is the song stereo?
     mem[VU_PLAYER_SONGTOTAL] = subsongs;									// Total number of subtunes
-    if (!metadata.autoRegion) {												// Automatically adjust speed between regions?
+    if (!xexFile.autoRegion) {												// Automatically adjust speed between regions?
         for (int i = 0; i < 4; i++) mem[VU_PLAYER_REGION + 6 + i] = 0xEA;	// set the 4 bytes to NOPs to disable it
     }
 
@@ -546,14 +474,17 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
 }
 
 // The XEX dialog process was split to a different function for clarity, same will be done for SAP later...
-bool CSongExporter::ExportXEX_LZSS(TExportMetadata& metadata)
+bool CSongExporter::ShowXEXExportDialog(const CSong& song, CXEXFile& xexFile)
 {
+
+    xexFile.InitFromSong(song);
+
     CString EOL = "\r\n";
 
     CExpMSXDlg dlg;
     CString str;
 
-    str = metadata.songname;
+    str = xexFile.songname;
 
     if (g_rmtmsxtext != "")
     {
@@ -562,14 +493,14 @@ bool CSongExporter::ExportXEX_LZSS(TExportMetadata& metadata)
     else
     {
         dlg.m_txt = str + EOL;
-        if (metadata.isStereo) { dlg.m_txt += "STEREO"; }
+        if (xexFile.isStereo) { dlg.m_txt += "STEREO"; }
         dlg.m_txt += EOL;
-        dlg.m_txt += metadata.currentTime.Format("%d/%m/%Y") + EOL;
+        dlg.m_txt += xexFile.currentTime.Format("%d/%m/%Y") + EOL;
         dlg.m_txt += "Author: (press SHIFT key)" + EOL;
         dlg.m_txt += "Author: ???";
     }
 
-    str.Format("Playback speed will be adjusted to %s Hz on both PAL and NTSC systems.", (metadata.isNTSC ? "60" : "50"));
+    str.Format("Playback speed will be adjusted to %s Hz on both PAL and NTSC systems.", (xexFile.isNTSC ? "60" : "50"));
     dlg.m_speedinfo = str;
 
     if (dlg.DoModal() != IDOK)
@@ -580,7 +511,7 @@ bool CSongExporter::ExportXEX_LZSS(TExportMetadata& metadata)
     g_rmtmsxtext.Replace("\x0d\x0d", "\x0d");	//13, 13 => 13
 
     // This block of code will handle all the user input text that will be inserted in the binary during the export process
-    memset(metadata.atariText, ' ', TExportMetadata::ATARI_TEXT_SIZE);
+    memset(xexFile.atariText, ' ', CXEXFile::ATARI_TEXT_SIZE);
     int p = 0, q = 0;
     char a;
     for (int i = 0; i < dlg.m_txt.GetLength(); i++)
@@ -589,16 +520,16 @@ bool CSongExporter::ExportXEX_LZSS(TExportMetadata& metadata)
         if (a == '\n') { p += 40; q = 0; }
         else
         {
-            metadata.atariText[p + q] = a;
+            xexFile.atariText[p + q] = a;
             q++;
         }
         if (p + q >= 5 * 40) break;
     }
-    StrToAtariVideo((char*)metadata.atariText, TExportMetadata::ATARI_TEXT_SIZE);
+    StrToAtariVideo((char*)xexFile.atariText, CXEXFile::ATARI_TEXT_SIZE);
 
-    metadata.rasterbarColor = dlg.m_metercolor;
-    metadata.displayRasterbar = dlg.m_meter;
-    metadata.autoRegion = dlg.m_region_auto;
+    xexFile.rasterbarColor = dlg.m_metercolor;
+    xexFile.displayRasterbar = dlg.m_meter;
+    xexFile.autoRegion = dlg.m_region_auto;
 
     return true;
 }

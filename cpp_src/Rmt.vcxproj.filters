@@ -55,6 +55,9 @@
     <Filter Include="Source Files\IO - Load/Save/Export/Import/Midi\LZSS">
       <UniqueIdentifier>{b1ac240f-8bfa-4b7f-9f1a-67e475c4a76e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\IO - Load/Save/Export/Import/Midi\WAV">
+      <UniqueIdentifier>{9de91cbb-1979-4739-8ccd-6101139fe20c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StdAfx.cpp">
@@ -165,9 +168,6 @@
     <ClCompile Include="PokeyStream.cpp">
       <Filter>Source Files\Sound Generator</Filter>
     </ClCompile>
-    <ClCompile Include="WaveFile.cpp">
-      <Filter>Source Files\Sound Generator</Filter>
-    </ClCompile>
     <ClCompile Include="RmtAtariBinaries.cpp">
       <Filter>Source Files\Sound Generator</Filter>
     </ClCompile>
@@ -221,6 +221,12 @@
     </ClCompile>
     <ClCompile Include="SongContainer.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClCompile>
+    <ClCompile Include="WaveFile.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\WAV</Filter>
+    </ClCompile>
+    <ClCompile Include="WaveFileExporter.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\WAV</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -308,9 +314,6 @@
     <ClInclude Include="PokeyStream.h">
       <Filter>Source Files\Sound Generator</Filter>
     </ClInclude>
-    <ClInclude Include="WaveFile.h">
-      <Filter>Source Files\Sound Generator</Filter>
-    </ClInclude>
     <ClInclude Include="RmtAtariBinaries.h">
       <Filter>Source Files\Sound Generator</Filter>
     </ClInclude>
@@ -373,6 +376,12 @@
     </ClInclude>
     <ClInclude Include="SongContainer.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClInclude>
+    <ClInclude Include="WaveFile.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\WAV</Filter>
+    </ClInclude>
+    <ClInclude Include="WaveFileExporter.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\WAV</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

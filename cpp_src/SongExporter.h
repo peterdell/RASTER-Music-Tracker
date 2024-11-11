@@ -7,25 +7,26 @@
 
 extern CString g_rmtmsxtext;
 
+class CXEXFile
+{
+public:
+    static const size_t ATARI_TEXT_SIZE = 5 * 40;
+    char songname[SONG_NAME_MAX_LEN + 1];
+    CTime currentTime;
+    int instrspeed;
+    bool isStereo;
+    bool isNTSC;
+    bool autoRegion;
+    bool displayRasterbar;
+    int rasterbarColor;
+    char atariText[ATARI_TEXT_SIZE];
+
+    void CXEXFile::InitFromSong(const CSong& song);
+};
+
 class CSongExporter {
 
 public:
-
-
-    struct TExportMetadata
-    {
-        static const size_t ATARI_TEXT_SIZE = 5 * 40;
-        char songname[SONG_NAME_MAX_LEN + 1];
-        CTime currentTime;
-        int instrspeed;
-        bool isStereo;
-        bool isNTSC;
-        bool autoRegion;
-        bool displayRasterbar;
-        int rasterbarColor;
-        char atariText[ATARI_TEXT_SIZE];
-    };
-
     CSongExporter();
 
     /// <summary>
@@ -78,7 +79,6 @@ private:
 
     // A dumb SAP-R LZSS optimisations bruteforcer, returns the optimal value and buffer
     static int BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigned char* dst);
-    static void CreateExportMetadata(const CSong& song, TExportMetadata& metadata);
-    static bool ExportXEX_LZSS(TExportMetadata& metadata);
+    static bool ShowXEXExportDialog(const CSong& song, CXEXFile& xexFile);
 };
 
