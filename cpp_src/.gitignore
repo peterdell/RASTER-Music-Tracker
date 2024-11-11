@@ -1,7 +1,4 @@
-Debug/
-Debug64/
-Release/
-Release64/
+out/
 enc_temp_folder/
 .vs
 *.ncb

@@ -74,8 +74,8 @@
     <_ProjectFileVersion>16.0.31727.243</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>.\Release\</OutDir>
-    <IntDir>.\Release\</IntDir>
+    <OutDir>.\out\Release\</OutDir>
+    <IntDir>.\out\Release\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
@@ -87,12 +87,12 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
     <CodeAnalysisRuleAssemblies />
-    <OutDir>.\Release64\</OutDir>
-    <IntDir>.\Release64\</IntDir>
+    <OutDir>.\out\Release64\</OutDir>
+    <IntDir>.\out\Release64\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>.\Debug\</OutDir>
-    <IntDir>.\Debug\</IntDir>
+    <OutDir>.\out\Debug\</OutDir>
+    <IntDir>.\out\Debug\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
@@ -103,8 +103,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
     <CodeAnalysisRuleAssemblies />
-    <OutDir>.\Debug64\</OutDir>
-    <IntDir>.\Debug64\</IntDir>
+    <OutDir>.\out\Debug64\</OutDir>
+    <IntDir>.\out\Debug64\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -116,10 +116,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>.\Release\Rmt.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Release\</AssemblerListingLocation>
-      <ObjectFileName>.\Release/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Release\Rmt.pdb</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>.\out\Release\Rmt.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\out\Release\</AssemblerListingLocation>
+      <ObjectFileName>.\out\Release/</ObjectFileName>
+      <ProgramDataBaseFileName>.\out\Release\Rmt.pdb</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -136,9 +136,9 @@
     <Link>
       <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>dsound.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\Release\Rmt.exe</OutputFile>
+      <OutputFile>.\out\Release\Rmt.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>.\Release\Rmt.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\out\Release\Rmt.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
@@ -153,7 +153,7 @@
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Release/Rmt.tlb</TypeLibraryName>
+      <TypeLibraryName>.\out\Release/Rmt.tlb</TypeLibraryName>
     </Midl>
     <ResourceCompile>
       <PreprocessorDefinitions>_AFXDLL;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -169,10 +169,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>.\Release64\Rmt.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Release64\</AssemblerListingLocation>
-      <ObjectFileName>.\Release64\</ObjectFileName>
-      <ProgramDataBaseFileName>.\Release64\Rmt.pdb</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>.\out\Release64\Rmt.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\out\Release64\</AssemblerListingLocation>
+      <ObjectFileName>.\out\Release64\</ObjectFileName>
+      <ProgramDataBaseFileName>.\out\Release64\Rmt.pdb</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -188,9 +188,9 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>dsound.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\Release64\Rmt.exe</OutputFile>
+      <OutputFile>.\out\Release64\Rmt.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>.\Release64\Rmt.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\out\Release64\Rmt.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>false</OptimizeReferences>
@@ -199,7 +199,7 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TypeLibraryName>.\Release/Rmt.tlb</TypeLibraryName>
+      <TypeLibraryName>.\out\Release/Rmt.tlb</TypeLibraryName>
     </Midl>
     <ResourceCompile>
       <PreprocessorDefinitions>_AFXDLL;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -214,10 +214,10 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>.\Debug\Rmt.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Debug\</AssemblerListingLocation>
-      <ObjectFileName>.\Debug\</ObjectFileName>
-      <ProgramDataBaseFileName>.\Debug\Rmt.pdb</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>.\out\Debug\Rmt.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\out\Debug\</AssemblerListingLocation>
+      <ObjectFileName>.\out\Debug\</ObjectFileName>
+      <ProgramDataBaseFileName>.\out\Debug\Rmt.pdb</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -227,10 +227,10 @@
     <Link>
       <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>dsound.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\Debug\Rmt.exe</OutputFile>
+      <OutputFile>.\out\Debug\Rmt.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Debug\Rmt.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\out\Debug\Rmt.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
     </Link>
     <Midl>
@@ -238,7 +238,7 @@
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Debug/Rmt.tlb</TypeLibraryName>
+      <TypeLibraryName>.\out\Debug/Rmt.tlb</TypeLibraryName>
     </Midl>
     <ResourceCompile>
       <PreprocessorDefinitions>_AFXDLL;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -257,10 +257,10 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>.\Debug64\Rmt.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Debug64\</AssemblerListingLocation>
-      <ObjectFileName>.\Debug64\</ObjectFileName>
-      <ProgramDataBaseFileName>.\Debug64\Rmt.pdb</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>.\out\Debug64\Rmt.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\out\Debug64\</AssemblerListingLocation>
+      <ObjectFileName>.\out\Debug64\</ObjectFileName>
+      <ProgramDataBaseFileName>.\out\Debug64\Rmt.pdb</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -271,15 +271,15 @@
       <AdditionalDependencies>dsound.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Debug64\Rmt.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\out\Debug64\Rmt.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
-      <OutputFile>.\Debug64\Rmt.exe</OutputFile>
+      <OutputFile>.\out\Debug64\Rmt.exe</OutputFile>
     </Link>
     <Midl>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TypeLibraryName>.\Debug/Rmt.tlb</TypeLibraryName>
+      <TypeLibraryName>.\out\Debug/Rmt.tlb</TypeLibraryName>
     </Midl>
     <ResourceCompile>
       <PreprocessorDefinitions>_AFXDLL;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
