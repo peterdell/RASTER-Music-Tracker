@@ -47,21 +47,21 @@ bool CSAPFileExportDialog::Show(const CSong& song, CSAPFile& sapFile) {
     CSAPFileExportDialog dlg;
     sapFile.Init(song);
 
-    dlg.m_author = sapFile.m_author;
-    dlg.m_name = sapFile.m_name;
-    dlg.m_date = sapFile.m_date;
+    dlg.m_author = sapFile.GetAuthor();
+    dlg.m_name = sapFile.GetName();
+    dlg.m_date = sapFile.GetDate();
 
     song.GetSubsongParts(dlg.m_subsongs);
 
-    dlg.m_title.Format("Export as SAP File of Type '%s'", sapFile.m_type);
+    dlg.m_title.Format("Export as SAP File of Type '%s'", sapFile.GetType());
     if (dlg.DoModal() != IDOK)
     {
         return false;
     }
 
-    sapFile.m_author = dlg.m_author;
-    sapFile.m_name = dlg.m_name;
-    sapFile.m_date = dlg.m_date;
+    sapFile.SetAuthor(dlg.m_author);
+    sapFile.SetName(dlg.m_name);
+    sapFile.SetDate(dlg.m_date);
 
     // Parses the "Subsongs" line
     CString str = dlg.m_subsongs + " ";	// Add space after the last character for parsing
@@ -91,7 +91,7 @@ bool CSAPFileExportDialog::Show(const CSong& song, CSAPFile& sapFile) {
                 }
             }
     }
-    sapFile.m_songs = subsongs;
+    sapFile.SetSongs(subsongs);
     return true;
 }
 

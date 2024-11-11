@@ -246,7 +246,7 @@ bool CSongExporter::ExportSAP_R(CSongExport& songExport, std::ofstream& ou)
 {
 
     CSAPFile sapFile;
-    sapFile.m_type = "R";
+    sapFile.SetType("R");
     if (!CSAPFileExportDialog::Show(songExport.GetSong(), sapFile)) {
         return false;
     };
@@ -259,7 +259,7 @@ bool CSongExporter::ExportSAP_R(CSongExport& songExport, std::ofstream& ou)
 bool CSongExporter::ExportSAP_B_LZSS(CSongExport& songExport, std::ofstream& ou)
 {
     CSAPFile sapFile;
-    sapFile.m_type = "B";
+    sapFile.SetType("B");
     if (!CSAPFileExportDialog::Show(songExport.GetSong(), sapFile)) {
         return false;
     }
@@ -286,8 +286,6 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
 
     CString s, t;
 
-    MemoryAddress addressFrom, addressTo;
-
     int subsongs = songExport.GetSong().GetSubsongParts(t);
     int count = 0;
 
@@ -311,6 +309,7 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
     }
 
     // Load VUPlayerLZSS to memory
+    MemoryAddress addressFrom, addressTo;
     CAtari::LoadOBX(IOTYPE_LZSS_XEX, mem, addressFrom, addressTo);
 
 
@@ -507,6 +506,7 @@ bool CSongExporter::ShowXEXExportDialog(const CSong& song, CXEXFile& xexFile)
     {
         return false;
     }
+
     g_rmtmsxtext = dlg.m_txt;
     g_rmtmsxtext.Replace("\x0d\x0d", "\x0d");	//13, 13 => 13
 
@@ -523,7 +523,9 @@ bool CSongExporter::ShowXEXExportDialog(const CSong& song, CXEXFile& xexFile)
             xexFile.atariText[p + q] = a;
             q++;
         }
-        if (p + q >= 5 * 40) break;
+        if (p + q >= 5 * 40) {
+            break;
+        }
     }
     StrToAtariVideo((char*)xexFile.atariText, CXEXFile::ATARI_TEXT_SIZE);
 

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "SAPFile.h"
+
 CSAPFile::CSAPFile() {
     Clear();
 }
@@ -17,6 +18,88 @@ void CSAPFile::Clear() {
     m_init = 0;
     m_player = 0;
 }
+
+
+CString  CSAPFile::GetAuthor() const {
+    return m_author;
+}
+
+void  CSAPFile::SetAuthor(const CString& author) {
+    m_author = author;
+}
+
+CString  CSAPFile::GetName() const {
+    return m_name;
+}
+
+void  CSAPFile::SetName(const CString& name) {
+    m_name = name;
+}
+
+CString  CSAPFile::GetDate() const {
+    return m_date;
+}
+
+void  CSAPFile::SetDate(const CString& date) {
+    m_date = date;
+}
+
+int  CSAPFile::GetSongs() const {
+    return m_songs;
+}
+
+void  CSAPFile::SetSongs(int songs) {
+    m_songs = songs;
+}
+
+int  CSAPFile::GetDefaultSong() const {
+    return m_defsong;
+}
+
+void  CSAPFile::SetDefaultSong(int defaultSong) {
+    m_defsong = defaultSong;
+}
+
+bool CSAPFile::IsStereo() {
+    return m_stereo;
+}
+
+void  CSAPFile::SetStereo(boolean stereo) {
+    m_stereo = stereo;
+}
+
+bool  CSAPFile::IsNTSC() {
+    return m_ntsc;
+}
+
+void  CSAPFile::SetNTSC(boolean ntsc) {
+    m_ntsc = ntsc;
+}
+
+CString  CSAPFile::GetType() const {
+    return m_type;
+}
+
+void  CSAPFile::SetType(const CString& type) {
+    m_type = type;
+}
+
+MemoryAddress  CSAPFile::GetInitAddress() const {
+    return m_init;
+}
+
+void  CSAPFile::SetInitAddress(MemoryAddress init) {
+    m_init = init;
+}
+
+MemoryAddress  CSAPFile::GetPlayerAddress() const {
+    return m_player;
+}
+
+void  CSAPFile::SetPlayerAddress(MemoryAddress player) {
+    m_player = player;
+}
+
 
 void CSAPFile::Init(const CSong& song) {
     m_author = "???";

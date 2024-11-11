@@ -58,8 +58,8 @@ bool CSAPFileExporter::ExportSAP_B_LZSS( CSongExport& songExport, CSAPFile& sapF
         return false;
     }
 
-    sapFile.m_init = VU_PLAYER_INIT_SAP;
-    sapFile.m_player = VU_PLAYER_DO_PLAY_ADDR;
+    sapFile.SetInitAddress(VU_PLAYER_INIT_SAP);
+    sapFile.SetPlayerAddress(VU_PLAYER_DO_PLAY_ADDR);
 
     sapFile.Export(ou);
 
