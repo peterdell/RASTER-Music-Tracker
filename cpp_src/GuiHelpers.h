@@ -15,7 +15,12 @@ public:
     DisableEventSection();
     ~DisableEventSection();
 
-    void Begin();
+private:
+    static int eventsDisabledCounter;
+    static HCURSOR oldCursor;
+
+     static void DisableEvents();
+     static void EnableEvents();
 };
 
 extern CStatusBar* g_statusBar;
@@ -23,8 +28,7 @@ extern void SetStatusBarText(const char* text);
 extern void ClearStatusBar();
 extern void SendErrorMessage(const char* title, const char* message);
 
-extern void DisableEvents();
-extern void EnableEvents();
+
 
 extern BOOL RefreshScreen(int frameskip = 0);
 

@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "SAPFile.h"
 
+#include "RuntimeException.h"
+
 CSAPFile::CSAPFile() {
     Clear();
 }
@@ -180,7 +182,8 @@ void CSAPFile::Export(std::ofstream& ou) {
     }
 
     if (m_type.IsEmpty()) {
-        AfxThrowInvalidArgException();
+        ThrowRuntimeException("SAP file has no type set.");
+
     }
     if (m_type == 'B') {
         if (m_init > 0) {
@@ -195,7 +198,7 @@ void CSAPFile::Export(std::ofstream& ou) {
 
     }
     else {
-        AfxThrowInvalidArgException();
+        ThrowRuntimeException("SAP file has type \""+m_type+"\". Only type \"B\" and \"R\" are supported for export.");
     }
 
     // A double EOL is necessary for making the SAP-R export functional

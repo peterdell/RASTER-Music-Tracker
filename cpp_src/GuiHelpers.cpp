@@ -7,6 +7,8 @@
 
 #include "Global.h"
 
+#include "RuntimeException.h"
+
 CStatusBar* g_statusBar = nullptr;
 
 void SetStatusBarText(const char* text)
@@ -30,22 +32,18 @@ void SendErrorMessage(const char* title, const char* message) {
 
 
 
+int DisableEventSection::eventsDisabledCounter = 0;
+HCURSOR DisableEventSection::oldCursor = NULL;
+
 DisableEventSection::DisableEventSection() {
-    Begin();
+    DisableEvents();
 }
 
 DisableEventSection::~DisableEventSection() {
     EnableEvents();
 }
 
-void DisableEventSection::Begin() {
-    DisableEvents();
-}
-
-static int eventsDisabledCounter = 0;
-static HCURSOR oldCursor;
-
-void DisableEvents() {
+void DisableEventSection::DisableEvents() {
     if (eventsDisabledCounter == 0) {
         oldCursor = SetCursor(LoadCursor(0, IDC_WAIT));
         EnableWindow(g_hwnd, FALSE);
@@ -53,9 +51,9 @@ void DisableEvents() {
     eventsDisabledCounter++;
 }
 
-void EnableEvents() {
+void DisableEventSection::EnableEvents() {
     if (eventsDisabledCounter == 0) {
-        AfxThrowInvalidArgException();
+        ThrowRuntimeException("Field eventsDisabledCounter is already 0.");
     }
     eventsDisabledCounter--;
     if (eventsDisabledCounter == 0) {

@@ -332,6 +332,7 @@
     </ClCompile>
     <ClCompile Include="LZSSFile.cpp" />
     <ClCompile Include="RmtCommandLineInfo.cpp" />
+    <ClCompile Include="RuntimeException.cpp" />
     <ClCompile Include="SAPFile.cpp" />
     <ClCompile Include="SAPFileExportDialog.cpp" />
     <ClCompile Include="SAPFileExporter.cpp" />
@@ -562,6 +563,7 @@
     <ClInclude Include="RmtCommandLineInfo.h" />
     <ClInclude Include="RmtFile.h" />
     <ClInclude Include="Memory.h" />
+    <ClInclude Include="RuntimeException.h" />
     <ClInclude Include="SAPFile.h" />
     <ClInclude Include="SAPFileExportDialog.h" />
     <ClInclude Include="SAPFileExporter.h" />

@@ -2,13 +2,14 @@
 #include "SongContainer.h"
 
 #include "GuiHelpers.h"
+#include "RuntimeException.h"
 
 CSongContainer::CSongContainer(CSong& song) {
     m_song = &song;
     m_pokeyStreamReady = false;
 
     if (m_song->GetPlayMode() != PLAY_STOP) {
-        AfxThrowInvalidArgException();
+        ThrowRuntimeException("Song is not in play mode \"STOPPED\".");
     }
 }
 

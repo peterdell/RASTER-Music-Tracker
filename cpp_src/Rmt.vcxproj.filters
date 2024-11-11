@@ -228,6 +228,9 @@
     <ClCompile Include="WaveFileExporter.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\WAV</Filter>
     </ClCompile>
+    <ClCompile Include="RuntimeException.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
@@ -382,6 +385,9 @@
     </ClInclude>
     <ClInclude Include="WaveFileExporter.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\WAV</Filter>
+    </ClInclude>
+    <ClInclude Include="RuntimeException.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
