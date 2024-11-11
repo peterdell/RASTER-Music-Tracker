@@ -76,6 +76,8 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
         frames++;
     }
 
+    SetChannelOnOff(-1, 0);	// Mute all channels
+
     // Finished doing WAV things...
     wavefile.CloseFile();
 

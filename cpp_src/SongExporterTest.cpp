@@ -6,6 +6,16 @@
 
 #include "SongExport.h"
 
+#include "XPokey.h"
+#include "Atari6502.h"
+
+#include "Global.h"
+
+extern CXPokey g_Pokey;
+extern byte g_atarimem[ATARI_RAM_SIZE];
+
+
+
 void AssertTrue(bool actual) {
     if (actual != true) {
         exit(1);
@@ -41,12 +51,14 @@ void CSongExporterTest::Test(CSong& song) {
 
     CString outFolderName = "C:\\Users\\JAC\\Desktop\\ASMA-Input\\out";
 
+    CString outFilePath;
     std::ofstream os;
     //outFilePath = outFolderName + SEPARATOR + "-Compact.lzss";
     //std::ofstream os(outFilePath);
     //songExporter.ExportCompactLZSS(song, os, outFilePath);
     CString outFilePathPrefix = outFolderName + SEPARATOR + outFileName;
-    CString outFilePath = outFilePathPrefix + ".lzss";
+
+    outFilePath = outFilePathPrefix + ".lzss";
     os.open(outFilePath, std::ofstream::binary);
     songExporter.ExportLZSS(CSongExport(songContainer, outFilePath), os);
     os.close();
@@ -61,10 +73,10 @@ void CSongExporterTest::Test(CSong& song) {
     songExporter.ExportSAP_R(CSongExport(songContainer, outFilePath), os);
     os.close();
 
-    // TODO: Export WAV
+    // TODO: Make it work for WAV
     outFilePath = outFilePathPrefix + ".wav";
     os.open(outFilePath, std::ofstream::binary);
-    //songExporter.ExportWAV(CSongExport(songContainer, outFilePath), os);
+    songExporter.ExportWAV(CSongExport(songContainer, outFilePath), os, g_Pokey, g_atarimem);
     os.close();
 
     outFilePath = outFilePathPrefix + "-LZSS.xex";
