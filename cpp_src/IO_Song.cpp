@@ -123,8 +123,13 @@ BOOL CSong::AtaToSong(unsigned char* sour, int len, int adr)
 /// </summary>
 void CSong::FileReload()
 {
-    if (!FileCanBeReloaded()) return;
-    //Stop();
+    if (!FileCanBeReloaded())
+    {
+        return;
+    }
+    
+    // Stop the music first
+    Stop();
     int answer = MessageBox(g_hwnd, "Discard all changes since your last save?\n\nWarning: Undo operation won't be possible!!!", "Reload", MB_YESNOCANCEL | MB_ICONQUESTION);
     if (answer == IDYES)
     {
@@ -141,7 +146,7 @@ void CSong::FileReload()
 void CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
 {
     // Stop the music first
-    //Stop();
+    Stop();
 
     if (warnOfUnsavedChanges && WarnUnsavedChanges()) return;
 
@@ -247,7 +252,7 @@ void CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
 void CSong::FileSave()
 {
     // Stop the music first
-    //Stop();
+    Stop();
 
     // If the song has no filename, prompt the "save as" dialog first
     if (m_filename.IsEmpty() || m_filetype == IOTYPE_NONE)
@@ -310,7 +315,7 @@ void CSong::FileSave()
 void CSong::FileSaveAs()
 {
     // Stop the music first
-    //Stop();
+    Stop();
 
     CFileDialog dlg(FALSE,
         NULL,
@@ -393,7 +398,7 @@ void CSong::FileSaveAs()
 void CSong::FileNew()
 {
     // Stop the music first
-    //Stop();
+    Stop();
 
     //if the last changes were not saved, nothing will be created
     if (WarnUnsavedChanges()) return;
@@ -430,7 +435,7 @@ void CSong::FileImport()
     static int l_lastImportTypeIndex = -1;		// Save the import setting for the next import so that the pre-selected type is preselected
 
     // Stop the music first
-    //Stop();
+    Stop();
 
     if (WarnUnsavedChanges()) return;
 
@@ -626,7 +631,7 @@ void CSong::FileExportAs()
 void CSong::FileInstrumentSave()
 {
     // Stop the music first
-    //Stop();
+    Stop();
 
     CFileDialog dlg(FALSE,
         NULL,
@@ -668,7 +673,7 @@ void CSong::FileInstrumentSave()
 void CSong::FileInstrumentLoad()
 {
     // Stop the music first
-    //Stop();
+    Stop();
 
     CFileDialog dlg(TRUE,
         NULL,
@@ -717,7 +722,7 @@ void CSong::FileTrackSave()
     if (track < 0 || track >= TRACKSNUM) return;
 
     // Stop the music first
-    //Stop();
+    Stop();
 
     CFileDialog dlg(FALSE,
         NULL,
@@ -762,7 +767,7 @@ void CSong::FileTrackLoad()
     if (track < 0 || track >= TRACKSNUM) return;
 
     // Stop the music first
-    //Stop();
+    Stop();
 
     CFileDialog dlg(TRUE,
         NULL,

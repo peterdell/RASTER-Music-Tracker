@@ -1565,7 +1565,8 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         break;
 
     case VK_ESCAPE:
-        g_Song.Stop();	//stops everything
+        // Stop the music
+        g_Song.Stop();
         if (g_keyboard_escresetatarisound)
         {
             CAtari::InitRMTRoutine(); //reset RMT routines automatically
@@ -2193,8 +2194,9 @@ void CRmtView::OnPlay3()
 
 void CRmtView::OnPlaystop()
 {
-    g_Song.Stop();	//stops everything
-    if (g_Song.GetPlayMode() == 0) //only if the module is stopped
+    // Stop the music
+    g_Song.Stop();
+    if (g_Song.GetPlayMode() == PlayMode::PLAY_STOP) //only if the module is stopped
     {
         g_playtime = 0;
         //DrawPlaytimecounter();
@@ -2824,7 +2826,8 @@ void CRmtView::OnSongSongchangemaximallengthoftracks()
 
 void CRmtView::OnSongSearchandrebuildloopsinalltracks()
 {
-    g_Song.Stop();	//stop music
+    // Stop the music first
+    g_Song.Stop();
 
     int r = MessageBox("Are you sure you want to search and rebuild wise loops in all tracks?", "Search and rebuild loops", MB_YESNOCANCEL | MB_ICONEXCLAMATION);
     if (r != IDYES) return;
@@ -2844,7 +2847,8 @@ void CRmtView::OnSongSearchandrebuildloopsinalltracks()
 
 void CRmtView::OnSongExpandloopsinalltracks()
 {
-    g_Song.Stop();	//stop music
+    // Stop the music first
+    g_Song.Stop();
 
     int r = MessageBox("Are you sure you want to expand loops in all tracks?", "Expand loops", MB_YESNOCANCEL | MB_ICONEXCLAMATION);
     if (r != IDYES) return;

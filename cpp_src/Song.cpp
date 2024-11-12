@@ -2441,7 +2441,8 @@ void CSong::SongClearLine()
 
 void CSong::TracksOrderChange()
 {
-    Stop();	//stop the sound first
+    // Stop the sound first
+    Stop();	
     CSongTracksOrderDlg dlg;
     dlg.m_songlinefrom.Format("%02X", m_TracksOrderChange_songlinefrom);
     dlg.m_songlineto.Format("%02X", m_TracksOrderChange_songlineto);
@@ -2494,7 +2495,8 @@ void CSong::TracksOrderChange()
 
 void CSong::Songswitch4_8(int tracks4_8)
 {
-    Stop();	//stop the sound first
+    // Stop the music first
+    Stop();
 
     CString wrn = "Warning: Undo operation won't be possible!!!\n";
     int i, j;
@@ -2613,7 +2615,8 @@ void CSong::ChangeMaxtracklen(int maxtracklen)
 
 void CSong::TracksAllBuildLoops(int& tracksmodified, int& beatsreduced)
 {
-    Stop(); //stop the sound first
+    // Stop the music first
+    Stop();
 
     int i;
     int p = 0, u = 0;
@@ -2628,7 +2631,8 @@ void CSong::TracksAllBuildLoops(int& tracksmodified, int& beatsreduced)
 
 void CSong::TracksAllExpandLoops(int& tracksmodified, int& loopsexpanded)
 {
-    Stop(); //stop the sound first
+    // Stop the music first
+    Stop();
 
     int i;
     int p = 0, u = 0;
