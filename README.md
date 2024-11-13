@@ -19,7 +19,7 @@ It is the continuation of the original version 1.28 of RMT by Radek Sterba.
 The following versions are available for download
 - [Latest daily build of 1.34.1 (constantly updated)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.1-daily.zip)
 - [Stable version 1.34.0 (2023-03-10)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.0.2023-03-10.zip)
-- [Stable verison 1.28 (2009-05-19)](http://raster.infos.cz/atari/rmt/rmt128.zip)
+- [Stable verison 1.28 (2009-05-19)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt128.zip)
 
 Please send your feedback about the daily version via on of the following channels:
 - [Personal message](https://forums.atariage.com/messenger/compose/?to=17404) on AtariAge or post in the [AtariAge thread](https://forums.atariage.com/topic/328790-release-raster-music-tracker-v13400)
