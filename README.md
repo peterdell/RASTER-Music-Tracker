@@ -25,6 +25,14 @@ Please send your feedback about the daily version via on of the following channe
 - [Personal message](https://forums.atariage.com/messenger/compose/?to=17404) on AtariAge or post in the [AtariAge thread](https://forums.atariage.com/topic/328790-release-raster-music-tracker-v13400)
 - E-mail to jac at wudsn.com
 
+### Known Issues:
+There are no more changed to the stable version. If you find and issue in
+a stable version, please test the daily version to see if the issue is already fixed.
+
+The following issues are already known in the daily version
+- Export as SAP Type C generates and invalid file
+- Export as WAV does not work yet
+
 ### Disclaimer:
 
 THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND.
