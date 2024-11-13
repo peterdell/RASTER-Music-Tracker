@@ -87,8 +87,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
     <CodeAnalysisRuleAssemblies />
-    <OutDir>.\out\Release64\</OutDir>
-    <IntDir>.\out\Release64\</IntDir>
+    <OutDir>.\out\Release64\output\</OutDir>
+    <IntDir>.\out\Release64\intermediate\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>.\out\Debug\</OutDir>
@@ -103,8 +103,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
     <CodeAnalysisRuleAssemblies />
-    <OutDir>.\out\Debug64\</OutDir>
-    <IntDir>.\out\Debug64\</IntDir>
+    <OutDir>.\out\Debug64\output\</OutDir>
+    <IntDir>.\out\Debug64\intermediate\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -117,7 +117,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>.\out\Release\Rmt.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\out\Release\</AssemblerListingLocation>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <ObjectFileName>.\out\Release/</ObjectFileName>
       <ProgramDataBaseFileName>.\out\Release\Rmt.pdb</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
@@ -129,9 +129,10 @@
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <IncludeInUnityFile>false</IncludeInUnityFile>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <CombineFilesOnlyFromTheSameFolder>true</CombineFilesOnlyFromTheSameFolder>
     </ClCompile>
     <Link>
       <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
@@ -169,10 +170,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>.\out\Release64\Rmt.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\out\Release64\</AssemblerListingLocation>
-      <ObjectFileName>.\out\Release64\</ObjectFileName>
-      <ProgramDataBaseFileName>.\out\Release64\Rmt.pdb</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>$(IntDir)Rmt.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)Rmt.pdb</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -185,12 +186,13 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <CombineFilesOnlyFromTheSameFolder>true</CombineFilesOnlyFromTheSameFolder>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dsound.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\out\Release64\Rmt.exe</OutputFile>
+      <OutputFile>$(OutDir)Rmt.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>.\out\Release64\Rmt.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(IntDir)Rmt.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>false</OptimizeReferences>
@@ -257,10 +259,10 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>.\out\Debug64\Rmt.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\out\Debug64\</AssemblerListingLocation>
-      <ObjectFileName>.\out\Debug64\</ObjectFileName>
-      <ProgramDataBaseFileName>.\out\Debug64\Rmt.pdb</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>$(IntDir)Rmt.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)Rmt.pdb</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -273,9 +275,9 @@
       <AdditionalDependencies>dsound.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\out\Debug64\Rmt.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(IntDir)Rmt.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
-      <OutputFile>.\out\Debug64\Rmt.exe</OutputFile>
+      <OutputFile>$(OutDir)Rmt.exe</OutputFile>
     </Link>
     <Midl>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
