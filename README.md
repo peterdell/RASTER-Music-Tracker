@@ -1,16 +1,29 @@
 ************************************************************************
 RASTER MUSIC TRACKER - RMT\
 by Radek Sterba, Raster/C.P.U., 2002-2009\
-currently maintained by Vin Samuel, VinsCool, 2021-2022\
-http://raster.atari.org\
+currently maintained by Vin Samuel, VinsCool, 2021-2024\
+supported by Peter Dell, JAC! 2024
+Original website up to 2009 http://raster.infos.cz/atari/rmt/rmt.htm\
 ************************************************************************
 
 ### About:
 
 RASTER Music Tracker (RMT) is a cross-platform tool for making Atari XE/XL
-music on PC (OS Win9x). RMT uses  new Atari XE/XL music routines of my own
-- I developed them for a very long time and I hope it will be small
-revolution for all Atari musicians and fans. 
+music on a Windows PC. RMT uses the Atari XE/XL music routines created by
+Radek Sterba for a very long time and it was small revolution for all
+Atari musicians and fans.
+
+This repository is the latest development branch of the version 1.34 of RMT.
+It is the continuation of the original version 1.28 of RMT by Radek Sterba.
+
+The following versions are available for download
+- [Latest daily build of 1.34.1 (constantly updated)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.1-daily.zip)
+- [Stable version 1.34.0 (2023-03-10)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.0.2023-03-10.zip)
+- [Stable verison 1.28 (2009-05-19)](http://raster.infos.cz/atari/rmt/rmt128.zip)
+
+Please send your feedback about the daily version via on of the following channels:
+- [Personal message](https://forums.atariage.com/messenger/compose/?to=17404) on AtariAge or post in the [AtariAge thread](https://forums.atariage.com/topic/328790-release-raster-music-tracker-v13400)
+- E-mail to jac at wudsn.com
 
 ### Disclaimer:
 
@@ -92,14 +105,14 @@ or
 
 ### Greetings:
 
-Fox/Taquart (Thanks for XASM and ASAP - http://asap.sourceforge.net)<br>
+Fox/Taquart (Thanks for XASM and ASAP - https://asap.sourceforge.net)<br>
 Jaskier/Taquart (Thanks for TMC and a lot of RMT routine speed/size optimizations)\
 Tatqoo/Taquart\
 Sack/Cosine\
 X-ray/Grayscale\
 Greg/Grayscale\
 Bewu/Grayscale\
-PG (Thanks for ASMA - Atari SAP Music Archive - http://asma.atari.org)<br>
+PG (Thanks for ASMA - Atari SAP Music Archive - https://asma.atari.org)<br>
 Fandal\
 ZdenekB\
 KrupkaJ\
@@ -114,7 +127,7 @@ Kozyca\
 Born/LaResistance\
 Sal Esquivel\
 Nooly\
-All the active "Atariarea" Polish Atarians (http://atariarea.krap.pl)<br>
+All the active "Atariarea" Polish Atarians (https://atariarea.krap.pl)<br>
 ...and other 8bit Atarians all over the world! :-)
 
 TODO: Update README.md to reflect all the changes done since version 1.28
