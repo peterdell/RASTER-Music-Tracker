@@ -18,7 +18,7 @@ The following versions are available for download
 - [Stable version 1.34.0 (2023-03-10)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.0.2023-03-10.zip)
 - [Stable version 1.28 (2009-05-19)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt128.zip)
 
-Please send your feedback about the daily version via on of the following channels:
+Please send your feedback about the daily version via one of the following channels:
 - [Personal message](https://forums.atariage.com/messenger/compose/?to=17404) on AtariAge or post in the [AtariAge thread](https://forums.atariage.com/topic/328790-release-raster-music-tracker-v13400)
 - E-mail to jac at wudsn.com
 
