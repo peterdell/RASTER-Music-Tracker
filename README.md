@@ -10,10 +10,10 @@ music on a Windows PC. RMT uses the Atari XL/XE music routines created by
 Radek Sterba for a very long time and it was small revolution for all
 Atari musicians and fans.
 
-This fork is the latest development branch of the version 1.34 of RMT.
+This fork is the latest development branch of version 1.34 of RMT.
 It is the continuation of the original version 1.28 of RMT by Radek Sterba.
 
-The following versions are available for download
+The following versions are available for download:
 - [Latest daily build of 1.34.1 (constantly updated)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.1-daily.zip)
 - [Stable version 1.34.0 (2023-03-10)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.0.2023-03-10.zip)
 - [Stable version 1.28 (2009-05-19)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt128.zip)
