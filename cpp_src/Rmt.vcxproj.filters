@@ -58,6 +58,9 @@
     <Filter Include="Source Files\IO - Load/Save/Export/Import/Midi\WAV">
       <UniqueIdentifier>{9de91cbb-1979-4739-8ccd-6101139fe20c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Build Files">
+      <UniqueIdentifier>{0c367924-23ca-43f2-a797-c9940fbea59a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StdAfx.cpp">
@@ -444,6 +447,9 @@
     <None Include=".gitignore">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="..\build\build_rmt-daily.bat">
+      <Filter>Build Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="moduleformatdescription.txt" />
@@ -451,6 +457,9 @@
     <Text Include="todo eng.txt" />
     <Text Include="trackerdesign_x_uzsi.txt" />
     <Text Include="RMT CHANGES WIP.txt" />
+    <Text Include="..\build\build_rmt-daily-excluded-extensions.txt">
+      <Filter>Build Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="..\RMT\RMT Binaries\tracker.obx">

@@ -1,0 +1,9 @@
+.bsc
+.exp
+.ilk
+.ipdb
+.iobj
+.lastcodeanalysissucceeded
+.lib
+.obj
+.pdb
