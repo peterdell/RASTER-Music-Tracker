@@ -61,9 +61,6 @@
     <Filter Include="Copy to Build Folder\Windows DLLs">
       <UniqueIdentifier>{9e521c64-9211-4e40-96ac-ed69f9da032b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Copy to Build Folder\Windows DLLs\x86">
-      <UniqueIdentifier>{c1655ffe-96dc-4a52-963c-d6bbe0a03e3c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Copy to Build Folder\Windows DLLs\x64">
       <UniqueIdentifier>{2cb420b8-0b2e-4bd6-a7e5-992cd00cefcb}</UniqueIdentifier>
     </Filter>
@@ -453,11 +450,11 @@
     <None Include="res\cursorgo.cur">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include=".gitignore">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="..\build\build_rmt-daily.bat">
       <Filter>Build Files</Filter>
+    </None>
+    <None Include=".gitignore">
+      <Filter>Source Files\Common</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -471,12 +468,6 @@
     </CopyFileToFolders>
     <CopyFileToFolders Include="..\RMT\RMT Binaries\VUPlayer (LZSS Export).obx">
       <Filter>Copy to Build Folder\Atari Binaries</Filter>
-    </CopyFileToFolders>
-    <CopyFileToFolders Include="AltirraRMT\x86\sa_c6502.dll">
-      <Filter>Copy to Build Folder\Windows DLLs\x86</Filter>
-    </CopyFileToFolders>
-    <CopyFileToFolders Include="AltirraRMT\x86\sa_pokey.dll">
-      <Filter>Copy to Build Folder\Windows DLLs\x86</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="AltirraRMT\x64\sa_c6502.dll">
       <Filter>Copy to Build Folder\Windows DLLs\x64</Filter>
