@@ -22,9 +22,6 @@
     <Filter Include="Source Files\Sound Generator">
       <UniqueIdentifier>{973e7050-b72b-497e-bb78-59b87397d694}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\RMT Interface">
-      <UniqueIdentifier>{c90897da-fb9a-4282-a4d0-c209c89b0507}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\GUI">
       <UniqueIdentifier>{6d13bb44-b2a8-454f-9ab1-c071f6626923}</UniqueIdentifier>
     </Filter>
@@ -64,17 +61,20 @@
     <Filter Include="Copy to Build Folder\Windows DLLs">
       <UniqueIdentifier>{9e521c64-9211-4e40-96ac-ed69f9da032b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Copy to Build Folder\Windows DLLs\x86">
+      <UniqueIdentifier>{c1655ffe-96dc-4a52-963c-d6bbe0a03e3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Copy to Build Folder\Windows DLLs\x64">
+      <UniqueIdentifier>{2cb420b8-0b2e-4bd6-a7e5-992cd00cefcb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Common">
+      <UniqueIdentifier>{cf004ce9-d682-4d18-a119-a117e014b124}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI">
+      <UniqueIdentifier>{c90897da-fb9a-4282-a4d0-c209c89b0507}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="StdAfx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="r_music.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Global.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigDlg.cpp">
       <Filter>Source Files\Dialogs</Filter>
     </ClCompile>
@@ -103,19 +103,19 @@
       <Filter>Source Files\Sound Generator</Filter>
     </ClCompile>
     <ClCompile Include="Rmt.cpp">
-      <Filter>Source Files\RMT Interface</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClCompile>
     <ClCompile Include="RmtDoc.cpp">
-      <Filter>Source Files\RMT Interface</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClCompile>
     <ClCompile Include="RmtView.cpp">
-      <Filter>Source Files\RMT Interface</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClCompile>
     <ClCompile Include="Atari6502.cpp">
       <Filter>Source Files\Sound Generator</Filter>
     </ClCompile>
     <ClCompile Include="MainFrm.cpp">
-      <Filter>Source Files\RMT Interface</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClCompile>
     <ClCompile Include="Clipboard.cpp">
       <Filter>Source Files\Data</Filter>
@@ -217,10 +217,10 @@
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClCompile>
     <ClCompile Include="AboutDialog.cpp">
-      <Filter>Source Files\RMT Interface</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClCompile>
     <ClCompile Include="RmtCommandLineInfo.cpp">
-      <Filter>Source Files\RMT Interface</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClCompile>
     <ClCompile Include="SongExport.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
@@ -234,8 +234,14 @@
     <ClCompile Include="WaveFileExporter.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\WAV</Filter>
     </ClCompile>
+    <ClCompile Include="Global.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
     <ClCompile Include="RuntimeException.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files\Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -273,16 +279,16 @@
       <Filter>Source Files\Sound Generator</Filter>
     </ClInclude>
     <ClInclude Include="MainFrm.h">
-      <Filter>Source Files\RMT Interface</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="Rmt.h">
-      <Filter>Source Files\RMT Interface</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="RmtDoc.h">
-      <Filter>Source Files\RMT Interface</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="RmtView.h">
-      <Filter>Source Files\RMT Interface</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="Undo.h">
       <Filter>Source Files\Data</Filter>
@@ -299,9 +305,6 @@
     <ClInclude Include="Clipboard.h">
       <Filter>Source Files\Data</Filter>
     </ClInclude>
-    <ClInclude Include="Global.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="GuiHelpers.h">
       <Filter>Source Files\GUI</Filter>
     </ClInclude>
@@ -317,9 +320,6 @@
     <ClInclude Include="RmtMidi.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
-    <ClInclude Include="General.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="PokeyStream.h">
       <Filter>Source Files\Sound Generator</Filter>
     </ClInclude>
@@ -327,7 +327,7 @@
       <Filter>Source Files\Sound Generator</Filter>
     </ClInclude>
     <ClInclude Include="RmtFile.h">
-      <Filter>Source Files\RMT Interface</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="ExportDlgs.h">
       <Filter>Source Files\Dialogs</Filter>
@@ -375,10 +375,10 @@
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
     <ClInclude Include="AboutDialog.h">
-      <Filter>Source Files\RMT Interface</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="RmtCommandLineInfo.h">
-      <Filter>Source Files\RMT Interface</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="SongExport.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
@@ -394,6 +394,12 @@
     </ClInclude>
     <ClInclude Include="RuntimeException.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="General.h">
+      <Filter>Source Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Global.h">
+      <Filter>Source Files\Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -450,13 +456,14 @@
     <None Include=".gitignore">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="..\build\build_rmt-daily.bat">
+      <Filter>Build Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="moduleformatdescription.txt" />
-    <Text Include="rmt_format1x.txt" />
-    <Text Include="todo eng.txt" />
-    <Text Include="trackerdesign_x_uzsi.txt" />
-    <Text Include="RMT CHANGES WIP.txt" />
+    <Text Include="..\build\build_rmt-daily-excluded-extensions.txt">
+      <Filter>Build Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="..\RMT\RMT Binaries\tracker.obx">
@@ -466,21 +473,21 @@
       <Filter>Copy to Build Folder\Atari Binaries</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="AltirraRMT\x86\sa_c6502.dll">
-      <Filter>Copy to Build Folder</Filter>
-    </CopyFileToFolders>
-    <CopyFileToFolders Include="AltirraRMT\x64\sa_c6502.dll">
-      <Filter>Copy to Build Folder</Filter>
+      <Filter>Copy to Build Folder\Windows DLLs\x86</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="AltirraRMT\x86\sa_pokey.dll">
-      <Filter>Copy to Build Folder</Filter>
+      <Filter>Copy to Build Folder\Windows DLLs\x86</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="AltirraRMT\x64\sa_c6502.dll">
+      <Filter>Copy to Build Folder\Windows DLLs\x64</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="AltirraRMT\x64\sa_pokey.dll">
-      <Filter>Copy to Build Folder</Filter>
+      <Filter>Copy to Build Folder\Windows DLLs\x64</Filter>
     </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Rmt.rc">
-      <Filter>Source Files\RMT Interface</Filter>
+      <Filter>Source Files\UI</Filter>
     </ResourceCompile>
   </ItemGroup>
 </Project>
