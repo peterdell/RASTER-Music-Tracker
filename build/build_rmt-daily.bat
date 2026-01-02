@@ -1,4 +1,4 @@
-@echo on
+@echo off
 cd "%~dp0"
 
 set RELEASE=Rmt
@@ -9,7 +9,9 @@ set TARGET_DIR=%PRODUCTIONS%\windows\rastermusictracker
 set WINRAR=C:\jac\system\Windows\Tools\FIL\WinRAR\winrar
 set UPLOAD=%PRODUCTIONS%\www\site\export\upload.bat
 
-set MSBUILD="C:\Program Files\Microsoft Visual Studio\2022\Community\Msbuild\Current\Bin\MSBuild.exe"
+set MSBUILD="C:\Program Files\Microsoft Visual Studio\18\Community\Msbuild\Current\Bin\MSBuild.exe"
+if not exist %MSBUILD% goto :msbuild_missing_error
+
 REM When using the correct MSBUILD, no separate setting of target path seems to be required
 REM set VCTargetsPath="C:\Program Files\Microsoft Visual Studio\2022\Community\Msbuild\Microsoft\VC\v170"
 set SLN=%BASE_DIR%\%RELEASE%.sln
@@ -62,6 +64,9 @@ xcopy /E /Y  /EXCLUDE:build_rmt-daily-excluded-extensions.txt %OUTPUT_DIR%  %REL
 if exist %RELEASE_DIR%\%RELEASE%.ini del %RELEASE_DIR%\%RELEASE%.ini
 start %RELEASE_DIR%
 goto :eof
+
+:msbuild_missing_error
+echo ERROR: %MSBUILD% not present.
 
 :error
 echo ERROR: See error messages above.
