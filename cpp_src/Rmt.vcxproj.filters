@@ -16,9 +16,6 @@
     <Filter Include="Copy to Build Folder">
       <UniqueIdentifier>{58195311-11eb-48ee-aea7-c95cae22689d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Copy to Build Folder\RMT Binaries">
-      <UniqueIdentifier>{a2f10bad-f640-4755-9632-a9eee2b9728d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Tuning">
       <UniqueIdentifier>{4c4d791e-b9e3-49ec-ba38-fb7c8e30b9b4}</UniqueIdentifier>
     </Filter>
@@ -60,6 +57,12 @@
     </Filter>
     <Filter Include="Build Files">
       <UniqueIdentifier>{0c367924-23ca-43f2-a797-c9940fbea59a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Copy to Build Folder\Atari Binaries">
+      <UniqueIdentifier>{a2f10bad-f640-4755-9632-a9eee2b9728d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Copy to Build Folder\Windows DLLs">
+      <UniqueIdentifier>{9e521c64-9211-4e40-96ac-ed69f9da032b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -447,9 +450,6 @@
     <None Include=".gitignore">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="..\build\build_rmt-daily.bat">
-      <Filter>Build Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="moduleformatdescription.txt" />
@@ -457,16 +457,13 @@
     <Text Include="todo eng.txt" />
     <Text Include="trackerdesign_x_uzsi.txt" />
     <Text Include="RMT CHANGES WIP.txt" />
-    <Text Include="..\build\build_rmt-daily-excluded-extensions.txt">
-      <Filter>Build Files</Filter>
-    </Text>
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="..\RMT\RMT Binaries\tracker.obx">
-      <Filter>Copy to Build Folder\RMT Binaries</Filter>
+      <Filter>Copy to Build Folder\Atari Binaries</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="..\RMT\RMT Binaries\VUPlayer (LZSS Export).obx">
-      <Filter>Copy to Build Folder\RMT Binaries</Filter>
+      <Filter>Copy to Build Folder\Atari Binaries</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="AltirraRMT\x86\sa_c6502.dll">
       <Filter>Copy to Build Folder</Filter>
