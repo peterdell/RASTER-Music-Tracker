@@ -2,7 +2,7 @@
 cd "%~dp0"
 
 set RELEASE=Rmt
-set BASE_DIR=C:\jac\system\Windows\Programming\Repositories\RASTER-Music-Tracker\cpp_src
+set BASE_DIR=C:\jac\system\Windows\Programming\Repositories\RASTER-Music-Tracker
 
 set PRODUCTIONS=C:\jac\system\WWW\Sites\www.wudsn.com\productions
 set TARGET_DIR=%PRODUCTIONS%\windows\rastermusictracker
@@ -20,10 +20,10 @@ rmdir /S /Q %RELEASE_BASE_DIR%
 mkdir %RELEASE_BASE_DIR%
 
 set CONFIGURATION=Debug
-set CONFIGURATION_DIR=%CONFIGURATION%64
+set CONFIGURATION_DIR=%CONFIGURATION%
 call :build_configuration
 set CONFIGURATION=Release
-set CONFIGURATION_DIR=%CONFIGURATION%64
+set CONFIGURATION_DIR=%CONFIGURATION%
 call :build_configuration
 
 call :upload

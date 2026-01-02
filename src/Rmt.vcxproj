@@ -87,8 +87,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
     <CodeAnalysisRuleAssemblies />
-    <OutDir>.\out\Release64\output\</OutDir>
-    <IntDir>.\out\Release64\intermediate\</IntDir>
+    <OutDir>$(SolutionDir)out\Release\output\</OutDir>
+    <IntDir>$(SolutionDir)out\Release\intermediate\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>.\out\Debug\</OutDir>
@@ -103,8 +103,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
     <CodeAnalysisRuleAssemblies />
-    <OutDir>.\out\Debug64\output\</OutDir>
-    <IntDir>.\out\Debug64\intermediate\</IntDir>
+    <OutDir>$(SolutionDir)out\Debug\output\</OutDir>
+    <IntDir>$(SolutionDir)out\Debug\intermediate\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
