@@ -2,11 +2,12 @@
 RASTER MUSIC TRACKER - RMT
 by Radek Sterba, Raster/C.P.U., 2002-2009
 currently maintained by Vin Samuel, VinsCool, 2021-2022
-http://raster.atari.org
+New https://github.com/raster-atari-org/RASTER-Music-Tracker
+Old http://raster.atari.org
 ************************************************************************
 
 Changes in RMT 1.34.00 
--------------------
+----------------------
 - RASTER MUSIC TRACKER is now Open Source! Thanks to everyone who made this possible!
 - Rewrote all of the RMT Export code, for proper SAP-R and LZSS export formats support
 - Fixed a lot of bugs missed in the previous release
@@ -19,7 +20,7 @@ Changes in RMT 1.34.00
 
 
 Changes in RMT 1.33.00 BETA
--------------------
+---------------------------
 - THIS VERSION IS A MESS, AND AS SUCH, DOES NOT REFLECT THE GOALS THAT WERE SET FOR RELEASE!
 - Add full Tuning computation code, borrowed from POKEY Frequencies Calculator by VinsCool (https://github.com/VinsCool/POKEY-Frequencies-Calculator).
 - Early SAP-R Dump and LZSS export capabilities, hardcoded and junk implementation, good as a proof of concept ONLY.
@@ -28,15 +29,15 @@ Changes in RMT 1.33.00 BETA
 
 
 Changes in RMT 1.32.07
--------------------
+----------------------
 - Cleanups, and lots of under the hood work for the future releases
 
 
 Changes in RMT 1.32.06
--------------------
+----------------------
 - Added a new tracker.obx function, where the driver version is written in plaintext, and then displayed in the About dialog. This is purely cosmetic, otherwise, there is no difference.
-- Make the XEX export format have the colour shuffling optional.
-- Also make sure the SAP exports skip the colour shuffling instructions, since both export formats use the same player binaries.
+- Make the XEX export format have the color shuffling optional.
+- Also make sure the SAP exports skip the color shuffling instructions, since both export formats use the same player binaries.
 - Added an option for XEX exports to enable or disable the automatic region detection, in case a particular setup may work incorrectly with it.
 - Fixed a bug related to scaling, causing the output to have choppy appearance due to incorrectly having set the boundaries of the display to draw every frame. Now it's a smooth display!
 - Improved the PAL/NTSC detection code in the exports player (thanks pps for the sample code I used as a reference!).
@@ -44,20 +45,20 @@ Changes in RMT 1.32.06
 
 
 Changes in RMT 1.32.05
--------------------
+----------------------
 - Added scaling support. 100% to 300% There is no filtering yet, only integer multiple of 100% will look pixel perfect.
 
 
 Changes in RMT 1.32.04
--------------------
+----------------------
 - Re-introduced the Distortion 6 BASS16 code in RMT, with updated description. You can also set the Distortion used for it with CMD6. $0Y = Distortion
 - Small update on Distortions and Commands description, Added infos for new BASS16 CMD6 code, as well as Distortion A Sawtooth mode using AUTOFILTER + CH1+3 1.79mhz mode.
 
 
 Changes in RMT 1.32.03
--------------------
+----------------------
 - Tweaked the "Go to line: XX" appearance by moving it a few tiles to the left, in order to mask the line number. This may help reduce the number accidental recursive GOTOs when they are edited
-- Also changed the GOTO colours so only the number colour will be changed when highlighted. The number will be white by default
+- Also changed the GOTO colors so only the number color will be changed when highlighted. The number will be white by default
 - Added a line separating the Left/Right tracks in the SONG block, making it easier to identify which channels belong to which side
 - Small improvement to make the "Go to line" on tracks more appealing visually: highlight the number when the cursor is actually active in tracks, and keep the "Go to line" text more visible as well.
 - Set the cursor position on the Volume envelope by default for instruments, to avoid accidentally overwriting the name when cycling through instruments (thanks PG for the suggestion!)
@@ -66,26 +67,26 @@ Changes in RMT 1.32.03
 
 
 Changes in RMT 1.32.02
--------------------
+----------------------
 - Fixed a bug when playing a song with follow cursor enabled would always switch back to "play from current position" mode even if the mode was set to "track loop"
 - Fixed a memory leak caused by the 16-bit frequencies calculations, which lead to a chance out of 2 to cause a crash when RMT is being executed
 - Changed the empty tracks appearance from a single dash per row to a dotted pattern identical to tracks with data into them (thanks zaxolotl for the suggestion!)
 
 
 Changes in RMT 1.32.01
--------------------
+----------------------
 - Added 16-bit pitch accuracy frequencies display for Distortion 2, A, C and E (C table 2)
 - Added Sawtooth pitch frequencies display, as well as if the waveform is inverted by swapping the CH1 and CH3 values
 
 Changes in RMT 1.32.00
--------------------
+----------------------
 - Updated the driver binaries to a newer and better WIP version, including export binaries. Work in progress ASM code is also included. Beware, it is messy...
 - Bump the version number to 1.32 since the driver update is a major change, and numerous fixes will be done since the last 1.31 revision
 - Clearly show the exact version number, since RMT may be updated pretty often, without really being warrant of a major release... Like this one for example :P
 
 
 Changes in RMT 1.31.22
--------------------
+----------------------
 - Tweak the NTSC timing hack, should be a little closer to the actual thing now
 - Fix the step size of 0 to force a movement of 1 when movement keys are used, to prevent getting stuck (thanks Ravancloak for pointing this out!)
 - Force a .ini file write if no config is found when RMT.exe is launched, setting the default configuration (thanks again Ravancloak!)
@@ -93,7 +94,7 @@ Changes in RMT 1.31.22
 
 
 Changes in RMT 1.31.21 (VinsCool's version, first public release)
--------------------
+----------------------
 
 --- The story begins around the month of June 2021 ---
 
@@ -138,13 +139,13 @@ At that point, I had simply called this fork "RMT 1.29+Patch16", because of how 
 - Add the ability to either set a song bookmark, or remove it. Shortcut using it would either play from set bookmark, or from cursor position when unset. Bookmarks used to stay for as long as the module was edited
 - Cursor follow during play is now toggled with the F12 key, and playing from one of the shortcuts (now F5, F6 and F7) will not overwrite it, but instead make use of either case, making the overall interface less awkward when it's playing
 - Reset the entire sound process (including reloading the .dll plugin) with a SHIFT+ESC combo, helps removing stutters or crackling in some cases
-- Fix a small visual bug related to the colours displayed, which caused conflicts with certain colours used together, and added a case for either being in JAM or EDIT mode when necessary
+- Fix a small visual bug related to the colors displayed, which caused conflicts with certain colors used together, and added a case for either being in JAM or EDIT mode when necessary
 - JAM mode is toggled with CTRL+SPACE, the other SPACE shortcuts were removed (since other, better ways to stop the sounds exist anyway)
 - Instruments and song infos can now all be edited in Jam mode, leaving the Tracks and Song blocks the only ones which will be in live test mode.
-- Permanently display what mode is being used (EDIT, JAM (MONO) and JAM (STEREO)), with matching colour palettes (still in progress)
+- Permanently display what mode is being used (EDIT, JAM (MONO) and JAM (STEREO)), with matching color palettes (still in progress)
 - Display Two-Tone Filter, requires the Altirra plugins for proper functionality 
 - PAL/NTSC display in the info area, toggle in-tracker using CTRL+F12
-- Colours fix in the UI
+- Colors fix in the UI
 - New font by PG
 - Fix the SONG block size, as well as its clickable area, and the offset related to it so the currently playing line is centered too
 - Add a PAL/NTSC toggle from a mouse click in the text area associated to it, behaviour is identical to CTRL+F12 when it's executed
@@ -168,7 +169,7 @@ A lot of his changes helped me a lot to get unstuck on a bunch of things I was u
 - Add MinMaxInfo calls for the minimal window sizes, independantly from 1.30's code changes since I took a different approach for it
 - Display notes as Flats or Sharps (also saved in rmt.ini)
 - Add a toggle for notes to display German Notation, basically B notes as H instead, etc (thanks PG for the idea)
-- Change the highlight colours to a more uniform display, design is still not definitive
+- Change the highlight colors to a more uniform display, design is still not definitive
 - Replace the text "Flat or Sharp notes" to "accidentals", being the proper musical term. Thanks to Enderdude for the information!
 - Edit the configuration dialog window to make options a little less ambiguous, also re-arrange the elements a little bit
 - Small code cleanup, now that most things merged recently (1.29, 1.30 and my own experiments) appear to work properly, few 1.30 additions were purposefully omitted for the time being, since a different approach was being taken
@@ -189,17 +190,17 @@ A lot of his changes helped me a lot to get unstuck on a bunch of things I was u
 - Make sure the selection block cursor won't cross pattern boundaries, fixing both a graphical bug and the awkward block selection behaviour where it would also overflow into the next/previous pattern
 - Allow tracks to be navigated with LEFT and RIGHT keys seamlessly, making all Tracks columns (Note, Instrument, Volume and Speed) accessible unconditionally
 - Force the Instrument column to insert a note if the note keys are used on empty rows, effectively making it behave the same as the Note column. Will use the original instrument number function otherwise
-- Two-Tone Filter can now display its volume output in a unique colour, final design to decide later
+- Two-Tone Filter can now display its volume output in a unique color, final design to decide later
 - Replace the "." character in empty tracks to "-" for making it easier to visually know where the active line is
-- Fix the "now playing" yellow colour to only display on the proper song line, and not when the same patterns are used elsewhere
+- Fix the "now playing" yellow color to only display on the proper song line, and not when the same patterns are used elsewhere
 - Fix the newer TRACKS UI blocks position
 - Tweak the UI elements a bit to allow larger tracks, making Speed columns their own spot and also did preliminary work on implementing more complex functions in tracks
 - Add preleminary support for sa_pokey.dll PAL/NTSC toggle, sending the accurate CPU clock values between each cases
 - Fix the X coorfinates in TRACKS hitbox, everything else works as expected
 - Adjust the minimal window size to accomodate the new TRACKS UI dimensions
-- Preliminary new colours and themeing (thanks PG for the help and suggestions!)
-- 256 colours bitmap support
-- Tweak the DrawAnalyser() function in order to draw the mute/shadow/full volume bars with unique colours matching the background
+- Preliminary new colors and themeing (thanks PG for the help and suggestions!)
+- 256 colors bitmap support
+- Tweak the DrawAnalyser() function in order to draw the mute/shadow/full volume bars with unique colors matching the background
 - Highlight GOTO lines in the SONG block to make them easier to see (thanks PG for the idea!)
 - Fix the config dialog update to not reset the sound routine if no region setting was changed, same for the HW/SW Soundbuffer setting. This was an oversight by Vin, oops
 - Move the SONG block depending on the window size. This was the last 1.30 feature that was not backported yet since I took a different approach with the offset displacement handler
