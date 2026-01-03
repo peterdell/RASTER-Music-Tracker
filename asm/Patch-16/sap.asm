@@ -1,12 +1,12 @@
 ;***************************************************************************************************************;
 ;* Simple RMT2SAP Creator                                                                                      *;
 ;* By VinsCool, 05-10-2021                                                                                     *;
-;* Based on the SAP specs listed at http://asap.sourceforge.net/sap-format.html                                *;
+;* Based on the SAP specs listed at https://asap.sourceforge.net/sap-format.html                               *;
 ;*                                                                                                             *;
 ;* Include with Simple RMT Player (dasmplayer.asm) to export .sap files instead of Atari executables (.obx)    *;
-;* Edit the text with the infos you want, a maximum of 120 characters per argument is supported                *;
+;* Edit the text with the information you want, a maximum of 120 characters per argument is supported          *;
 ;* Use "<?>" for unknown values, although this is entirely optional, it's simply for the SAP format convention *;
-;* SPACING is the CR/LF (Carriage Return, Line Feed) word, simply put this between each argument               *;
+;* SPACING is the CR/LF (Carriage Return, Line Feed) word, merely put this between each argument               *;
 ;***************************************************************************************************************;
 	
 SPACING	equ $0A0D
@@ -58,8 +58,8 @@ FASTPLAY
 	;dta c"312"		; must be manually edited for now. 312 for PAL 50hz and 262 for NTSC 60hz are most common
 	;dta a(SPACING)
 	
-INIT	dta c"INIT "		; SAP init address, very important to have set up correctly or else bad things happen
-	dta c"3E00"		; the same address used for Simple RMT Player because why not
+INIT	dta c"INIT "		; SAP init address, very important to have set up correctly, or else bad things happen
+	dta c"3E00"		; the same address used for Simple RMT Player, because why not
 	dta a(SPACING)
 	
 PLAYER_	dta c"PLAYER "		; rmtplay jump address
