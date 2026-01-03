@@ -20,10 +20,8 @@ rmdir /S /Q %RELEASE_BASE_DIR%
 mkdir %RELEASE_BASE_DIR%
 
 set CONFIGURATION=Debug
-set CONFIGURATION_DIR=%CONFIGURATION%
 call :build_configuration
 set CONFIGURATION=Release
-set CONFIGURATION_DIR=%CONFIGURATION%
 call :build_configuration
 
 call :upload
@@ -32,11 +30,13 @@ pause
 goto :eof
 
 :build_configuration
+set CONFIGURATION_DIR=%CONFIGURATION%
 set OUTPUT_DIR=%BASE_DIR%\out\%CONFIGURATION_DIR%\output
-if exist %OUTPUT_DIR%\%RELEASE%.exe del %OUTPUT_DIR%\%RELEASE%.exe
+set RESULT_EXE=%OUTPUT_DIR%\%RELEASE%.exe
+echo INFO: Buidling %RESULT_EXE% for configuration %CONFIGURATION%.
+if exist %RESULT_EXE% del %RESULT_EXE%
 %MSBUILD% %SLN% /property:Configuration=%CONFIGURATION% -fl -flp:logfile=%OUTPUT_DIR%\msbuild.log
-echo Hallo!
-if not exist %OUTPUT_DIR%\%RELEASE%.exe goto :error
+if not exist %RESULT_EXE% goto :build_failed_error
 echo Knallo!
 
 call :copy_output
@@ -67,6 +67,10 @@ goto :eof
 
 :msbuild_missing_error
 echo ERROR: %MSBUILD% not present.
+goto :error
+
+:build_failed_error
+echo ERROR: %RESULT_EXE% was not created.
 
 :error
 echo ERROR: See error messages above.
