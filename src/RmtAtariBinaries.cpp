@@ -2,9 +2,9 @@
 #include "RmtAtariBinaries.h"
 
 
-// RMT driver binaries will be defined here, as well as much of the export binaries when possible
-// This is an experimental implementation made for the sake of additional RMT modules compatibility
-// Since there are several patches that have come to be, this may be enough for making everyone happy
+// RMT driver binaries will be defined here, as well as much of the export binaries when possible.
+// This is an experimental implementation made for the sake of additional RMT modules compatibility.
+// Since there are several patches that have come to be, this may be enough for making everyone happy.
 
 #pragma once
 
@@ -1151,7 +1151,7 @@ unsigned char tracker_PatchPoP[] =
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-// VUPlayer-LZSS by VinsCool
+// VUPlayer-LZSS V2.0 by VinsCool
 // Current XEX export format for the LZSS driver
 unsigned char export_VUPlayer_LZSS[] =
 {
