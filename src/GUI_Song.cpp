@@ -19,6 +19,8 @@
 #include "Keyboard2NoteMapping.h"
 #include "ChannelControl.h"
 
+#include "Rmt.h"
+
 extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 
@@ -91,7 +93,7 @@ void GetAtariMemHexStr(int adr, int len)
 
 void CSong::SetRMTTitle()
 {
-    CString s, s1, s2;
+    CString s, s1;
     if (m_filename == "")
     {
         if (g_changes)
@@ -99,10 +101,9 @@ void CSong::SetRMTTitle()
             s = "Noname *";
         }
         else
-        {	//RMT version number and author 
+        {	// RMT version number and build date 
             s1.LoadString(IDS_RMTVERSION);
-            s2.LoadString(IDS_RMTAUTHOR);
-            s.Format("%s, %s", s1, s2);
+            s.Format("%s (%s %s)", s1,  __DATE__, __TIME__);
         }
     }
     else
