@@ -1,11 +1,10 @@
-
+; ----------------------------------------------------------------------------
 ; Raster Music Tracker -- .rmt file format
 ;
 ; Reverse-Engineered by Ivo van Poorten, June 2012
-; Additional infos by VinsCool, February 2022
+; Additional info by VinsCool, February 2022
 ;
 ; Described in pseudo-assembly
-
 ; ----------------------------------------------------------------------------
 
 ; saved as a normal $ffff Atari file
@@ -18,8 +17,8 @@ header:
 song_info:
     .byte max_track_length	; maximal number of rows per track patterns, this could be exploited to change on the fly
     .byte song_speed		; default song speed value, which will be overwritten if a speed command is used in tracks
-    .byte instrument_speed	; xVBI speed, eg: 1 is 1xVBI, or once per frame. This is technically not limited, but a maximum of 16 is more than enough, else it will start to lag a lot
-    .byte module_version	; since no new version has been defined yet, this is always set to 1. If the version is not matching, RMT will return an error
+    .byte instrument_speed	; xVBI speed, e.g.: 1 is 1xVBI, or once per frame. This is technically not limited, but a maximum of 16 is more than enough, else it will start to lag a lot
+    .byte module_version	; since no new version has been defined yet, this is always set to 1. If the version does not match, RMT will return an error
 
 table_pointers:
     .word instrument_table
@@ -205,5 +204,5 @@ strings:
 ; LSB offset: AND with $C0 (%11000000), then write into nr
 ;
 ; The steps of $40 fit nicely into a division of 4, 64 possible values per subpage, and 4 subpages (tables) per page
-; Bits 5 and 4 currently have no purpose but they could have some cool features too
+; Bits 5 and 4 currently have no purpose, but they could have some cool features too
 
