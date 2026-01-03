@@ -55,9 +55,6 @@
     <Filter Include="Build Files">
       <UniqueIdentifier>{0c367924-23ca-43f2-a797-c9940fbea59a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Copy to Build Folder\Atari Binaries">
-      <UniqueIdentifier>{a2f10bad-f640-4755-9632-a9eee2b9728d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Copy to Build Folder\Windows DLLs">
       <UniqueIdentifier>{9e521c64-9211-4e40-96ac-ed69f9da032b}</UniqueIdentifier>
     </Filter>
@@ -463,16 +460,10 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <CopyFileToFolders Include="..\RMT\RMT Binaries\tracker.obx">
-      <Filter>Copy to Build Folder\Atari Binaries</Filter>
-    </CopyFileToFolders>
-    <CopyFileToFolders Include="..\RMT\RMT Binaries\VUPlayer (LZSS Export).obx">
-      <Filter>Copy to Build Folder\Atari Binaries</Filter>
-    </CopyFileToFolders>
-    <CopyFileToFolders Include="AltirraRMT\x64\sa_c6502.dll">
+    <CopyFileToFolders Include="..\lib\x64\sa_pokey.dll">
       <Filter>Copy to Build Folder\Windows DLLs\x64</Filter>
     </CopyFileToFolders>
-    <CopyFileToFolders Include="AltirraRMT\x64\sa_pokey.dll">
+    <CopyFileToFolders Include="..\lib\x64\sa_c6502.dll">
       <Filter>Copy to Build Folder\Windows DLLs\x64</Filter>
     </CopyFileToFolders>
   </ItemGroup>
