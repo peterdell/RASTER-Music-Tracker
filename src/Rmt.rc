@@ -57,34 +57,6 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// String Table
-//
-
-STRINGTABLE
-BEGIN
-    ID_BLOCK_VOLUMEUP       "Volume up\nVolume up"
-    ID_BLOCK_VOLUMEDOWN     "Volume down\nVolume down"
-    ID_BLOCK_INSTRLEFT      "Instrument number change\nChange instrument"
-    ID_BLOCK_INSTRRIGHT     "Instrument number change\nChange instrument"
-    ID_BLOCK_PLAY           "Play selected block\nPlay block"
-    ID_BLOCK_INSTRALL       "Block modification mode\nBlock mode"
-    ID_BLOCK_BACKUP         "Restore block from backup\nRestore block"
-END
-
-STRINGTABLE
-BEGIN
-    ID_BLOCK_NOTEUP         "Note transposition up\nTranspose up"
-    ID_BLOCK_NOTEDOWN       "Note transposition down\nTranspose down"
-END
-
-STRINGTABLE
-BEGIN
-    ID_BLOCK_EFFECT         "Effects/tools\nEffects/tools"
-END
-
 #endif    // Czech (Czech Republic) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -1504,6 +1476,8 @@ BEGIN
     ID_EM_INFO              "Move cursor to Info edit\nInfo edit"
     ID_EM_SONG              "Move cursor to song edit\nSong edit"
     ID_PROVEMODE            "Edit/Jam mode toggle\nJam mode"
+    ID_BLOCK_NOTEUP         "Note transposition up\nTranspose up"
+    ID_BLOCK_NOTEDOWN       "Note transposition down\nTranspose down"
 END
 
 STRINGTABLE
@@ -1514,6 +1488,7 @@ END
 
 STRINGTABLE
 BEGIN
+    ID_BLOCK_EFFECT         "Effects/tools\nEffects/tools"
     ID_FILE_IMPORT          "Import song from file"
 END
 
@@ -1528,6 +1503,17 @@ STRINGTABLE
 BEGIN
     ID_WANTEXIT             "Exit RMT"
     ID_VIEW_TUNING          "Display the tuning menu"
+END
+
+STRINGTABLE
+BEGIN
+    ID_BLOCK_VOLUMEUP       "Volume up\nVolume up"
+    ID_BLOCK_VOLUMEDOWN     "Volume down\nVolume down"
+    ID_BLOCK_INSTRLEFT      "Instrument number change\nChange instrument"
+    ID_BLOCK_INSTRRIGHT     "Instrument number change\nChange instrument"
+    ID_BLOCK_PLAY           "Play selected block\nPlay block"
+    ID_BLOCK_INSTRALL       "Block modification mode\nBlock mode"
+    ID_BLOCK_BACKUP         "Restore block from backup\nRestore block"
 END
 
 #endif    // English (United States) resources
