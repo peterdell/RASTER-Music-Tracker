@@ -60,6 +60,44 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    ID_BLOCK_VOLUMEUP       "Volume up\nVolume up"
+    ID_BLOCK_VOLUMEDOWN     "Volume down\nVolume down"
+    ID_BLOCK_INSTRLEFT      "Instrument number change\nChange instrument"
+    ID_BLOCK_INSTRRIGHT     "Instrument number change\nChange instrument"
+    ID_BLOCK_PLAY           "Play selected block\nPlay block"
+    ID_BLOCK_INSTRALL       "Block modification mode\nBlock mode"
+    ID_BLOCK_BACKUP         "Restore block from backup\nRestore block"
+END
+
+STRINGTABLE
+BEGIN
+    ID_BLOCK_NOTEUP         "Note transposition up\nTranspose up"
+    ID_BLOCK_NOTEDOWN       "Note transposition down\nTranspose down"
+END
+
+STRINGTABLE
+BEGIN
+    ID_BLOCK_EFFECT         "Effects/tools\nEffects/tools"
+END
+
+#endif    // Czech (Czech Republic) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // Bitmap
 //
 
@@ -70,6 +108,8 @@ IDR_TOOLBARPLAY         BITMAP                  "res\\toolbarp.bmp"
 IDR_TOOLBARBLOCK        BITMAP                  "res\\toolbar1.bmp"
 
 IDR_TOOLBARCHANNELS     BITMAP                  "res\\bmp00001.bmp"
+
+IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -113,6 +153,35 @@ BEGIN
     BUTTON      ID_CHAN6
     BUTTON      ID_CHAN7
     BUTTON      ID_CHAN8
+END
+
+IDR_MAINFRAME TOOLBAR 16, 15
+BEGIN
+    BUTTON      ID_FILE_NEW
+    BUTTON      ID_FILE_OPEN
+    BUTTON      ID_FILE_SAVE
+    BUTTON      ID_FILE_EXPORT_AS
+    SEPARATOR
+    BUTTON      ID_APP_ABOUT
+    SEPARATOR
+    BUTTON      ID_PLAY0
+    BUTTON      ID_PLAY1
+    BUTTON      ID_PLAY2
+    BUTTON      ID_PLAY3
+    BUTTON      ID_PLAYSTOP
+    SEPARATOR
+    BUTTON      ID_PLAYFOLLOW
+    SEPARATOR
+    BUTTON      ID_EM_TRACKS
+    BUTTON      ID_EM_INSTRUMENTS
+    BUTTON      ID_EM_INFO
+    BUTTON      ID_EM_SONG
+    SEPARATOR
+    BUTTON      ID_PROVEMODE
+    SEPARATOR
+    BUTTON      ID_MIDIONOFF
+    SEPARATOR
+    BUTTON      ID_BUTTONCOMBO1
 END
 
 
@@ -708,6 +777,24 @@ BEGIN
     LTEXT           "Assembler format:",IDC_STATIC,4,88,56,8
 END
 
+IDD_ABOUTBOX DIALOGEX 0, 0, 343, 216
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About Rmt"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,286,195,50,14,WS_GROUP
+    ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
+    LTEXT           "Sample RMT version",IDC_RMTVERSION,47,7,185,8,SS_NOPREFIX
+    LTEXT           "Sample RMT author",IDC_RMTAUTHOR,47,18,260,8
+    LTEXT           "http://raster.atari.org",IDC_STATIC,47,29,91,10
+    LTEXT           "Credits and greetings:",IDC_STATIC,7,43,329,8
+    EDITTEXT        IDC_CREDITS,7,52,329,46,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL
+    LTEXT           "External Pokey sound emulation provided by:",IDC_STATIC,7,104,329,8
+    EDITTEXT        IDC_ABOUTPOKEY,7,113,329,32,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
+    LTEXT           "External Atari 6502 processor emulation provided by:",IDC_STATIC,7,150,329,8
+    EDITTEXT        IDC_ABOUT6502,7,160,329,32,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -900,7 +987,11 @@ IDC_CURSORSETPOS        CURSOR                  "res\\cur00003.cur"
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\Rmt.ico"
+
 IDI_ICONEXCLAMATION     ICON                    "res\\icon1.ico"
+
+IDR_RMTTYPE             ICON                    "res\\RmtDoc.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1022,6 +1113,14 @@ BEGIN
         TOPMARGIN, 4
         BOTTOMMARGIN, 276
     END
+
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 336
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 209
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -1060,148 +1159,6 @@ IDD_EXPORT_STRIPPED_RMT AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// String Table
-//
-
-STRINGTABLE
-BEGIN
-    ID_BLOCK_VOLUMEUP       "Volume up\nVolume up"
-    ID_BLOCK_VOLUMEDOWN     "Volume down\nVolume down"
-    ID_BLOCK_INSTRLEFT      "Instrument number change\nChange instrument"
-    ID_BLOCK_INSTRRIGHT     "Instrument number change\nChange instrument"
-    ID_BLOCK_PLAY           "Play selected block\nPlay block"
-    ID_BLOCK_INSTRALL       "Block modification mode\nBlock mode"
-    ID_BLOCK_BACKUP         "Restore block from backup\nRestore block"
-END
-
-STRINGTABLE
-BEGIN
-    ID_BLOCK_NOTEUP         "Note transposition up\nTranspose up"
-    ID_BLOCK_NOTEDOWN       "Note transposition down\nTranspose down"
-END
-
-STRINGTABLE
-BEGIN
-    ID_BLOCK_EFFECT         "Effects/tools\nEffects/tools"
-END
-
-#endif    // Czech (Czech Republic) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Toolbar
-//
-
-IDR_MAINFRAME TOOLBAR 16, 15
-BEGIN
-    BUTTON      ID_FILE_NEW
-    BUTTON      ID_FILE_OPEN
-    BUTTON      ID_FILE_SAVE
-    BUTTON      ID_FILE_EXPORT_AS
-    SEPARATOR
-    BUTTON      ID_APP_ABOUT
-    SEPARATOR
-    BUTTON      ID_PLAY0
-    BUTTON      ID_PLAY1
-    BUTTON      ID_PLAY2
-    BUTTON      ID_PLAY3
-    BUTTON      ID_PLAYSTOP
-    SEPARATOR
-    BUTTON      ID_PLAYFOLLOW
-    SEPARATOR
-    BUTTON      ID_EM_TRACKS
-    BUTTON      ID_EM_INSTRUMENTS
-    BUTTON      ID_EM_INFO
-    BUTTON      ID_EM_SONG
-    SEPARATOR
-    BUTTON      ID_PROVEMODE
-    SEPARATOR
-    BUTTON      ID_MIDIONOFF
-    SEPARATOR
-    BUTTON      ID_BUTTONCOMBO1
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_ABOUTBOX DIALOGEX 0, 0, 343, 216
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "About Rmt"
-FONT 8, "MS Sans Serif", 0, 0, 0x0
-BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,286,195,50,14,WS_GROUP
-    ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
-    LTEXT           "Sample RMT version",IDC_RMTVERSION,47,7,185,8,SS_NOPREFIX
-    LTEXT           "Sample RMT author",IDC_RMTAUTHOR,47,18,260,8
-    LTEXT           "http://raster.atari.org",IDC_STATIC,47,29,91,10
-    LTEXT           "Credits and greetings:",IDC_STATIC,7,43,329,8
-    EDITTEXT        IDC_CREDITS,7,52,329,46,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL
-    LTEXT           "External Pokey sound emulation provided by:",IDC_STATIC,7,104,329,8
-    EDITTEXT        IDC_ABOUTPOKEY,7,113,329,32,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
-    LTEXT           "External Atari 6502 processor emulation provided by:",IDC_STATIC,7,150,329,8
-    EDITTEXT        IDC_ABOUT6502,7,160,329,32,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDR_MAINFRAME           ICON                    "res\\Rmt.ico"
-
-IDR_RMTTYPE             ICON                    "res\\RmtDoc.ico"
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO
-BEGIN
-    IDD_ABOUTBOX, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 336
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 209
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// AFX_DIALOG_LAYOUT
-//
 
 IDD_ABOUTBOX AFX_DIALOG_LAYOUT
 BEGIN
@@ -1381,8 +1338,8 @@ BEGIN
         BEGIN
             VALUE "FileDescription", "RASTER Music Tracker"
             VALUE "FileVersion", "1.34.1.0"
-            VALUE "InternalName", "RASTER Music Tracker by Raster/C.P.U. and VinsCool"
-            VALUE "LegalCopyright", "Copyright (C) 2002-2009, 2021-2024"
+            VALUE "InternalName", "RASTER Music Tracker by Raster/C.P.U., VinsCool and JAC!"
+            VALUE "LegalCopyright", "Copyright (C) 2002-2009, 2021-2026"
             VALUE "OriginalFilename", "Rmt.exe"
             VALUE "ProductName", "RASTER Music Tracker"
             VALUE "ProductVersion", "1.34.1.0"
@@ -1518,7 +1475,7 @@ STRINGTABLE
 BEGIN
     AFX_IDS_PREVIEW_CLOSE   "Close print preview mode\nCancel Preview"
     IDS_RMTVERSION          "RASTER Music Tracker v1.34.01"
-    IDS_RMTAUTHOR           "by Radek Sterba, (c) Raster/C.P.U., 2002-2009, and VinsCool, 2021-2024"
+    IDS_RMTAUTHOR           "by Radek Sterba, (c) Raster/C.P.U., 2002-2009, VinsCool, 2021-2024, JAC!, 2024-2026"
 END
 
 STRINGTABLE
