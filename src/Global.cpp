@@ -74,10 +74,7 @@ int g_OCTAVE_R = 1;
 HWND g_hwnd = NULL;
 HWND g_viewhwnd = NULL;
 
-HINSTANCE g_c6502_dll = NULL;
-BOOL volatile g_is6502 = FALSE;
 CString g_aboutpokey;
-CString g_about6502;
 
 BOOL g_changes = 0;	//have there been any changes in the module?
 

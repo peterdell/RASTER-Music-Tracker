@@ -14,15 +14,9 @@
 
 #include "RmtAtariBinaries.h"
 #include "General.h"
-#include "global.h"
+#include "Global.h"
 
-typedef void (*C6502_Initialise_PROC)(BYTE*);
-typedef int  (*C6502_JSR_PROC)(WORD*, BYTE*, BYTE*, BYTE*, int*);
-typedef void (*C6502_About_PROC)(char**, char**, char**);
-
-C6502_Initialise_PROC C6502_Initialise;
-C6502_JSR_PROC C6502_JSR;
-C6502_About_PROC C6502_About;
+#include "C6502.h"
 
 CAtari::CycleCount CAtari::GetFrameCycleCount(boolean ntsc) {
     static constexpr CycleCount MAXSCREENCYCLES_NTSC = 114 * 262;
@@ -30,63 +24,13 @@ CAtari::CycleCount CAtari::GetFrameCycleCount(boolean ntsc) {
     return ntsc ? MAXSCREENCYCLES_NTSC : MAXSCREENCYCLES_PAL;
 }
 
-void CAtari::DeInit()
-{
-    g_is6502 = 0;
-
-    if (g_c6502_dll)
-    {
-        FreeLibrary(g_c6502_dll);
-        g_c6502_dll = NULL;
-    }
-    g_about6502 = "No Atari 6502 CPU emulation.";
+int CAtari::Init() {
+    return C6502::Init();
 }
 
-int CAtari::Init()
-{
-    if (g_c6502_dll) { DeInit(); }//just in case
-
-    g_c6502_dll = LoadLibrary("sa_c6502.dll");
-    if (!g_c6502_dll)
-    {
-        MessageBox(g_hwnd, "Warning:\n'sa_c6502.dll' library not found.\nTherefore, the Atari sound routines can't be performed.", "LoadLibrary error", MB_ICONEXCLAMATION);
-        DeInit();
-        return 1;
-    }
-
-    CString wrn = "";
-
-    C6502_Initialise = (C6502_Initialise_PROC)GetProcAddress(g_c6502_dll, "C6502_Initialise");
-    if (!C6502_Initialise) wrn += "C6502_Initialise\n";
-
-    C6502_JSR = (C6502_JSR_PROC)GetProcAddress(g_c6502_dll, "C6502_JSR");
-    if (!C6502_JSR) wrn += "C6502_JSR\n";
-
-    C6502_About = (C6502_About_PROC)GetProcAddress(g_c6502_dll, "C6502_About");
-    if (!C6502_About) wrn += "C6502_About\n";
-
-    if (wrn != "")
-    {
-        MessageBox(g_hwnd, "Error:\n'sa_c6502.dll' is not compatible.\nTherefore, the Atari sound routines can't be performed.\nIncompatibility with:" + wrn, "C6502 library error", MB_ICONEXCLAMATION);
-        DeInit();
-        return 1;
-    }
-
-    //Text for About dialog
-    if (g_c6502_dll)
-    {
-        char* name, * author, * description;
-        C6502_About(&name, &author, &description);
-        g_about6502.Format("%s\n%s\n%s", name, author, description);
-    }
-
-    C6502_Initialise(g_atarimem);
-
-    g_is6502 = 1;
-
-    return 1;
+void CAtari::DeInit() {
+    C6502::DeInit();
 }
-
 
 void CAtari::ClearMemory()
 {
@@ -138,7 +82,7 @@ int CAtari::InitRMTRoutine()
     WORD adr = RMT_INIT;
     BYTE a = 0, x = 0x00, y = 0x3f;
     auto cycles = GetFrameCycleCount(g_ntsc);
-    C6502_JSR(&adr, &a, &x, &y, &cycles);			//adr,A,X,Y
+    C6502::JSR(adr, a, x, y, cycles);
     for (int i = 0; i < SONGTRACKS; i++) { g_rmtinstr[i] = -1; }
 
     return (int)a;
@@ -154,11 +98,11 @@ void CAtari::PlayRMT()
     BYTE a = 0, x = 0, y = 0;
     auto cycles = GetFrameCycleCount(g_ntsc);
     if (g_prove < PROVE_EDIT_AND_JAM_MODES) { // this is only good for tests, this trigger prevents the RMT driver running at all, leaving only SetPokey available
-        C6502_JSR(&adr, &a, &x, &y, &cycles);			//adr,A,X,Y
+        C6502::JSR(adr, a, x, y, cycles);
     }
     adr = RMT_SETPOKEY;
     a = x = y = 0;
-    C6502_JSR(&adr, &a, &x, &y, &cycles);			//adr,A,X,Y
+    C6502::JSR(adr, a, x, y, cycles);
 }
 
 void CAtari::SetPokey()
@@ -170,7 +114,7 @@ void CAtari::SetPokey()
     WORD adr = RMT_SETPOKEY;
     BYTE a = 0, x = 0, y = 0;
     auto cycles = GetFrameCycleCount(g_ntsc);
-    C6502_JSR(&adr, &a, &x, &y, &cycles);
+    C6502::JSR(adr, a, x, y, cycles);
 }
 
 void CAtari::Silence()
@@ -183,7 +127,7 @@ void CAtari::Silence()
     WORD adr = RMT_SILENCE;
     BYTE a = 0, x = 0, y = 0;
     auto cycles = GetFrameCycleCount(g_ntsc);
-    C6502_JSR(&adr, &a, &x, &y, &cycles);			//adr,A,X,Y
+    C6502::JSR(adr, a, x, y, cycles);
 }
 
 void CAtari::SetTrack_NoteInstrVolume(int t, int n, int i, int v)
@@ -195,12 +139,12 @@ void CAtari::SetTrack_NoteInstrVolume(int t, int n, int i, int v)
     WORD adr = RMT_ATA_SETNOTEINSTR;
     BYTE a = n, x = t, y = i;
     auto cycles = GetFrameCycleCount(g_ntsc);
-    C6502_JSR(&adr, &a, &x, &y, &cycles);			//adr,A,X,Y
+    C6502::JSR(adr, a, x, y, cycles);
     //
     adr = RMT_ATA_SETVOLUME;
     a = v; x = t; y = 0;
     cycles = GetFrameCycleCount(g_ntsc);
-    C6502_JSR(&adr, &a, &x, &y, &cycles);			//adr,A,X,Y
+    C6502::JSR(adr, a, x, y, cycles);
 
     g_rmtinstr[t] = i;
 }
@@ -214,7 +158,7 @@ void CAtari::SetTrack_Volume(int t, int v)
     WORD adr = RMT_ATA_SETVOLUME;
     BYTE a = v, x = t, y = 0;
     auto cycles = GetFrameCycleCount(g_ntsc);
-    C6502_JSR(&adr, &a, &x, &y, &cycles);			//adr,A,X,Y
+    C6502::JSR(adr, a, x, y, cycles);
 }
 
 void CAtari::InstrumentTurnOff(int instr)
@@ -230,7 +174,7 @@ void CAtari::InstrumentTurnOff(int instr)
         {
             WORD adr = RMT_ATA_INSTROFF;
             BYTE a = 0, x = i, y = 0;
-            C6502_JSR(&adr, &a, &x, &y, &cycles);			//mutes and turns off this instrument
+            C6502::JSR(adr, a, x, y, cycles);
             g_atarimem[0xd200 + i * 2 + 1 + (i >= 4) * 16] = 0;		//resets POKEY audctl memory
             g_rmtinstr[i] = -1;
         }
