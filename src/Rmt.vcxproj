@@ -180,6 +180,7 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
     </ClCompile>
     <ClCompile Include="LZSSFile.cpp" />
+    <ClCompile Include="Pokey.cpp" />
     <ClCompile Include="PokeyRederer.cpp" />
     <ClCompile Include="RmtCommandLineInfo.cpp" />
     <ClCompile Include="RuntimeException.cpp" />
@@ -319,6 +320,7 @@
     <ClInclude Include="Clipboard.h" />
     <ClInclude Include="ConfigDlg.h" />
     <ClInclude Include="LZSSFile.h" />
+    <ClInclude Include="Pokey.h" />
     <ClInclude Include="PokeyRederer.h" />
     <ClInclude Include="RmtCommandLineInfo.h" />
     <ClInclude Include="RmtFile.h" />

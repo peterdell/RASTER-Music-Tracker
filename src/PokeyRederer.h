@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include "Pokey.h"
+
+
 #define CHANNELS		2
 #define BITRESOLUTION	8
 #define OUTPUTFREQ		44100		//22050		//44100
@@ -30,12 +33,12 @@ public:
 	BOOL RenderSound1_50(int instrspeed);
 	void RenderSoundV2(int instrspeed, BYTE* buffer, int& length);
 	void MemToPokey();
-	bool IsSoundDriverLoaded() { return m_soundDriverId; }
+    bool IsSoundDriverLoaded() { return m_pokey.IsSoundDriverLoaded(); }
+    CPokey::POKEY_SoundDriver GetSoundDriver() { return m_pokey.GetSoundDriver(); }
 	const WAVEFORMATEX* GetSoundFormat() const  { return &m_SoundFormat; };
 
 private:
-	int volatile		m_soundDriverId;
-	HINSTANCE			m_pokey_dll;
+    CPokey              m_pokey;
 	DWORD				m_LoadPos;
 	WAVEFORMATEX		m_SoundFormat;
 	DWORD				m_LoadSize;
@@ -47,6 +50,4 @@ private:
 	DWORD				m_PlayCursor;  
 	DWORD				m_WriteCursor;
 	DWORD				m_WriteCursorStart;
-
-	int InitPokeyDll();	// The function will return the m_soundDriverId value
 };
