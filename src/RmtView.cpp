@@ -14,7 +14,7 @@
 #include "ConfigDlg.h"
 #include "FileNewDlg.h"
 #include "TuningDlg.h"
-#include "Atari6502.h"
+#include "Atari.h"
 #include "Pokey.h"
 #include "RmtMidi.h"
 #include "EffectsDlg.h"

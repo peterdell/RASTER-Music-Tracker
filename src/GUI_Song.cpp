@@ -6,7 +6,7 @@
 
 #include "EffectsDlg.h"
 
-#include "Atari6502.h"
+#include "Atari.h"
 #include "Pokey.h"
 #include "IOHelpers.h"
 

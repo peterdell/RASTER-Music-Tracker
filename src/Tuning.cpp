@@ -7,7 +7,7 @@
 
 #include "Tuning.h"
 #include "Global.h"
-#include "Atari6502.h"
+#include "Atari.h"
 #include "Pokey.h"
 
 /// <summary> Generate the POKEY audio pitch using the given parameters </summary>

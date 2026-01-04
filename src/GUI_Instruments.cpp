@@ -2,7 +2,7 @@
 #include "resource.h"
 #include <fstream>
 
-#include "Atari6502.h"
+#include "Atari.h"
 #include "IOHelpers.h"
 
 #include "Instruments.h"

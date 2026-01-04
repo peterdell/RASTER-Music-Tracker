@@ -4,10 +4,8 @@
 // FIXME: Use a better backend (DirectSound is outdated...)
 
 #include "stdafx.h"
-#include "Rmt.h"
 #include "Pokey.h"
-#include "RmtView.h"
-#include "Atari6502.h"
+#include "Atari.h"
 #include "Global.h"
 #include "ChannelControl.h"
 

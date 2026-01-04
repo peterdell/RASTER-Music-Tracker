@@ -2,7 +2,7 @@
 #include <fstream>
 #include "PokeyStream.h"
 #include "LZSSFile.h"
-#include "Atari6502.h"
+#include "Atari.h"
 #include "ChannelControl.h"
 #include "Song.h"
 #include "General.h"

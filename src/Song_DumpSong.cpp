@@ -2,7 +2,7 @@
 #include "GuiHelpers.h"
 #include "Song.h"
 #include "Instruments.h"
-#include "Atari6502.h"
+#include "Atari.h"
 #include "PokeyStream.h"
 #include "ChannelControl.h"
 

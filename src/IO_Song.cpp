@@ -7,7 +7,7 @@
 
 #include "ImportDlgs.h"
 
-#include "Atari6502.h"
+#include "Atari.h"
 #include "AtariIO.h"
 #include "Pokey.h"
 

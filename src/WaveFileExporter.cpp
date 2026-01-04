@@ -3,7 +3,7 @@
 #include "WaveFile.h"
 #include "GuiHelpers.h"
 #include "LZSSFile.h"
-#include "Atari6502.h"
+#include "Atari.h"
 #include "ChannelControl.h"
 
 

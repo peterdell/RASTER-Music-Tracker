@@ -105,7 +105,7 @@
     <ClCompile Include="RmtView.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
-    <ClCompile Include="Atari6502.cpp">
+    <ClCompile Include="Atari.cpp">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
     <ClCompile Include="MainFrm.cpp">
@@ -237,6 +237,9 @@
     <ClCompile Include="StdAfx.cpp">
       <Filter>Source Files\Common</Filter>
     </ClCompile>
+    <ClCompile Include="C6502.cpp">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
@@ -269,7 +272,7 @@
     <ClInclude Include="Pokey.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
-    <ClInclude Include="Atari6502.h">
+    <ClInclude Include="Atari.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
     <ClInclude Include="MainFrm.h">
@@ -396,6 +399,12 @@
       <Filter>Source Files\Common</Filter>
     </ClInclude>
     <ClInclude Include="tracker_obx.h">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="XPokey.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C6502.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
   </ItemGroup>

@@ -9,7 +9,7 @@
 #include "EffectsDlg.h"
 #include "MainFrm.h"
 
-#include "Atari6502.h"
+#include "Atari.h"
 #include "Pokey.h"
 #include "IOHelpers.h"
 #include "Instruments.h"

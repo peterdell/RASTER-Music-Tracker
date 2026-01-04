@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include "Atari6502.h"
+#include "Atari.h"
 #include "Instruments.h"
 #include "global.h"
 
