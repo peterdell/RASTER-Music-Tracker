@@ -1,15 +1,11 @@
 //
-// XPokey.h header file
+// Pokey.h header file
 // originally made by Raster, 2002-2009
 // reworked by VinsCool, 2021-2022
 //
 
-#if !defined(_XPOKEY_H_)
-#define _XPOKEY_H_
 
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #define CHANNELS		2
 #define BITRESOLUTION	8
@@ -57,5 +53,3 @@ private:
 
 	int InitPokeyDll();	// The function will return the m_soundDriverId value
 };
-
-#endif

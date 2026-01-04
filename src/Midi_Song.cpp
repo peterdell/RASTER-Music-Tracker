@@ -1,10 +1,10 @@
 #include "StdAfx.h"
 #include "Song.h"
 #include "Atari6502.h"
-#include "XPokey.h"
+#include "Pokey.h"
 #include "Instruments.h"
 #include "Clipboard.h"
-#include "global.h"
+#include "Global.h"
 #include "RmtMidi.h"
 
 

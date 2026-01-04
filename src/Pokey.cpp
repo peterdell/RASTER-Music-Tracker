@@ -5,10 +5,10 @@
 
 #include "stdafx.h"
 #include "Rmt.h"
-#include "XPokey.h"
+#include "Pokey.h"
 #include "RmtView.h"
 #include "Atari6502.h"
-#include "global.h"
+#include "Global.h"
 #include "ChannelControl.h"
 
 #ifdef _DEBUG

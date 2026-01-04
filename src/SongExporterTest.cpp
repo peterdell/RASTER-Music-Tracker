@@ -6,8 +6,7 @@
 
 #include "SongExport.h"
 
-#include "XPokey.h"
-#include "Atari6502.h"
+#include "Pokey.h"
 
 #include "Global.h"
 

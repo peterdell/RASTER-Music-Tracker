@@ -9,7 +9,7 @@
 
 #include "Atari6502.h"
 #include "AtariIO.h"
-#include "XPokey.h"
+#include "Pokey.h"
 
 #include "IOHelpers.h"
 
