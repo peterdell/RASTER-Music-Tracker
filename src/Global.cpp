@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "XPokey.h"
+#include "Pokey.h"
 #include "RmtMidi.h"
 #include "Clipboard.h"
 #include "Tuning.h"
@@ -8,7 +8,7 @@
 #include "Undo.h"
 
 byte g_atarimem[ATARI_RAM_SIZE];
-char g_debugmem[ATARI_RAM_SIZE];	//debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
+char g_debugmem[ATARI_RAM_SIZE];	// Used in GUI_Song.cpp, debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
 
 BOOL g_closeApplication = 0;			// Set when the application is busy shutting down
 CDC* g_mem_dc = NULL;
@@ -75,7 +75,7 @@ HWND g_hwnd = NULL;
 HWND g_viewhwnd = NULL;
 
 HINSTANCE g_c6502_dll = NULL;
-BOOL volatile g_is6502 = 0;
+BOOL volatile g_is6502 = FALSE;
 CString g_aboutpokey;
 CString g_about6502;
 
