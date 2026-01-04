@@ -169,6 +169,7 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
     </ClCompile>
     <ClCompile Include="AtariIO.cpp" />
+    <ClCompile Include="C6502.cpp" />
     <ClCompile Include="ChannelControl.cpp" />
     <ClCompile Include="Clipboard.cpp" />
     <ClCompile Include="ConfigDlg.cpp">
@@ -179,6 +180,7 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
     </ClCompile>
     <ClCompile Include="LZSSFile.cpp" />
+    <ClCompile Include="Pokey.cpp" />
     <ClCompile Include="RmtCommandLineInfo.cpp" />
     <ClCompile Include="RuntimeException.cpp" />
     <ClCompile Include="SAPFile.cpp" />
@@ -299,13 +301,6 @@
     <ClCompile Include="Undo.cpp" />
     <ClCompile Include="WaveFile.cpp" />
     <ClCompile Include="WaveFileExporter.cpp" />
-    <ClCompile Include="XPokey.cpp">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BrowseInformation>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Rmt.rc">
@@ -320,9 +315,11 @@
     <ClInclude Include="ASMFileExporter.h" />
     <ClInclude Include="Atari6502.h" />
     <ClInclude Include="AtariIO.h" />
+    <ClInclude Include="C6502.h" />
     <ClInclude Include="Clipboard.h" />
     <ClInclude Include="ConfigDlg.h" />
     <ClInclude Include="LZSSFile.h" />
+    <ClInclude Include="Pokey.h" />
     <ClInclude Include="RmtCommandLineInfo.h" />
     <ClInclude Include="RmtFile.h" />
     <ClInclude Include="Memory.h" />
@@ -350,6 +347,7 @@
     <ClInclude Include="SongExport.h" />
     <ClInclude Include="SongExporter.h" />
     <ClInclude Include="SongExporterTest.h" />
+    <ClInclude Include="tracker_obx.h" />
     <ClInclude Include="Tracks.h" />
     <ClInclude Include="Tuning.h" />
     <ClInclude Include="importdlgs.h" />
