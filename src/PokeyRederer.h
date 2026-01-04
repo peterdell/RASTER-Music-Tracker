@@ -10,21 +10,14 @@
 #include "Pokey.h"
 
 
-#define CHANNELS		2
-#define BITRESOLUTION	8
-#define OUTPUTFREQ		44100		//22050		//44100
-#define BUFFER_SIZE		0x8000		//must be a power of 2
-#define FRAMERATE		((g_ntsc) ? 60 : 50)
-#define CHUNK_SIZE		(BITRESOLUTION / 8 * CHANNELS * OUTPUTFREQ / FRAMERATE)
-#define LATENCY			3			//3/50sec
-#define LATENCY_SIZE	(LATENCY * CHUNK_SIZE)
-#define CYCLESPERSCREEN	((float)FREQ_17() / FRAMERATE)
-#define CYCLESPERSAMPLE	((float)FREQ_17() / 44100)
 
 class CXPokey
 {
 // Construction
 public:
+
+    static constexpr size_t BUFFER_SIZE = 0x8000; // Must be a power of 2
+
 	CXPokey();
 	~CXPokey();
 	BOOL InitSound();

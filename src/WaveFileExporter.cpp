@@ -43,8 +43,9 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
     SetChannelOnOff(-1, 1);	// Unmute all channels
 
     // Create the sound buffer to copy from and to
-    buffer = new BYTE[BUFFER_SIZE];
-    memset(buffer, 0x80, BUFFER_SIZE);
+    auto bufferSize = CXPokey::BUFFER_SIZE;
+    buffer = new BYTE[CXPokey::BUFFER_SIZE];
+    memset(buffer, 0x80, bufferSize);
 
     while (frames < pokeyStream.GetFirstCountPoint())
     {
