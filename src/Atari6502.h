@@ -4,8 +4,7 @@
     (c) Raster/C.P.U. 2003
 */
 
-#ifndef __ATARI6502__
-#define __ATARI6502__
+#pragma once
 
 #include "tracker_obx.h"				// The ASM generated C header file
 
@@ -25,14 +24,16 @@
 //immediately after RMT_ATA_INSTROFF, there is some bytes left unused, these will be used as plaintext data to display the RMT driver version used
 #define RMT_ATA_DRIVERVERSION	RMTPLAYR_DRIVERVERSION		
 
-//maximum clock count for the entire screen in PAL (default) and NTSC region
-#define MAXSCREENCYCLES_NTSC	114*262
-#define MAXSCREENCYCLES_PAL 	114*312
-
 class CAtari {
 
 
 public:
+
+
+    //maximum clock count for the entire screen in PAL (default) and NTSC region
+    typedef int CycleCount;
+
+    static CycleCount GetFrameCycleCount(boolean ntsc);
 
     static int Init();
     static void DeInit();
@@ -52,4 +53,4 @@ public:
 
 };
 
-#endif
+
