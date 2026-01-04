@@ -7,7 +7,7 @@
 #include "EffectsDlg.h"
 
 #include "Atari6502.h"
-#include "XPokey.h"
+#include "Pokey.h"
 #include "IOHelpers.h"
 
 #include "Instruments.h"
@@ -18,8 +18,6 @@
 #include "Tuning.h"
 #include "Keyboard2NoteMapping.h"
 #include "ChannelControl.h"
-
-#include "Rmt.h"
 
 extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
@@ -103,7 +101,7 @@ void CSong::SetRMTTitle()
         else
         {	// RMT version number and build date 
             s1.LoadString(IDS_RMTVERSION);
-            s.Format("%s (%s %s)", s1,  __DATE__, __TIME__);
+            s.Format("%s (%s %s)", s1, __DATE__, __TIME__);
         }
     }
     else
@@ -524,7 +522,7 @@ void CSong::DrawAnalyzer()
                 int basenote = g_basenote;
                 int reverse_basenote = (24 - basenote) % 12;	//since things are wack I had to do this
                 //int FREQ_17 = (g_ntsc) ? FREQ_17_NTSC : FREQ_17_PAL;	//useful for debugging I guess
-                int cycles = (g_ntsc) ? MAXSCREENCYCLES_NTSC : MAXSCREENCYCLES_PAL;
+                auto cycles = CAtari::GetFrameCycleCount(g_ntsc);
                 int tracks = (g_tracks4_8 == 8) ? 8 : 4;
                 char t[12] = { 0 };
 
