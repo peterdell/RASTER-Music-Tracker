@@ -35,6 +35,10 @@ public:
 
     static CycleCount GetFrameCycleCount(boolean ntsc);
 
+    typedef int ClockFrequency;
+
+    static ClockFrequency GetClockFrequency(boolean ntsc);
+
     static int Init();
     static void DeInit();
 
