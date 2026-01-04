@@ -93,9 +93,6 @@
     <ClCompile Include="TuningDlg.cpp">
       <Filter>Source Files\Tuning</Filter>
     </ClCompile>
-    <ClCompile Include="Pokey.cpp">
-      <Filter>Source Files\Atari Sound Generator</Filter>
-    </ClCompile>
     <ClCompile Include="Rmt.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
@@ -240,6 +237,9 @@
     <ClCompile Include="C6502.cpp">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
+    <ClCompile Include="PokeyRederer.cpp">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
@@ -268,9 +268,6 @@
     </ClInclude>
     <ClInclude Include="TuningDlg.h">
       <Filter>Source Files\Tuning</Filter>
-    </ClInclude>
-    <ClInclude Include="Pokey.h">
-      <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
     <ClInclude Include="Atari.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
@@ -405,6 +402,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C6502.h">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="PokeyRederer.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
   </ItemGroup>

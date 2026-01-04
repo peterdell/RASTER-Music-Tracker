@@ -15,7 +15,7 @@
 #include "FileNewDlg.h"
 #include "TuningDlg.h"
 #include "Atari.h"
-#include "Pokey.h"
+#include "PokeyRederer.h"
 #include "RmtMidi.h"
 #include "EffectsDlg.h"
 

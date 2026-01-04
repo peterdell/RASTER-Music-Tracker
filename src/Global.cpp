@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Pokey.h"
+#include "PokeyRederer.h"
 #include "RmtMidi.h"
 #include "Clipboard.h"
 #include "Tuning.h"

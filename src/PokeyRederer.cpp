@@ -4,7 +4,7 @@
 // FIXME: Use a better backend (DirectSound is outdated...)
 
 #include "stdafx.h"
-#include "Pokey.h"
+#include "PokeyRederer.h"
 #include "Atari.h"
 #include "Global.h"
 #include "ChannelControl.h"

@@ -7,7 +7,7 @@
 #include "EffectsDlg.h"
 
 #include "Atari.h"
-#include "Pokey.h"
+#include "PokeyRederer.h"
 #include "IOHelpers.h"
 
 #include "Instruments.h"

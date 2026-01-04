@@ -10,7 +10,7 @@
 #include "MainFrm.h"
 
 #include "Atari.h"
-#include "Pokey.h"
+#include "PokeyRederer.h"
 #include "IOHelpers.h"
 #include "Instruments.h"
 #include "Clipboard.h"

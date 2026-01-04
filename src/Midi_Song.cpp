@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "Song.h"
 #include "Atari.h"
-#include "Pokey.h"
+#include "PokeyRederer.h"
 #include "Instruments.h"
 #include "Clipboard.h"
 #include "Global.h"

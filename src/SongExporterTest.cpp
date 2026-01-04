@@ -6,7 +6,7 @@
 
 #include "SongExport.h"
 
-#include "Pokey.h"
+#include "PokeyRederer.h"
 
 #include "Global.h"
 
