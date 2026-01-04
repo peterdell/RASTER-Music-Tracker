@@ -757,8 +757,8 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,286,195,50,14,WS_GROUP
     ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
     LTEXT           "Sample RMT version",IDC_RMTVERSION,47,7,185,8,SS_NOPREFIX
-    LTEXT           "Sample RMT author",IDC_RMTAUTHOR,47,18,277,8
-    LTEXT           "https://github.com/raster-atari-org/RASTER-Music-Tracker",IDC_STATIC,47,29,278,10
+    LTEXT           "Sample RMT author",IDC_RMTAUTHOR,47,18,260,8
+    LTEXT           "http://raster.atari.org",IDC_STATIC,47,29,91,10
     LTEXT           "Credits and greetings:",IDC_STATIC,7,43,329,8
     EDITTEXT        IDC_CREDITS,7,52,329,46,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL
     LTEXT           "External Pokey sound emulation provided by:",IDC_STATIC,7,104,329,8
