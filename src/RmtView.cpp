@@ -748,7 +748,7 @@ void CRmtView::OnViewConfiguration()
         {
             // PAL or NTSC
             g_ntsc = dlg.m_ntsc;
-            g_basetuning = (g_ntsc) ? (g_basetuning * FREQ_17_NTSC) / FREQ_17_PAL : (g_basetuning * FREQ_17_PAL) / FREQ_17_NTSC;
+            g_basetuning = (g_ntsc) ? (g_basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
             CAtari::InitRMTRoutine(); //reset RMT routines
         }
         g_ntsc = dlg.m_ntsc;
@@ -1136,7 +1136,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
         if (mousebutt & MK_LBUTTON)
         {
             g_ntsc ^= 1;
-            g_basetuning = (g_ntsc) ? (g_basetuning * FREQ_17_NTSC) / FREQ_17_PAL : (g_basetuning * FREQ_17_PAL) / FREQ_17_NTSC;
+            g_basetuning = (g_ntsc) ? (g_basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
             CAtari::InitRMTRoutine(); //reset RMT routines
         }
         return 6;
@@ -1687,7 +1687,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         if (g_controlkey)
         {
             g_ntsc ^= 1;
-            g_basetuning = (g_ntsc) ? (g_basetuning * FREQ_17_NTSC) / FREQ_17_PAL : (g_basetuning * FREQ_17_PAL) / FREQ_17_NTSC;
+            g_basetuning = (g_ntsc) ? (g_basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
             CAtari::InitRMTRoutine(); //reset RMT routines
         }
         else OnPlayfollow(); //toggle follow position

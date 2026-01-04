@@ -15,11 +15,8 @@
 #define CHUNK_SIZE		(BITRESOLUTION / 8 * CHANNELS * OUTPUTFREQ / FRAMERATE)
 #define LATENCY			3			//3/50sec
 #define LATENCY_SIZE	(LATENCY * CHUNK_SIZE)
-#define FREQ_17_NTSC	1789773		//The true clock frequency for the NTSC Atari 8-bit computer is 1.7897725 MHz
-#define FREQ_17_PAL		1773447		//The true clock frequency for the PAL Atari 8-bit computer is 1.7734470 MHz
-#define FREQ_17			((g_ntsc) ? FREQ_17_NTSC : FREQ_17_PAL)
-#define CYCLESPERSCREEN	((float)FREQ_17 / FRAMERATE)
-#define CYCLESPERSAMPLE	((float)FREQ_17 / 44100)
+#define CYCLESPERSCREEN	((float)FREQ_17() / FRAMERATE)
+#define CYCLESPERSAMPLE	((float)FREQ_17() / 44100)
 
 class CXPokey
 {

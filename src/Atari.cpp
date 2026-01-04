@@ -25,11 +25,6 @@ CAtari::CycleCount CAtari::GetFrameCycleCount(boolean ntsc) {
 }
 
 CAtari::ClockFrequency CAtari::GetClockFrequency(boolean ntsc) {
-    // The true clock frequency for the NTSC Atari 8-bit computer is 1.7897725 MHz
-    static constexpr ClockFrequency FREQ_17_NTSC = 1789773;
-
-    // The true clock frequency for the PAL Atari 8-bit computer is 1.7734470 MHz
-    static constexpr ClockFrequency FREQ_17_PAL = 1773447;
     return ntsc ? FREQ_17_NTSC : FREQ_17_PAL;
 
 }

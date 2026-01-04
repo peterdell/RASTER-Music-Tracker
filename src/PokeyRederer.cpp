@@ -64,6 +64,10 @@ int ntscRegionSetOnDriver = g_ntsc;
 static LPDIRECTSOUND          g_lpds;
 static LPDIRECTSOUNDBUFFER    g_lpdsbPrimary;
 
+CAtari::ClockFrequency FREQ_17() {
+    return CAtari::GetClockFrequency(g_ntsc);
+}
+
 CXPokey::CXPokey()
 {
 	m_soundDriverId = SOUND_DRIVER_NONE;
@@ -358,7 +362,7 @@ void CXPokey::MemToPokey()
 
 	case SOUND_DRIVER_SA_POKEY:
 		if (resetPokey) 
-			Pokey_SoundInit(FREQ_17, OUTPUTFREQ, (g_tracks4_8 == 8) + 1);
+			Pokey_SoundInit(FREQ_17(), OUTPUTFREQ, (g_tracks4_8 == 8) + 1);
 		for (int i = 0; i <= 8; i++)	// 0-7 + 8 (AUDCTL)
 		{
 			Pokey_PutByte(i, (i & 0x01) && !GetChannelOnOff(i / 2) ? 0 : g_atarimem[0xd200 + i]);
@@ -439,7 +443,7 @@ int CXPokey::InitPokeyDll()
 			Pokey_Initialise(0, 0);
 
 			// Specify the machine region and if it uses Stereo or Mono, as well as the frequency for the sound output
-			Pokey_SoundInit(FREQ_17, OUTPUTFREQ, (g_tracks4_8 == 8) + 1);
+			Pokey_SoundInit(FREQ_17(), OUTPUTFREQ, (g_tracks4_8 == 8) + 1);
 			return SOUND_DRIVER_SA_POKEY;
 		}
 
