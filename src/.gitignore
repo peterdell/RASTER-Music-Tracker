@@ -1,5 +1,6 @@
 enc_temp_folder/
 .vs
+*.bak
 *.ncb
 *.aps
 *.suo
