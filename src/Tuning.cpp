@@ -294,7 +294,7 @@ void CTuning::generate_table(unsigned char* table, int length, int semitone, int
 /// <returns> POKEY audio pitch (in Hertz) </returns> 
 double CTuning::get_pitch(int audf, int coarse_divisor, double divisor, int cycle)
 {
-	return ((((g_ntsc) ? FREQ_17_NTSC : FREQ_17_PAL) / (coarse_divisor * divisor)) / (audf + cycle)) / 2;
+	return ((CAtari::GetClockFrequency(g_ntsc) / (coarse_divisor * divisor)) / (audf + cycle)) / 2;
 }
 
 /// <summary> Find the nearest POKEY Frequency (AUDF) using the given parameters </summary>
@@ -305,7 +305,7 @@ double CTuning::get_pitch(int audf, int coarse_divisor, double divisor, int cycl
 /// <returns> POKEY Frequency (AUDF) </returns> 
 int CTuning::get_audf(double pitch, int coarse_divisor, double divisor, int cycle)
 {
-	return (int)round(((((g_ntsc) ? FREQ_17_NTSC : FREQ_17_PAL) / (coarse_divisor * divisor)) / (2 * pitch)) - cycle);
+	return (int)round(((CAtari::GetClockFrequency(g_ntsc) / (coarse_divisor * divisor)) / (2 * pitch)) - cycle);
 }
 
 /// <summary> Calculate the difference between 2 POKEY frequencies (AUDF) within the conditions intended for the timbre to be output </summary>
