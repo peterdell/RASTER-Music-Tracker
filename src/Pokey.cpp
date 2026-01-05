@@ -94,7 +94,7 @@ CPokey::SoundDriver CPokey::InitPokeyDll()
 
         // If an error is caught, the plugin will be unloaded with an error message showing the problematic procedures
         MessageBox(g_hwnd, "Error:\nNo compatible 'apokeysnd.dll',\ntherefore the Pokey sound can't be performed.\nIncompatibility with:" + warningMessage, "Pokey library error", MB_ICONEXCLAMATION);
-        FreeLibrary(m_pokey_dll);
+        DeInitPokeyDll();
     }
 
     // sa_pokey.dll will be loaded next if apokeysnd.dll was not found or had an error, as a fallback
@@ -132,7 +132,7 @@ CPokey::SoundDriver CPokey::InitPokeyDll()
 
         // If an error is caught, the plugin will be unloaded with an error message showing the problematic procedures
         MessageBox(g_hwnd, "Error:\nNo compatible 'sa_pokey.dll',\ntherefore the Pokey sound can't be performed.\nIncompatibility with:" + warningMessage, "Pokey library error", MB_ICONEXCLAMATION);
-        FreeLibrary(m_pokey_dll);
+        DeInitPokeyDll();
     }
 
     // If no POKEY emulation plugin was found, no sound emulation will be output

@@ -144,7 +144,7 @@ void CSong::ClearSong(int numOfTracks)
     Stop();
 
     g_tracks4_8 = numOfTracks;			// Track for 4/8 channels
-    g_rmtroutine = 1;					// RMT routine execution enabled
+    g_rmtroutine = TRUE;					// RMT routine execution enabled
     g_prove = 0;
     g_respectvolume = 0;
     g_rmtstripped_adr_module = 0x4000;	// Default standard address for stripped RMT modules

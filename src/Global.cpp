@@ -88,7 +88,7 @@ bool IsStereo() {
 }
 
 BOOL volatile g_screenupdate = 0;
-BOOL volatile g_rmtroutine;
+BOOL volatile g_rmtroutine; // => TODO: PokeyRenderer?
 
 int volatile g_prove;			// Test notes without editing (0 = off, 1 = mono jam, 2 = stereo jam)
 int volatile g_respectvolume;	//does not change the volume if it is already there

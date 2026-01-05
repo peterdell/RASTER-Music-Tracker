@@ -1,18 +1,15 @@
 // Original code by Raster, 2002-2009
 // Experimental changes and additions by VinsCool, 2021-2023
-// TODO: Replace the plugin interface with a permanent emulation core
 // FIXME: Use a better backend (DirectSound is outdated...)
 
 #include "stdafx.h"
 #include "PokeyRederer.h"
 #include "Atari.h"
-#include "Global.h"
 #include "ChannelControl.h" // For IsChannelOn
 
-// Needed for proper Machine Region and Stereo detection with POKEY plugins
-// TODO: Rework, see https://forums.atariage.com/topic/325338-altirra-emulation-core-for-rmt/
-int numTracksSetOnDriver = g_tracks4_8;
-int ntscRegionSetOnDriver = g_ntsc;
+extern BOOL g_nohwsoundbuffer;	// From Global.h
+extern HWND g_hwnd; // From Global.h
+extern BOOL volatile g_rmtroutine;  // From Global.h
 
 static LPDIRECTSOUND          g_lpds;
 static LPDIRECTSOUNDBUFFER    g_lpdsbPrimary;
@@ -67,10 +64,6 @@ BOOL CXPokey::InitSoundInternal(const bool ntsc, const bool stereo, const WORD c
         MessageBox(g_hwnd, "Error: SetCooperativeLevel", "DirectSound Error!", MB_OK | MB_ICONSTOP);
         return FALSE;
     }
-
-    // Set the emulated Machine Region and if Stereo is used
-    numTracksSetOnDriver = g_tracks4_8;
-    ntscRegionSetOnDriver = g_ntsc;
 
     // Set primary buffer format
     ZeroMemory(&m_SoundFormat, sizeof(WAVEFORMATEX));
@@ -274,7 +267,7 @@ BOOL CXPokey::RenderSound1_50(int instrspeed)
             while (cycles > 0 && renderpartsize > 0)
             {
                 // The maximum number of cycles that can be generated is CYCLESPERSCREEN
-                auto cyclesPerFrame = GetCyclesPerFrame(g_ntsc);
+                auto cyclesPerFrame = GetCyclesPerFrame(ntsc);
                 int rencyc = (cycles > cyclesPerFrame ? cyclesPerFrame : cycles);
                 renderpartsize = APokeySound_Generate(rencyc, (unsigned char*)&m_PlayBuffer + renderoffset, ASAP_FORMAT_U8);
                 rendersize -= renderpartsize;
