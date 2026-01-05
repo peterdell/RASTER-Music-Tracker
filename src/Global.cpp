@@ -74,8 +74,6 @@ int g_OCTAVE_R = 1;
 HWND g_hwnd = NULL;
 HWND g_viewhwnd = NULL;
 
-CString g_aboutpokey;
-
 BOOL g_changes = 0;	//have there been any changes in the module?
 
 int g_RmtHasFocus;			// Track if RMT has focus, when it does not have focus and is not in prove mode, the MIDI input will be ignored (to avoid overwriting patterns accidentally)
@@ -84,6 +82,11 @@ int g_controlkey;
 int g_altkey;	//unfinished implementation, doesn't work yet for some reason
 
 int g_tracks4_8;
+
+bool IsStereo() {
+    return g_tracks4_8 == 8;
+}
+
 BOOL volatile g_screenupdate = 0;
 BOOL volatile g_rmtroutine;
 

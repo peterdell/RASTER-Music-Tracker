@@ -82,7 +82,6 @@ extern HWND g_viewhwnd;
 
 extern HINSTANCE g_c6502_dll;
 extern BOOL volatile g_is6502;
-extern CString g_aboutpokey;
 extern CString g_about6502;
 
 extern BOOL g_changes;	//have there been any changes in the module?
@@ -93,6 +92,8 @@ extern int g_controlkey;
 extern int g_altkey;	//unfinished implementation, doesn't work yet for some reason
 
 extern int g_tracks4_8;
+bool IsStereo();
+
 extern BOOL volatile g_screenupdate;
 extern BOOL volatile g_rmtroutine;
 
