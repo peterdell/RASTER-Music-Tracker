@@ -36,7 +36,7 @@ Pokey_About_PROC Pokey_About;
 
 CPokey::CPokey()
 {
-    m_soundDriverId = SOUND_DRIVER_NONE;
+    m_soundDriver = NONE;
     m_pokey_dll = NULL;
 }
 
@@ -47,16 +47,16 @@ CPokey::~CPokey()
 
 
 void CPokey::InitSound() {
-    m_soundDriverId = InitPokeyDll();
+    m_soundDriver = InitPokeyDll();
 }
 
 void CPokey::DeInitSound() {
-    m_soundDriverId = SOUND_DRIVER_NONE;
+    m_soundDriver = NONE;
     DeInitPokeyDll();
 }
 
 //TODO: Add a method for letting the user chose which plugin they would like to use instead of the current default/fallback setup
-CPokey::POKEY_SoundDriver CPokey::InitPokeyDll()
+CPokey::SoundDriver CPokey::InitPokeyDll()
 {
 
 
@@ -87,7 +87,7 @@ CPokey::POKEY_SoundDriver CPokey::InitPokeyDll()
             APokeySound_About(&name, &author, &description);
             g_aboutpokey.Format("%s\n%s\n%s", name, author, description);
             APokeySound_Initialize(g_tracks4_8 == 8);	// STEREO enabled
-            return SOUND_DRIVER_APOKEYSND;
+            return APOKEYSND;
         }
 
         // If an error is caught, the plugin will be unloaded with an error message showing the problematic procedures
@@ -128,7 +128,7 @@ CPokey::POKEY_SoundDriver CPokey::InitPokeyDll()
 
             // Specify the machine region and if it uses Stereo or Mono, as well as the frequency for the sound output
             Pokey_SoundInit(FREQ_17(), OUTPUTFREQ, (g_tracks4_8 == 8) + 1);
-            return SOUND_DRIVER_SA_POKEY;
+            return SA_POKEY;
         }
 
         // If an error is caught, the plugin will be unloaded with an error message showing the problematic procedures
@@ -139,7 +139,7 @@ CPokey::POKEY_SoundDriver CPokey::InitPokeyDll()
     // If no POKEY emulation plugin was found, no sound emulation will be output
     MessageBox(g_hwnd, "Warning:\nNone of 'apokeysnd.dll' or 'sa_pokey.dll' found,\ntherefore the Pokey sound can't be performed.", "LoadLibrary error", MB_ICONEXCLAMATION);
 
-    return SOUND_DRIVER_NONE;
+    return NONE;
 }
 
 void CPokey::DeInitPokeyDll() {
@@ -152,3 +152,12 @@ void CPokey::DeInitPokeyDll() {
 
 }
 
+
+
+CPokey::SoundDriver CPokey::GetSoundDriver() const {
+    return m_soundDriver;
+}
+
+bool CPokey::IsSoundDriverLoaded() const {
+    return m_soundDriver != NONE;
+}

@@ -47,29 +47,24 @@ public:
 
     typedef enum
     {
-        SOUND_DRIVER_NONE,
-        SOUND_DRIVER_APOKEYSND,
-        SOUND_DRIVER_SA_POKEY
-    } POKEY_SoundDriver;
+        NONE,
+        APOKEYSND,
+        SA_POKEY
+    } SoundDriver;
 
     CPokey();
-	~CPokey();
+    ~CPokey();
 
     void InitSound();
     void DeInitSound();
 
-    POKEY_SoundDriver GetSoundDriver() {
-        return m_soundDriverId;
-    }
-
-    bool IsSoundDriverLoaded() {
-        return m_soundDriverId != SOUND_DRIVER_NONE;
-    }
+    SoundDriver GetSoundDriver() const;
+    bool IsSoundDriverLoaded()  const;
 
 private:
-    POKEY_SoundDriver   m_soundDriverId;
-	HINSTANCE			m_pokey_dll;
+    SoundDriver    m_soundDriver;
+    HINSTANCE      m_pokey_dll;
 
- POKEY_SoundDriver InitPokeyDll();	// The function will return the m_soundDriverId value
+    SoundDriver InitPokeyDll();	// The function will return the m_soundDriverId value
     void DeInitPokeyDll();
 };

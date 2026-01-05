@@ -18,10 +18,6 @@ static LPDIRECTSOUND          g_lpds;
 static LPDIRECTSOUNDBUFFER    g_lpdsbPrimary;
 
 
-
-
-
-
 int CXPokey::GetFrameRate(bool ntsc) {
     // TODO: This is not the exacty framerate, so maybe that's why the frequencies are a little off in CPokey?
     return ntsc ? 60 : 50;
@@ -33,7 +29,7 @@ int CXPokey::GetCyclesPerFrame(bool ntsc) {
 
 CXPokey::CXPokey()
 {
-    m_SoundBuffer = NULL;
+    m_SoundBuffer = nullptr;
 }
 
 CXPokey::~CXPokey()
@@ -81,6 +77,7 @@ BOOL CXPokey::InitSoundInternal(const bool ntsc, const WORD channels, const DWOR
     m_SoundFormat.cbSize = 0;
 
     // Create primary buffer.
+    DSBUFFERDESC        dsbdesc;
     ZeroMemory(&dsbdesc, sizeof(DSBUFFERDESC));
     dsbdesc.dwSize = sizeof(DSBUFFERDESC);
     dsbdesc.dwFlags = DSBCAPS_PRIMARYBUFFER;
@@ -140,6 +137,7 @@ BOOL CXPokey::InitSoundInternal(const bool ntsc, const WORD channels, const DWOR
 
 BOOL CXPokey::InitSound(const bool ntsc)
 {
+    // Defaul output is stereo, 44.1 kHz, 8-bits.
     return InitSoundInternal(ntsc, 2, 44100, 8);
 }
 
@@ -156,11 +154,15 @@ BOOL CXPokey::DeInitSound()
     }
     m_SoundBuffer = NULL;
 
-    if (g_lpdsbPrimary) g_lpdsbPrimary->Release();
-    g_lpdsbPrimary = NULL;
+    if (g_lpdsbPrimary) {
+        g_lpdsbPrimary->Release();
+        g_lpdsbPrimary = NULL;
+    }
 
-    if (g_lpds) g_lpds->Release();
-    g_lpds = NULL;
+    if (g_lpds) {
+        g_lpds->Release();
+        g_lpds = NULL;
+    }
 
     return 1;
 }
@@ -170,6 +172,18 @@ BOOL CXPokey::ReInitSound(const bool ntsc)
     DeInitSound();
     return InitSound(ntsc);
 }
+
+bool CXPokey::IsSoundDriverLoaded() const {
+    return m_pokey.IsSoundDriverLoaded();
+}
+
+CPokey::SoundDriver CXPokey::GetSoundDriver() const {
+    return m_pokey.GetSoundDriver();
+}
+
+const WAVEFORMATEX* CXPokey::GetSoundFormat() const {
+    return &m_SoundFormat;
+};
 
 WORD   CXPokey::GetChannels() const {
     return m_SoundFormat.nChannels;
@@ -239,13 +253,15 @@ BOOL CXPokey::RenderSound1_50(int instrspeed)
     for (; instrspeed > 0; instrspeed--)
     {
         //--- RMT - instrument play ---/
-        if (g_rmtroutine) { CAtari::PlayRMT(); }	//one run RMT routine (instruments)
-        MemToPokey();			//transfer from g_atarimem to POKEY (mono or stereo)
+        if (g_rmtroutine) {
+            CAtari::PlayRMT();
+        }	//one run RMT routine (instruments)
+        MemToPokey();			// transfer from g_atarimem to POKEY (mono or stereo)
         renderpartsize = (rendersize / instrspeed) & 0xfffe;	//just the numbers
 
         switch (GetSoundDriver())
         {
-        case CPokey::POKEY_SoundDriver::SOUND_DRIVER_APOKEYSND:
+        case CPokey::SoundDriver::APOKEYSND:
             // FIXME: Mono POKEY sound generation is broken, currently the reason for this is unclear...
         {
 
@@ -263,7 +279,7 @@ BOOL CXPokey::RenderSound1_50(int instrspeed)
         }
         break;
 
-        case CPokey::POKEY_SoundDriver::SOUND_DRIVER_SA_POKEY:
+        case CPokey::SoundDriver::SA_POKEY:
             Pokey_Process((unsigned char*)&m_PlayBuffer + renderoffset, (unsigned short)renderpartsize);
             rendersize -= renderpartsize;
             renderoffset += renderpartsize;
@@ -316,7 +332,7 @@ void CXPokey::RenderSoundV2(int instrspeed, BYTE* buffer, int& length)
 
         switch (GetSoundDriver())
         {
-        case CPokey::POKEY_SoundDriver::SOUND_DRIVER_SA_POKEY:
+        case CPokey::SoundDriver::SA_POKEY:
             Pokey_Process(buffer + renderoffset, (unsigned short)renderpartsize);
             rendersize -= renderpartsize;
             renderoffset += renderpartsize;
@@ -350,7 +366,7 @@ void CXPokey::MemToPokey()
     // Check for which POKEY plugin to use, and process whichever is currently active
     switch (m_pokey.GetSoundDriver())
     {
-    case CPokey::POKEY_SoundDriver::SOUND_DRIVER_APOKEYSND:
+    case CPokey::SoundDriver::APOKEYSND:
         if (resetPokey)
             APokeySound_Initialize(g_tracks4_8 == 8);
         for (int i = 0; i <= 8; i++)	// 0-7 + 8 (AUDCTL)
@@ -361,9 +377,9 @@ void CXPokey::MemToPokey()
         }
         break;
 
-    case CPokey::POKEY_SoundDriver::SOUND_DRIVER_SA_POKEY:
+    case CPokey::SoundDriver::SA_POKEY:
         if (resetPokey) {
-            Pokey_SoundInit(m_ClockFrequency, (WORD)m_SoundFormat.nSamplesPerSec, (g_tracks4_8 == 8) + 1);
+            Pokey_SoundInit(m_ClockFrequency, (WORD)GetSoundFormat()->nSamplesPerSec, (g_tracks4_8 == 8) + 1);
         }
         for (int i = 0; i <= 8; i++)	// 0-7 + 8 (AUDCTL)
         {

@@ -21,15 +21,18 @@ public:
 
     CXPokey();
     ~CXPokey();
+
     BOOL InitSound(const bool ntsc);
     BOOL DeInitSound();
     BOOL ReInitSound(const bool ntsc);
+
+    bool IsSoundDriverLoaded() const;
+    CPokey::SoundDriver GetSoundDriver() const;
+    const WAVEFORMATEX* GetSoundFormat() const;
+
     BOOL RenderSound1_50(int instrspeed);
     void RenderSoundV2(int instrspeed, BYTE* buffer, int& length);
-    void MemToPokey();
-    bool IsSoundDriverLoaded() { return m_pokey.IsSoundDriverLoaded(); }
-    CPokey::POKEY_SoundDriver GetSoundDriver() { return m_pokey.GetSoundDriver(); }
-    const WAVEFORMATEX* GetSoundFormat() const { return &m_SoundFormat; };
+
 
 private:
     CPokey				m_pokey;
@@ -44,7 +47,6 @@ private:
     DWORD				m_LoadPos;
     WAVEFORMATEX		m_SoundFormat;
     DWORD				m_LoadSize;
-    DSBUFFERDESC        dsbdesc;
     LPDIRECTSOUNDBUFFER m_SoundBuffer;
     DWORD				dwSize1, dwSize2;
     LPVOID				Data1, Data2;
@@ -61,4 +63,7 @@ private:
     WORD GetChannels() const;
     int GetChunkSize() const;
     int GetLatencySize() const;
+
+    void MemToPokey();
+
 };
