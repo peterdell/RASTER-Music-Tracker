@@ -3,7 +3,7 @@
 
 #include "General.h"
 
-#include "global.h"
+#include "Global.h"
 
 // ----------------------------------------------------------------------------
 // Channel On/Off helper functions
@@ -19,9 +19,9 @@ void SetChannelOnOff(int ch, int onoff)
 	{
 		// All channels
 		if (onoff >= 0)
-			for (int i = 0; i < SONGTRACKS; i++) g_channelon[i] = onoff;// set the given on/off state
+            for (int i = 0; i < SONGTRACKS; i++) { g_channelon[i] = onoff; }// set the given on/off state
 		else
-			for (int i = 0; i < SONGTRACKS; i++) g_channelon[i] ^= 1;	// invert the on/off state
+            for (int i = 0; i < SONGTRACKS; i++) { g_channelon[i] ^= 1; }	// invert the on/off state
 	}
 	else if (ch < SONGTRACKS)
 	{
@@ -65,3 +65,6 @@ void SetChannelSolo(int ch)
 	}
 }
 
+bool CChannelControl::IsChannelOn(const ChannelNumber channel) {
+    return g_channelon[channel] != 0;
+}
