@@ -5,12 +5,6 @@
 #include "Undo.h"
 
 #include "Tracks.h"
-#include "Instruments.h"
-
-#include "IOHelpers.h"
-#include "GuiHelpers.h"
-
-#include "ChannelControl.h"
 
 #include "global.h"
 

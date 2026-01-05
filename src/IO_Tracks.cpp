@@ -1,17 +1,11 @@
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "resource.h"
 #include "General.h"
-
-#include "Undo.h"
 
 #include "Tracks.h"
 
 #include "IOHelpers.h"
-#include "GuiHelpers.h"
 
-#include "ChannelControl.h"
-
-#include "global.h"
 
 
 #define WRITEATIDX(value) { if (idx < max) { dest[idx] = value; idx++; } else return -1; }
