@@ -19,6 +19,7 @@ public:
     typedef unsigned char Byte;
     typedef Byte Register;
     typedef int CycleCount;
+    typedef int ClockFrequency;
 
     static int Init();
     static void DeInit();

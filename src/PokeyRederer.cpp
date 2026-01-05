@@ -10,39 +10,26 @@
 #include "ChannelControl.h"
 
 // Needed for proper Machine Region and Stereo detection with POKEY plugins
+// TODO: Rework, see https://forums.atariage.com/topic/325338-altirra-emulation-core-for-rmt/
 int numTracksSetOnDriver = g_tracks4_8;
 int ntscRegionSetOnDriver = g_ntsc;
 
 static LPDIRECTSOUND          g_lpds;
 static LPDIRECTSOUNDBUFFER    g_lpdsbPrimary;
 
-extern CAtari::ClockFrequency FREQ_17();
 
 
-// TODO: Move this to the InitSound
-constexpr int CHANNELS = 2;
-constexpr int BITRESOLUTION = 8;
-constexpr int OUTPUTFREQ = 44100;
-constexpr int LATENCY = 3; //3 Frames
 
 
-#define FRAMERATE		((g_ntsc) ? 60 : 50)
-#define CHUNK_SIZE		(BITRESOLUTION / 8 * CHANNELS * OUTPUTFREQ / FRAMERATE)
-#define LATENCY_SIZE	(LATENCY * CHUNK_SIZE)
 
-
-CAtari::ClockFrequency FREQ_17(bool ntsc) {
-    return CAtari::GetClockFrequency(ntsc);
+int CXPokey::GetFrameRate(bool ntsc) {
+    // TODO: This is not the exacty framerate, so maybe that's why the frequencies are a little off in CPokey?
+    return ntsc ? 60 : 50;
 }
 
-int CYCLESPERSCREEN(bool ntsc) {
-    return (int)(((float)FREQ_17(ntsc)) / FRAMERATE); // TODO: This is not the exacty framerate, so maybe that's why the frequencies are a littel off?
+int CXPokey::GetCyclesPerFrame(bool ntsc) {
+    return (int)(((float)CAtari::GetClockFrequency(ntsc)) / GetFrameRate(ntsc));
 }
-
-float CYCLESPERSAMPLE(bool ntsc) {
-    return  ((float)FREQ_17(ntsc) / OUTPUTFREQ); // TODO Really float required?
-}
-
 
 CXPokey::CXPokey()
 {
@@ -54,173 +41,17 @@ CXPokey::~CXPokey()
     DeInitSound();
 }
 
-BOOL CXPokey::DeInitSound()
+
+BOOL CXPokey::InitSoundInternal(const bool ntsc, const WORD channels, const DWORD samplesPerSec, const WORD bitsPerSample)
 {
 
-    m_pokey.DeInitSound();
-    g_aboutpokey = "No Pokey sound emulation.";
-
-    if (m_SoundBuffer)
-    {
-        m_SoundBuffer->Stop();
-        m_SoundBuffer->Release();
-    }
-    m_SoundBuffer = NULL;
-
-    if (g_lpdsbPrimary) g_lpdsbPrimary->Release();
-    g_lpdsbPrimary = NULL;
-
-    if (g_lpds) g_lpds->Release();
-    g_lpds = NULL;
-
-    return 1;
-}
-
-BOOL CXPokey::ReInitSound()
-{
-    DeInitSound();
-    return InitSound();
-}
-
-BOOL CXPokey::RenderSound1_50(int instrspeed)
-{
-    if (!IsSoundDriverLoaded()) {
-        return FALSE;
-    }
-    if (!m_SoundBuffer) {
-        return FALSE;
-    }
-
-    m_SoundBuffer->GetCurrentPosition(&m_PlayCursor, &m_WriteCursor);
-
-    //|||||||||||||||||||||||||||||||||||||||||
-    //           ^|-------delta------->^
-    //      m_WriteCursor           m_LoadPos
-
-    int delta = (m_LoadPos - m_WriteCursor) & (BUFFER_SIZE - 1);
-
-    m_LoadSize = CHUNK_SIZE;	//1764  (882 samples * 2 channels)
-    if (delta > LATENCY_SIZE)
-    {
-        if (delta > (BUFFER_SIZE / 2))
-        {
-            //we missed it, we're more than half a buffer late, so get to it and move on to what we should be right
-            m_LoadPos = (m_WriteCursor + LATENCY_SIZE) & (BUFFER_SIZE - 1);
-        }
-        else
-        {
-            //we ran too far ahead so we slow down a bit (we will render smaller pieces than CHUNK_SIZE)
-            m_LoadSize = CHUNK_SIZE - (((delta - LATENCY_SIZE) / 16) & (BUFFER_SIZE - 1 - 1));	//-1-1 <=Just the numbers!
-            //watched
-            if (m_LoadSize <= 0) return 0; //we are so far ahead that it will not render at all
-        }
-    }
-    else // delta <=LATENCY_SIZE
-    {
-        //we are closer than the required latency, that's great, but we'd rather speed up so that m_WriteCursor doesn't catch up with us (we'll render bigger chunks than CHUNK_SIZE)
-        m_LoadSize = CHUNK_SIZE + (((LATENCY_SIZE - delta) / 16) & (BUFFER_SIZE - 1 - 1));	//-1-1 <=Just the numbers!
-
-        //watched
-        if (m_LoadSize >= BUFFER_SIZE / 2) return 0; //that would be a bigger piece than the size of a buffer pulse
-    }
-
-    int rendersize = m_LoadSize;
-    int renderpartsize = 0;
-    int renderoffset = 0;
-
-    for (; instrspeed > 0; instrspeed--)
-    {
-        //--- RMT - instrument play ---/
-        if (g_rmtroutine) { CAtari::PlayRMT(); }	//one run RMT routine (instruments)
-        MemToPokey();			//transfer from g_atarimem to POKEY (mono or stereo)
-        renderpartsize = (rendersize / instrspeed) & 0xfffe;	//just the numbers
-
-        switch (GetSoundDriver())
-        {
-        case CPokey::POKEY_SoundDriver::SOUND_DRIVER_APOKEYSND:	// FIXME: Mono POKEY sound generation is broken, currently the reason for this is unclear...
-        {
-            int cycles = (unsigned short)((float)renderpartsize / CHANNELS * CYCLESPERSAMPLE(g_ntsc));
-            while (cycles > 0 && renderpartsize > 0)
-            {
-                // The maximum number of cycles that can be generated is CYCLESPERSCREEN
-                auto cyclesPerScreen = CYCLESPERSCREEN(g_ntsc);
-                int rencyc = (cycles > cyclesPerScreen ? cyclesPerScreen : cycles);
-                renderpartsize = APokeySound_Generate(rencyc, (unsigned char*)&m_PlayBuffer + renderoffset, ASAP_FORMAT_U8);
-                rendersize -= renderpartsize;
-                renderoffset += renderpartsize;
-                cycles -= rencyc;
-            }
-        }
-        break;
-
-        case CPokey::POKEY_SoundDriver::SOUND_DRIVER_SA_POKEY:
-            Pokey_Process((unsigned char*)&m_PlayBuffer + renderoffset, (unsigned short)renderpartsize);
-            rendersize -= renderpartsize;
-            renderoffset += renderpartsize;
-            break;
-        }
-    }
-
-    if (!m_SoundBuffer) {
-        return FALSE;	// Should help preventing crashes from reading NULL pointer when data is read faster than it could be processed
-    }
-
-    m_LoadSize = renderoffset; // Actually generated sample data
-
-    int r = m_SoundBuffer->Lock(m_LoadPos, m_LoadSize, &Data1, &dwSize1, &Data2, &dwSize2, 0);
-
-    if (r == DS_OK)
-    {
-        // Render the whole m_LoadSize into the buffer at once
-        m_LoadPos = (m_LoadPos + m_LoadSize) & (BUFFER_SIZE - 1);
-
-        // Transfer the first bit from the buffer to Data1
-        memcpy(Data1, m_PlayBuffer, dwSize1);
-
-        if (Data2)
-        {
-            // If it is divided, now transfer the remaining bits
-            memcpy(Data2, m_PlayBuffer + dwSize1, dwSize2);
-        }
-        m_SoundBuffer->Unlock(Data1, dwSize1, Data2, dwSize2);
-
-        return 1;
-    }
-
-    return 0;
-}
-
-// Initial WAV recorder process
-// NOTE: This does NOT work with the Altirra plugin due to it hijacking the soundbuffer with its own thing...
-void CXPokey::RenderSoundV2(int instrspeed, BYTE* buffer, int& length)
-{
-    int rendersize = CHUNK_SIZE;
-    int renderpartsize = 0;
-    int renderoffset = 0;
-
-    for (; instrspeed > 0; instrspeed--)
-    {
-        CAtari::SetPokey();
-        MemToPokey();
-        renderpartsize = (rendersize / instrspeed) & 0xfffe;
-
-        switch (GetSoundDriver())
-        {
-        case CPokey::POKEY_SoundDriver::SOUND_DRIVER_SA_POKEY:
-            Pokey_Process(buffer + renderoffset, (unsigned short)renderpartsize);
-            rendersize -= renderpartsize;
-            renderoffset += renderpartsize;
-            break;
-        }
-    }
-
-    // Copy the actually generated sample data to buffer
-    length = renderoffset;
-}
-
-BOOL CXPokey::InitSound()
-{
     DeInitSound();	// Just in case, everything must be cleared before initialising
+
+    m_Latency = 3; //3 Chunks
+
+    m_ClockFrequency = CAtari::GetClockFrequency(ntsc);
+    m_ChunkSize = (bitsPerSample / 8 * channels * samplesPerSec / GetFrameRate(ntsc));
+    m_CyclesPerSample = ((float)m_ClockFrequency / samplesPerSec); // TODO Really float required?
 
     if (DirectSoundCreate(NULL, &g_lpds, NULL) != DS_OK)
     {
@@ -242,9 +73,9 @@ BOOL CXPokey::InitSound()
     // Set primary buffer format
     ZeroMemory(&m_SoundFormat, sizeof(WAVEFORMATEX));
     m_SoundFormat.wFormatTag = WAVE_FORMAT_PCM;
-    m_SoundFormat.nChannels = CHANNELS;			//2
-    m_SoundFormat.nSamplesPerSec = OUTPUTFREQ;	//44100
-    m_SoundFormat.wBitsPerSample = BITRESOLUTION;	//8 
+    m_SoundFormat.nChannels = channels;
+    m_SoundFormat.nSamplesPerSec = samplesPerSec;
+    m_SoundFormat.wBitsPerSample = bitsPerSample;
     m_SoundFormat.nBlockAlign = m_SoundFormat.wBitsPerSample / 8 * m_SoundFormat.nChannels;
     m_SoundFormat.nAvgBytesPerSec = m_SoundFormat.nSamplesPerSec * m_SoundFormat.nBlockAlign;
     m_SoundFormat.cbSize = 0;
@@ -297,7 +128,9 @@ BOOL CXPokey::InitSound()
 
     m_SoundBuffer->Play(0, 0, DSBPLAY_LOOPING);
     m_SoundBuffer->GetCurrentPosition(&m_PlayCursor, &m_WriteCursorStart);
-    m_LoadPos = (m_WriteCursorStart + LATENCY_SIZE) & (BUFFER_SIZE - 1);  //initial latency (in hundredths of a second)
+    const auto latencySize = m_Latency * m_ChunkSize;
+
+    m_LoadPos = (m_WriteCursorStart + latencySize) & (BUFFER_SIZE - 1);  //initial latency (in hundredths of a second)
 
     // Initialise the POKEY emulation plugin once the sound interface is ready
     m_pokey.InitSound();
@@ -305,8 +138,199 @@ BOOL CXPokey::InitSound()
     return 1;
 }
 
+BOOL CXPokey::InitSound(const bool ntsc)
+{
+    return InitSoundInternal(ntsc, 2, 44100, 8);
+}
+
+BOOL CXPokey::DeInitSound()
+{
+
+    m_pokey.DeInitSound();
+    g_aboutpokey = "No Pokey sound emulation.";
+
+    if (m_SoundBuffer)
+    {
+        m_SoundBuffer->Stop();
+        m_SoundBuffer->Release();
+    }
+    m_SoundBuffer = NULL;
+
+    if (g_lpdsbPrimary) g_lpdsbPrimary->Release();
+    g_lpdsbPrimary = NULL;
+
+    if (g_lpds) g_lpds->Release();
+    g_lpds = NULL;
+
+    return 1;
+}
+
+BOOL CXPokey::ReInitSound(const bool ntsc)
+{
+    DeInitSound();
+    return InitSound(ntsc);
+}
+
+WORD   CXPokey::GetChannels() const {
+    return m_SoundFormat.nChannels;
+}
+
+
+int CXPokey::GetChunkSize() const {
+    return m_ChunkSize;
+}
+
+int CXPokey::GetLatencySize() const {
+    return 	(m_Latency * GetChunkSize());
+}
+
+
+BOOL CXPokey::RenderSound1_50(int instrspeed)
+{
+    if (!IsSoundDriverLoaded()) {
+        return FALSE;
+    }
+    if (!m_SoundBuffer) {
+        return FALSE;
+    }
+
+    m_SoundBuffer->GetCurrentPosition(&m_PlayCursor, &m_WriteCursor);
+
+    //|||||||||||||||||||||||||||||||||||||||||
+    //           ^|-------delta------->^
+    //      m_WriteCursor           m_LoadPos
+
+    int delta = (m_LoadPos - m_WriteCursor) & (BUFFER_SIZE - 1);
+
+    const auto chunkSize = GetChunkSize();
+    const auto latencySize = GetLatencySize();
+
+    m_LoadSize = chunkSize;	// 1764  (882 samples * 2 channels)
+    if (delta > latencySize)
+    {
+        if (delta > (BUFFER_SIZE / 2))
+        {
+            //we missed it, we're more than half a buffer late, so get to it and move on to what we should be right
+            m_LoadPos = (m_WriteCursor + latencySize) & (BUFFER_SIZE - 1);
+        }
+        else
+        {
+            //we ran too far ahead so we slow down a bit (we will render smaller pieces than CHUNK_SIZE)
+            m_LoadSize = chunkSize - (((delta - latencySize) / 16) & (BUFFER_SIZE - 1 - 1));	//-1-1 <=Just the numbers!
+            //watched
+            if (m_LoadSize <= 0) return 0; //we are so far ahead that it will not render at all
+        }
+    }
+    else // delta <=LATENCY_SIZE
+    {
+        //we are closer than the required latency, that's great, but we'd rather speed up so that m_WriteCursor doesn't catch up with us (we'll render bigger chunks than CHUNK_SIZE)
+        m_LoadSize = chunkSize + (((latencySize - delta) / 16) & (BUFFER_SIZE - 1 - 1));	//-1-1 <=Just the numbers!
+
+        //watched
+        if (m_LoadSize >= BUFFER_SIZE / 2) {
+            return 0; //that would be a bigger piece than the size of a buffer pulse
+        }
+    }
+
+    int rendersize = m_LoadSize;
+    int renderpartsize = 0;
+    int renderoffset = 0;
+
+    for (; instrspeed > 0; instrspeed--)
+    {
+        //--- RMT - instrument play ---/
+        if (g_rmtroutine) { CAtari::PlayRMT(); }	//one run RMT routine (instruments)
+        MemToPokey();			//transfer from g_atarimem to POKEY (mono or stereo)
+        renderpartsize = (rendersize / instrspeed) & 0xfffe;	//just the numbers
+
+        switch (GetSoundDriver())
+        {
+        case CPokey::POKEY_SoundDriver::SOUND_DRIVER_APOKEYSND:
+            // FIXME: Mono POKEY sound generation is broken, currently the reason for this is unclear...
+        {
+
+            int cycles = (unsigned short)((float)renderpartsize / GetChannels() * m_CyclesPerSample);
+            while (cycles > 0 && renderpartsize > 0)
+            {
+                // The maximum number of cycles that can be generated is CYCLESPERSCREEN
+                auto cyclesPerFrame = GetCyclesPerFrame(g_ntsc);
+                int rencyc = (cycles > cyclesPerFrame ? cyclesPerFrame : cycles);
+                renderpartsize = APokeySound_Generate(rencyc, (unsigned char*)&m_PlayBuffer + renderoffset, ASAP_FORMAT_U8);
+                rendersize -= renderpartsize;
+                renderoffset += renderpartsize;
+                cycles -= rencyc;
+            }
+        }
+        break;
+
+        case CPokey::POKEY_SoundDriver::SOUND_DRIVER_SA_POKEY:
+            Pokey_Process((unsigned char*)&m_PlayBuffer + renderoffset, (unsigned short)renderpartsize);
+            rendersize -= renderpartsize;
+            renderoffset += renderpartsize;
+            break;
+        }
+    }
+
+    if (!m_SoundBuffer) {
+        return FALSE;	// Should help preventing crashes from reading NULL pointer when data is read faster than it could be processed
+    }
+
+    m_LoadSize = renderoffset; // Actually generated sample data
+
+    int r = m_SoundBuffer->Lock(m_LoadPos, m_LoadSize, &Data1, &dwSize1, &Data2, &dwSize2, 0);
+
+    if (r == DS_OK)
+    {
+        // Render the whole m_LoadSize into the buffer at once
+        m_LoadPos = (m_LoadPos + m_LoadSize) & (BUFFER_SIZE - 1);
+
+        // Transfer the first bit from the buffer to Data1
+        memcpy(Data1, m_PlayBuffer, dwSize1);
+
+        if (Data2)
+        {
+            // If it is divided, now transfer the remaining bits
+            memcpy(Data2, m_PlayBuffer + dwSize1, dwSize2);
+        }
+        m_SoundBuffer->Unlock(Data1, dwSize1, Data2, dwSize2);
+
+        return 1;
+    }
+
+    return 0;
+}
+
+// Initial WAV recorder process
+// NOTE: This does NOT work with the Altirra plugin due to it hijacking the soundbuffer with its own thing...
+void CXPokey::RenderSoundV2(int instrspeed, BYTE* buffer, int& length)
+{
+    int rendersize = GetChunkSize();
+    int renderpartsize = 0;
+    int renderoffset = 0;
+
+    for (; instrspeed > 0; instrspeed--)
+    {
+        CAtari::SetPokey();
+        MemToPokey();
+        renderpartsize = (rendersize / instrspeed) & 0xfffe;
+
+        switch (GetSoundDriver())
+        {
+        case CPokey::POKEY_SoundDriver::SOUND_DRIVER_SA_POKEY:
+            Pokey_Process(buffer + renderoffset, (unsigned short)renderpartsize);
+            rendersize -= renderpartsize;
+            renderoffset += renderpartsize;
+            break;
+        }
+    }
+
+    // Copy the actually generated sample data to buffer
+    length = renderoffset;
+}
+
+
 /// <summary>
-/// Transfer 9 Pokey registers values into the sound driver.
+/// Transfer 9/18 Pokey registers values into the sound driver.
 /// Mono: D200-D208
 /// Stereo: D200-D208 and D210-D218
 /// </summary>
@@ -338,8 +362,9 @@ void CXPokey::MemToPokey()
         break;
 
     case CPokey::POKEY_SoundDriver::SOUND_DRIVER_SA_POKEY:
-        if (resetPokey)
-            Pokey_SoundInit(FREQ_17(), OUTPUTFREQ, (g_tracks4_8 == 8) + 1);
+        if (resetPokey) {
+            Pokey_SoundInit(m_ClockFrequency, (WORD)m_SoundFormat.nSamplesPerSec, (g_tracks4_8 == 8) + 1);
+        }
         for (int i = 0; i <= 8; i++)	// 0-7 + 8 (AUDCTL)
         {
             Pokey_PutByte(i, (i & 0x01) && !GetChannelOnOff(i / 2) ? 0 : g_atarimem[0xd200 + i]);

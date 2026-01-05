@@ -739,7 +739,7 @@ void CRmtView::OnViewConfiguration()
 
         if (g_nohwsoundbuffer != dlg.m_nohwsoundbuffer)
         {
-            g_Pokey.ReInitSound();	//the sound needs to be reinitialized
+            g_Pokey.ReInitSound(g_ntsc );	//the sound needs to be reinitialized
             CAtari::InitRMTRoutine(); //reset RMT routines
         }
         g_nohwsoundbuffer = dlg.m_nohwsoundbuffer;
@@ -977,7 +977,7 @@ void CRmtView::OnInitialUpdate()
     ChangeViewElements(0); //without write!
 
     //INITIAL POKEY INITIALISATION (DLL)
-    if (!g_Pokey.InitSound())
+    if (!g_Pokey.InitSound(g_ntsc))
     {
         g_Pokey.DeInitSound();
         exit(1);
