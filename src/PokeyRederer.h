@@ -1,16 +1,11 @@
 //
-// Pokey.h header file
-// originally made by Raster, 2002-2009
-// reworked by VinsCool, 2021-2022
+// PokeyRender.h header file
 //
-
 
 #pragma once
 
 #include "C6502.h"
 #include "Pokey.h"
-
-
 
 class CXPokey
 {
@@ -30,7 +25,10 @@ public:
     CPokey::SoundDriver GetSoundDriver() const;
     const WAVEFORMATEX* GetSoundFormat() const;
 
+    // Called by Song
     BOOL RenderSound1_50(int instrspeed);
+
+    // Called by WaveFileExporter
     void RenderSoundV2(int instrspeed, BYTE* buffer, int& length);
 
 

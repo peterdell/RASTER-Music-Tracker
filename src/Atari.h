@@ -24,6 +24,8 @@
 //immediately after RMT_ATA_INSTROFF, there is some bytes left unused, these will be used as plaintext data to display the RMT driver version used
 #define RMT_ATA_DRIVERVERSION	RMTPLAYR_DRIVERVERSION		
 
+#include "Memory.h"
+
 class CAtari {
 
 
@@ -49,6 +51,8 @@ public:
     static void DeInit();
 
     static void ClearMemory();
+    static byte GetByteAt(const MemoryAddress address);
+
     static int LoadOBX(int obx, unsigned char* mem, WORD& minadr, WORD& maxadr);
 
     static int LoadRMTRoutines();

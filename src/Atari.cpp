@@ -42,6 +42,10 @@ void CAtari::ClearMemory()
     memset(g_atarimem, 0, RAM_SIZE);
 }
 
+byte CAtari::GetByteAt(const MemoryAddress address) {
+    return g_atarimem[address];
+}
+
 // Load an Atari executable to memory
 int CAtari::LoadOBX(int obx, unsigned char* mem, WORD& minadr, WORD& maxadr)
 {

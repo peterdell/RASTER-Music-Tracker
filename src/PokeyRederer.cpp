@@ -7,7 +7,7 @@
 #include "PokeyRederer.h"
 #include "Atari.h"
 #include "Global.h"
-#include "ChannelControl.h"
+#include "ChannelControl.h" // For IsChannelOn
 
 // Needed for proper Machine Region and Stereo detection with POKEY plugins
 // TODO: Rework, see https://forums.atariage.com/topic/325338-altirra-emulation-core-for-rmt/
@@ -367,25 +367,28 @@ void CXPokey::MemToPokey()
     switch (m_pokey.GetSoundDriver())
     {
     case CPokey::SoundDriver::APOKEYSND:
-        if (resetPokey)
+        if (resetPokey) {
             APokeySound_Initialize(g_tracks4_8 == 8);
+        }
         for (int i = 0; i <= 8; i++)	// 0-7 + 8 (AUDCTL)
         {
-            APokeySound_PutByte(i, (i & 0x01) && !GetChannelOnOff(i / 2) ? 0 : g_atarimem[0xd200 + i]);
-            if (numTracksSetOnDriver == 8)
-                APokeySound_PutByte(i + 16, (i & 0x01) && !GetChannelOnOff(i / 2 + 4) ? 0 : g_atarimem[0xd210 + i]);	// Stereo
+            APokeySound_PutByte(i, (i & 0x01) && !GetChannelOnOff(i / 2) ? 0 : CAtari::GetByteAt(0xd200 + i));
+            if (numTracksSetOnDriver == 8) {
+                APokeySound_PutByte(i + 16, (i & 0x01) && !GetChannelOnOff(i / 2 + 4) ? 0 : CAtari::GetByteAt(0xd210 + i));	// Stereo
+            }
         }
         break;
 
     case CPokey::SoundDriver::SA_POKEY:
         if (resetPokey) {
+            // Currently cast to WORD, because no rate avve 64kHz are supported.
             Pokey_SoundInit(m_ClockFrequency, (WORD)GetSoundFormat()->nSamplesPerSec, (g_tracks4_8 == 8) + 1);
         }
         for (int i = 0; i <= 8; i++)	// 0-7 + 8 (AUDCTL)
         {
-            Pokey_PutByte(i, (i & 0x01) && !GetChannelOnOff(i / 2) ? 0 : g_atarimem[0xd200 + i]);
+            Pokey_PutByte(i, (i & 0x01) && !GetChannelOnOff(i / 2) ? 0 : CAtari::GetByteAt(0xd200 + i));
             if (numTracksSetOnDriver == 8)
-                Pokey_PutByte(i + 16, (i & 0x01) && !GetChannelOnOff(i / 2 + 4) ? 0 : g_atarimem[0xd210 + i]);		// Stereo
+                Pokey_PutByte(i + 16, (i & 0x01) && !GetChannelOnOff(i / 2 + 4) ? 0 : CAtari::GetByteAt(0xd210 + i));		// Stereo
         }
         break;
     }
