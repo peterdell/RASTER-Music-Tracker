@@ -57,13 +57,23 @@ public:
 
     void InitSound();
     void DeInitSound();
+    CString GetAbout() const;
 
     SoundDriver GetSoundDriver() const;
     bool IsSoundDriverLoaded()  const;
 
+    void InitPokeys(const bool ntsc, const bool stereo, const DWORD samplesPerSec);
+    void PutByte(const byte address, const byte value);
+
 private:
     SoundDriver    m_soundDriver;
     HINSTANCE      m_pokey_dll;
+    CString m_about;
+
+    bool m_initialized;
+    bool m_ntsc;
+    bool m_stereo;
+    DWORD m_samplesPerSec;
 
     SoundDriver InitPokeyDll();	// The function will return the m_soundDriverId value
     void DeInitPokeyDll();

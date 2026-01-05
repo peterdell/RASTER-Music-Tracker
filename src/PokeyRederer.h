@@ -17,12 +17,12 @@ public:
     CXPokey();
     ~CXPokey();
 
-    BOOL InitSound(const bool ntsc);
-    BOOL DeInitSound();
-    BOOL ReInitSound(const bool ntsc);
+    const CPokey* GetPokey() const;
 
-    bool IsSoundDriverLoaded() const;
-    CPokey::SoundDriver GetSoundDriver() const;
+    BOOL InitSound(const bool ntsc, const bool stereo);
+    BOOL DeInitSound();
+    BOOL ReInitSound(const bool ntsc, const bool stereo);
+
     const WAVEFORMATEX* GetSoundFormat() const;
 
     // Called by Song
@@ -34,6 +34,9 @@ public:
 
 private:
     CPokey				m_pokey;
+
+    bool ntsc;
+    bool stereo;
 
     int m_Latency; // Chunks
 
@@ -56,12 +59,15 @@ private:
     static int GetFrameRate(bool ntsc);
     static int GetCyclesPerFrame(bool ntsc);
 
-    BOOL InitSoundInternal(const bool ntsc, const WORD channels, const DWORD samplesPerSec, const WORD bitsPerSample);
+    BOOL InitSoundInternal(const bool ntsc, const bool stereo, const WORD channels, const DWORD samplesPerSec, const WORD bitsPerSample);
 
     WORD GetChannels() const;
     int GetChunkSize() const;
     int GetLatencySize() const;
 
-    void MemToPokey();
+    CPokey::SoundDriver GetSoundDriver() const;
+    bool IsSoundDriverLoaded()  const;
+
+    void CopyAtariMemoryToPokey();
 
 };

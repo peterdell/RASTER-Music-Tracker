@@ -37,11 +37,17 @@ CXPokey::~CXPokey()
     DeInitSound();
 }
 
+const CPokey* CXPokey::GetPokey() const {
+    return &m_pokey;
+}
 
-BOOL CXPokey::InitSoundInternal(const bool ntsc, const WORD channels, const DWORD samplesPerSec, const WORD bitsPerSample)
+BOOL CXPokey::InitSoundInternal(const bool ntsc, const bool stereo, const WORD channels, const DWORD samplesPerSec, const WORD bitsPerSample)
 {
 
     DeInitSound();	// Just in case, everything must be cleared before initialising
+
+    this->ntsc = ntsc;
+    this->stereo = stereo;
 
     m_Latency = 3; //3 Chunks
 
@@ -135,18 +141,17 @@ BOOL CXPokey::InitSoundInternal(const bool ntsc, const WORD channels, const DWOR
     return 1;
 }
 
-BOOL CXPokey::InitSound(const bool ntsc)
+BOOL CXPokey::InitSound(const bool ntsc, const bool stereo)
 {
     // Defaul output is stereo, 44.1 kHz, 8-bits.
-    return InitSoundInternal(ntsc, 2, 44100, 8);
+    return InitSoundInternal(ntsc, stereo, 2, 44100, 8);
 }
 
 BOOL CXPokey::DeInitSound()
 {
 
     m_pokey.DeInitSound();
-    g_aboutpokey = "No Pokey sound emulation.";
-
+  
     if (m_SoundBuffer)
     {
         m_SoundBuffer->Stop();
@@ -167,10 +172,10 @@ BOOL CXPokey::DeInitSound()
     return 1;
 }
 
-BOOL CXPokey::ReInitSound(const bool ntsc)
+BOOL CXPokey::ReInitSound(const bool ntsc, const bool stereo)
 {
     DeInitSound();
-    return InitSound(ntsc);
+    return InitSound(ntsc, stereo);
 }
 
 bool CXPokey::IsSoundDriverLoaded() const {
@@ -256,7 +261,7 @@ BOOL CXPokey::RenderSound1_50(int instrspeed)
         if (g_rmtroutine) {
             CAtari::PlayRMT();
         }	//one run RMT routine (instruments)
-        MemToPokey();			// transfer from g_atarimem to POKEY (mono or stereo)
+        CopyAtariMemoryToPokey();			// transfer from Atari memory to POKEY (mono or stereo)
         renderpartsize = (rendersize / instrspeed) & 0xfffe;	//just the numbers
 
         switch (GetSoundDriver())
@@ -327,7 +332,7 @@ void CXPokey::RenderSoundV2(int instrspeed, BYTE* buffer, int& length)
     for (; instrspeed > 0; instrspeed--)
     {
         CAtari::SetPokey();
-        MemToPokey();
+        CopyAtariMemoryToPokey();
         renderpartsize = (rendersize / instrspeed) & 0xfffe;
 
         switch (GetSoundDriver())
@@ -350,46 +355,28 @@ void CXPokey::RenderSoundV2(int instrspeed, BYTE* buffer, int& length)
 /// Mono: D200-D208
 /// Stereo: D200-D208 and D210-D218
 /// </summary>
-void CXPokey::MemToPokey()
+void CXPokey::CopyAtariMemoryToPokey()
 {
-    // If the variabes no longer match the last known parameters, the POKEY plugins must be re-initialised first
-    bool resetPokey = false;
-    if (numTracksSetOnDriver != g_tracks4_8 || ntscRegionSetOnDriver != g_ntsc)
+
+    m_pokey.InitPokeys(ntsc, stereo, GetSoundFormat()->nSamplesPerSec);
+
+    // Write bytes 0-7. Write 0x00 if the channel is inactive.
+    for (int i = 0; i <= 8; i++)	//
     {
-        numTracksSetOnDriver = g_tracks4_8;
-        ntscRegionSetOnDriver = g_ntsc;
-        resetPokey = true;
-        //ReInitSound();
-        //return;
+        const auto channel = i / 2;
+        auto on = CChannelControl::IsChannelOn(i / 2);
+        auto b = on ? CAtari::GetByteAt(0xd200 + i) : 0x00;
+        m_pokey.PutByte(i, b);
+        if (stereo) {
+            auto on = CChannelControl::IsChannelOn(channel + 4);
+            b = on ? CAtari::GetByteAt(0xd210 + i) : 0x00;
+            m_pokey.PutByte(i + 16, (i & 0x01) && !GetChannelOnOff(i / 2 + 4) ? 0 : b);
+        }
     }
 
-    // Check for which POKEY plugin to use, and process whichever is currently active
-    switch (m_pokey.GetSoundDriver())
-    {
-    case CPokey::SoundDriver::APOKEYSND:
-        if (resetPokey) {
-            APokeySound_Initialize(g_tracks4_8 == 8);
-        }
-        for (int i = 0; i <= 8; i++)	// 0-7 + 8 (AUDCTL)
-        {
-            APokeySound_PutByte(i, (i & 0x01) && !GetChannelOnOff(i / 2) ? 0 : CAtari::GetByteAt(0xd200 + i));
-            if (numTracksSetOnDriver == 8) {
-                APokeySound_PutByte(i + 16, (i & 0x01) && !GetChannelOnOff(i / 2 + 4) ? 0 : CAtari::GetByteAt(0xd210 + i));	// Stereo
-            }
-        }
-        break;
-
-    case CPokey::SoundDriver::SA_POKEY:
-        if (resetPokey) {
-            // Currently cast to WORD, because no rate avve 64kHz are supported.
-            Pokey_SoundInit(m_ClockFrequency, (WORD)GetSoundFormat()->nSamplesPerSec, (g_tracks4_8 == 8) + 1);
-        }
-        for (int i = 0; i <= 8; i++)	// 0-7 + 8 (AUDCTL)
-        {
-            Pokey_PutByte(i, (i & 0x01) && !GetChannelOnOff(i / 2) ? 0 : CAtari::GetByteAt(0xd200 + i));
-            if (numTracksSetOnDriver == 8)
-                Pokey_PutByte(i + 16, (i & 0x01) && !GetChannelOnOff(i / 2 + 4) ? 0 : CAtari::GetByteAt(0xd210 + i));		// Stereo
-        }
-        break;
+    // AUDCTL
+    m_pokey.PutByte(0x08, CAtari::GetByteAt(0xd208));
+    if (stereo) {
+        m_pokey.PutByte(0x08, CAtari::GetByteAt(0xd218));
     }
 }

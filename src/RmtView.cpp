@@ -739,7 +739,7 @@ void CRmtView::OnViewConfiguration()
 
         if (g_nohwsoundbuffer != dlg.m_nohwsoundbuffer)
         {
-            g_Pokey.ReInitSound(g_ntsc );	//the sound needs to be reinitialized
+            g_Pokey.ReInitSound(g_ntsc, IsStereo() );	//the sound needs to be reinitialized
             CAtari::InitRMTRoutine(); //reset RMT routines
         }
         g_nohwsoundbuffer = dlg.m_nohwsoundbuffer;
@@ -977,7 +977,7 @@ void CRmtView::OnInitialUpdate()
     ChangeViewElements(0); //without write!
 
     //INITIAL POKEY INITIALISATION (DLL)
-    if (!g_Pokey.InitSound(g_ntsc))
+    if (!g_Pokey.InitSound(g_ntsc, IsStereo()))
     {
         g_Pokey.DeInitSound();
         exit(1);
@@ -1000,7 +1000,7 @@ void CRmtView::OnInitialUpdate()
     m_timerDisplay = SetTimer(1, 16, NULL);
 
     //Displays the ABOUT dialog if there is no Pokey or 6502 initialized...
-    if (!g_Pokey.IsSoundDriverLoaded() || !g_is6502)
+    if (!g_Pokey.GetPokey()->IsSoundDriverLoaded() || !g_is6502)
     {
         AfxGetApp()->GetMainWnd()->PostMessage(WM_COMMAND, ID_APP_ABOUT, 0);
     }

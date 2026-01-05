@@ -1,24 +1,12 @@
-// Original code by Raster, 2002-2009
-// Experimental changes and additions by VinsCool, 2021-2023
+
+
 // TODO: Replace the plugin interface with a permanent emulation core
-// FIXME: Use a better backend (DirectSound is outdated...)
 
 #include "stdafx.h"
 #include "Pokey.h"
 #include "Atari.h"
 
 extern HWND g_hwnd;
-extern CString g_aboutpokey;
-extern BOOL g_ntsc;
-extern int g_tracks4_8;
-
-// TOD Copied from PokeyRenderer
-#define OUTPUTFREQ		44100		//22050		//44100
-
-CAtari::ClockFrequency FREQ_17() {
-    return CAtari::GetClockFrequency(g_ntsc);
-}
-
 
 APokeySound_Initialize_PROC APokeySound_Initialize;
 APokeySound_PutByte_PROC APokeySound_PutByte;
@@ -38,6 +26,10 @@ CPokey::CPokey()
 {
     m_soundDriver = NONE;
     m_pokey_dll = NULL;
+
+    m_initialized = false;
+    m_ntsc = false;
+    m_stereo = false;
 }
 
 CPokey::~CPokey()
@@ -52,13 +44,24 @@ void CPokey::InitSound() {
 
 void CPokey::DeInitSound() {
     m_soundDriver = NONE;
+    m_about = "No POKEY emulation loaded";
+
+    m_initialized = false;
+    m_ntsc = false;
+    m_stereo = false;
+
     DeInitPokeyDll();
+}
+
+CString CPokey::GetAbout() const {
+    return m_about;
 }
 
 //TODO: Add a method for letting the user chose which plugin they would like to use instead of the current default/fallback setup
 CPokey::SoundDriver CPokey::InitPokeyDll()
 {
 
+    m_about = "";
 
     // apokeysnd.dll is first loaded, will be used in priority if it is found
     if (m_pokey_dll = LoadLibrary("apokeysnd.dll"))
@@ -85,8 +88,7 @@ CPokey::SoundDriver CPokey::InitPokeyDll()
         {
             const char* name, * author, * description;
             APokeySound_About(&name, &author, &description);
-            g_aboutpokey.Format("%s\n%s\n%s", name, author, description);
-            APokeySound_Initialize(g_tracks4_8 == 8);	// STEREO enabled
+            m_about.Format("%s\n%s\n%s", name, author, description);
             return APOKEYSND;
         }
 
@@ -123,11 +125,8 @@ CPokey::SoundDriver CPokey::InitPokeyDll()
         {
             char* name, * author, * description;
             Pokey_About(&name, &author, &description);
-            g_aboutpokey.Format("%s\n%s\n%s", name, author, description);
+            m_about.Format("%s\n%s\n%s", name, author, description);
             Pokey_Initialise(0, 0);
-
-            // Specify the machine region and if it uses Stereo or Mono, as well as the frequency for the sound output
-            Pokey_SoundInit(FREQ_17(), OUTPUTFREQ, (g_tracks4_8 == 8) + 1);
             return SA_POKEY;
         }
 
@@ -152,12 +151,49 @@ void CPokey::DeInitPokeyDll() {
 
 }
 
-
-
 CPokey::SoundDriver CPokey::GetSoundDriver() const {
     return m_soundDriver;
 }
 
 bool CPokey::IsSoundDriverLoaded() const {
     return m_soundDriver != NONE;
+}
+
+
+void  CPokey::InitPokeys(const bool ntsc, const bool stereo, const DWORD samplesPerSec) {
+
+    if (!m_initialized || m_ntsc != ntsc || m_stereo != stereo || m_samplesPerSec!= samplesPerSec) {
+        switch (GetSoundDriver())
+        {
+        case CPokey::SoundDriver::APOKEYSND:
+            APokeySound_Initialize(stereo);
+
+            break;
+
+        case CPokey::SoundDriver::SA_POKEY:
+            // Currently cast to WORD, because no rate avve 64kHz are supported.
+            Pokey_SoundInit(CAtari::GetClockFrequency(ntsc), (WORD)samplesPerSec, stereo ? 2 : 1);
+            break;
+        }
+
+        m_initialized = true;
+        m_ntsc = ntsc;
+        m_stereo = stereo;
+        m_samplesPerSec = samplesPerSec;
+    }
+}
+
+void CPokey::PutByte(const byte address, const byte value) {
+    switch (GetSoundDriver())
+    {
+    case CPokey::SoundDriver::APOKEYSND:
+
+        APokeySound_PutByte(address, value);
+        break;
+
+    case CPokey::SoundDriver::SA_POKEY:
+
+        Pokey_PutByte(address, value);
+        break;
+    }
 }

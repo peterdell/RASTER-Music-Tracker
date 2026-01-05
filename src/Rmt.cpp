@@ -25,8 +25,8 @@ extern CString g_prgpath;					//path to the directory from which the program was
 
 
 // Some information for the about box is supplied by components outside this file
-extern CString g_aboutpokey;
 extern CString g_about6502;
+extern CXPokey g_Pokey;
 
 extern CSong g_Song;
 
@@ -169,7 +169,7 @@ BOOL CRmtApp::InitInstance()
 void CRmtApp::OnAppAbout()
 {
 
-    CAboutDialog::Show(g_about6502, g_aboutpokey);
+    CAboutDialog::Show(g_about6502, g_Pokey.GetPokey()->GetAbout());
 }
 
 /////////////////////////////////////////////////////////////////////////////
