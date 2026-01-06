@@ -259,12 +259,12 @@ int CInstruments::GetFrequency(int instr, int note)
 	switch (tt->envelope[0][ENV_DISTORTION])
 	{
 	case 0x0C:
-		return g_atarimem[RMT_FRQTABLES + 64 + note];
+		return CAtari::GetByteAt(RMT_FRQTABLES + 64 + note);
 	case 0x06:
 	case 0x0E:
-		return g_atarimem[RMT_FRQTABLES + 128 + note];
+		return CAtari::GetByteAt(RMT_FRQTABLES + 128 + note);
 	default:
-		return g_atarimem[RMT_FRQTABLES + 192 + note];
+		return CAtari::GetByteAt(RMT_FRQTABLES + 192 + note);
 	}
 }
 
