@@ -197,6 +197,14 @@ This new version has the following design goals:
 ### Design Decisions
 
 The files of format version "2" structure is as follows:
+
+- - The file format will use the file extension '.rmt'.
+  The original RMT module files format already contains an internal version indicator. Existing players, if implemented correctly, should correctly reject modules with versions other than `$01`. Hence there is no need to use a different file extensions.
+
+  Supported Goals: `G1`.
+  
+  One could could rightfully argue that using a different file extension would be even benefit for `G2` and would be more obvious for the end users. But the goal `G2` is defined with the player software in mind. End users would rather be confused and existing software that relies on the file extension would no longer work. Instead the software, e.g. the ASAP file explorer plugin, shall be enhance to also display the module file version as a separate attribute. 
+
 - The file is binary load file with one of more segements.
  
   Supported Goals: `G1`, `G4`, `G5`
@@ -213,12 +221,12 @@ The files of format version "2" structure is as follows:
   The following things are different compared to the SAP format:
 	- The line separator character is EOL (`$9b`) instead CR/LF (`$0d/ $0a`) to allow direct output via the "E:" handler.
 	- The text termination character is `$00` instead of the `$ff` from the executable header to simplify the code.
-	- The starting line is `RMT1` instead of "SAP". Here the `1` character is a segment version indicator.
+	- The starting line begins with segment type marker "RMX" instead of "SAP" and is followed by a one digit segment version character. There is currently only version `1`.
 	- Additional tags that do no yet exist in the SAP format will be allowed, for example to cinlude the information from the "STIL.txt".
 
 	Supported Goals: `G3`, `G5`
 	```
-	RMT1
+	RMX1
 	AUTHOR "Jakub Husak"
 	NAME "Inside"
 	DATE "1990"
@@ -260,7 +268,7 @@ The files of format version "2" structure is as follows:
 		$02		WORD	End address, must $02e1
 		$04		WORD	Address nnnn+2 the display routine from the second segment.
 	>
-- Additional segments are optional and can contain up to 16k of data per segment that cannot be reasonably be represented as short text in the second segment. The segment layout follows the pattern used for the second segment. They use the fixed start address `$e000` and can have an end address up to `$ffff`. This address choice is in the OS ROM area of all original Atari-8 bit machines. Loading to that area has no have any side effects, except for the time it takes. Every segment start with a three-letter ASCII uppercase letters type code followed by a version digit. The following segment types are in draft:
+- Additional segments are optional and can contain up to 16k of data per segment that cannot be reasonably be represented as short text in the second segment. The segment layout follows the pattern used for the second segment. They use the fixed start address `$e000` and can have an end address up to `$ffff`. This address choice is in the OS ROM area of all original Atari-8 bit machines. Loading to that area has no have any side effects, except for the time it takes. Every segment start with a three-letter ASCII uppercase letters type code followed by a version digit. The avoid confusion regarding the segment types 'RMT' is reserved for the first segment. The following segment types are in draft:
 	- `PLR` Relocatable 6502 object code file containing the player. The calling convention for the player will the the same was for the RMT 1.x players.
 	- `TUN` Tuning information
 
