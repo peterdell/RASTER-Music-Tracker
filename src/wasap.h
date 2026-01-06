@@ -22,6 +22,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define IDI_APP        101
 #define IDI_STOP       102
 #define IDI_PLAY       103
@@ -34,4 +38,8 @@
 #define IDM_EXIT       206
 #define IDM_SONG1      211
 
-int WINAPI WASAP_WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow);
+    int WINAPI WASAP_WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow);
+
+#ifdef __cplusplus
+}
+#endif

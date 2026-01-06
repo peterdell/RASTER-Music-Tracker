@@ -33,6 +33,7 @@
 #include "info_dlg.h"
 #include "wasap.h"
 
+
 #define APP_TITLE        _T("WASAP")
 #define WND_CLASS_NAME   _T("WASAP")
 #define OPEN_TITLE       _T("Select Atari 8-bit music")

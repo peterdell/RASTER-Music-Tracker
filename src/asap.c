@@ -7,6 +7,8 @@
 #include <string.h>
 #include "asap.h"
 
+#include "asap-patch.h"
+
 static int FuInt_Min(int x, int y)
 {
 	return x < y ? x : y;
@@ -2925,7 +2927,8 @@ static uint8_t const *ASAP6502_GetPlayerRoutine(const ASAPInfo *info)
 	case ASAPModuleType_MD2:
 		return FuResource_mpt_obx;
 	case ASAPModuleType_RMT:
-		return ASAPInfo_GetChannels(info) == 1 ? FuResource_rmt4_obx : FuResource_rmt8_obx;
+		return ASAPInfo_GetChannels(info) == 1 ? GetFuResourceRMT4obx() : GetFuResourceRMT4obx();
+
 	case ASAPModuleType_TMC:
 		return FuResource_tmc_obx;
 	case ASAPModuleType_TM2:
