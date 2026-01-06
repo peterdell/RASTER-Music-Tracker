@@ -169,9 +169,9 @@ This new version has the following design goals:
   I don't want to reinvent the wheel, but fix problems.
   In particular the problem with RMT 1.34 is the LZSS export. It is nice, flexible and fast, but it has also severe restrictions that prevent its use in many cases:
     - No metadata about the song name and instruments (relevant for archiving, e.g. on ASMA)
-	- No way to re-created and editable version of the module (relevant for updates, remixing, learning)
+	- No way to re-create an editable version of the module (relevant for updates, remixing, learning)
 	- No size-optimized replay (relevant for certain demo categories)
-	- Only one songs per module (often required in games)
+	- Only one song per module (often required in games)
 	- No ability to play effect instruments individually while the main music is playing (often required in games)
 
 - `G2 Distinguishability`
@@ -183,7 +183,7 @@ This new version has the following design goals:
 
    Meaning: The format shall contain all missing information that is today provided by the composer, but is not stored in the module file itself. This shall include:
   
-  - The author of the song in human readable format and optionally in machine readable format (e.g. ASMA "Composer/...") path.
+  - The author of the song in a human readable format and optionally in a machine readable format (e.g. ASMA "Composer/...") path.
   - Any additional information about the composition that is today contained in the "STIL.txt" database of ASMA. This includes information about the original composition, usages in software and rankings in competitions.
   - The description (today 5 lines of width 40 characters) to be displayed during replay. This information is today encoded in the ".xex" export. This includes the ability to toggle the display of the lines using the SHIFT key. By default, SHIFT activates the display of line 5 instead of line 4.
 
