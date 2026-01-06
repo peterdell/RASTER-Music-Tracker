@@ -6,6 +6,7 @@
 #include "Memory.h"
 #include "Global.h"
 #include "Undo.h"
+#include <filesystem>
 
 byte g_atarimem[ATARI_RAM_SIZE];
 char g_debugmem[ATARI_RAM_SIZE];	// Used in GUI_Song.cpp, debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
@@ -151,9 +152,20 @@ int g_mouseLastPointY = 0;
 int g_mouseLastButton = 0;
 int g_mouseLastWheelDelta = 0;
 
-int g_lastKeyPressed = 0;		//for debugging vk input
+int g_lastKeyPressed = 0;		    // For debugging vk input
 
-CString g_prgpath;					//path to the directory from which the program was started (including a slash at the end)
+CString g_prgpath;					// Path to the directory from which the program was started (including a slash at the end)
+
+CString GetResourceFolderPath(const CString& folderName) {
+    std::filesystem::path path;
+    return path.append(g_prgpath.GetString()).append(folderName.GetString()).c_str();;
+
+}
+CString GetResourceFilePath(const CString& folderName, const CString& fileName) {
+    std::filesystem::path path;
+    return path.append(g_prgpath.GetString()).append(folderName.GetString()).append(fileName.GetString()).c_str();;
+}
+
 CString g_lastLoadPath_Songs;		// Path of the last song loaded
 CString g_lastLoadPath_Instruments; //the path of the last instrument loaded
 CString g_lastLoadPath_Tracks;		//the path of the last track loaded
@@ -185,8 +197,8 @@ CTuning			g_Tuning;			// Tuning calculations and POKEY tuning lookup tables gene
 /*
 void UpdateShiftControlKeys()
 {
-	g_shiftkey = (GetAsyncKeyState(VK_SHIFT) != NULL);
-	g_controlkey = (GetAsyncKeyState(VK_CONTROL) != NULL);
-	g_altkey = (GetAsyncKeyState(VK_MENU) != NULL);
+    g_shiftkey = (GetAsyncKeyState(VK_SHIFT) != NULL);
+    g_controlkey = (GetAsyncKeyState(VK_CONTROL) != NULL);
+    g_altkey = (GetAsyncKeyState(VK_MENU) != NULL);
 }
 */

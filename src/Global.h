@@ -9,6 +9,9 @@
 
 #include "General.h"
 
+CString GetResourceFolderPath(const CString& folderName);
+CString GetResourceFilePath(const CString& folderName, const CString& fileName);
+
 constexpr size_t ATARI_RAM_SIZE = 0x10000;
 extern byte g_atarimem[ATARI_RAM_SIZE]; 
 extern char g_debugmem[ATARI_RAM_SIZE];	//debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
@@ -154,8 +157,7 @@ extern int g_mouseLastButton;
 extern int g_mouseLastWheelDelta;
 
 extern int g_lastKeyPressed;		//for debugging vk input
-
-extern CString g_prgpath;					//path to the directory from which the program was started (including a slash at the end)
+					
 extern CString g_lastLoadPath_Songs;		//the path of the last song loaded
 extern CString g_lastLoadPath_Instruments; //the path of the last instrument loaded
 extern CString g_lastLoadPath_Tracks;		//the path of the last track loaded

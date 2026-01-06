@@ -44,7 +44,9 @@ int CAtariIO::LoadBinaryFile(const char* fname, byte* memory, MemoryAddress& min
     WORD bfrom, bto;
 
     std::ifstream fin(fname, std::ios::binary | std::ios::_Nocreate);
-    if (!fin) return 0;
+    if (!fin) {
+        return 0;
+    }
     fsize = 0;
     minadr = 0xffff; maxadr = 0; //the opposite limits of the minimum and maximum address
     while (!fin.eof())

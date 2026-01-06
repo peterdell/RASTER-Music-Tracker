@@ -154,6 +154,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="asap-patch.cpp" />
     <ClCompile Include="asap.c" />
     <ClCompile Include="ASMFile.cpp" />
     <ClCompile Include="ASMFileBuilder.cpp" />
@@ -304,6 +305,7 @@
     </ClCompile>
     <ClCompile Include="TuningDlg.cpp" />
     <ClCompile Include="Undo.cpp" />
+    <ClCompile Include="VUPlayer.cpp" />
     <ClCompile Include="wasap.c" />
     <ClCompile Include="WaveFile.cpp" />
     <ClCompile Include="WaveFileExporter.cpp" />
@@ -316,6 +318,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AboutDialog.h" />
+    <ClInclude Include="asap-patch.h" />
     <ClInclude Include="asap.h" />
     <ClInclude Include="ASMFile.h" />
     <ClInclude Include="ASMFileBuilder.h" />

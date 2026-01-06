@@ -70,6 +70,12 @@
     <Filter Include="Documentation Files">
       <UniqueIdentifier>{d52ebaf2-5ba8-4d58-a3b4-dddf6ff373b3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ASAP">
+      <UniqueIdentifier>{7f08bbd3-e9a5-44a7-a0c9-bf16a1ac0d78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Atari Players">
+      <UniqueIdentifier>{07ce7328-a96d-4064-abb3-9f0cda3491c5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ConfigDlg.cpp">
@@ -246,20 +252,26 @@
     <ClCompile Include="Pokey.cpp">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
-    <ClCompile Include="asap.c">
-      <Filter>Source Files\Atari Sound Generator</Filter>
-    </ClCompile>
     <ClCompile Include="wasap.c">
-      <Filter>Source Files\Atari Sound Generator</Filter>
-    </ClCompile>
-    <ClCompile Include="info_dlg.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="astil.c">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
     <ClCompile Include="RmtTest.cpp">
       <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="asap.c">
+      <Filter>Source Files\ASAP</Filter>
+    </ClCompile>
+    <ClCompile Include="astil.c">
+      <Filter>Source Files\ASAP</Filter>
+    </ClCompile>
+    <ClCompile Include="info_dlg.c">
+      <Filter>Source Files\ASAP</Filter>
+    </ClCompile>
+    <ClCompile Include="asap-patch.cpp">
+      <Filter>Source Files\ASAP</Filter>
+    </ClCompile>
+    <ClCompile Include="VUPlayer.cpp">
+      <Filter>Source Files\Atari Players</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -371,9 +383,6 @@
     <ClInclude Include="SAPFileExporter.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP</Filter>
     </ClInclude>
-    <ClInclude Include="VUPlayer.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\XEX</Filter>
-    </ClInclude>
     <ClInclude Include="SongExporter.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
@@ -431,20 +440,26 @@
     <ClInclude Include="Pokey.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
-    <ClInclude Include="asap.h">
-      <Filter>Source Files\Atari Sound Generator</Filter>
-    </ClInclude>
     <ClInclude Include="wasap.h">
-      <Filter>Source Files\Atari Sound Generator</Filter>
-    </ClInclude>
-    <ClInclude Include="info_dlg.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="astil.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
     <ClInclude Include="RmtTest.h">
       <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="asap.h">
+      <Filter>Source Files\ASAP</Filter>
+    </ClInclude>
+    <ClInclude Include="asap-patch.h">
+      <Filter>Source Files\ASAP</Filter>
+    </ClInclude>
+    <ClInclude Include="astil.h">
+      <Filter>Source Files\ASAP</Filter>
+    </ClInclude>
+    <ClInclude Include="info_dlg.h">
+      <Filter>Source Files\ASAP</Filter>
+    </ClInclude>
+    <ClInclude Include="VUPlayer.h">
+      <Filter>Source Files\Atari Players</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -514,7 +529,7 @@
       <Filter>Documentation Files</Filter>
     </None>
     <None Include="asap.md">
-      <Filter>Source Files\Atari Sound Generator</Filter>
+      <Filter>Source Files\ASAP</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
