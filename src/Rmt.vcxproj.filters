@@ -67,6 +67,9 @@
     <Filter Include="Source Files\Atari Sound Generator">
       <UniqueIdentifier>{973e7050-b72b-497e-bb78-59b87397d694}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Documentation Files">
+      <UniqueIdentifier>{d52ebaf2-5ba8-4d58-a3b4-dddf6ff373b3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ConfigDlg.cpp">
@@ -243,6 +246,21 @@
     <ClCompile Include="Pokey.cpp">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
+    <ClCompile Include="asap.c">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="wasap.c">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="info_dlg.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="astil.c">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="RmtTest.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
@@ -413,6 +431,21 @@
     <ClInclude Include="Pokey.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
+    <ClInclude Include="asap.h">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="wasap.h">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="info_dlg.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="astil.h">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="RmtTest.h">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\Rmt.ico">
@@ -471,10 +504,37 @@
     <None Include=".gitignore">
       <Filter>Source Files\Common</Filter>
     </None>
+    <None Include="..\doc\rmt_en.html">
+      <Filter>Documentation Files</Filter>
+    </None>
+    <None Include="..\doc\rmt_tracker.md">
+      <Filter>Documentation Files</Filter>
+    </None>
+    <None Include="..\README.md">
+      <Filter>Documentation Files</Filter>
+    </None>
+    <None Include="asap.md">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\build\build_rmt-daily-excluded-extensions.txt">
       <Filter>Build Files</Filter>
+    </Text>
+    <Text Include="..\doc\rmt_changes.md">
+      <Filter>Documentation Files</Filter>
+    </Text>
+    <Text Include="..\doc\keymappings.txt">
+      <Filter>Documentation Files</Filter>
+    </Text>
+    <Text Include="..\doc\midi.txt">
+      <Filter>Documentation Files</Filter>
+    </Text>
+    <Text Include="..\doc\optimization.txt">
+      <Filter>Documentation Files</Filter>
+    </Text>
+    <Text Include="..\doc\rmt_format.md">
+      <Filter>Documentation Files</Filter>
     </Text>
   </ItemGroup>
   <ItemGroup>

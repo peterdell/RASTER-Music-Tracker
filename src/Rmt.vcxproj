@@ -69,7 +69,7 @@
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)Rmt.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -115,7 +115,7 @@
       <PreprocessorDefinitions>_DEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)Rmt.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -154,9 +154,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="asap.c" />
     <ClCompile Include="ASMFile.cpp" />
     <ClCompile Include="ASMFileBuilder.cpp" />
     <ClCompile Include="ASMFileExporter.cpp" />
+    <ClCompile Include="astil.c" />
     <ClCompile Include="Atari.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
@@ -179,10 +181,12 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
     </ClCompile>
+    <ClCompile Include="info_dlg.c" />
     <ClCompile Include="LZSSFile.cpp" />
     <ClCompile Include="Pokey.cpp" />
     <ClCompile Include="PokeyRederer.cpp" />
     <ClCompile Include="RmtCommandLineInfo.cpp" />
+    <ClCompile Include="RmtTest.cpp" />
     <ClCompile Include="RuntimeException.cpp" />
     <ClCompile Include="SAPFile.cpp" />
     <ClCompile Include="SAPFileExportDialog.cpp" />
@@ -300,6 +304,7 @@
     </ClCompile>
     <ClCompile Include="TuningDlg.cpp" />
     <ClCompile Include="Undo.cpp" />
+    <ClCompile Include="wasap.c" />
     <ClCompile Include="WaveFile.cpp" />
     <ClCompile Include="WaveFileExporter.cpp" />
   </ItemGroup>
@@ -311,20 +316,24 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AboutDialog.h" />
+    <ClInclude Include="asap.h" />
     <ClInclude Include="ASMFile.h" />
     <ClInclude Include="ASMFileBuilder.h" />
     <ClInclude Include="ASMFileExporter.h" />
+    <ClInclude Include="astil.h" />
     <ClInclude Include="Atari.h" />
     <ClInclude Include="AtariIO.h" />
     <ClInclude Include="C6502.h" />
     <ClInclude Include="Clipboard.h" />
     <ClInclude Include="ConfigDlg.h" />
+    <ClInclude Include="info_dlg.h" />
     <ClInclude Include="LZSSFile.h" />
     <ClInclude Include="Pokey.h" />
     <ClInclude Include="PokeyRederer.h" />
     <ClInclude Include="RmtCommandLineInfo.h" />
     <ClInclude Include="RmtFile.h" />
     <ClInclude Include="Memory.h" />
+    <ClInclude Include="RmtTest.h" />
     <ClInclude Include="RuntimeException.h" />
     <ClInclude Include="SAPFile.h" />
     <ClInclude Include="SAPFileExportDialog.h" />
@@ -363,6 +372,7 @@
     <ClInclude Include="TuningDlg.h" />
     <ClInclude Include="Undo.h" />
     <ClInclude Include="VUPlayer.h" />
+    <ClInclude Include="wasap.h" />
     <ClInclude Include="WaveFile.h" />
     <ClInclude Include="WaveFileExporter.h" />
     <ClInclude Include="XPokey.h" />
@@ -389,7 +399,11 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
     </CopyFileToFolders>
+    <None Include="..\doc\rmt_en.html" />
+    <None Include="..\doc\rmt_tracker.md" />
+    <None Include="..\README.md" />
     <None Include=".gitignore" />
+    <None Include="asap.md" />
     <None Include="res\cur00001.cur" />
     <None Include="res\cur00002.cur" />
     <None Include="res\cur00003.cur" />
@@ -401,6 +415,11 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\build\build_rmt-daily-excluded-extensions.txt" />
+    <Text Include="..\doc\rmt_changes.md" />
+    <Text Include="..\doc\keymappings.txt" />
+    <Text Include="..\doc\midi.txt" />
+    <Text Include="..\doc\optimization.txt" />
+    <Text Include="..\doc\rmt_format.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
