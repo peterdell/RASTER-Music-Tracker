@@ -1,6 +1,6 @@
 
-RMT Module File Format
-======================
+RMT Tracker
+===========
 
 As of 2026-01-06, there is only one version of the RMT module file format.
 It is the RMT module file format [version "1"](#rmt1) and uses the default file extension ".rmt".
@@ -14,8 +14,54 @@ I'm happy to receive feedback on my proposal, ideally via a [personal message on
 The latest version of this document and the related documents is located at [Github](https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_format.md). So before sending feedback, please check the latest version. The [history](https://github.com/peterdell/RASTER-Music-Tracker/commits/dev/doc)  also displays the past changes.
 
 
-RMT Module Format Version "1"<a id='rmt1'></a>
------------------------------
+RMT Tracker 2.0 (DRAFT)<a id='rmt1'></a>
+-----------------------
+
+Atari 8-bit Emulation
+---------------------
+
+The Atari 8-bit emulation consists of two parts
+- The emulation of the [MOS Technology 6502 CPU](https://en.wikipedia.org/wiki/MOS_Technology_6502)
+- The emulation of one or two [Atari POKEY sound chips](https://en.wikipedia.org/wiki/POKEY).  
+
+### Current Situation
+
+### Technical info:
+
+Pokey sound emulation and Atari 6502 processor emulation aren't built-in
+components of RMT. If the sound output is needed, the external dynamic DLL
+libraries with the following functions are required. 
+If you run RMT without this way described DLLs (apokeysnd.dll or sa_pokey.dll,
+sa_c6502.dll), RMT will work, but there won't be any Pokey sound output
+and Atari sound routines won't be executed.
+
+#### CPU Emulation
+
+`sa_c6502.dll`\
+`void C6502_Initialise(BYTE* memory);`\
+`int C6502_JSR(WORD* addr, BYTE* areg, BYTE* xreg, BYTE* yreg, int* maxcycles);`\
+`void C6502_About(char** name, char** author, char** description)`;
+
+
+#### Pokey Emulation:
+
+`apokeysnd.dll`\
+`void APokeySound_Initialize(abool stereo);`\
+`void APokeySound_PutByte(int addr, int data);`\
+`int APokeySound_GetRandom(int addr, int cycle);`\
+`int APokeySound_Generate(int cycles, byte buffer[], ASAP_SampleFormat format);`\
+`void APokeySound_About(const char **name, const char **author, const char **description);`
+
+or
+
+`sa_pokey.dll`\
+`void Pokey_Initialise(int *argc, char *argv[]);`\
+`void Pokey_SoundInit(uint32 freq17, uint16 playback_freq, uint8 num_pokeys);`\
+`void Pokey_Process(uint8 * sndbuffer, const uint16 sndn);`\
+`UBYTE Pokey_GetByte(UWORD addr);`\
+`void Pokey_PutByte(UWORD addr, UBYTE byte);`\
+`void Pokey_About(char** name, char** author, char** description);`
+
 
 This is the module file format used by RMT trackers with version 1.xy.
 
