@@ -5,10 +5,7 @@
 //
 
 #ifndef RMT_GLOBAL_
-#define RMT_GLOBAL_
-
-#include <iostream>
-#include <fstream> // TODO Remove
+#define RMT_GLOBAL
 
 #include "General.h"
 
