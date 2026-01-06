@@ -3,6 +3,7 @@ cd "%~dp0"
 
 set RELEASE=Rmt
 set BASE_DIR=C:\jac\system\Windows\Programming\Repositories\RASTER-Music-Tracker
+set TARGET_FILE=rmt135-daily.zip
 
 set PRODUCTIONS=C:\jac\system\WWW\Sites\www.wudsn.com\productions
 set TARGET_DIR=%PRODUCTIONS%\windows\rastermusictracker
@@ -44,7 +45,7 @@ goto :eof
 
 :upload
 echo on
-set TARGET=%TARGET_DIR%\rmt134.1-daily.zip
+set TARGET=%TARGET_DIR%\%TARGET_FILE%
 del %TARGET%
 cd %RELEASE_BASE_DIR%\..
 

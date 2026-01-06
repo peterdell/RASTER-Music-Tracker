@@ -7,6 +7,11 @@ New website https://github.com/raster-atari-org/RASTER-Music-Tracker
 Old website http://raster.atari.org
 ************************************************************************
 
+Changes in RMT 1.35
+-------------------
+- Added technical documentation of the RMT tracker and the RMT current and future module file format version 
+- Reorganized and cleaned up the file system structure of the repository.
+
 Changes in RMT 1.34.00 
 ----------------------
 - RASTER MUSIC TRACKER is now Open Source! Thanks to everyone who made this possible!

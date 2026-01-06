@@ -9,8 +9,8 @@ This fork is the latest development branch of version 1.34 of RMT.
 It is the continuation of the original version 1.28 of RMT by Štěrba and the version 1.34 of RMT by Vin Samuel.
 
 The following versions are available for download:
-- [Latest daily build of 1.34.1 (constantly updated)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.1-daily.zip)
-- [Stable version 1.34.0 (2023-03-10)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.0.2023-03-10.zip)
+- [Latest daily build of 1.35 (constantly updated)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt135-daily.zip)
+- [Stable version 1.34 (2023-03-10)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.0.2023-03-10.zip)
 - [Stable version 1.28 (2009-05-19)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt128.zip)
 
 Please provide your feedback about the daily version via one of the following channels:
