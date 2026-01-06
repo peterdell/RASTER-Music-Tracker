@@ -1,0 +1,32 @@
+{
+  "FileVersion": 2,
+  "Id": "e3235ca6-2f97-40c9-affc-b8f2ce8f1ca3",
+  "Items": [
+    {
+      "Id": "ffb8eb13-0c3c-431e-90c6-d3a97a5eb478",
+      "Command": "Debug|x64",
+      "ProjectConfig": "Debug",
+      "ProjectPlatform": "x64",
+      "Items": [
+        {
+          "Id": "90b86ae8-c2fb-47d0-8ced-690b2a67f99c",
+          "Command": "WindowsLocalDebugger",
+          "Items": [
+            {
+              "Id": "981a0294-dafc-4974-9048-8f849ffa65d7",
+              "Command": "C:\\Users\\JAC\\Desktop\\ASMA-Input\\Test\\Test4.rmt"
+            },
+            {
+              "Id": "6109aa37-9773-4825-a442-a3b698c73227",
+              "Command": "/TEST:\"C:\\Users\\JAC\\Desktop\\ASMA-Input\\Test\\Test4.rmt\""
+            },
+            {
+              "Id": "21768436-a0c1-435d-af2a-d8e9bfd17fc4",
+              "Command": "/SCRIPT2:\"C:\\Users\\JAC\\Desktop\\ASMA-Input\\Test-Script.txt\""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
