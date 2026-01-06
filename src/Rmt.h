@@ -1,6 +1,8 @@
 // Rmt.h : main header file for the RMT application
 //
 
+#include "StdAfx.h"
+
 #if !defined(AFX_RMT_H__1709C745_06D0_11D7_BEB0_00600854AFCA__INCLUDED_)
 #define AFX_RMT_H__1709C745_06D0_11D7_BEB0_00600854AFCA__INCLUDED_
 

@@ -3,7 +3,7 @@
 // reworked by VinsCool, 2021-2022
 //
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "Rmt.h"
 #include "MainFrm.h"
 #include "RmtDoc.h"
@@ -13,6 +13,8 @@
 #include "AboutDialog.h"
 #include "GuiHelpers.h" // For g_statusBar
 #include "RmtCommandLineInfo.h"
+
+#include "RmtTest.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -30,15 +32,6 @@ extern CXPokey g_Pokey;
 
 extern CSong g_Song;
 
-
-//bool IsSwitch(const CString& switchString, const CString& switchName)
-
-
-
-CString CRmtCommandLineInfo::GetScriptFilePath() const
-{
-    return m_scriptFilePath;
-}
 
 /////////////////////////////////////////////////////////////////////////////
 // CRmtApp
@@ -121,6 +114,13 @@ BOOL CRmtApp::InitInstance()
     // Parse command line for standard shell commands, DDE, file open
     CRmtCommandLineInfo cmdInfo;
     ParseCommandLine(cmdInfo);
+
+
+    if (cmdInfo.IsTestFileSpecified()) {
+        CRmtTest test;
+        test.RunFor(*this, cmdInfo.GetTestFilePath());
+        return FALSE;
+    }
 
     // Dispatch standard commands specified on the command line.
     // Will return FALSE if app was launched with /RegServer, /Register, /Unregserver or /Unregister.
