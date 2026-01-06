@@ -2927,7 +2927,7 @@ static uint8_t const *ASAP6502_GetPlayerRoutine(const ASAPInfo *info)
 	case ASAPModuleType_MD2:
 		return FuResource_mpt_obx;
 	case ASAPModuleType_RMT:
-		return ASAPInfo_GetChannels(info) == 1 ? GetFuResourceRMT4obx() : GetFuResourceRMT4obx();
+        return GetAlternativeRMTPlayer( ASAPInfo_GetChannels(info),  ASAPInfo_GetChannels(info) == 1 ? FuResource_rmt4_obx : FuResource_rmt8_obx);
 
 	case ASAPModuleType_TMC:
 		return FuResource_tmc_obx;

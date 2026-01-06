@@ -6,9 +6,7 @@
 extern "C" {
 #endif
 
-    uint8_t const* GetFuResourceRMT4obx();
-
-    uint8_t const* GetFuResourceRMT8obx();
+    uint8_t const* GetAlternativeRMTPlayer(const int channels, const uint8_t const* original);
 
 #ifdef __cplusplus
 }
