@@ -1,15 +1,17 @@
-@echo on
+@echo off
 cd "%~dp0"
 
 set RELEASE=Rmt
-set BASE_DIR=C:\jac\system\Windows\Programming\Repositories\RASTER-Music-Tracker\cpp_src
+set BASE_DIR=C:\jac\system\Windows\Programming\Repositories\RASTER-Music-Tracker
 
 set PRODUCTIONS=C:\jac\system\WWW\Sites\www.wudsn.com\productions
 set TARGET_DIR=%PRODUCTIONS%\windows\rastermusictracker
 set WINRAR=C:\jac\system\Windows\Tools\FIL\WinRAR\winrar
 set UPLOAD=%PRODUCTIONS%\www\site\export\upload.bat
 
-set MSBUILD="C:\Program Files\Microsoft Visual Studio\2022\Community\Msbuild\Current\Bin\MSBuild.exe"
+set MSBUILD="C:\Program Files\Microsoft Visual Studio\18\Community\Msbuild\Current\Bin\MSBuild.exe"
+if not exist %MSBUILD% goto :msbuild_missing_error
+
 REM When using the correct MSBUILD, no separate setting of target path seems to be required
 REM set VCTargetsPath="C:\Program Files\Microsoft Visual Studio\2022\Community\Msbuild\Microsoft\VC\v170"
 set SLN=%BASE_DIR%\%RELEASE%.sln
@@ -18,10 +20,8 @@ rmdir /S /Q %RELEASE_BASE_DIR%
 mkdir %RELEASE_BASE_DIR%
 
 set CONFIGURATION=Debug
-set CONFIGURATION_DIR=%CONFIGURATION%64
 call :build_configuration
 set CONFIGURATION=Release
-set CONFIGURATION_DIR=%CONFIGURATION%64
 call :build_configuration
 
 call :upload
@@ -30,11 +30,13 @@ pause
 goto :eof
 
 :build_configuration
+set CONFIGURATION_DIR=%CONFIGURATION%
 set OUTPUT_DIR=%BASE_DIR%\out\%CONFIGURATION_DIR%\output
-if exist %OUTPUT_DIR%\%RELEASE%.exe del %OUTPUT_DIR%\%RELEASE%.exe
+set RESULT_EXE=%OUTPUT_DIR%\%RELEASE%.exe
+echo INFO: Buidling %RESULT_EXE% for configuration %CONFIGURATION%.
+if exist %RESULT_EXE% del %RESULT_EXE%
 %MSBUILD% %SLN% /property:Configuration=%CONFIGURATION% -fl -flp:logfile=%OUTPUT_DIR%\msbuild.log
-echo Hallo!
-if not exist %OUTPUT_DIR%\%RELEASE%.exe goto :error
+if not exist %RESULT_EXE% goto :build_failed_error
 echo Knallo!
 
 call :copy_output
@@ -62,6 +64,13 @@ xcopy /E /Y  /EXCLUDE:build_rmt-daily-excluded-extensions.txt %OUTPUT_DIR%  %REL
 if exist %RELEASE_DIR%\%RELEASE%.ini del %RELEASE_DIR%\%RELEASE%.ini
 start %RELEASE_DIR%
 goto :eof
+
+:msbuild_missing_error
+echo ERROR: %MSBUILD% not present.
+goto :error
+
+:build_failed_error
+echo ERROR: %RESULT_EXE% was not created.
 
 :error
 echo ERROR: See error messages above.

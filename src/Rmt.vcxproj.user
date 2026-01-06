@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ShowAllFiles>false</ShowAllFiles>
+    <RESOURCE_FILE>Rmt.rc</RESOURCE_FILE>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommandArguments>/SCRIPT2:"C:\Users\JAC\Desktop\ASMA-Input\Test-Script.txt" C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommandArgumentsHistory>/SCRIPT2:"C:\Users\JAC\Desktop\ASMA-Input\Test-Script.txt" C:\Users\JAC\Desktop\ASMA-Input\Test4.rmt|/SCRIPT2:"C:\Users\JAC\Desktop\ASMA-Input\Test-Script.txt" C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt|</LocalDebuggerCommandArgumentsHistory>
+  </PropertyGroup>
+</Project>
