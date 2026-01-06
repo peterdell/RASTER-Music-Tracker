@@ -3,7 +3,7 @@
 
 
 
-CRmtCommandLineInfo::CRmtCommandLineInfo(void) : m_scriptFileSpecified(false) {
+CRmtCommandLineInfo::CRmtCommandLineInfo(void) : m_scriptFileSpecified(false), m_testFileSpecified(false) {
 };
 
 CRmtCommandLineInfo::~CRmtCommandLineInfo(void) {

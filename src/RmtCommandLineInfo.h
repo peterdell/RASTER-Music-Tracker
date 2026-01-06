@@ -8,6 +8,7 @@ class CRmtCommandLineInfo : public CCommandLineInfo
 public:
     CRmtCommandLineInfo(void);
     virtual ~CRmtCommandLineInfo(void);
+
     /*  pszParam
         The parameter or flag.
 

@@ -8,5 +8,8 @@ public:
 
     CRmtTest();
     void RunFor(const CRmtApp& app, const CString fileName);
+
+private:
+    void SaveBinaries();
 };
 
