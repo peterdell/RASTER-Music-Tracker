@@ -261,6 +261,7 @@ The files of format version "2" structure is as follows:
 		$04		WORD	Address nnnn+2 the display routine from the second segment.
 	>
 - Additional segments are optional and can contain up to 16k of data per segment that cannot be reasonably be represented as short text in the second segment. The segment layout follows the pattern used for the second segment. They use the fixed start address `$e000` and can have an end address up to `$ffff`. This address choice is in the OS ROM area of all original Atari-8 bit machines. Loading to that area has no have any side effects, except for the time it takes. Every segment start with a three-letter ASCII uppercase letters type code followed by a version digit. The following segment types are in draft:
+	- `PLR` Relocatable 6502 object code file containing the player. The calling convention for the player will the the same was for the RMT 1.x players.
 	- `TUN` Tuning information
 
 	Supported Goals: `G3`, `G4`
