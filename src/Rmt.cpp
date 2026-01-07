@@ -11,7 +11,7 @@
 #include "Song.h"
 #include "SongExporterTest.h"
 #include "AboutDialog.h"
-#include "GuiHelpers.h" // For g_statusBar
+#include "GuiHelpers.h" // For SendErrorMessage
 #include "RmtCommandLineInfo.h"
 
 #include "RmtTest.h"
@@ -106,7 +106,7 @@ BOOL CRmtApp::InitInstance()
     // Initialize the model.
     g_Song.ClearSong(8);
 
-    // Parse the command line for standard shell commands, DDE, file open
+    // Parse the command line for standard shell commands, DDE, file open.
     CRmtCommandLineInfo cmdInfo;
     ParseCommandLine(cmdInfo);
 
@@ -145,7 +145,7 @@ BOOL CRmtApp::InitInstance()
     if (cmdInfo.IsScriptFileSpecified()) {
         CFile scriptFile;
         if (!scriptFile.Open(cmdInfo.GetScriptFilePath(), CFile::modeRead)) {
-            SendErrorMessage("Command Line Parameter Invalid", "The script file \"" + scriptFile.GetFilePath() + "\" specified via the command line switch /SCRIPT cannot be opened for reading.");
+            SendErrorMessage("Invalid Command Line Parameter", "The script file \"" + scriptFile.GetFilePath() + "\" specified via the command line switch /SCRIPT cannot be opened for reading.");
             return FALSE;
         }
         CSongExporterTest::Test(g_Song);

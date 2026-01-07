@@ -147,10 +147,9 @@ long g_playtime = 1;	//1 yes, 0 no
 
 UINT g_mousebutt = 0;			//mouse button
 
-int g_mouseLastPointX = 0;
-int g_mouseLastPointY = 0;
-int g_mouseLastButton = 0;
-int g_mouseLastWheelDelta = 0;
+// Mouse Information
+struct TMouseInfomation g_mouse = { };
+
 
 int g_lastKeyPressed = 0;		    // For debugging vk input
 

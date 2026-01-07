@@ -313,13 +313,12 @@ void CRmtView::GetFPS()
     }
 }
 
-// Debug function, to get the mouse pointer coordinates
-void CRmtView::GetMouseXY(int px, int py, int mousebutt, short wheelzDelta)
+void CRmtView::StoreMouseInformation(int px, int py, int mousebutt, short wheelzDelta)
 {
-    g_mouseLastPointX = px;
-    g_mouseLastPointY = py;
-    g_mouseLastButton = mousebutt;
-    g_mouseLastWheelDelta = wheelzDelta;
+    g_mouse.pointX = px;
+    g_mouse.pointY = py;
+    g_mouse.button = mousebutt;
+    g_mouse.wheelDelta = wheelzDelta;
 }
 
 BOOL CRmtView::PreCreateWindow(CREATESTRUCT& cs)
@@ -1021,7 +1020,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
     point.y = INVERSE_SCALE(point.y);
 
     // Store the last known mouse XY coordinates and buttons used
-    GetMouseXY(point.x, point.y, mousebutt, wheelzDelta);
+    StoreMouseInformation(point.x, point.y, mousebutt, wheelzDelta);
 
     //TODO: make those parameters global so they won't have to be re-initialised in multiple functions separately
     int MINIMAL_WIDTH_TRACKS = (g_tracks4_8 > 4 && g_active_ti == Part::PART_TRACKS) ? 1420 : 960;

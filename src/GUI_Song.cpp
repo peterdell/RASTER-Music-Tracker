@@ -1096,16 +1096,16 @@ void CSong::DrawTracks()
             {
             case 0: d.Format("GW = %02d", g_width); break;
             case 1: d.Format("GH = %02d", g_height); break;
-            case 2: d.Format("PX = %02d", g_mouseLastPointX); break;
-            case 3: d.Format("PY = %02d", g_mouseLastPointY); break;
-            case 4: d.Format("MB = %02d", g_mouseLastButton); break;
+            case 2: d.Format("PX = %02d", g_mouse.pointX); break;
+            case 3: d.Format("PY = %02d", g_mouse.pointY); break;
+            case 4: d.Format("MB = %02d", g_mouse.button); break;
             case 5: d.Format("CA = %02d", g_cursoractview); break;
             case 6: d.Format("TA = %02d", m_trackactiveline); break;
-            case 7: d.Format("DY = %02d", g_mouseLastPointY / 16); break;
+            case 7: d.Format("DY = %02d", g_mouse.pointY / 16); break;
             case 8: d.Format("GTL = %02d", g_tracklines); break;
             case 9: d.Format("OL = %02d", g_tracklines / 2); break;
             case 10: d.Format("VK = %02X", g_lastKeyPressed); break;
-            case 11: d.Format("WD = %02d", g_mouseLastWheelDelta); break;
+            case 11: d.Format("WD = %02d", g_mouse.wheelDelta); break;
             default: continue;
             }
 

@@ -1,8 +1,6 @@
 #include "StdAfx.h"
 #include "General.h"
 
-#include "MainFrm.h"
-
 #include "GuiHelpers.h"
 
 #include "Global.h"
@@ -175,7 +173,7 @@ int EditText(int vk, int shift, int control, char* txt, int& cur, int max)
 
 BOOL IsHoveredXY(int x, int y, int xLength, int yLength)
 {
-    int px = g_mouseLastPointX, py = g_mouseLastPointY;
+    int px = g_mouse.pointX, py = g_mouse.pointY;
     int xTo = x + xLength, yTo = y + yLength;
 
     return (px >= x && px < xTo) && (py >= y && py < yTo);

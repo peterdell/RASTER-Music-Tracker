@@ -14,7 +14,7 @@ CString GetResourceFolderPath(const CString& folderName);
 CString GetResourceFilePath(const CString& folderName, const CString& fileName);
 
 constexpr size_t ATARI_RAM_SIZE = 0x10000;
-extern byte g_atarimem[ATARI_RAM_SIZE]; 
+extern byte g_atarimem[ATARI_RAM_SIZE];
 extern char g_debugmem[ATARI_RAM_SIZE];	//debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
 
 extern BOOL g_closeApplication;
@@ -152,13 +152,16 @@ extern long g_playtime;				//1 yes, 0 no
 
 extern UINT g_mousebutt;			//mouse button
 
-extern int g_mouseLastPointX;
-extern int g_mouseLastPointY;
-extern int g_mouseLastButton;
-extern int g_mouseLastWheelDelta;
+// Mouse Information
+extern struct TMouseInfomation {
+    int pointX;
+    int pointY;
+    int button;
+    int wheelDelta;
+} g_mouse;
 
 extern int g_lastKeyPressed;		//for debugging vk input
-					
+
 extern CString g_lastLoadPath_Songs;		//the path of the last song loaded
 extern CString g_lastLoadPath_Instruments; //the path of the last instrument loaded
 extern CString g_lastLoadPath_Tracks;		//the path of the last track loaded
