@@ -39,13 +39,13 @@ void CTracks::ClearTrack(int track)
     tr->len = m_maxTrackLength;
 }
 
-BOOL CTracks::IsEmptyTrack(int track)
+BOOL CTracks::IsEmptyTrack(int track) const
 {
-    TTrack* tr = GetTrack(track);
-    if (!tr) return 0;
+    auto tr = GetConstTrack(track);
+    if (!tr) { return 0; }
 
     // If the track length doesn't match Maxtracklength, it is not empty
-    if (tr->len != m_maxTrackLength) return 0;
+    if (tr->len != m_maxTrackLength) { return 0; }
 
     // Test for values in track, if it is equal or above 0, it is not empty
     for (int i = 0; i < m_maxTrackLength; i++)
@@ -175,15 +175,15 @@ BOOL CTracks::SetEnd(int track, int line)
     return 1;
 }
 
-int CTracks::GetLastLine(int track)
+int CTracks::GetLastLine(int track) const
 {
-    TTrack* tr = GetTrack(track);
+    auto tr = GetConstTrack(track);
     return (tr) ? tr->len - 1 : -1;
 }
 
-int CTracks::GetLength(int track)
+int CTracks::GetLength(int track) const
 {
-    TTrack* tr = GetTrack(track);
+    auto tr = GetConstTrack(track);
     if (!tr) return -1;
     return tr->go >= 0 ? m_maxTrackLength : tr->len;
 }
@@ -198,9 +198,9 @@ BOOL CTracks::SetGo(int track, int line)
     return 1;
 }
 
-int CTracks::GetGoLine(int track)
+int CTracks::GetGoLine(int track)  const
 {
-    TTrack* tr = GetTrack(track);
+    auto tr = GetConstTrack(track);
     if (!tr) return 0;
     return (track >= 0) ? tr->go : -1;
 }
@@ -273,15 +273,15 @@ BOOL CTracks::CalculateNotEmpty(int trackNr)
     return 0;	// Is empty
 }
 
-BOOL CTracks::CompareTracks(int track1, int track2)
+BOOL CTracks::CompareTracks(int track1, int track2) const
 {
     // If one of the tracks is invalid, bail out of this function
-    TTrack* t1 = GetTrack(track1);
-    TTrack* t2 = GetTrack(track2);
+    auto t1 = GetConstTrack(track1);
+    auto t2 = GetConstTrack(track2);
     if (!t1 || !t2) return 0;
 
     // If the Length or Loop isn't matching, no doubt about the difference
-    if (t1->len != t2->len || t1->go != t2->go) return 0;
+    if (t1->len != t2->len || t1->go != t2->go) { return 0; }
 
     // Compare the tracks and searach for a mismatched value
     for (int i = 0; i < t1->len; i++)
@@ -411,7 +411,7 @@ int CTracks::TrackExpandLoop(TTrack* ttrack)
     return i;	// Length of the expanded loop
 }
 
-void CTracks::GetTracksAll(TTracksAll* toTracks)
+void CTracks::GetTracksAll(TTracksAll* toTracks) const
 {
     toTracks->maxtracklength = m_maxTrackLength;
     for (int i = 0; i < TRACKSNUM; i++) memcpy((void*)&toTracks->tracks[i], (void*)&m_track[i], sizeof(TTrack));

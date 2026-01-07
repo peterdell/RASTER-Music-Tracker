@@ -273,6 +273,9 @@
     <ClCompile Include="VUPlayer.cpp">
       <Filter>Source Files\Atari Players</Filter>
     </ClCompile>
+    <ClCompile Include="TracksControl.cpp">
+      <Filter>Source Files\GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
@@ -460,6 +463,9 @@
     </ClInclude>
     <ClInclude Include="VUPlayer.h">
       <Filter>Source Files\Atari Players</Filter>
+    </ClInclude>
+    <ClInclude Include="TracksControl.h">
+      <Filter>Source Files\GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

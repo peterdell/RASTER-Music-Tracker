@@ -14,10 +14,14 @@
 #include "Song.h"
 #include "Clipboard.h"
 
-#include "global.h"
+#include "Global.h"
+#include "TracksControl.h"
+
 #include "Tuning.h"
 #include "Keyboard2NoteMapping.h"
 #include "ChannelControl.h"
+
+extern CTracksControl g_TracksControl;
 
 extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
@@ -971,7 +975,7 @@ void CSong::DrawTracks()
 
             //is it playing?
             if (songplayline == songactiveline) t = trackplayline; else t = -1;
-            g_Tracks.DrawTrackLine(j, x, y, tr, line, trackactiveline, g_cursoractview, t, (m_trackactivecol == j), m_trackactivecur, oob);
+            g_TracksControl.DrawTrackLine(g_Tracks, j, x, y, tr, line, trackactiveline, g_cursoractview, t, (m_trackactivecol == j), m_trackactivecur, oob);
         }
         x = CSongScreenLayout::TRACKS_X + 5 * 8;
     }
@@ -998,7 +1002,7 @@ void CSong::DrawTracks()
         tr = m_song[songactiveline][i];
 
         //g_Tracks.DrawTrackHeader(x + 24, TRACKS_Y + 16, tr, color);
-        g_Tracks.DrawTrackHeader(x + 8, CSongScreenLayout::TRACKS_Y + 16, tr, color);
+        g_TracksControl.DrawTrackHeader(g_Tracks, x + 8, CSongScreenLayout::TRACKS_Y + 16, tr, color);
     }
 
     //lines delimiting the current line

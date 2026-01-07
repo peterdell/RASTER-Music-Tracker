@@ -4,6 +4,7 @@
 #include "Clipboard.h"
 #include "Tuning.h"
 #include "Memory.h"
+#include "TracksControl.h"
 #include "Global.h"
 #include "Undo.h"
 #include <filesystem>
@@ -202,5 +203,6 @@ CUndo			g_Undo;				// Undo buffer tracker
 CXPokey			g_Pokey;			// The simulated Pokey chip
 CInstruments	g_Instruments;
 CTracks			g_Tracks;
+CTracksControl  g_TracksControl;
 CTrackClipboard g_TrackClipboard;
 CTuning			g_Tuning;			// Tuning calculations and POKEY tuning lookup tables generation
