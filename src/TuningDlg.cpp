@@ -105,9 +105,9 @@ BOOL TuningDlg::OnInitDialog()
 	CDialog::OnInitDialog();
 
 	//backup all current values first
-	b_basetuning = g_basetuning;
-	b_basenote = g_basenote;
-	b_temperament = g_temperament;
+	b_basetuning = g_tuning.basetuning;
+	b_basenote = g_tuning.basenote;
+	b_temperament = g_tuning.temperament;
 
 	//ratio L
 	b_UNISON_L = g_UNISON_L;
@@ -153,9 +153,9 @@ void TuningDlg::OnClickedIdtestnow()
 	TuningDlg::UpdateData();
 
 	//backup all current values first
-	g_basetuning = m_basetuning;
-	g_basenote = m_basenote;
-	g_temperament = m_temperament;
+    g_tuning.basetuning = m_basetuning;
+    g_tuning.basenote = m_basenote;
+    g_tuning.temperament = m_temperament;
 
 	//ratio L
 	g_UNISON_L = UNISON_L;
@@ -193,9 +193,9 @@ void TuningDlg::OnClickedIdtestnow()
 void TuningDlg::OnClickedIdreset()
 {
 	//retrieve the last backed up values first
-	g_basetuning = b_basetuning;
-	g_basenote = b_basenote;
-	g_temperament = b_temperament;
+    g_tuning.basetuning = b_basetuning;
+    g_tuning.basenote = b_basenote;
+	g_tuning.temperament = b_temperament;
 
 	//ratio L
 	g_UNISON_L = b_UNISON_L;

@@ -630,9 +630,9 @@ void CRmtView::ReadTuningConfig()
         }
 
         // TUNING 
-        if (NAME("TUNING")) { g_basetuning = atof(value); continue; }
-        if (NAME("BASENOTE")) { g_basenote = atoi(value); continue; }
-        if (NAME("TEMPERAMENT")) { g_temperament = atoi(value); continue; }
+        if (NAME("TUNING")) { g_tuning.basetuning = atof(value); continue; }
+        if (NAME("BASENOTE")) { g_tuning.basenote = atoi(value); continue; }
+        if (NAME("TEMPERAMENT")) { g_tuning.temperament = atoi(value); continue; }
 
         // RATIO
         if (NAME("UNISON")) { g_UNISON_L = atoi(value); if (div) g_UNISON_R = atoi(value2); continue; }
@@ -669,9 +669,9 @@ void CRmtView::WriteTuningConfig()
     ou << std::setprecision(16);
 
     ou << "\n# TUNING\n" << std::endl;
-    ou << "TUNING = " << g_basetuning << std::endl;
-    ou << "BASENOTE = " << g_basenote << std::endl;
-    ou << "TEMPERAMENT = " << g_temperament << std::endl;
+    ou << "TUNING = " << g_tuning.basetuning << std::endl;
+    ou << "BASENOTE = " << g_tuning.basenote << std::endl;
+    ou << "TEMPERAMENT = " << g_tuning.temperament << std::endl;
 
     ou << "\n# RATIO\n" << std::endl;
     ou << "UNISON = " << g_UNISON_L << " / " << g_UNISON_R << std::endl;
@@ -744,7 +744,7 @@ void CRmtView::OnViewConfiguration()
         {
             // PAL or NTSC
             g_ntsc = dlg.m_ntsc;
-            g_basetuning = (g_ntsc) ? (g_basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
+            g_tuning.basetuning = (g_ntsc) ? (g_tuning.basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_tuning.basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
             CAtari::InitRMTRoutine(); //reset RMT routines
         }
         g_ntsc = dlg.m_ntsc;
@@ -793,9 +793,9 @@ void CRmtView::OnViewConfiguration()
 void CRmtView::OnViewTuning()
 {
     TuningDlg dlg;
-    dlg.m_basetuning = g_basetuning;
-    dlg.m_basenote = g_basenote;
-    dlg.m_temperament = g_temperament;
+    dlg.m_basetuning = g_tuning.basetuning;
+    dlg.m_basenote = g_tuning.basenote;
+    dlg.m_temperament = g_tuning.temperament;
 
     // Ratio left
     dlg.UNISON_L = g_UNISON_L;
@@ -860,9 +860,9 @@ void CRmtView::OnViewTuning()
         g_OCTAVE_R = dlg.OCTAVE_R;
 
         // Update tuning
-        g_basetuning = dlg.m_basetuning;
-        g_basenote = dlg.m_basenote;
-        g_temperament = dlg.m_temperament;
+        g_tuning.basetuning = dlg.m_basetuning;
+        g_tuning.basenote = dlg.m_basenote;
+        g_tuning.temperament = dlg.m_temperament;
         g_Tuning.init_tuning();
     }
 }
@@ -1128,11 +1128,12 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
     if (rec.PtInRect(point))
     {
         //PAL or NTSC
+        // TODO: Duplicate code
         SetCursor(m_cursorGoto);
         if (mousebutt & MK_LBUTTON)
         {
-            g_ntsc ^= 1;
-            g_basetuning = (g_ntsc) ? (g_basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
+            g_ntsc ^= TRUE;
+            g_tuning.basetuning = (g_ntsc) ? (g_tuning.basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_tuning.basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
             CAtari::InitRMTRoutine(); //reset RMT routines
         }
         return 6;
@@ -1683,8 +1684,9 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     case VK_F12:
         if (g_controlkey)
         {
-            g_ntsc ^= 1;
-            g_basetuning = (g_ntsc) ? (g_basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
+            // TODO Duplicate code... well 3 times..
+            g_ntsc ^= TRUE;
+            g_tuning.basetuning = (g_ntsc) ? (g_tuning.basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_tuning.basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
             CAtari::InitRMTRoutine(); //reset RMT routines
         }
         else OnPlayfollow(); //toggle follow position

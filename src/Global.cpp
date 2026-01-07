@@ -21,13 +21,11 @@ int g_height = 0;
 int g_tracklines = 8;
 int g_scaling_percentage = 100;
 
-// best known compromise for both regions, they produce identical tables
-// TODO: Static initialization based on g_ntsc does not make sense.
-double g_basetuning = (g_ntsc) ? 444.895778867913 : 440.83751645933;
-int g_basenote = 3;	//3 = A-
-int g_temperament = 0;	//each preset is assigned to a number. 0 means no Temperament, any value that is not assigned defaults to custom
-int g_notesperoctave = 12;	//by default there are 12 notes per octave
 
+int g_notesperoctave = 12;	// by default there are 12 notes per octave TODO: Today missing in CSong
+
+TTuningSettings g_tuning = { (g_ntsc) ? 444.895778867913 : 440.83751645933,3,0 };
+TTuningRationDouble g_tuningRationDouble = {};
 
 // ratio used for each note => NOTE_L / NOTE_R, must be treated as doubles!!!
 double g_UNISON = 1;

@@ -42,7 +42,7 @@ public:
     BOOL IsValidChannel(int channel) const { return channel >= 0 && channel < SONGTRACKS; };
     BOOL IsValidTrack(int track) const { return track >= 0 && track < TRACKSNUM; };
     BOOL IsValidLine(int line) const { return line >= 0 && line < MAXATATRACKLEN; };
-    BOOL IsValidNote(int note) { return note >= 0 && note < CNotes::NOTESNUM; };
+    BOOL IsValidNote(int note) { return CNotes::IsValidNote(note); };
     BOOL IsValidInstrument(int instr) const { return instr >= 0 && instr < INSTRSNUM; };
     BOOL IsValidVolume(int vol) const { return vol >= 0 && vol <= MAXVOLUME; };
     BOOL IsValidSpeed(int speed) const { return speed >= 0 && speed < TRACKMAXSPEED; };

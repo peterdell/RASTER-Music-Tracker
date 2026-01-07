@@ -26,11 +26,35 @@ extern int g_height;
 extern int g_tracklines;
 extern int g_scaling_percentage;
 
-// best known compromise for both regions, they produce identical tables
-extern double g_basetuning;
-extern int g_basenote;	//3 = A-
-extern int g_temperament;	//each preset is assigned to a number. 0 means no Temperament, any value that is not assigned defaults to custom
-extern int g_notesperoctave;	//by default there are 12 notes per octave
+extern int g_notesperoctave;
+
+struct TTuningSettings {
+
+    double basetuning;
+    int basenote;	// 3 = A-
+    int temperament = 0;	// each preset is assigned to a number. 0 means no Temperament, any value that is not assigned defaults to custom
+};
+
+extern TTuningSettings g_tuning;
+
+
+struct TTuningRationDouble {
+    double UNISON;
+    double MIN_2ND;
+    double MAJ_2ND;
+    double MIN_3RD;
+    double MAJ_3RD;
+    double PERF_4TH;
+    double TRITONE;
+    double PERF_5TH;
+    double MIN_6TH;
+    double MAJ_6TH;
+    double MIN_7TH;
+    double MAJ_7TH;
+    double OCTAVE;
+};
+
+extern TTuningRationDouble g_tuningRationDouble;
 
 // ratio used for each note => NOTE_L / NOTE_R, must be treated as doubles!!!
 extern double g_UNISON;

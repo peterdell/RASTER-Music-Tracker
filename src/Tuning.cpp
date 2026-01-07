@@ -220,7 +220,7 @@ void CTuning::generate_table(unsigned char* table, int length, int semitone, int
 		int note = i + semitone;
 
 		//calculate the reference pitch using the semitone as an offset
-		double pitch = GetTruePitch(g_basetuning, g_temperament, g_basenote, note);
+		double pitch = GetTruePitch(g_tuning.basetuning, g_tuning.temperament, g_tuning.basenote, note);
 
 		//get the nearest POKEY frequency using the reference pitch
 		int audf = get_audf(pitch, coarse_divisor, divisor, cycle);
@@ -443,7 +443,7 @@ double CTuning::GetTruePitch(double tuning, int temperament, int basenote, int s
 /// <summary> Initialise the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into the emulated Atari memory </summary>
 void CTuning::init_tuning()
 {
-	if (!g_basetuning)	//if base tuning is null, make sure to reset it, else the program could crash!
+	if (!g_tuning.basetuning)	//if base tuning is null, make sure to reset it, else the program could crash!
 	{	
 		g_Song.ResetTuningVariables();	//TODO(?): move this function here instead
 		MessageBox(g_hwnd, "An invalid tuning configuration has been detected!\n\nTuning has been reset to default parameters.", "Tuning error", MB_ICONERROR); 
@@ -452,11 +452,11 @@ void CTuning::init_tuning()
 
 	g_notesperoctave = 12;	//by default, an octave uses 12 semitones...
 
-	if (g_temperament > NO_TEMPERAMENT && g_temperament < TUNING_CUSTOM)	//...unless it is specified otherwise in the Temperament presets
+	if (g_tuning.temperament > NO_TEMPERAMENT && g_tuning.temperament < TUNING_CUSTOM)	//...unless it is specified otherwise in the Temperament presets
 	{	
 		for (int i = 0; i < PRESETS_LENGTH; i++)
 		{
-			if (temperament_preset[g_temperament][i]) continue;
+			if (temperament_preset[g_tuning.temperament][i]) continue;
 			g_notesperoctave = i - 1;
 			break;
 		}

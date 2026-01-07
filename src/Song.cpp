@@ -320,15 +320,15 @@ int CSong::MakeTuningBlock(unsigned char* mem, int addr)
     mem[addr] = 0xF3;			// Tuning block indicator
 
     // First 16 bytes
-    mem[addr + 0x01] = g_ntsc;						//RMT module region, 0 -> PAL, 1 -> NTSC
-    mem[addr + 0x02] = g_basenote;					//base note used in tuning calculations, eg A-4
-    mem[addr + 0x03] = g_temperament;				//tuning temperament, 0 -> no temperament, any number above preset number is custom (saving ratios not yet implemented)
+    mem[addr + 0x01] = IsNTSC();		    				//RMT module region, 0 -> PAL, 1 -> NTSC
+    mem[addr + 0x02] = g_tuning.basenote;					//base note used in tuning calculations, eg A-4
+    mem[addr + 0x03] = g_tuning.temperament;				//tuning temperament, 0 -> no temperament, any number above preset number is custom (saving ratios not yet implemented)
     mem[addr + 0x04] = g_trackLinePrimaryHighlight;	//track primary line highlight
     mem[addr + 0x05] = g_trackLineSecondaryHighlight;//track secondary line highlight
     // 6 - 0xf is unused
 
     // 64 bytes
-    memcpy((mem + addr + 0x10), &g_basetuning, 8);	//base tuning frequency, double type uses 8 bytes in memory
+    memcpy((mem + addr + 0x10), &g_tuning.basetuning, 8);	//base tuning frequency, double type uses 8 bytes in memory
     memcpy((mem + addr + 0x18), &g_UNISON_L, 2);		//tuning ratio variables, each values are truncated to use 2 bytes (16-bit precision) 
     memcpy((mem + addr + 0x1A), &g_UNISON_R, 2);
     memcpy((mem + addr + 0x1C), &g_MIN_2ND_L, 2);
@@ -364,11 +364,9 @@ void CSong::ResetTuningVariables()
 {
     // reset all tuning variables 
     //g_ntsc = 0;		//PAL region
-    g_basetuning = (g_ntsc) ? 444.895778867913 : 440.83751645933;
-    g_basenote = 3;	//3 = A-
-    g_temperament = 0;	//no temperament
-    //g_trackLinePrimaryHighlight = 8;	//highlight every 8 rows
-    //g_trackLineSecondaryHighlight = 4;	//highlight every 4 rows
+    g_tuning.basetuning = (g_ntsc) ? 444.895778867913 : 440.83751645933;
+    g_tuning.basenote = 3;	//3 = A-
+    g_tuning.temperament = 0;	//no temperament
     g_UNISON_L = 1;	//ratio left
     g_MIN_2ND_L = 40;
     g_MAJ_2ND_L = 10;
@@ -407,14 +405,14 @@ int CSong::DecodeTuningBlock(unsigned char* mem, int addr, int endAddr)
     }
     // Get the basics
     g_ntsc = mem[addr + 0x01];
-    g_basenote = mem[addr + 0x02];
-    g_temperament = mem[addr + 0x03];
+    g_tuning.basenote = mem[addr + 0x02];
+    g_tuning.temperament = mem[addr + 0x03];
     g_trackLinePrimaryHighlight = mem[addr + 0x04];
     if (!g_trackLinePrimaryHighlight) g_trackLinePrimaryHighlight = 8;	//default
     g_trackLineSecondaryHighlight = mem[addr + 0x05];
     if (!g_trackLineSecondaryHighlight) g_trackLineSecondaryHighlight = 4;	//default
 
-    memcpy(&g_basetuning, (mem + addr + 0x10), 8);
+    memcpy(&g_tuning.basetuning, (mem + addr + 0x10), 8);
     memcpy(&g_UNISON_L, (mem + addr + 0x18), 2);
     memcpy(&g_UNISON_R, (mem + addr + 0x1A), 2);
     memcpy(&g_MIN_2ND_L, (mem + addr + 0x1C), 2);

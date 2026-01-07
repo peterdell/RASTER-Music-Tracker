@@ -2,38 +2,39 @@
 
 #include "Atari.h"
 #include "Instruments.h"
-#include "global.h"
+#include "Notes.h"
+#include "Global.h"
 
 /// <summary>
 /// Define information about each instrument parameter (not envelope table)
 /// </summary>
 const Tshpar shpar[NUMBER_OF_PARAMS] =
 {
-	//Nr, Draw Position															NAME			AND		MAX			Offset	"next param on cursor movement", Fieldname in txt file
-	//TABLE: LEN GO SPD TYPE MODE
-	{ PAR_TBL_LENGTH,		INSTRS_PARAM_X + 16 * 8,INSTRS_PARAM_Y + 9 * 16,	"LENGTH:",		0x1f,	0x1f,		1,		 8,  1, 15, 15,		"LENGTH:"},
-	{ PAR_TBL_GOTO,			INSTRS_PARAM_X + 18 * 8,INSTRS_PARAM_Y + 10 * 16,	  "GOTO:",		0x1f,	0x1f,		0,		 0,  2, 16, 16,		"GOTO:"},
-	{ PAR_TBL_SPEED,		INSTRS_PARAM_X + 17 * 8,INSTRS_PARAM_Y + 11 * 16,	 "SPEED:",		0x3f,	0x3f,		1,		 1,  3, 17, 17,		"SPEED:"},
-	{ PAR_TBL_TYPE,			INSTRS_PARAM_X + 18 * 8,INSTRS_PARAM_Y + 12 * 16,	  "TYPE:",		0x01,	0x01,		0,		 2,  4, 18, 18,		"TYPE:"},
-	{ PAR_TBL_MODE,			INSTRS_PARAM_X + 18 * 8,INSTRS_PARAM_Y + 13 * 16,	  "MODE:",		0x01,	0x01,		0,		 3,  5, 19, 19,		"MODE:"},
-	//ENVELOPE: LEN GO VSLIDE VMIN																	     
-	{ PAR_ENV_LENGTH,		INSTRS_PARAM_X + 16 * 8,INSTRS_PARAM_Y + 2 * 16,	"LENGTH:",		0x3f,	0x2f,		1,		 4,  6,  9,  9,		"ENV_LENGTH:"},
-	{ PAR_ENV_GOTO,			INSTRS_PARAM_X + 18 * 8,INSTRS_PARAM_Y + 3 * 16,	  "GOTO:",		0x3f,	0x2f,		0,		 5,  7, 10, 10,		"ENV_GOTO:"},
-	{ PAR_VOL_FADEOUT,		INSTRS_PARAM_X + 15 * 8,INSTRS_PARAM_Y + 4 * 16,   "FADEOUT:",		0xff,	0xff,		0,		 6,  8, 11, 11,		"FADEOUT:"},
-	{ PAR_VOL_MIN,			INSTRS_PARAM_X + 15 * 8,INSTRS_PARAM_Y + 5 * 16,   "VOL MIN:",		0x0f,	0x0f,		0,		 7,  0, 11, 11,		"VOL_MIN:"},
-	//EFFECT: DELAY VIBRATO FSHIFT																	    
-	{ PAR_DELAY,			INSTRS_PARAM_X + 3 * 8,INSTRS_PARAM_Y + 2 * 16,      "DELAY:",		0xff,	0xff,		0,		19, 10,  5,  5,		"EFF_DELAY:"},
-	{ PAR_VIBRATO,			INSTRS_PARAM_X + 1 * 8,INSTRS_PARAM_Y + 3 * 16,    "VIBRATO:",		0x03,	0x03,		0,		 9, 11,  6,  6,		"EFF_VIBRATO:"},
-	{ PAR_FREQ_SHIFT,		INSTRS_PARAM_X + -1 * 8,INSTRS_PARAM_Y + 4 * 16, "FREQSHIFT:",		0xff,	0xff,		0,		10, 12,  7,  7,		"EFF_FREQSHIFT:"},
-	//AUDCTL: 00-07
-	{ PAR_AUDCTL_15KHZ,		INSTRS_PARAM_X + 3 * 8,INSTRS_PARAM_Y + 6 * 16,      "15KHZ:",		0x01,	0x01,		0,		11, 13,  0,  0,		"AUD_15KHZ:"},
-	{ PAR_AUDCTL_HPF_CH2,	INSTRS_PARAM_X + 1 * 8,INSTRS_PARAM_Y + 7 * 16,    "HPF 2+4:",		0x01,	0x01,		0,		12, 14,  0,  0,		"AUD_HPF_CH2:"},
-	{ PAR_AUDCTL_HPF_CH1,	INSTRS_PARAM_X + 1 * 8,INSTRS_PARAM_Y + 8 * 16,    "HPF 1+3:",		0x01,	0x01,		0,		13, 15,  0,  0,		"AUD_HPF_CH1:"},
-	{ PAR_AUDCTL_JOIN_3_4,	INSTRS_PARAM_X + 0 * 8,INSTRS_PARAM_Y + 9 * 16,   "JOIN 3+4:",		0x01,	0x01,		0,		14, 16,  0,  0,		"AUD_JOIN34:"},
-	{ PAR_AUDCTL_JOIN_1_2,	INSTRS_PARAM_X + 0 * 8,INSTRS_PARAM_Y + 10 * 16,  "JOIN 1+2:",		0x01,	0x01,		0,		15, 17,  1,  1,		"AUD_JOIN12:"},
-	{ PAR_AUDCTL_179_CH3,	INSTRS_PARAM_X + 0 * 8,INSTRS_PARAM_Y + 11 * 16,  "1.79 CH3:",		0x01,	0x01,		0,		16, 18,  2,  2,		"AUD_179_CH3:"},
-	{ PAR_AUDCTL_179_CH1,	INSTRS_PARAM_X + 0 * 8,INSTRS_PARAM_Y + 12 * 16,  "1.79 CH1:",		0x01,	0x01,		0,		17, 19,  3,  3,		"AUD_179_CH1:"},
-	{ PAR_AUDCTL_POLY9,		INSTRS_PARAM_X + 3 * 8,INSTRS_PARAM_Y + 13 * 16,     "POLY9:",		0x01,	0x01,		0,		18,  9,  4,  4,		"AUD_POLY9:"}
+    //Nr, Draw Position															NAME			AND		MAX			Offset	"next param on cursor movement", Fieldname in txt file
+    //TABLE: LEN GO SPD TYPE MODE
+    { PAR_TBL_LENGTH,		INSTRS_PARAM_X + 16 * 8,INSTRS_PARAM_Y + 9 * 16,	"LENGTH:",		0x1f,	0x1f,		1,		 8,  1, 15, 15,		"LENGTH:"},
+    { PAR_TBL_GOTO,			INSTRS_PARAM_X + 18 * 8,INSTRS_PARAM_Y + 10 * 16,	  "GOTO:",		0x1f,	0x1f,		0,		 0,  2, 16, 16,		"GOTO:"},
+    { PAR_TBL_SPEED,		INSTRS_PARAM_X + 17 * 8,INSTRS_PARAM_Y + 11 * 16,	 "SPEED:",		0x3f,	0x3f,		1,		 1,  3, 17, 17,		"SPEED:"},
+    { PAR_TBL_TYPE,			INSTRS_PARAM_X + 18 * 8,INSTRS_PARAM_Y + 12 * 16,	  "TYPE:",		0x01,	0x01,		0,		 2,  4, 18, 18,		"TYPE:"},
+    { PAR_TBL_MODE,			INSTRS_PARAM_X + 18 * 8,INSTRS_PARAM_Y + 13 * 16,	  "MODE:",		0x01,	0x01,		0,		 3,  5, 19, 19,		"MODE:"},
+    //ENVELOPE: LEN GO VSLIDE VMIN																	     
+    { PAR_ENV_LENGTH,		INSTRS_PARAM_X + 16 * 8,INSTRS_PARAM_Y + 2 * 16,	"LENGTH:",		0x3f,	0x2f,		1,		 4,  6,  9,  9,		"ENV_LENGTH:"},
+    { PAR_ENV_GOTO,			INSTRS_PARAM_X + 18 * 8,INSTRS_PARAM_Y + 3 * 16,	  "GOTO:",		0x3f,	0x2f,		0,		 5,  7, 10, 10,		"ENV_GOTO:"},
+    { PAR_VOL_FADEOUT,		INSTRS_PARAM_X + 15 * 8,INSTRS_PARAM_Y + 4 * 16,   "FADEOUT:",		0xff,	0xff,		0,		 6,  8, 11, 11,		"FADEOUT:"},
+    { PAR_VOL_MIN,			INSTRS_PARAM_X + 15 * 8,INSTRS_PARAM_Y + 5 * 16,   "VOL MIN:",		0x0f,	0x0f,		0,		 7,  0, 11, 11,		"VOL_MIN:"},
+    //EFFECT: DELAY VIBRATO FSHIFT																	    
+    { PAR_DELAY,			INSTRS_PARAM_X + 3 * 8,INSTRS_PARAM_Y + 2 * 16,      "DELAY:",		0xff,	0xff,		0,		19, 10,  5,  5,		"EFF_DELAY:"},
+    { PAR_VIBRATO,			INSTRS_PARAM_X + 1 * 8,INSTRS_PARAM_Y + 3 * 16,    "VIBRATO:",		0x03,	0x03,		0,		 9, 11,  6,  6,		"EFF_VIBRATO:"},
+    { PAR_FREQ_SHIFT,		INSTRS_PARAM_X + -1 * 8,INSTRS_PARAM_Y + 4 * 16, "FREQSHIFT:",		0xff,	0xff,		0,		10, 12,  7,  7,		"EFF_FREQSHIFT:"},
+    //AUDCTL: 00-07
+    { PAR_AUDCTL_15KHZ,		INSTRS_PARAM_X + 3 * 8,INSTRS_PARAM_Y + 6 * 16,      "15KHZ:",		0x01,	0x01,		0,		11, 13,  0,  0,		"AUD_15KHZ:"},
+    { PAR_AUDCTL_HPF_CH2,	INSTRS_PARAM_X + 1 * 8,INSTRS_PARAM_Y + 7 * 16,    "HPF 2+4:",		0x01,	0x01,		0,		12, 14,  0,  0,		"AUD_HPF_CH2:"},
+    { PAR_AUDCTL_HPF_CH1,	INSTRS_PARAM_X + 1 * 8,INSTRS_PARAM_Y + 8 * 16,    "HPF 1+3:",		0x01,	0x01,		0,		13, 15,  0,  0,		"AUD_HPF_CH1:"},
+    { PAR_AUDCTL_JOIN_3_4,	INSTRS_PARAM_X + 0 * 8,INSTRS_PARAM_Y + 9 * 16,   "JOIN 3+4:",		0x01,	0x01,		0,		14, 16,  0,  0,		"AUD_JOIN34:"},
+    { PAR_AUDCTL_JOIN_1_2,	INSTRS_PARAM_X + 0 * 8,INSTRS_PARAM_Y + 10 * 16,  "JOIN 1+2:",		0x01,	0x01,		0,		15, 17,  1,  1,		"AUD_JOIN12:"},
+    { PAR_AUDCTL_179_CH3,	INSTRS_PARAM_X + 0 * 8,INSTRS_PARAM_Y + 11 * 16,  "1.79 CH3:",		0x01,	0x01,		0,		16, 18,  2,  2,		"AUD_179_CH3:"},
+    { PAR_AUDCTL_179_CH1,	INSTRS_PARAM_X + 0 * 8,INSTRS_PARAM_Y + 12 * 16,  "1.79 CH1:",		0x01,	0x01,		0,		17, 19,  3,  3,		"AUD_179_CH1:"},
+    { PAR_AUDCTL_POLY9,		INSTRS_PARAM_X + 3 * 8,INSTRS_PARAM_Y + 13 * 16,     "POLY9:",		0x01,	0x01,		0,		18,  9,  4,  4,		"AUD_POLY9:"}
 };
 
 /// <summary>
@@ -41,15 +42,15 @@ const Tshpar shpar[NUMBER_OF_PARAMS] =
 /// </summary>
 const Tshenv shenv[ENVROWS] =
 {
-	//ENVELOPE
-	{   0,0x0f,1,-1,   "VOLUME R:",INSTRS_ENV_X + 2 * 8,INSTRS_ENV_Y + 2 * 16,		"ENV_VOLUME_R:"},	//volume right
-	{   0,0x0f,1,-1,   "VOLUME L:",INSTRS_ENV_X + 2 * 8,INSTRS_ENV_Y + 8 * 16,		"ENV_VOLUME_L:"},	//volume left
-	{   0,0x0e,2,-2, "DISTORTION:",INSTRS_ENV_X + 0 * 8,INSTRS_ENV_Y + 9 * 16,		"ENV_DISTORTION:"},	//distortion 0,2,4,6,...
-	{   0,0x07,1,-1,    "COMMAND:",INSTRS_ENV_X + 3 * 8,INSTRS_ENV_Y + 10 * 16,		"ENV_COMMNAND:"},	//command 0-7
-	{   0,0x0f,1,-1,         "X/:",INSTRS_ENV_X + 8 * 8,INSTRS_ENV_Y + 11 * 16,		"ENV_X:"},			//X
-	{   0,0x0f,1,-1,        "Y\\:",INSTRS_ENV_X + 8 * 8,INSTRS_ENV_Y + 12 * 16,		"ENV_Y:"},			//Y
-	{   9,0x01,1,-1, "AUTOFILTER:",INSTRS_ENV_X + 0 * 8,INSTRS_ENV_Y + 13 * 16,		"ENV_AUTOFILTER:"},		//filter *
-	{   9,0x01,1,-1, "PORTAMENTO:",INSTRS_ENV_X + 0 * 8,INSTRS_ENV_Y + 14 * 16,		"ENV_PORTAMENTO:"}	//portamento *
+    //ENVELOPE
+    {   0,0x0f,1,-1,   "VOLUME R:",INSTRS_ENV_X + 2 * 8,INSTRS_ENV_Y + 2 * 16,		"ENV_VOLUME_R:"},	//volume right
+    {   0,0x0f,1,-1,   "VOLUME L:",INSTRS_ENV_X + 2 * 8,INSTRS_ENV_Y + 8 * 16,		"ENV_VOLUME_L:"},	//volume left
+    {   0,0x0e,2,-2, "DISTORTION:",INSTRS_ENV_X + 0 * 8,INSTRS_ENV_Y + 9 * 16,		"ENV_DISTORTION:"},	//distortion 0,2,4,6,...
+    {   0,0x07,1,-1,    "COMMAND:",INSTRS_ENV_X + 3 * 8,INSTRS_ENV_Y + 10 * 16,		"ENV_COMMNAND:"},	//command 0-7
+    {   0,0x0f,1,-1,         "X/:",INSTRS_ENV_X + 8 * 8,INSTRS_ENV_Y + 11 * 16,		"ENV_X:"},			//X
+    {   0,0x0f,1,-1,        "Y\\:",INSTRS_ENV_X + 8 * 8,INSTRS_ENV_Y + 12 * 16,		"ENV_Y:"},			//Y
+    {   9,0x01,1,-1, "AUTOFILTER:",INSTRS_ENV_X + 0 * 8,INSTRS_ENV_Y + 13 * 16,		"ENV_AUTOFILTER:"},		//filter *
+    {   9,0x01,1,-1, "PORTAMENTO:",INSTRS_ENV_X + 0 * 8,INSTRS_ENV_Y + 14 * 16,		"ENV_PORTAMENTO:"}	//portamento *
 };
 
 /// <summary>
@@ -59,8 +60,8 @@ const Tshenv shenv[ENVROWS] =
 /// </summary>
 CInstruments::CInstruments()
 {
-	if (m_instr) delete m_instr;
-	m_instr = new TInstrument[INSTRSNUM];
+    if (m_instr) delete m_instr;
+    m_instr = new TInstrument[INSTRSNUM];
 }
 
 /// <summary>
@@ -70,8 +71,8 @@ CInstruments::CInstruments()
 /// </summary>
 CInstruments::~CInstruments()
 {
-	if (m_instr) delete m_instr;
-	m_instr = NULL;
+    if (m_instr) delete m_instr;
+    m_instr = NULL;
 }
 
 /// <summary>
@@ -79,10 +80,10 @@ CInstruments::~CInstruments()
 /// </summary>
 void CInstruments::InitInstruments()
 {
-	for (int i = 0; i < INSTRSNUM; i++)
-	{
-		ClearInstrument(i);
-	}
+    for (int i = 0; i < INSTRSNUM; i++)
+    {
+        ClearInstrument(i);
+    }
 }
 
 /// <summary>
@@ -91,33 +92,33 @@ void CInstruments::InitInstruments()
 /// <param name="instrumentNr">Index of the instrument 0-63</param>
 void CInstruments::ClearInstrument(int instrNr)
 {
-	TInstrument* instrument = GetInstrument(instrNr);
-	if (!instrument) return;
+    TInstrument* instrument = GetInstrument(instrNr);
+    if (!instrument) return;
 
-	// Turn off this instrument on all channels
+    // Turn off this instrument on all channels
     CAtari::InstrumentTurnOff(instrNr);
 
-	// Clear everything/All zero
-	memset(instrument, 0, sizeof(TInstrument));
+    // Clear everything/All zero
+    memset(instrument, 0, sizeof(TInstrument));
 
-	// Init the name "Instrument XX"
-	int len = sprintf(instrument->name, "Instrument %02X", instrNr);
+    // Init the name "Instrument XX"
+    int len = sprintf(instrument->name, "Instrument %02X", instrNr);
 
-	// Replace all the remaining characters with spaces
-	memset(instrument->name + len, ' ', INSTRUMENT_NAME_MAX_LEN - len);
+    // Replace all the remaining characters with spaces
+    memset(instrument->name + len, ' ', INSTRUMENT_NAME_MAX_LEN - len);
 
-	// Set some initial values
-	instrument->activeEditSection = InstrumentSection::ENVELOPE;	// Activate on the Envelope, so testing instruments wouldn't cause accidental rename
-	instrument->editNameCursorPos = 0;								// 0 character name
-	instrument->editParameterNr = PAR_ENV_LENGTH;					// Envelope length is the default parameter to edit
-	instrument->editEnvelopeX = 0;
-	instrument->editEnvelopeY = 1;									// Volume left
-	instrument->editNoteTableCursorPos = 0;							// 0 element in the table
-	instrument->octave = 0;
-	instrument->volume = MAXVOLUME;
+    // Set some initial values
+    instrument->activeEditSection = InstrumentSection::ENVELOPE;	// Activate on the Envelope, so testing instruments wouldn't cause accidental rename
+    instrument->editNameCursorPos = 0;								// 0 character name
+    instrument->editParameterNr = PAR_ENV_LENGTH;					// Envelope length is the default parameter to edit
+    instrument->editEnvelopeX = 0;
+    instrument->editEnvelopeY = 1;									// Volume left
+    instrument->editNoteTableCursorPos = 0;							// 0 element in the table
+    instrument->octave = 0;
+    instrument->volume = MAXVOLUME;
 
-	// Apply to Atari Mem
-	WasModified(instrNr);
+    // Apply to Atari Mem
+    WasModified(instrNr);
 }
 
 /// <summary>
@@ -126,23 +127,23 @@ void CInstruments::ClearInstrument(int instrNr)
 /// <param name="instr"></param>
 void CInstruments::CheckInstrumentParameters(int instr)
 {
-	TInstrument* ai = GetInstrument(instr);
-	if (!ai) return;
+    TInstrument* ai = GetInstrument(instr);
+    if (!ai) return;
 
-	//ENVELOPE len-go loop control
-	if (ai->parameters[PAR_ENV_GOTO] > ai->parameters[PAR_ENV_LENGTH]) ai->parameters[PAR_ENV_GOTO] = ai->parameters[PAR_ENV_LENGTH];
-	
-	//TABLE len-go loop control
-	if (ai->parameters[PAR_TBL_GOTO] > ai->parameters[PAR_TBL_LENGTH]) ai->parameters[PAR_TBL_GOTO] = ai->parameters[PAR_TBL_LENGTH];
-	
-	//check the cursor in the envelope
-	if (ai->editEnvelopeX > ai->parameters[PAR_ENV_LENGTH]) ai->editEnvelopeX = ai->parameters[PAR_ENV_LENGTH];
-	
-	//check the cursor in the table
-	if (ai->editNoteTableCursorPos > ai->parameters[PAR_TBL_LENGTH]) ai->editNoteTableCursorPos = ai->parameters[PAR_TBL_LENGTH];
-	
-	//something changed => Save instrument "to Atari"
-	// NOTE: Done from the outside
+    //ENVELOPE len-go loop control
+    if (ai->parameters[PAR_ENV_GOTO] > ai->parameters[PAR_ENV_LENGTH]) ai->parameters[PAR_ENV_GOTO] = ai->parameters[PAR_ENV_LENGTH];
+
+    //TABLE len-go loop control
+    if (ai->parameters[PAR_TBL_GOTO] > ai->parameters[PAR_TBL_LENGTH]) ai->parameters[PAR_TBL_GOTO] = ai->parameters[PAR_TBL_LENGTH];
+
+    //check the cursor in the envelope
+    if (ai->editEnvelopeX > ai->parameters[PAR_ENV_LENGTH]) ai->editEnvelopeX = ai->parameters[PAR_ENV_LENGTH];
+
+    //check the cursor in the table
+    if (ai->editNoteTableCursorPos > ai->parameters[PAR_TBL_LENGTH]) ai->editNoteTableCursorPos = ai->parameters[PAR_TBL_LENGTH];
+
+    //something changed => Save instrument "to Atari"
+    // NOTE: Done from the outside
 }
 
 /// <summary>
@@ -152,36 +153,36 @@ void CInstruments::CheckInstrumentParameters(int instr)
 /// <param name="instr"></param>
 void CInstruments::RecalculateFlag(int instr)
 {
-	TInstrument* ti = GetInstrument(instr);
-	if (!ti) return;
+    TInstrument* ti = GetInstrument(instr);
+    if (!ti) return;
 
-	BYTE flag = 0;
+    BYTE flag = 0;
 
-	// Analyse the instrument envelope for the Autofilter, Bass16 and Portamento flags
-	for (int i = 0; i <= ti->parameters[PAR_ENV_LENGTH]; i++)
-	{
-		// Autofilter?
-		if (ti->envelope[i][ENV_FILTER]) flag |= IF_FILTER;
+    // Analyse the instrument envelope for the Autofilter, Bass16 and Portamento flags
+    for (int i = 0; i <= ti->parameters[PAR_ENV_LENGTH]; i++)
+    {
+        // Autofilter?
+        if (ti->envelope[i][ENV_FILTER]) flag |= IF_FILTER;
 
-		// Bass16?
-		if (ti->envelope[i][ENV_DISTORTION] == 6) flag |= IF_BASS16;
+        // Bass16?
+        if (ti->envelope[i][ENV_DISTORTION] == 6) flag |= IF_BASS16;
 
-		// Portamento?
-		if (ti->envelope[i][ENV_PORTAMENTO]) flag |= IF_PORTAMENTO;
-	}
+        // Portamento?
+        if (ti->envelope[i][ENV_PORTAMENTO]) flag |= IF_PORTAMENTO;
+    }
 
-	// Analyse the instrument parameters for the AUDCTL flag
-	for (int i = PAR_AUDCTL_15KHZ; i <= PAR_AUDCTL_POLY9; i++)
-	{
-		// AUDCTL?
-		if (ti->parameters[i]) flag |= IF_AUDCTL;
-	}
+    // Analyse the instrument parameters for the AUDCTL flag
+    for (int i = PAR_AUDCTL_15KHZ; i <= PAR_AUDCTL_POLY9; i++)
+    {
+        // AUDCTL?
+        if (ti->parameters[i]) flag |= IF_AUDCTL;
+    }
 
-	// Autofilter takes priority over Bass16 (RMT 1.28 driver only)
-	if (flag & IF_FILTER && flag & IF_BASS16) flag ^= IF_BASS16;
+    // Autofilter takes priority over Bass16 (RMT 1.28 driver only)
+    if (flag & IF_FILTER && flag & IF_BASS16) flag ^= IF_BASS16;
 
-	// Update the instrument hint flag to the new value
-	ti->displayHintFlag = flag;
+    // Update the instrument hint flag to the new value
+    ti->displayHintFlag = flag;
 }
 
 /// <summary>
@@ -192,21 +193,21 @@ void CInstruments::RecalculateFlag(int instr)
 /// <returns>true if the instrument has values, False if it is in default state</returns>
 BOOL CInstruments::CalculateNotEmpty(int instr)
 {
-	TInstrument* ti = GetInstrument(instr);
-	if (!ti) return 0;
+    TInstrument* ti = GetInstrument(instr);
+    if (!ti) return 0;
 
-	for (int i = 0; i <= ti->parameters[PAR_ENV_LENGTH]; i++)
-	{
-		for (int j = 0; j < ENVROWS; j++)
-		{
-			if (ti->envelope[i][j] != 0) return 1;
-		}
-	}
-	for (int i = 0; i < PARCOUNT; i++)
-	{
-		if (ti->parameters[i] != 0) return 1;
-	}
-	return 0; // Is empty
+    for (int i = 0; i <= ti->parameters[PAR_ENV_LENGTH]; i++)
+    {
+        for (int j = 0; j < ENVROWS; j++)
+        {
+            if (ti->envelope[i][j] != 0) return 1;
+        }
+    }
+    for (int i = 0; i < PARCOUNT; i++)
+    {
+        if (ti->parameters[i] != 0) return 1;
+    }
+    return 0; // Is empty
 }
 
 /// <summary>
@@ -218,18 +219,18 @@ BOOL CInstruments::CalculateNotEmpty(int instr)
 /// <param name="newVolume">volume level to set</param>
 void CInstruments::SetEnvelopeVolume(int instr, BOOL right, int px, int newVolume)
 {
-	TInstrument* ti = GetInstrument(instr);
-	if (!ti) return;
+    TInstrument* ti = GetInstrument(instr);
+    if (!ti) return;
 
-	// Validate
-	if (px < 0 || px >= ti->parameters[PAR_ENV_LENGTH] + 1) return;
-	if (newVolume < 0 || newVolume > 15) return;
+    // Validate
+    if (px < 0 || px >= ti->parameters[PAR_ENV_LENGTH] + 1) return;
+    if (newVolume < 0 || newVolume > 15) return;
 
-	int ep = (right && g_tracks4_8 > 4) ? ENV_VOLUMER : ENV_VOLUMEL;
-	ti->envelope[px][ep] = newVolume;
+    int ep = (right && g_tracks4_8 > 4) ? ENV_VOLUMER : ENV_VOLUMEL;
+    ti->envelope[px][ep] = newVolume;
 
-	// Recalc some info about the updated instrument
-	WasModified(instr);
+    // Recalc some info about the updated instrument
+    WasModified(instr);
 }
 
 /// <summary>
@@ -241,31 +242,31 @@ void CInstruments::SetEnvelopeVolume(int instr, BOOL right, int px, int newVolum
 /// <returns>frequency</returns>
 int CInstruments::GetFrequency(int instr, int note)
 {
-	TInstrument* tt = GetInstrument(instr);
-	if (!tt) return -1;
-	
-	// Only for NOTES table
-	if (tt->parameters[PAR_TBL_TYPE] == 0)  
-	{
-		// Shift notes according to table 0
-		note = (note + tt->noteTable[0]) & 0xff;
-	}
+    TInstrument* tt = GetInstrument(instr);
+    if (!tt) return -1;
 
-	// The note must be within valid boundaries
-	if (note < 0 || note >= NOTESNUM) return -1;
+    // Only for NOTES table
+    if (tt->parameters[PAR_TBL_TYPE] == 0)
+    {
+        // Shift notes according to table 0
+        note = (note + tt->noteTable[0]) & 0xff;
+    }
 
-	// IMPORTANT NOTE: Tables are not set to a constant location! 
-	// The function technically returns valid data, otherwise
-	switch (tt->envelope[0][ENV_DISTORTION])
-	{
-	case 0x0C:
-		return CAtari::GetByteAt(RMT_FRQTABLES + 64 + note);
-	case 0x06:
-	case 0x0E:
-		return CAtari::GetByteAt(RMT_FRQTABLES + 128 + note);
-	default:
-		return CAtari::GetByteAt(RMT_FRQTABLES + 192 + note);
-	}
+    // The note must be within valid boundaries
+    if (note < 0 || note >= CNotes::NOTESNUM) return -1;
+
+    // IMPORTANT NOTE: Tables are not set to a constant location! 
+    // The function technically returns valid data, otherwise
+    switch (tt->envelope[0][ENV_DISTORTION])
+    {
+    case 0x0C:
+        return CAtari::GetByteAt(RMT_FRQTABLES + 64 + note);
+    case 0x06:
+    case 0x0E:
+        return CAtari::GetByteAt(RMT_FRQTABLES + 128 + note);
+    default:
+        return CAtari::GetByteAt(RMT_FRQTABLES + 192 + note);
+    }
 }
 
 /// <summary>
@@ -276,19 +277,19 @@ int CInstruments::GetFrequency(int instr, int note)
 /// <returns>note</returns>
 int CInstruments::GetNote(int instr, int note)
 {
-	TInstrument* tt = GetInstrument(instr);
-	if (!tt) return -1;
+    TInstrument* tt = GetInstrument(instr);
+    if (!tt) return -1;
 
-	// Only for NOTES table
-	if (tt->parameters[PAR_TBL_TYPE] == 0)
-	{
-		// Shift notes according to table 0
-		note = (note + tt->noteTable[0]) & 0xff;
-	}
+    // Only for NOTES table
+    if (tt->parameters[PAR_TBL_TYPE] == 0)
+    {
+        // Shift notes according to table 0
+        note = (note + tt->noteTable[0]) & 0xff;
+    }
 
-	// The note must be within valid boundaries
-	if (note < 0 || note >= NOTESNUM) return -1;
-	return note;
+    // The note must be within valid boundaries
+    if (!CNotes::IsValidNote(note)) { return -1; }
+    return note;
 }
 
 /// <summary>
@@ -299,14 +300,14 @@ int CInstruments::GetNote(int instr, int note)
 /// <param name="vol">Last used volume</param>
 void CInstruments::MemorizeOctaveAndVolume(int instr, int oct, int vol)
 {
-	TInstrument* ti = GetInstrument(instr);
-	if (!ti) return;
+    TInstrument* ti = GetInstrument(instr);
+    if (!ti) return;
 
-	if (g_keyboard_RememberOctavesAndVolumes)
-	{
-		if (oct >= 0) ti->octave = oct;
-		if (vol >= 0) ti->volume = vol;
-	}
+    if (g_keyboard_RememberOctavesAndVolumes)
+    {
+        if (oct >= 0) ti->octave = oct;
+        if (vol >= 0) ti->volume = vol;
+    }
 }
 
 /// <summary>
@@ -317,12 +318,12 @@ void CInstruments::MemorizeOctaveAndVolume(int instr, int oct, int vol)
 /// <param name="vol">Last used volume</param>
 void CInstruments::RememberOctaveAndVolume(int instr, int& oct, int& vol)
 {
-	TInstrument* ti = GetInstrument(instr);
-	if (!ti) return;
+    TInstrument* ti = GetInstrument(instr);
+    if (!ti) return;
 
-	if (g_keyboard_RememberOctavesAndVolumes)
-	{
-		oct = ti->octave;
-		vol = ti->volume;
-	}
+    if (g_keyboard_RememberOctavesAndVolumes)
+    {
+        oct = ti->octave;
+        vol = ti->volume;
+    }
 }

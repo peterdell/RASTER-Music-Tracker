@@ -31,6 +31,10 @@ static const char* notes[] =
   "C-6","???","???","???"
 };
 
+bool CNotes::IsValidNote(Note note) {
+    return (note >= 0) && (note <= NOTESNUM);
+ }
+
 const char* CNotes::GetNoteAndScale(Notation notation, Note note) {
     return notesAndScales[notation][note];
 }
