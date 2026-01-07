@@ -26,13 +26,13 @@ extern int g_height;
 extern int g_tracklines;
 extern int g_scaling_percentage;
 
-//best known compromise for both regions, they produce identical tables
+// best known compromise for both regions, they produce identical tables
 extern double g_basetuning;
 extern int g_basenote;	//3 = A-
 extern int g_temperament;	//each preset is assigned to a number. 0 means no Temperament, any value that is not assigned defaults to custom
 extern int g_notesperoctave;	//by default there are 12 notes per octave
 
-//ratio used for each note => NOTE_L / NOTE_R, must be treated as doubles!!!
+// ratio used for each note => NOTE_L / NOTE_R, must be treated as doubles!!!
 extern double g_UNISON;
 extern double g_MIN_2ND;
 extern double g_MAJ_2ND;
@@ -129,8 +129,7 @@ extern int g_linesafter;			//number of lines to scroll after inserting a note (i
 extern BOOL g_ntsc;				//NTSC (60Hz)
 extern BOOL g_nohwsoundbuffer;	//Don't use hardware soundbuffer
 extern int g_cursoractview;		//default position, line 0
-extern BOOL g_viewDoSmoothScrolling;	// True then the track and note data is smooth scrolled during playback 
-extern BOOL g_viewDebugDisplay;		// Display Debug informations on screen if enabled 
+
 
 extern BOOL g_displayflatnotes;	//flats instead of sharps
 extern BOOL g_usegermannotation;	//H notes instead of B
@@ -138,13 +137,19 @@ extern BOOL g_usegermannotation;	//H notes instead of B
 extern int g_channelon[SONGTRACKS];
 extern int g_rmtinstr[SONGTRACKS];
 
-extern BOOL g_viewMainToolbar;		//1 yes, 0 no
-extern BOOL g_viewBlockToolbar;		//1 yes, 0 no
-extern BOOL g_viewStatusBar;		//1 yes, 0 no
-extern BOOL g_viewPlayTimeCounter;	//1 yes, 0 no
-extern BOOL g_viewVolumeAnalyzer;			//1 yes, 0 no
-extern BOOL g_viewPokeyRegisters;		//1 yes, 0 no
-extern BOOL g_viewInstrumentEditHelp;	//1 yes, 0 no
+struct TViewState {
+    BOOL mainToolbar;
+    BOOL blockToolbar;
+    BOOL statusBar;
+    BOOL playTimeCounter;
+    BOOL volumeAnalyzer;
+    BOOL pokeyRegisters;
+    BOOL instrumentEditHelp;
+    BOOL smoothScrolling;	// if TRUE, then the track and note data is smooth scrolled during playback 
+    BOOL debugDisplay;		// Display Debug informations on screen if enabled 
+};
+
+extern TViewState g_view;
 
 extern TrackerDriverVersion g_trackerDriverVersion;
 extern int g_timerGlobalCount;		// Initialised once, ticking forever
@@ -153,12 +158,13 @@ extern long g_playtime;				//1 yes, 0 no
 extern UINT g_mousebutt;			//mouse button
 
 // Mouse Information
-extern struct TMouseInfomation {
+struct TMouseInfomation {
     int pointX;
     int pointY;
     int button;
     int wheelDelta;
-} g_mouse;
+};
+extern TMouseInfomation g_mouse;
 
 extern int g_lastKeyPressed;		//for debugging vk input
 

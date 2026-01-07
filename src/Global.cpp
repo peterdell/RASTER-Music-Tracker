@@ -27,7 +27,8 @@ int g_basenote = 3;	//3 = A-
 int g_temperament = 0;	//each preset is assigned to a number. 0 means no Temperament, any value that is not assigned defaults to custom
 int g_notesperoctave = 12;	//by default there are 12 notes per octave
 
-//ratio used for each note => NOTE_L / NOTE_R, must be treated as doubles!!!
+
+// ratio used for each note => NOTE_L / NOTE_R, must be treated as doubles!!!
 double g_UNISON = 1;
 double g_MIN_2ND = 1;
 double g_MAJ_2ND = 1;
@@ -42,7 +43,7 @@ double g_MIN_7TH = 1;
 double g_MAJ_7TH = 1;
 double g_OCTAVE = 2;
 
-//ratio left
+// ratio left
 int g_UNISON_L = 1;
 int g_MIN_2ND_L = 40;
 int g_MAJ_2ND_L = 10;
@@ -84,6 +85,10 @@ BOOL g_controlkey;
 BOOL g_altkey;	//unfinished implementation, doesn't work yet for some reason
 
 int g_tracks4_8;
+
+int GetTracks4_8() {
+    return g_tracks4_8;
+}
 
 bool IsStereo() {
     return g_tracks4_8 == 8;
@@ -132,20 +137,14 @@ BOOL g_usegermannotation = 0;	//H notes instead of B
 int g_channelon[SONGTRACKS];
 int g_rmtinstr[SONGTRACKS];
 
-BOOL g_viewMainToolbar = 1;			// 1 yes, 0 no
-BOOL g_viewBlockToolbar = 1;		// 1 yes, 0 no
-BOOL g_viewStatusBar = 1;			// 1 yes, 0 no
-BOOL g_viewPlayTimeCounter = 1;		// 1 yes, 0 no
-BOOL g_viewVolumeAnalyzer = 1;		// 1 yes, 0 no - Show the volume analyser bars
-BOOL g_viewPokeyRegisters = 1;		// 1 yes, 0 no
-BOOL g_viewInstrumentEditHelp = 1;	// 1 yes, 0 no - View useful info when editing various parts of an instrument
-BOOL g_viewDoSmoothScrolling = 1;	// True then the track and song line data is smooth scrolled during playback
-BOOL g_viewDebugDisplay = 1;		// Display Debug informations on screen if enabled 
-
 TrackerDriverVersion g_trackerDriverVersion = PATCH16;
 int g_timerGlobalCount = 0;	// Initialised once, ticking forever
-long g_playtime = 1;	//1 yes, 0 no
+long g_playtime = 0;	// Number of Atari frames played since the song started playing
 
+
+TViewState g_view = {};
+
+// TODO: Why redundant to g_mouse?
 UINT g_mousebutt = 0;			//mouse button
 
 // Mouse Information

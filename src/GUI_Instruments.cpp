@@ -134,7 +134,7 @@ void CInstruments::DrawInstrument(int instrNr)
 	g_mem_dc->FrameRect(CRect(INSTRS_TX-2,INSTRS_TY-2,INSTRS_TX+54*8+4,INSTRS_TY+2*16+8),&br);
 	*/
 
-	if (!g_viewInstrumentEditHelp) return; //does not want help => end
+	if (!g_view.instrumentEditHelp) return; //does not want help => end
 	//want help => continue
 
 //separating line

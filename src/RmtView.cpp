@@ -340,7 +340,7 @@ void CRmtView::OnDraw(CDC* pDC)
     // Redraw the screen if needed
     if (g_screenupdate)
     {
-        if (g_viewDebugDisplay) GetFPS();
+        if (g_view.debugDisplay) GetFPS();
         Resize();
         g_Song.RespectBoundaries();
         DrawAll();
@@ -457,9 +457,11 @@ void CRmtView::ReadRMTConfig()
         if (NAME("TRACKLINEALTNUMBERING")) { g_tracklinealtnumbering = atoi(value); continue; }
         if (NAME("DISPLAYFLATNOTES")) { g_displayflatnotes = atoi(value); continue; }
         if (NAME("USEGERMANNOTATION")) { g_usegermannotation = atoi(value); continue; }
-        if (NAME("NTSC_SYSTEM")) { g_ntsc = atoi(value); continue; }
-        if (NAME("SMOOTH_SCROLL")) { g_viewDoSmoothScrolling = atoi(value); continue; }
+
         if (NAME("NOHWSOUNDBUFFER")) { g_nohwsoundbuffer = atoi(value); continue; }
+
+        // TODO: Tracker must be in the module instead
+        if (NAME("NTSC_SYSTEM")) { g_ntsc = atoi(value); continue; }
         if (NAME("TRACKERDRIVERVERSION")) { g_trackerDriverVersion = (TrackerDriverVersion)atoi(value); continue; }
 
         // KEYBOARD
@@ -484,14 +486,15 @@ void CRmtView::ReadRMTConfig()
         if (NAME("PATH_LASTTRACKS")) { g_lastLoadPath_Tracks = value; continue; }
 
         // VIEW 
-        if (NAME("VIEW_MAINTOOLBAR")) { g_viewMainToolbar = atoi(value); continue; }
-        if (NAME("VIEW_BLOCKTOOLBAR")) { g_viewBlockToolbar = atoi(value); continue; }
-        if (NAME("VIEW_STATUSBAR")) { g_viewStatusBar = atoi(value); continue; }
-        if (NAME("VIEW_PLAYTIMECOUNTER")) { g_viewPlayTimeCounter = atoi(value); continue; }
-        if (NAME("VIEW_VOLUMEANALYZER")) { g_viewVolumeAnalyzer = atoi(value); continue; }
-        if (NAME("VIEW_POKEYCHIPREGISTERS")) { g_viewPokeyRegisters = atoi(value); continue; }
-        if (NAME("VIEW_INSTRUMENTACTIVEHELP")) { g_viewInstrumentEditHelp = atoi(value); continue; }
-        if (NAME("VIEW_DEBUGDISPLAY")) { g_viewDebugDisplay = atoi(value); continue; }
+        if (NAME("VIEW_MAINTOOLBAR")) { g_view.mainToolbar = atoi(value); continue; }
+        if (NAME("VIEW_BLOCKTOOLBAR")) { g_view.blockToolbar = atoi(value); continue; }
+        if (NAME("VIEW_STATUSBAR")) { g_view.statusBar = atoi(value); continue; }
+        if (NAME("VIEW_PLAYTIMECOUNTER")) { g_view.playTimeCounter = atoi(value); continue; }
+        if (NAME("VIEW_VOLUMEANALYZER")) { g_view.volumeAnalyzer = atoi(value); continue; }
+        if (NAME("VIEW_POKEYCHIPREGISTERS")) { g_view.pokeyRegisters = atoi(value); continue; }
+        if (NAME("VIEW_INSTRUMENTACTIVEHELP")) { g_view.instrumentEditHelp = atoi(value); continue; }
+        if (NAME("SMOOTH_SCROLL")) { g_view.smoothScrolling = atoi(value); continue; }
+        if (NAME("VIEW_DEBUGDISPLAY")) { g_view.debugDisplay = atoi(value); continue; }
     }
     in.close();
 }
@@ -520,7 +523,6 @@ void CRmtView::WriteRMTConfig()
     ou << "DISPLAYFLATNOTES = " << g_displayflatnotes << std::endl;
     ou << "USEGERMANNOTATION = " << g_usegermannotation << std::endl;
     ou << "NTSC_SYSTEM = " << g_ntsc << std::endl;
-    ou << "SMOOTH_SCROLL = " << g_viewDoSmoothScrolling << std::endl;
     ou << "NOHWSOUNDBUFFER = " << g_nohwsoundbuffer << std::endl;
     ou << "TRACKERDRIVERVERSION = " << g_trackerDriverVersion << std::endl;
 
@@ -546,14 +548,15 @@ void CRmtView::WriteRMTConfig()
     ou << "PATH_LASTTRACKS = " << g_lastLoadPath_Tracks << std::endl;
 
     ou << "\n# VIEW\n" << std::endl;
-    ou << "VIEW_MAINTOOLBAR = " << g_viewMainToolbar << std::endl;
-    ou << "VIEW_BLOCKTOOLBAR = " << g_viewBlockToolbar << std::endl;
-    ou << "VIEW_STATUSBAR = " << g_viewStatusBar << std::endl;
-    ou << "VIEW_PLAYTIMECOUNTER = " << g_viewPlayTimeCounter << std::endl;
-    ou << "VIEW_VOLUMEANALYZER = " << g_viewVolumeAnalyzer << std::endl;
-    ou << "VIEW_POKEYCHIPREGISTERS = " << g_viewPokeyRegisters << std::endl;
-    ou << "VIEW_INSTRUMENTACTIVEHELP = " << g_viewInstrumentEditHelp << std::endl;
-    ou << "VIEW_DEBUGDISPLAY = " << g_viewDebugDisplay << std::endl;
+    ou << "VIEW_MAINTOOLBAR = " << g_view.mainToolbar << std::endl;
+    ou << "VIEW_BLOCKTOOLBAR = " << g_view.blockToolbar << std::endl;
+    ou << "VIEW_STATUSBAR = " << g_view.statusBar << std::endl;
+    ou << "VIEW_PLAYTIMECOUNTER = " << g_view.playTimeCounter << std::endl;
+    ou << "VIEW_VOLUMEANALYZER = " << g_view.volumeAnalyzer << std::endl;
+    ou << "VIEW_POKEYCHIPREGISTERS = " << g_view.pokeyRegisters << std::endl;
+    ou << "VIEW_INSTRUMENTACTIVEHELP = " << g_view.instrumentEditHelp << std::endl;
+    ou << "SMOOTH_SCROLL = " << g_view.smoothScrolling << std::endl;
+    ou << "VIEW_DEBUGDISPLAY = " << g_view.debugDisplay << std::endl;
 
     ou.close();
 }
@@ -570,15 +573,17 @@ void CRmtView::ResetRMTConfig()
     g_trackerDriverVersion = PATCH16;           // Tracker driver version
     g_displayflatnotes = 0;						// Display accidentals as Flats instead of Sharps
     g_usegermannotation = 0;					// Display H notes instead of B
-    g_viewMainToolbar = 1;						// Display the Main Toolbar
-    g_viewBlockToolbar = 1;						// Display the Block Toolbar 
-    g_viewStatusBar = 1;						// Display the Status Bar
-    g_viewPlayTimeCounter = 1;					// Display the Play Time and BPM Counter
-    g_viewVolumeAnalyzer = 1;					// Display the Volume Analyser Bars
-    g_viewPokeyRegisters = 1;					// Display the POKEY Registers (TODO: Move the Detailed Registers to its own entry) 
-    g_viewInstrumentEditHelp = 1;				// Display useful info when editing various parts of an instrument
-    g_viewDoSmoothScrolling = 1;				// Smoothly scroll the track and song line data is smooth during playback 
-    g_viewDebugDisplay = 1;						// Debug display for a bunch of variables used for various tasks 
+
+    g_view.mainToolbar = TRUE;						// Display the Main Toolbar
+    g_view.blockToolbar = TRUE;						// Display the Block Toolbar 
+    g_view.statusBar = TRUE;						// Display the Status Bar
+    g_view.playTimeCounter = TRUE;					// Display the Play Time and BPM Counter
+    g_view.volumeAnalyzer = TRUE;					// Display the Volume Analyser Bars
+    g_view.pokeyRegisters = TRUE;					// Display the POKEY Registers (TODO: Move the Detailed Registers to its own entry) 
+    g_view.instrumentEditHelp = TRUE;				// Display useful info when editing various parts of an instrument
+    g_view.smoothScrolling = TRUE;				// Smoothly scroll the track and song line data is smooth during playback 
+    g_view.debugDisplay = TRUE;						// Debug display for a bunch of variables used for various tasks 
+
     g_lastLoadPath_Songs = "";					// Path of the last song loaded
     g_lastLoadPath_Instruments = "";			// Path of the last instrument loaded
     g_lastLoadPath_Tracks = "";					// Path of the last track loaded
@@ -706,9 +711,11 @@ void CRmtView::OnViewConfiguration()
     dlg.m_displayflatnotes = g_displayflatnotes;
     dlg.m_usegermannotation = g_usegermannotation;
     dlg.m_ntsc = g_ntsc;
-    dlg.m_doSmoothScrolling = g_viewDoSmoothScrolling;
     dlg.m_nohwsoundbuffer = g_nohwsoundbuffer;
-    dlg.m_viewDebugDisplay = g_viewDebugDisplay;
+    dlg.m_doSmoothScrolling = g_view.smoothScrolling;
+    dlg.m_viewDebugDisplay = g_view.debugDisplay;
+
+    // TODO: Module
     dlg.m_trackerDriverVersion = g_trackerDriverVersion;
 
     // KEYBOARD
@@ -759,8 +766,8 @@ void CRmtView::OnViewConfiguration()
         }
         g_trackerDriverVersion = dlg.m_trackerDriverVersion;
 
-        g_viewDoSmoothScrolling = dlg.m_doSmoothScrolling;
-        g_viewDebugDisplay = dlg.m_viewDebugDisplay;
+        g_view.smoothScrolling = dlg.m_doSmoothScrolling;
+        g_view.debugDisplay = dlg.m_viewDebugDisplay;
 
         g_trackLinePrimaryHighlight = dlg.m_trackLinePrimaryHighlight;
         g_trackLineSecondaryHighlight = dlg.m_trackLineSecondaryHighlight;
@@ -1526,7 +1533,8 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         }
     }
 
-    if (g_viewDebugDisplay) g_lastKeyPressed = vk;	//debug key reading for setting up keyboard layouts withought having to guess which key is where
+    // TODO: Why not assign always?
+    if (g_view.debugDisplay) { g_lastKeyPressed = vk; }	//debug key reading for setting up keyboard layouts withought having to guess which key is where
 
     switch (vk)
     {
@@ -2312,88 +2320,88 @@ void CRmtView::OnUpdateProvemode(CCmdUI* pCmdUI)
 void CRmtView::ChangeViewElements(BOOL writeconfig)
 {
     CMainFrame* mf = (CMainFrame*)AfxGetApp()->GetMainWnd();
-    mf->ShowControlBar((CControlBar*)(&mf->m_wndToolBar), g_viewMainToolbar, 0);
-    mf->ShowControlBar((CControlBar*)(&mf->m_ToolBarBlock), g_viewBlockToolbar, 0);
-    mf->ShowControlBar((CControlBar*)(&mf->m_wndStatusBar), g_viewStatusBar, 0);
+    mf->ShowControlBar((CControlBar*)(&mf->m_wndToolBar), g_view.mainToolbar, 0);
+    mf->ShowControlBar((CControlBar*)(&mf->m_ToolBarBlock), g_view.blockToolbar, 0);
+    mf->ShowControlBar((CControlBar*)(&mf->m_wndStatusBar), g_view.statusBar, 0);
     if (writeconfig) WriteRMTConfig();
 }
 
 void CRmtView::OnViewToolbar()
 {
-    g_viewMainToolbar ^= 1;
+    g_view.mainToolbar ^= TRUE;
     ChangeViewElements();
 }
 
 void CRmtView::OnUpdateViewToolbar(CCmdUI* pCmdUI)
 {
-    pCmdUI->SetCheck(g_viewMainToolbar);
+    pCmdUI->SetCheck(g_view.mainToolbar);
 }
 
 void CRmtView::OnViewBlocktoolbar()
 {
-    g_viewBlockToolbar ^= 1;
+    g_view.blockToolbar ^= TRUE;
     ChangeViewElements();
 }
 
 void CRmtView::OnUpdateViewBlocktoolbar(CCmdUI* pCmdUI)
 {
-    pCmdUI->SetCheck(g_viewBlockToolbar);
+    pCmdUI->SetCheck(g_view.blockToolbar);
 }
 
 void CRmtView::OnViewStatusBar()
 {
-    g_viewStatusBar ^= 1;
+    g_view.statusBar ^= TRUE;
     ChangeViewElements();
 }
 
 void CRmtView::OnUpdateViewStatusBar(CCmdUI* pCmdUI)
 {
-    pCmdUI->SetCheck(g_viewStatusBar);
+    pCmdUI->SetCheck(g_view.statusBar);
 }
 
 void CRmtView::OnViewPlaytimecounter()
 {
-    g_viewPlayTimeCounter ^= 1;
+    g_view.playTimeCounter ^= TRUE;
     ChangeViewElements();
 }
 
 void CRmtView::OnUpdateViewPlaytimecounter(CCmdUI* pCmdUI)
 {
-    pCmdUI->SetCheck(g_viewPlayTimeCounter);
+    pCmdUI->SetCheck(g_view.playTimeCounter);
 }
 
 void CRmtView::OnViewVolumeanalyzer()
 {
-    g_viewVolumeAnalyzer ^= 1;
+    g_view.volumeAnalyzer ^= TRUE;
     ChangeViewElements();
 }
 
 void CRmtView::OnUpdateViewVolumeanalyzer(CCmdUI* pCmdUI)
 {
-    pCmdUI->SetCheck(g_viewVolumeAnalyzer);
+    pCmdUI->SetCheck(g_view.volumeAnalyzer);
 }
 
 void CRmtView::OnViewPokeyregs()
 {
-    g_viewPokeyRegisters ^= 1;
+    g_view.pokeyRegisters ^= TRUE;
     ChangeViewElements();
 }
 
 void CRmtView::OnUpdateViewPokeyregs(CCmdUI* pCmdUI)
 {
-    pCmdUI->SetCheck(g_viewPokeyRegisters);
-    pCmdUI->Enable(g_viewVolumeAnalyzer);
+    pCmdUI->SetCheck(g_view.pokeyRegisters);
+    pCmdUI->Enable(g_view.volumeAnalyzer);
 }
 
 void CRmtView::OnViewInstrumentactivehelp()
 {
-    g_viewInstrumentEditHelp ^= 1;
+    g_view.instrumentEditHelp ^= TRUE;
     ChangeViewElements();
 }
 
 void CRmtView::OnUpdateViewInstrumentactivehelp(CCmdUI* pCmdUI)
 {
-    pCmdUI->SetCheck(g_viewInstrumentEditHelp);
+    pCmdUI->SetCheck(g_view.instrumentEditHelp);
 }
 
 void CRmtView::OnBlockNoteup()
@@ -2485,8 +2493,8 @@ void CRmtView::OnBlockPlay()
 
 void CRmtView::OnUpdateBlockPlay(CCmdUI* pCmdUI)
 {
-    int ch = (g_Song.GetPlayMode() == 4) ? 1 : 0;
-    pCmdUI->SetCheck(ch);
+    auto blockMode = (g_Song.GetPlayMode() == PlayMode::PLAY_BLOCK);
+    pCmdUI->SetCheck(blockMode);
     pCmdUI->Enable(g_TrackClipboard.IsBlockSelected());
 }
 

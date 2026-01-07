@@ -132,7 +132,7 @@ int CSong::WarnUnsavedChanges()
 /// </summary>
 void CSong::DrawAnalyzer()
 {
-    if (!g_viewVolumeAnalyzer) return;	//the analyser won't be displayed without the setting enabled first
+    if (!g_view.volumeAnalyzer) return;	//the analyser won't be displayed without the setting enabled first
 
     int MINIMAL_WIDTH_TRACKS = (g_tracks4_8 > 4 && g_active_ti == Part::PART_TRACKS) ? 1420 : 960;
     int MINIMAL_WIDTH_INSTRUMENTS = (g_tracks4_8 > 4 && g_active_ti == Part::PART_INSTRUMENTS) ? 1220 : 1220;
@@ -253,13 +253,13 @@ void CSong::DrawAnalyzer()
             if (vol) g_mem_dc->FillSolidRect(ANALYZER_X + a + 3 + (15 - vol) * ANALYZER_S / 2, ANALYZER_Y, vol * ANALYZER_S, ANALYZER_H, acol);
 
             // Draw the frequency and audio control numbers for this channel
-            if (g_viewPokeyRegisters)
+            if (g_view.pokeyRegisters)
             {
                 NumberMiniXY(audf, ANALYZER_X + 10 + a + 17, ANALYZER_Y - 8, TEXT_MINI_COLOR_GRAY);
                 NumberMiniXY(audc, ANALYZER_X + 36 + a + 17, ANALYZER_Y - 8, TEXT_MINI_COLOR_GRAY);
             }
         }
-        if (g_viewPokeyRegisters)
+        if (g_view.pokeyRegisters)
         {
             // Draw the AUDCTL (audio control) register value
             NumberMiniXY(g_atarimem[0xd208], ANALYZER_X + 23 + 1 * 8 * 16 + 80, ANALYZER_Y - 8);						// Mono
@@ -417,7 +417,7 @@ void CSong::DrawAnalyzer()
             PITCH = g_Tuning.generate_freq(audc, i_audf, audctl, i);
             snprintf(p, 10, "%9.2f", PITCH);
 
-            if (g_viewPokeyRegisters)
+            if (g_view.pokeyRegisters)
             {
                 TextMiniXY("$D200: $   $     PITCH = $     (         HZ ---  +  ), VOL = $ , DIST = $ ,", ANALYZER3_X, ANALYZER3_Y + a, TEXT_MINI_COLOR_GRAY);
                 TextMiniXY("$D208: $  ", ANALYZER3_X, ANALYZER3_Y + gap2 + 48, TEXT_MINI_COLOR_GRAY);
@@ -694,7 +694,7 @@ void CSong::DrawSong()
     int line, i, j, k, y, t;
     char szBuffer[32], color;
 
-    BOOL smooth_scroll = g_viewDoSmoothScrolling;	//TODO: make smooth scrolling an option that can be saved to .ini file
+    BOOL smooth_scroll = g_view.smoothScrolling;	//TODO: make smooth scrolling an option that can be saved to .ini file
 
     int MINIMAL_WIDTH_INSTRUMENTS = (g_tracks4_8 > 4 && g_active_ti == Part::PART_INSTRUMENTS) ? 1220 : 1220;
     int WINDOW_OFFSET = (g_width < 1320 && g_tracks4_8 > 4 && g_active_ti == Part::PART_TRACKS) ? -250 : 0;	//test displacement with the window size
@@ -847,7 +847,7 @@ void CSong::DrawTracks()
     int i, x, y, tr, line, color;
     int t;
 
-    BOOL printdebug = g_viewDebugDisplay;
+    BOOL printdebug = g_view.debugDisplay;
 
     //caching certain global variables makes sure they remain the same until the function finishes drawing the tracks
     //this appears to be related to routine timing, and might actually explain why certain bugs seem to happen randomly
@@ -875,7 +875,7 @@ void CSong::DrawTracks()
     //the cursor position is alway centered regardless of the window size with this simple formula
     g_cursoractview = trackactiveline + 8 - g_line_y;
 
-    BOOL active_smooth = (g_viewDoSmoothScrolling && m_play && m_followplay && speed > 1) ? 1 : 0;	//could also be used as an offset
+    BOOL active_smooth = (g_view.smoothScrolling && m_play && m_followplay && speed > 1) ? 1 : 0;	//could also be used as an offset
     int smooth_y = (active_smooth) ? ((speeda * 16) / speed) - 8 : 0;
     if (smooth_y > 8 || smooth_y < -8) active_smooth = smooth_y = 0;	//prevents going out of bounds
     y = (TRACKS_Y + (3 - active_smooth) * 16) + smooth_y;
@@ -1085,7 +1085,7 @@ void CSong::DrawTracks()
     }
 
     // Debug display at the bottom of the screen, this could be toggled on if needed 
-    if (g_viewDebugDisplay)
+    if (g_view.debugDisplay)
     {
         CString d;
 
@@ -1132,10 +1132,10 @@ void CSong::DrawInfo()
 {
     char szBuffer[80];
     int i, color;
-    BOOL selected = FALSE;
+    auto selected = FALSE;
     is_editing_infos = 0;
 
-    BOOL printdebug = g_viewDebugDisplay;
+    auto printdebug = g_view.debugDisplay;
 
     // Line 1: Time  BPM  PAL/NTSC  Hightlight (XX/XX)  FPS
     TextXY((g_ntsc) ? "NTSC" : "PAL", INFO_X + 33 * 8, INFO_Y_LINE_1, TEXT_COLOR_TURQUOISE);
@@ -1302,7 +1302,7 @@ void CSong::DrawInfo()
 //void CSong::DrawPlayTimeCounter(CDC* pDC)
 void CSong::DrawPlayTimeCounter()
 {
-    if (!g_viewPlayTimeCounter) return;	//the timer won't be displayed without the setting enabled first
+    if (!g_view.playTimeCounter) return;	//the timer won't be displayed without the setting enabled first
 
 #define PLAYTC_X	16		//(SONG_OFFSET+7)
 #define PLAYTC_Y	16		//(SONG_Y-8) 
