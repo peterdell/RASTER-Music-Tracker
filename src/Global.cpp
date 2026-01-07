@@ -128,6 +128,9 @@ int g_trackLineSecondaryHighlight = 4;	// Secondary line highlighted every x lin
 BOOL g_tracklinealtnumbering = 0;		// Alternative way of line numbering in tracks
 int g_linesafter;						// Number of lines to scroll after inserting a note (initializes in CSong :: Clear)
 BOOL g_ntsc = 0;						// NTSC (60Hz)
+BOOL IsNTSC() {
+    return g_ntsc;
+}
 BOOL g_nohwsoundbuffer = 0;	//Don't use hardware soundbuffer
 int g_cursoractview = 0;		//default position, line 0
 
