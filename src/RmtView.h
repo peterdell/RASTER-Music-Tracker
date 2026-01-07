@@ -168,14 +168,8 @@ protected:
     afx_msg void OnChan6();
     afx_msg void OnChan7();
     afx_msg void OnChan8();
-    afx_msg void OnUpdateChan1(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateChan2(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateChan3(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateChan4(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateChan5(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateChan6(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateChan7(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateChan8(CCmdUI* pCmdUI);
+    afx_msg void OnUpdateChan1_4(CCmdUI* pCmdUI);
+    afx_msg void OnUpdateChan5_8(CCmdUI* pCmdUI);
     afx_msg void OnMouseMove(UINT nFlags, CPoint point);
     afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
     afx_msg void OnLButtonUp(UINT nFlags, CPoint point);

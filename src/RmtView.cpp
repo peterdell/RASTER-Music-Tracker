@@ -121,22 +121,14 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_BLOCK_BACKUP, OnUpdateBlockBackup)
     ON_COMMAND(ID_BLOCK_PLAY, OnBlockPlay)
     ON_UPDATE_COMMAND_UI(ID_BLOCK_PLAY, OnUpdateBlockPlay)
-    ON_COMMAND(ID_CHAN1, OnChan1)
-    ON_COMMAND(ID_CHAN2, OnChan2)
-    ON_COMMAND(ID_CHAN3, OnChan3)
-    ON_COMMAND(ID_CHAN4, OnChan4)
-    ON_COMMAND(ID_CHAN5, OnChan5)
-    ON_COMMAND(ID_CHAN6, OnChan6)
-    ON_COMMAND(ID_CHAN7, OnChan7)
-    ON_COMMAND(ID_CHAN8, OnChan8)
-    ON_UPDATE_COMMAND_UI(ID_CHAN1, OnUpdateChan1)
-    ON_UPDATE_COMMAND_UI(ID_CHAN2, OnUpdateChan2)
-    ON_UPDATE_COMMAND_UI(ID_CHAN3, OnUpdateChan3)
-    ON_UPDATE_COMMAND_UI(ID_CHAN4, OnUpdateChan4)
-    ON_UPDATE_COMMAND_UI(ID_CHAN5, OnUpdateChan5)
-    ON_UPDATE_COMMAND_UI(ID_CHAN6, OnUpdateChan6)
-    ON_UPDATE_COMMAND_UI(ID_CHAN7, OnUpdateChan7)
-    ON_UPDATE_COMMAND_UI(ID_CHAN8, OnUpdateChan8)
+    ON_UPDATE_COMMAND_UI(ID_CHAN1, OnUpdateChan1_4)
+    ON_UPDATE_COMMAND_UI(ID_CHAN2, OnUpdateChan1_4)
+    ON_UPDATE_COMMAND_UI(ID_CHAN3, OnUpdateChan1_4)
+    ON_UPDATE_COMMAND_UI(ID_CHAN4, OnUpdateChan1_4)
+    ON_UPDATE_COMMAND_UI(ID_CHAN5, OnUpdateChan5_8)
+    ON_UPDATE_COMMAND_UI(ID_CHAN6, OnUpdateChan5_8)
+    ON_UPDATE_COMMAND_UI(ID_CHAN7, OnUpdateChan5_8)
+    ON_UPDATE_COMMAND_UI(ID_CHAN8, OnUpdateChan5_8)
     ON_WM_MOUSEMOVE()
     ON_WM_SETCURSOR()
     ON_WM_LBUTTONUP()
@@ -2541,42 +2533,14 @@ void CRmtView::OnChan8()
     // TODO: Add your command handler code here
 }
 
-void CRmtView::OnUpdateChan1(CCmdUI* pCmdUI)
+void CRmtView::OnUpdateChan1_4(CCmdUI* pCmdUI)
 {
-    // TODO: Add your command update UI handler code here
+   // The first 4 channels are always visible.
 }
 
-void CRmtView::OnUpdateChan2(CCmdUI* pCmdUI)
-{
-    // TODO: Add your command update UI handler code here
-}
 
-void CRmtView::OnUpdateChan3(CCmdUI* pCmdUI)
-{
-    // TODO: Add your command update UI handler code here
-}
 
-void CRmtView::OnUpdateChan4(CCmdUI* pCmdUI)
-{
-    // TODO: Add your command update UI handler code here
-}
-
-void CRmtView::OnUpdateChan5(CCmdUI* pCmdUI)
-{
-    pCmdUI->Enable((g_tracks4_8 > 4));
-}
-
-void CRmtView::OnUpdateChan6(CCmdUI* pCmdUI)
-{
-    pCmdUI->Enable((g_tracks4_8 > 4));
-}
-
-void CRmtView::OnUpdateChan7(CCmdUI* pCmdUI)
-{
-    pCmdUI->Enable((g_tracks4_8 > 4));
-}
-
-void CRmtView::OnUpdateChan8(CCmdUI* pCmdUI)
+void CRmtView::OnUpdateChan5_8(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable((g_tracks4_8 > 4));
 }
