@@ -127,6 +127,8 @@ extern int g_trackLineSecondaryHighlight;	//secondary line highlighted every x l
 extern BOOL g_tracklinealtnumbering; //alternative way of line numbering in tracks
 extern int g_linesafter;			//number of lines to scroll after inserting a note (initializes in CSong :: Clear)
 extern BOOL g_ntsc;				//NTSC (60Hz)
+BOOL IsNTSC();
+
 extern BOOL g_nohwsoundbuffer;	//Don't use hardware soundbuffer
 extern int g_cursoractview;		//default position, line 0
 
@@ -177,11 +179,11 @@ extern CString g_defaultInstrumentsPath;	//default path for instruments
 extern CString g_defaultTracksPath;		//default path for tracks
 
 extern KeyboardLayout g_keyboard_layout;			//Keyboard layout is used by RMT. eg: QWERTY, AZERTY, etc
-extern BOOL g_keyboard_swapenter;		//1 yes, 0 no, probably not needed anymore but will be kept for now
-extern BOOL g_keyboard_playautofollow;	//1 yes, 0 no
-extern BOOL g_keyboard_updowncontinue;	//1 yes, 0 no
-extern BOOL g_keyboard_RememberOctavesAndVolumes;	//1 yes, 0 no
-extern BOOL g_keyboard_escresetatarisound;	//1 yes, 0 no
-extern BOOL g_keyboard_askwhencontrol_s;	//1 yes, 0 no
+extern BOOL g_keyboard_swapenter;// probably not needed anymore but will be kept for now
+extern BOOL g_keyboard_playautofollow;
+extern BOOL g_keyboard_updowncontinue;
+extern BOOL g_keyboard_RememberOctavesAndVolumes;
+extern BOOL g_keyboard_escresetatarisound;
+extern BOOL g_keyboard_askwhencontrol_s;
 
 #endif
