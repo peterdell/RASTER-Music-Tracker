@@ -1,6 +1,6 @@
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "General.h"
-#include "resource.h"
+
 #include "MainFrm.h"
 
 #include "GuiHelpers.h"
@@ -10,6 +10,11 @@
 #include "RuntimeException.h"
 
 CStatusBar* g_statusBar = nullptr;
+
+
+void ClearStatusBar() {
+    SetStatusBarText("");
+}
 
 void SetStatusBarText(const char* text)
 {
@@ -22,12 +27,16 @@ void SetStatusBarText(const char* text)
     }
 }
 
-void ClearStatusBar() {
-    SetStatusBarText("");
-}
-
 void SendErrorMessage(const char* title, const char* message) {
-    MessageBox(g_hwnd, message, title, MB_ICONERROR);
+    if (g_statusBar == nullptr) {
+        OutputDebugString(title);
+        OutputDebugString("\n");
+        OutputDebugString(message);
+        OutputDebugString("\n");
+    }
+    else {
+        MessageBox(g_hwnd, message, title, MB_ICONERROR);
+    }
 }
 
 

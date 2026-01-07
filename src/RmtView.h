@@ -30,6 +30,7 @@ public:
 
 	void DrawAll();
 	void GetFPS();
+    // TODO: This is actually a Set... method!
 	void GetMouseXY(int px, int py, int mousebutt, short wheelzDelta);
 	int MouseAction(CPoint point,UINT mousebutt,short wheelzDelta);
 	void ChangeViewElements(BOOL writeconfig=1);

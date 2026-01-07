@@ -1,13 +1,12 @@
 #pragma once
 
 #include "General.h"
-class CStatusBar;
 
-// Helper defines to make the code a bit more readabl
+// Helper defines to make the code a bit more readable
 #define SCALE(x) ((x) * g_scaling_percentage) / 100
 #define INVERSE_SCALE(x) ((x) * 100) / g_scaling_percentage
-#define SCREENUPDATE g_screenupdate = 1
-#define NO_SCREENUPDATE g_screenupdate = 0
+#define SCREENUPDATE g_screenupdate = TRUE
+#define NO_SCREENUPDATE g_screenupdate = FALSE
 
 
 class DisableEventSection {
@@ -19,16 +18,16 @@ private:
     static int eventsDisabledCounter;
     static HCURSOR oldCursor;
 
-     static void DisableEvents();
-     static void EnableEvents();
+    static void DisableEvents();
+    static void EnableEvents();
 };
 
-extern CStatusBar* g_statusBar;
-extern void SetStatusBarText(const char* text);
+// Status bar handling.
 extern void ClearStatusBar();
+extern void SetStatusBarText(const char* text);
+
+// Display error message in dialog.
 extern void SendErrorMessage(const char* title, const char* message);
-
-
 
 extern BOOL RefreshScreen(int frameskip = 0);
 
