@@ -2,7 +2,7 @@
 
 #include "StdAfx.h"
 #include "asap-patch.h"
-#include "RmtAtariBinaries.h";
+#include "RmtAtariBinaries.h"
 
 static TrackerDriverVersion AlternativeRMTPlayer = NONE;
 
