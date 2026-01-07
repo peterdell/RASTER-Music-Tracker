@@ -16,22 +16,21 @@
 
 #include "RmtTest.h"
 
+
+// Activate MFC memory leak detection.
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
 
-
-extern void SetProgramFolderPath(const CString& folderPath);
-
+extern void SetProgramFolderPath(const CString& folderPath); // See Global.cpp
+extern CStatusBar* g_statusBar; // See GuiHelpers.cpp
 
 // Some information for the about box is supplied by components outside this file
 extern CString g_about6502;
 extern CXPokey g_Pokey;
-
 extern CSong g_Song;
-
 
 /////////////////////////////////////////////////////////////////////////////
 // CRmtApp
@@ -52,41 +51,36 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CRmtApp construction
 
-CRmtApp::CRmtApp()
+CRmtApp::CRmtApp() :CWinApp("RMT")
 {
     // Place all significant initialization in InitInstance.
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// The one and only CRmtApp object
+// This declaration ensures that there is excatly one app instance.
+// This should be the only static variable in the solution.
 
-CRmtApp theApp;
+static CRmtApp g_app;
 
 /////////////////////////////////////////////////////////////////////////////
 // CRmtApp initialization
 
 BOOL CRmtApp::InitInstance()
 {
-    // Standard initialization
-    // If you are not using these features and wish to reduce the size
-    // of your final executable, you should remove from the following
-    // the specific initialization routines you do not need.
-
-#ifdef _AFXDLL
-	Enable3dControls();			// Call this when using MFC in a shared DLL
-#else
-    Enable3dControlsStatic();	// Call this when linking to MFC statically
-#endif
-
     // Set the registry key under which our settings are stored.
-    // TODO: Are we storing something there really?
+    // This is a standard AFX feafture.
+    // The subtree has this structure:
+    // - RMT (all name specifed in the constructor)
+    // - RMT/Frame: Main window position and size.
+    // - RMT/Recent File List: MRU list of files.
+    // - RMT/Settings: Not used.
     SetRegistryKey(_T("RASTER Music Tracker"));
 
-    LoadStdProfileSettings();  // Load standard INI file options (including MRU)
-
+    // Initialize the COM library on the current thread and identifies the concurrency model as single-thread apartmen
     CoInitialize(NULL);
-    // Register the application's document templates.  Document templates
-    //  serve as the connection between documents, frame windows and views.
+
+    // Register the application's document templates. Document templates
+    // serve as the connection between documents, frame windows and views.
 
     CSingleDocTemplate* pDocTemplate;
     pDocTemplate = new CSingleDocTemplate(
@@ -96,20 +90,23 @@ BOOL CRmtApp::InitInstance()
         RUNTIME_CLASS(CRmtView));
     AddDocTemplate(pDocTemplate);
 
-    g_Song.ClearSong(8);
+    // Load standard INI file contents including MRU)
+    LoadStdProfileSettings();
 
-
+    // Determine program folder as base folder for resources.
     CString fullPath;
-    DWORD pathLen = ::GetModuleFileName(NULL, fullPath.GetBufferSetLength(MAX_PATH + 1), MAX_PATH);
+    auto pathLen = ::GetModuleFileName(NULL, fullPath.GetBufferSetLength(MAX_PATH + 1), MAX_PATH);
     fullPath.ReleaseBuffer(pathLen); // Note that ReleaseBuffer doesn't need a +1 for the null byte.
-    int nPos = fullPath.ReverseFind('\\');
+    auto nPos = fullPath.ReverseFind('\\');
     if (nPos != -1) {
         fullPath = fullPath.Left(nPos + 1);
-
     }
     SetProgramFolderPath(fullPath);
 
-    // Parse command line for standard shell commands, DDE, file open
+    // Initialize the model.
+    g_Song.ClearSong(8);
+
+    // Parse the command line for standard shell commands, DDE, file open
     CRmtCommandLineInfo cmdInfo;
     ParseCommandLine(cmdInfo);
 
@@ -120,34 +117,31 @@ BOOL CRmtApp::InitInstance()
         return FALSE;
     }
 
-    // Dispatch standard commands specified on the command line.
-    // Will return FALSE if app was launched with /RegServer, /Register, /Unregserver or /Unregister.
+    // Dispatch the standard commands specified on the command line.
+    // Will return FALSE if the app was launched with /RegServer, /Register, /Unregserver or /Unregister.
     if (!ProcessShellCommand(cmdInfo))
     {
         return FALSE;
     }
 
-
-
     // The one and only window has been initialized, so show and update it.
-    CMainFrame* mainFrame = (CMainFrame*)GetMainWnd();
+    auto mainFrame = (CMainFrame*)GetMainWnd();
     g_statusBar = &mainFrame->m_wndStatusBar;
     m_pMainWnd->ShowWindow(SW_SHOW);
     m_pMainWnd->UpdateWindow();
 
-    // Initialization of a random number
-    srand((unsigned)time(NULL));
+    // Initialize the random number based on the current time.
+    srand((unsigned int)time(NULL));
 
 
     // Dispatch additional interactive commands specified on the command line.
     switch (cmdInfo.m_nShellCommand) {
-    case CCommandLineInfo::FileOpen: {
+    case CCommandLineInfo::FileOpen:
         g_Song.FileOpen(cmdInfo.m_strFileName, FALSE);
         break;
     }
-    }
 
-    // Dispatch additional commands specified on the command line.
+    // Dispatch additional automatic commands specified on the command line.
     if (cmdInfo.IsScriptFileSpecified()) {
         CFile scriptFile;
         if (!scriptFile.Open(cmdInfo.GetScriptFilePath(), CFile::modeRead)) {
@@ -158,15 +152,12 @@ BOOL CRmtApp::InitInstance()
         return FALSE;
     }
 
-    //PostMessage(m_pMainWnd->m_hWnd,WM_COMMAND,ID_APP_ABOUT,0); //so that the dialogue can be triggered first
-
     return TRUE;
 }
 
 // App command to run the dialog
 void CRmtApp::OnAppAbout()
 {
-
     CAboutDialog::Show(g_about6502, g_Pokey.GetPokey()->GetAbout());
 }
 
