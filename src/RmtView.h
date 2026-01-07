@@ -35,6 +35,7 @@ public:
 
     // Used to handle the window size and most dynamic elements related to it
     void Resize();
+
     int  m_width;
     int  m_height;
 

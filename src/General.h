@@ -4,29 +4,37 @@
 // GUI color setup
 // The text is defined in IDB_GFX as bitmap font in various colors
 // Text color is defined as a vertical offset in the bitmap font file
+enum class TextColor : int {
+    WHITE = 0,
+    GRAY = 1,
+    YELLOW = 2,
+    INVERSE_BLUE = 3,
+    INVERSE_WHITE = 4,
+    CYAN = 5,
+    RED = 6,
+    INVERSE_RED = 9,
+    EXTRA = 10,
+    GREEN = 11,
+    DARK_GRAY = 12,
+    BLUE = 13,
+    TURQUOISE = 14
+};
 
-#define TEXT_COLOR_WHITE 0
-#define TEXT_COLOR_GRAY 1
-#define TEXT_COLOR_YELLOW 2
-#define TEXT_COLOR_INVERSE_BLUE 3
-#define TEXT_COLOR_INVERSE_WHITE 4
-#define TEXT_COLOR_CYAN 5
-#define TEXT_COLOR_RED 6
-#define TEXT_COLOR_INVERSE_RED 9
-#define TEXT_COLOR_EXTRA 10
-#define TEXT_COLOR_GREEN 11
-#define TEXT_COLOR_DARK_GRAY 12
-#define TEXT_COLOR_BLUE 13
-#define TEXT_COLOR_TURQUOISE 14
 
-#define COLOR_SELECTED			TEXT_COLOR_INVERSE_RED		// Highlight color
-#define COLOR_SELECTED_PROVE	TEXT_COLOR_INVERSE_BLUE		// Highlight color in PROVE mode
-#define COLOR_HOVERED			TEXT_COLOR_INVERSE_WHITE	// Highlight color from cursor hover
+class LogicalTextColor {
+public:
 
-#define TEXT_MINI_COLOR_GRAY 0
-#define TEXT_MINI_COLOR_BLUE 1
-#define TEXT_MINI_COLOR_WHITE 2
-#define TEXT_MINI_COLOR_YELLOW 3
+    static const TextColor SELECTED = TextColor::INVERSE_RED;		// Highlight color
+    static const TextColor SELECTED_PROVE = TextColor::INVERSE_BLUE;		// Highlight color in PROVE mode
+    static const TextColor HOVERED = TextColor::INVERSE_WHITE;	// Highlight color from cursor hover
+};
+
+enum class TextMiniColor : int {
+    GRAY = 0,
+    BLUE = 1,
+    WHITE = 2,
+    YELLOW = 3
+};
 
 
 

@@ -179,20 +179,39 @@ BOOL IsHoveredXY(int x, int y, int xLength, int yLength)
     return (px >= x && px < xTo) && (py >= y && py < yTo);
 }
 
-void TextXY(const char* txt, int x, int y, int color)
+
+// Every text color is a line of 16 pixels height
+int  GetColorY(const TextColor color) {
+    return ((int)color) << 4;
+
+}
+
+// Every text color is a line of 8 pixels height
+int  GetColorY(const TextMiniColor color) {
+    return ((int)color) << 3;
+
+}
+
+void BitBltText(int x, int y, int nWidth, int nHeight, int xSrc, int ySrc) {
+    g_mem_dc->BitBlt(x, y, nWidth, nHeight, g_gfx_dc, xSrc, ySrc, SRCCOPY);
+}
+
+
+void TextXY(const char* txt, int x, int y, TextColor color)
 {
     char charToDraw;
-    color = color << 4;
+    auto colorY = GetColorY(color);
     for (int i = 0; charToDraw = (txt[i]); i++, x += 8)
     {
-        if (charToDraw == 32) continue;	// Don't draw the space
-        g_mem_dc->BitBlt(x, y, 8, 16, g_gfx_dc, (charToDraw & 0x7f) << 3, color, SRCCOPY);
+        if (charToDraw == 32) { continue; } // Don't draw the space
+        BitBltText(x, y, 8, 16, (charToDraw & 0x7f) << 3, colorY);
     }
 }
 
 void TextXYFull(const char* txt, int& x, int& y)
 {
-    int color = TEXT_COLOR_WHITE << 4, ori_x = x, ori_y = y;
+    auto color = TextColor::WHITE;
+    int ori_x = x, ori_y = y;
 
     for (int i = 0; char charToDraw = (txt[i]); i++)
     {
@@ -200,44 +219,45 @@ void TextXYFull(const char* txt, int& x, int& y)
         {
         case '\n': x = ori_x; y += 16; continue;
         case ' ': x += 8; continue;
-        case '\x80': color = TEXT_COLOR_WHITE << 4; continue;
-        case '\x82': color = TEXT_COLOR_YELLOW << 4; continue;
-        case '\x83': color = COLOR_SELECTED_PROVE << 4; continue;
-        case '\x85': color = TEXT_COLOR_CYAN << 4; continue;
-        case '\x86': color = TEXT_COLOR_RED << 4; continue;
-        case '\x89': color = COLOR_SELECTED << 4; continue;
-        case '\x8B': color = TEXT_COLOR_GREEN << 4; continue;
-        case '\x8C': color = TEXT_COLOR_DARK_GRAY << 4; continue;
-        case '\x8D': color = TEXT_COLOR_BLUE << 4; continue;
+        case '\x80': color = TextColor::WHITE; continue;
+        case '\x82': color = TextColor::YELLOW; continue;
+        case '\x83': color = LogicalTextColor::SELECTED_PROVE; continue;
+        case '\x85': color = TextColor::CYAN; continue;
+        case '\x86': color = TextColor::RED; continue;
+        case '\x89': color = LogicalTextColor::SELECTED; continue;
+        case '\x8B': color = TextColor::GREEN; continue;
+        case '\x8C': color = TextColor::DARK_GRAY; continue;
+        case '\x8D': color = TextColor::BLUE; continue;
         }
 
-        g_mem_dc->BitBlt(x, y, 8, 16, g_gfx_dc, (charToDraw & 0x7f) << 3, color, SRCCOPY);
+        BitBltText(x, y, 8, 16, (charToDraw & 0x7f) << 3, GetColorY(color));
         x += 8;
     }
 }
 
-void TextXYSelN(const char* txt, int n, int x, int y, int color)
+void TextXYSelN(const char* txt, int n, int x, int y, TextColor color)
 {
-    color <<= 4;
+    auto colorY = GetColorY(color);
 
-    int col = (g_prove ? COLOR_SELECTED_PROVE : COLOR_SELECTED) << 4;
-    int cur = COLOR_HOVERED << 4;
+    int col = GetColorY(g_prove ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED);
+    int cur = GetColorY(LogicalTextColor::HOVERED);
 
     // The characters 'n' will use the "select" color, everything else will use the 'color' parameter, unless they are hovered by the mouse cursor
     for (int i = 0; char charToDraw = txt[i]; i++, x += 8)
     {
-        g_mem_dc->BitBlt(x, y, 8, 16, g_gfx_dc, (charToDraw & 0x7F) << 3, IsHoveredXY(x, y, 8, 16) ? cur : i == n ? col : color, SRCCOPY);
+        BitBltText(x, y, 8, 16, (charToDraw & 0x7F) << 3, IsHoveredXY(x, y, 8, 16) ? cur : i == n ? col : colorY);
     }
 }
 
+
 // Draw 8x16 chars with given color array per char position
-void TextXYCol(const char* txt, int x, int y, int acu, int color)
+void TextXYCol(const char* txt, int x, int y, int acu, TextColor color)
 {
-    color <<= 4;
+    auto colorY = GetColorY(color);
 
     int num = 0, curnum = 0, curoff = 0;
-    int col = (g_prove ? COLOR_SELECTED_PROVE : COLOR_SELECTED) << 4;
-    int cur = COLOR_HOVERED << 4;
+    auto col = GetColorY(g_prove ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED);
+    auto cur = GetColorY(LogicalTextColor::HOVERED);
 
     switch (acu)
     {
@@ -250,46 +270,47 @@ void TextXYCol(const char* txt, int x, int y, int acu, int color)
 
     for (int i = 0; char charToDraw = txt[i]; i++, x += 8)
     {
-        if (charToDraw == 32) continue;	// Don't draw the space
+        if (charToDraw == 32) { continue; }	// Don't draw the space
 
-        g_mem_dc->BitBlt(x, y, 8, 16, g_gfx_dc, (charToDraw & 0x7F) << 3, IsHoveredXY(x, y, 8, 16) ? cur : i >= acu && i < acu + num ? col : color, SRCCOPY);
+        BitBltText(x, y, 8, 16, (charToDraw & 0x7F) << 3, IsHoveredXY(x, y, 8, 16) ? cur : i >= acu && i < acu + num ? col : colorY);
     }
 }
 
 // Draw 8x16 chars vertically (one below the other)
-void TextDownXY(const char* txt, int x, int y, int color)
+void TextDownXY(const char* txt, int x, int y, TextColor color)
 {
     char charToDraw;
-    color = color << 4;	// 16 pixels height
+    auto colorY = GetColorY(color);
     for (int i = 0; charToDraw = (txt[i]); i++, y += 16)
     {
-        g_mem_dc->BitBlt(x, y, 8, 16, g_gfx_dc, (charToDraw & 0x7f) << 3, color, SRCCOPY);
+        BitBltText(x, y, 8, 16, (charToDraw & 0x7f) << 3, colorY);
     }
 }
 
-void NumberMiniXY(const BYTE num, int x, int y, int color)
+void NumberMiniXY(const BYTE num, int x, int y, TextMiniColor color)
 {
-    color = 112 + (color << 3);
-    g_mem_dc->BitBlt(x, y, 8, 8, g_gfx_dc, (num & 0xf0) >> 1, color, SRCCOPY);
-    g_mem_dc->BitBlt(x + 8, y, 8, 8, g_gfx_dc, (num & 0x0f) << 3, color, SRCCOPY);
+    auto colorY = 112 + GetColorY(color);
+    BitBltText(x, y, 8, 8, (num & 0xf0) >> 1, colorY);
+    BitBltText(x + 8, y, 8, 8, (num & 0x0f) << 3, colorY);
 }
 
-void TextMiniXY(const char* txt, int x, int y, int color)
+void TextMiniXY(const char* txt, int x, int y, TextMiniColor color)
 {
     char charToDraw;
-    color = 112 + (color << 3);
+    auto colorY = 112 + GetColorY(color);
     for (int i = 0; charToDraw = (txt[i]); i++, x += 8)
     {
-        if (charToDraw == 32) continue;
-        g_mem_dc->BitBlt(x, y, 8, 8, g_gfx_dc, (charToDraw & 0x7f) << 3, color, SRCCOPY);
+        if (charToDraw == 32) { continue; } // Don't draw the space
+        BitBltText(x, y, 8, 8, (charToDraw & 0x7f) << 3, colorY);
     }
 }
 
 void IconMiniXY(const int icon, int x, int y)
 {
-    static int c = 128 - 6;
+    static constexpr int c = 128 - 6;
     if (icon >= 1 && icon <= 4)
     {
         g_mem_dc->BitBlt(x, y, 32, 6, g_gfx_dc, (icon - 1) * 32, c, SRCCOPY);
+
     }
 }

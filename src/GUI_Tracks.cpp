@@ -56,7 +56,7 @@ const char row4[15] = { ROW_OFF, ROW_OFF, ROW_OFF, ROW_OFF, ROW_OFF, ROW_OFF, RO
 const char* colac[] = { row0, row1, row2, row3, row4 };
 */
 
-void CTracks::DrawTrackHeader(int x, int y, int tr, int col)
+void CTracks::DrawTrackHeader(int x, int y, int tr, TextColor col)
 {
 	TTrack* tt = GetTrack(tr);
 	CString s = "--  -----";
@@ -81,7 +81,8 @@ void CTracks::DrawTrackLine(int col, int x, int y, int tr, int line, int aline, 
 {
 	TTrack* tt;
 	char s[16] = " \x8\x8\x8 \x8\x8 \x8\x8 \x8\x8\x8";
-	int len = -1, last = -1, go = -1, color = TEXT_COLOR_WHITE;
+    int len = -1, last = -1, go = -1;
+    auto color = TextColor::WHITE;
 	int n, xline;
 	
 	if (tt = GetTrack(tr))
@@ -135,15 +136,15 @@ void CTracks::DrawTrackLine(int col, int x, int y, int tr, int line, int aline, 
 		}
 
 		// Display the line highlight colors only in valid patterns
-		if (line % g_trackLineSecondaryHighlight == 0)  color = TEXT_COLOR_GREEN;
-		if (line % g_trackLinePrimaryHighlight == 0) color = TEXT_COLOR_CYAN;
+		if (line % g_trackLineSecondaryHighlight == 0)  color = TextColor::GREEN;
+		if (line % g_trackLinePrimaryHighlight == 0) color = TextColor::CYAN;
 	}
 
 	// The displayed colors are set from lowest to highest priority, depending on the matching conditions
-	if (line >= len) color = TEXT_COLOR_GRAY;
-	if (line == pline) color = TEXT_COLOR_YELLOW;
-	if (line == aline) color = (g_prove) ? TEXT_COLOR_BLUE : TEXT_COLOR_RED;
-	if (oob) color = TEXT_COLOR_DARK_GRAY;
+	if (line >= len) color = TextColor::GRAY;
+	if (line == pline) color = TextColor::YELLOW;
+	if (line == aline) color = (g_prove) ? TextColor::BLUE : TextColor::RED;
+	if (oob) color = TextColor::DARK_GRAY;
 
 	// Output the constructed row once it's ready, using the cursor position for highlighted column 
 	//TextXYCol(s, x, y, colac[g_activepart == PART_TRACKS && (isactive && line == aline && !oob) ? acu : 4], color);
@@ -152,7 +153,7 @@ void CTracks::DrawTrackLine(int col, int x, int y, int tr, int line, int aline, 
 	// Mark the end of a pattern here, if it ends on the next line
 	if (line + 1 == last && len > 0 && last != m_maxTrackLength)
 	{
-		TextXY("\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B", x + 7, y + 13, (oob) ? TEXT_COLOR_DARK_GRAY : TEXT_COLOR_WHITE);
+		TextXY("\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B", x + 7, y + 13, (oob) ? TextColor::DARK_GRAY : TextColor::WHITE);
 	}
 
 }

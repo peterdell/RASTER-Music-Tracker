@@ -32,7 +32,7 @@ public:
 	void InitTracks();
 	void ClearTrack(int track);
 	BOOL IsEmptyTrack(int track);
-	void DrawTrackHeader(int x, int y, int tr, int col);
+	void DrawTrackHeader(int x, int y, int tr, TextColor col);
 	void DrawTrackLine(int col, int x, int y, int tr, int line, int aline, int cactview, int pline, BOOL isactive, int acu, int oob);
 	BOOL DelNoteInstrVolSpeed(int noteinstrvolspeed, int track, int line);
 	BOOL SetNoteInstrVol(int note, int instr, int vol, int track, int line);
