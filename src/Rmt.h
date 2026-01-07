@@ -1,5 +1,11 @@
 // Rmt.h : main header file for the RMT application
 //
+// The following style guides are applied in the source:
+// 
+// - Interface names start with "I", example "ISong" and are in camel case.
+// - Class names start with "C", example "CSong" and are in camel case.
+// - Structure type names start with "T", "TViewState" and are in camel case.
+// - Enum type name start with an uppercase letter and are in camel case.
 
 #include "StdAfx.h"
 
