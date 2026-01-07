@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-    uint8_t const* GetAlternativeRMTPlayer(const int channels, const uint8_t const* original);
+    uint8_t const* GetAlternativeRMTPlayer(const int channels, const uint8_t* original);
 
 #ifdef __cplusplus
 }
