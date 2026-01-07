@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "General.h"
+#include "GuiHelpers.h"
 
 
 struct TTrack
