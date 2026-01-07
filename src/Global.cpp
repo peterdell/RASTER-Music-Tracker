@@ -20,7 +20,8 @@ int g_height = 0;
 int g_tracklines = 8;
 int g_scaling_percentage = 100;
 
-//best known compromise for both regions, they produce identical tables
+// best known compromise for both regions, they produce identical tables
+// TODO: Static initialization based on g_ntsc does not make sense.
 double g_basetuning = (g_ntsc) ? 444.895778867913 : 440.83751645933;
 int g_basenote = 3;	//3 = A-
 int g_temperament = 0;	//each preset is assigned to a number. 0 means no Temperament, any value that is not assigned defaults to custom
@@ -75,12 +76,12 @@ int g_OCTAVE_R = 1;
 HWND g_hwnd = NULL;
 HWND g_viewhwnd = NULL;
 
-BOOL g_changes = 0;	//have there been any changes in the module?
+BOOL g_changes = FALSE;	//have there been any changes in the module?
 
 int g_RmtHasFocus;			// Track if RMT has focus, when it does not have focus and is not in prove mode, the MIDI input will be ignored (to avoid overwriting patterns accidentally)
-int g_shiftkey;
-int g_controlkey;
-int g_altkey;	//unfinished implementation, doesn't work yet for some reason
+BOOL g_shiftkey;
+BOOL g_controlkey;
+BOOL g_altkey;	//unfinished implementation, doesn't work yet for some reason
 
 int g_tracks4_8;
 
@@ -201,12 +202,3 @@ CInstruments	g_Instruments;
 CTracks			g_Tracks;
 CTrackClipboard g_TrackClipboard;
 CTuning			g_Tuning;			// Tuning calculations and POKEY tuning lookup tables generation
-
-/*
-void UpdateShiftControlKeys()
-{
-    g_shiftkey = (GetAsyncKeyState(VK_SHIFT) != NULL);
-    g_controlkey = (GetAsyncKeyState(VK_CONTROL) != NULL);
-    g_altkey = (GetAsyncKeyState(VK_MENU) != NULL);
-}
-*/

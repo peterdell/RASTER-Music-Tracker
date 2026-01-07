@@ -955,7 +955,7 @@ void CRmtView::OnInitialUpdate()
     m_cursorSetPosition = LoadCursor(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDC_CURSORSETPOS));
 
     //keyboard
-    g_shiftkey = g_controlkey = 0;	//TODO: add support for ALT key as well
+    g_shiftkey = g_controlkey = g_altkey = FALSE;
 
     //current parts
     g_activepart = Part::PART_TRACKS;	//tracks
@@ -1705,12 +1705,12 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         break;
 
     case VK_SHIFT:
-        g_shiftkey = 1;
+        g_shiftkey = TRUE;
         goto KeyDownNoUndoCheckPoint;
         break;
 
     case VK_CONTROL:
-        g_controlkey = 1;
+        g_controlkey = TRUE;
         goto KeyDownNoUndoCheckPoint;
         break;
 
@@ -1809,16 +1809,16 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                 else break;	//prevents inputing incorrect infos by accident while testing notes holding SHIFT
             else if (is_editing_infos && CAPSLOCK && !g_shiftkey)
             {
-                g_shiftkey = 1;
+                g_shiftkey = TRUE;
                 g_Song.InfoKey(vk, g_shiftkey, g_controlkey);
-                g_shiftkey = 0;	//workaround: so it won't *stay* locked when CAPSLOCK isn't active
+                g_shiftkey = FALSE;	//workaround: so it won't *stay* locked when CAPSLOCK isn't active
                 break;
             }
             else if (is_editing_infos && CAPSLOCK && g_shiftkey)
             {
-                g_shiftkey = 0;
+                g_shiftkey = FALSE;
                 g_Song.InfoKey(vk, g_shiftkey, g_controlkey);
-                g_shiftkey = 1;	//workaround: so it will *stay* locked when CAPSLOCK isn't active
+                g_shiftkey = TRUE;	//workaround: so it will *stay* locked when CAPSLOCK isn't active
                 break;
             }
             else
@@ -1848,16 +1848,16 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                 else break;	//prevents inputing incorrect infos by accident while testing notes holding SHIFT
             else if (g_isEditingInstrumentName && CAPSLOCK && !g_shiftkey)
             {
-                g_shiftkey = 1;
+                g_shiftkey = TRUE;
                 g_Song.InstrKey(vk, g_shiftkey, g_controlkey);
-                g_shiftkey = 0;	//workaround: so it won't *stay* locked when CAPSLOCK isn't active
+                g_shiftkey = FALSE;	//workaround: so it won't *stay* locked when CAPSLOCK isn't active
                 break;
             }
             else if (g_isEditingInstrumentName && CAPSLOCK && g_shiftkey)
             {
-                g_shiftkey = 0;
+                g_shiftkey = FALSE;
                 g_Song.InstrKey(vk, g_shiftkey, g_controlkey);
-                g_shiftkey = 1;	//workaround: so it will *stay* locked when CAPSLOCK isn't active
+                g_shiftkey = TRUE;	//workaround: so it will *stay* locked when CAPSLOCK isn't active
                 break;
             }
             else
@@ -1891,17 +1891,17 @@ void CRmtView::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
     //TODO: Add support for ALT key for the "is held" flag, currently it does not work for some reason
     if (nChar == VK_SHIFT)
     {
-        g_shiftkey = 0;
+        g_shiftkey = FALSE;
     }
     else
         if (nChar == VK_CONTROL)
         {
-            g_controlkey = 0;
+            g_controlkey = TRUE;
         }
         else
             if (nChar == VK_LMENU)
             {
-                g_altkey = 0;
+                g_altkey = FALSE;
             }
     CView::OnKeyUp(nChar, nRepCnt, nFlags);
 }
@@ -2954,7 +2954,7 @@ void CRmtView::OnInstrumentRenumberallinstruments()
 void CRmtView::OnSetFocus(CWnd* pOldWnd)
 {
     CView::OnSetFocus(pOldWnd);
-    g_shiftkey = g_controlkey = 0;
+    g_shiftkey = g_controlkey = g_altkey = FALSE;
     g_RmtHasFocus = 1;	// RMT main window has focus
 }
 
