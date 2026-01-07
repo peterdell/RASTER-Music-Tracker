@@ -156,6 +156,10 @@ int g_lastKeyPressed = 0;		    // For debugging vk input
 
 CString g_prgpath;					// Path to the directory from which the program was started (including a slash at the end)
 
+void SetProgramFolderPath(const CString& folderPath) {
+    g_prgpath = folderPath;
+}
+
 CString GetResourceFolderPath(const CString& folderName) {
     std::filesystem::path path;
     return path.append(g_prgpath.GetString()).append(folderName.GetString()).c_str();;
@@ -163,7 +167,12 @@ CString GetResourceFolderPath(const CString& folderName) {
 }
 CString GetResourceFilePath(const CString& folderName, const CString& fileName) {
     std::filesystem::path path;
-    return path.append(g_prgpath.GetString()).append(folderName.GetString()).append(fileName.GetString()).c_str();;
+    path.append(g_prgpath.GetString());
+    if (!folderName.IsEmpty()) {
+        path.append(folderName.GetString());
+    }
+    path.append(fileName.GetString());
+    return path.c_str();
 }
 
 CString g_lastLoadPath_Songs;		// Path of the last song loaded

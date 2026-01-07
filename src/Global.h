@@ -9,6 +9,7 @@
 
 #include "General.h"
 
+void SetProgramFolderPath(const CString& folderPath);
 CString GetResourceFolderPath(const CString& folderName);
 CString GetResourceFilePath(const CString& folderName, const CString& fileName);
 

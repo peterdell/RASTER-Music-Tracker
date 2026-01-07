@@ -23,7 +23,7 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 
-extern CString g_prgpath;					//path to the directory from which the program was started (including a slash at the end)
+extern void SetProgramFolderPath(const CString& folderPath);
 
 
 // Some information for the about box is supplied by components outside this file
@@ -73,7 +73,7 @@ BOOL CRmtApp::InitInstance()
     // the specific initialization routines you do not need.
 
 #ifdef _AFXDLL
-//	Enable3dControls();			// Call this when using MFC in a shared DLL
+	Enable3dControls();			// Call this when using MFC in a shared DLL
 #else
     Enable3dControlsStatic();	// Call this when linking to MFC statically
 #endif
@@ -104,12 +104,10 @@ BOOL CRmtApp::InitInstance()
     fullPath.ReleaseBuffer(pathLen); // Note that ReleaseBuffer doesn't need a +1 for the null byte.
     int nPos = fullPath.ReverseFind('\\');
     if (nPos != -1) {
-        g_prgpath = fullPath.Left(nPos + 1);
+        fullPath = fullPath.Left(nPos + 1);
 
     }
-    else {
-        g_prgpath = fullPath;
-    }
+    SetProgramFolderPath(fullPath);
 
     // Parse command line for standard shell commands, DDE, file open
     CRmtCommandLineInfo cmdInfo;

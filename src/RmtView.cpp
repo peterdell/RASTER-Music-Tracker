@@ -428,14 +428,14 @@ void CRmtView::ReadRMTConfig()
 {
 #define NAME(a)	(strcmp(a,name)==0)
 
-    CString s;
+    auto filePath = GetResourceFilePath("", CONFIG_FILENAME);
+
     char line[1024];
     char* tmp, * name, * value;
-    s.Format("%s%s", g_prgpath, CONFIG_FILENAME);
-    std::ifstream in(s);
+    std::ifstream in(filePath);
     if (!in)
     {
-        MessageBox("Could not find: '" + s + "'\n\nRMT will use the default configuration.\n", "RMT", MB_ICONEXCLAMATION);
+        MessageBox("Could not find: '" + filePath + "'\n\nRMT will use the default configuration.\n", "RMT", MB_ICONEXCLAMATION);
         ResetRMTConfig();	// In order to save the default configuration file 
         return;
     }
@@ -498,8 +498,7 @@ void CRmtView::ReadRMTConfig()
 
 void CRmtView::WriteRMTConfig()
 {
-    CString s;
-    s.Format("%s%s", g_prgpath, CONFIG_FILENAME);
+    auto s = GetResourceFilePath("", CONFIG_FILENAME);
     std::ofstream ou(s);
     if (!ou)
     {
@@ -605,14 +604,13 @@ void CRmtView::ReadTuningConfig()
 {
 #define NAME(a)	(strcmp(a,name)==0)
 
-    CString s;
+    auto filePath = GetResourceFilePath("", TUNING_FILENAME);
     char line[1024];
     char* tmp, * div, * name, * value, * value2;
-    s.Format("%s%s", g_prgpath, TUNING_FILENAME);
-    std::ifstream in(s);
+    std::ifstream in(filePath);
     if (!in)
     {
-        MessageBox("Could not find: '" + s + "'\n\nRMT will use the default Tuning parameters.\n", "RMT", MB_ICONEXCLAMATION);
+        MessageBox("Could not find: '" + filePath + "'\n\nRMT will use the default Tuning parameters.\n", "RMT", MB_ICONEXCLAMATION);
         g_Song.ResetTuningVariables();
         WriteTuningConfig();	// In order to save the default Tuning configuration file 
         return;
@@ -659,12 +657,11 @@ void CRmtView::ReadTuningConfig()
 
 void CRmtView::WriteTuningConfig()
 {
-    CString s;
-    s.Format("%s%s", g_prgpath, TUNING_FILENAME);
-    std::ofstream ou(s);
+    auto filePath = GetResourceFilePath("", TUNING_FILENAME);
+    std::ofstream ou(filePath);
     if (!ou)
     {
-        MessageBox("Could not create: '" + s + "'\n\nThe Tuning parameters won't be saved.\n", "RMT", MB_ICONEXCLAMATION);
+        MessageBox("Could not create: '" + filePath + "'\n\nThe Tuning parameters won't be saved.\n", "RMT", MB_ICONEXCLAMATION);
         return;
     }
 
@@ -739,7 +736,7 @@ void CRmtView::OnViewConfiguration()
 
         if (g_nohwsoundbuffer != dlg.m_nohwsoundbuffer)
         {
-            g_Pokey.ReInitSound(g_ntsc, IsStereo() );	//the sound needs to be reinitialized
+            g_Pokey.ReInitSound(g_ntsc, IsStereo());	//the sound needs to be reinitialized
             CAtari::InitRMTRoutine(); //reset RMT routines
         }
         g_nohwsoundbuffer = dlg.m_nohwsoundbuffer;
