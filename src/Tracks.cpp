@@ -430,7 +430,7 @@ int CTracks::GetModifiedNote(int note, int tuning)
     int n = note + tuning;
 
     if (n < 0) n += ((int)((-n - 1) / 12) + 1) * 12;
-    else if (n >= NOTESNUM) n -= ((int)(n - NOTESNUM) / 12 + 1) * 12;
+    else if (n >= CNotes::NOTESNUM) n -= ((int)(n - CNotes::NOTESNUM) / 12 + 1) * 12;
     return n;
 }
 

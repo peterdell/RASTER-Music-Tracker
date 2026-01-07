@@ -60,7 +60,7 @@ void CSong::MidiEvent(DWORD dwParam)
 			{
 				//channel 2-9 (chn=1-8)
 				note = pr1 - 36;
-				if (note >= 0 && note < NOTESNUM)
+				if (note >= 0 && note < CNotes::NOTESNUM)
 				{
 					if (pr2 != 0 || (pr2 == 0 && note == g_Midi.m_LastNoteOnChannel[1 + atc]))
 					{
@@ -339,7 +339,7 @@ void CSong::MidiEvent(DWORD dwParam)
 						vol = m_volume;
 					}
 
-				if (note >= 0 && note < NOTESNUM)		//only within this range
+				if (note >= 0 && note < CNotes::NOTESNUM)		//only within this range
 				{
 					if (g_activepart != Part::PART_TRACKS || g_prove || g_shiftkey || g_controlkey) goto Prove_midi_test;	//play notes but do not record them if the active screen is not TRACKS, or if any other PROVE combo is detected
 
@@ -589,7 +589,7 @@ void CSong::MidiEvent(DWORD dwParam)
 					vol = m_volume;
 				}
 
-			if (note >= 0 && note < NOTESNUM)		//only within this range
+			if (note >= 0 && note < CNotes::NOTESNUM)		//only within this range
 			{
 				if (g_activepart != Part::PART_TRACKS || g_prove || g_shiftkey || g_controlkey) goto Prove_midi;	//play notes but do not record them if the active screen is not TRACKS, or if any other PROVE combo is detected
 

@@ -111,7 +111,6 @@ enum class InstrumentSection : int
 #define SONGLEN		256
 #define SONGTRACKS	8
 #define INSTRSNUM	64
-#define NOTESNUM	61			//notes 0-60 inclusive
 #define MAXVOLUME	15			//maximum volume
 #define PARCOUNT	24			//24 instrument parameters
 #define ENVELOPE_MAX_COLUMNS	48			// 48 columns in envelope (drive 32) (48 from version 1.25)

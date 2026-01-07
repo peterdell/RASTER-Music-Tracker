@@ -1,6 +1,7 @@
 #include "StdAfx.h"
-#include "resource.h"
 #include "General.h"
+
+#include "Notes.h"
 
 #include "Tracks.h"
 
@@ -44,7 +45,7 @@ int CTracks::SaveTrack(int track, std::ofstream& ou, int iotype)
 		s.AppendFormat("\n");
 		for (int i = 0; i < at->len; i++)
 		{	// Track row data
-			s.AppendFormat(!IsValidNote(at->note[i]) ? "---" : notes[at->note[i]]);
+			s.AppendFormat(!IsValidNote(at->note[i]) ? "---" : CNotes::GetNote(at->note[i]));
 			s.AppendFormat(!IsValidInstrument(at->instr[i]) ? " --" : " %02X", at->instr[i]);
 			s.AppendFormat(!IsValidVolume(at->volume[i]) ? " -" : " %01X", at->volume[i]);
 			s.AppendFormat(!IsValidSpeed(at->speed[i]) ? "" : "%02X", at->speed[i]);

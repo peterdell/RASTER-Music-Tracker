@@ -4,6 +4,8 @@
 #include "Global.h"
 #include "IOHelpers.h"
 
+#include "Notes.h"
+
 CTracksControl::CTracksControl() {
 
 }
@@ -53,19 +55,21 @@ void CTracksControl::DrawTrackLine(const CTracks& tracks, int col, int x, int y,
         if (go >= 0) s[0] = line == len - 1 ? '\x10' : ' '; // Left-up arrow or nothing
         if (line == go) s[0] = line == len - 1 ? '\x11' : '\x0F';	// Left-up-right or up-right arrow
 
-        // Note -- FIXME: set the Notation elsewhere instead of calculating it every time
         if ((n = tt->note[xline]) >= 0)
         {
             int octave = (n / g_notesperoctave) + 1 + 0x30;	// Due to ASCII characters
             int note = n % g_notesperoctave;
-            int index = 0;	// Standard notation
 
-            if (g_displayflatnotes) index += 1;
-            if (g_usegermannotation) index += 2;
-            if (g_notesperoctave != 12) index = 4;	// Non-12 scales don't yet have proper display
+            // TODO -- FIXME: set the Notation elsewhere instead of computing it every time
+            Notation notation = 0;	// Standard notation
 
-            s[1] = notesandscales[index][note][0];	// B
-            s[2] = notesandscales[index][note][1];	// -
+            if (g_displayflatnotes) notation += 1;
+            if (g_usegermannotation) notation += 2;
+            if (g_notesperoctave != 12) notation = 4;	// Non-12 scales don't yet have proper display
+
+            const auto noteAndScale = CNotes::GetNoteAndScale(notation, note);
+            s[1] = noteAndScale[0];	// B
+            s[2] = noteAndScale[1];	// -
             s[3] = octave;							// 1
         }
 

@@ -4,7 +4,8 @@
 #include "GuiHelpers.h"
 #include "Song.h"
 
-// MFC interface code
+#include "Notes.h"
+
 #include "FileNewDlg.h"
 #include "EffectsDlg.h"
 #include "MainFrm.h"
@@ -2030,9 +2031,9 @@ void CSong::InstrInfo(int instr, TInstrInfo* iinfo, int instrto)
     int intrack[TRACKSNUM];
     int noftrack = 0;
     int globallytimes = 0;
-    int withnote[NOTESNUM];
-    for (i = 0; i < NOTESNUM; i++) withnote[i] = 0;
-    int minnote = NOTESNUM, maxnote = -1;
+    int withnote[CNotes::NOTESNUM];
+    for (i = 0; i < CNotes::NOTESNUM; i++) withnote[i] = 0;
+    int minnote = CNotes::NOTESNUM, maxnote = -1;
     int minvol = 16, maxvol = -1;
     int infrom = INSTRSNUM, into = -1;
 
@@ -2052,7 +2053,7 @@ void CSong::InstrInfo(int instr, TInstrInfo* iinfo, int instrto)
                 if (ain > into) into = ain;
                 if (ain < infrom) infrom = ain;
                 int note = at->note[j];
-                if (note >= 0 && note < NOTESNUM)
+                if (note >= 0 && note < CNotes::NOTESNUM)
                 {
                     globallytimes++; //some note with this instrument => started
                     withnote[note]++;
@@ -2087,8 +2088,8 @@ void CSong::InstrInfo(int instr, TInstrInfo* iinfo, int instrto)
         CString s, s2;
         s.Format("Instrument: %02X\nName: %s\nUsed in %i tracks, globally %i times.\nFrom note: %s\nTo note: %s\nMin volume: %X\nMax volume: %X",
             instr, g_Instruments.GetName(instr), noftrack, globallytimes,
-            minnote < NOTESNUM ? notes[minnote] : "-",
-            maxnote >= 0 ? notes[maxnote] : "-",
+            minnote < CNotes::NOTESNUM ? CNotes::GetNote(minnote) : "-",
+            maxnote >= 0 ? CNotes::GetNote(maxnote) : "-",
             minvol <= 15 ? minvol : 0,
             maxvol >= 0 ? maxvol : 0);
 
@@ -2096,11 +2097,11 @@ void CSong::InstrInfo(int instr, TInstrInfo* iinfo, int instrto)
         {
             s += "\n\nNote listing:\n";
             int lc = 0;
-            for (i = 0; i < NOTESNUM; i++)
+            for (i = 0; i < CNotes::NOTESNUM; i++)
             {
                 if (withnote[i])
                 {
-                    s += notes[i];
+                    s += CNotes::GetNote(i);
                     lc++;
                     if (lc < 12)
                         s += " ";
@@ -2442,7 +2443,7 @@ void CSong::SongClearLine()
 void CSong::TracksOrderChange()
 {
     // Stop the sound first
-    Stop();	
+    Stop();
     CSongTracksOrderDlg dlg;
     dlg.m_songlinefrom.Format("%02X", m_TracksOrderChange_songlinefrom);
     dlg.m_songlineto.Format("%02X", m_TracksOrderChange_songlineto);
@@ -3329,7 +3330,7 @@ TrackLine:
         int v = vol[t];
         if (v >= 0 && v < 16)
         {
-            if (n >= 0 && n < NOTESNUM /*&& i>=0 && i<INSTRSNUM*/)		// adjustment for routine compatibility
+            if (n >= 0 && n < CNotes::NOTESNUM /*&& i>=0 && i<INSTRSNUM*/)		// adjustment for routine compatibility
             {
                 if (i < 0 || i >= INSTRSNUM) { i = 255; }				// adjustment for routine compatibility
                 CAtari::SetTrack_NoteInstrVolume(t, n, i, v);
@@ -3377,7 +3378,7 @@ BOOL CSong::PlayVBI()
         m_songactiveline = m_songplayline;
 
         //Quantization
-        if (m_quantization_note >= 0 && m_quantization_note < NOTESNUM
+        if (m_quantization_note >= 0 && m_quantization_note < CNotes::NOTESNUM
             && m_quantization_instr >= 0 && m_quantization_instr < INSTRSNUM
             )
         {

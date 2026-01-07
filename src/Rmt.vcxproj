@@ -184,6 +184,7 @@
     </ClCompile>
     <ClCompile Include="info_dlg.c" />
     <ClCompile Include="LZSSFile.cpp" />
+    <ClCompile Include="Notes.cpp" />
     <ClCompile Include="Pokey.cpp" />
     <ClCompile Include="PokeyRederer.cpp" />
     <ClCompile Include="RmtCommandLineInfo.cpp" />
@@ -224,7 +225,6 @@
     <ClCompile Include="GuiHelpers.cpp" />
     <ClCompile Include="GUI_Instruments.cpp" />
     <ClCompile Include="GUI_Song.cpp" />
-    <ClCompile Include="GUI_Tracks.cpp" />
     <ClCompile Include="ImportDlgs.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
@@ -332,6 +332,7 @@
     <ClInclude Include="ConfigDlg.h" />
     <ClInclude Include="info_dlg.h" />
     <ClInclude Include="LZSSFile.h" />
+    <ClInclude Include="Notes.h" />
     <ClInclude Include="Pokey.h" />
     <ClInclude Include="PokeyRederer.h" />
     <ClInclude Include="RmtCommandLineInfo.h" />

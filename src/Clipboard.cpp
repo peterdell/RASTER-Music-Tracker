@@ -345,13 +345,13 @@ void CTrackClipboard::BlockNoteTransposition(int instr, int addnote)
         }
 
         m_changenote += addnote;
-        m_changenote %= NOTESNUM;
+        m_changenote %= CNotes::NOTESNUM;
 
         for (i = bfro; i <= bto && i < td->len; i++)
         {
             if (g_Tracks.IsValidNote(td->note[i]) && (td->instr[i] == instr || m_all))
             {
-                td->note[i] = (ts->note[i] + m_changenote + NOTESNUM) % NOTESNUM;
+                td->note[i] = (ts->note[i] + m_changenote + CNotes::NOTESNUM) % CNotes::NOTESNUM;
             }
         }
 

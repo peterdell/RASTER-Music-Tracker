@@ -7,7 +7,7 @@
 #include "EffectsDlg.h"
 
 #include "Atari.h"
-#include "PokeyRederer.h"
+#include "Notes.h"
 #include "IOHelpers.h"
 
 #include "Instruments.h"
@@ -534,8 +534,8 @@ void CSong::DrawAnalyzer()
                 snprintf(t, 10, "%3.2f", tuning);
                 TextMiniXY(t, ANALYZER3_X + 8 * 11, ANALYZER3_Y + 8 * 9, TextMiniColor::WHITE);
 
-                n[0] = notes[reverse_basenote][0];
-                n[1] = notes[reverse_basenote][1];
+                n[0] = CNotes::GetNote(reverse_basenote)[0];
+                n[1] = CNotes::GetNote(reverse_basenote)[1];
                 n[2] = 0;
 
                 TextMiniXY(n, ANALYZER3_X, ANALYZER3_Y + 8 * 9, TextMiniColor::GRAY);	//overwrite A- to the given basenote
@@ -646,8 +646,9 @@ void CSong::DrawAnalyzer()
                         if (note < 0)
                             note *= -1;	//invert the negative to prevent going out of bounds
 
-                        n[0] = notes[note][0];
-                        n[1] = notes[note][1];
+                        const auto noteString = CNotes::GetNote(note);
+                        n[0] = noteString[0];
+                        n[1] = noteString[1];
                         n[2] = 0;
 
                         sprintf(szBuffer, "%1d", octave);
@@ -2429,7 +2430,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
     if (note >= 0)
     {
         i = note + m_octave * 12;
-        if (i >= 0 && i < NOTESNUM)		//only within limits
+        if (i >= 0 && i < CNotes::NOTESNUM)		//only within limits
         {
             SetPlayPressedTonesTNIV(m_trackactivecol, i, m_activeinstr, m_volume);
             if ((control || g_prove == PROVE_JAM_STEREO_MODE) && g_tracks4_8 > 4)
@@ -2732,7 +2733,7 @@ TrackKeyOk:
         {
         insertnotes:
             i = note + m_octave * 12;
-            if (i >= 0 && i < NOTESNUM)		//only within limits
+            if (i >= 0 && i < CNotes::NOTESNUM)		//only within limits
             {
                 BLOCKDESELECT;
                 //Quantization
@@ -2760,7 +2761,7 @@ TrackKeyOk:
                 {
                     BLOCKDESELECT;
                     note = (note % 12) + ((j - 1) * 12);		//changes its octave according to the number pressed on the numblock
-                    if (note >= 0 && note < NOTESNUM)
+                    if (note >= 0 && note < CNotes::NOTESNUM)
                     {
                         int instr = TrackGetInstr(), vol = TrackGetVol();
                         if (TrackSetNoteInstrVol(note, instr, vol))
