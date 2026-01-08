@@ -329,32 +329,32 @@ int CSong::MakeTuningBlock(unsigned char* mem, int addr)
 
     // 64 bytes
     memcpy((mem + addr + 0x10), &g_tuning.basetuning, 8);	//base tuning frequency, double type uses 8 bytes in memory
-    memcpy((mem + addr + 0x18), &g_UNISON_L, 2);		//tuning ratio variables, each values are truncated to use 2 bytes (16-bit precision) 
-    memcpy((mem + addr + 0x1A), &g_UNISON_R, 2);
-    memcpy((mem + addr + 0x1C), &g_MIN_2ND_L, 2);
-    memcpy((mem + addr + 0x1E), &g_MIN_2ND_R, 2);
-    memcpy((mem + addr + 0x20), &g_MAJ_2ND_L, 2);
-    memcpy((mem + addr + 0x22), &g_MAJ_2ND_R, 2);
-    memcpy((mem + addr + 0x24), &g_MIN_3RD_L, 2);
-    memcpy((mem + addr + 0x26), &g_MIN_3RD_R, 2);
-    memcpy((mem + addr + 0x28), &g_MAJ_3RD_L, 2);
-    memcpy((mem + addr + 0x2A), &g_MAJ_3RD_R, 2);
-    memcpy((mem + addr + 0x2C), &g_PERF_4TH_L, 2);
-    memcpy((mem + addr + 0x2E), &g_PERF_4TH_R, 2);
-    memcpy((mem + addr + 0x30), &g_TRITONE_L, 2);
-    memcpy((mem + addr + 0x32), &g_TRITONE_R, 2);
-    memcpy((mem + addr + 0x34), &g_PERF_5TH_L, 2);
-    memcpy((mem + addr + 0x36), &g_PERF_5TH_R, 2);
-    memcpy((mem + addr + 0x38), &g_MIN_6TH_L, 2);
-    memcpy((mem + addr + 0x3A), &g_MIN_6TH_R, 2);
-    memcpy((mem + addr + 0x3C), &g_MAJ_6TH_L, 2);
-    memcpy((mem + addr + 0x3E), &g_MAJ_6TH_R, 2);
-    memcpy((mem + addr + 0x40), &g_MIN_7TH_L, 2);
-    memcpy((mem + addr + 0x42), &g_MIN_7TH_R, 2);
-    memcpy((mem + addr + 0x44), &g_MAJ_7TH_L, 2);
-    memcpy((mem + addr + 0x46), &g_MAJ_7TH_R, 2);
-    memcpy((mem + addr + 0x48), &g_OCTAVE_L, 2);
-    memcpy((mem + addr + 0x4A), &g_OCTAVE_R, 2);
+    memcpy((mem + addr + 0x18), &g_tuningRatioLeft.UNISON, 2);		//tuning ratio variables, each values are truncated to use 2 bytes (16-bit precision) 
+    memcpy((mem + addr + 0x1A), &g_tuningRatioRight.UNISON, 2);
+    memcpy((mem + addr + 0x1C), &g_tuningRatioLeft.MIN_2ND, 2);
+    memcpy((mem + addr + 0x1E), &g_tuningRatioRight.MIN_2ND, 2);
+    memcpy((mem + addr + 0x20), &g_tuningRatioLeft.MAJ_2ND, 2);
+    memcpy((mem + addr + 0x22), &g_tuningRatioRight.MAJ_2ND, 2);
+    memcpy((mem + addr + 0x24), &g_tuningRatioLeft.MIN_3RD, 2);
+    memcpy((mem + addr + 0x26), &g_tuningRatioRight.MIN_3RD, 2);
+    memcpy((mem + addr + 0x28), &g_tuningRatioLeft.MAJ_3RD, 2);
+    memcpy((mem + addr + 0x2A), &g_tuningRatioRight.MAJ_3RD, 2);
+    memcpy((mem + addr + 0x2C), &g_tuningRatioLeft.PERF_4TH, 2);
+    memcpy((mem + addr + 0x2E), &g_tuningRatioRight.PERF_4TH, 2);
+    memcpy((mem + addr + 0x30), &g_tuningRatioLeft.TRITONE, 2);
+    memcpy((mem + addr + 0x32), &g_tuningRatioRight.TRITONE, 2);
+    memcpy((mem + addr + 0x34), &g_tuningRatioLeft.PERF_5TH, 2);
+    memcpy((mem + addr + 0x36), &g_tuningRatioRight.PERF_5TH, 2);
+    memcpy((mem + addr + 0x38), &g_tuningRatioLeft.MIN_6TH, 2);
+    memcpy((mem + addr + 0x3A), &g_tuningRatioRight.MIN_6TH, 2);
+    memcpy((mem + addr + 0x3C), &g_tuningRatioLeft.MAJ_6TH, 2);
+    memcpy((mem + addr + 0x3E), &g_tuningRatioRight.MAJ_6TH, 2);
+    memcpy((mem + addr + 0x40), &g_tuningRatioLeft.MIN_7TH, 2);
+    memcpy((mem + addr + 0x42), &g_tuningRatioRight.MIN_7TH, 2);
+    memcpy((mem + addr + 0x44), &g_tuningRatioLeft.MAJ_7TH, 2);
+    memcpy((mem + addr + 0x46), &g_tuningRatioRight.MAJ_7TH, 2);
+    memcpy((mem + addr + 0x48), &g_tuningRatioLeft.OCTAVE, 2);
+    memcpy((mem + addr + 0x4A), &g_tuningRatioRight.OCTAVE, 2);
     // 4 unused bytes at the end
 
     return len;
@@ -367,32 +367,32 @@ void CSong::ResetTuningVariables()
     g_tuning.basetuning = (g_ntsc) ? 444.895778867913 : 440.83751645933;
     g_tuning.basenote = 3;	//3 = A-
     g_tuning.temperament = 0;	//no temperament
-    g_UNISON_L = 1;	//ratio left
-    g_MIN_2ND_L = 40;
-    g_MAJ_2ND_L = 10;
-    g_MIN_3RD_L = 20;
-    g_MAJ_3RD_L = 5;
-    g_PERF_4TH_L = 4;
-    g_TRITONE_L = 60;
-    g_PERF_5TH_L = 3;
-    g_MIN_6TH_L = 30;
-    g_MAJ_6TH_L = 5;
-    g_MIN_7TH_L = 30;
-    g_MAJ_7TH_L = 15;
-    g_OCTAVE_L = 2;
-    g_UNISON_R = 1;	//ratio right
-    g_MIN_2ND_R = 38;
-    g_MAJ_2ND_R = 9;
-    g_MIN_3RD_R = 17;
-    g_MAJ_3RD_R = 4;
-    g_PERF_4TH_R = 3;
-    g_TRITONE_R = 43;
-    g_PERF_5TH_R = 2;
-    g_MIN_6TH_R = 19;
-    g_MAJ_6TH_R = 3;
-    g_MIN_7TH_R = 17;
-    g_MAJ_7TH_R = 8;
-    g_OCTAVE_R = 1;
+    g_tuningRatioLeft.UNISON = 1;	//ratio left
+    g_tuningRatioLeft.MIN_2ND = 40;
+    g_tuningRatioLeft.MAJ_2ND = 10;
+    g_tuningRatioLeft.MIN_3RD = 20;
+    g_tuningRatioLeft.MAJ_3RD = 5;
+    g_tuningRatioLeft.PERF_4TH = 4;
+    g_tuningRatioLeft.TRITONE = 60;
+    g_tuningRatioLeft.PERF_5TH = 3;
+    g_tuningRatioLeft.MIN_6TH = 30;
+    g_tuningRatioLeft.MAJ_6TH = 5;
+    g_tuningRatioLeft.MIN_7TH = 30;
+    g_tuningRatioLeft.MAJ_7TH = 15;
+    g_tuningRatioLeft.OCTAVE = 2;
+    g_tuningRatioRight.UNISON = 1;	//ratio right
+    g_tuningRatioRight.MIN_2ND = 38;
+    g_tuningRatioRight.MAJ_2ND = 9;
+    g_tuningRatioRight.MIN_3RD = 17;
+    g_tuningRatioRight.MAJ_3RD = 4;
+    g_tuningRatioRight.PERF_4TH = 3;
+    g_tuningRatioRight.TRITONE = 43;
+    g_tuningRatioRight.PERF_5TH = 2;
+    g_tuningRatioRight.MIN_6TH = 19;
+    g_tuningRatioRight.MAJ_6TH = 3;
+    g_tuningRatioRight.MIN_7TH = 17;
+    g_tuningRatioRight.MAJ_7TH = 8;
+    g_tuningRatioRight.OCTAVE = 1;
 }
 
 int CSong::DecodeTuningBlock(unsigned char* mem, int addr, int endAddr)
@@ -413,32 +413,33 @@ int CSong::DecodeTuningBlock(unsigned char* mem, int addr, int endAddr)
     if (!g_trackLineSecondaryHighlight) g_trackLineSecondaryHighlight = 4;	//default
 
     memcpy(&g_tuning.basetuning, (mem + addr + 0x10), 8);
-    memcpy(&g_UNISON_L, (mem + addr + 0x18), 2);
-    memcpy(&g_UNISON_R, (mem + addr + 0x1A), 2);
-    memcpy(&g_MIN_2ND_L, (mem + addr + 0x1C), 2);
-    memcpy(&g_MIN_2ND_R, (mem + addr + 0x1E), 2);
-    memcpy(&g_MAJ_2ND_L, (mem + addr + 0x20), 2);
-    memcpy(&g_MAJ_2ND_R, (mem + addr + 0x22), 2);
-    memcpy(&g_MIN_3RD_L, (mem + addr + 0x24), 2);
-    memcpy(&g_MIN_3RD_R, (mem + addr + 0x26), 2);
-    memcpy(&g_MAJ_3RD_L, (mem + addr + 0x28), 2);
-    memcpy(&g_MAJ_3RD_R, (mem + addr + 0x2A), 2);
-    memcpy(&g_PERF_4TH_L, (mem + addr + 0x2C), 2);
-    memcpy(&g_PERF_4TH_R, (mem + addr + 0x2E), 2);
-    memcpy(&g_TRITONE_L, (mem + addr + 0x30), 2);
-    memcpy(&g_TRITONE_R, (mem + addr + 0x32), 2);
-    memcpy(&g_PERF_5TH_L, (mem + addr + 0x34), 2);
-    memcpy(&g_PERF_5TH_R, (mem + addr + 0x36), 2);
-    memcpy(&g_MIN_6TH_L, (mem + addr + 0x38), 2);
-    memcpy(&g_MIN_6TH_R, (mem + addr + 0x3A), 2);
-    memcpy(&g_MAJ_6TH_L, (mem + addr + 0x3C), 2);
-    memcpy(&g_MAJ_6TH_R, (mem + addr + 0x3E), 2);
-    memcpy(&g_MIN_7TH_L, (mem + addr + 0x40), 2);
-    memcpy(&g_MIN_7TH_R, (mem + addr + 0x42), 2);
-    memcpy(&g_MAJ_7TH_L, (mem + addr + 0x44), 2);
-    memcpy(&g_MAJ_7TH_R, (mem + addr + 0x46), 2);
-    memcpy(&g_OCTAVE_L, (mem + addr + 0x48), 2);
-    memcpy(&g_OCTAVE_R, (mem + addr + 0x4A), 2);
+
+    memcpy(&g_tuningRatioLeft.UNISON, (mem + addr + 0x18), 2);
+    memcpy(&g_tuningRatioRight.UNISON, (mem + addr + 0x1A), 2);
+    memcpy(&g_tuningRatioLeft.MIN_2ND, (mem + addr + 0x1C), 2);
+    memcpy(&g_tuningRatioRight.MIN_2ND, (mem + addr + 0x1E), 2);
+    memcpy(&g_tuningRatioLeft.MAJ_2ND, (mem + addr + 0x20), 2);
+    memcpy(&g_tuningRatioRight.MAJ_2ND, (mem + addr + 0x22), 2);
+    memcpy(&g_tuningRatioLeft.MIN_3RD, (mem + addr + 0x24), 2);
+    memcpy(&g_tuningRatioRight.MIN_3RD, (mem + addr + 0x26), 2);
+    memcpy(&g_tuningRatioLeft.MAJ_3RD, (mem + addr + 0x28), 2);
+    memcpy(&g_tuningRatioRight.MAJ_3RD, (mem + addr + 0x2A), 2);
+    memcpy(&g_tuningRatioLeft.PERF_4TH, (mem + addr + 0x2C), 2);
+    memcpy(&g_tuningRatioRight.PERF_4TH, (mem + addr + 0x2E), 2);
+    memcpy(&g_tuningRatioLeft.TRITONE, (mem + addr + 0x30), 2);
+    memcpy(&g_tuningRatioRight.TRITONE, (mem + addr + 0x32), 2);
+    memcpy(&g_tuningRatioLeft.PERF_5TH, (mem + addr + 0x34), 2);
+    memcpy(&g_tuningRatioRight.PERF_5TH, (mem + addr + 0x36), 2);
+    memcpy(&g_tuningRatioLeft.MIN_6TH, (mem + addr + 0x38), 2);
+    memcpy(&g_tuningRatioRight.MIN_6TH, (mem + addr + 0x3A), 2);
+    memcpy(&g_tuningRatioLeft.MAJ_6TH, (mem + addr + 0x3C), 2);
+    memcpy(&g_tuningRatioRight.MAJ_6TH, (mem + addr + 0x3E), 2);
+    memcpy(&g_tuningRatioLeft.MIN_7TH, (mem + addr + 0x40), 2);
+    memcpy(&g_tuningRatioRight.MIN_7TH, (mem + addr + 0x42), 2);
+    memcpy(&g_tuningRatioLeft.MAJ_7TH, (mem + addr + 0x44), 2);
+    memcpy(&g_tuningRatioRight.MAJ_7TH, (mem + addr + 0x46), 2);
+    memcpy(&g_tuningRatioLeft.OCTAVE, (mem + addr + 0x48), 2);
+    memcpy(&g_tuningRatioRight.OCTAVE, (mem + addr + 0x4A), 2);
 
     return endAddr - addr;
 

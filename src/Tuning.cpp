@@ -465,19 +465,19 @@ void CTuning::init_tuning()
 	//calculate the custom ratio used for each semitone
 	//TODO: restructure this to something much better, and flexible
 	//these individual variables are just too uncomfortable to use that way 
-	CUSTOM[0] = (double)g_UNISON_L / (double)g_UNISON_R;
-	CUSTOM[1] = (double)g_MIN_2ND_L / (double)g_MIN_2ND_R;
-	CUSTOM[2] = (double)g_MAJ_2ND_L / (double)g_MAJ_2ND_R;
-	CUSTOM[3] = (double)g_MIN_3RD_L / (double)g_MIN_3RD_R;
-	CUSTOM[4] = (double)g_MAJ_3RD_L / (double)g_MAJ_3RD_R;
-	CUSTOM[5] = (double)g_PERF_4TH_L / (double)g_PERF_4TH_R;
-	CUSTOM[6] = (double)g_TRITONE_L / (double)g_TRITONE_R;
-	CUSTOM[7] = (double)g_PERF_5TH_L / (double)g_PERF_5TH_R;
-	CUSTOM[8] = (double)g_MIN_6TH_L / (double)g_MIN_6TH_R;
-	CUSTOM[9] = (double)g_MAJ_6TH_L / (double)g_MAJ_6TH_R;
-	CUSTOM[10] = (double)g_MIN_7TH_L / (double)g_MIN_7TH_R;
-	CUSTOM[11] = (double)g_MAJ_7TH_L / (double)g_MAJ_7TH_R;
-	CUSTOM[12] = (double)g_OCTAVE_L / (double)g_OCTAVE_R;
+	CUSTOM[0] = (double)g_tuningRatioLeft.UNISON / (double)g_tuningRatioRight.UNISON;
+	CUSTOM[1] = (double)g_tuningRatioLeft.MIN_2ND / (double)g_tuningRatioRight.MIN_2ND;
+	CUSTOM[2] = (double)g_tuningRatioLeft.MAJ_2ND / (double)g_tuningRatioRight.MAJ_2ND;
+	CUSTOM[3] = (double)g_tuningRatioLeft.MIN_3RD / (double)g_tuningRatioRight.MIN_3RD;
+	CUSTOM[4] = (double)g_tuningRatioLeft.MAJ_3RD / (double)g_tuningRatioRight.MAJ_3RD;
+	CUSTOM[5] = (double)g_tuningRatioLeft.PERF_4TH / (double)g_tuningRatioRight.PERF_4TH;
+	CUSTOM[6] = (double)g_tuningRatioLeft.TRITONE / (double)g_tuningRatioRight.TRITONE;
+	CUSTOM[7] = (double)g_tuningRatioLeft.PERF_5TH / (double)g_tuningRatioRight.PERF_5TH;
+	CUSTOM[8] = (double)g_tuningRatioLeft.MIN_6TH / (double)g_tuningRatioRight.MIN_6TH;
+	CUSTOM[9] = (double)g_tuningRatioLeft.MAJ_6TH / (double)g_tuningRatioRight.MAJ_6TH;
+	CUSTOM[10] = (double)g_tuningRatioLeft.MIN_7TH / (double)g_tuningRatioRight.MIN_7TH;
+	CUSTOM[11] = (double)g_tuningRatioLeft.MAJ_7TH / (double)g_tuningRatioRight.MAJ_7TH;
+	CUSTOM[12] = (double)g_tuningRatioLeft.OCTAVE / (double)g_tuningRatioRight.OCTAVE;
 
 	//Generate all lookup tables used by the RMT driver for tuning purposes
 	//TODO: optimise this procedure, even if right now this is much better than what it used to be

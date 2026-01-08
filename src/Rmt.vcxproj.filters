@@ -276,6 +276,9 @@
     <ClCompile Include="Notes.cpp">
       <Filter>Source Files\Data</Filter>
     </ClCompile>
+    <ClCompile Include="Fraction.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
@@ -469,6 +472,9 @@
     </ClInclude>
     <ClInclude Include="Notes.h">
       <Filter>Source Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Fraction.h">
+      <Filter>Source Files\Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

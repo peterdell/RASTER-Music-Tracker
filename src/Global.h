@@ -38,69 +38,25 @@ struct TTuningSettings {
 extern TTuningSettings g_tuning;
 
 
-struct TTuningRationDouble {
-    double UNISON;
-    double MIN_2ND;
-    double MAJ_2ND;
-    double MIN_3RD;
-    double MAJ_3RD;
-    double PERF_4TH;
-    double TRITONE;
-    double PERF_5TH;
-    double MIN_6TH;
-    double MAJ_6TH;
-    double MIN_7TH;
-    double MAJ_7TH;
-    double OCTAVE;
+// ratio used for each note => NOTE_L / NOTE_R, must be treated as doubles!!!
+struct TTuningRatio {
+    int UNISON;
+    int MIN_2ND;
+    int MAJ_2ND;
+    int MIN_3RD;
+    int MAJ_3RD;
+    int PERF_4TH;
+    int TRITONE;
+    int PERF_5TH;
+    int MIN_6TH;
+    int MAJ_6TH;
+    int MIN_7TH;
+    int MAJ_7TH;
+    int OCTAVE;
 };
 
-extern TTuningRationDouble g_tuningRationDouble;
-
-// ratio used for each note => NOTE_L / NOTE_R, must be treated as doubles!!!
-extern double g_UNISON;
-extern double g_MIN_2ND;
-extern double g_MAJ_2ND;
-extern double g_MIN_3RD;
-extern double g_MAJ_3RD;
-extern double g_PERF_4TH;
-extern double g_TRITONE;
-extern double g_PERF_5TH;
-extern double g_MIN_6TH;
-extern double g_MAJ_6TH;
-extern double g_MIN_7TH;
-extern double g_MAJ_7TH;
-extern double g_OCTAVE;
-
-//ratio left
-extern int g_UNISON_L;
-extern int g_MIN_2ND_L;
-extern int g_MAJ_2ND_L;
-extern int g_MIN_3RD_L;
-extern int g_MAJ_3RD_L;
-extern int g_PERF_4TH_L;
-extern int g_TRITONE_L;
-extern int g_PERF_5TH_L;
-extern int g_MIN_6TH_L;
-extern int g_MAJ_6TH_L;
-extern int g_MIN_7TH_L;
-extern int g_MAJ_7TH_L;
-extern int g_OCTAVE_L;
-
-//ratio right
-extern int g_UNISON_R;
-extern int g_MIN_2ND_R;
-extern int g_MAJ_2ND_R;
-extern int g_MIN_3RD_R;
-extern int g_MAJ_3RD_R;
-extern int g_PERF_4TH_R;
-extern int g_TRITONE_R;
-extern int g_PERF_5TH_R;
-extern int g_MIN_6TH_R;
-extern int g_MAJ_6TH_R;
-extern int g_MIN_7TH_R;
-extern int g_MAJ_7TH_R;
-extern int g_OCTAVE_R;
-
+extern TTuningRatio g_tuningRatioLeft;
+extern TTuningRatio g_tuningRatioRight;
 
 extern HWND g_hwnd;
 extern HWND g_viewhwnd;

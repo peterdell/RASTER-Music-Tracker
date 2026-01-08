@@ -173,6 +173,7 @@
     </ClCompile>
     <ClCompile Include="AtariIO.cpp" />
     <ClCompile Include="C6502.cpp" />
+    <ClCompile Include="Fraction.cpp" />
     <ClCompile Include="ChannelControl.cpp" />
     <ClCompile Include="Clipboard.cpp" />
     <ClCompile Include="ConfigDlg.cpp">
@@ -328,6 +329,7 @@
     <ClInclude Include="Atari.h" />
     <ClInclude Include="AtariIO.h" />
     <ClInclude Include="C6502.h" />
+    <ClInclude Include="Fraction.h" />
     <ClInclude Include="Clipboard.h" />
     <ClInclude Include="ConfigDlg.h" />
     <ClInclude Include="info_dlg.h" />

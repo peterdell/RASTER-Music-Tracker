@@ -635,19 +635,19 @@ void CRmtView::ReadTuningConfig()
         if (NAME("TEMPERAMENT")) { g_tuning.temperament = atoi(value); continue; }
 
         // RATIO
-        if (NAME("UNISON")) { g_UNISON_L = atoi(value); if (div) g_UNISON_R = atoi(value2); continue; }
-        if (NAME("MIN_2ND")) { g_MIN_2ND_L = atoi(value); if (div) g_MIN_2ND_R = atoi(value2); continue; }
-        if (NAME("MAJ_2ND")) { g_MAJ_2ND_L = atoi(value); if (div) g_MAJ_2ND_R = atoi(value2); continue; }
-        if (NAME("MIN_3RD")) { g_MIN_3RD_L = atoi(value); if (div) g_MIN_3RD_R = atoi(value2); continue; }
-        if (NAME("MAJ_3RD")) { g_MAJ_3RD_L = atoi(value); if (div) g_MAJ_3RD_R = atoi(value2); continue; }
-        if (NAME("PERF_4TH")) { g_PERF_4TH_L = atoi(value); if (div) g_PERF_4TH_R = atoi(value2); continue; }
-        if (NAME("TRITONE")) { g_TRITONE_L = atoi(value); if (div) g_TRITONE_R = atoi(value2); continue; }
-        if (NAME("PERF_5TH")) { g_PERF_5TH_L = atoi(value); if (div) g_PERF_5TH_R = atoi(value2); continue; }
-        if (NAME("MIN_6TH")) { g_MIN_6TH_L = atoi(value); if (div) g_MIN_6TH_R = atoi(value2); continue; }
-        if (NAME("MAJ_6TH")) { g_MAJ_6TH_L = atoi(value); if (div) g_MAJ_6TH_R = atoi(value2); continue; }
-        if (NAME("MIN_7TH")) { g_MIN_7TH_L = atoi(value); if (div) g_MIN_7TH_R = atoi(value2); continue; }
-        if (NAME("MAJ_7TH")) { g_MAJ_7TH_L = atoi(value); if (div) g_MAJ_7TH_R = atoi(value2); continue; }
-        if (NAME("OCTAVE")) { g_OCTAVE_L = atoi(value); if (div) g_OCTAVE_R = atoi(value2); continue; }
+        if (NAME("UNISON")) { g_tuningRatioLeft.UNISON = atoi(value); if (div) g_tuningRatioRight.UNISON = atoi(value2); continue; }
+        if (NAME("MIN_2ND")) { g_tuningRatioLeft.MIN_2ND = atoi(value); if (div) g_tuningRatioRight.MIN_2ND = atoi(value2); continue; }
+        if (NAME("MAJ_2ND")) { g_tuningRatioLeft.MAJ_2ND = atoi(value); if (div) g_tuningRatioRight.MAJ_2ND = atoi(value2); continue; }
+        if (NAME("MIN_3RD")) { g_tuningRatioLeft.MIN_3RD = atoi(value); if (div) g_tuningRatioRight.MIN_3RD = atoi(value2); continue; }
+        if (NAME("MAJ_3RD")) { g_tuningRatioLeft.MAJ_3RD = atoi(value); if (div) g_tuningRatioRight.MAJ_3RD = atoi(value2); continue; }
+        if (NAME("PERF_4TH")) { g_tuningRatioLeft.PERF_4TH = atoi(value); if (div) g_tuningRatioRight.PERF_4TH = atoi(value2); continue; }
+        if (NAME("TRITONE")) { g_tuningRatioLeft.TRITONE = atoi(value); if (div) g_tuningRatioRight.TRITONE = atoi(value2); continue; }
+        if (NAME("PERF_5TH")) { g_tuningRatioLeft.PERF_5TH = atoi(value); if (div) g_tuningRatioRight.PERF_5TH = atoi(value2); continue; }
+        if (NAME("MIN_6TH")) { g_tuningRatioLeft.MIN_6TH = atoi(value); if (div) g_tuningRatioRight.MIN_6TH = atoi(value2); continue; }
+        if (NAME("MAJ_6TH")) { g_tuningRatioLeft.MAJ_6TH = atoi(value); if (div) g_tuningRatioRight.MAJ_6TH = atoi(value2); continue; }
+        if (NAME("MIN_7TH")) { g_tuningRatioLeft.MIN_7TH = atoi(value); if (div) g_tuningRatioRight.MIN_7TH = atoi(value2); continue; }
+        if (NAME("MAJ_7TH")) { g_tuningRatioLeft.MAJ_7TH = atoi(value); if (div) g_tuningRatioRight.MAJ_7TH = atoi(value2); continue; }
+        if (NAME("OCTAVE")) { g_tuningRatioLeft.OCTAVE = atoi(value); if (div) g_tuningRatioRight.OCTAVE = atoi(value2); continue; }
     }
     in.close();
 }
@@ -674,19 +674,19 @@ void CRmtView::WriteTuningConfig()
     ou << "TEMPERAMENT = " << g_tuning.temperament << std::endl;
 
     ou << "\n# RATIO\n" << std::endl;
-    ou << "UNISON = " << g_UNISON_L << " / " << g_UNISON_R << std::endl;
-    ou << "MIN_2ND = " << g_MIN_2ND_L << " / " << g_MIN_2ND_R << std::endl;
-    ou << "MAJ_2ND = " << g_MAJ_2ND_L << " / " << g_MAJ_2ND_R << std::endl;
-    ou << "MIN_3RD = " << g_MIN_3RD_L << " / " << g_MIN_3RD_R << std::endl;
-    ou << "MAJ_3RD = " << g_MAJ_3RD_L << " / " << g_MAJ_3RD_R << std::endl;
-    ou << "PERF_4TH = " << g_PERF_4TH_L << " / " << g_PERF_4TH_R << std::endl;
-    ou << "TRITONE = " << g_TRITONE_L << " / " << g_TRITONE_R << std::endl;
-    ou << "PERF_5TH = " << g_PERF_5TH_L << " / " << g_PERF_5TH_R << std::endl;
-    ou << "MIN_6TH = " << g_MIN_6TH_L << " / " << g_MIN_6TH_R << std::endl;
-    ou << "MAJ_6TH = " << g_MAJ_6TH_L << " / " << g_MAJ_6TH_R << std::endl;
-    ou << "MIN_7TH = " << g_MIN_7TH_L << " / " << g_MIN_7TH_R << std::endl;
-    ou << "MAJ_7TH = " << g_MAJ_7TH_L << " / " << g_MAJ_7TH_R << std::endl;
-    ou << "OCTAVE = " << g_OCTAVE_L << " / " << g_OCTAVE_R << std::endl;
+    ou << "UNISON = " << g_tuningRatioLeft.UNISON << " / " << g_tuningRatioRight.UNISON << std::endl;
+    ou << "MIN_2ND = " << g_tuningRatioLeft.MIN_2ND << " / " << g_tuningRatioRight.MIN_2ND << std::endl;
+    ou << "MAJ_2ND = " << g_tuningRatioLeft.MAJ_2ND << " / " << g_tuningRatioRight.MAJ_2ND << std::endl;
+    ou << "MIN_3RD = " << g_tuningRatioLeft.MIN_3RD << " / " << g_tuningRatioRight.MIN_3RD << std::endl;
+    ou << "MAJ_3RD = " << g_tuningRatioLeft.MAJ_3RD << " / " << g_tuningRatioRight.MAJ_3RD << std::endl;
+    ou << "PERF_4TH = " << g_tuningRatioLeft.PERF_4TH << " / " << g_tuningRatioRight.PERF_4TH << std::endl;
+    ou << "TRITONE = " << g_tuningRatioLeft.TRITONE << " / " << g_tuningRatioRight.TRITONE << std::endl;
+    ou << "PERF_5TH = " << g_tuningRatioLeft.PERF_5TH << " / " << g_tuningRatioRight.PERF_5TH << std::endl;
+    ou << "MIN_6TH = " << g_tuningRatioLeft.MIN_6TH << " / " << g_tuningRatioRight.MIN_6TH << std::endl;
+    ou << "MAJ_6TH = " << g_tuningRatioLeft.MAJ_6TH << " / " << g_tuningRatioRight.MAJ_6TH << std::endl;
+    ou << "MIN_7TH = " << g_tuningRatioLeft.MIN_7TH << " / " << g_tuningRatioRight.MIN_7TH << std::endl;
+    ou << "MAJ_7TH = " << g_tuningRatioLeft.MAJ_7TH << " / " << g_tuningRatioRight.MAJ_7TH << std::endl;
+    ou << "OCTAVE = " << g_tuningRatioLeft.OCTAVE << " / " << g_tuningRatioRight.OCTAVE << std::endl;
 
     ou.close();
 }
@@ -798,66 +798,66 @@ void CRmtView::OnViewTuning()
     dlg.m_temperament = g_tuning.temperament;
 
     // Ratio left
-    dlg.UNISON_L = g_UNISON_L;
-    dlg.MIN_2ND_L = g_MIN_2ND_L;
-    dlg.MAJ_2ND_L = g_MAJ_2ND_L;
-    dlg.MIN_3RD_L = g_MIN_3RD_L;
-    dlg.MAJ_3RD_L = g_MAJ_3RD_L;
-    dlg.PERF_4TH_L = g_PERF_4TH_L;
-    dlg.TRITONE_L = g_TRITONE_L;
-    dlg.PERF_5TH_L = g_PERF_5TH_L;
-    dlg.MIN_6TH_L = g_MIN_6TH_L;
-    dlg.MAJ_6TH_L = g_MAJ_6TH_L;
-    dlg.MIN_7TH_L = g_MIN_7TH_L;
-    dlg.MAJ_7TH_L = g_MAJ_7TH_L;
-    dlg.OCTAVE_L = g_OCTAVE_L;
+    dlg.UNISON_L = g_tuningRatioLeft.UNISON;
+    dlg.MIN_2ND_L = g_tuningRatioLeft.MIN_2ND;
+    dlg.MAJ_2ND_L = g_tuningRatioLeft.MAJ_2ND;
+    dlg.MIN_3RD_L = g_tuningRatioLeft.MIN_3RD;
+    dlg.MAJ_3RD_L = g_tuningRatioLeft.MAJ_3RD;
+    dlg.PERF_4TH_L = g_tuningRatioLeft.PERF_4TH;
+    dlg.TRITONE_L = g_tuningRatioLeft.TRITONE;
+    dlg.PERF_5TH_L = g_tuningRatioLeft.PERF_5TH;
+    dlg.MIN_6TH_L = g_tuningRatioLeft.MIN_6TH;
+    dlg.MAJ_6TH_L = g_tuningRatioLeft.MAJ_6TH;
+    dlg.MIN_7TH_L = g_tuningRatioLeft.MIN_7TH;
+    dlg.MAJ_7TH_L = g_tuningRatioLeft.MAJ_7TH;
+    dlg.OCTAVE_L = g_tuningRatioLeft.OCTAVE;
 
     // Ratio right
-    dlg.UNISON_R = g_UNISON_R;
-    dlg.MIN_2ND_R = g_MIN_2ND_R;
-    dlg.MAJ_2ND_R = g_MAJ_2ND_R;
-    dlg.MIN_3RD_R = g_MIN_3RD_R;
-    dlg.MAJ_3RD_R = g_MAJ_3RD_R;
-    dlg.PERF_4TH_R = g_PERF_4TH_R;
-    dlg.TRITONE_R = g_TRITONE_R;
-    dlg.PERF_5TH_R = g_PERF_5TH_R;
-    dlg.MIN_6TH_R = g_MIN_6TH_R;
-    dlg.MAJ_6TH_R = g_MAJ_6TH_R;
-    dlg.MIN_7TH_R = g_MIN_7TH_R;
-    dlg.MAJ_7TH_R = g_MAJ_7TH_R;
-    dlg.OCTAVE_R = g_OCTAVE_R;
+    dlg.UNISON_R = g_tuningRatioRight.UNISON;
+    dlg.MIN_2ND_R = g_tuningRatioRight.MIN_2ND;
+    dlg.MAJ_2ND_R = g_tuningRatioRight.MAJ_2ND;
+    dlg.MIN_3RD_R = g_tuningRatioRight.MIN_3RD;
+    dlg.MAJ_3RD_R = g_tuningRatioRight.MAJ_3RD;
+    dlg.PERF_4TH_R = g_tuningRatioRight.PERF_4TH;
+    dlg.TRITONE_R = g_tuningRatioRight.TRITONE;
+    dlg.PERF_5TH_R = g_tuningRatioRight.PERF_5TH;
+    dlg.MIN_6TH_R = g_tuningRatioRight.MIN_6TH;
+    dlg.MAJ_6TH_R = g_tuningRatioRight.MAJ_6TH;
+    dlg.MIN_7TH_R = g_tuningRatioRight.MIN_7TH;
+    dlg.MAJ_7TH_R = g_tuningRatioRight.MAJ_7TH;
+    dlg.OCTAVE_R = g_tuningRatioRight.OCTAVE;
 
     if (dlg.DoModal() == IDOK)
     {
         // Ratio left
-        g_UNISON_L = dlg.UNISON_L;
-        g_MIN_2ND_L = dlg.MIN_2ND_L;
-        g_MAJ_2ND_L = dlg.MAJ_2ND_L;
-        g_MIN_3RD_L = dlg.MIN_3RD_L;
-        g_MAJ_3RD_L = dlg.MAJ_3RD_L;
-        g_PERF_4TH_L = dlg.PERF_4TH_L;
-        g_TRITONE_L = dlg.TRITONE_L;
-        g_PERF_5TH_L = dlg.PERF_5TH_L;
-        g_MIN_6TH_L = dlg.MIN_6TH_L;
-        g_MAJ_6TH_L = dlg.MAJ_6TH_L;
-        g_MIN_7TH_L = dlg.MIN_7TH_L;
-        g_MAJ_7TH_L = dlg.MAJ_7TH_L;
-        g_OCTAVE_L = dlg.OCTAVE_L;
+        g_tuningRatioLeft.UNISON = dlg.UNISON_L;
+        g_tuningRatioLeft.MIN_2ND = dlg.MIN_2ND_L;
+        g_tuningRatioLeft.MAJ_2ND = dlg.MAJ_2ND_L;
+        g_tuningRatioLeft.MIN_3RD = dlg.MIN_3RD_L;
+        g_tuningRatioLeft.MAJ_3RD = dlg.MAJ_3RD_L;
+        g_tuningRatioLeft.PERF_4TH = dlg.PERF_4TH_L;
+        g_tuningRatioLeft.TRITONE = dlg.TRITONE_L;
+        g_tuningRatioLeft.PERF_5TH = dlg.PERF_5TH_L;
+        g_tuningRatioLeft.MIN_6TH = dlg.MIN_6TH_L;
+        g_tuningRatioLeft.MAJ_6TH = dlg.MAJ_6TH_L;
+        g_tuningRatioLeft.MIN_7TH = dlg.MIN_7TH_L;
+        g_tuningRatioLeft.MAJ_7TH = dlg.MAJ_7TH_L;
+        g_tuningRatioLeft.OCTAVE = dlg.OCTAVE_L;
 
         // Ratio right
-        g_UNISON_R = dlg.UNISON_R;
-        g_MIN_2ND_R = dlg.MIN_2ND_R;
-        g_MAJ_2ND_R = dlg.MAJ_2ND_R;
-        g_MIN_3RD_R = dlg.MIN_3RD_R;
-        g_MAJ_3RD_R = dlg.MAJ_3RD_R;
-        g_PERF_4TH_R = dlg.PERF_4TH_R;
-        g_TRITONE_R = dlg.TRITONE_R;
-        g_PERF_5TH_R = dlg.PERF_5TH_R;
-        g_MIN_6TH_R = dlg.MIN_6TH_R;
-        g_MAJ_6TH_R = dlg.MAJ_6TH_R;
-        g_MIN_7TH_R = dlg.MIN_7TH_R;
-        g_MAJ_7TH_R = dlg.MAJ_7TH_R;
-        g_OCTAVE_R = dlg.OCTAVE_R;
+        g_tuningRatioRight.UNISON = dlg.UNISON_R;
+        g_tuningRatioRight.MIN_2ND = dlg.MIN_2ND_R;
+        g_tuningRatioRight.MAJ_2ND = dlg.MAJ_2ND_R;
+        g_tuningRatioRight.MIN_3RD = dlg.MIN_3RD_R;
+        g_tuningRatioRight.MAJ_3RD = dlg.MAJ_3RD_R;
+        g_tuningRatioRight.PERF_4TH = dlg.PERF_4TH_R;
+        g_tuningRatioRight.TRITONE = dlg.TRITONE_R;
+        g_tuningRatioRight.PERF_5TH = dlg.PERF_5TH_R;
+        g_tuningRatioRight.MIN_6TH = dlg.MIN_6TH_R;
+        g_tuningRatioRight.MAJ_6TH = dlg.MAJ_6TH_R;
+        g_tuningRatioRight.MIN_7TH = dlg.MIN_7TH_R;
+        g_tuningRatioRight.MAJ_7TH = dlg.MAJ_7TH_R;
+        g_tuningRatioRight.OCTAVE = dlg.OCTAVE_R;
 
         // Update tuning
         g_tuning.basetuning = dlg.m_basetuning;
