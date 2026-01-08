@@ -1586,7 +1586,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     case VK_F5:
         if (g_controlkey && g_shiftkey)
         {
-            g_prove = PROVE_POKEY_EXPLORER_MODE;	//POKEY EXPLORER MODE -- KEYBOARD INPUT AND FORMULAE DISPLAY
+            g_prove = EditMode::POKEY_EXPLORER_MODE;	//POKEY EXPLORER MODE -- KEYBOARD INPUT AND FORMULAE DISPLAY
             break;
         }
         g_Song.Play(PLAY_SONG, g_Song.GetFollowPlayMode());	//play song from start
@@ -2244,20 +2244,20 @@ void CRmtView::OnUpdateEmSong(CCmdUI* pCmdUI)
 /// </summary>
 void CRmtView::OnProvemode()
 {
-    if (g_prove == PROVE_EDIT_MODE) g_prove = PROVE_JAM_MONO_MODE;
-    else if (g_prove >= PROVE_EDIT_AND_JAM_MODES) g_prove = PROVE_EDIT_MODE;		//disable the special test modes immediately
+    if (g_prove == EditMode::EDIT_MODE) g_prove = EditMode::JAM_MONO_MODE;
+    else if (g_prove >= EditMode::EDIT_AND_JAM_MODES) g_prove = EditMode::EDIT_MODE;		//disable the special test modes immediately
     else
     {
-        if (g_prove == PROVE_JAM_MONO_MODE && g_tracks4_8 > 4)	//PROVE 2 only works for 8 tracks
-            g_prove = PROVE_JAM_STEREO_MODE;
+        if (g_prove == EditMode::JAM_MONO_MODE && g_tracks4_8 > 4)	//PROVE 2 only works for 8 tracks
+            g_prove = EditMode::JAM_STEREO_MODE;
         else
-            g_prove = PROVE_EDIT_MODE;
+            g_prove = EditMode::EDIT_MODE;
     }
 }
 
 void CRmtView::OnUpdateProvemode(CCmdUI* pCmdUI)
 {
-    int ch = (g_prove > PROVE_EDIT_MODE) ? 1 : 0;
+    int ch = (g_prove > EditMode::EDIT_MODE) ? 1 : 0;
     pCmdUI->SetCheck(ch);
 }
 

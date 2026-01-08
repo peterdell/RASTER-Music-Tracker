@@ -106,7 +106,7 @@ void CAtari::PlayRMT()
     WORD adr = RMT_P3; //(without SetPokey) one run of RMT routine but from rmt_p3 (wrap processing)
     BYTE a = 0, x = 0, y = 0;
     auto cycles = GetFrameCycleCount(g_ntsc);
-    if (g_prove < PROVE_EDIT_AND_JAM_MODES) { // this is only good for tests, this trigger prevents the RMT driver running at all, leaving only SetPokey available
+    if (g_prove < EditMode::EDIT_AND_JAM_MODES) { // this is only good for tests, this trigger prevents the RMT driver running at all, leaving only SetPokey available
         C6502::JSR(adr, a, x, y, cycles);
     }
     adr = RMT_SETPOKEY;

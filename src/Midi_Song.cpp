@@ -142,18 +142,18 @@ void CSong::MidiEvent(DWORD dwParam)
 				case 118:	//REC key
 					if (!pr2) break;	//no key press
 					//todo: call CRMTView Class functions directly instead of redundancy copypasta
-					// PROVE_EDIT_MODE -> PROVE_JAM_MONO_MODE
-					// PROVE_JAM_MONO_MODE -> PROVE_JAM_STEREO_MODE
-					//					   -> PROVE_MIDI_CH15_MODE
-					// PROVE_MIDI_CH15_MODE -> PROVE_EDIT_MODE
-					if (g_prove == PROVE_EDIT_MODE) g_prove = PROVE_JAM_MONO_MODE;
-					else if (g_prove == PROVE_MIDI_CH15_MODE) g_prove = PROVE_EDIT_MODE;			//disable the special MIDI test mode immediately
+					// EditMode::EDIT_MODE -> EditMode::JAM_MONO_MODE
+					// EditMode::JAM_MONO_MODE -> EditMode::JAM_STEREO_MODE
+					//					   -> EditMode::MIDI_CH15_MODE
+					// EditMode::MIDI_CH15_MODE -> EditMode::EDIT_MODE
+					if (g_prove == EditMode::EDIT_MODE) g_prove = EditMode::JAM_MONO_MODE;
+					else if (g_prove == EditMode::MIDI_CH15_MODE) g_prove = EditMode::EDIT_MODE;			//disable the special MIDI test mode immediately
 					else
 					{
-						if (g_prove == PROVE_JAM_MONO_MODE && g_tracks4_8 > 4)	//PROVE 2 only works for 8 tracks
-							g_prove = PROVE_JAM_STEREO_MODE;
+						if (g_prove == EditMode::JAM_MONO_MODE && g_tracks4_8 > 4)	//PROVE 2 only works for 8 tracks
+							g_prove = EditMode::JAM_STEREO_MODE;
 						else
-							g_prove = PROVE_MIDI_CH15_MODE;						//special mode exclusive to MIDI CH15
+							g_prove = EditMode::MIDI_CH15_MODE;						//special mode exclusive to MIDI CH15
 					}
 					break;
 
@@ -165,7 +165,7 @@ void CSong::MidiEvent(DWORD dwParam)
 					break;
 
 					//SPECIAL MIDI CH15 MODE
-					if (g_prove == PROVE_MIDI_CH15_MODE)
+					if (g_prove == EditMode::MIDI_CH15_MODE)
 					{
 				case 71: //Knob C1, AUDF0/AUDF2 upper 4 bits
 					//g_atarimem[0xD200] &= 0x0F;
@@ -233,7 +233,7 @@ void CSong::MidiEvent(DWORD dwParam)
 			return;	//finished, everything else will be ignored, unless it's using a different MIDI channel
 		}
 
-		if (cmd == 0x90 && chn == 9 && g_prove == PROVE_MIDI_CH15_MODE)
+		if (cmd == 0x90 && chn == 9 && g_prove == EditMode::MIDI_CH15_MODE)
 		{	//drumpads used to control the POKEY registers
 			switch (pr1)
 			{
@@ -290,7 +290,7 @@ void CSong::MidiEvent(DWORD dwParam)
 		if (chn == 9) return;	//we do not want any of those MIDI events outside of the drumpads!!!
 
 		//default notes input event, which is mostly copied from the CH0 code. This is a very terrible approach, and will eventually be replaced (see above)
-		if (chn == 15 && g_prove != PROVE_MIDI_CH15_MODE)
+		if (chn == 15 && g_prove != EditMode::MIDI_CH15_MODE)
 		{
 
 			int atc = m_heldkeys % g_tracks4_8;	//atari track 0-7 (resp. 0-3 in mono)
@@ -638,7 +638,7 @@ void CSong::MidiEvent(DWORD dwParam)
 					if (!(m_play && m_followplay)) TrackDown(g_linesafter);	//scrolls only when there is no followplay
 				Prove_midi:
 					SetPlayPressedTonesTNIV(m_trackactivecol, note, m_activeinstr, vol);
-					if ((g_prove == PROVE_JAM_STEREO_MODE || g_controlkey) && g_tracks4_8 > 4)
+					if ((g_prove == EditMode::JAM_STEREO_MODE || g_controlkey) && g_tracks4_8 > 4)
 					{	//with control or in prove2 => stereo test
 						SetPlayPressedTonesTNIV((m_trackactivecol + 4) & 0x07, note, m_activeinstr, vol);
 					}
