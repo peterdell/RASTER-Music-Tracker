@@ -1,10 +1,14 @@
 #pragma once
 
-
 class CFraction {
+
+public:
     int numerator;
     int denominator;
+
 public:
+    CFraction();
+    CFraction(int n);
     CFraction(int n, int d);
     ~CFraction();
     CFraction operator+(const CFraction& f);
@@ -17,7 +21,6 @@ public:
     bool operator>(const CFraction& f);
     bool operator==(const CFraction& f);
     operator double();
-    // friend ostream& operator<<(ostream& output, const CFraction& f);
 
 private:
     void simplify();

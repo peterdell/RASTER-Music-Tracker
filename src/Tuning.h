@@ -114,7 +114,7 @@ public:
 	double get_pitch(int audf, int coarse_divisor, double divisor, int cycle);
 	double generate_freq(int audc, int audf, int audctl, int channel); 
 	double GetTruePitch(double tuning, int temperament, int basenote, int semitone);
-	void init_tuning();
+	void InitTuning();
 
 private:
 	void generate_table(unsigned char* table, int length, int semitone, int timbre, int audctl);

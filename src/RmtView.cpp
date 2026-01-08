@@ -9,6 +9,7 @@
 #include <chrono>
 #include "Clipboard.h"
 #include <iomanip>
+#include "Fraction.h"
 #include "RmtView.h"
 #include "MainFrm.h"
 #include "ConfigDlg.h"
@@ -597,6 +598,13 @@ void CRmtView::ResetRMTConfig()
     WriteRMTConfig();							// Write the default configuration file 
 }
 
+boolean ReadFraction(const char* name, const char* value, const char* value2, const char* wantedName, CFraction& fraction) {
+    if (strcmp(wantedName, name) == 0) {
+        return true;
+    };
+    return false;
+}
+
 void CRmtView::ReadTuningConfig()
 {
 #define NAME(a)	(strcmp(a,name)==0)
@@ -634,61 +642,65 @@ void CRmtView::ReadTuningConfig()
         if (NAME("BASENOTE")) { g_tuning.basenote = atoi(value); continue; }
         if (NAME("TEMPERAMENT")) { g_tuning.temperament = atoi(value); continue; }
 
-        // RATIO
-        if (NAME("UNISON")) { g_tuningRatioLeft.UNISON = atoi(value); if (div) g_tuningRatioRight.UNISON = atoi(value2); continue; }
-        if (NAME("MIN_2ND")) { g_tuningRatioLeft.MIN_2ND = atoi(value); if (div) g_tuningRatioRight.MIN_2ND = atoi(value2); continue; }
-        if (NAME("MAJ_2ND")) { g_tuningRatioLeft.MAJ_2ND = atoi(value); if (div) g_tuningRatioRight.MAJ_2ND = atoi(value2); continue; }
-        if (NAME("MIN_3RD")) { g_tuningRatioLeft.MIN_3RD = atoi(value); if (div) g_tuningRatioRight.MIN_3RD = atoi(value2); continue; }
-        if (NAME("MAJ_3RD")) { g_tuningRatioLeft.MAJ_3RD = atoi(value); if (div) g_tuningRatioRight.MAJ_3RD = atoi(value2); continue; }
-        if (NAME("PERF_4TH")) { g_tuningRatioLeft.PERF_4TH = atoi(value); if (div) g_tuningRatioRight.PERF_4TH = atoi(value2); continue; }
-        if (NAME("TRITONE")) { g_tuningRatioLeft.TRITONE = atoi(value); if (div) g_tuningRatioRight.TRITONE = atoi(value2); continue; }
-        if (NAME("PERF_5TH")) { g_tuningRatioLeft.PERF_5TH = atoi(value); if (div) g_tuningRatioRight.PERF_5TH = atoi(value2); continue; }
-        if (NAME("MIN_6TH")) { g_tuningRatioLeft.MIN_6TH = atoi(value); if (div) g_tuningRatioRight.MIN_6TH = atoi(value2); continue; }
-        if (NAME("MAJ_6TH")) { g_tuningRatioLeft.MAJ_6TH = atoi(value); if (div) g_tuningRatioRight.MAJ_6TH = atoi(value2); continue; }
-        if (NAME("MIN_7TH")) { g_tuningRatioLeft.MIN_7TH = atoi(value); if (div) g_tuningRatioRight.MIN_7TH = atoi(value2); continue; }
-        if (NAME("MAJ_7TH")) { g_tuningRatioLeft.MAJ_7TH = atoi(value); if (div) g_tuningRatioRight.MAJ_7TH = atoi(value2); continue; }
-        if (NAME("OCTAVE")) { g_tuningRatioLeft.OCTAVE = atoi(value); if (div) g_tuningRatioRight.OCTAVE = atoi(value2); continue; }
+        // RATIOS
+        if (ReadFraction(name, value, value2, "UNISON", g_tuningRatios.UNISON)) { continue; }
+        if (ReadFraction(name, value, value2, "MIN_2ND", g_tuningRatios.MIN_2ND)) { continue; }
+        if (ReadFraction(name, value, value2, "MAJ_2ND", g_tuningRatios.MAJ_2ND)) { continue; }
+        if (ReadFraction(name, value, value2, "MIN_3RD", g_tuningRatios.MIN_3RD)) { continue; }
+        if (ReadFraction(name, value, value2, "MAJ_3RD", g_tuningRatios.MAJ_3RD)) { continue; }
+        if (ReadFraction(name, value, value2, "PERF_4TH", g_tuningRatios.PERF_4TH)) { continue; }
+        if (ReadFraction(name, value, value2, "TRITONE", g_tuningRatios.TRITONE)) { continue; }
+        if (ReadFraction(name, value, value2, "PERF_5TH", g_tuningRatios.PERF_5TH)) { continue; }
+        if (ReadFraction(name, value, value2, "MIN_6TH", g_tuningRatios.MIN_6TH)) { continue; }
+        if (ReadFraction(name, value, value2, "MAJ_6TH", g_tuningRatios.MAJ_6TH)) { continue; }
+        if (ReadFraction(name, value, value2, "MIN_7TH", g_tuningRatios.MIN_7TH)) { continue; }
+        if (ReadFraction(name, value, value2, "OCTAVE", g_tuningRatios.OCTAVE)) { continue; }
+
     }
     in.close();
+}
+
+void WriteFraction(std::ostream& os, const char* id, const CFraction& fraction) {
+    os << id << " = " << fraction.numerator << " / " << fraction.denominator << std::endl;
 }
 
 void CRmtView::WriteTuningConfig()
 {
     auto filePath = GetResourceFilePath("", TUNING_FILENAME);
-    std::ofstream ou(filePath);
-    if (!ou)
+    std::ofstream os(filePath);
+    if (!os)
     {
         MessageBox("Could not create: '" + filePath + "'\n\nThe Tuning parameters won't be saved.\n", "RMT", MB_ICONEXCLAMATION);
         return;
     }
 
-    ou << "# RMT CONFIGURATION FILE" << std::endl;
+    os << "# RMT CONFIGURATION FILE" << std::endl;
     CString version;
     version.LoadString(IDS_RMTVERSION);
-    ou << "# " << version << std::endl;
-    ou << std::setprecision(16);
+    os << "# " << version << std::endl;
+    os << std::setprecision(16);
 
-    ou << "\n# TUNING\n" << std::endl;
-    ou << "TUNING = " << g_tuning.basetuning << std::endl;
-    ou << "BASENOTE = " << g_tuning.basenote << std::endl;
-    ou << "TEMPERAMENT = " << g_tuning.temperament << std::endl;
+    os << "\n# TUNING\n" << std::endl;
+    os << "TUNING = " << g_tuning.basetuning << std::endl;
+    os << "BASENOTE = " << g_tuning.basenote << std::endl;
+    os << "TEMPERAMENT = " << g_tuning.temperament << std::endl;
 
-    ou << "\n# RATIO\n" << std::endl;
-    ou << "UNISON = " << g_tuningRatioLeft.UNISON << " / " << g_tuningRatioRight.UNISON << std::endl;
-    ou << "MIN_2ND = " << g_tuningRatioLeft.MIN_2ND << " / " << g_tuningRatioRight.MIN_2ND << std::endl;
-    ou << "MAJ_2ND = " << g_tuningRatioLeft.MAJ_2ND << " / " << g_tuningRatioRight.MAJ_2ND << std::endl;
-    ou << "MIN_3RD = " << g_tuningRatioLeft.MIN_3RD << " / " << g_tuningRatioRight.MIN_3RD << std::endl;
-    ou << "MAJ_3RD = " << g_tuningRatioLeft.MAJ_3RD << " / " << g_tuningRatioRight.MAJ_3RD << std::endl;
-    ou << "PERF_4TH = " << g_tuningRatioLeft.PERF_4TH << " / " << g_tuningRatioRight.PERF_4TH << std::endl;
-    ou << "TRITONE = " << g_tuningRatioLeft.TRITONE << " / " << g_tuningRatioRight.TRITONE << std::endl;
-    ou << "PERF_5TH = " << g_tuningRatioLeft.PERF_5TH << " / " << g_tuningRatioRight.PERF_5TH << std::endl;
-    ou << "MIN_6TH = " << g_tuningRatioLeft.MIN_6TH << " / " << g_tuningRatioRight.MIN_6TH << std::endl;
-    ou << "MAJ_6TH = " << g_tuningRatioLeft.MAJ_6TH << " / " << g_tuningRatioRight.MAJ_6TH << std::endl;
-    ou << "MIN_7TH = " << g_tuningRatioLeft.MIN_7TH << " / " << g_tuningRatioRight.MIN_7TH << std::endl;
-    ou << "MAJ_7TH = " << g_tuningRatioLeft.MAJ_7TH << " / " << g_tuningRatioRight.MAJ_7TH << std::endl;
-    ou << "OCTAVE = " << g_tuningRatioLeft.OCTAVE << " / " << g_tuningRatioRight.OCTAVE << std::endl;
+    os << "\n# RATIOS\n" << std::endl;
+    WriteFraction(os, "UNISON", g_tuningRatios.UNISON);
+    WriteFraction(os, "MIN_2ND", g_tuningRatios.MIN_2ND);
+    WriteFraction(os, "MAJ_2ND", g_tuningRatios.MAJ_2ND);
+    WriteFraction(os, "MIN_3RD", g_tuningRatios.MIN_3RD);
+    WriteFraction(os, "MAJ_3RD", g_tuningRatios.MAJ_3RD);
+    WriteFraction(os, "PERF_4TH", g_tuningRatios.PERF_4TH);
+    WriteFraction(os, "TRITONE", g_tuningRatios.TRITONE);
+    WriteFraction(os, "PERF_5TH", g_tuningRatios.PERF_5TH);
+    WriteFraction(os, "MIN_6TH", g_tuningRatios.MIN_6TH);
+    WriteFraction(os, "MAJ_6TH", g_tuningRatios.MAJ_6TH);
+    WriteFraction(os, "MIN_7TH", g_tuningRatios.MIN_7TH);
+    WriteFraction(os, "MAJ_7TH", g_tuningRatios.MAJ_7TH);
+    WriteFraction(os, "OCTAVE", g_tuningRatios.OCTAVE);
 
-    ou.close();
+    os.close();
 }
 
 void CRmtView::OnViewConfiguration()
@@ -792,79 +804,12 @@ void CRmtView::OnViewConfiguration()
 
 void CRmtView::OnViewTuning()
 {
+
     TuningDlg dlg;
-    dlg.m_basetuning = g_tuning.basetuning;
-    dlg.m_basenote = g_tuning.basenote;
-    dlg.m_temperament = g_tuning.temperament;
+    dlg.m_tuningSettings = g_tuning;
+    dlg.m_tuningRatios = g_tuningRatios;
 
-    // Ratio left
-    dlg.UNISON_L = g_tuningRatioLeft.UNISON;
-    dlg.MIN_2ND_L = g_tuningRatioLeft.MIN_2ND;
-    dlg.MAJ_2ND_L = g_tuningRatioLeft.MAJ_2ND;
-    dlg.MIN_3RD_L = g_tuningRatioLeft.MIN_3RD;
-    dlg.MAJ_3RD_L = g_tuningRatioLeft.MAJ_3RD;
-    dlg.PERF_4TH_L = g_tuningRatioLeft.PERF_4TH;
-    dlg.TRITONE_L = g_tuningRatioLeft.TRITONE;
-    dlg.PERF_5TH_L = g_tuningRatioLeft.PERF_5TH;
-    dlg.MIN_6TH_L = g_tuningRatioLeft.MIN_6TH;
-    dlg.MAJ_6TH_L = g_tuningRatioLeft.MAJ_6TH;
-    dlg.MIN_7TH_L = g_tuningRatioLeft.MIN_7TH;
-    dlg.MAJ_7TH_L = g_tuningRatioLeft.MAJ_7TH;
-    dlg.OCTAVE_L = g_tuningRatioLeft.OCTAVE;
-
-    // Ratio right
-    dlg.UNISON_R = g_tuningRatioRight.UNISON;
-    dlg.MIN_2ND_R = g_tuningRatioRight.MIN_2ND;
-    dlg.MAJ_2ND_R = g_tuningRatioRight.MAJ_2ND;
-    dlg.MIN_3RD_R = g_tuningRatioRight.MIN_3RD;
-    dlg.MAJ_3RD_R = g_tuningRatioRight.MAJ_3RD;
-    dlg.PERF_4TH_R = g_tuningRatioRight.PERF_4TH;
-    dlg.TRITONE_R = g_tuningRatioRight.TRITONE;
-    dlg.PERF_5TH_R = g_tuningRatioRight.PERF_5TH;
-    dlg.MIN_6TH_R = g_tuningRatioRight.MIN_6TH;
-    dlg.MAJ_6TH_R = g_tuningRatioRight.MAJ_6TH;
-    dlg.MIN_7TH_R = g_tuningRatioRight.MIN_7TH;
-    dlg.MAJ_7TH_R = g_tuningRatioRight.MAJ_7TH;
-    dlg.OCTAVE_R = g_tuningRatioRight.OCTAVE;
-
-    if (dlg.DoModal() == IDOK)
-    {
-        // Ratio left
-        g_tuningRatioLeft.UNISON = dlg.UNISON_L;
-        g_tuningRatioLeft.MIN_2ND = dlg.MIN_2ND_L;
-        g_tuningRatioLeft.MAJ_2ND = dlg.MAJ_2ND_L;
-        g_tuningRatioLeft.MIN_3RD = dlg.MIN_3RD_L;
-        g_tuningRatioLeft.MAJ_3RD = dlg.MAJ_3RD_L;
-        g_tuningRatioLeft.PERF_4TH = dlg.PERF_4TH_L;
-        g_tuningRatioLeft.TRITONE = dlg.TRITONE_L;
-        g_tuningRatioLeft.PERF_5TH = dlg.PERF_5TH_L;
-        g_tuningRatioLeft.MIN_6TH = dlg.MIN_6TH_L;
-        g_tuningRatioLeft.MAJ_6TH = dlg.MAJ_6TH_L;
-        g_tuningRatioLeft.MIN_7TH = dlg.MIN_7TH_L;
-        g_tuningRatioLeft.MAJ_7TH = dlg.MAJ_7TH_L;
-        g_tuningRatioLeft.OCTAVE = dlg.OCTAVE_L;
-
-        // Ratio right
-        g_tuningRatioRight.UNISON = dlg.UNISON_R;
-        g_tuningRatioRight.MIN_2ND = dlg.MIN_2ND_R;
-        g_tuningRatioRight.MAJ_2ND = dlg.MAJ_2ND_R;
-        g_tuningRatioRight.MIN_3RD = dlg.MIN_3RD_R;
-        g_tuningRatioRight.MAJ_3RD = dlg.MAJ_3RD_R;
-        g_tuningRatioRight.PERF_4TH = dlg.PERF_4TH_R;
-        g_tuningRatioRight.TRITONE = dlg.TRITONE_R;
-        g_tuningRatioRight.PERF_5TH = dlg.PERF_5TH_R;
-        g_tuningRatioRight.MIN_6TH = dlg.MIN_6TH_R;
-        g_tuningRatioRight.MAJ_6TH = dlg.MAJ_6TH_R;
-        g_tuningRatioRight.MIN_7TH = dlg.MIN_7TH_R;
-        g_tuningRatioRight.MAJ_7TH = dlg.MAJ_7TH_R;
-        g_tuningRatioRight.OCTAVE = dlg.OCTAVE_R;
-
-        // Update tuning
-        g_tuning.basetuning = dlg.m_basetuning;
-        g_tuning.basenote = dlg.m_basenote;
-        g_tuning.temperament = dlg.m_temperament;
-        g_Tuning.init_tuning();
-    }
+    dlg.DoModal();
 }
 
 void GetCommandLineItem(CString& commandline, int& fromidx, int& toidx)
@@ -2537,7 +2482,7 @@ void CRmtView::OnChan8()
 
 void CRmtView::OnUpdateChan1_4(CCmdUI* pCmdUI)
 {
-   // The first 4 channels are always visible.
+    // The first 4 channels are always visible.
 }
 
 

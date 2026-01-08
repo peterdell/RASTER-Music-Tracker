@@ -8,6 +8,7 @@
 #define RMT_GLOBAL
 
 #include "General.h"
+#include "TuningTypes.h"
 
 void SetProgramFolderPath(const CString& folderPath);
 CString GetResourceFolderPath(const CString& folderName);
@@ -28,35 +29,9 @@ extern int g_scaling_percentage;
 
 extern int g_notesperoctave;
 
-struct TTuningSettings {
-
-    double basetuning;
-    int basenote;	// 3 = A-
-    int temperament = 0;	// each preset is assigned to a number. 0 means no Temperament, any value that is not assigned defaults to custom
-};
 
 extern TTuningSettings g_tuning;
-
-
-// ratio used for each note => NOTE_L / NOTE_R, must be treated as doubles!!!
-struct TTuningRatio {
-    int UNISON;
-    int MIN_2ND;
-    int MAJ_2ND;
-    int MIN_3RD;
-    int MAJ_3RD;
-    int PERF_4TH;
-    int TRITONE;
-    int PERF_5TH;
-    int MIN_6TH;
-    int MAJ_6TH;
-    int MIN_7TH;
-    int MAJ_7TH;
-    int OCTAVE;
-};
-
-extern TTuningRatio g_tuningRatioLeft;
-extern TTuningRatio g_tuningRatioRight;
+extern TTuningRatios g_tuningRatios;
 
 extern HWND g_hwnd;
 extern HWND g_viewhwnd;

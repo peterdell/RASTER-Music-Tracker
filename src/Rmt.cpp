@@ -13,6 +13,7 @@
 #include "AboutDialog.h"
 #include "GuiHelpers.h" // For SendErrorMessage
 #include "RmtCommandLineInfo.h"
+#include "Global.h"
 
 #include "RmtTest.h"
 
@@ -105,6 +106,7 @@ BOOL CRmtApp::InitInstance()
 
     // Initialize the model.
     g_Song.ClearSong(8);
+    g_tuningRatios.Initialize();
 
     // Parse the command line for standard shell commands, DDE, file open.
     CRmtCommandLineInfo cmdInfo;

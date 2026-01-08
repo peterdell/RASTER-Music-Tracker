@@ -279,6 +279,9 @@
     <ClCompile Include="Fraction.cpp">
       <Filter>Source Files\Common</Filter>
     </ClCompile>
+    <ClCompile Include="TuningTypes.cpp">
+      <Filter>Source Files\Tuning</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
@@ -475,6 +478,9 @@
     </ClInclude>
     <ClInclude Include="Fraction.h">
       <Filter>Source Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="TuningTypes.h">
+      <Filter>Source Files\Tuning</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

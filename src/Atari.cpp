@@ -86,7 +86,7 @@ int CAtari::InitRMTRoutine()
         return 0;
     }
 
-    g_Tuning.init_tuning();	//input the A-4 frequency for the tuning and generate all the lookup tables needed for the player routines
+    g_Tuning.InitTuning();
 
     WORD adr = RMT_INIT;
     BYTE a = 0, x = 0x00, y = 0x3f;

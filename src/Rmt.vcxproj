@@ -306,6 +306,7 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
     </ClCompile>
     <ClCompile Include="TuningDlg.cpp" />
+    <ClCompile Include="TuningTypes.cpp" />
     <ClCompile Include="Undo.cpp" />
     <ClCompile Include="VUPlayer.cpp" />
     <ClCompile Include="wasap.c" />
@@ -378,6 +379,7 @@
     <ClInclude Include="RmtView.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="TuningDlg.h" />
+    <ClInclude Include="TuningTypes.h" />
     <ClInclude Include="Undo.h" />
     <ClInclude Include="VUPlayer.h" />
     <ClInclude Include="wasap.h" />
