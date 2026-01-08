@@ -103,10 +103,10 @@ BOOL CRmtApp::InitInstance()
         fullPath = fullPath.Left(nPos + 1);
     }
     SetProgramFolderPath(fullPath);
+    g_tuningRatios.Initialize();
 
     // Initialize the model.
     g_Song.ClearSong(8);
-    g_tuningRatios.Initialize();
 
     // Parse the command line for standard shell commands, DDE, file open.
     CRmtCommandLineInfo cmdInfo;

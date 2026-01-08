@@ -600,6 +600,11 @@ void CRmtView::ResetRMTConfig()
 
 boolean ReadFraction(const char* name, const char* value, const char* value2, const char* wantedName, CFraction& fraction) {
     if (strcmp(wantedName, name) == 0) {
+        fraction.numerator = atoi(value);  fraction.denominator = atoi(value2);
+        if (fraction.denominator == 0) {
+            fraction.numerator = 1;
+            fraction.denominator = 1;
+        }
         return true;
     };
     return false;
@@ -2956,7 +2961,7 @@ void CRmtView::OnWantExit() // Called from the menu File/Exit ID_WANTEXIT instea
     g_closeApplication = 1;
     g_Song.StopTimer();
     WriteRMTConfig();		// Save the current configuration 
-    WriteTuningConfig();	// Save the current Tuning parameters 
+    WriteTuningConfig();	// Save the current tuning parameters 
     AfxGetApp()->GetMainWnd()->PostMessage(WM_CLOSE, 0, 0);
 }
 

@@ -365,8 +365,7 @@ int CSong::MakeTuningBlock(unsigned char* mem, int addr)
 
 void CSong::ResetTuningVariables()
 {
-    // reset all tuning variables 
-    //g_ntsc = 0;		//PAL region
+    // Reset all tuning variables 
     g_tuning.Initialize(g_ntsc);
     g_tuningRatios.Initialize();
 }
