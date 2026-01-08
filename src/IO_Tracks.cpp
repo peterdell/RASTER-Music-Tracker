@@ -19,7 +19,7 @@
 }
 
 
-int CTracks::SaveTrack(int track, std::ofstream& ou, int iotype)
+int CTracks::SaveTrack(int track, std::ofstream& ou, IOType iotype)
 {
 	TTrack* at = GetTrack(track);
 	if (!at) return 0;
@@ -28,7 +28,7 @@ int CTracks::SaveTrack(int track, std::ofstream& ou, int iotype)
 
 	switch (iotype)
 	{
-	case IOTYPE_RMW:
+	case IOType::IOTYPE_RMW:
 		ou.write((char*)&at->len, sizeof(at->len));
 		ou.write((char*)&at->go, sizeof(at->go));
 		for (int i = 0; i < m_maxTrackLength; i++) ou.write((char*)&at->note[i], 1);
@@ -37,7 +37,7 @@ int CTracks::SaveTrack(int track, std::ofstream& ou, int iotype)
 		for (int i = 0; i < m_maxTrackLength; i++) ou.write((char*)&at->speed[i], 1);
 		return 1;
 
-	case IOTYPE_TXT:
+	case IOType::IOTYPE_TXT:
 		s.Format("[TRACK]\n");	// Track text header
 		s.AppendFormat(!IsValidTrack(track) ? "--  " : "%02X  ", track);
 		s.AppendFormat(!IsValidLength(at->len) ? "--" : "%02X", at->len);
@@ -58,7 +58,7 @@ int CTracks::SaveTrack(int track, std::ofstream& ou, int iotype)
 	return 0;
 }
 
-int CTracks::LoadTrack(int track, std::ifstream& in, int iotype)
+int CTracks::LoadTrack(int track, std::ifstream& in, IOType iotype)
 {
 	TTrack* at;
 	int idx = 0;
@@ -68,7 +68,7 @@ int CTracks::LoadTrack(int track, std::ifstream& in, int iotype)
 
 	switch (iotype)
 	{
-	case IOTYPE_RMW:
+	case IOType::IOTYPE_RMW:
 		if (at = GetTrack(track))
 		{
 			ClearTrack(track);	// Clear before filling with data
@@ -82,7 +82,7 @@ int CTracks::LoadTrack(int track, std::ifstream& in, int iotype)
 		}
 		break;
 
-	case IOTYPE_TXT:
+	case IOType::IOTYPE_TXT:
 		memset(line, 0, 16);
 		in.getline(line, 1024); // The first line of the track
 
@@ -167,11 +167,11 @@ int CTracks::LoadTrack(int track, std::ifstream& in, int iotype)
 	return 0;
 }
 
-int CTracks::SaveAll(std::ofstream& ou, int iotype)
+int CTracks::SaveAll(std::ofstream& ou, IOType iotype)
 {
 	switch (iotype)
 	{
-		case IOTYPE_RMW:
+		case IOType::IOTYPE_RMW:
 		{
 			ou.write((char*)&m_maxTrackLength, sizeof(m_maxTrackLength));
 			for (int i = 0; i < TRACKSNUM; i++)
@@ -181,7 +181,7 @@ int CTracks::SaveAll(std::ofstream& ou, int iotype)
 		}
 		break;
 
-		case IOTYPE_TXT:
+		case IOType::IOTYPE_TXT:
 		{
 			for (int i = 0; i < TRACKSNUM; i++)
 			{
@@ -195,7 +195,7 @@ int CTracks::SaveAll(std::ofstream& ou, int iotype)
 }
 
 
-int CTracks::LoadAll(std::ifstream& in, int iotype)
+int CTracks::LoadAll(std::ifstream& in, IOType iotype)
 {
 	InitTracks();
 

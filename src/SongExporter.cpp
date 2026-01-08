@@ -310,7 +310,7 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
 
     // Load VUPlayerLZSS to memory
     MemoryAddress addressFrom, addressTo;
-    CAtari::LoadOBX(IOTYPE_LZSS_XEX, mem, addressFrom, addressTo);
+    CAtari::LoadOBX(IOType::IOTYPE_LZSS_XEX, mem, addressFrom, addressTo);
 
 
     // LZSS buffers for each ones of the tune parts being reconstructed.

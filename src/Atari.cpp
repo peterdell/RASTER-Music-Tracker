@@ -47,14 +47,14 @@ byte CAtari::GetByteAt(const MemoryAddress address) {
 }
 
 // Load an Atari executable to memory
-int CAtari::LoadOBX(int obx, unsigned char* mem, WORD& minadr, WORD& maxadr)
+int CAtari::LoadOBX(IOType obx, unsigned char* mem, WORD& minadr, WORD& maxadr)
 {
     WORD size;
     byte* bin;
 
     switch (obx)
     {
-    case IOTYPE_LZSS_XEX:
+    case IOType::IOTYPE_LZSS_XEX:
         if (!CRmtAtariBinaries::GetVUPlayerBinary(bin, size)) {
             return 0;
         }

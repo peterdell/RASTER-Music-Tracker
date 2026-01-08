@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "General.h"
+
 #include "tracker_obx.h"				// The ASM generated C header file
 
 //bass16bit low byte, bass 0C, bass 0E, clean tones 0A and 0,2,4,8, bass16bit hi byte, this might require different addresses? What is this even used for anyway?
@@ -53,7 +55,7 @@ public:
     static void ClearMemory();
     static byte GetByteAt(const MemoryAddress address);
 
-    static int LoadOBX(int obx, unsigned char* mem, WORD& minadr, WORD& maxadr);
+    static int LoadOBX(IOType obx, unsigned char* mem, WORD& minadr, WORD& maxadr);
 
     static int LoadRMTRoutines();
     static int InitRMTRoutine();

@@ -7,22 +7,22 @@
 
 #include "Instruments.h"
 
-#include "global.h"
+#include "Global.h"
 
 #include "GuiHelpers.h"
 
 
-int CInstruments::SaveAll(std::ofstream& ou, int iotype)
+int CInstruments::SaveAll(std::ofstream& ou, InstrumentIOType iotype)
 {
 	for (int i = 0; i < INSTRSNUM; i++)
 	{
-		if (iotype == IOINSTR_TXT && !CalculateNotEmpty(i)) continue; //to TXT only non-empty instruments
+		if (iotype == InstrumentIOType::IOINSTR_TXT && !CalculateNotEmpty(i)) continue; //to TXT only non-empty instruments
 		SaveInstrument(i, ou, iotype);	//,IOINSTR_RMW);
 	}
 	return 1;
 }
 
-int CInstruments::LoadAll(std::ifstream& in, int iotype)
+int CInstruments::LoadAll(std::ifstream& in, InstrumentIOType iotype)
 {
 	for (int i = 0; i < INSTRSNUM; i++)
 	{
@@ -32,7 +32,7 @@ int CInstruments::LoadAll(std::ifstream& in, int iotype)
 	return 1;
 }
 
-int CInstruments::SaveInstrument(int instr, std::ofstream& ou, int iotype)
+int CInstruments::SaveInstrument(int instr, std::ofstream& ou, InstrumentIOType iotype)
 {
 	TInstrument* ai = GetInstrument(instr);
 
@@ -40,7 +40,7 @@ int CInstruments::SaveInstrument(int instr, std::ofstream& ou, int iotype)
 
 	switch (iotype)
 	{
-		case IOINSTR_RTI:
+		case InstrumentIOType::IOINSTR_RTI:
 		{
 			//RTI file
 			static char head[4] = "RTI";
@@ -54,7 +54,7 @@ int CInstruments::SaveInstrument(int instr, std::ofstream& ou, int iotype)
 		}
 		break;
 
-		case IOINSTR_RMW:
+		case InstrumentIOType::IOINSTR_RMW:
 			//instrument name
 			ou.write(ai->name, sizeof(ai->name));
 
@@ -85,7 +85,7 @@ int CInstruments::SaveInstrument(int instr, std::ofstream& ou, int iotype)
 			ou.write((char*)&ai->volume, sizeof(ai->volume));
 			break;
 
-		case IOINSTR_TXT:
+		case InstrumentIOType::IOINSTR_TXT:
 			//TXT file
 			CString s, nambf;
 			nambf = ai->name;
@@ -124,11 +124,11 @@ int CInstruments::SaveInstrument(int instr, std::ofstream& ou, int iotype)
 	return 1;
 }
 
-int CInstruments::LoadInstrument(int instr, std::ifstream& in, int iotype)
+int CInstruments::LoadInstrument(int instr, std::ifstream& in, InstrumentIOType iotype)
 {
 	switch (iotype)
 	{
-		case IOINSTR_RTI:
+		case InstrumentIOType::IOINSTR_RTI:
 		{
 			//RTI
 			if (instr < 0 || instr >= INSTRSNUM) return 0;
@@ -159,7 +159,7 @@ int CInstruments::LoadInstrument(int instr, std::ifstream& in, int iotype)
 		}
 		break;
 
-		case IOINSTR_RMW:
+		case InstrumentIOType::IOINSTR_RMW:
 		{
 			//RMW
 			if (instr < 0 || instr >= INSTRSNUM) return 0;
@@ -199,7 +199,7 @@ int CInstruments::LoadInstrument(int instr, std::ifstream& in, int iotype)
 		}
 		break;
 
-		case IOINSTR_TXT:
+		case InstrumentIOType::IOINSTR_TXT:
 		{
 			char a;
 			char b;

@@ -118,11 +118,11 @@ public:
     // IO
     void WasModified(int it);
 
-    int SaveAll(std::ofstream& ou, int iotype);
-    int LoadAll(std::ifstream& in, int iotype);
+    int SaveAll(std::ofstream& ou, InstrumentIOType iotype);
+    int LoadAll(std::ifstream& in, InstrumentIOType iotype);
 
-    int SaveInstrument(int instr, std::ofstream& ou, int iotype);
-    int LoadInstrument(int instr, std::ifstream& in, int iotype);
+    int SaveInstrument(int instr, std::ofstream& ou, InstrumentIOType iotype);
+    int LoadInstrument(int instr, std::ifstream& in, InstrumentIOType iotype);
 
     BYTE InstrToAta(int instr, unsigned char* ata, int max);
     BYTE InstrToAtaRMF(int instr, unsigned char* ata, int max);

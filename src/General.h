@@ -149,30 +149,34 @@ enum PlayMode : int {
 
 };
 
-#define IOTYPE_NONE			0			// No export has been done yet
-#define IOTYPE_RMT			1
-#define IOTYPE_RMW			2
-#define IOTYPE_RMTSTRIPPED	3
-#define IOTYPE_SAP			4
-#define IOTYPE_XEX			5			// Not used anymore? Old RMT 1.28 XEX export is disabled?
-#define IOTYPE_TXT			6
-#define IOTYPE_ASM			7
-#define IOTYPE_RMF			8
-#define IOTYPE_ASM_RMTPLAYER 9
+enum class IOType: int {
+    IOTYPE_NONE = 0,			// No export has been done yet
+    IOTYPE_RMT = 1,
+    IOTYPE_RMW = 2,
+    IOTYPE_RMTSTRIPPED = 3,
+    IOTYPE_SAP = 4,
+    IOTYPE_XEX = 5,		// Not used anymore? Old RMT 1.28 XEX export is disabled?
+    IOTYPE_TXT = 6,
+    IOTYPE_ASM = 7,
+    IOTYPE_RMF = 8,
+    IOTYPE_ASM_RMTPLAYER = 9,
 
-#define IOTYPE_SAPR			10
-#define IOTYPE_LZSS			11
-#define IOTYPE_LZSS_SAP		12
-#define IOTYPE_LZSS_XEX		13
+    IOTYPE_SAPR = 10,
+    IOTYPE_LZSS = 11,
+    IOTYPE_LZSS_SAP = 12,
+    IOTYPE_LZSS_XEX = 13,
 
-#define IOTYPE_WAV			20
+    IOTYPE_WAV = 20,
 
-#define IOTYPE_TMC			101		// import TMC
+    IOTYPE_TMC = 101		// import TMC
+};
 
-#define IOINSTR_RTI			1		// corresponding IOTYPE_RMT
-#define IOINSTR_RMW			2		// corresponding IOTYPE_RMW
-#define IOINSTR_TXT			6		// corresponding IOTYPE_TXT
 
+enum class InstrumentIOType: int {
+    IOINSTR_RTI = 1,	// corresponding IOTYPE_RMT
+    IOINSTR_RMW = 2,	// corresponding IOTYPE_RMW
+    IOINSTR_TXT = 6		// corresponding IOTYPE_TXT
+};
 
 enum AssemblerFormat : int
 {
