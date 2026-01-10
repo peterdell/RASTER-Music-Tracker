@@ -491,6 +491,12 @@
     <ClInclude Include="SongTypes.h">
       <Filter>Source Files\Model</Filter>
     </ClInclude>
+    <ClInclude Include="TrackTypes.h">
+      <Filter>Source Files\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="TracksTypes.h">
+      <Filter>Source Files\Model</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\Rmt.ico">

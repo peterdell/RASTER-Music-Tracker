@@ -28,7 +28,7 @@ void CTracks::InitTracks()
     }
 }
 
-void CTracks::ClearTrack(int track)
+void CTracks::ClearTrack(TrackNumber track)
 {
     TTrack* tr = GetTrack(track);
     if (!tr) return;
@@ -40,7 +40,7 @@ void CTracks::ClearTrack(int track)
     tr->len = m_maxTrackLength;
 }
 
-BOOL CTracks::IsEmptyTrack(int track) const
+BOOL CTracks::IsEmptyTrack(TrackNumber track) const
 {
     auto tr = GetConstTrack(track);
     if (!tr) { return 0; }
@@ -58,7 +58,7 @@ BOOL CTracks::IsEmptyTrack(int track) const
     return 1;
 }
 
-BOOL CTracks::DelNoteInstrVolSpeed(int noteinstrvolspeed, int track, int line)
+BOOL CTracks::DelNoteInstrVolSpeed(int noteinstrvolspeed, TrackNumber track, int line)
 {
     TTrack* tr = GetTrack(track);
     if (!tr) return 0;
@@ -80,7 +80,7 @@ BOOL CTracks::DelNoteInstrVolSpeed(int noteinstrvolspeed, int track, int line)
     return 0;
 }
 
-BOOL CTracks::SetNoteInstrVol(int note, int instr, int vol, int track, int line)
+BOOL CTracks::SetNoteInstrVol(int note, int instr, int vol, TrackNumber track, int line)
 {
     TTrack* tr = GetTrack(track);
     if (!tr) return 0;
@@ -105,7 +105,7 @@ BOOL CTracks::SetNoteInstrVol(int note, int instr, int vol, int track, int line)
     return 0;
 }
 
-BOOL CTracks::SetInstr(int instr, int track, int line)
+BOOL CTracks::SetInstr(int instr, TrackNumber track, int line)
 {
     TTrack* tr = GetTrack(track);
     if (!tr) return 0;
@@ -124,7 +124,7 @@ BOOL CTracks::SetInstr(int instr, int track, int line)
     return 0;
 }
 
-BOOL CTracks::SetVol(int vol, int track, int line)
+BOOL CTracks::SetVol(int vol, TrackNumber track, int line)
 {
     TTrack* tr = GetTrack(track);
     if (!tr) return 0;
@@ -143,7 +143,7 @@ BOOL CTracks::SetVol(int vol, int track, int line)
     return 0;
 }
 
-BOOL CTracks::SetSpeed(int speed, int track, int line)
+BOOL CTracks::SetSpeed(int speed, TrackNumber track, int line)
 {
     TTrack* tr = GetTrack(track);
     if (!tr) return 0;
@@ -162,7 +162,7 @@ BOOL CTracks::SetSpeed(int speed, int track, int line)
     return 0;
 }
 
-BOOL CTracks::SetEnd(int track, int line)
+BOOL CTracks::SetEnd(TrackNumber track, int line)
 {
     TTrack* tr = GetTrack(track);
     if (!tr) return 0;
@@ -176,20 +176,20 @@ BOOL CTracks::SetEnd(int track, int line)
     return 1;
 }
 
-int CTracks::GetLastLine(int track) const
+int CTracks::GetLastLine(TrackNumber track) const
 {
     auto tr = GetConstTrack(track);
     return (tr) ? tr->len - 1 : -1;
 }
 
-int CTracks::GetLength(int track) const
+int CTracks::GetLength(TrackNumber track) const
 {
     auto tr = GetConstTrack(track);
     if (!tr) return -1;
     return tr->go >= 0 ? m_maxTrackLength : tr->len;
 }
 
-BOOL CTracks::SetGo(int track, int line)
+BOOL CTracks::SetGo(TrackNumber track, int line)
 {
     TTrack* tr = GetTrack(track);
     if (!tr) return 0;
@@ -199,14 +199,14 @@ BOOL CTracks::SetGo(int track, int line)
     return 1;
 }
 
-int CTracks::GetGoLine(int track)  const
+int CTracks::GetGoLine(TrackNumber track)  const
 {
     auto tr = GetConstTrack(track);
     if (!tr) return 0;
     return (track >= 0) ? tr->go : -1;
 }
 
-BOOL CTracks::InsertLine(int track, int line)
+BOOL CTracks::InsertLine(TrackNumber track, int line)
 {
     TTrack* tr = GetTrack(track);
     if (!tr) return 0;
@@ -225,7 +225,7 @@ BOOL CTracks::InsertLine(int track, int line)
     return 1;
 }
 
-BOOL CTracks::DeleteLine(int track, int line)
+BOOL CTracks::DeleteLine(TrackNumber track, int line)
 {
     TTrack* tr = GetTrack(track);
     if (!tr) return 0;
@@ -251,7 +251,7 @@ BOOL CTracks::DeleteLine(int track, int line)
 /// </summary>
 /// <param name="track">Which track is being checked</param>
 /// <returns>TRUE if the track is NOT empty, FALSE is there is nothing set on it</returns>
-BOOL CTracks::CalculateNotEmpty(int trackNr)
+BOOL CTracks::CalculateNotEmpty(TrackNumber trackNr)
 {
     // Get the track data
     TTrack* tr = GetTrack(trackNr);
@@ -274,7 +274,7 @@ BOOL CTracks::CalculateNotEmpty(int trackNr)
     return 0;	// Is empty
 }
 
-BOOL CTracks::CompareTracks(int track1, int track2) const
+BOOL CTracks::CompareTracks(TrackNumber track1, TrackNumber track2) const
 {
     // If one of the tracks is invalid, bail out of this function
     auto t1 = GetConstTrack(track1);
@@ -294,7 +294,7 @@ BOOL CTracks::CompareTracks(int track1, int track2) const
     return 1;	// Did not find a difference => they are the same
 }
 
-int CTracks::TrackOptimizeVol0(int track)
+int CTracks::TrackOptimizeVol0(TrackNumber track)
 {
     TTrack* tr = GetTrack(track);
     if (!tr) return 0;
@@ -332,7 +332,7 @@ int CTracks::TrackOptimizeVol0(int track)
     return 1;
 }
 
-int CTracks::TrackBuildLoop(int track)
+int CTracks::TrackBuildLoop(TrackNumber track)
 {
     if (IsEmptyTrack(track)) return 0;	// Empty track
 
@@ -380,7 +380,7 @@ int CTracks::TrackBuildLoop(int track)
     return 0;
 }
 
-int CTracks::TrackExpandLoop(int track)
+int CTracks::TrackExpandLoop(TrackNumber track)
 {
     if (IsEmptyTrack(track)) return 0;	// Empty track
 

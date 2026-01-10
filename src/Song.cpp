@@ -518,7 +518,7 @@ int CSong::MakeModule(unsigned char* mem, int addr, SongIOType iotype, BYTE* ins
         if (instrumentSavedFlags[i])
         {
             // Create instrument data
-            int thisInstrumentLength = g_Instruments.InstrToAta(i, mem + ptrInstrumentData, MAXATAINSTRLEN);
+            int thisInstrumentLength = g_Instruments.InstrToAta(i, mem + ptrInstrumentData, ATARI_MAX_INSTR_LENGTH);
 
             // Save where the instrument data is to be found
             mem[ptrInstruments + i * 2] = ptrInstrumentData & 0xff;	// lo byte
@@ -545,7 +545,7 @@ int CSong::MakeModule(unsigned char* mem, int addr, SongIOType iotype, BYTE* ins
         if (trackSavedFlags[i])
         {
             // Create the track data
-            int thisTrackLength = g_Tracks.TrackToAta(i, mem + ptrTrackData, MAXATATRACKLEN);
+            int thisTrackLength = g_Tracks.TrackToAta(i, mem + ptrTrackData, ATARI_MAX_TRACK_LENGTH);
 
             // Check that the track data is valid
             if (thisTrackLength < 1)
@@ -688,7 +688,7 @@ int CSong::MakeRMFModule(unsigned char* mem, int adr, BYTE* instrsaved, BYTE* tr
     {
         if (instrsave[i])
         {
-            int leninstr = g_Instruments.InstrToAtaRMF(i, meminstruments + adrinstrdata, MAXATAINSTRLEN);
+            int leninstr = g_Instruments.InstrToAtaRMF(i, meminstruments + adrinstrdata, ATARI_MAX_INSTR_LENGTH);
             meminstruments[i * 2] = adrinstrdata & 0xff;	//dbyte
             meminstruments[i * 2 + 1] = adrinstrdata >> 8;	//hbyte
             adrinstrdata += leninstr;
@@ -715,7 +715,7 @@ int CSong::MakeRMFModule(unsigned char* mem, int adr, BYTE* instrsaved, BYTE* tr
     {
         if (tracksave[i])
         {
-            int lentrack = g_Tracks.TrackToAtaRMF(i, memtracks + adrtrackdata, MAXATATRACKLEN);
+            int lentrack = g_Tracks.TrackToAtaRMF(i, memtracks + adrtrackdata, ATARI_MAX_TRACK_LENGTH);
             if (lentrack < 1)
             {	//cannot be saved to RMT
                 CString msg;

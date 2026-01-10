@@ -1,6 +1,10 @@
 #pragma once
 
 #include "InstrumentTypes.h"
+#include "TracksTypes.h"
+#include "TrackTypes.h"
+
+
 
 // ----------------------------------------------------------------------------
 // RMT file format
@@ -13,17 +17,12 @@ enum RMTFormatVersion : byte {
     V2 = 2
 };
 
-#define TRACKLEN	256			//driver 128
-#define TRACKSNUM	254			//0-253
 #define SONGLEN		256
 #define SONGTRACKS	8
 #define MAXVOLUME	15			//maximum volume
 
-#define TRACKMAXSPEED	256		//maximum speed values, highest the slowest
-
-#define MAXATAINSTRLEN	256		//16+(ENVCOLS*3)	//atari instrument has a maximum of 16 parameters + 32 * 3 bytes envelope
-#define MAXATATRACKLEN	256		//atari track has maximum 256 bytes (track index is 0-255)
-#define MAXATASONGLEN	SONGTRACKS*SONGLEN	//maximum data size atari song part
+static constexpr int ATARI_MAX_INSTR_LENGTH = 256;		// 16+(ENVCOLS*3)	//atari instrument has a maximum of 16 parameters + 32 * 3 bytes envelope
+static constexpr int ATARI_MAX_TRACK_LENGTH = 256;		// Atari track has maximum 256 bytes (track index is 0-255)
 
 static constexpr int SONG_NAME_MAX_LEN = 64;	// maximum length of song name
 typedef char SongName[SONG_NAME_MAX_LEN + 1];

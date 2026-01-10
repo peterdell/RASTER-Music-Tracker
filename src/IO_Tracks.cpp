@@ -19,7 +19,7 @@
 }
 
 
-int CTracks::SaveTrack(int track, std::ofstream& ou, SongIOType iotype)
+int CTracks::SaveTrack(TrackNumber track, std::ofstream& ou, SongIOType iotype)
 {
 	TTrack* at = GetTrack(track);
 	if (!at) return 0;
@@ -58,7 +58,7 @@ int CTracks::SaveTrack(int track, std::ofstream& ou, SongIOType iotype)
 	return 0;
 }
 
-int CTracks::LoadTrack(int track, std::ifstream& in, SongIOType iotype)
+int CTracks::LoadTrack(TrackNumber track, std::ifstream& in, SongIOType iotype)
 {
 	TTrack* at;
 	int idx = 0;
@@ -208,10 +208,10 @@ int CTracks::LoadAll(std::ifstream& in, SongIOType iotype)
 	return 1;
 }
 
-int CTracks::TrackToAta(int trackNr, unsigned char* dest, int max) const
+int CTracks::TrackToAta(TrackNumber track, unsigned char* dest, int max) const
 {
 	// Get the data that describes the track
-	auto tr = GetConstTrack(trackNr);
+	auto tr = GetConstTrack(track);
 	if (!tr) return 0;
 
 	int note, instr, volume, speed;
@@ -321,7 +321,7 @@ int CTracks::TrackToAta(int trackNr, unsigned char* dest, int max) const
 	return idx;
 }
 
-int CTracks::TrackToAtaRMF(int trackNr, unsigned char* dest, int max) const
+int CTracks::TrackToAtaRMF(TrackNumber trackNr, unsigned char* dest, int max) const
 {
 	auto tr = GetConstTrack(trackNr);
 	if (!tr) return 0;
@@ -421,7 +421,7 @@ int CTracks::TrackToAtaRMF(int trackNr, unsigned char* dest, int max) const
 /// <param name="trackLength">Length of the track</param>
 /// <param name="trackNr">Which track number is being worked on</param>
 /// <returns></returns>
-BOOL CTracks::AtaToTrack(unsigned char* mem, int trackLength, int trackNr)
+BOOL CTracks::AtaToTrack(unsigned char* mem, int trackLength, TrackNumber trackNr)
 {
 	TTrack* tr = GetTrack(trackNr);
 	if (!tr) return 0;
