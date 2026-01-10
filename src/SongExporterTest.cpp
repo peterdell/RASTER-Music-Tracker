@@ -11,7 +11,7 @@
 #include "Global.h"
 
 extern CXPokey g_Pokey;
-extern byte g_atarimem[ATARI_RAM_SIZE];
+extern byte* g_atarimem;
 
 
 

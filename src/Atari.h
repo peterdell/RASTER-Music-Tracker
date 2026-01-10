@@ -32,7 +32,7 @@ class CAtari {
 
 
 public:
-
+    static constexpr size_t ATARI_RAM_SIZE = 0x10000;
 
     //maximum clock count for the entire screen in PAL (default) and NTSC region
     typedef int CycleCount;
@@ -68,6 +68,10 @@ public:
     void JSR(C6502::Address& adr, C6502::Register& a, C6502::Register& x, C6502::Register& y, C6502::CycleCount& cycles);
 
 private:
+
+    byte m_atarimem[ATARI_RAM_SIZE];
+    char m_debugmem[ATARI_RAM_SIZE];	//debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
+
     BOOL m_ntsc;
 
 };

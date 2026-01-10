@@ -42,7 +42,7 @@ void CAtari::JSR(C6502::Address& adr, C6502::Register& a, C6502::Register& x, C6
 }
 
 int CAtari::Init() {
-    return C6502::Init();
+    return C6502::Init(m_atarimem);
 }
 
 void CAtari::DeInit() {
@@ -51,23 +51,23 @@ void CAtari::DeInit() {
 
 void CAtari::ClearMemory()
 {
-    memset(g_atarimem, 0, RAM_SIZE);
+    memset(m_atarimem, 0, RAM_SIZE);
 }
 
 byte CAtari::GetByteAt(const MemoryAddress address) {
-    return g_atarimem[address];
+    return m_atarimem[address];
 }
 
 void CAtari::SetByteAt(const MemoryAddress address, const byte value) {
-    g_atarimem[address] = value;
+    m_atarimem[address] = value;
 }
 
 byte* CAtari::GetMemoryAt(const MemoryAddress address) {
-    return g_atarimem + address;
+    return m_atarimem + address;
 }
 
 const byte* CAtari::GetConstMemoryAt(const MemoryAddress address) const {
-    return g_atarimem + address;
+    return m_atarimem + address;
 }
 
 BOOL CAtari::IsNTSC() const {

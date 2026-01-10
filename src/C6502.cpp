@@ -20,12 +20,9 @@ HINSTANCE g_c6502_dll = NULL;
 BOOL volatile g_is6502 = FALSE;
 CString g_about6502;
 
-extern byte g_atarimem[];
-
 extern HWND g_hwnd;
 
-
-int C6502::Init()
+int C6502::Init(byte* memory)
 {
     if (g_c6502_dll) { DeInit(); }//just in case
 
@@ -63,7 +60,7 @@ int C6502::Init()
         g_about6502.Format("%s\n%s\n%s", name, author, description);
     }
 
-    SA_C6502_Initialise(g_atarimem);
+    SA_C6502_Initialise(memory);
 
     g_is6502 = 1;
 

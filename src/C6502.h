@@ -21,7 +21,7 @@ public:
     typedef int CycleCount;
     typedef int ClockFrequency;
 
-    static int Init();
+    static int Init(byte* memory);
     static void DeInit();
 
     // The cycles parameter, is the maximum number of cycles to run. The method call reduces this value by the number of cycles actually run before RTS.
