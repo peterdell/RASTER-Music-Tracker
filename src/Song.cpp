@@ -455,7 +455,7 @@ int CSong::MakeModule(unsigned char* mem, int addr, SongIOType iotype, BYTE* ins
     mem[addr + 4] = g_Tracks.GetMaxTrackLength() & 0xff;
     mem[addr + 5] = m_mainSpeed & 0xff;
     mem[addr + 6] = m_instrumentSpeed;			// 1-4 player calls per frame
-    mem[addr + 7] = RMTFORMATVERSION;			// RMT format version number
+    mem[addr + 7] = RMTFormatVersion::V1;			// RMT format version number
 
     // Note:
     // When saving in RMT format ALL non-empty tracks and non-empty instruments will be stored
@@ -843,7 +843,12 @@ int CSong::DecodeModule(unsigned char* mem, int fromAddr, int endAddr, BYTE* ins
 
     // 8th byte: RMT format version nr.
     int version = mem[addr + 7];
-    if (version > RMTFORMATVERSION)	return 0;	//the byte version is above the current one
+    // TODO: Make "case" and support V2
+    if (version > RMTFormatVersion::V1)
+    {
+        // the byte version is above the currently supported one
+        return 0;
+    }
 
     // Now g_Tracks.m_maxTrackLength is set to the value in the RMT header, 
     // so re-initialize the tracks to set all tracks to this new length

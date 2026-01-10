@@ -6,7 +6,13 @@
 // RMT file format
 // TODO Make constexpr
 //
-#define RMTFORMATVERSION	1	//the version number that is saved into modules, highest means more recent
+
+// The version number that is saved into modules, highest means more recent
+enum RMTFormatVersion : byte {
+    V1 = 1,
+    V2 = 2
+};
+
 #define TRACKLEN	256			//drive 128
 #define TRACKSNUM	254			//0-253
 #define SONGLEN		256
