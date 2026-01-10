@@ -4,7 +4,7 @@
 // reworked by VinsCool, 2021-2022
 //
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "RmtDoc.h"
 #include <chrono>
 #include "Clipboard.h"

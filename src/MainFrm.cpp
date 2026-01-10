@@ -3,7 +3,7 @@
 // reworked by VinsCool, 2021-2022
 //
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "MainFrm.h"
 #include "RmtView.h"
 #include "Song.h"

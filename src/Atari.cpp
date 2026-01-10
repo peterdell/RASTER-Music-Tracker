@@ -5,7 +5,7 @@
     Reworked by VinsCool, 2021-2022
 */
 
-#include "stdafx.h"
+#include "StdAfx.h"
 
 #include "Atari.h"
 #include "AtariIO.h"

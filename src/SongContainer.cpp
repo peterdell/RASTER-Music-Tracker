@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "SongContainer.h"
 
 #include "GuiHelpers.h"

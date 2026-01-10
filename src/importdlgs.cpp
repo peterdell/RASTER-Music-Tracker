@@ -1,7 +1,7 @@
 // importdlgs.cpp : implementation file
 //
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "Rmt.h"
 #include "importdlgs.h"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stdafx.h"
+#include "StdAfx.h"
 
 
 class CRmtCommandLineInfo : public CCommandLineInfo

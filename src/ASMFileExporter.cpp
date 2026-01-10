@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "ASMFile.h"
 #include "ASMFileExporter.h"
 #include "ExportDlgs.h"

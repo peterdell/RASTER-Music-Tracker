@@ -1,6 +1,6 @@
 #include "C6502.h"
 
-#include "stdafx.h"
+#include "StdAfx.h"
 
 //#include "Global.h" // TODO Get rid of this
 

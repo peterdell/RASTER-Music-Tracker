@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "General.h"
 
 #define bits_literal (1+8)                      // Number of bits for encoding a literal

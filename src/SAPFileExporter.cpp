@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "SAPFileExporter.h"
 #include "Memory.h"
 #include "lzss_sap.h"

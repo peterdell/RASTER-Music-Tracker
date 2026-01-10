@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "PokeyRederer.h"
 #include "RmtMidi.h"
 #include "Clipboard.h"

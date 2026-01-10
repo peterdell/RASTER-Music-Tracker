@@ -2,7 +2,7 @@
 	MIDI IN support
 */
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "Rmt.h"
 #include "RmtDoc.h"
 #include "RmtView.h"

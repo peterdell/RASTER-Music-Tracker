@@ -1,7 +1,7 @@
 // ExportDlgs.cpp : implementation file
 //
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "Song.h"
 #include "ExportDlgs.h"
 #include "General.h"

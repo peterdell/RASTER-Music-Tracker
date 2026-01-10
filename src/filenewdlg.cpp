@@ -1,7 +1,7 @@
 // FileNewDlg.cpp : implementation file
 //
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "SongTypes.h"
 #include "FileNewDlg.h"
 
