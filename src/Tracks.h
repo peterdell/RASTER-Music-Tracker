@@ -22,8 +22,6 @@ struct TTracksAll	//for undo
     TTrack tracks[TRACKSNUM];
 };
 
-extern const char* notes[];
-extern const char* notesandscales[5][40];
 
 class CTracks
 {

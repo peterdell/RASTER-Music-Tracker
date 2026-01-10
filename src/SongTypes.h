@@ -13,7 +13,7 @@ enum RMTFormatVersion : byte {
     V2 = 2
 };
 
-#define TRACKLEN	256			//drive 128
+#define TRACKLEN	256			//driver 128
 #define TRACKSNUM	254			//0-253
 #define SONGLEN		256
 #define SONGTRACKS	8

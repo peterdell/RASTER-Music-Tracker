@@ -6,6 +6,7 @@
 
 #include "Global.h"
 
+
 CTracks::CTracks()
 {
     m_maxTrackLength = 64;			// Default value
