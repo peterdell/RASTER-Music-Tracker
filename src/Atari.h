@@ -6,6 +6,9 @@
 
 #pragma once
 #include "Memory.h"
+
+#include "C6502.h"
+
 #include "tracker_obx.h"				// The ASM generated C header file
 
 // bass16bit low byte, bass 0C, bass 0E, clean tones 0A and 0,2,4,8, bass16bit hi byte, this might require different addresses? What is this even used for anyway?
@@ -46,12 +49,20 @@ public:
 
     static ClockFrequency GetClockFrequency(boolean ntsc);
 
+    CAtari();
+    ~CAtari();
+
     int Init();
     void DeInit();
 
     void ClearMemory();
     byte GetByteAt(const MemoryAddress address);
+    void SetByteAt(const MemoryAddress address, const byte value);
     byte* GetMemoryAt(const MemoryAddress address);
+    const byte* GetConstMemoryAt(const MemoryAddress address) const;
+
+    CycleCount GetFrameCycleCount() const;
+    void JSR(C6502::Address& adr, C6502::Register& a, C6502::Register& x, C6502::Register& y, C6502::CycleCount& cycles);
 
     int LoadRMTRoutines();
     int InitRMTRoutine(); // Without changing the NTSC/PAL flag
@@ -61,8 +72,6 @@ public:
     void Silence();
     void SetTrack_NoteInstrVolume(int t, int n, int i, int v);
     void SetTrack_Volume(int t, int v);
-    void InstrumentTurnOff(int instr);
-
 
 private:
     BOOL m_ntsc;
@@ -73,6 +82,9 @@ class CAtariRMTPlayer {
 
 public:
     CAtariRMTPlayer(CAtari& atari);
+
+    CAtari* GetAtari();
+    void InstrumentTurnOff(int instr);
 
 private:
     CAtari* m_atari;

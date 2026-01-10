@@ -31,6 +31,18 @@ CAtari::ClockFrequency CAtari::GetClockFrequency(boolean ntsc) {
 
 }
 
+CAtari::CAtari() {
+    ClearMemory();
+}
+
+CAtari::~CAtari() {
+    // TODO: Free memory
+}
+
+void CAtari::JSR(C6502::Address& adr, C6502::Register& a, C6502::Register& x, C6502::Register& y, C6502::CycleCount& cycles) {
+    C6502::JSR(adr, a, x, y, cycles);
+}
+
 int CAtari::Init() {
     return C6502::Init();
 }
@@ -48,16 +60,25 @@ byte CAtari::GetByteAt(const MemoryAddress address) {
     return g_atarimem[address];
 }
 
-byte* GetMemoryAt(const MemoryAddress address) {
+void CAtari::SetByteAt(const MemoryAddress address, const byte value) {
+    g_atarimem[address] = value;
+}
+
+byte* CAtari::GetMemoryAt(const MemoryAddress address) {
     return g_atarimem + address;
 }
 
+const byte* CAtari::GetConstMemoryAt(const MemoryAddress address) const {
+    return g_atarimem + address;
+}
 
+CAtari::CycleCount CAtari::GetFrameCycleCount() const {
+    return GetFrameCycleCount(m_ntsc);
+}
 
 CAtariRMTPlayer::CAtariRMTPlayer(CAtari& atari) {
     m_atari = &atari;
 }
-
 
 // Load RMT routine to $3400, setnoteinstrvol to $3d00, and setvol to $3e00
 int CAtari::LoadRMTRoutines()
@@ -167,21 +188,22 @@ void CAtari::SetTrack_Volume(int t, int v)
     C6502::JSR(adr, a, x, y, cycles);
 }
 
-void CAtari::InstrumentTurnOff(int instr)
-{
-    if (!g_is6502) {
-        return;
-    }
+CAtari* CAtariRMTPlayer::GetAtari(){
+    return m_atari;
 
-    auto cycles = GetFrameCycleCount(m_ntsc);
+}
+void CAtariRMTPlayer::InstrumentTurnOff(int instr)
+{
+    auto cycles = m_atari->GetFrameCycleCount();
     for (int i = 0; i < SONGTRACKS; i++)
     {
+        // Does this POKEY chanlle have the instrument assigned?
         if (g_rmtinstr[i] == instr)
         {
-            WORD adr = RMT_ATA_INSTROFF;
+            auto adr = RMT_ATA_INSTROFF;
             BYTE a = 0, x = i, y = 0;
-            C6502::JSR(adr, a, x, y, cycles);
-            g_atarimem[0xd200 + i * 2 + 1 + (i >= 4) * 16] = 0;		//resets POKEY audctl memory
+            m_atari->JSR(adr, a, x, y, cycles);
+            m_atari->SetByteAt(0xd200 + i * 2 + 1 + (i >= 4) * 16, 0); // Reset POKEY AUDCx memory
             g_rmtinstr[i] = -1;
         }
     }

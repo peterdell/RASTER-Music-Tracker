@@ -22,7 +22,7 @@
 #include "PokeyStream.h"
 #include "SongExporter.h"
 
-extern CSong g_Song;
+extern CAtariRMTPlayer* g_AtariRMTPlayer;
 
 extern CInstruments g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
@@ -33,10 +33,6 @@ extern CString g_PrefixForAllAsmLabels;
 extern int g_tracks4_8;
 
 CSongTimer g_SongTimer;
-
-// ----------------------------------------------------------------------------
-
-
 
 // ----------------------------------------------------------------------------
 
@@ -1875,7 +1871,7 @@ void CSong::InstrPaste(int special)
 
     TInstrument* ai = g_Instruments.GetInstrument(i);
 
-    g_Atari.InstrumentTurnOff(i); //turns off this instrument on all channels
+    g_AtariRMTPlayer->InstrumentTurnOff(i); //turns off this instrument on all channels
 
     int x, y;
     BOOL bl = 0, br = 0, ep = 0;

@@ -30,6 +30,8 @@ extern CStatusBar* g_statusBar; // See GuiHelpers.cpp
 
 // Some information for the about box is supplied by components outside this file
 extern CString g_about6502;
+extern CAtari g_Atari;
+extern CAtariRMTPlayer* g_AtariRMTPlayer;
 extern CXPokey g_Pokey;
 extern CSong g_Song;
 
@@ -103,9 +105,20 @@ BOOL CRmtApp::InitInstance()
         fullPath = fullPath.Left(nPos + 1);
     }
     SetProgramFolderPath(fullPath);
-    g_tuningRatios.Initialize();
+
+
+    // INITIAL 6502 INITIALIZATION (DLL)
+    if (!g_Atari.Init())
+    {
+        g_Atari.DeInit();
+        exit(1);
+    }
 
     // Initialize the model.
+    g_AtariRMTPlayer = new CAtariRMTPlayer(g_Atari);
+
+    g_tuning.Initialize(g_Song.IsNTSC());
+    g_tuningRatios.Initialize();
     g_Song.ClearSong(8);
 
     // Parse the command line for standard shell commands, DDE, file open.

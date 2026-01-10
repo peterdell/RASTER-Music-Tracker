@@ -7,9 +7,11 @@
 
 #include "Instruments.h"
 
-#include "global.h"
+#include "Global.h"
 
 #include "GuiHelpers.h"
+
+extern CAtariRMTPlayer* g_AtariRMTPlayer;
 
 
 /// <summary>
@@ -369,7 +371,7 @@ BOOL CInstruments::CursorGoto(int instrNr, CPoint point, int pzone)
         if (tt->parameters[PAR_ENV_LENGTH] < x) tt->parameters[PAR_ENV_LENGTH] = x;
     CG_InstrumentParametersChanged:
         //because there has been some change in the instrument parameter => this instrument will stop on all channels
-        g_Atari.InstrumentTurnOff(instrNr);
+        g_AtariRMTPlayer->InstrumentTurnOff(instrNr);
         CheckInstrumentParameters(instrNr);
         //something changed => Save instrument "to Atari"
         Update(instrNr);

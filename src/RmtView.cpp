@@ -43,7 +43,7 @@ extern CUndo	g_Undo;
 extern CXPokey	g_Pokey;
 extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
-extern CAtari g_Atari;
+extern CAtariRMTPlayer* g_AtariRMTPlayer;
 
 /////////////////////////////////////////////////////////////////////////////
 // CRmtView
@@ -254,8 +254,15 @@ CRmtView::~CRmtView()
 
 void CRmtView::OnDestroy()
 {
+
+    if (g_AtariRMTPlayer) {
+        delete g_AtariRMTPlayer;
+        g_AtariRMTPlayer = nullptr;
+    }
+
     // Unload Pokey DLL
     g_Pokey.DeInitSound();
+
 
     // Unload 6502 DLL
     g_Atari.DeInit();
@@ -919,17 +926,11 @@ void CRmtView::OnInitialUpdate()
     //view elements
     ChangeViewElements(0); //without write!
 
-    //INITIAL POKEY INITIALISATION (DLL)
-    if (!g_Pokey.InitSound(g_Song.IsNTSC(), IsStereo()))
+
+    // INITIAL POKEY INITIALISATION (DLL)
+    if (!g_Pokey.InitSound(g_Song.IsNTSC(), g_Song.IsStereo()))
     {
         g_Pokey.DeInitSound();
-        exit(1);
-    }
-
-    //INITIAL 6502 INITIALIZATION (DLL)
-    if (!g_Atari.Init())
-    {
-        g_Atari.DeInit();
         exit(1);
     }
 

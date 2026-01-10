@@ -11,6 +11,8 @@
 #include <filesystem>
 
 CAtari g_Atari;
+CAtariRMTPlayer* g_AtariRMTPlayer;
+
 
 byte g_atarimem[ATARI_RAM_SIZE];
 char g_debugmem[ATARI_RAM_SIZE];	// Used in GUI_Song.cpp, debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
