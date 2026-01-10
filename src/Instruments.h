@@ -3,6 +3,7 @@
 #include <iosfwd>
 #include "General.h"
 
+#include "SongTypes.h"
 
 struct Tshpar
 {

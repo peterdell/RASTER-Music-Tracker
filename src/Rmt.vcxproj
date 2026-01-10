@@ -366,6 +366,7 @@
     <ClInclude Include="SongExport.h" />
     <ClInclude Include="SongExporter.h" />
     <ClInclude Include="SongExporterTest.h" />
+    <ClInclude Include="SongTypes.h" />
     <ClInclude Include="tracker_obx.h" />
     <ClInclude Include="Tracks.h" />
     <ClInclude Include="TracksControl.h" />

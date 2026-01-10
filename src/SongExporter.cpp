@@ -2,8 +2,8 @@
 #include "SongExporter.h"
 #include <iomanip>
 
-#include "Atari.h"
 #include "AtariIO.h"
+#include "RmtAtariBinaries.h"
 
 #include "GuiHelpers.h"
 
@@ -310,14 +310,15 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
 
     // Load VUPlayerLZSS to memory
     MemoryAddress addressFrom, addressTo;
-    CAtari::LoadOBX(SongIOType::IOTYPE_LZSS_XEX, mem, addressFrom, addressTo);
     WORD size;
     byte* bin;
 
     if (!CRmtAtariBinaries::GetVUPlayerBinary(bin, size)) {
-        return 0;
+        return false;
     }
-    return CAtariIO::LoadDataAsBinaryFile(bin, size, mem, addressFrom, addressTo);
+    if (!CAtariIO::LoadDataAsBinaryFile(bin, size, mem, addressFrom, addressTo)) {
+        return false;
+    }
 
 
     // LZSS buffers for each ones of the tune parts being reconstructed.

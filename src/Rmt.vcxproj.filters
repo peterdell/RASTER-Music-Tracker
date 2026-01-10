@@ -482,6 +482,9 @@
     <ClInclude Include="Memory.h">
       <Filter>Source Files\ASAP</Filter>
     </ClInclude>
+    <ClInclude Include="SongTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\Rmt.ico">

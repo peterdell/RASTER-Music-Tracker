@@ -2,7 +2,7 @@
 #include "StdAfx.h"
 #include <fstream>
 
-#include "General.h"
+#include "SongTypes.h"
 #include "Notes.h"
 
 

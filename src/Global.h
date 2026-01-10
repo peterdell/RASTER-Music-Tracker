@@ -4,11 +4,12 @@
 // experimental changes and additions by VinsCool, 2021-2022
 //
 
-#ifndef RMT_GLOBAL_
-#define RMT_GLOBAL
+#pragma once
 
 #include "General.h"
 #include "TuningTypes.h"
+
+#include "SongTypes.h"
 
 void SetProgramFolderPath(const CString& folderPath);
 CString GetResourceFolderPath(const CString& folderName);
@@ -140,5 +141,3 @@ extern BOOL g_keyboard_updowncontinue;
 extern BOOL g_keyboard_RememberOctavesAndVolumes;
 extern BOOL g_keyboard_escresetatarisound;
 extern BOOL g_keyboard_askwhencontrol_s;
-
-#endif
