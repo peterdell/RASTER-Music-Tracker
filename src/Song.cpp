@@ -23,7 +23,6 @@
 #include "SongExporter.h"
 
 extern CSong g_Song;
-BOOL g_ntsc = FALSE;   				    // NTSC (60Hz)
 
 extern CInstruments g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
@@ -82,12 +81,12 @@ bool CSong::IsStereo() const {
 }
 
 BOOL CSong::IsNTSC() const {
-    return g_ntsc;
+    return m_ntsc;
 }
 
 void CSong::SetNTSC(const BOOL ntsc) {
-    if (ntsc != g_ntsc) {
-        g_ntsc = ntsc;
+    if (ntsc != m_ntsc) {
+        m_ntsc = ntsc;
         CAtari::InitRMTRoutine(ntsc); //reset RMT routines
     }
 }
@@ -115,14 +114,6 @@ void CSong::StopTimer()
 void CSong::ChangeTimer(int ms)
 {
     g_SongTimer.SetTimer(*this, ms);
-}
-
-/// <summary>
-/// Immediately kill the timer event
-/// </summary>
-void CSong::KillTimer()
-{
-    g_SongTimer.KillTimer();
 }
 
 /// <summary>
@@ -300,6 +291,7 @@ void CSong::MarkTF_NOEMPTY(BYTE* arrayTRACKSNUM) const
     }
 }
 
+/* TODO: Unused
 int CSong::MakeTuningBlock(unsigned char* mem, int addr)
 {
     int len = 80;				// 80 bytes of general data
@@ -347,16 +339,9 @@ int CSong::MakeTuningBlock(unsigned char* mem, int addr)
     memcpy((mem + addr + 0x48), &g_tuningRatios.OCTAVE, 2);
     memcpy((mem + addr + 0x4A), &g_tuningRatioRight.OCTAVE, 2);
     // 4 unused bytes at the end
-    */
+
 
     return len;
-}
-
-void CSong::ResetTuningVariables()
-{
-    // Reset all tuning variables 
-    g_tuning.Initialize(IsNTSC());
-    g_tuningRatios.Initialize();
 }
 
 int CSong::DecodeTuningBlock(unsigned char* mem, int addr, int endAddr)
@@ -368,7 +353,7 @@ int CSong::DecodeTuningBlock(unsigned char* mem, int addr, int endAddr)
         return 0;
     }
     // Get the basics
-    g_ntsc = mem[addr + 0x01];
+    m_ntsc = mem[addr + 0x01];
     g_tuning.basenote = mem[addr + 0x02];
     g_tuning.temperament = mem[addr + 0x03];
     g_trackLinePrimaryHighlight = mem[addr + 0x04];
@@ -405,11 +390,20 @@ int CSong::DecodeTuningBlock(unsigned char* mem, int addr, int endAddr)
     memcpy(&g_tuningRatioRight.MAJ_7TH, (mem + addr + 0x46), 2);
     memcpy(&g_tuningRatios.OCTAVE, (mem + addr + 0x48), 2);
     memcpy(&g_tuningRatioRight.OCTAVE, (mem + addr + 0x4A), 2);
-    */
 
     return endAddr - addr;
 
 }
+*/
+
+
+void CSong::ResetTuningVariables()
+{
+    // Reset all tuning variables 
+    g_tuning.Initialize(IsNTSC());
+    g_tuningRatios.Initialize();
+}
+
 
 /// <summary>
 /// Create the RMT data in memory.

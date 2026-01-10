@@ -31,7 +31,6 @@ public:
 
     void StopTimer();
     void ChangeTimer(int ms);
-    void KillTimer();
 
     void ClearSong(int numoftracks);
 
@@ -201,8 +200,8 @@ public:
     void MarkTF_USED(BYTE* arrayTRACKSNUM) const;
     void MarkTF_NOEMPTY(BYTE* arrayTRACKSNUM) const;
 
-    int MakeTuningBlock(unsigned char* mem, int addr); // TODO: Unused
-    int DecodeTuningBlock(unsigned char* mem, int fromAddr, int endAddr); // TODO: Unused
+    // int MakeTuningBlock(unsigned char* mem, int addr); // TODO: Unused
+    // int DecodeTuningBlock(unsigned char* mem, int fromAddr, int endAddr); // TODO: Unused
     void ResetTuningVariables();
 
     int MakeModule(unsigned char* mem, int adr, SongIOType iotype, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags);
@@ -307,6 +306,7 @@ private:
 
     EditArea m_infoact;					// Which part of the info area is active for editing: 0 = name, 
     char m_songname[SONG_NAME_MAX_LEN + 1];
+    BOOL m_ntsc;
     int m_songnamecur;
 
     TBookmark m_bookmark;
