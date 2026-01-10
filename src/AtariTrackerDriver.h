@@ -19,6 +19,8 @@ public:
     void SetTrackVolume(int t, int v);
     void InstrumentTurnOff(int instr);
 
+    byte GetByteAt(const MemoryAddress address);
+
 private:
     CAtari* m_atari;
 

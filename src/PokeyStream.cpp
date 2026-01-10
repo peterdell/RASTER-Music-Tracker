@@ -10,7 +10,8 @@
 #include "AtariTrackerDriver.h"
 
 
-extern CAtariTrackerDriver* g_AtariTrackerDriver;
+extern CAtariTrackerDriver* g_AtariTrackerDriver; // Only used in PokeyStream::FinishedRecording()
+
 
 CPokeyStream::CPokeyStream()
 {
@@ -42,7 +43,7 @@ void CPokeyStream::Clear()
         m_StreamBuffer = NULL;
     }
     m_BufferSize = 0;
-    m_frameSize = 0;
+    m_FrameSize = 0;
     m_FrameCounter = 0;
     m_SonglineCounter = 0;
     memset(m_PlayCount, 0, sizeof(m_PlayCount));
@@ -62,9 +63,9 @@ void CPokeyStream::StartRecording(const CSong& song)
     m_recordState = STREAM_STATE::START;
 
     m_BufferSize = 0xFFFFF;
-    m_StreamBuffer = (unsigned char*)calloc(m_BufferSize, 1);
+    m_StreamBuffer = (byte*)calloc(m_BufferSize, 1);
 
-    m_frameSize = CLZSSFile::GetFrameSize(song);
+    m_FrameSize = CLZSSFile::GetFrameSize(song);
     m_FrameCounter = 0;
     m_SonglineCounter = 0;
     memset(m_PlayCount, 0, sizeof(m_PlayCount));
@@ -181,9 +182,9 @@ void CPokeyStream::Record()
         return;		// Too soon, must first be initialised to get a constant rate every time, this prevents writing garbage in memory for the first few frames
     }
 
-    int offsetIntoSAPRBuffer = m_FrameCounter * m_frameSize;	// 4 AUDC, 4 AUDF, 1 AUDCTL + Second POKEY if used
+    int offsetIntoSAPRBuffer = m_FrameCounter * m_FrameSize;	// 4 AUDC, 4 AUDF, 1 AUDCTL + Second POKEY if used
 
-    if (offsetIntoSAPRBuffer > m_BufferSize - m_frameSize + 1)
+    if (offsetIntoSAPRBuffer > m_BufferSize - m_FrameSize + 1)
     {
         // Buffer is too small, grow it
         m_BufferSize *= 2;
@@ -194,26 +195,26 @@ void CPokeyStream::Record()
     // AUDF1, AUDC1, AUDF2, AUDC2, AUDF3, AUDC3, AUDF4, AUDC4, AUDCTL
     for (int i = 0; i < 9; i++)
     {
-        int j = (m_frameSize == 18) ? 9 : 0;		// Slight offset for i count, memory can then be aligned as it is expected
+        int j = (m_FrameSize == 18) ? 9 : 0;		// Slight offset for i count, memory can then be aligned as it is expected
 
         // Copy data from the 1st Pokey
         // 0 offset in mono
         // 9 offset in stereo
-        m_StreamBuffer[offsetIntoSAPRBuffer + i + j] = g_atarimem[0xd200 + i];
+        m_StreamBuffer[offsetIntoSAPRBuffer + i + j] = g_AtariTrackerDriver->GetByteAt(0xd200 + i);
         if (i == 1)	// AUDC1
         {	// Test SKCTL ($D20F), if Two-Tone is expected, set the Volume Only bit in the current AUDC1 offset
-            m_StreamBuffer[offsetIntoSAPRBuffer + i + j] |= (g_atarimem[0xd20F] == 0x8B) ? 0x10 : 0x00;
+            m_StreamBuffer[offsetIntoSAPRBuffer + i + j] |= (g_AtariTrackerDriver->GetByteAt(0xd20F) == 0x8B) ? 0x10 : 0x00;
         }
 
-        if (m_frameSize == 9) {
+        if (m_FrameSize == 9) {
             continue;	// No second POKEY 
         }
 
         // Copy data from the 2nd Pokey
-        m_StreamBuffer[offsetIntoSAPRBuffer + i] = g_atarimem[0xd210 + i];
+        m_StreamBuffer[offsetIntoSAPRBuffer + i] = g_AtariTrackerDriver->GetByteAt(0xd210 + i);
         if (i == 1)	//AUDC1
         {	//test SKCTL, if Two-Tone is expected, set the Volume Only bit in the current AUDC1 offset
-            m_StreamBuffer[offsetIntoSAPRBuffer + i] |= (g_atarimem[0xd21F] == 0x8B) ? 0x10 : 0x00;
+            m_StreamBuffer[offsetIntoSAPRBuffer + i] |= (g_AtariTrackerDriver->GetByteAt(0xd21F) == 0x8B) ? 0x10 : 0x00;
         }
     }
 
@@ -240,8 +241,8 @@ void CPokeyStream::WriteToFile(std::ofstream& ou, int frames, int offset) const
         return;
     }
 
-    int len = frames * m_frameSize;
-    int off = offset * m_frameSize;
+    int len = frames * m_FrameSize;
+    int off = offset * m_FrameSize;
     ou.write((char*)m_StreamBuffer + off, len);
 }
 

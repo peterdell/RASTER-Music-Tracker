@@ -120,3 +120,7 @@ void CAtariTrackerDriver::InstrumentTurnOff(int instr)
     }
 }
 
+
+byte CAtariTrackerDriver::GetByteAt(const MemoryAddress address) {
+    return m_atari->GetByteAt(address);
+}

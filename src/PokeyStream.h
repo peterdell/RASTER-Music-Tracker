@@ -58,7 +58,7 @@ private:
 	unsigned char* m_StreamBuffer;	// Ptr to the buffer to hold the Pokey values
     int m_BufferSize;				// What size if the m_StreamBuffer currently
 
-    int m_frameSize;
+    int m_FrameSize;
     int m_FrameCounter;				// How many Pokey frames have been recorded?
 
 	int m_SongLoopedCounter;		// How may times has the song been looped?

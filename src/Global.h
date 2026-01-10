@@ -18,8 +18,6 @@ void SetProgramFolderPath(const CString& folderPath);
 CString GetResourceFolderPath(const CString& folderName);
 CString GetResourceFilePath(const CString& folderName, const CString& fileName);
 
-extern byte* g_atarimem;
-
 extern BOOL g_closeApplication;
 extern CDC* g_mem_dc;
 extern CDC* g_gfx_dc;

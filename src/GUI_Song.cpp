@@ -79,6 +79,8 @@ void GetAtariMemHexStr(int adr, int len)
     unsigned int a = 0;
     char c[8] = { 0 };
     memset(g_debugmem, 0, 65536);
+    const auto g_atarimem = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
+
     for (int i = 0; i < len; i++)
     {
         a = g_atarimem[adr + i];
@@ -215,6 +217,7 @@ void CSong::DrawAnalyzer()
         // In tracks drawing mode
         // Draw bridge connections between channels. For each connection we move 2 pixels up.
         // Max rise is 10 pixels
+        const auto g_atarimem = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
 
         // Clear the area where the analyser is to be drawn
         g_mem_dc->FillSolidRect(ANALYZER_X, ANALYZER_Y - ANALYZER_HP, g_tracks4_8 * 16 * 8 - 34, ANALYZER_H + ANALYZER_HP, CRGBColor::BACKGROUND);
@@ -290,6 +293,8 @@ void CSong::DrawAnalyzer()
         // Clear the area where the mini volume controls are to be drawn
         g_mem_dc->FillSolidRect(ANALYZER2_X, ANALYZER2_Y - ANALYZER2_HP, g_tracks4_8 * 3 * 8 - 8, ANALYZER2_H + ANALYZER2_HP, CRGBColor::BACKGROUND);
 
+        const auto g_atarimem = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
+
         // Left / Mono Channel
         // Draw which channels are joined by highpass filters or normal channel join
         a = g_atarimem[0xd208]; // AUDCTL @ $D208
@@ -359,6 +364,7 @@ void CSong::DrawAnalyzer()
 
         g_mem_dc->FillSolidRect(ANALYZER3_X, ANALYZER3_Y, 680, 192, CRGBColor::BACKGROUND);
 
+        const auto g_atarimem = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
         for (int i = 0; i < g_tracks4_8; i++)
         {
             BOOL IS_RIGHT_POKEY = (i >= 4) ? 1 : 0;
@@ -2267,6 +2273,9 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         //v_audctl => g_atarimem[0x3C69]
         //v_skctl => g_atarimem[0x3CD3]
 
+
+        const auto memory = g_Atari.GetMemoryAt(0);
+
         int audf = 0x3178;
         int audc = 0x3180;
         int audctl = 0x3C69;
@@ -2307,124 +2316,124 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
 
         case 0x31:	//VK_1
             ch = 0;
-            g_atarimem[audf + ch] += step;
+            memory[audf + ch] += step;
             break;
 
         case 0x51:	//VK_Q
             ch = 0;
-            g_atarimem[audf + ch] -= step;
+            memory[audf + ch] -= step;
             break;
 
         case 0x33:	//VK_3
             ch = 1;
-            g_atarimem[audf + ch] += step;
+            memory[audf + ch] += step;
             break;
 
         case 0x45:	//VK_E
             ch = 1;
-            g_atarimem[audf + ch] -= step;
+            memory[audf + ch] -= step;
             break;
 
         case 0x35:	//VK_5
             ch = 2;
-            g_atarimem[audf + ch] += step;
+            memory[audf + ch] += step;
             break;
 
         case 0x54:	//VK_T
             ch = 2;
-            g_atarimem[audf + ch] -= step;
+            memory[audf + ch] -= step;
             break;
 
         case 0x37:	//VK_7
             ch = 3;
-            g_atarimem[audf + ch] += step;
+            memory[audf + ch] += step;
             break;
 
         case 0x55:	//VK_U
             ch = 3;
-            g_atarimem[audf + ch] -= step;
+            memory[audf + ch] -= step;
             break;
 
             //AUDC channels
 
         case 0x32:	//VK_2
             ch = 0;
-            g_atarimem[audc + ch] += step;
+            memory[audc + ch] += step;
             break;
 
         case 0x57:	//VK_W
             ch = 0;
-            g_atarimem[audc + ch] -= step;
+            memory[audc + ch] -= step;
             break;
 
         case 0x34:	//VK_4
             ch = 1;
-            g_atarimem[audc + ch] += step;
+            memory[audc + ch] += step;
             break;
 
         case 0x52:	//VK_R
             ch = 1;
-            g_atarimem[audc + ch] -= step;
+            memory[audc + ch] -= step;
             break;
 
         case 0x36:	//VK_6
             ch = 2;
-            g_atarimem[audc + ch] += step;
+            memory[audc + ch] += step;
             break;
 
         case 0x59:	//VK_Y
             ch = 2;
-            g_atarimem[audc + ch] -= step;
+            memory[audc + ch] -= step;
             break;
 
         case 0x38:	//VK_8
             ch = 3;
-            g_atarimem[audc + ch] += step;
+            memory[audc + ch] += step;
             break;
 
         case 0x49:	//VK_I
             ch = 3;
-            g_atarimem[audc + ch] -= step;
+            memory[audc + ch] -= step;
             break;
 
             //AUDCTL bits
 
         case 0x50:	//VK_P
-            g_atarimem[audctl] ^= 0x80;
+            memory[audctl] ^= 0x80;
             break;
 
         case 0x41:	//VK_A
-            g_atarimem[audctl] ^= 0x40;
+            memory[audctl] ^= 0x40;
             break;
 
         case 0x44:	//VK_D
-            g_atarimem[audctl] ^= 0x20;
+            memory[audctl] ^= 0x20;
             break;
 
         case 0x4A:	//VK_J
-            g_atarimem[audctl] ^= 0x10;
+            memory[audctl] ^= 0x10;
             break;
 
         case 0x4B:	//VK_K
-            g_atarimem[audctl] ^= 0x08;
+            memory[audctl] ^= 0x08;
             break;
 
         case 0x46:	//VK_F
-            g_atarimem[audctl] ^= 0x04;
+            memory[audctl] ^= 0x04;
             break;
 
         case 0x47:	//VK_G
-            g_atarimem[audctl] ^= 0x02;
+            memory[audctl] ^= 0x02;
             break;
 
         case 0x43:	//VK_C
-            g_atarimem[audctl] ^= 0x01;
+            memory[audctl] ^= 0x01;
             break;
 
             //SKCTL Two-Tone toggle
 
         case 0x4D:	//VK_M
-            g_atarimem[skctl] ^= 0x88;
+            memory[skctl] ^= 0x88;
             break;
 
         default:
