@@ -477,7 +477,7 @@ char CUndo::PerformEvent(int i)
 		memcpy((void*)data, (void*)temp, sizeof(TInstrument));
 		delete temp;
 		// Must save to Atari
-		g_Instruments.WasModified(instrnum);
+		g_Instruments.Update(instrnum);
 		break;
 
 	case UETYPE_INSTRSALL: // All instruments
@@ -489,7 +489,7 @@ char CUndo::PerformEvent(int i)
 		memcpy((void*)data, (void*)temp, sizeof(TInstrumentsAll));
 		delete temp;
 		// Must save to Atari
-		for (i = 0; i < INSTRSNUM; i++) g_Instruments.WasModified(i);
+		for (i = 0; i < INSTRSNUM; i++) g_Instruments.Update(i);
 		break;
 
 	case UETYPE_INFODATA:

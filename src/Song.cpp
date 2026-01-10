@@ -880,7 +880,7 @@ int CSong::DecodeModule(unsigned char* mem, int fromAddr, int endAddr, BYTE* ins
         else
             loadState = g_Instruments.AtaToInstr(mem + ptrOneInstrument, instrumentNr);
 
-        g_Instruments.WasModified(instrumentNr);	//writes to Atari ram
+        g_Instruments.Update(instrumentNr);	//writes to Atari ram
 
         if (!loadState) return 0; // some problem with the instrument => END
 
@@ -1988,7 +1988,7 @@ void CSong::InstrPaste(int special)
         break;
 
     }
-    g_Instruments.WasModified(i); //write to Atari RAM
+    g_Instruments.Update(i); //write to Atari RAM
 }
 
 void CSong::InstrCut()
@@ -3088,7 +3088,7 @@ void CSong::RenumberAllInstruments(int type)
     }
 
     //and finally write all the instruments in Atari memory
-    for (i = 0; i < INSTRSNUM; i++) g_Instruments.WasModified(i); //writes to Atari
+    for (i = 0; i < INSTRSNUM; i++) g_Instruments.Update(i); //writes to Atari
 
     //Hooray, done
 }

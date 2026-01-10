@@ -119,7 +119,7 @@ typedef struct TInstrument
     int octave;								// Last used Octave and Volume
     int volume;
 
-    int displayHintFlag;					// Some flags that give hints to what is happening with this instrument
+    int displayHintFlags;					// Some flags that give hints to what is happening with this instrument
 } TInstrument;
 
 

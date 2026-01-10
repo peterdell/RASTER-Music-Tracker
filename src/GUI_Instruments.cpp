@@ -372,7 +372,7 @@ BOOL CInstruments::CursorGoto(int instrNr, CPoint point, int pzone)
         CAtari::InstrumentTurnOff(instrNr);
         CheckInstrumentParameters(instrNr);
         //something changed => Save instrument "to Atari"
-        WasModified(instrNr);
+        Update(instrNr);
         return 1;
 
     case 6:

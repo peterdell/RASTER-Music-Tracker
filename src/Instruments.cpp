@@ -118,7 +118,7 @@ void CInstruments::ClearInstrument(int instrNr)
     instrument->volume = MAXVOLUME;
 
     // Apply to Atari Mem
-    WasModified(instrNr);
+    Update(instrNr);
 }
 
 /// <summary>
@@ -154,35 +154,38 @@ void CInstruments::CheckInstrumentParameters(int instr)
 void CInstruments::RecalculateFlag(int instr)
 {
     TInstrument* ti = GetInstrument(instr);
-    if (!ti) return;
+    if (!ti) {
+        // Todo: Rather exception in GetInstrument()
+        return;
+    }
 
-    BYTE flag = 0;
+    BYTE flags = 0;
 
     // Analyse the instrument envelope for the Autofilter, Bass16 and Portamento flags
     for (int i = 0; i <= ti->parameters[PAR_ENV_LENGTH]; i++)
     {
         // Autofilter?
-        if (ti->envelope[i][ENV_FILTER]) flag |= IF_FILTER;
+        if (ti->envelope[i][ENV_FILTER]) flags |= IF_FILTER;
 
         // Bass16?
-        if (ti->envelope[i][ENV_DISTORTION] == 6) flag |= IF_BASS16;
+        if (ti->envelope[i][ENV_DISTORTION] == 6) flags |= IF_BASS16;
 
         // Portamento?
-        if (ti->envelope[i][ENV_PORTAMENTO]) flag |= IF_PORTAMENTO;
+        if (ti->envelope[i][ENV_PORTAMENTO]) flags |= IF_PORTAMENTO;
     }
 
     // Analyse the instrument parameters for the AUDCTL flag
     for (int i = PAR_AUDCTL_15KHZ; i <= PAR_AUDCTL_POLY9; i++)
     {
         // AUDCTL?
-        if (ti->parameters[i]) flag |= IF_AUDCTL;
+        if (ti->parameters[i]) flags |= IF_AUDCTL;
     }
 
     // Autofilter takes priority over Bass16 (RMT 1.28 driver only)
-    if (flag & IF_FILTER && flag & IF_BASS16) flag ^= IF_BASS16;
+    if (flags & IF_FILTER && flags & IF_BASS16) { flags ^= IF_BASS16; }
 
     // Update the instrument hint flag to the new value
-    ti->displayHintFlag = flag;
+    ti->displayHintFlags = flags;
 }
 
 /// <summary>
@@ -230,7 +233,7 @@ void CInstruments::SetEnvelopeVolume(int instr, BOOL right, int px, int newVolum
     ti->envelope[px][ep] = newVolume;
 
     // Recalc some info about the updated instrument
-    WasModified(instr);
+    Update(instr);
 }
 
 /// <summary>

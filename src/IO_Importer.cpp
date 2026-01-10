@@ -802,7 +802,7 @@ int CSong::ImportTMC(std::ifstream& in)
 
 
         //projected instrument into Atari's RAM
-        g_Instruments.WasModified(i);
+        g_Instruments.Update(i);
     } //and another instrument
 
 
@@ -1832,7 +1832,7 @@ int CSong::ImportMOD(std::ifstream& in)
     for (i = 1; i <= modsamples; i++)
     {
         //send to Atari
-        g_Instruments.WasModified(i);
+        g_Instruments.Update(i);
     }
 
     //CLEAR MEMORY 

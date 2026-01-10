@@ -1809,7 +1809,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             //because there has been some change in the instrument parameter => stop this instrument in all channels
             CAtari::InstrumentTurnOff(m_activeinstr);
             g_Instruments.CheckInstrumentParameters(m_activeinstr);
-            g_Instruments.WasModified(m_activeinstr);
+            g_Instruments.Update(m_activeinstr);
             return 1;
         }
     }
@@ -1998,7 +1998,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
 
         ChangeInstrumentEnv:
             //something changed => Save instrument to Atari memory
-            g_Instruments.WasModified(m_activeinstr);
+            g_Instruments.Update(m_activeinstr);
             return 1;
         }
     }
@@ -2140,7 +2140,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
 
         ChangeInstrumentTab:
             //something changed => Save instrument to Atari memory
-            g_Instruments.WasModified(m_activeinstr);
+            g_Instruments.Update(m_activeinstr);
             return 1;
 
         }

@@ -32,7 +32,7 @@ public:
 
     BOOL IsValidInstrument(int instr) { return instr >= 0 && instr < INSTRSNUM; };
 
-    BYTE GetFlag(int instr) { return IsValidInstrument(instr) ? m_instr[instr].displayHintFlag : -1; };
+    BYTE GetFlag(int instr) { return IsValidInstrument(instr) ? m_instr[instr].displayHintFlags : -1; };
     BYTE GetParameter(int instr, int param) { return IsValidInstrument(instr) ? m_instr[instr].parameters[param] : -1; };
     int GetParameterNumber(int instr) { return IsValidInstrument(instr) ? m_instr[instr].editParameterNr : -1; };
     InstrumentSection GetActiveEditSection(int instr) { return IsValidInstrument(instr) ? m_instr[instr].activeEditSection : InstrumentSection::NONE; };
@@ -49,7 +49,7 @@ public:
     BOOL CursorGoto(int instr, CPoint point, int pzone);
 
     // IO
-    void WasModified(int it);
+    void Update(int it);
 
     int SaveAll(std::ofstream& ou, InstrumentIOType iotype);
     int LoadAll(std::ifstream& in, InstrumentIOType iotype);

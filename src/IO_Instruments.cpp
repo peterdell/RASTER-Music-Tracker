@@ -154,7 +154,7 @@ int CInstruments::LoadInstrument(int instr, std::ifstream& in, InstrumentIOType 
                 r = AtaV0ToInstr(ibf, instr);
             else
                 r = AtaToInstr(ibf, instr);
-            WasModified(instr);	//writes to Atari ram
+            Update(instr);	//writes to Atari ram
             if (!r) return 0; //if there was some problem with the instrument, return 0
         }
     }
@@ -185,7 +185,7 @@ int CInstruments::LoadInstrument(int instr, std::ifstream& in, InstrumentIOType 
         in.read((char*)bftab, sizeof(bftab));
         for (j = 0; j < NOTE_TABLE_MAX_LEN; j++) ai->noteTable[j] = bftab[j];
         //
-        WasModified(instr);	//writes to Atari mem
+        Update(instr);	//writes to Atari mem
         //
         //+editing options:
         in.read((char*)&ai->activeEditSection, sizeof(ai->activeEditSection));
@@ -286,7 +286,7 @@ int CInstruments::LoadInstrument(int instr, std::ifstream& in, InstrumentIOType 
         }
     }
 InstrEnd:
-    WasModified(instr);	//write to Atari mem
+    Update(instr);	//write to Atari mem
     break;
 
     }
@@ -447,7 +447,7 @@ BYTE CInstruments::InstrToAtaRMF(int instr, unsigned char* ata, int max)
 /// </summary>
 /// <param name="instr">Instrument #</param>
 /// <returns></returns>
-void CInstruments::WasModified(int instr)
+void CInstruments::Update(int instr)
 {
     unsigned char* ata = g_atarimem + instr * 256 + 0x4000;
     //g_rmtroutine = FALSE;			//turn off RMT routines	// editing in real time is smoother without this switch
