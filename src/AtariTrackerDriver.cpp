@@ -5,7 +5,6 @@
 
 #include "Global.h"
 
-extern TrackerDriverVersion g_trackerDriverVersion;
 
 CAtariTrackerDriver::CAtariTrackerDriver(CAtari& atari) {
     m_atari = &atari;
@@ -17,7 +16,7 @@ CAtari* CAtariTrackerDriver::GetAtari() {
 }
 
 // Load RMT routine to $3400, setnoteinstrvol to $3d00, and setvol to $3e00
-int CAtariTrackerDriver::LoadRMTRoutines()
+int CAtariTrackerDriver::LoadRMTRoutines(const TrackerDriverVersion trackerDriverVersion)
 {
     WORD min, max;
     WORD size;

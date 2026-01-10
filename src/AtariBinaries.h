@@ -1,6 +1,8 @@
 #pragma once
 
-#include "General.h"
+#include "StdAfx.h"
+
+#include "TrackerDriverVersion.h"
 
 class CRmtAtariBinaries
 {

@@ -775,7 +775,7 @@ void CRmtView::OnViewConfiguration()
             // Something here to reset the thing
             g_trackerDriverVersion = dlg.m_trackerDriverVersion;
             g_Atari.Init(g_Song.IsNTSC()); // TODO: This is done serveral times. We need something like "beginUpdate"
-            g_AtariTrackerDriver->LoadRMTRoutines();
+            g_AtariTrackerDriver->LoadRMTRoutines(g_trackerDriverVersion);
         }
         g_trackerDriverVersion = dlg.m_trackerDriverVersion;
 
@@ -937,7 +937,7 @@ void CRmtView::OnInitialUpdate()
     //INITIALISATION OF ATARI RMT ROUTINES
     g_Atari.ClearMemory();
     g_Atari.Init(g_Song.IsNTSC());
-    g_AtariTrackerDriver->LoadRMTRoutines();
+    g_AtariTrackerDriver->LoadRMTRoutines(g_trackerDriverVersion);
     g_AtariTrackerDriver->Init();
     g_Song.SetRMTTitle();
 

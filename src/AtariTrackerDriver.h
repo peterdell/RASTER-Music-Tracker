@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Atari.h"
+#include "TrackerDriverVersion.h"
 
 class CAtariTrackerDriver {
 
@@ -9,10 +10,9 @@ public:
 
     CAtari* GetAtari();
 
-
-    int LoadRMTRoutines();
-    int Init(); // Init
-    void Play(); // Play
+    int LoadRMTRoutines(const TrackerDriverVersion trackerDriverVersion);
+    int Init();
+    void Play();
     void SetPokey();
     void Silence();
     void SetTrackNoteInstrumentVolume(int t, int n, int i, int v);
