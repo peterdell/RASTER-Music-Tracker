@@ -16,7 +16,7 @@
 
 using std::ios;
 
-#include "RmtAtariBinaries.h"
+#include "AtariBinaries.h"
 
 class CFileUtility {
 public:

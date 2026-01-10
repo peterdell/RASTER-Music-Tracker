@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "RmtAtariBinaries.h"
+#include "AtariBinaries.h"
 
 
 // RMT driver binaries will be defined here, as well as much of the export binaries when possible.

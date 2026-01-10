@@ -267,7 +267,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
     </ClCompile>
-    <ClCompile Include="RmtAtariBinaries.cpp" />
+    <ClCompile Include="AtariBinaries.cpp" />
     <ClCompile Include="RmtDoc.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
@@ -348,7 +348,7 @@
     <ClInclude Include="SAPFile.h" />
     <ClInclude Include="SAPFileExportDialog.h" />
     <ClInclude Include="SAPFileExporter.h" />
-    <ClInclude Include="RmtAtariBinaries.h" />
+    <ClInclude Include="AtariBinaries.h" />
     <ClInclude Include="EffectsDlg.h" />
     <ClInclude Include="ExportDlgs.h" />
     <ClInclude Include="FileNewDlg.h" />

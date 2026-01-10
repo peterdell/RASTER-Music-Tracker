@@ -3,7 +3,7 @@
 #include <iomanip>
 
 #include "AtariIO.h"
-#include "RmtAtariBinaries.h"
+#include "AtariBinaries.h"
 
 #include "GuiHelpers.h"
 

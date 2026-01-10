@@ -168,7 +168,7 @@
     <ClCompile Include="PokeyStream.cpp">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
-    <ClCompile Include="RmtAtariBinaries.cpp">
+    <ClCompile Include="AtariBinaries.cpp">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
     <ClCompile Include="ASMFile.cpp">
@@ -359,7 +359,7 @@
     <ClInclude Include="PokeyStream.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
-    <ClInclude Include="RmtAtariBinaries.h">
+    <ClInclude Include="AtariBinaries.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
     <ClInclude Include="RmtFile.h">

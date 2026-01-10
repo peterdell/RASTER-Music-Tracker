@@ -51,6 +51,7 @@ public:
 
     void ClearMemory();
     byte GetByteAt(const MemoryAddress address);
+    byte* GetMemoryAt(const MemoryAddress address);
 
     int LoadRMTRoutines();
     int InitRMTRoutine(); // Without changing the NTSC/PAL flag
@@ -65,6 +66,16 @@ public:
 
 private:
     BOOL m_ntsc;
+
+};
+
+class CAtariRMTPlayer {
+
+public:
+    CAtariRMTPlayer(CAtari& atari);
+
+private:
+    CAtari* m_atari;
 
 };
 

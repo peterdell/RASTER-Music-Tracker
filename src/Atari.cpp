@@ -12,7 +12,7 @@
 
 #include "Tuning.h"
 
-#include "RmtAtariBinaries.h"
+#include "AtariBinaries.h"
 #include "General.h"
 #include "Global.h"
 
@@ -47,6 +47,17 @@ void CAtari::ClearMemory()
 byte CAtari::GetByteAt(const MemoryAddress address) {
     return g_atarimem[address];
 }
+
+byte* GetMemoryAt(const MemoryAddress address) {
+    return g_atarimem + address;
+}
+
+
+
+CAtariRMTPlayer::CAtariRMTPlayer(CAtari& atari) {
+    m_atari = &atari;
+}
+
 
 // Load RMT routine to $3400, setnoteinstrvol to $3d00, and setvol to $3e00
 int CAtari::LoadRMTRoutines()
