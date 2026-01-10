@@ -421,7 +421,7 @@ void CSong::DrawAnalyzer()
             else coarse_divisor = (CLOCK_15) ? 114 : 28;
 
             int i_audf = (JOIN_16BIT || JOIN_64KHZ || JOIN_15KHZ) ? audf16 : audf;
-            PITCH = g_Tuning.generate_freq(audc, i_audf, audctl, i);
+            PITCH = g_Tuning.GetPOKEYPPitch(audc, i_audf, audctl, i);
             snprintf(p, 10, "%9.2f", PITCH);
 
             if (g_view.pokeyRegisters)
@@ -587,7 +587,7 @@ void CSong::DrawAnalyzer()
                             break;
                     }
 
-                    e_pitch = g_Tuning.get_pitch(i_audf, e_coarse_divisor, e_divisor, e_modoffset);
+                    e_pitch = g_Tuning.GetPitch(i_audf, e_coarse_divisor, e_divisor, e_modoffset);
                     static constexpr auto color = TextMiniColor::WHITE;
                     snprintf(p, 10, "%9.2f", e_pitch);
                     TextMiniXY(p, ANALYZER3_X, ANALYZER3_Y + 8 * 15, color);

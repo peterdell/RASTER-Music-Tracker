@@ -9,14 +9,9 @@
 #include "Global.h"
 #include "Atari.h"
 #include "Song.h"
+
 extern CSong g_Song;
 
-
-/// <summary> Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into the emulated Atari memory </summary>
-void CTuning::InitTuning(bool ntsc)
-{
-    m_ntsc = ntsc;
-}
 
 /// <summary> Generate the POKEY audio pitch using the given parameters </summary>
 /// <param name = "audc"> POKEY Distortion and Volume output mode </param>
@@ -24,14 +19,14 @@ void CTuning::InitTuning(bool ntsc)
 /// <param name = "audctl"> POKEY modes used to generate the frequencies, typically, 15Khz/64Khz clock, 1.79mHz clock, 16-bit mode, etc </param>
 /// <param name = "channel"> POKEY channel number, multiple parameters might give different results </param>
 /// <returns> POKEY audio pitch (in Hertz) </returns> 
-double CTuning::generate_freq(int audc, int audf, int audctl, int channel)
+CTuning::Pitch CTuning::GetPOKEYPPitch(int audc, AUDF audf, int audctl, int channel)
 {
-    //variables for pitch calculation, divisors must never be 0!
+    // variables for pitch calculation, divisors must never be 0!
     double divisor = 1;
     int coarse_divisor = 1;
     int cycle = 1;
 
-    //register variables 
+    // register variables 
     int distortion = audc & 0xf0;
     //int skctl = 0;	//not yet implemented in calculations
     //bool TWO_TONE = (skctl == 0x8B) ? 1 : 0;
@@ -113,7 +108,7 @@ double CTuning::generate_freq(int audc, int audf, int audctl, int channel)
         if (MOD15 || (MOD5 && CLOCK_15)) return 0;	//Both MOD3 and MOD5 at once are invalid 
         break;
     }
-    return get_pitch(audf, coarse_divisor, divisor, cycle);
+    return GetPitch(audf, coarse_divisor, divisor, cycle);
 }
 
 /// <summary> Generate a POKEY Frequencies lookup table using the given parameters </summary>
@@ -122,7 +117,7 @@ double CTuning::generate_freq(int audc, int audf, int audctl, int channel)
 /// <param name = "semitone"> Number of semitones above base note, useful for transposing a table to a different key/octave </param> 
 /// <param name = "timbre"> POKEY sound timbre output using the Distortion as well as the modulo of the Frequency </param> 
 /// <param name = "audctl"> POKEY modes used to generate the frequencies, typically, 15Khz/64Khz clock, 1.79mHz clock, 16-bit mode, etc </param>
-void CTuning::generate_table(unsigned char* table, int length, int semitone, int timbre, int audctl)
+void CTuning::GenerateTable(byte* table, int length, int semitone, int timbre, int audctl)
 {
     //variables for pitch calculation, divisors must never be 0!
     double divisor = 1;
@@ -225,13 +220,13 @@ void CTuning::generate_table(unsigned char* table, int length, int semitone, int
     for (int i = 0; i < length; i++)
     {
         //get the current semitone 
-        int note = i + semitone;
+        auto note = i + semitone;
 
         //calculate the reference pitch using the semitone as an offset
-        double pitch = GetTruePitch(g_tuning.basetuning, g_tuning.temperament, g_tuning.basenote, note);
+        auto pitch = GetTruePitch(g_tuning.basetuning, g_tuning.temperament, g_tuning.basenote, note);
 
         //get the nearest POKEY frequency using the reference pitch
-        int audf = get_audf(pitch, coarse_divisor, divisor, cycle);
+        auto audf = GetAUDF(pitch, coarse_divisor, divisor, cycle);
 
         //TODO: insert whatever delta method that could be suitable here... 
         MOD3 = ((audf + cycle) % 3 == 0);
@@ -244,36 +239,36 @@ void CTuning::generate_table(unsigned char* table, int length, int semitone, int
         switch (timbre)
         {
         case TIMBRE_BELL:
-            if (MOD31) audf = delta_audf(pitch, audf, coarse_divisor, divisor, cycle, timbre);
+            if (MOD31) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
             break;
 
         case TIMBRE_BUZZY_4:
-            if (MOD3 || MOD5 || MOD31) audf = delta_audf(pitch, audf, coarse_divisor, divisor, cycle, timbre);
+            if (MOD3 || MOD5 || MOD31) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
             break;
 
         case TIMBRE_SMOOTH_4:
-            if (!(MOD3 || CLOCK_15) || MOD5) audf = delta_audf(pitch, audf, coarse_divisor, divisor, cycle, timbre);
+            if (!(MOD3 || CLOCK_15) || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
             if (!JOIN_16BIT && audf > 0xFF)
             {	//use the buzzy timbre on the lower range instead
-                audf = get_audf(pitch, coarse_divisor, 232.5, cycle);
+                audf = GetAUDF(pitch, coarse_divisor, 232.5, cycle);
                 MOD3 = ((audf + cycle) % 3 == 0);
                 MOD5 = ((audf + cycle) % 5 == 0);
-                if (MOD3 || MOD5) audf = delta_audf(pitch, audf, coarse_divisor, 232.5, cycle, TIMBRE_BUZZY_4);
+                if (MOD3 || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, 232.5, cycle, TIMBRE_BUZZY_4);
             }
             break;
 
         case TIMBRE_GRITTY_C:
-            if (MOD3 || MOD5) audf = delta_audf(pitch, audf, coarse_divisor, divisor, cycle, timbre);
+            if (MOD3 || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
             break;
 
         case TIMBRE_BUZZY_C:
-            if (!(MOD3 || CLOCK_15) || MOD5) audf = delta_audf(pitch, audf, coarse_divisor, divisor, cycle, timbre);
+            if (!(MOD3 || CLOCK_15) || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
             if (!JOIN_16BIT && audf > 0xFF)
             {	//use the gritty timbre on the lower range instead
-                audf = get_audf(pitch, coarse_divisor, 7.5, cycle);
+                audf = GetAUDF(pitch, coarse_divisor, 7.5, cycle);
                 MOD3 = ((audf + cycle) % 3 == 0);
                 MOD5 = ((audf + cycle) % 5 == 0);
-                if (MOD3 || MOD5) audf = delta_audf(pitch, audf, coarse_divisor, 7.5, cycle, TIMBRE_GRITTY_C);
+                if (MOD3 || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, 7.5, cycle, TIMBRE_GRITTY_C);
             }
             break;
         }
@@ -282,14 +277,15 @@ void CTuning::generate_table(unsigned char* table, int length, int semitone, int
         if (!JOIN_16BIT && audf > 0xFF) audf = 0xFF;
         if (JOIN_16BIT && audf > 0xFFFF) audf = 0xFFFF;
 
-        //write the POKEY frequency to the table
+        // Write the POKEY frequency to the table
         if (JOIN_16BIT)
-        {	//in 16-bit tables, 2 bytes have to be written contiguously
-            table[i * 2] = audf & 0x0FF;	//LSB
-            table[i * 2 + 1] = audf >> 8;	//MSB
-            continue;
+        {	// In 16-bit tables, 2 bytes have to be written contiguously
+            table[i * 2] = audf & 0x0FF;	// LSB
+            table[i * 2 + 1] = audf >> 8;	// MSB
         }
-        table[i] = audf;
+        else {
+            table[i] = audf;
+        }
     }
 
 }
@@ -300,9 +296,9 @@ void CTuning::generate_table(unsigned char* table, int length, int semitone, int
 /// <param name = "divisor"> Fine division, variable relative to Distortion, Cycle, and frequency modulo, 1 for no division </param> 
 /// <param name = "cycle"> Offset added to AUDF, 4 for 1.79mHz mode, 7 for 16-bit+1.79mHz mode, 1 for neither </param>
 /// <returns> POKEY audio pitch (in Hertz) </returns> 
-double CTuning::get_pitch(int audf, int coarse_divisor, double divisor, int cycle)
+CTuning::Pitch CTuning::GetPitch(AUDF audf, int coarse_divisor, double divisor, int cycle)
 {
-    return ((CAtari::GetClockFrequency(m_ntsc) / (coarse_divisor * divisor)) / (audf + cycle)) / 2;
+    return ((m_clockFrequency / (coarse_divisor * divisor)) / (audf + cycle)) / 2;
 }
 
 /// <summary> Find the nearest POKEY Frequency (AUDF) using the given parameters </summary>
@@ -311,9 +307,9 @@ double CTuning::get_pitch(int audf, int coarse_divisor, double divisor, int cycl
 /// <param name = "divisor"> Fine division, variable relative to Distortion, Cycle, and frequency modulo, 1 for no division </param> 
 /// <param name = "cycle"> Offset added to AUDF, 4 for 1.79mHz mode, 7 for 16-bit+1.79mHz mode, 1 for neither </param>
 /// <returns> POKEY Frequency (AUDF) </returns> 
-int CTuning::get_audf(double pitch, int coarse_divisor, double divisor, int cycle)
+CTuning::AUDF CTuning::GetAUDF(Pitch pitch, int coarse_divisor, double divisor, int cycle)
 {
-    return (int)round(((CAtari::GetClockFrequency(m_ntsc) / (coarse_divisor * divisor)) / (2 * pitch)) - cycle);
+    return (int)round(((m_clockFrequency / (coarse_divisor * divisor)) / (2 * pitch)) - cycle);
 }
 
 /// <summary> Calculate the difference between 2 POKEY frequencies (AUDF) within the conditions intended for the timbre to be output </summary>
@@ -324,7 +320,7 @@ int CTuning::get_audf(double pitch, int coarse_divisor, double divisor, int cycl
 /// <param name = "cycle"> Offset added to AUDF, 4 for 1.79mHz mode, 7 for 16-bit+1.79mHz mode, 1 for neither </param>
 /// <param name = "timbre"> POKEY sound timbre output using the Distortion as well as the modulo of the Frequency </param>
 /// <returns> Compromised POKEY Frequency (AUDF) which is now valid within the conditions established for the generated timbre </returns> 
-int CTuning::delta_audf(double pitch, int audf, int coarse_divisor, double divisor, int cycle, int timbre)
+CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, int audf, int coarse_divisor, double divisor, int cycle, int timbre)
 {
     //TODO: Optimise this procedure a lot more, this is poorly written, but it gets the job done for now 
     int distortion = timbre & 0xF0;
@@ -396,9 +392,9 @@ int CTuning::delta_audf(double pitch, int audf, int coarse_divisor, double divis
         else return 0;	//invalid parameter most likely
     }
 
-    PITCH = get_pitch(tmp_audf_up, coarse_divisor, divisor, cycle);
+    PITCH = GetPitch(tmp_audf_up, coarse_divisor, divisor, cycle);
     tmp_freq_up = pitch - PITCH;	//first delta, up
-    PITCH = get_pitch(tmp_audf_down, coarse_divisor, divisor, cycle);
+    PITCH = GetPitch(tmp_audf_down, coarse_divisor, divisor, cycle);
     tmp_freq_down = PITCH - pitch;	//second delta, down
     PITCH = tmp_freq_down - tmp_freq_up;
 
@@ -413,7 +409,7 @@ int CTuning::delta_audf(double pitch, int audf, int coarse_divisor, double divis
 /// <param name = "basenote"> Base note/key from which the tuning is calculated, typically it is the key of A- or C- </param> 
 /// <param name = "semitone"> Semitones added to base note for calculating higher pitches </param>
 /// <returns> True audio pitch for a given note (in Hertz) </returns> 
-double CTuning::GetTruePitch(double tuning, int temperament, int basenote, int semitone)
+double CTuning::GetTruePitch(double tuning, Temperament temperament, int basenote, int semitone)
 {
     int notesnum = 12;	//unless specified otherwise
     int note = (semitone + basenote) % notesnum;	//current note
@@ -463,7 +459,7 @@ void CTuning::InitTuning() {
     {
         for (int i = 0; i < PRESETS_LENGTH; i++)
         {
-            if (temperament_preset[g_tuning.temperament][i]) continue;
+            if (temperament_preset[g_tuning.temperament][i]) { continue; }
             g_notesperoctave = i - 1;
             break;
         }
@@ -490,32 +486,39 @@ void CTuning::InitTuning() {
     //TODO: optimise this procedure, even if right now this is much better than what it used to be
 
     //Distortion 2, at 0xB000
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x000, 64, dist_2_bell.table_64khz * g_notesperoctave, TIMBRE_BELL, 0x00);
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x040, 64, dist_2_bell.table_179mhz * g_notesperoctave, TIMBRE_BELL, 0x40);
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x080, 64, dist_2_bell.table_16bit * g_notesperoctave, TIMBRE_BELL, 0x50);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x000, 64, dist_2_bell.table_64khz * g_notesperoctave, TIMBRE_BELL, 0x00);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x040, 64, dist_2_bell.table_179mhz * g_notesperoctave, TIMBRE_BELL, 0x40);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x080, 64, dist_2_bell.table_16bit * g_notesperoctave, TIMBRE_BELL, 0x50);
     //no 15kHz table...
 
     //Distortion 4 (Smooth), at 0xB100
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x100, 64, dist_4_smooth.table_64khz * g_notesperoctave, TIMBRE_SMOOTH_4, 0x00);
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x140, 64, dist_4_smooth.table_179mhz * g_notesperoctave, TIMBRE_SMOOTH_4, 0x40);
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x180, 64, dist_4_smooth.table_16bit * g_notesperoctave, TIMBRE_SMOOTH_4, 0x50);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x100, 64, dist_4_smooth.table_64khz * g_notesperoctave, TIMBRE_SMOOTH_4, 0x00);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x140, 64, dist_4_smooth.table_179mhz * g_notesperoctave, TIMBRE_SMOOTH_4, 0x40);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x180, 64, dist_4_smooth.table_16bit * g_notesperoctave, TIMBRE_SMOOTH_4, 0x50);
     //no 15kHz table...
 
     //Distortion A (Pure), at 0xB200
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x200, 64, dist_a_pure.table_64khz * g_notesperoctave, TIMBRE_PURE, 0x00);
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x240, 64, dist_a_pure.table_179mhz * g_notesperoctave, TIMBRE_PURE, 0x40);
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x280, 64, dist_a_pure.table_16bit * g_notesperoctave, TIMBRE_PURE, 0x50);
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x580, 64, dist_a_pure.table_15khz * g_notesperoctave, TIMBRE_PURE, 0x01);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x200, 64, dist_a_pure.table_64khz * g_notesperoctave, TIMBRE_PURE, 0x00);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x240, 64, dist_a_pure.table_179mhz * g_notesperoctave, TIMBRE_PURE, 0x40);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x280, 64, dist_a_pure.table_16bit * g_notesperoctave, TIMBRE_PURE, 0x50);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x580, 64, dist_a_pure.table_15khz * g_notesperoctave, TIMBRE_PURE, 0x01);
 
     //Distortion C (Buzzy), at 0xB300
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x300, 64, dist_c_buzzy.table_64khz * g_notesperoctave, TIMBRE_BUZZY_C, 0x00);
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x340, 64, dist_c_buzzy.table_179mhz * g_notesperoctave, TIMBRE_BUZZY_C, 0x40);
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x380, 64, dist_c_buzzy.table_16bit * g_notesperoctave, TIMBRE_BUZZY_C, 0x50);
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x5C0, 64, dist_c_buzzy.table_15khz * g_notesperoctave, TIMBRE_BUZZY_C, 0x01);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x300, 64, dist_c_buzzy.table_64khz * g_notesperoctave, TIMBRE_BUZZY_C, 0x00);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x340, 64, dist_c_buzzy.table_179mhz * g_notesperoctave, TIMBRE_BUZZY_C, 0x40);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x380, 64, dist_c_buzzy.table_16bit * g_notesperoctave, TIMBRE_BUZZY_C, 0x50);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x5C0, 64, dist_c_buzzy.table_15khz * g_notesperoctave, TIMBRE_BUZZY_C, 0x01);
 
     //Distortion C (Buzzy), at 0xB300
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x400, 64, dist_c_gritty.table_64khz * g_notesperoctave, TIMBRE_GRITTY_C, 0x00);
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x440, 64, dist_c_gritty.table_179mhz * g_notesperoctave, TIMBRE_GRITTY_C, 0x40);
-    generate_table(g_atarimem + RMT_FRQTABLES + 0x480, 64, dist_c_gritty.table_16bit * g_notesperoctave, TIMBRE_GRITTY_C, 0x50);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x400, 64, dist_c_gritty.table_64khz * g_notesperoctave, TIMBRE_GRITTY_C, 0x00);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x440, 64, dist_c_gritty.table_179mhz * g_notesperoctave, TIMBRE_GRITTY_C, 0x40);
+    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x480, 64, dist_c_gritty.table_16bit * g_notesperoctave, TIMBRE_GRITTY_C, 0x50);
     //no 15kHz table...
+}
+
+/// <summary> Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into the emulated Atari memory </summary>
+void CTuning::InitTuning(bool ntsc)
+{
+    m_clockFrequency = CAtari::GetClockFrequency(ntsc);
+    InitTuning();
 }
