@@ -14,7 +14,6 @@ CSongContainer::CSongContainer(CSong& song) {
 }
 
 CSongContainer::~CSongContainer() {
-    m_pokeyStream.FinishedRecording();
 }
 
 CSong& CSongContainer::GetSong() {

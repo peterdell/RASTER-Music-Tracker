@@ -6,11 +6,6 @@
 #include "ChannelControl.h"
 #include "Song.h"
 #include "General.h"
-#include "Global.h"
-#include "AtariTrackerDriver.h"
-
-
-extern CAtariTrackerDriver* g_AtariTrackerDriver; // Only used in PokeyStream::FinishedRecording()
 
 
 CPokeyStream::CPokeyStream()
@@ -52,8 +47,11 @@ void CPokeyStream::Clear()
     m_SongLoopedCounter = 0;
 }
 
-void CPokeyStream::StartRecording(const CSong& song)
+void CPokeyStream::StartRecording(const CSong& song, CAtariTrackerDriver* atariTrackerDriver)
 {
+
+    m_AtariTrackerDriver = atariTrackerDriver;
+
     if (m_StreamBuffer)
     {
         free(m_StreamBuffer);
@@ -200,10 +198,10 @@ void CPokeyStream::Record()
         // Copy data from the 1st Pokey
         // 0 offset in mono
         // 9 offset in stereo
-        m_StreamBuffer[offsetIntoSAPRBuffer + i + j] = g_AtariTrackerDriver->GetByteAt(0xd200 + i);
+        m_StreamBuffer[offsetIntoSAPRBuffer + i + j] = m_AtariTrackerDriver->GetByteAt(0xd200 + i);
         if (i == 1)	// AUDC1
         {	// Test SKCTL ($D20F), if Two-Tone is expected, set the Volume Only bit in the current AUDC1 offset
-            m_StreamBuffer[offsetIntoSAPRBuffer + i + j] |= (g_AtariTrackerDriver->GetByteAt(0xd20F) == 0x8B) ? 0x10 : 0x00;
+            m_StreamBuffer[offsetIntoSAPRBuffer + i + j] |= (m_AtariTrackerDriver->GetByteAt(0xd20F) == 0x8B) ? 0x10 : 0x00;
         }
 
         if (m_FrameSize == 9) {
@@ -211,10 +209,10 @@ void CPokeyStream::Record()
         }
 
         // Copy data from the 2nd Pokey
-        m_StreamBuffer[offsetIntoSAPRBuffer + i] = g_AtariTrackerDriver->GetByteAt(0xd210 + i);
+        m_StreamBuffer[offsetIntoSAPRBuffer + i] = m_AtariTrackerDriver->GetByteAt(0xd210 + i);
         if (i == 1)	//AUDC1
         {	//test SKCTL, if Two-Tone is expected, set the Volume Only bit in the current AUDC1 offset
-            m_StreamBuffer[offsetIntoSAPRBuffer + i] |= (g_AtariTrackerDriver->GetByteAt(0xd21F) == 0x8B) ? 0x10 : 0x00;
+            m_StreamBuffer[offsetIntoSAPRBuffer + i] |= (m_AtariTrackerDriver->GetByteAt(0xd21F) == 0x8B) ? 0x10 : 0x00;
         }
     }
 
@@ -259,6 +257,6 @@ void CPokeyStream::FinishedRecording()
         m_StreamBuffer = NULL;
     }
 
-    g_AtariTrackerDriver->Init();	//reset the Atari memory 
+    m_AtariTrackerDriver->Init();	//reset the Atari memory 
     SetChannelOnOff(-1, 1);	//switch all channels back on, since they were purposefully turned off during the recording
 }

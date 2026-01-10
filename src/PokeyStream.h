@@ -1,6 +1,7 @@
 #pragma once
 
 class CSong;
+class CAtariTrackerDriver;
 
 /// <summary>
 /// Helper class to record the 9 (mono) or 18 (stereo) Pokey registers
@@ -11,67 +12,68 @@ class CSong;
 class CPokeyStream
 {
 public:
-	typedef enum
-	{
-		STOP = 0,
-		RECORD = 1,
-		WRITE = 2,
-		START = 3,
-	} STREAM_STATE;
+    typedef enum
+    {
+        STOP = 0,
+        RECORD = 1,
+        WRITE = 2,
+        START = 3,
+    } STREAM_STATE;
 
-	CPokeyStream();
-	~CPokeyStream();
+    CPokeyStream();
+    ~CPokeyStream();
 
-	void Clear();
+    void Clear();
 
-	void StartRecording(const CSong& song);
+    void StartRecording(const CSong& song, CAtariTrackerDriver* atariTrackerDriver);
 
-	inline unsigned char* GetStreamBuffer(void) { return m_StreamBuffer; }
+    inline unsigned char* GetStreamBuffer(void) { return m_StreamBuffer; }
     inline const unsigned char* GetConstStreamBuffer(void) const { return m_StreamBuffer; };
-	inline int GetCurrentFrame(void) const { return m_FrameCounter; }
-	inline int GetFirstCountPoint(void) const { return m_FirstCountPoint; }
-	inline int GetSecondCountPoint(void) const { return m_SecondCountPoint; }
-	inline int GetThirdCountPoint(void) const { return m_ThirdCountPoint; }
+    inline int GetCurrentFrame(void) const { return m_FrameCounter; }
+    inline int GetFirstCountPoint(void) const { return m_FirstCountPoint; }
+    inline int GetSecondCountPoint(void) const { return m_SecondCountPoint; }
+    inline int GetThirdCountPoint(void) const { return m_ThirdCountPoint; }
 
-	inline bool IsRecording() const { return m_recordState != STREAM_STATE::STOP; }
-	inline bool IsWriting() const { return m_recordState == STREAM_STATE::WRITE; }
-	inline void SetState(STREAM_STATE newState) { m_recordState = newState; }
-	inline int LoopCount() const { return m_SongLoopedCounter; }
+    inline bool IsRecording() const { return m_recordState != STREAM_STATE::STOP; }
+    inline bool IsWriting() const { return m_recordState == STREAM_STATE::WRITE; }
+    inline void SetState(STREAM_STATE newState) { m_recordState = newState; }
+    inline int LoopCount() const { return m_SongLoopedCounter; }
 
-	inline int GetSonglineCount() const { return m_SonglineCounter; }
-	inline int GetFramesPerSongline(int songLine) const { return m_FramesPerSongline[songLine]; }
-	inline int GetOffsetPerSongline(int songLine) const { return m_OffsetPerSongline[songLine]; }
+    inline int GetSonglineCount() const { return m_SonglineCounter; }
+    inline int GetFramesPerSongline(int songLine) const { return m_FramesPerSongline[songLine]; }
+    inline int GetOffsetPerSongline(int songLine) const { return m_OffsetPerSongline[songLine]; }
 
-	int SwitchIntoRecording();
-	int SwitchIntoStop();
-	void CallFromPlay(int playerState, int trackLine, int songLine);
-	bool TrackSongLine(int songLine);
-	bool CallFromPlayBeat(int trackLine);
+    int SwitchIntoRecording();
+    int SwitchIntoStop();
+    void CallFromPlay(int playerState, int trackLine, int songLine);
+    bool TrackSongLine(int songLine);
+    bool CallFromPlayBeat(int trackLine);
 
-	void Record();
-	void WriteToFile(std::ofstream& ou, int frames, int offset) const;
-	void FinishedRecording();
+    void Record();
+    void WriteToFile(std::ofstream& ou, int frames, int offset) const;
+    void FinishedRecording();
 
 private:
-	STREAM_STATE m_recordState;		// What state is the recorder in?
+    STREAM_STATE m_recordState;		// What state is the recorder in?
+    CAtariTrackerDriver* m_AtariTrackerDriver;
 
-	unsigned char* m_StreamBuffer;	// Ptr to the buffer to hold the Pokey values
+    unsigned char* m_StreamBuffer;	// Ptr to the buffer to hold the Pokey values
     int m_BufferSize;				// What size if the m_StreamBuffer currently
 
     int m_FrameSize;
     int m_FrameCounter;				// How many Pokey frames have been recorded?
 
-	int m_SongLoopedCounter;		// How may times has the song been looped?
+    int m_SongLoopedCounter;		// How may times has the song been looped?
 
-	int m_SonglineCounter;			// How many songlines were played?
+    int m_SonglineCounter;			// How many songlines were played?
 
-	int m_PlayCount[256];			// Keeping track of loop points
-	int m_FramesPerSongline[256];	// Keeping track of frames per songline
-	int m_OffsetPerSongline[256];	// Keeping track of index offset per songline
+    int m_PlayCount[256];			// Keeping track of loop points
+    int m_FramesPerSongline[256];	// Keeping track of frames per songline
+    int m_OffsetPerSongline[256];	// Keeping track of index offset per songline
 
-	int m_FirstCountPoint;			// How many frames until we hit the first loop point
-	int m_SecondCountPoint;			// How many frames until we hit the second loop point
-	int m_ThirdCountPoint;			// How many frames between the first and second loop point
+    int m_FirstCountPoint;			// How many frames until we hit the first loop point
+    int m_SecondCountPoint;			// How many frames until we hit the second loop point
+    int m_ThirdCountPoint;			// How many frames between the first and second loop point
 
 };
 

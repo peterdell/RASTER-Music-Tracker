@@ -27,7 +27,7 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, 
 
     // Activate stream recording mode.
     m_pokeyStream = &pokeyStream;
-    m_pokeyStream->StartRecording(*this);
+    m_pokeyStream->StartRecording(*this, g_AtariTrackerDriver);
 
     // Play song using the chosen playback parameters
     // If no argument was passed, Play from start will be assumed
@@ -70,6 +70,7 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, 
             statusBarLog.Format("Generating Pokey stream, playing song in quick mode... %i frames recorded", pokeyStream.GetCurrentFrame());
             SetStatusBarText(statusBarLog);
         }
+        g_AtariTrackerDriver->Init();	// Reset the RMT routines 
 
         // End playback now, the SAP-R data should have been dumped successfully!
         Stop();
