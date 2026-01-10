@@ -97,16 +97,6 @@ enum class Part : int {
     PART_SONG = 3
 };
 
-// Which section of an instrument's data is currently being editied (is active)
-enum class InstrumentSection : int
-{
-    NONE = -1,
-    NAME = 0,
-    PARAMETERS = 1,
-    ENVELOPE = 2,
-    NOTETABLE = 3
-};
-
 
 enum PlayMode : int {
 
@@ -197,7 +187,6 @@ enum AssemblerFormat : int
 #define INSTRS_TABLE_Y		INSTRS_Y+18*16-8	// table Y
 #define INSTRS_HELP_X		INSTRS_X			// active help X
 #define INSTRS_HELP_Y		INSTRS_Y+21*16		// active help Y
-#define NUMBER_OF_PARAMS	20
 
 
 #define	ENV_VOLUMER		0

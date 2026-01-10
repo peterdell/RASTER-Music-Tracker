@@ -25,9 +25,6 @@
     <Filter Include="Source Files\Dialogs">
       <UniqueIdentifier>{0d6bbee4-a8b9-457f-90d9-73664e410b59}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Data">
-      <UniqueIdentifier>{390dff11-f66b-4d0f-9095-d4444b6a2da8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\IO - Load/Save/Export/Import/Midi">
       <UniqueIdentifier>{dc8cf6d4-3fac-46f9-9a26-9661e293011b}</UniqueIdentifier>
     </Filter>
@@ -79,6 +76,9 @@
     <Filter Include="Source Files\Tracker">
       <UniqueIdentifier>{6360eacc-999b-4897-8ffb-fe30db5b39aa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Model">
+      <UniqueIdentifier>{390dff11-f66b-4d0f-9095-d4444b6a2da8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ConfigDlg.cpp">
@@ -121,22 +121,22 @@
       <Filter>Source Files\UI</Filter>
     </ClCompile>
     <ClCompile Include="Clipboard.cpp">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClCompile>
     <ClCompile Include="Instruments.cpp">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClCompile>
     <ClCompile Include="Tracks.cpp">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClCompile>
     <ClCompile Include="Song.cpp">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClCompile>
     <ClCompile Include="GuiHelpers.cpp">
       <Filter>Source Files\GUI</Filter>
     </ClCompile>
     <ClCompile Include="ChannelControl.cpp">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClCompile>
     <ClCompile Include="GUI_Instruments.cpp">
       <Filter>Source Files\GUI</Filter>
@@ -202,7 +202,7 @@
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
     <ClCompile Include="Song_DumpSong.cpp">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClCompile>
     <ClCompile Include="LZSSFile.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\LZSS</Filter>
@@ -271,7 +271,7 @@
       <Filter>Source Files\GUI</Filter>
     </ClCompile>
     <ClCompile Include="Notes.cpp">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClCompile>
     <ClCompile Include="Fraction.cpp">
       <Filter>Source Files\Common</Filter>
@@ -330,22 +330,22 @@
       <Filter>Source Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="Instruments.h">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClInclude>
     <ClInclude Include="Tracks.h">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClInclude>
     <ClInclude Include="Song.h">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClInclude>
     <ClInclude Include="Clipboard.h">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClInclude>
     <ClInclude Include="GuiHelpers.h">
       <Filter>Source Files\GUI</Filter>
     </ClInclude>
     <ClInclude Include="ChannelControl.h">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClInclude>
     <ClInclude Include="IOHelpers.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
@@ -468,7 +468,7 @@
       <Filter>Source Files\GUI</Filter>
     </ClInclude>
     <ClInclude Include="Notes.h">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClInclude>
     <ClInclude Include="Fraction.h">
       <Filter>Source Files\Common</Filter>
@@ -487,6 +487,9 @@
     </ClInclude>
     <ClInclude Include="Undo.h">
       <Filter>Source Files\Tracker</Filter>
+    </ClInclude>
+    <ClInclude Include="InstrumentTypes.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

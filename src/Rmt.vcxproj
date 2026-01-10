@@ -334,6 +334,7 @@
     <ClInclude Include="Clipboard.h" />
     <ClInclude Include="ConfigDlg.h" />
     <ClInclude Include="info_dlg.h" />
+    <ClInclude Include="InstrumentTypes.h" />
     <ClInclude Include="LZSSFile.h" />
     <ClInclude Include="Notes.h" />
     <ClInclude Include="Pokey.h" />
