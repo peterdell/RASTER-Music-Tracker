@@ -145,11 +145,11 @@ enum PlayMode : int {
     PLAY_SAPR_FROM = 254,	// SAPR dump from song cursor position
     PLAY_SAPR_TRACK = 253,	// SAPR dump from track (loop optional)
     PLAY_SAPR_BLOCK = 252,	// SAPR dump from selection block (loop optional)
-    PLAY_SAPR_BOOKMARK = 251,	// SAPR dump from bookmak position
+    PLAY_SAPR_BOOKMARK = 251	// SAPR dump from bookmak position
 
 };
 
-enum class IOType: int {
+enum class SongIOType : int {
     IOTYPE_NONE = 0,			// No export has been done yet
     IOTYPE_RMT = 1,
     IOTYPE_RMW = 2,

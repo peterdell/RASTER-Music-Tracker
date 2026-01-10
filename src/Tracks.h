@@ -76,11 +76,11 @@ public:
     int TrackToAtaRMF(int trackNr, unsigned char* dest, int max) const;
     BOOL AtaToTrack(unsigned char* mem, int trackLength, int trackNr);
 
-    int SaveAll(std::ofstream& ou, IOType iotype);
-    int LoadAll(std::ifstream& in, IOType iotype);
+    int SaveAll(std::ofstream& ou, SongIOType iotype);
+    int LoadAll(std::ifstream& in, SongIOType iotype);
 
-    int SaveTrack(int track, std::ofstream& ou, IOType iotype);
-    int LoadTrack(int track, std::ifstream& in, IOType iotype);
+    int SaveTrack(int track, std::ofstream& ou, SongIOType iotype);
+    int LoadTrack(int track, std::ifstream& in, SongIOType iotype);
 
     BOOL CalculateNotEmpty(int track);
     BOOL CompareTracks(int track1, int track2) const;

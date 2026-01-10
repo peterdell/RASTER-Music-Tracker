@@ -368,9 +368,6 @@
     <ClInclude Include="ExportDlgs.h">
       <Filter>Source Files\Dialogs</Filter>
     </ClInclude>
-    <ClInclude Include="Memory.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClInclude>
     <ClInclude Include="lzssp.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\LZSS</Filter>
     </ClInclude>
@@ -481,6 +478,9 @@
     </ClInclude>
     <ClInclude Include="TuningTypes.h">
       <Filter>Source Files\Tuning</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory.h">
+      <Filter>Source Files\ASAP</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

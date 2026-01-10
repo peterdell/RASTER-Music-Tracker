@@ -55,7 +55,7 @@ public:
     static void ClearMemory();
     static byte GetByteAt(const MemoryAddress address);
 
-    static int LoadOBX(IOType obx, unsigned char* mem, WORD& minadr, WORD& maxadr);
+    static int LoadOBX(SongIOType obx, unsigned char* mem, WORD& minadr, WORD& maxadr);
 
     static int LoadRMTRoutines();
     static int InitRMTRoutine();

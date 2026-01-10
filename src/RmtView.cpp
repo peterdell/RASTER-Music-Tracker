@@ -1715,9 +1715,9 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         {
             //g_Song.Stop();
             SetStatusBarText("Save...");
-            CString filename = g_Song.GetFilename();
+            auto filename = g_Song.GetFilename();
             if (g_keyboard_askwhencontrol_s
-                && (filename != "" || g_Song.GetFiletype() != IOType::IOTYPE_NONE))
+                && (!filename.IsEmpty() || g_Song.GetIOType() != SongIOType::IOTYPE_NONE))
             {
                 //if a question is asked and if a file already exists
                 //(=> there will be a "Save as ..." dialog)
