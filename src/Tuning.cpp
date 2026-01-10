@@ -320,7 +320,7 @@ CTuning::AUDF CTuning::GetAUDF(Pitch pitch, int coarse_divisor, double divisor, 
 /// <param name = "cycle"> Offset added to AUDF, 4 for 1.79mHz mode, 7 for 16-bit+1.79mHz mode, 1 for neither </param>
 /// <param name = "timbre"> POKEY sound timbre output using the Distortion as well as the modulo of the Frequency </param>
 /// <returns> Compromised POKEY Frequency (AUDF) which is now valid within the conditions established for the generated timbre </returns> 
-CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, int audf, int coarse_divisor, double divisor, int cycle, int timbre)
+CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_divisor, double divisor, int cycle, int timbre)
 {
     //TODO: Optimise this procedure a lot more, this is poorly written, but it gets the job done for now 
     int distortion = timbre & 0xF0;

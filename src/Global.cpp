@@ -13,7 +13,7 @@
 byte g_atarimem[ATARI_RAM_SIZE];
 char g_debugmem[ATARI_RAM_SIZE];	// Used in GUI_Song.cpp, debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
 
-BOOL g_closeApplication = 0;			// Set when the application is busy shutting down
+BOOL g_closeApplication = FALSE;			// Set when the application is busy shutting down
 CDC* g_mem_dc = NULL;
 CDC* g_gfx_dc = NULL;
 

@@ -15,7 +15,9 @@
 #include "IOHelpers.h"
 #include "Instruments.h"
 #include "Clipboard.h"
-#include "global.h"
+#include "Global.h"
+
+#include "SongTimer.h"
 
 #include "PokeyStream.h"
 #include "SongExporter.h"
@@ -31,32 +33,19 @@ extern CString g_PrefixForAllAsmLabels;
 
 extern int g_tracks4_8;
 
-static BOOL busyInTimer = 0;
+CSongTimer g_SongTimer;
 
 /// <summary>
 /// Wait for the Timer Routine to run at least once
 /// </summary>
 void CSong::WaitForTimerRoutineProcessed()
 {
-    // If there is any timer at all
-    if (m_timerRoutine)
-    {
-        m_timerRoutineProcessed = false;
-        while (!m_timerRoutineProcessed && !g_closeApplication) {
-            // Busy Waiting
-        };
-    }
+    g_SongTimer.WaitForTimerRoutineProcessed();
 }
 
 // ----------------------------------------------------------------------------
 
-// TODO: Move elsewhere, to the tracker.
-void CALLBACK G_TimerRoutine(UINT, UINT, DWORD_PTR, DWORD_PTR, DWORD_PTR)
-{
-    busyInTimer = 1;
-    g_Song.TimerRoutine();
-    busyInTimer = 0;
-}
+
 
 // ----------------------------------------------------------------------------
 
@@ -66,9 +55,6 @@ CSong::CSong()
     memset(m_songname, 0, SONG_NAME_MAX_LEN);
 
     // Initialise Timer
-    m_timerRoutine = 0;
-    m_timerRoutineProcessed = false;
-
     m_quantization_note = -1; // init
     m_quantization_instr = -1;
     m_quantization_vol = -1;
@@ -118,9 +104,7 @@ int CSong::GetInstrumentSpeed() const {
 /// </summary>
 void CSong::StopTimer()
 {
-    while (busyInTimer);			// Wait until not in timer handler
-    KillTimer();					// Kill the timer
-    while (busyInTimer);			// Make sure not in the timer handler
+    g_SongTimer.StopTimer();
 }
 
 /// <summary>
@@ -130,8 +114,7 @@ void CSong::StopTimer()
 /// <param name="ms">ms between calls (17=NTSC, 20=PAL)</param>
 void CSong::ChangeTimer(int ms)
 {
-    KillTimer();
-    m_timerRoutine = timeSetEvent(ms, 0, G_TimerRoutine, (ULONG)(NULL), TIME_PERIODIC);
+    g_SongTimer.SetTimer(*this, ms);
 }
 
 /// <summary>
@@ -139,11 +122,7 @@ void CSong::ChangeTimer(int ms)
 /// </summary>
 void CSong::KillTimer()
 {
-    if (m_timerRoutine)
-    {
-        timeKillEvent(m_timerRoutine);
-        m_timerRoutine = 0;
-    }
+    g_SongTimer.KillTimer();
 }
 
 /// <summary>
@@ -3428,5 +3407,4 @@ void CSong::TimerRoutine()
     ChangeTimer(IsNTSC() ? m_timerRoutineTick[g_timerGlobalCount % 3] : 20);
 
     g_timerGlobalCount++;			// Increment by one each time Timer Routine was processed
-    m_timerRoutineProcessed = true;	// TimerRoutine took place
 }
