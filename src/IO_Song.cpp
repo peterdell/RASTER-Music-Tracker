@@ -29,8 +29,7 @@ extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 extern CXPokey g_Pokey;
 extern CRmtMidi g_Midi;
-
-
+extern CAtariRMTPlayer* g_AtariRMTPlayer;
 
 int CSong::SongToAta(unsigned char* dest, int max, int adr)
 {
@@ -502,7 +501,7 @@ void CSong::FileImport()
     SetChannelOnOff(-1, 1);		// -1 = all, 1 = on
 
     // Initialise RMT routine
-    g_Atari.InitRMTRoutine();
+    g_AtariRMTPlayer->InitRMTRoutine();
 }
 
 /// <summary>

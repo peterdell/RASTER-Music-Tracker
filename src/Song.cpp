@@ -917,11 +917,11 @@ BOOL CSong::PlayPressedTones()
             i = m_playptinstr[t];
             if (n >= 0 && i >= 0)
             {
-                g_Atari.SetTrack_NoteInstrVolume(t, n, i, v);
+                g_AtariRMTPlayer->SetTrack_NoteInstrVolume(t, n, i, v);
             }
             else
             {
-                g_Atari.SetTrack_Volume(t, v);
+                g_AtariRMTPlayer->SetTrack_Volume(t, v);
             }
             SetPlayPressedTonesTNIV(t, -1, -1, -1);
         }
@@ -3285,11 +3285,11 @@ TrackLine:
             if (n >= 0 && n < CNotes::NOTESNUM /*&& i>=0 && i<INSTRSNUM*/)		// adjustment for routine compatibility
             {
                 if (i < 0 || i >= INSTRSNUM) { i = 255; }				// adjustment for routine compatibility
-                g_Atari.SetTrack_NoteInstrVolume(t, n, i, v);
+                g_AtariRMTPlayer->SetTrack_NoteInstrVolume(t, n, i, v);
             }
             else
             {
-                g_Atari.SetTrack_Volume(t, v);
+                g_AtariRMTPlayer->SetTrack_Volume(t, v);
             }
         }
     }

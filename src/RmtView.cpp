@@ -774,8 +774,8 @@ void CRmtView::OnViewConfiguration()
         {
             // Something here to reset the thing
             g_trackerDriverVersion = dlg.m_trackerDriverVersion;
-            g_Atari.LoadRMTRoutines();
-            g_Atari.InitRMTRoutine(g_Song.IsNTSC()); // TODO: This is done serveral time. We need something like "beginUpdate"
+            g_Atari.InitRMTRoutine(g_Song.IsNTSC()); // TODO: This is done serveral times. We need something like "beginUpdate"
+            g_AtariRMTPlayer->LoadRMTRoutines();
         }
         g_trackerDriverVersion = dlg.m_trackerDriverVersion;
 
@@ -936,8 +936,9 @@ void CRmtView::OnInitialUpdate()
 
     //INITIALISATION OF ATARI RMT ROUTINES
     g_Atari.ClearMemory();
-    g_Atari.LoadRMTRoutines();
     g_Atari.InitRMTRoutine(g_Song.IsNTSC());
+    g_AtariRMTPlayer->LoadRMTRoutines();
+    g_AtariRMTPlayer->InitRMTRoutine();
     g_Song.SetRMTTitle();
 
     // RMTView Timer Initialisation
@@ -1526,7 +1527,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         // Reset RMT routines automatically?
         if (g_keyboard_escresetatarisound)
         {
-            g_Atari.InitRMTRoutine();
+            g_AtariRMTPlayer->InitRMTRoutine();
         }
         if (g_Song.GetPlayMode() == PlayMode::PLAY_STOP) //only if the module is stopped
         {

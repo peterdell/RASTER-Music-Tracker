@@ -61,17 +61,11 @@ public:
     byte* GetMemoryAt(const MemoryAddress address);
     const byte* GetConstMemoryAt(const MemoryAddress address) const;
 
+    void InitRMTRoutine(const bool ntsc);
+    BOOL IsNTSC() const;
+
     CycleCount GetFrameCycleCount() const;
     void JSR(C6502::Address& adr, C6502::Register& a, C6502::Register& x, C6502::Register& y, C6502::CycleCount& cycles);
-
-    int LoadRMTRoutines();
-    int InitRMTRoutine(); // Without changing the NTSC/PAL flag
-    int InitRMTRoutine(const bool ntsc);
-    void PlayRMT();
-    void SetPokey();
-    void Silence();
-    void SetTrack_NoteInstrVolume(int t, int n, int i, int v);
-    void SetTrack_Volume(int t, int v);
 
 private:
     BOOL m_ntsc;
@@ -84,6 +78,15 @@ public:
     CAtariRMTPlayer(CAtari& atari);
 
     CAtari* GetAtari();
+
+
+    int LoadRMTRoutines();
+    int InitRMTRoutine(); // Init
+    void PlayRMT(); // Play
+    void SetPokey();
+    void Silence();
+    void SetTrack_NoteInstrVolume(int t, int n, int i, int v);
+    void SetTrack_Volume(int t, int v);
     void InstrumentTurnOff(int instr);
 
 private:

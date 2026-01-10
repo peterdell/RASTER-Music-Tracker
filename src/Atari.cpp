@@ -72,16 +72,33 @@ const byte* CAtari::GetConstMemoryAt(const MemoryAddress address) const {
     return g_atarimem + address;
 }
 
-CAtari::CycleCount CAtari::GetFrameCycleCount() const {
-    return GetFrameCycleCount(m_ntsc);
+BOOL CAtari::IsNTSC() const {
+    return m_ntsc;
 }
+
+CAtari::CycleCount CAtari::GetFrameCycleCount() const {
+    return GetFrameCycleCount(IsNTSC());
+}
+
+void CAtari::InitRMTRoutine(const bool ntsc)
+{
+
+    m_ntsc = ntsc;
+    g_Tuning.InitTuning(m_ntsc);
+}
+
 
 CAtariRMTPlayer::CAtariRMTPlayer(CAtari& atari) {
     m_atari = &atari;
 }
 
+CAtari* CAtariRMTPlayer::GetAtari() {
+    return m_atari;
+
+}
+
 // Load RMT routine to $3400, setnoteinstrvol to $3d00, and setvol to $3e00
-int CAtari::LoadRMTRoutines()
+int CAtariRMTPlayer::LoadRMTRoutines()
 {
     WORD min, max;
     WORD size;
@@ -93,29 +110,20 @@ int CAtari::LoadRMTRoutines()
     return CAtariIO::LoadDataAsBinaryFile(bin, size, g_atarimem, min, max);
 }
 
-int CAtari::InitRMTRoutine() {
-    return InitRMTRoutine(m_ntsc);
-}
 
-int CAtari::InitRMTRoutine(const bool ntsc)
-{
-    if (!g_is6502) {
-        return 0;
-    }
+int CAtariRMTPlayer::InitRMTRoutine() {
 
-    m_ntsc = ntsc;
-    g_Tuning.InitTuning(m_ntsc);
 
     WORD adr = RMT_INIT;
     BYTE a = 0, x = 0x00, y = 0x3f;
-    auto cycles = GetFrameCycleCount(m_ntsc);
-    C6502::JSR(adr, a, x, y, cycles);
+    auto cycles = m_atari->GetFrameCycleCount();
+    m_atari->JSR(adr, a, x, y, cycles);
     for (int i = 0; i < SONGTRACKS; i++) { g_rmtinstr[i] = -1; }
 
     return (int)a;
 }
 
-void CAtari::PlayRMT()
+void CAtariRMTPlayer::PlayRMT()
 {
     if (!g_is6502) {
         return;
@@ -123,7 +131,7 @@ void CAtari::PlayRMT()
 
     WORD adr = RMT_P3; //(without SetPokey) one run of RMT routine but from rmt_p3 (wrap processing)
     BYTE a = 0, x = 0, y = 0;
-    auto cycles = GetFrameCycleCount(m_ntsc);
+    auto cycles = m_atari->GetFrameCycleCount();
     if (g_prove < EditMode::EDIT_AND_JAM_MODES) { // this is only good for tests, this trigger prevents the RMT driver running at all, leaving only SetPokey available
         C6502::JSR(adr, a, x, y, cycles);
     }
@@ -132,66 +140,51 @@ void CAtari::PlayRMT()
     C6502::JSR(adr, a, x, y, cycles);
 }
 
-void CAtari::SetPokey()
+void CAtariRMTPlayer::SetPokey()
 {
-    if (!g_is6502) {
-        return;
-    }
 
-    WORD adr = RMT_SETPOKEY;
+    auto adr = RMT_SETPOKEY;
     BYTE a = 0, x = 0, y = 0;
-    auto cycles = GetFrameCycleCount(m_ntsc);
-    C6502::JSR(adr, a, x, y, cycles);
+    auto cycles = m_atari->GetFrameCycleCount();
+    m_atari->JSR(adr, a, x, y, cycles);
 }
 
-void CAtari::Silence()
+void CAtariRMTPlayer::Silence()
 {
-    if (!g_is6502) {
-        return;
-    }
 
-    //Silence routine
-    WORD adr = RMT_SILENCE;
+    // Silence routine
+    auto adr = RMT_SILENCE;
     BYTE a = 0, x = 0, y = 0;
-    auto cycles = GetFrameCycleCount(m_ntsc);
-    C6502::JSR(adr, a, x, y, cycles);
+    auto cycles = m_atari->GetFrameCycleCount();
+    m_atari->JSR(adr, a, x, y, cycles);
 }
 
-void CAtari::SetTrack_NoteInstrVolume(int t, int n, int i, int v)
+void CAtariRMTPlayer::SetTrack_NoteInstrVolume(int t, int n, int i, int v)
 {
-    if (!g_is6502) {
-        return;
-    }
 
-    WORD adr = RMT_ATA_SETNOTEINSTR;
+    auto adr = RMT_ATA_SETNOTEINSTR;
     BYTE a = n, x = t, y = i;
-    auto cycles = GetFrameCycleCount(m_ntsc);
-    C6502::JSR(adr, a, x, y, cycles);
+    auto cycles = m_atari->GetFrameCycleCount();
+    m_atari->JSR(adr, a, x, y, cycles);
     //
     adr = RMT_ATA_SETVOLUME;
     a = v; x = t; y = 0;
-    cycles = GetFrameCycleCount(m_ntsc);
-    C6502::JSR(adr, a, x, y, cycles);
+    cycles = m_atari->GetFrameCycleCount();
+    m_atari->JSR(adr, a, x, y, cycles);
 
     g_rmtinstr[t] = i;
 }
 
-void CAtari::SetTrack_Volume(int t, int v)
+void CAtariRMTPlayer::SetTrack_Volume(int t, int v)
 {
-    if (!g_is6502) {
-        return;
-    }
 
-    WORD adr = RMT_ATA_SETVOLUME;
+    auto adr = RMT_ATA_SETVOLUME;
     BYTE a = v, x = t, y = 0;
-    auto cycles = GetFrameCycleCount(m_ntsc);
-    C6502::JSR(adr, a, x, y, cycles);
+    auto cycles = m_atari->GetFrameCycleCount();
+    m_atari->JSR(adr, a, x, y, cycles);
 }
 
-CAtari* CAtariRMTPlayer::GetAtari(){
-    return m_atari;
 
-}
 void CAtariRMTPlayer::InstrumentTurnOff(int instr)
 {
     auto cycles = m_atari->GetFrameCycleCount();
