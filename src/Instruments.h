@@ -79,6 +79,13 @@ struct TInstrumentsAll		//for undo
     TInstrument instruments[INSTRSNUM];
 };
 
+
+enum class InstrumentIOType : int {
+    IOINSTR_RTI = 1,	// corresponding IOTYPE_RMT
+    IOINSTR_RMW = 2,	// corresponding IOTYPE_RMW
+    IOINSTR_TXT = 6		// corresponding IOTYPE_TXT
+};
+
 class CInstruments
 {
 public:
@@ -137,5 +144,3 @@ private:
     void DrawEnv(int e, int instrNr);
     void DrawNoteTableValue(int p, int instrNr);
 };
-
-extern CInstruments g_Instruments;

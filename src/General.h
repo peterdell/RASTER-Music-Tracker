@@ -149,35 +149,6 @@ enum PlayMode : int {
 
 };
 
-enum class SongIOType : int {
-    IOTYPE_NONE = 0,			// No export has been done yet
-    IOTYPE_RMT = 1,
-    IOTYPE_RMW = 2,
-    IOTYPE_RMTSTRIPPED = 3,
-    IOTYPE_SAP = 4,
-    IOTYPE_XEX = 5,		// Not used anymore? Old RMT 1.28 XEX export is disabled?
-    IOTYPE_TXT = 6,
-    IOTYPE_ASM = 7,
-    IOTYPE_RMF = 8,
-    IOTYPE_ASM_RMTPLAYER = 9,
-
-    IOTYPE_SAPR = 10,
-    IOTYPE_LZSS = 11,
-    IOTYPE_LZSS_SAP = 12,
-    IOTYPE_LZSS_XEX = 13,
-
-    IOTYPE_WAV = 20,
-
-    IOTYPE_TMC = 101		// import TMC
-};
-
-
-enum class InstrumentIOType: int {
-    IOINSTR_RTI = 1,	// corresponding IOTYPE_RMT
-    IOINSTR_RMW = 2,	// corresponding IOTYPE_RMW
-    IOINSTR_TXT = 6		// corresponding IOTYPE_TXT
-};
-
 enum AssemblerFormat : int
 {
     ATASM = 0,

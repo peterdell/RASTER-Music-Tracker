@@ -5,6 +5,12 @@
 #include "ASMFileBuilder.h"
 
 
+
+extern BOOL g_rmtstripped_sfx;			//sfx offshoot RMT stripped file
+extern BOOL g_rmtstripped_gvf;			//gvs GlobalVolumeFade for feat
+extern BOOL g_rmtstripped_nos;			//nos NoStartingSongline for feat
+extern CInstruments g_Instruments;
+
 CString g_PrefixForAllAsmLabels;	//label prefix for export ASM simple notation
 
 CString g_AsmLabelForStartOfSong;	// Label for relocatable ASM for RMTPlayer.asm
@@ -15,10 +21,6 @@ CString g_AsmInstrumentsLabel;
 CString g_AsmTracksLabel;
 CString g_AsmSongLinesLabel;
 AssemblerFormat g_AsmFormat = XASM;
-
-extern BOOL g_rmtstripped_sfx;			//sfx offshoot RMT stripped file
-extern BOOL g_rmtstripped_gvf;			//gvs GlobalVolumeFade for feat
-extern BOOL g_rmtstripped_nos;			//nos NoStartingSongline for feat
 
 
 // ============================================================================

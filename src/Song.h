@@ -9,6 +9,7 @@
 #include "PokeyStream.h"
 
 static constexpr int SONG_NAME_MAX_LEN = 64;	// maximum length of song name
+typedef char SongName[SONG_NAME_MAX_LEN + 1];
 
 struct TBookmark
 {
@@ -26,7 +27,7 @@ struct TSong	//due to Undo
 
 struct TInfo
 {
-    char songname[SONG_NAME_MAX_LEN + 1];
+    SongName songname;
     int speed;
     int mainspeed;
     int instrspeed;
@@ -47,6 +48,28 @@ struct TExportDescription
 
 
 class CASMFileExporter;
+
+enum class SongIOType : int {
+    IOTYPE_NONE = 0,			// No export has been done yet
+    IOTYPE_RMT = 1,
+    IOTYPE_RMW = 2,
+    IOTYPE_RMTSTRIPPED = 3,
+    IOTYPE_SAP = 4,
+    IOTYPE_XEX = 5,		// Not used anymore? Old RMT 1.28 XEX export is disabled?
+    IOTYPE_TXT = 6,
+    IOTYPE_ASM = 7,
+    IOTYPE_RMF = 8,
+    IOTYPE_ASM_RMTPLAYER = 9,
+
+    IOTYPE_SAPR = 10,
+    IOTYPE_LZSS = 11,
+    IOTYPE_LZSS_SAP = 12,
+    IOTYPE_LZSS_XEX = 13,
+
+    IOTYPE_WAV = 20,
+
+    IOTYPE_TMC = 101		// import TMC
+};
 
 class CSong
 {
