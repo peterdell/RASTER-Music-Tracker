@@ -34,14 +34,6 @@ extern int g_tracks4_8;
 
 CSongTimer g_SongTimer;
 
-/// <summary>
-/// Wait for the Timer Routine to run at least once
-/// </summary>
-void CSong::WaitForTimerRoutineProcessed()
-{
-    g_SongTimer.WaitForTimerRoutineProcessed();
-}
-
 // ----------------------------------------------------------------------------
 
 
@@ -3184,7 +3176,7 @@ BOOL CSong::Play(PlayMode mode, BOOL follow, int special)
         }
     }
 
-    WaitForTimerRoutineProcessed();
+    g_SongTimer.WaitForTimerRoutineProcessed();
     m_followplay = follow;
     PlayBeat();						//sets m_speeda
     m_speeda++;						//(Original comment by Raster, April 27, 2003) adds 1 to m_speed, for what the real thing will take place in Init
@@ -3210,7 +3202,7 @@ void CSong::Stop()
         g_Undo.Separator();
         m_quantization_note = m_quantization_instr = m_quantization_vol = -1;
         SetPlayPressedTonesSilence();
-        WaitForTimerRoutineProcessed();	// The Timer Routine will run at least once
+        g_SongTimer.WaitForTimerRoutineProcessed(); // The Timer Routine will run at least once
     }
 }
 

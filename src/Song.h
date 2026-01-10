@@ -333,7 +333,6 @@ private:
 
     bool volatile m_timerRoutineProcessed;
     const BYTE m_timerRoutineTick[3] = { 17, 17, 16 };
-    void WaitForTimerRoutineProcessed();
 
     CString m_filename;
     SongIOType m_ioType;
