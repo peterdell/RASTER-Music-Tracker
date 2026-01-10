@@ -519,6 +519,6 @@ void CTuning::InitTuning() {
 /// <summary> Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into the emulated Atari memory </summary>
 void CTuning::InitTuning(bool ntsc)
 {
-    m_clockFrequency = CAtari::GetClockFrequency(ntsc);
+    m_clockFrequency = g_Atari.GetClockFrequency(ntsc);
     InitTuning();
 }

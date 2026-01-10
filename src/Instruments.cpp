@@ -96,7 +96,7 @@ void CInstruments::ClearInstrument(int instrNr)
     if (!instrument) return;
 
     // Turn off this instrument on all channels
-    CAtari::InstrumentTurnOff(instrNr);
+    g_Atari.InstrumentTurnOff(instrNr);
 
     // Clear everything/All zero
     memset(instrument, 0, sizeof(TInstrument));
@@ -263,12 +263,12 @@ int CInstruments::GetFrequency(int instr, int note)
     switch (tt->envelope[0][ENV_DISTORTION])
     {
     case 0x0C:
-        return CAtari::GetByteAt(RMT_FRQTABLES + 64 + note);
+        return g_Atari.GetByteAt(RMT_FRQTABLES + 64 + note);
     case 0x06:
     case 0x0E:
-        return CAtari::GetByteAt(RMT_FRQTABLES + 128 + note);
+        return g_Atari.GetByteAt(RMT_FRQTABLES + 128 + note);
     default:
-        return CAtari::GetByteAt(RMT_FRQTABLES + 192 + note);
+        return g_Atari.GetByteAt(RMT_FRQTABLES + 192 + note);
     }
 }
 

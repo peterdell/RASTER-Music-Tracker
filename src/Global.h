@@ -10,6 +10,8 @@
 #include "TuningTypes.h"
 
 #include "SongTypes.h"
+#include "Atari.h"
+
 
 void SetProgramFolderPath(const CString& folderPath);
 CString GetResourceFolderPath(const CString& folderName);
@@ -40,6 +42,7 @@ extern HWND g_viewhwnd;
 extern HINSTANCE g_c6502_dll;
 extern BOOL volatile g_is6502;
 extern CString g_about6502;
+extern CAtari g_Atari;
 
 extern BOOL g_changes;	//have there been any changes in the module?
 

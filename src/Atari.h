@@ -46,25 +46,25 @@ public:
 
     static ClockFrequency GetClockFrequency(boolean ntsc);
 
-    static int Init();
-    static void DeInit();
+    int Init();
+    void DeInit();
 
-    static void ClearMemory();
-    static byte GetByteAt(const MemoryAddress address);
+    void ClearMemory();
+    byte GetByteAt(const MemoryAddress address);
 
-    static int LoadRMTRoutines();
-    static int InitRMTRoutine(); // Without changing the NTSC/PAL flag
-    static int InitRMTRoutine(const bool ntsc);
-    static void PlayRMT();
-    static void SetPokey();
-    static void Silence();
-    static void SetTrack_NoteInstrVolume(int t, int n, int i, int v);
-    static void SetTrack_Volume(int t, int v);
-    static void InstrumentTurnOff(int instr);
+    int LoadRMTRoutines();
+    int InitRMTRoutine(); // Without changing the NTSC/PAL flag
+    int InitRMTRoutine(const bool ntsc);
+    void PlayRMT();
+    void SetPokey();
+    void Silence();
+    void SetTrack_NoteInstrVolume(int t, int n, int i, int v);
+    void SetTrack_Volume(int t, int v);
+    void InstrumentTurnOff(int instr);
 
 
 private:
-    static BOOL m_ntsc;
+    BOOL m_ntsc;
 
 };
 

@@ -502,7 +502,7 @@ void CSong::FileImport()
     SetChannelOnOff(-1, 1);		// -1 = all, 1 = on
 
     // Initialise RMT routine
-    CAtari::InitRMTRoutine();
+    g_Atari.InitRMTRoutine();
 }
 
 /// <summary>

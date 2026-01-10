@@ -6,7 +6,7 @@
 #include "PokeyStream.h"
 #include "ChannelControl.h"
 
-
+extern CAtari g_Atari;
 extern CInstruments	g_Instruments;
 extern BOOL volatile g_rmtroutine;
 extern long g_playtime;
@@ -22,7 +22,7 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, 
     CString statusBarLog;
 
     Stop();					// Make sure RMT is stopped 
-    CAtari::InitRMTRoutine();	// Reset the RMT routines 
+    g_Atari.InitRMTRoutine();	// Reset the RMT routines 
     SetChannelOnOff(-1, 0);	// Switch all channels off 
 
     // Activate stream recording mode.
@@ -54,7 +54,7 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, 
                 // 1 VBI of RMT routine (for instruments)
                 if (g_rmtroutine)
                 {
-                    CAtari::PlayRMT();
+                    g_Atari.PlayRMT();
                 }
                 // Transfer from g_atarimem to POKEY buffer
                 pokeyStream.Record();

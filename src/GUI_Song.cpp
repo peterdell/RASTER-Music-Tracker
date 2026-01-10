@@ -1809,7 +1809,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
 
         ChangeInstrumentPar:
             //because there has been some change in the instrument parameter => stop this instrument in all channels
-            CAtari::InstrumentTurnOff(m_activeinstr);
+            g_Atari.InstrumentTurnOff(m_activeinstr);
             g_Instruments.CheckInstrumentParameters(m_activeinstr);
             g_Instruments.Update(m_activeinstr);
             return 1;

@@ -43,6 +43,7 @@ extern CUndo	g_Undo;
 extern CXPokey	g_Pokey;
 extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
+extern CAtari g_Atari;
 
 /////////////////////////////////////////////////////////////////////////////
 // CRmtView
@@ -257,7 +258,7 @@ void CRmtView::OnDestroy()
     g_Pokey.DeInitSound();
 
     // Unload 6502 DLL
-    CAtari::DeInit();
+    g_Atari.DeInit();
 
     // Turn off the timer
     if (m_timerDisplay)
@@ -753,7 +754,7 @@ void CRmtView::OnViewConfiguration()
         if (g_nohwsoundbuffer != dlg.m_nohwsoundbuffer)
         {
             g_Pokey.ReInitSound(g_Song.IsNTSC(), IsStereo());	//the sound needs to be reinitialized
-            CAtari::InitRMTRoutine(g_Song.IsNTSC()); //reset RMT routines
+            g_Atari.InitRMTRoutine(g_Song.IsNTSC()); //reset RMT routines
         }
         g_nohwsoundbuffer = dlg.m_nohwsoundbuffer;
 
@@ -766,8 +767,8 @@ void CRmtView::OnViewConfiguration()
         {
             // Something here to reset the thing
             g_trackerDriverVersion = dlg.m_trackerDriverVersion;
-            CAtari::LoadRMTRoutines();
-            CAtari::InitRMTRoutine(g_Song.IsNTSC()); // TODO: This is done serveral time. We need something like "beginUpdate"
+            g_Atari.LoadRMTRoutines();
+            g_Atari.InitRMTRoutine(g_Song.IsNTSC()); // TODO: This is done serveral time. We need something like "beginUpdate"
         }
         g_trackerDriverVersion = dlg.m_trackerDriverVersion;
 
@@ -926,16 +927,16 @@ void CRmtView::OnInitialUpdate()
     }
 
     //INITIAL 6502 INITIALIZATION (DLL)
-    if (!CAtari::Init())
+    if (!g_Atari.Init())
     {
-        CAtari::DeInit();
+        g_Atari.DeInit();
         exit(1);
     }
 
     //INITIALISATION OF ATARI RMT ROUTINES
-    CAtari::ClearMemory();
-    CAtari::LoadRMTRoutines();
-    CAtari::InitRMTRoutine(g_Song.IsNTSC());
+    g_Atari.ClearMemory();
+    g_Atari.LoadRMTRoutines();
+    g_Atari.InitRMTRoutine(g_Song.IsNTSC());
     g_Song.SetRMTTitle();
 
     // RMTView Timer Initialisation
@@ -1524,7 +1525,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         // Reset RMT routines automatically?
         if (g_keyboard_escresetatarisound)
         {
-            CAtari::InitRMTRoutine();
+            g_Atari.InitRMTRoutine();
         }
         if (g_Song.GetPlayMode() == PlayMode::PLAY_STOP) //only if the module is stopped
         {

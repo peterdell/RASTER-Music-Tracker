@@ -6,7 +6,7 @@
 #include "Atari.h"
 #include "ChannelControl.h"
 
-
+extern CAtari g_Atari;
 
 bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CXPokey& pokey, byte* memory)
 {
@@ -39,7 +39,7 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
     // JAC! Does this problem really still exist?
     pokeyStream.SetState(CPokeyStream::WRITE);
 
-    CAtari::InitRMTRoutine();	// Reset the Atari memory 
+    g_Atari.InitRMTRoutine();	// Reset the Atari memory 
     SetChannelOnOff(-1, 1);	// Unmute all channels
 
     // Create the sound buffer to copy from and to

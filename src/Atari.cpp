@@ -18,8 +18,6 @@
 
 #include "C6502.h"
 
-BOOL CAtari::m_ntsc;
-
 extern CTuning g_Tuning;
 
 CAtari::CycleCount CAtari::GetFrameCycleCount(boolean ntsc) {
