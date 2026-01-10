@@ -18,9 +18,7 @@ void SetProgramFolderPath(const CString& folderPath);
 CString GetResourceFolderPath(const CString& folderName);
 CString GetResourceFilePath(const CString& folderName, const CString& fileName);
 
-constexpr size_t ATARI_RAM_SIZE = 0x10000;
 extern byte* g_atarimem;
-extern char g_debugmem[ATARI_RAM_SIZE];	//debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
 
 extern BOOL g_closeApplication;
 extern CDC* g_mem_dc;

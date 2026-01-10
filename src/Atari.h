@@ -32,7 +32,7 @@ class CAtari {
 
 
 public:
-    static constexpr size_t ATARI_RAM_SIZE = 0x10000;
+    static constexpr size_t MEMORY_SIZE = 0x10000;
 
     //maximum clock count for the entire screen in PAL (default) and NTSC region
     typedef int CycleCount;
@@ -69,8 +69,8 @@ public:
 
 private:
 
-    byte m_atarimem[ATARI_RAM_SIZE];
-    char m_debugmem[ATARI_RAM_SIZE];	//debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
+    byte m_atarimem[MEMORY_SIZE];
+    // char m_debugmem[MEMORY_SIZE];	//debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
 
     BOOL m_ntsc;
 

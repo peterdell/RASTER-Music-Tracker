@@ -16,7 +16,6 @@ CAtariTrackerDriver* g_AtariTrackerDriver;
 
 
 byte* g_atarimem;
-char g_debugmem[ATARI_RAM_SIZE];	// Used in GUI_Song.cpp, debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
 
 BOOL g_closeApplication = FALSE;			// Set when the application is busy shutting down
 CDC* g_mem_dc = NULL;

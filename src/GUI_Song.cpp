@@ -32,6 +32,8 @@ extern CTrackClipboard g_TrackClipboard;
 
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
+// TODO
+char g_debugmem[CAtari::MEMORY_SIZE];	//debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
 
 // ----------------------------------------------------------------------------
 // Support routines
