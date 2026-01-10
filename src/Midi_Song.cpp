@@ -12,7 +12,7 @@ extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 extern CXPokey g_Pokey;
 extern CRmtMidi g_Midi;
-extern CAtariRMTPlayer* g_AtariRMTPlayer;
+extern CAtariRMTDriver* g_AtariRMTDriver;
 
 void CSong::MidiEvent(DWORD dwParam)
 {
@@ -30,7 +30,7 @@ void CSong::MidiEvent(DWORD dwParam)
 			{
 				//System Reset
 			MIDISystemReset:
-                g_AtariRMTPlayer->InitRMTRoutine(); //reinit RMT routines
+                g_AtariRMTDriver->InitRMTRoutine(); //reinit RMT routines
 				for (int i = 1; i < 16; i++)	//from 1, because it is MULTITIMBRAL 2-16
 				{
 					g_Midi.m_LastNoteOnChannel[i] = -1;	//last pressed keys on each channel

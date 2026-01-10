@@ -5,7 +5,7 @@
 #include "Notes.h"
 #include "Global.h"
 
-extern CAtariRMTPlayer* g_AtariRMTPlayer;
+extern CAtariRMTDriver* g_AtariRMTDriver;
 
 /// <summary>
 /// Define information about each instrument parameter (not envelope table)
@@ -98,7 +98,7 @@ void CInstruments::ClearInstrument(int instrNr)
     if (!instrument) return;
 
     // Turn off this instrument on all channels
-    g_AtariRMTPlayer->InstrumentTurnOff(instrNr);
+    g_AtariRMTDriver->InstrumentTurnOff(instrNr);
 
     // Clear everything/All zero
     memset(instrument, 0, sizeof(TInstrument));

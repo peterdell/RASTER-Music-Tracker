@@ -88,17 +88,17 @@ void CAtari::InitRMTRoutine(const bool ntsc)
 }
 
 
-CAtariRMTPlayer::CAtariRMTPlayer(CAtari& atari) {
+CAtariRMTDriver::CAtariRMTDriver(CAtari& atari) {
     m_atari = &atari;
 }
 
-CAtari* CAtariRMTPlayer::GetAtari() {
+CAtari* CAtariRMTDriver::GetAtari() {
     return m_atari;
 
 }
 
 // Load RMT routine to $3400, setnoteinstrvol to $3d00, and setvol to $3e00
-int CAtariRMTPlayer::LoadRMTRoutines()
+int CAtariRMTDriver::LoadRMTRoutines()
 {
     WORD min, max;
     WORD size;
@@ -111,7 +111,7 @@ int CAtariRMTPlayer::LoadRMTRoutines()
 }
 
 
-int CAtariRMTPlayer::InitRMTRoutine() {
+int CAtariRMTDriver::InitRMTRoutine() {
 
 
     WORD adr = RMT_INIT;
@@ -123,7 +123,7 @@ int CAtariRMTPlayer::InitRMTRoutine() {
     return (int)a;
 }
 
-void CAtariRMTPlayer::PlayRMT()
+void CAtariRMTDriver::PlayRMT()
 {
     if (!g_is6502) {
         return;
@@ -140,7 +140,7 @@ void CAtariRMTPlayer::PlayRMT()
     C6502::JSR(adr, a, x, y, cycles);
 }
 
-void CAtariRMTPlayer::SetPokey()
+void CAtariRMTDriver::SetPokey()
 {
 
     auto adr = RMT_SETPOKEY;
@@ -149,7 +149,7 @@ void CAtariRMTPlayer::SetPokey()
     m_atari->JSR(adr, a, x, y, cycles);
 }
 
-void CAtariRMTPlayer::Silence()
+void CAtariRMTDriver::Silence()
 {
 
     // Silence routine
@@ -159,7 +159,7 @@ void CAtariRMTPlayer::Silence()
     m_atari->JSR(adr, a, x, y, cycles);
 }
 
-void CAtariRMTPlayer::SetTrack_NoteInstrVolume(int t, int n, int i, int v)
+void CAtariRMTDriver::SetTrack_NoteInstrVolume(int t, int n, int i, int v)
 {
 
     auto adr = RMT_ATA_SETNOTEINSTR;
@@ -175,7 +175,7 @@ void CAtariRMTPlayer::SetTrack_NoteInstrVolume(int t, int n, int i, int v)
     g_rmtinstr[t] = i;
 }
 
-void CAtariRMTPlayer::SetTrack_Volume(int t, int v)
+void CAtariRMTDriver::SetTrack_Volume(int t, int v)
 {
 
     auto adr = RMT_ATA_SETVOLUME;
@@ -185,7 +185,7 @@ void CAtariRMTPlayer::SetTrack_Volume(int t, int v)
 }
 
 
-void CAtariRMTPlayer::InstrumentTurnOff(int instr)
+void CAtariRMTDriver::InstrumentTurnOff(int instr)
 {
     auto cycles = m_atari->GetFrameCycleCount();
     for (int i = 0; i < SONGTRACKS; i++)

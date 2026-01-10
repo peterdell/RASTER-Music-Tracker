@@ -9,7 +9,7 @@
 #include "Global.h"
 
 
-extern CAtariRMTPlayer* g_AtariRMTPlayer;
+extern CAtariRMTDriver* g_AtariRMTDriver;
 
 CPokeyStream::CPokeyStream()
 {
@@ -257,6 +257,6 @@ void CPokeyStream::FinishedRecording()
         m_StreamBuffer = NULL;
     }
 
-    g_AtariRMTPlayer->InitRMTRoutine();	//reset the Atari memory 
+    g_AtariRMTDriver->InitRMTRoutine();	//reset the Atari memory 
     SetChannelOnOff(-1, 1);	//switch all channels back on, since they were purposefully turned off during the recording
 }

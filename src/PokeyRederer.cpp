@@ -10,7 +10,7 @@
 extern BOOL g_nohwsoundbuffer;	// From Global.h
 extern HWND g_hwnd; // From Global.h
 extern BOOL volatile g_rmtroutine;  // From Global.h
-extern CAtariRMTPlayer* g_AtariRMTPlayer;
+extern CAtariRMTDriver* g_AtariRMTDriver;
 
 static LPDIRECTSOUND          g_lpds;
 static LPDIRECTSOUNDBUFFER    g_lpdsbPrimary;
@@ -253,7 +253,7 @@ BOOL CXPokey::RenderSound1_50(int instrspeed)
     {
         //--- RMT - instrument play ---/
         if (g_rmtroutine) {
-            g_AtariRMTPlayer->PlayRMT();
+            g_AtariRMTDriver->PlayRMT();
         }	//one run RMT routine (instruments)
         CopyAtariMemoryToPokey();			// transfer from Atari memory to POKEY (mono or stereo)
         renderpartsize = (rendersize / instrspeed) & 0xfffe;	//just the numbers
@@ -325,7 +325,7 @@ void CXPokey::RenderSoundV2(int instrspeed, BYTE* buffer, int& length)
 
     for (; instrspeed > 0; instrspeed--)
     {
-        g_AtariRMTPlayer->SetPokey();
+        g_AtariRMTDriver->SetPokey();
         CopyAtariMemoryToPokey();
         renderpartsize = (rendersize / instrspeed) & 0xfffe;
 
@@ -359,18 +359,18 @@ void CXPokey::CopyAtariMemoryToPokey()
     {
         const auto channel = i / 2;
         auto on = CChannelControl::IsChannelOn(i / 2);
-        auto b = on ? g_AtariRMTPlayer->GetAtari()->GetByteAt(0xd200 + i) : 0x00; // TODO: Have GetPOKEYRegister()
+        auto b = on ? g_AtariRMTDriver->GetAtari()->GetByteAt(0xd200 + i) : 0x00; // TODO: Have GetPOKEYRegister()
         m_pokey.PutByte(i, b);
         if (stereo) {
             auto on = CChannelControl::IsChannelOn(channel + 4);
-            b = on ? g_AtariRMTPlayer->GetAtari()->GetByteAt(0xd210 + i) : 0x00;
+            b = on ? g_AtariRMTDriver->GetAtari()->GetByteAt(0xd210 + i) : 0x00;
             m_pokey.PutByte(i + 16, (i & 0x01) && !GetChannelOnOff(i / 2 + 4) ? 0 : b);
         }
     }
 
     // AUDCTL
-    m_pokey.PutByte(0x08, g_AtariRMTPlayer->GetAtari()->GetByteAt(0xd208));
+    m_pokey.PutByte(0x08, g_AtariRMTDriver->GetAtari()->GetByteAt(0xd208));
     if (stereo) {
-        m_pokey.PutByte(0x08, g_AtariRMTPlayer->GetAtari()->GetByteAt(0xd218));
+        m_pokey.PutByte(0x08, g_AtariRMTDriver->GetAtari()->GetByteAt(0xd218));
     }
 }

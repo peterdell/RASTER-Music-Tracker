@@ -29,7 +29,7 @@ extern CTracksControl g_TracksControl;
 extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 
-extern CAtariRMTPlayer* g_AtariRMTPlayer;
+extern CAtariRMTDriver* g_AtariRMTDriver;
 
 
 // ----------------------------------------------------------------------------
@@ -1811,7 +1811,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
 
         ChangeInstrumentPar:
             //because there has been some change in the instrument parameter => stop this instrument in all channels
-            g_AtariRMTPlayer->InstrumentTurnOff(m_activeinstr);
+            g_AtariRMTDriver->InstrumentTurnOff(m_activeinstr);
             g_Instruments.CheckInstrumentParameters(m_activeinstr);
             g_Instruments.Update(m_activeinstr);
             return 1;

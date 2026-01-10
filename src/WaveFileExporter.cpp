@@ -6,7 +6,7 @@
 #include "Atari.h"
 #include "ChannelControl.h"
 
-extern CAtariRMTPlayer* g_AtariRMTPlayer;
+extern CAtariRMTDriver* g_AtariRMTDriver;
 
 bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CXPokey& pokey, byte* memory)
 {
@@ -39,7 +39,7 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
     // JAC! Does this problem really still exist?
     pokeyStream.SetState(CPokeyStream::WRITE);
 
-    g_AtariRMTPlayer->InitRMTRoutine();	// Reset the Atari memory 
+    g_AtariRMTDriver->InitRMTRoutine();	// Reset the Atari memory 
     SetChannelOnOff(-1, 1);	// Unmute all channels
 
     // Create the sound buffer to copy from and to

@@ -72,10 +72,10 @@ private:
 
 };
 
-class CAtariRMTPlayer {
+class CAtariRMTDriver {
 
 public:
-    CAtariRMTPlayer(CAtari& atari);
+    CAtariRMTDriver(CAtari& atari);
 
     CAtari* GetAtari();
 

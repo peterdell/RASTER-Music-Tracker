@@ -22,7 +22,7 @@
 #include "PokeyStream.h"
 #include "SongExporter.h"
 
-extern CAtariRMTPlayer* g_AtariRMTPlayer;
+extern CAtariRMTDriver* g_AtariRMTDriver;
 
 extern CInstruments g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
@@ -917,11 +917,11 @@ BOOL CSong::PlayPressedTones()
             i = m_playptinstr[t];
             if (n >= 0 && i >= 0)
             {
-                g_AtariRMTPlayer->SetTrack_NoteInstrVolume(t, n, i, v);
+                g_AtariRMTDriver->SetTrack_NoteInstrVolume(t, n, i, v);
             }
             else
             {
-                g_AtariRMTPlayer->SetTrack_Volume(t, v);
+                g_AtariRMTDriver->SetTrack_Volume(t, v);
             }
             SetPlayPressedTonesTNIV(t, -1, -1, -1);
         }
@@ -1871,7 +1871,7 @@ void CSong::InstrPaste(int special)
 
     TInstrument* ai = g_Instruments.GetInstrument(i);
 
-    g_AtariRMTPlayer->InstrumentTurnOff(i); //turns off this instrument on all channels
+    g_AtariRMTDriver->InstrumentTurnOff(i); //turns off this instrument on all channels
 
     int x, y;
     BOOL bl = 0, br = 0, ep = 0;
@@ -3285,11 +3285,11 @@ TrackLine:
             if (n >= 0 && n < CNotes::NOTESNUM /*&& i>=0 && i<INSTRSNUM*/)		// adjustment for routine compatibility
             {
                 if (i < 0 || i >= INSTRSNUM) { i = 255; }				// adjustment for routine compatibility
-                g_AtariRMTPlayer->SetTrack_NoteInstrVolume(t, n, i, v);
+                g_AtariRMTDriver->SetTrack_NoteInstrVolume(t, n, i, v);
             }
             else
             {
-                g_AtariRMTPlayer->SetTrack_Volume(t, v);
+                g_AtariRMTDriver->SetTrack_Volume(t, v);
             }
         }
     }

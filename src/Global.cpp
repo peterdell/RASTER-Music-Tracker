@@ -11,7 +11,7 @@
 #include <filesystem>
 
 CAtari g_Atari;
-CAtariRMTPlayer* g_AtariRMTPlayer;
+CAtariRMTDriver* g_AtariRMTDriver;
 
 
 byte g_atarimem[ATARI_RAM_SIZE];
