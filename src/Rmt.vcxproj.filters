@@ -285,6 +285,9 @@
     <ClCompile Include="Undo.cpp">
       <Filter>Source Files\Tracker</Filter>
     </ClCompile>
+    <ClCompile Include="SongTimer.cpp">
+      <Filter>Source Files\Model</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
@@ -495,6 +498,9 @@
       <Filter>Source Files\Model</Filter>
     </ClInclude>
     <ClInclude Include="TracksTypes.h">
+      <Filter>Source Files\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="SongTimer.h">
       <Filter>Source Files\Model</Filter>
     </ClInclude>
   </ItemGroup>

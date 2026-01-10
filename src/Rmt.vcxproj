@@ -242,6 +242,7 @@
     <ClCompile Include="SongContainer.cpp" />
     <ClCompile Include="SongExport.cpp" />
     <ClCompile Include="SongExporterTest.cpp" />
+    <ClCompile Include="SongTimer.cpp" />
     <ClCompile Include="Song_DumpSong.cpp" />
     <ClCompile Include="IO_Tracks.cpp" />
     <ClCompile Include="Keyboard2NoteMapping.cpp" />
@@ -367,6 +368,7 @@
     <ClInclude Include="SongExport.h" />
     <ClInclude Include="SongExporter.h" />
     <ClInclude Include="SongExporterTest.h" />
+    <ClInclude Include="SongTimer.h" />
     <ClInclude Include="SongTypes.h" />
     <ClInclude Include="tracker_obx.h" />
     <ClInclude Include="Tracks.h" />
