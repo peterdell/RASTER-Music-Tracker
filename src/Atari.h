@@ -5,28 +5,25 @@
 */
 
 #pragma once
-
-#include "General.h"
-
+#include "Memory.h"
 #include "tracker_obx.h"				// The ASM generated C header file
 
-//bass16bit low byte, bass 0C, bass 0E, clean tones 0A and 0,2,4,8, bass16bit hi byte, this might require different addresses? What is this even used for anyway?
-#define RMT_FRQTABLES	RMTPLAYR_PAGE_DISTORTION_2				
+// bass16bit low byte, bass 0C, bass 0E, clean tones 0A and 0,2,4,8, bass16bit hi byte, this might require different addresses? What is this even used for anyway?
+static constexpr MemoryAddress RMT_FRQTABLES = RMTPLAYR_PAGE_DISTORTION_2;
 
-#define RMT_INIT		RMTPLAYR_RASTERMUSICTRACKER
-#define RMT_PLAY		RMTPLAYR_RASTERMUSICTRACKER+3
-#define RMT_P3			RMTPLAYR_RASTERMUSICTRACKER+6
-#define RMT_SILENCE		RMTPLAYR_RASTERMUSICTRACKER+9
-#define RMT_SETPOKEY	RMTPLAYR_RASTERMUSICTRACKER+12
+static constexpr MemoryAddress RMT_INIT = RMTPLAYR_RASTERMUSICTRACKER;
+static constexpr MemoryAddress RMT_PLAY = RMTPLAYR_RASTERMUSICTRACKER + 3;
+static constexpr MemoryAddress RMT_P3 = RMTPLAYR_RASTERMUSICTRACKER + 6;
+static constexpr MemoryAddress RMT_SILENCE = RMTPLAYR_RASTERMUSICTRACKER + 9;
+static constexpr MemoryAddress RMT_SETPOKEY = RMTPLAYR_RASTERMUSICTRACKER + 12;
 
-#define RMT_ATA_SETNOTEINSTR	RMTPLAYR_GETINSTRUMENTY2
-#define RMT_ATA_SETVOLUME		RMTPLAYR_SETINSTRUMENTVOLUME
-#define RMT_ATA_INSTROFF		RMTPLAYR_STOPINSTRUMENT
+static constexpr MemoryAddress RMT_ATA_SETNOTEINSTR = RMTPLAYR_GETINSTRUMENTY2;
+static constexpr MemoryAddress RMT_ATA_SETVOLUME = RMTPLAYR_SETINSTRUMENTVOLUME;
+static constexpr MemoryAddress RMT_ATA_INSTROFF = RMTPLAYR_STOPINSTRUMENT;
 
-//immediately after RMT_ATA_INSTROFF, there is some bytes left unused, these will be used as plaintext data to display the RMT driver version used
-#define RMT_ATA_DRIVERVERSION	RMTPLAYR_DRIVERVERSION		
+// immediately after RMT_ATA_INSTROFF, there is some bytes left unused, these will be used as plaintext data to display the RMT driver version used
+static constexpr MemoryAddress RMT_ATA_DRIVERVERSION = RMTPLAYR_DRIVERVERSION;
 
-#include "Memory.h"
 
 class CAtari {
 
