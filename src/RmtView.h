@@ -59,6 +59,8 @@ public:
 
 private:
     void StoreMouseInformation(int px, int py, int mousebutt, short wheelzDelta);
+    void SetNTSC(const bool ntsc);
+    void ToggleNTSC();
 
     // Operations
 public:

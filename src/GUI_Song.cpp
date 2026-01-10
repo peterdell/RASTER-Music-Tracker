@@ -21,6 +21,9 @@
 #include "Keyboard2NoteMapping.h"
 #include "ChannelControl.h"
 
+
+extern CSong g_Song;
+extern CTuning g_Tuning;
 extern CTracksControl g_TracksControl;
 
 extern CInstruments	g_Instruments;
@@ -526,7 +529,7 @@ void CSong::DrawAnalyzer()
                 int basenote = g_tuning.basenote;
                 int reverse_basenote = (24 - basenote) % 12;	//since things are wack I had to do this
                 //int FREQ_17 = (g_ntsc) ? FREQ_17_NTSC : FREQ_17_PAL;	//useful for debugging I guess
-                auto cycles = CAtari::GetFrameCycleCount(g_ntsc);
+                auto cycles = CAtari::GetFrameCycleCount(IsNTSC());
                 int tracks = (g_tracks4_8 == 8) ? 8 : 4;
                 char t[12] = { 0 };
 
@@ -540,11 +543,10 @@ void CSong::DrawAnalyzer()
 
                 TextMiniXY(n, ANALYZER3_X, ANALYZER3_Y + 8 * 9, TextMiniColor::GRAY);	//overwrite A- to the given basenote
 
-                if (g_ntsc) TextMiniXY("NTSC", ANALYZER3_X + 8 * 21, ANALYZER3_Y + 8 * 9, TextMiniColor::BLUE);
-                else TextMiniXY("PAL", ANALYZER3_X + 8 * 21, ANALYZER3_Y + 8 * 9, TextMiniColor::BLUE);
+                TextMiniXY(IsNTSC() ? "NTSC" : "PAL", ANALYZER3_X + 8 * 21, ANALYZER3_Y + 8 * 9, TextMiniColor::BLUE);
 
                 TextMiniXY("FREQ17:        HZ, MAXSCREENCYCLES:      , G_TRACKS4_8:", ANALYZER3_X, ANALYZER3_Y + 8 * 10, TextMiniColor::GRAY);
-                snprintf(t, 8, "%d", CAtari::GetClockFrequency(g_ntsc));
+                snprintf(t, 8, "%d", CAtari::GetClockFrequency(IsNTSC()));
                 TextMiniXY(t, ANALYZER3_X + 8 * 8, ANALYZER3_Y + 8 * 10, TextMiniColor::WHITE);
                 snprintf(t, 8, "%d", cycles);
                 TextMiniXY(t, ANALYZER3_X + 8 * 36, ANALYZER3_Y + 8 * 10, TextMiniColor::WHITE);
@@ -1317,7 +1319,7 @@ void CSong::DrawPlayTimeCounter()
 #define PLAYTC_W	(32*8)	//(4*8)  
 #define PLAYTC_H	16		//8 
 
-    int fps = (g_ntsc) ? 60 : 50;
+    int fps = (IsNTSC()) ? 60 : 50;
     int ts = g_playtime / fps;							//total time in seconds
     int timesec = ts % 60;								//seconds 0 to 59
     int timemin = ts / 60;								//minutes 0 to ...

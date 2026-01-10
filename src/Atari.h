@@ -56,7 +56,8 @@ public:
     static byte GetByteAt(const MemoryAddress address);
 
     static int LoadRMTRoutines();
-    static int InitRMTRoutine();
+    static int InitRMTRoutine(); // Without changing the NTSC/PAL flag
+    static int InitRMTRoutine(const bool ntsc);
     static void PlayRMT();
     static void SetPokey();
     static void Silence();
@@ -64,6 +65,9 @@ public:
     static void SetTrack_Volume(int t, int v);
     static void InstrumentTurnOff(int instr);
 
+
+private:
+    static BOOL m_ntsc;
 
 };
 

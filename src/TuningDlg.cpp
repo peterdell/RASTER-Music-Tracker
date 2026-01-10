@@ -14,6 +14,8 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+extern CTuning g_Tuning;
+
 // TuningDlg dialog
 TuningDlg::TuningDlg(CWnd* pParent /*=nullptr*/)
     : CDialog(IDD_TUNING, pParent)

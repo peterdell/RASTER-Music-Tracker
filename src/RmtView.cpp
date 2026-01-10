@@ -454,7 +454,7 @@ void CRmtView::ReadRMTConfig()
         if (NAME("NOHWSOUNDBUFFER")) { g_nohwsoundbuffer = atoi(value); continue; }
 
         // TODO: Tracker must be in the module instead
-        if (NAME("NTSC_SYSTEM")) { g_ntsc = atoi(value); continue; }
+        if (NAME("NTSC_SYSTEM")) { g_Song.SetNTSC(atoi(value)); continue; }
         if (NAME("TRACKERDRIVERVERSION")) { g_trackerDriverVersion = (TrackerDriverVersion)atoi(value); continue; }
 
         // KEYBOARD
@@ -515,7 +515,7 @@ void CRmtView::WriteRMTConfig()
     ou << "TRACKLINEALTNUMBERING = " << g_tracklinealtnumbering << std::endl;
     ou << "DISPLAYFLATNOTES = " << g_displayflatnotes << std::endl;
     ou << "USEGERMANNOTATION = " << g_usegermannotation << std::endl;
-    ou << "NTSC_SYSTEM = " << g_ntsc << std::endl;
+    ou << "NTSC_SYSTEM = " << g_Song.IsNTSC() << std::endl;
     ou << "NOHWSOUNDBUFFER = " << g_nohwsoundbuffer << std::endl;
     ou << "TRACKERDRIVERVERSION = " << g_trackerDriverVersion << std::endl;
 
@@ -561,7 +561,7 @@ void CRmtView::ResetRMTConfig()
     g_trackLineSecondaryHighlight = 4;			// Secondary line highlighted every x lines
     g_tracklinealtnumbering = 0;				// Alternative way of line numbering in tracks 
     g_linesafter = 1;							// Number of lines to scroll after inserting a note 
-    g_ntsc = 0;									// NTSC (60Hz)
+    SetNTSC(false);								// NTSC (60Hz)
     g_nohwsoundbuffer = 0;						// Don't use hardware soundbuffer
     g_trackerDriverVersion = PATCH16;           // Tracker driver version
     g_displayflatnotes = 0;						// Display accidentals as Flats instead of Sharps
@@ -719,7 +719,7 @@ void CRmtView::OnViewConfiguration()
     dlg.m_tracklinealtnumbering = g_tracklinealtnumbering;
     dlg.m_displayflatnotes = g_displayflatnotes;
     dlg.m_usegermannotation = g_usegermannotation;
-    dlg.m_ntsc = g_ntsc;
+    dlg.m_ntsc = g_Song.IsNTSC();
     dlg.m_nohwsoundbuffer = g_nohwsoundbuffer;
     dlg.m_doSmoothScrolling = g_view.smoothScrolling;
     dlg.m_viewDebugDisplay = g_view.debugDisplay;
@@ -752,26 +752,22 @@ void CRmtView::OnViewConfiguration()
 
         if (g_nohwsoundbuffer != dlg.m_nohwsoundbuffer)
         {
-            g_Pokey.ReInitSound(g_ntsc, IsStereo());	//the sound needs to be reinitialized
-            CAtari::InitRMTRoutine(); //reset RMT routines
+            g_Pokey.ReInitSound(g_Song.IsNTSC(), IsStereo());	//the sound needs to be reinitialized
+            CAtari::InitRMTRoutine(g_Song.IsNTSC()); //reset RMT routines
         }
         g_nohwsoundbuffer = dlg.m_nohwsoundbuffer;
 
-        if (g_ntsc != dlg.m_ntsc)
+        if (g_Song.IsNTSC() != dlg.m_ntsc)
         {
-            // PAL or NTSC
-            g_ntsc = dlg.m_ntsc;
-            g_tuning.basetuning = (g_ntsc) ? (g_tuning.basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_tuning.basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
-            CAtari::InitRMTRoutine(); //reset RMT routines
+            SetNTSC(dlg.m_ntsc);
         }
-        g_ntsc = dlg.m_ntsc;
 
         if (g_trackerDriverVersion != dlg.m_trackerDriverVersion)
         {
             // Something here to reset the thing
             g_trackerDriverVersion = dlg.m_trackerDriverVersion;
             CAtari::LoadRMTRoutines();
-            CAtari::InitRMTRoutine();
+            CAtari::InitRMTRoutine(g_Song.IsNTSC()); // TODO: This is done serveral time. We need something like "beginUpdate"
         }
         g_trackerDriverVersion = dlg.m_trackerDriverVersion;
 
@@ -923,7 +919,7 @@ void CRmtView::OnInitialUpdate()
     ChangeViewElements(0); //without write!
 
     //INITIAL POKEY INITIALISATION (DLL)
-    if (!g_Pokey.InitSound(g_ntsc, IsStereo()))
+    if (!g_Pokey.InitSound(g_Song.IsNTSC(), IsStereo()))
     {
         g_Pokey.DeInitSound();
         exit(1);
@@ -939,7 +935,7 @@ void CRmtView::OnInitialUpdate()
     //INITIALISATION OF ATARI RMT ROUTINES
     CAtari::ClearMemory();
     CAtari::LoadRMTRoutines();
-    CAtari::InitRMTRoutine();
+    CAtari::InitRMTRoutine(g_Song.IsNTSC());
     g_Song.SetRMTTitle();
 
     // RMTView Timer Initialisation
@@ -1074,17 +1070,16 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
         return 6;
     }
 
-    rec.SetRect(280, 16, 280 + 8 * ((g_ntsc) ? 4 : 3), 16 + 16);
+    const auto ntsc = g_Song.IsNTSC();
+    // TODO Use constants/have function for TextXY
+    rec.SetRect(280, 16, 280 + 8 * ((ntsc) ? 4 : 3), 16 + 16);
     if (rec.PtInRect(point))
     {
-        //PAL or NTSC
-        // TODO: Duplicate code
+
         SetCursor(m_cursorGoto);
         if (mousebutt & MK_LBUTTON)
         {
-            g_ntsc ^= TRUE;
-            g_tuning.basetuning = (g_ntsc) ? (g_tuning.basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_tuning.basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
-            CAtari::InitRMTRoutine(); //reset RMT routines
+            ToggleNTSC();
         }
         return 6;
     }
@@ -1462,6 +1457,17 @@ const int  NChaCode[] = { 36,  38,  33, VK_SUBTRACT,  37,  12,  39, VK_ADD,  35,
 const char FlaToCha[] = { 0x67,0x68,0x69,109,0x64,0x65,0x66,107,0x61,0x62,0x63,0x60 };
 //const char layout2[]={VK_F5,VK_F6,VK_F7,VK_F8, VK_F3,VK_F2,VK_F4,VK_ESCAPE};
 
+void CRmtView::SetNTSC(const bool ntsc) {
+    // TODO  code... well 3 times..
+    g_tuning.basetuning = (ntsc) ? (g_tuning.basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_tuning.basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
+    g_Song.SetNTSC(ntsc);
+
+}
+void CRmtView::ToggleNTSC() {
+    SetNTSC(!g_Song.IsNTSC());
+
+}
+
 //TODO: cleanup and reconfigure, since testing keys in Stereo is not working correctly due to all the shortcuts being intermixed into the inputs
 void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
@@ -1515,11 +1521,12 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     case VK_ESCAPE:
         // Stop the music
         g_Song.Stop();
+        // Reset RMT routines automatically?
         if (g_keyboard_escresetatarisound)
         {
-            CAtari::InitRMTRoutine(); //reset RMT routines automatically
+            CAtari::InitRMTRoutine();
         }
-        if (g_Song.GetPlayMode() == 0) //only if the module is stopped
+        if (g_Song.GetPlayMode() == PlayMode::PLAY_STOP) //only if the module is stopped
         {
             g_playtime = 0;
             //DrawPlaytimecounter();
@@ -1531,9 +1538,9 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         if (g_controlkey && !g_shiftkey)
         {
             g_linesafter--;
-            if (g_linesafter < 0) g_linesafter = 8;
-            CMainFrame* mf = ((CMainFrame*)AfxGetMainWnd());
-            if (mf) mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_linesafter);
+            if (g_linesafter < 0) { g_linesafter = 8; }
+            auto mf = ((CMainFrame*)AfxGetMainWnd());
+            if (mf) { mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_linesafter); }
         }
         else
             goto AllModesDefaultKey;
@@ -1543,9 +1550,9 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         if (g_controlkey && !g_shiftkey)
         {
             g_linesafter++;
-            if (g_linesafter > 8) g_linesafter = 0;
-            CMainFrame* mf = ((CMainFrame*)AfxGetMainWnd());
-            if (mf) mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_linesafter);
+            if (g_linesafter > 8) { g_linesafter = 0; }
+            auto mf = ((CMainFrame*)AfxGetMainWnd());
+            if (mf) { mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_linesafter); }
         }
         else
             goto AllModesDefaultKey;
@@ -1634,10 +1641,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     case VK_F12:
         if (g_controlkey)
         {
-            // TODO Duplicate code... well 3 times..
-            g_ntsc ^= TRUE;
-            g_tuning.basetuning = (g_ntsc) ? (g_tuning.basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_tuning.basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
-            CAtari::InitRMTRoutine(); //reset RMT routines
+            ToggleNTSC();
         }
         else OnPlayfollow(); //toggle follow position
         break;

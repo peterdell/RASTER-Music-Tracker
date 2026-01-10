@@ -8,7 +8,15 @@
 #include "Tuning.h"
 #include "Global.h"
 #include "Atari.h"
-#include "PokeyRederer.h"
+#include "Song.h"
+extern CSong g_Song;
+
+
+/// <summary> Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into the emulated Atari memory </summary>
+void CTuning::InitTuning(bool ntsc)
+{
+    m_ntsc = ntsc;
+}
 
 /// <summary> Generate the POKEY audio pitch using the given parameters </summary>
 /// <param name = "audc"> POKEY Distortion and Volume output mode </param>
@@ -294,7 +302,7 @@ void CTuning::generate_table(unsigned char* table, int length, int semitone, int
 /// <returns> POKEY audio pitch (in Hertz) </returns> 
 double CTuning::get_pitch(int audf, int coarse_divisor, double divisor, int cycle)
 {
-    return ((CAtari::GetClockFrequency(g_ntsc) / (coarse_divisor * divisor)) / (audf + cycle)) / 2;
+    return ((CAtari::GetClockFrequency(m_ntsc) / (coarse_divisor * divisor)) / (audf + cycle)) / 2;
 }
 
 /// <summary> Find the nearest POKEY Frequency (AUDF) using the given parameters </summary>
@@ -305,7 +313,7 @@ double CTuning::get_pitch(int audf, int coarse_divisor, double divisor, int cycl
 /// <returns> POKEY Frequency (AUDF) </returns> 
 int CTuning::get_audf(double pitch, int coarse_divisor, double divisor, int cycle)
 {
-    return (int)round(((CAtari::GetClockFrequency(g_ntsc) / (coarse_divisor * divisor)) / (2 * pitch)) - cycle);
+    return (int)round(((CAtari::GetClockFrequency(m_ntsc) / (coarse_divisor * divisor)) / (2 * pitch)) - cycle);
 }
 
 /// <summary> Calculate the difference between 2 POKEY frequencies (AUDF) within the conditions intended for the timbre to be output </summary>
@@ -440,12 +448,11 @@ double CTuning::GetTruePitch(double tuning, int temperament, int basenote, int s
     return (tuning / 64) * (multi * ratio);
 }
 
-/// <summary> Initialise the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into the emulated Atari memory </summary>
-void CTuning::InitTuning()
-{
+/// <summary> Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into the emulated Atari memory </summary>
+void CTuning::InitTuning() {
     if (!g_tuning.basetuning)	//if base tuning is null, make sure to reset it, else the program could crash!
     {
-        g_Song.ResetTuningVariables();	//TODO(?): move this function here instead
+        g_Song.ResetTuningVariables();	//TODO (?): move this function here instead
         MessageBox(g_hwnd, "An invalid tuning configuration has been detected!\n\nTuning has been reset to default parameters.", "Tuning error", MB_ICONERROR);
         return;	//without initialisation, the function must be called at an ulterior time
     }

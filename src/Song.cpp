@@ -21,6 +21,8 @@
 #include "SongExporter.h"
 
 extern CSong g_Song;
+BOOL g_ntsc = FALSE;   				    // NTSC (60Hz)
+
 extern CInstruments g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 extern CXPokey g_Pokey;
@@ -28,7 +30,6 @@ extern CString g_PrefixForAllAsmLabels;
 // These two should be song attributes instead
 
 extern int g_tracks4_8;
-extern BOOL g_ntsc;				//NTSC (60Hz)
 
 static BOOL busyInTimer = 0;
 
@@ -49,6 +50,7 @@ void CSong::WaitForTimerRoutineProcessed()
 
 // ----------------------------------------------------------------------------
 
+// TODO: Move elsewhere, to the tracker.
 void CALLBACK G_TimerRoutine(UINT, UINT, DWORD_PTR, DWORD_PTR, DWORD_PTR)
 {
     busyInTimer = 1;
@@ -93,8 +95,15 @@ bool CSong::IsStereo() const {
     return (GetTracks() > 4);
 }
 
-bool CSong::IsNTSC() const {
+BOOL CSong::IsNTSC() const {
     return g_ntsc;
+}
+
+void CSong::SetNTSC(const BOOL ntsc) {
+    if (ntsc != g_ntsc) {
+        g_ntsc = ntsc;
+        CAtari::InitRMTRoutine(ntsc); //reset RMT routines
+    }
 }
 
 
@@ -102,6 +111,7 @@ int CSong::GetInstrumentSpeed() const {
     return m_instrumentSpeed;
 }
 
+// TODO: Move to CSontTimer
 
 /// <summary>
 /// Stop the timer and make sure that the timer event is not running
@@ -217,7 +227,7 @@ void CSong::ClearSong(int numOfTracks)
     g_changes = 0;
 
     // Initialise RMT routine, to clear anything leftover in Atari memory
-    CAtari::InitRMTRoutine();
+    CAtari::InitRMTRoutine(IsNTSC());
 }
 
 //---
@@ -331,7 +341,7 @@ int CSong::MakeTuningBlock(unsigned char* mem, int addr)
 
     // 64 bytes
     memcpy((mem + addr + 0x10), &g_tuning.basetuning, 8);	//base tuning frequency, double type uses 8 bytes in memory
-    memcpy((mem + addr + 0x18), &g_tuningRatios.UNISON, 2);		//tuning ratio variables, each values are truncated to use 2 bytes (16-bit precision) 
+    memcpy((mem + addr + 0x18), &g_tuningRatios.UNISON, 2);		//tuning ratio variables, each values are truncated to use 2 bytes (16-bit precision)
     memcpy((mem + addr + 0x1A), &g_tuningRatioRight.UNISON, 2);
     memcpy((mem + addr + 0x1C), &g_tuningRatios.MIN_2ND, 2);
     memcpy((mem + addr + 0x1E), &g_tuningRatioRight.MIN_2ND, 2);
@@ -366,7 +376,7 @@ int CSong::MakeTuningBlock(unsigned char* mem, int addr)
 void CSong::ResetTuningVariables()
 {
     // Reset all tuning variables 
-    g_tuning.Initialize(g_ntsc);
+    g_tuning.Initialize(IsNTSC());
     g_tuningRatios.Initialize();
 }
 
@@ -2516,7 +2526,7 @@ void CSong::Songswitch4_8(int tracks4_8)
         }
     }
 
-    CAtari::InitRMTRoutine();
+    CAtari::InitRMTRoutine(IsNTSC());
 }
 
 int CSong::GetEffectiveMaxtracklen()
@@ -3130,7 +3140,7 @@ BOOL CSong::Play(PlayMode mode, BOOL follow, int special)
     switch (mode)
     {
     case PLAY_SONG: //whole song from the beginning including initialization (due to portamentum etc.)
-        CAtari::InitRMTRoutine();
+        CAtari::InitRMTRoutine(IsNTSC());
         m_songplayline = 0;
         m_trackplayline = 0;
         m_speed = m_mainSpeed;
@@ -3415,7 +3425,7 @@ void CSong::TimerRoutine()
     // a good enough compromise for now is to make use of a '17-17-16' miliseconds "groove"
     // this isn't proper, but at least, this makes the timing much closer to the actual thing
     // the only issue with this is that the sound will have very slight jitters during playback 
-    ChangeTimer(g_ntsc ? m_timerRoutineTick[g_timerGlobalCount % 3] : 20);
+    ChangeTimer(IsNTSC() ? m_timerRoutineTick[g_timerGlobalCount % 3] : 20);
 
     g_timerGlobalCount++;			// Increment by one each time Timer Routine was processed
     m_timerRoutineProcessed = true;	// TimerRoutine took place

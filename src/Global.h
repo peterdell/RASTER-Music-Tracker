@@ -82,8 +82,6 @@ extern int g_trackLinePrimaryHighlight;	//primary line highlighted every x lines
 extern int g_trackLineSecondaryHighlight;	//secondary line highlighted every x lines
 extern BOOL g_tracklinealtnumbering; //alternative way of line numbering in tracks
 extern int g_linesafter;			//number of lines to scroll after inserting a note (initializes in CSong :: Clear)
-extern BOOL g_ntsc;				//NTSC (60Hz)
-BOOL IsNTSC();
 
 extern BOOL g_nohwsoundbuffer;	//Don't use hardware soundbuffer
 extern int g_cursoractview;		//default position, line 0

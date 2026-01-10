@@ -1,5 +1,6 @@
 #pragma once
 
+#include "StdAfx.h"
 
 // ---------------------
 // Analyser and other RGB colors
@@ -161,12 +162,6 @@ enum AssemblerFormat : int
 #define	ENV_FILTER		6
 #define	ENV_PORTAMENTO	7
 
-// ----------------------------------------------------------------------------
-// Temperament definitions, used for tuning calculations 
-#define NO_TEMPERAMENT	0					//No temperament assumes the value of 0, as Equal Temperament
-#define TUNING_PRESETS	29					//Total number of temperaments available
-#define TUNING_CUSTOM	TUNING_PRESETS		//Custom Temperament using Ratio is assumed otherwise
-#define PRESETS_LENGTH	20 + 1 				//Length of the largest preset table, used for the 2 dimensional array boundaries 
 
 // ----------------------------------------------------------------------------
 // Timbre definitions, used for tuning calculations

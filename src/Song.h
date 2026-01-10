@@ -24,7 +24,9 @@ public:
     CString GetName() const;
     int GetTracks() const;
     bool IsStereo() const;
-    bool IsNTSC() const;
+    BOOL IsNTSC() const;
+    void SetNTSC(const BOOL ntsc);
+
     int GetInstrumentSpeed() const;
 
     void StopTimer();

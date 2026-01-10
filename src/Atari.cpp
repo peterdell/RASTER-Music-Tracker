@@ -18,6 +18,10 @@
 
 #include "C6502.h"
 
+BOOL CAtari::m_ntsc;
+
+extern CTuning g_Tuning;
+
 CAtari::CycleCount CAtari::GetFrameCycleCount(boolean ntsc) {
     static constexpr CycleCount MAXSCREENCYCLES_NTSC = 114 * 262;
     static constexpr CycleCount MAXSCREENCYCLES_PAL = 114 * 312;
@@ -59,17 +63,22 @@ int CAtari::LoadRMTRoutines()
     return CAtariIO::LoadDataAsBinaryFile(bin, size, g_atarimem, min, max);
 }
 
-int CAtari::InitRMTRoutine()
+int CAtari::InitRMTRoutine() {
+    return InitRMTRoutine(m_ntsc);
+}
+
+int CAtari::InitRMTRoutine(const bool ntsc)
 {
     if (!g_is6502) {
         return 0;
     }
 
-    g_Tuning.InitTuning();
+    m_ntsc = ntsc;
+    g_Tuning.InitTuning(m_ntsc);
 
     WORD adr = RMT_INIT;
     BYTE a = 0, x = 0x00, y = 0x3f;
-    auto cycles = GetFrameCycleCount(g_ntsc);
+    auto cycles = GetFrameCycleCount(m_ntsc);
     C6502::JSR(adr, a, x, y, cycles);
     for (int i = 0; i < SONGTRACKS; i++) { g_rmtinstr[i] = -1; }
 
@@ -84,7 +93,7 @@ void CAtari::PlayRMT()
 
     WORD adr = RMT_P3; //(without SetPokey) one run of RMT routine but from rmt_p3 (wrap processing)
     BYTE a = 0, x = 0, y = 0;
-    auto cycles = GetFrameCycleCount(g_ntsc);
+    auto cycles = GetFrameCycleCount(m_ntsc);
     if (g_prove < EditMode::EDIT_AND_JAM_MODES) { // this is only good for tests, this trigger prevents the RMT driver running at all, leaving only SetPokey available
         C6502::JSR(adr, a, x, y, cycles);
     }
@@ -101,7 +110,7 @@ void CAtari::SetPokey()
 
     WORD adr = RMT_SETPOKEY;
     BYTE a = 0, x = 0, y = 0;
-    auto cycles = GetFrameCycleCount(g_ntsc);
+    auto cycles = GetFrameCycleCount(m_ntsc);
     C6502::JSR(adr, a, x, y, cycles);
 }
 
@@ -114,7 +123,7 @@ void CAtari::Silence()
     //Silence routine
     WORD adr = RMT_SILENCE;
     BYTE a = 0, x = 0, y = 0;
-    auto cycles = GetFrameCycleCount(g_ntsc);
+    auto cycles = GetFrameCycleCount(m_ntsc);
     C6502::JSR(adr, a, x, y, cycles);
 }
 
@@ -126,12 +135,12 @@ void CAtari::SetTrack_NoteInstrVolume(int t, int n, int i, int v)
 
     WORD adr = RMT_ATA_SETNOTEINSTR;
     BYTE a = n, x = t, y = i;
-    auto cycles = GetFrameCycleCount(g_ntsc);
+    auto cycles = GetFrameCycleCount(m_ntsc);
     C6502::JSR(adr, a, x, y, cycles);
     //
     adr = RMT_ATA_SETVOLUME;
     a = v; x = t; y = 0;
-    cycles = GetFrameCycleCount(g_ntsc);
+    cycles = GetFrameCycleCount(m_ntsc);
     C6502::JSR(adr, a, x, y, cycles);
 
     g_rmtinstr[t] = i;
@@ -145,7 +154,7 @@ void CAtari::SetTrack_Volume(int t, int v)
 
     WORD adr = RMT_ATA_SETVOLUME;
     BYTE a = v, x = t, y = 0;
-    auto cycles = GetFrameCycleCount(g_ntsc);
+    auto cycles = GetFrameCycleCount(m_ntsc);
     C6502::JSR(adr, a, x, y, cycles);
 }
 
@@ -155,7 +164,7 @@ void CAtari::InstrumentTurnOff(int instr)
         return;
     }
 
-    auto cycles = GetFrameCycleCount(g_ntsc);
+    auto cycles = GetFrameCycleCount(m_ntsc);
     for (int i = 0; i < SONGTRACKS; i++)
     {
         if (g_rmtinstr[i] == instr)
