@@ -479,9 +479,6 @@
     <ClInclude Include="Memory.h">
       <Filter>Source Files\ASAP</Filter>
     </ClInclude>
-    <ClInclude Include="SongTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Keyboard2NoteMapping.h">
       <Filter>Source Files\Tracker</Filter>
     </ClInclude>
@@ -489,7 +486,10 @@
       <Filter>Source Files\Tracker</Filter>
     </ClInclude>
     <ClInclude Include="InstrumentTypes.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="SongTypes.h">
+      <Filter>Source Files\Model</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

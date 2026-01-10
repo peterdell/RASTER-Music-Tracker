@@ -127,43 +127,6 @@ enum AssemblerFormat : int
 #define TF_NOEMPTY		1
 #define TF_USED			2
 
-//bits in INSTRUMENTFLAG
-#define IF_NOEMPTY		1
-#define IF_USED			2
-#define IF_FILTER		4
-#define IF_BASS16		8
-#define IF_PORTAMENTO	16
-#define IF_AUDCTL		32
-
-// Instument definitions
-#define PAR_TBL_LENGTH		0
-#define PAR_TBL_GOTO		1
-#define PAR_TBL_SPEED		2
-#define PAR_TBL_TYPE		3
-#define PAR_TBL_MODE		4
-
-#define PAR_ENV_LENGTH		5
-#define PAR_ENV_GOTO		6
-#define PAR_VOL_FADEOUT		7
-#define PAR_VOL_MIN			8
-#define PAR_DELAY			9
-#define PAR_VIBRATO			10
-#define PAR_FREQ_SHIFT		11
-
-#define PAR_AUDCTL_15KHZ		12
-#define PAR_AUDCTL_HPF_CH2		13
-#define PAR_AUDCTL_HPF_CH1		14
-#define PAR_AUDCTL_JOIN_3_4		15
-#define PAR_AUDCTL_JOIN_1_2		16
-#define PAR_AUDCTL_179_CH3		17
-#define PAR_AUDCTL_179_CH1		18
-#define PAR_AUDCTL_POLY9		19
-
-#define INSTRUMENT_TABLE_OF_NOTES	1
-#define INSTRUMENT_TABLE_OF_FREQ	2
-#define INSTRUMENT_TABLE_MODE_SET	3
-#define INSTRUMENT_TABLE_MODE_ADD	4
-
 #define INSTR_GUI_ZONE_ENVELOPE_LEFT_ENVELOPE	0		// 368,220	8x64 -> 384x64
 #define INSTR_GUI_ZONE_ENVELOPE_RIGHT_ENVELOPE	1		// 368,140	8x64 -> 384x64
 #define INSTR_GUI_ZONE_ENVELOPE_PARAM_TABLE		2		// 368,296	8x64 -> 384x64

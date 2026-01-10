@@ -662,7 +662,7 @@ void CSong::FileInstrumentSave()
             return;
         }
 
-        g_Instruments.SaveInstrument(m_activeinstr, ou, InstrumentIOType::IOINSTR_RTI);
+        g_Instruments.SaveInstrument(m_activeinstr, ou, InstrumentIOType::RTI);
 
         ou.close();
     }
@@ -703,7 +703,7 @@ void CSong::FileInstrumentLoad()
             return;
         }
 
-        int loadState = g_Instruments.LoadInstrument(m_activeinstr, in, InstrumentIOType::IOINSTR_RTI);
+        int loadState = g_Instruments.LoadInstrument(m_activeinstr, in, InstrumentIOType::RTI);
         in.close();
 
         if (!loadState)
@@ -904,7 +904,7 @@ bool CSong::SaveRMW(std::ofstream& ou)
     ou.write((char*)m_song, sizeof(m_song));
     ou.write((char*)m_songgo, sizeof(m_songgo));
 
-    g_Instruments.SaveAll(ou, InstrumentIOType::IOINSTR_RMW);
+    g_Instruments.SaveAll(ou, InstrumentIOType::RMW);
     g_Tracks.SaveAll(ou, SongIOType::IOTYPE_RMW);
 
     return true;
@@ -936,7 +936,7 @@ bool CSong::LoadRMW(std::ifstream& in)
     in.read((char*)m_song, sizeof(m_song));
     in.read((char*)m_songgo, sizeof(m_songgo));
 
-    g_Instruments.LoadAll(in, InstrumentIOType::IOINSTR_RMW);
+    g_Instruments.LoadAll(in, InstrumentIOType::RMW);
     g_Tracks.LoadAll(in, SongIOType::IOTYPE_RMW);
 
     return true;
@@ -1005,7 +1005,7 @@ bool CSong::SaveTxt(std::ofstream& ou)
     ou << "\n"; // gap
 
     // Now save the instruments and tracks to the output
-    g_Instruments.SaveAll(ou, InstrumentIOType::IOINSTR_TXT);
+    g_Instruments.SaveAll(ou, InstrumentIOType::TXT);
     g_Tracks.SaveAll(ou, SongIOType::IOTYPE_TXT);
 
     return true;
@@ -1141,7 +1141,7 @@ bool CSong::LoadTxt(std::ifstream& in)
                 {
                     // [INSTRUMNENT]
                     // Pass the instrument loading to the CInstruments class
-                    g_Instruments.LoadInstrument(-1, in, InstrumentIOType::IOINSTR_TXT); //-1 => retrieve the instrument number from the TXT source
+                    g_Instruments.LoadInstrument(-1, in, InstrumentIOType::TXT); //-1 => retrieve the instrument number from the TXT source
                 }
                 else
                     if (strcmp(line, "TRACK]") == 0)

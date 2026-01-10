@@ -16,8 +16,8 @@ int CInstruments::SaveAll(std::ofstream& ou, InstrumentIOType iotype)
 {
 	for (int i = 0; i < INSTRSNUM; i++)
 	{
-		if (iotype == InstrumentIOType::IOINSTR_TXT && !CalculateNotEmpty(i)) continue; //to TXT only non-empty instruments
-		SaveInstrument(i, ou, iotype);	//,IOINSTR_RMW);
+		if (iotype == InstrumentIOType::TXT && !CalculateNotEmpty(i)) continue; //to TXT only non-empty instruments
+		SaveInstrument(i, ou, iotype);	//,RMW);
 	}
 	return 1;
 }
@@ -26,7 +26,7 @@ int CInstruments::LoadAll(std::ifstream& in, InstrumentIOType iotype)
 {
 	for (int i = 0; i < INSTRSNUM; i++)
 	{
-		LoadInstrument(i, in, iotype);	//IOINSTR_RMW);
+		LoadInstrument(i, in, iotype);	//RMW);
 	}
 
 	return 1;
@@ -40,7 +40,7 @@ int CInstruments::SaveInstrument(int instr, std::ofstream& ou, InstrumentIOType 
 
 	switch (iotype)
 	{
-		case InstrumentIOType::IOINSTR_RTI:
+		case InstrumentIOType::RTI:
 		{
 			//RTI file
 			static char head[4] = "RTI";
@@ -54,7 +54,7 @@ int CInstruments::SaveInstrument(int instr, std::ofstream& ou, InstrumentIOType 
 		}
 		break;
 
-		case InstrumentIOType::IOINSTR_RMW:
+		case InstrumentIOType::RMW:
 			//instrument name
 			ou.write(ai->name, sizeof(ai->name));
 
@@ -85,7 +85,7 @@ int CInstruments::SaveInstrument(int instr, std::ofstream& ou, InstrumentIOType 
 			ou.write((char*)&ai->volume, sizeof(ai->volume));
 			break;
 
-		case InstrumentIOType::IOINSTR_TXT:
+		case InstrumentIOType::TXT:
 			//TXT file
 			CString s, nambf;
 			nambf = ai->name;
@@ -128,7 +128,7 @@ int CInstruments::LoadInstrument(int instr, std::ifstream& in, InstrumentIOType 
 {
 	switch (iotype)
 	{
-		case InstrumentIOType::IOINSTR_RTI:
+		case InstrumentIOType::RTI:
 		{
 			//RTI
 			if (instr < 0 || instr >= INSTRSNUM) return 0;
@@ -159,7 +159,7 @@ int CInstruments::LoadInstrument(int instr, std::ifstream& in, InstrumentIOType 
 		}
 		break;
 
-		case InstrumentIOType::IOINSTR_RMW:
+		case InstrumentIOType::RMW:
 		{
 			//RMW
 			if (instr < 0 || instr >= INSTRSNUM) return 0;
@@ -199,7 +199,7 @@ int CInstruments::LoadInstrument(int instr, std::ifstream& in, InstrumentIOType 
 		}
 		break;
 
-		case InstrumentIOType::IOINSTR_TXT:
+		case InstrumentIOType::TXT:
 		{
 			char a;
 			char b;
