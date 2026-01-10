@@ -7,7 +7,7 @@
 
 #include "ImportDlgs.h"
 
-#include "Atari.h"
+#include "AtariTrackerDriver.h"
 #include "AtariIO.h"
 #include "PokeyRederer.h"
 
@@ -16,7 +16,7 @@
 #include "Instruments.h"
 #include "Clipboard.h"
 
-#include "global.h"
+#include "Global.h"
 
 #include "ChannelControl.h"
 #include "RmtMidi.h"
@@ -29,7 +29,7 @@ extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 extern CXPokey g_Pokey;
 extern CRmtMidi g_Midi;
-extern CAtariRMTDriver* g_AtariRMTDriver;
+extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
 int CSong::SongToAta(unsigned char* dest, int max, int adr)
 {
@@ -501,7 +501,7 @@ void CSong::FileImport()
     SetChannelOnOff(-1, 1);		// -1 = all, 1 = on
 
     // Initialise RMT routine
-    g_AtariRMTDriver->InitRMTRoutine();
+    g_AtariTrackerDriver->InitRMTRoutine();
 }
 
 /// <summary>

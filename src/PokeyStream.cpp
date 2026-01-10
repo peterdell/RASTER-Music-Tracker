@@ -2,14 +2,15 @@
 #include <fstream>
 #include "PokeyStream.h"
 #include "LZSSFile.h"
-#include "Atari.h"
+#include "AtariTrackerDriver.h"
 #include "ChannelControl.h"
 #include "Song.h"
 #include "General.h"
 #include "Global.h"
+#include "AtariTrackerDriver.h"
 
 
-extern CAtariRMTDriver* g_AtariRMTDriver;
+extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
 CPokeyStream::CPokeyStream()
 {
@@ -257,6 +258,6 @@ void CPokeyStream::FinishedRecording()
         m_StreamBuffer = NULL;
     }
 
-    g_AtariRMTDriver->InitRMTRoutine();	//reset the Atari memory 
+    g_AtariTrackerDriver->InitRMTRoutine();	//reset the Atari memory 
     SetChannelOnOff(-1, 1);	//switch all channels back on, since they were purposefully turned off during the recording
 }

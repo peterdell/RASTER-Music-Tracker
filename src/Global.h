@@ -11,6 +11,7 @@
 
 #include "SongTypes.h"
 #include "Atari.h"
+#include "AtariTrackerDriver.h"
 
 
 void SetProgramFolderPath(const CString& folderPath);

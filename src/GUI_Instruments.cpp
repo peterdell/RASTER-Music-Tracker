@@ -2,7 +2,7 @@
 #include "resource.h"
 #include <fstream>
 
-#include "Atari.h"
+#include "AtariTrackerDriver.h"
 #include "IOHelpers.h"
 
 #include "Instruments.h"
@@ -11,7 +11,7 @@
 
 #include "GuiHelpers.h"
 
-extern CAtariRMTDriver* g_AtariRMTDriver;
+extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
 
 /// <summary>
@@ -371,7 +371,7 @@ BOOL CInstruments::CursorGoto(int instrNr, CPoint point, int pzone)
         if (tt->parameters[PAR_ENV_LENGTH] < x) tt->parameters[PAR_ENV_LENGTH] = x;
     CG_InstrumentParametersChanged:
         //because there has been some change in the instrument parameter => this instrument will stop on all channels
-        g_AtariRMTDriver->InstrumentTurnOff(instrNr);
+        g_AtariTrackerDriver->InstrumentTurnOff(instrNr);
         CheckInstrumentParameters(instrNr);
         //something changed => Save instrument "to Atari"
         Update(instrNr);

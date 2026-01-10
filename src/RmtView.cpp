@@ -43,7 +43,7 @@ extern CUndo	g_Undo;
 extern CXPokey	g_Pokey;
 extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
-extern CAtariRMTDriver* g_AtariRMTDriver;
+extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
 /////////////////////////////////////////////////////////////////////////////
 // CRmtView
@@ -255,9 +255,9 @@ CRmtView::~CRmtView()
 void CRmtView::OnDestroy()
 {
 
-    if (g_AtariRMTDriver) {
-        delete g_AtariRMTDriver;
-        g_AtariRMTDriver = nullptr;
+    if (g_AtariTrackerDriver) {
+        delete g_AtariTrackerDriver;
+        g_AtariTrackerDriver = nullptr;
     }
 
     // Unload Pokey DLL
@@ -775,7 +775,7 @@ void CRmtView::OnViewConfiguration()
             // Something here to reset the thing
             g_trackerDriverVersion = dlg.m_trackerDriverVersion;
             g_Atari.InitRMTRoutine(g_Song.IsNTSC()); // TODO: This is done serveral times. We need something like "beginUpdate"
-            g_AtariRMTDriver->LoadRMTRoutines();
+            g_AtariTrackerDriver->LoadRMTRoutines();
         }
         g_trackerDriverVersion = dlg.m_trackerDriverVersion;
 
@@ -937,8 +937,8 @@ void CRmtView::OnInitialUpdate()
     //INITIALISATION OF ATARI RMT ROUTINES
     g_Atari.ClearMemory();
     g_Atari.InitRMTRoutine(g_Song.IsNTSC());
-    g_AtariRMTDriver->LoadRMTRoutines();
-    g_AtariRMTDriver->InitRMTRoutine();
+    g_AtariTrackerDriver->LoadRMTRoutines();
+    g_AtariTrackerDriver->InitRMTRoutine();
     g_Song.SetRMTTitle();
 
     // RMTView Timer Initialisation
@@ -1527,7 +1527,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         // Reset RMT routines automatically?
         if (g_keyboard_escresetatarisound)
         {
-            g_AtariRMTDriver->InitRMTRoutine();
+            g_AtariTrackerDriver->InitRMTRoutine();
         }
         if (g_Song.GetPlayMode() == PlayMode::PLAY_STOP) //only if the module is stopped
         {

@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "Song.h"
-#include "Atari.h"
+#include "AtariTrackerDriver.h"
 #include "PokeyRederer.h"
 #include "Instruments.h"
 #include "Clipboard.h"
@@ -12,7 +12,7 @@ extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 extern CXPokey g_Pokey;
 extern CRmtMidi g_Midi;
-extern CAtariRMTDriver* g_AtariRMTDriver;
+extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
 void CSong::MidiEvent(DWORD dwParam)
 {
@@ -30,7 +30,7 @@ void CSong::MidiEvent(DWORD dwParam)
 			{
 				//System Reset
 			MIDISystemReset:
-                g_AtariRMTDriver->InitRMTRoutine(); //reinit RMT routines
+                g_AtariTrackerDriver->InitRMTRoutine(); //reinit RMT routines
 				for (int i = 1; i < 16; i++)	//from 1, because it is MULTITIMBRAL 2-16
 				{
 					g_Midi.m_LastNoteOnChannel[i] = -1;	//last pressed keys on each channel

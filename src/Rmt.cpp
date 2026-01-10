@@ -31,7 +31,7 @@ extern CStatusBar* g_statusBar; // See GuiHelpers.cpp
 // Some information for the about box is supplied by components outside this file
 extern CString g_about6502;
 extern CAtari g_Atari;
-extern CAtariRMTDriver* g_AtariRMTDriver;
+extern CAtariTrackerDriver* g_AtariTrackerDriver;
 extern CXPokey g_Pokey;
 extern CSong g_Song;
 
@@ -115,7 +115,7 @@ BOOL CRmtApp::InitInstance()
     }
 
     // Initialize the model.
-    g_AtariRMTDriver = new CAtariRMTDriver(g_Atari);
+    g_AtariTrackerDriver = new CAtariTrackerDriver(g_Atari);
 
     g_tuning.Initialize(g_Song.IsNTSC());
     g_tuningRatios.Initialize();

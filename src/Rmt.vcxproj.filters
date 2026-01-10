@@ -288,6 +288,9 @@
     <ClCompile Include="SongTimer.cpp">
       <Filter>Source Files\Model</Filter>
     </ClCompile>
+    <ClCompile Include="AtariTrackerDriver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
@@ -502,6 +505,9 @@
     </ClInclude>
     <ClInclude Include="SongTimer.h">
       <Filter>Source Files\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariTrackerDriver.h">
+      <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

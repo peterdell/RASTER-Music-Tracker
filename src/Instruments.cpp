@@ -1,11 +1,11 @@
 #include "StdAfx.h"
 
-#include "Atari.h"
+#include "AtariTrackerDriver.h"
 #include "Instruments.h"
 #include "Notes.h"
 #include "Global.h"
 
-extern CAtariRMTDriver* g_AtariRMTDriver;
+extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
 /// <summary>
 /// Define information about each instrument parameter (not envelope table)
@@ -98,7 +98,7 @@ void CInstruments::ClearInstrument(int instrNr)
     if (!instrument) return;
 
     // Turn off this instrument on all channels
-    g_AtariRMTDriver->InstrumentTurnOff(instrNr);
+    g_AtariTrackerDriver->InstrumentTurnOff(instrNr);
 
     // Clear everything/All zero
     memset(instrument, 0, sizeof(TInstrument));

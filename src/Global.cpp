@@ -1,17 +1,18 @@
 #include "StdAfx.h"
+#include "Global.h"
 #include "PokeyRederer.h"
 #include "RmtMidi.h"
 #include "Clipboard.h"
 #include "Tuning.h"
 #include "Memory.h"
 #include "TracksControl.h"
-#include "Global.h"
+
 #include "Song.h"
 #include "Undo.h"
 #include <filesystem>
 
 CAtari g_Atari;
-CAtariRMTDriver* g_AtariRMTDriver;
+CAtariTrackerDriver* g_AtariTrackerDriver;
 
 
 byte g_atarimem[ATARI_RAM_SIZE];

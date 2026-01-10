@@ -172,6 +172,7 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
     </ClCompile>
     <ClCompile Include="AtariIO.cpp" />
+    <ClCompile Include="AtariTrackerDriver.cpp" />
     <ClCompile Include="C6502.cpp" />
     <ClCompile Include="Fraction.cpp" />
     <ClCompile Include="ChannelControl.cpp" />
@@ -330,6 +331,7 @@
     <ClInclude Include="astil.h" />
     <ClInclude Include="Atari.h" />
     <ClInclude Include="AtariIO.h" />
+    <ClInclude Include="AtariTrackerDriver.h" />
     <ClInclude Include="C6502.h" />
     <ClInclude Include="Fraction.h" />
     <ClInclude Include="Clipboard.h" />
