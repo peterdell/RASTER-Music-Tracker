@@ -46,27 +46,6 @@ byte CAtari::GetByteAt(const MemoryAddress address) {
     return g_atarimem[address];
 }
 
-// Load an Atari executable to memory
-int CAtari::LoadOBX(SongIOType obx, unsigned char* mem, WORD& minadr, WORD& maxadr)
-{
-    WORD size;
-    byte* bin;
-
-    switch (obx)
-    {
-    case SongIOType::IOTYPE_LZSS_XEX:
-        if (!CRmtAtariBinaries::GetVUPlayerBinary(bin, size)) {
-            return 0;
-        }
-        break;
-
-    default:
-        return 0;
-    }
-
-    return CAtariIO::LoadDataAsBinaryFile(bin, size, mem, minadr, maxadr);
-}
-
 // Load RMT routine to $3400, setnoteinstrvol to $3d00, and setvol to $3e00
 int CAtari::LoadRMTRoutines()
 {

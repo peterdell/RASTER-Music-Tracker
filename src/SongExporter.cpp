@@ -311,6 +311,13 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
     // Load VUPlayerLZSS to memory
     MemoryAddress addressFrom, addressTo;
     CAtari::LoadOBX(SongIOType::IOTYPE_LZSS_XEX, mem, addressFrom, addressTo);
+    WORD size;
+    byte* bin;
+
+    if (!CRmtAtariBinaries::GetVUPlayerBinary(bin, size)) {
+        return 0;
+    }
+    return CAtariIO::LoadDataAsBinaryFile(bin, size, mem, addressFrom, addressTo);
 
 
     // LZSS buffers for each ones of the tune parts being reconstructed.
