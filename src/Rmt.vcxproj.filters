@@ -509,6 +509,9 @@
     <ClInclude Include="AtariTrackerDriver.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
+    <ClInclude Include="TrackerDriverVersion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\Rmt.ico">

@@ -372,6 +372,7 @@
     <ClInclude Include="SongExporterTest.h" />
     <ClInclude Include="SongTimer.h" />
     <ClInclude Include="SongTypes.h" />
+    <ClInclude Include="TrackerDriverVersion.h" />
     <ClInclude Include="tracker_obx.h" />
     <ClInclude Include="Tracks.h" />
     <ClInclude Include="TracksControl.h" />
