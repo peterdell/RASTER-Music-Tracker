@@ -11,5 +11,6 @@ public:
 
 private:
     void SaveBinaries();
+    void TestASAP(const CRmtApp& app, const CString fileName);
 };
 

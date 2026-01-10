@@ -5,7 +5,7 @@
 
 #include "wasap.h"
 
-#include "General.h"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -18,6 +18,14 @@ using std::ios;
 
 #include "AtariBinaries.h"
 
+#include "GuiHelpers.h"
+
+#include "Global.h"
+#include "SongExporterTest.h"
+
+
+extern CSong g_Song;
+
 class CFileUtility {
 public:
 
@@ -26,17 +34,10 @@ public:
 
 };
 
-void LogInfo(const CString& ss) {
-    OutputDebugString(ss.GetString());
-}
-void LogInfo(const std::stringstream& ss) {
-    LogInfo(CString(ss.str().c_str()));
-}
-
 void CFileUtility::SaveFile(const CString& filePath, const byte* buffer,
     const size_t size) {
 
-    LogInfo(std::stringstream() << "Saving '" << filePath << "' with " << size << " bytes.\n'");
+    SendInfoMessage((std::stringstream() << "Saving '" << filePath << "' with " << size << " bytes.\n").str().c_str());
     std::ofstream fos;
     fos.open(filePath, ios::out | ios::binary | ios::trunc);
     for (auto i = 0; i < size; i++) {
@@ -49,6 +50,7 @@ CRmtTest::CRmtTest() {
 }
 
 void CRmtTest::SaveBinaries() {
+    SendInfoMessage("Test - SaveBinaries");
     TrackerDriverVersion trackerDrivers[] = {
     UNPATCHED ,
 UNPATCHED_WITH_TUNING ,
@@ -58,7 +60,7 @@ UNPATCHED_WITH_TUNING ,
         PATCH16 ,
        PATCH_PRINCE_OF_PERSIA };
 
-    LogInfo(std::stringstream() << "Current directoy: " << std::filesystem::current_path().string() << "\n");
+    SendInfoMessage((std::stringstream() << "Current directoy: " << std::filesystem::current_path().string()).str().c_str());
 
     CString fileName;
     byte* buffer = nullptr;;
@@ -81,15 +83,34 @@ UNPATCHED_WITH_TUNING ,
     CFileUtility::SaveFile(filePath, buffer, size);
 }
 
-
-void CRmtTest::RunFor(const CRmtApp& app, const CString fileName) {
-
-    SaveBinaries();
-
+void CRmtTest::TestASAP(const CRmtApp& app, const CString fileName) {
+    SendInfoMessage("Test - TestASAP");
     int sizeOfString = (fileName.GetLength() + 1);
     LPTSTR lpsz = new TCHAR[sizeOfString];
     _tcscpy_s(lpsz, sizeOfString, fileName);
     //... modify lpsz as much as you want   
     WASAP_WinMain(app.m_hInstance, NULL, lpsz, 0);
     delete lpsz;
+}
+
+void CRmtTest::RunFor(const CRmtApp& app, const CString fileName) {
+
+    SaveBinaries();
+    // TestASAP(app, fileName);
+
+    // All these variables are initialized with their defaults.
+    // - g_AtariTrackerDriver 
+    // - g_tuning
+    // - g_tuningRatios
+    // - g_Song
+
+    SendInfoMessage("Test - Open and Export");
+
+    if (!g_Song.FileOpen(fileName, FALSE)) {
+        SendErrorMessage("Cannot load sonf from file '" + fileName + '.');
+        return;
+    }
+
+    CSongExporterTest::Test(g_Song);
+
 }

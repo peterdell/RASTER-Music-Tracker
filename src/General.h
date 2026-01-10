@@ -234,6 +234,7 @@ enum AssemblerFormat : int
 
 // ----------------------------------------------------------------------------
 // Pokey play to buffer
+// TODO: Unused => Remove
 // 
 #define POKEY2BUFFER_STOP		0
 #define POKEY2BUFFER_RECORD		1

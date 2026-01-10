@@ -156,7 +156,7 @@ public:
 
     void SetRMTTitle();
 
-    void FileOpen(const char* filename = NULL, BOOL warnOfUnsavedChanges = TRUE);
+    BOOL FileOpen(const char* filename = NULL, BOOL warnOfUnsavedChanges = TRUE);
     void FileReload();
     BOOL FileCanBeReloaded() { return (m_filename != "") /*&& (!m_fileunsaved)*/ /*&& g_changes*/; };
     int WarnUnsavedChanges();

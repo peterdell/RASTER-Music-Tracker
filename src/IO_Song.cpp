@@ -142,12 +142,14 @@ void CSong::FileReload()
 /// </summary>
 /// <param name="filename">path to song file to load</param>
 /// <param name="warnOfUnsavedChanges">TRUE if the GUI should warn on unsaved changes</param>
-void CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
+BOOL CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
 {
     // Stop the music first
     Stop();
 
-    if (warnOfUnsavedChanges && WarnUnsavedChanges()) return;
+    if (warnOfUnsavedChanges && WarnUnsavedChanges()) {
+        return FALSE;
+    }
 
     // Open the file open dialog with *.rmt, *.txt and *.rmw options
     CFileDialog dlg(TRUE,
@@ -158,14 +160,16 @@ void CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
     );
     dlg.m_ofn.lpstrTitle = "Load song file";
 
-    if (!g_lastLoadPath_Songs.IsEmpty())
+    if (!g_lastLoadPath_Songs.IsEmpty()) {
         dlg.m_ofn.lpstrInitialDir = g_lastLoadPath_Songs;
-    else
-        if (!g_defaultSongsPath.IsEmpty()) dlg.m_ofn.lpstrInitialDir = g_defaultSongsPath;
+    }
+    else {
+        if (!g_defaultSongsPath.IsEmpty()) { dlg.m_ofn.lpstrInitialDir = g_defaultSongsPath; }
+    }
 
-    if (GetIOType() == SongIOType::RMT) dlg.m_ofn.nFilterIndex = FILE_LOADSAVE_FILTER_IDX_RMT;
-    if (GetIOType() == SongIOType::TXT) dlg.m_ofn.nFilterIndex = FILE_LOADSAVE_FILTER_IDX_TXT;
-    if (GetIOType() == SongIOType::RMW) dlg.m_ofn.nFilterIndex = FILE_LOADSAVE_FILTER_IDX_RMW;
+    if (GetIOType() == SongIOType::RMT) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE_FILTER_IDX_RMT; }
+    if (GetIOType() == SongIOType::TXT) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE_FILTER_IDX_TXT; }
+    if (GetIOType() == SongIOType::RMW) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE_FILTER_IDX_RMW; }
 
     CString fileToLoad = "";
     int formatChoiceIndexFromDialog = 0;
@@ -182,70 +186,74 @@ void CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
     else
     {
         // If not ok, it's over
-        if (dlg.DoModal() != IDOK)
-            return;
+        if (dlg.DoModal() != IDOK) {
+            return FALSE;
+        }
 
         fileToLoad = dlg.GetPathName();
         formatChoiceIndexFromDialog = dlg.m_ofn.nFilterIndex;
     }
 
-    // Only when a file was selected in the FileDialog or specified at startup
-    if (!fileToLoad.IsEmpty() && formatChoiceIndexFromDialog)
-    {
-        // Use filename from the FileDialog or from the command line
-        g_lastLoadPath_Songs = GetFilePath(fileToLoad);
-
-        // Make sure .rmt, .txt or .rmw file was selected
-        if (formatChoiceIndexFromDialog < FILE_LOADSAVE_FILTER_IDX_MIN
-            || formatChoiceIndexFromDialog > FILE_LOADSAVE_FILTER_IDX_MAX)
-        {
-            return;
-        }
-
-        // Open the input file in binary format (even the text file)
-        std::ifstream in(fileToLoad, std::ios::binary);
-        if (!in)
-        {
-            MessageBox(g_hwnd, "Can't open this file: " + fileToLoad, "Open error", MB_ICONERROR);
-            return;
-        }
-
-        // Deletes the current song
-        ClearSong(g_tracks4_8);
-
-        bool loadedOk = false;
-        switch (formatChoiceIndexFromDialog)
-        {
-        case FILE_LOADSAVE_FILTER_IDX_RMT: // RMT choice in Dialog
-            loadedOk = LoadRMT(in);
-            m_ioType = SongIOType::RMT; // TODO: Move into Load...
-            break;
-
-        case FILE_LOADSAVE_FILTER_IDX_TXT: // TXT choice in Dialog
-            loadedOk = LoadTxt(in);
-            m_ioType = SongIOType::TXT;
-            break;
-
-        case FILE_LOADSAVE_FILTER_IDX_RMW: // RMW choice in Dialog
-            loadedOk = LoadRMW(in);
-            m_ioType = SongIOType::RMW;
-            break;
-        }
-        in.close();
-
-        if (!loadedOk)
-        {
-            // Something in the Load... function failed
-            ClearSong(g_tracks4_8);		// Erases everything
-            SetRMTTitle();
-            return;
-        }
-
-        m_filename = fileToLoad;
-        m_speed = m_mainSpeed;			// Init speed
-        SetRMTTitle();					// Window name
-        SetChannelOnOff(-1, 1);			// All channels ON (unmute all) -1 = all, 1 = on
+    // Continue wnly when a file was selected in the FileDialog or specified at startup
+    if (fileToLoad.IsEmpty() || !formatChoiceIndexFromDialog) {
+        return FALSE;
     }
+
+    // Use filename from the FileDialog or from the command line
+    g_lastLoadPath_Songs = GetFilePath(fileToLoad);
+
+    // Make sure .rmt, .txt or .rmw file was selected
+    if (formatChoiceIndexFromDialog < FILE_LOADSAVE_FILTER_IDX_MIN
+        || formatChoiceIndexFromDialog > FILE_LOADSAVE_FILTER_IDX_MAX)
+    {
+        return FALSE;
+    }
+
+    // Open the input file in binary format (even the text file)
+    std::ifstream in(fileToLoad, std::ios::binary);
+    if (!in)
+    {
+        MessageBox(g_hwnd, "Can't open this file: " + fileToLoad, "Open error", MB_ICONERROR);
+        return FALSE;
+    }
+
+    // Deletes the current song
+    ClearSong(g_tracks4_8);
+
+    auto loadedOk = false;
+    switch (formatChoiceIndexFromDialog)
+    {
+    case FILE_LOADSAVE_FILTER_IDX_RMT: // RMT choice in Dialog
+        loadedOk = LoadRMT(in);
+        m_ioType = SongIOType::RMT; // TODO: Move into Load...
+        break;
+
+    case FILE_LOADSAVE_FILTER_IDX_TXT: // TXT choice in Dialog
+        loadedOk = LoadTxt(in);
+        m_ioType = SongIOType::TXT;
+        break;
+
+    case FILE_LOADSAVE_FILTER_IDX_RMW: // RMW choice in Dialog
+        loadedOk = LoadRMW(in);
+        m_ioType = SongIOType::RMW;
+        break;
+    }
+    in.close();
+
+    if (!loadedOk)
+    {
+        // Something in the Load... function failed
+        ClearSong(GetTracks());		// Erases everything
+        SetRMTTitle();
+        return FALSE;
+    }
+
+    m_filename = fileToLoad;
+    m_speed = m_mainSpeed;			// Init speed
+    SetRMTTitle();					// Window name
+    SetChannelOnOff(-1, 1);			// All channels ON (unmute all) -1 = all, 1 = on
+    return TRUE;
+
 }
 
 void CSong::FileSave()

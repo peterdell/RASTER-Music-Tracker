@@ -289,7 +289,7 @@
       <Filter>Source Files\Model</Filter>
     </ClCompile>
     <ClCompile Include="AtariTrackerDriver.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

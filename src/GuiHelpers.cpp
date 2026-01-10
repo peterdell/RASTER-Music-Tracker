@@ -17,6 +17,7 @@ void ClearStatusBar() {
 void SetStatusBarText(const char* text)
 {
     if (g_statusBar == nullptr) {
+        OutputDebugString("INFO: ");
         OutputDebugString(text);
         OutputDebugString("\n");
     }
@@ -25,10 +26,22 @@ void SetStatusBarText(const char* text)
     }
 }
 
+void SendInfoMessage(const char* message) {
+    SetStatusBarText(message);
+}
+
+void SendErrorMessage(const char* message) {
+    SendErrorMessage(nullptr, message);
+}
+
 void SendErrorMessage(const char* title, const char* message) {
     if (g_statusBar == nullptr) {
-        OutputDebugString(title);
-        OutputDebugString("\n");
+        OutputDebugString("ERROR: ");
+        if (title) {
+            OutputDebugString(title);
+            OutputDebugString("\n");
+        }
+
         OutputDebugString(message);
         OutputDebugString("\n");
     }

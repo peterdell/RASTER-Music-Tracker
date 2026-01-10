@@ -106,25 +106,29 @@ void GetAtariMemHexStr(int adr, int len)
 
 void CSong::SetRMTTitle()
 {
-    CString s, s1;
-    if (m_filename == "")
-    {
-        if (g_changes)
+    // Prevent exceptions in headless mode
+    auto window = AfxGetApp()->GetMainWnd();
+    if (window != nullptr) {
+        CString s, s1;
+        if (m_filename == "")
         {
-            s = "Noname *";
+            if (g_changes)
+            {
+                s = "Noname *";
+            }
+            else
+            {	// RMT version number and build date 
+                s1.LoadString(IDS_RMTVERSION);
+                s.Format("%s (%s %s)", s1, __DATE__, __TIME__);
+            }
         }
         else
-        {	// RMT version number and build date 
-            s1.LoadString(IDS_RMTVERSION);
-            s.Format("%s (%s %s)", s1, __DATE__, __TIME__);
+        {
+            s = m_filename;
+            if (g_changes) { s += " *"; }
         }
+        AfxGetApp()->GetMainWnd()->SetWindowText(s);
     }
-    else
-    {
-        s = m_filename;
-        if (g_changes) { s += " *"; }
-    }
-    AfxGetApp()->GetMainWnd()->SetWindowText(s);
 }
 
 int CSong::WarnUnsavedChanges()
