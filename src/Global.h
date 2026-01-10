@@ -34,6 +34,7 @@ extern int g_notesperoctave;
 
 extern TTuningSettings g_tuning;
 extern TTuningRatios g_tuningRatios;
+extern int g_tracks4_8; // TODO Move out
 
 extern HWND g_hwnd;
 extern HWND g_viewhwnd;
@@ -50,9 +51,6 @@ extern int g_RmtHasFocus;
 extern BOOL g_shiftkey;
 extern BOOL g_controlkey;
 extern BOOL g_altkey;	//unfinished implementation, doesn't work yet for some reason
-
-extern int g_tracks4_8;
-bool IsStereo();
 
 extern BOOL volatile g_screenupdate;
 extern BOOL volatile g_rmtroutine;

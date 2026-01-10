@@ -6,6 +6,7 @@
 #include "Global.h"
 
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
+extern int g_tracks4_8; // TODO Move out
 
 /// <summary>
 /// Define information about each instrument parameter (not envelope table)

@@ -31,6 +31,7 @@ extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
+extern int g_tracks4_8; // TODO Move out
 
 // TODO
 char g_debugmem[CAtari::MEMORY_SIZE];	//debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
@@ -204,7 +205,7 @@ void CSong::DrawAnalyzer()
     int R[8];
     int G[8];
     int yUp = 7;
-    for (int i = 0; i < g_tracks4_8; i++) { col[i] = 102; R[i] = 44; G[i] = 60; }
+    for (int i = 0; i < GetTracks(); i++) { col[i] = 102; R[i] = 44; G[i] = 60; }
     int a;
     int b;
     COLORREF acol;
@@ -240,7 +241,7 @@ void CSong::DrawAnalyzer()
         b = g_atarimem[0xd21f]; // SKCTL2 @ $D21F
         if (b == 0x8b) { col[1 + 4] = COL_BLOCK; Hook1(0 + 4, 1 + 4); yUp -= 2; }	// Two tone mode (join channel 5 + 6)
 
-        for (int channelNr = 0; channelNr < g_tracks4_8; channelNr++)
+        for (int channelNr = 0; channelNr < GetTracks(); channelNr++)
         {
             audf = g_atarimem[idx[channelNr]];		// Get the frequency
             audc = g_atarimem[idx[channelNr] + 1];	// Get audio control, Bits: 0-3 = volume, 4 = Volume only, 5-7 = Distortion
@@ -535,7 +536,7 @@ void CSong::DrawAnalyzer()
                 int reverse_basenote = (24 - basenote) % 12;	//since things are wack I had to do this
                 //int FREQ_17 = (g_ntsc) ? FREQ_17_NTSC : FREQ_17_PAL;	//useful for debugging I guess
                 auto cycles = CAtari::GetFrameCycleCount(IsNTSC());
-                int tracks = (g_tracks4_8 == 8) ? 8 : 4;
+                int tracks = g_Song.GetTracks();
                 char t[12] = { 0 };
 
                 TextMiniXY("A- TUNING:       HZ,", ANALYZER3_X, ANALYZER3_Y + 8 * 9, TextMiniColor::GRAY);
@@ -710,11 +711,11 @@ void CSong::DrawSong()
 
     auto smooth_scroll = g_view.smoothScrolling;	//TODO: make smooth scrolling an option that can be saved to .ini file
 
-    int MINIMAL_WIDTH_INSTRUMENTS = (g_tracks4_8 > 4 && g_active_ti == Part::PART_INSTRUMENTS) ? 1220 : 1220;
-    int WINDOW_OFFSET = (g_width < 1320 && g_tracks4_8 > 4 && g_active_ti == Part::PART_TRACKS) ? -250 : 0;	//test displacement with the window size
-    int INSTRUMENT_OFFSET = (g_active_ti == Part::PART_INSTRUMENTS && g_tracks4_8 > 4) ? -250 : 0;
-    if (g_tracks4_8 == 4 && g_active_ti == Part::PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) INSTRUMENT_OFFSET = 260;
-    int SONG_OFFSET = CSongScreenLayout::SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((g_tracks4_8 == 4) ? -200 : 310);	//displace the SONG block depending on certain parameters
+    int MINIMAL_WIDTH_INSTRUMENTS = (IsStereo() && g_active_ti == Part::PART_INSTRUMENTS) ? 1220 : 1220;
+    int WINDOW_OFFSET = (g_width < 1320 && IsStereo() && g_active_ti == Part::PART_TRACKS) ? -250 : 0;	//test displacement with the window size
+    int INSTRUMENT_OFFSET = (g_active_ti == Part::PART_INSTRUMENTS && IsStereo()) ? -250 : 0;
+    if (!IsStereo() && g_active_ti == Part::PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) INSTRUMENT_OFFSET = 260;
+    int SONG_OFFSET = CSongScreenLayout::SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((!IsStereo()) ? -200 : 310);	//displace the SONG block depending on certain parameters
 
     auto active_smooth = (smooth_scroll && m_play && m_followplay) ? 1 : 0;	//could also be used as an offset
     int pattern_len = 0;
@@ -806,7 +807,7 @@ void CSong::DrawSong()
     int arrowpos = (WINDOW_OFFSET) ? CSongScreenLayout::SONG_Y + 48 : CSongScreenLayout::SONG_Y + 80;
     TextXY("\x04\x05", SONG_OFFSET, arrowpos, color);
 
-    if (g_tracks4_8 > 4)	//a line delimiting the boundary between left/right
+    if (IsStereo())	//a line delimiting the boundary between left/right
     {
         int fl = 32;
         int tl = 32 + linescount * 16;
@@ -818,7 +819,7 @@ void CSong::DrawSong()
 
     // Draw mask rectangles over the extra pixels above and below the song lines.
     // This gets rid of the pixels we dont want to see with smooth scrolling
-    int width = 8 * ((g_tracks4_8 == 8) ? 30 : 18);
+    int width = 8 * ((IsStereo()) ? 30 : 18);
     int height = 32;
     g_mem_dc->FillSolidRect(SONG_OFFSET, 0, width, height, CRGBColor::BACKGROUND);	//top
     g_mem_dc->FillSolidRect(SONG_OFFSET, linescount * 16 + 32, width, height, CRGBColor::BACKGROUND);	//bottom
@@ -841,7 +842,7 @@ void CSong::DrawSong()
         TextXY(szBuffer, k, CSongScreenLayout::SONG_Y, color);
     }
     szBuffer[0] = 'R';
-    for (i = 4; i < g_tracks4_8; i++, k += 24)
+    for (i = 4; i < GetTracks(); i++, k += 24)
     {
         szBuffer[1] = i + 49 - 4;	//character 1-4
         if (GetChannelOnOff(i))
@@ -874,11 +875,11 @@ void CSong::DrawTracks()
     int speeda = m_speeda;
 
     //coordinates for only the TRACKS width block rendering
-    int mask_x = (g_tracks4_8 == 4) ? CSongScreenLayout::TRACKS_X + (93 - 4 * 11) * 11 - 4 : CSongScreenLayout::TRACKS_X + (93 + 3) * 11 - 8;
+    int mask_x = (!IsStereo()) ? CSongScreenLayout::TRACKS_X + (93 - 4 * 11) * 11 - 4 : CSongScreenLayout::TRACKS_X + (93 + 3) * 11 - 8;
 
     if (SongGetGo() >= 0)		//it's a GOTO line, it won't draw tracks
     {
-        int TRACKS_OFFSET = (g_tracks4_8 == 8) ? 62 : 30;
+        int TRACKS_OFFSET = (IsStereo()) ? 62 : 30;
         TextXY("GO TO LINE ", CSongScreenLayout::TRACKS_X + TRACKS_OFFSET * 8, CSongScreenLayout::TRACKS_Y + 8 * 16, TextColor::TURQUOISE);
         if (g_prove) color = (g_activepart == Part::PART_TRACKS) ? LogicalTextColor::SELECTED_PROVE : TextColor::BLUE;
         else color = (g_activepart == Part::PART_TRACKS) ? LogicalTextColor::SELECTED : TextColor::RED;

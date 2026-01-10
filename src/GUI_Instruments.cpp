@@ -12,6 +12,7 @@
 #include "GuiHelpers.h"
 
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
+extern int g_tracks4_8; // TODO Move out
 
 
 /// <summary>
@@ -429,7 +430,7 @@ BOOL CInstruments::GetGUIArea(int instrNr, int zone, CRect& rect)
 
     case INSTR_GUI_ZONE_ENVELOPE_RIGHT_ENVELOPE:
         //right channel volume curve (upper)
-        if (g_tracks4_8 <= 4) return 0;
+        if (g_tracks4_8 <= 4) { return 0; }
         rect.SetRect(INSTRS_ENV_X + 12 * 8, INSTRS_ENV_Y - 2 * 16 + 4, INSTRS_ENV_X + 12 * 8 + len * 8, INSTRS_ENV_Y - 2 * 16 + 4 + 4 * 16);
         return 1;
 
@@ -440,7 +441,7 @@ BOOL CInstruments::GetGUIArea(int instrNr, int zone, CRect& rect)
 
     case INSTR_GUI_ZONE_ENVELOPE_RIGHT_VOL_NUMS:
         //envelope area of volume numbers for right channel
-        if (g_tracks4_8 <= 4) return 0;
+        if (g_tracks4_8 <= 4) { return 0; }
         rect.SetRect(INSTRS_ENV_X + 12 * 8, INSTRS_ENV_Y - 2 * 16 + 0 + 4 * 16, INSTRS_ENV_X + 12 * 8 + len * 8, INSTRS_ENV_Y - 2 * 16 + 0 + 4 * 16 + 16);
         return 1;
 

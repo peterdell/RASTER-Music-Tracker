@@ -12,6 +12,7 @@
 #include "Global.h"
 
 extern CInstruments	g_Instruments;
+extern int g_tracks4_8; // TODO Move out
 
 
 struct TSourceTrack
@@ -181,12 +182,11 @@ int CConvertTracks::MakeOrFindTrackShiftLR(int from, int shift, BYTE lr)
 
 int CSong::ImportTMC(std::ifstream& in)
 {
-    int originalg_tracks4_8 = g_tracks4_8;
+    auto originalg_tracks4_8 = GetTracks();
 
     //delete the current song
-    g_tracks4_8 = 8;					//standard TMC is 8 tracks
-    g_Tracks.SetMaxTrackLength(64);	//track length is 64
-    ClearSong(g_tracks4_8);			//clear everything
+    g_Tracks.SetMaxTrackLength(64);	// track length is 64
+    ClearSong(8);			// standard TMC is 8 tracks, clear everything
 
     unsigned char mem[65536];
     memset(mem, 0, 65536);
@@ -219,7 +219,7 @@ int CSong::ImportTMC(std::ifstream& in)
     s.TrimRight();
     importdlg.m_info.Format("TMC module: %s", (LPCTSTR)s);
 
-    if (importdlg.DoModal() != IDOK) return 0;
+    if (importdlg.DoModal() != IDOK) { return 0; }
 
     BOOL x_usetable = importdlg.m_check1;
     BOOL x_optimizeloops = importdlg.m_check6;
@@ -929,10 +929,9 @@ int AtariVolume(int volume0_64)
 int CSong::ImportMOD(std::ifstream& in)
 {
     //deletes the current song
-    int originalg_tracks4_8 = g_tracks4_8;	//keeps the original value for Abort
-    g_tracks4_8 = 8;					//prepares 8 channels
+    int originalg_tracks4_8 = GetTracks();	//keeps the original value for Abort
     g_Tracks.SetMaxTrackLength(64);	//track length 64
-    ClearSong(g_tracks4_8);			//clear existing data
+    ClearSong(8);			//prepares 8 channels, clear existing data
 
     int i, j;
     BYTE a;
