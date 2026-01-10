@@ -56,7 +56,7 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, 
                 {
                     g_AtariTrackerDriver->Play();
                 }
-                // Transfer from g_atarimem to POKEY buffer
+                // Transfer from memory to POKEY buffer
                 pokeyStream.Record();
             }
 

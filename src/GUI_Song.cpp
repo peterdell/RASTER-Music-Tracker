@@ -34,7 +34,7 @@ extern CAtariTrackerDriver* g_AtariTrackerDriver;
 extern int g_tracks4_8; // TODO Move out
 
 // TODO
-char g_debugmem[CAtari::MEMORY_SIZE];	//debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
+char g_debugmem[CAtari::MEMORY_SIZE];	//debug display of memory bytes directly, slow and terrible, do not use unless there is a purpose for it 
 
 // ----------------------------------------------------------------------------
 // Support routines
@@ -73,17 +73,17 @@ void GetTracklineText(char* dest, int line)
         sprintf(dest, "%02X", line);
 }
 
-//debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
+//debug display of memory bytes directly, slow and terrible, do not use unless there is a purpose for it 
 void GetAtariMemHexStr(int adr, int len)
 {
     unsigned int a = 0;
     char c[8] = { 0 };
     memset(g_debugmem, 0, 65536);
-    const auto g_atarimem = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
+    const auto memory = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
 
     for (int i = 0; i < len; i++)
     {
-        a = g_atarimem[adr + i];
+        a = memory[adr + i];
         sprintf(c, "$%x, ", a);
         g_debugmem[i * 4] = c[0];	//$
         //force uppercase on characters "a" to "f"
@@ -122,7 +122,7 @@ void CSong::SetRMTTitle()
     else
     {
         s = m_filename;
-        if (g_changes) s += " *";
+        if (g_changes) { s += " *"; }
     }
     AfxGetApp()->GetMainWnd()->SetWindowText(s);
 }
@@ -217,39 +217,39 @@ void CSong::DrawAnalyzer()
         // In tracks drawing mode
         // Draw bridge connections between channels. For each connection we move 2 pixels up.
         // Max rise is 10 pixels
-        const auto g_atarimem = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
+        const auto memory = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
 
         // Clear the area where the analyser is to be drawn
         g_mem_dc->FillSolidRect(ANALYZER_X, ANALYZER_Y - ANALYZER_HP, g_tracks4_8 * 16 * 8 - 34, ANALYZER_H + ANALYZER_HP, CRGBColor::BACKGROUND);
 
         // Left/Mono Channel
         // Draw which channels are joined by highpass filters or normal channel join
-        a = g_atarimem[0xd208]; // AUDCTL @ $D208
+        a = memory[0xd208]; // AUDCTL @ $D208
         if (a & 0x04) { col[2] = COL_BLOCK; Hook1(0, 2); yUp -= 2; }	// High pass filter on channel 1, clocked by channel 3
         if (a & 0x02) { col[3] = COL_BLOCK;	Hook1(1, 3); yUp -= 2; }	// High pass filter on channel 3, clocked by channel 4
         if (a & 0x10) { col[0] = COL_BLOCK;	Hook1(0, 1); yUp -= 2; }	// Join channels 1 + 2 (16 bit)
         if (a & 0x08) { col[2] = COL_BLOCK;	Hook1(2, 3); yUp -= 2; }	// Join channels 3 + 4 (16 bit)
 
-        b = g_atarimem[0xd20f]; // SKCTL @ $D20F
+        b = memory[0xd20f]; // SKCTL @ $D20F
         if (b == 0x8b) { col[1] = COL_BLOCK; Hook1(0, 1); yUp -= 2; }	// Two tone mode (join channel 1 + 2)
         yUp = 7;
 
         // Stereo Channel
-        a = g_atarimem[0xd218]; // AUDCTL2 @ $D218
+        a = memory[0xd218]; // AUDCTL2 @ $D218
         if (a & 0x04) { col[2 + 4] = COL_BLOCK; Hook1(0 + 4, 2 + 4); yUp -= 2; }	// High pass filter on channel 5 clocked by channel 7
         if (a & 0x02) { col[3 + 4] = COL_BLOCK; Hook1(1 + 4, 3 + 4); yUp -= 2; }	// High pass filter on channel 7, clocked by channel 8
         if (a & 0x10) { col[0 + 4] = COL_BLOCK; Hook1(0 + 4, 1 + 4); yUp -= 2; }	// Join channels 5 + 6 (16 bit)
         if (a & 0x08) { col[2 + 4] = COL_BLOCK; Hook1(2 + 4, 3 + 4); yUp -= 2; }	// Join channels 7 + 8 (16 bit)
 
-        b = g_atarimem[0xd21f]; // SKCTL2 @ $D21F
+        b = memory[0xd21f]; // SKCTL2 @ $D21F
         if (b == 0x8b) { col[1 + 4] = COL_BLOCK; Hook1(0 + 4, 1 + 4); yUp -= 2; }	// Two tone mode (join channel 5 + 6)
 
         for (int channelNr = 0; channelNr < GetTracks(); channelNr++)
         {
-            audf = g_atarimem[idx[channelNr]];		// Get the frequency
-            audc = g_atarimem[idx[channelNr] + 1];	// Get audio control, Bits: 0-3 = volume, 4 = Volume only, 5-7 = Distortion
-            int skctl1 = g_atarimem[0xd20f];		// Two tone mode Mono
-            int skctl2 = g_atarimem[0xd21f];		// Two tone mode Stereo
+            audf = memory[idx[channelNr]];		// Get the frequency
+            audc = memory[idx[channelNr] + 1];	// Get audio control, Bits: 0-3 = volume, 4 = Volume only, 5-7 = Distortion
+            int skctl1 = memory[0xd20f];		// Two tone mode Mono
+            int skctl2 = memory[0xd21f];		// Two tone mode Stereo
 
             vol = audc & 0x0f;						// Volume in lower nibble 
             a = channelNr * 16 * 8;					// X offset
@@ -278,12 +278,12 @@ void CSong::DrawAnalyzer()
         if (g_view.pokeyRegisters)
         {
             // Draw the AUDCTL (audio control) register value
-            NumberMiniXY(g_atarimem[0xd208], ANALYZER_X + 23 + 1 * 8 * 16 + 80, ANALYZER_Y - 8);						// Mono
-            if (g_tracks4_8 > 4) NumberMiniXY(g_atarimem[0xd218], ANALYZER_X + 23 + 5 * 8 * 16 + 80, ANALYZER_Y - 8);	// Stereo
+            NumberMiniXY(memory[0xd208], ANALYZER_X + 23 + 1 * 8 * 16 + 80, ANALYZER_Y - 8);						// Mono
+            if (g_tracks4_8 > 4) NumberMiniXY(memory[0xd218], ANALYZER_X + 23 + 5 * 8 * 16 + 80, ANALYZER_Y - 8);	// Stereo
 
             // Draw the SKCTL (Two tone control/Serial port control) register value
-            NumberMiniXY(g_atarimem[0xd20f], ANALYZER_X + 23 + 1 * 8 * 16 + 80, ANALYZER_Y - 0);						// Mono
-            if (g_tracks4_8 > 4) NumberMiniXY(g_atarimem[0xd21f], ANALYZER_X + 23 + 5 * 8 * 16 + 80, ANALYZER_Y - 0);	// Stereo
+            NumberMiniXY(memory[0xd20f], ANALYZER_X + 23 + 1 * 8 * 16 + 80, ANALYZER_Y - 0);						// Mono
+            if (g_tracks4_8 > 4) NumberMiniXY(memory[0xd21f], ANALYZER_X + 23 + 5 * 8 * 16 + 80, ANALYZER_Y - 0);	// Stereo
         }
     }
     else if (g_active_ti == Part::PART_INSTRUMENTS) //smaller appearance for instrument edit mode
@@ -293,35 +293,35 @@ void CSong::DrawAnalyzer()
         // Clear the area where the mini volume controls are to be drawn
         g_mem_dc->FillSolidRect(ANALYZER2_X, ANALYZER2_Y - ANALYZER2_HP, g_tracks4_8 * 3 * 8 - 8, ANALYZER2_H + ANALYZER2_HP, CRGBColor::BACKGROUND);
 
-        const auto g_atarimem = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
+        const auto memory = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
 
         // Left / Mono Channel
         // Draw which channels are joined by highpass filters or normal channel join
-        a = g_atarimem[0xd208]; // AUDCTL @ $D208
+        a = memory[0xd208]; // AUDCTL @ $D208
         if (a & 0x04) { col[2] = COL_BLOCK; Hook2(0, 2); yUp -= 2; }	// High pass filter on channel 1, clocked by channel 3
         if (a & 0x02) { col[3] = COL_BLOCK;	Hook2(1, 3); yUp -= 2; }	// High pass filter on channel 3, clocked by channel 4
         if (a & 0x10) { col[0] = COL_BLOCK;	Hook2(0, 1); yUp -= 2; }	// Join channels 1 + 2 (16 bit)
         if (a & 0x08) { col[2] = COL_BLOCK;	Hook2(2, 3); yUp -= 2; }	// Join channels 3 + 4 (16 bit)
 
-        b = g_atarimem[0xd20f]; // SKCTL @ $D20F
+        b = memory[0xd20f]; // SKCTL @ $D20F
         if (b == 0x8b) { col[1] = COL_BLOCK; Hook2(0, 1); yUp -= 2; }	// Two tone mode (join channel 1 + 2)
         yUp = 7;
 
         // Stereo Channel
-        a = g_atarimem[0xd218]; // AUDCTL2 @ $D218
+        a = memory[0xd218]; // AUDCTL2 @ $D218
         if (a & 0x04) { col[2 + 4] = COL_BLOCK; Hook2(0 + 4, 2 + 4); yUp -= 2; }	// High pass filter on channel 5 clocked by channel 7
         if (a & 0x02) { col[3 + 4] = COL_BLOCK; Hook2(1 + 4, 3 + 4); yUp -= 2; }	// High pass filter on channel 7, clocked by channel 8
         if (a & 0x10) { col[0 + 4] = COL_BLOCK; Hook2(0 + 4, 1 + 4); yUp -= 2; }	// Join channels 5 + 6 (16 bit)
         if (a & 0x08) { col[2 + 4] = COL_BLOCK; Hook2(2 + 4, 3 + 4); yUp -= 2; }	// Join channels 7 + 8 (16 bit)
 
-        b = g_atarimem[0xd21f]; // SKCTL2 @ $D21F
+        b = memory[0xd21f]; // SKCTL2 @ $D21F
         if (b == 0x8b) { col[1 + 4] = COL_BLOCK; Hook2(0 + 4, 1 + 4); yUp -= 2; }	// Two tone mode (join channel 5 + 6)
 
         for (int channelNr = 0; channelNr < g_tracks4_8; channelNr++)
         {
-            audc = g_atarimem[idx[channelNr] + 1];	// Get the frequency
-            int skctl1 = g_atarimem[0xd20f];		// Two tone mode Mono
-            int skctl2 = g_atarimem[0xd21f];		// Two tone mode Stereo
+            audc = memory[idx[channelNr] + 1];	// Get the frequency
+            int skctl1 = memory[0xd20f];		// Two tone mode Mono
+            int skctl2 = memory[0xd21f];		// Two tone mode Stereo
 
             vol = audc & 0x0f;						// Volume in lower nibble 
 
@@ -364,27 +364,27 @@ void CSong::DrawAnalyzer()
 
         g_mem_dc->FillSolidRect(ANALYZER3_X, ANALYZER3_Y, 680, 192, CRGBColor::BACKGROUND);
 
-        const auto g_atarimem = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
+        const auto memory = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
         for (int i = 0; i < g_tracks4_8; i++)
         {
             BOOL IS_RIGHT_POKEY = (i >= 4) ? 1 : 0;
 
-            audctl = g_atarimem[idx2[IS_RIGHT_POKEY]];
-            skctl = g_atarimem[idx2[IS_RIGHT_POKEY] + 7];
-            audf = g_atarimem[idx[i]];
-            audc = g_atarimem[idx[i] + 1];
+            audctl = memory[idx2[IS_RIGHT_POKEY]];
+            skctl = memory[idx2[IS_RIGHT_POKEY] + 7];
+            audf = memory[idx[i]];
+            audc = memory[idx[i] + 1];
 
             vol = audc & 0x0f;
             dist = audc & 0xf0;
             pitch = audf;
 
             if (i % 4 == 0)								//only in valid sawtooth channels
-                audf3 = g_atarimem[idx[i + 2]];
+                audf3 = memory[idx[i + 2]];
 
             if (i % 2 == 1)								//only in valid 16-bit channels
             {
-                audf2 = g_atarimem[idx[i - 1]];
-                audc2 = g_atarimem[idx[i - 1] + 1];
+                audf2 = memory[idx[i - 1]];
+                audc2 = memory[idx[i - 1] + 1];
                 vol2 = audc2 & 0x0f;
                 audf16 = audf;
                 audf16 <<= 8;
@@ -693,7 +693,7 @@ void CSong::DrawAnalyzer()
 
             if (d % 8 == 0)
             {
-                TextMiniXY("G_ATARIMEM (      ):", ANALYZER3_X, ANALYZER3_Y + 192 + 8 * d + gap + gap2 - 8, TextMiniColor::GRAY);
+                TextMiniXY("memory (      ):", ANALYZER3_X, ANALYZER3_Y + 192 + 8 * d + gap + gap2 - 8, TextMiniColor::GRAY);
                 NumberMiniXY(page, ANALYZER3_X + 8 * 14, ANALYZER3_Y + 192 + 8 * d + gap + gap2 - 8, TextMiniColor::WHITE);
                 TextMiniXY("0XB 00", ANALYZER3_X + 8 * 12, ANALYZER3_Y + 192 + 8 * d + gap + gap2 - 8, TextMiniColor::WHITE);
             }
@@ -2268,10 +2268,10 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
 
     if (g_prove == EditMode::POKEY_EXPLORER_MODE)	//POKEY EXPLORER MODE: FULL CONTROL OVER THE POKEY (IGNORE RMT ROUTINES EXCEPT SETPOKEY)
     {
-        //trackn_audf => g_atarimem[0x3178]
-        //trackn_audc => g_atarimem[0x3180]
-        //v_audctl => g_atarimem[0x3C69]
-        //v_skctl => g_atarimem[0x3CD3]
+        //trackn_audf => memory[0x3178]
+        //trackn_audc => memory[0x3180]
+        //v_audctl => memory[0x3C69]
+        //v_skctl => memory[0x3CD3]
 
 
         const auto memory = g_Atari.GetMemoryAt(0);

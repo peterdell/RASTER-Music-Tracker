@@ -8,10 +8,6 @@
 #include "Tuning.h"
 #include "Global.h"
 #include "Atari.h"
-#include "Song.h"
-
-extern CSong g_Song;
-
 
 /// <summary> Generate the POKEY audio pitch using the given parameters </summary>
 /// <param name = "audc"> POKEY Distortion and Volume output mode </param>
@@ -49,7 +45,7 @@ CTuning::Pitch CTuning::GetPOKEYPPitch(int audc, AUDF audf, int audctl, int chan
     SAWTOOTH = (CH1_179 && CH3_179 && HPF_CH13 && (dist == 0xA0 || dist == 0xE0) && (i == 0 || i == 4)) ? 1 : 0;
     SAWTOOTH_INVERTED = 0;
     if (i % 4 == 0)	//only in valid sawtooth channels
-    audf3 = g_atarimem[idx[i + 2]];
+    audf3 = memory[idx[i + 2]];
     */
 
     //TODO: apply Two-Tone timer offset into calculations when channel 1+2 are linked in 1.79mhz mode
@@ -446,11 +442,10 @@ double CTuning::GetTruePitch(double tuning, Temperament temperament, int basenot
 
 /// <summary> Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into the emulated Atari memory </summary>
 void CTuning::InitTuning() {
-    if (!g_tuning.basetuning)	//if base tuning is null, make sure to reset it, else the program could crash!
+    if (!g_tuning.basetuning)	//if base tuning is 0.0, make sure to reset it, else the program could crash!
     {
-        g_Song.ResetTuningVariables();	//TODO (?): move this function here instead
-        MessageBox(g_hwnd, "An invalid tuning configuration has been detected!\n\nTuning has been reset to default parameters.", "Tuning error", MB_ICONERROR);
-        return;	//without initialisation, the function must be called at an ulterior time
+        MessageBox(g_hwnd, "An invalid tuning configuration has been detected!\n\nBasetuning is zero. ", "Program error", MB_ICONERROR);
+        exit(1);
     }
 
     g_notesperoctave = 12;	//by default, an octave uses 12 semitones...
@@ -486,39 +481,40 @@ void CTuning::InitTuning() {
     //TODO: optimise this procedure, even if right now this is much better than what it used to be
 
     //Distortion 2, at 0xB000
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x000, 64, dist_2_bell.table_64khz * g_notesperoctave, TIMBRE_BELL, 0x00);
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x040, 64, dist_2_bell.table_179mhz * g_notesperoctave, TIMBRE_BELL, 0x40);
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x080, 64, dist_2_bell.table_16bit * g_notesperoctave, TIMBRE_BELL, 0x50);
+    GenerateTable(m_table_memory + 0x000, 64, dist_2_bell.table_64khz * g_notesperoctave, TIMBRE_BELL, 0x00);
+    GenerateTable(m_table_memory + 0x040, 64, dist_2_bell.table_179mhz * g_notesperoctave, TIMBRE_BELL, 0x40);
+    GenerateTable(m_table_memory + 0x080, 64, dist_2_bell.table_16bit * g_notesperoctave, TIMBRE_BELL, 0x50);
     //no 15kHz table...
 
     //Distortion 4 (Smooth), at 0xB100
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x100, 64, dist_4_smooth.table_64khz * g_notesperoctave, TIMBRE_SMOOTH_4, 0x00);
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x140, 64, dist_4_smooth.table_179mhz * g_notesperoctave, TIMBRE_SMOOTH_4, 0x40);
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x180, 64, dist_4_smooth.table_16bit * g_notesperoctave, TIMBRE_SMOOTH_4, 0x50);
+    GenerateTable(m_table_memory + 0x100, 64, dist_4_smooth.table_64khz * g_notesperoctave, TIMBRE_SMOOTH_4, 0x00);
+    GenerateTable(m_table_memory + 0x140, 64, dist_4_smooth.table_179mhz * g_notesperoctave, TIMBRE_SMOOTH_4, 0x40);
+    GenerateTable(m_table_memory + 0x180, 64, dist_4_smooth.table_16bit * g_notesperoctave, TIMBRE_SMOOTH_4, 0x50);
     //no 15kHz table...
 
     //Distortion A (Pure), at 0xB200
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x200, 64, dist_a_pure.table_64khz * g_notesperoctave, TIMBRE_PURE, 0x00);
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x240, 64, dist_a_pure.table_179mhz * g_notesperoctave, TIMBRE_PURE, 0x40);
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x280, 64, dist_a_pure.table_16bit * g_notesperoctave, TIMBRE_PURE, 0x50);
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x580, 64, dist_a_pure.table_15khz * g_notesperoctave, TIMBRE_PURE, 0x01);
+    GenerateTable(m_table_memory + 0x200, 64, dist_a_pure.table_64khz * g_notesperoctave, TIMBRE_PURE, 0x00);
+    GenerateTable(m_table_memory + 0x240, 64, dist_a_pure.table_179mhz * g_notesperoctave, TIMBRE_PURE, 0x40);
+    GenerateTable(m_table_memory + 0x280, 64, dist_a_pure.table_16bit * g_notesperoctave, TIMBRE_PURE, 0x50);
+    GenerateTable(m_table_memory + 0x580, 64, dist_a_pure.table_15khz * g_notesperoctave, TIMBRE_PURE, 0x01);
 
     //Distortion C (Buzzy), at 0xB300
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x300, 64, dist_c_buzzy.table_64khz * g_notesperoctave, TIMBRE_BUZZY_C, 0x00);
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x340, 64, dist_c_buzzy.table_179mhz * g_notesperoctave, TIMBRE_BUZZY_C, 0x40);
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x380, 64, dist_c_buzzy.table_16bit * g_notesperoctave, TIMBRE_BUZZY_C, 0x50);
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x5C0, 64, dist_c_buzzy.table_15khz * g_notesperoctave, TIMBRE_BUZZY_C, 0x01);
+    GenerateTable(m_table_memory + 0x300, 64, dist_c_buzzy.table_64khz * g_notesperoctave, TIMBRE_BUZZY_C, 0x00);
+    GenerateTable(m_table_memory + 0x340, 64, dist_c_buzzy.table_179mhz * g_notesperoctave, TIMBRE_BUZZY_C, 0x40);
+    GenerateTable(m_table_memory + 0x380, 64, dist_c_buzzy.table_16bit * g_notesperoctave, TIMBRE_BUZZY_C, 0x50);
+    GenerateTable(m_table_memory + 0x5C0, 64, dist_c_buzzy.table_15khz * g_notesperoctave, TIMBRE_BUZZY_C, 0x01);
 
     //Distortion C (Buzzy), at 0xB300
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x400, 64, dist_c_gritty.table_64khz * g_notesperoctave, TIMBRE_GRITTY_C, 0x00);
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x440, 64, dist_c_gritty.table_179mhz * g_notesperoctave, TIMBRE_GRITTY_C, 0x40);
-    GenerateTable(g_atarimem + RMT_FRQTABLES + 0x480, 64, dist_c_gritty.table_16bit * g_notesperoctave, TIMBRE_GRITTY_C, 0x50);
+    GenerateTable(m_table_memory + 0x400, 64, dist_c_gritty.table_64khz * g_notesperoctave, TIMBRE_GRITTY_C, 0x00);
+    GenerateTable(m_table_memory + 0x440, 64, dist_c_gritty.table_179mhz * g_notesperoctave, TIMBRE_GRITTY_C, 0x40);
+    GenerateTable(m_table_memory + 0x480, 64, dist_c_gritty.table_16bit * g_notesperoctave, TIMBRE_GRITTY_C, 0x50);
     //no 15kHz table...
 }
 
 /// <summary> Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into the emulated Atari memory </summary>
-void CTuning::InitTuning(bool ntsc)
+void CTuning::InitTuning(const C6502::ClockFrequency clockFrequency, byte* table_memory)
 {
-    m_clockFrequency = g_Atari.GetClockFrequency(ntsc);
+    m_clockFrequency = clockFrequency;
+    m_table_memory = table_memory;
     InitTuning();
 }

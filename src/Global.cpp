@@ -15,8 +15,6 @@ CAtari g_Atari;
 CAtariTrackerDriver* g_AtariTrackerDriver;
 
 
-byte* g_atarimem;
-
 BOOL g_closeApplication = FALSE;			// Set when the application is busy shutting down
 CDC* g_mem_dc = NULL;
 CDC* g_gfx_dc = NULL;

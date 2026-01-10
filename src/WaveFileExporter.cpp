@@ -50,12 +50,12 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
 
     while (frames < pokeyStream.GetFirstCountPoint())
     {
-        // Copy the SAP-R bytes to g_atarimem for this frame
+        // Copy the SAP-R bytes to memory for this frame
         streambuffer = pokeyStream.GetStreamBuffer() + frames * frameSize;
 
         //for (int i = 0; i < frameSize; i++)
         //{
-        //	g_atarimem[0xd200 + i] = streambuffer[i];
+        //	memory[0xd200 + i] = streambuffer[i];
         //}
 
         memory[RMTPLAYR_TRACKN_AUDF + 0] = streambuffer[0x00];

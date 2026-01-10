@@ -7,7 +7,6 @@
 #include "Global.h"
 #include "RmtMidi.h"
 
-
 extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 extern CXPokey g_Pokey;
@@ -16,6 +15,7 @@ extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
 void CSong::MidiEvent(DWORD dwParam)
 {
+    auto memory = g_AtariTrackerDriver->GetAtari()->GetMemoryAt(0);
 	unsigned char chn, cmd, pr1, pr2;
 	unsigned char* mv = (unsigned char*)&dwParam;
 	cmd = mv[0] & 0xf0;
@@ -169,61 +169,61 @@ void CSong::MidiEvent(DWORD dwParam)
 					if (g_prove == EditMode::MIDI_CH15_MODE)
 					{
 				case 71: //Knob C1, AUDF0/AUDF2 upper 4 bits
-					//g_atarimem[0xD200] &= 0x0F;
-					//g_atarimem[0xD200] |= pr2 << 4;
-					g_atarimem[0x3178 + o] &= 0x0F;
-					g_atarimem[0x3178 + o] |= pr2 << 4;
+					//memory[0xD200] &= 0x0F;
+					//memory[0xD200] |= pr2 << 4;
+					memory[0x3178 + o] &= 0x0F;
+					memory[0x3178 + o] |= pr2 << 4;
 
 					//g_pokey.MemToPokey(g_tracks4_8);
 					break;
 
 				case 72: //Knob C2, AUDF1/AUDF3 upper 4 bits
-					//g_atarimem[0xD202] &= 0x0F;
-					//g_atarimem[0xD202] |= pr2 << 4;
-					g_atarimem[0x3179 + o] &= 0x0F;
-					g_atarimem[0x3179 + o] |= pr2 << 4;
+					//memory[0xD202] &= 0x0F;
+					//memory[0xD202] |= pr2 << 4;
+					memory[0x3179 + o] &= 0x0F;
+					memory[0x3179 + o] |= pr2 << 4;
 					break;
 
 				case 73: //Knob C3, AUDC0/AUDC2 volume
-					//g_atarimem[0xD201] &= 0xF0;
-					//g_atarimem[0xD201] |= pr2;
-					g_atarimem[0x3180 + o] &= 0xF0;
-					g_atarimem[0x3180 + o] |= pr2;
+					//memory[0xD201] &= 0xF0;
+					//memory[0xD201] |= pr2;
+					memory[0x3180 + o] &= 0xF0;
+					memory[0x3180 + o] |= pr2;
 					break;
 
 				case 74: //Knob C4, AUDC1/AUDC3 volume
-					//g_atarimem[0xD203] &= 0xF0;
-					//g_atarimem[0xD203] |= pr2;
-					g_atarimem[0x3181 + o] &= 0xF0;
-					g_atarimem[0x3181 + o] |= pr2;
+					//memory[0xD203] &= 0xF0;
+					//memory[0xD203] |= pr2;
+					memory[0x3181 + o] &= 0xF0;
+					memory[0x3181 + o] |= pr2;
 					break;
 
 				case 75: //Knob C5, AUDF0/AUDF2 lower 4 bits
-					//g_atarimem[0xD200] &= 0xF0;
-					//g_atarimem[0xD200] |= pr2;
-					g_atarimem[0x3178 + o] &= 0xF0;
-					g_atarimem[0x3178 + o] |= pr2;
+					//memory[0xD200] &= 0xF0;
+					//memory[0xD200] |= pr2;
+					memory[0x3178 + o] &= 0xF0;
+					memory[0x3178 + o] |= pr2;
 					break;
 
 				case 76: //Knob C6, AUDF1/AUDF3 lower 4 bits
-					//g_atarimem[0xD202] &= 0xF0;
-					//g_atarimem[0xD202] |= pr2;
-					g_atarimem[0x3179 + o] &= 0xF0;
-					g_atarimem[0x3179 + o] |= pr2;
+					//memory[0xD202] &= 0xF0;
+					//memory[0xD202] |= pr2;
+					memory[0x3179 + o] &= 0xF0;
+					memory[0x3179 + o] |= pr2;
 					break;
 
 				case 77: //Knob C7, AUDC0/AUDC2 distortion
-					//g_atarimem[0xD201] &= 0x0F;
-					//g_atarimem[0xD201] |= (pr2 * 2) << 4;
-					g_atarimem[0x3180 + o] &= 0x0F;
-					g_atarimem[0x3180 + o] |= (pr2 * 2) << 4;
+					//memory[0xD201] &= 0x0F;
+					//memory[0xD201] |= (pr2 * 2) << 4;
+					memory[0x3180 + o] &= 0x0F;
+					memory[0x3180 + o] |= (pr2 * 2) << 4;
 					break;
 
 				case 78: //Knob C8, AUDC1/AUDC3 distortion
-					//g_atarimem[0xD203] &= 0x0F;
-					//g_atarimem[0xD203] |= (pr2 * 2) << 4;
-					g_atarimem[0x3181 + o] &= 0x0F;
-					g_atarimem[0x3181 + o] |= (pr2 * 2) << 4;
+					//memory[0xD203] &= 0x0F;
+					//memory[0xD203] |= (pr2 * 2) << 4;
+					memory[0x3181 + o] &= 0x0F;
+					memory[0x3181 + o] |= (pr2 * 2) << 4;
 					break;
 					}
 
@@ -240,22 +240,22 @@ void CSong::MidiEvent(DWORD dwParam)
 			{
 				case 60:	//drumpad 1, toggle High Pass Filter in ch1+3
 					if (!pr2) break;	//no key press
-					g_atarimem[0x3C69] ^= 0x04;
+					memory[0x3C69] ^= 0x04;
 					break;
 
 				case 62:	//drumpad 2, toggle High Pass Filter in ch2+4
 					if (!pr2) break;	//no key press
-					g_atarimem[0x3C69] ^= 0x02;
+					memory[0x3C69] ^= 0x02;
 					break;
 
 				case 66:	//drumpad 3, toggle 1.79mHz mode in the respective channels
 					if (!pr2) break;	//no key press
-					g_atarimem[0x3C69] ^= (m_ch_offset) ? 0x20 : 0x40;
+					memory[0x3C69] ^= (m_ch_offset) ? 0x20 : 0x40;
 					break;
 
 				case 70:	//drumpad 4, toggle Join 16-bit mode in the respective channels
 					if (!pr2) break;	//no key press
-					g_atarimem[0x3C69] ^= (m_ch_offset) ? 0x08 : 0x10;
+					memory[0x3C69] ^= (m_ch_offset) ? 0x08 : 0x10;
 					break;
 
 				case 74:	//drumpad 5, select the POKEY channels 1 and 2 or 3 and 4
@@ -266,19 +266,19 @@ void CSong::MidiEvent(DWORD dwParam)
 
 				case 69:	//drumpad 6, reset all AUDCTL and SKCTL bits
 					if (!pr2) break;	//no key press
-					g_atarimem[0x3CD3] = 0x03;	//SKCTL
-					g_atarimem[0x3C69] = 0x00;	//AUDCTL
+					memory[0x3CD3] = 0x03;	//SKCTL
+					memory[0x3C69] = 0x00;	//AUDCTL
 					break;
 
 				case 75:	//drumpad 7, toggle Two-Tone filter
 					if (!pr2) break;	//no key press
-					if (g_atarimem[0x3CD3] == 0x03) g_atarimem[0x3CD3] = 0x8B;
-					else g_atarimem[0x3CD3] = 0x03;
+					if (memory[0x3CD3] == 0x03) memory[0x3CD3] = 0x8B;
+					else memory[0x3CD3] = 0x03;
 					break;
 
 				case 73:	//drumpad 8, toggle 15kHz mode
 					if (!pr2) break;	//no key press
-					g_atarimem[0x3C69] ^= 0x01;
+					memory[0x3C69] ^= 0x01;
 					break;
 
 				default:
@@ -463,9 +463,9 @@ void CSong::MidiEvent(DWORD dwParam)
 			//COMMENT THIS ENTIRE BLOCK OUT ONCE A PROPER INPUT HANDLER IS ADDED TO TAKE ALL THE PARAMETERS INTO ACCOUNT
 			//
 
-			//midi_audf = g_atarimem[0xB100 + note];		//Distortion A 64khz frequency directly loaded from the generated table in memory
+			//midi_audf = memory[0xB100 + note];		//Distortion A 64khz frequency directly loaded from the generated table in memory
 			midi_audc |= g_Midi.m_InstrumentOnChannel[track] << 4;			//force Distortion based on instrument to AUDC
-			midi_audctl = g_atarimem[0x3C69];
+			midi_audctl = memory[0x3C69];
 
 			bool CLOCK_15 = midi_audctl & 0x01;
 			bool HPF_CH24 = midi_audctl & 0x02;
@@ -501,12 +501,12 @@ void CSong::MidiEvent(DWORD dwParam)
 				case 0x60:
 					if (CLOCK_179)
 					{
-						midi_audf = g_atarimem[0xB040 + note];
+						midi_audf = memory[0xB040 + note];
 					}
 					else if (CLOCK_15)
 						goto case_default;
 					else
-						midi_audf = g_atarimem[0xB000 + note];
+						midi_audf = memory[0xB000 + note];
 					break;
 
 				case 0x40:
@@ -519,41 +519,41 @@ void CSong::MidiEvent(DWORD dwParam)
 
 				case 0xC0:
 					if (CLOCK_179)
-						midi_audf = g_atarimem[0xB240 + note];
+						midi_audf = memory[0xB240 + note];
 					else if (CLOCK_15)	//PAGE_EXTRA_0 => Address 0xB400, 0xB480 for 15khz Pure and 0xB4C0 for 15khz Buzzy
-						midi_audf = g_atarimem[0xB4C0 + note];
+						midi_audf = memory[0xB4C0 + note];
 					else
-						midi_audf = g_atarimem[0xB200 + note];
+						midi_audf = memory[0xB200 + note];
 					break;
 
 				case 0xE0:
 					midi_audc = (char)0xC0;	//Distortion C bass E
 					if (CLOCK_179)
-						midi_audf = g_atarimem[0xB340 + note];
+						midi_audf = memory[0xB340 + note];
 					else if (CLOCK_15)	//PAGE_EXTRA_0 => Address 0xB400, 0xB480 for 15khz Pure and 0xB4C0 for 15khz Buzzy
-						midi_audf = g_atarimem[0xB4C0 + note];
+						midi_audf = memory[0xB4C0 + note];
 					else
-						midi_audf = g_atarimem[0xB300 + note];
+						midi_audf = memory[0xB300 + note];
 					break;
 
 				case 0xA0:
 				default:
 				case_default:
 					if (CLOCK_179)
-						midi_audf = g_atarimem[0xB140 + note];
+						midi_audf = memory[0xB140 + note];
 					else if (CLOCK_15)	//PAGE_EXTRA_0 => Address 0xB400, 0xB480 for 15khz Pure and 0xB4C0 for 15khz Buzzy
-						midi_audf = g_atarimem[0xB480 + note];
+						midi_audf = memory[0xB480 + note];
 					else
-						midi_audf = g_atarimem[0xB100 + note];
+						midi_audf = memory[0xB100 + note];
 					break;
 			}
 
 			midi_audc |= g_Midi.m_NoteVolumeOnChannel[track];				//also merge the volume into it
 
 			//DIRECT MEMORY WRITE
-			//g_atarimem[0x3C69] = midi_audctl;				//AUDCTL address used by SetPokey
-			g_atarimem[0x3178 + track] = midi_audf;			//AUDF address + offset used by SetPokey
-			g_atarimem[0x3180 + track] = midi_audc;			//AUDC address + offset used by SetPokey
+			//memory[0x3C69] = midi_audctl;				//AUDCTL address used by SetPokey
+			memory[0x3178 + track] = midi_audf;			//AUDF address + offset used by SetPokey
+			memory[0x3180 + track] = midi_audc;			//AUDC address + offset used by SetPokey
 
 			//
 			//END OF HARDCODED TEST

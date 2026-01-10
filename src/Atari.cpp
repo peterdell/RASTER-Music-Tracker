@@ -42,7 +42,7 @@ void CAtari::JSR(C6502::Address& adr, C6502::Register& a, C6502::Register& x, C6
 }
 
 int CAtari::Init() {
-    return C6502::Init(m_atarimem);
+    return C6502::Init(m_memory);
 }
 
 void CAtari::DeInit() {
@@ -51,27 +51,31 @@ void CAtari::DeInit() {
 
 void CAtari::ClearMemory()
 {
-    memset(m_atarimem, 0, RAM_SIZE);
+    memset(m_memory, 0, RAM_SIZE);
 }
 
 byte CAtari::GetByteAt(const MemoryAddress address) {
-    return m_atarimem[address];
+    return m_memory[address];
 }
 
 void CAtari::SetByteAt(const MemoryAddress address, const byte value) {
-    m_atarimem[address] = value;
+    m_memory[address] = value;
 }
 
 byte* CAtari::GetMemoryAt(const MemoryAddress address) {
-    return m_atarimem + address;
+    return m_memory + address;
 }
 
 const byte* CAtari::GetConstMemoryAt(const MemoryAddress address) const {
-    return m_atarimem + address;
+    return m_memory + address;
 }
 
 BOOL CAtari::IsNTSC() const {
     return m_ntsc;
+}
+
+CAtari::ClockFrequency CAtari::GetClockFrequency() const {
+    return GetClockFrequency(IsNTSC());
 }
 
 CAtari::CycleCount CAtari::GetFrameCycleCount() const {
@@ -82,6 +86,6 @@ void CAtari::Init(const bool ntsc)
 {
 
     m_ntsc = ntsc;
-    g_Tuning.InitTuning(m_ntsc);
+    g_Tuning.InitTuning(GetClockFrequency(), GetMemoryAt(RMT_FRQTABLES));
 }
 

@@ -34,11 +34,6 @@ class CAtari {
 public:
     static constexpr size_t MEMORY_SIZE = 0x10000;
 
-    //maximum clock count for the entire screen in PAL (default) and NTSC region
-    typedef int CycleCount;
-
-    static CycleCount GetFrameCycleCount(boolean ntsc);
-
     typedef int ClockFrequency;
 
     // The true clock frequency for the NTSC Atari 8-bit computer is 1.7897725 MHz
@@ -48,6 +43,13 @@ public:
     static constexpr ClockFrequency FREQ_17_PAL = 1773447;
 
     static ClockFrequency GetClockFrequency(boolean ntsc);
+
+
+    // The maximum clock count for the entire screen in PAL (default) and NTSC region
+    typedef int CycleCount;
+
+    static CycleCount GetFrameCycleCount(boolean ntsc);
+
 
     CAtari();
     ~CAtari();
@@ -64,13 +66,13 @@ public:
     void Init(const bool ntsc);
     BOOL IsNTSC() const;
 
+    ClockFrequency GetClockFrequency() const;
     CycleCount GetFrameCycleCount() const;
     void JSR(C6502::Address& adr, C6502::Register& a, C6502::Register& x, C6502::Register& y, C6502::CycleCount& cycles);
 
 private:
 
-    byte m_atarimem[MEMORY_SIZE];
-    // char m_debugmem[MEMORY_SIZE];	//debug display of g_atarimem bytes directly, slow and terrible, do not use unless there is a purpose for it 
+    byte m_memory[MEMORY_SIZE];
 
     BOOL m_ntsc;
 

@@ -11,7 +11,6 @@
 #include "Global.h"
 
 extern CXPokey g_Pokey;
-extern byte* g_atarimem;
 
 
 
@@ -86,7 +85,7 @@ void CSongExporterTest::Test(CSong& song) {
     os.open(outFilePath, std::ofstream::binary);
     {
         CSongExport songExport(songContainer, outFilePath);
-        songExporter.ExportWAV(songExport, os, g_Pokey, g_atarimem);
+        songExporter.ExportWAV(songExport, os, g_Pokey, g_AtariTrackerDriver->GetAtari()->GetMemoryAt(0));
     }
     os.close();
 

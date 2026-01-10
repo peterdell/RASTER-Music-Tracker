@@ -1320,7 +1320,7 @@ bool CSong::ExportV2(CSong& song, std::ofstream& ou, SongIOType iotype, LPCTSTR 
     case SongIOType::LZSS: return songExporter.ExportLZSS(songExport, ou);
     case SongIOType::LZSS_SAP: return songExporter.ExportSAP_B_LZSS(songExport, ou);
     case SongIOType::LZSS_XEX: return songExporter.ExportXEX_LZSS(songExport, ou);
-    case SongIOType::WAV: return songExporter.ExportWAV(songExport, ou, g_Pokey, g_atarimem);
+    case SongIOType::WAV: return songExporter.ExportWAV(songExport, ou, g_Pokey, g_Atari.GetMemoryAt(0));
     }
 
     return false;	// Failed

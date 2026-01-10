@@ -76,7 +76,8 @@ BOOL CSong::IsNTSC() const {
 void CSong::SetNTSC(const BOOL ntsc) {
     if (ntsc != m_ntsc) {
         m_ntsc = ntsc;
-        g_Atari.Init(ntsc); //reset RMT routines
+        g_AtariTrackerDriver->GetAtari()->Init(ntsc);
+        g_AtariTrackerDriver->Init();
     }
 }
 

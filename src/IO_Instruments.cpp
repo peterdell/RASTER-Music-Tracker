@@ -449,9 +449,9 @@ BYTE CInstruments::InstrToAtaRMF(int instr, unsigned char* ata, int max)
 /// <returns></returns>
 void CInstruments::Update(int instr)
 {
-    unsigned char* ata = g_atarimem + instr * 256 + 0x4000;
+    auto memory = g_Atari.GetMemoryAt(0x4000 + instr * 256);
     //g_rmtroutine = FALSE;			//turn off RMT routines	// editing in real time is smoother without this switch
-    InstrToAta(instr, ata, ATARI_MAX_INSTR_LENGTH);
+    InstrToAta(instr, memory, ATARI_MAX_INSTR_LENGTH);
     //g_rmtroutine = TRUE;			//RMT routines are turned on
 
     RecalculateFlag(instr);
