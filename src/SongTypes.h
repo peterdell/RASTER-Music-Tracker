@@ -59,23 +59,23 @@ struct TExportDescription
 
 
 enum class SongIOType : int {
-    IOTYPE_NONE = 0,			// No export has been done yet
-    IOTYPE_RMT = 1,
-    IOTYPE_RMW = 2,
-    IOTYPE_RMTSTRIPPED = 3,
-    IOTYPE_SAP = 4,
-    IOTYPE_XEX = 5,		// Not used anymore? Old RMT 1.28 XEX export is disabled?
-    IOTYPE_TXT = 6,
-    IOTYPE_ASM = 7,
-    IOTYPE_RMF = 8,
-    IOTYPE_ASM_RMTPLAYER = 9,
+    NONE = 0,           // None.
+    RMT = 1,            // For load and save, TODO: Make this RMT_V1
+    RMW = 2,            // For load and save. TODO: How to represent V2 later?
+    RMTSTRIPPED = 3,    // Only for export, but resul can also be imported again as RMT
+    SAP = 4,            // Only for export, TODO Enable import
+    XEX = 5,            // Only for export, TODO: Not used anymore? Old RMT 1.28 XEX export is disabled?
+    TXT = 6,            // TODO: For import and export?
+    ASM = 7,            // Only for export
+    RMF = 8,            // TODO: What is this?
+    ASM_RMTPLAYER = 9,  // Only for export
 
-    IOTYPE_SAPR = 10,
-    IOTYPE_LZSS = 11,
-    IOTYPE_LZSS_SAP = 12,
-    IOTYPE_LZSS_XEX = 13,
+    SAPR = 10,          // Only for export
+    LZSS = 11,          // Only for export
+    LZSS_SAP = 12,      // Only for export
+    LZSS_XEX = 13,      // Only for export
 
-    IOTYPE_WAV = 20,
+    WAV = 20,           // Only for export
 
-    IOTYPE_TMC = 101		// import TMC
+    TMC = 101           // Onyl for import
 };

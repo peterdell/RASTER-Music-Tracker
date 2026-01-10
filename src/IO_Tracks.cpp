@@ -28,7 +28,7 @@ int CTracks::SaveTrack(int track, std::ofstream& ou, SongIOType iotype)
 
 	switch (iotype)
 	{
-	case SongIOType::IOTYPE_RMW:
+	case SongIOType::RMW:
 		ou.write((char*)&at->len, sizeof(at->len));
 		ou.write((char*)&at->go, sizeof(at->go));
 		for (int i = 0; i < m_maxTrackLength; i++) ou.write((char*)&at->note[i], 1);
@@ -37,7 +37,7 @@ int CTracks::SaveTrack(int track, std::ofstream& ou, SongIOType iotype)
 		for (int i = 0; i < m_maxTrackLength; i++) ou.write((char*)&at->speed[i], 1);
 		return 1;
 
-	case SongIOType::IOTYPE_TXT:
+	case SongIOType::TXT:
 		s.Format("[TRACK]\n");	// Track text header
 		s.AppendFormat(!IsValidTrack(track) ? "--  " : "%02X  ", track);
 		s.AppendFormat(!IsValidLength(at->len) ? "--" : "%02X", at->len);
@@ -68,7 +68,7 @@ int CTracks::LoadTrack(int track, std::ifstream& in, SongIOType iotype)
 
 	switch (iotype)
 	{
-	case SongIOType::IOTYPE_RMW:
+	case SongIOType::RMW:
 		if (at = GetTrack(track))
 		{
 			ClearTrack(track);	// Clear before filling with data
@@ -82,7 +82,7 @@ int CTracks::LoadTrack(int track, std::ifstream& in, SongIOType iotype)
 		}
 		break;
 
-	case SongIOType::IOTYPE_TXT:
+	case SongIOType::TXT:
 		memset(line, 0, 16);
 		in.getline(line, 1024); // The first line of the track
 
@@ -171,7 +171,7 @@ int CTracks::SaveAll(std::ofstream& ou, SongIOType iotype)
 {
 	switch (iotype)
 	{
-		case SongIOType::IOTYPE_RMW:
+		case SongIOType::RMW:
 		{
 			ou.write((char*)&m_maxTrackLength, sizeof(m_maxTrackLength));
 			for (int i = 0; i < TRACKSNUM; i++)
@@ -181,7 +181,7 @@ int CTracks::SaveAll(std::ofstream& ou, SongIOType iotype)
 		}
 		break;
 
-		case SongIOType::IOTYPE_TXT:
+		case SongIOType::TXT:
 		{
 			for (int i = 0; i < TRACKSNUM; i++)
 			{

@@ -291,7 +291,7 @@ bool CASMFileExporter::ExportAsRelocatableAsmForRmtPlayer(CSong& song, std::ofst
     exportDescWithSFX.targetAddrOfModule = 0x4000;		// Standard RMT modules are set to start @ $4000
 
     // Create a variant for SFX (ie. including unused instruments and tracks)
-    exportDescWithSFX.firstByteAfterModule = song.MakeModule(exportDescWithSFX.mem, exportDescWithSFX.targetAddrOfModule, SongIOType::IOTYPE_RMT, exportDescWithSFX.instrumentSavedFlags, exportDescWithSFX.trackSavedFlags);
+    exportDescWithSFX.firstByteAfterModule = song.MakeModule(exportDescWithSFX.mem, exportDescWithSFX.targetAddrOfModule, SongIOType::RMT, exportDescWithSFX.instrumentSavedFlags, exportDescWithSFX.trackSavedFlags);
     if (exportDescWithSFX.firstByteAfterModule < 0) return false;	// if the module could not be created
 
     CExportRelocatableAsmForRmtPlayer dlg;

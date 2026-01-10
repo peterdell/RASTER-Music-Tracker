@@ -181,8 +181,8 @@ void CSong::ClearSong(int numOfTracks)
     m_songnamecur = 0;
 
     m_filename = "";
-    m_ioType = SongIOType::IOTYPE_NONE;
-    m_lastExportIOType = SongIOType::IOTYPE_NONE;
+    m_ioType = SongIOType::NONE;
+    m_lastExportIOType = SongIOType::NONE;
 
     m_TracksOrderChange_songlinefrom = 0x00;
     m_TracksOrderChange_songlineto = SONGLEN - 1;
@@ -438,7 +438,7 @@ int CSong::MakeModule(unsigned char* mem, int addr, SongIOType iotype, BYTE* ins
     TTrack* tr;
 
     // Returns maxadr (points to the first free address after the module) and sets the instrsaved and tracksaved fields
-    if (iotype == SongIOType::IOTYPE_RMF) return MakeRMFModule(mem, addr, instrumentSavedFlags, trackSavedFlags);
+    if (iotype == SongIOType::RMF) return MakeRMFModule(mem, addr, instrumentSavedFlags, trackSavedFlags);
 
     // Clear the instrument and tracks used flags
     memset(instrumentSavedFlags, 0, INSTRSNUM);
@@ -462,7 +462,7 @@ int CSong::MakeModule(unsigned char* mem, int addr, SongIOType iotype, BYTE* ins
     // In other formats only the USED tracks and USED instruments will be stored
 
     MarkTF_USED(trackSavedFlags);			// Mark all tracks as used
-    if (iotype == SongIOType::IOTYPE_RMT)
+    if (iotype == SongIOType::RMT)
     {
         MarkTF_NOEMPTY(trackSavedFlags);	// In addition to the used ones, all non-empty tracks are added to the RMT, all non-empty tracks
     }
@@ -480,7 +480,7 @@ int CSong::MakeModule(unsigned char* mem, int addr, SongIOType iotype, BYTE* ins
         }
     }
 
-    if (iotype == SongIOType::IOTYPE_RMT)
+    if (iotype == SongIOType::RMT)
     {
         // In addition to the instruments used in the tracks that are in the song, all non-empty instruments are stored in the RMT
         for (i = 0; i < INSTRSNUM; i++)

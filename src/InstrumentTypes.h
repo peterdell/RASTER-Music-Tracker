@@ -130,7 +130,7 @@ struct TInstrumentsAll		//for undo
 
 
 enum class InstrumentIOType : int {
-    RTI = 1,	// corresponding IOTYPE_RMT
-    RMW = 2,	// corresponding IOTYPE_RMW
-    TXT = 6		// corresponding IOTYPE_TXT
+    RTI = 1,	// corresponding RMT
+    RMW = 2,	// corresponding RMW
+    TXT = 6		// corresponding TXT
 };
