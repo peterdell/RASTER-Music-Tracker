@@ -30,7 +30,7 @@ void CSong::MidiEvent(DWORD dwParam)
 			{
 				//System Reset
 			MIDISystemReset:
-                g_AtariTrackerDriver->InitRMTRoutine(); //reinit RMT routines
+                g_AtariTrackerDriver->Init(); //reinit RMT routines
 				for (int i = 1; i < 16; i++)	//from 1, because it is MULTITIMBRAL 2-16
 				{
 					g_Midi.m_LastNoteOnChannel[i] = -1;	//last pressed keys on each channel
@@ -161,7 +161,7 @@ void CSong::MidiEvent(DWORD dwParam)
 				case 123:
 					if (!pr2) break;	//no key press
 					Stop();
-					//Atari_InitRMTRoutine();
+					//Atari_Init();
 					goto MIDISystemReset;
 					break;
 

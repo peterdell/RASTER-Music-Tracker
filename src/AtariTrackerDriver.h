@@ -11,12 +11,12 @@ public:
 
 
     int LoadRMTRoutines();
-    int InitRMTRoutine(); // Init
-    void PlayRMT(); // Play
+    int Init(); // Init
+    void Play(); // Play
     void SetPokey();
     void Silence();
-    void SetTrack_NoteInstrVolume(int t, int n, int i, int v);
-    void SetTrack_Volume(int t, int v);
+    void SetTrackNoteInstrumentVolume(int t, int n, int i, int v);
+    void SetTrackVolume(int t, int v);
     void InstrumentTurnOff(int instr);
 
 private:

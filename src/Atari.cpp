@@ -78,7 +78,7 @@ CAtari::CycleCount CAtari::GetFrameCycleCount() const {
     return GetFrameCycleCount(IsNTSC());
 }
 
-void CAtari::InitRMTRoutine(const bool ntsc)
+void CAtari::Init(const bool ntsc)
 {
 
     m_ntsc = ntsc;

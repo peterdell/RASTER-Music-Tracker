@@ -30,7 +30,7 @@ int CAtariTrackerDriver::LoadRMTRoutines()
 }
 
 
-int CAtariTrackerDriver::InitRMTRoutine() {
+int CAtariTrackerDriver::Init() {
 
 
     WORD adr = RMT_INIT;
@@ -42,7 +42,7 @@ int CAtariTrackerDriver::InitRMTRoutine() {
     return (int)a;
 }
 
-void CAtariTrackerDriver::PlayRMT()
+void CAtariTrackerDriver::Play()
 {
     if (!g_is6502) {
         return;
@@ -78,7 +78,7 @@ void CAtariTrackerDriver::Silence()
     m_atari->JSR(adr, a, x, y, cycles);
 }
 
-void CAtariTrackerDriver::SetTrack_NoteInstrVolume(int t, int n, int i, int v)
+void CAtariTrackerDriver::SetTrackNoteInstrumentVolume(int t, int n, int i, int v)
 {
 
     auto adr = RMT_ATA_SETNOTEINSTR;
@@ -94,7 +94,7 @@ void CAtariTrackerDriver::SetTrack_NoteInstrVolume(int t, int n, int i, int v)
     g_rmtinstr[t] = i;
 }
 
-void CAtariTrackerDriver::SetTrack_Volume(int t, int v)
+void CAtariTrackerDriver::SetTrackVolume(int t, int v)
 {
 
     auto adr = RMT_ATA_SETVOLUME;

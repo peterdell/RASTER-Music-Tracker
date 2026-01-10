@@ -76,7 +76,7 @@ BOOL CSong::IsNTSC() const {
 void CSong::SetNTSC(const BOOL ntsc) {
     if (ntsc != m_ntsc) {
         m_ntsc = ntsc;
-        g_Atari.InitRMTRoutine(ntsc); //reset RMT routines
+        g_Atari.Init(ntsc); //reset RMT routines
     }
 }
 
@@ -186,7 +186,7 @@ void CSong::ClearSong(int numOfTracks)
     g_changes = 0;
 
     // Initialise RMT routine, to clear anything leftover in Atari memory
-    g_Atari.InitRMTRoutine(IsNTSC());
+    g_Atari.Init(IsNTSC());
 }
 
 //---
@@ -918,11 +918,11 @@ BOOL CSong::PlayPressedTones()
             i = m_playptinstr[t];
             if (n >= 0 && i >= 0)
             {
-                g_AtariTrackerDriver->SetTrack_NoteInstrVolume(t, n, i, v);
+                g_AtariTrackerDriver->SetTrackNoteInstrumentVolume(t, n, i, v);
             }
             else
             {
-                g_AtariTrackerDriver->SetTrack_Volume(t, v);
+                g_AtariTrackerDriver->SetTrackVolume(t, v);
             }
             SetPlayPressedTonesTNIV(t, -1, -1, -1);
         }
@@ -2488,7 +2488,7 @@ void CSong::Songswitch4_8(int tracks4_8)
         }
     }
 
-    g_Atari.InitRMTRoutine(IsNTSC());
+    g_Atari.Init(IsNTSC());
 }
 
 int CSong::GetEffectiveMaxtracklen()
@@ -3102,7 +3102,7 @@ BOOL CSong::Play(PlayMode mode, BOOL follow, int special)
     switch (mode)
     {
     case PLAY_SONG: //whole song from the beginning including initialization (due to portamentum etc.)
-        g_Atari.InitRMTRoutine(IsNTSC());
+        g_Atari.Init(IsNTSC());
         m_songplayline = 0;
         m_trackplayline = 0;
         m_speed = m_mainSpeed;
@@ -3286,11 +3286,11 @@ TrackLine:
             if (n >= 0 && n < CNotes::NOTESNUM /*&& i>=0 && i<INSTRSNUM*/)		// adjustment for routine compatibility
             {
                 if (i < 0 || i >= INSTRSNUM) { i = 255; }				// adjustment for routine compatibility
-                g_AtariTrackerDriver->SetTrack_NoteInstrVolume(t, n, i, v);
+                g_AtariTrackerDriver->SetTrackNoteInstrumentVolume(t, n, i, v);
             }
             else
             {
-                g_AtariTrackerDriver->SetTrack_Volume(t, v);
+                g_AtariTrackerDriver->SetTrackVolume(t, v);
             }
         }
     }

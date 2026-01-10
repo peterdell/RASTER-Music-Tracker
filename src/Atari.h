@@ -61,7 +61,7 @@ public:
     byte* GetMemoryAt(const MemoryAddress address);
     const byte* GetConstMemoryAt(const MemoryAddress address) const;
 
-    void InitRMTRoutine(const bool ntsc);
+    void Init(const bool ntsc);
     BOOL IsNTSC() const;
 
     CycleCount GetFrameCycleCount() const;

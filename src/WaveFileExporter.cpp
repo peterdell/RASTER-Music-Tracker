@@ -40,7 +40,7 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
     // JAC! Does this problem really still exist?
     pokeyStream.SetState(CPokeyStream::WRITE);
 
-    g_AtariTrackerDriver->InitRMTRoutine();	// Reset the Atari memory 
+    g_AtariTrackerDriver->Init();	// Reset the Atari memory 
     SetChannelOnOff(-1, 1);	// Unmute all channels
 
     // Create the sound buffer to copy from and to

@@ -253,7 +253,7 @@ BOOL CXPokey::RenderSound1_50(int instrspeed)
     {
         //--- RMT - instrument play ---/
         if (g_rmtroutine) {
-            g_AtariTrackerDriver->PlayRMT();
+            g_AtariTrackerDriver->Play();
         }	//one run RMT routine (instruments)
         CopyAtariMemoryToPokey();			// transfer from Atari memory to POKEY (mono or stereo)
         renderpartsize = (rendersize / instrspeed) & 0xfffe;	//just the numbers

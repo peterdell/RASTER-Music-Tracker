@@ -761,7 +761,7 @@ void CRmtView::OnViewConfiguration()
         if (g_nohwsoundbuffer != dlg.m_nohwsoundbuffer)
         {
             g_Pokey.ReInitSound(g_Song.IsNTSC(), IsStereo());	//the sound needs to be reinitialized
-            g_Atari.InitRMTRoutine(g_Song.IsNTSC()); //reset RMT routines
+            g_Atari.Init(g_Song.IsNTSC()); //reset RMT routines
         }
         g_nohwsoundbuffer = dlg.m_nohwsoundbuffer;
 
@@ -774,7 +774,7 @@ void CRmtView::OnViewConfiguration()
         {
             // Something here to reset the thing
             g_trackerDriverVersion = dlg.m_trackerDriverVersion;
-            g_Atari.InitRMTRoutine(g_Song.IsNTSC()); // TODO: This is done serveral times. We need something like "beginUpdate"
+            g_Atari.Init(g_Song.IsNTSC()); // TODO: This is done serveral times. We need something like "beginUpdate"
             g_AtariTrackerDriver->LoadRMTRoutines();
         }
         g_trackerDriverVersion = dlg.m_trackerDriverVersion;
@@ -936,9 +936,9 @@ void CRmtView::OnInitialUpdate()
 
     //INITIALISATION OF ATARI RMT ROUTINES
     g_Atari.ClearMemory();
-    g_Atari.InitRMTRoutine(g_Song.IsNTSC());
+    g_Atari.Init(g_Song.IsNTSC());
     g_AtariTrackerDriver->LoadRMTRoutines();
-    g_AtariTrackerDriver->InitRMTRoutine();
+    g_AtariTrackerDriver->Init();
     g_Song.SetRMTTitle();
 
     // RMTView Timer Initialisation
@@ -1527,7 +1527,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         // Reset RMT routines automatically?
         if (g_keyboard_escresetatarisound)
         {
-            g_AtariTrackerDriver->InitRMTRoutine();
+            g_AtariTrackerDriver->Init();
         }
         if (g_Song.GetPlayMode() == PlayMode::PLAY_STOP) //only if the module is stopped
         {
