@@ -3310,19 +3310,20 @@ TrackLine:
 
 BOOL CSong::PlayVBI()
 {
-    if (!m_play) return 0;	//not playing
+    if (!m_play) { return 0; }	//not playing
 
     m_speeda--;
-    if (m_speeda > 0) return 0;	//too soon to update
+    if (m_speeda > 0) { return 0; }	//too soon to update
 
     m_trackplayline++;
 
     //m_play mode 4 => only plays range in block
-    if (m_play == PLAY_BLOCK && m_trackplayline > m_trackplayblockend) m_trackplayline = m_trackplayblockstart;
+    if (m_play == PLAY_BLOCK && m_trackplayline > m_trackplayblockend) { m_trackplayline = m_trackplayblockstart; }
 
     // If none of the tracks end with "end", then it will end when reaching m_maxtracklen
-    if (m_trackplayline >= g_Tracks.GetMaxTrackLength())
+    if (m_trackplayline >= g_Tracks.GetMaxTrackLength()) {
         SongPlayNextLine();
+    }
 
     PlayBeat();	//1 pattern track line play
 
@@ -3340,7 +3341,7 @@ BOOL CSong::PlayVBI()
             if (g_respectvolume)
             {
                 int v = TrackGetVol();
-                if (v >= 0 && v <= MAXVOLUME) vol = v;
+                if (v >= 0 && v <= MAXVOLUME) { vol = v; }
             }
 
             if (TrackSetNoteInstrVol(m_quantization_note, m_quantization_instr, vol))

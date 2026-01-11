@@ -198,6 +198,7 @@ void CPokeyStream::Record()
         // Copy data from the 1st Pokey
         // 0 offset in mono
         // 9 offset in stereo
+        // TODO: Why is the 1st Pokey the 2nd in the stream??
         m_StreamBuffer[offsetIntoSAPRBuffer + i + j] = m_AtariTrackerDriver->GetByteAt(0xd200 + i);
         if (i == 1)	// AUDC1
         {	// Test SKCTL ($D20F), if Two-Tone is expected, set the Volume Only bit in the current AUDC1 offset
@@ -211,7 +212,7 @@ void CPokeyStream::Record()
         // Copy data from the 2nd Pokey
         m_StreamBuffer[offsetIntoSAPRBuffer + i] = m_AtariTrackerDriver->GetByteAt(0xd210 + i);
         if (i == 1)	//AUDC1
-        {	//test SKCTL, if Two-Tone is expected, set the Volume Only bit in the current AUDC1 offset
+        {	// Test SKCTL ($D21F), if Two-Tone is expected, set the Volume Only bit in the current AUDC1 offset
             m_StreamBuffer[offsetIntoSAPRBuffer + i] |= (m_AtariTrackerDriver->GetByteAt(0xd21F) == 0x8B) ? 0x10 : 0x00;
         }
     }

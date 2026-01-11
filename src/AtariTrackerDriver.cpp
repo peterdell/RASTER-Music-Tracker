@@ -43,14 +43,12 @@ int CAtariTrackerDriver::Init() {
 
 void CAtariTrackerDriver::Play()
 {
-    if (!g_is6502) {
-        return;
-    }
-
-    WORD adr = RMT_P3; //(without SetPokey) one run of RMT routine but from rmt_p3 (wrap processing)
-    BYTE a = 0, x = 0, y = 0;
     auto cycles = m_atari->GetFrameCycleCount();
-    if (g_prove < EditMode::EDIT_AND_JAM_MODES) { // this is only good for tests, this trigger prevents the RMT driver running at all, leaving only SetPokey available
+ 
+    auto adr = RMT_P3; //(without SetPokey) one run of RMT routine but from rmt_p3 (wrap processing)
+    BYTE a = 0, x = 0, y = 0;
+    if (g_prove < EditMode::EDIT_AND_JAM_MODES) { 
+        // this is only good for tests, this trigger prevents the RMT driver running at all, leaving only SetPokey available
         C6502::JSR(adr, a, x, y, cycles);
     }
     adr = RMT_SETPOKEY;
@@ -108,7 +106,7 @@ void CAtariTrackerDriver::InstrumentTurnOff(int instr)
     auto cycles = m_atari->GetFrameCycleCount();
     for (int i = 0; i < SONGTRACKS; i++)
     {
-        // Does this POKEY chanlle have the instrument assigned?
+        // Does this POKEY channel have the instrument assigned?
         if (g_rmtinstr[i] == instr)
         {
             auto adr = RMT_ATA_INSTROFF;
