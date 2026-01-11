@@ -121,7 +121,7 @@ bool CSongExporter::ExportLZSS(CSongExport& songExport, std::ofstream& ou)
 
     // Intro section playback, up to the start of the detected loop point
     int intro = lzssData.LZSS_SAP(pokeyStream.GetConstStreamBuffer(), pokeyStream.GetThirdCountPoint() * frameSize, compressedData);
-    if (intro > 16)
+    if (intro > 16) // TODO: Why 16?
     {
         ou.open(fn + "_INTRO.lzss", std::ios::binary);	// Create a new file for the Intro section
         ou.write((char*)compressedData, intro);		// Write the buffer contents to the export file
@@ -283,7 +283,10 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
     {
         return false;
     }
+    return ExportXEX_LZSS(songExport, xexFile, ou);
+}
 
+bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, CXEXFile xexFile, std::ofstream& ou) {
     CString s, t;
 
     int subsongs = songExport.GetSong().GetSubsongParts(t);
@@ -492,6 +495,7 @@ bool CSongExporter::ShowXEXExportDialog(const CSong& song, CXEXFile& xexFile)
     CString str;
 
     str = xexFile.songname;
+    TODO Move this to InitFromSong!
 
     if (g_rmtmsxtext != "")
     {
@@ -499,6 +503,7 @@ bool CSongExporter::ShowXEXExportDialog(const CSong& song, CXEXFile& xexFile)
     }
     else
     {
+        // 5 lines of text
         dlg.m_txt = str + EOL;
         if (xexFile.isStereo) { dlg.m_txt += "STEREO"; }
         dlg.m_txt += EOL;

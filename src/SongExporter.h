@@ -72,6 +72,8 @@ public:
     /// <returns></returns>
     bool ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou);
 
+    // Non-interactive version.
+    bool ExportXEX_LZSS(CSongExport& songExport, CXEXFile xexFile, std::ofstream& ou);
 
 
 private:

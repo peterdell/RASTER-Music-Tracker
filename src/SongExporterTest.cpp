@@ -52,7 +52,7 @@ bool OpenOutputStream(const CString filePath, const int mode, std::ofstream& os)
 void CloseOutputStream(const CString filePath, const bool result, std::ofstream& os) {
     os.close();
     time_t endTimestamp = time(NULL);
-    int diff = difftime(endTimestamp, startTimestamp);
+    long diff = (long)difftime(endTimestamp, startTimestamp);
     auto seconds = std::to_string(diff);
     if (result) {
         CFile file(filePath, CFile::modeRead);
@@ -118,7 +118,9 @@ void CSongExporterTest::Test(CSong& song) {
         if (OpenOutputStream(outFilePath, std::ofstream::binary, os)) {
             {
                 CSongExport songExport(songContainer, outFilePath);
-                result = songExporter.ExportXEX_LZSS(songExport, os);
+                CXEXFile xexFile;
+                xexFile.InitFromSong(song);
+                result = songExporter.ExportXEX_LZSS(songExport, xexFile, os);
             }
             CloseOutputStream(outFilePath, result, os);
         }
