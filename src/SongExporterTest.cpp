@@ -1,4 +1,5 @@
 #include "StdAfx.h"
+#include <ctime> 
 #include "SongExporterTest.h"
 
 #include <string>
@@ -35,6 +36,8 @@ CString GetFileNameWithoutExtension(const CString& fileName) {
     return fileName;
 }
 
+static   time_t startTimestamp;
+
 bool OpenOutputStream(const CString filePath, const int mode, std::ofstream& os) {
     SendInfoMessage("Opening '" + filePath + "' for output.");
     os.open(filePath, mode);
@@ -42,16 +45,21 @@ bool OpenOutputStream(const CString filePath, const int mode, std::ofstream& os)
         SendErrorMessage("Cannot open the file for writing.");
         return false;
     }
+    startTimestamp = time(NULL);
     return true;
 }
 
 void CloseOutputStream(const CString filePath, const bool result, std::ofstream& os) {
     os.close();
+    time_t endTimestamp = time(NULL);
+    int diff = difftime(endTimestamp, startTimestamp);
+    auto seconds = std::to_string(diff);
     if (result) {
         CFile file(filePath, CFile::modeRead);
-        SendInfoMessage("Output file '" + filePath + "' created with " + std::to_string(file.GetLength()).c_str() + " bytes.");
+        SendInfoMessage("Output file '" + filePath + "' created in " + seconds.c_str() + " seconds with " + std::to_string(file.GetLength()).c_str() + " bytes.");
     }
     else {
+        SendInfoMessage("Creation ofutput file '" + filePath + "' failed within " + seconds.c_str() + " seconds.");
         CFile::Remove(filePath);
     }
 }
@@ -88,7 +96,7 @@ void CSongExporterTest::Test(CSong& song) {
     const auto modeBinary = std::ofstream::out | std::ofstream::binary;
 
     bool LZSS = false;
-    bool XEX_LZSS = false;
+    bool XEX_LZSS = true;
     bool SAP_B_LZSS = false;
     bool SAP_R = true;
     bool SAP_R_LZSS = false;
