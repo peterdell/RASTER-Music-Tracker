@@ -114,11 +114,19 @@ BOOL CRmtApp::InitInstance()
         exit(1);
     }
 
-    // Initialize the model.
-    g_AtariTrackerDriver = new CAtariTrackerDriver(g_Atari);
 
     g_tuning.Initialize(g_Song.IsNTSC());
     g_tuningRatios.Initialize();
+
+    // Intitilaize the Atari computer.
+    g_Atari.Init(g_Song.IsNTSC());
+
+    // Initialize Atari RMT routines.
+    g_AtariTrackerDriver = new CAtariTrackerDriver(g_Atari);
+    g_AtariTrackerDriver->LoadRMTRoutines(g_trackerDriverVersion);
+    g_AtariTrackerDriver->Init();
+
+
     g_Song.ClearSong(8);
 
     // Parse the command line for standard shell commands, DDE, file open.

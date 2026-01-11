@@ -934,11 +934,6 @@ void CRmtView::OnInitialUpdate()
         exit(1);
     }
 
-    //INITIALISATION OF ATARI RMT ROUTINES
-    g_Atari.ClearMemory();
-    g_Atari.Init(g_Song.IsNTSC());
-    g_AtariTrackerDriver->LoadRMTRoutines(g_trackerDriverVersion);
-    g_AtariTrackerDriver->Init();
     g_Song.SetRMTTitle();
 
     // RMTView Timer Initialisation

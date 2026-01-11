@@ -7,7 +7,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommandArguments>/TEST:"C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt"</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArgumentsHistory>C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt /TEST:"C:\Users\JAC\Desktop\ASMA-Input\Test-Script.txt" /SCRIPT2:"C:\Users\JAC\Desktop\ASMA-Input\Test-Script.txt"|C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt /TEST:"C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt" /SCRIPT2:"C:\Users\JAC\Desktop\ASMA-Input\Test-Script.txt"|C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt|C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt /TEST:"C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt"|/TEST:"C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt"|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArgumentsHistory>C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt /TEST:"C:\Users\JAC\Desktop\ASMA-Input\Test-Script.txt" /SCRIPT2:"C:\Users\JAC\Desktop\ASMA-Input\Test-Script.txt"|C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt /TEST:"C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt" /SCRIPT2:"C:\Users\JAC\Desktop\ASMA-Input\Test-Script.txt"|C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt /TEST:"C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt"|C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt|/TEST:"C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt"|</LocalDebuggerCommandArgumentsHistory>
     <RemoteDebuggerCommandArguments>/TEST:"C:\Users\JAC\Desktop\ASMA-Input\Test\Test4.rmt"</RemoteDebuggerCommandArguments>
   </PropertyGroup>
 </Project>
