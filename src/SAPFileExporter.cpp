@@ -76,7 +76,7 @@ bool CSAPFileExporter::ExportSAP_B_LZSS(CSongExport& songExport, CSAPFile& sapFi
 }
 
 bool CSAPFileExporter::ExportSAP_R(CSongExport& songExport, CSAPFile& sapFile, std::ofstream& ou) {
-
+    sapFile.SetType("R");
     sapFile.Export(ou);
 
     // Write the SAP-R stream to the output file defined in the path dialog with the data specified above

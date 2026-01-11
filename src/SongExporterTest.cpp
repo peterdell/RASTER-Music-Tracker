@@ -13,6 +13,10 @@
 
 #include "GuiHelpers.h"
 
+#include "SAPFile.h"
+#include "SAPFileExporter.h"
+
+
 extern CXPokey g_Pokey;
 
 
@@ -83,55 +87,73 @@ void CSongExporterTest::Test(CSong& song) {
     bool result = false;
     const auto modeBinary = std::ofstream::out | std::ofstream::binary;
 
-    /*
-    outFilePath = outFilePathPrefix + ".lzss";
-    if (OpenOutputStream(outFilePath, modeBinary, os)) {
-        {
-            CSongExport songExport(songContainer, outFilePath);
-            result = songExporter.ExportLZSS(songExport, os);
+    bool LZSS = false;
+    bool XEX_LZSS = false;
+    bool SAP_B_LZSS = false;
+    bool SAP_R = true;
+    bool SAP_R_LZSS = false;
+    bool WAV = false;
+
+    if (LZSS) {
+        outFilePath = outFilePathPrefix + ".lzss";
+        if (OpenOutputStream(outFilePath, modeBinary, os)) {
+            {
+                CSongExport songExport(songContainer, outFilePath);
+                result = songExporter.ExportLZSS(songExport, os);
+            }
+            CloseOutputStream(outFilePath, result, os);
         }
-        CloseOutputStream(outFilePath, result, os);
     }
 
-    outFilePath = outFilePathPrefix + "-Type-B-LZSS.sap";
-    if (OpenOutputStream(outFilePath, modeBinary, os)) {
-        {
-            CSongExport songExport(songContainer, outFilePath);
-            songExporter.ExportSAP_B_LZSS(songExport, os);
+    if (XEX_LZSS) {
+        outFilePath = outFilePathPrefix + "-LZSS.xex";
+        if (OpenOutputStream(outFilePath, std::ofstream::binary, os)) {
+            {
+                CSongExport songExport(songContainer, outFilePath);
+                result = songExporter.ExportXEX_LZSS(songExport, os);
+            }
+            CloseOutputStream(outFilePath, result, os);
         }
-        CloseOutputStream(outFilePath, result, os);
     }
 
-    */
-
-    /*
-    outFilePath = outFilePathPrefix + "-Type-R.sap";
-    if (OpenOutputStream(outFilePath, modeBinary, os)) {
-        {
-            CSongExport songExport(songContainer, outFilePath);
-            songExporter.ExportSAP_R(songExport, os);
+    if (SAP_B_LZSS) {
+        outFilePath = outFilePathPrefix + "-Type-B-LZSS.sap";
+        if (OpenOutputStream(outFilePath, modeBinary, os)) {
+            {
+                CSongExport songExport(songContainer, outFilePath);
+                result = songExporter.ExportSAP_B_LZSS(songExport, os);
+            }
+            CloseOutputStream(outFilePath, result, os);
         }
-        CloseOutputStream(outFilePath, result, os);
     }
-    */
 
-    /* TODO: Make it work for WAV
-    https://github.com/raster-atari-org/RASTER-Music-Tracker/issues/10
-    outFilePath = outFilePathPrefix + ".wav";
-    os.open(outFilePath, std::ofstream::binary);
-    {
-        CSongExport songExport(songContainer, outFilePath);
-        songExporter.ExportWAV(songExport, os, g_Pokey, g_AtariTrackerDriver->GetAtari()->GetMemoryAt(0));
-    }
-    os.close();
-    */
-
-    outFilePath = outFilePathPrefix + "-LZSS.xex";
-    if (OpenOutputStream(outFilePath, std::ofstream::binary, os)) {
-        {
-            CSongExport songExport(songContainer, outFilePath);
-            result=songExporter.ExportXEX_LZSS(songExport, os);
+    if (SAP_R) {
+        outFilePath = outFilePathPrefix + "-Type-R.sap";
+        if (OpenOutputStream(outFilePath, modeBinary, os)) {
+            {
+                CSongExport songExport(songContainer, outFilePath);
+                CSAPFile sapFile;
+                sapFile.Init(song);
+                result = CSAPFileExporter::ExportSAP_R(songExport, sapFile, os);
+            }
+            CloseOutputStream(outFilePath, result, os);
         }
-        CloseOutputStream(outFilePath, result, os);
     }
+
+
+    if (WAV) {
+        /* TODO: Make it work for WAV
+        https://github.com/raster-atari-org/RASTER-Music-Tracker/issues/10
+        */
+        outFilePath = outFilePathPrefix + ".wav";
+        if (OpenOutputStream(outFilePath, modeBinary, os)) {
+            {
+                CSongExport songExport(songContainer, outFilePath);
+                result = songExporter.ExportWAV(songExport, os, g_Pokey, g_AtariTrackerDriver->GetAtari()->GetMemoryAt(0));
+            }
+            CloseOutputStream(outFilePath, result, os);
+        }
+
+    }
+
 }

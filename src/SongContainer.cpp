@@ -26,7 +26,7 @@ const CPokeyStream& CSongContainer::GetPokeyStream() {
 
 CPokeyStream& CSongContainer::GetModifiablePokeyStream() {
     if (!m_pokeyStreamReady) {
-        SetStatusBarText("Generating stream data ...");
+        SendInfoMessage("Generating stream data ...");
         m_song->DumpSongToPokeyStream(m_pokeyStream, PLAY_SONG, 0, 0);
         m_pokeyStreamReady = true;
     }
