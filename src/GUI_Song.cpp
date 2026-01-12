@@ -1114,28 +1114,28 @@ void CSong::DrawTracks()
     if (g_view.debugDisplay)
     {
         CString d;
-
+        const auto width = (8 * 8);
         // Don't draw further more than what could fit on screen
-        for (int i = 0; i < g_width / (16 * 6); i++)
+        for (int i = 0; i < g_width / width; i++)
         {
             switch (i)
             {
-            case 0: d.Format("GW = %02d", g_width); break;
-            case 1: d.Format("GH = %02d", g_height); break;
-            case 2: d.Format("PX = %02d", g_mouse.pointX); break;
-            case 3: d.Format("PY = %02d", g_mouse.pointY); break;
-            case 4: d.Format("MB = %02d", g_mouse.button); break;
-            case 5: d.Format("CA = %02d", g_cursoractview); break;
-            case 6: d.Format("TA = %02d", m_trackactiveline); break;
-            case 7: d.Format("DY = %02d", g_mouse.pointY / 16); break;
-            case 8: d.Format("GTL = %02d", g_tracklines); break;
-            case 9: d.Format("OL = %02d", g_tracklines / 2); break;
-            case 10: d.Format("VK = %02X", g_lastKeyPressed); break;
-            case 11: d.Format("WD = %02d", g_mouse.wheelDelta); break;
+            case 0: d.Format("GW=%04d", g_width); break;
+            case 1: d.Format("GH=%04d", g_height); break;
+            case 2: d.Format("PX=%04d", g_mouse.pointX); break;
+            case 3: d.Format("PY=%04d", g_mouse.pointY); break;
+            case 4: d.Format("MB=%02d", g_mouse.button); break;
+            case 5: d.Format("CA=%02d", g_cursoractview); break;
+            case 6: d.Format("TA=%02d", m_trackactiveline); break;
+            case 7: d.Format("DY=%02d", g_mouse.pointY / 16); break;
+            case 8: d.Format("GTL=%02d", g_tracklines); break;
+            case 9: d.Format("OL=%02d", g_tracklines / 2); break;
+            case 10: d.Format("VK=%c %02X", (char)LOWORD(MapVirtualKeyEx(g_lastKeyPressed, MAPVK_VK_TO_CHAR, NULL)), g_lastKeyPressed); break;
+            case 11: d.Format("MO=%s%s", (g_shiftkey ? "S" : " "), (g_controlkey ? "C" : " ")); break;
+            case 12: d.Format("WD=%02d", g_mouse.wheelDelta); break;
             default: continue;
             }
-
-            TextXY(d, CSongScreenLayout::TRACKS_X + i * (16 * 6), g_height - 32, TextColor::TURQUOISE);
+            TextXY(d, CSongScreenLayout::TRACKS_X + i * width, g_height - 32, TextColor::TURQUOISE);
         }
     }
 }
