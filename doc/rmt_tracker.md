@@ -59,7 +59,7 @@ The Pokey sound emulation and Atari 6502 processor emulation aren't built-in com
 
 #### CPU Emulation
 
-Contained in `sa_c6502.dll`
+Contained in `sa_c6502.dll` from [Altirra](https://www.virtualdub.org/altirra.html) by Avery Lee
 Procedures
 - `void C6502_Initialise(BYTE* memory);`
 - `int C6502_JSR(WORD* addr, BYTE* areg, BYTE* xreg, BYTE* yreg, int* maxcycles);`
@@ -68,7 +68,7 @@ Procedures
 
 #### Pokey Emulation
 
-Contained in `sa_pokey.dll`
+Contained in `sa_pokey.dll` [Altirra](https://www.virtualdub.org/altirra.html) by Avery Lee
 - `void Pokey_Initialise(int *argc, char *argv[]);`
 - `void Pokey_SoundInit(uint32 freq17, uint16 playback_freq, uint8 num_pokeys);`
 - `void Pokey_Process(uint8 * sndbuffer, const uint16 sndn);`
@@ -76,7 +76,7 @@ Contained in `sa_pokey.dll`
 - `void Pokey_PutByte(UWORD addr, UBYTE byte);`
 - `void Pokey_About(char** name, char** author, char** description);`
 
-or in `apokeysnd.dll`
+or in `apokeysnd.dll` from [ASAP](http://asap.sourceforge.net/apokeysnd.dll) by Avery Lee
 - `void APokeySound_Initialize(abool stereo);`
 - `void APokeySound_PutByte(int addr, int data);`
 - `int APokeySound_GetRandom(int addr, int cycle);`
