@@ -437,9 +437,6 @@
     <ClInclude Include="tracker_obx.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
-    <ClInclude Include="XPokey.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="C6502.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
@@ -581,6 +578,12 @@
     </None>
     <None Include="asap.md">
       <Filter>Source Files\ASAP</Filter>
+    </None>
+    <None Include="..\doc\rmt_versions.md">
+      <Filter>Documentation Files</Filter>
+    </None>
+    <None Include="..\doc\rmt_en_128.html">
+      <Filter>Documentation Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

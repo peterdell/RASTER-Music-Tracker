@@ -21,19 +21,6 @@ Please provide your feedback about the daily version via one of the following ch
 - Send an e-mail to jac at wudsn.com
 - Create an issue or a feature request on [GitHub](https://github.com/raster-atari-org/RASTER-Music-Tracker/issues).
 
-### Credits
-
-- [Radek Štěrba](http://atariki.krap.pl/index.php/Raster/C.P.U.), Raster/C.P.U., 2002-2009 ([original website](http://raster.infos.cz/atari/rmt/rmt.htm))<br>
-  Thank you for everything you did, we truly miss you <3.
-- Robert Petruzela, Bob!k/C.P.U. and - JirkaS/C.P.U.
-- [Vin Samuel](https://github.com/VinsCool), VinsCool, 2021-2024
-- [Peter Dell](www.wudsn.com), JAC!, 2024 to present
-
-### Known Issues
-
-Issues are tracked on the [GitHub issue tracker](https://github.com/raster-atari-org/RASTER-Music-Tracker/issues).
-
-There are no more changes to the stable version. If you find an issue in the stable version, please test the daily version to see if it's already fixed.
 
 ### Documentation
 
@@ -75,6 +62,32 @@ Note that this is as of RMT 1.28 and not accurate for 1.34 and later!
   You have to send MIDI output from your MIDI sequencer or player 
   to RMT MIDI input by means of some virtual MIDI cable (for example 
   "MIDI Yoke" etc.). The MIDI implementation chart is in the midi.txt file.
+
+### Known Issues
+
+Issues are tracked on the [GitHub issue tracker](https://github.com/raster-atari-org/RASTER-Music-Tracker/issues).
+
+There are no more changes to the 1.34 version. If you find an issue in the stable version, please test the daily 1.35 version to see if it's already fixed.
+
+
+### Credits
+
+- [Radek Štěrba](http://atariki.krap.pl/index.php/Raster/C.P.U.), Raster/C.P.U., 2002-2009 ([original website](http://raster.infos.cz/atari/rmt/rmt.htm))<br>
+  Thank you for everything you did, we truly miss you <3.
+- Robert Petruzela, Bob!k/C.P.U. and - JirkaS/C.P.U.
+- [Vin Samuel](https://github.com/VinsCool), VinsCool, 2021-2024
+- [Peter Dell](www.wudsn.com), JAC!, 2024 to present
+
+#### Additional Credits
+- New features, bugfixes and improvements for RMT 1.31-1.34 by VinsCool
+- POKEY Tuning Calculations programming by VinsCool, with helpful advices from synthpopalooza and OPNA2608
+- SAP-R Dumper and VUPlayer programming by VinsCool
+- LZSS compression programming by DMSC, C++ port by VinsCool
+- Unrolled LZSS music driver by Rensoupp, with few changes and new features by VinsCool
+- New Bitmap graphics, ideas and beta testing by PG
+- Ideas, features suggestions and inspiration by PG, Enderdude, Spring, Ivop, Tatqoo, Miker
+- Spiteful inspiration by Rensoupp, Emkay, and anyone who challenged me to try doing things believed impossible or outside of my abilities ;)
+- Special thanks to everyone from The Chiptune Café, AtariAge, and GBAtemp who motivated me to work harder on the revival of RMT!
 
 ### Greetings
 
