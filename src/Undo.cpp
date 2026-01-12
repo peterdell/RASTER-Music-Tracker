@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "resource.h"
-#include "General.h"
 
 #include "Undo.h"
 #include "Song.h"

@@ -3,8 +3,6 @@
 
 #include <iosfwd>
 
-#include "General.h"
-
 #include "InstrumentTypes.h"
 
 

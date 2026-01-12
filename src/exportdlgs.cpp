@@ -4,7 +4,6 @@
 #include "StdAfx.h"
 #include "Song.h"
 #include "ExportDlgs.h"
-#include "General.h"
 #include "ASMFileExporter.h"
 
 
