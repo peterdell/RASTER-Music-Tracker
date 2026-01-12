@@ -7,13 +7,13 @@ It is the RMT module file format [version "1"](#rmt1) and uses the default file 
 This document contains the official description of that file format.
 
 This document also contains the draft of what I (JAC!) intend to introduce
-as a new, extended RMT module file format [version "2"](#rmt2). It is the result of many months of considering the different goals to be achieved to overcome the problems of the original format in the context of RMT, ASAP, ASMA and the time I had to invest to create working SillyPacks with music.
+as a new, extended RMT module file format [version "2"](#rmt2). It is the result of many months of considering the different goals to be achieved to overcome the problems of the original format in the context of RMT, ASAP, ASMA, and the time I had to invest to create working SillyPacks with music.
 
 The related description for the related RMT tracker can be found [here](./rmt_tracker.md).
 
 I'm happy to receive feedback on my proposals, ideally via a [personal message on Atariage](https://forums.atariage.com/messenger/compose/?to=17404).
 
-The latest version of this document and the related documents is located at [Github](https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_format.md). So before sending feedback, please check the latest version. The [history](https://github.com/peterdell/RASTER-Music-Tracker/commits/dev/doc)  also displays the past changes.
+The latest version of this document and the related documents are located at [Github](https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_format.md). So before sending feedback, please check the latest version. The [history](https://github.com/peterdell/RASTER-Music-Tracker/commits/dev/doc) also shows past changes.
 
 
 RMT Module Format Version "1"<a id='rmt1'></a>
