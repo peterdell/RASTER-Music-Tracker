@@ -25,9 +25,6 @@
     <Filter Include="Source Files\Dialogs">
       <UniqueIdentifier>{0d6bbee4-a8b9-457f-90d9-73664e410b59}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Data">
-      <UniqueIdentifier>{390dff11-f66b-4d0f-9095-d4444b6a2da8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\IO - Load/Save/Export/Import/Midi">
       <UniqueIdentifier>{dc8cf6d4-3fac-46f9-9a26-9661e293011b}</UniqueIdentifier>
     </Filter>
@@ -66,6 +63,21 @@
     </Filter>
     <Filter Include="Source Files\Atari Sound Generator">
       <UniqueIdentifier>{973e7050-b72b-497e-bb78-59b87397d694}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation Files">
+      <UniqueIdentifier>{d52ebaf2-5ba8-4d58-a3b4-dddf6ff373b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ASAP">
+      <UniqueIdentifier>{7f08bbd3-e9a5-44a7-a0c9-bf16a1ac0d78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Atari Players">
+      <UniqueIdentifier>{07ce7328-a96d-4064-abb3-9f0cda3491c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Tracker">
+      <UniqueIdentifier>{6360eacc-999b-4897-8ffb-fe30db5b39aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Model">
+      <UniqueIdentifier>{390dff11-f66b-4d0f-9095-d4444b6a2da8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -109,28 +121,22 @@
       <Filter>Source Files\UI</Filter>
     </ClCompile>
     <ClCompile Include="Clipboard.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="Undo.cpp">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClCompile>
     <ClCompile Include="Instruments.cpp">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClCompile>
     <ClCompile Include="Tracks.cpp">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClCompile>
     <ClCompile Include="Song.cpp">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClCompile>
     <ClCompile Include="GuiHelpers.cpp">
       <Filter>Source Files\GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Keyboard2NoteMapping.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
     <ClCompile Include="ChannelControl.cpp">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClCompile>
     <ClCompile Include="GUI_Instruments.cpp">
       <Filter>Source Files\GUI</Filter>
@@ -140,9 +146,6 @@
     </ClCompile>
     <ClCompile Include="IO_Tracks.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClCompile>
-    <ClCompile Include="GUI_Tracks.cpp">
-      <Filter>Source Files\GUI</Filter>
     </ClCompile>
     <ClCompile Include="GUI_Song.cpp">
       <Filter>Source Files\GUI</Filter>
@@ -165,7 +168,7 @@
     <ClCompile Include="PokeyStream.cpp">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
-    <ClCompile Include="RmtAtariBinaries.cpp">
+    <ClCompile Include="AtariBinaries.cpp">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
     <ClCompile Include="ASMFile.cpp">
@@ -199,7 +202,7 @@
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
     <ClCompile Include="Song_DumpSong.cpp">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClCompile>
     <ClCompile Include="LZSSFile.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\LZSS</Filter>
@@ -241,6 +244,51 @@
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
     <ClCompile Include="Pokey.cpp">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="wasap.c">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="RmtTest.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="asap.c">
+      <Filter>Source Files\ASAP</Filter>
+    </ClCompile>
+    <ClCompile Include="astil.c">
+      <Filter>Source Files\ASAP</Filter>
+    </ClCompile>
+    <ClCompile Include="info_dlg.c">
+      <Filter>Source Files\ASAP</Filter>
+    </ClCompile>
+    <ClCompile Include="asap-patch.cpp">
+      <Filter>Source Files\ASAP</Filter>
+    </ClCompile>
+    <ClCompile Include="VUPlayer.cpp">
+      <Filter>Source Files\Atari Players</Filter>
+    </ClCompile>
+    <ClCompile Include="TracksControl.cpp">
+      <Filter>Source Files\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Notes.cpp">
+      <Filter>Source Files\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Fraction.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="TuningTypes.cpp">
+      <Filter>Source Files\Tuning</Filter>
+    </ClCompile>
+    <ClCompile Include="Keyboard2NoteMapping.cpp">
+      <Filter>Source Files\Tracker</Filter>
+    </ClCompile>
+    <ClCompile Include="Undo.cpp">
+      <Filter>Source Files\Tracker</Filter>
+    </ClCompile>
+    <ClCompile Include="SongTimer.cpp">
+      <Filter>Source Files\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="AtariTrackerDriver.cpp">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
   </ItemGroup>
@@ -287,29 +335,23 @@
     <ClInclude Include="RmtView.h">
       <Filter>Source Files\UI</Filter>
     </ClInclude>
-    <ClInclude Include="Undo.h">
-      <Filter>Source Files\Data</Filter>
-    </ClInclude>
     <ClInclude Include="Instruments.h">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClInclude>
     <ClInclude Include="Tracks.h">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClInclude>
     <ClInclude Include="Song.h">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClInclude>
     <ClInclude Include="Clipboard.h">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClInclude>
     <ClInclude Include="GuiHelpers.h">
       <Filter>Source Files\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="Keyboard2NoteMapping.h">
-      <Filter>Source Files\Data</Filter>
-    </ClInclude>
     <ClInclude Include="ChannelControl.h">
-      <Filter>Source Files\Data</Filter>
+      <Filter>Source Files\Model</Filter>
     </ClInclude>
     <ClInclude Include="IOHelpers.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
@@ -320,7 +362,7 @@
     <ClInclude Include="PokeyStream.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
-    <ClInclude Include="RmtAtariBinaries.h">
+    <ClInclude Include="AtariBinaries.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
     <ClInclude Include="RmtFile.h">
@@ -328,9 +370,6 @@
     </ClInclude>
     <ClInclude Include="ExportDlgs.h">
       <Filter>Source Files\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="Memory.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
     <ClInclude Include="lzssp.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\LZSS</Filter>
@@ -352,9 +391,6 @@
     </ClInclude>
     <ClInclude Include="SAPFileExporter.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP</Filter>
-    </ClInclude>
-    <ClInclude Include="VUPlayer.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\XEX</Filter>
     </ClInclude>
     <ClInclude Include="SongExporter.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
@@ -412,6 +448,69 @@
     </ClInclude>
     <ClInclude Include="Pokey.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="wasap.h">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="RmtTest.h">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="asap.h">
+      <Filter>Source Files\ASAP</Filter>
+    </ClInclude>
+    <ClInclude Include="asap-patch.h">
+      <Filter>Source Files\ASAP</Filter>
+    </ClInclude>
+    <ClInclude Include="astil.h">
+      <Filter>Source Files\ASAP</Filter>
+    </ClInclude>
+    <ClInclude Include="info_dlg.h">
+      <Filter>Source Files\ASAP</Filter>
+    </ClInclude>
+    <ClInclude Include="VUPlayer.h">
+      <Filter>Source Files\Atari Players</Filter>
+    </ClInclude>
+    <ClInclude Include="TracksControl.h">
+      <Filter>Source Files\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Notes.h">
+      <Filter>Source Files\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Fraction.h">
+      <Filter>Source Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="TuningTypes.h">
+      <Filter>Source Files\Tuning</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory.h">
+      <Filter>Source Files\ASAP</Filter>
+    </ClInclude>
+    <ClInclude Include="Keyboard2NoteMapping.h">
+      <Filter>Source Files\Tracker</Filter>
+    </ClInclude>
+    <ClInclude Include="Undo.h">
+      <Filter>Source Files\Tracker</Filter>
+    </ClInclude>
+    <ClInclude Include="InstrumentTypes.h">
+      <Filter>Source Files\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="SongTypes.h">
+      <Filter>Source Files\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="TrackTypes.h">
+      <Filter>Source Files\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="TracksTypes.h">
+      <Filter>Source Files\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="SongTimer.h">
+      <Filter>Source Files\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariTrackerDriver.h">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="TrackerDriverVersion.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -471,10 +570,37 @@
     <None Include=".gitignore">
       <Filter>Source Files\Common</Filter>
     </None>
+    <None Include="..\doc\rmt_en.html">
+      <Filter>Documentation Files</Filter>
+    </None>
+    <None Include="..\doc\rmt_tracker.md">
+      <Filter>Documentation Files</Filter>
+    </None>
+    <None Include="..\README.md">
+      <Filter>Documentation Files</Filter>
+    </None>
+    <None Include="asap.md">
+      <Filter>Source Files\ASAP</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\build\build_rmt-daily-excluded-extensions.txt">
       <Filter>Build Files</Filter>
+    </Text>
+    <Text Include="..\doc\rmt_changes.md">
+      <Filter>Documentation Files</Filter>
+    </Text>
+    <Text Include="..\doc\keymappings.txt">
+      <Filter>Documentation Files</Filter>
+    </Text>
+    <Text Include="..\doc\midi.txt">
+      <Filter>Documentation Files</Filter>
+    </Text>
+    <Text Include="..\doc\optimization.txt">
+      <Filter>Documentation Files</Filter>
+    </Text>
+    <Text Include="..\doc\rmt_format.md">
+      <Filter>Documentation Files</Filter>
     </Text>
   </ItemGroup>
   <ItemGroup>

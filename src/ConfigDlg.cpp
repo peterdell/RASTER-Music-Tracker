@@ -1,7 +1,7 @@
 // ConfigDlg.cpp : implementation file
 //
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "Rmt.h"
 #include "ConfigDlg.h"
 #include "FilePathDlg.h"

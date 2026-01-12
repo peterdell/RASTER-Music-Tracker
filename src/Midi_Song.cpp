@@ -1,20 +1,21 @@
 #include "StdAfx.h"
 #include "Song.h"
-#include "Atari.h"
+#include "AtariTrackerDriver.h"
 #include "PokeyRederer.h"
 #include "Instruments.h"
 #include "Clipboard.h"
 #include "Global.h"
 #include "RmtMidi.h"
 
-
 extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 extern CXPokey g_Pokey;
 extern CRmtMidi g_Midi;
+extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
 void CSong::MidiEvent(DWORD dwParam)
 {
+    auto memory = g_AtariTrackerDriver->GetAtari()->GetMemoryAt(0);
 	unsigned char chn, cmd, pr1, pr2;
 	unsigned char* mv = (unsigned char*)&dwParam;
 	cmd = mv[0] & 0xf0;
@@ -29,7 +30,7 @@ void CSong::MidiEvent(DWORD dwParam)
 			{
 				//System Reset
 			MIDISystemReset:
-                CAtari::InitRMTRoutine(); //reinit RMT routines
+                g_AtariTrackerDriver->Init(); //reinit RMT routines
 				for (int i = 1; i < 16; i++)	//from 1, because it is MULTITIMBRAL 2-16
 				{
 					g_Midi.m_LastNoteOnChannel[i] = -1;	//last pressed keys on each channel
@@ -60,7 +61,7 @@ void CSong::MidiEvent(DWORD dwParam)
 			{
 				//channel 2-9 (chn=1-8)
 				note = pr1 - 36;
-				if (note >= 0 && note < NOTESNUM)
+				if (note >= 0 && note < CNotes::NOTESNUM)
 				{
 					if (pr2 != 0 || (pr2 == 0 && note == g_Midi.m_LastNoteOnChannel[1 + atc]))
 					{
@@ -142,87 +143,87 @@ void CSong::MidiEvent(DWORD dwParam)
 				case 118:	//REC key
 					if (!pr2) break;	//no key press
 					//todo: call CRMTView Class functions directly instead of redundancy copypasta
-					// PROVE_EDIT_MODE -> PROVE_JAM_MONO_MODE
-					// PROVE_JAM_MONO_MODE -> PROVE_JAM_STEREO_MODE
-					//					   -> PROVE_MIDI_CH15_MODE
-					// PROVE_MIDI_CH15_MODE -> PROVE_EDIT_MODE
-					if (g_prove == PROVE_EDIT_MODE) g_prove = PROVE_JAM_MONO_MODE;
-					else if (g_prove == PROVE_MIDI_CH15_MODE) g_prove = PROVE_EDIT_MODE;			//disable the special MIDI test mode immediately
+					// EditMode::EDIT_MODE -> EditMode::JAM_MONO_MODE
+					// EditMode::JAM_MONO_MODE -> EditMode::JAM_STEREO_MODE
+					//					   -> EditMode::MIDI_CH15_MODE
+					// EditMode::MIDI_CH15_MODE -> EditMode::EDIT_MODE
+					if (g_prove == EditMode::EDIT_MODE) g_prove = EditMode::JAM_MONO_MODE;
+					else if (g_prove == EditMode::MIDI_CH15_MODE) g_prove = EditMode::EDIT_MODE;			//disable the special MIDI test mode immediately
 					else
 					{
-						if (g_prove == PROVE_JAM_MONO_MODE && g_tracks4_8 > 4)	//PROVE 2 only works for 8 tracks
-							g_prove = PROVE_JAM_STEREO_MODE;
+						if (g_prove == EditMode::JAM_MONO_MODE && g_tracks4_8 > 4)	//PROVE 2 only works for 8 tracks
+							g_prove = EditMode::JAM_STEREO_MODE;
 						else
-							g_prove = PROVE_MIDI_CH15_MODE;						//special mode exclusive to MIDI CH15
+							g_prove = EditMode::MIDI_CH15_MODE;						//special mode exclusive to MIDI CH15
 					}
 					break;
 
 				case 123:
 					if (!pr2) break;	//no key press
 					Stop();
-					//Atari_InitRMTRoutine();
+					//Atari_Init();
 					goto MIDISystemReset;
 					break;
 
 					//SPECIAL MIDI CH15 MODE
-					if (g_prove == PROVE_MIDI_CH15_MODE)
+					if (g_prove == EditMode::MIDI_CH15_MODE)
 					{
 				case 71: //Knob C1, AUDF0/AUDF2 upper 4 bits
-					//g_atarimem[0xD200] &= 0x0F;
-					//g_atarimem[0xD200] |= pr2 << 4;
-					g_atarimem[0x3178 + o] &= 0x0F;
-					g_atarimem[0x3178 + o] |= pr2 << 4;
+					//memory[0xD200] &= 0x0F;
+					//memory[0xD200] |= pr2 << 4;
+					memory[0x3178 + o] &= 0x0F;
+					memory[0x3178 + o] |= pr2 << 4;
 
 					//g_pokey.MemToPokey(g_tracks4_8);
 					break;
 
 				case 72: //Knob C2, AUDF1/AUDF3 upper 4 bits
-					//g_atarimem[0xD202] &= 0x0F;
-					//g_atarimem[0xD202] |= pr2 << 4;
-					g_atarimem[0x3179 + o] &= 0x0F;
-					g_atarimem[0x3179 + o] |= pr2 << 4;
+					//memory[0xD202] &= 0x0F;
+					//memory[0xD202] |= pr2 << 4;
+					memory[0x3179 + o] &= 0x0F;
+					memory[0x3179 + o] |= pr2 << 4;
 					break;
 
 				case 73: //Knob C3, AUDC0/AUDC2 volume
-					//g_atarimem[0xD201] &= 0xF0;
-					//g_atarimem[0xD201] |= pr2;
-					g_atarimem[0x3180 + o] &= 0xF0;
-					g_atarimem[0x3180 + o] |= pr2;
+					//memory[0xD201] &= 0xF0;
+					//memory[0xD201] |= pr2;
+					memory[0x3180 + o] &= 0xF0;
+					memory[0x3180 + o] |= pr2;
 					break;
 
 				case 74: //Knob C4, AUDC1/AUDC3 volume
-					//g_atarimem[0xD203] &= 0xF0;
-					//g_atarimem[0xD203] |= pr2;
-					g_atarimem[0x3181 + o] &= 0xF0;
-					g_atarimem[0x3181 + o] |= pr2;
+					//memory[0xD203] &= 0xF0;
+					//memory[0xD203] |= pr2;
+					memory[0x3181 + o] &= 0xF0;
+					memory[0x3181 + o] |= pr2;
 					break;
 
 				case 75: //Knob C5, AUDF0/AUDF2 lower 4 bits
-					//g_atarimem[0xD200] &= 0xF0;
-					//g_atarimem[0xD200] |= pr2;
-					g_atarimem[0x3178 + o] &= 0xF0;
-					g_atarimem[0x3178 + o] |= pr2;
+					//memory[0xD200] &= 0xF0;
+					//memory[0xD200] |= pr2;
+					memory[0x3178 + o] &= 0xF0;
+					memory[0x3178 + o] |= pr2;
 					break;
 
 				case 76: //Knob C6, AUDF1/AUDF3 lower 4 bits
-					//g_atarimem[0xD202] &= 0xF0;
-					//g_atarimem[0xD202] |= pr2;
-					g_atarimem[0x3179 + o] &= 0xF0;
-					g_atarimem[0x3179 + o] |= pr2;
+					//memory[0xD202] &= 0xF0;
+					//memory[0xD202] |= pr2;
+					memory[0x3179 + o] &= 0xF0;
+					memory[0x3179 + o] |= pr2;
 					break;
 
 				case 77: //Knob C7, AUDC0/AUDC2 distortion
-					//g_atarimem[0xD201] &= 0x0F;
-					//g_atarimem[0xD201] |= (pr2 * 2) << 4;
-					g_atarimem[0x3180 + o] &= 0x0F;
-					g_atarimem[0x3180 + o] |= (pr2 * 2) << 4;
+					//memory[0xD201] &= 0x0F;
+					//memory[0xD201] |= (pr2 * 2) << 4;
+					memory[0x3180 + o] &= 0x0F;
+					memory[0x3180 + o] |= (pr2 * 2) << 4;
 					break;
 
 				case 78: //Knob C8, AUDC1/AUDC3 distortion
-					//g_atarimem[0xD203] &= 0x0F;
-					//g_atarimem[0xD203] |= (pr2 * 2) << 4;
-					g_atarimem[0x3181 + o] &= 0x0F;
-					g_atarimem[0x3181 + o] |= (pr2 * 2) << 4;
+					//memory[0xD203] &= 0x0F;
+					//memory[0xD203] |= (pr2 * 2) << 4;
+					memory[0x3181 + o] &= 0x0F;
+					memory[0x3181 + o] |= (pr2 * 2) << 4;
 					break;
 					}
 
@@ -233,28 +234,28 @@ void CSong::MidiEvent(DWORD dwParam)
 			return;	//finished, everything else will be ignored, unless it's using a different MIDI channel
 		}
 
-		if (cmd == 0x90 && chn == 9 && g_prove == PROVE_MIDI_CH15_MODE)
+		if (cmd == 0x90 && chn == 9 && g_prove == EditMode::MIDI_CH15_MODE)
 		{	//drumpads used to control the POKEY registers
 			switch (pr1)
 			{
 				case 60:	//drumpad 1, toggle High Pass Filter in ch1+3
 					if (!pr2) break;	//no key press
-					g_atarimem[0x3C69] ^= 0x04;
+					memory[0x3C69] ^= 0x04;
 					break;
 
 				case 62:	//drumpad 2, toggle High Pass Filter in ch2+4
 					if (!pr2) break;	//no key press
-					g_atarimem[0x3C69] ^= 0x02;
+					memory[0x3C69] ^= 0x02;
 					break;
 
 				case 66:	//drumpad 3, toggle 1.79mHz mode in the respective channels
 					if (!pr2) break;	//no key press
-					g_atarimem[0x3C69] ^= (m_ch_offset) ? 0x20 : 0x40;
+					memory[0x3C69] ^= (m_ch_offset) ? 0x20 : 0x40;
 					break;
 
 				case 70:	//drumpad 4, toggle Join 16-bit mode in the respective channels
 					if (!pr2) break;	//no key press
-					g_atarimem[0x3C69] ^= (m_ch_offset) ? 0x08 : 0x10;
+					memory[0x3C69] ^= (m_ch_offset) ? 0x08 : 0x10;
 					break;
 
 				case 74:	//drumpad 5, select the POKEY channels 1 and 2 or 3 and 4
@@ -265,19 +266,19 @@ void CSong::MidiEvent(DWORD dwParam)
 
 				case 69:	//drumpad 6, reset all AUDCTL and SKCTL bits
 					if (!pr2) break;	//no key press
-					g_atarimem[0x3CD3] = 0x03;	//SKCTL
-					g_atarimem[0x3C69] = 0x00;	//AUDCTL
+					memory[0x3CD3] = 0x03;	//SKCTL
+					memory[0x3C69] = 0x00;	//AUDCTL
 					break;
 
 				case 75:	//drumpad 7, toggle Two-Tone filter
 					if (!pr2) break;	//no key press
-					if (g_atarimem[0x3CD3] == 0x03) g_atarimem[0x3CD3] = 0x8B;
-					else g_atarimem[0x3CD3] = 0x03;
+					if (memory[0x3CD3] == 0x03) memory[0x3CD3] = 0x8B;
+					else memory[0x3CD3] = 0x03;
 					break;
 
 				case 73:	//drumpad 8, toggle 15kHz mode
 					if (!pr2) break;	//no key press
-					g_atarimem[0x3C69] ^= 0x01;
+					memory[0x3C69] ^= 0x01;
 					break;
 
 				default:
@@ -290,7 +291,7 @@ void CSong::MidiEvent(DWORD dwParam)
 		if (chn == 9) return;	//we do not want any of those MIDI events outside of the drumpads!!!
 
 		//default notes input event, which is mostly copied from the CH0 code. This is a very terrible approach, and will eventually be replaced (see above)
-		if (chn == 15 && g_prove != PROVE_MIDI_CH15_MODE)
+		if (chn == 15 && g_prove != EditMode::MIDI_CH15_MODE)
 		{
 
 			int atc = m_heldkeys % g_tracks4_8;	//atari track 0-7 (resp. 0-3 in mono)
@@ -339,7 +340,7 @@ void CSong::MidiEvent(DWORD dwParam)
 						vol = m_volume;
 					}
 
-				if (note >= 0 && note < NOTESNUM)		//only within this range
+				if (note >= 0 && note < CNotes::NOTESNUM)		//only within this range
 				{
 					if (g_activepart != Part::PART_TRACKS || g_prove || g_shiftkey || g_controlkey) goto Prove_midi_test;	//play notes but do not record them if the active screen is not TRACKS, or if any other PROVE combo is detected
 
@@ -462,9 +463,9 @@ void CSong::MidiEvent(DWORD dwParam)
 			//COMMENT THIS ENTIRE BLOCK OUT ONCE A PROPER INPUT HANDLER IS ADDED TO TAKE ALL THE PARAMETERS INTO ACCOUNT
 			//
 
-			//midi_audf = g_atarimem[0xB100 + note];		//Distortion A 64khz frequency directly loaded from the generated table in memory
+			//midi_audf = memory[0xB100 + note];		//Distortion A 64khz frequency directly loaded from the generated table in memory
 			midi_audc |= g_Midi.m_InstrumentOnChannel[track] << 4;			//force Distortion based on instrument to AUDC
-			midi_audctl = g_atarimem[0x3C69];
+			midi_audctl = memory[0x3C69];
 
 			bool CLOCK_15 = midi_audctl & 0x01;
 			bool HPF_CH24 = midi_audctl & 0x02;
@@ -500,12 +501,12 @@ void CSong::MidiEvent(DWORD dwParam)
 				case 0x60:
 					if (CLOCK_179)
 					{
-						midi_audf = g_atarimem[0xB040 + note];
+						midi_audf = memory[0xB040 + note];
 					}
 					else if (CLOCK_15)
 						goto case_default;
 					else
-						midi_audf = g_atarimem[0xB000 + note];
+						midi_audf = memory[0xB000 + note];
 					break;
 
 				case 0x40:
@@ -518,41 +519,41 @@ void CSong::MidiEvent(DWORD dwParam)
 
 				case 0xC0:
 					if (CLOCK_179)
-						midi_audf = g_atarimem[0xB240 + note];
+						midi_audf = memory[0xB240 + note];
 					else if (CLOCK_15)	//PAGE_EXTRA_0 => Address 0xB400, 0xB480 for 15khz Pure and 0xB4C0 for 15khz Buzzy
-						midi_audf = g_atarimem[0xB4C0 + note];
+						midi_audf = memory[0xB4C0 + note];
 					else
-						midi_audf = g_atarimem[0xB200 + note];
+						midi_audf = memory[0xB200 + note];
 					break;
 
 				case 0xE0:
 					midi_audc = (char)0xC0;	//Distortion C bass E
 					if (CLOCK_179)
-						midi_audf = g_atarimem[0xB340 + note];
+						midi_audf = memory[0xB340 + note];
 					else if (CLOCK_15)	//PAGE_EXTRA_0 => Address 0xB400, 0xB480 for 15khz Pure and 0xB4C0 for 15khz Buzzy
-						midi_audf = g_atarimem[0xB4C0 + note];
+						midi_audf = memory[0xB4C0 + note];
 					else
-						midi_audf = g_atarimem[0xB300 + note];
+						midi_audf = memory[0xB300 + note];
 					break;
 
 				case 0xA0:
 				default:
 				case_default:
 					if (CLOCK_179)
-						midi_audf = g_atarimem[0xB140 + note];
+						midi_audf = memory[0xB140 + note];
 					else if (CLOCK_15)	//PAGE_EXTRA_0 => Address 0xB400, 0xB480 for 15khz Pure and 0xB4C0 for 15khz Buzzy
-						midi_audf = g_atarimem[0xB480 + note];
+						midi_audf = memory[0xB480 + note];
 					else
-						midi_audf = g_atarimem[0xB100 + note];
+						midi_audf = memory[0xB100 + note];
 					break;
 			}
 
 			midi_audc |= g_Midi.m_NoteVolumeOnChannel[track];				//also merge the volume into it
 
 			//DIRECT MEMORY WRITE
-			//g_atarimem[0x3C69] = midi_audctl;				//AUDCTL address used by SetPokey
-			g_atarimem[0x3178 + track] = midi_audf;			//AUDF address + offset used by SetPokey
-			g_atarimem[0x3180 + track] = midi_audc;			//AUDC address + offset used by SetPokey
+			//memory[0x3C69] = midi_audctl;				//AUDCTL address used by SetPokey
+			memory[0x3178 + track] = midi_audf;			//AUDF address + offset used by SetPokey
+			memory[0x3180 + track] = midi_audc;			//AUDC address + offset used by SetPokey
 
 			//
 			//END OF HARDCODED TEST
@@ -589,7 +590,7 @@ void CSong::MidiEvent(DWORD dwParam)
 					vol = m_volume;
 				}
 
-			if (note >= 0 && note < NOTESNUM)		//only within this range
+			if (note >= 0 && note < CNotes::NOTESNUM)		//only within this range
 			{
 				if (g_activepart != Part::PART_TRACKS || g_prove || g_shiftkey || g_controlkey) goto Prove_midi;	//play notes but do not record them if the active screen is not TRACKS, or if any other PROVE combo is detected
 
@@ -638,7 +639,7 @@ void CSong::MidiEvent(DWORD dwParam)
 					if (!(m_play && m_followplay)) TrackDown(g_linesafter);	//scrolls only when there is no followplay
 				Prove_midi:
 					SetPlayPressedTonesTNIV(m_trackactivecol, note, m_activeinstr, vol);
-					if ((g_prove == PROVE_JAM_STEREO_MODE || g_controlkey) && g_tracks4_8 > 4)
+					if ((g_prove == EditMode::JAM_STEREO_MODE || g_controlkey) && g_tracks4_8 > 4)
 					{	//with control or in prove2 => stereo test
 						SetPlayPressedTonesTNIV((m_trackactivecol + 4) & 0x07, note, m_activeinstr, vol);
 					}

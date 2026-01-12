@@ -1,7 +1,7 @@
 // FilePathDlg.cpp : implementation file
 //
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "Rmt.h"
 #include "FilePathDlg.h"
 #include <io.h>		//due to findfirst, findnext

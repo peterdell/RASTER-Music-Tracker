@@ -8,45 +8,10 @@
 #include "Tracks.h"
 #include "PokeyStream.h"
 
-static constexpr int SONG_NAME_MAX_LEN = 64;	// maximum length of song name
-
-struct TBookmark
-{
-    int songline;
-    int trackline;
-    int speed;
-};
-
-struct TSong	//due to Undo
-{
-    int song[SONGLEN][SONGTRACKS];
-    int songgo[SONGLEN];					//if> = 0, then GO applies
-    TBookmark bookmark;
-};
-
-struct TInfo
-{
-    char songname[SONG_NAME_MAX_LEN + 1];
-    int speed;
-    int mainspeed;
-    int instrspeed;
-    int songnamecur; //to return the cursor to the appropriate position when undo changes in the song name
-};
-
-struct TExportDescription
-{
-    unsigned char mem[65536];				// default RAM size for most 800xl/xe machines
-
-    int targetAddrOfModule;					// Start of RMT module in memory [$4000]
-    int firstByteAfterModule;				// Hmm, 1st byte after the RMT module
-
-    BYTE instrumentSavedFlags[INSTRSNUM];
-    BYTE trackSavedFlags[TRACKSNUM];
-
-};
-
+#include "SongTypes.h"
 
 class CASMFileExporter;
+
 
 class CSong
 {
@@ -59,12 +24,13 @@ public:
     CString GetName() const;
     int GetTracks() const;
     bool IsStereo() const;
-    bool IsNTSC() const;
+    BOOL IsNTSC() const;
+    void SetNTSC(const BOOL ntsc);
+
     int GetInstrumentSpeed() const;
 
     void StopTimer();
     void ChangeTimer(int ms);
-    void KillTimer();
 
     void ClearSong(int numoftracks);
 
@@ -190,7 +156,7 @@ public:
 
     void SetRMTTitle();
 
-    void FileOpen(const char* filename = NULL, BOOL warnOfUnsavedChanges = TRUE);
+    BOOL FileOpen(const char* filename = NULL, BOOL warnOfUnsavedChanges = TRUE);
     void FileReload();
     BOOL FileCanBeReloaded() { return (m_filename != "") /*&& (!m_fileunsaved)*/ /*&& g_changes*/; };
     int WarnUnsavedChanges();
@@ -221,7 +187,7 @@ public:
 
     // Export methods shall be separeated from song itself
     // CSong argument is not yet const, because the DumpPokey... methods change its state
-    static bool ExportV2(CSong& song, std::ofstream& ou, int iotype, LPCTSTR filename = NULL);
+    static bool ExportV2(CSong& song, std::ofstream& ou, SongIOType iotype, LPCTSTR filename = NULL);
     static bool ExportAsRMT(CSong& song, std::ofstream& ou, TExportDescription* exportDesc);
     static bool ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDescription* exportDesc, LPCTSTR filename);
 
@@ -234,11 +200,11 @@ public:
     void MarkTF_USED(BYTE* arrayTRACKSNUM) const;
     void MarkTF_NOEMPTY(BYTE* arrayTRACKSNUM) const;
 
-    int MakeTuningBlock(unsigned char* mem, int addr);
-    int DecodeTuningBlock(unsigned char* mem, int fromAddr, int endAddr);
+    // int MakeTuningBlock(unsigned char* mem, int addr); // TODO: Unused
+    // int DecodeTuningBlock(unsigned char* mem, int fromAddr, int endAddr); // TODO: Unused
     void ResetTuningVariables();
 
-    int MakeModule(unsigned char* mem, int adr, int iotype, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags);
+    int MakeModule(unsigned char* mem, int adr, SongIOType iotype, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags);
     int MakeRMFModule(unsigned char* mem, int adr, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags);
     int DecodeModule(unsigned char* mem, int adrfrom, int adrend, BYTE* instrumentLoadedFlags, BYTE* trackLoadedFlags);
 
@@ -281,7 +247,7 @@ public:
     void RenumberAllInstruments(int type);
 
     CString GetFilename() { return m_filename; };
-    int GetFiletype() { return m_filetype; };
+    SongIOType GetIOType() { return m_ioType; };
 
     int(*GetSong())[SONGLEN][SONGTRACKS]{ return &m_song; };
     int(*GetSongGo())[SONGLEN] { return &m_songgo; };
@@ -340,6 +306,7 @@ private:
 
     EditArea m_infoact;					// Which part of the info area is active for editing: 0 = name, 
     char m_songname[SONG_NAME_MAX_LEN + 1];
+    BOOL m_ntsc;
     int m_songnamecur;
 
     TBookmark m_bookmark;
@@ -364,14 +331,12 @@ private:
     int m_songlineclipboard[SONGTRACKS];
     int m_songgoclipboard;
 
-    UINT m_timerRoutine;
     bool volatile m_timerRoutineProcessed;
     const BYTE m_timerRoutineTick[3] = { 17, 17, 16 };
-    void WaitForTimerRoutineProcessed();
 
     CString m_filename;
-    int m_filetype;
-    int m_lastExportType;					// Which data format was used to export a file the last time?
+    SongIOType m_ioType;
+    SongIOType m_lastExportIOType;      // Which data format was used to export a file the last time?
 
     int m_TracksOrderChange_songlinefrom; //is defined as a member variable to keep in use
     int m_TracksOrderChange_songlineto;	  //the last values used remain

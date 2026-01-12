@@ -26,7 +26,7 @@ bool CSong::ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDescripti
     exportTempDescription.targetAddrOfModule = 0x4000;		// Standard RMT modules are set to start @ $4000
 
     // Create a variant for SFX (ie. including unused instruments and tracks)
-    exportTempDescription.firstByteAfterModule = song.MakeModule(exportTempDescription.mem, exportTempDescription.targetAddrOfModule, IOTYPE_RMT, exportTempDescription.instrumentSavedFlags, exportTempDescription.trackSavedFlags);
+    exportTempDescription.firstByteAfterModule = song.MakeModule(exportTempDescription.mem, exportTempDescription.targetAddrOfModule, SongIOType::RMT, exportTempDescription.instrumentSavedFlags, exportTempDescription.trackSavedFlags);
     if (exportTempDescription.firstByteAfterModule < 0) return false;	// if the module could not be created
 
     // Show the dialog to control the stripped output parameters
@@ -64,7 +64,7 @@ bool CSong::ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDescripti
 
     // Now we can regenerate the RMT module with the selected configuration
     // - known start address
-    // - know if we want to strip out unused instruments and tracks => IOTYPE_RMTSTRIPPED : IOTYPE_RMT
+    // - know if we want to strip out unused instruments and tracks => RMTSTRIPPED : RMT
     memset(&exportTempDescription, 0, sizeof(TExportDescription));			// Clear it all again
     exportTempDescription.targetAddrOfModule = g_rmtstripped_adr_module;	// Standard RMT modules are set to start @ $4000
 
@@ -72,7 +72,7 @@ bool CSong::ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDescripti
         song.MakeModule(
             exportTempDescription.mem,
             exportTempDescription.targetAddrOfModule,
-            g_rmtstripped_sfx ? IOTYPE_RMTSTRIPPED : IOTYPE_RMT,
+            g_rmtstripped_sfx ? SongIOType::RMTSTRIPPED : SongIOType::RMT,
             exportTempDescription.instrumentSavedFlags,
             exportTempDescription.trackSavedFlags
         );

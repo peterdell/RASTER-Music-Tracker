@@ -1,9 +1,15 @@
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "ASMFile.h"
 #include "ASMFileExporter.h"
 #include "ExportDlgs.h"
 #include "ASMFileBuilder.h"
 
+
+
+extern BOOL g_rmtstripped_sfx;			//sfx offshoot RMT stripped file
+extern BOOL g_rmtstripped_gvf;			//gvs GlobalVolumeFade for feat
+extern BOOL g_rmtstripped_nos;			//nos NoStartingSongline for feat
+extern CInstruments g_Instruments;
 
 CString g_PrefixForAllAsmLabels;	//label prefix for export ASM simple notation
 
@@ -15,10 +21,6 @@ CString g_AsmInstrumentsLabel;
 CString g_AsmTracksLabel;
 CString g_AsmSongLinesLabel;
 AssemblerFormat g_AsmFormat = XASM;
-
-extern BOOL g_rmtstripped_sfx;			//sfx offshoot RMT stripped file
-extern BOOL g_rmtstripped_gvf;			//gvs GlobalVolumeFade for feat
-extern BOOL g_rmtstripped_nos;			//nos NoStartingSongline for feat
 
 
 // ============================================================================
@@ -289,7 +291,7 @@ bool CASMFileExporter::ExportAsRelocatableAsmForRmtPlayer(CSong& song, std::ofst
     exportDescWithSFX.targetAddrOfModule = 0x4000;		// Standard RMT modules are set to start @ $4000
 
     // Create a variant for SFX (ie. including unused instruments and tracks)
-    exportDescWithSFX.firstByteAfterModule = song.MakeModule(exportDescWithSFX.mem, exportDescWithSFX.targetAddrOfModule, IOTYPE_RMT, exportDescWithSFX.instrumentSavedFlags, exportDescWithSFX.trackSavedFlags);
+    exportDescWithSFX.firstByteAfterModule = song.MakeModule(exportDescWithSFX.mem, exportDescWithSFX.targetAddrOfModule, SongIOType::RMT, exportDescWithSFX.instrumentSavedFlags, exportDescWithSFX.trackSavedFlags);
     if (exportDescWithSFX.firstByteAfterModule < 0) return false;	// if the module could not be created
 
     CExportRelocatableAsmForRmtPlayer dlg;

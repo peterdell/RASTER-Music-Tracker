@@ -1,18 +1,17 @@
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "AtariIO.h"
 #include <fstream>
 
 
 bool CAtariIO::LoadWord(std::ifstream& in, MemoryWord& w)
 {
-    unsigned char a1, a2;
     char db, hb;
     if (in.eof()) { return false; }
     in.get(db);
-    a1 = (unsigned char)db;
+    auto a1 = (byte)db;
     if (in.eof()) { return false; }
     in.get(hb);
-    a2 = (unsigned char)hb;
+    auto a2 = (byte)hb;
     w = a1 + (a2 << 8);
     return true;
 }
@@ -44,7 +43,9 @@ int CAtariIO::LoadBinaryFile(const char* fname, byte* memory, MemoryAddress& min
     WORD bfrom, bto;
 
     std::ifstream fin(fname, std::ios::binary | std::ios::_Nocreate);
-    if (!fin) return 0;
+    if (!fin) {
+        return 0;
+    }
     fsize = 0;
     minadr = 0xffff; maxadr = 0; //the opposite limits of the minimum and maximum address
     while (!fin.eof())
@@ -68,7 +69,7 @@ int CAtariIO::LoadDataAsBinaryFile(unsigned char* data, MemorySize size, byte* m
 
     int blen;
     int akp = 0;
-    WORD bfrom, bto;
+    MemoryAddress bfrom, bto;
 
     minadr = 0xffff; maxadr = 0; //the opposite limits of the minimum and maximum address
     while (akp < size)

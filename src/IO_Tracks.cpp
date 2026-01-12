@@ -1,6 +1,7 @@
 #include "StdAfx.h"
-#include "resource.h"
 #include "General.h"
+
+#include "Notes.h"
 
 #include "Tracks.h"
 
@@ -18,7 +19,7 @@
 }
 
 
-int CTracks::SaveTrack(int track, std::ofstream& ou, int iotype)
+int CTracks::SaveTrack(TrackNumber track, std::ofstream& ou, SongIOType iotype)
 {
 	TTrack* at = GetTrack(track);
 	if (!at) return 0;
@@ -27,7 +28,7 @@ int CTracks::SaveTrack(int track, std::ofstream& ou, int iotype)
 
 	switch (iotype)
 	{
-	case IOTYPE_RMW:
+	case SongIOType::RMW:
 		ou.write((char*)&at->len, sizeof(at->len));
 		ou.write((char*)&at->go, sizeof(at->go));
 		for (int i = 0; i < m_maxTrackLength; i++) ou.write((char*)&at->note[i], 1);
@@ -36,7 +37,7 @@ int CTracks::SaveTrack(int track, std::ofstream& ou, int iotype)
 		for (int i = 0; i < m_maxTrackLength; i++) ou.write((char*)&at->speed[i], 1);
 		return 1;
 
-	case IOTYPE_TXT:
+	case SongIOType::TXT:
 		s.Format("[TRACK]\n");	// Track text header
 		s.AppendFormat(!IsValidTrack(track) ? "--  " : "%02X  ", track);
 		s.AppendFormat(!IsValidLength(at->len) ? "--" : "%02X", at->len);
@@ -44,7 +45,7 @@ int CTracks::SaveTrack(int track, std::ofstream& ou, int iotype)
 		s.AppendFormat("\n");
 		for (int i = 0; i < at->len; i++)
 		{	// Track row data
-			s.AppendFormat(!IsValidNote(at->note[i]) ? "---" : notes[at->note[i]]);
+			s.AppendFormat(!IsValidNote(at->note[i]) ? "---" : CNotes::GetNote(at->note[i]));
 			s.AppendFormat(!IsValidInstrument(at->instr[i]) ? " --" : " %02X", at->instr[i]);
 			s.AppendFormat(!IsValidVolume(at->volume[i]) ? " -" : " %01X", at->volume[i]);
 			s.AppendFormat(!IsValidSpeed(at->speed[i]) ? "" : "%02X", at->speed[i]);
@@ -57,7 +58,7 @@ int CTracks::SaveTrack(int track, std::ofstream& ou, int iotype)
 	return 0;
 }
 
-int CTracks::LoadTrack(int track, std::ifstream& in, int iotype)
+int CTracks::LoadTrack(TrackNumber track, std::ifstream& in, SongIOType iotype)
 {
 	TTrack* at;
 	int idx = 0;
@@ -67,7 +68,7 @@ int CTracks::LoadTrack(int track, std::ifstream& in, int iotype)
 
 	switch (iotype)
 	{
-	case IOTYPE_RMW:
+	case SongIOType::RMW:
 		if (at = GetTrack(track))
 		{
 			ClearTrack(track);	// Clear before filling with data
@@ -81,7 +82,7 @@ int CTracks::LoadTrack(int track, std::ifstream& in, int iotype)
 		}
 		break;
 
-	case IOTYPE_TXT:
+	case SongIOType::TXT:
 		memset(line, 0, 16);
 		in.getline(line, 1024); // The first line of the track
 
@@ -166,11 +167,11 @@ int CTracks::LoadTrack(int track, std::ifstream& in, int iotype)
 	return 0;
 }
 
-int CTracks::SaveAll(std::ofstream& ou, int iotype)
+int CTracks::SaveAll(std::ofstream& ou, SongIOType iotype)
 {
 	switch (iotype)
 	{
-		case IOTYPE_RMW:
+		case SongIOType::RMW:
 		{
 			ou.write((char*)&m_maxTrackLength, sizeof(m_maxTrackLength));
 			for (int i = 0; i < TRACKSNUM; i++)
@@ -180,7 +181,7 @@ int CTracks::SaveAll(std::ofstream& ou, int iotype)
 		}
 		break;
 
-		case IOTYPE_TXT:
+		case SongIOType::TXT:
 		{
 			for (int i = 0; i < TRACKSNUM; i++)
 			{
@@ -194,7 +195,7 @@ int CTracks::SaveAll(std::ofstream& ou, int iotype)
 }
 
 
-int CTracks::LoadAll(std::ifstream& in, int iotype)
+int CTracks::LoadAll(std::ifstream& in, SongIOType iotype)
 {
 	InitTracks();
 
@@ -207,11 +208,11 @@ int CTracks::LoadAll(std::ifstream& in, int iotype)
 	return 1;
 }
 
-int CTracks::TrackToAta(int trackNr, unsigned char* dest, int max)
+int CTracks::TrackToAta(TrackNumber track, unsigned char* dest, int max) const
 {
 	// Get the data that describes the track
-	TTrack* t = GetTrack(trackNr);
-	if (!t) return 0;
+	auto tr = GetConstTrack(track);
+	if (!tr) return 0;
 
 	int note, instr, volume, speed;
 	int idx = 0;
@@ -219,16 +220,16 @@ int CTracks::TrackToAta(int trackNr, unsigned char* dest, int max)
 	int pause = 0;
 
 	// Run over each line in the track and save its data away in the most compact form
-	for (int i = 0; i < t->len; i++)
+	for (int i = 0; i < tr->len; i++)
 	{
 		// Get the track line data
-		note	= t->note[i];
-		instr	= t->instr[i];
-		volume	= t->volume[i];
-		speed	= t->speed[i];
+		note	= tr->note[i];
+		instr	= tr->instr[i];
+		volume	= tr->volume[i];
+		speed	= tr->speed[i];
 
 		// Something will be there, write empty measures first
-		if (volume >= 0 || speed >= 0 || t->go == i) 
+		if (volume >= 0 || speed >= 0 || tr->go == i) 
 		{
 			if (pause > 0)
 			{
@@ -238,7 +239,7 @@ int CTracks::TrackToAta(int trackNr, unsigned char* dest, int max)
 			}
 
 			// It will jump with a go loop
-			if (t->go == i) goidx = idx;
+			if (tr->go == i) goidx = idx;
 
 			// Speed changes are stored BEFORE note data
 			if (speed >= 0)
@@ -287,7 +288,7 @@ int CTracks::TrackToAta(int trackNr, unsigned char* dest, int max)
 	// All notes have been processed
 
 	// The track is shorter than the maximum length
-	if (t->len < m_maxTrackLength)
+	if (tr->len < m_maxTrackLength)
 	{
 		// Is there any pause left before the end?
 		if (pause > 0)
@@ -297,7 +298,7 @@ int CTracks::TrackToAta(int trackNr, unsigned char* dest, int max)
 		}
 
 		// Is there a go to line loop?
-		if (t->go >= 0 && goidx >= 0)
+		if (tr->go >= 0 && goidx >= 0)
 		{
 			// Write the go to line loop
 			WRITEATIDX(0x80 | 63);		// Go command (191)
@@ -320,25 +321,25 @@ int CTracks::TrackToAta(int trackNr, unsigned char* dest, int max)
 	return idx;
 }
 
-int CTracks::TrackToAtaRMF(int trackNr, unsigned char* dest, int max)
+int CTracks::TrackToAtaRMF(TrackNumber trackNr, unsigned char* dest, int max) const
 {
-	TTrack* t = GetTrack(trackNr);
-	if (!t) return 0;
+	auto tr = GetConstTrack(trackNr);
+	if (!tr) return 0;
 
 	int note, instr, volume, speed;
 	int idx = 0;
 	int goidx = -1;
 	int pause = 0;
 
-	for (int i = 0; i < t->len; i++)
+	for (int i = 0; i < tr->len; i++)
 	{
-		note = t->note[i];
-		instr = t->instr[i];
-		volume = t->volume[i];
-		speed = t->speed[i];
+		note = tr->note[i];
+		instr = tr->instr[i];
+		volume = tr->volume[i];
+		speed = tr->speed[i];
 
 		// Something will be there, write empty measures first
-		if (volume >= 0 || speed >= 0 || t->go == i)
+		if (volume >= 0 || speed >= 0 || tr->go == i)
 		{
 			if (pause > 0)
 			{
@@ -347,7 +348,7 @@ int CTracks::TrackToAtaRMF(int trackNr, unsigned char* dest, int max)
 			}
 
 			// It will jump with a go loop
-			if (t->go == i) goidx = idx;
+			if (tr->go == i) goidx = idx;
 
 			// Speed is ahead of the notes
 			if (speed >= 0)
@@ -380,10 +381,10 @@ int CTracks::TrackToAtaRMF(int trackNr, unsigned char* dest, int max)
 	// End of loop
 
 	// The track is shorter than the maximum length
-	if (t->len < m_maxTrackLength)
+	if (tr->len < m_maxTrackLength)
 	{
 		// Is there a go loop?
-		if (t->go >= 0 && goidx >= 0)
+		if (tr->go >= 0 && goidx >= 0)
 		{
 			// Is there still a pause before the end?
 			if (pause > 0)
@@ -420,10 +421,10 @@ int CTracks::TrackToAtaRMF(int trackNr, unsigned char* dest, int max)
 /// <param name="trackLength">Length of the track</param>
 /// <param name="trackNr">Which track number is being worked on</param>
 /// <returns></returns>
-BOOL CTracks::AtaToTrack(unsigned char* mem, int trackLength, int trackNr)
+BOOL CTracks::AtaToTrack(unsigned char* mem, int trackLength, TrackNumber trackNr)
 {
-	TTrack* t = GetTrack(trackNr);
-	if (!t) return 0;
+	TTrack* tr = GetTrack(trackNr);
+	if (!tr) return 0;
 
 	unsigned char data, count;
 	int gotoIndex = -1;
@@ -440,16 +441,16 @@ BOOL CTracks::AtaToTrack(unsigned char* mem, int trackLength, int trackNr)
 	while (src < trackLength)
 	{
 		// Jump to gotoIndex => set go to this line
-		if (src == gotoIndex) t->go = line;
+		if (src == gotoIndex) tr->go = line;
 
 		data = mem[src] & 0x3f;
 
 		// Have Note, Instrument and volume data on this line
 		if (data >= 0 && data <= 60)
 		{
-			t->note[line] = data;
-			t->instr[line] = ((mem[src + 1] & 0xfc) >> 2);		//11111100
-			t->volume[line] = ( (mem[src + 1] & 0x03) << 2)		//00000011 -> 00001100
+			tr->note[line] = data;
+			tr->instr[line] = ((mem[src + 1] & 0xfc) >> 2);		//11111100
+			tr->volume[line] = ( (mem[src + 1] & 0x03) << 2)		//00000011 -> 00001100
 							| ((mem[src] & 0xc0) >> 6);			//11000000 -> 00000011
 			src += 2;
 			line++;
@@ -459,7 +460,7 @@ BOOL CTracks::AtaToTrack(unsigned char* mem, int trackLength, int trackNr)
 		// Have Volumne only on this line
 		else if (data == 61)
 		{
-			t->volume[line] = ( (mem[src + 1] & 0x03) << 2)		//00000011 -> 00001100
+			tr->volume[line] = ( (mem[src + 1] & 0x03) << 2)		//00000011 -> 00001100
 							| ((mem[src] & 0xc0) >> 6);			//11000000 -> 00000011
 			src += 2;
 			line++;
@@ -497,7 +498,7 @@ BOOL CTracks::AtaToTrack(unsigned char* mem, int trackLength, int trackNr)
 			if (count == 0)
 			{
 				// Speed
-				t->speed[line] = mem[src + 1];
+				tr->speed[line] = mem[src + 1];
 				src += 2;
 
 				// Without line shift
@@ -508,7 +509,7 @@ BOOL CTracks::AtaToTrack(unsigned char* mem, int trackLength, int trackNr)
 			else if (count == 0x80)
 			{
 				// Go to loop
-				t->len = line;			// That's the end of the track, no more data after this
+				tr->len = line;			// That's the end of the track, no more data after this
 				break;
 			}
 
@@ -516,7 +517,7 @@ BOOL CTracks::AtaToTrack(unsigned char* mem, int trackLength, int trackNr)
 			else if (count == 0xc0)
 			{
 				// End
-				t->len = line;			// That's the end of the track, no more data after this
+				tr->len = line;			// That's the end of the track, no more data after this
 				break;
 			}
 		}

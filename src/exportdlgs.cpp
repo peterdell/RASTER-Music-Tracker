@@ -1,7 +1,7 @@
 // ExportDlgs.cpp : implementation file
 //
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "Song.h"
 #include "ExportDlgs.h"
 #include "General.h"
@@ -400,7 +400,7 @@ BOOL CExportAsmDlg::OnInitDialog()
     ((CButton*)GetDlgItem(IDC_RADIO5))->SetCheck(1);
 
     CString s;
-    s.Format("Note indexes $00-$%02X", NOTESNUM - 1);
+    s.Format("Note indexes $00-$%02X", CNotes::NOTESNUM - 1); // TODO: Why -1? The note indexs are inclusive!?
     ((CWnd*)GetDlgItem(IDC_RADIO3))->SetWindowText(s);
 
     OnRadio();

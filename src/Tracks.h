@@ -1,104 +1,94 @@
 #pragma once
-#include "stdafx.h"
+#include "StdAfx.h"
 #include <fstream>
 
-#include "General.h"
+#include "SongTypes.h"
+#include "TrackTypes.h"
+#include "Tracks.h"
 
-
-struct TTrack
-{
-	int len;				// Length of the track
-	int go;
-	int note[TRACKLEN];
-	int instr[TRACKLEN];
-	int volume[TRACKLEN];
-	int speed[TRACKLEN];
-};
-
-struct TTracksAll	//for undo
-{
-	int maxtracklength;
-	TTrack tracks[TRACKSNUM];
-};
-
-extern const char* notes[];
-extern const char* notesandscales[5][40];
+#include "Notes.h"
 
 class CTracks
 {
 public:
-	CTracks();
-	~CTracks();
-	void InitTracks();
-	void ClearTrack(int track);
-	BOOL IsEmptyTrack(int track);
-	void DrawTrackHeader(int x, int y, int tr, int col);
-	void DrawTrackLine(int col, int x, int y, int tr, int line, int aline, int cactview, int pline, BOOL isactive, int acu, int oob);
-	BOOL DelNoteInstrVolSpeed(int noteinstrvolspeed, int track, int line);
-	BOOL SetNoteInstrVol(int note, int instr, int vol, int track, int line);
-	BOOL SetInstr(int instr, int track, int line);
-	BOOL SetVol(int vol, int track, int line);
-	BOOL SetSpeed(int speed, int track, int line);
 
-	BOOL IsValidChannel(int channel) { return channel >= 0 && channel < SONGTRACKS; };
-	BOOL IsValidTrack(int track) { return track >= 0 && track < TRACKSNUM; };
-	BOOL IsValidLine(int line) { return line >= 0 && line < MAXATATRACKLEN; };
-	BOOL IsValidNote(int note) { return note >= 0 && note < NOTESNUM; };
-	BOOL IsValidInstrument(int instr) { return instr >= 0 && instr < INSTRSNUM; };
-	BOOL IsValidVolume(int vol) { return vol >= 0 && vol <= MAXVOLUME; };
-	BOOL IsValidSpeed(int speed) { return speed >= 0 && speed < TRACKMAXSPEED; };
-	BOOL IsValidLength(int len) { return len > 0 && len <= MAXATATRACKLEN; };
-	BOOL IsValidGo(int go) { return go >= 0 && go < MAXATATRACKLEN; };
+    typedef int TrackNumber; // Starting with 0
+    typedef int LineNumber; // Starting with 0
 
-	int GetNote(int track, int line) { return IsValidTrack(track) && IsValidLine(line) ? m_track[track].note[line] : -1; };
-	int GetInstr(int track, int line) { return IsValidTrack(track) && IsValidLine(line) ? m_track[track].instr[line] : -1; };
-	int GetVol(int track, int line) { return IsValidTrack(track) && IsValidLine(line) ? m_track[track].volume[line] : -1; };
-	int GetSpeed(int track, int line) { return IsValidTrack(track) && IsValidLine(line) ? m_track[track].speed[line] : -1; };
-	void GetNoteInstrVolSpeed(int* buff, int track, int line) { if (!(IsValidTrack(track) && IsValidLine(line))) return; buff[0] = m_track[track].note[line]; buff[1] = m_track[track].instr[line]; buff[2] = m_track[track].volume[line]; buff[3] = m_track[track].speed[line]; };
-	BOOL SetEnd(int track, int line);
-	int GetLastLine(int track);
-	int GetLength(int track);
-	BOOL SetGo(int track, int line);
-	int GetGoLine(int track);
+    CTracks();
+    ~CTracks();
+    void InitTracks();
+    void ClearTrack(TrackNumber track);
+    BOOL IsEmptyTrack(TrackNumber track) const;
+    BOOL DelNoteInstrVolSpeed(int noteinstrvolspeed, TrackNumber track, int line);
+    BOOL SetNoteInstrVol(int note, int instr, int vol, TrackNumber track, int line);
+    BOOL SetInstr(int instr, TrackNumber track, int line);
+    BOOL SetVol(int vol, TrackNumber track, int line);
+    BOOL SetSpeed(int speed, TrackNumber track, int line);
 
-	BOOL InsertLine(int track, int line);
-	BOOL DeleteLine(int track, int line);
+    BOOL IsValidChannel(int channel) const { return channel >= 0 && channel < SONGTRACKS; };
+    BOOL IsValidTrack(TrackNumber track) const { return track >= 0 && track < TRACKSNUM; };
+    BOOL IsValidLine(int line) const { return line >= 0 && line < ATARI_MAX_TRACK_LENGTH; };
+    BOOL IsValidNote(int note) { return CNotes::IsValidNote(note); };
+    BOOL IsValidInstrument(int instr) const { return instr >= 0 && instr < INSTRSNUM; };
+    BOOL IsValidVolume(int vol) const { return vol >= 0 && vol <= MAXVOLUME; };
+    BOOL IsValidSpeed(int speed) const { return speed >= 0 && speed < TRACKMAXSPEED; };
+    BOOL IsValidLength(int len) const { return len > 0 && len <= ATARI_MAX_TRACK_LENGTH; };
+    BOOL IsValidGo(int go) const { return IsValidLine(go); };
 
-	TTrack* GetTrack(int track) { return IsValidTrack(track) ? &m_track[track] : NULL; };
+    int GetNote(TrackNumber track, int line) const { return IsValidTrack(track) && IsValidLine(line) ? m_track[track].note[line] : -1; };
+    int GetInstr(TrackNumber track, int line) const { return IsValidTrack(track) && IsValidLine(line) ? m_track[track].instr[line] : -1; };
+    int GetVol(TrackNumber track, int line) { return IsValidTrack(track) && IsValidLine(line) ? m_track[track].volume[line] : -1; };
+    int GetSpeed(TrackNumber track, int line) const { return IsValidTrack(track) && IsValidLine(line) ? m_track[track].speed[line] : -1; };
+    void GetNoteInstrVolSpeed(int* buff, TrackNumber track, int line) const { if (!(IsValidTrack(track) && IsValidLine(line))) return; buff[0] = m_track[track].note[line]; buff[1] = m_track[track].instr[line]; buff[2] = m_track[track].volume[line]; buff[3] = m_track[track].speed[line]; };
+    BOOL SetEnd(TrackNumber track, int line);
+    int GetLastLine(TrackNumber track) const;
+    int GetLength(TrackNumber track) const;
+    BOOL SetGo(TrackNumber track, int line);
+    int GetGoLine(TrackNumber track) const;
 
-	void GetTracksAll(TTracksAll* toTracks);
-	void SetTracksAll(TTracksAll* fromTracks);
+    BOOL InsertLine(TrackNumber track, int line);
+    BOOL DeleteLine(TrackNumber track, int line);
 
-	int TrackToAta(int trackNr, unsigned char* dest, int max);
-	int TrackToAtaRMF(int trackNr, unsigned char* dest, int max);
-	BOOL AtaToTrack(unsigned char* mem, int trackLength, int trackNr);
+    TTrack* GetTrack(TrackNumber track) { return IsValidTrack(track) ? &m_track[track] : NULL; };
 
-	int SaveAll(std::ofstream& ou, int iotype);
-	int LoadAll(std::ifstream& in, int iotype);
+    const TTrack* GetConstTrack(TrackNumber track) const {
+        return  IsValidTrack(track) ? &m_track[track] : NULL;
+    };
 
-	int SaveTrack(int track, std::ofstream& ou, int iotype);
-	int LoadTrack(int track, std::ifstream& in, int iotype);
+    void GetTracksAll(TTracksAll* toTracks) const;
+    void SetTracksAll(TTracksAll* fromTracks);
 
-	BOOL CalculateNotEmpty(int track);
-	BOOL CompareTracks(int track1, int track2);
+    TrackNumber TrackToAta(TrackNumber trackNr, unsigned char* dest, int max) const;
+    TrackNumber TrackToAtaRMF(TrackNumber trackNr, unsigned char* dest, int max) const;
+    BOOL AtaToTrack(unsigned char* mem, int trackLength, TrackNumber trackNr);
 
-	int TrackOptimizeVol0(int track);
-	int TrackBuildLoop(int track);
-	int TrackExpandLoop(int track);
-	int TrackExpandLoop(TTrack* ttrack);
+    int SaveAll(std::ofstream& ou, SongIOType iotype);
+    int LoadAll(std::ifstream& in, SongIOType iotype);
 
-	int GetModifiedNote(int note, int tuning);
-	int GetModifiedInstr(int instr, int instradd);
-	int GetModifiedVolumeP(int volume, int percentage);
-	BOOL ModifyTrack(TTrack* track, int from, int to, int instrnumonly, int tuning, int instradd, int volumep);
+    int SaveTrack(TrackNumber track, std::ofstream& ou, SongIOType iotype);
+    int LoadTrack(TrackNumber track, std::ifstream& in, SongIOType iotype);
 
-	//int m_maxTrackLength;
-	int GetMaxTrackLength() { return m_maxTrackLength; };
-	void SetMaxTrackLength(int length) { if (IsValidLength(length)) m_maxTrackLength = length; };
+    BOOL CalculateNotEmpty(TrackNumber track);
+    BOOL CompareTracks(TrackNumber track1, TrackNumber track2) const;
+
+    TrackNumber TrackOptimizeVol0(TrackNumber track);
+    TrackNumber TrackBuildLoop(TrackNumber track);
+    TrackNumber TrackExpandLoop(TrackNumber track);
+    TrackNumber TrackExpandLoop(TTrack* ttrack);
+
+    int GetModifiedNote(int note, int tuning);
+    int GetModifiedInstr(int instr, int instradd);
+    int GetModifiedVolumeP(int volume, int percentage);
+    BOOL ModifyTrack(TTrack* track, int from, int to, int instrnumonly, int tuning, int instradd, int volumep);
+
+    //int m_maxTrackLength;
+    int GetMaxTrackLength() const { return m_maxTrackLength; };
+    void SetMaxTrackLength(int length) { if (IsValidLength(length)) m_maxTrackLength = length; };
 
 private:
-	int m_maxTrackLength;
-	TTrack* m_track;
+    int m_maxTrackLength;
+    TTrack* m_track;
 };
 
 extern CTracks g_Tracks;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "General.h"
 
 //Undo operation (one can consume up to 3 records)
 #define UNDOSTEPS		100

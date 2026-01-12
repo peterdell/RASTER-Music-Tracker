@@ -1,9 +1,9 @@
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "SongExporter.h"
 #include <iomanip>
 
-#include "Atari.h"
 #include "AtariIO.h"
+#include "AtariBinaries.h"
 
 #include "GuiHelpers.h"
 
@@ -121,7 +121,7 @@ bool CSongExporter::ExportLZSS(CSongExport& songExport, std::ofstream& ou)
 
     // Intro section playback, up to the start of the detected loop point
     int intro = lzssData.LZSS_SAP(pokeyStream.GetConstStreamBuffer(), pokeyStream.GetThirdCountPoint() * frameSize, compressedData);
-    if (intro > 16)
+    if (intro > 16) // TODO: Why 16?
     {
         ou.open(fn + "_INTRO.lzss", std::ios::binary);	// Create a new file for the Intro section
         ou.write((char*)compressedData, intro);		// Write the buffer contents to the export file
@@ -283,7 +283,10 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
     {
         return false;
     }
+    return ExportXEX_LZSS(songExport, xexFile, ou);
+}
 
+bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, CXEXFile xexFile, std::ofstream& ou) {
     CString s, t;
 
     int subsongs = songExport.GetSong().GetSubsongParts(t);
@@ -296,8 +299,8 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
     int framescount = 0;
 
     const int frameSize = CLZSSFile::GetFrameSize(songExport.GetSong());
-    int section = VU_PLAYER_SECTION;
-    int sequence = VU_PLAYER_SEQUENCE;
+    int section = VUPlayer::SECTION;
+    int sequence = VUPlayer::SEQUENCE;
 
     byte mem[RAM_SIZE]{};					// Default RAM size for most 800xl/xe machines
 
@@ -310,7 +313,15 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
 
     // Load VUPlayerLZSS to memory
     MemoryAddress addressFrom, addressTo;
-    CAtari::LoadOBX(IOTYPE_LZSS_XEX, mem, addressFrom, addressTo);
+    WORD size;
+    byte* bin;
+
+    if (!CRmtAtariBinaries::GetVUPlayerBinary(bin, size)) {
+        return false;
+    }
+    if (!CAtariIO::LoadDataAsBinaryFile(bin, size, mem, addressFrom, addressTo)) {
+        return false;
+    }
 
 
     // LZSS buffers for each ones of the tune parts being reconstructed.
@@ -349,7 +360,7 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
         pokeyStream.FinishedRecording();
 
         // Some additional variables that will be used below
-        int targetAddrOfModule = VU_PLAYER_SONGDATA + lzss_chunk;	// All the LZSS data will be written starting from this address
+        int targetAddrOfModule = VUPlayer::SONGDATA + lzss_chunk;	// All the LZSS data will be written starting from this address
         int lzss_startAddress = targetAddrOfModule + intro;
         int lzss_endAddress = lzss_startAddress + loop;				// this sets the address that defines where the data stream has reached its end
 
@@ -365,8 +376,8 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
         }
 
         // Set the song section and timer index 
-        int index = LZSS_POINTER + count * 4;
-        int timerindex = VU_PLAYER_SOUNGTIMER + count * 4;
+        int index = VUPlayer::LZSS_POINTER + count * 4;
+        int timerindex = VUPlayer::SOUNGTIMER + count * 4;
         int subtunetimetotal = 0xFFFFFF / pokeyStream.GetFirstCountPoint();
         int subtunelooppoint = subtunetimetotal * pokeyStream.GetThirdCountPoint();
         int chunk = 0;
@@ -445,17 +456,17 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
             0xD0,0x03,															// BNE region_done
             0xB9,(LZSSP_TABPPNTSCFIX - 1) & 0xFF,(LZSSP_TABPPNTSCFIX - 1) >> 8	// LDA tabppNTSCfix-1,y
         };
-        memcpy(&mem[VU_PLAYER_REGION], regionbytes, sizeof(regionbytes));
+        memcpy(&mem[VUPlayer::REGION], regionbytes, sizeof(regionbytes));
     }
 
     // Additional patches from the Export Dialog...
-    mem[VU_PLAYER_SONG_SPEED] = xexFile.instrspeed;						// Song speed
-    mem[VU_PLAYER_RASTER_BAR] = xexFile.displayRasterbar ? 0x80 : 0x00;	// Display the rasterbar for CPU level
-    mem[VU_PLAYER_COLOR] = xexFile.rasterbarColor;						    // Rasterbar colur 
-    mem[VU_PLAYER_STEREO_FLAG] = xexFile.isStereo ? 0xFF : 0x00;			// Is the song stereo?
-    mem[VU_PLAYER_SONGTOTAL] = subsongs;									// Total number of subtunes
+    mem[VUPlayer::SONG_SPEED] = xexFile.instrspeed;						// Song speed
+    mem[VUPlayer::RASTER_BAR] = xexFile.displayRasterbar ? 0x80 : 0x00;	// Display the rasterbar for CPU level
+    mem[VUPlayer::COLOR] = xexFile.rasterbarColor;						    // Rasterbar colur 
+    mem[VUPlayer::STEREO_FLAG] = xexFile.isStereo ? 0xFF : 0x00;			// Is the song stereo?
+    mem[VUPlayer::SONGTOTAL] = subsongs;									// Total number of subtunes
     if (!xexFile.autoRegion) {												// Automatically adjust speed between regions?
-        for (int i = 0; i < 4; i++) mem[VU_PLAYER_REGION + 6 + i] = 0xEA;	// set the 4 bytes to NOPs to disable it
+        for (int i = 0; i < 4; i++) mem[VUPlayer::REGION + 6 + i] = 0xEA;	// set the 4 bytes to NOPs to disable it
     }
 
     // Reconstruct the export binary for the LZSS Driver, VUPlayer, and all the included data
@@ -467,7 +478,7 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou)
     CAtariIO::SaveBinaryBlock(ou, mem, 0x2e0, 0x2e1, 0);
 
     // Overwrite the LZSS data region with both the pointers for subtunes index, and the actual LZSS streams until the end of file
-    CAtariIO::SaveBinaryBlock(ou, mem, LZSS_POINTER, lzss_total, 0);
+    CAtariIO::SaveBinaryBlock(ou, mem, VUPlayer::LZSS_POINTER, lzss_total, 0);
 
     return true;
 }
@@ -484,6 +495,7 @@ bool CSongExporter::ShowXEXExportDialog(const CSong& song, CXEXFile& xexFile)
     CString str;
 
     str = xexFile.songname;
+    // TODO Move this to InitFromSong!
 
     if (g_rmtmsxtext != "")
     {
@@ -491,6 +503,7 @@ bool CSongExporter::ShowXEXExportDialog(const CSong& song, CXEXFile& xexFile)
     }
     else
     {
+        // 5 lines of text
         dlg.m_txt = str + EOL;
         if (xexFile.isStereo) { dlg.m_txt += "STEREO"; }
         dlg.m_txt += EOL;

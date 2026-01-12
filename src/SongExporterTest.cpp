@@ -1,6 +1,8 @@
-#include "stdafx.h"
+#include "StdAfx.h"
+#include <ctime> 
 #include "SongExporterTest.h"
 
+#include <string>
 #include "Song.h"
 #include "SongContainer.h"
 
@@ -10,8 +12,13 @@
 
 #include "Global.h"
 
+#include "GuiHelpers.h"
+
+#include "SAPFile.h"
+#include "SAPFileExporter.h"
+
+
 extern CXPokey g_Pokey;
-extern byte g_atarimem[ATARI_RAM_SIZE];
 
 
 
@@ -28,6 +35,35 @@ CString GetFileNameWithoutExtension(const CString& fileName) {
     }
     return fileName;
 }
+
+static   time_t startTimestamp;
+
+bool OpenOutputStream(const CString filePath, const int mode, std::ofstream& os) {
+    SendInfoMessage("Opening '" + filePath + "' for output.");
+    os.open(filePath, mode);
+    if (os.fail()) {
+        SendErrorMessage("Cannot open the file for writing.");
+        return false;
+    }
+    startTimestamp = time(NULL);
+    return true;
+}
+
+void CloseOutputStream(const CString filePath, const bool result, std::ofstream& os) {
+    os.close();
+    time_t endTimestamp = time(NULL);
+    long diff = (long)difftime(endTimestamp, startTimestamp);
+    auto seconds = std::to_string(diff);
+    if (result) {
+        CFile file(filePath, CFile::modeRead);
+        SendInfoMessage("Output file '" + filePath + "' created in " + seconds.c_str() + " seconds with " + std::to_string(file.GetLength()).c_str() + " bytes.");
+    }
+    else {
+        SendInfoMessage("Creation ofutput file '" + filePath + "' failed within " + seconds.c_str() + " seconds.");
+        CFile::Remove(filePath);
+    }
+}
+
 
 void CSongExporterTest::Test(CSong& song) {
 
@@ -48,7 +84,7 @@ void CSongExporterTest::Test(CSong& song) {
     CString inFileName = CFile(inFilePath, CFile::modeRead).GetFileName();
     CString outFileName = GetFileNameWithoutExtension(inFileName);
 
-    CString outFolderName = "C:\\Users\\JAC\\Desktop\\ASMA-Input\\out";
+    CString outFolderName = "C:\\Users\\JAC\\Desktop\\ASMA-Input\\Test\\out";
 
     CString outFilePath;
     std::ofstream os;
@@ -56,45 +92,78 @@ void CSongExporterTest::Test(CSong& song) {
     //std::ofstream os(outFilePath);
     //songExporter.ExportCompactLZSS(song, os, outFilePath);
     CString outFilePathPrefix = outFolderName + SEPARATOR + outFileName;
+    bool result = false;
+    const auto modeBinary = std::ofstream::out | std::ofstream::binary;
 
-    outFilePath = outFilePathPrefix + ".lzss";
-    os.open(outFilePath, std::ofstream::binary);
-    {
-        CSongExport songExport(songContainer, outFilePath);
-        songExporter.ExportLZSS(songExport, os);
+    bool LZSS = false;
+    bool XEX_LZSS = true;
+    bool SAP_B_LZSS = false;
+    bool SAP_R = true;
+    bool SAP_R_LZSS = false;
+    bool WAV = false;
+
+    if (LZSS) {
+        outFilePath = outFilePathPrefix + ".lzss";
+        if (OpenOutputStream(outFilePath, modeBinary, os)) {
+            {
+                CSongExport songExport(songContainer, outFilePath);
+                result = songExporter.ExportLZSS(songExport, os);
+            }
+            CloseOutputStream(outFilePath, result, os);
+        }
     }
-    os.close();
 
-    outFilePath = outFilePathPrefix + "-Type-B-LZSS.sap";
-    os.open(outFilePath, std::ofstream::binary);
-    {
-        CSongExport songExport(songContainer, outFilePath);
-        songExporter.ExportSAP_B_LZSS(songExport, os);
-    }    os.close();
-
-
-    outFilePath = outFilePathPrefix + "-Type-R.sap";
-    os.open(outFilePath, std::ofstream::binary);
-    {
-        CSongExport songExport(songContainer, outFilePath);
-        songExporter.ExportSAP_R(songExport, os);
+    if (XEX_LZSS) {
+        outFilePath = outFilePathPrefix + "-LZSS.xex";
+        if (OpenOutputStream(outFilePath, std::ofstream::binary, os)) {
+            {
+                CSongExport songExport(songContainer, outFilePath);
+                CXEXFile xexFile;
+                xexFile.InitFromSong(song);
+                result = songExporter.ExportXEX_LZSS(songExport, xexFile, os);
+            }
+            CloseOutputStream(outFilePath, result, os);
+        }
     }
-    os.close();
 
-    // TODO: Make it work for WAV
-    outFilePath = outFilePathPrefix + ".wav";
-    os.open(outFilePath, std::ofstream::binary);
-    {
-        CSongExport songExport(songContainer, outFilePath);
-        songExporter.ExportWAV(songExport, os, g_Pokey, g_atarimem);
+    if (SAP_B_LZSS) {
+        outFilePath = outFilePathPrefix + "-Type-B-LZSS.sap";
+        if (OpenOutputStream(outFilePath, modeBinary, os)) {
+            {
+                CSongExport songExport(songContainer, outFilePath);
+                result = songExporter.ExportSAP_B_LZSS(songExport, os);
+            }
+            CloseOutputStream(outFilePath, result, os);
+        }
     }
-    os.close();
 
-    outFilePath = outFilePathPrefix + "-LZSS.xex";
-    os.open(outFilePath, std::ofstream::binary);
-    {
-        CSongExport songExport(songContainer, outFilePath);
-        songExporter.ExportXEX_LZSS(songExport, os);
+    if (SAP_R) {
+        outFilePath = outFilePathPrefix + "-Type-R.sap";
+        if (OpenOutputStream(outFilePath, modeBinary, os)) {
+            {
+                CSongExport songExport(songContainer, outFilePath);
+                CSAPFile sapFile;
+                sapFile.Init(song);
+                result = CSAPFileExporter::ExportSAP_R(songExport, sapFile, os);
+            }
+            CloseOutputStream(outFilePath, result, os);
+        }
     }
-    os.close();
+
+
+    if (WAV) {
+        /* TODO: Make it work for WAV
+        https://github.com/raster-atari-org/RASTER-Music-Tracker/issues/10
+        */
+        outFilePath = outFilePathPrefix + ".wav";
+        if (OpenOutputStream(outFilePath, modeBinary, os)) {
+            {
+                CSongExport songExport(songContainer, outFilePath);
+                result = songExporter.ExportWAV(songExport, os, g_Pokey, g_AtariTrackerDriver->GetAtari()->GetMemoryAt(0));
+            }
+            CloseOutputStream(outFilePath, result, os);
+        }
+
+    }
+
 }

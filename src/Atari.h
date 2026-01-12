@@ -5,37 +5,34 @@
 */
 
 #pragma once
+#include "Memory.h"
+
+#include "C6502.h"
 
 #include "tracker_obx.h"				// The ASM generated C header file
 
-//bass16bit low byte, bass 0C, bass 0E, clean tones 0A and 0,2,4,8, bass16bit hi byte, this might require different addresses? What is this even used for anyway?
-#define RMT_FRQTABLES	RMTPLAYR_PAGE_DISTORTION_2				
+// bass16bit low byte, bass 0C, bass 0E, clean tones 0A and 0,2,4,8, bass16bit hi byte, this might require different addresses? What is this even used for anyway?
+static constexpr MemoryAddress RMT_FRQTABLES = RMTPLAYR_PAGE_DISTORTION_2;
 
-#define RMT_INIT		RMTPLAYR_RASTERMUSICTRACKER
-#define RMT_PLAY		RMTPLAYR_RASTERMUSICTRACKER+3
-#define RMT_P3			RMTPLAYR_RASTERMUSICTRACKER+6
-#define RMT_SILENCE		RMTPLAYR_RASTERMUSICTRACKER+9
-#define RMT_SETPOKEY	RMTPLAYR_RASTERMUSICTRACKER+12
+static constexpr MemoryAddress RMT_INIT = RMTPLAYR_RASTERMUSICTRACKER;
+static constexpr MemoryAddress RMT_PLAY = RMTPLAYR_RASTERMUSICTRACKER + 3;
+static constexpr MemoryAddress RMT_P3 = RMTPLAYR_RASTERMUSICTRACKER + 6;
+static constexpr MemoryAddress RMT_SILENCE = RMTPLAYR_RASTERMUSICTRACKER + 9;
+static constexpr MemoryAddress RMT_SETPOKEY = RMTPLAYR_RASTERMUSICTRACKER + 12;
 
-#define RMT_ATA_SETNOTEINSTR	RMTPLAYR_GETINSTRUMENTY2
-#define RMT_ATA_SETVOLUME		RMTPLAYR_SETINSTRUMENTVOLUME
-#define RMT_ATA_INSTROFF		RMTPLAYR_STOPINSTRUMENT
+static constexpr MemoryAddress RMT_ATA_SETNOTEINSTR = RMTPLAYR_GETINSTRUMENTY2;
+static constexpr MemoryAddress RMT_ATA_SETVOLUME = RMTPLAYR_SETINSTRUMENTVOLUME;
+static constexpr MemoryAddress RMT_ATA_INSTROFF = RMTPLAYR_STOPINSTRUMENT;
 
-//immediately after RMT_ATA_INSTROFF, there is some bytes left unused, these will be used as plaintext data to display the RMT driver version used
-#define RMT_ATA_DRIVERVERSION	RMTPLAYR_DRIVERVERSION		
+// immediately after RMT_ATA_INSTROFF, there is some bytes left unused, these will be used as plaintext data to display the RMT driver version used
+static constexpr MemoryAddress RMT_ATA_DRIVERVERSION = RMTPLAYR_DRIVERVERSION;
 
-#include "Memory.h"
 
 class CAtari {
 
 
 public:
-
-
-    //maximum clock count for the entire screen in PAL (default) and NTSC region
-    typedef int CycleCount;
-
-    static CycleCount GetFrameCycleCount(boolean ntsc);
+    static constexpr size_t MEMORY_SIZE = 0x10000;
 
     typedef int ClockFrequency;
 
@@ -47,24 +44,36 @@ public:
 
     static ClockFrequency GetClockFrequency(boolean ntsc);
 
-    static int Init();
-    static void DeInit();
 
-    static void ClearMemory();
-    static byte GetByteAt(const MemoryAddress address);
+    // The maximum clock count for the entire screen in PAL (default) and NTSC region
+    typedef int CycleCount;
 
-    static int LoadOBX(int obx, unsigned char* mem, WORD& minadr, WORD& maxadr);
+    static CycleCount GetFrameCycleCount(boolean ntsc);
 
-    static int LoadRMTRoutines();
-    static int InitRMTRoutine();
-    static void PlayRMT();
-    static void SetPokey();
-    static void Silence();
-    static void SetTrack_NoteInstrVolume(int t, int n, int i, int v);
-    static void SetTrack_Volume(int t, int v);
-    static void InstrumentTurnOff(int instr);
 
+    CAtari();
+    ~CAtari();
+
+    int Init();
+    void DeInit();
+
+    void ClearMemory();
+    byte GetByteAt(const MemoryAddress address);
+    void SetByteAt(const MemoryAddress address, const byte value);
+    byte* GetMemoryAt(const MemoryAddress address);
+    const byte* GetConstMemoryAt(const MemoryAddress address) const;
+
+    void Init(const bool ntsc);
+    BOOL IsNTSC() const;
+
+    ClockFrequency GetClockFrequency() const;
+    CycleCount GetFrameCycleCount() const;
+    void JSR(C6502::Address& adr, C6502::Register& a, C6502::Register& x, C6502::Register& y, C6502::CycleCount& cycles);
+
+private:
+
+    byte m_memory[MEMORY_SIZE];
+
+    BOOL m_ntsc;
 
 };
-
-

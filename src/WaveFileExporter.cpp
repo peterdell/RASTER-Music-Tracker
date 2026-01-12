@@ -1,12 +1,13 @@
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "WaveFileExporter.h"
 #include "WaveFile.h"
 #include "GuiHelpers.h"
 #include "LZSSFile.h"
-#include "Atari.h"
+#include "AtariTrackerDriver.h"
 #include "ChannelControl.h"
+#include "AtariTrackerDriver.h"
 
-
+extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
 bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CXPokey& pokey, byte* memory)
 {
@@ -39,7 +40,7 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
     // JAC! Does this problem really still exist?
     pokeyStream.SetState(CPokeyStream::WRITE);
 
-    CAtari::InitRMTRoutine();	// Reset the Atari memory 
+    g_AtariTrackerDriver->Init();	// Reset the Atari memory 
     SetChannelOnOff(-1, 1);	// Unmute all channels
 
     // Create the sound buffer to copy from and to
@@ -49,12 +50,12 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
 
     while (frames < pokeyStream.GetFirstCountPoint())
     {
-        // Copy the SAP-R bytes to g_atarimem for this frame
+        // Copy the SAP-R bytes to memory for this frame
         streambuffer = pokeyStream.GetStreamBuffer() + frames * frameSize;
 
         //for (int i = 0; i < frameSize; i++)
         //{
-        //	g_atarimem[0xd200 + i] = streambuffer[i];
+        //	memory[0xd200 + i] = streambuffer[i];
         //}
 
         memory[RMTPLAYR_TRACKN_AUDF + 0] = streambuffer[0x00];

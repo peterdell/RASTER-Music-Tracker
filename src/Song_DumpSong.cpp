@@ -2,11 +2,11 @@
 #include "GuiHelpers.h"
 #include "Song.h"
 #include "Instruments.h"
-#include "Atari.h"
+#include "AtariTrackerDriver.h"
 #include "PokeyStream.h"
 #include "ChannelControl.h"
 
-
+extern CAtariTrackerDriver* g_AtariTrackerDriver;
 extern CInstruments	g_Instruments;
 extern BOOL volatile g_rmtroutine;
 extern long g_playtime;
@@ -22,12 +22,12 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, 
     CString statusBarLog;
 
     Stop();					// Make sure RMT is stopped 
-    CAtari::InitRMTRoutine();	// Reset the RMT routines 
+    g_AtariTrackerDriver->Init();	// Reset the RMT routines 
     SetChannelOnOff(-1, 0);	// Switch all channels off 
 
     // Activate stream recording mode.
     m_pokeyStream = &pokeyStream;
-    m_pokeyStream->StartRecording(*this);
+    m_pokeyStream->StartRecording(*this, g_AtariTrackerDriver);
 
     // Play song using the chosen playback parameters
     // If no argument was passed, Play from start will be assumed
@@ -54,9 +54,9 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, 
                 // 1 VBI of RMT routine (for instruments)
                 if (g_rmtroutine)
                 {
-                    CAtari::PlayRMT();
+                    g_AtariTrackerDriver->Play();
                 }
-                // Transfer from g_atarimem to POKEY buffer
+                // Transfer from memory to POKEY buffer
                 pokeyStream.Record();
             }
 
@@ -70,6 +70,7 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, 
             statusBarLog.Format("Generating Pokey stream, playing song in quick mode... %i frames recorded", pokeyStream.GetCurrentFrame());
             SetStatusBarText(statusBarLog);
         }
+        g_AtariTrackerDriver->Init();	// Reset the RMT routines 
 
         // End playback now, the SAP-R data should have been dumped successfully!
         Stop();

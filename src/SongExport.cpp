@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "SongExport.h"
 
 CSongExport::CSongExport(CSongContainer& songContainer, CString filePath) {

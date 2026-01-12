@@ -2,14 +2,15 @@
 // Experimental changes and additions by VinsCool, 2021-2023
 // FIXME: Use a better backend (DirectSound is outdated...)
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "PokeyRederer.h"
-#include "Atari.h"
+#include "AtariTrackerDriver.h"
 #include "ChannelControl.h" // For IsChannelOn
 
 extern BOOL g_nohwsoundbuffer;	// From Global.h
 extern HWND g_hwnd; // From Global.h
 extern BOOL volatile g_rmtroutine;  // From Global.h
+extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
 static LPDIRECTSOUND          g_lpds;
 static LPDIRECTSOUNDBUFFER    g_lpdsbPrimary;
@@ -144,7 +145,7 @@ BOOL CXPokey::DeInitSound()
 {
 
     m_pokey.DeInitSound();
-  
+
     if (m_SoundBuffer)
     {
         m_SoundBuffer->Stop();
@@ -252,7 +253,7 @@ BOOL CXPokey::RenderSound1_50(int instrspeed)
     {
         //--- RMT - instrument play ---/
         if (g_rmtroutine) {
-            CAtari::PlayRMT();
+            g_AtariTrackerDriver->Play();
         }	//one run RMT routine (instruments)
         CopyAtariMemoryToPokey();			// transfer from Atari memory to POKEY (mono or stereo)
         renderpartsize = (rendersize / instrspeed) & 0xfffe;	//just the numbers
@@ -324,7 +325,7 @@ void CXPokey::RenderSoundV2(int instrspeed, BYTE* buffer, int& length)
 
     for (; instrspeed > 0; instrspeed--)
     {
-        CAtari::SetPokey();
+        g_AtariTrackerDriver->SetPokey();
         CopyAtariMemoryToPokey();
         renderpartsize = (rendersize / instrspeed) & 0xfffe;
 
@@ -358,18 +359,18 @@ void CXPokey::CopyAtariMemoryToPokey()
     {
         const auto channel = i / 2;
         auto on = CChannelControl::IsChannelOn(i / 2);
-        auto b = on ? CAtari::GetByteAt(0xd200 + i) : 0x00;
+        auto b = on ? g_AtariTrackerDriver->GetAtari()->GetByteAt(0xd200 + i) : 0x00; // TODO: Have GetPOKEYRegister()
         m_pokey.PutByte(i, b);
         if (stereo) {
             auto on = CChannelControl::IsChannelOn(channel + 4);
-            b = on ? CAtari::GetByteAt(0xd210 + i) : 0x00;
+            b = on ? g_AtariTrackerDriver->GetAtari()->GetByteAt(0xd210 + i) : 0x00;
             m_pokey.PutByte(i + 16, (i & 0x01) && !GetChannelOnOff(i / 2 + 4) ? 0 : b);
         }
     }
 
     // AUDCTL
-    m_pokey.PutByte(0x08, CAtari::GetByteAt(0xd208));
+    m_pokey.PutByte(0x08, g_AtariTrackerDriver->GetAtari()->GetByteAt(0xd208));
     if (stereo) {
-        m_pokey.PutByte(0x08, CAtari::GetByteAt(0xd218));
+        m_pokey.PutByte(0x08, g_AtariTrackerDriver->GetAtari()->GetByteAt(0xd218));
     }
 }

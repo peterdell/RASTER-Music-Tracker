@@ -4,22 +4,27 @@
 #include "GuiHelpers.h"
 #include "Song.h"
 
-// MFC interface code
+#include "Notes.h"
+
 #include "FileNewDlg.h"
 #include "EffectsDlg.h"
 #include "MainFrm.h"
 
 #include "Atari.h"
+#include "AtariTrackerDriver.h"
 #include "PokeyRederer.h"
 #include "IOHelpers.h"
 #include "Instruments.h"
 #include "Clipboard.h"
-#include "global.h"
+#include "Global.h"
+
+#include "SongTimer.h"
 
 #include "PokeyStream.h"
 #include "SongExporter.h"
 
-extern CSong g_Song;
+extern CAtariTrackerDriver* g_AtariTrackerDriver;
+
 extern CInstruments g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 extern CXPokey g_Pokey;
@@ -27,33 +32,8 @@ extern CString g_PrefixForAllAsmLabels;
 // These two should be song attributes instead
 
 extern int g_tracks4_8;
-extern BOOL g_ntsc;				//NTSC (60Hz)
 
-static BOOL busyInTimer = 0;
-
-/// <summary>
-/// Wait for the Timer Routine to run at least once
-/// </summary>
-void CSong::WaitForTimerRoutineProcessed()
-{
-    // If there is any timer at all
-    if (m_timerRoutine)
-    {
-        m_timerRoutineProcessed = false;
-        while (!m_timerRoutineProcessed && !g_closeApplication) {
-            // Busy Waiting
-        };
-    }
-}
-
-// ----------------------------------------------------------------------------
-
-void CALLBACK G_TimerRoutine(UINT, UINT, DWORD_PTR, DWORD_PTR, DWORD_PTR)
-{
-    busyInTimer = 1;
-    g_Song.TimerRoutine();
-    busyInTimer = 0;
-}
+CSongTimer g_SongTimer;
 
 // ----------------------------------------------------------------------------
 
@@ -63,9 +43,6 @@ CSong::CSong()
     memset(m_songname, 0, SONG_NAME_MAX_LEN);
 
     // Initialise Timer
-    m_timerRoutine = 0;
-    m_timerRoutineProcessed = false;
-
     m_quantization_note = -1; // init
     m_quantization_instr = -1;
     m_quantization_vol = -1;
@@ -92,8 +69,16 @@ bool CSong::IsStereo() const {
     return (GetTracks() > 4);
 }
 
-bool CSong::IsNTSC() const {
-    return g_ntsc;
+BOOL CSong::IsNTSC() const {
+    return m_ntsc;
+}
+
+void CSong::SetNTSC(const BOOL ntsc) {
+    if (ntsc != m_ntsc) {
+        m_ntsc = ntsc;
+        g_AtariTrackerDriver->GetAtari()->Init(ntsc);
+        g_AtariTrackerDriver->Init();
+    }
 }
 
 
@@ -101,15 +86,14 @@ int CSong::GetInstrumentSpeed() const {
     return m_instrumentSpeed;
 }
 
+// TODO: Move to CSontTimer
 
 /// <summary>
 /// Stop the timer and make sure that the timer event is not running
 /// </summary>
 void CSong::StopTimer()
 {
-    while (busyInTimer);			// Wait until not in timer handler
-    KillTimer();					// Kill the timer
-    while (busyInTimer);			// Make sure not in the timer handler
+    g_SongTimer.StopTimer();
 }
 
 /// <summary>
@@ -119,20 +103,7 @@ void CSong::StopTimer()
 /// <param name="ms">ms between calls (17=NTSC, 20=PAL)</param>
 void CSong::ChangeTimer(int ms)
 {
-    KillTimer();
-    m_timerRoutine = timeSetEvent(ms, 0, G_TimerRoutine, (ULONG)(NULL), TIME_PERIODIC);
-}
-
-/// <summary>
-/// Immediately kill the timer event
-/// </summary>
-void CSong::KillTimer()
-{
-    if (m_timerRoutine)
-    {
-        timeKillEvent(m_timerRoutine);
-        m_timerRoutine = 0;
-    }
+    g_SongTimer.SetTimer(*this, ms);
 }
 
 /// <summary>
@@ -144,7 +115,7 @@ void CSong::ClearSong(int numOfTracks)
     Stop();
 
     g_tracks4_8 = numOfTracks;			// Track for 4/8 channels
-    g_rmtroutine = TRUE;					// RMT routine execution enabled
+    g_rmtroutine = TRUE;				// RMT routine execution enabled
     g_prove = 0;
     g_respectvolume = 0;
     g_rmtstripped_adr_module = 0x4000;	// Default standard address for stripped RMT modules
@@ -180,8 +151,8 @@ void CSong::ClearSong(int numOfTracks)
     m_songnamecur = 0;
 
     m_filename = "";
-    m_filetype = IOTYPE_NONE;
-    m_lastExportType = IOTYPE_NONE;
+    m_ioType = SongIOType::NONE;
+    m_lastExportIOType = SongIOType::NONE;
 
     m_TracksOrderChange_songlinefrom = 0x00;
     m_TracksOrderChange_songlineto = SONGLEN - 1;
@@ -216,7 +187,7 @@ void CSong::ClearSong(int numOfTracks)
     g_changes = 0;
 
     // Initialise RMT routine, to clear anything leftover in Atari memory
-    CAtari::InitRMTRoutine();
+    g_Atari.Init(IsNTSC());
 }
 
 //---
@@ -310,6 +281,7 @@ void CSong::MarkTF_NOEMPTY(BYTE* arrayTRACKSNUM) const
     }
 }
 
+/* TODO: Unused
 int CSong::MakeTuningBlock(unsigned char* mem, int addr)
 {
     int len = 80;				// 80 bytes of general data
@@ -319,81 +291,47 @@ int CSong::MakeTuningBlock(unsigned char* mem, int addr)
     mem[addr] = 0xF3;			// Tuning block indicator
 
     // First 16 bytes
-    mem[addr + 0x01] = g_ntsc;						//RMT module region, 0 -> PAL, 1 -> NTSC
-    mem[addr + 0x02] = g_basenote;					//base note used in tuning calculations, eg A-4
-    mem[addr + 0x03] = g_temperament;				//tuning temperament, 0 -> no temperament, any number above preset number is custom (saving ratios not yet implemented)
+    mem[addr + 0x01] = IsNTSC();		    				//RMT module region, 0 -> PAL, 1 -> NTSC
+    mem[addr + 0x02] = g_tuning.basenote;					//base note used in tuning calculations, eg A-4
+    mem[addr + 0x03] = g_tuning.temperament;				//tuning temperament, 0 -> no temperament, any number above preset number is custom (saving ratios not yet implemented)
     mem[addr + 0x04] = g_trackLinePrimaryHighlight;	//track primary line highlight
     mem[addr + 0x05] = g_trackLineSecondaryHighlight;//track secondary line highlight
     // 6 - 0xf is unused
 
+        /** TODO: Currently unused, so save the effort for adaptation for now.
+
     // 64 bytes
-    memcpy((mem + addr + 0x10), &g_basetuning, 8);	//base tuning frequency, double type uses 8 bytes in memory
-    memcpy((mem + addr + 0x18), &g_UNISON_L, 2);		//tuning ratio variables, each values are truncated to use 2 bytes (16-bit precision) 
-    memcpy((mem + addr + 0x1A), &g_UNISON_R, 2);
-    memcpy((mem + addr + 0x1C), &g_MIN_2ND_L, 2);
-    memcpy((mem + addr + 0x1E), &g_MIN_2ND_R, 2);
-    memcpy((mem + addr + 0x20), &g_MAJ_2ND_L, 2);
-    memcpy((mem + addr + 0x22), &g_MAJ_2ND_R, 2);
-    memcpy((mem + addr + 0x24), &g_MIN_3RD_L, 2);
-    memcpy((mem + addr + 0x26), &g_MIN_3RD_R, 2);
-    memcpy((mem + addr + 0x28), &g_MAJ_3RD_L, 2);
-    memcpy((mem + addr + 0x2A), &g_MAJ_3RD_R, 2);
-    memcpy((mem + addr + 0x2C), &g_PERF_4TH_L, 2);
-    memcpy((mem + addr + 0x2E), &g_PERF_4TH_R, 2);
-    memcpy((mem + addr + 0x30), &g_TRITONE_L, 2);
-    memcpy((mem + addr + 0x32), &g_TRITONE_R, 2);
-    memcpy((mem + addr + 0x34), &g_PERF_5TH_L, 2);
-    memcpy((mem + addr + 0x36), &g_PERF_5TH_R, 2);
-    memcpy((mem + addr + 0x38), &g_MIN_6TH_L, 2);
-    memcpy((mem + addr + 0x3A), &g_MIN_6TH_R, 2);
-    memcpy((mem + addr + 0x3C), &g_MAJ_6TH_L, 2);
-    memcpy((mem + addr + 0x3E), &g_MAJ_6TH_R, 2);
-    memcpy((mem + addr + 0x40), &g_MIN_7TH_L, 2);
-    memcpy((mem + addr + 0x42), &g_MIN_7TH_R, 2);
-    memcpy((mem + addr + 0x44), &g_MAJ_7TH_L, 2);
-    memcpy((mem + addr + 0x46), &g_MAJ_7TH_R, 2);
-    memcpy((mem + addr + 0x48), &g_OCTAVE_L, 2);
-    memcpy((mem + addr + 0x4A), &g_OCTAVE_R, 2);
+    memcpy((mem + addr + 0x10), &g_tuning.basetuning, 8);	//base tuning frequency, double type uses 8 bytes in memory
+    memcpy((mem + addr + 0x18), &g_tuningRatios.UNISON, 2);		//tuning ratio variables, each values are truncated to use 2 bytes (16-bit precision)
+    memcpy((mem + addr + 0x1A), &g_tuningRatioRight.UNISON, 2);
+    memcpy((mem + addr + 0x1C), &g_tuningRatios.MIN_2ND, 2);
+    memcpy((mem + addr + 0x1E), &g_tuningRatioRight.MIN_2ND, 2);
+    memcpy((mem + addr + 0x20), &g_tuningRatios.MAJ_2ND, 2);
+    memcpy((mem + addr + 0x22), &g_tuningRatioRight.MAJ_2ND, 2);
+    memcpy((mem + addr + 0x24), &g_tuningRatios.MIN_3RD, 2);
+    memcpy((mem + addr + 0x26), &g_tuningRatioRight.MIN_3RD, 2);
+    memcpy((mem + addr + 0x28), &g_tuningRatios.MAJ_3RD, 2);
+    memcpy((mem + addr + 0x2A), &g_tuningRatioRight.MAJ_3RD, 2);
+    memcpy((mem + addr + 0x2C), &g_tuningRatios.PERF_4TH, 2);
+    memcpy((mem + addr + 0x2E), &g_tuningRatioRight.PERF_4TH, 2);
+    memcpy((mem + addr + 0x30), &g_tuningRatios.TRITONE, 2);
+    memcpy((mem + addr + 0x32), &g_tuningRatioRight.TRITONE, 2);
+    memcpy((mem + addr + 0x34), &g_tuningRatios.PERF_5TH, 2);
+    memcpy((mem + addr + 0x36), &g_tuningRatioRight.PERF_5TH, 2);
+    memcpy((mem + addr + 0x38), &g_tuningRatios.MIN_6TH, 2);
+    memcpy((mem + addr + 0x3A), &g_tuningRatioRight.MIN_6TH, 2);
+    memcpy((mem + addr + 0x3C), &g_tuningRatios.MAJ_6TH, 2);
+    memcpy((mem + addr + 0x3E), &g_tuningRatioRight.MAJ_6TH, 2);
+    memcpy((mem + addr + 0x40), &g_tuningRatios.MIN_7TH, 2);
+    memcpy((mem + addr + 0x42), &g_tuningRatioRight.MIN_7TH, 2);
+    memcpy((mem + addr + 0x44), &g_tuningRatios.MAJ_7TH, 2);
+    memcpy((mem + addr + 0x46), &g_tuningRatioRight.MAJ_7TH, 2);
+    memcpy((mem + addr + 0x48), &g_tuningRatios.OCTAVE, 2);
+    memcpy((mem + addr + 0x4A), &g_tuningRatioRight.OCTAVE, 2);
     // 4 unused bytes at the end
 
-    return len;
-}
 
-void CSong::ResetTuningVariables()
-{
-    // reset all tuning variables 
-    //g_ntsc = 0;		//PAL region
-    g_basetuning = (g_ntsc) ? 444.895778867913 : 440.83751645933;
-    g_basenote = 3;	//3 = A-
-    g_temperament = 0;	//no temperament
-    //g_trackLinePrimaryHighlight = 8;	//highlight every 8 rows
-    //g_trackLineSecondaryHighlight = 4;	//highlight every 4 rows
-    g_UNISON_L = 1;	//ratio left
-    g_MIN_2ND_L = 40;
-    g_MAJ_2ND_L = 10;
-    g_MIN_3RD_L = 20;
-    g_MAJ_3RD_L = 5;
-    g_PERF_4TH_L = 4;
-    g_TRITONE_L = 60;
-    g_PERF_5TH_L = 3;
-    g_MIN_6TH_L = 30;
-    g_MAJ_6TH_L = 5;
-    g_MIN_7TH_L = 30;
-    g_MAJ_7TH_L = 15;
-    g_OCTAVE_L = 2;
-    g_UNISON_R = 1;	//ratio right
-    g_MIN_2ND_R = 38;
-    g_MAJ_2ND_R = 9;
-    g_MIN_3RD_R = 17;
-    g_MAJ_3RD_R = 4;
-    g_PERF_4TH_R = 3;
-    g_TRITONE_R = 43;
-    g_PERF_5TH_R = 2;
-    g_MIN_6TH_R = 19;
-    g_MAJ_6TH_R = 3;
-    g_MIN_7TH_R = 17;
-    g_MAJ_7TH_R = 8;
-    g_OCTAVE_R = 1;
+    return len;
 }
 
 int CSong::DecodeTuningBlock(unsigned char* mem, int addr, int endAddr)
@@ -405,45 +343,57 @@ int CSong::DecodeTuningBlock(unsigned char* mem, int addr, int endAddr)
         return 0;
     }
     // Get the basics
-    g_ntsc = mem[addr + 0x01];
-    g_basenote = mem[addr + 0x02];
-    g_temperament = mem[addr + 0x03];
+    m_ntsc = mem[addr + 0x01];
+    g_tuning.basenote = mem[addr + 0x02];
+    g_tuning.temperament = mem[addr + 0x03];
     g_trackLinePrimaryHighlight = mem[addr + 0x04];
     if (!g_trackLinePrimaryHighlight) g_trackLinePrimaryHighlight = 8;	//default
     g_trackLineSecondaryHighlight = mem[addr + 0x05];
     if (!g_trackLineSecondaryHighlight) g_trackLineSecondaryHighlight = 4;	//default
 
-    memcpy(&g_basetuning, (mem + addr + 0x10), 8);
-    memcpy(&g_UNISON_L, (mem + addr + 0x18), 2);
-    memcpy(&g_UNISON_R, (mem + addr + 0x1A), 2);
-    memcpy(&g_MIN_2ND_L, (mem + addr + 0x1C), 2);
-    memcpy(&g_MIN_2ND_R, (mem + addr + 0x1E), 2);
-    memcpy(&g_MAJ_2ND_L, (mem + addr + 0x20), 2);
-    memcpy(&g_MAJ_2ND_R, (mem + addr + 0x22), 2);
-    memcpy(&g_MIN_3RD_L, (mem + addr + 0x24), 2);
-    memcpy(&g_MIN_3RD_R, (mem + addr + 0x26), 2);
-    memcpy(&g_MAJ_3RD_L, (mem + addr + 0x28), 2);
-    memcpy(&g_MAJ_3RD_R, (mem + addr + 0x2A), 2);
-    memcpy(&g_PERF_4TH_L, (mem + addr + 0x2C), 2);
-    memcpy(&g_PERF_4TH_R, (mem + addr + 0x2E), 2);
-    memcpy(&g_TRITONE_L, (mem + addr + 0x30), 2);
-    memcpy(&g_TRITONE_R, (mem + addr + 0x32), 2);
-    memcpy(&g_PERF_5TH_L, (mem + addr + 0x34), 2);
-    memcpy(&g_PERF_5TH_R, (mem + addr + 0x36), 2);
-    memcpy(&g_MIN_6TH_L, (mem + addr + 0x38), 2);
-    memcpy(&g_MIN_6TH_R, (mem + addr + 0x3A), 2);
-    memcpy(&g_MAJ_6TH_L, (mem + addr + 0x3C), 2);
-    memcpy(&g_MAJ_6TH_R, (mem + addr + 0x3E), 2);
-    memcpy(&g_MIN_7TH_L, (mem + addr + 0x40), 2);
-    memcpy(&g_MIN_7TH_R, (mem + addr + 0x42), 2);
-    memcpy(&g_MAJ_7TH_L, (mem + addr + 0x44), 2);
-    memcpy(&g_MAJ_7TH_R, (mem + addr + 0x46), 2);
-    memcpy(&g_OCTAVE_L, (mem + addr + 0x48), 2);
-    memcpy(&g_OCTAVE_R, (mem + addr + 0x4A), 2);
+    /** TODO: Currently unused, so save the effort for adaptation for now.
+    memcpy(&g_tuning.basetuning, (mem + addr + 0x10), 8);
+
+    memcpy(&g_tuningRatios.UNISON, (mem + addr + 0x18), 2);
+    memcpy(&g_tuningRatioRight.UNISON, (mem + addr + 0x1A), 2);
+    memcpy(&g_tuningRatios.MIN_2ND, (mem + addr + 0x1C), 2);
+    memcpy(&g_tuningRatioRight.MIN_2ND, (mem + addr + 0x1E), 2);
+    memcpy(&g_tuningRatios.MAJ_2ND, (mem + addr + 0x20), 2);
+    memcpy(&g_tuningRatioRight.MAJ_2ND, (mem + addr + 0x22), 2);
+    memcpy(&g_tuningRatios.MIN_3RD, (mem + addr + 0x24), 2);
+    memcpy(&g_tuningRatioRight.MIN_3RD, (mem + addr + 0x26), 2);
+    memcpy(&g_tuningRatios.MAJ_3RD, (mem + addr + 0x28), 2);
+    memcpy(&g_tuningRatioRight.MAJ_3RD, (mem + addr + 0x2A), 2);
+    memcpy(&g_tuningRatios.PERF_4TH, (mem + addr + 0x2C), 2);
+    memcpy(&g_tuningRatioRight.PERF_4TH, (mem + addr + 0x2E), 2);
+    memcpy(&g_tuningRatios.TRITONE, (mem + addr + 0x30), 2);
+    memcpy(&g_tuningRatioRight.TRITONE, (mem + addr + 0x32), 2);
+    memcpy(&g_tuningRatios.PERF_5TH, (mem + addr + 0x34), 2);
+    memcpy(&g_tuningRatioRight.PERF_5TH, (mem + addr + 0x36), 2);
+    memcpy(&g_tuningRatios.MIN_6TH, (mem + addr + 0x38), 2);
+    memcpy(&g_tuningRatioRight.MIN_6TH, (mem + addr + 0x3A), 2);
+    memcpy(&g_tuningRatios.MAJ_6TH, (mem + addr + 0x3C), 2);
+    memcpy(&g_tuningRatioRight.MAJ_6TH, (mem + addr + 0x3E), 2);
+    memcpy(&g_tuningRatios.MIN_7TH, (mem + addr + 0x40), 2);
+    memcpy(&g_tuningRatioRight.MIN_7TH, (mem + addr + 0x42), 2);
+    memcpy(&g_tuningRatios.MAJ_7TH, (mem + addr + 0x44), 2);
+    memcpy(&g_tuningRatioRight.MAJ_7TH, (mem + addr + 0x46), 2);
+    memcpy(&g_tuningRatios.OCTAVE, (mem + addr + 0x48), 2);
+    memcpy(&g_tuningRatioRight.OCTAVE, (mem + addr + 0x4A), 2);
 
     return endAddr - addr;
 
 }
+*/
+
+
+void CSong::ResetTuningVariables()
+{
+    // Reset all tuning variables 
+    g_tuning.Initialize(IsNTSC());
+    g_tuningRatios.Initialize();
+}
+
 
 /// <summary>
 /// Create the RMT data in memory.
@@ -455,13 +405,13 @@ int CSong::DecodeTuningBlock(unsigned char* mem, int addr, int endAddr)
 /// <param name="instrumentSavedFlags"></param>
 /// <param name="trackSavedFlags"></param>
 /// <returns></returns>
-int CSong::MakeModule(unsigned char* mem, int addr, int iotype, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags)
+int CSong::MakeModule(unsigned char* mem, int addr, SongIOType iotype, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags)
 {
     int i, j;
     TTrack* tr;
 
     // Returns maxadr (points to the first free address after the module) and sets the instrsaved and tracksaved fields
-    if (iotype == IOTYPE_RMF) return MakeRMFModule(mem, addr, instrumentSavedFlags, trackSavedFlags);
+    if (iotype == SongIOType::RMF) return MakeRMFModule(mem, addr, instrumentSavedFlags, trackSavedFlags);
 
     // Clear the instrument and tracks used flags
     memset(instrumentSavedFlags, 0, INSTRSNUM);
@@ -478,14 +428,14 @@ int CSong::MakeModule(unsigned char* mem, int addr, int iotype, BYTE* instrument
     mem[addr + 4] = g_Tracks.GetMaxTrackLength() & 0xff;
     mem[addr + 5] = m_mainSpeed & 0xff;
     mem[addr + 6] = m_instrumentSpeed;			// 1-4 player calls per frame
-    mem[addr + 7] = RMTFORMATVERSION;			// RMT format version number
+    mem[addr + 7] = RMTFormatVersion::V1;			// RMT format version number
 
     // Note:
     // When saving in RMT format ALL non-empty tracks and non-empty instruments will be stored
     // In other formats only the USED tracks and USED instruments will be stored
 
     MarkTF_USED(trackSavedFlags);			// Mark all tracks as used
-    if (iotype == IOTYPE_RMT)
+    if (iotype == SongIOType::RMT)
     {
         MarkTF_NOEMPTY(trackSavedFlags);	// In addition to the used ones, all non-empty tracks are added to the RMT, all non-empty tracks
     }
@@ -503,7 +453,7 @@ int CSong::MakeModule(unsigned char* mem, int addr, int iotype, BYTE* instrument
         }
     }
 
-    if (iotype == IOTYPE_RMT)
+    if (iotype == SongIOType::RMT)
     {
         // In addition to the instruments used in the tracks that are in the song, all non-empty instruments are stored in the RMT
         for (i = 0; i < INSTRSNUM; i++)
@@ -541,7 +491,7 @@ int CSong::MakeModule(unsigned char* mem, int addr, int iotype, BYTE* instrument
         if (instrumentSavedFlags[i])
         {
             // Create instrument data
-            int thisInstrumentLength = g_Instruments.InstrToAta(i, mem + ptrInstrumentData, MAXATAINSTRLEN);
+            int thisInstrumentLength = g_Instruments.InstrToAta(i, mem + ptrInstrumentData, ATARI_MAX_INSTR_LENGTH);
 
             // Save where the instrument data is to be found
             mem[ptrInstruments + i * 2] = ptrInstrumentData & 0xff;	// lo byte
@@ -568,7 +518,7 @@ int CSong::MakeModule(unsigned char* mem, int addr, int iotype, BYTE* instrument
         if (trackSavedFlags[i])
         {
             // Create the track data
-            int thisTrackLength = g_Tracks.TrackToAta(i, mem + ptrTrackData, MAXATATRACKLEN);
+            int thisTrackLength = g_Tracks.TrackToAta(i, mem + ptrTrackData, ATARI_MAX_TRACK_LENGTH);
 
             // Check that the track data is valid
             if (thisTrackLength < 1)
@@ -711,7 +661,7 @@ int CSong::MakeRMFModule(unsigned char* mem, int adr, BYTE* instrsaved, BYTE* tr
     {
         if (instrsave[i])
         {
-            int leninstr = g_Instruments.InstrToAtaRMF(i, meminstruments + adrinstrdata, MAXATAINSTRLEN);
+            int leninstr = g_Instruments.InstrToAtaRMF(i, meminstruments + adrinstrdata, ATARI_MAX_INSTR_LENGTH);
             meminstruments[i * 2] = adrinstrdata & 0xff;	//dbyte
             meminstruments[i * 2 + 1] = adrinstrdata >> 8;	//hbyte
             adrinstrdata += leninstr;
@@ -738,7 +688,7 @@ int CSong::MakeRMFModule(unsigned char* mem, int adr, BYTE* instrsaved, BYTE* tr
     {
         if (tracksave[i])
         {
-            int lentrack = g_Tracks.TrackToAtaRMF(i, memtracks + adrtrackdata, MAXATATRACKLEN);
+            int lentrack = g_Tracks.TrackToAtaRMF(i, memtracks + adrtrackdata, ATARI_MAX_TRACK_LENGTH);
             if (lentrack < 1)
             {	//cannot be saved to RMT
                 CString msg;
@@ -866,7 +816,12 @@ int CSong::DecodeModule(unsigned char* mem, int fromAddr, int endAddr, BYTE* ins
 
     // 8th byte: RMT format version nr.
     int version = mem[addr + 7];
-    if (version > RMTFORMATVERSION)	return 0;	//the byte version is above the current one
+    // TODO: Make "case" and support V2
+    if (version > RMTFormatVersion::V1)
+    {
+        // the byte version is above the currently supported one
+        return 0;
+    }
 
     // Now g_Tracks.m_maxTrackLength is set to the value in the RMT header, 
     // so re-initialize the tracks to set all tracks to this new length
@@ -898,7 +853,7 @@ int CSong::DecodeModule(unsigned char* mem, int fromAddr, int endAddr, BYTE* ins
         else
             loadState = g_Instruments.AtaToInstr(mem + ptrOneInstrument, instrumentNr);
 
-        g_Instruments.WasModified(instrumentNr);	//writes to Atari ram
+        g_Instruments.Update(instrumentNr);	//writes to Atari ram
 
         if (!loadState) return 0; // some problem with the instrument => END
 
@@ -964,11 +919,11 @@ BOOL CSong::PlayPressedTones()
             i = m_playptinstr[t];
             if (n >= 0 && i >= 0)
             {
-                CAtari::SetTrack_NoteInstrVolume(t, n, i, v);
+                g_AtariTrackerDriver->SetTrackNoteInstrumentVolume(t, n, i, v);
             }
             else
             {
-                CAtari::SetTrack_Volume(t, v);
+                g_AtariTrackerDriver->SetTrackVolume(t, v);
             }
             SetPlayPressedTonesTNIV(t, -1, -1, -1);
         }
@@ -1918,7 +1873,7 @@ void CSong::InstrPaste(int special)
 
     TInstrument* ai = g_Instruments.GetInstrument(i);
 
-    CAtari::InstrumentTurnOff(i); //turns off this instrument on all channels
+    g_AtariTrackerDriver->InstrumentTurnOff(i); //turns off this instrument on all channels
 
     int x, y;
     BOOL bl = 0, br = 0, ep = 0;
@@ -2006,7 +1961,7 @@ void CSong::InstrPaste(int special)
         break;
 
     }
-    g_Instruments.WasModified(i); //write to Atari RAM
+    g_Instruments.Update(i); //write to Atari RAM
 }
 
 void CSong::InstrCut()
@@ -2030,9 +1985,9 @@ void CSong::InstrInfo(int instr, TInstrInfo* iinfo, int instrto)
     int intrack[TRACKSNUM];
     int noftrack = 0;
     int globallytimes = 0;
-    int withnote[NOTESNUM];
-    for (i = 0; i < NOTESNUM; i++) withnote[i] = 0;
-    int minnote = NOTESNUM, maxnote = -1;
+    int withnote[CNotes::NOTESNUM];
+    for (i = 0; i < CNotes::NOTESNUM; i++) withnote[i] = 0;
+    int minnote = CNotes::NOTESNUM, maxnote = -1;
     int minvol = 16, maxvol = -1;
     int infrom = INSTRSNUM, into = -1;
 
@@ -2052,7 +2007,7 @@ void CSong::InstrInfo(int instr, TInstrInfo* iinfo, int instrto)
                 if (ain > into) into = ain;
                 if (ain < infrom) infrom = ain;
                 int note = at->note[j];
-                if (note >= 0 && note < NOTESNUM)
+                if (note >= 0 && note < CNotes::NOTESNUM)
                 {
                     globallytimes++; //some note with this instrument => started
                     withnote[note]++;
@@ -2087,8 +2042,8 @@ void CSong::InstrInfo(int instr, TInstrInfo* iinfo, int instrto)
         CString s, s2;
         s.Format("Instrument: %02X\nName: %s\nUsed in %i tracks, globally %i times.\nFrom note: %s\nTo note: %s\nMin volume: %X\nMax volume: %X",
             instr, g_Instruments.GetName(instr), noftrack, globallytimes,
-            minnote < NOTESNUM ? notes[minnote] : "-",
-            maxnote >= 0 ? notes[maxnote] : "-",
+            minnote < CNotes::NOTESNUM ? CNotes::GetNote(minnote) : "-",
+            maxnote >= 0 ? CNotes::GetNote(maxnote) : "-",
             minvol <= 15 ? minvol : 0,
             maxvol >= 0 ? maxvol : 0);
 
@@ -2096,11 +2051,11 @@ void CSong::InstrInfo(int instr, TInstrInfo* iinfo, int instrto)
         {
             s += "\n\nNote listing:\n";
             int lc = 0;
-            for (i = 0; i < NOTESNUM; i++)
+            for (i = 0; i < CNotes::NOTESNUM; i++)
             {
                 if (withnote[i])
                 {
-                    s += notes[i];
+                    s += CNotes::GetNote(i);
                     lc++;
                     if (lc < 12)
                         s += " ";
@@ -2442,7 +2397,7 @@ void CSong::SongClearLine()
 void CSong::TracksOrderChange()
 {
     // Stop the sound first
-    Stop();	
+    Stop();
     CSongTracksOrderDlg dlg;
     dlg.m_songlinefrom.Format("%02X", m_TracksOrderChange_songlinefrom);
     dlg.m_songlineto.Format("%02X", m_TracksOrderChange_songlineto);
@@ -2534,7 +2489,7 @@ void CSong::Songswitch4_8(int tracks4_8)
         }
     }
 
-    CAtari::InitRMTRoutine();
+    g_Atari.Init(IsNTSC());
 }
 
 int CSong::GetEffectiveMaxtracklen()
@@ -3106,7 +3061,7 @@ void CSong::RenumberAllInstruments(int type)
     }
 
     //and finally write all the instruments in Atari memory
-    for (i = 0; i < INSTRSNUM; i++) g_Instruments.WasModified(i); //writes to Atari
+    for (i = 0; i < INSTRSNUM; i++) g_Instruments.Update(i); //writes to Atari
 
     //Hooray, done
 }
@@ -3148,7 +3103,7 @@ BOOL CSong::Play(PlayMode mode, BOOL follow, int special)
     switch (mode)
     {
     case PLAY_SONG: //whole song from the beginning including initialization (due to portamentum etc.)
-        CAtari::InitRMTRoutine();
+        g_Atari.Init(IsNTSC());
         m_songplayline = 0;
         m_trackplayline = 0;
         m_speed = m_mainSpeed;
@@ -3219,7 +3174,7 @@ BOOL CSong::Play(PlayMode mode, BOOL follow, int special)
         }
     }
 
-    WaitForTimerRoutineProcessed();
+    g_SongTimer.WaitForTimerRoutineProcessed();
     m_followplay = follow;
     PlayBeat();						//sets m_speeda
     m_speeda++;						//(Original comment by Raster, April 27, 2003) adds 1 to m_speed, for what the real thing will take place in Init
@@ -3245,7 +3200,7 @@ void CSong::Stop()
         g_Undo.Separator();
         m_quantization_note = m_quantization_instr = m_quantization_vol = -1;
         SetPlayPressedTonesSilence();
-        WaitForTimerRoutineProcessed();	// The Timer Routine will run at least once
+        g_SongTimer.WaitForTimerRoutineProcessed(); // The Timer Routine will run at least once
     }
 }
 
@@ -3329,14 +3284,14 @@ TrackLine:
         int v = vol[t];
         if (v >= 0 && v < 16)
         {
-            if (n >= 0 && n < NOTESNUM /*&& i>=0 && i<INSTRSNUM*/)		// adjustment for routine compatibility
+            if (n >= 0 && n < CNotes::NOTESNUM /*&& i>=0 && i<INSTRSNUM*/)		// adjustment for routine compatibility
             {
                 if (i < 0 || i >= INSTRSNUM) { i = 255; }				// adjustment for routine compatibility
-                CAtari::SetTrack_NoteInstrVolume(t, n, i, v);
+                g_AtariTrackerDriver->SetTrackNoteInstrumentVolume(t, n, i, v);
             }
             else
             {
-                CAtari::SetTrack_Volume(t, v);
+                g_AtariTrackerDriver->SetTrackVolume(t, v);
             }
         }
     }
@@ -3355,19 +3310,20 @@ TrackLine:
 
 BOOL CSong::PlayVBI()
 {
-    if (!m_play) return 0;	//not playing
+    if (!m_play) { return 0; }	//not playing
 
     m_speeda--;
-    if (m_speeda > 0) return 0;	//too soon to update
+    if (m_speeda > 0) { return 0; }	//too soon to update
 
     m_trackplayline++;
 
     //m_play mode 4 => only plays range in block
-    if (m_play == PLAY_BLOCK && m_trackplayline > m_trackplayblockend) m_trackplayline = m_trackplayblockstart;
+    if (m_play == PLAY_BLOCK && m_trackplayline > m_trackplayblockend) { m_trackplayline = m_trackplayblockstart; }
 
     // If none of the tracks end with "end", then it will end when reaching m_maxtracklen
-    if (m_trackplayline >= g_Tracks.GetMaxTrackLength())
+    if (m_trackplayline >= g_Tracks.GetMaxTrackLength()) {
         SongPlayNextLine();
+    }
 
     PlayBeat();	//1 pattern track line play
 
@@ -3377,7 +3333,7 @@ BOOL CSong::PlayVBI()
         m_songactiveline = m_songplayline;
 
         //Quantization
-        if (m_quantization_note >= 0 && m_quantization_note < NOTESNUM
+        if (m_quantization_note >= 0 && m_quantization_note < CNotes::NOTESNUM
             && m_quantization_instr >= 0 && m_quantization_instr < INSTRSNUM
             )
         {
@@ -3385,7 +3341,7 @@ BOOL CSong::PlayVBI()
             if (g_respectvolume)
             {
                 int v = TrackGetVol();
-                if (v >= 0 && v <= MAXVOLUME) vol = v;
+                if (v >= 0 && v <= MAXVOLUME) { vol = v; }
             }
 
             if (TrackSetNoteInstrVol(m_quantization_note, m_quantization_instr, vol))
@@ -3433,8 +3389,7 @@ void CSong::TimerRoutine()
     // a good enough compromise for now is to make use of a '17-17-16' miliseconds "groove"
     // this isn't proper, but at least, this makes the timing much closer to the actual thing
     // the only issue with this is that the sound will have very slight jitters during playback 
-    ChangeTimer(g_ntsc ? m_timerRoutineTick[g_timerGlobalCount % 3] : 20);
+    ChangeTimer(IsNTSC() ? m_timerRoutineTick[g_timerGlobalCount % 3] : 20);
 
     g_timerGlobalCount++;			// Increment by one each time Timer Routine was processed
-    m_timerRoutineProcessed = true;	// TimerRoutine took place
 }
