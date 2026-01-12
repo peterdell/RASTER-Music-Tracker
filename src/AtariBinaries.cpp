@@ -185,7 +185,7 @@ unsigned char tracker_Unpatched[] =
 // "distortion guitar(16bit) and sync modes(2 - tone filter & 16bit)."
 // "At the end of 2009 this tune was named as "Instrumentarium Remix 1"; it's the same tune."
 // "I was using exotic undocumented PoKey features.It takes almost no CPU time."
-unsigned char tracker_Patch3_Instrumentarium[] =
+unsigned char tracker_Patch3[] =
 {
   0xff, 0xff, 0x82, 0x31, 0x7f, 0x3a, 0x80, 0x00, 0x00, 0x20, 0x40, 0xa0, 0x00, 0x80, 0x80, 0x80,
   0x80, 0xa0, 0x00, 0xc0, 0x40, 0xc0, 0x00, 0x01, 0x05, 0x0b, 0x00, 0x01, 0xff, 0xff, 0x01, 0x01,
@@ -1459,8 +1459,8 @@ bool CRmtAtariBinaries::GetTrackerDriverBinary(TrackerDriverVersion trackerDrive
         binary = tracker_Unpatched; size = sizeof(tracker_Unpatched);
         return true;
 
-    case PATCH3_INSTRUMENTARIUM:
-        binary = tracker_Patch3_Instrumentarium; size = sizeof(tracker_Patch3_Instrumentarium);
+    case PATCH3:
+        binary = tracker_Patch3; size = sizeof(tracker_Patch3);
         return true;
 
     case PATCH6:

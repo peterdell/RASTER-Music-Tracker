@@ -54,7 +54,7 @@ void CRmtTest::SaveBinaries() {
     TrackerDriverVersion trackerDrivers[] = {
     UNPATCHED ,
 UNPATCHED_WITH_TUNING ,
-      PATCH3_INSTRUMENTARIUM,
+      PATCH3,
         PATCH6,
         PATCH8 ,
         PATCH16 ,
