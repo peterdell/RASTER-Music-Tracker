@@ -1850,7 +1850,7 @@ void CRmtView::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
     else
         if (nChar == VK_CONTROL)
         {
-            g_controlkey = TRUE;
+            g_controlkey = FALSE;
         }
         else
             if (nChar == VK_LMENU)
