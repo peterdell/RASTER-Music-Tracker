@@ -29,9 +29,9 @@ Technical:
 
 Changes in RMT 1.35
 -------------------
-A complete version history was added (doc/rmt_version.md), including external download links and (where possible) branches. (2026-01-12)
-The GitHub repository for RMT 1.34 at "https://github.com/VinsCool/RASTER-Music-Tracker" was archived by VinsCool. It will be kept as a reference and still includes several features (e.g., keyboard layout handling) that might find their way into RMT 2.0. (2026-01-08))
-Technical documentation for the RMT tracker and the RMT current and future module file format versions was created. (Build 2026-01-06)
+- A complete version history was added (doc/rmt_version.md), including external download links and (where possible) branches. (2026-01-12)
+- The GitHub repository for RMT 1.34 at "https://github.com/VinsCool/RASTER-Music-Tracker" was archived by VinsCool. It will be kept as a reference and still includes several features (e.g., keyboard layout handling) that might find their way into RMT 2.0. (2026-01-08))
+- Technical documentation for the RMT tracker and the RMT current and future module file format versions was created. (Build 2026-01-06)
 Technical:
 
 - The debug display was extended to include the character of the last pressed key and the SHIFT and CTRL modifier keys (raster-atari-org#9). (Build 2026-01-12)
