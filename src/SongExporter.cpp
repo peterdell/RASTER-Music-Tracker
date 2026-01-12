@@ -495,7 +495,7 @@ bool CSongExporter::ShowXEXExportDialog(const CSong& song, CXEXFile& xexFile)
     CString str;
 
     str = xexFile.songname;
-    TODO Move this to InitFromSong!
+    // TODO Move this to InitFromSong!
 
     if (g_rmtmsxtext != "")
     {
