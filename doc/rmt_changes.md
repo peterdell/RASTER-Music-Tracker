@@ -32,7 +32,7 @@ Technical:
 
 Changes in RMT 1.35
 -------------------
-- The GitHub repository for RMT 1.34 https://github.com/VinsCool/RASTER-Music-Tracker was archived by VinsCool. It will be kept as a reference and still contains a number of things (e.g. keyboard layout handling) that might find their way into RMT 2.0.
+- The GitHub repository for RMT 1.34 https://github.com/VinsCool/RASTER-Music-Tracker was archived by VinsCool. It will be kept as a reference and still contains a number of things (e.g. keyboard layout handling) that might find their way into RMT 2.0. (2026-01-08))
 - Technical documentation of the RMT tracker and the RMT current and future module file format version were created. (Build 2026-01-06)
 
 Technical:
@@ -42,7 +42,7 @@ Technical:
   - the loading/handling of the CPU/POKEY emulation and prepared to both later with ASAP
   - the drawing of the tracker screen.
   - the logic for loading, saving, and editing tunings (tuning dialog window).
-- Untranslated parts of the documentation were translated to English. (Build 2026-01-06)
+- Untranslated parts of the documentation and resource files were translated/changed to English. (Build 2026-01-06)
 - The file system structure of the repository was reorganized and cleaned up. (Build 2026-01-06)
 - Update to Visual Studio 2026, toolset v145, only 64-bit builds from now an (Build 2026-01-06)
 
