@@ -181,17 +181,17 @@ At that point, I had simply called this fork "RMT 1.29+Patch16", because of how 
 - Reset the entire sound process (including reloading the .dll plugin) with a SHIFT+ESC combo, helps removing stutters or crackling in some cases
 - Fix a small visual bug related to the colors displayed, which caused conflicts with certain colors used together, and added a case for either being in JAM or EDIT mode when necessary
 - JAM mode is toggled with CTRL+SPACE, the other SPACE shortcuts were removed (since other, better ways to stop the sounds exist anyway)
-- Instruments and song infos can now all be edited in Jam mode, leaving the Tracks and Song blocks the only ones which will be in live test mode.
+- Instruments and song information can now all be edited in Jam mode, leaving the Tracks and Song blocks the only ones which will be in live test mode.
 - Permanently display what mode is being used (EDIT, JAM (MONO) and JAM (STEREO)), with matching color palettes (still in progress)
 - Display Two-Tone Filter, requires the Altirra plugins for proper functionality 
 - PAL/NTSC display in the info area, toggle in-tracker using CTRL+F12
 - Colors fix in the UI
 - New font by PG
 - Fix the SONG block size, as well as its clickable area, and the offset related to it so the currently playing line is centered too
-- Add a PAL/NTSC toggle from a mouse click in the text area associated to it, behaviour is identical to CTRL+F12 when it's executed
+- Add a PAL/NTSC toggle from a mouse click in the text area associated to it, behavior is identical to CTRL+F12 when it's executed
 - Set MAXTRACKLENGTH and switch between 4 and 8 TRACKS from the main interface.
 - New Global UI commands: Song Line Seek Next and Previous. Use with either Multimedia Keys (Seek Next/Prev)
-- Tweak the clickable hitboxes slightly when the text was variable width for the the MONO/STEREO and PAL/NTSC boundaries
+- Tweak the clickable hitboxes slightly when the text was variable width for the MONO/STEREO and PAL/NTSC boundaries
 
 This is around that time, about a month later, that another surprise had happened, spicing up this adventure!
 To make a pretty short story, out of nowhere, I was also sent the sources of RMT 1.30 this time! 
@@ -226,7 +226,7 @@ A lot of his changes helped me a lot to get unstuck on a bunch of things I was u
 - Remove the old code and references to CAPSLOCK, NUMLOCK and SCROLLLOCK since they are no longer needed
 - Fix a bug where holding SHIFT through CAPSLOCK caused instrument name cursor to function backwards, now having CAPSLOCK active won't cause any conflict with the arrow keys while SHIFT is held
 - Tiny change to the is_editing_infos boolean, making sure it's actually only setting 1 when the cursor is on the Song Name area, while the Speed values will always return 0
-- Fix a design oversight where editing in the "Track lines boundaries go to next/previous songlines" parameter being disabled would not take the pattern size into account and overflow past the "END" rows
+- Fix a design oversight where editing in the "Track lines boundaries go to next/previous song lines" parameter being disabled would not take the pattern size into account and overflow past the "END" rows
 - Make sure the selection block cursor won't cross pattern boundaries, fixing both a graphical bug and the awkward block selection behaviour where it would also overflow into the next/previous pattern
 - Allow tracks to be navigated with LEFT and RIGHT keys seamlessly, making all Tracks columns (Note, Instrument, Volume and Speed) accessible unconditionally
 - Force the Instrument column to insert a note if the note keys are used on empty rows, effectively making it behave the same as the Note column. Will use the original instrument number function otherwise
@@ -320,7 +320,7 @@ Enjoy this new unofficial Raster Music Tracker version! More updates and more ra
 
 
 Changes in RMT 1.30 (Rudla's version)
--------------------
+-------------------------------------
 
 - Main window can be resized
 - Fixed bug with uninitialized COM
@@ -330,8 +330,8 @@ Changes in RMT 1.30 (Rudla's version)
 - Config option to disable use of NumLock
 
 
-Changes in RMT 1.29 (unreleased?)
--------------------
+Changes in RMT 1.29 (unreleased)
+--------------------------------
 
 New songs
 - Song "cured.rmt" (by Tatqoo)
@@ -341,8 +341,8 @@ New songs
   in "songs/nooly/" directory.
 
 
-Changes in RMT 1.28 (last official version by Raster... Rest in Peace, good sir, and thanks for everything!)
--------------------
+Changes in RMT 1.28 (last official version by Raster) ... Rest in Peace, good sir, and thanks for everything!)
+-----------------------------------------------------
 
 - Recognition of any changes (indicated by '*' mark after filename in title bar)
   and dialog with "Save current changes?" question (when new song, load song,
@@ -350,11 +350,11 @@ Changes in RMT 1.28 (last official version by Raster... Rest in Peace, good sir,
 - Hotkey for "Cursor go to the track speed column" changed to Control+Z.
   (There is also new menu item "Track - Cursor go to the speed column".)
 - Control+S is new hotkey for "File - Save" from now.
-  (If this hotkey is used, messagebox with query "Save song to file '...'?"
+  (If this hotkey is used, a message box with query "Save song to file '...'?"
   appears and you have to confirm your request. Also you can disable this
-  query messagebox in Config dialog (menu View - Configuration)).
+  query message box in Config dialog (menu View - Configuration)).
 - New hotkey Control+L for "File - Load...".
-- New hotkey ScrollLock for autofollow mode turn on/off.
+- New hotkey ScrollLock for auto-follow mode turn on/off.
 - Sound click when "Undo" hotkey is pressed but undo is not possible.
 - Handling of track events with zero volume during manual step replaying
   (by Shift+/Control+/Enter hotkey) corrected.
@@ -435,7 +435,7 @@ Changes in RMT 1.27
   (requested by LiSU)
 - New options in Config dialog (menu View - Configuration):
   * TrackEdit cursor vertical range ... there can be selected value from 0 to 8
-    for vertical cursor movement in trackedit area. (default is 6)
+    for vertical cursor movement in track edit area. (default is 6)
   * Reset of Atari sound routine when ESC is pressed. (default is off)
     (suggested by Miker)
 - New TrackEdit and SongEdit hotkeys:
@@ -447,12 +447,12 @@ Changes in RMT 1.27
   * "Restore" ... Restore block to original state (Alt+R)
   * "Play/Stop" ... Play the selected block repeatedly / stop playing (Alt+P)
   (suggested by LiSU)
-- Function "Change all the instrument occurences" improved:
+- Function "Change all the instrument occurrences" improved:
   * Checkbox "Only in some channels"
     with special dialog box for L1..R4 channels selection.
-  * Checkbox "Only in songlines" for songlines from/to selection.
+  * Checkbox "Only in song lines" for song lines from/to selection.
   Important note: If some tracks are used inside and outside of selected
-  channels+songlines area and instrument changes should be performed,
+  channels+song lines area and instrument changes should be performed,
   new tracks will be created for changes in selected area only
   and song will be adjusted automatically.
   (suggested by Sal Esquivel)
@@ -463,7 +463,7 @@ Changes in RMT 1.27
   "File - Export As - RMT stripped song file (*.rmt)" there are two new checkboxes:
   * "GlobalVolumeFade support" (RMTGLOBALVOLUMEFADE variable)
     (requested by Dely)
-  * "No starting songline" (start from songline 0 always)
+  * "No starting song line" (start from song line 0 always)
 - Bugfix of Path setting for loading/saving of songs/instruments/tracks.
 - Bugfix of lines' coordinates in "Song columns' order change/copy/clear" dialog.
 - Bugfix of default extensions addition.
@@ -477,7 +477,7 @@ RMT routine changes
   Example is in "/asm_src/volume/" directory.
 - New size optimalization option supported:
   FEAT_NOSTARTINGSONGLINE (it can save 22 or 24 bytes) for song starting
-  from songline 0 always (no support for songline init by A-register).
+  from song line 0 always (no support for song line init by A-register).
   For example "/asm_src/optim/musico.xex" is 22 bytes shorter now.
   (Coders, you have to use new rmtplayr.a65 and rmt_feat.a65)
 
@@ -589,8 +589,8 @@ Changes in RMT 1.25
 - Cursor background color was improved (better visibility). (suggested by PG)
 - menu Instrument - Info about using of actual instrument - Track listing
   info added and volume range detection improved (standalone volume lines are processed too).
-- menu Instrument - Change all the instrument occurences - new options:
-  * "From/To instrument" ranges comboboxes.
+- menu Instrument - Change all the instrument occurrences - new options:
+  * "From/To instrument" ranges combo boxes.
   * "One instrument only" checkbox.
   * "Changes only in current track" checkbox. (suggested by PG)
   * "Default ranges" button.
@@ -612,7 +612,7 @@ Changes in RMT 1.25
 - Some improvements in block effect/tool (menu Block - Effect/tools or Control+F)
   for "Echo" effect:
   Fade out level can be defined as percentage value for proportional volume degression
-  or as integer value for linear volume substraction.
+  or as integer value for linear volume subtraction.
   Support for echo ending on minimal volume. (suggested by LiSU)
 - Some configuration parameters are stored to RMW working file.
 - Suppression of Atari "Attract mode" in exported "XEX Atari executable msx".
@@ -632,8 +632,8 @@ Changes in RMT 1.24
 -------------------
 
 - New options in Config dialog (menu View - Configuration):
-  * Alternative trackline numbering
-    (in accordance with trackline highlight step).
+  * Alternative track line numbering
+    (in accordance with track line highlight step).
   * Swap "replay note / replay all notes" functions
     (Enter / Control+Enter hotkeys).
   (both options requested by LiSU)
@@ -641,7 +641,7 @@ Changes in RMT 1.24
   mouse cursor position):
   * Song scroll up/down
   * Tracks scroll up/down
-  * Instrument prev/next
+  * Instrument previous/next
   * Volume up/down
   * Octave up/down
 - Bookmark support - toolbar button "Play from bookmark".
@@ -651,8 +651,8 @@ Changes in RMT 1.24
     (also current beat speed is stored).
   * F1 ... Play song from the bookmark position (only if bookmark is set up)
     include beat speed initialization by stored bookmark beat speed.
-  * Shift+F1 ... Similar to F1, but with autofollow of the currently played position.
-  Note: If insert/delete songline operations are performed,
+  * Shift+F1 ... Similar to F1, but with auto-follow of the currently played position.
+  Note: If insert/delete song line operations are performed,
   bookmark is moved down/up automatically.
 - Other small corrections and bugfixes.
 
@@ -690,8 +690,8 @@ Changes in RMT 1.23
   export dialog with "SFX support" checkbox.
   You can use instruments for sound effects in your programs -
   - example is in "/asm_src/sfx/" directory.
-- Better playmode switching to "Play from currently edited position"
-  if song is playing with "follow song" already. (Sounds aren't breaked.)
+- Better play mode switching to "Play from currently edited position"
+  if song is playing with "follow song" already. (Sounds aren't interrupted.)
 - Some internal improvements.
   (rmt_ata.sys,rmt_msx.sys,rmt_sap4.sys and rmt_sap8.sys system data files
   are included in RMT tracker executable.)
@@ -732,7 +732,7 @@ Changes in RMT 1.21
 -------------------
 
 - Enhanced mouse control:
-  * Set cursor position in trackedit area, songedit area,
+  * Set cursor position in track edit area, song edit area,
     instrument parameters / envelope / table area, info / speed area.
   * Octave selection by mouse (click to "OCTAVE x-y" text).
   * Volume selection by mouse (click to "VOLUME x" text).
@@ -744,12 +744,12 @@ Changes in RMT 1.21
 - New hotkeys:
   SongEdit:
   * Enter ... Exit from SongEdit section.
-  * Home ... Move cursor to first songline.
-  * End ... Move cursor to last songline.
-  * PageUp ... Move cursor 4 songlines up.
-  * PageDown ... Move cursor 4 songlines down.
+  * Home ... Move cursor to first song line.
+  * End ... Move cursor to last song line.
+  * PageUp ... Move cursor 4 song lines up.
+  * PageDown ... Move cursor 4 song lines down.
 - New option in Config dialog (menu View - Configuration):
-  * Don't use hardware soundbuffer
+  * Don't use hardware sound buffer
     (default is off).
     (Maybe it could help if you have some system sound related problems.)
 
@@ -786,7 +786,7 @@ New songs
 Changes in RMT 1.19
 -------------------
 
-- New combobox in main toolbar for setting number of lines (from 0 to 8)
+- New combo box in main toolbar for setting number of lines (from 0 to 8)
   cursor will scroll down after entering notes or pressing space key.
   Also new hotkeys for control of this parametr:
   NumLock ... +1, Shift+NumLock ... -1
@@ -797,7 +797,7 @@ Changes in RMT 1.19
   * button "Copy left-->right"
   * button "Copy left<--right"
   * button "Clear all"
-  * range parameters "From songline $:__" and "To songline $:__"
+  * range parameters "From song line $:__" and "To song line $:__"
 
 New songs
 - 11 songs from Tatqoo/Taquart in "songs/tatqoo" directory.
@@ -829,7 +829,7 @@ Changes in RMT 1.17
   or toolbar button "FX") function: "Modify notes, instruments and volumes".
 - Function "Song - Prepare song line with unused empty tracks (Control+P)"
   was changed to "Song - Insert new line with unused empty tracks (Control+P)"
-  and now it insert this new songline into actual song line positions,
+  and now it insert this new song line into actual song line positions,
   not to line below.
 - Function "Song - Prepare duplicated song line (Control+O)"
   was changed to "Song - Insert copy or clone of song line(s) (Control+O)".
@@ -907,7 +907,7 @@ Changes in RMT 1.15
 -------------------
 
 - Quadruple instrument speed allowed also for 8 tracks STEREO modules.
-- .rmt (.txt,.rmw) filename can be used as the commandline parameter
+- .rmt (.txt,.rmw) filename can be used as the command line parameter
   for the automatic loading of this file after start of the RMT tracker.
   (It's recommended to make association for "rmt" extension to run RMT tracker.)
 - Show Play time counter (from 00.0 sec to 9:59 minutes).
@@ -945,7 +945,7 @@ RMT routine changes
 
 Bugfixes
 - Bug in rmtplayr.a65 initialization part if nonzero "starting song line position"
-  was used. (This problem occured in some cases only.)
+  was used. (This problem occurred in some cases only.)
 - Buffer overflow error with export of stripped RMT file for too high address.
 - Other small corrections and bugfixes.
 
@@ -969,7 +969,7 @@ Changes in RMT 1.14
   * Expand loop.
 - Menu Instrument:
   * Info about using of actual instrument.
-  * Change all the instrument occurences.
+  * Change all the instrument occurrences.
 - Menu Song:
   * Song switch to 8 tracks / Song switch to mono 4 tracks.
   * Tracks' order change in whole song.
@@ -1066,7 +1066,7 @@ Changes in RMT 1.11
 - New input/output file format: TXT song files (*.txt).
   (It's simple text format for easy making any convert tools.)
 - Change of toolbar icon for PROVE MODE and new icon for MIDI on/off
-- New TrackEdit block function:
+- New track edit block function:
   Control+E ..exchange of block select data and the clipboard data.
 - Show the AUDF, AUDC and AUDCTL Pokey registers
   (default is off, turn on by menu View - Pokey chip registers)
@@ -1115,7 +1115,7 @@ Bugfixes
 - Tab key while edit the instrument name (no CapsLock off).
 - PageUp/Down for octave up/down in Prove mode.
 - Instrument volume curve fault by mouse position after the instrument load.
-- Mouse doubleclick to track/channels turn on/off.
+- Mouse double-click to track/channels turn on/off.
 - All the showed messages (message boxes) are owned by RMT application now.
 
 
@@ -1135,7 +1135,7 @@ Improvements
 - Use the hardware sound buffer if possible (instead of software sound buffer).
 - Initialize the file load directory to program location.
 - Block toolbar is showed by default.
-- Much more summary informations in the About box.
+- Much more summary information in the About box.
 - Text parameters editing was changed a bit. Because of ShiftKey is used for playing
   the notes, You have to press the CapsLock key for switch to "normal" ShiftKey behaviour
   (i.e. ShiftKey+Key for entering uppercase and other (!@#$%^&*()_+:"<>?|) characters).
@@ -1196,7 +1196,7 @@ TrackEdit
 - New toolbar for block data modifications: menu View - Block toolbar. All this modify functions are available also by hotkeys.
 - Block data modification hotkeys (the block must be selected at first):
   * Shift+Control+A switch between block modify mode all / current instrument only.
-  * Shift+Control+page_up,page_down do transpose up,down notes in the block (by semitones).
+  * Shift+Control+page_up,page_down do transpose up, down notes in the block (by semitones).
   * Shift+Control+left,right do change of instrument numbers in the block.
   * Shift+Control+Num-,Num+ do change of volumes in the block.
   Note transpositions, instrument changes and volume changes are indicated in window statusbar at the bottom.
