@@ -3,7 +3,7 @@
 ### About
 
 RASTER Music Tracker (short RMT) is a cross-platform tool for making Atari XL/XE music on a Windows PC.
-RMT uses the Atari XL/XE music routines created by Radek Štěrba from 2003 to 2009.
+RMT uses the Atari XL/XE music routines created by Radek Štěrba from 2002 to 2009.
 It was a small revolution for all Atari musicians and fans.
 
 This fork is the latest development branch of RMT, version 1.35.
