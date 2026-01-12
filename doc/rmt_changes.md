@@ -37,12 +37,12 @@ Technical:
 - The debug display was extended to include the character of the last pressed key and the SHIFT and CTRL modifier keys (raster-atari-org#9). (Build 2026-01-12)
 - The following parts were changed (Build 2026-01-06)
   - The initialization during the start.
-  - The loading/handling of the CPU/POKEY emulation be prepared to do both later with ASAP.
+  - The loading/handling of the CPU/POKEY emulation is now prepared to do both later with ASAP.
   - The drawing of the tracker screen.
   - The logic for loading, saving, and editing tunings (tuning dialog window).
 - Most remaining untranslated parts of the documentation and resource files were translated/changed to English. (Build 2026-01-06)
-- The file system structure of the repository was reorganized and cleaned up. (Build 2026-01-06)
-- The solution was updated to Visual Studio 2026, toolset v145, only 64-bit builds from now an (Build 2026-01-06)
+- The repository's file system structure was reorganized and cleaned up. (Build 2026-01-06)
+- The solution was updated to Visual Studio 2026, toolset v145, only 64-bit builds from now on (Build 2026-01-06)
 
 Changes in RMT 1.34.00 
 ----------------------
