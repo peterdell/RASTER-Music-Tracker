@@ -1,13 +1,17 @@
-This is the overview of the existing version.
+# RMT Versions
+
+This is the overview of the existing versions.
 The detailed changes are in the [change history](rmt_changes.md).
 
 ## Official Versions
+Only these versions should be used for productive usage.
 
-| Date       | Version               | Binaries | Source Code | Comment |
-| Daily      | RMT 1.35    (daily)   | [rmt135.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt135.zip)                             | [daily](https://github.com/peterdell/RASTER-Music-Tracker/tree/dev)           | Uses VU-Player V2.0|
-| 2023-03-10 | RMT 1.34.00 (stable)  | [rmt134.0.00.2023-03-10.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.0.2023-03-10.zip)| [stable](https://github.com/raster-atari-org/RASTER-Music-Tracker/tree/stable)| Uses VU-Player V2.0|
-| 2023-03-07 | RMT 1.34.00 (release) | [rmt134.00.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.00.zip)                       | [release](https://github.com/VinsCool/RASTER-Music-Tracker)                   | Uses VU Player V1.0|
-| 2023-03-07 | RMT 1.28    (release) | [rmt128.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt128.zip)                             | n/a                                                                           | Last official version by Radek Štěrba|
+| Date       | Version               | Binaries                                                                                                          | Source Code                                                                                     | Comment |
+|------------|-----------------------|-------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|---------|
+| Daily      | RMT 1.35    (daily)   | [rmt135.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt135.zip)                             | [daily](https://github.com/peterdell/RASTER-Music-Tracker/tree/dev)                             | The build date is in the title. Uses VU-Player V2.0|
+| 2023-03-10 | RMT 1.34.00 (stable)  | [rmt134.00-stable.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.00-stable.zip)         | [1.34.00-stable](https://github.com/raster-atari-org/RASTER-Music-Tracker/tree/1.34.00-stable)  | Uses VU-Player V2.0|
+| 2023-03-07 | RMT 1.34.00 (release) | [rmt134.00.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.00.zip)                       | [1.34.00](https://github.com/raster-atari-org/RASTER-Music-Tracker/tree/1.34.00)                | Uses VU Player V1.0|
+| 2009-05-19 | RMT 1.28    (release) | [rmt128.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt128.zip)                             | n/a                                                                                             | Last official version by Radek Štěrba|
 
 
 
@@ -16,22 +20,22 @@ The detailed changes are in the [change history](rmt_changes.md).
 These versions were released on AtariAge as intermediate versions.
 They are listed here only for documentation and preservation purposes and should not be used.
 
-| Date       | Version          | Binaries                                                                                            | Source Code                                                                | Comment |
-|------------|------------------|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|---------|
-| 2022-05-06 | RMT 1.33.00 beta | [rmt133.00BETA.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt133.00BETA.zip) |  
-| 2022-02-08 | RMT 1.32.06      | [rmt132.06.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt132.06.zip)         |  
-| 2022-02-01 | RMT 1.32.05      | [rmt132.05.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt132.05.zip)         |
-| 2022-01-29 | RMT 1.32.04      | [rmt132.04.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt132.04.zip)         |
-| 2021-12-30 | RMT 1.31.22      | [rmt131.22.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt131.22.zip)         |
-| 2021-12-27 | RMT 1.31.21      | [rmt131.21.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt131.21.zip)         |
-| 2016-07-31 | RMT 1.30         | [rmt130.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt130.zip)               | [1.30](https://github.com/raster-atari-org/RASTER-Music-Tracker/tree/1.30) | Version by Rudla Kuda. Requires [MFC](https://www.microsoft.com/de-DE/download/details.aspx?id=26999)|
-| 2010-11-15 | RMT 1.29         | n/a                                                                                                 | [1.29](https://github.com/raster-atari-org/RASTER-Music-Tracker/tree/1.29) | Last official version by Radek Štěrba                                                                |
+| Date       | Version          | Binaries                                                                                    | Source Code                                                                | Comment |
+|------------|------------------|---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|---------|
+| 2022-05-06 | RMT 1.33.00 beta | [rmt133.00.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt133.00.zip) | n/a                                                                        |         |  
+| 2022-02-08 | RMT 1.32.06      | [rmt132.06.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt132.06.zip) | n/a                                                                        |         |  
+| 2022-02-01 | RMT 1.32.05      | [rmt132.05.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt132.05.zip) | n/a                                                                        |         |
+| 2022-01-29 | RMT 1.32.04      | [rmt132.04.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt132.04.zip) | n/a                                                                        |         |
+| 2021-12-30 | RMT 1.31.22      | [rmt131.22.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt131.22.zip) | n/a                                                                        |         |
+| 2021-12-27 | RMT 1.31.21      | [rmt131.21.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt131.21.zip) | n/a                                                                        |         |
+| 2016-07-31 | RMT 1.30         | [rmt130.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt130.zip)       | [1.30](https://github.com/raster-atari-org/RASTER-Music-Tracker/tree/1.30) | Version by [Rudla Kuda](https://github.com/rudla). Requires [MFC](https://www.microsoft.com/de-DE/download/details.aspx?id=26999)|
+| 2010-11-15 | RMT 1.29         | n/a                                                                                         | [1.29](https://github.com/raster-atari-org/RASTER-Music-Tracker/tree/1.29) | Last official version by Radek Štěrba                                                                |
           
 
 
 ## Historic Versions
 
-These versions were created by Radek Štěrba prior to RMT 1.28, which was the de facto standard from 2008-2021.
+Radek Štěrba created these versions before RMT 1.28, which was the de facto standard from 2008 to 2021.
 They are listed here only for documentation and preservation purposes and should not be used.
 
 | Date    | Version       | Binaries                                                             | Source Code |

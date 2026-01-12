@@ -32,6 +32,7 @@ Technical:
 
 Changes in RMT 1.35
 -------------------
+- A complete version history was added (doc/rmt_version.md) including external dowloads links and (where possible) branches. (2026-01-12)
 - The GitHub repository for RMT 1.34 https://github.com/VinsCool/RASTER-Music-Tracker was archived by VinsCool. It will be kept as a reference and still contains a number of things (e.g. keyboard layout handling) that might find their way into RMT 2.0. (2026-01-08))
 - Technical documentation of the RMT tracker and the RMT current and future module file format version were created. (Build 2026-01-06)
 
