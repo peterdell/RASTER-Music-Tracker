@@ -159,6 +159,7 @@
     <ClCompile Include="ASMFile.cpp" />
     <ClCompile Include="ASMFileBuilder.cpp" />
     <ClCompile Include="ASMFileExporter.cpp" />
+    <ClCompile Include="AssemblerTypes.cpp" />
     <ClCompile Include="astil.c" />
     <ClCompile Include="Atari.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
@@ -328,6 +329,7 @@
     <ClInclude Include="ASMFile.h" />
     <ClInclude Include="ASMFileBuilder.h" />
     <ClInclude Include="ASMFileExporter.h" />
+    <ClInclude Include="AssemblerTypes.h" />
     <ClInclude Include="astil.h" />
     <ClInclude Include="Atari.h" />
     <ClInclude Include="AtariIO.h" />

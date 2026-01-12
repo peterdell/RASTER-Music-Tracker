@@ -291,6 +291,9 @@
     <ClCompile Include="AtariTrackerDriver.cpp">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
+    <ClCompile Include="AssemblerTypes.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\ASM</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigDlg.h">
@@ -507,7 +510,10 @@
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
     <ClInclude Include="TrackerDriverVersion.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="AssemblerTypes.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\ASM</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

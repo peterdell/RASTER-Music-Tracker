@@ -118,12 +118,6 @@ enum PlayMode : int {
 
 };
 
-enum AssemblerFormat : int
-{
-    ATASM = 0,
-    XASM = 1
-};
-
 //bits in TRACKFLAG
 #define TF_NOEMPTY		1
 #define TF_USED			2
