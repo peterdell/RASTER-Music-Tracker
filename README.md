@@ -27,7 +27,7 @@ Please provide your feedback about the daily version via one of the following ch
   Thank you for everything you did, we truly miss you <3.
 - Robert Petruzela, Bob!k/C.P.U. and - JirkaS/C.P.U.
 - [Vin Samuel](https://github.com/VinsCool), VinsCool, 2021-2024
-- [Peter Dell](www.wudsn.com), JAC! 2024 to present
+- [Peter Dell](www.wudsn.com), JAC!, 2024 to present
 
 ### Known Issues
 
