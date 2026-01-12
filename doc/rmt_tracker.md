@@ -6,7 +6,7 @@ RASTER Music Tracker (short RMT) is a cross-platform tool for making Atari XL/XE
 RMT has used the Atari XL/XE music routines created by Radek Štěrba for a very long time. 
 And it was a small revolution for all Atari musicians and fans.
 
-This fork, called 1.35, is the latest development branch of version 1.34 of RMT.
+This fork, called 1.35, is the latest development branch of RMT 1.34.
 It is the continuation of the original version 1.28 of RMT by Štěrba and the version 1.34 of RMT by Vin Samuel.
 
 The following versions are available for download:
@@ -14,7 +14,7 @@ The following versions are available for download:
 - [Stable version 1.34 (2023-03-10)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.0.2023-03-10.zip)
 - [Stable version 1.28 (2009-05-19)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt128.zip)
 
-This document contains the official technical description of the tracker and its design. For each section, the current status, known issues in RMT version 1.34, work in progress, and planned changes for the upcoming version **RMT 2.0** are described. The known issues include not only those affecting the end user, but also those impacting the code maintainers.
+This document contains the official technical description of the tracker and its design. For each section, the current status, known issues in RMT version 1.34, work in progress, and planned changes for the upcoming version **RMT 2.0** are described. The known issues include not only those affecting end users but also those impacting code maintainers.
 
 The description for the RMT module file format is [here](./rmt_format.md).
 
@@ -25,16 +25,18 @@ The latest version of this document and the related documents are located at [Gi
 Glossary
 ---------
 
-The following terms are used in the documentation. Outside of this documentation, they are sometimes used interchangeably when the distinction is not relevant. For example, people will use "song" for "song", "module" as well as for "module files". This documentation will use the terms only as defined below.
+The following terms are used in the documentation. Outside of this documentation, they are sometimes used interchangeably when the distinction is not relevant. For example, people will use "song" when they refer to either the "song", the "module", or the "module file". This documentation will use the terms only as defined below.
 
 - Tracker - An editor program to create music and save it as a file that can be opened for editing again.
+- Tracker Driver - A part of the tracker that generates the actual sound from the data and user input in the tracker. In the case of RMT, the tracker diver is a piece of MOS 6502 code that runs on an emulated Atari 8-bit computer.
+- Tracker Driver Version - A variant of the tracker driver that interprets the data and user input differently. For example, different tracker driver versions have a different feature set or tuning. A correct replay of the music requires using the same tracker driver version that was used to create it.
 - Instrument - A logical device to create a characteristic sound at different pitches.
 - Pattern - A sequence of notes and their attributes (e.g., length, effects, ...) to be played on an instrument.
 - Track - A logical voice. Patterns can be assigned to tracks for replay.
 - Channel - A physical output to create sound. Tracks can be assigned to channels for replay.
 - Mono - Mono indicates that all channels are combined into a single output.
 - Stereo - Stereo indicates that all channels are combined into two different outputs called "left" and "right".
-- Song - A piece of music created in a tracker. It typically contains
+- Song - A piece of music created in a tracker. It consists of a sequence of patterns.
 - Module - A data structure with one or more songs.
 - Module File - A file storing the module.
 - Module File Extension - A file extension of the module files, indicating the type of module, e.g., ".rmt" or ".mod".
@@ -84,21 +86,13 @@ or in `apokeysnd.dll`
 
 ### Known Issues
 
-The following end user issues are already known:
-- The export as SAP Type C generates an invalid files.
-- The export as WAV does not work yet with the Altirra `sa_pokey.dll`.
+Issues are tracked on the GitHub issue tracker:
+https://github.com/raster-atari-org/RASTER-Music-Tracker/issues
 
-The following maintainer issues are already known:
-- The code heavily uses macros and global variables. It it not testable.
+The following general maintainer issues are already known:
+- The code still heavily uses macros and global variables. It is not testable.
 - The DLL loading and initialization is broken and uses workaround to detect frequencies and PAL/NTSC somehow correct
-- Different path in the code to do the same thing (e.g. toggle PAL/NTSC) are copy/past coding, but slightly differebnt.
-
-
-### Work in Progress
-
-- The code for the CPU and Pokey emulation has been restructured in to separate classes.
-- Dependencies have been reduced.
-- The initialization sequence was cleaned up and made more robust.
+- Different path in the code to do the same thing (e.g. toggle PAL/NTSC) are copy/past coding, but slightly different.
 
 ### Future Plans
 
