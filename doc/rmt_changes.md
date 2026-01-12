@@ -1,11 +1,19 @@
 ﻿************************************************************************
-RASTER MUSIC TRACKER - RMT
-by Radek Sterba, Raster/C.P.U., 2002-2009
-currently maintained by Vin Samuel, VinsCool, 2021-2024
-supported by Peter Dell, JAC!, 2024-2026
-New website https://github.com/raster-atari-org/RASTER-Music-Tracker
-Old website http://raster.atari.org
+
+RASTER Music Tracker - RMT
+==========================
+
+- https://github.com/raster-atari-org/RASTER-Music-Tracker
+- Radek Sterba, Raster/C.P.U. (2002-2009)
+- Vin Samuel, VinsCool (2021-2024)
+- Peter Dell, JAC! (2024-2026).
+
 ************************************************************************
+
+Changes in RMT 2.00 (Planned)
+-----------------------------
+- New extended file format
+- New version of RMTPL107.XEX => Where is the source code?
 
 Changes in RMT 1.35
 -------------------
@@ -28,7 +36,7 @@ Changes in RMT 1.34.00
 Changes in RMT 1.33.00 BETA
 ---------------------------
 - THIS VERSION IS A MESS, AND AS SUCH, DOES NOT REFLECT THE GOALS THAT WERE SET FOR RELEASE!
-- Add full Tuning computation code, borrowed from POKEY Frequencies Calculator by VinsCool (https://github.com/VinsCool/POKEY-Frequencies-Calculator).
+- Add full Tuning computation code, borrowed from the [POKEY Frequencies Calculator](https://github.com/VinsCool/POKEY-Frequencies-Calculator) by VinsCool.
 - Early SAP-R Dump and LZSS export capabilities, hardcoded and junk implementation, good as a proof of concept ONLY.
 - Several changes in the sa_pokey procedure code, intended for the Altirra POKEY emulation plugin support improvements.
 - Various bugfixes and experimental changes not reflected in the changelog, but generally made RMT more stable.
@@ -58,7 +66,7 @@ Changes in RMT 1.32.05
 Changes in RMT 1.32.04
 ----------------------
 - Re-introduced the Distortion 6 BASS16 code in RMT, with updated description. You can also set the Distortion used for it with CMD6. $0Y = Distortion
-- Small update on Distortions and Commands description, Added infos for new BASS16 CMD6 code, as well as Distortion A Sawtooth mode using AUTOFILTER + CH1+3 1.79mhz mode.
+- Small update on Distortions and Commands description. Added infos for new BASS16 CMD6 code, as well as Distortion A Sawtooth mode using AUTOFILTER + CH1+3 1.79mhz mode.
 
 
 Changes in RMT 1.32.03
@@ -118,7 +126,7 @@ There I was, sitting with my huge messy reverse-engineering efforts, and the act
 After having exchanged some more emails regarding what I was allowed to do and not to do, I thought I was in good terms with the people keeping the original code safe.
 So as far as I understood, as long as I did not distribute the source code to anyone else, I could do pretty much anything I wanted with it. 
 
-So thanks again, Bobik, and Fandal I believe? as well as Mathy for relaying the emails, for granting me the privilege of having the RMT code in my posession!
+So thanks again, Bobik, and Fandal I believe? As well as Mathy for relaying the emails, for granting me the privilege of having the RMT code in my posession!
 Once I made sure I had the permission to talk about my experiments, and mention I was actually working from the official source code... I was determined to make good use of it...
 
 So I spent a considerable amount of time learning C++ during the following month, just for the sake of pushing onward, and experiment with the RMT code, in hope I could expand it, and also improve it to my liking.
