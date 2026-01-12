@@ -3,44 +3,47 @@
 ### About
 
 RASTER Music Tracker (short RMT) is a cross-platform tool for making Atari XL/XE music on a Windows PC.
-RMT uses the Atari XL/XE music routines created by Radek Štěrba for a very long time and it was small revolution for all Atari musicians and fans.
+RMT uses the Atari XL/XE music routines created by Radek Štěrba from 2002 to 2009.
+It was a small revolution for all Atari musicians and fans.
 
-This fork is the latest development branch of version 1.34 of RMT.
+This fork is the latest development branch of RMT, version 1.35.
 It is the continuation of the original version 1.28 of RMT by Štěrba and the version 1.34 of RMT by Vin Samuel.
 
 The following versions are available for download:
 - [Latest daily build of 1.35 (constantly updated)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt135-daily.zip)
-- [Stable version 1.34 (2023-03-10)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.0.2023-03-10.zip)
+- [Stable version 1.34 (2023-03-10)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt134.00-stable.zip)
 - [Stable version 1.28 (2009-05-19)](https://www.wudsn.com/productions/windows/rastermusictracker/rmt128.zip)
 
-See the [documention of the changes](https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_changes.md) for the differences between the versions.
+See the [change history](https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_changes.md) for the differences between the [versions](https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_versions.md).
 
 Please provide your feedback about the daily version via one of the following channels:
 - Send a [personal message](https://forums.atariage.com/messenger/compose/?to=17404) on AtariAge or create a post in the [AtariAge thread](https://forums.atariage.com/topic/328790-release-raster-music-tracker-v13400)
 - Send an e-mail to jac at wudsn.com
+- Create an issue or a feature request on [GitHub](https://github.com/raster-atari-org/RASTER-Music-Tracker/issues).
 
 ### Credits
 
 - [Radek Štěrba](http://atariki.krap.pl/index.php/Raster/C.P.U.), Raster/C.P.U., 2002-2009 ([original website](http://raster.infos.cz/atari/rmt/rmt.htm))<br>
-  Thank you for everything you did, we truely miss you <3.
+  Thank you for everything you did, we truly miss you <3.
 - Robert Petruzela, Bob!k/C.P.U. and - JirkaS/C.P.U.
-- Vin Samuel, VinsCool, 2021-2024
-- [Peter Dell](www.wudsn.com), JAC! 2024 to present
+- [Vin Samuel](https://github.com/VinsCool), VinsCool, 2021-2024
+- [Peter Dell](www.wudsn.com), JAC!, 2024 to present
 
 ### Known Issues
 
-There are no more changes to the stable version. If you find and issue in the stable version, please test the daily version to see if the issue is already fixed.
+Issues are tracked on the [GitHub issue tracker](https://github.com/raster-atari-org/RASTER-Music-Tracker/issues).
 
-The following issues are already known in the daily version
-- The export as SAP Type C generates an invalid files
-- The export as WAV does not work yet with the Altirra `sa_pokey.dll`.
+There are no more changes to the stable version. If you find an issue in the stable version, please test the daily version to see if it's already fixed.
 
 ### Documentation
 
-- Original [RMT 1.28 documentation](https://html-preview.github.io/?url=https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_en.html)
+- Current [RMT 1.35 Documentation](https://html-preview.github.io/?url=https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_en.html)
+- Original [RMT 1.28 documentation](https://html-preview.github.io/?url=https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_en_128.html)
 
+Technical Documentation
 - Current [RMT Tracker documentation](https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_tracker.md) and discussion
 - Current [RMT Module File Format documentation](https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_format.md) and discussion
+
 
 ### Main features:
 
@@ -65,17 +68,17 @@ Note that this is as of RMT 1.28 and not accurate for 1.34 and later!
   XEX Atari executable MSX file (*.xex), ASM simple notation source (*.asm).
 * Import formats: ProTracker modules (*.mod), Atari XE/XL Theta Music Composer songs (*.tmc)
 * Support for speed/size optimizations of RMT assembler player routine 
-  for concrete RMT module (very useful for background music in demos, games, etc.).
+  for a concrete RMT module (very useful for background music in demos, games, etc.).
 * MIDI IN support!
 * MIDI multitimbral playing possibilities.
-  You can use the RMT like a Atari multitimbral MIDI instrument. 
+  You can use the RMT like an Atari multitimbral MIDI instrument. 
   You have to send MIDI output from your MIDI sequencer or player 
   to RMT MIDI input by means of some virtual MIDI cable (for example 
-  "MIDI Yoke" etc.). MIDI implementation chart is in midi.txt file.
+  "MIDI Yoke" etc.). The MIDI implementation chart is in the midi.txt file.
 
 ### Greetings
 
-- Fox/Taquart - Thanks for [XASM|https://github.com/pfusik/xasm] and [ASAP](https://asap.sourceforge.net)
+- Fox/Taquart - Thanks for [XASM](https://github.com/pfusik/xasm) and [ASAP](https://asap.sourceforge.net)
 - Jaskier/Taquart - Thanks for TMC and a lot of RMT routine speed/size optimizations
 - Tatqoo/Taquart
 - Sack/Cosine
