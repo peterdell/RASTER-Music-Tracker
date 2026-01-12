@@ -591,6 +591,9 @@
     <None Include="..\doc\rmt_en_128.html">
       <Filter>Documentation Files</Filter>
     </None>
+    <None Include="..\doc\rmt_tracker_drivers.md">
+      <Filter>Documentation Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\build\build_rmt-daily-excluded-extensions.txt">

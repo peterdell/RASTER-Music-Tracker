@@ -422,6 +422,7 @@
     <None Include="..\doc\rmt_en.html" />
     <None Include="..\doc\rmt_en_128.html" />
     <None Include="..\doc\rmt_tracker.md" />
+    <None Include="..\doc\rmt_tracker_drivers.md" />
     <None Include="..\doc\rmt_versions.md" />
     <None Include="..\README.md" />
     <None Include=".gitignore" />

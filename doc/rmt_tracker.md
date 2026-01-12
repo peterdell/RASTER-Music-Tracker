@@ -23,8 +23,8 @@ Glossary
 The following terms are used in the documentation. Outside of this documentation, they are sometimes used interchangeably when the distinction is not relevant. For example, people will use "song" when they refer to either the "song", the "module", or the "module file". This documentation will use the terms only as defined below.
 
 - Tracker - An editor program to create music and save it as a file that can be opened for editing again.
-- Tracker Driver - A part of the tracker that generates the actual sound from the data and user input in the tracker. In the case of RMT, the tracker diver is a piece of MOS 6502 code that runs on an emulated Atari 8-bit computer.
-- Tracker Driver Version - A variant of the tracker driver that interprets the data and user input differently. For example, different tracker driver versions have a different feature set or tuning. A correct replay of the music requires using the same tracker driver version that was used to create it.
+- Tracker Driver - A part of the tracker that generates the actual sound from the tracker data and user input. In the case of RMT, the tracker diver is a piece of MOS 6502 code that runs on an emulated Atari 8-bit computer. See [Tracker Drivers](rmt_tracker_drivers.md) for details.
+- Tracker Driver Version - A variant of the tracker driver that interprets the tracker data and user input differently. For example, different tracker driver versions have a distinct feature set or tuning. A correct replay of the music requires using the same tracker driver version that was used to create it. See [Tracker Drivers](rmt_tracker_drivers.md) for details.
 - Instrument - A logical device to create a characteristic sound at different pitches.
 - Pattern - A sequence of notes and their attributes (e.g., length, effects, ...) to be played on an instrument.
 - Track - A logical voice. Patterns can be assigned to tracks for replay.
