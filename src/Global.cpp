@@ -9,7 +9,6 @@
 
 #include "Song.h"
 #include "Undo.h"
-#include <filesystem>
 
 CAtari g_Atari;
 CAtariTrackerDriver* g_AtariTrackerDriver;
@@ -115,15 +114,15 @@ CString GetResourceFolderPath(const CString& folderName) {
     return path.append(g_prgpath.GetString()).append(folderName.GetString()).c_str();;
 
 }
-CString GetResourceFilePath(const CString& folderName, const CString& fileName) {
+
+CString GetResourceFilePath(const std::filesystem::path& relativeFolderPath, const CString& fileName) {
     std::filesystem::path path;
     path.append(g_prgpath.GetString());
-    if (!folderName.IsEmpty()) {
-        path.append(folderName.GetString());
-    }
+    path.append(relativeFolderPath.c_str());
     path.append(fileName.GetString());
     return path.c_str();
 }
+
 
 CString g_lastLoadPath_Songs;		// Path of the last song loaded
 CString g_lastLoadPath_Instruments; //the path of the last instrument loaded

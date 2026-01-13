@@ -429,7 +429,7 @@ void CRmtView::ReadRMTConfig()
 {
 #define NAME(a)	(strcmp(a,name)==0)
 
-    auto filePath = GetResourceFilePath("", CONFIG_FILENAME);
+    auto filePath = GetResourceFilePath(std::filesystem::path(""), CONFIG_FILENAME);
 
     char line[1024];
     char* tmp, * name, * value;
@@ -502,7 +502,7 @@ void CRmtView::ReadRMTConfig()
 
 void CRmtView::WriteRMTConfig()
 {
-    auto s = GetResourceFilePath("", CONFIG_FILENAME);
+    auto s = GetResourceFilePath(std::filesystem::path(""), CONFIG_FILENAME);
     std::ofstream ou(s);
     if (!ou)
     {
@@ -622,7 +622,7 @@ void CRmtView::ReadTuningConfig()
 {
 #define NAME(a)	(strcmp(a,name)==0)
 
-    auto filePath = GetResourceFilePath("", TUNING_FILENAME);
+    auto filePath = GetResourceFilePath(std::filesystem::path(""), TUNING_FILENAME);
     char line[1024];
     char* tmp, * div, * name, * value, * value2;
     std::ifstream in(filePath);
@@ -679,7 +679,7 @@ void WriteFraction(std::ostream& os, const char* id, const CFraction& fraction) 
 
 void CRmtView::WriteTuningConfig()
 {
-    auto filePath = GetResourceFilePath("", TUNING_FILENAME);
+    auto filePath = GetResourceFilePath(std::filesystem::path(""), TUNING_FILENAME);
     std::ofstream os(filePath);
     if (!os)
     {

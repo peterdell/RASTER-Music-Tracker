@@ -14,7 +14,7 @@ bool CSAPFileExporter::ExportSAP_B_LZSS(CSongExport& songExport, CSAPFile& sapFi
     MemoryAddress addressFrom;
     MemoryAddress addressTo;
 
-    auto binaryFilePath = GetResourceFilePath("players", "VUPlayer.obx");
+    auto binaryFilePath = GetResourceFilePath(std::filesystem::path("resources/players"), "vu_player_v2.obx");
     if (!CAtariIO::LoadBinaryFile(binaryFilePath, memory, addressFrom, addressTo))
     {
         CString message;
