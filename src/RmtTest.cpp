@@ -50,6 +50,7 @@ CRmtTest::CRmtTest() {
 }
 
 void CRmtTest::SaveBinaries() {
+    /*
     SendInfoMessage("Test - SaveBinaries");
     TrackerDriverVersion trackerDrivers[] = {
     UNPATCHED ,
@@ -81,6 +82,7 @@ UNPATCHED_WITH_TUNING ,
     auto filePath = GetResourceFilePath("players", fileName);
 
     CFileUtility::SaveFile(filePath, buffer, size);
+    */
 }
 
 void CRmtTest::TestASAP(const CRmtApp& app, const CString fileName) {

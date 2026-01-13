@@ -42,7 +42,7 @@ int CAtariIO::LoadBinaryFile(const char* fname, byte* memory, MemoryAddress& min
 
     WORD bfrom, bto;
 
-    std::ifstream fin(fname, std::ios::binary | std::ios::_Nocreate);
+    std::ifstream fin(fname, std::ios::in | std::ios::binary);
     if (!fin) {
         return 0;
     }

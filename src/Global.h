@@ -12,11 +12,12 @@
 #include "SongTypes.h"
 #include "Atari.h"
 #include "AtariTrackerDriver.h"
+#include <filesystem>
 
 
 void SetProgramFolderPath(const CString& folderPath);
 CString GetResourceFolderPath(const CString& folderName);
-CString GetResourceFilePath(const CString& folderName, const CString& fileName);
+CString GetResourceFilePath(const std::filesystem::path& relativeFolderPath, const CString& fileName);
 
 extern BOOL g_closeApplication;
 extern CDC* g_mem_dc;
