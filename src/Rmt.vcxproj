@@ -88,6 +88,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <CombineFilesOnlyFromTheSameFolder>true</CombineFilesOnlyFromTheSameFolder>
+      <BrowseInformationFile>$(IntDir)</BrowseInformationFile>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dsound.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -108,6 +109,17 @@
       <PreprocessorDefinitions>_AFXDLL;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0405</Culture>
     </ResourceCompile>
+    <PreBuildEvent>
+      <Command>%COMSPEC% /C $(SolutionDir)build\build_rmt_pre.bat $(OutDir)</Command>
+      <Message>Clear output folder completely before build</Message>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy  /e/y $(SolutionDir)rmt\*.*  $(OutDir)</Command>
+      <Message>Copy resources and examples to output directory</Message>
+    </PostBuildEvent>
+    <Bscmake>
+      <OutputFile>$(IntDir)$(TargetName).bsc</OutputFile>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -128,6 +140,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <BrowseInformationFile>$(IntDir)</BrowseInformationFile>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dsound.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -148,9 +161,18 @@
       <Culture>0x0405</Culture>
     </ResourceCompile>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy  /e/y $(SolutionDir)rmt\*.*  $(OutDir)</Command>
+      <Message>Copy resources and examples to output directory</Message>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>%COMSPEC% /C $(SolutionDir)build\build_rmt_pre.bat $(OutDir)</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>Clear output folder completely before build</Message>
+    </PreBuildEvent>
+    <Bscmake>
+      <OutputFile>$(IntDir)$(TargetName).bsc</OutputFile>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDialog.cpp" />
@@ -419,6 +441,7 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
     </CopyFileToFolders>
+    <None Include="..\build\build_rmt_pre.bat" />
     <None Include="..\doc\rmt_en.html" />
     <None Include="..\doc\rmt_en_128.html" />
     <None Include="..\doc\rmt_tracker.md" />
