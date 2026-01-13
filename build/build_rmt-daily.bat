@@ -49,7 +49,7 @@ set TARGET=%TARGET_DIR%\%TARGET_FILE%
 del %TARGET%
 cd %RELEASE_BASE_DIR%\..
 
-%WINRAR% a -afzip -x*.bsc -*.exp -x*.lastcodeanalysissucceeded -x*.log -x*.lib -x*pdb %TARGET% %RELEASE%
+%WINRAR% a -afzip -x*.log %TARGET% %RELEASE%
 if ERRORLEVEL 1 goto :error
 start %TARGET_DIR%
 cd %TARGET_DIR%
