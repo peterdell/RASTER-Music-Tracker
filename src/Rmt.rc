@@ -1163,8 +1163,8 @@ BEGIN
     END
     POPUP "&Edit"
     BEGIN
-        MENUITEM "&Undo",                       ID_UNDO_UNDO
-        MENUITEM "&Redo",                       ID_UNDO_REDO
+        MENUITEM "&Undo\tCtrl+Z",               ID_UNDO_UNDO
+        MENUITEM "&Redo\tCtrl+Y",               ID_UNDO_REDO
         MENUITEM SEPARATOR
         MENUITEM "&Clear Undo && Redo history", ID_UNDO_CLEARUNDOREDO
     END
@@ -1279,7 +1279,9 @@ BEGIN
     END
     POPUP "&Help"
     BEGIN
-        MENUITEM "&About Rmt...",               ID_APP_ABOUT
+        MENUITEM "&Help Topics\tF1",            ID_HELP_HELP_TOPICS
+        MENUITEM "&Online Help\tShift+F1",      ID_HELP_ONLINE_HELP
+        MENUITEM "&About RASTER Music Tracker", ID_HELP_ABOUT
     END
 END
 
@@ -1364,12 +1366,6 @@ END
 STRINGTABLE
 BEGIN
     ID_FILE_EXPORT_AS       "Export song to file\nExport"
-END
-
-STRINGTABLE
-BEGIN
-    ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
-    ID_APP_EXIT             "Quit the application\nExit"
 END
 
 STRINGTABLE
@@ -1499,8 +1495,9 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_WANTEXIT             "Exit RMT"
-    ID_VIEW_TUNING          "Display the tuning menu"
+    ID_VIEW_TUNING          "Display the tuning menu."
+    ID_HELP_HELP_TOPICS     "Open the local help in a browser."
+    ID_HELP_ABOUT_APP       "Display information about the app and its version in a pop-up dialog"
 END
 
 STRINGTABLE
@@ -1512,6 +1509,12 @@ BEGIN
     ID_BLOCK_PLAY           "Play selected block\nPlay block"
     ID_BLOCK_INSTRALL       "Block modification mode\nBlock mode"
     ID_BLOCK_BACKUP         "Restore block from backup\nRestore block"
+END
+
+STRINGTABLE
+BEGIN
+    ID_HELP_ONLINE_HELP     "Open the online help in a browser window"
+    ID_HELP_ABOUT           "Display program information, version number and copyright"
 END
 
 #endif    // English (United States) resources
