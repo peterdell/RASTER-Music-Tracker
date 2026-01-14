@@ -49,39 +49,6 @@ void CFileUtility::SaveFile(const CString& filePath, const byte* buffer,
 CRmtTest::CRmtTest() {
 }
 
-void CRmtTest::SaveBinaries() {
-    SendInfoMessage("Test - SaveBinaries");
-    TrackerDriverVersion trackerDrivers[] = {
-    UNPATCHED ,
-UNPATCHED_WITH_TUNING ,
-      PATCH3_INSTRUMENTARIUM,
-        PATCH6,
-        PATCH8 ,
-        PATCH16 ,
-       PATCH_PRINCE_OF_PERSIA };
-
-    SendInfoMessage((std::stringstream() << "Current directoy: " << std::filesystem::current_path().string()).str().c_str());
-
-    CString fileName;
-    byte* buffer = nullptr;;
-    WORD size = 0;
-
-    auto directoryPath = GetResourceFolderPath("players");
-    std::filesystem::create_directory(directoryPath.GetString());
-    for (const auto trackerDriver : trackerDrivers) {
-        CRmtAtariBinaries::GetTrackerDriverBinary(trackerDriver, buffer, size);
-        assert(buffer != nullptr && size > 0);
-        fileName.Format("Player-V%d.obx", trackerDriver);
-        auto filePath = GetResourceFilePath("players", fileName);
-        CFileUtility::SaveFile(filePath, buffer, size);
-    }
-    CRmtAtariBinaries::GetVUPlayerBinary(buffer, size);
-    assert(buffer != nullptr && size > 0);
-    fileName = "VUPlayer.obx";
-    auto filePath = GetResourceFilePath("players", fileName);
-
-    CFileUtility::SaveFile(filePath, buffer, size);
-}
 
 void CRmtTest::TestASAP(const CRmtApp& app, const CString fileName) {
     SendInfoMessage("Test - TestASAP");
@@ -95,7 +62,6 @@ void CRmtTest::TestASAP(const CRmtApp& app, const CString fileName) {
 
 void CRmtTest::RunFor(const CRmtApp& app, const CString fileName) {
 
-    SaveBinaries();
     // TestASAP(app, fileName);
 
     // All these variables are initialized with their defaults.

@@ -88,6 +88,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <CombineFilesOnlyFromTheSameFolder>true</CombineFilesOnlyFromTheSameFolder>
+      <BrowseInformationFile>$(IntDir)</BrowseInformationFile>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dsound.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -108,6 +109,17 @@
       <PreprocessorDefinitions>_AFXDLL;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0405</Culture>
     </ResourceCompile>
+    <PreBuildEvent>
+      <Command>%COMSPEC% /C $(SolutionDir)build\build_rmt_pre.bat $(OutDir)</Command>
+      <Message>Clear output folder completely before build</Message>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy  /e/y $(SolutionDir)rmt\*.*  $(OutDir)</Command>
+      <Message>Copy resources and examples to output directory</Message>
+    </PostBuildEvent>
+    <Bscmake>
+      <OutputFile>$(IntDir)$(TargetName).bsc</OutputFile>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -128,6 +140,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <BrowseInformationFile>$(IntDir)</BrowseInformationFile>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dsound.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -148,9 +161,18 @@
       <Culture>0x0405</Culture>
     </ResourceCompile>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy  /e/y $(SolutionDir)rmt\*.*  $(OutDir)</Command>
+      <Message>Copy resources and examples to output directory</Message>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>%COMSPEC% /C $(SolutionDir)build\build_rmt_pre.bat $(OutDir)</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>Clear output folder completely before build</Message>
+    </PreBuildEvent>
+    <Bscmake>
+      <OutputFile>$(IntDir)$(TargetName).bsc</OutputFile>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDialog.cpp" />
@@ -159,6 +181,7 @@
     <ClCompile Include="ASMFile.cpp" />
     <ClCompile Include="ASMFileBuilder.cpp" />
     <ClCompile Include="ASMFileExporter.cpp" />
+    <ClCompile Include="AssemblerTypes.cpp" />
     <ClCompile Include="astil.c" />
     <ClCompile Include="Atari.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
@@ -328,6 +351,7 @@
     <ClInclude Include="ASMFile.h" />
     <ClInclude Include="ASMFileBuilder.h" />
     <ClInclude Include="ASMFileExporter.h" />
+    <ClInclude Include="AssemblerTypes.h" />
     <ClInclude Include="astil.h" />
     <ClInclude Include="Atari.h" />
     <ClInclude Include="AtariIO.h" />
@@ -394,7 +418,6 @@
     <ClInclude Include="wasap.h" />
     <ClInclude Include="WaveFile.h" />
     <ClInclude Include="WaveFileExporter.h" />
-    <ClInclude Include="XPokey.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\asciagr.bmp" />
@@ -418,8 +441,12 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
     </CopyFileToFolders>
+    <None Include="..\build\build_rmt_pre.bat" />
     <None Include="..\doc\rmt_en.html" />
+    <None Include="..\doc\rmt_en_128.html" />
     <None Include="..\doc\rmt_tracker.md" />
+    <None Include="..\doc\rmt_tracker_drivers.md" />
+    <None Include="..\doc\rmt_versions.md" />
     <None Include="..\README.md" />
     <None Include=".gitignore" />
     <None Include="asap.md" />

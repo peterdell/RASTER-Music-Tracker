@@ -749,22 +749,20 @@ BEGIN
     LTEXT           "Assembler format:",IDC_STATIC,4,88,56,8
 END
 
-IDD_ABOUTBOX DIALOGEX 0, 0, 343, 216
+IDD_ABOUTBOX DIALOGEX 0, 0, 343, 152
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About Rmt"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,286,195,50,14,WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,286,131,50,14,WS_GROUP
     ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
     LTEXT           "Sample RMT version",IDC_RMTVERSION,47,7,185,8,SS_NOPREFIX
     LTEXT           "Sample RMT author",IDC_RMTAUTHOR,47,18,289,8
     LTEXT           "https://github.com/raster-atari-org/RASTER-Music-Tracker",IDC_STATIC,47,29,282,10
-    LTEXT           "Credits and greetings:",IDC_STATIC,7,43,329,8
-    EDITTEXT        IDC_CREDITS,7,52,329,46,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL
-    LTEXT           "External Pokey sound emulation provided by:",IDC_STATIC,7,104,329,8
-    EDITTEXT        IDC_ABOUTPOKEY,7,113,329,32,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
-    LTEXT           "External Atari 6502 processor emulation provided by:",IDC_STATIC,7,150,329,8
-    EDITTEXT        IDC_ABOUT6502,7,160,329,32,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
+    LTEXT           "External Pokey sound emulation provided by:",IDC_STATIC,7,41,329,8
+    EDITTEXT        IDC_ABOUTPOKEY,7,50,329,32,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
+    LTEXT           "External Atari 6502 processor emulation provided by:",IDC_STATIC,7,87,329,8
+    EDITTEXT        IDC_ABOUT6502,7,97,329,32,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
 END
 
 
@@ -1091,7 +1089,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 336
         TOPMARGIN, 7
-        BOTTOMMARGIN, 209
+        BOTTOMMARGIN, 145
     END
 END
 #endif    // APSTUDIO_INVOKED

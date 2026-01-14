@@ -1,5 +1,5 @@
 #pragma once
-#include "General.h"
+#include "AssemblerTypes.h"
 
 class CASMFileBuilder
 {

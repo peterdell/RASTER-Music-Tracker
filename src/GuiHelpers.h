@@ -1,7 +1,5 @@
 #pragma once
 
-#include "General.h"
-
 // Helper defines to make the code a bit more readable
 #define SCALE(x) ((x) * g_scaling_percentage) / 100
 #define INVERSE_SCALE(x) ((x) * 100) / g_scaling_percentage

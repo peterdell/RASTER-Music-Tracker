@@ -7,238 +7,238 @@
 // ExportDlgs.h : header file
 //
 #include "resource.h"
-#include "General.h"
+#include "AssemblerTypes.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CExpRMTDlg dialog
 
 class CExportStrippedRMTDialog : public CDialog
 {
-// Construction
+    // Construction
 public:
-	CExportStrippedRMTDialog(CWnd* pParent = NULL);   // standard constructor
+    CExportStrippedRMTDialog(CWnd* pParent = NULL);   // standard constructor
 
-// Dialog Data
-	//{{AFX_DATA(CExpRMTDlg)
-	enum { IDD = IDD_EXPORT_STRIPPED_RMT };
-	CComboBox m_cmbAsmFormat;
-	CButton	m_c_gvf;
-	CButton	m_c_nos;
-	CStatic	m_c_warning;
-	CButton	m_ctrlWithSfx;
-	CEdit	m_c_rmtfeat;
-	CEdit	m_ctrlExportAddress;
-	CStatic	m_c_info;
-	//}}AFX_DATA
+    // Dialog Data
+        //{{AFX_DATA(CExpRMTDlg)
+    enum { IDD = IDD_EXPORT_STRIPPED_RMT };
+    CComboBox m_cmbAsmFormat;
+    CButton	m_c_gvf;
+    CButton	m_c_nos;
+    CStatic	m_c_warning;
+    CButton	m_ctrlWithSfx;
+    CEdit	m_c_rmtfeat;
+    CEdit	m_ctrlExportAddress;
+    CStatic	m_c_info;
+    //}}AFX_DATA
 
-	int m_exportAddr;
-	int m_moduleLengthForStrippedRMT;
-	int m_moduleLengthForSFX;
+    int m_exportAddr;
+    int m_moduleLengthForStrippedRMT;
+    int m_moduleLengthForSFX;
 
-	AssemblerFormat m_assemblerFormat;
+    AssemblerFormat m_assemblerFormat;
 
-	BOOL m_sfxSupport;
-	BOOL m_globalVolumeFade;
-	BOOL m_noStartingSongLine;
+    BOOL m_sfxSupport;
+    BOOL m_globalVolumeFade;
+    BOOL m_noStartingSongLine;
 
-	CSong* m_song;
-	char* m_filename;
-	// Stripped RMT data
-	BYTE* m_savedInstrFlagsForStrippedRMT;			// Array of flags indicating which instruments are being used
-	BYTE* m_savedTracksFlagsForStrippedRMT;			// Array of flags to indicate which tracks are being used
+    CSong* m_song;
+    char* m_filename;
+    // Stripped RMT data
+    BYTE* m_savedInstrFlagsForStrippedRMT;			// Array of flags indicating which instruments are being used
+    BYTE* m_savedTracksFlagsForStrippedRMT;			// Array of flags to indicate which tracks are being used
 
-	// Full RMT (with SFX) data
-	BYTE* m_savedInstrFlagsForSFX;					// Array of flags indicating which instruments are not empty or used
-	BYTE* m_savedTracksFlagsForSFX;					// Array of flags to indicate which tracks are not empty
+    // Full RMT (with SFX) data
+    BYTE* m_savedInstrFlagsForSFX;					// Array of flags indicating which instruments are not empty or used
+    BYTE* m_savedTracksFlagsForSFX;					// Array of flags to indicate which tracks are not empty
 
-	void ChangeParams();
+    void ChangeParams();
 
-// Overrides
-	// ClassWizard generated virtual function overrides
-	//{{AFX_VIRTUAL(CExpRMTDlg)
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-	//}}AFX_VIRTUAL
+    // Overrides
+        // ClassWizard generated virtual function overrides
+        //{{AFX_VIRTUAL(CExpRMTDlg)
+protected:
+    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+    //}}AFX_VIRTUAL
 
 // Implementation
 protected:
 
-	// Generated message map functions
-	//{{AFX_MSG(CExpRMTDlg)
-	virtual BOOL OnInitDialog();
-	afx_msg void OnChangeAddr();
-	afx_msg void OnCopytoclipboard();
-	afx_msg void OnSfx();
-	//afx_msg void OnGlobalvolumeslide();
-	afx_msg void OnNostartingsongline();
-	afx_msg void OnGlobalvolumefade();
-	//}}AFX_MSG
-	DECLARE_MESSAGE_MAP()
+    // Generated message map functions
+    //{{AFX_MSG(CExpRMTDlg)
+    virtual BOOL OnInitDialog();
+    afx_msg void OnChangeAddr();
+    afx_msg void OnCopytoclipboard();
+    afx_msg void OnSfx();
+    //afx_msg void OnGlobalvolumeslide();
+    afx_msg void OnNostartingsongline();
+    afx_msg void OnGlobalvolumefade();
+    //}}AFX_MSG
+    DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnCbnSelchangeComboAsmFormat();
+    afx_msg void OnCbnSelchangeComboAsmFormat();
 };
 /////////////////////////////////////////////////////////////////////////////
 // CExpMSXDlg dialog
 
 class CExpMSXDlg : public CDialog
 {
-// Construction
+    // Construction
 public:
-	CExpMSXDlg(CWnd* pParent = NULL);   // standard constructor
+    CExpMSXDlg(CWnd* pParent = NULL);   // standard constructor
 
-// Dialog Data
-	//{{AFX_DATA(CExpMSXDlg)
-	enum { IDD = IDD_EXPMSX };
-	CScrollBar	m_scroll1;
-	CStatic	m_colorinfotext;
-	CButton	m_checkkeytest;
-	CEdit	m_prev;
-	CEdit	m_edit;
-	BOOL	m_meter;
-	BOOL	m_msx_shuffle;
-	BOOL	m_region_auto;
+    // Dialog Data
+        //{{AFX_DATA(CExpMSXDlg)
+    enum { IDD = IDD_EXPMSX };
+    CScrollBar	m_scroll1;
+    CStatic	m_colorinfotext;
+    CButton	m_checkkeytest;
+    CEdit	m_prev;
+    CEdit	m_edit;
+    BOOL	m_meter;
+    BOOL	m_msx_shuffle;
+    BOOL	m_region_auto;
 
-	CString	m_speedinfo;
-	//}}AFX_DATA
+    CString	m_speedinfo;
+    //}}AFX_DATA
 
-	int m_metercolor;
+    int m_metercolor;
 
-	CString m_txt;
-	CFont m_font;
+    CString m_txt;
+    CFont m_font;
 
-	void ChangeParams();
+    void ChangeParams();
 
-// Overrides
-	// ClassWizard generated virtual function overrides
-	//{{AFX_VIRTUAL(CExpMSXDlg)
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-	//}}AFX_VIRTUAL
+    // Overrides
+        // ClassWizard generated virtual function overrides
+        //{{AFX_VIRTUAL(CExpMSXDlg)
+protected:
+    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+    //}}AFX_VIRTUAL
 
 // Implementation
 protected:
 
-	// Generated message map functions
-	//{{AFX_MSG(CExpMSXDlg)
-	virtual BOOL OnInitDialog();
-	afx_msg void OnChangeTxtedit();
-	afx_msg void OnCheck2();
-	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
-	virtual void OnOK();
-	afx_msg void OnRasterline();
-	//}}AFX_MSG
-	DECLARE_MESSAGE_MAP()
+    // Generated message map functions
+    //{{AFX_MSG(CExpMSXDlg)
+    virtual BOOL OnInitDialog();
+    afx_msg void OnChangeTxtedit();
+    afx_msg void OnCheck2();
+    afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+    virtual void OnOK();
+    afx_msg void OnRasterline();
+    //}}AFX_MSG
+    DECLARE_MESSAGE_MAP()
 };
 /////////////////////////////////////////////////////////////////////////////
 // CExportAsmDlg dialog
 
 class CExportAsmDlg : public CDialog
 {
-// Construction
+    // Construction
 public:
-	CExportAsmDlg(CWnd* pParent = NULL);   // standard constructor
+    CExportAsmDlg(CWnd* pParent = NULL);   // standard constructor
 
-// Dialog Data
-	//{{AFX_DATA(CExportAsmDlg)
-	enum { IDD = IDD_EXPORT_ASM };
-	CString	m_prefixForAllAsmLabels;
-	//}}AFX_DATA
+    // Dialog Data
+        //{{AFX_DATA(CExportAsmDlg)
+    enum { IDD = IDD_EXPORT_ASM };
+    CString	m_prefixForAllAsmLabels;
+    //}}AFX_DATA
 
-	int m_exportType;				// 1 = Tracks, 2 = Whole song
-	int m_notesIndexOrFreq;
-	int m_durationsType;
+    int m_exportType;				// 1 = Tracks, 2 = Whole song
+    int m_notesIndexOrFreq;
+    int m_durationsType;
 
-// Overrides
-	// ClassWizard generated virtual function overrides
-	//{{AFX_VIRTUAL(CExportAsmDlg)
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-	//}}AFX_VIRTUAL
+    // Overrides
+        // ClassWizard generated virtual function overrides
+        //{{AFX_VIRTUAL(CExportAsmDlg)
+protected:
+    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+    //}}AFX_VIRTUAL
 
 // Implementation
 protected:
 
-	// Generated message map functions
-	//{{AFX_MSG(CExportAsmDlg)
-	virtual void OnOK();
-	afx_msg void OnRadio();
-	virtual BOOL OnInitDialog();
-	//}}AFX_MSG
-	DECLARE_MESSAGE_MAP()
+    // Generated message map functions
+    //{{AFX_MSG(CExportAsmDlg)
+    virtual void OnOK();
+    afx_msg void OnRadio();
+    virtual BOOL OnInitDialog();
+    //}}AFX_MSG
+    DECLARE_MESSAGE_MAP()
 };
 
 /////////////////////////////////////////////////////////////////////////////
 // CExportRelocatableAsmForRmtPlayer dialog
 class CExportRelocatableAsmForRmtPlayer : public CDialog
 {
-// Construction
+    // Construction
 public:
-	CExportRelocatableAsmForRmtPlayer(CWnd* pParent = NULL);   // standard constructor
+    CExportRelocatableAsmForRmtPlayer(CWnd* pParent = NULL);   // standard constructor
 
-// Dialog Data
-	//{{AFX_DATA(CExportRelocatableAsmForRmtPlayer)
-	enum { IDD = IDD_EXPORT_RMTPLAYER_ASM };
-	CEdit	m_editRmtModuleAsmLabel;
-	CButton m_chkWantRelocatableTracks;
-	CEdit	m_editTracksLabel;
-	CButton m_chkWantRelocatableSongLines;
-	CEdit	m_editSongLinesLabel;
-	CButton m_chkWantRelocatableInstruments;
-	CEdit	m_editInstrumentsLabel;
+    // Dialog Data
+        //{{AFX_DATA(CExportRelocatableAsmForRmtPlayer)
+    enum { IDD = IDD_EXPORT_RMTPLAYER_ASM };
+    CEdit	m_editRmtModuleAsmLabel;
+    CButton m_chkWantRelocatableTracks;
+    CEdit	m_editTracksLabel;
+    CButton m_chkWantRelocatableSongLines;
+    CEdit	m_editSongLinesLabel;
+    CButton m_chkWantRelocatableInstruments;
+    CEdit	m_editInstrumentsLabel;
 
-	CComboBox m_cmbAsmFormat;
+    CComboBox m_cmbAsmFormat;
 
-	CButton	m_c_gvf;
-	CButton	m_c_nos;
-	CButton	m_ctrlWithSfx;
-	CEdit	m_c_rmtfeat;
-	CStatic	m_c_info;
-	//}}AFX_DATA
+    CButton	m_c_gvf;
+    CButton	m_c_nos;
+    CButton	m_ctrlWithSfx;
+    CEdit	m_c_rmtfeat;
+    CStatic	m_c_info;
+    //}}AFX_DATA
 
-	// Data transfer values
-	CString m_strAsmLabelForStartOfSong;			// What label is the song data starting with?
+    // Data transfer values
+    CString m_strAsmLabelForStartOfSong;			// What label is the song data starting with?
 
-	BOOL m_wantRelocatableInstruments;
-	BOOL m_wantRelocatableTracks;
-	BOOL m_wantRelocatableSongLines;
-	CString m_strAsmInstrumentsLabel;
-	CString m_strAsmTracksLabel;
-	CString m_strAsmSongLinesLabel;
+    BOOL m_wantRelocatableInstruments;
+    BOOL m_wantRelocatableTracks;
+    BOOL m_wantRelocatableSongLines;
+    CString m_strAsmInstrumentsLabel;
+    CString m_strAsmTracksLabel;
+    CString m_strAsmSongLinesLabel;
 
     AssemblerFormat m_assemblerFormat;						// 0 = Atasm, 1 = Xasm
 
-	BOOL m_sfxSupport;
-	BOOL m_globalVolumeFade;
-	BOOL m_noStartingSongLine;
+    BOOL m_sfxSupport;
+    BOOL m_globalVolumeFade;
+    BOOL m_noStartingSongLine;
 
-	CSong* m_song;
-	const char* m_filename;
+    CSong* m_song;
+    const char* m_filename;
 
-	BOOL m_InitPhase;
+    BOOL m_InitPhase;
 
     TExportDescription* m_exportDescStripped;
     TExportDescription* m_exportDescWithSFX;
 
-	void ChangeParams();
+    void ChangeParams();
 
-// Overrides
-	// ClassWizard generated virtual function overrides
-	//{{AFX_VIRTUAL(CExportRelocatableAsmForRmtPlayer)
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-	//}}AFX_VIRTUAL
+    // Overrides
+        // ClassWizard generated virtual function overrides
+        //{{AFX_VIRTUAL(CExportRelocatableAsmForRmtPlayer)
+protected:
+    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+    //}}AFX_VIRTUAL
 
 // Implementation
 protected:
 
-	// Generated message map functions
-	//{{AFX_MSG(CExportRelocatableAsmForRmtPlayer)
-	virtual BOOL OnInitDialog();
-	afx_msg void OnChangeCheckbox();
-	afx_msg void OnChangeLabel();
-	afx_msg void OnCbnSelchange();
-	//}}AFX_MSG
-	DECLARE_MESSAGE_MAP()
+    // Generated message map functions
+    //{{AFX_MSG(CExportRelocatableAsmForRmtPlayer)
+    virtual BOOL OnInitDialog();
+    afx_msg void OnChangeCheckbox();
+    afx_msg void OnChangeLabel();
+    afx_msg void OnCbnSelchange();
+    //}}AFX_MSG
+    DECLARE_MESSAGE_MAP()
 
 
 public:
