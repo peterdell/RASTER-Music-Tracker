@@ -277,7 +277,7 @@ void CSong::MarkTF_USED(BYTE* arrayTRACKSNUM) const
                 int tr = m_song[i][channelNr];
                 if (tr >= 0 && tr < TRACKSNUM)
                 {
-                    arrayTRACKSNUM[tr] = TF_USED;
+                    arrayTRACKSNUM[tr] = TrackFlag::TF_USED;
                 }
             }
         }
@@ -290,7 +290,7 @@ void CSong::MarkTF_NOEMPTY(BYTE* arrayTRACKSNUM) const
     {
         if (g_Tracks.CalculateNotEmpty(i))
         {
-            arrayTRACKSNUM[i] |= TF_NOEMPTY;
+            arrayTRACKSNUM[i] |= TrackFlag::TF_NOEMPTY;
         }
     }
 }
@@ -1611,7 +1611,7 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLines(int& line)
                     d = FindNearTrackBySongLineAndColumn(sou, j, tracks);
                     if (d >= 0)
                     {
-                        tracks[d] = TF_USED;
+                        tracks[d] = TrackFlag::TF_USED;
                         clonedto[k] = d;
                         TrackCopyFromTo(k, d);
                         //edit cloned track according to dlg.m_tuning and dlg.m_volumep
@@ -1663,7 +1663,7 @@ BOOL CSong::SongPrepareNewLine(int& line, int sourceline, BOOL alsoemptycolumns)
         if (k >= 0)
         {
             m_song[line][i] = k;
-            tracks[k] = TF_USED;
+            tracks[k] = TrackFlag::TF_USED;
             count++;
         }
     }
@@ -1761,7 +1761,7 @@ BOOL CSong::SongMaketracksduplicate()
     MarkTF_USED(tracks);
     MarkTF_NOEMPTY(tracks);
 
-    if (!(tracks[act] & TF_USED))
+    if (!(tracks[act] & TrackFlag::TF_USED))
     {
         //not used anywhere else
         m_song[line][cl] = act;

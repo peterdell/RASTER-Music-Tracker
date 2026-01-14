@@ -118,9 +118,12 @@ enum PlayMode : int {
 
 };
 
-//bits in TRACKFLAG
-#define TF_NOEMPTY		1
-#define TF_USED			2
+// bits in TRACKFLAG
+class TrackFlag {
+public:
+    static constexpr BYTE TF_NOEMPTY = 1;
+    static constexpr BYTE TF_USED = 2;
+};
 
 #define INSTR_GUI_ZONE_ENVELOPE_LEFT_ENVELOPE	0		// 368,220	8x64 -> 384x64
 #define INSTR_GUI_ZONE_ENVELOPE_RIGHT_ENVELOPE	1		// 368,140	8x64 -> 384x64

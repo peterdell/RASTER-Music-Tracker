@@ -65,7 +65,7 @@ bool CASMFileExporter::ExportAsAsm(const CSong& song, std::ofstream& ou, TExport
         for (int trackNr = 0; trackNr < TRACKSNUM; trackNr++)
         {
             // Only process if the track is used
-            if (!(tracksFlags[trackNr] & TF_USED))
+            if (!(tracksFlags[trackNr] & TrackFlag::TF_USED))
                 continue;
 
             s.Format(";Track $%02X", trackNr);
