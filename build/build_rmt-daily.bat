@@ -38,7 +38,6 @@ echo INFO: Buidling %RESULT_EXE% for configuration %CONFIGURATION%.
 if exist %RESULT_EXE% del %RESULT_EXE%
 %MSBUILD% %SLN% /property:Configuration=%CONFIGURATION% -fl -flp:logfile=%OUTPUT_DIR%\msbuild.log
 if not exist %RESULT_EXE% goto :build_failed_error
-echo Knallo!
 
 call :copy_output
 goto :eof
@@ -63,6 +62,8 @@ set RELEASE_DIR=%RELEASE_BASE_DIR%\%CONFIGURATION%
 mkdir %RELEASE_DIR%
 xcopy /E /Y  /EXCLUDE:build_rmt-daily-excluded-extensions.txt %OUTPUT_DIR%  %RELEASE_DIR%
 if exist %RELEASE_DIR%\%RELEASE%.ini del %RELEASE_DIR%\%RELEASE%.ini
+rem Exclude the .ini files from the download to prevent users from accidentally overwriting them.
+if exist %RELEASE_DIR%\Tuning.ini del %RELEASE_DIR%\Tuning.ini
 start %RELEASE_DIR%
 goto :eof
 
