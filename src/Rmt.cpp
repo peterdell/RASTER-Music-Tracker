@@ -63,7 +63,7 @@ CRmtApp::CRmtApp() :CWinApp("RMT")
 // This declaration ensures that there is excatly one app instance.
 // This should be the only static variable in the solution.
 
-static CRmtApp g_app;
+CRmtApp g_app;
 
 /////////////////////////////////////////////////////////////////////////////
 // CRmtApp initialization
@@ -178,6 +178,19 @@ BOOL CRmtApp::InitInstance()
     return TRUE;
 }
 
+CString CRmtApp::GetVersionAndBuild() const {
+    CString version;
+    CString result;
+
+    version.LoadString(IDS_RMTVERSION);
+
+    result.Format("%s (%s %s)", version, __DATE__, __TIME__);
+    return result;
+}
+
+void CRmtApp::OpenOnlineHelp() const {
+    CShell::OpenFile("https://html-preview.github.io/?url=https://github.com/raster-atari-org/RASTER-Music-Tracker/blob/1.35/doc//rmt_en.html");
+}
 
 /////////////////////////////////////////////////////////////////////////////
 // CRmtApp message handlers
@@ -192,7 +205,7 @@ void CRmtApp::OnHelpHelpTopics()
 void CRmtApp::OnHelpOnlineHelp()
 {
 
-    CShell::OpenFile("https://html-preview.github.io/?url=https://github.com/raster-atari-org/RASTER-Music-Tracker/blob/1.35/doc//rmt_en.html");
+    OpenOnlineHelp();
 }
 
 void CRmtApp::OnHelpAboutApp()

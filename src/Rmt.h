@@ -38,6 +38,10 @@ public:
     virtual BOOL InitInstance();
     //}}AFX_VIRTUAL
 
+    CString GetVersionAndBuild() const;
+    void OpenOnlineHelp() const;
+
+
 // Implementation
     //{{AFX_MSG(CRmtApp)
 

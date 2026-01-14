@@ -28,6 +28,8 @@
 #include "Undo.h"
 #include "Song.h"
 #include "Tuning.h"
+#include "Rmt.h"
+
 
 
 // Activate MFC memory leak detection.
@@ -37,6 +39,7 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+extern CRmtApp	g_app; 
 extern CSong	g_Song;
 extern CRmtMidi	g_Midi;
 extern CUndo	g_Undo;
@@ -1565,6 +1568,10 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         break;
 
     case VK_F1:
+        if (g_shiftkey) {
+            g_app.OpenOnlineHelp();
+            return;
+        }
         if (g_controlkey) goto AllModesDefaultKey;	//would conflict with transposition hotkeys otherwise
         g_Undo.Separator();
         OnEmTracks();

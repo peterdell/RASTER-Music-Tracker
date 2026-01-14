@@ -60,10 +60,10 @@ goto :eof
 :copy_output
 set RELEASE_DIR=%RELEASE_BASE_DIR%\%CONFIGURATION%
 mkdir %RELEASE_DIR%
-xcopy /E /Y  /EXCLUDE:build_rmt-daily-excluded-extensions.txt %OUTPUT_DIR%  %RELEASE_DIR%
-if exist %RELEASE_DIR%\%RELEASE%.ini del %RELEASE_DIR%\%RELEASE%.ini
+xcopy /E /Y /EXCLUDE:build_rmt-daily-excluded-extensions.txt %OUTPUT_DIR%  %RELEASE_DIR%
 rem Exclude the .ini files from the download to prevent users from accidentally overwriting them.
-if exist %RELEASE_DIR%\Tuning.ini del %RELEASE_DIR%\Tuning.ini
+if exist %RELEASE_DIR%\%RELEASE%.ini del %RELEASE_DIR%\%RELEASE%.ini
+if exist %RELEASE_DIR%\tuning.ini del %RELEASE_DIR%\tuning.ini
 start %RELEASE_DIR%
 goto :eof
 
