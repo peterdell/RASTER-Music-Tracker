@@ -16,7 +16,7 @@ int CInstruments::SaveAll(std::ofstream& ou, InstrumentIOType iotype)
 {
     for (int i = 0; i < INSTRSNUM; i++)
     {
-        if (iotype == InstrumentIOType::TXT && !CalculateNotEmpty(i)) continue; //to TXT only non-empty instruments
+        if (iotype == InstrumentIOType::TXT && !CalculateNotEmpty(i)) { continue; } // to TXT only non-empty instruments
         SaveInstrument(i, ou, iotype);	//,RMW);
     }
     return 1;
@@ -44,19 +44,19 @@ int CInstruments::SaveInstrument(int instr, std::ofstream& ou, InstrumentIOType 
     {
         //RTI file
         static char head[4] = "RTI";
-        head[3] = 1;			//type 1
-        ou.write(head, 4);	//4 bytes header RTI1 (binary 1)
+        head[3] = 1;		// Type 1
+        ou.write(head, 4);	// 4 bytes header RTI1 (binary 1)
         ou.write(ai->name, sizeof(ai->name)); //name 32 byte + 33 is a binary zero terminating string
         const auto length = ATARI_MAX_INSTR_LENGTH;
         unsigned char ibf[length];
         BYTE len = InstrToAta(instr, ibf, length);
-        ou.write((char*)&len, sizeof(len));				//instrument length in Atari bytes
-        if (len > 0) ou.write((const char*)&ibf, len);	//instrument data
+        ou.write((char*)&len, sizeof(len));				    // instrument length in Atari bytes
+        if (len > 0) { ou.write((const char*)&ibf, len); }	// instrument data
     }
     break;
 
     case InstrumentIOType::RMW:
-        //instrument name
+        // instrument name
         ou.write(ai->name, sizeof(ai->name));
 
         char bfpar[PARCOUNT], bfenv[ENVELOPE_MAX_COLUMNS][ENVROWS], bftab[NOTE_TABLE_MAX_LEN];
@@ -74,20 +74,20 @@ int CInstruments::SaveInstrument(int instr, std::ofstream& ou, InstrumentIOType 
         for (j = 0; j < NOTE_TABLE_MAX_LEN; j++) bftab[j] = ai->noteTable[j];
         ou.write(bftab, sizeof(bftab));
         //
-        //+editing options:
+        // plus editing options:
         ou.write((char*)&ai->activeEditSection, sizeof(ai->activeEditSection));
         ou.write((char*)&ai->editNameCursorPos, sizeof(ai->editNameCursorPos));
         ou.write((char*)&ai->editParameterNr, sizeof(ai->editParameterNr));
         ou.write((char*)&ai->editEnvelopeX, sizeof(ai->editEnvelopeX));
         ou.write((char*)&ai->editEnvelopeY, sizeof(ai->editEnvelopeY));
         ou.write((char*)&ai->editNoteTableCursorPos, sizeof(ai->editNoteTableCursorPos));
-        //octaves and volumes
+        // octaves and volumes
         ou.write((char*)&ai->octave, sizeof(ai->octave));
         ou.write((char*)&ai->volume, sizeof(ai->volume));
         break;
 
     case InstrumentIOType::TXT:
-        //TXT file
+        // TXT file
         CString s, nambf;
         nambf = ai->name;
         nambf.TrimRight();
@@ -132,16 +132,16 @@ int CInstruments::LoadInstrument(int instr, std::ifstream& in, InstrumentIOType 
     case InstrumentIOType::RTI:
     {
         //RTI
-        if (instr < 0 || instr >= INSTRSNUM) return 0;
+        if (instr < 0 || instr >= INSTRSNUM) { return 0; }
         ClearInstrument(instr);	//it will first delete it before it reads
         TInstrument* ai = GetInstrument(instr);
         char head[4];
         in.read(head, 4);	//4 bytes header
-        if (strncmp(head, "RTI", 3) != 0) return 0;		//if there is no RTI header
+        if (strncmp(head, "RTI", 3) != 0) { return 0; }		// if there is no RTI header
         int version = head[3];
-        if (version >= 2) return 0;					//it's version 2 and more (only 0 and 1 are supported)
+        if (version >= 2) { return 0; }			// it's version 2 and more (only 0 and 1 are supported)
 
-        in.read(ai->name, sizeof(ai->name));	//name 32 bytes + 33rd byte terminating zero
+        in.read(ai->name, sizeof(ai->name));	// name 32 bytes + 33rd byte terminating zero
 
         BYTE len;
         in.read((char*)&len, sizeof(len));			//instrument length in Atari bytes
@@ -154,8 +154,8 @@ int CInstruments::LoadInstrument(int instr, std::ifstream& in, InstrumentIOType 
                 r = AtaV0ToInstr(ibf, instr);
             else
                 r = AtaToInstr(ibf, instr);
-            Update(instr);	//writes to Atari ram
-            if (!r) return 0; //if there was some problem with the instrument, return 0
+            Update(instr);	// writes to Atari RAM
+            if (!r) return 0; // if there was some problem with the instrument, return 0
         }
     }
     break;
@@ -163,7 +163,7 @@ int CInstruments::LoadInstrument(int instr, std::ifstream& in, InstrumentIOType 
     case InstrumentIOType::RMW:
     {
         //RMW
-        if (instr < 0 || instr >= INSTRSNUM) return 0;
+        if (instr < 0 || instr >= INSTRSNUM) { return 0; }
         ClearInstrument(instr);	//it will first delete it before it reads
         TInstrument* ai = GetInstrument(instr);
         //instrument name
