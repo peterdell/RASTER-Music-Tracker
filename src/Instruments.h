@@ -3,6 +3,8 @@
 
 #include <iosfwd>
 
+#include "General.h"
+
 #include "InstrumentTypes.h"
 
 
@@ -43,7 +45,7 @@ public:
     // GUI
     void DrawInstrument(int it);
 
-    BOOL GetGUIArea(int instr, int zone, CRect& rect);
+    BOOL GetGUIArea(int instr, InstrumentGUIZone zone, CRect& rect);
     BOOL CursorGoto(int instr, CPoint point, int pzone);
 
     // IO

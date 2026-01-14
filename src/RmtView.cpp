@@ -1235,7 +1235,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
 
             int activeInstrNum = g_Song.GetActiveInstr();
             //VOLUME LEFT (bottom)
-            int r = g_Instruments.GetGUIArea(activeInstrNum, INSTR_GUI_ZONE_ENVELOPE_LEFT_ENVELOPE, rec);
+            int r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::ENVELOPE_LEFT_ENVELOPE, rec);
             if (r && rec.PtInRect(point))
             {
                 // In the left volume envelope area
@@ -1258,7 +1258,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
             }
 
             //VOLUME RIGHT (upper)
-            r = g_Instruments.GetGUIArea(activeInstrNum, INSTR_GUI_ZONE_ENVELOPE_RIGHT_ENVELOPE, rec);
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::ENVELOPE_RIGHT_ENVELOPE, rec);
             if (r && rec.PtInRect(point))
             {
                 // In the right volume envelope area
@@ -1281,7 +1281,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
             }
 
             //ENVELOPE PARAMETERS large table
-            r = g_Instruments.GetGUIArea(activeInstrNum, INSTR_GUI_ZONE_ENVELOPE_PARAM_TABLE, rec);
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::ENVELOPE_PARAM_TABLE, rec);
             if (r && rec.PtInRect(point))
             {
                 SetCursor(m_cursorGoto);
@@ -1293,7 +1293,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
             }
 
             //ENVELOPE PARAMETERS series of numbers for the right channel volume
-            r = g_Instruments.GetGUIArea(activeInstrNum, INSTR_GUI_ZONE_ENVELOPE_RIGHT_VOL_NUMS, rec);
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::ENVELOPE_RIGHT_VOL_NUMS, rec);
             if (r && rec.PtInRect(point))
             {
                 SetCursor(m_cursorGoto);
@@ -1305,7 +1305,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
             }
 
             //INSTRUMENT NOTE TABLE
-            r = g_Instruments.GetGUIArea(activeInstrNum, INSTR_GUI_ZONE_NOTE_TABLE, rec);
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::NOTE_TABLE, rec);
             if (r && rec.PtInRect(point))
             {
                 SetCursor(m_cursorGoto);
@@ -1317,7 +1317,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
             }
 
             //INSTRUMENT NAME
-            r = g_Instruments.GetGUIArea(activeInstrNum, INSTR_GUI_ZONE_INSTRUMENT_NAME, rec);
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::INSTRUMENT_NAME, rec);
             if (r && rec.PtInRect(point))
             {
                 SetCursor(m_cursorGoto);
@@ -1329,7 +1329,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
             }
 
             //INSTRUMENT PARAMETERS
-            r = g_Instruments.GetGUIArea(activeInstrNum, INSTR_GUI_ZONE_PARAMETERS, rec);
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::PARAMETERS, rec);
             if (r && rec.PtInRect(point))
             {
                 SetCursor(m_cursorGoto);
@@ -1341,7 +1341,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
             }
 
             //INSTRUMENT SELECT DIALOG
-            r = g_Instruments.GetGUIArea(activeInstrNum, INSTR_GUI_ZONE_INSTRUMENT_NUMBER_DLG, rec);
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::INSTRUMENT_NUMBER_DLG, rec);
             if (r && rec.PtInRect(point))
             {
                 point.y -= (4 * 16 + 8);
@@ -1350,7 +1350,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
             }
 
             //ENVELOPE LEN a GO PARAMETER - length and loop to help the mouse
-            r = g_Instruments.GetGUIArea(activeInstrNum, INSTR_GUI_ZONE_LEN_AND_GOTO_ARROWS, rec);
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::LEN_AND_GOTO_ARROWS, rec);
             if (r && rec.PtInRect(point))
             {
                 SetCursor(m_cursorSetPosition);
@@ -1370,7 +1370,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
             }
 
             //TABLE LEN a GO PARAMETER - length and loop to help the mouse
-            r = g_Instruments.GetGUIArea(activeInstrNum, INSTR_GUI_ZONE_NOTE_TBL_LEN_AND_GOTO, rec);
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::NOTE_TBL_LEN_AND_GOTO, rec);
             if (r && rec.PtInRect(point))
             {
                 SetCursor(m_cursorSetPosition);

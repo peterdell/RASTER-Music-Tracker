@@ -416,66 +416,66 @@ BOOL CInstruments::CursorGoto(int instrNr, CPoint point, int pzone)
 /// <param name="zone">Which GUI zone is queried</param>
 /// <param name="rect">Write the rectangle info here</param>
 /// <returns></returns>
-BOOL CInstruments::GetGUIArea(int instrNr, int zone, CRect& rect)
+BOOL CInstruments::GetGUIArea(int instrNr, InstrumentGUIZone zone, CRect& rect)
 {
-    int len = GetParameter(instrNr, PAR_ENV_LENGTH) + 1;
-    int tabl = GetParameter(instrNr, PAR_TBL_LENGTH) + 1;
+    const int len = GetParameter(instrNr, PAR_ENV_LENGTH) + 1;
+    const int tabl = GetParameter(instrNr, PAR_TBL_LENGTH) + 1;
 
     switch (zone)
     {
-    case INSTR_GUI_ZONE_ENVELOPE_LEFT_ENVELOPE:
+    case InstrumentGUIZone::ENVELOPE_LEFT_ENVELOPE:
         //left channel volume curve (lower)
         rect.SetRect(INSTRS_ENV_X + 12 * 8, INSTRS_ENV_Y + 3 * 16 + 4, INSTRS_ENV_X + 12 * 8 + len * 8, INSTRS_ENV_Y + 3 * 16 + 4 + 4 * 16);
-        return 1;
+        return TRUE;
 
-    case INSTR_GUI_ZONE_ENVELOPE_RIGHT_ENVELOPE:
+    case InstrumentGUIZone::ENVELOPE_RIGHT_ENVELOPE:
         //right channel volume curve (upper)
         if (g_tracks4_8 <= 4) { return 0; }
         rect.SetRect(INSTRS_ENV_X + 12 * 8, INSTRS_ENV_Y - 2 * 16 + 4, INSTRS_ENV_X + 12 * 8 + len * 8, INSTRS_ENV_Y - 2 * 16 + 4 + 4 * 16);
-        return 1;
+        return TRUE;
 
-    case INSTR_GUI_ZONE_ENVELOPE_PARAM_TABLE:
+    case InstrumentGUIZone::ENVELOPE_PARAM_TABLE:
         //envelope area large table
         rect.SetRect(INSTRS_ENV_X + 12 * 8, INSTRS_ENV_Y + 3 * 16 + 0 + 5 * 16, INSTRS_ENV_X + 12 * 8 + len * 8, INSTRS_ENV_Y + 3 * 16 + 0 + 5 * 16 + 7 * 16);
-        return 1;
+        return TRUE;
 
-    case INSTR_GUI_ZONE_ENVELOPE_RIGHT_VOL_NUMS:
+    case InstrumentGUIZone::ENVELOPE_RIGHT_VOL_NUMS:
         //envelope area of volume numbers for right channel
         if (g_tracks4_8 <= 4) { return 0; }
         rect.SetRect(INSTRS_ENV_X + 12 * 8, INSTRS_ENV_Y - 2 * 16 + 0 + 4 * 16, INSTRS_ENV_X + 12 * 8 + len * 8, INSTRS_ENV_Y - 2 * 16 + 0 + 4 * 16 + 16);
-        return 1;
+        return TRUE;
 
-    case INSTR_GUI_ZONE_NOTE_TABLE:
+    case InstrumentGUIZone::NOTE_TABLE:
         //instrument table line
         rect.SetRect(INSTRS_TABLE_X, INSTRS_TABLE_Y + 8, INSTRS_TABLE_X + tabl * 24 - 8, INSTRS_TABLE_Y + 8 + 16);
-        return 1;
+        return TRUE;
 
-    case INSTR_GUI_ZONE_INSTRUMENT_NAME:
+    case InstrumentGUIZone::INSTRUMENT_NAME:
         //instrument name
         rect.SetRect(INSTRS_PARAM_X, INSTRS_PARAM_Y - 16, INSTRS_PARAM_X + 6 * 8 + INSTRUMENT_NAME_MAX_LEN * 8, INSTRS_PARAM_Y + 0);
-        return 1;
+        return TRUE;
 
-    case INSTR_GUI_ZONE_PARAMETERS:
+    case InstrumentGUIZone::PARAMETERS:
         //instrument parameters
         rect.SetRect(INSTRS_PARAM_X, INSTRS_PARAM_Y + 32, INSTRS_PARAM_X + 26 * 8, INSTRS_PARAM_Y + 32 + 12 * 16);
-        return 1;
+        return TRUE;
 
-    case INSTR_GUI_ZONE_INSTRUMENT_NUMBER_DLG:
+    case InstrumentGUIZone::INSTRUMENT_NUMBER_DLG:
         //instrument number
         rect.SetRect(INSTRS_X, INSTRS_Y, INSTRS_X + 13 * 8, INSTRS_Y + 16);
-        return 1;
+        return TRUE;
 
-    case 8:
+    case InstrumentGUIZone::LEN_AND_GOTO_ARROWS:
         //envelope area under the left (lower) volume curve
         rect.SetRect(INSTRS_ENV_X + 12 * 8, INSTRS_ENV_Y + 3 * 16 + 0 + 4 * 16, INSTRS_ENV_X + 12 * 8 + ENVELOPE_MAX_COLUMNS * 8, INSTRS_ENV_Y + 3 * 16 + 0 + 4 * 16 + 16);
-        return 1;
+        return TRUE;
 
-    case 9:
+    case  InstrumentGUIZone::NOTE_TBL_LEN_AND_GOTO:
         //instrument table + 1 line below parameter table 
         rect.SetRect(INSTRS_TABLE_X, INSTRS_TABLE_Y + 8 + 1 * 16, INSTRS_TABLE_X + NOTE_TABLE_MAX_LEN * 24 - 8, INSTRS_TABLE_Y + 8 + 2 * 16);
-        return 1;
+        return TRUE;
     }
-    return 0;
+    return FALSE;
 }
 
 void CInstruments::DrawEnv(int e, int it)
