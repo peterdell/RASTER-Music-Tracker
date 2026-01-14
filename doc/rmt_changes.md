@@ -20,7 +20,6 @@ Changes in RMT 2.00 (Planned)
 
 Changes in RMT 1.35 (Planned)
 -----------------------------
-- Include the instruments and samples in the download again.
 - Remove the parts of the "RMF" file format that Raster started but never completed.
 - Have an additional ".ini" file as an intermediate step to the RMT file format version 2. There, the module-specific settings from the "RMT.ini" and "Tuning.ini" could be preserved. Also, the file's existence indicates it is an RMT in 1.34 format.
 - Map the official Windows standard key combinations to the correct Windows standard function. Find alterative for their current binding.
@@ -30,17 +29,20 @@ Changes in RMT 1.35 (Planned)
   - Print =>Print (Ctrl-P)
 
 Technical:
-- Extract the binaries for the tracker drivers from the source code and have them as resources in the file system. This way, it is easier to inspect and update their content.
+
 
 Changes in RMT 1.35
 -------------------
+- Include the instruments and samples in the download again. (Build 2026-01-14)
+- https://github.com/raster-atari-org/RASTER-Music-Tracker/pull/16
+- https://github.com/raster-atari-org/RASTER-Music-Tracker/pull/15
 - A complete version history was added (doc/rmt_version.md), including external download links and (where possible) branches. (2026-01-12)
 - The GitHub repository for RMT 1.34 at "https://github.com/VinsCool/RASTER-Music-Tracker" was archived by VinsCool. It will be kept as a reference and still includes several features (e.g., keyboard layout handling) that might find their way into RMT 2.0. (2026-01-08))
 - Technical documentation for the RMT tracker and the RMT current and future module file format versions was created. (Build 2026-01-06)
 Technical:
-
+- Extract the binaries for the tracker drivers from the source code and have them as resources in the file system. This way, it is easier to inspect and update their content. (Build 2026-01-13)
 - The debug display was extended to include the character of the last pressed key and the SHIFT and CTRL modifier keys (raster-atari-org#9). (Build 2026-01-12)
-- The following parts were changed (Build 2026-01-06)
+- The following parts were changed: (Build 2026-01-06)
   - The initialization during the start.
   - The loading/handling of the CPU/POKEY emulation is now prepared to do both later with ASAP.
   - The drawing of the tracker screen.
