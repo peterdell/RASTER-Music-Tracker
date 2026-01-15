@@ -1704,15 +1704,15 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
         {
             g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
             BOOL br = 0, bl = 0;
-            if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == ENV_VOLUMER) br = 1;
+            if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == EnvelopeParameter::VOLUMER) br = 1;
             else
-                if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == ENV_VOLUMEL) bl = 1;
+                if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == EnvelopeParameter::VOLUMEL) bl = 1;
                 else
                     br = bl = 1;
             for (int i = 0; i <= ai->parameters[PAR_ENV_LENGTH]; i++)
             {
-                if (br) { if (ai->envelope[i][ENV_VOLUMER] > 0) ai->envelope[i][ENV_VOLUMER]--; }
-                if (bl) { if (ai->envelope[i][ENV_VOLUMEL] > 0) ai->envelope[i][ENV_VOLUMEL]--; }
+                if (br) { if (ai->envelope[i][EnvelopeParameter::VOLUMER] > 0) ai->envelope[i][EnvelopeParameter::VOLUMER]--; }
+                if (bl) { if (ai->envelope[i][EnvelopeParameter::VOLUMEL] > 0) ai->envelope[i][EnvelopeParameter::VOLUMEL]--; }
             }
             goto ChangeInstrumentEnv;
         }
@@ -1726,15 +1726,15 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
         {
             g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
             BOOL br = 0, bl = 0;
-            if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == ENV_VOLUMER) br = 1;
+            if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == EnvelopeParameter::VOLUMER) br = 1;
             else
-                if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == ENV_VOLUMEL) bl = 1;
+                if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == EnvelopeParameter::VOLUMEL) bl = 1;
                 else
                     br = bl = 1;
             for (int i = 0; i <= ai->parameters[PAR_ENV_LENGTH]; i++)
             {
-                if (br) { if (ai->envelope[i][ENV_VOLUMER] < 0x0f) ai->envelope[i][ENV_VOLUMER]++; }
-                if (bl) { if (ai->envelope[i][ENV_VOLUMEL] < 0x0f) ai->envelope[i][ENV_VOLUMEL]++; }
+                if (br) { if (ai->envelope[i][EnvelopeParameter::VOLUMER] < 0x0f) ai->envelope[i][EnvelopeParameter::VOLUMER]++; }
+                if (bl) { if (ai->envelope[i][EnvelopeParameter::VOLUMEL] < 0x0f) ai->envelope[i][EnvelopeParameter::VOLUMEL]++; }
             }
             goto ChangeInstrumentEnv;
         }

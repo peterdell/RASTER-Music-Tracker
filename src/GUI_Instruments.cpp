@@ -35,31 +35,31 @@ void CInstruments::DrawInstrument(int instrNr)
 
     // Line 8.5: Instrument XX (size xx bytes)
     sprintf(szBuffer, "INSTRUMENT %02X", instrNr);
-    TextXY(szBuffer, INSTRS_X, INSTRS_Y, TextColor::WHITE);
+    TextXY(szBuffer, InstrumentGUIPosition::X, InstrumentGUIPosition::Y, TextColor::WHITE);
 
     int size = (t->parameters[PAR_ENV_LENGTH] + 1) * 3 + (t->parameters[PAR_TBL_LENGTH] + 1) + 12;
     sprintf(szBuffer, "(SIZE %u BYTES)", size);
-    TextMiniXY(szBuffer, INSTRS_X + 14 * 8, INSTRS_Y + 5);
+    TextMiniXY(szBuffer, InstrumentGUIPosition::X + 14 * 8, InstrumentGUIPosition::Y + 5);
 
     DrawName(instrNr);
 
     // Draw some headings
-    TextMiniXY("EFFECT", INSTRS_PARAM_X, INSTRS_PARAM_Y + 1 * 16 + 8);
-    TextMiniXY("AUDCTL", INSTRS_PARAM_X + 0 * 8, INSTRS_PARAM_Y + 5 * 16 + 8);
-    TextMiniXY("ENVELOPE", INSTRS_PARAM_X + 15 * 8, INSTRS_PARAM_Y + 16 + 8);
-    TextMiniXY("TABLE", INSTRS_PARAM_X + 15 * 8, INSTRS_PARAM_Y + 8 * 16 + 8);
+    TextMiniXY("EFFECT", InstrumentGUIPosition::PARAM_X, InstrumentGUIPosition::PARAM_Y + 1 * 16 + 8);
+    TextMiniXY("AUDCTL", InstrumentGUIPosition::PARAM_X + 0 * 8, InstrumentGUIPosition::PARAM_Y + 5 * 16 + 8);
+    TextMiniXY("ENVELOPE", InstrumentGUIPosition::PARAM_X + 15 * 8, InstrumentGUIPosition::PARAM_Y + 16 + 8);
+    TextMiniXY("TABLE", InstrumentGUIPosition::PARAM_X + 15 * 8, InstrumentGUIPosition::PARAM_Y + 8 * 16 + 8);
 
     // Draw envelope volume markers
-    TextDownXY("\x0e\x0e\x0e\x0e", INSTRS_ENV_X + 11 * 8 - 1, INSTRS_ENV_Y + 3 * 16, TextColor::GRAY);
+    TextDownXY("\x0e\x0e\x0e\x0e", InstrumentGUIPosition::ENV_X + 11 * 8 - 1, InstrumentGUIPosition::ENV_Y + 3 * 16, TextColor::GRAY);
     //delimitation of space for Envelope VOLUME
-    g_mem_dc->MoveTo(INSTRS_ENV_X + 12 * 8 - 1, INSTRS_ENV_Y + 7 * 16 - 1);
-    g_mem_dc->LineTo(INSTRS_ENV_X + 12 * 8 + ENVELOPE_MAX_COLUMNS * 8, INSTRS_ENV_Y + 7 * 16 - 1);
+    g_mem_dc->MoveTo(InstrumentGUIPosition::ENV_X + 12 * 8 - 1, InstrumentGUIPosition::ENV_Y + 7 * 16 - 1);
+    g_mem_dc->LineTo(InstrumentGUIPosition::ENV_X + 12 * 8 + ENVELOPE_MAX_COLUMNS * 8, InstrumentGUIPosition::ENV_Y + 7 * 16 - 1);
 
     if (t->activeEditSection == InstrumentSection::ENVELOPE)
     {
         // Only when the cursor is on the envelope editor, draw the x position of the envelop index being edited
         sprintf(szBuffer, "POS %02X", t->editEnvelopeX);
-        TextXY(szBuffer, INSTRS_ENV_X + 2 * 8, INSTRS_ENV_Y + 5 * 16, TextColor::GRAY);
+        TextXY(szBuffer, InstrumentGUIPosition::ENV_X + 2 * 8, InstrumentGUIPosition::ENV_Y + 5 * 16, TextColor::GRAY);
     }
 
     // Draw the headers of the envelop table parameters
@@ -73,9 +73,9 @@ void CInstruments::DrawInstrument(int instrNr)
     if (g_tracks4_8 > 4)
     {
         TextXY(shenv[0].name, shenv[0].xpos, shenv[0].ypos, TextColor::WHITE); //"VOLUME R:"
-        TextDownXY("\x0e\x0e\x0e\x0e", INSTRS_ENV_X + 11 * 8 - 1, INSTRS_ENV_Y - 2 * 16, TextColor::GRAY);
-        g_mem_dc->MoveTo(INSTRS_ENV_X + 12 * 8 - 1, INSTRS_ENV_Y + 2 * 16 - 1);
-        g_mem_dc->LineTo(INSTRS_ENV_X + 12 * 8 + ENVELOPE_MAX_COLUMNS * 8, INSTRS_ENV_Y + 2 * 16 - 1);
+        TextDownXY("\x0e\x0e\x0e\x0e", InstrumentGUIPosition::ENV_X + 11 * 8 - 1, InstrumentGUIPosition::ENV_Y - 2 * 16, TextColor::GRAY);
+        g_mem_dc->MoveTo(InstrumentGUIPosition::ENV_X + 12 * 8 - 1, InstrumentGUIPosition::ENV_Y + 2 * 16 - 1);
+        g_mem_dc->LineTo(InstrumentGUIPosition::ENV_X + 12 * 8 + ENVELOPE_MAX_COLUMNS * 8, InstrumentGUIPosition::ENV_Y + 2 * 16 - 1);
     }
 
     for (i = 0; i < NUMBER_OF_PARAMS; i++) DrawParameter(i, instrNr);
@@ -85,7 +85,7 @@ void CInstruments::DrawInstrument(int instrNr)
     IconMiniXY(i, shpar[PAR_TBL_TYPE].x + 8 * 8 + 2, shpar[PAR_TBL_TYPE].y + 7);
 
     //inscription at the bottom of TABLE
-    TextMiniXY((i == INSTRUMENT_TABLE_OF_NOTES) ? "TABLE OF NOTES" : "TABLE OF FREQS", INSTRS_TABLE_X, INSTRS_TABLE_Y - 8);
+    TextMiniXY((i == INSTRUMENT_TABLE_OF_NOTES) ? "TABLE OF NOTES" : "TABLE OF FREQS", InstrumentGUIPosition::TABLE_X, InstrumentGUIPosition::TABLE_Y - 8);
 
     //TABLE MODE icon (Set or Add)
     i = (t->parameters[PAR_TBL_MODE] == 0) ? INSTRUMENT_TABLE_MODE_SET : INSTRUMENT_TABLE_MODE_ADD;
@@ -101,16 +101,16 @@ void CInstruments::DrawInstrument(int instrNr)
     if (go < len)
     {
         szBuffer[0] = '\x07';	//Go from here
-        TextXY(szBuffer, INSTRS_ENV_X + 12 * 8 + len * 8, INSTRS_ENV_Y + 7 * 16, TextColor::WHITE);
+        TextXY(szBuffer, InstrumentGUIPosition::ENV_X + 12 * 8 + len * 8, InstrumentGUIPosition::ENV_Y + 7 * 16, TextColor::WHITE);
         szBuffer[0] = '\x06';	//Go here
 
         int lengo = len - go;
-        if (lengo > 3) NumberMiniXY(lengo + 1, INSTRS_ENV_X + 11 * 8 + 4 + go * 8 + lengo * 4, INSTRS_ENV_Y + 7 * 16 + 4); //len-go number
+        if (lengo > 3) NumberMiniXY(lengo + 1, InstrumentGUIPosition::ENV_X + 11 * 8 + 4 + go * 8 + lengo * 4, InstrumentGUIPosition::ENV_Y + 7 * 16 + 4); //len-go number
     }
     else
         szBuffer[0] = '\x16';	//GO from here to here
-    TextXY(szBuffer, INSTRS_ENV_X + 12 * 8 + go * 8, INSTRS_ENV_Y + 7 * 16, TextColor::WHITE);
-    if (go > 2) NumberMiniXY(go, INSTRS_ENV_X + 11 * 8 + go * 4, INSTRS_ENV_Y + 7 * 16 + 4); //GO number
+    TextXY(szBuffer, InstrumentGUIPosition::ENV_X + 12 * 8 + go * 8, InstrumentGUIPosition::ENV_Y + 7 * 16, TextColor::WHITE);
+    if (go > 2) NumberMiniXY(go, InstrumentGUIPosition::ENV_X + 11 * 8 + go * 4, InstrumentGUIPosition::ENV_Y + 7 * 16 + 4); //GO number
 
     //TABLE
     len = t->parameters[PAR_TBL_LENGTH];	//length table
@@ -120,28 +120,28 @@ void CInstruments::DrawInstrument(int instrNr)
     go = t->parameters[PAR_TBL_GOTO];		//table GO loop
     if (len == 0)
     {
-        TextXY("\x18", INSTRS_TABLE_X + 4, INSTRS_TABLE_Y + 8 + 16, TextColor::WHITE);
+        TextXY("\x18", InstrumentGUIPosition::TABLE_X + 4, InstrumentGUIPosition::TABLE_Y + 8 + 16, TextColor::WHITE);
     }
     else
     {
-        TextXY("\x19", INSTRS_TABLE_X + go * 8 * 3, INSTRS_TABLE_Y + 8 + 16, TextColor::WHITE);
-        TextXY("\x1a", INSTRS_TABLE_X + 8 + len * 8 * 3, INSTRS_TABLE_Y + 8 + 16, TextColor::WHITE);
+        TextXY("\x19", InstrumentGUIPosition::TABLE_X + go * 8 * 3, InstrumentGUIPosition::TABLE_Y + 8 + 16, TextColor::WHITE);
+        TextXY("\x1a", InstrumentGUIPosition::TABLE_X + 8 + len * 8 * 3, InstrumentGUIPosition::TABLE_Y + 8 + 16, TextColor::WHITE);
     }
 
     //boundaries of all parts of the instrument
     /*
     CBrush br(RGB(112,112,112));
-    g_mem_dc->FrameRect(CRect(INSTRS_X-2,INSTRS_Y-2,INSTRS_X+38*8+4,INSTRS_Y+2*16+2),&br);
-    g_mem_dc->FrameRect(CRect(INSTRS_PX-2,INSTRS_PY+16-2,INSTRS_PX+29*8,INSTRS_PY+15*16+4),&br);
-    g_mem_dc->FrameRect(CRect(INSTRS_EX,INSTRS_EY-2*16-2,INSTRS_EX+48*8,INSTRS_EY+15*16+2),&br);
-    g_mem_dc->FrameRect(CRect(INSTRS_TX-2,INSTRS_TY-2,INSTRS_TX+54*8+4,INSTRS_TY+2*16+8),&br);
+    g_mem_dc->FrameRect(CRect(InstrumentGUIPosition::X-2,InstrumentGUIPosition::Y-2,InstrumentGUIPosition::X+38*8+4,InstrumentGUIPosition::Y+2*16+2),&br);
+    g_mem_dc->FrameRect(CRect(InstrumentGUIPosition::PX-2,InstrumentGUIPosition::PY+16-2,InstrumentGUIPosition::PX+29*8,InstrumentGUIPosition::PY+15*16+4),&br);
+    g_mem_dc->FrameRect(CRect(InstrumentGUIPosition::EX,InstrumentGUIPosition::EY-2*16-2,InstrumentGUIPosition::EX+48*8,InstrumentGUIPosition::EY+15*16+2),&br);
+    g_mem_dc->FrameRect(CRect(InstrumentGUIPosition::TX-2,InstrumentGUIPosition::TY-2,InstrumentGUIPosition::TX+54*8+4,InstrumentGUIPosition::TY+2*16+8),&br);
     */
 
     if (!g_view.instrumentEditHelp) return; //does not want help => end
     //want help => continue
 
 //separating line
-#define HORIZONTALLINE {	g_mem_dc->MoveTo(INSTRS_HELP_X,INSTRS_HELP_Y-1); g_mem_dc->LineTo(INSTRS_HELP_X+93*8,INSTRS_HELP_Y-1); }
+#define HORIZONTALLINE {	g_mem_dc->MoveTo(InstrumentGUIPosition::HELP_X,InstrumentGUIPosition::HELP_Y-1); g_mem_dc->LineTo(InstrumentGUIPosition::HELP_X+93*8,InstrumentGUIPosition::HELP_Y-1); }
 
     if (t->activeEditSection == InstrumentSection::NAME)		// is the cursor on the instrument name?
         g_isEditingInstrumentName = 1;
@@ -151,9 +151,9 @@ void CInstruments::DrawInstrument(int instrNr)
         g_isEditingInstrumentName = 0;
         switch (t->editEnvelopeY)
         {
-        case ENV_DISTORTION:
+        case EnvelopeParameter::DISTORTION:
         {
-            int d = t->envelope[t->editEnvelopeX][ENV_DISTORTION];
+            int d = t->envelope[t->editEnvelopeX][EnvelopeParameter::DISTORTION];
             const char* distor_help[8] = {
                 "Distortion 0, white noise. (AUDC $0v, Poly5+17/9)",
                 "Distortion 2, square-ish tones. (AUDC $2v, Poly5)",
@@ -164,14 +164,14 @@ void CInstruments::DrawInstrument(int instrNr)
                 "Distortion C, buzzy bass tones. (AUDC $Cv, Poly4)",
                 "Distortion C, gritty bass tones. (AUDC $Cv, Poly4)" };
             const char* hs = distor_help[(d >> 1) & 0x07];
-            TextXY(hs, INSTRS_HELP_X, INSTRS_HELP_Y, TextColor::GRAY);
+            TextXY(hs, InstrumentGUIPosition::HELP_X, InstrumentGUIPosition::HELP_Y, TextColor::GRAY);
             //HORIZONTALLINE;
         }
         break;
 
-        case ENV_COMMAND:
+        case EnvelopeParameter::COMMAND:
         {
-            int c = t->envelope[t->editEnvelopeX][ENV_COMMAND];
+            int c = t->envelope[t->editEnvelopeX][EnvelopeParameter::COMMAND];
             const char* comm_help[8] = {
                 "Play BASE_NOTE + $XY semitones.",
                 "Play frequency $XY.",
@@ -182,17 +182,17 @@ void CInstruments::DrawInstrument(int instrNr)
                 "Set FILTER_SHFRQ += $XY. $0Y = BASS16 Distortion. $FF/$01 = Sawtooth inversion (Distortion A).",
                 "Set instrument AUDCTL. $FF = VOLUME ONLY mode. $FE/$FD = enable/disable Two-Tone Filter." };
             const char* hs = comm_help[c & 0x07];
-            TextXY(hs, INSTRS_HELP_X, INSTRS_HELP_Y, TextColor::GRAY);
+            TextXY(hs, InstrumentGUIPosition::HELP_X, InstrumentGUIPosition::HELP_Y, TextColor::GRAY);
             //HORIZONTALLINE;
         }
         break;
 
-        case ENV_X:
-        case ENV_Y:
+        case EnvelopeParameter::X:
+        case EnvelopeParameter::Y:
         {
-            char i = (t->envelope[t->editEnvelopeX][ENV_X] << 4) | t->envelope[t->editEnvelopeX][ENV_Y];
+            char i = (t->envelope[t->editEnvelopeX][EnvelopeParameter::X] << 4) | t->envelope[t->editEnvelopeX][EnvelopeParameter::Y];
             sprintf(szBuffer, "XY: $%02X = %i = %+i", (unsigned char)i, (unsigned char)i, i);
-            TextXY(szBuffer, INSTRS_HELP_X, INSTRS_HELP_Y, TextColor::GRAY);
+            TextXY(szBuffer, InstrumentGUIPosition::HELP_X, InstrumentGUIPosition::HELP_Y, TextColor::GRAY);
             //HORIZONTALLINE;
         }
         break;
@@ -211,7 +211,7 @@ void CInstruments::DrawInstrument(int instrNr)
                 sprintf(szBuffer, "$%02X = %i", i, i);
             else
                 sprintf(szBuffer, "$00 = no effects.");
-            TextXY(szBuffer, INSTRS_HELP_X, INSTRS_HELP_Y, TextColor::GRAY);
+            TextXY(szBuffer, InstrumentGUIPosition::HELP_X, InstrumentGUIPosition::HELP_Y, TextColor::GRAY);
             //HORIZONTALLINE;
         }
         break;
@@ -226,7 +226,7 @@ void CInstruments::DrawInstrument(int instrNr)
                 else
                     f = (double)i / 256 + 0.0005;
             sprintf(szBuffer, "$%02X = -%.3f / vbi", (unsigned char)i, f);
-            TextXY(szBuffer, INSTRS_HELP_X, INSTRS_HELP_Y, TextColor::GRAY);
+            TextXY(szBuffer, InstrumentGUIPosition::HELP_X, InstrumentGUIPosition::HELP_Y, TextColor::GRAY);
             //HORIZONTALLINE;
         }
         break;
@@ -238,7 +238,7 @@ void CInstruments::DrawInstrument(int instrNr)
         g_isEditingInstrumentName = 0;
         char i = (t->noteTable[t->editNoteTableCursorPos]);
         sprintf(szBuffer, "$%02X = %+i", (unsigned char)i, i);
-        TextXY(szBuffer, INSTRS_HELP_X, INSTRS_HELP_Y, TextColor::GRAY);
+        TextXY(szBuffer, InstrumentGUIPosition::HELP_X, InstrumentGUIPosition::HELP_Y, TextColor::GRAY);
         //HORIZONTALLINE;
     }
 }
@@ -262,8 +262,8 @@ void CInstruments::DrawName(int instrNr)
         g_isEditingInstrumentName = 1;
     }
 
-    TextXY("NAME:", INSTRS_X, INSTRS_Y + 16, TextColor::WHITE);				// Draw the title
-    TextXYSelN(ptrName, cursorPos, INSTRS_X + 6 * 8, INSTRS_Y + 16, color);	// Draw the name and highlight the cursor position
+    TextXY("NAME:", InstrumentGUIPosition::X, InstrumentGUIPosition::Y + 16, TextColor::WHITE);				// Draw the title
+    TextXYSelN(ptrName, cursorPos, InstrumentGUIPosition::X + 6 * 8, InstrumentGUIPosition::Y + 16, color);	// Draw the name and highlight the cursor position
 }
 
 /// <summary>
@@ -425,54 +425,54 @@ BOOL CInstruments::GetGUIArea(int instrNr, InstrumentGUIZone zone, CRect& rect)
     {
     case InstrumentGUIZone::ENVELOPE_LEFT_ENVELOPE:
         //left channel volume curve (lower)
-        rect.SetRect(INSTRS_ENV_X + 12 * 8, INSTRS_ENV_Y + 3 * 16 + 4, INSTRS_ENV_X + 12 * 8 + len * 8, INSTRS_ENV_Y + 3 * 16 + 4 + 4 * 16);
+        rect.SetRect(InstrumentGUIPosition::ENV_X + 12 * 8, InstrumentGUIPosition::ENV_Y + 3 * 16 + 4, InstrumentGUIPosition::ENV_X + 12 * 8 + len * 8, InstrumentGUIPosition::ENV_Y + 3 * 16 + 4 + 4 * 16);
         return TRUE;
 
     case InstrumentGUIZone::ENVELOPE_RIGHT_ENVELOPE:
         //right channel volume curve (upper)
         if (g_tracks4_8 <= 4) { return 0; }
-        rect.SetRect(INSTRS_ENV_X + 12 * 8, INSTRS_ENV_Y - 2 * 16 + 4, INSTRS_ENV_X + 12 * 8 + len * 8, INSTRS_ENV_Y - 2 * 16 + 4 + 4 * 16);
+        rect.SetRect(InstrumentGUIPosition::ENV_X + 12 * 8, InstrumentGUIPosition::ENV_Y - 2 * 16 + 4, InstrumentGUIPosition::ENV_X + 12 * 8 + len * 8, InstrumentGUIPosition::ENV_Y - 2 * 16 + 4 + 4 * 16);
         return TRUE;
 
     case InstrumentGUIZone::ENVELOPE_PARAM_TABLE:
         //envelope area large table
-        rect.SetRect(INSTRS_ENV_X + 12 * 8, INSTRS_ENV_Y + 3 * 16 + 0 + 5 * 16, INSTRS_ENV_X + 12 * 8 + len * 8, INSTRS_ENV_Y + 3 * 16 + 0 + 5 * 16 + 7 * 16);
+        rect.SetRect(InstrumentGUIPosition::ENV_X + 12 * 8, InstrumentGUIPosition::ENV_Y + 3 * 16 + 0 + 5 * 16, InstrumentGUIPosition::ENV_X + 12 * 8 + len * 8, InstrumentGUIPosition::ENV_Y + 3 * 16 + 0 + 5 * 16 + 7 * 16);
         return TRUE;
 
     case InstrumentGUIZone::ENVELOPE_RIGHT_VOL_NUMS:
         //envelope area of volume numbers for right channel
         if (g_tracks4_8 <= 4) { return 0; }
-        rect.SetRect(INSTRS_ENV_X + 12 * 8, INSTRS_ENV_Y - 2 * 16 + 0 + 4 * 16, INSTRS_ENV_X + 12 * 8 + len * 8, INSTRS_ENV_Y - 2 * 16 + 0 + 4 * 16 + 16);
+        rect.SetRect(InstrumentGUIPosition::ENV_X + 12 * 8, InstrumentGUIPosition::ENV_Y - 2 * 16 + 0 + 4 * 16, InstrumentGUIPosition::ENV_X + 12 * 8 + len * 8, InstrumentGUIPosition::ENV_Y - 2 * 16 + 0 + 4 * 16 + 16);
         return TRUE;
 
     case InstrumentGUIZone::NOTE_TABLE:
         //instrument table line
-        rect.SetRect(INSTRS_TABLE_X, INSTRS_TABLE_Y + 8, INSTRS_TABLE_X + tabl * 24 - 8, INSTRS_TABLE_Y + 8 + 16);
+        rect.SetRect(InstrumentGUIPosition::TABLE_X, InstrumentGUIPosition::TABLE_Y + 8, InstrumentGUIPosition::TABLE_X + tabl * 24 - 8, InstrumentGUIPosition::TABLE_Y + 8 + 16);
         return TRUE;
 
     case InstrumentGUIZone::INSTRUMENT_NAME:
         //instrument name
-        rect.SetRect(INSTRS_PARAM_X, INSTRS_PARAM_Y - 16, INSTRS_PARAM_X + 6 * 8 + INSTRUMENT_NAME_MAX_LEN * 8, INSTRS_PARAM_Y + 0);
+        rect.SetRect(InstrumentGUIPosition::PARAM_X, InstrumentGUIPosition::PARAM_Y - 16, InstrumentGUIPosition::PARAM_X + 6 * 8 + INSTRUMENT_NAME_MAX_LEN * 8, InstrumentGUIPosition::PARAM_Y + 0);
         return TRUE;
 
     case InstrumentGUIZone::PARAMETERS:
         //instrument parameters
-        rect.SetRect(INSTRS_PARAM_X, INSTRS_PARAM_Y + 32, INSTRS_PARAM_X + 26 * 8, INSTRS_PARAM_Y + 32 + 12 * 16);
+        rect.SetRect(InstrumentGUIPosition::PARAM_X, InstrumentGUIPosition::PARAM_Y + 32, InstrumentGUIPosition::PARAM_X + 26 * 8, InstrumentGUIPosition::PARAM_Y + 32 + 12 * 16);
         return TRUE;
 
     case InstrumentGUIZone::INSTRUMENT_NUMBER_DLG:
         //instrument number
-        rect.SetRect(INSTRS_X, INSTRS_Y, INSTRS_X + 13 * 8, INSTRS_Y + 16);
+        rect.SetRect(InstrumentGUIPosition::X, InstrumentGUIPosition::Y, InstrumentGUIPosition::X + 13 * 8, InstrumentGUIPosition::Y + 16);
         return TRUE;
 
     case InstrumentGUIZone::LEN_AND_GOTO_ARROWS:
         //envelope area under the left (lower) volume curve
-        rect.SetRect(INSTRS_ENV_X + 12 * 8, INSTRS_ENV_Y + 3 * 16 + 0 + 4 * 16, INSTRS_ENV_X + 12 * 8 + ENVELOPE_MAX_COLUMNS * 8, INSTRS_ENV_Y + 3 * 16 + 0 + 4 * 16 + 16);
+        rect.SetRect(InstrumentGUIPosition::ENV_X + 12 * 8, InstrumentGUIPosition::ENV_Y + 3 * 16 + 0 + 4 * 16, InstrumentGUIPosition::ENV_X + 12 * 8 + ENVELOPE_MAX_COLUMNS * 8, InstrumentGUIPosition::ENV_Y + 3 * 16 + 0 + 4 * 16 + 16);
         return TRUE;
 
     case  InstrumentGUIZone::NOTE_TBL_LEN_AND_GOTO:
         //instrument table + 1 line below parameter table 
-        rect.SetRect(INSTRS_TABLE_X, INSTRS_TABLE_Y + 8 + 1 * 16, INSTRS_TABLE_X + NOTE_TABLE_MAX_LEN * 24 - 8, INSTRS_TABLE_Y + 8 + 2 * 16);
+        rect.SetRect(InstrumentGUIPosition::TABLE_X, InstrumentGUIPosition::TABLE_Y + 8 + 1 * 16, InstrumentGUIPosition::TABLE_X + NOTE_TABLE_MAX_LEN * 24 - 8, InstrumentGUIPosition::TABLE_Y + 8 + 2 * 16);
         return TRUE;
     }
     return FALSE;
@@ -481,22 +481,22 @@ BOOL CInstruments::GetGUIArea(int instrNr, InstrumentGUIZone zone, CRect& rect)
 void CInstruments::DrawEnv(int e, int it)
 {
     TInstrument* in = GetInstrument(it);
-    int volR = in->envelope[e][ENV_VOLUMER] & 0x0f; // Volume Right
-    int volL = in->envelope[e][ENV_VOLUMEL] & 0x0f; // Volume Left/Mono
+    int volR = in->envelope[e][EnvelopeParameter::VOLUMER] & 0x0f; // Volume Right
+    int volL = in->envelope[e][EnvelopeParameter::VOLUMEL] & 0x0f; // Volume Left/Mono
     TextColor color;
-    int x = INSTRS_ENV_X + 12 * 8 + e * 8;
+    int x = InstrumentGUIPosition::ENV_X + 12 * 8 + e * 8;
     char s[2], a;
     s[1] = 0;
     int ay = (in->activeEditSection == InstrumentSection::ENVELOPE && in->editEnvelopeX == e) ? in->editEnvelopeY : -1;
 
     // Volume Only mode uses Command 7 with $XY == $FF
-    COLORREF fillColor = (in->envelope[e][ENV_COMMAND] == 0x07 && in->envelope[e][ENV_X] == 0x0f && in->envelope[e][ENV_Y] == 0x0f) ?
+    COLORREF fillColor = (in->envelope[e][EnvelopeParameter::COMMAND] == 0x07 && in->envelope[e][EnvelopeParameter::X] == 0x0f && in->envelope[e][EnvelopeParameter::Y] == 0x0f) ?
         RGB(128, 255, 255) : RGB(255, 255, 255);
 
     // Volume column
-    if (volL) g_mem_dc->FillSolidRect(x, INSTRS_ENV_Y + 3 * 16 + 4 + 4 * (15 - volL), 8, volL * 4, fillColor);
+    if (volL) g_mem_dc->FillSolidRect(x, InstrumentGUIPosition::ENV_Y + 3 * 16 + 4 + 4 * (15 - volL), 8, volL * 4, fillColor);
 
-    if (g_tracks4_8 > 4 && volR) g_mem_dc->FillSolidRect(x, INSTRS_ENV_Y - 2 * 16 + 4 + 4 * (15 - volR), 8, volR * 4, fillColor);
+    if (g_tracks4_8 > 4 && volR) g_mem_dc->FillSolidRect(x, InstrumentGUIPosition::ENV_Y - 2 * 16 + 4 + 4 * (15 - volR), 8, volR * 4, fillColor);
 
     for (int j = 0; j < 8; j++)
     {
@@ -520,10 +520,10 @@ void CInstruments::DrawEnv(int e, int it)
 
         if (j == 0)
         {
-            if (g_tracks4_8 > 4) TextXY(s, x, INSTRS_ENV_Y + 2 * 16, color);		 // Volume R is out of the box
+            if (g_tracks4_8 > 4) TextXY(s, x, InstrumentGUIPosition::ENV_Y + 2 * 16, color);		 // Volume R is out of the box
         }
         else
-            TextXY(s, x, INSTRS_ENV_Y + 7 * 16 + j * 16, color);
+            TextXY(s, x, InstrumentGUIPosition::ENV_Y + 7 * 16 + j * 16, color);
     }
 }
 
@@ -542,7 +542,7 @@ void CInstruments::DrawNoteTableValue(int noteIdx, int instrNr)
     szBuffer[0] = CharH4(noteIdx);
     szBuffer[1] = CharL4(noteIdx);
     szBuffer[2] = 0;
-    TextMiniXY(szBuffer, INSTRS_TABLE_X + noteIdx * 24, INSTRS_TABLE_Y);
+    TextMiniXY(szBuffer, InstrumentGUIPosition::TABLE_X + noteIdx * 24, InstrumentGUIPosition::TABLE_Y);
 
     // Note Table parameter
     sprintf(szBuffer, "%02X", data->noteTable[noteIdx]);
@@ -553,5 +553,5 @@ void CInstruments::DrawNoteTableValue(int noteIdx, int instrNr)
         color = (g_prove) ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED;
     }
 
-    TextXY(szBuffer, INSTRS_TABLE_X + noteIdx * 24, INSTRS_TABLE_Y + 8, color);
+    TextXY(szBuffer, InstrumentGUIPosition::TABLE_X + noteIdx * 24, InstrumentGUIPosition::TABLE_Y + 8, color);
 }

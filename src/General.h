@@ -140,26 +140,34 @@ enum class InstrumentGUIZone : int {
 
 
 // GUI instrument definitions
-#define INSTRS_X			2*8
-#define INSTRS_Y			8*16+8
-#define INSTRS_PARAM_X		INSTRS_X			// parameter X
-#define INSTRS_PARAM_Y		INSTRS_Y+2*16		// parametry Y
-#define INSTRS_ENV_X		INSTRS_X+32*8		// envelope X  (29)
-#define INSTRS_ENV_Y		INSTRS_Y+2*16		// envelope Y
-#define INSTRS_TABLE_X		INSTRS_X+0*8		// table X	(16)(37)
-#define INSTRS_TABLE_Y		INSTRS_Y+18*16-8	// table Y
-#define INSTRS_HELP_X		INSTRS_X			// active help X
-#define INSTRS_HELP_Y		INSTRS_Y+21*16		// active help Y
+class InstrumentGUIPosition {
+public:
+    static constexpr int X = 2 * 8;
+    static constexpr int Y = 8 * 16 + 8;
+    static constexpr int PARAM_X = X;			    // parameter X
+    static constexpr int PARAM_Y = Y + 2 * 16;		// parametry Y
+    static constexpr int ENV_X = X + 32 * 8;		// envelope X  (29)
+    static constexpr int ENV_Y = Y + 2 * 16;		// envelope Y
+    static constexpr int TABLE_X = X + 0 * 8;		// table X	(16)(37)
+    static constexpr int TABLE_Y = Y + 18 * 16 - 8;	// table Y
+    static constexpr int HELP_X = X;			    // active help X
+    static constexpr int HELP_Y = Y + 21 * 16;		// active help Y
+};
 
 
-#define	ENV_VOLUMER		0
-#define	ENV_VOLUMEL		1
-#define	ENV_DISTORTION	2
-#define ENV_COMMAND		3
-#define	ENV_X			4
-#define	ENV_Y			5
-#define	ENV_FILTER		6
-#define	ENV_PORTAMENTO	7
+class EnvelopeParameter {
+
+public:
+
+    static constexpr int VOLUMER = 0;
+    static constexpr int VOLUMEL = 1;
+    static constexpr int DISTORTION = 2;
+    static constexpr int COMMAND = 3;
+    static constexpr int X = 4;
+    static constexpr int Y = 5;
+    static constexpr int FILTER = 6;
+    static constexpr int PORTAMENTO = 7;
+};
 
 
 // ----------------------------------------------------------------------------

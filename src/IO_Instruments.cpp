@@ -354,16 +354,16 @@ BYTE CInstruments::InstrToAta(int instr, unsigned char* ata, int max)
     {
         int* env = (int*)&ai->envelope[i];
         ata[j] = (stereo) ?
-            (env[ENV_VOLUMER] << 4) | (env[ENV_VOLUMEL])	//stereo
+            (env[EnvelopeParameter::VOLUMER] << 4) | (env[EnvelopeParameter::VOLUMEL])	//stereo
             :
-            (env[ENV_VOLUMEL] << 4) | (env[ENV_VOLUMEL]); //mono, VOLUME R = VOLUME L
+            (env[EnvelopeParameter::VOLUMEL] << 4) | (env[EnvelopeParameter::VOLUMEL]); //mono, VOLUME R = VOLUME L
 
-        ata[j + 1] = (env[ENV_FILTER] << 7)
-            | (env[ENV_COMMAND] << 4)	//0-7
-            | (env[ENV_DISTORTION])	//0,2,4,6,8,A,C,E
-            | (env[ENV_PORTAMENTO]);
-        ata[j + 2] = (env[ENV_X] << 4)
-            | (env[ENV_Y]);
+        ata[j + 1] = (env[EnvelopeParameter::FILTER] << 7)
+            | (env[EnvelopeParameter::COMMAND] << 4)	//0-7
+            | (env[EnvelopeParameter::DISTORTION])	//0,2,4,6,8,A,C,E
+            | (env[EnvelopeParameter::PORTAMENTO]);
+        ata[j + 2] = (env[EnvelopeParameter::X] << 4)
+            | (env[EnvelopeParameter::Y]);
     }
     return tablelast + 1 + (len + 1) * 3;	//returns the data length of the instrument
 }
@@ -426,16 +426,16 @@ BYTE CInstruments::InstrToAtaRMF(int instr, unsigned char* ata, int max)
     {
         int* env = (int*)&ai->envelope[i];
         ata[j] = (stereo) ?
-            (env[ENV_VOLUMER] << 4) | (env[ENV_VOLUMEL]) //stereo
+            (env[EnvelopeParameter::VOLUMER] << 4) | (env[EnvelopeParameter::VOLUMEL]) //stereo
             :
-            (env[ENV_VOLUMEL] << 4) | (env[ENV_VOLUMEL]); //mono, VOLUME R = VOLUME L
+            (env[EnvelopeParameter::VOLUMEL] << 4) | (env[EnvelopeParameter::VOLUMEL]); //mono, VOLUME R = VOLUME L
 
-        ata[j + 1] = (env[ENV_FILTER] << 7)
-            | (env[ENV_COMMAND] << 4)	//0-7
-            | (env[ENV_DISTORTION])	//0,2,4,..14
-            | (env[ENV_PORTAMENTO]);
-        ata[j + 2] = (env[ENV_X] << 4)
-            | (env[ENV_Y]);
+        ata[j + 1] = (env[EnvelopeParameter::FILTER] << 7)
+            | (env[EnvelopeParameter::COMMAND] << 4)	//0-7
+            | (env[EnvelopeParameter::DISTORTION])	//0,2,4,..14
+            | (env[EnvelopeParameter::PORTAMENTO]);
+        ata[j + 2] = (env[EnvelopeParameter::X] << 4)
+            | (env[EnvelopeParameter::Y]);
     }
     return tablelast + 1 + (len + 1) * 3;	//returns the data length of the instrument
 }
@@ -495,14 +495,14 @@ BOOL CInstruments::AtaV0ToInstr(unsigned char* ata, int instr)
     for (i = 0, j = 16; i <= len; i++, j += 3)
     {
         int* env = ai->envelope[i];
-        env[ENV_VOLUMER] = (stereo) ? (ata[j] >> 4) : (ata[j] & 0x0f); //if mono, then VOLUME R = VOLUME L
-        env[ENV_VOLUMEL] = ata[j] & 0x0f;
-        env[ENV_FILTER] = ata[j + 1] >> 7;
-        env[ENV_COMMAND] = (ata[j + 1] >> 4) & 0x07;
-        env[ENV_DISTORTION] = ata[j + 1] & 0x0e;	//even numbers 0,2,4, .., 14
-        env[ENV_PORTAMENTO] = ata[j + 1] & 0x01;
-        env[ENV_X] = ata[j + 2] >> 4;
-        env[ENV_Y] = ata[j + 2] & 0x0f;
+        env[EnvelopeParameter::VOLUMER] = (stereo) ? (ata[j] >> 4) : (ata[j] & 0x0f); //if mono, then VOLUME R = VOLUME L
+        env[EnvelopeParameter::VOLUMEL] = ata[j] & 0x0f;
+        env[EnvelopeParameter::FILTER] = ata[j + 1] >> 7;
+        env[EnvelopeParameter::COMMAND] = (ata[j + 1] >> 4) & 0x07;
+        env[EnvelopeParameter::DISTORTION] = ata[j + 1] & 0x0e;	//even numbers 0,2,4, .., 14
+        env[EnvelopeParameter::PORTAMENTO] = ata[j + 1] & 0x01;
+        env[EnvelopeParameter::X] = ata[j + 2] >> 4;
+        env[EnvelopeParameter::Y] = ata[j + 2] & 0x0f;
     }
     return 1;
 }
@@ -567,16 +567,16 @@ BOOL CInstruments::AtaToInstr(unsigned char* mem, int instrumentNr)
     {
         // Take the 3 bytes of envelope data and parse them into the 8 data fields
         int* env = ai->envelope[i];
-        env[ENV_VOLUMER] = (stereo) ? (mem[ptrEnvelopeEntry] >> 4) : (mem[ptrEnvelopeEntry] & 0x0f); //if mono, then VOLUME R = VOLUME L
-        env[ENV_VOLUMEL] = mem[ptrEnvelopeEntry] & 0x0f;
+        env[EnvelopeParameter::VOLUMER] = (stereo) ? (mem[ptrEnvelopeEntry] >> 4) : (mem[ptrEnvelopeEntry] & 0x0f); //if mono, then VOLUME R = VOLUME L
+        env[EnvelopeParameter::VOLUMEL] = mem[ptrEnvelopeEntry] & 0x0f;
 
-        env[ENV_FILTER] = mem[ptrEnvelopeEntry + 1] >> 7;
-        env[ENV_COMMAND] = (mem[ptrEnvelopeEntry + 1] >> 4) & 0x07;
-        env[ENV_DISTORTION] = mem[ptrEnvelopeEntry + 1] & 0x0e;	//even numbers 0,2,4,...E
-        env[ENV_PORTAMENTO] = mem[ptrEnvelopeEntry + 1] & 0x01;
+        env[EnvelopeParameter::FILTER] = mem[ptrEnvelopeEntry + 1] >> 7;
+        env[EnvelopeParameter::COMMAND] = (mem[ptrEnvelopeEntry + 1] >> 4) & 0x07;
+        env[EnvelopeParameter::DISTORTION] = mem[ptrEnvelopeEntry + 1] & 0x0e;	//even numbers 0,2,4,...E
+        env[EnvelopeParameter::PORTAMENTO] = mem[ptrEnvelopeEntry + 1] & 0x01;
 
-        env[ENV_X] = mem[ptrEnvelopeEntry + 2] >> 4;
-        env[ENV_Y] = mem[ptrEnvelopeEntry + 2] & 0x0f;
+        env[EnvelopeParameter::X] = mem[ptrEnvelopeEntry + 2] >> 4;
+        env[EnvelopeParameter::Y] = mem[ptrEnvelopeEntry + 2] & 0x0f;
     }
     return 1;
 }

@@ -425,16 +425,16 @@ int CSong::ImportTMC(std::ifstream& in)
             //filter
             if (((audctl & 0x04) == 0x04 || (audctl & 0x02) == 0x02))
             {
-                ai->envelope[j][ENV_FILTER] = 1;
+                ai->envelope[j][EnvelopeParameter::FILTER] = 1;
                 filteru = 1;
             }
 
-            ai->envelope[j][ENV_DISTORTION] = dist;
+            ai->envelope[j][EnvelopeParameter::DISTORTION] = dist;
             int vol = c1 & 0x0f;			//volumeL 0-F;
-            ai->envelope[j][ENV_VOLUMEL] = lastvol = vol;			//lastvol is needed to correct the fading
+            ai->envelope[j][EnvelopeParameter::VOLUMEL] = lastvol = vol;			//lastvol is needed to correct the fading
             if (vol > maxvolL) maxvolL = vol;	//maximum volumeL of the whole envelope
             vol = c2 & 0x0f;			//volumeR 0-F
-            ai->envelope[j][ENV_VOLUMER] = vol;
+            ai->envelope[j][EnvelopeParameter::VOLUMER] = vol;
             if (vol > maxvolR) maxvolR = vol;	//maximum volumeR of the whole envelope
             if (vol > 0) anyrightvolisntzero = 1;	//some volumeR is> 0
 
@@ -525,9 +525,9 @@ int CSong::ImportTMC(std::ifstream& in)
             //forced volume
             if (dist08) { rmtcmd = 7; rmtpar = 0x80; } //volume only
 
-            ai->envelope[j][ENV_COMMAND] = rmtcmd;
-            ai->envelope[j][ENV_X] = (rmtpar >> 4) & 0x0f;
-            ai->envelope[j][ENV_Y] = rmtpar & 0x0f;
+            ai->envelope[j][EnvelopeParameter::COMMAND] = rmtcmd;
+            ai->envelope[j][EnvelopeParameter::X] = (rmtpar >> 4) & 0x0f;
+            ai->envelope[j][EnvelopeParameter::Y] = rmtpar & 0x0f;
 
             lasttmccmd = tmccmd;
             lasttmcpar = tmcpar;
@@ -540,7 +540,7 @@ int CSong::ImportTMC(std::ifstream& in)
         //is all right volume = 0? => copies left to right
         if (!anyrightvolisntzero)
         {
-            for (j = 0; j <= 21; j++) ai->envelope[j][ENV_VOLUMER] = ai->envelope[j][ENV_VOLUMEL];
+            for (j = 0; j <= 21; j++) ai->envelope[j][EnvelopeParameter::VOLUMER] = ai->envelope[j][EnvelopeParameter::VOLUMEL];
             maxvolR = maxvolL;
         }
 
@@ -603,12 +603,12 @@ int CSong::ImportTMC(std::ifstream& in)
             int psn = ai->noteTable[0];	//0th place in the table
             for (j = 0; j < 21; j++)
             {
-                if (ai->envelope[j][ENV_COMMAND] == 0) //music shift
+                if (ai->envelope[j][EnvelopeParameter::COMMAND] == 0) //music shift
                 {
-                    BYTE notenum = (ai->envelope[j][ENV_X] << 4) + ai->envelope[j][ENV_Y];
+                    BYTE notenum = (ai->envelope[j][EnvelopeParameter::X] << 4) + ai->envelope[j][EnvelopeParameter::Y];
                     notenum += psn; //shifts
-                    ai->envelope[j][ENV_X] = (notenum >> 4) & 0x0f;
-                    ai->envelope[j][ENV_Y] = notenum & 0x0f;
+                    ai->envelope[j][EnvelopeParameter::X] = (notenum >> 4) & 0x0f;
+                    ai->envelope[j][EnvelopeParameter::Y] = notenum & 0x0f;
                 }
             }
             ai->noteTable[0] = 0; //so the parameter in the table is reset
@@ -760,7 +760,7 @@ int CSong::ImportTMC(std::ifstream& in)
         int lastchangecol = 0;
         for (int k = 0; k <= 20; k++)
         {
-            if (ai->envelope[k][ENV_VOLUMEL] > 0 || ai->envelope[k][ENV_VOLUMER] > 0) lastnonzerovolumecol = k;
+            if (ai->envelope[k][EnvelopeParameter::VOLUMEL] > 0 || ai->envelope[k][EnvelopeParameter::VOLUMER] > 0) lastnonzerovolumecol = k;
             if (k > 0)
             {
                 for (int m = 0; m < ENVROWS; m++)
@@ -1121,14 +1121,14 @@ int CSong::ImportMOD(std::ifstream& in)
 
         int replen = (sdata[29] | (sdata[28] << 8)) * 2;
 
-        //ti->env[0][ENV_VOLUMEL]= (volume>>2);	//0-15
-        //ti->env[0][ENV_VOLUMER]= (volume>>2);	//0-15
+        //ti->env[0][EnvelopeParameter::VOLUMEL]= (volume>>2);	//0-15
+        //ti->env[0][EnvelopeParameter::VOLUMER]= (volume>>2);	//0-15
         //ti->env[0][ENV_DISTORTION]= 0x0a;		//clean tone
         /*if (finetune!=0)
         {
-            ti->env[0][ENV_COMMAND]=0x02;		//frequency shift
-            ti->env[0][ENV_X]=(finetune>>4);
-            ti->env[0][ENV_Y]=(finetune&0x0f);
+            ti->env[0][EnvelopeParameter::COMMAND]=0x02;		//frequency shift
+            ti->env[0][EnvelopeParameter::X]=(finetune>>4);
+            ti->env[0][EnvelopeParameter::Y]=(finetune&0x0f);
         }
         */
         //if (!reppoint) ti->par[PAR_VSLIDE]=255-(samplen>>8);
@@ -1728,8 +1728,8 @@ int CSong::ImportMOD(std::ifstream& in)
         {
             int avol = (int)((double)16 * ((double)sumtab[k] / maxsum) * sampvol + 0.5);
             if (avol > 15) avol = 15;
-            rmti->envelope[k][ENV_VOLUMEL] = rmti->envelope[k][ENV_VOLUMER] = avol;
-            rmti->envelope[k][ENV_DISTORTION] = 0x0a;	//pure tone
+            rmti->envelope[k][EnvelopeParameter::VOLUMEL] = rmti->envelope[k][EnvelopeParameter::VOLUMER] = avol;
+            rmti->envelope[k][EnvelopeParameter::DISTORTION] = 0x0a;	//pure tone
         }
 
         rmti->parameters[PAR_ENV_LENGTH] = ix - 1;
@@ -1747,7 +1747,7 @@ int CSong::ImportMOD(std::ifstream& in)
         else
         {
             //no loop (ix is max 31, so it can add a "silent loop" to the end)
-            rmti->envelope[ix][ENV_VOLUMEL] = rmti->envelope[ix][ENV_VOLUMER] = 0; //silence at the end
+            rmti->envelope[ix][EnvelopeParameter::VOLUMEL] = rmti->envelope[ix][EnvelopeParameter::VOLUMER] = 0; //silence at the end
             rmti->parameters[PAR_ENV_LENGTH] = ix;	//length of 1 vic
             rmti->parameters[PAR_ENV_GOTO] = ix;	//jump on the same thing
         }
