@@ -797,11 +797,11 @@ void CASMFileExporter::ComposeRMTFEATstring(
             // Run over all commands that an instrument uses
             for (int j = 0; j <= ai->parameters[PAR_ENV_LENGTH]; j++)
             {
-                int cmd = ai->envelope[j][ENV_COMMAND] & 0x07;
+                int cmd = ai->envelope[j][EnvelopeParameter::COMMAND] & 0x07;
                 usedCommand[cmd]++;
                 if (cmd == 7) // AUDCTL
                 {
-                    if (ai->envelope[j][ENV_X] == 0x08 && ai->envelope[j][ENV_Y] == 0x00)
+                    if (ai->envelope[j][EnvelopeParameter::X] == 0x08 && ai->envelope[j][EnvelopeParameter::Y] == 0x00)
                     {
                         usedCommand7_VolumeOnly++;
                         for (int channelNr = 0; channelNr < song.GetTracks(); channelNr++)
@@ -815,10 +815,10 @@ void CASMFileExporter::ComposeRMTFEATstring(
                 }
 
                 // Portamento
-                if (ai->envelope[j][ENV_PORTAMENTO]) usedPortamento++;
+                if (ai->envelope[j][EnvelopeParameter::PORTAMENTO]) usedPortamento++;
 
                 // Filter
-                if (ai->envelope[j][ENV_FILTER])
+                if (ai->envelope[j][EnvelopeParameter::FILTER])
                 {
                     usedFilter++;
                     for (int channelNr = 0; channelNr < song.GetTracks(); channelNr++)
@@ -829,7 +829,7 @@ void CASMFileExporter::ComposeRMTFEATstring(
                 }
 
                 // Bass16
-                if (ai->envelope[j][ENV_DISTORTION] == 6)
+                if (ai->envelope[j][EnvelopeParameter::DISTORTION] == 6)
                 {
                     usedBass16++;
                     for (int channelNr = 0; channelNr < song.GetTracks(); channelNr++)

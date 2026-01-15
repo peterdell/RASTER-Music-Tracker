@@ -1915,13 +1915,13 @@ void CSong::InstrPaste(int special)
     InstrPaste_Envelopes:
         for (x = 0; x <= m_instrclipboard.parameters[PAR_ENV_LENGTH]; x++)
         {
-            if (br) ai->envelope[x][ENV_VOLUMER] = m_instrclipboard.envelope[x][ENV_VOLUMER];
-            if (bl) ai->envelope[x][ENV_VOLUMEL] = m_instrclipboard.envelope[x][ENV_VOLUMEL];
-            if (bltor) ai->envelope[x][ENV_VOLUMER] = m_instrclipboard.envelope[x][ENV_VOLUMEL];
-            if (brtol) ai->envelope[x][ENV_VOLUMEL] = m_instrclipboard.envelope[x][ENV_VOLUMER];
+            if (br) ai->envelope[x][EnvelopeParameter::VOLUMER] = m_instrclipboard.envelope[x][EnvelopeParameter::VOLUMER];
+            if (bl) ai->envelope[x][EnvelopeParameter::VOLUMEL] = m_instrclipboard.envelope[x][EnvelopeParameter::VOLUMEL];
+            if (bltor) ai->envelope[x][EnvelopeParameter::VOLUMER] = m_instrclipboard.envelope[x][EnvelopeParameter::VOLUMEL];
+            if (brtol) ai->envelope[x][EnvelopeParameter::VOLUMEL] = m_instrclipboard.envelope[x][EnvelopeParameter::VOLUMER];
             if (ep)
             {
-                for (y = ENV_DISTORTION; y < ENVROWS; y++) ai->envelope[x][y] = m_instrclipboard.envelope[x][y];
+                for (y = EnvelopeParameter::DISTORTION; y < ENVROWS; y++) ai->envelope[x][y] = m_instrclipboard.envelope[x][y];
             }
         }
         ai->parameters[PAR_ENV_LENGTH] = m_instrclipboard.parameters[PAR_ENV_LENGTH];
