@@ -631,6 +631,9 @@
     <CopyFileToFolders Include="..\lib\x64\sa_c6502.dll">
       <Filter>Copy to Build Folder\Windows DLLs\x64</Filter>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="..\lib\x64\mfc140.dll">
+      <Filter>Copy to Build Folder\Windows DLLs\x64</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Rmt.rc">
