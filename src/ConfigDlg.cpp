@@ -2,7 +2,6 @@
 //
 
 #include "StdAfx.h"
-#include "Rmt.h"
 #include "ConfigDlg.h"
 #include "FilePathDlg.h"
 #include "GuiHelpers.h"
@@ -45,7 +44,7 @@ void CConfigDlg::DoDataExchange(CDataExchange* pDX)
 {
     CDialog::DoDataExchange(pDX);
     //{{AFX_DATA_MAP(CConfigDlg)
-    DDX_Control(pDX, IDC_KEYBOARD_LAYOUT, m_keyboard_c_layout);
+    DDX_Control(pDX, IDC_KEYBOARD_LAYOUT, m_keyboardLayoutComboBox);
     DDX_Control(pDX, IDC_MIDI_DEVICE, m_midi_c_device);
     DDX_Check(pDX, IDC_MIDI_TR, m_midi_TouchResponse);
     DDX_Text(pDX, IDC_MIDI_VOLUMEOFFSET, m_midi_VolumeOffset);
@@ -68,7 +67,7 @@ void CConfigDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_KEYBOARD_ESCRESETATARISOUND, m_keyboard_escresetatarisound);
     DDX_Check(pDX, IDC_KEYBOARD_ASKWHENCONTROL_S, m_keyboard_askwhencontrol_s);
     DDX_Check(pDX, IDC_DEBUGDISPLAY, m_viewDebugDisplay);
-    DDX_Control(pDX, IDC_TRACKERDRIVERVERSION, m_trackerDriver_c_Version);
+    DDX_Control(pDX, IDC_TRACKERDRIVERVERSION, m_trackerDriverVersionComboBox);
     //}}AFX_DATA_MAP
 }
 
@@ -90,8 +89,9 @@ BOOL CConfigDlg::OnInitDialog()
     CDialog::OnInitDialog();
 
     // Populate the list with MIDI devices
-    m_midi_c_device.AddString("--- none ---");	//id=0
+    m_midi_c_device.AddString("None");	// id=0
 
+    // TODO: Why index instead of name?
     MIDIINCAPS micaps;
     int numMidiDevices = midiInGetNumDevs();
     for (int i = 0; i < numMidiDevices; i++)
@@ -104,18 +104,18 @@ BOOL CConfigDlg::OnInitDialog()
 
     OnMidiTouchResponseClicked();
 
-    m_keyboard_c_layout.AddString("QWERTY Layout");
-    m_keyboard_c_layout.AddString("AZERTY Layout");
-    m_keyboard_c_layout.SetCurSel((int)m_keyboard_layout);
+    m_keyboardLayoutComboBox.AddItem(KeyboardLayout::QWERTY, "QWERTY Layout");
+    m_keyboardLayoutComboBox.AddItem(KeyboardLayout::AZERTY, "AZERTY Layout");
+    m_keyboardLayoutComboBox.SetSelectedItem(m_keyboard_layout);
 
-    m_trackerDriver_c_Version.AddItem(TrackerDriverVersion::UNPATCHED, "RMT 1.28 Unpatched by Raster");
-    m_trackerDriver_c_Version.AddItem(TrackerDriverVersion::PATCH3, "RMT 1.25 Patch 3 by Analmux");
-    m_trackerDriver_c_Version.AddItem(TrackerDriverVersion::PATCH6, "RMT 1.27 Patch 6 by Analmux");
-    m_trackerDriver_c_Version.AddItem(TrackerDriverVersion::PATCH8, "RMT 1.28 Patch 8 by Analmux");
-    m_trackerDriver_c_Version.AddItem(TrackerDriverVersion::PATCH16, "RMT 1.28 Patch 16 by VinsCool");
-    m_trackerDriver_c_Version.AddItem(TrackerDriverVersion::PATCH_PRINCE_OF_PERSIA, "RMT 1.28 Patch Prince of Persia by VinsCool");
+    m_trackerDriverVersionComboBox.AddItem(TrackerDriverVersion::UNPATCHED, "RMT 1.28 Unpatched by Raster");
+    m_trackerDriverVersionComboBox.AddItem(TrackerDriverVersion::PATCH3, "RMT 1.25 Patch 3 by Analmux");
+    m_trackerDriverVersionComboBox.AddItem(TrackerDriverVersion::PATCH6, "RMT 1.27 Patch 6 by Analmux");
+    m_trackerDriverVersionComboBox.AddItem(TrackerDriverVersion::PATCH8, "RMT 1.28 Patch 8 by Analmux");
+    m_trackerDriverVersionComboBox.AddItem(TrackerDriverVersion::PATCH16, "RMT 1.28 Patch 16 by VinsCool");
+    m_trackerDriverVersionComboBox.AddItem(TrackerDriverVersion::PATCH_PRINCE_OF_PERSIA, "RMT 1.28 Patch Prince of Persia by VinsCool");
 
-    m_trackerDriver_c_Version.SetSelectedItem(m_trackerDriverVersion);
+    m_trackerDriverVersionComboBox.SetSelectedItem(m_trackerDriverVersion);
 
     return TRUE;
 }
@@ -128,18 +128,18 @@ BOOL CConfigDlg::OnInitDialog()
 void CConfigDlg::OnOK()
 {
     m_midi_device = m_midi_c_device.GetCurSel() - 1;
-    m_keyboard_layout = (KeyboardLayout)m_keyboard_c_layout.GetCurSel();
-    m_trackerDriverVersion = m_trackerDriver_c_Version.GetSelectedItem(TrackerDriverVersion::NONE);
+    m_keyboard_layout = m_keyboardLayoutComboBox.GetSelectedItem(KeyboardLayout::QWERTY);
+    m_trackerDriverVersion = m_trackerDriverVersionComboBox.GetSelectedItem(TrackerDriverVersion::NONE);
     CDialog::OnOK();
 }
 
 /// <summary>
-/// If MIDI touch response if turned on then enable the MIDI volume offset edit box
+/// If MIDI touch response is turned on, then enable the MIDI volume offset edit box
 /// </summary>
 void CConfigDlg::OnMidiTouchResponseClicked()
 {
-    CButton* tr = (CButton*)GetDlgItem(IDC_MIDI_TR);
-    CEdit* vof = (CEdit*)GetDlgItem(IDC_MIDI_VOLUMEOFFSET);
+    auto* tr = (CButton*)GetDlgItem(IDC_MIDI_TR);
+    auto* vof = (CEdit*)GetDlgItem(IDC_MIDI_VOLUMEOFFSET);
     vof->EnableWindow(tr->GetCheck());
 }
 
