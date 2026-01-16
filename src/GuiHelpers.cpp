@@ -6,6 +6,7 @@
 #include "Global.h"
 
 #include "RuntimeException.h"
+#include <cassert>
 
 CStatusBar* g_statusBar = nullptr;
 
@@ -327,3 +328,4 @@ void IconMiniXY(const int icon, int x, int y)
 
     }
 }
+
