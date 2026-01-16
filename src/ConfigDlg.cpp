@@ -81,14 +81,6 @@ END_MESSAGE_MAP()
 
 
 
-TrackerDriverVersion CConfigDlg::GetTrackerDriverVersion() const {
-    const auto i = m_trackerDriver_c_Version.GetCurSel();
-    if (i != CB_ERR) {
-        return (TrackerDriverVersion)m_trackerDriver_c_Version.GetItemData(i);
-    }
-    return TrackerDriverVersion::NONE;
-}
-
 /////////////////////////////////////////////////////////////////////////////
 // CConfigDlg message handlers
 
@@ -116,14 +108,14 @@ BOOL CConfigDlg::OnInitDialog()
     m_keyboard_c_layout.AddString("AZERTY Layout");
     m_keyboard_c_layout.SetCurSel((int)m_keyboard_layout);
 
-     AddItem<TrackerDriverVersion>(m_trackerDriver_c_Version, TrackerDriverVersion::UNPATCHED, "RMT 1.28 Unpatched by Raster");
-     AddItem<TrackerDriverVersion>(m_trackerDriver_c_Version, TrackerDriverVersion::PATCH3, "RMT 1.25 Patch 3 by Analmux");
-     AddItem<TrackerDriverVersion>(m_trackerDriver_c_Version, TrackerDriverVersion::PATCH6, "RMT 1.27 Patch 6 by Analmux");
-     AddItem<TrackerDriverVersion>(m_trackerDriver_c_Version, TrackerDriverVersion::PATCH8, "RMT 1.28 Patch 8 by Analmux");
-     AddItem<TrackerDriverVersion>(m_trackerDriver_c_Version, TrackerDriverVersion::PATCH16, "RMT 1.28 Patch 16 by VinsCool");
-     AddItem<TrackerDriverVersion>(m_trackerDriver_c_Version, TrackerDriverVersion::PATCH_PRINCE_OF_PERSIA, "RMT 1.28 Patch Prince of Persia by VinsCool");
+    m_trackerDriver_c_Version.AddItem(TrackerDriverVersion::UNPATCHED, "RMT 1.28 Unpatched by Raster");
+    m_trackerDriver_c_Version.AddItem(TrackerDriverVersion::PATCH3, "RMT 1.25 Patch 3 by Analmux");
+    m_trackerDriver_c_Version.AddItem(TrackerDriverVersion::PATCH6, "RMT 1.27 Patch 6 by Analmux");
+    m_trackerDriver_c_Version.AddItem(TrackerDriverVersion::PATCH8, "RMT 1.28 Patch 8 by Analmux");
+    m_trackerDriver_c_Version.AddItem(TrackerDriverVersion::PATCH16, "RMT 1.28 Patch 16 by VinsCool");
+    m_trackerDriver_c_Version.AddItem(TrackerDriverVersion::PATCH_PRINCE_OF_PERSIA, "RMT 1.28 Patch Prince of Persia by VinsCool");
 
-    SetSelectedItem<TrackerDriverVersion>(m_trackerDriver_c_Version, m_trackerDriverVersion);
+    m_trackerDriver_c_Version.SetSelectedItem(m_trackerDriverVersion);
 
     return TRUE;
 }
@@ -137,7 +129,7 @@ void CConfigDlg::OnOK()
 {
     m_midi_device = m_midi_c_device.GetCurSel() - 1;
     m_keyboard_layout = (KeyboardLayout)m_keyboard_c_layout.GetCurSel();
-    m_trackerDriverVersion = GetTrackerDriverVersion();
+    m_trackerDriverVersion = m_trackerDriver_c_Version.GetSelectedItem(TrackerDriverVersion::NONE);
     CDialog::OnOK();
 }
 
