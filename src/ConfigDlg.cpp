@@ -1,10 +1,17 @@
 // ConfigDlg.cpp : implementation file
 //
 
-#include "StdAfx.h"
 #include "ConfigDlg.h"
 #include "FilePathDlg.h"
 #include "GuiHelpers.h"
+#include "StdAfx.h"
+
+
+#include "SAPFile.h"
+#include "SAPFileExportDialog.h"
+#include "Global.h"
+
+extern CSong g_Song;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -74,7 +81,8 @@ void CConfigDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CConfigDlg, CDialog)
     //{{AFX_MSG_MAP(CConfigDlg)
     ON_BN_CLICKED(IDC_MIDI_TR, OnMidiTouchResponseClicked)
-    ON_BN_CLICKED(IDC_PATHS, OnPaths)
+    ON_BN_CLICKED(IDC_PATHS, OnBtnClickedPaths)
+    ON_BN_CLICKED(IDC_EXPORT_SAP, OnBnClickedExportSap)
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -143,7 +151,7 @@ void CConfigDlg::OnMidiTouchResponseClicked()
     vof->EnableWindow(tr->GetCheck());
 }
 
-void CConfigDlg::OnPaths()
+void CConfigDlg::OnBtnClickedPaths()
 {
     CConfigPathsDlg dlg;
     dlg.m_path_songs = g_defaultSongsPath;
@@ -157,6 +165,20 @@ void CConfigDlg::OnPaths()
         g_lastLoadPath_Songs = g_lastLoadPath_Instruments = g_lastLoadPath_Tracks = "";
     }
 }
+
+
+void CConfigDlg::OnBnClickedExportSap()
+{
+    CSAPFile sapFile;
+    sapFile.SetType("R");
+    if (!CSAPFileExportDialog::Show(g_Song, sapFile)) {
+        return;
+    };
+}
+
+
+
+
 /////////////////////////////////////////////////////////////////////////////
 // CConfigPathsDlg dialog
 
@@ -220,3 +242,4 @@ void CConfigPathsDlg::OnButton3()
 {
     BrowsePath(IDC_EDIT3);
 }
+

@@ -78,6 +78,10 @@ protected:
     DECLARE_MESSAGE_MAP()
 public:
     //afx_msg void OnBnClickedDisplayflatnotes();
+
+public:
+    afx_msg void OnBtnClickedPaths();
+    afx_msg void OnBnClickedExportSap();
 };
 
 /////////////////////////////////////////////////////////////////////////////

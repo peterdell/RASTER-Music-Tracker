@@ -17,6 +17,7 @@
 #define IDD_FILENEW                     131
 #define IDR_TOOLBARPLAY                 133
 #define IDD_EXPSAP                      135
+#define IDD_EXPPORT_SAP_TYPE_R          135
 #define IDD_EXPORT_STRIPPED_RMT         136
 #define IDD_EXPMSX                      137
 #define IDR_TOOLBARBLOCK                138
@@ -235,6 +236,7 @@
 #define IDC_EDIT_INSTRUMENTS_LABEL      1160
 #define IDC_COMBO_ASM_FORMAT            1161
 #define IDC_RMT_REPOSITORY              1162
+#define IDC_EXPORT_SAP                  1163
 #define IDC_COMBO_LINESAFTER            9999
 #define ID_INSTR_SAVE                   32771
 #define ID_INSTR_LOAD                   32772
@@ -373,9 +375,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        172
+#define _APS_NEXT_RESOURCE_VALUE        173
 #define _APS_NEXT_COMMAND_VALUE         32914
-#define _APS_NEXT_CONTROL_VALUE         1163
+#define _APS_NEXT_CONTROL_VALUE         1164
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif
