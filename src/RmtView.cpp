@@ -528,7 +528,7 @@ void CRmtView::WriteRMTConfig()
     ou << "USEGERMANNOTATION = " << g_usegermannotation << std::endl;
     ou << "NTSC_SYSTEM = " << g_Song.IsNTSC() << std::endl;
     ou << "NOHWSOUNDBUFFER = " << g_nohwsoundbuffer << std::endl;
-    ou << "TRACKERDRIVERVERSION = " << g_trackerDriverVersion << std::endl;
+    ou << "TRACKERDRIVERVERSION = " << (int)g_trackerDriverVersion << std::endl;
 
     ou << "\n# KEYBOARD\n" << std::endl;
     ou << "KEYBOARD_LAYOUT = " << (int)g_keyboard_layout << std::endl;
@@ -574,7 +574,7 @@ void CRmtView::ResetRMTConfig()
     g_linesafter = 1;							// Number of lines to scroll after inserting a note 
     SetNTSC(false);								// NTSC (60Hz)
     g_nohwsoundbuffer = 0;						// Don't use hardware soundbuffer
-    g_trackerDriverVersion = PATCH16;           // Tracker driver version
+    g_trackerDriverVersion = TrackerDriverVersion::PATCH16; // Tracker driver version
     g_displayflatnotes = 0;						// Display accidentals as Flats instead of Sharps
     g_usegermannotation = 0;					// Display H notes instead of B
 

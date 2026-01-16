@@ -87,7 +87,7 @@ BOOL g_usegermannotation = 0;	//H notes instead of B
 int g_channelon[SONGTRACKS];
 int g_rmtinstr[SONGTRACKS];
 
-TrackerDriverVersion g_trackerDriverVersion = PATCH16;
+TrackerDriverVersion g_trackerDriverVersion = TrackerDriverVersion::PATCH16;
 int g_timerGlobalCount = 0;	// Initialised once, ticking forever
 long g_playtime = 0;	// Number of Atari frames played since the song started playing
 

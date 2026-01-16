@@ -12,15 +12,15 @@ Tracker driver versions are identified in different ways.
 For inclusion into RMT, the tracker driver versions are numbered starting from 1. 
 Additionally, they have a readable name for users and a constant name when used in the source code.
 
-| Code       | Name                      | Constant Name          | Author   |
-|------------|---------------------------|------------------------|----------|
-| 1          | RMT 1.28 Unpatched        | UNPATCHED              | Raster   | 
-| 2          | RMT 1.28 With Tuning      | UNPATCHED_WITH_TUNING  | VinsCool | 
-| 3          | RMT 1.25 Patch 3          | PATCH3                 | Analmux  | 
-| 4          | RMT 1.27 Patch 6          | PATCH6                 | Analmux  | 
-| 5          | RMT 1.28 Patch 8          | PATCH8                 | Analmux  |
-| 6          | RMT 1.28 Patch 16         | PATCH16                | VinsCool |
-| 7          | RMT 1.28 Prince of Persia | PATCH_PRINCE_OF_PERSIA | VinsCool |
+| Code       | Name                            | Constant Name          | Author   |
+|------------|---------------------------------|------------------------|----------|
+| 1          | RMT 1.28 Unpatched              | UNPATCHED              | Raster   | 
+| 2          | RMT 1.28 With Tuning            | UNPATCHED_WITH_TUNING  | VinsCool | 
+| 3          | RMT 1.25 Patch 3                | PATCH3                 | Analmux  | 
+| 4          | RMT 1.27 Patch 6                | PATCH6                 | Analmux  | 
+| 5          | RMT 1.28 Patch 8                | PATCH8                 | Analmux  |
+| 6          | RMT 1.28 Patch 16               | PATCH16                | VinsCool |
+| 7          | RMT 1.28 Patch Prince of Persia | PATCH_PRINCE_OF_PERSIA | VinsCool |
 
 
 ## RMT 1.28 Unpatched by Raster
