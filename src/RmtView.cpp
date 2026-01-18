@@ -903,11 +903,11 @@ void CRmtView::OnInitialUpdate()
 
     //cursor
     m_cursororig = LoadCursor(NULL, IDC_ARROW);
-    m_cursorChanbelOnOff = LoadCursor(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDC_CURSORCHANNELONOFF));
-    m_cursorEnvelopVolume = LoadCursor(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDC_CURSORENVVOLUME));
-    m_cursorGoto = LoadCursor(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDC_CURSORGOTO));
-    m_cursorDialog = LoadCursor(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDC_CURSORDLG));
-    m_cursorSetPosition = LoadCursor(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDC_CURSORSETPOS));
+    m_cursorChanbelOnOff = LoadCursor(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDC_CURSOR_CHANNEL_ON_OFF));
+    m_cursorEnvelopVolume = LoadCursor(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDC_CURSOR_ENVELOPE_VOLUME));
+    m_cursorGoto = LoadCursor(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDC_CURSOR_GOTO));
+    m_cursorDialog = LoadCursor(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDC_CURSOR_DIALOG));
+    m_cursorSetPosition = LoadCursor(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDC_CURSOR_SET_POSITION));
 
     //keyboard
     g_shiftkey = g_controlkey = g_altkey = FALSE;

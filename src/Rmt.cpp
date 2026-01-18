@@ -87,7 +87,7 @@ BOOL CRmtApp::InitInstance()
 
     CSingleDocTemplate* pDocTemplate;
     pDocTemplate = new CSingleDocTemplate(
-        IDR_MAINFRAME,
+        IDR_MAIN_WINDOW,
         RUNTIME_CLASS(CRmtDoc),
         RUNTIME_CLASS(CMainFrame),       // main SDI frame window
         RUNTIME_CLASS(CRmtView));

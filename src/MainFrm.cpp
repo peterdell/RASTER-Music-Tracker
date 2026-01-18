@@ -60,7 +60,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
-	if (!m_wndToolBar.CreateEx(this)|| !m_wndToolBar.LoadToolBar(IDR_MAINFRAME))
+	if (!m_wndToolBar.CreateEx(this)|| !m_wndToolBar.LoadToolBar(IDR_MAIN_WINDOW))
 	{
 		TRACE0("Failed to create main toolbar\n");
 		return -1;      // fail to create
@@ -87,7 +87,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_comboSkipLinesAfterNoteInsert.SetCurSel(1);
 
 	// Create a toolbar with items for block editing mode
-	if (!m_ToolBarBlock.CreateEx(this) || !m_ToolBarBlock.LoadToolBar(IDR_TOOLBARBLOCK))
+	if (!m_ToolBarBlock.CreateEx(this) || !m_ToolBarBlock.LoadToolBar(IDR_TOOLBAR_BLOCK))
 	{
 		TRACE0("Failed to create toolbar block\n");
 		return -1;      // fail to create

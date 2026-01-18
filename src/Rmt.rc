@@ -13,10 +13,9 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Czech (Czech Republic) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CSY)
-LANGUAGE LANG_CZECH, SUBLANG_DEFAULT
+LANGUAGE LANG_ENGLISH, SUBLANG_DEFAULT
 #pragma code_page(1250)
 
 #ifdef APSTUDIO_INVOKED
@@ -57,31 +56,22 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-#endif    // Czech (Czech Republic) resources
+#endif 
 /////////////////////////////////////////////////////////////////////////////
 
 
-/////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Bitmap
 //
 
-IDB_GFX                 BITMAP                  "res\\asciagr.bmp"
+IDB_GFX                 BITMAP                  "res\\gfx.bmp"
 
-IDR_TOOLBARPLAY         BITMAP                  "res\\toolbarp.bmp"
-
-IDR_TOOLBARBLOCK        BITMAP                  "res\\toolbar1.bmp"
-
-IDR_TOOLBARCHANNELS     BITMAP                  "res\\bmp00001.bmp"
-
-IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
+IDR_TOOLBAR_PLAY        BITMAP                  "res\\toolbar_play.bmp"
+IDR_TOOLBAR_BLOCK       BITMAP                  "res\\toolbar_block.bmp"
+IDR_TOOLBAR_CHANNELS    BITMAP                  "res\\toolbar_channels.bmp"
+IDR_MAIN_WINDOW         BITMAP                  "res\\toolbar_main_window.bmp"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -89,7 +79,7 @@ IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
 // Toolbar
 //
 
-IDR_TOOLBARPLAY TOOLBAR 16, 15
+IDR_TOOLBAR_PLAY TOOLBAR 16, 15
 BEGIN
     BUTTON      ID_BUTTON32785
     BUTTON      ID_BUTTON32787
@@ -97,7 +87,7 @@ BEGIN
     BUTTON      ID_BUTTON32786
 END
 
-IDR_TOOLBARBLOCK TOOLBAR 16, 15
+IDR_TOOLBAR_BLOCK TOOLBAR 16, 15
 BEGIN
     BUTTON      ID_BLOCK_BACKUP
     SEPARATOR
@@ -114,7 +104,7 @@ BEGIN
     BUTTON      ID_BLOCK_PLAY
 END
 
-IDR_TOOLBARCHANNELS TOOLBAR 16, 15
+IDR_TOOLBAR_CHANNELS TOOLBAR 16, 15
 BEGIN
     BUTTON      ID_CHAN1
     BUTTON      ID_CHAN2
@@ -127,7 +117,7 @@ BEGIN
     BUTTON      ID_CHAN8
 END
 
-IDR_MAINFRAME TOOLBAR 16, 15
+IDR_MAIN_WINDOW TOOLBAR 16, 15
 BEGIN
     BUTTON      ID_FILE_NEW
     BUTTON      ID_FILE_OPEN
@@ -353,7 +343,7 @@ BEGIN
     CONTROL         "Yes... Ok, ok... I understand.",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | BS_LEFT | BS_TOP | WS_TABSTOP,57,92,104,10
     PUSHBUTTON      "Cancel",IDCANCEL,163,109,50,14
     CTEXT           "Import warning...",IDC_INFO2,7,58,206,32
-    ICON            IDI_ICONEXCLAMATION,IDC_STATIC,16,95,20,20,SS_REALSIZEIMAGE
+    ICON            IDI_ICON_EXCLAMATION,IDC_STATIC,16,95,20,20,SS_REALSIZEIMAGE
     CTEXT           "Import of module finished.",IDC_STATIC,7,7,206,8
     EDITTEXT        IDC_INFO,7,22,206,28,ES_CENTER | ES_MULTILINE | ES_READONLY | NOT WS_BORDER
 END
@@ -473,7 +463,7 @@ BEGIN
     CONTROL         "Yes... Ok, ok... I understand.",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | BS_LEFT | BS_TOP | WS_TABSTOP,57,108,104,10
     PUSHBUTTON      "Cancel",IDCANCEL,163,127,50,14
     CTEXT           "Import warning...",IDC_INFO2,7,57,206,48
-    ICON            IDI_ICONEXCLAMATION,-1,16,111,21,20,SS_REALSIZEIMAGE
+    ICON            IDI_ICON_EXCLAMATION,-1,16,111,21,20,SS_REALSIZEIMAGE
     CTEXT           "Import of module finished.",-1,7,7,206,8
     EDITTEXT        IDC_INFO,7,22,206,28,ES_CENTER | ES_MULTILINE | ES_READONLY | NOT WS_BORDER
 END
@@ -756,7 +746,7 @@ CAPTION "About RASTER Music Tracker"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,286,131,50,14,WS_GROUP
-    ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
+    ICON            IDR_MAIN_WINDOW,IDC_STATIC,7,7,20,20
     LTEXT           "Sample RMT version",IDC_RMT_VERSION,47,7,280,8,SS_NOPREFIX
     LTEXT           "Sample RMT author",IDC_RMT_AUTHOR,47,18,289,8,SS_NOPREFIX
     LTEXT           "Sample RMT Repository",IDC_RMT_REPOSITORY,47,29,282,10,SS_NOPREFIX
@@ -959,17 +949,17 @@ END
 // Cursor
 //
 
-IDC_CURSORCHANNELONOFF  CURSOR                  "res\\cursor1.cur"
+IDC_CURSOR_CHANNEL_ON_OFF  CURSOR                  "res\\cursor_channel_on_off.cur"
 
-IDC_CURSORENVVOLUME     CURSOR                  "res\\cur00001.cur"
+IDC_CURSOR_CHANNEL_ON_OFF1 CURSOR                  "res\\cursor_channel_on_off1.cur"
 
-IDC_CURSORGOTO          CURSOR                  "res\\cursoren.cur"
+IDC_CURSOR_DIALOG           CURSOR                 "res\cursor_goto_dialog.cur"
 
-IDC_CURSORDLG           CURSOR                  "res\\cursorgo.cur"
+IDC_CURSOR_ENVELOPE_VOLUME     CURSOR              "res\\cursor_envelope_volume.cur"
 
-IDC_CURSORCHANNELONOFF1 CURSOR                  "res\\cursorch.cur"
+IDC_CURSOR_GOTO          CURSOR                    "res\\cursor_goto.cur"
 
-IDC_CURSORSETPOS        CURSOR                  "res\\cur00003.cur"
+IDC_CURSOR_SET_POSITION        CURSOR              "res\\cursor_set_position.cur"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -979,9 +969,9 @@ IDC_CURSORSETPOS        CURSOR                  "res\\cur00003.cur"
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_MAINFRAME           ICON                    "res\\Rmt.ico"
+IDR_MAIN_WINDOW           ICON                  "res\\Rmt.ico"
 
-IDI_ICONEXCLAMATION     ICON                    "res\\icon1.ico"
+IDI_ICON_EXCLAMATION     ICON                   "res\\icon_exclamation.ico"
 
 IDR_RMTTYPE             ICON                    "res\\RmtDoc.ico"
 
@@ -1192,7 +1182,7 @@ END
 // Menu
 //
 
-IDR_MAINFRAME MENU
+IDR_MAIN_WINDOW MENU
 BEGIN
     POPUP "&File"
     BEGIN
@@ -1388,7 +1378,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDR_MAINFRAME           "RMT\n\nRmt\n\n\nRmt.Document\nRmt Document"
+    IDR_MAIN_WINDOW           "RMT\n\nRmt\n\n\nRmt.Document\nRmt Document"
     IDS_RMT_REPOSITORY      "https://github.com/raster-atari-org/RASTER-Music-Tracker"
 END
 
@@ -1547,7 +1537,6 @@ BEGIN
     ID_TOOLS_OPEN_ASMA      "Open the Atari Sound Music Archive Website"
 END
 
-#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -1567,7 +1556,7 @@ END
 LANGUAGE 9, 1
 #pragma code_page(1252)
 #endif //_WIN32
-#include "res\Rmt.rc2"  // non-Microsoft Visual C++ edited resources
+#include "res\Rmt.rc2"       // non-Microsoft Visual C++ edited resources
 #include "afxres.rc"         // Standard components
 #include "afxprint.rc"       // printing/print preview resources
 #endif
