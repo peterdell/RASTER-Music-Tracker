@@ -1543,8 +1543,8 @@ STRINGTABLE
 BEGIN
     ID_HELP_ONLINE_HELP     "Open the online help in a browser window"
     ID_HELP_ABOUT           "Display program information, version number and copyright"
-    ID_TOOLS_EDE            "Open an .SAP or other Atari Sound Module File"
-    ID_TOOLS_OPENASMA       "Open the Atari Sound Music Archive Website"
+    ID_TOOLS_OPEN_ASAP_FILE "Open an .SAP or other Atari Sound Module File"
+    ID_TOOLS_OPEN_ASMA      "Open the Atari Sound Music Archive Website"
 END
 
 #endif    // English (United States) resources

@@ -372,7 +372,9 @@
 #define ID_HELP_ABOUT                   32913
 #define ID_Menu32914                    32914
 #define ID_TOOLS_EDE                    32915
+#define ID_TOOLS_OPEN_ASAP_FILE         32915
 #define ID_TOOLS_OPENASMA               32916
+#define ID_TOOLS_OPEN_ASMA              32916
 #define ID_SONG_SONGPROPERTIES          32917
 #define ID_SONG_PROPERTIES              32918
 #define IDS_RMTVERSION                  61446
