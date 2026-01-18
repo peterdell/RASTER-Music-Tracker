@@ -424,14 +424,22 @@
     <ClInclude Include="WaveFileExporter.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\application.ico" />
     <Image Include="res\asciagr.bmp" />
     <Image Include="res\bmp00001.bmp" />
+    <Image Include="res\file_type_rmt.ico" />
+    <Image Include="res\gfx.bmp" />
     <Image Include="res\icon1.ico" />
+    <Image Include="res\icon_exclamation.ico" />
     <Image Include="res\Rmt.ico" />
     <Image Include="res\RmtDoc.ico" />
     <Image Include="res\Toolbar.bmp" />
     <Image Include="res\toolbar1.bmp" />
     <Image Include="res\toolbarp.bmp" />
+    <Image Include="res\toolbar_block.bmp" />
+    <Image Include="res\toolbar_channels.bmp" />
+    <Image Include="res\toolbar_main_window.bmp" />
+    <Image Include="res\toolbar_play.bmp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\build\build_rmt-daily.bat" />
@@ -473,6 +481,7 @@
     <None Include="..\README.md" />
     <None Include=".gitignore" />
     <None Include="asap\asap.md" />
+    <None Include="resource.hm" />
     <None Include="res\cur00001.cur" />
     <None Include="res\cur00002.cur" />
     <None Include="res\cur00003.cur" />
@@ -480,6 +489,11 @@
     <None Include="res\cursorch.cur" />
     <None Include="res\cursoren.cur" />
     <None Include="res\cursorgo.cur" />
+    <None Include="res\cursor_channel_on_off.cur" />
+    <None Include="res\cursor_envelope_volume.cur" />
+    <None Include="res\cursor_goto.cur" />
+    <None Include="res\cursor_goto_dialog.cur" />
+    <None Include="res\cursor_set_position.cur" />
     <None Include="res\Rmt.rc2" />
   </ItemGroup>
   <ItemGroup>

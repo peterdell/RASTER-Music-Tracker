@@ -19,7 +19,7 @@ public:
 
 // Dialog Data
 	//{{AFX_DATA(CFileNewDlg)
-	enum { IDD = IDD_FILENEW };
+	enum { IDD = IDD_FILE_NEW };
 	int		m_maxTrackLength;			// How many notes/beats per track 1 - 256
 	int		m_comboMonoOrStereo;		// 0 = mono, 1 = stereo
 	//}}AFX_DATA

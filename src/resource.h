@@ -15,7 +15,7 @@
 #define IDR_RMTTYPE                     129
 #define IDS_RMT_REPOSITORY              129
 #define IDB_GFX                         130
-#define IDD_FILENEW                     131
+#define IDD_FILE_NEW                     131
 #define IDR_TOOLBAR_PLAY                 133
 #define IDD_EXPSAP                      135
 #define IDD_EXPPORT_SAP_TYPE_R          135

@@ -1,0 +1,4 @@
+// Microsoft Visual C++ generated Help ID include file.
+// Used by Rmt.rc
+//
+#define HIDC_MAXTRACKLEN                0x808303ea    // IDD_FILE_NEW [English (United States)]

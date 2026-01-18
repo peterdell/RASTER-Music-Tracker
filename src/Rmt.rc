@@ -2,6 +2,11 @@
 //
 #include "resource.h"
 
+// Generated Help ID header file
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "resource.hm"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -13,10 +18,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CSY)
-LANGUAGE LANG_ENGLISH, SUBLANG_DEFAULT
-#pragma code_page(1250)
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -56,10 +62,6 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-#endif 
-/////////////////////////////////////////////////////////////////////////////
-
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -69,8 +71,11 @@ END
 IDB_GFX                 BITMAP                  "res\\gfx.bmp"
 
 IDR_TOOLBAR_PLAY        BITMAP                  "res\\toolbar_play.bmp"
+
 IDR_TOOLBAR_BLOCK       BITMAP                  "res\\toolbar_block.bmp"
+
 IDR_TOOLBAR_CHANNELS    BITMAP                  "res\\toolbar_channels.bmp"
+
 IDR_MAIN_WINDOW         BITMAP                  "res\\toolbar_main_window.bmp"
 
 
@@ -152,19 +157,17 @@ END
 // Dialog
 //
 
-IDD_FILENEW DIALOGEX 0, 0, 186, 106
+IDD_FILE_NEW DIALOGEX 0, 0, 186, 60
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "New Module"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    EDITTEXT        IDC_MAXTRACKLEN,75,22,29,14,ES_AUTOHSCROLL
-    COMBOBOX        IDC_COMBOTYPE,75,6,66,38,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    DEFPUSHBUTTON   "OK",IDOK,75,86,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,129,86,50,14
+    LTEXT           "Tracks:",IDC_STATIC,7,8,48,8
+    EDITTEXT        IDC_MAXTRACKLEN,75,22,101,14,ES_AUTOHSCROLL,0,HIDC_MAXTRACKLEN
     LTEXT           "Notes Per Track:",IDC_STATIC,7,25,53,8
-    CTEXT           "Warning: Current data will be discarded!",IDC_STATIC,7,50,172,11
-    CTEXT           "This operation cannot be undone!",IDC_STATIC,1,64,184,11
-    LTEXT           "Parallel Tracks:",IDC_STATIC,7,8,48,8
+    COMBOBOX        IDC_COMBOTYPE,75,6,102,38,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,75,45,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,45,50,14
 END
 
 IDD_EXPORT_SAP_TYPE_R DIALOGEX 0, 0, 280, 129
@@ -783,7 +786,7 @@ END
 // Dialog Info
 //
 
-IDD_FILENEW DLGINIT
+IDD_FILE_NEW DLGINIT
 BEGIN
     IDC_COMBOTYPE, 0x403, 16, 0
 0x6f4d, 0x6f6e, 0x2d20, 0x3420, 0x5420, 0x6172, 0x6b63, 0x0073, 
@@ -949,17 +952,15 @@ END
 // Cursor
 //
 
-IDC_CURSOR_CHANNEL_ON_OFF  CURSOR                  "res\\cursor_channel_on_off.cur"
+IDC_CURSOR_CHANNEL_ON_OFF CURSOR                  "res\\cursor_channel_on_off.cur"
 
-IDC_CURSOR_CHANNEL_ON_OFF1 CURSOR                  "res\\cursor_channel_on_off1.cur"
+IDC_CURSOR_DIALOG       CURSOR                  "res\\cursor_goto_dialog.cur"
 
-IDC_CURSOR_DIALOG           CURSOR                 "res\cursor_goto_dialog.cur"
+IDC_CURSOR_ENVELOPE_VOLUME CURSOR                  "res\\cursor_envelope_volume.cur"
 
-IDC_CURSOR_ENVELOPE_VOLUME     CURSOR              "res\\cursor_envelope_volume.cur"
+IDC_CURSOR_GOTO         CURSOR                  "res\\cursor_goto.cur"
 
-IDC_CURSOR_GOTO          CURSOR                    "res\\cursor_goto.cur"
-
-IDC_CURSOR_SET_POSITION        CURSOR              "res\\cursor_set_position.cur"
+IDC_CURSOR_SET_POSITION CURSOR                  "res\\cursor_set_position.cur"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -969,11 +970,11 @@ IDC_CURSOR_SET_POSITION        CURSOR              "res\\cursor_set_position.cur
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_MAIN_WINDOW           ICON                  "res\\Rmt.ico"
+IDR_MAIN_WINDOW         ICON                    "res\\application.ico"
 
-IDI_ICON_EXCLAMATION     ICON                   "res\\icon_exclamation.ico"
+IDI_ICON_EXCLAMATION    ICON                    "res\\icon_exclamation.ico"
 
-IDR_RMTTYPE             ICON                    "res\\RmtDoc.ico"
+IDR_RMTTYPE             ICON                    "res\\file_type_rmt.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -984,7 +985,7 @@ IDR_RMTTYPE             ICON                    "res\\RmtDoc.ico"
 #ifdef APSTUDIO_INVOKED
 GUIDELINES DESIGNINFO
 BEGIN
-    IDD_FILENEW, DIALOG
+    IDD_FILE_NEW, DIALOG
     BEGIN
     END
 
@@ -1171,7 +1172,7 @@ BEGIN
     0
 END
 
-IDD_FILENEW AFX_DIALOG_LAYOUT
+IDD_FILE_NEW AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -1378,7 +1379,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDR_MAIN_WINDOW           "RMT\n\nRmt\n\n\nRmt.Document\nRmt Document"
+    IDR_MAIN_WINDOW         "RMT\n\nRmt\n\n\nRmt.Document\nRmt Document"
     IDS_RMT_REPOSITORY      "https://github.com/raster-atari-org/RASTER-Music-Tracker"
 END
 
@@ -1403,7 +1404,14 @@ END
 STRINGTABLE
 CHARACTERISTICS 0x00000001
 BEGIN
-    ID_FILE_EXPORT          "Export module file in different formats\nExport"
+    ID_BLOCK_EFFECT         "Effects/tools\nEffects/tools"
+    ID_FILE_IMPORT          "Import song from file"
+END
+
+STRINGTABLE
+CHARACTERISTICS 0x00000001
+BEGIN
+    ID_FILE_EXPORT          "Export the module file in different formats\nExport"
 END
 
 STRINGTABLE
@@ -1440,24 +1448,6 @@ END
 
 STRINGTABLE
 BEGIN
-    AFX_IDS_SCSIZE          "Change the window size"
-    AFX_IDS_SCMOVE          "Change the window position"
-    AFX_IDS_SCMINIMIZE      "Reduce the window to an icon"
-    AFX_IDS_SCMAXIMIZE      "Enlarge the window to full size"
-    AFX_IDS_SCNEXTWINDOW    "Switch to the next document window"
-    AFX_IDS_SCPREVWINDOW    "Switch to the previous document window"
-    AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
-END
-
-STRINGTABLE
-BEGIN
-    AFX_IDS_SCRESTORE       "Restore the window to normal size"
-    AFX_IDS_SCTASKLIST      "Activate Task List"
-END
-
-STRINGTABLE
-BEGIN
-    AFX_IDS_PREVIEW_CLOSE   "Close print preview mode\nCancel Preview"
     IDS_RMT_VERSION         "RASTER Music Tracker 1.35"
     IDS_RMT_AUTHOR          "by Radek Sterba, (c) Raster/C.P.U. (2002-2009), VinsCool (2021-2024), JAC! (2024-2026)"
 END
@@ -1471,7 +1461,7 @@ BEGIN
     ID_PLAYFOLLOW           "Follow the currently playing position (turn on/off)\nFollow song"
     ID_PLAY1                "Play song from start position\nPlay from start"
     ID_PLAY2                "Play song from current position\nPlay"
-    ID_PLAY3                "Play and loop current tracks pattern\nLoop pattern"
+    ID_PLAY3                "Play and loop current track patterns\nLoop track"
     ID_PLAYSTOP             "Stop playing the song. Mute all sounds.\nStop"
 END
 
@@ -1494,14 +1484,8 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_MIDIONOFF            "MIDI on/off\nMIDI on/off"
+    ID_MIDIONOFF            "Toggle MIDI on/off\nToggle MIDI on/off"
     ID_VIEW_CONFIGURATION   "Open application options dialog"
-END
-
-STRINGTABLE
-BEGIN
-    ID_BLOCK_EFFECT         "Effects/tools\nEffects/tools"
-    ID_FILE_IMPORT          "Import song from file"
 END
 
 STRINGTABLE
@@ -1537,6 +1521,7 @@ BEGIN
     ID_TOOLS_OPEN_ASMA      "Open the Atari Sound Music Archive Website"
 END
 
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -1556,7 +1541,7 @@ END
 LANGUAGE 9, 1
 #pragma code_page(1252)
 #endif //_WIN32
-#include "res\Rmt.rc2"       // non-Microsoft Visual C++ edited resources
+#include "res\Rmt.rc2"  // non-Microsoft Visual C++ edited resources
 #include "afxres.rc"         // Standard components
 #include "afxprint.rc"       // printing/print preview resources
 #endif
