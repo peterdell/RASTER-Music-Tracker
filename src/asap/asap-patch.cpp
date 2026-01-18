@@ -1,8 +1,8 @@
 #pragma once
 
-#include "StdAfx.h"
+#include "..\StdAfx.h"
 #include "asap-patch.h"
-#include "AtariBinaries.h"
+#include "..\AtariBinaries.h"
 
 static TrackerDriverVersion AlternativeRMTPlayer = TrackerDriverVersion::NONE;
 

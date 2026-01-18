@@ -246,24 +246,6 @@
     <ClCompile Include="Pokey.cpp">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
-    <ClCompile Include="wasap.c">
-      <Filter>Source Files\Atari Sound Generator</Filter>
-    </ClCompile>
-    <ClCompile Include="RmtTest.cpp">
-      <Filter>Source Files\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="asap.c">
-      <Filter>Source Files\ASAP</Filter>
-    </ClCompile>
-    <ClCompile Include="astil.c">
-      <Filter>Source Files\ASAP</Filter>
-    </ClCompile>
-    <ClCompile Include="info_dlg.c">
-      <Filter>Source Files\ASAP</Filter>
-    </ClCompile>
-    <ClCompile Include="asap-patch.cpp">
-      <Filter>Source Files\ASAP</Filter>
-    </ClCompile>
     <ClCompile Include="VUPlayer.cpp">
       <Filter>Source Files\Atari Players</Filter>
     </ClCompile>
@@ -296,6 +278,24 @@
     </ClCompile>
     <ClCompile Include="Shell.cpp">
       <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="RmtTest.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="asap\asap.c">
+      <Filter>Source Files\ASAP</Filter>
+    </ClCompile>
+    <ClCompile Include="asap\asap-patch.cpp">
+      <Filter>Source Files\ASAP</Filter>
+    </ClCompile>
+    <ClCompile Include="asap\astil.c">
+      <Filter>Source Files\ASAP</Filter>
+    </ClCompile>
+    <ClCompile Include="asap\info_dlg.c">
+      <Filter>Source Files\ASAP</Filter>
+    </ClCompile>
+    <ClCompile Include="asap\wasap.c">
+      <Filter>Source Files\ASAP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -452,23 +452,8 @@
     <ClInclude Include="Pokey.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
-    <ClInclude Include="wasap.h">
-      <Filter>Source Files\Atari Sound Generator</Filter>
-    </ClInclude>
     <ClInclude Include="RmtTest.h">
       <Filter>Source Files\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="asap.h">
-      <Filter>Source Files\ASAP</Filter>
-    </ClInclude>
-    <ClInclude Include="asap-patch.h">
-      <Filter>Source Files\ASAP</Filter>
-    </ClInclude>
-    <ClInclude Include="astil.h">
-      <Filter>Source Files\ASAP</Filter>
-    </ClInclude>
-    <ClInclude Include="info_dlg.h">
-      <Filter>Source Files\ASAP</Filter>
     </ClInclude>
     <ClInclude Include="VUPlayer.h">
       <Filter>Source Files\Atari Players</Filter>
@@ -484,9 +469,6 @@
     </ClInclude>
     <ClInclude Include="TuningTypes.h">
       <Filter>Source Files\Tuning</Filter>
-    </ClInclude>
-    <ClInclude Include="Memory.h">
-      <Filter>Source Files\ASAP</Filter>
     </ClInclude>
     <ClInclude Include="Keyboard2NoteMapping.h">
       <Filter>Source Files\Tracker</Filter>
@@ -520,6 +502,24 @@
     </ClInclude>
     <ClInclude Include="Shell.h">
       <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory.h">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="asap\asap.h">
+      <Filter>Source Files\ASAP</Filter>
+    </ClInclude>
+    <ClInclude Include="asap\asap-patch.h">
+      <Filter>Source Files\ASAP</Filter>
+    </ClInclude>
+    <ClInclude Include="asap\astil.h">
+      <Filter>Source Files\ASAP</Filter>
+    </ClInclude>
+    <ClInclude Include="asap\info_dlg.h">
+      <Filter>Source Files\ASAP</Filter>
+    </ClInclude>
+    <ClInclude Include="asap\wasap.h">
+      <Filter>Source Files\ASAP</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -588,9 +588,6 @@
     <None Include="..\README.md">
       <Filter>Documentation Files</Filter>
     </None>
-    <None Include="asap.md">
-      <Filter>Source Files\ASAP</Filter>
-    </None>
     <None Include="..\doc\rmt_versions.md">
       <Filter>Documentation Files</Filter>
     </None>
@@ -602,6 +599,9 @@
     </None>
     <None Include="..\build\build_rmt_pre.bat">
       <Filter>Build Files</Filter>
+    </None>
+    <None Include="asap\asap.md">
+      <Filter>Source Files\ASAP</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
