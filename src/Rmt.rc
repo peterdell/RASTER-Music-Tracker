@@ -643,7 +643,7 @@ END
 
 IDD_TUNING DIALOGEX 0, 0, 269, 343
 STYLE DS_SETFONT | DS_MODALFRAME | DS_NOFAILCREATE | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Tuning configuration"
+CAPTION "Tuning"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "&OK",IDOK,156,324,50,14
@@ -1188,8 +1188,7 @@ BEGIN
         MENUITEM "Print Pre&view",              ID_FILE_PRINT_PREVIEW
         MENUITEM "Prin&t Setup...",             ID_FILE_PRINT_SETUP
         MENUITEM SEPARATOR
-        MENUITEM "Properties\tALT+Enter",       ID_SONG_PROPERTIES
-        MENUITEM "&Tuning...",                  ID_VIEW_TUNING
+        MENUITEM "Properties\tALT+Enter",       ID_FILE_PROPERTIES
         MENUITEM SEPARATOR
         MENUITEM "E&xit\tAlt+F4",               ID_WANTEXIT
     END

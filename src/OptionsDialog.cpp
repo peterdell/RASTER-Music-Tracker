@@ -2,10 +2,9 @@
 //
 
 #include "OptionsDialog.h"
-#include "FilePathDlg.h"
 #include "GuiHelpers.h"
 #include "StdAfx.h"
-#include "TuningDlg.h"
+#include "TuningDialog.h"
 #include "Global.h"
 
 #ifdef _DEBUG
@@ -195,9 +194,9 @@ void COptionsPathsDialog::DoDataExchange(CDataExchange* pDX)
 {
     CDialog::DoDataExchange(pDX);
     //{{AFX_DATA_MAP(COptionsPathsDialog)
-    DDX_Text(pDX, IDC_BROWSE_MODULE_FILES_FOLDER, m_path_songs);
-    DDX_Text(pDX, IDC_BROWSE_INSTRUMENT_FILES_FOLDER, m_path_instruments);
-    DDX_Text(pDX, IDC_BROWSE_TRACK_FILES_FOLDER, m_path_tracks);
+    DDX_Text(pDX, IDC_MODULE_FILES_FOLDER, m_path_songs);
+    DDX_Text(pDX, IDC_INSTRUMENT_FILES_FOLDER, m_path_instruments);
+    DDX_Text(pDX, IDC_TRACK_FILES_FOLDER, m_path_tracks);
     //}}AFX_DATA_MAP
 }
 

@@ -379,7 +379,7 @@
 #define ID_TOOLS_OPENASMA               32916
 #define ID_TOOLS_OPEN_ASMA              32916
 #define ID_SONG_SONGPROPERTIES          32917
-#define ID_SONG_PROPERTIES              32918
+#define ID_FILE_PROPERTIES              32918
 #define IDS_RMTVERSION                  61446
 #define IDS_RMT_VERSION                 61446
 #define IDS_RMTAUTHOR                   61447

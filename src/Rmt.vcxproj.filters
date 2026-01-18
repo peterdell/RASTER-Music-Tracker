@@ -93,16 +93,13 @@
     <ClCompile Include="FileNewDlg.cpp">
       <Filter>Source Files\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="FilePathDlg.cpp">
-      <Filter>Source Files\Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="ImportDlgs.cpp">
       <Filter>Source Files\Dialogs</Filter>
     </ClCompile>
     <ClCompile Include="Tuning.cpp">
       <Filter>Source Files\Tuning</Filter>
     </ClCompile>
-    <ClCompile Include="TuningDlg.cpp">
+    <ClCompile Include="TuningDialog.cpp">
       <Filter>Source Files\Tuning</Filter>
     </ClCompile>
     <ClCompile Include="Rmt.cpp">
@@ -308,9 +305,6 @@
     <ClInclude Include="FileNewDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FilePathDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -323,7 +317,7 @@
     <ClInclude Include="Tuning.h">
       <Filter>Source Files\Tuning</Filter>
     </ClInclude>
-    <ClInclude Include="TuningDlg.h">
+    <ClInclude Include="TuningDialog.h">
       <Filter>Source Files\Tuning</Filter>
     </ClInclude>
     <ClInclude Include="Atari.h">

@@ -3,10 +3,10 @@
 
 
 #include "StdAfx.h"
-#include "TuningDlg.h"
+#include "TuningDialog.h"
 #include "Tuning.h"
 
-// TODO Make
+// TODO Make parameter
 #include "Global.h"
 
 #ifdef _DEBUG

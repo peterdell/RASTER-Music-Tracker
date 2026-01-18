@@ -7,7 +7,6 @@
 
 #include "Tuning.h"
 #include "Global.h"
-#include "Atari.h"
 
 /// <summary> Generate the POKEY audio pitch using the given parameters </summary>
 /// <param name = "audc"> POKEY Distortion and Volume output mode </param>
@@ -15,7 +14,7 @@
 /// <param name = "audctl"> POKEY modes used to generate the frequencies, typically, 15Khz/64Khz clock, 1.79mHz clock, 16-bit mode, etc </param>
 /// <param name = "channel"> POKEY channel number, multiple parameters might give different results </param>
 /// <returns> POKEY audio pitch (in Hertz) </returns> 
-CTuning::Pitch CTuning::GetPOKEYPPitch(int audc, AUDF audf, int audctl, int channel)
+CTuning::Pitch CTuning::GetPOKEYPPitch(int audc, AUDF audf, int audctl, int channel) const
 {
     // variables for pitch calculation, divisors must never be 0!
     double divisor = 1;
@@ -292,7 +291,7 @@ void CTuning::GenerateTable(byte* table, int length, int semitone, int timbre, i
 /// <param name = "divisor"> Fine division, variable relative to Distortion, Cycle, and frequency modulo, 1 for no division </param> 
 /// <param name = "cycle"> Offset added to AUDF, 4 for 1.79mHz mode, 7 for 16-bit+1.79mHz mode, 1 for neither </param>
 /// <returns> POKEY audio pitch (in Hertz) </returns> 
-CTuning::Pitch CTuning::GetPitch(AUDF audf, int coarse_divisor, double divisor, int cycle)
+CTuning::Pitch CTuning::GetPitch(AUDF audf, int coarse_divisor, double divisor, int cycle)  const
 {
     return ((m_clockFrequency / (coarse_divisor * divisor)) / (audf + cycle)) / 2;
 }
@@ -303,7 +302,7 @@ CTuning::Pitch CTuning::GetPitch(AUDF audf, int coarse_divisor, double divisor, 
 /// <param name = "divisor"> Fine division, variable relative to Distortion, Cycle, and frequency modulo, 1 for no division </param> 
 /// <param name = "cycle"> Offset added to AUDF, 4 for 1.79mHz mode, 7 for 16-bit+1.79mHz mode, 1 for neither </param>
 /// <returns> POKEY Frequency (AUDF) </returns> 
-CTuning::AUDF CTuning::GetAUDF(Pitch pitch, int coarse_divisor, double divisor, int cycle)
+CTuning::AUDF CTuning::GetAUDF(Pitch pitch, int coarse_divisor, double divisor, int cycle) const
 {
     return (int)round(((m_clockFrequency / (coarse_divisor * divisor)) / (2 * pitch)) - cycle);
 }
@@ -316,7 +315,7 @@ CTuning::AUDF CTuning::GetAUDF(Pitch pitch, int coarse_divisor, double divisor, 
 /// <param name = "cycle"> Offset added to AUDF, 4 for 1.79mHz mode, 7 for 16-bit+1.79mHz mode, 1 for neither </param>
 /// <param name = "timbre"> POKEY sound timbre output using the Distortion as well as the modulo of the Frequency </param>
 /// <returns> Compromised POKEY Frequency (AUDF) which is now valid within the conditions established for the generated timbre </returns> 
-CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_divisor, double divisor, int cycle, int timbre)
+CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_divisor, double divisor, int cycle, int timbre) const
 {
     //TODO: Optimise this procedure a lot more, this is poorly written, but it gets the job done for now 
     int distortion = timbre & 0xF0;
@@ -394,8 +393,8 @@ CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_div
     tmp_freq_down = PITCH - pitch;	//second delta, down
     PITCH = tmp_freq_down - tmp_freq_up;
 
-    if (PITCH > 0) audf = tmp_audf_up; //positive, meaning delta up is closer than delta down
-    else audf = tmp_audf_down; //negative, meaning delta down is closer than delta up
+    if (PITCH > 0) { audf = tmp_audf_up; } //positive, meaning delta up is closer than delta down
+    else { audf = tmp_audf_down; } //negative, meaning delta down is closer than delta up
     return audf;
 }
 
@@ -444,7 +443,7 @@ double CTuning::GetTruePitch(double tuning, Temperament temperament, int basenot
 void CTuning::InitTuning() {
     if (!g_tuning.basetuning)	//if base tuning is 0.0, make sure to reset it, else the program could crash!
     {
-        MessageBox(g_hwnd, "An invalid tuning configuration has been detected!\n\nBasetuning is zero. ", "Program error", MB_ICONERROR);
+        MessageBox(g_hwnd, "An invalid tuning has been detected!\n\nBasetuning is zero. ", "Program error", MB_ICONERROR);
         exit(1);
     }
 

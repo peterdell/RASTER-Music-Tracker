@@ -240,13 +240,6 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
     </ClCompile>
-    <ClCompile Include="FilePathDlg.cpp">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BrowseInformation>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
-    </ClCompile>
     <ClCompile Include="Global.cpp" />
     <ClCompile Include="GuiHelpers.cpp" />
     <ClCompile Include="GUI_Instruments.cpp" />
@@ -332,7 +325,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
     </ClCompile>
-    <ClCompile Include="TuningDlg.cpp" />
+    <ClCompile Include="TuningDialog.cpp" />
     <ClCompile Include="TuningTypes.cpp" />
     <ClCompile Include="Undo.cpp" />
     <ClCompile Include="VUPlayer.cpp" />
@@ -382,7 +375,6 @@
     <ClInclude Include="EffectsDlg.h" />
     <ClInclude Include="ExportDlgs.h" />
     <ClInclude Include="FileNewDlg.h" />
-    <ClInclude Include="FilePathDlg.h" />
     <ClInclude Include="General.h" />
     <ClInclude Include="Global.h" />
     <ClInclude Include="GuiHelpers.h" />
@@ -416,7 +408,7 @@
     <ClInclude Include="RmtMidi.h" />
     <ClInclude Include="RmtView.h" />
     <ClInclude Include="StdAfx.h" />
-    <ClInclude Include="TuningDlg.h" />
+    <ClInclude Include="TuningDialog.h" />
     <ClInclude Include="TuningTypes.h" />
     <ClInclude Include="Undo.h" />
     <ClInclude Include="VUPlayer.h" />

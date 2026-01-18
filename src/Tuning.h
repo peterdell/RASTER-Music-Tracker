@@ -38,9 +38,9 @@ public:
 
     void InitTuning();
 
-    AUDF GetAUDF(Pitch pitch, int coarse_divisor, double divisor, int cycle);
-    Pitch GetPitch(AUDF audf, int coarse_divisor, double divisor, int cycle);
-    Pitch GetPOKEYPPitch(int audc, AUDF audf, int audctl, int channel);
+    AUDF GetAUDF(Pitch pitch, int coarse_divisor, double divisor, int cycle) const;
+    Pitch GetPitch(AUDF audf, int coarse_divisor, double divisor, int cycle) const;
+    Pitch GetPOKEYPPitch(int audc, AUDF audf, int audctl, int channel) const;
 
 private:
 
@@ -152,7 +152,7 @@ private:
     Pitch GetTruePitch(double tuning, Temperament temperament, int basenote, int semitone);
 
     void GenerateTable(byte* table, int length, int semitone, int timbre, int audctl);
-    AUDF CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_divisor, double divisor, int cycle, int timbre);
+    AUDF CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_divisor, double divisor, int cycle, int timbre) const;
 
     /*
         const TTuning dist_2_bell{ 12, 0, 48, 24 };

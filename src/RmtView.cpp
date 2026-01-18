@@ -14,7 +14,7 @@
 #include "MainFrm.h"
 #include "OptionsDialog.h"
 #include "FileNewDlg.h"
-#include "TuningDlg.h"
+#include "TuningDialog.h"
 #include "Atari.h"
 #include "PokeyRederer.h"
 #include "RmtMidi.h"
