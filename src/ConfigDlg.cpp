@@ -20,12 +20,12 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 /////////////////////////////////////////////////////////////////////////////
-// CConfigDlg dialog
+// COptionsDialog dialog
 
-CConfigDlg::CConfigDlg(CWnd* pParent /*=NULL*/)
-    : CDialog(CConfigDlg::IDD, pParent)
+COptionsDialog::COptionsDialog(CWnd* pParent /*=NULL*/)
+    : CDialog(COptionsDialog::IDD, pParent)
 {
-    //{{AFX_DATA_INIT(CConfigDlg)
+    //{{AFX_DATA_INIT(COptionsDialog)
     m_midi_TouchResponse = FALSE;
     m_midi_VolumeOffset = 0;
     m_trackLinePrimaryHighlight = 0;
@@ -47,10 +47,10 @@ CConfigDlg::CConfigDlg(CWnd* pParent /*=NULL*/)
     //}}AFX_DATA_INIT
 }
 
-void CConfigDlg::DoDataExchange(CDataExchange* pDX)
+void COptionsDialog::DoDataExchange(CDataExchange* pDX)
 {
     CDialog::DoDataExchange(pDX);
-    //{{AFX_DATA_MAP(CConfigDlg)
+    //{{AFX_DATA_MAP(COptionsDialog)
     DDX_Control(pDX, IDC_KEYBOARD_LAYOUT, m_keyboardLayoutComboBox);
     DDX_Control(pDX, IDC_MIDI_DEVICE, m_midi_c_device);
     DDX_Check(pDX, IDC_MIDI_TR, m_midi_TouchResponse);
@@ -78,8 +78,8 @@ void CConfigDlg::DoDataExchange(CDataExchange* pDX)
     //}}AFX_DATA_MAP
 }
 
-BEGIN_MESSAGE_MAP(CConfigDlg, CDialog)
-    //{{AFX_MSG_MAP(CConfigDlg)
+BEGIN_MESSAGE_MAP(COptionsDialog, CDialog)
+    //{{AFX_MSG_MAP(COptionsDialog)
     ON_BN_CLICKED(IDC_MIDI_TR, OnMidiTouchResponseClicked)
     ON_BN_CLICKED(IDC_PATHS, OnBtnClickedPaths)
     ON_BN_CLICKED(IDC_EXPORT_SAP, OnBnClickedExportSap)
@@ -89,10 +89,10 @@ END_MESSAGE_MAP()
 
 
 /////////////////////////////////////////////////////////////////////////////
-// CConfigDlg message handlers
+// COptionsDialog message handlers
 
 
-BOOL CConfigDlg::OnInitDialog()
+BOOL COptionsDialog::OnInitDialog()
 {
     CDialog::OnInitDialog();
 
@@ -133,7 +133,7 @@ BOOL CConfigDlg::OnInitDialog()
 /// MIDI device combo
 /// Keybord layout combo
 /// </summary>
-void CConfigDlg::OnOK()
+void COptionsDialog::OnOK()
 {
     m_midi_device = m_midi_c_device.GetCurSel() - 1;
     m_keyboard_layout = m_keyboardLayoutComboBox.GetSelectedItem(KeyboardLayout::QWERTY);
@@ -144,16 +144,16 @@ void CConfigDlg::OnOK()
 /// <summary>
 /// If MIDI touch response is turned on, then enable the MIDI volume offset edit box
 /// </summary>
-void CConfigDlg::OnMidiTouchResponseClicked()
+void COptionsDialog::OnMidiTouchResponseClicked()
 {
     auto* tr = (CButton*)GetDlgItem(IDC_MIDI_TR);
     auto* vof = (CEdit*)GetDlgItem(IDC_MIDI_VOLUMEOFFSET);
     vof->EnableWindow(tr->GetCheck());
 }
 
-void CConfigDlg::OnBtnClickedPaths()
+void COptionsDialog::OnBtnClickedPaths()
 {
-    CConfigPathsDlg dlg;
+    COptionsPathsDialog dlg;
     dlg.m_path_songs = g_defaultSongsPath;
     dlg.m_path_instruments = g_defaultInstrumentsPath;
     dlg.m_path_tracks = g_defaultTracksPath;
@@ -167,7 +167,7 @@ void CConfigDlg::OnBtnClickedPaths()
 }
 
 
-void CConfigDlg::OnBnClickedExportSap()
+void COptionsDialog::OnBnClickedExportSap()
 {
     CSAPFile sapFile;
     sapFile.SetType("R");
@@ -180,13 +180,13 @@ void CConfigDlg::OnBnClickedExportSap()
 
 
 /////////////////////////////////////////////////////////////////////////////
-// CConfigPathsDlg dialog
+// COptionsPathsDialog dialog
 
 
-CConfigPathsDlg::CConfigPathsDlg(CWnd* pParent /*=NULL*/)
-    : CDialog(CConfigPathsDlg::IDD, pParent)
+COptionsPathsDialog::COptionsPathsDialog(CWnd* pParent /*=NULL*/)
+    : CDialog(COptionsPathsDialog::IDD, pParent)
 {
-    //{{AFX_DATA_INIT(CConfigPathsDlg)
+    //{{AFX_DATA_INIT(COptionsPathsDialog)
     m_path_songs = _T("");
     m_path_instruments = _T("");
     m_path_tracks = _T("");
@@ -194,10 +194,10 @@ CConfigPathsDlg::CConfigPathsDlg(CWnd* pParent /*=NULL*/)
 }
 
 
-void CConfigPathsDlg::DoDataExchange(CDataExchange* pDX)
+void COptionsPathsDialog::DoDataExchange(CDataExchange* pDX)
 {
     CDialog::DoDataExchange(pDX);
-    //{{AFX_DATA_MAP(CConfigPathsDlg)
+    //{{AFX_DATA_MAP(COptionsPathsDialog)
     DDX_Text(pDX, IDC_EDIT1, m_path_songs);
     DDX_Text(pDX, IDC_EDIT2, m_path_instruments);
     DDX_Text(pDX, IDC_EDIT3, m_path_tracks);
@@ -205,8 +205,8 @@ void CConfigPathsDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 
-BEGIN_MESSAGE_MAP(CConfigPathsDlg, CDialog)
-    //{{AFX_MSG_MAP(CConfigPathsDlg)
+BEGIN_MESSAGE_MAP(COptionsPathsDialog, CDialog)
+    //{{AFX_MSG_MAP(COptionsPathsDialog)
     ON_BN_CLICKED(IDC_BUTTON1, OnButton1)
     ON_BN_CLICKED(IDC_BUTTON2, OnButton2)
     ON_BN_CLICKED(IDC_BUTTON3, OnButton3)
@@ -214,9 +214,9 @@ BEGIN_MESSAGE_MAP(CConfigPathsDlg, CDialog)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
-// CConfigPathsDlg message handlers
+// COptionsPathsDialog message handlers
 
-void CConfigPathsDlg::BrowsePath(int itemID)
+void COptionsPathsDialog::BrowsePath(int itemID)
 {
     CFilePathDlg dlg;
     CString s;
@@ -228,17 +228,17 @@ void CConfigPathsDlg::BrowsePath(int itemID)
     }
 }
 
-void CConfigPathsDlg::OnButton1()
+void COptionsPathsDialog::OnButton1()
 {
     BrowsePath(IDC_EDIT1);
 }
 
-void CConfigPathsDlg::OnButton2()
+void COptionsPathsDialog::OnButton2()
 {
     BrowsePath(IDC_EDIT2);
 }
 
-void CConfigPathsDlg::OnButton3()
+void COptionsPathsDialog::OnButton3()
 {
     BrowsePath(IDC_EDIT3);
 }

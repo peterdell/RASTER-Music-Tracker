@@ -20,17 +20,17 @@ extern CString g_lastLoadPath_Instruments;
 extern CString g_lastLoadPath_Tracks;
 
 /////////////////////////////////////////////////////////////////////////////
-// CConfigDlg dialog
+// COptionsDialog dialog
 
-class CConfigDlg : public CDialog
+class COptionsDialog : public CDialog
 {
     // Construction
 public:
-    CConfigDlg(CWnd* pParent = NULL);   // standard constructor
+    COptionsDialog(CWnd* pParent = NULL);   // standard constructor
 
     // Dialog Data
-        //{{AFX_DATA(CConfigDlg)
-    enum { IDD = IDD_CONFIG };
+        //{{AFX_DATA(COptionsDialog)
+    enum { IDD = IDD_OPTIONS };
     TypedComboBox<KeyboardLayout> m_keyboardLayoutComboBox;
     CComboBox	m_midi_c_device;
     TypedComboBox<TrackerDriverVersion>	m_trackerDriverVersionComboBox;
@@ -59,7 +59,7 @@ public:
 
     // Overrides
         // ClassWizard generated virtual function overrides
-        //{{AFX_VIRTUAL(CConfigDlg)
+        //{{AFX_VIRTUAL(COptionsDialog)
 protected:
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     //}}AFX_VIRTUAL
@@ -69,11 +69,10 @@ protected:
 protected:
 
     // Generated message map functions
-    //{{AFX_MSG(CConfigDlg)
+    //{{AFX_MSG(COptionsDialog)
     virtual BOOL OnInitDialog();
     virtual void OnOK();
     afx_msg void OnMidiTouchResponseClicked();
-    afx_msg void OnPaths();
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
 public:
@@ -85,19 +84,19 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////
-// CConfigPathsDlg dialog
+// COptionsPathsDialog dialog
 
-class CConfigPathsDlg : public CDialog
+class COptionsPathsDialog : public CDialog
 {
     // Construction
 public:
-    CConfigPathsDlg(CWnd* pParent = NULL);   // standard constructor
+    COptionsPathsDialog(CWnd* pParent = NULL);   // standard constructor
 
     void BrowsePath(int itemID);
 
     // Dialog Data
-        //{{AFX_DATA(CConfigPathsDlg)
-    enum { IDD = IDD_PATHS };
+        //{{AFX_DATA(COptionsPathsDialog)
+    enum { IDD = IDD_OPTIONS_FILE_PATHS };
     CString	m_path_songs;
     CString	m_path_instruments;
     CString	m_path_tracks;
@@ -106,7 +105,7 @@ public:
 
 // Overrides
     // ClassWizard generated virtual function overrides
-    //{{AFX_VIRTUAL(CConfigPathsDlg)
+    //{{AFX_VIRTUAL(COptionsPathsDialog)
 protected:
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     //}}AFX_VIRTUAL
@@ -115,7 +114,7 @@ protected:
 protected:
 
     // Generated message map functions
-    //{{AFX_MSG(CConfigPathsDlg)
+    //{{AFX_MSG(COptionsPathsDialog)
     afx_msg void OnButton1();
     afx_msg void OnButton2();
     afx_msg void OnButton3();

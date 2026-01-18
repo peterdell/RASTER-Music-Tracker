@@ -26,7 +26,7 @@
 #define IDR_TOOLBAR_CHANNELS             140
 #define IDC_CURSOR_CHANNEL_ON_OFF          142
 #define IDC_CURSOR_ENVELOPE_VOLUME             144
-#define IDD_CONFIG                      145
+#define IDD_OPTIONS                      145
 #define IDC_CURSOR_GOTO                  145
 #define IDD_EFFECTS                     146
 #define IDC_CURSOR_DIALOG                   146
@@ -47,8 +47,8 @@
 #define IDD_OCTAVESELECT                160
 #define IDD_INSTRUMENTSELECT            161
 #define IDD_VOLUMESELECT                162
-#define IDD_CONFIG2                     162
-#define IDD_PATHS                       163
+#define IDD_OPTIONS2                     162
+#define IDD_OPTIONS_FILE_PATHS                       163
 #define IDD_FILEPATHDLG                 164
 #define IDD_CHANNELSSELECT              165
 #define IDD_CHANGEMAXTRACKLEN           166

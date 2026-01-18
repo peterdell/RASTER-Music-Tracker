@@ -235,7 +235,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,210,151,10
 END
 
-IDD_CONFIG DIALOGEX 0, 0, 257, 270
+IDD_OPTIONS DIALOGEX 0, 0, 257, 270
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Options"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
@@ -253,8 +253,8 @@ BEGIN
     CONTROL         "Disable hardware soundbuffer",IDC_NOHWSOUNDBUFFER,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,122,53,122,10
     CONTROL         "Smooth scroll during playback",IDC_SMOOTH_SCROLL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,53,105,10
-    DEFPUSHBUTTON   "OK",IDOK,139,253,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,194,253,50,14
+    DEFPUSHBUTTON   "&OK",IDOK,139,253,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,194,253,50,14
     COMBOBOX        IDC_KEYBOARD_LAYOUT,82,136,156,55,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Move to previous/next song line while track boundaries are crossed",IDC_KEYBOARD_UPDOWNCONTINUE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,151,229,10
@@ -274,7 +274,7 @@ BEGIN
     GROUPBOX        "Keyboard",IDC_STATIC,7,125,245,72
     GROUPBOX        "General",IDC_STATIC,7,7,245,71
     LTEXT           "Keyboard Layout:",IDC_STATIC,13,138,68,8
-    PUSHBUTTON      "Paths...",IDC_PATHS,7,253,29,14
+    PUSHBUTTON      "&Paths...",IDC_PATHS,7,253,29,14
     EDITTEXT        IDC_TRACKLINESECONDARYHIGHLIGHT,231,16,17,12,ES_NUMBER
     LTEXT           " /",IDC_STATIC,223,18,8,8
     CONTROL         "Enable debug display",IDC_DEBUGDISPLAY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,66,224,10
@@ -589,7 +589,7 @@ BEGIN
     PUSHBUTTON      "OK",IDOK,0,141,51,14
 END
 
-IDD_PATHS DIALOG 0, 0, 282, 101
+IDD_OPTIONS_FILE_PATHS DIALOG 0, 0, 282, 101
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Paths..."
 FONT 8, "MS Sans Serif"
@@ -1003,7 +1003,7 @@ BEGIN
         BOTTOMMARGIN, 228
     END
 
-    IDD_CONFIG, DIALOG
+    IDD_OPTIONS, DIALOG
     BEGIN
         BOTTOMMARGIN, 265
     END
@@ -1063,7 +1063,7 @@ BEGIN
         BOTTOMMARGIN, 256
     END
 
-    IDD_PATHS, DIALOG
+    IDD_OPTIONS_FILE_PATHS, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 275
@@ -1127,7 +1127,7 @@ END
 // AFX_DIALOG_LAYOUT
 //
 
-IDD_CONFIG AFX_DIALOG_LAYOUT
+IDD_OPTIONS AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -1394,12 +1394,19 @@ CHARACTERISTICS 0x00000001
 BEGIN
     ID_FILE_NEW             "Create a new module\nNew"
     ID_FILE_OPEN            "Open a module file\nOpen"
-    ID_FILE_REOPEN          "Discard current module file changes and reopen the last saved version\Reopen"
     ID_FILE_SAVE            "Save the module file\nSave"
     ID_FILE_SAVE_AS         "Save the module file with a new filename"
     ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup"
     ID_FILE_PRINT           "Print the active view"
     ID_FILE_PRINT_PREVIEW   "Preview the print version of the view"
+END
+
+STRINGTABLE
+CHARACTERISTICS 0x00000001
+BEGIN
+    ID_BUTTONCOMBO1         "Insert note spacing\nInsert note spacing"
+    ID_PLAY0                "Play song from bookmark position\nPlay from bookmark"
+    ID_FILE_REOPEN          "Discard current module file changes and reopen the last saved version\\Reopen"
 END
 
 STRINGTABLE
@@ -1455,11 +1462,12 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_PLAY_FOLLOW                         "Toggle following the current playing position\nToggle Follow Song"
-    ID_PLAY_FROM_START                     "Play song from start position\nPlay From Start"
-    ID_PLAY_FROM_CURRENT_POSITION          "Play song from current position\nPlay"
-    ID_PLAY_FROM_CURRENT_POSITION_AND_LOOP "Play and loop current song line\nLoop Song Line"
-    ID_PLAY_STOP             "Stop playing the song. Mute all sounds.\nStop"
+    ID_PLAY_FOLLOW          "Toggle following the current playing position\nToggle Follow Song"
+    ID_PLAY_FROM_START      "Play song from start position\nPlay From Start"
+    ID_PLAY_FROM_CURRENT_POSITION "Play song from current position\nPlay"
+    ID_PLAY_FROM_CURRENT_POSITION_AND_LOOP 
+                            "Play and loop current song line\nLoop Song Line"
+    ID_PLAY_STOP            "Stop playing the song. Mute all sounds.\nStop"
 END
 
 STRINGTABLE
@@ -1480,13 +1488,7 @@ END
 STRINGTABLE
 BEGIN
     ID_MIDIONOFF            "Toggle MIDI on/off\nToggle MIDI on/off"
-    ID_TOOLS_OPTIONS   "Open application options dialog"
-END
-
-STRINGTABLE
-BEGIN
-    ID_BUTTONCOMBO1         "Insert note spacing\nInsert note spacing"
-    ID_PLAY0                "Play song from bookmark position\nPlay from bookmark"
+    ID_TOOLS_OPTIONS        "Open the application options dialog"
 END
 
 STRINGTABLE

@@ -721,7 +721,7 @@ void CRmtView::WriteTuningConfig()
 
 void CRmtView::OnToolsOptions()
 {
-    CConfigDlg dlg;
+    COptionsDialog dlg;
 
     // GENERAL
     dlg.m_scaling_percentage = g_scaling_percentage;
