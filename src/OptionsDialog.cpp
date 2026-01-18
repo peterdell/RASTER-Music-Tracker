@@ -195,18 +195,18 @@ void COptionsPathsDialog::DoDataExchange(CDataExchange* pDX)
 {
     CDialog::DoDataExchange(pDX);
     //{{AFX_DATA_MAP(COptionsPathsDialog)
-    DDX_Text(pDX, IDC_EDIT1, m_path_songs);
-    DDX_Text(pDX, IDC_EDIT2, m_path_instruments);
-    DDX_Text(pDX, IDC_EDIT3, m_path_tracks);
+    DDX_Text(pDX, IDC_BROWSE_MODULE_FILES_FOLDER, m_path_songs);
+    DDX_Text(pDX, IDC_BROWSE_INSTRUMENT_FILES_FOLDER, m_path_instruments);
+    DDX_Text(pDX, IDC_BROWSE_TRACK_FILES_FOLDER, m_path_tracks);
     //}}AFX_DATA_MAP
 }
 
 
 BEGIN_MESSAGE_MAP(COptionsPathsDialog, CDialog)
     //{{AFX_MSG_MAP(COptionsPathsDialog)
-    ON_BN_CLICKED(IDC_BUTTON1, OnButton1)
-    ON_BN_CLICKED(IDC_BUTTON2, OnButton2)
-    ON_BN_CLICKED(IDC_BUTTON3, OnButton3)
+    ON_BN_CLICKED(IDC_BROWSE_MODULE_FILES_FOLDER, OnBrowseModuleFilesFolder)
+    ON_BN_CLICKED(IDC_BROWSE_INSTRUMENT_FILES_FOLDER, OnBrowseInstrumentFilesFolder)
+    ON_BN_CLICKED(IDC_BROWSE_TRACK_FILES_FOLDER, OnBrowseTrackFilesFolder)
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -215,28 +215,28 @@ END_MESSAGE_MAP()
 
 void COptionsPathsDialog::BrowsePath(int itemID)
 {
-    CFilePathDlg dlg;
-    CString s;
-    ((CWnd*)GetDlgItem(itemID))->GetWindowText(s);
-    dlg.m_path = s;
-    if (dlg.DoModal() == IDOK)
+    auto item = ((CWnd*)GetDlgItem(itemID));
+    CString currentPath;
+    item->GetWindowText(currentPath);
+    CFolderPickerDialog d1(currentPath);
+    if (d1.DoModal() == IDOK)
     {
-        ((CWnd*)GetDlgItem(itemID))->SetWindowText(dlg.m_path);
+        item->SetWindowText(d1.GetPathName());
     }
 }
 
-void COptionsPathsDialog::OnButton1()
+void COptionsPathsDialog::OnBrowseModuleFilesFolder()
 {
-    BrowsePath(IDC_EDIT1);
+    BrowsePath(IDC_MODULE_FILES_FOLDER);
 }
 
-void COptionsPathsDialog::OnButton2()
+void COptionsPathsDialog::OnBrowseInstrumentFilesFolder()
 {
-    BrowsePath(IDC_EDIT2);
+    BrowsePath(IDC_INSTRUMENT_FILES_FOLDER);
 }
 
-void COptionsPathsDialog::OnButton3()
+void COptionsPathsDialog::OnBrowseTrackFilesFolder()
 {
-    BrowsePath(IDC_EDIT3);
+    BrowsePath(IDC_TRACK_FILES_FOLDER);
 }
 

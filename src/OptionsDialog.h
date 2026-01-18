@@ -113,9 +113,9 @@ protected:
 
     // Generated message map functions
     //{{AFX_MSG(COptionsPathsDialog)
-    afx_msg void OnButton1();
-    afx_msg void OnButton2();
-    afx_msg void OnButton3();
+    afx_msg void OnBrowseModuleFilesFolder();
+    afx_msg void OnBrowseInstrumentFilesFolder();
+    afx_msg void OnBrowseTrackFilesFolder();
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
 };
