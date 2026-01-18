@@ -1,7 +1,7 @@
 // ConfigDlg.cpp : implementation file
 //
 
-#include "ConfigDlg.h"
+#include "OptionsDialog.h"
 #include "FilePathDlg.h"
 #include "GuiHelpers.h"
 #include "StdAfx.h"

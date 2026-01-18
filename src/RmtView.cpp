@@ -12,7 +12,7 @@
 #include "Fraction.h"
 #include "RmtView.h"
 #include "MainFrm.h"
-#include "ConfigDlg.h"
+#include "OptionsDialog.h"
 #include "FileNewDlg.h"
 #include "TuningDlg.h"
 #include "Atari.h"
@@ -39,7 +39,7 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-extern CRmtApp	g_app; 
+extern CRmtApp	g_app;
 extern CSong	g_Song;
 extern CRmtMidi	g_Midi;
 extern CUndo	g_Undo;

@@ -12,7 +12,7 @@ public:
 
     // Dialog Data
         //{{AFX_DATA(CAboutDialog)
-    enum { IDD = IDD_ABOUTBOX };
+    enum { IDD = IDD_ABOUT };
     CString	m_rmtversion;
     CString	m_rmtauthor;
     CString	m_rmtrepository;

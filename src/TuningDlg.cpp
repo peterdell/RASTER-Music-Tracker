@@ -3,10 +3,11 @@
 
 
 #include "StdAfx.h"
-#include "Rmt.h"
 #include "TuningDlg.h"
 #include "Tuning.h"
-#include "global.h"
+
+// TODO Make
+#include "Global.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -23,6 +24,11 @@ TuningDlg::TuningDlg(CWnd* pParent /*=nullptr*/)
 
     m_tuningSettings = {};
     m_tuningRatios = {};
+}
+
+void TuningDlg::Show(const BOOL test) {
+    this->m_test = test;
+    this->DoModal();
 }
 
 void TuningDlg::DoDataExchange(CDataExchange* pDX)

@@ -10,7 +10,7 @@
 #define IDRESET                         4
 #define IDRESTORE                       5
 #define IDPLAYSTOP                      6
-#define IDD_ABOUTBOX                    100
+#define IDD_ABOUT                    100
 #define IDR_MAIN_WINDOW                 128
 #define IDR_RMTTYPE                     129
 #define IDS_RMT_REPOSITORY              129

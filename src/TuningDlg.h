@@ -2,6 +2,7 @@
 
 
 #include "TuningTypes.h"
+#include "resource.h"
 
 // TuningDlg dialog
 class TuningDlg : public CDialog
@@ -15,6 +16,12 @@ public:
 
     TTuningSettings m_tuningSettings;
     TTuningRatios m_tuningRatios;
+
+    // Display "Test" button in Song mode
+    BOOL m_test;
+
+    // Show the dialog
+    void Show(const BOOL test);
 
 protected:
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support

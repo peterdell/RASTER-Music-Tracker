@@ -79,11 +79,11 @@
     <Filter Include="Source Files\Model">
       <UniqueIdentifier>{390dff11-f66b-4d0f-9095-d4444b6a2da8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Options">
+      <UniqueIdentifier>{38225b79-6297-47e6-ad21-6b669cb7aced}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ConfigDlg.cpp">
-      <Filter>Source Files\Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="EffectsDlg.cpp">
       <Filter>Source Files\Dialogs</Filter>
     </ClCompile>
@@ -297,11 +297,11 @@
     <ClCompile Include="asap\wasap.c">
       <Filter>Source Files\ASAP</Filter>
     </ClCompile>
+    <ClCompile Include="OptionsDialog.cpp">
+      <Filter>Source Files\Options</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ConfigDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="EffectsDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -520,6 +520,9 @@
     </ClInclude>
     <ClInclude Include="asap\wasap.h">
       <Filter>Source Files\ASAP</Filter>
+    </ClInclude>
+    <ClInclude Include="OptionsDialog.h">
+      <Filter>Source Files\Options</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
