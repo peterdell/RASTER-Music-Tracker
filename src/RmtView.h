@@ -183,7 +183,7 @@ protected:
     afx_msg void OnUpdateViewPokeyregs(CCmdUI* pCmdUI);
     afx_msg void OnMidionoff();
     afx_msg void OnUpdateMidionoff(CCmdUI* pCmdUI);
-    afx_msg void OnViewConfiguration();
+    afx_msg void OnToolsOptions();
     afx_msg void OnViewTuning();
     afx_msg void OnBlockCopy();
     afx_msg void OnBlockCut();

@@ -254,9 +254,9 @@
 #define ID_INSTR_CUT                    32779
 #define ID_TRACK_DELETE                 32780
 #define ID_INSTR_DELETE                 32781
-#define ID_SONG_COPYLINE                32782
-#define ID_SONG_PASTELINE               32783
-#define ID_SONG_CLEARLINE               32784
+#define ID_SONG_COPY_LINE                32782
+#define ID_SONG_PASTE_LINE               32783
+#define ID_SONG_CLEAR_LINE               32784
 #define ID_BUTTON32785                  32785
 #define ID_BUTTON32786                  32786
 #define ID_BUTTON32787                  32787
@@ -303,7 +303,7 @@
 #define ID_CHAN8                        32836
 #define ID_VIEW_POKEYREGS               32837
 #define ID_MIDIONOFF                    32838
-#define ID_VIEW_CONFIGURATION           32841
+#define ID_TOOLS_OPTIONS           32841
 #define ID_BLOCK_COPY                   32842
 #define ID_BLOCK_PASTE                  32843
 #define ID_BLOCK_DELETE                 32844
@@ -321,7 +321,7 @@
 #define ID_FILE_IMPORT                  32856
 #define ID_SONG_TRACKSORDERCHANGEMONOSTEREO 32857
 #define ID_SONG_TRACKSORDERCHANGE       32857
-#define ID_SONG_SONGSWITCH4_8           32859
+#define ID_SONG_SONG_TOGGLE_TRACK_NUMBER           32859
 #define ID_INSTRUMENT_INFO              32860
 #define ID_INSTRUMENT_CHANGE            32862
 #define ID_TRACK_SEARCHANDBUILDLOOP     32863
@@ -353,7 +353,7 @@
 #define ID_FILE_REOPEN                  32895
 #define ID_UNDO_UNDO                    32896
 #define ID_UNDO_REDO                    32897
-#define ID_UNDO_CLEARUNDOREDO           32898
+#define ID_EDIT_CLEAR_UNDO_REDO_HISTORY           32898
 #define ID_WANTEXIT                     32899
 #define ID_FILE_EXIT                    32899
 #define ID_INSTRUMENT_PASTESPECIAL_VOLUMERTOLENVELOPEONLY 32900

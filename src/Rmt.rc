@@ -1211,7 +1211,7 @@ BEGIN
         MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
         MENUITEM "&Redo\tCtrl+Y",               ID_EDIT_REDO
         MENUITEM SEPARATOR
-        MENUITEM "&Clear Undo && Redo History", ID_UNDO_CLEARUNDOREDO
+        MENUITEM "&Clear Undo && Redo History", ID_EDIT_CLEAR_UNDO_REDO_HISTORY
     END
     POPUP "&View"
     BEGIN
@@ -1228,9 +1228,9 @@ BEGIN
     END
     POPUP "&Song"
     BEGIN
-        MENUITEM "&Copy Line",                  ID_SONG_COPYLINE
-        MENUITEM "&Paste Line",                 ID_SONG_PASTELINE
-        MENUITEM "Cl&ear Line",                 ID_SONG_CLEARLINE
+        MENUITEM "&Copy Line",                  ID_SONG_COPY_LINE
+        MENUITEM "&Paste Line",                 ID_SONG_PASTE_LINE
+        MENUITEM "Cl&ear Line",                 ID_SONG_CLEAR_LINE
         MENUITEM SEPARATOR
         MENUITEM "Delete c&urrent line\tCtrl+U", ID_SONG_DELETEACTUALLINE
         MENUITEM "&Insert new empty line\tCtrl+I", ID_SONG_INSERTNEWEMPTYLINE
@@ -1239,7 +1239,7 @@ BEGIN
         MENUITEM "Insert &new empty unused track to current song position\tCtrl+N", ID_SONG_PUTNEWEMPTYUNUSEDTRACK
         MENUITEM "Make a track &duplicate to current song position\tCtrl+D", ID_SONG_MAKETRACKSDUPLICATE
         MENUITEM SEPARATOR
-        MENUITEM "Switch song between 4 or 8 channels...", ID_SONG_SONGSWITCH4_8
+        MENUITEM "Switch song between 4 or 8 channels...", ID_SONG_SONG_TOGGLE_TRACK_NUMBER
         MENUITEM "Song columns' order change/copy/clear...", ID_SONG_TRACKSORDERCHANGE
         MENUITEM "Change maximal length of tracks...", ID_SONG_SONGCHANGEMAXIMALLENGTHOFTRACKS
         MENUITEM SEPARATOR
@@ -1323,7 +1323,7 @@ BEGIN
         MENUITEM "Open ASMA",                   ID_TOOLS_OPENASMA
         MENUITEM "Open ASAP File...",           ID_TOOLS_EDE
         MENUITEM SEPARATOR
-        MENUITEM "&Options...",                 ID_VIEW_CONFIGURATION
+        MENUITEM "&Options...",                 ID_TOOLS_OPTIONS
     END
     POPUP "&Help"
     BEGIN
@@ -1480,7 +1480,7 @@ END
 STRINGTABLE
 BEGIN
     ID_MIDIONOFF            "Toggle MIDI on/off\nToggle MIDI on/off"
-    ID_VIEW_CONFIGURATION   "Open application options dialog"
+    ID_TOOLS_OPTIONS   "Open application options dialog"
 END
 
 STRINGTABLE
