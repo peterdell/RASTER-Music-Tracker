@@ -10,7 +10,7 @@
 #define IDRESET                         4
 #define IDRESTORE                       5
 #define IDPLAYSTOP                      6
-#define IDD_ABOUT                    100
+#define IDD_ABOUT                       100
 #define IDR_MAIN_WINDOW                 128
 #define IDR_RMTTYPE                     129
 #define IDS_RMT_REPOSITORY              129
@@ -49,7 +49,6 @@
 #define IDD_VOLUMESELECT                162
 #define IDD_OPTIONS2                    162
 #define IDD_OPTIONS_FILE_PATHS          163
-#define IDD_FILEPATHDLG                 164
 #define IDD_CHANNELSSELECT              165
 #define IDD_CHANGEMAXTRACKLEN           166
 #define IDD_TUNING                      167
@@ -153,6 +152,7 @@
 #define IDC_CHECK5                      1081
 #define IDC_COMBO11                     1081
 #define IDC_BUTTON3                     1081
+#define IDC_BROWSE_TRACK_FILES_FOLDER   1081
 #define IDC_CHECK6                      1082
 #define IDC_COMBO12                     1082
 #define IDC_CHECK7                      1083
@@ -185,13 +185,11 @@
 #define IDC_SFX                         1113
 #define IDC_WARNING                     1114
 #define IDC_TRACKLINEALTNUMBERING       1115
-#define IDC_OPTIONS_PATHS                       1116
+#define IDC_OPTIONS_PATHS               1116
 #define IDC_EDIT1                       1117
 #define IDC_EDIT2                       1118
-#define IDC_DIRLIST                     1118
-#define IDC_EDIT3                       1119
-#define IDC_DRIVELIST                   1119
-#define IDC_OPTIONS_TUNING                      1119
+#define IDC_OPTIONS_TUNING              1119
+#define IDC_TRACK_FILES_FOLDER          1119
 #define IDC_CURSORMAXLATITUDE           1120
 #define IDC_DISPLAYFLATNOTES            1120
 #define IDC_GLOBALVOLUMEFADE            1121
@@ -243,6 +241,10 @@
 #define IDC_EXPORT_SAP                  1163
 #define IDC_OPTIONS_TAB                 1164
 #define ID_MODULE_TUNING                1165
+#define IDC_BROWSE_INSTRUMENT_FILES_FOLDER 1166
+#define IDC_BROWSE_MODULE_FILES_FOLDER  1167
+#define IDC_MODULE_FILES_FOLDER         1168
+#define IDC_INSTRUMENT_FILES_FOLDER     1169
 #define IDC_COMBO_LINESAFTER            9999
 #define ID_INSTR_SAVE                   32771
 #define ID_INSTR_LOAD                   32772
@@ -390,7 +392,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        173
 #define _APS_NEXT_COMMAND_VALUE         32919
-#define _APS_NEXT_CONTROL_VALUE         1166
+#define _APS_NEXT_CONTROL_VALUE         1170
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif
