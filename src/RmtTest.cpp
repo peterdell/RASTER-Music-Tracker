@@ -3,7 +3,7 @@
 #include "StdAfx.h"
 #include "Rmt.h"
 
-#include "wasap.h"
+#include "asap\wasap.h"
 
 
 #include <iostream>
@@ -62,7 +62,7 @@ void CRmtTest::TestASAP(const CRmtApp& app, const CString fileName) {
 
 void CRmtTest::RunFor(const CRmtApp& app, const CString fileName) {
 
-    // TestASAP(app, fileName);
+    TestASAP(app, fileName);
 
     // All these variables are initialized with their defaults.
     // - g_AtariTrackerDriver 
