@@ -235,7 +235,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,210,151,10
 END
 
-IDD_OPTIONS DIALOGEX 0, 0, 257, 270
+IDD_OPTIONS DIALOGEX 0, 0, 257, 276
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Options"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
@@ -253,8 +253,8 @@ BEGIN
     CONTROL         "Disable hardware soundbuffer",IDC_NOHWSOUNDBUFFER,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,122,53,122,10
     CONTROL         "Smooth scroll during playback",IDC_SMOOTH_SCROLL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,53,105,10
-    DEFPUSHBUTTON   "&OK",IDOK,139,253,50,14
-    PUSHBUTTON      "&Cancel",IDCANCEL,194,253,50,14
+    DEFPUSHBUTTON   "&OK",IDOK,144,258,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,198,258,50,14
     COMBOBOX        IDC_KEYBOARD_LAYOUT,82,136,156,55,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Move to previous/next song line while track boundaries are crossed",IDC_KEYBOARD_UPDOWNCONTINUE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,151,229,10
@@ -269,18 +269,19 @@ BEGIN
     EDITTEXT        IDC_MIDI_VOLUMEOFFSET,204,228,15,12,ES_NUMBER
     CONTROL         "Record note off",IDC_MIDI_NOTEOFF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,238,67,10
     LTEXT           "Atari Volume Offset:",IDC_STATIC,126,228,74,8
-    GROUPBOX        "MIDI",IDC_STATIC,7,199,245,53
+    GROUPBOX        "&MIDI",IDC_STATIC,7,199,245,53
     LTEXT           "MIDI IN Device:",IDC_STATIC,13,211,52,8
-    GROUPBOX        "Keyboard",IDC_STATIC,7,125,245,72
-    GROUPBOX        "General",IDC_STATIC,7,7,245,71
+    GROUPBOX        "&Keyboard",IDC_STATIC,7,125,245,72
+    GROUPBOX        "&General",IDC_STATIC,7,7,245,71
     LTEXT           "Keyboard Layout:",IDC_STATIC,13,138,68,8
-    PUSHBUTTON      "&Paths...",IDC_PATHS,7,253,29,14
+    PUSHBUTTON      "&Paths...",IDC_PATHS,12,258,48,14
     EDITTEXT        IDC_TRACKLINESECONDARYHIGHLIGHT,231,16,17,12,ES_NUMBER
     LTEXT           " /",IDC_STATIC,223,18,8,8
     CONTROL         "Enable debug display",IDC_DEBUGDISPLAY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,66,224,10
     COMBOBOX        IDC_TRACKERDRIVERVERSION,82,108,156,55,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "RMT Driver Version:",IDC_STATIC,13,110,66,8
-    GROUPBOX        "Module Defaults",IDC_STATIC,6,82,246,43
+    GROUPBOX        "&Module Defaults",IDC_STATIC,6,82,246,43
+    PUSHBUTTON      "&Tuning...",IDC_PATHS3,66,258,49,14
 END
 
 IDD_EFFECTS DIALOG 0, 0, 280, 156
@@ -1005,7 +1006,8 @@ BEGIN
 
     IDD_OPTIONS, DIALOG
     BEGIN
-        BOTTOMMARGIN, 265
+        BOTTOMMARGIN, 271
+        HORZGUIDE, 265
     END
 
     IDD_EFFECTS, DIALOG
@@ -1276,7 +1278,7 @@ BEGIN
         MENUITEM "Clear all unused instruments...", ID_INSTRUMENT_CLEARALLUNUSEDINSTRUMENTS
         MENUITEM "All instruments cleanup...",  ID_INSTR_ALLINSTRUMENTSCLEANUP
     END
-    POPUP "&Track"
+    POPUP "T&rack"
     BEGIN
         MENUITEM "&Copy",                       ID_TRACK_COPY
         MENUITEM "&Paste",                      ID_TRACK_PASTE
@@ -1318,7 +1320,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Select &all\tCtrl+A",         ID_BLOCK_SELECTALL
     END
-    POPUP "Tools"
+    POPUP "&Tools"
     BEGIN
         MENUITEM "Open ASMA",                   ID_TOOLS_OPENASMA
         MENUITEM "Open ASAP File...",           ID_TOOLS_EDE
