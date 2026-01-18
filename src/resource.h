@@ -5,6 +5,7 @@
 #define IDDEFAULT                       3
 #define IDOK2                           3
 #define IDTESTNOW                       3
+#define IDMODULE_TUNING                 3
 #define IDTRY                           4
 #define IDRESET                         4
 #define IDRESTORE                       5
@@ -18,6 +19,7 @@
 #define IDR_TOOLBARPLAY                 133
 #define IDD_EXPSAP                      135
 #define IDD_EXPPORT_SAP_TYPE_R          135
+#define IDD_EXPORT_SAP_TYPE_R           135
 #define IDD_EXPORT_STRIPPED_RMT         136
 #define IDD_EXPMSX                      137
 #define IDR_TOOLBARBLOCK                138
@@ -52,6 +54,7 @@
 #define IDD_CHANGEMAXTRACKLEN           166
 #define IDD_TUNING                      167
 #define IDD_EXPORT_RMTPLAYER_ASM        168
+#define IDD_FILE_PROPRTIES              169
 #define IDC_MAXTRACKLEN                 1002
 #define IDC_COMBOTYPE                   1003
 #define IDC_RMTVERSION                  1004
@@ -237,10 +240,12 @@
 #define IDC_COMBO_ASM_FORMAT            1161
 #define IDC_RMT_REPOSITORY              1162
 #define IDC_EXPORT_SAP                  1163
+#define IDC_OPTIONS_TAB                 1164
+#define ID_MODULE_TUNING                1165
 #define IDC_COMBO_LINESAFTER            9999
 #define ID_INSTR_SAVE                   32771
 #define ID_INSTR_LOAD                   32772
-#define ID_FILE_EXPORT_AS               32773
+#define ID_FILE_EXPORT                  32773
 #define ID_TRACK_COPY                   32774
 #define ID_TRACK_PASTE                  32775
 #define ID_TRACK_CUT                    32776
@@ -365,6 +370,11 @@
 #define ID_HELP_ABOUT_APP               32911
 #define ID_HELP_ONLINE_HELP             32912
 #define ID_HELP_ABOUT                   32913
+#define ID_Menu32914                    32914
+#define ID_TOOLS_EDE                    32915
+#define ID_TOOLS_OPENASMA               32916
+#define ID_SONG_SONGPROPERTIES          32917
+#define ID_SONG_PROPERTIES              32918
 #define IDS_RMTVERSION                  61446
 #define IDS_RMT_VERSION                 61446
 #define IDS_RMTAUTHOR                   61447
@@ -376,8 +386,8 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        173
-#define _APS_NEXT_COMMAND_VALUE         32914
-#define _APS_NEXT_CONTROL_VALUE         1164
+#define _APS_NEXT_COMMAND_VALUE         32919
+#define _APS_NEXT_CONTROL_VALUE         1166
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

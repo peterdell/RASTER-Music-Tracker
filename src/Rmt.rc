@@ -132,7 +132,7 @@ BEGIN
     BUTTON      ID_FILE_NEW
     BUTTON      ID_FILE_OPEN
     BUTTON      ID_FILE_SAVE
-    BUTTON      ID_FILE_EXPORT_AS
+    BUTTON      ID_FILE_EXPORT
     SEPARATOR
     BUTTON      ID_APP_ABOUT
     SEPARATOR
@@ -164,19 +164,20 @@ END
 
 IDD_FILENEW DIALOGEX 0, 0, 186, 106
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "New RMT Module"
+CAPTION "New Module"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    EDITTEXT        IDC_MAXTRACKLEN,119,14,29,14,ES_AUTOHSCROLL
-    COMBOBOX        IDC_COMBOTYPE,37,34,112,38,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_MAXTRACKLEN,75,22,29,14,ES_AUTOHSCROLL
+    COMBOBOX        IDC_COMBOTYPE,75,6,66,38,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     DEFPUSHBUTTON   "OK",IDOK,75,86,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,129,86,50,14
-    LTEXT           "Maximal length of tracks",IDC_STATIC,37,17,77,8
-    CTEXT           "Warning: Current data will be discarded!",IDC_STATIC,7,55,172,11
-    CTEXT           "This operation cannot be undone!",IDC_STATIC,1,69,184,11
+    LTEXT           "Notes Per Track:",IDC_STATIC,7,25,53,8
+    CTEXT           "Warning: Current data will be discarded!",IDC_STATIC,7,50,172,11
+    CTEXT           "This operation cannot be undone!",IDC_STATIC,1,64,184,11
+    LTEXT           "Parallel Tracks:",IDC_STATIC,7,8,48,8
 END
 
-IDD_EXPPORT_SAP_TYPE_R DIALOGEX 0, 0, 280, 129
+IDD_EXPORT_SAP_TYPE_R DIALOGEX 0, 0, 280, 129
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Export as SAP File of Type R"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
@@ -241,26 +242,26 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,210,151,10
 END
 
-IDD_CONFIG DIALOGEX 0, 0, 384, 302
+IDD_CONFIG DIALOGEX 0, 0, 257, 270
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "RMT Options"
+CAPTION "Options"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    LTEXT           "Interface size (in %)",IDC_STATIC,14,18,78,8
-    EDITTEXT        IDC_SCALINGPERCENTAGE,93,16,20,12,ES_NUMBER
-    LTEXT           "Track line highlight step",IDC_STATIC,120,18,76,8
-    EDITTEXT        IDC_TRACKLINEPRIMARYHIGHLIGHT,196,16,17,12,ES_NUMBER
+    LTEXT           "Interface Size (in %):",IDC_STATIC,14,18,78,8
+    EDITTEXT        IDC_SCALINGPERCENTAGE,81,16,20,12,ES_NUMBER
+    LTEXT           "Track Line Highlight Step:",IDC_STATIC,122,18,83,8
+    EDITTEXT        IDC_TRACKLINEPRIMARYHIGHLIGHT,205,16,17,12,ES_NUMBER
     CONTROL         "Use German notation",IDC_USEGERMANNOTATION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,28,82,12
     CONTROL         "Alternative track line numbering",IDC_TRACKLINEALTNUMBERING,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,122,30,115,10
     CONTROL         "Display accidentals as flats instead of sharps",IDC_DISPLAYFLATNOTES,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,40,168,12
-    CONTROL         "NTSC system speed (60Hz)",IDC_NTSC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,95,103,10
-    CONTROL         "Don't use hardware soundbuffer",IDC_NOHWSOUNDBUFFER,
+    CONTROL         "Use NTSC system speed (60Hz)",IDC_NTSC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,95,118,10
+    CONTROL         "Disable hardware soundbuffer",IDC_NOHWSOUNDBUFFER,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,122,53,122,10
     CONTROL         "Smooth scroll during playback",IDC_SMOOTH_SCROLL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,53,105,10
-    DEFPUSHBUTTON   "OK",IDOK,139,283,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,194,283,50,14
+    DEFPUSHBUTTON   "OK",IDOK,139,253,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,194,253,50,14
     COMBOBOX        IDC_KEYBOARD_LAYOUT,82,136,156,55,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Move to previous/next song line while track boundaries are crossed",IDC_KEYBOARD_UPDOWNCONTINUE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,151,229,10
@@ -272,22 +273,21 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,184,191,10
     COMBOBOX        IDC_MIDI_DEVICE,82,209,155,59,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Touch response",IDC_MIDI_TR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,226,70,10
-    EDITTEXT        IDC_MIDI_VOLUMEOFFSET,222,225,15,12,ES_NUMBER
-    CONTROL         "Record Note off",IDC_MIDI_NOTEOFF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,238,67,10
-    LTEXT           "Atari volume offset",IDC_STATIC,159,227,59,8
-    GROUPBOX        "MIDI",IDC_STATIC,7,199,237,53
+    EDITTEXT        IDC_MIDI_VOLUMEOFFSET,204,228,15,12,ES_NUMBER
+    CONTROL         "Record note off",IDC_MIDI_NOTEOFF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,238,67,10
+    LTEXT           "Atari Volume Offset:",IDC_STATIC,126,228,74,8
+    GROUPBOX        "MIDI",IDC_STATIC,7,199,245,53
     LTEXT           "MIDI IN Device:",IDC_STATIC,13,211,52,8
-    GROUPBOX        "Keyboard",IDC_STATIC,7,125,237,72
-    GROUPBOX        "General",IDC_STATIC,7,7,237,72
+    GROUPBOX        "Keyboard",IDC_STATIC,7,125,245,72
+    GROUPBOX        "General",IDC_STATIC,7,7,245,71
     LTEXT           "Keyboard Layout:",IDC_STATIC,13,138,68,8
-    PUSHBUTTON      "Paths...",IDC_PATHS,7,283,29,14
-    EDITTEXT        IDC_TRACKLINESECONDARYHIGHLIGHT,222,16,17,12,ES_NUMBER
-    LTEXT           "/",IDC_STATIC,214,18,8,8
+    PUSHBUTTON      "Paths...",IDC_PATHS,7,253,29,14
+    EDITTEXT        IDC_TRACKLINESECONDARYHIGHLIGHT,231,16,17,12,ES_NUMBER
+    LTEXT           " /",IDC_STATIC,223,18,8,8
     CONTROL         "Enable debug display",IDC_DEBUGDISPLAY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,66,224,10
     COMBOBOX        IDC_TRACKERDRIVERVERSION,82,108,156,55,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "RMT Driver Version:",IDC_STATIC,13,110,66,8
-    GROUPBOX        "Song Defaults",IDC_STATIC,6,82,238,43
-    PUSHBUTTON      "Export SAP...",IDC_EXPORT_SAP,40,283,50,14
+    GROUPBOX        "Module Defaults",IDC_STATIC,6,82,246,43
 END
 
 IDD_EFFECTS DIALOG 0, 0, 280, 156
@@ -766,6 +766,27 @@ BEGIN
     EDITTEXT        IDC_ABOUT6502,7,97,329,32,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
 END
 
+IDD_FILE_PROPRTIES DIALOGEX 0, 0, 287, 270
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Module Properties"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    CONTROL         "Use NTSC system speed (60Hz)",IDC_NTSC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,83,118,10
+    DEFPUSHBUTTON   "OK",IDOK,139,252,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,194,252,50,14
+    COMBOBOX        IDC_TRACKERDRIVERVERSION,81,98,156,55,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "RMT Driver Version:",IDC_STATIC,12,100,66,8
+    LTEXT           "Title",IDC_STATIC,13,3,80,8
+    EDITTEXT        IDC_NAME,13,12,266,12,ES_AUTOHSCROLL
+    LTEXT           "Author",IDC_STATIC,13,28,80,8
+    EDITTEXT        IDC_AUTHOR,13,37,266,12,ES_AUTOHSCROLL
+    LTEXT           "Date",IDC_STATIC,13,54,80,8
+    EDITTEXT        IDC_DATE,13,63,50,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SUBSONGS,11,146,266,12,ES_AUTOHSCROLL
+    LTEXT           "Subsongs (hexadecimal song line number for each subsong, first is default song):",IDC_STATIC,12,136,270,8
+    DEFPUSHBUTTON   "Tuning...",ID_MODULE_TUNING,6,252,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -775,9 +796,9 @@ END
 IDD_FILENEW DLGINIT
 BEGIN
     IDC_COMBOTYPE, 0x403, 16, 0
-0x4f4d, 0x4f4e, 0x2d20, 0x3420, 0x5420, 0x4152, 0x4b43, 0x0053, 
+0x6f4d, 0x6f6e, 0x2d20, 0x3420, 0x5420, 0x6172, 0x6b63, 0x0073, 
     IDC_COMBOTYPE, 0x403, 18, 0
-0x5453, 0x5245, 0x4f45, 0x2d20, 0x3820, 0x5420, 0x4152, 0x4b43, 0x0053, 
+0x7453, 0x7265, 0x6f65, 0x2d20, 0x3820, 0x5420, 0x6172, 0x6b63, 0x0073, 
 
     0
 END
@@ -977,7 +998,7 @@ BEGIN
     BEGIN
     END
 
-    IDD_EXPPORT_SAP_TYPE_R, DIALOG
+    IDD_EXPORT_SAP_TYPE_R, DIALOG
     BEGIN
     END
 
@@ -993,8 +1014,7 @@ BEGIN
 
     IDD_CONFIG, DIALOG
     BEGIN
-        RIGHTMARGIN, 180
-        BOTTOMMARGIN, 297
+        BOTTOMMARGIN, 265
     END
 
     IDD_EFFECTS, DIALOG
@@ -1034,7 +1054,15 @@ BEGIN
         BOTTOMMARGIN, 94
     END
 
+    IDD_TRACKSLOAD, DIALOG
+    BEGIN
+    END
+
     IDD_EXPORT_ASM, DIALOG
+    BEGIN
+    END
+
+    IDD_OCTAVESELECT, DIALOG
     BEGIN
     END
 
@@ -1093,6 +1121,12 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 145
     END
+
+    IDD_FILE_PROPRTIES, DIALOG
+    BEGIN
+        RIGHTMARGIN, 108
+        BOTTOMMARGIN, 265
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -1137,7 +1171,17 @@ BEGIN
     0
 END
 
-IDD_EXPPORT_SAP_TYPE_R AFX_DIALOG_LAYOUT
+IDD_EXPORT_SAP_TYPE_R AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_FILE_PROPRTIES AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_FILENEW AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -1153,27 +1197,93 @@ BEGIN
     POPUP "&File"
     BEGIN
         MENUITEM "Ne&w\tCtrl+W",                ID_FILE_NEW
-        MENUITEM "&Load...\tCtrl+L",            ID_FILE_OPEN
-        MENUITEM "&Reload\tCtrl+R",             ID_FILE_RELOAD
+        MENUITEM "&Open...\tCtrl+L",            ID_FILE_OPEN
+        MENUITEM "&Reopen\tCtrl+R",             ID_FILE_RELOAD
         MENUITEM SEPARATOR
         MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
         MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
         MENUITEM SEPARATOR
         MENUITEM "&Import...",                  ID_FILE_IMPORT
-        MENUITEM "&Export As...",               ID_FILE_EXPORT_AS
+        MENUITEM "&Export",                     ID_FILE_EXPORT
         MENUITEM SEPARATOR
         MENUITEM "&Print...",                   ID_FILE_PRINT
         MENUITEM "Print Pre&view",              ID_FILE_PRINT_PREVIEW
         MENUITEM "Prin&t Setup...",             ID_FILE_PRINT_SETUP
         MENUITEM SEPARATOR
+        MENUITEM "Properties\tALT+Enter",       ID_SONG_PROPERTIES
+        MENUITEM "&Tuning...",                  ID_VIEW_TUNING
+        MENUITEM SEPARATOR
         MENUITEM "E&xit\tAlt+F4",               ID_WANTEXIT
     END
     POPUP "&Edit"
     BEGIN
-        MENUITEM "&Undo\tCtrl+Z",               ID_UNDO_UNDO
-        MENUITEM "&Redo\tCtrl+Y",               ID_UNDO_REDO
+        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+        MENUITEM "&Redo\tCtrl+Y",               ID_EDIT_REDO
         MENUITEM SEPARATOR
-        MENUITEM "&Clear Undo && Redo history", ID_UNDO_CLEARUNDOREDO
+        MENUITEM "&Clear Undo && Redo History", ID_UNDO_CLEARUNDOREDO
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "Main &Toolbar",               ID_VIEW_TOOLBAR
+        MENUITEM "&Block Toolbar",              ID_VIEW_BLOCKTOOLBAR
+        MENUITEM SEPARATOR
+        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
+        MENUITEM SEPARATOR
+        MENUITEM "&Play Time Counter",          ID_VIEW_PLAYTIMECOUNTER
+        MENUITEM "&Volume Analyzer",            ID_VIEW_VOLUMEANALYZER
+        MENUITEM "Pokey Chip &Registers",       ID_VIEW_POKEYREGS
+        MENUITEM SEPARATOR
+        MENUITEM "&Instrument Active Help",     ID_VIEW_INSTRUMENTACTIVEHELP
+    END
+    POPUP "&Song"
+    BEGIN
+        MENUITEM "&Copy Line",                  ID_SONG_COPYLINE
+        MENUITEM "&Paste Line",                 ID_SONG_PASTELINE
+        MENUITEM "Cl&ear Line",                 ID_SONG_CLEARLINE
+        MENUITEM SEPARATOR
+        MENUITEM "Delete c&urrent line\tCtrl+U", ID_SONG_DELETEACTUALLINE
+        MENUITEM "&Insert new empty line\tCtrl+I", ID_SONG_INSERTNEWEMPTYLINE
+        MENUITEM "Insert new line with unused empty tracks\tCtrl+P", ID_SONG_INSERTNEWLINEWITHUNUSEDTRACKS
+        MENUITEM "Insert c&opy or clone of song line(s)...\tCtrl+O", ID_SONG_INSERTCOPYORCLONEOFSONGLINES
+        MENUITEM "Insert &new empty unused track to current song position\tCtrl+N", ID_SONG_PUTNEWEMPTYUNUSEDTRACK
+        MENUITEM "Make a track &duplicate to current song position\tCtrl+D", ID_SONG_MAKETRACKSDUPLICATE
+        MENUITEM SEPARATOR
+        MENUITEM "Switch song between 4 or 8 channels...", ID_SONG_SONGSWITCH4_8
+        MENUITEM "Song columns' order change/copy/clear...", ID_SONG_TRACKSORDERCHANGE
+        MENUITEM "Change maximal length of tracks...", ID_SONG_SONGCHANGEMAXIMALLENGTHOFTRACKS
+        MENUITEM SEPARATOR
+        MENUITEM "All size optimizations...",   ID_SONG_SIZEOPTIMIZATION
+    END
+    POPUP "&Instrument"
+    BEGIN
+        MENUITEM "&Copy",                       ID_INSTR_COPY
+        MENUITEM "&Paste",                      ID_INSTR_PASTE
+        POPUP "Paste sp&ecial"
+        BEGIN
+            MENUITEM "&Volume envelopes only",      ID_INSTRUMENT_PASTESPECIAL_VOLUMELRENVELOPESONLY
+            MENUITEM "&Envelope parameters only",   ID_INSTRUMENT_PASTESPECIAL_ENVELOPEPARAMETERSONLY
+            MENUITEM "Volume envelopes and Envelope parameters only", ID_INSTRUMENT_PASTESPECIAL_VOLUMEENVANDENVELOPEPARSONLY
+            MENUITEM "&Insert Volume envelopes and Envelope parameters to cursor position", ID_INSTRUMENT_PASTESPECIAL_INSERTVOLUMEENVSANDENVELOPEPARSTOCURSORPOSITION
+            MENUITEM SEPARATOR
+            MENUITEM "Volume &L envelope only",     ID_INSTRUMENT_PASTESPECIAL_VOLUMELENVELOPEONLY
+            MENUITEM "Volume &R envelope only",     ID_INSTRUMENT_PASTESPECIAL_VOLUMERENVELOPEONLY
+            MENUITEM "Volume R to L envelope only", ID_INSTRUMENT_PASTESPECIAL_VOLUMERTOLENVELOPEONLY
+            MENUITEM "Volume L to R envelope only", ID_INSTRUMENT_PASTESPECIAL_VOLUMELTORENVELOPEONLY
+            MENUITEM SEPARATOR
+            MENUITEM "&Table only",                 ID_INSTRUMENT_PASTESPECIAL_TABLEONLY
+        END
+        MENUITEM "Cu&t",                        ID_INSTR_CUT
+        MENUITEM "&Delete",                     ID_INSTR_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "&Info about current instrument...", ID_INSTRUMENT_INFO
+        MENUITEM "Change all the instrument occurences...", ID_INSTRUMENT_CHANGE
+        MENUITEM "Renumber all instruments...", ID_INSTRUMENT_RENUMBERALLINSTRUMENTS
+        MENUITEM SEPARATOR
+        MENUITEM "&Load instrument from file...", ID_INSTR_LOAD
+        MENUITEM "&Save instrument as...",      ID_INSTR_SAVE
+        MENUITEM SEPARATOR
+        MENUITEM "Clear all unused instruments...", ID_INSTRUMENT_CLEARALLUNUSEDINSTRUMENTS
+        MENUITEM "All instruments cleanup...",  ID_INSTR_ALLINSTRUMENTSCLEANUP
     END
     POPUP "&Track"
     BEGIN
@@ -1217,72 +1327,12 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Select &all\tCtrl+A",         ID_BLOCK_SELECTALL
     END
-    POPUP "&Instrument"
+    POPUP "Tools"
     BEGIN
-        MENUITEM "&Copy",                       ID_INSTR_COPY
-        MENUITEM "&Paste",                      ID_INSTR_PASTE
-        POPUP "Paste sp&ecial"
-        BEGIN
-            MENUITEM "&Volume envelopes only",      ID_INSTRUMENT_PASTESPECIAL_VOLUMELRENVELOPESONLY
-            MENUITEM "&Envelope parameters only",   ID_INSTRUMENT_PASTESPECIAL_ENVELOPEPARAMETERSONLY
-            MENUITEM "Volume envelopes and Envelope parameters only", ID_INSTRUMENT_PASTESPECIAL_VOLUMEENVANDENVELOPEPARSONLY
-            MENUITEM "&Insert Volume envelopes and Envelope parameters to cursor position", ID_INSTRUMENT_PASTESPECIAL_INSERTVOLUMEENVSANDENVELOPEPARSTOCURSORPOSITION
-            MENUITEM SEPARATOR
-            MENUITEM "Volume &L envelope only",     ID_INSTRUMENT_PASTESPECIAL_VOLUMELENVELOPEONLY
-            MENUITEM "Volume &R envelope only",     ID_INSTRUMENT_PASTESPECIAL_VOLUMERENVELOPEONLY
-            MENUITEM "Volume R to L envelope only", ID_INSTRUMENT_PASTESPECIAL_VOLUMERTOLENVELOPEONLY
-            MENUITEM "Volume L to R envelope only", ID_INSTRUMENT_PASTESPECIAL_VOLUMELTORENVELOPEONLY
-            MENUITEM SEPARATOR
-            MENUITEM "&Table only",                 ID_INSTRUMENT_PASTESPECIAL_TABLEONLY
-        END
-        MENUITEM "Cu&t",                        ID_INSTR_CUT
-        MENUITEM "&Delete",                     ID_INSTR_DELETE
+        MENUITEM "Open ASMA",                   ID_TOOLS_OPENASMA
+        MENUITEM "Open ASAP File...",           ID_TOOLS_EDE
         MENUITEM SEPARATOR
-        MENUITEM "&Info about current instrument...", ID_INSTRUMENT_INFO
-        MENUITEM "Change all the instrument occurences...", ID_INSTRUMENT_CHANGE
-        MENUITEM "Renumber all instruments...", ID_INSTRUMENT_RENUMBERALLINSTRUMENTS
-        MENUITEM SEPARATOR
-        MENUITEM "&Load instrument from file...", ID_INSTR_LOAD
-        MENUITEM "&Save instrument as...",      ID_INSTR_SAVE
-        MENUITEM SEPARATOR
-        MENUITEM "Clear all unused instruments...", ID_INSTRUMENT_CLEARALLUNUSEDINSTRUMENTS
-        MENUITEM "All instruments cleanup...",  ID_INSTR_ALLINSTRUMENTSCLEANUP
-    END
-    POPUP "&Song"
-    BEGIN
-        MENUITEM "&Copy line",                  ID_SONG_COPYLINE
-        MENUITEM "&Paste line",                 ID_SONG_PASTELINE
-        MENUITEM "Cl&ear line",                 ID_SONG_CLEARLINE
-        MENUITEM SEPARATOR
-        MENUITEM "Delete c&urrent line\tCtrl+U", ID_SONG_DELETEACTUALLINE
-        MENUITEM "&Insert new empty line\tCtrl+I", ID_SONG_INSERTNEWEMPTYLINE
-        MENUITEM "Insert new line with unused empty tracks\tCtrl+P", ID_SONG_INSERTNEWLINEWITHUNUSEDTRACKS
-        MENUITEM "Insert c&opy or clone of song line(s)...\tCtrl+O", ID_SONG_INSERTCOPYORCLONEOFSONGLINES
-        MENUITEM "Insert &new empty unused track to current song position\tCtrl+N", ID_SONG_PUTNEWEMPTYUNUSEDTRACK
-        MENUITEM "Make a track &duplicate to current song position\tCtrl+D", ID_SONG_MAKETRACKSDUPLICATE
-        MENUITEM SEPARATOR
-        MENUITEM "Switch song between 4 or 8 channels...", ID_SONG_SONGSWITCH4_8
-        MENUITEM "Song columns' order change/copy/clear...", ID_SONG_TRACKSORDERCHANGE
-        MENUITEM "Change maximal length of tracks...", ID_SONG_SONGCHANGEMAXIMALLENGTHOFTRACKS
-        MENUITEM SEPARATOR
-        MENUITEM "All size optimizations...",   ID_SONG_SIZEOPTIMIZATION
-    END
-    POPUP "&View"
-    BEGIN
-        MENUITEM "&Configuration...",           ID_VIEW_CONFIGURATION
-        MENUITEM SEPARATOR
-        MENUITEM "&Tuning...",                  ID_VIEW_TUNING
-        MENUITEM SEPARATOR
-        MENUITEM "Main &toolbar",               ID_VIEW_TOOLBAR
-        MENUITEM "&Block toolbar",              ID_VIEW_BLOCKTOOLBAR
-        MENUITEM SEPARATOR
-        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
-        MENUITEM SEPARATOR
-        MENUITEM "&Play time counter",          ID_VIEW_PLAYTIMECOUNTER
-        MENUITEM "&Volume analyzer",            ID_VIEW_VOLUMEANALYZER
-        MENUITEM "Pokey chip &registers",       ID_VIEW_POKEYREGS
-        MENUITEM SEPARATOR
-        MENUITEM "&Instrument active help",     ID_VIEW_INSTRUMENTACTIVEHELP
+        MENUITEM "&Options...",                 ID_VIEW_CONFIGURATION
     END
     POPUP "&Help"
     BEGIN
@@ -1349,75 +1399,45 @@ BEGIN
 END
 
 STRINGTABLE
+CHARACTERISTICS 0x00000001
 BEGIN
-    ID_INDICATOR_EXT        "EXT"
-    ID_INDICATOR_CAPS       "CAP"
-    ID_INDICATOR_NUM        "NUM"
-    ID_INDICATOR_SCRL       "SCRL"
-    ID_INDICATOR_OVR        "OVR"
-    ID_INDICATOR_REC        "REC"
-END
-
-STRINGTABLE
-BEGIN
-    ID_FILE_NEW             "Create a new song\nNew"
-    ID_FILE_OPEN            "Load an existing song\nLoad"
-    ID_FILE_CLOSE           "Close the active document\nClose"
-    ID_FILE_SAVE            "Save the song\nSave"
-    ID_FILE_SAVE_AS         "Save the song with a new filename"
-    ID_FILE_PAGE_SETUP      "Change the printing options\nPage Setup"
+    ID_FILE_NEW             "Create a new module\nNew"
+    ID_FILE_OPEN            "Open a module file\nOpen"
+    ID_FILE_SAVE            "Save the module file\nSave"
+    ID_FILE_SAVE_AS         "Save the module file with a new filename"
     ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup"
     ID_FILE_PRINT           "Print the active view"
-    ID_FILE_PRINT_PREVIEW   "Preview the page"
+    ID_FILE_PRINT_PREVIEW   "Preview the print version of the view"
+END
+
+STRINGTABLE
+CHARACTERISTICS 0x00000001
+BEGIN
+    ID_FILE_EXPORT          "Export module file in different formats\nExport"
 END
 
 STRINGTABLE
 BEGIN
-    ID_FILE_EXPORT_AS       "Export song to file\nExport"
+    ID_FILE_MRU_FILE1       "Open this document 1"
+    ID_FILE_MRU_FILE2       "Open this document 2"
+    ID_FILE_MRU_FILE3       "Open this document 3"
+    ID_FILE_MRU_FILE4       "Open this document 4"
+    ID_FILE_MRU_FILE5       "Open this document 5"
+    ID_FILE_MRU_FILE6       "Open this document 6"
+    ID_FILE_MRU_FILE7       "Open this document 7"
+    ID_FILE_MRU_FILE8       "Open this document 8"
+    ID_FILE_MRU_FILE9       "Open this document 9"
+    ID_FILE_MRU_FILE10      "Open this document 10"
+    ID_FILE_MRU_FILE11      "Open this document 11"
+    ID_FILE_MRU_FILE12      "Open this document 12"
+    ID_FILE_MRU_FILE13      "Open this document 13"
+    ID_FILE_MRU_FILE14      "Open this document 14"
+    ID_FILE_MRU_FILE15      "Open this document 15"
+    ID_FILE_MRU_FILE16      "Open this document 16"
 END
 
 STRINGTABLE
 BEGIN
-    ID_FILE_MRU_FILE1       "Open this document"
-    ID_FILE_MRU_FILE2       "Open this document"
-    ID_FILE_MRU_FILE3       "Open this document"
-    ID_FILE_MRU_FILE4       "Open this document"
-    ID_FILE_MRU_FILE5       "Open this document"
-    ID_FILE_MRU_FILE6       "Open this document"
-    ID_FILE_MRU_FILE7       "Open this document"
-    ID_FILE_MRU_FILE8       "Open this document"
-    ID_FILE_MRU_FILE9       "Open this document"
-    ID_FILE_MRU_FILE10      "Open this document"
-    ID_FILE_MRU_FILE11      "Open this document"
-    ID_FILE_MRU_FILE12      "Open this document"
-    ID_FILE_MRU_FILE13      "Open this document"
-    ID_FILE_MRU_FILE14      "Open this document"
-    ID_FILE_MRU_FILE15      "Open this document"
-    ID_FILE_MRU_FILE16      "Open this document"
-END
-
-STRINGTABLE
-BEGIN
-    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
-    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
-END
-
-STRINGTABLE
-BEGIN
-    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
-END
-
-STRINGTABLE
-BEGIN
-    ID_EDIT_CLEAR           "Erase the selection\nErase"
-    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
-    ID_EDIT_COPY            "Copy the current track to Clipboard\nCopy"
-    ID_EDIT_CUT             "Cut the current track\nCut"
-    ID_EDIT_FIND            "Find the specified text\nFind"
-    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
-    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
-    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
-    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
     ID_EDIT_UNDO            "Undo the last action\nUndo"
     ID_EDIT_REDO            "Redo the previously undone action\nRedo"
 END
@@ -1425,7 +1445,7 @@ END
 STRINGTABLE
 BEGIN
     ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
-    ID_VIEW_STATUS_BAR      "Show or hide the status bar\nToggle StatusBar"
+    ID_VIEW_STATUS_BAR      "Show or hide the status bar\nToggle Status Bar"
 END
 
 STRINGTABLE
@@ -1485,7 +1505,7 @@ END
 STRINGTABLE
 BEGIN
     ID_MIDIONOFF            "MIDI on/off\nMIDI on/off"
-    ID_VIEW_CONFIGURATION   "Display the configuration menu"
+    ID_VIEW_CONFIGURATION   "Open application options dialog"
 END
 
 STRINGTABLE
@@ -1523,6 +1543,8 @@ STRINGTABLE
 BEGIN
     ID_HELP_ONLINE_HELP     "Open the online help in a browser window"
     ID_HELP_ABOUT           "Display program information, version number and copyright"
+    ID_TOOLS_EDE            "Open an .SAP or other Atari Sound Module File"
+    ID_TOOLS_OPENASMA       "Open the Atari Sound Music Archive Website"
 END
 
 #endif    // English (United States) resources
