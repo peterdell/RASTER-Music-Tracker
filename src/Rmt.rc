@@ -132,12 +132,12 @@ BEGIN
     BUTTON      ID_APP_ABOUT
     SEPARATOR
     BUTTON      ID_PLAY0
-    BUTTON      ID_PLAY1
-    BUTTON      ID_PLAY2
-    BUTTON      ID_PLAY3
-    BUTTON      ID_PLAYSTOP
+    BUTTON      ID_PLAY_FROM_START
+    BUTTON      ID_PLAY_FROM_CURRENT_POSITION
+    BUTTON      ID_PLAY_FROM_CURRENT_POSITION_AND_LOOP
+    BUTTON      ID_PLAY_STOP
     SEPARATOR
-    BUTTON      ID_PLAYFOLLOW
+    BUTTON      ID_PLAY_FOLLOW
     SEPARATOR
     BUTTON      ID_EM_TRACKS
     BUTTON      ID_EM_INSTRUMENTS
@@ -1189,7 +1189,7 @@ BEGIN
     BEGIN
         MENUITEM "Ne&w\tCtrl+W",                ID_FILE_NEW
         MENUITEM "&Open...\tCtrl+L",            ID_FILE_OPEN
-        MENUITEM "&Reopen\tCtrl+R",             ID_FILE_RELOAD
+        MENUITEM "&Reopen\tCtrl+R",             ID_FILE_REOPEN
         MENUITEM SEPARATOR
         MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
         MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
@@ -1394,6 +1394,7 @@ CHARACTERISTICS 0x00000001
 BEGIN
     ID_FILE_NEW             "Create a new module\nNew"
     ID_FILE_OPEN            "Open a module file\nOpen"
+    ID_FILE_REOPEN          "Discard current module file changes and reopen the last saved version\Reopen"
     ID_FILE_SAVE            "Save the module file\nSave"
     ID_FILE_SAVE_AS         "Save the module file with a new filename"
     ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup"
@@ -1454,23 +1455,17 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_BUTTPLAY1            "Play song from start position"
-    ID_BUTTON32790          "Play song from current position"
-    ID_BUTTON32791          "Cyclic play of track"
-    ID_BUTTON32792          "Stop song, mute all sounds"
-    ID_PLAYFOLLOW           "Follow the currently playing position (turn on/off)\nFollow song"
-    ID_PLAY1                "Play song from start position\nPlay from start"
-    ID_PLAY2                "Play song from current position\nPlay"
-    ID_PLAY3                "Play and loop current track patterns\nLoop track"
-    ID_PLAYSTOP             "Stop playing the song. Mute all sounds.\nStop"
+    ID_PLAY_FOLLOW                         "Toggle following the current playing position\nToggle Follow Song"
+    ID_PLAY_FROM_START                     "Play song from start position\nPlay From Start"
+    ID_PLAY_FROM_CURRENT_POSITION          "Play song from current position\nPlay"
+    ID_PLAY_FROM_CURRENT_POSITION_AND_LOOP "Play and loop current song line\nLoop Song Line"
+    ID_PLAY_STOP             "Stop playing the song. Mute all sounds.\nStop"
 END
 
 STRINGTABLE
 BEGIN
     ID_EDIT_TRACKS          "Track edit"
-    ID_BUTTON32801          "Instrument edit"
     ID_EDIT_INSTRUMENTS     "Instrument edit"
-    ID_BUTTON32803          "Info edit"
     ID_EDIT_SONG            "Song edit"
     ID_EDIT_INFO            "Info edit"
     ID_EM_TRACKS            "Move to track edit view\nTrack edit"
@@ -1492,7 +1487,6 @@ STRINGTABLE
 BEGIN
     ID_BUTTONCOMBO1         "Insert note spacing\nInsert note spacing"
     ID_PLAY0                "Play song from bookmark position\nPlay from bookmark"
-    ID_FILE_RELOAD          "Reload song from the last saved version\nReload"
 END
 
 STRINGTABLE

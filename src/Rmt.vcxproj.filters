@@ -523,80 +523,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\Rmt.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\RmtDoc.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\Toolbar.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\asciagr.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\bmp00001.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\icon1.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\toolbar1.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\toolbarp.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\gfx.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\toolbar_play.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\toolbar_block.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\toolbar_channels.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\toolbar_main_window.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\application.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\icon_exclamation.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\file_type_rmt.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="res\Rmt.rc2">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\cur00001.cur">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\cur00002.cur">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\cur00003.cur">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\cursor1.cur">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\cursorch.cur">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\cursoren.cur">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\cursorgo.cur">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="..\build\build_rmt-daily.bat">
       <Filter>Build Files</Filter>
     </None>
@@ -627,10 +553,10 @@
     <None Include="asap\asap.md">
       <Filter>Source Files\ASAP</Filter>
     </None>
-    <None Include="res\cursor_channel_on_off.cur">
-      <Filter>Resource Files</Filter>
+    <None Include="resource.hm">
+      <Filter>Header Files</Filter>
     </None>
-    <None Include="res\cursor_goto_dialog.cur">
+    <None Include="res\cursor_channel_on_off.cur">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\cursor_envelope_volume.cur">
@@ -639,11 +565,11 @@
     <None Include="res\cursor_goto.cur">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\cursor_set_position.cur">
+    <None Include="res\cursor_goto_dialog.cur">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="resource.hm">
-      <Filter>Header Files</Filter>
+    <None Include="res\cursor_set_position.cur">
+      <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -690,5 +616,31 @@
     <ResourceCompile Include="Rmt.rc">
       <Filter>Source Files\UI</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\application.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\file_type_rmt.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\gfx.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icon_exclamation.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\toolbar_block.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\toolbar_channels.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\toolbar_main_window.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\toolbar_play.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

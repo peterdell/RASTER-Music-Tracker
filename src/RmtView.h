@@ -247,8 +247,8 @@ protected:
     afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
     afx_msg void OnPlay0();
     afx_msg void OnUpdatePlay0(CCmdUI* pCmdUI);
-    afx_msg void OnFileReload();
-    afx_msg void OnUpdateFileReload(CCmdUI* pCmdUI);
+    afx_msg void OnFileReopen();
+    afx_msg void OnUpdateFileReopen(CCmdUI* pCmdUI);
     afx_msg void OnUndoUndo();
     afx_msg void OnUpdateUndoUndo(CCmdUI* pCmdUI);
     afx_msg void OnUndoRedo();

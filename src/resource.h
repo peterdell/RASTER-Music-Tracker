@@ -265,11 +265,11 @@
 #define ID_BUTTON32790                  32790
 #define ID_BUTTON32791                  32791
 #define ID_BUTTON32792                  32792
-#define ID_PLAYFOLLOW                   32793
-#define ID_PLAY1                        32796
-#define ID_PLAY2                        32797
-#define ID_PLAY3                        32798
-#define ID_PLAYSTOP                     32799
+#define ID_PLAY_FOLLOW                   32793
+#define ID_PLAY_FROM_START                        32796
+#define ID_PLAY_FROM_CURRENT_POSITION                        32797
+#define ID_PLAY_FROM_CURRENT_POSITION_AND_LOOP                        32798
+#define ID_PLAY_STOP                     32799
 #define ID_EDIT_TRACKS                  32800
 #define ID_BUTTON32801                  32801
 #define ID_EDIT_INSTRUMENTS             32802
@@ -350,7 +350,7 @@
 #define ID_BUTTONCOMBO1                 32891
 #define ID_SONG_MAKETRACKSDUPLICATE     32892
 #define ID_PLAY0                        32894
-#define ID_FILE_RELOAD                  32895
+#define ID_FILE_REOPEN                  32895
 #define ID_UNDO_UNDO                    32896
 #define ID_UNDO_REDO                    32897
 #define ID_UNDO_CLEARUNDOREDO           32898
