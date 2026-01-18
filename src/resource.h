@@ -185,14 +185,13 @@
 #define IDC_SFX                         1113
 #define IDC_WARNING                     1114
 #define IDC_TRACKLINEALTNUMBERING       1115
-#define IDC_PATHS                       1116
+#define IDC_OPTIONS_PATHS                       1116
 #define IDC_EDIT1                       1117
 #define IDC_EDIT2                       1118
 #define IDC_DIRLIST                     1118
-#define IDC_PATHS2                      1118
 #define IDC_EDIT3                       1119
 #define IDC_DRIVELIST                   1119
-#define IDC_PATHS3                      1119
+#define IDC_OPTIONS_TUNING                      1119
 #define IDC_CURSORMAXLATITUDE           1120
 #define IDC_DISPLAYFLATNOTES            1120
 #define IDC_GLOBALVOLUMEFADE            1121

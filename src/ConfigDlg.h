@@ -74,13 +74,11 @@ protected:
     virtual void OnOK();
     afx_msg void OnMidiTouchResponseClicked();
     //}}AFX_MSG
-    DECLARE_MESSAGE_MAP()
-public:
-    //afx_msg void OnBnClickedDisplayflatnotes();
 
-public:
-    afx_msg void OnBtnClickedPaths();
-    afx_msg void OnBnClickedExportSap();
+    afx_msg void OnClickedOptionsPaths();
+    afx_msg void OnClickedOptionsTuning();
+    DECLARE_MESSAGE_MAP()
+
 };
 
 /////////////////////////////////////////////////////////////////////////////

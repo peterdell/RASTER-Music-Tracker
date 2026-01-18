@@ -5,13 +5,8 @@
 #include "FilePathDlg.h"
 #include "GuiHelpers.h"
 #include "StdAfx.h"
-
-
-#include "SAPFile.h"
-#include "SAPFileExportDialog.h"
+#include "TuningDlg.h"
 #include "Global.h"
-
-extern CSong g_Song;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -81,9 +76,10 @@ void COptionsDialog::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(COptionsDialog, CDialog)
     //{{AFX_MSG_MAP(COptionsDialog)
     ON_BN_CLICKED(IDC_MIDI_TR, OnMidiTouchResponseClicked)
-    ON_BN_CLICKED(IDC_PATHS, OnBtnClickedPaths)
-    ON_BN_CLICKED(IDC_EXPORT_SAP, OnBnClickedExportSap)
+    ON_BN_CLICKED(IDC_OPTIONS_PATHS, OnClickedOptionsPaths)
+    ON_BN_CLICKED(IDC_OPTIONS_TUNING, OnClickedOptionsTuning)
     //}}AFX_MSG_MAP
+
 END_MESSAGE_MAP()
 
 
@@ -128,18 +124,6 @@ BOOL COptionsDialog::OnInitDialog()
     return TRUE;
 }
 
-/// <summary>
-/// Apply the configuration changes not handled by the DoDataExchange function
-/// MIDI device combo
-/// Keybord layout combo
-/// </summary>
-void COptionsDialog::OnOK()
-{
-    m_midi_device = m_midi_c_device.GetCurSel() - 1;
-    m_keyboard_layout = m_keyboardLayoutComboBox.GetSelectedItem(KeyboardLayout::QWERTY);
-    m_trackerDriverVersion = m_trackerDriverVersionComboBox.GetSelectedItem(TrackerDriverVersion::NONE);
-    CDialog::OnOK();
-}
 
 /// <summary>
 /// If MIDI touch response is turned on, then enable the MIDI volume offset edit box
@@ -151,7 +135,7 @@ void COptionsDialog::OnMidiTouchResponseClicked()
     vof->EnableWindow(tr->GetCheck());
 }
 
-void COptionsDialog::OnBtnClickedPaths()
+void COptionsDialog::OnClickedOptionsPaths()
 {
     COptionsPathsDialog dlg;
     dlg.m_path_songs = g_defaultSongsPath;
@@ -166,16 +150,29 @@ void COptionsDialog::OnBtnClickedPaths()
     }
 }
 
-
-void COptionsDialog::OnBnClickedExportSap()
+void COptionsDialog::OnClickedOptionsTuning()
 {
-    CSAPFile sapFile;
-    sapFile.SetType("R");
-    if (!CSAPFileExportDialog::Show(g_Song, sapFile)) {
-        return;
-    };
+    TuningDlg dlg;
+    dlg.m_tuningSettings = g_tuning;
+    dlg.m_tuningRatios = g_tuningRatios;
+
+    dlg.DoModal();
 }
 
+
+
+/// <summary>
+/// Apply the configuration changes not handled by the DoDataExchange function
+/// MIDI device combo
+/// Keybord layout combo
+/// </summary>
+void COptionsDialog::OnOK()
+{
+    m_midi_device = m_midi_c_device.GetCurSel() - 1;
+    m_keyboard_layout = m_keyboardLayoutComboBox.GetSelectedItem(KeyboardLayout::QWERTY);
+    m_trackerDriverVersion = m_trackerDriverVersionComboBox.GetSelectedItem(TrackerDriverVersion::NONE);
+    CDialog::OnOK();
+}
 
 
 
