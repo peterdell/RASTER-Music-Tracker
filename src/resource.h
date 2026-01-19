@@ -352,7 +352,7 @@
 #define ID_TRACK_CLEARALLDUPLICATEDTRACKS 32890
 #define ID_BUTTONCOMBO1                 32891
 #define ID_SONG_MAKETRACKSDUPLICATE     32892
-#define ID_PLAY0                        32894
+#define ID_PLAY_FROM_BOOKMARK                        32894
 #define ID_FILE_REOPEN                  32895
 #define ID_UNDO_UNDO                    32896
 #define ID_UNDO_REDO                    32897

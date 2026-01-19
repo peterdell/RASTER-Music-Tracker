@@ -129,9 +129,9 @@ BEGIN
     BUTTON      ID_FILE_SAVE
     BUTTON      ID_FILE_EXPORT
     SEPARATOR
-    BUTTON      ID_APP_ABOUT
+    BUTTON      ID_HELP_ABOUT
     SEPARATOR
-    BUTTON      ID_PLAY0
+    BUTTON      ID_PLAY_FROM_BOOKMARK
     BUTTON      ID_PLAY_FROM_START
     BUTTON      ID_PLAY_FROM_CURRENT_POSITION
     BUTTON      ID_PLAY_FROM_CURRENT_POSITION_AND_LOOP
@@ -162,12 +162,12 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "New Module"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    LTEXT           "Tracks:",IDC_STATIC,7,8,48,8
+    LTEXT           "&Tracks:",IDC_STATIC,7,8,48,8
     EDITTEXT        IDC_MAXTRACKLEN,75,22,101,14,ES_AUTOHSCROLL,0,HIDC_MAXTRACKLEN
-    LTEXT           "Notes Per Track:",IDC_STATIC,7,25,53,8
+    LTEXT           "&Notes Per Track:",IDC_STATIC,7,25,53,8
     COMBOBOX        IDC_COMBOTYPE,75,6,102,38,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    DEFPUSHBUTTON   "OK",IDOK,75,45,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,129,45,50,14
+    DEFPUSHBUTTON   "&OK",IDOK,75,45,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,129,45,50,14
 END
 
 IDD_EXPORT_SAP_TYPE_R DIALOGEX 0, 0, 280, 129
@@ -175,16 +175,16 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Export as SAP File of Type R"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    LTEXT           "Title",IDC_STATIC,7,7,80,8
+    LTEXT           "&Title",IDC_STATIC,7,7,80,8
     EDITTEXT        IDC_NAME,7,16,266,12,ES_AUTOHSCROLL
-    LTEXT           "Author",IDC_STATIC,7,32,80,8
+    LTEXT           "&Author",IDC_STATIC,7,32,80,8
     EDITTEXT        IDC_AUTHOR,7,41,266,12,ES_AUTOHSCROLL
-    LTEXT           "Date",IDC_STATIC,7,58,80,8
+    LTEXT           "&Date",IDC_STATIC,7,58,80,8
     EDITTEXT        IDC_DATE,7,67,50,12,ES_AUTOHSCROLL
-    LTEXT           "Subsongs (hexadecimal song line number for each subsong, first is default song):",IDC_STATIC,7,82,270,8
+    LTEXT           "&Subsongs (hexadecimal song line number for each subsong, first is default song):",IDC_STATIC,7,82,270,8
     EDITTEXT        IDC_SUBSONGS,7,91,266,12,ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,169,110,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,223,110,50,14
+    DEFPUSHBUTTON   "&OK",IDOK,169,110,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,223,110,50,14
 END
 
 IDD_EXPORT_STRIPPED_RMT DIALOGEX 0, 0, 280, 259
@@ -192,24 +192,24 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Export as Stripped RMT File"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,169,243,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,223,243,50,14
+    LTEXT           "Memory Area",IDC_STATIC,7,7,59,8
+    LTEXT           "Start Address:",IDC_STATIC,7,20,59,8
     EDITTEXT        IDC_ADDR,75,19,27,12,ES_UPPERCASE
+    LTEXT           "Assembler Format:",IDC_STATIC,8,36,64,8
+    COMBOBOX        IDC_COMBO_ASM_FORMAT,76,34,114,57,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "SFX support (also preserve unused tracks and instruments in module)",IDC_SFX,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,48,233,10
-    EDITTEXT        IDC_RMTFEAT,7,104,266,88,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
-    PUSHBUTTON      "Copy all to clipboard",IDC_COPYTOCLIPBOARD,169,197,104,14
-    LTEXT           "Memory location",IDC_STATIC,7,7,59,8
-    LTEXT           "From address (HEX):",IDC_STATIC,7,20,65,8
-    CTEXT           "Static",IDC_INFO,106,21,167,8
-    LTEXT           "Warning:\n",IDC_WARNING,9,215,258,27
-    LTEXT           "RMT FEATures definitions (for optimizations of RMT player assembler routine)",IDC_STATIC,7,94,266,8
     CONTROL         "GlobalVolumeFade support (RMTGLOBALVOLUMEFADE variable)",IDC_GLOBALVOLUMEFADE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,62,267,10
     CONTROL         "No songline start (always start from songline 0)",IDC_NOSTARTINGSONGLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,76,267,10
-    COMBOBOX        IDC_COMBO_ASM_FORMAT,69,34,121,57,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Assembler format:",IDC_STATIC,8,36,56,8
+    LTEXT           "Warnings:\n",IDC_WARNING,9,215,258,27
+    LTEXT           "RMT FEATures definitions (for optimizations of RMT player assembler routine)",IDC_STATIC,7,94,266,8
+    LTEXT           "End Address and Length",IDC_INFO,106,21,161,8
+    EDITTEXT        IDC_RMTFEAT,7,104,266,88,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
+    PUSHBUTTON      "Copy Text to Clipboard",IDC_COPYTOCLIPBOARD,169,197,104,14
+    DEFPUSHBUTTON   "&OK",IDOK,169,243,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,223,243,50,14
 END
 
 IDD_EXPMSX DIALOGEX 0, 0, 280, 230
@@ -218,8 +218,6 @@ EXSTYLE WS_EX_TOPMOST
 CAPTION "Export as Atari Executable File"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,170,210,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,224,210,50,14
     EDITTEXT        IDC_EDIT,7,28,266,54,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
     EDITTEXT        IDC_PREV,30,99,220,44,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_READONLY | ES_WANTRETURN
     CONTROL         "Atari SHIFTkey test",IDC_CHECK2,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,30,145,81,14
@@ -233,7 +231,9 @@ BEGIN
     CONTROL         "Shuffle the rasterbar colors",IDC_MSXSHUFFLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,155,164,124,10
     CONTROL         "Automatically adjust playback speed",IDC_MSXREGIONAUTO,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,210,151,10
-END
+    DEFPUSHBUTTON   "&OK", IDOK, 170, 210, 50, 14
+    PUSHBUTTON      "&Cancel", IDCANCEL, 224, 210, 50, 14
+ END
 
 IDD_OPTIONS DIALOGEX 0, 0, 257, 276
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
@@ -296,22 +296,21 @@ BEGIN
     PUSHBUTTON      "&Try",IDTRY,7,137,50,14
     PUSHBUTTON      "&Restore",IDRESTORE,61,137,50,14
     PUSHBUTTON      "&Play/Stop",IDPLAYSTOP,115,137,50,14
-    DEFPUSHBUTTON   "OK",IDOK,169,137,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,223,137,50,14
     PUSHBUTTON      "Default",IDDEFAULT,223,120,50,14
     LTEXT           "P1",IDC_EFF_P1,7,44,266,8
     LTEXT           "P2",IDC_EFF_P2,7,72,266,8
     LTEXT           "P3",IDC_EFF_P3,7,102,266,8
     LTEXT           "Info",IDC_INFO,7,7,266,8
-END
+    DEFPUSHBUTTON   "&OK", IDOK, 169, 137, 50, 14
+    PUSHBUTTON      "&Cancel", IDCANCEL, 223, 137, 50, 14
+
+ END
 
 IDD_IMPORTMOD DIALOG 0, 0, 280, 234
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Import ProTracker Module"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,169,213,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,223,213,50,14
     CONTROL         "A",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON,10,40,257,10
     CONTROL         "B",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON,10,51,257,10
     CONTROL         "Shift down octave of all instruments if song tuning is too high and if it is possible.",IDC_CHECK1,
@@ -336,6 +335,8 @@ BEGIN
     LTEXT           "Volume events:",IDC_STATIC,7,104,266,8
     LTEXT           "Note events:",IDC_STATIC,7,71,266,8
     LTEXT           "Special:",IDC_STATIC,7,153,266,8
+    DEFPUSHBUTTON   "&OK", IDOK, 169, 213, 50, 14
+    PUSHBUTTON      "&Cancel", IDCANCEL, 223, 213, 50, 14
 END
 
 IDD_IMPORTMODFINISHED DIALOG 0, 0, 220, 130
@@ -343,13 +344,14 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Import ProTracker Module"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,109,109,50,14
-    CONTROL         "Yes... Ok, ok... I understand.",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | BS_LEFT | BS_TOP | WS_TABSTOP,57,92,104,10
-    PUSHBUTTON      "Cancel",IDCANCEL,163,109,50,14
+    CONTROL         "Yes... OK, OK... I understand.",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | BS_LEFT | BS_TOP | WS_TABSTOP,57,92,104,10
     CTEXT           "Import warning...",IDC_INFO2,7,58,206,32
     ICON            IDI_ICON_EXCLAMATION,IDC_STATIC,16,95,20,20,SS_REALSIZEIMAGE
     CTEXT           "Import of module finished.",IDC_STATIC,7,7,206,8
     EDITTEXT        IDC_INFO,7,22,206,28,ES_CENTER | ES_MULTILINE | ES_READONLY | NOT WS_BORDER
+        DEFPUSHBUTTON   "&OK", IDOK, 109, 109, 50, 14
+        PUSHBUTTON      "&Cancel", IDCANCEL, 163, 109, 50, 14
+
 END
 
 IDD_SONGTRACKSORDER DIALOG 0, 0, 240, 130
@@ -357,8 +359,6 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Song columns' order change/copy/clear"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,129,110,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,183,110,50,14
     PUSHBUTTON      "L1",IDC_L1,29,7,16,14
     PUSHBUTTON      "L2",IDC_L2,47,7,16,14
     PUSHBUTTON      "L3",IDC_L3,65,7,16,14
@@ -388,6 +388,8 @@ BEGIN
     LTEXT           "To:",IDC_STATIC,7,51,12,8
     RTEXT           "From songline: $",IDC_STATIC,133,76,53,8
     RTEXT           "To songline: $",IDC_STATIC,133,92,53,8
+    DEFPUSHBUTTON   "&OK", IDOK, 129, 110, 50, 14
+    PUSHBUTTON      "&Cancel", IDCANCEL, 183, 110, 50, 14
 END
 
 IDD_INSTRCHANGE DIALOG 0, 0, 220, 228
@@ -395,8 +397,6 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Change all the instrument occurences"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,111,210,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,163,210,50,14
     COMBOBOX        IDC_COMBO11,55,38,48,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_COMBO12,55,53,48,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_COMBO1,55,70,48,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
@@ -438,15 +438,15 @@ BEGIN
     LTEXT           "from $",IDC_STATIC,21,176,20,8
     LTEXT           "to $",IDC_STATIC,69,176,13,8
     EDITTEXT        IDC_EDIT2,84,175,20,12,ES_UPPERCASE
+    DEFPUSHBUTTON   "&OK", IDOK, 111, 210, 50, 14
+    PUSHBUTTON      "&Cancel", IDCANCEL, 163, 210, 50, 14
 END
 
 IDD_IMPORTTMC DIALOG 0, 0, 280, 110
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Import Theta Music Composer module"
+CAPTION "Import Theta Music Composer Module"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,169,89,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,223,89,50,14
     CONTROL         "Permit to use the instrument table also for vibrato and some special TMC effects.",IDC_CHECK1,
                     "Button",BS_AUTOCHECKBOX | BS_TOP | BS_MULTILINE | WS_TABSTOP,7,39,269,11
     CONTROL         "Search and build wise loops in tracks.",IDC_CHECK6,
@@ -456,6 +456,8 @@ BEGIN
     LTEXT           "Size optimizations:",IDC_STATIC,7,52,266,8
     LTEXT           "Module detected...",IDC_INFO,7,7,266,21,SS_NOPREFIX
     LTEXT           "Instruments:",IDC_STATIC,7,30,266,8
+    DEFPUSHBUTTON   "&OK", IDOK, 169, 89, 50, 14
+    PUSHBUTTON      "&Cancel", IDCANCEL, 223, 89, 50, 14
 END
 
 IDD_IMPORTTMCFINISHED DIALOG 0, 0, 220, 148
@@ -463,18 +465,19 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Import Theta Music Composer module"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,109,127,50,14
     CONTROL         "Yes... Ok, ok... I understand.",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | BS_LEFT | BS_TOP | WS_TABSTOP,57,108,104,10
-    PUSHBUTTON      "Cancel",IDCANCEL,163,127,50,14
     CTEXT           "Import warning...",IDC_INFO2,7,57,206,48
     ICON            IDI_ICON_EXCLAMATION,-1,16,111,21,20,SS_REALSIZEIMAGE
     CTEXT           "Import of module finished.",-1,7,7,206,8
     EDITTEXT        IDC_INFO,7,22,206,28,ES_CENTER | ES_MULTILINE | ES_READONLY | NOT WS_BORDER
+    DEFPUSHBUTTON   "&OK", IDOK, 109, 127, 50, 14
+    PUSHBUTTON      "&Cancel", IDCANCEL, 163, 127, 50, 14
+
 END
 
 IDD_RENUMBERTRACKS DIALOG 0, 0, 186, 71
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Renumber all tracks"
+CAPTION "Renumber All Tracks"
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,75,50,50,14
@@ -487,7 +490,7 @@ END
 
 IDD_RENUMBERINSTRUMENTS DIALOGEX 0, 0, 205, 95
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Renumber all instruments"
+CAPTION "Renumber All Instruments"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,75,73,50,14
@@ -1179,7 +1182,7 @@ BEGIN
         MENUITEM "&Reopen\tCtrl+R",             ID_FILE_REOPEN
         MENUITEM SEPARATOR
         MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
-        MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
+        MENUITEM "Save &As...\tShift+Ctrl+S",   ID_FILE_SAVE_AS
         MENUITEM SEPARATOR
         MENUITEM "&Import...",                  ID_FILE_IMPORT
         MENUITEM "&Export",                     ID_FILE_EXPORT
@@ -1376,34 +1379,28 @@ BEGIN
 END
 
 STRINGTABLE
-CHARACTERISTICS 0x00000001
 BEGIN
-    ID_FILE_NEW             "Create a new module\nNew"
-    ID_FILE_OPEN            "Open a module file\nOpen"
-    ID_FILE_SAVE            "Save the module file\nSave"
-    ID_FILE_SAVE_AS         "Save the module file with a new filename"
+    ID_FILE_NEW             "Create a new module\nNew (Ctrl+W)"
+    ID_FILE_OPEN            "Open a module file\nOpen (Ctrl+L)"
+    ID_FILE_SAVE            "Save the module file\nSave (Ctrl+S)"
+    ID_FILE_SAVE_AS         "Save the module file with a new filename\nSave As... (Shift+Ctrl+S))"
     ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup"
-    ID_FILE_PRINT           "Print the active view"
+    ID_FILE_PRINT           "Print the active view (Ctrl-P)"
     ID_FILE_PRINT_PREVIEW   "Preview the print version of the view"
 END
 
 STRINGTABLE
-CHARACTERISTICS 0x00000001
 BEGIN
     ID_BUTTONCOMBO1         "Insert note spacing\nInsert note spacing"
-    ID_PLAY0                "Play song from bookmark position\nPlay from bookmark"
     ID_FILE_REOPEN          "Discard current module file changes and reopen the last saved version\\Reopen"
 END
 
 STRINGTABLE
-CHARACTERISTICS 0x00000001
 BEGIN
-    ID_BLOCK_EFFECT         "Effects/tools\nEffects/tools"
     ID_FILE_IMPORT          "Import song from file"
 END
 
 STRINGTABLE
-CHARACTERISTICS 0x00000001
 BEGIN
     ID_FILE_EXPORT          "Export the module file in different formats\nExport"
 END
@@ -1448,27 +1445,28 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_PLAY_FOLLOW          "Toggle following the current playing position\nToggle Follow Song"
-    ID_PLAY_FROM_START      "Play song from start position\nPlay From Start"
-    ID_PLAY_FROM_CURRENT_POSITION "Play song from current position\nPlay"
+    ID_PLAY_FROM_BOOKMARK   "Play song from bookmark position\nPlay from bookmark (Shift+F7)"
+                ID_PLAY_FROM_START      "Play song from start position\nPlay From Start (F5)"
+    ID_PLAY_FROM_CURRENT_POSITION "Play song from current position\nPlay (F7)"
     ID_PLAY_FROM_CURRENT_POSITION_AND_LOOP 
-                            "Play and loop current song line\nLoop Song Line"
-    ID_PLAY_STOP            "Stop playing the song. Mute all sounds.\nStop"
+                            "Play and loop current song line\nLoop Song Line (F6)"
+                ID_PLAY_STOP            "Stop playing the song. Mute all sounds.\nStop (ESC)"
+    ID_PLAY_FOLLOW          "Toggle the follow mode\nToggle Follow Mode (F12)"
 END
 
 STRINGTABLE
 BEGIN
-    ID_EDIT_TRACKS          "Track edit"
-    ID_EDIT_INSTRUMENTS     "Instrument edit"
-    ID_EDIT_SONG            "Song edit"
-    ID_EDIT_INFO            "Info edit"
+    ID_EDIT_TRACKS          "Edit Tracks"
+    ID_EDIT_INSTRUMENTS     "Edit Instrument"
+    ID_EDIT_SONG            "Edit Song Lines"
+    ID_EDIT_INFO            "Edit Module Info"
     ID_EM_TRACKS            "Move to track edit view\nTrack edit"
     ID_EM_INSTRUMENTS       "Move to instrument edit view\nInstrument edit"
     ID_EM_INFO              "Move cursor to Info edit\nInfo edit"
     ID_EM_SONG              "Move cursor to song edit\nSong edit"
-    ID_PROVEMODE            "Edit/Jam mode toggle\nJam mode"
-    ID_BLOCK_NOTEUP         "Note transposition up\nTranspose up"
-    ID_BLOCK_NOTEDOWN       "Note transposition down\nTranspose down"
+    ID_PROVEMODE            "Switch between ""Edit"" mode and ""Jam"" modes\Switch between ""Edit"" mode and ""Jam"" modes"
+    ID_BLOCK_NOTEUP         "Transpose note up\nTranspose Up"
+    ID_BLOCK_NOTEDOWN       "Transport note down\nTranspose Down"
 END
 
 STRINGTABLE

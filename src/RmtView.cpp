@@ -206,8 +206,8 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_SONG_MAKETRACKSDUPLICATE, OnSongMaketracksduplicate)
     ON_UPDATE_COMMAND_UI(ID_SONG_MAKETRACKSDUPLICATE, OnUpdateSongMaketracksduplicate)
     ON_WM_MOUSEWHEEL()
-    ON_COMMAND(ID_PLAY0, OnPlay0)
-    ON_UPDATE_COMMAND_UI(ID_PLAY0, OnUpdatePlay0)
+    ON_COMMAND(ID_PLAY_FROM_BOOKMARK, OnPlay0)
+    ON_UPDATE_COMMAND_UI(ID_PLAY_FROM_BOOKMARK, OnUpdatePlay0)
     ON_COMMAND(ID_FILE_REOPEN, OnFileReopen)
     ON_UPDATE_COMMAND_UI(ID_FILE_REOPEN, OnUpdateFileReopen)
     ON_COMMAND(ID_UNDO_UNDO, OnUndoUndo)
@@ -944,7 +944,7 @@ void CRmtView::OnInitialUpdate()
     //Displays the ABOUT dialog if there is no Pokey or 6502 initialized...
     if (!g_Pokey.GetPokey()->IsSoundDriverLoaded() || !g_is6502)
     {
-        AfxGetApp()->GetMainWnd()->PostMessage(WM_COMMAND, ID_APP_ABOUT, 0);
+        AfxGetApp()->GetMainWnd()->PostMessage(WM_COMMAND, ID_HELP_ABOUT, 0);
     }
 
     //Initialise MIDI
@@ -1609,13 +1609,23 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         break;
 
     case VK_F7:
-        if (g_Song.IsBookmark() && g_shiftkey) g_Song.Play(PLAY_BOOKMARK, g_Song.GetFollowPlayMode());	//play song from bookmark
-        else g_Song.Play(PLAY_FROM, g_Song.GetFollowPlayMode());							//play song from current position
+        if (g_Song.IsBookmark() && g_shiftkey)
+        {   //play song from bookmark
+            g_Song.Play(PLAY_BOOKMARK, g_Song.GetFollowPlayMode());
+        }
+        else {
+            //play song from current position
+            g_Song.Play(PLAY_FROM, g_Song.GetFollowPlayMode());
+        }
         break;
 
     case VK_F8:
-        if (g_controlkey) g_Song.ClearBookmark();	//clear bookmark
-        else g_Song.SetBookmark();					//set song bookmark
+        if (g_controlkey) {
+            g_Song.ClearBookmark();	//clear bookmark
+        }
+        else {
+            g_Song.SetBookmark();
+        } // set song bookmark
         break;
 
     case VK_F9:
@@ -1719,10 +1729,13 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         break;
 
     case 83:	//VK_S
-        if (g_controlkey && !g_shiftkey) //CTRL+S, or do nothing when SHIFT is also held, this deliberately makes it less likely to happen by accident and conflict with every other commands
+        // CTRL+S, or do nothing when SHIFT is also held,
+        // This deliberately makes it less likely to happen by accident and conflict with every other commands
+        // TODO: But Shift+Ctrl+S for "Save As..." is Windwos standard (and mentioend in the menu already)
+        if (g_controlkey && !g_shiftkey)
         {
             //g_Song.Stop();
-            SetStatusBarText("Save...");
+            SetStatusBarText("Saving...");
             auto filename = g_Song.GetFilename();
             if (g_keyboard_askwhencontrol_s
                 && (!filename.IsEmpty() || g_Song.GetIOType() != SongIOType::NONE))
