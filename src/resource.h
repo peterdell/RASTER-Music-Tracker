@@ -350,7 +350,7 @@
 #define ID_TRACK_LOAD                   32888
 #define ID_TRACK_SAVE                   32889
 #define ID_TRACK_CLEARALLDUPLICATEDTRACKS 32890
-#define ID_BUTTONCOMBO1                 32891
+#define ID_TRACK_SKIP_LINES_AFTER_NOTE_COMBOBOX                 32891
 #define ID_SONG_MAKETRACKSDUPLICATE     32892
 #define ID_PLAY_FROM_BOOKMARK                        32894
 #define ID_FILE_REOPEN                  32895
@@ -373,9 +373,9 @@
 #define ID_HELP_ONLINE_HELP             32912
 #define ID_HELP_ABOUT                   32913
 #define ID_Menu32914                    32914
-#define ID_TOOLS_EDE                    32915
+#define ID_TOOLS_OPEN_ASAP_FILE                    32915
 #define ID_TOOLS_OPEN_ASAP_FILE         32915
-#define ID_TOOLS_OPENASMA               32916
+#define ID_TOOLS_OPEN_ASMA               32916
 #define ID_TOOLS_OPEN_ASMA              32916
 #define ID_SONG_SONGPROPERTIES          32917
 #define ID_FILE_PROPERTIES              32918

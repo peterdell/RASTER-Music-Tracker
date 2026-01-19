@@ -148,7 +148,7 @@ BEGIN
     SEPARATOR
     BUTTON      ID_MIDIONOFF
     SEPARATOR
-    BUTTON      ID_BUTTONCOMBO1
+    BUTTON      ID_TRACK_SKIP_LINES_AFTER_NOTE_COMBOBOX
 END
 
 
@@ -231,9 +231,9 @@ BEGIN
     CONTROL         "Shuffle the rasterbar colors",IDC_MSXSHUFFLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,155,164,124,10
     CONTROL         "Automatically adjust playback speed",IDC_MSXREGIONAUTO,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,210,151,10
-    DEFPUSHBUTTON   "&OK", IDOK, 170, 210, 50, 14
-    PUSHBUTTON      "&Cancel", IDCANCEL, 224, 210, 50, 14
- END
+    DEFPUSHBUTTON   "&OK",IDOK,170,210,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,224,210,50,14
+END
 
 IDD_OPTIONS DIALOGEX 0, 0, 257, 276
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
@@ -301,10 +301,9 @@ BEGIN
     LTEXT           "P2",IDC_EFF_P2,7,72,266,8
     LTEXT           "P3",IDC_EFF_P3,7,102,266,8
     LTEXT           "Info",IDC_INFO,7,7,266,8
-    DEFPUSHBUTTON   "&OK", IDOK, 169, 137, 50, 14
-    PUSHBUTTON      "&Cancel", IDCANCEL, 223, 137, 50, 14
-
- END
+    DEFPUSHBUTTON   "&OK",IDOK,169,137,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,223,137,50,14
+END
 
 IDD_IMPORTMOD DIALOG 0, 0, 280, 234
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
@@ -335,8 +334,8 @@ BEGIN
     LTEXT           "Volume events:",IDC_STATIC,7,104,266,8
     LTEXT           "Note events:",IDC_STATIC,7,71,266,8
     LTEXT           "Special:",IDC_STATIC,7,153,266,8
-    DEFPUSHBUTTON   "&OK", IDOK, 169, 213, 50, 14
-    PUSHBUTTON      "&Cancel", IDCANCEL, 223, 213, 50, 14
+    DEFPUSHBUTTON   "&OK",IDOK,169,213,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,223,213,50,14
 END
 
 IDD_IMPORTMODFINISHED DIALOG 0, 0, 220, 130
@@ -349,9 +348,8 @@ BEGIN
     ICON            IDI_ICON_EXCLAMATION,IDC_STATIC,16,95,20,20,SS_REALSIZEIMAGE
     CTEXT           "Import of module finished.",IDC_STATIC,7,7,206,8
     EDITTEXT        IDC_INFO,7,22,206,28,ES_CENTER | ES_MULTILINE | ES_READONLY | NOT WS_BORDER
-        DEFPUSHBUTTON   "&OK", IDOK, 109, 109, 50, 14
-        PUSHBUTTON      "&Cancel", IDCANCEL, 163, 109, 50, 14
-
+    DEFPUSHBUTTON   "&OK",IDOK,109,109,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,163,109,50,14
 END
 
 IDD_SONGTRACKSORDER DIALOG 0, 0, 240, 130
@@ -388,8 +386,8 @@ BEGIN
     LTEXT           "To:",IDC_STATIC,7,51,12,8
     RTEXT           "From songline: $",IDC_STATIC,133,76,53,8
     RTEXT           "To songline: $",IDC_STATIC,133,92,53,8
-    DEFPUSHBUTTON   "&OK", IDOK, 129, 110, 50, 14
-    PUSHBUTTON      "&Cancel", IDCANCEL, 183, 110, 50, 14
+    DEFPUSHBUTTON   "&OK",IDOK,129,110,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,183,110,50,14
 END
 
 IDD_INSTRCHANGE DIALOG 0, 0, 220, 228
@@ -438,8 +436,8 @@ BEGIN
     LTEXT           "from $",IDC_STATIC,21,176,20,8
     LTEXT           "to $",IDC_STATIC,69,176,13,8
     EDITTEXT        IDC_EDIT2,84,175,20,12,ES_UPPERCASE
-    DEFPUSHBUTTON   "&OK", IDOK, 111, 210, 50, 14
-    PUSHBUTTON      "&Cancel", IDCANCEL, 163, 210, 50, 14
+    DEFPUSHBUTTON   "&OK",IDOK,111,210,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,163,210,50,14
 END
 
 IDD_IMPORTTMC DIALOG 0, 0, 280, 110
@@ -456,8 +454,8 @@ BEGIN
     LTEXT           "Size optimizations:",IDC_STATIC,7,52,266,8
     LTEXT           "Module detected...",IDC_INFO,7,7,266,21,SS_NOPREFIX
     LTEXT           "Instruments:",IDC_STATIC,7,30,266,8
-    DEFPUSHBUTTON   "&OK", IDOK, 169, 89, 50, 14
-    PUSHBUTTON      "&Cancel", IDCANCEL, 223, 89, 50, 14
+    DEFPUSHBUTTON   "&OK",IDOK,169,89,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,223,89,50,14
 END
 
 IDD_IMPORTTMCFINISHED DIALOG 0, 0, 220, 148
@@ -470,9 +468,8 @@ BEGIN
     ICON            IDI_ICON_EXCLAMATION,-1,16,111,21,20,SS_REALSIZEIMAGE
     CTEXT           "Import of module finished.",-1,7,7,206,8
     EDITTEXT        IDC_INFO,7,22,206,28,ES_CENTER | ES_MULTILINE | ES_READONLY | NOT WS_BORDER
-    DEFPUSHBUTTON   "&OK", IDOK, 109, 127, 50, 14
-    PUSHBUTTON      "&Cancel", IDCANCEL, 163, 127, 50, 14
-
+    DEFPUSHBUTTON   "&OK",IDOK,109,127,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,163,127,50,14
 END
 
 IDD_RENUMBERTRACKS DIALOG 0, 0, 186, 71
@@ -1289,28 +1286,28 @@ BEGIN
     END
     POPUP "&Block"
     BEGIN
-        MENUITEM "Restore from &backup\tCtrl+B", ID_BLOCK_BACKUP
+        MENUITEM "Restore From &Backup\tCtrl+B", ID_BLOCK_BACKUP
         MENUITEM SEPARATOR
         MENUITEM "&Copy\tCtrl+C",               ID_BLOCK_COPY
         MENUITEM "&Paste\tCtrl+V",              ID_BLOCK_PASTE
-        POPUP "Paste sp&ecial"
+        POPUP "Paste Sp&ecial"
         BEGIN
-            MENUITEM "&Merge with current content\tCtrl+M", ID_BLOCK_PASTESPECIAL_MERGEWITHCURRENTCONTENT
-            MENUITEM "&Volume values only",         ID_BLOCK_PASTESPECIAL_VOLUMEVALUESONLY
-            MENUITEM "&Speed values only",          ID_BLOCK_PASTESPECIAL_SPEEDVALUESONLY
+            MENUITEM "&Merge With Current Content\tCtrl+M", ID_BLOCK_PASTESPECIAL_MERGEWITHCURRENTCONTENT
+            MENUITEM "Paste Only &Volume Values",   ID_BLOCK_PASTESPECIAL_VOLUMEVALUESONLY
+            MENUITEM "Paste Only &Speed Values",    ID_BLOCK_PASTESPECIAL_SPEEDVALUESONLY
         END
         MENUITEM "Cu&t\tCtrl+X",                ID_BLOCK_CUT
         MENUITEM "&Delete\tDel",                ID_BLOCK_DELETE
-        MENUITEM "Exchange block and Clipboard\tCtrl+E", ID_BLOCK_EXCHANGE
+        MENUITEM "Exchange Block and Clipboard\tCtrl+E", ID_BLOCK_EXCHANGE
         MENUITEM SEPARATOR
-        MENUITEM "E&ffects/tools...\tCtrl+F",   ID_BLOCK_EFFECT
+        MENUITEM "E&ffects/Tools...\tCtrl+F",   ID_BLOCK_EFFECT
         MENUITEM SEPARATOR
-        MENUITEM "Select &all\tCtrl+A",         ID_BLOCK_SELECTALL
+        MENUITEM "Select &All\tCtrl+A",         ID_BLOCK_SELECTALL
     END
     POPUP "&Tools"
     BEGIN
-        MENUITEM "Open ASMA",                   ID_TOOLS_OPENASMA
-        MENUITEM "Open ASAP File...",           ID_TOOLS_EDE
+        MENUITEM "Open &ASMA",                  ID_TOOLS_OPEN_ASMA
+        MENUITEM "Open A&SAP File...",          ID_TOOLS_OPEN_ASAP_FILE
         MENUITEM SEPARATOR
         MENUITEM "&Options...",                 ID_TOOLS_OPTIONS
     END
@@ -1391,12 +1388,15 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_BUTTONCOMBO1         "Insert note spacing\nInsert note spacing"
+    ID_TRACK_SKIP_LINES_AFTER_NOTE_COMBOBOX 
+                            "Insert note spacing\nInsert note spacing"
+    ID_PLAY_FROM_BOOKMARK   "Play song from bookmark position\nPlay from bookmark (Shift+F7)"
     ID_FILE_REOPEN          "Discard current module file changes and reopen the last saved version\\Reopen"
 END
 
 STRINGTABLE
 BEGIN
+    ID_BLOCK_EFFECT         "Effects/Tools (CTRL+F)"
     ID_FILE_IMPORT          "Import song from file"
 END
 
@@ -1445,13 +1445,12 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_PLAY_FROM_BOOKMARK   "Play song from bookmark position\nPlay from bookmark (Shift+F7)"
-                ID_PLAY_FROM_START      "Play song from start position\nPlay From Start (F5)"
+    ID_PLAY_FOLLOW          "Toggle the follow mode\nToggle Follow Mode (F12)"
+    ID_PLAY_FROM_START      "Play song from start position\nPlay From Start (F5)"
     ID_PLAY_FROM_CURRENT_POSITION "Play song from current position\nPlay (F7)"
     ID_PLAY_FROM_CURRENT_POSITION_AND_LOOP 
                             "Play and loop current song line\nLoop Song Line (F6)"
-                ID_PLAY_STOP            "Stop playing the song. Mute all sounds.\nStop (ESC)"
-    ID_PLAY_FOLLOW          "Toggle the follow mode\nToggle Follow Mode (F12)"
+    ID_PLAY_STOP            "Stop playing the song. Mute all sounds.\nStop (ESC)"
 END
 
 STRINGTABLE
@@ -1465,8 +1464,8 @@ BEGIN
     ID_PART_INFO            "Move cursor to info edit area\nEdit Info (F3)"
     ID_PART_SONG            "Move cursor to song edit area\nEdit Song (F4)"
     ID_PROVEMODE            "Switch between ""Edit"" mode and ""Jam"" modes\nSwitch between ""Edit"" mode and ""Jam"" modes (Ctrl+SPACE)"
-    ID_BLOCK_NOTEUP         "Transpose note up\nTranspose Up"
-    ID_BLOCK_NOTEDOWN       "Transport note down\nTranspose Down"
+    ID_BLOCK_NOTEUP         "Transpose note up\nTranspose Up (CTRL+F2)"
+    ID_BLOCK_NOTEDOWN       "Transport note down\nTranspose Down (CTRL+F1)"
 END
 
 STRINGTABLE
@@ -1483,13 +1482,13 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_BLOCK_VOLUMEUP       "Volume up\nVolume up"
-    ID_BLOCK_VOLUMEDOWN     "Volume down\nVolume down"
-    ID_BLOCK_INSTRLEFT      "Instrument number change\nChange instrument"
-    ID_BLOCK_INSTRRIGHT     "Instrument number change\nChange instrument"
-    ID_BLOCK_PLAY           "Play selected block\nPlay block"
-    ID_BLOCK_INSTRALL       "Block modification mode\nBlock mode"
-    ID_BLOCK_BACKUP         "Restore block from backup\nRestore block"
+    ID_BLOCK_BACKUP         "Restore block from backup\nRestore Block From Backup (Ctrl-B)"
+    ID_BLOCK_VOLUMEUP       "Volume up\nVolume up (Ctrl+Shift+Up)"
+    ID_BLOCK_VOLUMEDOWN     "Volume down\nVolume down (Ctrl+Shift+Down)"
+    ID_BLOCK_INSTRLEFT      "Instrument number change\nChange instrument (Ctrl+Shift+Left)"
+    ID_BLOCK_INSTRRIGHT     "Instrument number change\nChange instrument (Ctrl+Shift+Right)"
+    ID_BLOCK_PLAY           "Play and loop block\nPlay and Loop Block (Shift-F6)"
+    ID_BLOCK_INSTRALL       "Block modification mode\nBlock mode (Ctrl+Shift+A)"
 END
 
 STRINGTABLE
