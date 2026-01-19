@@ -11,6 +11,8 @@
 
 #include "RmtDoc.h"
 
+constexpr int TOOLBAR_ZOOM = 2;
+
 class CRmtView : public CView
 {
 protected: // create from serialization only

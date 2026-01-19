@@ -69,10 +69,10 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	// Put the skip # lines after note insert combo box into the tool bar
 	// Allow for 0 -> 8 skips
 	CRect rect;
-	int index = m_wndToolBar.CommandToIndex(ID_BUTTONCOMBO1);
-	m_wndToolBar.SetButtonInfo(index, ID_BUTTONCOMBO1, TBBS_SEPARATOR, 40);
+	int index = m_wndToolBar.CommandToIndex(ID_TRACK_SKIP_LINES_AFTER_NOTE_COMBOBOX);
+	m_wndToolBar.SetButtonInfo(index, ID_TRACK_SKIP_LINES_AFTER_NOTE_COMBOBOX, TBBS_SEPARATOR, 60);
 	m_wndToolBar.GetItemRect(index, &rect);
-	rect.bottom += 300;	// the height of the clicked combobox
+	rect.bottom += 300*TOOLBAR_ZOOM;	// the height of the clicked combobox
 	if (!m_comboSkipLinesAfterNoteInsert.Create(WS_CHILD | WS_VISIBLE | WS_VSCROLL | CBS_DROPDOWNLIST, rect, &m_wndToolBar, IDC_COMBO_LINESAFTER))
 		return -1;
 

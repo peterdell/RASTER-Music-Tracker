@@ -639,5 +639,11 @@
     <Image Include="res\toolbar_play.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\toolbar_block-32x30.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\toolbar_main_window-32x30.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

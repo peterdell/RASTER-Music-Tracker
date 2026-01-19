@@ -475,8 +475,10 @@
     <Image Include="res\file_type_rmt.ico" />
     <Image Include="res\gfx.bmp" />
     <Image Include="res\icon_exclamation.ico" />
+    <Image Include="res\toolbar_block-32x30.bmp" />
     <Image Include="res\toolbar_block.bmp" />
     <Image Include="res\toolbar_channels.bmp" />
+    <Image Include="res\toolbar_main_window-32x30.bmp" />
     <Image Include="res\toolbar_main_window.bmp" />
     <Image Include="res\toolbar_play.bmp" />
   </ItemGroup>
