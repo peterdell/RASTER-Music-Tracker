@@ -432,6 +432,7 @@
     <None Include="..\doc\rmt_en_128.html" />
     <None Include="..\doc\rmt_tracker.md" />
     <None Include="..\doc\rmt_tracker_drivers.md" />
+    <None Include="..\doc\rmt_tracker_usage.md" />
     <None Include="..\doc\rmt_versions.md" />
     <CopyFileToFolders Include="..\lib\x64\mfc140.dll">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

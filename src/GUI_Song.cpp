@@ -2532,9 +2532,9 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
 
     case VK_TAB:
         if (shift)
-            TrackLeft(1); //SHIFT+TAB
+            TrackLeft(1); // Shift+TAB
         else if (control)
-            CursorToSpeedColumn(); //CTRL+TAB
+            CursorToSpeedColumn(); //Ctral+TAB
         else
             TrackRight(1);
         break;

@@ -94,19 +94,19 @@ END
 
 IDR_TOOLBAR_BLOCK TOOLBAR 32, 30
 BEGIN
-    BUTTON      ID_BLOCK_BACKUP
+    BUTTON      ID_BLOCK_RESTORE_FROM_BACKUP
     SEPARATOR
-    BUTTON      ID_BLOCK_NOTEUP
-    BUTTON      ID_BLOCK_NOTEDOWN
-    BUTTON      ID_BLOCK_INSTRLEFT
-    BUTTON      ID_BLOCK_INSTRRIGHT
-    BUTTON      ID_BLOCK_VOLUMEUP
-    BUTTON      ID_BLOCK_VOLUMEDOWN
-    BUTTON      ID_BLOCK_EFFECT
+    BUTTON      ID_BLOCK_TRANSPOSE_NOTES_UP
+    BUTTON      ID_BLOCK_TRANSPOSE_NOTES_DOWN
+    BUTTON      ID_BLOCK_USE_PREVIOUS_INSTRUMENT
+    BUTTON      ID_BLOCK_USE_NEXT_INSTRUMENT
+    BUTTON      ID_BLOCK_INCREASE_VOLUME
+    BUTTON      ID_BLOCK_DECREASE_VOLUME
+    BUTTON      ID_BLOCK_APPLY_EFFECTS
     SEPARATOR
-    BUTTON      ID_BLOCK_INSTRALL
+    BUTTON      ID_BLOCK_TOGGLE_MODIFICATION_MODE
     SEPARATOR
-    BUTTON      ID_BLOCK_PLAY
+    BUTTON      ID_BLOCK_PLAY_AND_LOOP
 END
 
 IDR_TOOLBAR_CHANNELS TOOLBAR 16, 15
@@ -1286,7 +1286,7 @@ BEGIN
     END
     POPUP "&Block"
     BEGIN
-        MENUITEM "Restore From &Backup\tCtrl+B", ID_BLOCK_BACKUP
+        MENUITEM "Restore From &Backup\tCtrl+B", ID_BLOCK_RESTORE_FROM_BACKUP
         MENUITEM SEPARATOR
         MENUITEM "&Copy\tCtrl+C",               ID_BLOCK_COPY
         MENUITEM "&Paste\tCtrl+V",              ID_BLOCK_PASTE
@@ -1300,7 +1300,7 @@ BEGIN
         MENUITEM "&Delete\tDel",                ID_BLOCK_DELETE
         MENUITEM "Exchange Block and Clipboard\tCtrl+E", ID_BLOCK_EXCHANGE
         MENUITEM SEPARATOR
-        MENUITEM "E&ffects/Tools...\tCtrl+F",   ID_BLOCK_EFFECT
+        MENUITEM "E&ffects/Tools...\tCtrl+F",   ID_BLOCK_APPLY_EFFECTS
         MENUITEM SEPARATOR
         MENUITEM "Select &All\tCtrl+A",         ID_BLOCK_SELECTALL
     END
@@ -1391,13 +1391,13 @@ BEGIN
     ID_TRACK_SKIP_LINES_AFTER_NOTE_COMBOBOX 
                             "Insert note spacing\nInsert note spacing"
     ID_PLAY_FROM_BOOKMARK   "Play song from bookmark position\nPlay from bookmark (Shift+F7)"
-    ID_FILE_REOPEN          "Discard current module file changes and reopen the last saved version\\Reopen"
+    ID_FILE_REOPEN          "Discard current module file changes and reopen the last saved version\\Reopen (Ctrl-R)"
 END
 
 STRINGTABLE
 BEGIN
-    ID_BLOCK_EFFECT         "Effects/Tools (CTRL+F)"
-    ID_FILE_IMPORT          "Import song from file"
+    ID_BLOCK_APPLY_EFFECTS  "Apply Effects... (Ctrl+F)"
+    ID_FILE_IMPORT          "Import a module from a file\nImport"
 END
 
 STRINGTABLE
@@ -1464,8 +1464,10 @@ BEGIN
     ID_PART_INFO            "Move cursor to info edit area\nEdit Info (F3)"
     ID_PART_SONG            "Move cursor to song edit area\nEdit Song (F4)"
     ID_PROVEMODE            "Switch between ""Edit"" mode and ""Jam"" modes\nSwitch between ""Edit"" mode and ""Jam"" modes (Ctrl+SPACE)"
-    ID_BLOCK_NOTEUP         "Transpose note up\nTranspose Up (CTRL+F2)"
-    ID_BLOCK_NOTEDOWN       "Transport note down\nTranspose Down (CTRL+F1)"
+    ID_BLOCK_TRANSPOSE_NOTES_UP 
+                            "Transpose the notes one semitone up\nTranspose the Notes One Semitone Up (Ctrl+F2)"
+    ID_BLOCK_TRANSPOSE_NOTES_DOWN 
+                            "Transpose the notes one semitone down\nTranspose the Notes One Semitone Down (Ctrl+F1)"
 END
 
 STRINGTABLE
@@ -1482,13 +1484,19 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_BLOCK_BACKUP         "Restore block from backup\nRestore Block From Backup (Ctrl-B)"
-    ID_BLOCK_VOLUMEUP       "Volume up\nVolume up (Ctrl+Shift+Up)"
-    ID_BLOCK_VOLUMEDOWN     "Volume down\nVolume down (Ctrl+Shift+Down)"
-    ID_BLOCK_INSTRLEFT      "Instrument number change\nChange instrument (Ctrl+Shift+Left)"
-    ID_BLOCK_INSTRRIGHT     "Instrument number change\nChange instrument (Ctrl+Shift+Right)"
-    ID_BLOCK_PLAY           "Play and loop block\nPlay and Loop Block (Shift-F6)"
-    ID_BLOCK_INSTRALL       "Block modification mode\nBlock mode (Ctrl+Shift+A)"
+    ID_BLOCK_INCREASE_VOLUME 
+                            "Increase the volume\nIncrease the Volume (Ctrl+Shift+Up)"
+    ID_BLOCK_DECREASE_VOLUME 
+                            "Decrease the volume\nDecrease the Volume (Ctrl+Shift+Down)"
+    ID_BLOCK_USE_PREVIOUS_INSTRUMENT 
+                            "Use the previous instrument\nUse the Previous Instrument (Ctrl+Shift+Left)"
+    ID_BLOCK_USE_NEXT_INSTRUMENT 
+                            "Use the next instrument\nUse the Next Instrument (Ctrl+Shift+Right)"
+    ID_BLOCK_PLAY_AND_LOOP  "Play the block and loop\nPlay the Block and Loop (Shift-F6)"
+    ID_BLOCK_TOGGLE_MODIFICATION_MODE 
+                            "Toggle the block modification mode\nToggle the Block Modification Mode (Ctrl+Shift+A)"
+    ID_BLOCK_RESTORE_FROM_BACKUP 
+                            "Restore the block from the backup\nRestore the Block From the Backup (Ctrl-B)"
 END
 
 STRINGTABLE

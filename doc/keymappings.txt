@@ -1,14 +1,6 @@
 Things done for RMT shorcuts remap so far.
 A lot of the changes were inspired by FamiTracker's own set of hotkeys and shortcuts.
 
-Refactoring so far:
-
-DONE - ALL		=> FIXED CONFLICTS BETWEEN ALL MODES
-DONE - INFOKEY	=> FIXED
-DONE - INSTRKEY => FIXED 
-DONE - PROVEKEY => FIXED
-DONE - SONGKEYS => FIXED
-DONE - TRACKKEY => FIXED
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 

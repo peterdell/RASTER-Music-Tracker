@@ -568,6 +568,9 @@
     <None Include="res\cursor_set_position.cur">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\doc\rmt_tracker_usage.md">
+      <Filter>Documentation Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\build\build_rmt-daily-excluded-extensions.txt">
