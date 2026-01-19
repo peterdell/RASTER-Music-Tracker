@@ -72,11 +72,11 @@ IDB_GFX                 BITMAP                  "res\\gfx.bmp"
 
 IDR_TOOLBAR_PLAY        BITMAP                  "res\\toolbar_play.bmp"
 
-IDR_TOOLBAR_BLOCK       BITMAP                  "res\\toolbar_block.bmp"
+IDR_TOOLBAR_BLOCK       BITMAP                  "res\\toolbar_block-32x30.bmp"
 
 IDR_TOOLBAR_CHANNELS    BITMAP                  "res\\toolbar_channels.bmp"
 
-IDR_MAIN_WINDOW         BITMAP                  "res\\toolbar_main_window.bmp"
+IDR_MAIN_WINDOW         BITMAP                  "res\\toolbar_main_window-32x30.bmp"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -92,7 +92,7 @@ BEGIN
     BUTTON      ID_BUTTON32786
 END
 
-IDR_TOOLBAR_BLOCK TOOLBAR 16, 15
+IDR_TOOLBAR_BLOCK TOOLBAR 32, 30
 BEGIN
     BUTTON      ID_BLOCK_BACKUP
     SEPARATOR
@@ -122,7 +122,7 @@ BEGIN
     BUTTON      ID_CHAN8
 END
 
-IDR_MAIN_WINDOW TOOLBAR 16, 15
+IDR_MAIN_WINDOW TOOLBAR 32, 30
 BEGIN
     BUTTON      ID_FILE_NEW
     BUTTON      ID_FILE_OPEN
@@ -139,10 +139,10 @@ BEGIN
     SEPARATOR
     BUTTON      ID_PLAY_FOLLOW
     SEPARATOR
-    BUTTON      ID_EM_TRACKS
-    BUTTON      ID_EM_INSTRUMENTS
-    BUTTON      ID_EM_INFO
-    BUTTON      ID_EM_SONG
+    BUTTON      ID_PART_TRACKS
+    BUTTON      ID_PART_INSTRUMENTS
+    BUTTON      ID_PART_INFO
+    BUTTON      ID_PART_SONG
     SEPARATOR
     BUTTON      ID_PROVEMODE
     SEPARATOR
@@ -1460,11 +1460,11 @@ BEGIN
     ID_EDIT_INSTRUMENTS     "Edit Instrument"
     ID_EDIT_SONG            "Edit Song Lines"
     ID_EDIT_INFO            "Edit Module Info"
-    ID_EM_TRACKS            "Move to track edit view\nTrack edit"
-    ID_EM_INSTRUMENTS       "Move to instrument edit view\nInstrument edit"
-    ID_EM_INFO              "Move cursor to Info edit\nInfo edit"
-    ID_EM_SONG              "Move cursor to song edit\nSong edit"
-    ID_PROVEMODE            "Switch between ""Edit"" mode and ""Jam"" modes\Switch between ""Edit"" mode and ""Jam"" modes"
+    ID_PART_TRACKS          "Switch to track edit view\nEdit Tracks (F1)"
+    ID_PART_INSTRUMENTS     "Switch to instrument edit view\nEdit Instruments (F2)"
+    ID_PART_INFO            "Move cursor to info edit area\nEdit Info (F3)"
+    ID_PART_SONG            "Move cursor to song edit area\nEdit Song (F4)"
+    ID_PROVEMODE            "Switch between ""Edit"" mode and ""Jam"" modes\nSwitch between ""Edit"" mode and ""Jam"" modes (Ctrl+SPACE)"
     ID_BLOCK_NOTEUP         "Transpose note up\nTranspose Up"
     ID_BLOCK_NOTEDOWN       "Transport note down\nTranspose Down"
 END
@@ -1477,7 +1477,6 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_VIEW_TUNING          "Display the tuning menu."
     ID_HELP_HELP_TOPICS     "Open the local help in a browser."
     ID_HELP_ABOUT_APP       "Display information about the app and its version in a pop-up dialog"
 END

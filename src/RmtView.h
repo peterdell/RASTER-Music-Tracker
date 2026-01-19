@@ -121,10 +121,10 @@ protected:
     afx_msg void OnPlay3();
     afx_msg void OnPlaystop();
     afx_msg void OnPlayfollow();
-    afx_msg void OnEmInfo();
-    afx_msg void OnEmInstruments();
-    afx_msg void OnEmSong();
-    afx_msg void OnEmTracks();
+    afx_msg void OnPartInfo();
+    afx_msg void OnPartInstruments();
+    afx_msg void OnPartSong();
+    afx_msg void OnPartTracks();
     afx_msg void OnUpdateEmTracks(CCmdUI* pCmdUI);
     afx_msg void OnUpdateEmInstruments(CCmdUI* pCmdUI);
     afx_msg void OnUpdateEmInfo(CCmdUI* pCmdUI);
@@ -184,7 +184,6 @@ protected:
     afx_msg void OnMidionoff();
     afx_msg void OnUpdateMidionoff(CCmdUI* pCmdUI);
     afx_msg void OnToolsOptions();
-    afx_msg void OnViewTuning();
     afx_msg void OnBlockCopy();
     afx_msg void OnBlockCut();
     afx_msg void OnBlockDelete();

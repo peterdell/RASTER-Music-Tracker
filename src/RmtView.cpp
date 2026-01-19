@@ -84,14 +84,14 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnPlay3)
     ON_COMMAND(ID_PLAY_STOP, OnPlaystop)
     ON_COMMAND(ID_PLAY_FOLLOW, OnPlayfollow)
-    ON_COMMAND(ID_EM_INFO, OnEmInfo)
-    ON_COMMAND(ID_EM_INSTRUMENTS, OnEmInstruments)
-    ON_COMMAND(ID_EM_SONG, OnEmSong)
-    ON_COMMAND(ID_EM_TRACKS, OnEmTracks)
-    ON_UPDATE_COMMAND_UI(ID_EM_TRACKS, OnUpdateEmTracks)
-    ON_UPDATE_COMMAND_UI(ID_EM_INSTRUMENTS, OnUpdateEmInstruments)
-    ON_UPDATE_COMMAND_UI(ID_EM_INFO, OnUpdateEmInfo)
-    ON_UPDATE_COMMAND_UI(ID_EM_SONG, OnUpdateEmSong)
+    ON_COMMAND(ID_PART_INFO, OnPartInfo)
+    ON_COMMAND(ID_PART_INSTRUMENTS, OnPartInstruments)
+    ON_COMMAND(ID_PART_SONG, OnPartSong)
+    ON_COMMAND(ID_PART_TRACKS, OnPartTracks)
+    ON_UPDATE_COMMAND_UI(ID_PART_TRACKS, OnUpdateEmTracks)
+    ON_UPDATE_COMMAND_UI(ID_PART_INSTRUMENTS, OnUpdateEmInstruments)
+    ON_UPDATE_COMMAND_UI(ID_PART_INFO, OnUpdateEmInfo)
+    ON_UPDATE_COMMAND_UI(ID_PART_SONG, OnUpdateEmSong)
     ON_UPDATE_COMMAND_UI(ID_PLAY_FOLLOW, OnUpdatePlayfollow)
     ON_UPDATE_COMMAND_UI(ID_PLAY_FROM_START, OnUpdatePlay1)
     ON_UPDATE_COMMAND_UI(ID_PLAY_FROM_CURRENT_POSITION, OnUpdatePlay2)
@@ -145,7 +145,6 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_MIDIONOFF, OnMidionoff)
     ON_UPDATE_COMMAND_UI(ID_MIDIONOFF, OnUpdateMidionoff)
     ON_COMMAND(ID_TOOLS_OPTIONS, OnToolsOptions)
-    ON_COMMAND(ID_VIEW_TUNING, OnViewTuning)
     ON_COMMAND(ID_BLOCK_COPY, OnBlockCopy)
     ON_COMMAND(ID_BLOCK_CUT, OnBlockCut)
     ON_COMMAND(ID_BLOCK_DELETE, OnBlockDelete)
@@ -811,16 +810,6 @@ void CRmtView::OnToolsOptions()
         g_Midi.m_NoteOff = dlg.m_midi_NoteOff;
         g_Midi.MidiInit();
     }
-}
-
-void CRmtView::OnViewTuning()
-{
-
-    TuningDlg dlg;
-    dlg.m_tuningSettings = g_tuning;
-    dlg.m_tuningRatios = g_tuningRatios;
-
-    dlg.DoModal();
 }
 
 void GetCommandLineItem(CString& commandline, int& fromidx, int& toidx)
@@ -1573,25 +1562,25 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         }
         if (g_controlkey) goto AllModesDefaultKey;	//would conflict with transposition hotkeys otherwise
         g_Undo.Separator();
-        OnEmTracks();
+        OnPartTracks();
         break;
 
     case VK_F2:
         if (g_controlkey) goto AllModesDefaultKey;	//would conflict with transposition hotkeys otherwise
         g_Undo.Separator();
-        OnEmInstruments();
+        OnPartInstruments();
         break;
 
     case VK_F3:
         if (g_controlkey) goto AllModesDefaultKey;	//would conflict with transposition hotkeys otherwise
         g_Undo.Separator();
-        OnEmInfo();
+        OnPartInfo();
         break;
 
     case VK_F4:
         if (g_controlkey) goto AllModesDefaultKey;	//would conflict with transposition hotkeys otherwise
         g_Undo.Separator();
-        OnEmSong();
+        OnPartSong();
         break;
 
     case VK_F5:
@@ -2178,24 +2167,24 @@ void CRmtView::OnPlayfollow()
     g_Song.SetFollowPlayMode(g_Song.GetFollowPlayMode() ^ 1);
 }
 
-void CRmtView::OnEmTracks()
+void CRmtView::OnPartTracks()
 {
     g_activepart = g_active_ti = Part::PART_TRACKS;	//tracks
 }
 
-void CRmtView::OnEmInstruments()
+void CRmtView::OnPartInstruments()
 {
     g_activepart = g_active_ti = Part::PART_INSTRUMENTS;	//instrs
     g_TrackClipboard.BlockDeselect();
 }
 
-void CRmtView::OnEmInfo()
+void CRmtView::OnPartInfo()
 {
     g_activepart = Part::PART_INFO;		//info
     g_TrackClipboard.BlockDeselect();
 }
 
-void CRmtView::OnEmSong()
+void CRmtView::OnPartSong()
 {
     g_activepart = Part::PART_SONG;		//song
     g_TrackClipboard.BlockDeselect();

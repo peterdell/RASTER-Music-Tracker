@@ -279,10 +279,10 @@
 #define ID_BUTTON32803                  32803
 #define ID_EDIT_SONG                    32804
 #define ID_EDIT_INFO                    32805
-#define ID_EM_TRACKS                    32806
-#define ID_EM_INSTRUMENTS               32807
-#define ID_EM_INFO                      32808
-#define ID_EM_SONG                      32809
+#define ID_PART_TRACKS                    32806
+#define ID_PART_INSTRUMENTS               32807
+#define ID_PART_INFO                      32808
+#define ID_PART_SONG                      32809
 #define ID_PROVEMODE                    32810
 #define ID_VIEW_VOLUMEANALYZER          32811
 #define ID_VIEW_INSTRUMENTACTIVEHELP    32812
@@ -366,7 +366,6 @@
 #define ID_TRACK_CURSORGOTOTHESPEEDCOLUMN 32904
 #define ID_SONG_SONGCHANGEMAXIMALLENGTHOFTRACKS 32905
 #define ID_Menu                         32906
-#define ID_VIEW_TUNING                  32907
 #define ID_HELP_ONLINEHELP              32908
 #define ID_HELP_HELP                    32909
 #define ID_HELP_HELP_TOPICS             32910
