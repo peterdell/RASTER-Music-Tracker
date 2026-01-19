@@ -22,7 +22,7 @@ public:
 	void MidiOff();
 	int MidiRestart();
 
-	int GetMidiDevId()				{ return m_MidiInDeviceId; }
+	int GetMidiDevId() const		{ return m_MidiInDeviceId; }
 	char *GetMidiDevName()			{ return m_MidiInDeviceName; }
 
 	// MIDI settings

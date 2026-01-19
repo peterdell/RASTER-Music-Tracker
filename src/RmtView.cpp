@@ -2517,6 +2517,7 @@ void CRmtView::OnMidionoff()
 
 void CRmtView::OnUpdateMidionoff(CCmdUI* pCmdUI)
 {
+    pCmdUI->Enable(g_Midi.GetMidiDevId() >= 0);
     pCmdUI->SetCheck(g_Midi.IsOn());
 }
 
