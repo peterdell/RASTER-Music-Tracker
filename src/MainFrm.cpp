@@ -89,7 +89,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	// Create a toolbar with items for block editing mode
 	if (!m_ToolBarBlock.CreateEx(this) || !m_ToolBarBlock.LoadToolBar(IDR_TOOLBAR_BLOCK))
 	{
-		TRACE0("Failed to create toolbar block\n");
+		TRACE0("Failed to create the block toolbar\n");
 		return -1;      // fail to create
 	}
 

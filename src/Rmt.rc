@@ -262,7 +262,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,162,224,10
     CONTROL         "Reset the Atari sound routines each time ESC is pressed",IDC_KEYBOARD_ESCRESETATARISOUND,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,173,193,10
-    CONTROL         "Prompt a save dialog box each time CTRL+S is pressed",IDC_KEYBOARD_ASKWHENCONTROL_S,
+    CONTROL         "Prompt a save dialog box each time Ctrl+S is pressed",IDC_KEYBOARD_ASKWHENCONTROL_S,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,184,191,10
     COMBOBOX        IDC_MIDI_DEVICE,82,209,155,59,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Touch response",IDC_MIDI_TR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,226,70,10

@@ -2277,7 +2277,7 @@ void CRmtView::ChangeViewElements(BOOL writeconfig)
     mf->ShowControlBar((CControlBar*)(&mf->m_wndToolBar), g_view.mainToolbar, 0);
     mf->ShowControlBar((CControlBar*)(&mf->m_ToolBarBlock), g_view.blockToolbar, 0);
     mf->ShowControlBar((CControlBar*)(&mf->m_wndStatusBar), g_view.statusBar, 0);
-    if (writeconfig) WriteRMTConfig();
+    if (writeconfig) { WriteRMTConfig(); }
 }
 
 void CRmtView::OnViewToolbar()
