@@ -2,27 +2,27 @@
 |--------|-------------|----------|------------|-----------------| 
 |  |  |  | Help |  |
 | Export the module file in different formats | Export | File | Export |  |
-| Import a module from a file | Import | File | Import... |  |
-| Discard current module file changes and reopen the last saved version\Reopen (Ctrl-R) |  | File | Reopen | `Ctrl+R` |
+| Import a module from a file | Import... | File | Import... |  |
+| Discard current module file changes and reopen the last saved version | Reopen (Ctrl+R) | File | Reopen | `Ctrl+R` |
 |  |  | File | Exit | `Alt+F4` |
 |  |  | File | Properties | `Alt+Enter` |
 | Create a new module | New (Ctrl+W) | File | New | `Ctrl+W` |
-| Open a module file | Open (Ctrl+L) | File | Open... | `Ctrl+L` |
+| Open a module file | Open... (Ctrl+L) | File | Open... | `Ctrl+L` |
 | Save the module file | Save (Ctrl+S) | File | Save | `Ctrl+S` |
-| Save the module file with a new filename | Save As... (Shift+Ctrl+S)) | File | Save As... | `Shift+Ctrl+S` |
-| Change the printer and printing options | Print Setup | File | Print Setup... |  |
-| Print the active view (Ctrl-P) |  | File | Print... |  |
+| Save the module file with a new filename | Save As... (Shift+Ctrl+S) | File | Save As... | `Shift+Ctrl+S` |
+| Change the printer and printing options | Print Setup... | File | Print Setup... |  |
+| Print the active view | Print... (Ctrl-P) - ERROR: Expected 'Print...' | File | Print... |  |
 | Preview the print version of the view |  | File | Print Preview |  |
 |  |  | Edit | Clear Undo && Redo History |  |
-| Undo the last action | Undo | Edit | Undo | `Ctrl+Z` |
-| Redo the previously undone action | Redo | Edit | Redo | `Ctrl+Y` |
+| Undo the last action | Undo (Ctrl+Z) | Edit | Undo | `Ctrl+Z` |
+| Show or hide the toolbar | Redo (Ctrl+Y) | Edit | Redo | `Ctrl+Y` |
 |  |  | View | Volume Analyzer |  |
 |  |  | View | Instrument Active Help |  |
 |  |  | View | Block Toolbar |  |
 |  |  | View | Pokey Chip Registers |  |
 |  |  | View | Play Time Counter |  |
-| Show or hide the toolbar | Toggle ToolBar | View | Main Toolbar |  |
-| Show or hide the status bar | Toggle Status Bar | View | Status Bar |  |
+| Show or hide the main toolbar | Main Toolbar | View | Main Toolbar |  |
+| Show or hide the status bar | Status Bar | View | Status Bar |  |
 |  |  | Song | Copy Line |  |
 |  |  | Song | Paste Line |  |
 |  |  | Song | Clear Line |  |
@@ -71,7 +71,7 @@
 |  |  | Track | Load track from file... |  |
 |  |  | Track | Save track as... |  |
 |  |  | Track | Clear all duplicated tracks, adjust song... |  |
-| Restore the block from the backup | Restore the Block From the Backup (Ctrl-B) | Block | Restore From Backup | `Ctrl+B` |
+| Restore the block from the backup | Restore From Backup (Ctrl+B) | Block | Restore From Backup | `Ctrl+B` |
 |  |  | Block | Copy | `Ctrl+C` |
 |  |  | Block | Paste | `Ctrl+V` |
 |  |  | Block | Delete | `Del` |

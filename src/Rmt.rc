@@ -1389,11 +1389,11 @@ END
 STRINGTABLE
 BEGIN
     ID_FILE_NEW             "Create a new module\nNew (Ctrl+W)"
-    ID_FILE_OPEN            "Open a module file\nOpen (Ctrl+L)"
+    ID_FILE_OPEN            "Open a module file\nOpen... (Ctrl+L)"
     ID_FILE_SAVE            "Save the module file\nSave (Ctrl+S)"
-    ID_FILE_SAVE_AS         "Save the module file with a new filename\nSave As... (Shift+Ctrl+S))"
-    ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup"
-    ID_FILE_PRINT           "Print the active view (Ctrl-P)"
+    ID_FILE_SAVE_AS         "Save the module file with a new filename\nSave As... (Shift+Ctrl+S)"
+    ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup..."
+    ID_FILE_PRINT           "Print the active view\nPrint... (Ctrl-P)"
     ID_FILE_PRINT_PREVIEW   "Preview the print version of the view"
 END
 
@@ -1402,13 +1402,13 @@ BEGIN
     ID_TRACK_SKIP_LINES_AFTER_NOTE_COMBOBOX 
                             "Insert note spacing\nInsert note spacing"
     ID_PLAY_FROM_BOOKMARK   "Play song from bookmark position\nPlay from bookmark (Shift+F7)"
-    ID_FILE_REOPEN          "Discard current module file changes and reopen the last saved version\\Reopen (Ctrl-R)"
+    ID_FILE_REOPEN          "Discard current module file changes and reopen the last saved version\nReopen (Ctrl+R)"
 END
 
 STRINGTABLE
 BEGIN
     ID_BLOCK_APPLY_EFFECTS  "Apply Effects... (Ctrl+F)"
-    ID_FILE_IMPORT          "Import a module from a file\nImport"
+    ID_FILE_IMPORT          "Import a module from a file\nImport..."
 END
 
 STRINGTABLE
@@ -1438,14 +1438,14 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_EDIT_UNDO            "Undo the last action\nUndo"
-    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+    ID_EDIT_UNDO            "Undo the last action\nUndo (Ctrl+Z)"
+    ID_EDIT_REDO            "Show or hide the toolbar\nRedo (Ctrl+Y)"
 END
 
 STRINGTABLE
 BEGIN
-    ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
-    ID_VIEW_STATUS_BAR      "Show or hide the status bar\nToggle Status Bar"
+    ID_VIEW_TOOLBAR         "Show or hide the main toolbar\nMain Toolbar"
+    ID_VIEW_STATUS_BAR      "Show or hide the status bar\nStatus Bar"
 END
 
 STRINGTABLE
@@ -1507,7 +1507,7 @@ BEGIN
     ID_BLOCK_TOGGLE_MODIFICATION_MODE 
                             "Toggle the block modification mode\nToggle the Block Modification Mode (Ctrl+Shift+A)"
     ID_BLOCK_RESTORE_FROM_BACKUP 
-                            "Restore the block from the backup\nRestore the Block From the Backup (Ctrl-B)"
+                            "Restore the block from the backup\nRestore From Backup (Ctrl+B)"
 END
 
 STRINGTABLE

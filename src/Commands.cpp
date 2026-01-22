@@ -224,7 +224,22 @@ void  CCommands::PrintActionInfos() const {
         if (!acceleratorKeyFormatted.IsEmpty()) {
             acceleratorKeyFormatted = "`" + acceleratorKeyFormatted + "`";
         }
-        s.Format("| %s | %s | %s | %s | %s |", actionInfo->GetText(), actionInfo->GetDescription(), menuEntry->GetMenuTextPathString(), menuEntry->GetPlainText(), acceleratorKeyFormatted);
+
+        auto description = actionInfo->GetDescription();
+        if (!description.IsEmpty() && menuEntry != nullptr) {
+            CString expected = menuEntry->GetPlainText();
+            auto acceleratorKey = menuEntry->GetAcceleatorKey();
+            if (!acceleratorKey.IsEmpty()) {
+                expected += " (" + acceleratorKey + ")";
+            }
+            if (description != expected) {
+                description += " - ERROR: Expected '" + expected + "'";
+            }
+        }
+
+        s.Format("| %s | %s | %s | %s | %s |", actionInfo->GetText(), description, menuEntry->GetMenuTextPathString(), menuEntry->GetPlainText(), acceleratorKeyFormatted);
+
+
         SendInfoMessage(s);
         myfile << s << "\n";
     }
@@ -235,11 +250,6 @@ void  CCommands::PrintActionInfos() const {
 
 
 void CCommands::AnalyzeMenu(const CMenuEntry::MenuPath& menuIDPath, const CMenuEntry::MenuPath& menuTextPath, CMenu& menu) {
-
-
-    CString s;
-    s.Format("Anayzing level %d, menu %s: %p with %d entries", menuIDPath.GetSize(), CMenuEntry::GetMenuPathString(menuIDPath), &menu, menu.GetMenuItemCount());
-    SendInfoMessage(s);
 
 
     for (int pos = 0; pos < menu.GetMenuItemCount(); pos++) {
@@ -255,9 +265,6 @@ void CCommands::AnalyzeMenu(const CMenuEntry::MenuPath& menuIDPath, const CMenuE
             auto actionInfo = GetMutableActionInfo(menuItemID);
             actionInfo->SetMenuEntry(menuEntry);
         }
-
-        s.Format("Menu %s, Position %s: %d %s", CMenuEntry::GetMenuPathString(menuTextPath), posString, menuItemID, menuItemText);
-        SendInfoMessage(s);
 
         auto subMenu = menu.GetSubMenu(pos);
         if (subMenu != nullptr) {
