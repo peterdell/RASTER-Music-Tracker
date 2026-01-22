@@ -5,6 +5,7 @@
 
 #include "StdAfx.h"
 #include "Rmt.h"
+#include "Commands.h"
 #include "MainFrm.h"
 #include "RmtDoc.h"
 #include "RmtView.h"
@@ -133,6 +134,8 @@ BOOL CRmtApp::InitInstance()
     CRmtCommandLineInfo cmdInfo;
     ParseCommandLine(cmdInfo);
 
+    CCommands commands;
+    commands.Analyze();
 
     if (cmdInfo.IsTestFileSpecified()) {
         CRmtTest test;
