@@ -2,26 +2,37 @@
 #include "GuiHelpers.h"
 
 #include "resource.h"
+#include <iostream>
+#include <fstream>
 
-
-CMenuEntry::CMenuEntry(const MenuPath& menuPath, const UINT id, const CString& text) {
-    this->menuPath.Append(menuPath);
+CMenuEntry::CMenuEntry(const MenuPath& menuIDPath, const MenuPath& menuTextPath, const UINT id, const CString& text) {
+    this->menuIDPath.Append(menuIDPath);
+    this->menuTextPath.Append(menuTextPath);
     this->id = id;
     this->text = text;
 }
 
-void CMenuEntry::GetMenuPath(CMenuEntry::MenuPath& result) const {
+void CMenuEntry::GetMenuIDPath(CMenuEntry::MenuPath& result) const {
     result.RemoveAll();
-    result.Append(menuPath);
+    result.Append(menuIDPath);
 }
 
-CString CMenuEntry::GetMenuPathString() const {
-    return GetMenuPathString(menuPath);
+CString CMenuEntry::GetMenuIDPathString() const {
+    return GetMenuPathString(menuIDPath);
+}
+
+void CMenuEntry::GetMenuTextPath(CMenuEntry::MenuPath& result) const {
+    result.RemoveAll();
+    result.Append(menuTextPath);
+}
+
+CString CMenuEntry::GetMenuTextPathString() const {
+    return GetMenuPathString(menuTextPath);
 }
 
 
 INT_PTR CMenuEntry::GetMenuLevel() const {
-    return menuPath.GetSize();
+    return menuIDPath.GetSize();
 }
 
 UINT CMenuEntry::GetID() const {
@@ -62,13 +73,10 @@ CString CMenuEntry::GetPlainText(const CString& menuText) {
 
 CString CMenuEntry::GetAcceleatorKey(const CString& menuText) {
     CString result;
-    auto startIndex = menuText.Find("\t(");
+    auto startIndex = menuText.Find("\t");
     if (startIndex >= 0) {
-        startIndex += 2;
-        auto endIndex = menuText.Find(')', startIndex);
-        if (endIndex >= 0) {
-            result = menuText.Mid(startIndex, endIndex);
-        };
+        startIndex += 1;
+        result = menuText.Mid(startIndex);
     }
     return result;
 }
@@ -94,16 +102,143 @@ CString  CMenuEntry::GetAcceleatorKey() const {
 }
 
 
+CCommands::CActionInfo::CActionInfo(const UINT id, const CMenuEntry* menuEntry) {
+    this->id = id;
+    this->text.LoadString(id);
+    auto index = text.Find("\n");
+    if (index >= 0) {
+        description = text.Mid(index + 1);
+        text = text.Left(index);
+    }
+    this->menuEntry = menuEntry;
+}
+
+UINT  CCommands::CActionInfo::GetID() const {
+    return id;
+}
+
+CString CCommands::CActionInfo::GetText() const {
+    return text;
+}
+
+CString CCommands::CActionInfo::GetDescription() const {
+    return description;
+}
+
+const CMenuEntry* CCommands::CActionInfo::GetMenuEntry() const {
+    return menuEntry;
+}
+
+void CCommands::CActionInfo::SetMenuEntry(const CMenuEntry* menuEntry) {
+    this->menuEntry = menuEntry;
+}
+
+bool CCommands::CActionInfo::Compare(const CCommands::CActionInfo* first, CCommands::CActionInfo* second)
+{
+    if (first == second) {
+        return 0;
+    }
+    auto menuEntry1 = first->GetMenuEntry();
+    auto menuEntry2 = second->GetMenuEntry();
+
+    if (menuEntry1 == nullptr || menuEntry2 == nullptr) {
+        return menuEntry1;
+    }
+    auto menuPositon1 = menuEntry1->GetMenuIDPathString();
+    auto menuPositon2 = menuEntry2->GetMenuIDPathString();
+    auto result = menuPositon1 < menuPositon2;
+    CString s;
+    s.Format("Compare(%s, %s)=%d", menuPositon1, menuPositon2, result);
+    SendInfoMessage(s);
+    return result;
+}
 
 
+void  CCommands::ClearActionInfos() {
 
 
-void CCommands::AnalyzeMenu (const CMenuEntry::MenuPath& menuPath, CMenu& menu) {
+    for (auto it = m_actionInfoMap.begin(); it != m_actionInfoMap.end(); it++) {
+        CString s;
+        auto actionEntry = it->second;
+        auto menuEntry = actionEntry->GetMenuEntry();
+        if (menuEntry != nullptr) {
+            delete menuEntry;
+        }
+        delete actionEntry;
 
-    CActionInfo actionInfo = {};
+    }
+}
+
+
+const CCommands::CActionInfo* CCommands::GetActionInfo(UINT id) const {
+    CCommands::CActionInfo* result = nullptr;
+    if (id > 0) {
+        auto it = m_actionInfoMap.find(id);
+        if (it != m_actionInfoMap.end()) {
+            result = it->second;
+        }
+    }
+    return result;
+}
+
+CCommands::CActionInfo* CCommands::GetMutableActionInfo(UINT id) {
+
+    CCommands::CActionInfo* result = nullptr;
+
+    assert(id > 0);
+
+    auto it = m_actionInfoMap.find(id);
+    if (it != m_actionInfoMap.end()) {
+        result = it->second;
+    }
+    else {
+        result = new CActionInfo(id, nullptr);
+        m_actionInfoMap.emplace(result->GetID(), result);
+    }
+
+    return result;
+}
+
+
+void  CCommands::PrintActionInfos() const {
+
+    ActionInfoList actionInfoList;
+
+    std::ofstream myfile;
+
+    for (auto it = m_actionInfoMap.begin(); it != m_actionInfoMap.end(); it++) {
+        CString s;
+        auto actionInfo = it->second;
+        actionInfoList.push_back(actionInfo);
+    }
+    actionInfoList.sort(CActionInfo::Compare);
+
+    myfile.open("../doc/rmt_action_infos.md");
+    myfile << "| Action | Description |Menu Path | Menu Entry | Accelerator Key | \n";
+    myfile << "|--------|-------------|----------|------------|-----------------| \n";
+    for (auto it = actionInfoList.begin(); it != actionInfoList.end(); it++) {
+        CString s;
+        auto actionInfo = (*it);
+        auto menuEntry = actionInfo->GetMenuEntry();
+        auto acceleratorKeyFormatted = menuEntry->GetAcceleatorKey();
+        if (!acceleratorKeyFormatted.IsEmpty()) {
+            acceleratorKeyFormatted = "`" + acceleratorKeyFormatted + "`";
+        }
+        s.Format("| %s | %s | %s | %s | %s |", actionInfo->GetText(), actionInfo->GetDescription(), menuEntry->GetMenuTextPathString(), menuEntry->GetPlainText(), acceleratorKeyFormatted);
+        SendInfoMessage(s);
+        myfile << s << "\n";
+    }
+
+    myfile.close();
+
+}
+
+
+void CCommands::AnalyzeMenu(const CMenuEntry::MenuPath& menuIDPath, const CMenuEntry::MenuPath& menuTextPath, CMenu& menu) {
+
 
     CString s;
-    s.Format("Anayzing level %d, menu %s: %p with %d entries", menuPath.GetSize(), CMenuEntry::GetMenuPathString(menuPath), &menu, menu.GetMenuItemCount());
+    s.Format("Anayzing level %d, menu %s: %p with %d entries", menuIDPath.GetSize(), CMenuEntry::GetMenuPathString(menuIDPath), &menu, menu.GetMenuItemCount());
     SendInfoMessage(s);
 
 
@@ -112,47 +247,58 @@ void CCommands::AnalyzeMenu (const CMenuEntry::MenuPath& menuPath, CMenu& menu) 
         posString.Format("%d", pos);
 
         CString menuItemText;
-        auto menuItemId = menu.GetMenuItemID(pos);
+        auto menuItemID = menu.GetMenuItemID(pos);
         menu.GetMenuString(pos, menuItemText, MF_BYPOSITION);
 
-        s.Format("Menu %s, Position %s: %d %s", CMenuEntry::GetMenuPathString(menuPath), posString, menuItemId, menuItemText);
-        SendInfoMessage(s);
-
-
-        /*
-        MENUITEMINFO menuItemInfo;
-        menuItemInfo = {};
-        menuItemInfo.cbSize = sizeof(MENUITEMINFO);
-        menuItemInfo.fMask = MIIM_TYPE;
-        if (menu.GetMenuItemInfo(pos, &menuItemInfo, TRUE)) {
-
-            s.Format("Position %d: Menu Item %d", pos, menuItemInfo.wID);
-            SendInfoMessage(s);
+        if (menuItemID > 0) {
+            auto menuEntry = new CMenuEntry(menuIDPath, menuTextPath, menuItemID, menuItemText);
+            auto actionInfo = GetMutableActionInfo(menuItemID);
+            actionInfo->SetMenuEntry(menuEntry);
         }
-        */
+
+        s.Format("Menu %s, Position %s: %d %s", CMenuEntry::GetMenuPathString(menuTextPath), posString, menuItemID, menuItemText);
+        SendInfoMessage(s);
 
         auto subMenu = menu.GetSubMenu(pos);
         if (subMenu != nullptr) {
-            CMenuEntry::MenuPath subMenuPath;
-            subMenuPath.Append(menuPath);
-            subMenuPath.Add(menuItemText);
+            CString menuItemIDText;
+            CMenuEntry::MenuPath subMenuIDPath;
+            menuItemIDText.Format("[%d]", pos);
+            subMenuIDPath.Append(menuIDPath);
+            subMenuIDPath.Add(menuItemIDText);
 
-            AnalyzeMenu(subMenuPath, *subMenu);
+            CMenuEntry::MenuPath subMenuTextPath;
+            subMenuTextPath.Append(menuTextPath);
+            subMenuTextPath.Add(menuItemText);
+
+            AnalyzeMenu(subMenuIDPath, subMenuTextPath, *subMenu);
         }
     }
 
 }
+
+
+CCommands::CCommands() {
+
+}
+
 void CCommands::Analyze() {
 
-    // TestASAP(app, fileName);
-    CString s;
 
-    s.LoadString(IDS_RMTAUTHOR);
-    SendInfoMessage(s);
+    ClearActionInfos();
+
+
     CMenu menu;
     if (menu.LoadMenu(IDR_MAIN_WINDOW)) {
-        CMenuEntry::MenuPath menuPath;
-        menuPath.Add("Main");
-        AnalyzeMenu(menuPath, menu);
+        CMenuEntry::MenuPath menuIDPath;
+        CMenuEntry::MenuPath menuTextPath;
+
+        menuIDPath.Add("Main");
+        AnalyzeMenu(menuIDPath, menuTextPath, menu);
     }
+
+    PrintActionInfos();
+
+    ClearActionInfos();
+
 }

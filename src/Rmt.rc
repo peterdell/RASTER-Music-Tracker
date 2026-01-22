@@ -1188,7 +1188,7 @@ BEGIN
         MENUITEM "Print Pre&view",              ID_FILE_PRINT_PREVIEW
         MENUITEM "Prin&t Setup...",             ID_FILE_PRINT_SETUP
         MENUITEM SEPARATOR
-        MENUITEM "Properties\tALT+Enter",       ID_FILE_PROPERTIES
+        MENUITEM "Properties\tAlt+Enter",       ID_FILE_PROPERTIES
         MENUITEM SEPARATOR
         MENUITEM "E&xit\tAlt+F4",               ID_WANTEXIT
     END

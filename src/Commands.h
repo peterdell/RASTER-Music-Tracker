@@ -4,20 +4,26 @@
 
 #include "StdAfx.h"
 #include <map>
+#include <list>
 
 
 class CMenuEntry {
 public:
     typedef CStringArray MenuPath;
+    typedef CString MenuPosition;
 
     static CString GetPlainText(const CString& menuText);
     static CString GetAcceleatorKey(const CString& menuText);
+
     static CString GetMenuPathString(const MenuPath& menuPath);
 
-    CMenuEntry(const MenuPath& menuPath, const UINT id, const CString& text);
+    CMenuEntry(const MenuPath& menuIdPath, const MenuPath& menuTextPath, const UINT id, const CString& text);
 
-    void GetMenuPath(MenuPath& result) const;
-    CString GetMenuPathString() const;
+    void GetMenuIDPath(MenuPath& result) const;
+    CString GetMenuIDPathString() const;
+
+    void GetMenuTextPath(MenuPath& result) const;
+    CString GetMenuTextPathString() const;
 
     INT_PTR GetMenuLevel() const;
 
@@ -30,7 +36,8 @@ public:
     CString GetAcceleatorKey() const;
 
 private:
-    MenuPath menuPath;
+    MenuPath menuIDPath;
+    MenuPath menuTextPath;
     UINT id;
     CString text;
 
@@ -40,19 +47,46 @@ class CCommands
 {
 
 public:
+    CCommands();
     void Analyze();
 
 
     class CActionInfo {
     public:
+        static bool Compare(const CActionInfo* first, CActionInfo* second);
+
+        CActionInfo(const UINT id, const CMenuEntry* menuEntry);
+
+        UINT GetID() const;
+        CString GetText() const;
+        CString GetDescription() const;
+        const CMenuEntry* GetMenuEntry() const;
+        void SetMenuEntry(const CMenuEntry* menuEntry);
+
+    private:
         UINT id;
-        CMenuEntry* menuEntry;
+        CString text;
+        CString description;
+        const CMenuEntry* menuEntry;
+
+
     };
 
-    typedef std::map<UINT, CActionInfo> ActionInfoMap;
+    typedef std::map<UINT, CActionInfo*> ActionInfoMap;
+    typedef std::list<CActionInfo*> ActionInfoList;
 
 private:
-    void AnalyzeMenu(const CMenuEntry::MenuPath& menuPath, CMenu& menu);
+
+    ActionInfoMap m_actionInfoMap;
+
+    void ClearActionInfos();
+    const CActionInfo* GetActionInfo(UINT id) const;
+    CActionInfo* GetMutableActionInfo(UINT id);
+
+    void PrintActionInfos() const;
+
+    void AnalyzeMenu(const CMenuEntry::MenuPath& menuIDPath, const CMenuEntry::MenuPath& menuTextPath, CMenu& menu);
+
 
 };
 
