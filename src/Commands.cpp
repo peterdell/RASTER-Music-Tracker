@@ -214,8 +214,8 @@ void  CCommands::PrintActionInfos() const {
     actionInfoList.sort(CActionInfo::Compare);
 
     myfile.open("../doc/rmt_action_infos.md");
-    myfile << "| Action | Description |Menu Path | Menu Entry | Accelerator Key | \n";
-    myfile << "|--------|-------------|----------|------------|-----------------| \n";
+    myfile << "| Action | Menu Path | Menu Entry | Accelerator Key | \n";
+    myfile << "|--------|-----------|------------|-----------------| \n";
     for (auto it = actionInfoList.begin(); it != actionInfoList.end(); it++) {
         CString s;
         auto actionInfo = (*it);
@@ -225,6 +225,7 @@ void  CCommands::PrintActionInfos() const {
             acceleratorKeyFormatted = "`" + acceleratorKeyFormatted + "`";
         }
 
+        auto text = actionInfo->GetText();
         auto description = actionInfo->GetDescription();
         if (!description.IsEmpty() && menuEntry != nullptr) {
             CString expected = menuEntry->GetPlainText();
@@ -233,11 +234,11 @@ void  CCommands::PrintActionInfos() const {
                 expected += " (" + acceleratorKey + ")";
             }
             if (description != expected) {
-                description += " - ERROR: Expected '" + expected + "'";
+                text+= "<br><span style=\"color:red;\">ERROR: Expected description '" + expected + "' instead of '" + description + "'</span>";
             }
         }
 
-        s.Format("| %s | %s | %s | %s | %s |", actionInfo->GetText(), description, menuEntry->GetMenuTextPathString(), menuEntry->GetPlainText(), acceleratorKeyFormatted);
+        s.Format("| %s | %s | %s | %s |", text, menuEntry->GetMenuTextPathString(), menuEntry->GetPlainText(), acceleratorKeyFormatted);
 
 
         SendInfoMessage(s);
