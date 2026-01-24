@@ -1389,6 +1389,7 @@ BEGIN
     IDR_MAIN_WINDOW         "RMT\n\nRmt\n\n\nRmt.Document\nRmt Document"
     IDS_RMT_REPOSITORY      "https://github.com/raster-atari-org/RASTER-Music-Tracker"
     ID_SONG_TOGGLE_NTSC     "Toggle NTSC/PAL"
+    ID_SONG_ESCAPE          "Escape"
 END
 
 STRINGTABLE

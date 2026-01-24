@@ -391,7 +391,7 @@ void CSong::MidiEvent(DWORD dwParam)
 					if (0) //inside jumps only through goto
 					{
 					NextLine_midi_test:
-						if (!(m_play && m_followplay)) TrackDown(g_linesafter);	//scrolls only when there is no followplay
+						if (!(m_play && m_followplay)) TrackDown(g_SkipLinesAfterNoteInsert);	//scrolls only when there is no followplay
 					Prove_midi_test:
 						//SetPlayPressedTonesTNIV(m_trackactivecol, note, m_activeinstr, vol);
 						SetPlayPressedTonesTNIV(atc, note, m_activeinstr, vol);
@@ -636,7 +636,7 @@ void CSong::MidiEvent(DWORD dwParam)
 				if (0) //inside jumps only through goto
 				{
 				NextLine_midi:
-					if (!(m_play && m_followplay)) TrackDown(g_linesafter);	//scrolls only when there is no followplay
+					if (!(m_play && m_followplay)) TrackDown(g_SkipLinesAfterNoteInsert);	//scrolls only when there is no followplay
 				Prove_midi:
 					SetPlayPressedTonesTNIV(m_trackactivecol, note, m_activeinstr, vol);
 					if ((g_prove == EditMode::JAM_STEREO_MODE || g_controlkey) && g_tracks4_8 > 4)

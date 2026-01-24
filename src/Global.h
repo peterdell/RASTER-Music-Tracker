@@ -81,7 +81,7 @@ extern int g_line_y;			    //active line coordinate, used to reference g_cursora
 extern int g_trackLinePrimaryHighlight;	//primary line highlighted every x lines
 extern int g_trackLineSecondaryHighlight;	//secondary line highlighted every x lines
 extern BOOL g_tracklinealtnumbering; //alternative way of line numbering in tracks
-extern int g_linesafter;			//number of lines to scroll after inserting a note (initializes in CSong :: Clear)
+extern int g_SkipLinesAfterNoteInsert;			//number of lines to scroll after inserting a note (initializes in CSong :: Clear)
 
 extern BOOL g_nohwsoundbuffer;	//Don't use hardware soundbuffer
 extern int g_cursoractview;		//default position, line 0

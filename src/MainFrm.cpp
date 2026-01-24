@@ -162,7 +162,7 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 
 void CMainFrame::OnSelChangedComboSkipLinesAfterNoteInsert()
 {
-	g_linesafter = m_comboSkipLinesAfterNoteInsert.GetCurSel();
+	g_SkipLinesAfterNoteInsert = m_comboSkipLinesAfterNoteInsert.GetCurSel();
 }
 
 /////////////////////////////////////////////////////////////////////////////

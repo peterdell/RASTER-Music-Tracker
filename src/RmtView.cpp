@@ -572,7 +572,7 @@ void CRmtView::ResetRMTConfig()
     g_trackLinePrimaryHighlight = 8;			// Primary line highlighted every x lines
     g_trackLineSecondaryHighlight = 4;			// Secondary line highlighted every x lines
     g_tracklinealtnumbering = 0;				// Alternative way of line numbering in tracks 
-    g_linesafter = 1;							// Number of lines to scroll after inserting a note 
+    g_SkipLinesAfterNoteInsert = 1;							// Number of lines to scroll after inserting a note 
     SetNTSC(false);								// NTSC (60Hz)
     g_nohwsoundbuffer = 0;						// Don't use hardware soundbuffer
     g_trackerDriverVersion = TrackerDriverVersion::PATCH16; // Tracker driver version
@@ -1469,8 +1469,8 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         }
     }
 
-    // TODO: Why not assign always?
-    if (g_view.debugDisplay) { g_lastKeyPressed = vk; }	//debug key reading for setting up keyboard layouts withought having to guess which key is where
+    // Debug key reading for setting up keyboard layouts withought having to guess which key is where
+    g_lastKeyPressed = vk; 
 
     switch (vk)
     {
@@ -1494,10 +1494,10 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     case VK_SUBTRACT:
         if (g_controlkey && !g_shiftkey)
         {
-            g_linesafter--;
-            if (g_linesafter < 0) { g_linesafter = 8; }
+            g_SkipLinesAfterNoteInsert--;
+            if (g_SkipLinesAfterNoteInsert < 0) { g_SkipLinesAfterNoteInsert = 8; }
             auto mf = ((CMainFrame*)AfxGetMainWnd());
-            if (mf) { mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_linesafter); }
+            if (mf) { mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_SkipLinesAfterNoteInsert); }
         }
         else
             goto AllModesDefaultKey;
@@ -1506,10 +1506,10 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     case VK_ADD:
         if (g_controlkey && !g_shiftkey)
         {
-            g_linesafter++;
-            if (g_linesafter > 8) { g_linesafter = 0; }
+            g_SkipLinesAfterNoteInsert++;
+            if (g_SkipLinesAfterNoteInsert > 8) { g_SkipLinesAfterNoteInsert = 0; }
             auto mf = ((CMainFrame*)AfxGetMainWnd());
-            if (mf) { mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_linesafter); }
+            if (mf) { mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_SkipLinesAfterNoteInsert); }
         }
         else
             goto AllModesDefaultKey;

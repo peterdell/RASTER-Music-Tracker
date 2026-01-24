@@ -2470,8 +2470,8 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         if (!control && (vk == VK_UP || vk == VK_PAGE_UP))  //GO - key up
         {
             m_trackactiveline = 0;
-            if (!g_linesafter) TrackUp(1);
-            else TrackUp(g_linesafter);
+            if (!g_SkipLinesAfterNoteInsert) TrackUp(1);
+            else TrackUp(g_SkipLinesAfterNoteInsert);
             return 1;
         }
         if (!control && (vk == VK_DOWN || vk == VK_PAGE_DOWN)) //GO - key down
@@ -2512,8 +2512,8 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         }
         else
         {
-            if (!g_linesafter) TrackUp(1);
-            else TrackUp(g_linesafter);
+            if (!g_SkipLinesAfterNoteInsert) TrackUp(1);
+            else TrackUp(g_SkipLinesAfterNoteInsert);
         }
         break;
 
@@ -2525,8 +2525,8 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         }
         else
         {
-            if (!g_linesafter) TrackDown(1, 0);
-            else TrackDown(g_linesafter, 0);	//stoponlastline = 0 => will not stop on the last line of the track
+            if (!g_SkipLinesAfterNoteInsert) TrackDown(1, 0);
+            else TrackDown(g_SkipLinesAfterNoteInsert, 0);	//stoponlastline = 0 => will not stop on the last line of the track
         }
         break;
 
@@ -2726,8 +2726,8 @@ BOOL CSong::TrackKey(int vk, int shift, int control)
         if (!control && (vk == VK_UP || vk == VK_PAGE_UP))  //GO - key up
         {
             m_trackactiveline = 0;	//always assume it went from line 0
-            if (!g_linesafter) TrackUp(1);
-            else TrackUp(g_linesafter);
+            if (!g_SkipLinesAfterNoteInsert) TrackUp(1);
+            else TrackUp(g_SkipLinesAfterNoteInsert);
             return 1;
         }
         if (!control && (vk == VK_DOWN || vk == VK_PAGE_DOWN)) //GO - key down
@@ -2771,7 +2771,7 @@ TrackKeyOk:
                 if (TrackSetNoteActualInstrVol(i))
                 {
                     SetPlayPressedTonesTNIV(m_trackactivecol, i, m_activeinstr, TrackGetVol());
-                    if (!(m_play && m_followplay)) TrackDown(g_linesafter);
+                    if (!(m_play && m_followplay)) TrackDown(g_SkipLinesAfterNoteInsert);
                 }
             }
             return 1;
@@ -2791,7 +2791,7 @@ TrackKeyOk:
                             SetPlayPressedTonesTNIV(m_trackactivecol, note, instr, vol);
                     }
                 }
-                if (!(m_play && m_followplay)) TrackDown(g_linesafter);
+                if (!(m_play && m_followplay)) TrackDown(g_SkipLinesAfterNoteInsert);
                 return 1;
             }
         break;
@@ -2825,7 +2825,7 @@ TrackKeyOk:
         if (i >= 0 && !shift && !control)
         {
             BLOCKDESELECT;
-            if (TrackSetVol(i) && !(m_play && m_followplay)) TrackDown(g_linesafter);
+            if (TrackSetVol(i) && !(m_play && m_followplay)) TrackDown(g_SkipLinesAfterNoteInsert);
             return 1;
         }
         break;
@@ -2866,8 +2866,8 @@ TrackKeyOk:
             {
                 //block selection
                 BLOCKSETBEGIN;
-                if (!g_linesafter) TrackUp(1);
-                else TrackUp(g_linesafter);
+                if (!g_SkipLinesAfterNoteInsert) TrackUp(1);
+                else TrackUp(g_SkipLinesAfterNoteInsert);
                 BLOCKSETEND;
             }
             else
@@ -2883,8 +2883,8 @@ TrackKeyOk:
                 else
                 {
                     BLOCKDESELECT;
-                    if (!g_linesafter) TrackUp(1);
-                    else TrackUp(g_linesafter);
+                    if (!g_SkipLinesAfterNoteInsert) TrackUp(1);
+                    else TrackUp(g_SkipLinesAfterNoteInsert);
                 }
         break;
 
@@ -2905,8 +2905,8 @@ TrackKeyOk:
             {
                 //block selection
                 BLOCKSETBEGIN;
-                if (!g_linesafter) TrackDown(1, 0);
-                else TrackDown(g_linesafter, 0);	//will not stop on the last line
+                if (!g_SkipLinesAfterNoteInsert) TrackDown(1, 0);
+                else TrackDown(g_SkipLinesAfterNoteInsert, 0);	//will not stop on the last line
                 BLOCKSETEND;
             }
             else
@@ -2925,8 +2925,8 @@ TrackKeyOk:
                 else
                 {
                     BLOCKDESELECT;
-                    if (!g_linesafter) TrackDown(1, 0);
-                    else TrackDown(g_linesafter, 0);	//will not stop on the last line
+                    if (!g_SkipLinesAfterNoteInsert) TrackDown(1, 0);
+                    else TrackDown(g_SkipLinesAfterNoteInsert, 0);	//will not stop on the last line
                 }
         break;
 
@@ -3348,7 +3348,7 @@ TrackKeyOk:
         BLOCKDESELECT;
         if (TrackDelNoteInstrVolSpeed(1 + 2 + 4 + 8)) //all
         {
-            if (!(m_play && m_followplay)) TrackDown(g_linesafter);
+            if (!(m_play && m_followplay)) TrackDown(g_SkipLinesAfterNoteInsert);
         }
         break;
 
@@ -3371,7 +3371,7 @@ TrackKeyOk:
         }
         if (r)
         {
-            if (!(m_play && m_followplay)) TrackDown(g_linesafter);
+            if (!(m_play && m_followplay)) TrackDown(g_SkipLinesAfterNoteInsert);
         }
     }
     break;

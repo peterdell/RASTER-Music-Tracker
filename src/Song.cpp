@@ -172,9 +172,9 @@ void CSong::ClearSong(int numOfTracks)
     m_TracksOrderChange_songlineto = SONGLEN - 1;
 
     // Number of lines after inserting a note/space
-    g_linesafter = 1; // Initial value
+    g_SkipLinesAfterNoteInsert = 1; // Initial value
     CMainFrame* mf = ((CMainFrame*)AfxGetMainWnd());
-    if (mf) mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_linesafter);
+    if (mf) mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_SkipLinesAfterNoteInsert);
 
     for (int i = 0; i < SONGLEN; i++)
     {
