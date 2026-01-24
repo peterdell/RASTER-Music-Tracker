@@ -229,7 +229,7 @@ void  CCommands::PrintActionInfos() const {
     actionInfoList.sort(CActionInfo::Compare);
 
     myfile.open("../doc/rmt_action_infos.md");
-    myfile << "| Action | Menu Path | Menu Entry | Accelerator Key | \n";
+    myfile << "| Action | Access Path | Entry | Accelerator Key | \n";
     myfile << "|--------|-----------|------------|-----------------| \n";
     for (auto it = actionInfoList.begin(); it != actionInfoList.end(); it++) {
         CString s;
@@ -255,20 +255,20 @@ void  CCommands::PrintActionInfos() const {
                 text += "<br><span style=\"color:red;\">ERROR: Expected description '" + expected + "' instead of '" + description + "'</span>";
             }
         }
-        CString menuTextPathString;
+        CString accessPath;
         if (menuEntry != nullptr) {
-             menuTextPathString = menuEntry->GetMenuTextPathString();
+            accessPath = menuEntry->GetMenuTextPathString();
             if (!actionInfo->GetToolBar().IsEmpty()) {
-                menuTextPathString += "<br>" + actionInfo->GetToolBar();
+                accessPath += "<br>" + actionInfo->GetToolBar();
             }
         }
-        CString menuPlainText;
+        CString accessText;
         if (menuEntry != nullptr) {
-            menuPlainText=menuEntry->GetPlainText();
+            accessText = menuEntry->GetPlainText();
         }
 
 
-        s.Format("| %s | %s | %s | %s |", text, menuTextPathString, menuPlainText, acceleratorKeyFormatted);
+        s.Format("| %s | %s | %s | %s |", text, accessPath, accessText, acceleratorKeyFormatted);
 
 
         SendInfoMessage(s);
@@ -372,6 +372,14 @@ void  CCommands::AnalyzeToolBar(const UINT id, const CString& name) {
     }
 }
 
+void CCommands::AnalyeAcceleratorTable(const UINT id) {
+    // https://learn.microsoft.com/en-us/windows/win32/learnwin32/accelerator-tables
+    HACCEL hAccel = LoadAccelerators(g_app.m_hInstance, MAKEINTRESOURCE(id));
+    if (hAccel) {
+        // TODO Mail sent to CycoPH hA
+    }
+}
+
 CCommands::CCommands() {
 
 }
@@ -384,6 +392,8 @@ void CCommands::Analyze() {
     AnalyzeMenu(IDR_MAIN_WINDOW, "Main", "");
 
     AnalyzeToolBar(IDR_TOOLBAR_BLOCK, "Block Toolbar");
+
+    AnalyeAcceleratorTable(IDR_MAIN_WINDOW);
 
     PrintActionInfos();
 

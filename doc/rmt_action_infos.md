@@ -1,4 +1,4 @@
-| Action | Menu Path | Menu Entry | Accelerator Key | 
+| Action | Access Path | Entry | Accelerator Key | 
 |--------|-----------|------------|-----------------| 
 |  |  | Help |  |
 | Export the module file in different formats | File | Export |  |

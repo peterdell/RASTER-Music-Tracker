@@ -95,6 +95,7 @@ private:
     void AnalyzeToolBar(const CString& namne, const CToolBar& toolBar);
     void AnalyzeToolBar(const UINT id, const CString& name);
 
+    void AnalyeAcceleratorTable(const UINT id);
 
 };
 
