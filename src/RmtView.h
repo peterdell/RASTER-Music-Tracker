@@ -62,7 +62,6 @@ public:
 private:
     void StoreMouseInformation(int px, int py, int mousebutt, short wheelzDelta);
     void SetNTSC(const bool ntsc);
-    void ToggleNTSC();
 
     // Operations
 public:
@@ -271,10 +270,10 @@ protected:
     afx_msg void OnViewStatusBar();
     afx_msg void OnUpdateViewStatusBar(CCmdUI* pCmdUI);
     afx_msg void OnSongSongchangemaximallengthoftracks();
-    //}}AFX_MSG
+    afx_msg void OnSongToggleNTSC();
     afx_msg void OnWantExit();
+    //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
-
 };
 
 #ifndef _DEBUG  // debug version in RmtView.cpp

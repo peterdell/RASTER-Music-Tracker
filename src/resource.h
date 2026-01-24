@@ -15,6 +15,7 @@
 #define IDR_RMTTYPE                     129
 #define IDS_RMT_REPOSITORY              129
 #define IDB_GFX                         130
+#define ID_SONG_TOGGLE_NTSC             130
 #define IDD_FILE_NEW                    131
 #define IDR_TOOLBAR_PLAY                133
 #define IDD_EXPSAP                      135
@@ -387,7 +388,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        174
-#define _APS_NEXT_COMMAND_VALUE         32938
+#define _APS_NEXT_COMMAND_VALUE         32940
 #define _APS_NEXT_CONTROL_VALUE         1170
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

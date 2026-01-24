@@ -230,12 +230,14 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_VIEW_STATUS_BAR, OnViewStatusBar)
     ON_UPDATE_COMMAND_UI(ID_VIEW_STATUS_BAR, OnUpdateViewStatusBar)
     ON_COMMAND(ID_SONG_SONGCHANGEMAXIMALLENGTHOFTRACKS, OnSongSongchangemaximallengthoftracks)
-    //}}AFX_MSG_MAP
     ON_COMMAND(ID_FILE_EXIT, OnWantExit)
     // Standard printing commands
     ON_COMMAND(ID_FILE_PRINT, CView::OnFilePrint)
     ON_COMMAND(ID_FILE_PRINT_DIRECT, CView::OnFilePrint)
     ON_COMMAND(ID_FILE_PRINT_PREVIEW, CView::OnFilePrintPreview)
+    ON_COMMAND(ID_SONG_TOGGLE_NTSC, OnSongToggleNTSC)
+    //}}AFX_MSG_MAP
+
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1068,7 +1070,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
         SetCursor(m_cursorGoto);
         if (mousebutt & MK_LBUTTON)
         {
-            ToggleNTSC();
+            OnSongToggleNTSC();
         }
         return 6;
     }
@@ -1452,10 +1454,6 @@ void CRmtView::SetNTSC(const bool ntsc) {
     g_Song.SetNTSC(ntsc);
 
 }
-void CRmtView::ToggleNTSC() {
-    SetNTSC(!g_Song.IsNTSC());
-
-}
 
 //TODO: cleanup and reconfigure, since testing keys in Stereo is not working correctly due to all the shortcuts being intermixed into the inputs
 void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
@@ -1594,11 +1592,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         break;
 
     case VK_F12:
-        if (g_controlkey)
-        {
-            ToggleNTSC();
-        }
-        else OnPlayfollow(); //toggle follow position
+        if (!g_controlkey) { OnPlayfollow(); } //toggle follow position
         break;
 
     case VK_MEDIA_PLAY_PAUSE:
@@ -2900,4 +2894,9 @@ void CRmtView::OnTrackCursorgotothespeedcolumn()
 void CRmtView::OnUpdateTrackCursorgotothespeedcolumn(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(g_activepart == Part::PART_TRACKS && g_Song.SongGetActiveTrack() >= 0);
+}
+
+void CRmtView::OnSongToggleNTSC()
+{
+    SetNTSC(!g_Song.IsNTSC());
 }

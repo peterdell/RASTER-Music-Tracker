@@ -1373,8 +1373,9 @@ BEGIN
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
     VK_F3,          ID_PART_INFO,           VIRTKEY, NOINVERT
     VK_F2,          ID_PART_INSTRUMENTS,    VIRTKEY, NOINVERT
-    VK_SPACE,       ID_SWITCH_MODE,         VIRTKEY, CONTROL, NOINVERT
     VK_F4,          ID_PART_SONG,           VIRTKEY, NOINVERT
+    VK_SPACE,       ID_SWITCH_MODE,         VIRTKEY, CONTROL, NOINVERT
+    VK_F12,         ID_SONG_TOGGLE_NTSC,    VIRTKEY, NOINVERT
 END
 
 
@@ -1387,6 +1388,7 @@ STRINGTABLE
 BEGIN
     IDR_MAIN_WINDOW         "RMT\n\nRmt\n\n\nRmt.Document\nRmt Document"
     IDS_RMT_REPOSITORY      "https://github.com/raster-atari-org/RASTER-Music-Tracker"
+    ID_SONG_TOGGLE_NTSC     "Toggle NTSC/PAL"
 END
 
 STRINGTABLE
