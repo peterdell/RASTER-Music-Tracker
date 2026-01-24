@@ -1706,16 +1706,6 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             goto AllModesDefaultKey;
         break;
 
-    case 82:	//VK_R
-        if (g_controlkey && !g_shiftkey) //CTRL+R, or do nothing when SHIFT is also held, this deliberately makes it less likely to happen by accident and conflict with every other commands
-        {
-            //g_Song.Stop();
-            g_Song.FileReload();	//turns out this function handles the rest already, so jump right to it instead
-        }
-        else
-            goto AllModesDefaultKey;
-        break;
-
     default:
     AllModesDefaultKey:
         BOOL CAPSLOCK = GetKeyState(20);	//VK_CAPS_LOCK
@@ -1809,20 +1799,19 @@ KeyDownNoUndoCheckPoint:
 void CRmtView::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
     //TODO: Add support for ALT key for the "is held" flag, currently it does not work for some reason
-    if (nChar == VK_SHIFT)
-    {
+    switch (nChar) {
+    case VK_SHIFT:
         g_shiftkey = FALSE;
+        break;
+
+    case VK_CONTROL:
+        g_controlkey = FALSE;
+        break;
+
+    case  VK_LMENU:
+        g_altkey = FALSE;
+        break;
     }
-    else
-        if (nChar == VK_CONTROL)
-        {
-            g_controlkey = FALSE;
-        }
-        else
-            if (nChar == VK_LMENU)
-            {
-                g_altkey = FALSE;
-            }
     CView::OnKeyUp(nChar, nRepCnt, nFlags);
 }
 
