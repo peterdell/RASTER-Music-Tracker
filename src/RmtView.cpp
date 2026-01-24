@@ -1706,37 +1706,6 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             goto AllModesDefaultKey;
         break;
 
-    case 83:	//VK_S
-        // CTRL+S, or do nothing when SHIFT is also held,
-        // This deliberately makes it less likely to happen by accident and conflict with every other commands
-        // TODO: But Shift+Ctrl+S for "Save As..." is Windwos standard (and mentioend in the menu already)
-        if (g_controlkey && !g_shiftkey)
-        {
-            //g_Song.Stop();
-            SetStatusBarText("Saving...");
-            auto filename = g_Song.GetFilename();
-            if (g_keyboard_askwhencontrol_s
-                && (!filename.IsEmpty() || g_Song.GetIOType() != SongIOType::NONE))
-            {
-                //if a question is asked and if a file already exists
-                //(=> there will be a "Save as ..." dialog)
-                CString s;
-                s.Format("Do you want to save song file '%s'?\nIs it okay to overwrite?", filename);
-                int r = MessageBox(s, "Save song", MB_YESNOCANCEL | MB_ICONQUESTION);
-                if (r == IDNO) { OnFileSaveAs(); goto end_save_control_s; }
-                if (r != IDYES) goto end_save_control_s;
-            }
-            Sleep(128);
-            OnFileSave();
-            Sleep(128);
-
-        end_save_control_s:
-            ClearStatusBar();
-        }
-        else
-            goto AllModesDefaultKey;
-        break;
-
     case 82:	//VK_R
         if (g_controlkey && !g_shiftkey) //CTRL+R, or do nothing when SHIFT is also held, this deliberately makes it less likely to happen by accident and conflict with every other commands
         {
@@ -1874,7 +1843,29 @@ void CRmtView::OnUpdateFileReopen(CCmdUI* pCmdUI)
 
 void CRmtView::OnFileSave()
 {
+    //g_Song.Stop();
+    auto filename = g_Song.GetFilename();
+    if (g_keyboard_askwhencontrol_s
+        && (!filename.IsEmpty() || g_Song.GetIOType() != SongIOType::NONE))
+    {
+        // If a question is asked and if a file already exists
+        // (=> there will be a "Save as ..." dialog)
+        CString s;
+        s.Format("Do you want to save song file '%s'?\nIs it okay to overwrite?", filename);
+        int r = MessageBox(s, "Save song", MB_YESNOCANCEL | MB_ICONQUESTION);
+        if (r == IDNO) {
+            OnFileSaveAs();
+            return;
+        }
+
+        if (r != IDYES) {
+            return;
+        }
+
+    }
+    Sleep(128);
     g_Song.FileSave();
+    Sleep(128);
 }
 
 void CRmtView::OnFileSaveAs()
