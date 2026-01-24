@@ -356,8 +356,6 @@
 #define ID_SONG_MAKETRACKSDUPLICATE     32892
 #define ID_PLAY_FROM_BOOKMARK           32894
 #define ID_FILE_REOPEN                  32895
-#define ID_UNDO_UNDO                    32896
-#define ID_UNDO_REDO                    32897
 #define ID_EDIT_CLEAR_UNDO_REDO_HISTORY 32898
 #define ID_WANTEXIT                     32899
 #define ID_FILE_EXIT                    32899
@@ -388,7 +386,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        174
-#define _APS_NEXT_COMMAND_VALUE         32927
+#define _APS_NEXT_COMMAND_VALUE         32930
 #define _APS_NEXT_CONTROL_VALUE         1170
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

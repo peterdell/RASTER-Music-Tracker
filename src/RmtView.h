@@ -250,10 +250,10 @@ protected:
     afx_msg void OnUpdatePlay0(CCmdUI* pCmdUI);
     afx_msg void OnFileReopen();
     afx_msg void OnUpdateFileReopen(CCmdUI* pCmdUI);
-    afx_msg void OnUndoUndo();
-    afx_msg void OnUpdateUndoUndo(CCmdUI* pCmdUI);
-    afx_msg void OnUndoRedo();
-    afx_msg void OnUpdateUndoRedo(CCmdUI* pCmdUI);
+    afx_msg void OnEditUndo();
+    afx_msg void OnUpdateEditUndo(CCmdUI* pCmdUI);
+    afx_msg void OnEditRedo();
+    afx_msg void OnUpdateEditRedo(CCmdUI* pCmdUI);
     afx_msg void OnUndoClearundoredo();
     afx_msg void OnUpdateUndoClearundoredo(CCmdUI* pCmdUI);
     afx_msg void OnInstrumentPastespecialInsertvolenvsandenvparstocurpos();

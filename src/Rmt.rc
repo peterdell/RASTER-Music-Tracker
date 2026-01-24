@@ -1365,10 +1365,12 @@ END
 
 IDR_MAIN_WINDOW ACCELERATORS
 BEGIN
+    "W",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
     "L",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
     "R",            ID_FILE_REOPEN,         VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
-    "W",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
+    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
+    "Y",            ID_EDIT_REDO,           VIRTKEY, CONTROL, NOINVERT
 END
 
 

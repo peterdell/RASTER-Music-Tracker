@@ -209,10 +209,10 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_PLAY_FROM_BOOKMARK, OnUpdatePlay0)
     ON_COMMAND(ID_FILE_REOPEN, OnFileReopen)
     ON_UPDATE_COMMAND_UI(ID_FILE_REOPEN, OnUpdateFileReopen)
-    ON_COMMAND(ID_UNDO_UNDO, OnUndoUndo)
-    ON_UPDATE_COMMAND_UI(ID_UNDO_UNDO, OnUpdateUndoUndo)
-    ON_COMMAND(ID_UNDO_REDO, OnUndoRedo)
-    ON_UPDATE_COMMAND_UI(ID_UNDO_REDO, OnUpdateUndoRedo)
+    ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_UNDO, OnUpdateEditUndo)
+    ON_COMMAND(ID_EDIT_REDO, OnEditRedo)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_REDO, OnUpdateEditRedo)
     ON_COMMAND(ID_EDIT_CLEAR_UNDO_REDO_HISTORY, OnUndoClearundoredo)
     ON_UPDATE_COMMAND_UI(ID_EDIT_CLEAR_UNDO_REDO_HISTORY, OnUpdateUndoClearundoredo)
     ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_INSERTVOLUMEENVSANDENVELOPEPARSTOCURSORPOSITION, OnInstrumentPastespecialInsertvolenvsandenvparstocurpos)
@@ -1476,27 +1476,6 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
     switch (vk)
     {
-    case 0x5A: //Z
-        if (g_controlkey && !g_shiftkey) //or do nothing when SHIFT is also held, this deliberately makes it less likely to happen by accident and conflict with every other commands
-        {
-            if (g_Song.Undo()) //CTRL+Z
-            {
-                return;
-            }
-        }
-        goto AllModesDefaultKey;
-        break;
-
-    case 0x59: //Y
-        if (g_controlkey && !g_shiftkey) //or do nothing when SHIFT is also held, this deliberately makes it less likely to happen by accident and conflict with every other commands
-        {
-            if (g_Song.Redo()) //CTRL+Y
-            {
-                return;
-            }
-        }
-        goto AllModesDefaultKey;
-        break;
 
     case VK_SPACE: //SPACEBAR
         if (g_controlkey)
@@ -2869,12 +2848,12 @@ BOOL CRmtView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
     return CView::OnMouseWheel(nFlags, zDelta, pt);
 }
 
-void CRmtView::OnUndoUndo()
+void CRmtView::OnEditUndo()
 {
     g_Song.Undo();
 }
 
-void CRmtView::OnUpdateUndoUndo(CCmdUI* pCmdUI)
+void CRmtView::OnUpdateEditUndo(CCmdUI* pCmdUI)
 {
     int u = g_Song.UndoGetUndoSteps();
     if (u > 0)
@@ -2891,12 +2870,12 @@ void CRmtView::OnUpdateUndoUndo(CCmdUI* pCmdUI)
     }
 }
 
-void CRmtView::OnUndoRedo()
+void CRmtView::OnEditRedo()
 {
     g_Song.Redo();
 }
 
-void CRmtView::OnUpdateUndoRedo(CCmdUI* pCmdUI)
+void CRmtView::OnUpdateEditRedo(CCmdUI* pCmdUI)
 {
     int u = g_Song.UndoGetRedoSteps();
     if (u > 0)
