@@ -286,6 +286,7 @@
 #define ID_PART_INFO                    32808
 #define ID_PART_SONG                    32809
 #define ID_PROVEMODE                    32810
+#define ID_SWITCH_MODE                  32810
 #define ID_VIEW_VOLUMEANALYZER          32811
 #define ID_VIEW_INSTRUMENTACTIVEHELP    32812
 #define ID_VIEW_BLOCKTOOLBAR            32813
@@ -386,7 +387,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        174
-#define _APS_NEXT_COMMAND_VALUE         32930
+#define _APS_NEXT_COMMAND_VALUE         32936
 #define _APS_NEXT_CONTROL_VALUE         1170
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

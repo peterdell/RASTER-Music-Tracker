@@ -135,8 +135,8 @@ protected:
     afx_msg void OnUpdatePlay1(CCmdUI* pCmdUI);
     afx_msg void OnUpdatePlay2(CCmdUI* pCmdUI);
     afx_msg void OnUpdatePlay3(CCmdUI* pCmdUI);
-    afx_msg void OnProvemode();
-    afx_msg void OnUpdateProvemode(CCmdUI* pCmdUI);
+    afx_msg void OnSwitchMode();
+    afx_msg void OnUpdateSwitchMode(CCmdUI* pCmdUI);
     afx_msg void OnTimer(UINT_PTR nIDEvent);
     afx_msg void OnDestroy();
     afx_msg void OnViewVolumeanalyzer();

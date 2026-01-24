@@ -96,8 +96,8 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_PLAY_FROM_START, OnUpdatePlay1)
     ON_UPDATE_COMMAND_UI(ID_PLAY_FROM_CURRENT_POSITION, OnUpdatePlay2)
     ON_UPDATE_COMMAND_UI(ID_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnUpdatePlay3)
-    ON_COMMAND(ID_PROVEMODE, OnProvemode)
-    ON_UPDATE_COMMAND_UI(ID_PROVEMODE, OnUpdateProvemode)
+    ON_COMMAND(ID_SWITCH_MODE, OnSwitchMode)
+    ON_UPDATE_COMMAND_UI(ID_SWITCH_MODE, OnUpdateSwitchMode)
     ON_WM_TIMER()
     ON_WM_DESTROY()
     ON_COMMAND(ID_VIEW_VOLUMEANALYZER, OnViewVolumeanalyzer)
@@ -1477,15 +1477,6 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     switch (vk)
     {
 
-    case VK_SPACE: //SPACEBAR
-        if (g_controlkey)
-        {
-            g_Undo.Separator(); //CTRL+SPACEBAR
-            OnProvemode();
-        }
-        goto AllModesDefaultKey;
-        break;
-
     case VK_ESCAPE:
         // Stop the music
         g_Song.Stop();
@@ -1542,18 +1533,6 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         if (g_controlkey) goto AllModesDefaultKey;	//would conflict with transposition hotkeys otherwise
         g_Undo.Separator();
         OnPartTracks();
-        break;
-
-    case VK_F2:
-        if (g_controlkey) goto AllModesDefaultKey;	//would conflict with transposition hotkeys otherwise
-        g_Undo.Separator();
-        OnPartInstruments();
-        break;
-
-    case VK_F3:
-        if (g_controlkey) goto AllModesDefaultKey;	//would conflict with transposition hotkeys otherwise
-        g_Undo.Separator();
-        OnPartInfo();
         break;
 
     case VK_F4:
@@ -2114,12 +2093,14 @@ void CRmtView::OnPartTracks()
 
 void CRmtView::OnPartInstruments()
 {
+    g_Undo.Separator();
     g_activepart = g_active_ti = Part::PART_INSTRUMENTS;	//instrs
     g_TrackClipboard.BlockDeselect();
 }
 
 void CRmtView::OnPartInfo()
 {
+    g_Undo.Separator();
     g_activepart = Part::PART_INFO;		//info
     g_TrackClipboard.BlockDeselect();
 }
@@ -2192,7 +2173,7 @@ void CRmtView::OnUpdateEmSong(CCmdUI* pCmdUI)
 /// 1 = Mono jam
 /// 2 = Stereo jam
 /// </summary>
-void CRmtView::OnProvemode()
+void CRmtView::OnSwitchMode()
 {
     if (g_prove == EditMode::EDIT_MODE) g_prove = EditMode::JAM_MONO_MODE;
     else if (g_prove >= EditMode::EDIT_AND_JAM_MODES) g_prove = EditMode::EDIT_MODE;		//disable the special test modes immediately
@@ -2205,7 +2186,7 @@ void CRmtView::OnProvemode()
     }
 }
 
-void CRmtView::OnUpdateProvemode(CCmdUI* pCmdUI)
+void CRmtView::OnUpdateSwitchMode(CCmdUI* pCmdUI)
 {
     int ch = (g_prove > EditMode::EDIT_MODE) ? 1 : 0;
     pCmdUI->SetCheck(ch);

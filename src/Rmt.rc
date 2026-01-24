@@ -1365,12 +1365,15 @@ END
 
 IDR_MAIN_WINDOW ACCELERATORS
 BEGIN
+    "Y",            ID_EDIT_REDO,           VIRTKEY, CONTROL, NOINVERT
+    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
     "W",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
     "L",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
     "R",            ID_FILE_REOPEN,         VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
-    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
-    "Y",            ID_EDIT_REDO,           VIRTKEY, CONTROL, NOINVERT
+    VK_F2,          ID_PART_INSTRUMENTS,    VIRTKEY, NOINVERT
+    VK_SPACE,       ID_SWITCH_MODE,         VIRTKEY, CONTROL, NOINVERT
+    VK_F3,          ID_PART_INFO,           VIRTKEY, NOINVERT
 END
 
 
@@ -1479,7 +1482,7 @@ BEGIN
     ID_PART_INSTRUMENTS     "Switch to instrument edit view\nEdit Instruments (F2)"
     ID_PART_INFO            "Move cursor to info edit area\nEdit Info (F3)"
     ID_PART_SONG            "Move cursor to song edit area\nEdit Song (F4)"
-    ID_PROVEMODE            "Switch between ""Edit"" mode and ""Jam"" modes\nSwitch between ""Edit"" mode and ""Jam"" modes (Ctrl+SPACE)"
+    ID_SWITCH_MODE          "Switch between ""Edit"" mode and ""Jam"" modes\nSwitch between ""Edit"" mode and ""Jam"" modes (Ctrl+SPACE)"
     ID_BLOCK_TRANSPOSE_NOTES_UP 
                             "Transpose the notes one semitone up\nTranspose the Notes One Semitone Up (Ctrl+F2)"
     ID_BLOCK_TRANSPOSE_NOTES_DOWN 
