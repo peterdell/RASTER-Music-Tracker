@@ -1695,17 +1695,6 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             goto AllModesDefaultKey;
         break;
 
-    case 87: //VK_W
-        if (g_controlkey && !g_shiftkey) //CTRL+W, or do nothing when SHIFT is also held, this deliberately makes it less likely to happen by accident and conflict with every other commands
-        {
-            //g_Song.Stop();
-            int r = MessageBox("Would you like to create a new song?", "Create new song", MB_YESNOCANCEL | MB_ICONQUESTION);
-            if (r == IDYES) g_Song.FileNew();
-        }
-        else
-            goto AllModesDefaultKey;
-        break;
-
     default:
     AllModesDefaultKey:
         BOOL CAPSLOCK = GetKeyState(20);	//VK_CAPS_LOCK
@@ -1864,7 +1853,10 @@ void CRmtView::OnFileSaveAs()
 
 void CRmtView::OnFileNew()
 {
-    g_Song.FileNew();
+    int r = MessageBox("Would you like to create a new song?", "Create new song", MB_YESNOCANCEL | MB_ICONQUESTION);
+    if (r == IDYES) {
+        g_Song.FileNew();
+    }
 }
 
 void CRmtView::OnFileImport()
