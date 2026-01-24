@@ -63,11 +63,15 @@ public:
         const CMenuEntry* GetMenuEntry() const;
         void SetMenuEntry(const CMenuEntry* menuEntry);
 
+        CString GetToolBar() const;
+        void SetToolBar(const CString& toolBar);
+
     private:
         UINT id;
         CString text;
         CString description;
         const CMenuEntry* menuEntry;
+        CString toolBar;
 
 
     };
@@ -85,7 +89,11 @@ private:
 
     void PrintActionInfos() const;
 
-    void AnalyzeMenu(const CMenuEntry::MenuPath& menuIDPath, const CMenuEntry::MenuPath& menuTextPath, CMenu& menu);
+    void AnalyzeMenu(const CMenuEntry::MenuPath& menuIDPath, const CMenuEntry::MenuPath& menuTextPath, const CMenu& menu);
+    void AnalyzeMenu(const UINT id, const CString& menuID, const CString& menuText);
+
+    void AnalyzeToolBar(const CString& namne, const CToolBar& toolBar);
+    void AnalyzeToolBar(const UINT id, const CString& name);
 
 
 };

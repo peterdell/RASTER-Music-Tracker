@@ -54,6 +54,8 @@
 #define IDD_TUNING                      167
 #define IDD_EXPORT_RMTPLAYER_ASM        168
 #define IDD_FILE_PROPRTIES              169
+#define IDR_ACCELERATOR1                173
+#define IDA_MAIN                        173
 #define IDC_MAXTRACKLEN                 1002
 #define IDC_COMBOTYPE                   1003
 #define IDC_RMTVERSION                  1004
@@ -279,23 +281,23 @@
 #define ID_BUTTON32803                  32803
 #define ID_EDIT_SONG                    32804
 #define ID_EDIT_INFO                    32805
-#define ID_PART_TRACKS                    32806
-#define ID_PART_INSTRUMENTS               32807
-#define ID_PART_INFO                      32808
-#define ID_PART_SONG                      32809
+#define ID_PART_TRACKS                  32806
+#define ID_PART_INSTRUMENTS             32807
+#define ID_PART_INFO                    32808
+#define ID_PART_SONG                    32809
 #define ID_PROVEMODE                    32810
 #define ID_VIEW_VOLUMEANALYZER          32811
 #define ID_VIEW_INSTRUMENTACTIVEHELP    32812
 #define ID_VIEW_BLOCKTOOLBAR            32813
-#define ID_BLOCK_TRANSPOSE_NOTES_UP                 32814
-#define ID_BLOCK_TRANSPOSE_NOTES_DOWN               32815
-#define ID_BLOCK_INCREASE_VOLUME               32816
-#define ID_BLOCK_DECREASE_VOLUME             32817
-#define ID_BLOCK_USE_PREVIOUS_INSTRUMENT              32818
-#define ID_BLOCK_USE_NEXT_INSTRUMENT             32819
-#define ID_BLOCK_PLAY_AND_LOOP                   32820
-#define ID_BLOCK_TOGGLE_MODIFICATION_MODE               32821
-#define ID_BLOCK_RESTORE_FROM_BACKUP                 32822
+#define ID_BLOCK_TRANSPOSE_NOTES_UP     32814
+#define ID_BLOCK_TRANSPOSE_NOTES_DOWN   32815
+#define ID_BLOCK_INCREASE_VOLUME        32816
+#define ID_BLOCK_DECREASE_VOLUME        32817
+#define ID_BLOCK_USE_PREVIOUS_INSTRUMENT 32818
+#define ID_BLOCK_USE_NEXT_INSTRUMENT    32819
+#define ID_BLOCK_PLAY_AND_LOOP          32820
+#define ID_BLOCK_TOGGLE_MODIFICATION_MODE 32821
+#define ID_BLOCK_RESTORE_FROM_BACKUP    32822
 #define ID_CHAN1                        32823
 #define ID_CHAN2                        32824
 #define ID_CHAN3                        32825
@@ -313,7 +315,7 @@
 #define ID_BLOCK_CUT                    32845
 #define ID_BLOCK_SELECTALL              32847
 #define ID_BLOCK_EXCHANGE               32848
-#define ID_BLOCK_APPLY_EFFECTS                 32849
+#define ID_BLOCK_APPLY_EFFECTS          32849
 #define ID_TRACK_ALLTRACKSCLEANUP       32850
 #define ID_INSTR_ALLINSTRUMENTSCLEANUP  32851
 #define ID_SONG_INSERTNEWEMPTYLINE      32852
@@ -350,9 +352,9 @@
 #define ID_TRACK_LOAD                   32888
 #define ID_TRACK_SAVE                   32889
 #define ID_TRACK_CLEARALLDUPLICATEDTRACKS 32890
-#define ID_TRACK_SKIP_LINES_AFTER_NOTE_COMBOBOX                 32891
+#define ID_TRACK_SKIP_LINES_AFTER_NOTE_COMBOBOX 32891
 #define ID_SONG_MAKETRACKSDUPLICATE     32892
-#define ID_PLAY_FROM_BOOKMARK                        32894
+#define ID_PLAY_FROM_BOOKMARK           32894
 #define ID_FILE_REOPEN                  32895
 #define ID_UNDO_UNDO                    32896
 #define ID_UNDO_REDO                    32897
@@ -365,17 +367,13 @@
 #define ID_INSTRUMENT_PASTESPECIAL_INSERTVOLUMEENVSANDENVELOPEPARSTOCURSORPOSITION 32903
 #define ID_TRACK_CURSORGOTOTHESPEEDCOLUMN 32904
 #define ID_SONG_SONGCHANGEMAXIMALLENGTHOFTRACKS 32905
-#define ID_Menu                         32906
 #define ID_HELP_ONLINEHELP              32908
 #define ID_HELP_HELP                    32909
 #define ID_HELP_HELP_TOPICS             32910
 #define ID_HELP_ABOUT_APP               32911
 #define ID_HELP_ONLINE_HELP             32912
 #define ID_HELP_ABOUT                   32913
-#define ID_Menu32914                    32914
-#define ID_TOOLS_OPEN_ASAP_FILE                    32915
 #define ID_TOOLS_OPEN_ASAP_FILE         32915
-#define ID_TOOLS_OPEN_ASMA               32916
 #define ID_TOOLS_OPEN_ASMA              32916
 #define ID_SONG_SONGPROPERTIES          32917
 #define ID_FILE_PROPERTIES              32918
@@ -389,8 +387,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        173
-#define _APS_NEXT_COMMAND_VALUE         32919
+#define _APS_NEXT_RESOURCE_VALUE        174
+#define _APS_NEXT_COMMAND_VALUE         32923
 #define _APS_NEXT_CONTROL_VALUE         1170
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

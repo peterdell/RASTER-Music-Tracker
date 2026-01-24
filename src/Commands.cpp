@@ -1,9 +1,13 @@
 #include "Commands.h"
 #include "GuiHelpers.h"
 
+#include "Rmt.h"
 #include "resource.h"
 #include <iostream>
 #include <fstream>
+
+extern CRmtApp g_app;
+
 
 CMenuEntry::CMenuEntry(const MenuPath& menuIDPath, const MenuPath& menuTextPath, const UINT id, const CString& text) {
     this->menuIDPath.Append(menuIDPath);
@@ -133,6 +137,17 @@ void CCommands::CActionInfo::SetMenuEntry(const CMenuEntry* menuEntry) {
     this->menuEntry = menuEntry;
 }
 
+
+CString CCommands::CActionInfo::GetToolBar() const {
+    return toolBar;
+}
+
+void CCommands::CActionInfo::SetToolBar(const CString& toolBar) {
+    this->toolBar = toolBar;
+}
+
+
+
 bool CCommands::CActionInfo::Compare(const CCommands::CActionInfo* first, CCommands::CActionInfo* second)
 {
     if (first == second) {
@@ -220,9 +235,12 @@ void  CCommands::PrintActionInfos() const {
         CString s;
         auto actionInfo = (*it);
         auto menuEntry = actionInfo->GetMenuEntry();
-        auto acceleratorKeyFormatted = menuEntry->GetAcceleatorKey();
-        if (!acceleratorKeyFormatted.IsEmpty()) {
-            acceleratorKeyFormatted = "`" + acceleratorKeyFormatted + "`";
+        CString acceleratorKeyFormatted;
+        if (menuEntry != nullptr) {
+            auto acceleratorKeyFormatted = menuEntry->GetAcceleatorKey();
+            if (!acceleratorKeyFormatted.IsEmpty()) {
+                acceleratorKeyFormatted = "`" + acceleratorKeyFormatted + "`";
+            }
         }
 
         auto text = actionInfo->GetText();
@@ -234,11 +252,23 @@ void  CCommands::PrintActionInfos() const {
                 expected += " (" + acceleratorKey + ")";
             }
             if (description != expected) {
-                text+= "<br><span style=\"color:red;\">ERROR: Expected description '" + expected + "' instead of '" + description + "'</span>";
+                text += "<br><span style=\"color:red;\">ERROR: Expected description '" + expected + "' instead of '" + description + "'</span>";
             }
         }
+        CString menuTextPathString;
+        if (menuEntry != nullptr) {
+             menuTextPathString = menuEntry->GetMenuTextPathString();
+            if (!actionInfo->GetToolBar().IsEmpty()) {
+                menuTextPathString += "<br>" + actionInfo->GetToolBar();
+            }
+        }
+        CString menuPlainText;
+        if (menuEntry != nullptr) {
+            menuPlainText=menuEntry->GetPlainText();
+        }
 
-        s.Format("| %s | %s | %s | %s |", text, menuEntry->GetMenuTextPathString(), menuEntry->GetPlainText(), acceleratorKeyFormatted);
+
+        s.Format("| %s | %s | %s | %s |", text, menuTextPathString, menuPlainText, acceleratorKeyFormatted);
 
 
         SendInfoMessage(s);
@@ -250,7 +280,8 @@ void  CCommands::PrintActionInfos() const {
 }
 
 
-void CCommands::AnalyzeMenu(const CMenuEntry::MenuPath& menuIDPath, const CMenuEntry::MenuPath& menuTextPath, CMenu& menu) {
+
+void CCommands::AnalyzeMenu(const CMenuEntry::MenuPath& menuIDPath, const CMenuEntry::MenuPath& menuTextPath, const CMenu& menu) {
 
 
     for (int pos = 0; pos < menu.GetMenuItemCount(); pos++) {
@@ -285,6 +316,61 @@ void CCommands::AnalyzeMenu(const CMenuEntry::MenuPath& menuIDPath, const CMenuE
 
 }
 
+void  CCommands::AnalyzeMenu(const UINT id, const CString& menuID, const CString& menuText) {
+    CMenu menu;
+    if (menu.LoadMenu(id)) {
+        CMenuEntry::MenuPath menuIDPath;
+        CMenuEntry::MenuPath menuTextPath;
+
+        if (!menuID.IsEmpty()) {
+            menuIDPath.Add(menuID);
+        }
+        if (!menuText.IsEmpty()) {
+            menuTextPath.Add(menuText);
+        }
+        AnalyzeMenu(menuIDPath, menuTextPath, menu);
+
+    }
+    else {
+        auto lastError = GetLastError();
+        CString s;
+        s.Format("LoadMenu(%d) failed with error code %d", id, lastError);
+        SendErrorMessage(s);
+    }
+
+}
+
+void CCommands::AnalyzeToolBar(const CString& name, const CToolBar& toolBar) {
+
+
+    for (int pos = 0; pos < toolBar.GetCount(); pos++) {
+
+        CString menuItemText;
+        auto itemID = toolBar.GetItemID(pos);
+
+        if (itemID > 0) {
+            auto actionInfo = GetMutableActionInfo(itemID);
+            actionInfo->SetToolBar(name);
+        }
+
+    }
+
+}
+
+
+void  CCommands::AnalyzeToolBar(const UINT id, const CString& name) {
+    CToolBar toolBar;
+    toolBar.Create(g_app.GetMainWnd());
+    if (toolBar.LoadToolBar(id)) {
+        AnalyzeToolBar(name, toolBar);
+    }
+    else {
+        auto lastError = GetLastError();
+        CString s;
+        s.Format("LoadToolBar(%d) failed with error code %d", id, lastError);
+        SendErrorMessage(s);
+    }
+}
 
 CCommands::CCommands() {
 
@@ -295,15 +381,9 @@ void CCommands::Analyze() {
 
     ClearActionInfos();
 
+    AnalyzeMenu(IDR_MAIN_WINDOW, "Main", "");
 
-    CMenu menu;
-    if (menu.LoadMenu(IDR_MAIN_WINDOW)) {
-        CMenuEntry::MenuPath menuIDPath;
-        CMenuEntry::MenuPath menuTextPath;
-
-        menuIDPath.Add("Main");
-        AnalyzeMenu(menuIDPath, menuTextPath, menu);
-    }
+    AnalyzeToolBar(IDR_TOOLBAR_BLOCK, "Block Toolbar");
 
     PrintActionInfos();
 

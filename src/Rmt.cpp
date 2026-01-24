@@ -134,9 +134,6 @@ BOOL CRmtApp::InitInstance()
     CRmtCommandLineInfo cmdInfo;
     ParseCommandLine(cmdInfo);
 
-    CCommands commands;
-    commands.Analyze();
-
     if (cmdInfo.IsTestFileSpecified()) {
         CRmtTest test;
         test.RunFor(*this, cmdInfo.GetTestFilePath());
@@ -159,6 +156,10 @@ BOOL CRmtApp::InitInstance()
     // Initialize the random number based on the current time.
     srand((unsigned int)time(NULL));
 
+#ifdef DEBUG
+    CCommands commands;
+    commands.Analyze();
+#endif
 
     // Dispatch additional interactive commands specified on the command line.
     switch (cmdInfo.m_nShellCommand) {
