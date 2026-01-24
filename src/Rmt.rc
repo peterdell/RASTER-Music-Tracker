@@ -1363,9 +1363,9 @@ END
 // Accelerator
 //
 
-IDA_MAIN ACCELERATORS
+IDR_MAIN_WINDOW ACCELERATORS
 BEGIN
-    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
+    "L",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
 END
 

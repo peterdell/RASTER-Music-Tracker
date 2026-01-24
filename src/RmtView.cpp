@@ -1695,17 +1695,6 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             goto AllModesDefaultKey;
         break;
 
-    case 76:	//VK_L
-        if (g_controlkey && !g_shiftkey) //CTRL+L, or do nothing when SHIFT is also held, this deliberately makes it less likely to happen by accident and conflict with every other commands
-        {
-            SetStatusBarText("Load...");
-            OnFileOpen();
-            ClearStatusBar();
-        }
-        else
-            goto AllModesDefaultKey;
-        break;
-
     case 87: //VK_W
         if (g_controlkey && !g_shiftkey) //CTRL+W, or do nothing when SHIFT is also held, this deliberately makes it less likely to happen by accident and conflict with every other commands
         {
