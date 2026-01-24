@@ -131,13 +131,13 @@ BEGIN
     SEPARATOR
     BUTTON      ID_HELP_ABOUT
     SEPARATOR
-    BUTTON      ID_PLAY_FROM_BOOKMARK
-    BUTTON      ID_PLAY_FROM_START
-    BUTTON      ID_PLAY_FROM_CURRENT_POSITION
-    BUTTON      ID_PLAY_FROM_CURRENT_POSITION_AND_LOOP
-    BUTTON      ID_PLAY_STOP
+    BUTTON      ID_SONG_PLAY_FROM_BOOKMARK
+    BUTTON      ID_SONG_PLAY_FROM_START
+    BUTTON      ID_SONG_PLAY_FROM_CURRENT_POSITION
+    BUTTON      ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP
+    BUTTON      ID_SONG_STOP
     SEPARATOR
-    BUTTON      ID_PLAY_FOLLOW
+    BUTTON      ID_SONG_PLAY_FOLLOW
     SEPARATOR
     BUTTON      ID_PART_TRACKS
     BUTTON      ID_PART_INSTRUMENTS
@@ -1374,8 +1374,9 @@ BEGIN
     VK_F3,          ID_PART_INFO,           VIRTKEY, NOINVERT
     VK_F2,          ID_PART_INSTRUMENTS,    VIRTKEY, NOINVERT
     VK_F4,          ID_PART_SONG,           VIRTKEY, NOINVERT
-    VK_SPACE,       ID_SWITCH_MODE,         VIRTKEY, CONTROL, NOINVERT
     VK_F12,         ID_SONG_TOGGLE_NTSC,    VIRTKEY, NOINVERT
+    VK_SPACE,       ID_SWITCH_MODE,         VIRTKEY, CONTROL, NOINVERT
+    VK_ESCAPE,      ID_SONG_STOP,           VIRTKEY, NOINVERT
 END
 
 
@@ -1413,7 +1414,8 @@ STRINGTABLE
 BEGIN
     ID_TRACK_SKIP_LINES_AFTER_NOTE_COMBOBOX 
                             "Insert note spacing\nInsert note spacing"
-    ID_PLAY_FROM_BOOKMARK   "Play song from bookmark position\nPlay from bookmark (Shift+F7)"
+    ID_SONG_PLAY_FROM_BOOKMARK 
+                            "Play song from bookmark position\nPlay from bookmark (Shift+F7)"
     ID_FILE_REOPEN          "Discard current module file changes and reopen the last saved version\nReopen (Ctrl+R)"
 END
 
@@ -1468,12 +1470,13 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_PLAY_FOLLOW          "Toggle the follow mode\nToggle Follow Mode (F12)"
-    ID_PLAY_FROM_START      "Play song from start position\nPlay From Start (F5)"
-    ID_PLAY_FROM_CURRENT_POSITION "Play song from current position\nPlay (F7)"
-    ID_PLAY_FROM_CURRENT_POSITION_AND_LOOP 
+    ID_SONG_PLAY_FOLLOW     "Toggle the follow mode\nToggle Follow Mode (F12)"
+    ID_SONG_PLAY_FROM_START "Play song from start position\nPlay From Start (F5)"
+    ID_SONG_PLAY_FROM_CURRENT_POSITION 
+                            "Play song from current position\nPlay (F7)"
+    ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP 
                             "Play and loop current song line\nLoop Song Line (F6)"
-    ID_PLAY_STOP            "Stop playing the song. Mute all sounds.\nStop (ESC)"
+    ID_SONG_STOP            "Stop playing the song. Mute all sounds.\nStop (ESC)"
 END
 
 STRINGTABLE

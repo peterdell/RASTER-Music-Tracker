@@ -64,7 +64,7 @@ protected:
 	afx_msg void OnTry();
 	afx_msg void OnRestore();
 	virtual void OnCancel();
-	afx_msg void OnPlaystop();
+	afx_msg void OnSongStop();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

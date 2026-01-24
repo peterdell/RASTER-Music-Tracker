@@ -79,11 +79,13 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_SONG_COPY_LINE, OnSongCopyline)
     ON_COMMAND(ID_SONG_PASTE_LINE, OnSongPasteline)
     ON_COMMAND(ID_SONG_CLEAR_LINE, OnSongClearline)
-    ON_COMMAND(ID_PLAY_FROM_START, OnPlay1)
-    ON_COMMAND(ID_PLAY_FROM_CURRENT_POSITION, OnPlay2)
-    ON_COMMAND(ID_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnPlay3)
-    ON_COMMAND(ID_PLAY_STOP, OnPlaystop)
-    ON_COMMAND(ID_PLAY_FOLLOW, OnPlayfollow)
+    ON_COMMAND(ID_SONG_PLAY_FROM_START, OnPlay1)
+    ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION, OnPlay2)
+    ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnPlay3)
+    ON_COMMAND(ID_SONG_STOP, OnSongStop)
+    ON_UPDATE_COMMAND_UI(ID_SONG_STOP, OnUpdateSongStop)
+
+    ON_COMMAND(ID_SONG_PLAY_FOLLOW, OnPlayfollow)
     ON_COMMAND(ID_PART_INFO, OnPartInfo)
     ON_COMMAND(ID_PART_INSTRUMENTS, OnPartInstruments)
     ON_COMMAND(ID_PART_SONG, OnPartSong)
@@ -92,10 +94,12 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_PART_INSTRUMENTS, OnUpdateEmInstruments)
     ON_UPDATE_COMMAND_UI(ID_PART_INFO, OnUpdateEmInfo)
     ON_UPDATE_COMMAND_UI(ID_PART_SONG, OnUpdateEmSong)
-    ON_UPDATE_COMMAND_UI(ID_PLAY_FOLLOW, OnUpdatePlayfollow)
-    ON_UPDATE_COMMAND_UI(ID_PLAY_FROM_START, OnUpdatePlay1)
-    ON_UPDATE_COMMAND_UI(ID_PLAY_FROM_CURRENT_POSITION, OnUpdatePlay2)
-    ON_UPDATE_COMMAND_UI(ID_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnUpdatePlay3)
+    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FOLLOW, OnUpdatePlayfollow)
+    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_START, OnUpdatePlay1)
+    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_CURRENT_POSITION, OnUpdatePlay2)
+    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnUpdatePlay3)
+    ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnPlay3)
+
     ON_COMMAND(ID_SWITCH_MODE, OnSwitchMode)
     ON_UPDATE_COMMAND_UI(ID_SWITCH_MODE, OnUpdateSwitchMode)
     ON_WM_TIMER()
@@ -1470,26 +1474,10 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     }
 
     // Debug key reading for setting up keyboard layouts withought having to guess which key is where
-    g_lastKeyPressed = vk; 
+    g_lastKeyPressed = vk;
 
     switch (vk)
     {
-
-    case VK_ESCAPE:
-        // Stop the music
-        g_Song.Stop();
-        // Reset RMT routines automatically?
-        if (g_keyboard_escresetatarisound)
-        {
-            g_AtariTrackerDriver->Init();
-        }
-        if (g_Song.GetPlayMode() == PlayMode::PLAY_STOP) //only if the module is stopped
-        {
-            g_playtime = 0;
-            //DrawPlaytimecounter();
-        }
-        goto AllModesDefaultKey;
-        break;
 
     case VK_SUBTRACT:
         if (g_controlkey && !g_shiftkey)
@@ -2058,15 +2046,25 @@ void CRmtView::OnPlay3()
     g_Song.Play(PLAY_TRACK, g_Song.GetFollowPlayMode());		//current pattern and loop - with respect to followplay
 }
 
-void CRmtView::OnPlaystop()
+void CRmtView::OnSongStop()
 {
     // Stop the music
-    g_Song.Stop();
-    if (g_Song.GetPlayMode() == PlayMode::PLAY_STOP) //only if the module is stopped
-    {
-        g_playtime = 0;
-        //DrawPlaytimecounter();
+    if (g_Song.GetPlayMode() == PlayMode::PLAY_STOP) {
+        return;
     }
+
+    g_Song.Stop();
+    g_playtime = 0;
+
+    // Reset RMT routines automatically?
+    if (g_keyboard_escresetatarisound) {
+        g_AtariTrackerDriver->Init();
+    }
+}
+
+void CRmtView::OnUpdateSongStop(CCmdUI* pCmdUI) {
+    int state = ((g_Song.GetPlayMode() == PlayMode::PLAY_STOP) ? 2 : 1);
+    pCmdUI->SetCheck(state);
 }
 
 void CRmtView::OnPlayfollow()

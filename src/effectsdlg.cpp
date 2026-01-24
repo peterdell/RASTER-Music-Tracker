@@ -55,7 +55,7 @@ BEGIN_MESSAGE_MAP(CEffectsDlg, CDialog)
     ON_BN_CLICKED(IDDEFAULT, OnDefault)
     ON_BN_CLICKED(IDTRY, OnTry)
     ON_BN_CLICKED(IDRESTORE, OnRestore)
-    ON_BN_CLICKED(IDPLAYSTOP, OnPlaystop)
+    ON_BN_CLICKED(IDPLAYSTOP, OnSongStop)
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -231,7 +231,7 @@ void CEffectsDlg::OnRestore()
     memcpy(m_trackptr, m_trackorig, sizeof(TTrack));
 }
 
-void CEffectsDlg::OnPlaystop()
+void CEffectsDlg::OnSongStop()
 {
     if (g_Song.GetPlayMode())
         g_Song.Stop();

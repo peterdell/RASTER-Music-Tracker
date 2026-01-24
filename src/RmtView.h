@@ -120,7 +120,8 @@ protected:
     afx_msg void OnPlay1();
     afx_msg void OnPlay2();
     afx_msg void OnPlay3();
-    afx_msg void OnPlaystop();
+    afx_msg void OnSongStop();
+    afx_msg void OnUpdateSongStop(CCmdUI* pCmdUI);
     afx_msg void OnPlayfollow();
     afx_msg void OnPartInfo();
     afx_msg void OnPartInstruments();

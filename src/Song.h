@@ -249,16 +249,16 @@ public:
     void RenumberAllTracks(int type);
     void RenumberAllInstruments(int type);
 
-    CString GetFilename() { return m_filename; };
-    SongIOType GetIOType() { return m_ioType; };
+    CString GetFilename() const { return m_filename; };
+    SongIOType GetIOType() const { return m_ioType; };
 
     int(*GetSong())[SONGLEN][SONGTRACKS]{ return &m_song; };
     int(*GetSongGo())[SONGLEN] { return &m_songgo; };
     TBookmark* GetBookmark() { return &m_bookmark; };
 
-    PlayMode GetPlayMode() { return m_play; };
+    PlayMode GetPlayMode() const { return m_play; };
     void SetPlayMode(PlayMode mode) { m_play = mode; };
-    BOOL GetFollowPlayMode() { return m_followplay; };
+    BOOL GetFollowPlayMode() const { return m_followplay; };
     void SetFollowPlayMode(BOOL follow) { m_followplay = follow; };
 
     void GetSongInfoPars(TInfo* info) { memcpy(info->songname, m_songname, SONG_NAME_MAX_LEN); info->speed = m_speed; info->mainspeed = m_mainSpeed; info->instrspeed = m_instrumentSpeed; info->songnamecur = m_songnamecur; };
