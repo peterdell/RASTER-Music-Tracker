@@ -1371,9 +1371,10 @@ BEGIN
     "L",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
     "R",            ID_FILE_REOPEN,         VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
+    VK_F3,          ID_PART_INFO,           VIRTKEY, NOINVERT
     VK_F2,          ID_PART_INSTRUMENTS,    VIRTKEY, NOINVERT
     VK_SPACE,       ID_SWITCH_MODE,         VIRTKEY, CONTROL, NOINVERT
-    VK_F3,          ID_PART_INFO,           VIRTKEY, NOINVERT
+    VK_F4,          ID_PART_SONG,           VIRTKEY, NOINVERT
 END
 
 

@@ -1535,12 +1535,6 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         OnPartTracks();
         break;
 
-    case VK_F4:
-        if (g_controlkey) goto AllModesDefaultKey;	//would conflict with transposition hotkeys otherwise
-        g_Undo.Separator();
-        OnPartSong();
-        break;
-
     case VK_F5:
         if (g_controlkey && g_shiftkey)
         {
@@ -2107,6 +2101,7 @@ void CRmtView::OnPartInfo()
 
 void CRmtView::OnPartSong()
 {
+    g_Undo.Separator();
     g_activepart = Part::PART_SONG;		//song
     g_TrackClipboard.BlockDeselect();
 }
