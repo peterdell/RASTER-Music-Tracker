@@ -229,15 +229,15 @@ void  CCommands::PrintActionInfos() const {
     actionInfoList.sort(CActionInfo::Compare);
 
     myfile.open("../doc/rmt_action_infos.md");
-    myfile << "| Action | Access Path | Entry | Accelerator Key | \n";
-    myfile << "|--------|-----------|------------|-----------------| \n";
+    myfile << "| Access Path | Entry | Accelerator Key | Action | \n";
+    myfile << "|-------------|-------|-----------------|--------| \n";
     for (auto it = actionInfoList.begin(); it != actionInfoList.end(); it++) {
         CString s;
         auto actionInfo = (*it);
         auto menuEntry = actionInfo->GetMenuEntry();
         CString acceleratorKeyFormatted;
         if (menuEntry != nullptr) {
-            auto acceleratorKeyFormatted = menuEntry->GetAcceleatorKey();
+            acceleratorKeyFormatted = menuEntry->GetAcceleatorKey();
             if (!acceleratorKeyFormatted.IsEmpty()) {
                 acceleratorKeyFormatted = "`" + acceleratorKeyFormatted + "`";
             }
@@ -268,7 +268,7 @@ void  CCommands::PrintActionInfos() const {
         }
 
 
-        s.Format("| %s | %s | %s | %s |", text, accessPath, accessText, acceleratorKeyFormatted);
+        s.Format("| %s | %s | %s | %s |", accessPath, accessText, acceleratorKeyFormatted, text);
 
 
         SendInfoMessage(s);
