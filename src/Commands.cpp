@@ -257,9 +257,9 @@ void  CCommands::PrintActionInfos() const {
         }
         CString accessPath;
         if (menuEntry != nullptr) {
-            accessPath = menuEntry->GetMenuTextPathString();
+            accessPath = "Menu "+menuEntry->GetMenuTextPathString();
             if (!actionInfo->GetToolBar().IsEmpty()) {
-                accessPath += "<br>" + actionInfo->GetToolBar();
+                accessPath += "<br>Tool Bar" + actionInfo->GetToolBar();
             }
         }
         CString accessText;
@@ -391,7 +391,7 @@ void CCommands::Analyze() {
 
     AnalyzeMenu(IDR_MAIN_WINDOW, "Main", "");
 
-    AnalyzeToolBar(IDR_TOOLBAR_BLOCK, "Block Toolbar");
+    AnalyzeToolBar(IDR_TOOLBAR_BLOCK, "Block");
 
     AnalyeAcceleratorTable(IDR_MAIN_WINDOW);
 
