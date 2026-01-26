@@ -1503,14 +1503,6 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             goto AllModesDefaultKey;
         break;
 
-    case VK_MULTIPLY:
-        goto AllModesDefaultKey;
-        break;
-
-    case VK_DIVIDE:
-        goto AllModesDefaultKey;
-        break;
-
     case VK_F1:
         if (g_shiftkey) {
             g_app.OpenOnlineHelp();
