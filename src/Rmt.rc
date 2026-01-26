@@ -68,7 +68,7 @@ END
 // Bitmap
 //
 
-IDB_GFX                 BITMAP                  "res\\gfx.bmp"
+IDB_GFX                 BITMAP                  "res\\gfx-8x16.bmp"
 
 IDR_TOOLBAR_PLAY        BITMAP                  "res\\toolbar_play.bmp"
 
