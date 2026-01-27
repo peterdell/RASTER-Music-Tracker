@@ -85,7 +85,7 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_SONG_STOP, OnSongStop)
     ON_UPDATE_COMMAND_UI(ID_SONG_STOP, OnUpdateSongStop)
 
-    ON_COMMAND(ID_SONG_PLAY_FOLLOW, OnPlayfollow)
+    ON_COMMAND(ID_SONG_PLAY_FOLLOW, OnSongPlayFollow)
     ON_COMMAND(ID_PART_INFO, OnPartInfo)
     ON_COMMAND(ID_PART_INSTRUMENTS, OnPartInstruments)
     ON_COMMAND(ID_PART_SONG, OnPartSong)
@@ -1571,10 +1571,6 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         g_respectvolume ^= 1;
         break;
 
-    case VK_F12:
-        if (!g_controlkey) { OnPlayfollow(); } //toggle follow position
-        break;
-
     case VK_MEDIA_PLAY_PAUSE:
         if (g_Song.GetPlayMode() == 0)
             g_Song.Play(PLAY_SONG, g_Song.GetFollowPlayMode());	//play song from start
@@ -2059,7 +2055,7 @@ void CRmtView::OnUpdateSongStop(CCmdUI* pCmdUI) {
     pCmdUI->SetCheck(state);
 }
 
-void CRmtView::OnPlayfollow()
+void CRmtView::OnSongPlayFollow()
 {
     g_Song.SetFollowPlayMode(g_Song.GetFollowPlayMode() ^ 1);
 }

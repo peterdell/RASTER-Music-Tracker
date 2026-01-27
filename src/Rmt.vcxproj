@@ -477,6 +477,7 @@
   <ItemGroup>
     <Image Include="res\application.ico" />
     <Image Include="res\file_type_rmt.ico" />
+    <Image Include="res\gfx-8x16.bmp" />
     <Image Include="res\gfx.bmp" />
     <Image Include="res\icon_exclamation.ico" />
     <Image Include="res\toolbar_block-32x30.bmp" />

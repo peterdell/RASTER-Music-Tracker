@@ -657,5 +657,8 @@
     <Image Include="res\toolbar_main_window-32x30.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\gfx-8x16.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
