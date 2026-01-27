@@ -47,9 +47,9 @@ BEGIN_MESSAGE_MAP(CRmtApp, CWinApp)
     ON_COMMAND(ID_FILE_OPEN, CWinApp::OnFileOpen)
     // Standard print setup command
     ON_COMMAND(ID_FILE_PRINT_SETUP, CWinApp::OnFilePrintSetup)
-    ON_COMMAND(ID_HELP_HELP_TOPICS, &CRmtApp::OnHelpHelpTopics)
-    ON_COMMAND(ID_HELP_ONLINE_HELP, &CRmtApp::OnHelpOnlineHelp)
-    ON_COMMAND(ID_HELP_ABOUT_APP, &CRmtApp::OnHelpAboutApp)
+    ON_COMMAND(ID_HELP, CRmtApp::OnHelp)
+    ON_COMMAND(ID_CONTEXT_HELP, CRmtApp::OnHelpOnlineHelp) // TODO: Should be real context help instead
+    ON_COMMAND(ID_HELP_ABOUT_APP, CRmtApp::OnHelpAboutApp)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -192,24 +192,21 @@ CString CRmtApp::GetVersionAndBuild() const {
     return result;
 }
 
-void CRmtApp::OpenOnlineHelp() const {
-    CShell::OpenFile("https://html-preview.github.io/?url=https://github.com/raster-atari-org/RASTER-Music-Tracker/blob/1.35/doc//rmt_en.html");
-}
-
 /////////////////////////////////////////////////////////////////////////////
 // CRmtApp message handlers
 
 
-
-void CRmtApp::OnHelpHelpTopics()
+void CRmtApp::OnHelp()
 {
     CShell::OpenFile(GetResourceFilePath(std::filesystem::path("docs"), "rmt_en.html"));
 }
 
+
 void CRmtApp::OnHelpOnlineHelp()
 {
 
-    OpenOnlineHelp();
+    CShell::OpenFile("https://html-preview.github.io/?url=https://github.com/raster-atari-org/RASTER-Music-Tracker/blob/1.35/doc//rmt_en.html");
+
 }
 
 void CRmtApp::OnHelpAboutApp()

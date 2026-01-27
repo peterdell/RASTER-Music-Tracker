@@ -85,9 +85,9 @@
 | Menu Tools | Options... |  | Open the application options dialog |
 | Menu Tools | Open ASAP File... |  | Open an .SAP or other Atari Sound Module File |
 | Menu Tools | Open ASMA |  | Open the Atari Sound Music Archive Website |
-| Menu Help | Help Topics |  | Open the local help in a browser. |
 | Menu Help | About RASTER Music Tracker |  | Display information about the app and its version in a pop-up dialog |
-| Menu Help | Online Help | `Shift+F1` | Open the online help in a browser window |
+| Menu Help | Online Help | `Shift+F1` | Display help for clicked on buttons, menus and windows<br><span style="color:red;">ERROR: Expected description 'Online Help (Shift+F1)' instead of 'Help'</span> |
+| Menu Help | Help | `F1` | Display help for current task or command<br><span style="color:red;">ERROR: Expected description 'Help (F1)' instead of 'Help'</span> |
 |  |  |  | Transpose the notes one semitone up |
 |  |  |  | Transpose the notes one semitone down |
 |  |  |  | Increase the volume |

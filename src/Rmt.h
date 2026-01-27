@@ -39,19 +39,18 @@ public:
     //}}AFX_VIRTUAL
 
     CString GetVersionAndBuild() const;
-    void OpenOnlineHelp() const;
 
-
-// Implementation
+    // Implementation
     //{{AFX_MSG(CRmtApp)
 
     // NOTE - the ClassWizard will add and remove member functions here.
     //    DO NOT EDIT what you see in these blocks of generated code !
-//}}AFX_MSG
+
     DECLARE_MESSAGE_MAP()
-    afx_msg void OnHelpHelpTopics();
     afx_msg void OnHelpOnlineHelp();
     afx_msg void OnHelpAboutApp();
+    afx_msg void OnHelp();
+    //}}AFX_MSG
 };
 
 

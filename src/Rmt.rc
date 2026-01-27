@@ -1313,8 +1313,8 @@ BEGIN
     END
     POPUP "&Help"
     BEGIN
-        MENUITEM "&Help Topics",                ID_HELP_HELP_TOPICS
-        MENUITEM "&Online Help\tShift+F1",      ID_HELP_ONLINE_HELP
+        MENUITEM "&Help\tF1",                   ID_HELP
+        MENUITEM "&Online Help\tShift+F1",      ID_CONTEXT_HELP
         MENUITEM "&About RASTER Music Tracker", ID_HELP_ABOUT_APP
     END
 END
@@ -1365,15 +1365,17 @@ END
 
 IDR_MAIN_WINDOW ACCELERATORS
 BEGIN
+    VK_F1,          ID_CONTEXT_HELP,        VIRTKEY, SHIFT, NOINVERT
     "Y",            ID_EDIT_REDO,           VIRTKEY, CONTROL, NOINVERT
     "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
     "W",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
     "L",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
     "R",            ID_FILE_REOPEN,         VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
-    VK_F3,          ID_PART_INFO,           VIRTKEY, NOINVERT
-    VK_F2,          ID_PART_INSTRUMENTS,    VIRTKEY, NOINVERT
+    VK_F4,          ID_PART_INFO,           VIRTKEY, SHIFT, NOINVERT
+    VK_F3,          ID_PART_INSTRUMENTS,    VIRTKEY, NOINVERT
     VK_F4,          ID_PART_SONG,           VIRTKEY, NOINVERT
+    VK_F2,          ID_PART_TRACKS,         VIRTKEY, NOINVERT
     VK_F12,         ID_SONG_PLAY_FOLLOW,    VIRTKEY, NOINVERT
     VK_ESCAPE,      ID_SONG_STOP,           VIRTKEY, NOINVERT
     VK_F12,         ID_SONG_TOGGLE_NTSC,    VIRTKEY, CONTROL, NOINVERT
