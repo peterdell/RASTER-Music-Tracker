@@ -220,16 +220,3 @@ public:
 #define FILE_EXPORT_EXTENSIONS_ARRAY { ".rmt",".asm",".sapr",".lzss",".sap",".xex",".asm",".wav" };
 #define FILE_EXPORT_EXTENSIONS_LENGTH_ARRAY { 4, 4, 5, 5, 4, 4, 4, 4}
 
-
-// ----------------------------------------------------------------------------
-// SAP-R optimisations pattern, for optimal data compression to LZSS 
-// This is a set of combinations that may or may not provide better compression ratios
-// Results vary wildly between any given stream of bytes, due to many variables at play 
-// Bruteforcing each pattern is more or less a requirement for optimal results
-// Ideally, the resulting compressed data should be as small as possible
-// If several patterns gave identical results, the first optimal pattern will be used
-// 
-enum class SAPROptimization: int {
-    NONE, AUDC, AUDCTL, AUDF, AUDC_AUDF, AUDCTL_AUDC, AUDCTL_AUDF, ALL
-
-};

@@ -14,7 +14,7 @@
 #pragma once
 
 #include "StdAfx.h"
-#include "General.h"
+
 
 #define bits_literal (1+8)                      // Number of bits for encoding a literal
 #define bits_match (1 + bits_moff + bits_mlen)  // Bits for encoding a match
@@ -41,6 +41,21 @@ struct bf
     int total;
     unsigned char* out;
 };
+
+
+// ----------------------------------------------------------------------------
+// SAP-R optimisations pattern, for optimal data compression to LZSS 
+// This is a set of combinations that may or may not provide better compression ratios
+// Results vary wildly between any given stream of bytes, due to many variables at play 
+// Bruteforcing each pattern is more or less a requirement for optimal results
+// Ideally, the resulting compressed data should be as small as possible
+// If several patterns gave identical results, the first optimal pattern will be used
+// 
+enum class SAPROptimization : int {
+    NONE, AUDC, AUDCTL, AUDF, AUDC_AUDF, AUDCTL_AUDC, AUDCTL_AUDF, ALL
+
+};
+
 
 class CCompressLzss
 {
