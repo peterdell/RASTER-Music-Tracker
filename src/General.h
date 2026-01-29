@@ -38,13 +38,6 @@ enum class KeyboardLayout : int {
     AZERTY = 1
 };
 
-// ----------------------------------------------------------------------------
-// TODO: Replace by accelerator bindings
-static constexpr byte VK_BACKSPACE = 8;
-static constexpr byte VK_ENTER = 13;
-static constexpr byte VK_PAGE_UP = 33;
-static constexpr byte VK_PAGE_DOWN = 34;
-
 #define CONFIG_FILENAME "rmt.ini"
 #define TUNING_FILENAME "tuning.ini"
 

@@ -47,7 +47,7 @@ char g_debugmem[CAtari::MEMORY_SIZE];	//debug display of memory bytes directly, 
 BOOL IsnotMovementVKey(int vk)
 {
     //returns 1 if it is not a scroll key
-    return (vk != VK_RIGHT && vk != VK_LEFT && vk != VK_UP && vk != VK_DOWN && vk != VK_TAB && vk != 13 && vk != VK_HOME && vk != VK_END && vk != VK_PAGE_UP && vk != VK_PAGE_DOWN && vk != VK_CAPITAL);
+    return (vk != VK_RIGHT && vk != VK_LEFT && vk != VK_UP && vk != VK_DOWN && vk != VK_TAB && vk != 13 && vk != VK_HOME && vk != VK_END && vk != VK_PRIOR && vk != VK_NEXT && vk != VK_CAPITAL);
 }
 
 
@@ -2467,14 +2467,14 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
 
     if (SongGetGo() >= 0) //is active song go to line => they must not edit anything
     {
-        if (!control && (vk == VK_UP || vk == VK_PAGE_UP))  //GO - key up
+        if (!control && (vk == VK_UP || vk == VK_PRIOR))  //GO - key up
         {
             m_trackactiveline = 0;
             if (!g_SkipLinesAfterNoteInsert) TrackUp(1);
             else TrackUp(g_SkipLinesAfterNoteInsert);
             return 1;
         }
-        if (!control && (vk == VK_DOWN || vk == VK_PAGE_DOWN)) //GO - key down
+        if (!control && (vk == VK_DOWN || vk == VK_NEXT)) //GO - key down
         {
             m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1;
             TrackDown(1, 0);
@@ -2559,7 +2559,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         OctaveUp();
         break;
 
-    case VK_PAGE_UP:
+    case VK_PRIOR:
         if (g_activepart != Part::PART_TRACKS)
         {
             if (shift)
@@ -2594,7 +2594,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
             }
         break;
 
-    case VK_PAGE_DOWN:
+    case VK_NEXT:
         if (g_activepart != Part::PART_TRACKS)
         {
             if (shift)
@@ -2723,14 +2723,14 @@ BOOL CSong::TrackKey(int vk, int shift, int control)
 
     if (SongGetGo() >= 0) //is active song go to line => they must not edit anything
     {
-        if (!control && (vk == VK_UP || vk == VK_PAGE_UP))  //GO - key up
+        if (!control && (vk == VK_UP || vk == VK_PRIOR))  //GO - key up
         {
             m_trackactiveline = 0;	//always assume it went from line 0
             if (!g_SkipLinesAfterNoteInsert) TrackUp(1);
             else TrackUp(g_SkipLinesAfterNoteInsert);
             return 1;
         }
-        if (!control && (vk == VK_DOWN || vk == VK_PAGE_DOWN)) //GO - key down
+        if (!control && (vk == VK_DOWN || vk == VK_NEXT)) //GO - key down
         {
             m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1;	//always reset to line 0
             TrackDown(1, 0);
@@ -2742,7 +2742,7 @@ BOOL CSong::TrackKey(int vk, int shift, int control)
             SongTrackGoOnOff();
             return 1;
         }
-        if (control && !shift && (vk == VKX_SONGINSERTLINE || vk == VKX_SONGDELETELINE || vk == VKX_SONGPREPARELINE || vk == VKX_SONGDUPLICATELINE || vk == VK_PAGE_UP || vk == VK_PAGE_DOWN)) goto TrackKeyOk;
+        if (control && !shift && (vk == VKX_SONGINSERTLINE || vk == VKX_SONGDELETELINE || vk == VKX_SONGPREPARELINE || vk == VKX_SONGDUPLICATELINE || vk == VK_PRIOR || vk == VK_NEXT)) goto TrackKeyOk;
         if (vk != VK_LEFT && vk != VK_RIGHT && vk != VK_UP && vk != VK_DOWN) return 0;
     }
 TrackKeyOk:
@@ -2994,7 +2994,7 @@ TrackKeyOk:
                 }
         break;
 
-    case VK_PAGE_UP:
+    case VK_PRIOR:
         if (!shift && control)
         {
             BLOCKDESELECT;
@@ -3019,7 +3019,7 @@ TrackKeyOk:
                 }
         break;
 
-    case VK_PAGE_DOWN:
+    case VK_NEXT:
         if (!shift && control)
         {
             BLOCKDESELECT;
@@ -3616,7 +3616,7 @@ BOOL CSong::SongKey(int vk, int shift, int control)
     }
     break;
 
-    case VK_PAGE_UP:
+    case VK_PRIOR:
         if (shift)
             SongSubsongPrev();
         else
@@ -3625,7 +3625,7 @@ BOOL CSong::SongKey(int vk, int shift, int control)
         }
         break;
 
-    case VK_PAGE_DOWN:
+    case VK_NEXT:
         if (shift)
             SongSubsongNext();
         else

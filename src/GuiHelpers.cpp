@@ -122,7 +122,7 @@ int EditText(int vk, int shift, int control, char* txt, int& cur, int max)
 {
     //returns 1 if TAB or ENTER was pressed
     max--;
-    if (vk == VK_BACKSPACE)
+    if (vk == VK_BACK)
     {
         if (cur > 0)
         {
@@ -131,7 +131,7 @@ int EditText(int vk, int shift, int control, char* txt, int& cur, int max)
             txt[max] = ' ';
         }
     }
-    else if (vk == VK_TAB || vk == VK_ENTER)
+    else if (vk == VK_TAB || vk == VK_RETURN)
     {
         return 1;
     }

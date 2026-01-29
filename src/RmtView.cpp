@@ -1616,7 +1616,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             if (g_shiftkey && !is_editing_infos && (NoteKey(vk) >= 0 || Numblock09Key(vk) >= 0 || vk == VK_SPACE))
                 g_Song.ProveKey(vk, g_shiftkey, g_controlkey);	//plays a note while the SHIFT key is held, except on the Song Name field, it will be ignored
             else if (g_shiftkey && !is_editing_infos && (NoteKey(vk) < 0))
-                if (vk == VK_TAB || vk == VK_LEFT || vk == VK_RIGHT || vk == VK_PAGE_UP || vk == VK_PAGE_DOWN) goto do_infokey_anyway;
+                if (vk == VK_TAB || vk == VK_LEFT || vk == VK_RIGHT || vk == VK_PRIOR || vk == VK_NEXT) goto do_infokey_anyway;
                 else break;	//prevents inputing incorrect infos by accident while testing notes holding SHIFT
             else if (is_editing_infos && CAPSLOCK && !g_shiftkey)
             {
@@ -1635,7 +1635,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             else
             {
             do_infokey_anyway:
-                if (vk == VK_PAGE_UP || vk == VK_PAGE_DOWN)
+                if (vk == VK_PRIOR || vk == VK_NEXT)
                     g_Song.ProveKey(vk, g_shiftkey, g_controlkey);
                 else
                     g_Song.InfoKey(vk, g_shiftkey, g_controlkey);
@@ -1655,7 +1655,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             if (g_shiftkey && !g_isEditingInstrumentName && (NoteKey(vk) >= 0 || Numblock09Key(vk) >= 0 || vk == VK_SPACE))
                 g_Song.ProveKey(vk, g_shiftkey, g_controlkey);	//plays a note while the SHIFT key is held, except on the Instrument Name field, it will be ignored
             else if (g_shiftkey && !g_isEditingInstrumentName && (NoteKey(vk) < 0))
-                if (vk == VK_TAB || vk == VK_INSERT || vk == VK_DELETE || vk == VK_LEFT || vk == VK_RIGHT || vk == VK_UP || vk == VK_DOWN || vk == VK_DIVIDE || vk == VK_MULTIPLY || vk == VK_SUBTRACT || vk == VK_ADD || vk == VK_PAGE_UP || vk == VK_PAGE_DOWN) goto do_instrkey_anyway;
+                if (vk == VK_TAB || vk == VK_INSERT || vk == VK_DELETE || vk == VK_LEFT || vk == VK_RIGHT || vk == VK_UP || vk == VK_DOWN || vk == VK_DIVIDE || vk == VK_MULTIPLY || vk == VK_SUBTRACT || vk == VK_ADD || vk == VK_PRIOR || vk == VK_NEXT) goto do_instrkey_anyway;
                 else break;	//prevents inputing incorrect infos by accident while testing notes holding SHIFT
             else if (g_isEditingInstrumentName && CAPSLOCK && !g_shiftkey)
             {
@@ -1674,7 +1674,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             else
             {
             do_instrkey_anyway:
-                if (vk == VK_PAGE_UP || vk == VK_PAGE_DOWN)
+                if (vk == VK_PRIOR || vk == VK_NEXT)
                     g_Song.ProveKey(vk, g_shiftkey, g_controlkey);
                 else
                     g_Song.InstrKey(vk, g_shiftkey, g_controlkey);
@@ -2425,7 +2425,7 @@ void CRmtView::OnBlockDelete()
 
 void CRmtView::OnBlockPaste()
 {
-    g_Song.BlockPaste();	//paste normal
+    g_Song.BlockPaste();	// Paste normal
 }
 
 void CRmtView::OnBlockPastespecialMergewithcurrentcontent()
