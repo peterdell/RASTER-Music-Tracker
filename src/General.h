@@ -220,14 +220,6 @@ public:
 #define FILE_EXPORT_EXTENSIONS_ARRAY { ".rmt",".asm",".sapr",".lzss",".sap",".xex",".asm",".wav" };
 #define FILE_EXPORT_EXTENSIONS_LENGTH_ARRAY { 4, 4, 5, 5, 4, 4, 4, 4}
 
-// ----------------------------------------------------------------------------
-// Pokey play to buffer
-// TODO: Unused => Remove
-// 
-#define POKEY2BUFFER_STOP		0
-#define POKEY2BUFFER_RECORD		1
-#define POKEY2BUFFER_WRITE		2
-#define POKEY2BUFFER_START		3		// Start the Pokey 2 buffer recording process
 
 // ----------------------------------------------------------------------------
 // SAP-R optimisations pattern, for optimal data compression to LZSS 
@@ -237,13 +229,7 @@ public:
 // Ideally, the resulting compressed data should be as small as possible
 // If several patterns gave identical results, the first optimal pattern will be used
 // 
-#define SAPR_OPTIMISATIONS_NONE				0
-#define SAPR_OPTIMISATIONS_AUDC				1
-#define SAPR_OPTIMISATIONS_AUDCTL			2
-#define SAPR_OPTIMISATIONS_AUDF				3
-#define SAPR_OPTIMISATIONS_AUDC_AUDF		4
-#define SAPR_OPTIMISATIONS_AUDCTL_AUDC		5
-#define SAPR_OPTIMISATIONS_AUDCTL_AUDF		6
-#define SAPR_OPTIMISATIONS_ALL				7
-#define SAPR_OPTIMISATIONS_COUNT			8
+enum class SAPROptimization: int {
+    NONE, AUDC, AUDCTL, AUDF, AUDC_AUDF, AUDCTL_AUDC, AUDCTL_AUDF, ALL
 
+};

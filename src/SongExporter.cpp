@@ -59,12 +59,13 @@ int CSongExporter::BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigne
 
     // Start from a high value to force the first pattern to be the best one
     int bestScore = 0xFFFFFF;
-    int optimal = 0;
+    auto optimal = SAPROptimization::NONE;
     int result;
     {
         DisableEventSection section;
 
-        for (int i = 0; i < SAPR_OPTIMISATIONS_COUNT; i++)
+        for (auto i : { SAPROptimization::NONE,
+             SAPROptimization::AUDC, SAPROptimization::AUDCTL, SAPROptimization::AUDF, SAPROptimization::AUDC_AUDF, SAPROptimization::AUDCTL_AUDC, SAPROptimization::AUDCTL_AUDF, SAPROptimization::ALL })
         {
             int bruteforced = lzssData.LZSS_SAP(src, srclen, dst, i);
 

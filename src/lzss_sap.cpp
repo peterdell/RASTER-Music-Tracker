@@ -349,7 +349,7 @@ void CCompressLzss::Optimise_AUDF(uint8_t* buf)
 }
 
 // Hacked up version of main() by VinsCool, stripping out most options that aren't needed for RMT 
-int CCompressLzss::LZSS_SAP(const unsigned char* src, int srclen, unsigned char* dst, int optimisations)
+int CCompressLzss::LZSS_SAP(const unsigned char* src, int srclen, unsigned char* dst, SAPROptimization optimisation)
 {
     struct bf b;
     uint8_t buf[9], * data[9];
@@ -445,36 +445,36 @@ int CCompressLzss::LZSS_SAP(const unsigned char* src, int srclen, unsigned char*
         for (int i = 0; i < 9; i++) { buf[i] = src[mem + i]; }
 
         // Apply desired optimisations to the buffered bytes
-        switch (optimisations)
+        switch (optimisation)
         {
-        case SAPR_OPTIMISATIONS_AUDC:
+        case SAPROptimization::AUDC:
             Optimise_AUDC(buf);
             break;
 
-        case SAPR_OPTIMISATIONS_AUDCTL:
+        case SAPROptimization::AUDCTL:
             Optimise_AUDCTL(buf);
             break;
 
-        case SAPR_OPTIMISATIONS_AUDF:
+        case SAPROptimization::AUDF:
             Optimise_AUDF(buf);
             break;
 
-        case SAPR_OPTIMISATIONS_AUDC_AUDF:
+        case SAPROptimization::AUDC_AUDF:
             Optimise_AUDC(buf);
             Optimise_AUDF(buf);
             break;
 
-        case SAPR_OPTIMISATIONS_AUDCTL_AUDC:
+        case SAPROptimization::AUDCTL_AUDC:
             Optimise_AUDC(buf);
             Optimise_AUDCTL(buf);
             break;
 
-        case SAPR_OPTIMISATIONS_AUDCTL_AUDF:
+        case SAPROptimization::AUDCTL_AUDF:
             Optimise_AUDCTL(buf);
             Optimise_AUDF(buf);
             break;
 
-        case SAPR_OPTIMISATIONS_ALL:
+        case SAPROptimization::ALL:
             Optimise_AUDC(buf);
             Optimise_AUDCTL(buf);
             Optimise_AUDF(buf);
