@@ -112,7 +112,7 @@ CTuning::Pitch CTuning::GetPOKEYPPitch(int audc, AUDF audf, int audctl, int chan
 /// <param name = "semitone"> Number of semitones above base note, useful for transposing a table to a different key/octave </param> 
 /// <param name = "timbre"> POKEY sound timbre output using the Distortion as well as the modulo of the Frequency </param> 
 /// <param name = "audctl"> POKEY modes used to generate the frequencies, typically, 15Khz/64Khz clock, 1.79mHz clock, 16-bit mode, etc </param>
-void CTuning::GenerateTable(byte* table, int length, int semitone, int timbre, int audctl)
+void CTuning::GenerateTable(byte* table, int length, int semitone, Timbre timbre, int audctl)
 {
     //variables for pitch calculation, divisors must never be 0!
     double divisor = 1;
@@ -156,52 +156,52 @@ void CTuning::GenerateTable(byte* table, int length, int semitone, int timbre, i
     //Use the modulo flags to make sure the correct timbre will be output
     switch (timbre)
     {
-    case TIMBRE_PINK_NOISE:
+    case Timbre::PINK_NOISE:
         break;
 
-    case TIMBRE_BROWNIAN_NOISE:
+    case Timbre::BROWNIAN_NOISE:
         divisor = 36.5;	//Brownian noise, not MOD31 and not MOD73
         break;
 
-    case TIMBRE_FUZZY_NOISE:
+    case Timbre::FUZZY_NOISE:
         divisor = 255.5;	//Fuzzy noise, not MOD7, not MOD31 and not MOD73
         break;
 
-    case TIMBRE_BELL:
+    case Timbre::BELL:
         divisor = 31;	//Bell tones, not MOD31
         break;
 
-    case TIMBRE_BUZZY_4:
+    case Timbre::BUZZY_4:
         divisor = 232.5;	//Buzzy tones, neither MOD3 or MOD5 or MOD31
         break;
 
-    case TIMBRE_SMOOTH_4:
+    case Timbre::SMOOTH_4:
         divisor = 77.5;	//Smooth tones, MOD3 but not MOD5 or MOD31
         break;
 
-    case TIMBRE_WHITE_NOISE:
+    case Timbre::WHITE_NOISE:
         break;
 
-    case TIMBRE_METALLIC_NOISE:
+    case Timbre::METALLIC_NOISE:
         divisor = 36.5;	//Metallic noise, not MOD73
         break;
 
-    case TIMBRE_BUZZY_NOISE:
+    case Timbre::BUZZY_NOISE:
         divisor = 255.5;	//Buzzy noise, not MOD7 and not MOD73
         break;
 
-    case TIMBRE_PURE:
+    case Timbre::PURE_A:
         break;
 
-    case TIMBRE_GRITTY_C:
+    case Timbre::GRITTY_C:
         divisor = 7.5;	//Gritty tones, neither MOD3 or MOD5
         break;
 
-    case TIMBRE_BUZZY_C:
+    case Timbre::BUZZY_C:
         divisor = 2.5;	//Buzzy tones, MOD3 but not MOD5
         break;
 
-    case TIMBRE_UNSTABLE_C:
+    case Timbre::UNSTABLE_C:
         divisor = 1.5;	//Unstable Buzzy tones, MOD5 but not MOD3
         break;
 
@@ -233,37 +233,37 @@ void CTuning::GenerateTable(byte* table, int length, int semitone, int timbre, i
 
         switch (timbre)
         {
-        case TIMBRE_BELL:
+        case Timbre::BELL:
             if (MOD31) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
             break;
 
-        case TIMBRE_BUZZY_4:
+        case Timbre::BUZZY_4:
             if (MOD3 || MOD5 || MOD31) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
             break;
 
-        case TIMBRE_SMOOTH_4:
+        case Timbre::SMOOTH_4:
             if (!(MOD3 || CLOCK_15) || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
             if (!JOIN_16BIT && audf > 0xFF)
             {	//use the buzzy timbre on the lower range instead
                 audf = GetAUDF(pitch, coarse_divisor, 232.5, cycle);
                 MOD3 = ((audf + cycle) % 3 == 0);
                 MOD5 = ((audf + cycle) % 5 == 0);
-                if (MOD3 || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, 232.5, cycle, TIMBRE_BUZZY_4);
+                if (MOD3 || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, 232.5, cycle, Timbre::BUZZY_4);
             }
             break;
 
-        case TIMBRE_GRITTY_C:
+        case Timbre::GRITTY_C:
             if (MOD3 || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
             break;
 
-        case TIMBRE_BUZZY_C:
+        case Timbre::BUZZY_C:
             if (!(MOD3 || CLOCK_15) || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
             if (!JOIN_16BIT && audf > 0xFF)
             {	//use the gritty timbre on the lower range instead
                 audf = GetAUDF(pitch, coarse_divisor, 7.5, cycle);
                 MOD3 = ((audf + cycle) % 3 == 0);
                 MOD5 = ((audf + cycle) % 5 == 0);
-                if (MOD3 || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, 7.5, cycle, TIMBRE_GRITTY_C);
+                if (MOD3 || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, 7.5, cycle, Timbre::GRITTY_C);
             }
             break;
         }
@@ -315,10 +315,10 @@ CTuning::AUDF CTuning::GetAUDF(Pitch pitch, int coarse_divisor, double divisor, 
 /// <param name = "cycle"> Offset added to AUDF, 4 for 1.79mHz mode, 7 for 16-bit+1.79mHz mode, 1 for neither </param>
 /// <param name = "timbre"> POKEY sound timbre output using the Distortion as well as the modulo of the Frequency </param>
 /// <returns> Compromised POKEY Frequency (AUDF) which is now valid within the conditions established for the generated timbre </returns> 
-CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_divisor, double divisor, int cycle, int timbre) const
+CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_divisor, double divisor, int cycle, Timbre timbre) const
 {
     //TODO: Optimise this procedure a lot more, this is poorly written, but it gets the job done for now 
-    int distortion = timbre & 0xF0;
+    int distortion = ((byte)timbre) & 0xF0;
 
     int tmp_audf_up = audf;		//begin from the currently invalid audf
     int tmp_audf_down = audf;
@@ -330,7 +330,7 @@ CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_div
 
     else if (distortion == 0x40)
     {
-        if (timbre == TIMBRE_SMOOTH_4)	//verify MOD3 integrity
+        if (timbre == Timbre::SMOOTH_4)	//verify MOD3 integrity
         {
             for (int o = 0; o < 6; o++)
             {
@@ -338,7 +338,7 @@ CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_div
                 if ((tmp_audf_down + cycle) % 3 != 0 || (tmp_audf_down + cycle) % 5 == 0 || (tmp_audf_down + cycle) % 31 == 0) tmp_audf_down--;
             }
         }
-        else if (timbre == TIMBRE_BUZZY_4)
+        else if (timbre == Timbre::BUZZY_4)
         {
             for (int o = 0; o < 6; o++)
             {
@@ -360,7 +360,7 @@ CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_div
                 if ((tmp_audf_down + cycle) % 5 == 0) tmp_audf_down--;
             }
         }
-        else if (timbre == TIMBRE_BUZZY_C)	//verify MOD3 integrity
+        else if (timbre == Timbre::BUZZY_C)	//verify MOD3 integrity
         {
             for (int o = 0; o < 6; o++)
             {
@@ -368,7 +368,7 @@ CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_div
                 if ((tmp_audf_down + cycle) % 3 != 0 || (tmp_audf_down + cycle) % 5 == 0) tmp_audf_down--;
             }
         }
-        else if (timbre == TIMBRE_GRITTY_C)	//verify neither MOD3 or MOD5 is used
+        else if (timbre == Timbre::GRITTY_C)	//verify neither MOD3 or MOD5 is used
         {
             for (int o = 0; o < 6; o++)	//get the closest compromise up and down first
             {
@@ -376,7 +376,7 @@ CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_div
                 if ((tmp_audf_down + cycle) % 3 == 0 || (tmp_audf_down + cycle) % 5 == 0) tmp_audf_down--;
             }
         }
-        else if (timbre == TIMBRE_UNSTABLE_C)	//verify MOD5 integrity
+        else if (timbre == Timbre::UNSTABLE_C)	//verify MOD5 integrity
         {
             for (int o = 0; o < 6; o++)	//get the closest compromise up and down first
             {
@@ -480,33 +480,33 @@ void CTuning::InitTuning() {
     //TODO: optimise this procedure, even if right now this is much better than what it used to be
 
     //Distortion 2, at 0xB000
-    GenerateTable(m_table_memory + 0x000, 64, dist_2_bell.table_64khz * g_notesperoctave, TIMBRE_BELL, 0x00);
-    GenerateTable(m_table_memory + 0x040, 64, dist_2_bell.table_179mhz * g_notesperoctave, TIMBRE_BELL, 0x40);
-    GenerateTable(m_table_memory + 0x080, 64, dist_2_bell.table_16bit * g_notesperoctave, TIMBRE_BELL, 0x50);
+    GenerateTable(m_table_memory + 0x000, 64, dist_2_bell.table_64khz * g_notesperoctave, Timbre::BELL, 0x00);
+    GenerateTable(m_table_memory + 0x040, 64, dist_2_bell.table_179mhz * g_notesperoctave, Timbre::BELL, 0x40);
+    GenerateTable(m_table_memory + 0x080, 64, dist_2_bell.table_16bit * g_notesperoctave, Timbre::BELL, 0x50);
     //no 15kHz table...
 
     //Distortion 4 (Smooth), at 0xB100
-    GenerateTable(m_table_memory + 0x100, 64, dist_4_smooth.table_64khz * g_notesperoctave, TIMBRE_SMOOTH_4, 0x00);
-    GenerateTable(m_table_memory + 0x140, 64, dist_4_smooth.table_179mhz * g_notesperoctave, TIMBRE_SMOOTH_4, 0x40);
-    GenerateTable(m_table_memory + 0x180, 64, dist_4_smooth.table_16bit * g_notesperoctave, TIMBRE_SMOOTH_4, 0x50);
+    GenerateTable(m_table_memory + 0x100, 64, dist_4_smooth.table_64khz * g_notesperoctave, Timbre::SMOOTH_4, 0x00);
+    GenerateTable(m_table_memory + 0x140, 64, dist_4_smooth.table_179mhz * g_notesperoctave, Timbre::SMOOTH_4, 0x40);
+    GenerateTable(m_table_memory + 0x180, 64, dist_4_smooth.table_16bit * g_notesperoctave, Timbre::SMOOTH_4, 0x50);
     //no 15kHz table...
 
     //Distortion A (Pure), at 0xB200
-    GenerateTable(m_table_memory + 0x200, 64, dist_a_pure.table_64khz * g_notesperoctave, TIMBRE_PURE, 0x00);
-    GenerateTable(m_table_memory + 0x240, 64, dist_a_pure.table_179mhz * g_notesperoctave, TIMBRE_PURE, 0x40);
-    GenerateTable(m_table_memory + 0x280, 64, dist_a_pure.table_16bit * g_notesperoctave, TIMBRE_PURE, 0x50);
-    GenerateTable(m_table_memory + 0x580, 64, dist_a_pure.table_15khz * g_notesperoctave, TIMBRE_PURE, 0x01);
+    GenerateTable(m_table_memory + 0x200, 64, dist_a_pure.table_64khz * g_notesperoctave, Timbre::PURE_A, 0x00);
+    GenerateTable(m_table_memory + 0x240, 64, dist_a_pure.table_179mhz * g_notesperoctave, Timbre::PURE_A, 0x40);
+    GenerateTable(m_table_memory + 0x280, 64, dist_a_pure.table_16bit * g_notesperoctave, Timbre::PURE_A, 0x50);
+    GenerateTable(m_table_memory + 0x580, 64, dist_a_pure.table_15khz * g_notesperoctave, Timbre::PURE_A, 0x01);
 
     //Distortion C (Buzzy), at 0xB300
-    GenerateTable(m_table_memory + 0x300, 64, dist_c_buzzy.table_64khz * g_notesperoctave, TIMBRE_BUZZY_C, 0x00);
-    GenerateTable(m_table_memory + 0x340, 64, dist_c_buzzy.table_179mhz * g_notesperoctave, TIMBRE_BUZZY_C, 0x40);
-    GenerateTable(m_table_memory + 0x380, 64, dist_c_buzzy.table_16bit * g_notesperoctave, TIMBRE_BUZZY_C, 0x50);
-    GenerateTable(m_table_memory + 0x5C0, 64, dist_c_buzzy.table_15khz * g_notesperoctave, TIMBRE_BUZZY_C, 0x01);
+    GenerateTable(m_table_memory + 0x300, 64, dist_c_buzzy.table_64khz * g_notesperoctave, Timbre::BUZZY_C, 0x00);
+    GenerateTable(m_table_memory + 0x340, 64, dist_c_buzzy.table_179mhz * g_notesperoctave, Timbre::BUZZY_C, 0x40);
+    GenerateTable(m_table_memory + 0x380, 64, dist_c_buzzy.table_16bit * g_notesperoctave, Timbre::BUZZY_C, 0x50);
+    GenerateTable(m_table_memory + 0x5C0, 64, dist_c_buzzy.table_15khz * g_notesperoctave, Timbre::BUZZY_C, 0x01);
 
     //Distortion C (Buzzy), at 0xB300
-    GenerateTable(m_table_memory + 0x400, 64, dist_c_gritty.table_64khz * g_notesperoctave, TIMBRE_GRITTY_C, 0x00);
-    GenerateTable(m_table_memory + 0x440, 64, dist_c_gritty.table_179mhz * g_notesperoctave, TIMBRE_GRITTY_C, 0x40);
-    GenerateTable(m_table_memory + 0x480, 64, dist_c_gritty.table_16bit * g_notesperoctave, TIMBRE_GRITTY_C, 0x50);
+    GenerateTable(m_table_memory + 0x400, 64, dist_c_gritty.table_64khz * g_notesperoctave, Timbre::GRITTY_C, 0x00);
+    GenerateTable(m_table_memory + 0x440, 64, dist_c_gritty.table_179mhz * g_notesperoctave, Timbre::GRITTY_C, 0x40);
+    GenerateTable(m_table_memory + 0x480, 64, dist_c_gritty.table_16bit * g_notesperoctave, Timbre::GRITTY_C, 0x50);
     //no 15kHz table...
 }
 

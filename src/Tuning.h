@@ -10,6 +10,26 @@
 
 
 
+// Timbre definitions, used for tuning calculations
+// The values also define which is the appropriate Distortion (AUDC) to use
+// Example: "audc = TIMBRE_BUZZY_C & 0xF0" 
+// The value of audc is then 0xC0, which corresponds to Distortion C 
+//
+enum class Timbre : byte {
+    PINK_NOISE = 0x00,	// Distortion 0, by default
+    BROWNIAN_NOISE = 0x01,	// (MOD7 && POLY9), Distortion 0
+    FUZZY_NOISE = 0x02,	// (!MOD7 && POLY9), Distortion 0
+    BELL = 0x20,	// (!MOD31), Distortion 2, by default
+    BUZZY_4 = 0x40,	// (!MOD3 && !MOD5),  used by Distortion 4, this mode is actually identical to Distortion C (Gritty) 
+    SMOOTH_4 = 0x41,	// (MOD3 && !MOD5), used by Distortion 4, this mode is actually identical to Distortion C (Buzzy) 
+    WHITE_NOISE = 0x80,	// Distortion 8, by default
+    METALLIC_NOISE = 0x81,	// (MOD7 && POLY9), Distortion 8 
+    BUZZY_NOISE = 0x82,	// (!MOD7 && POLY9), Distortion 8
+    PURE_A = 0xA0,	// Distortion A, by default 
+    GRITTY_C = 0xC0,	// (!MOD3 && !MOD5), also known as RMT Distortion E
+    BUZZY_C = 0xC1,	// (MOD3 && !MOD5), also known as RMT Distortion C
+    UNSTABLE_C = 0xC2	// (!MOD3 && MOD5), must be avoided unless there is a purpose for it
+};
 
 //Table construction structure
 struct TTuning
@@ -151,8 +171,8 @@ private:
 
     Pitch GetTruePitch(double tuning, Temperament temperament, int basenote, int semitone);
 
-    void GenerateTable(byte* table, int length, int semitone, int timbre, int audctl);
-    AUDF CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_divisor, double divisor, int cycle, int timbre) const;
+    void GenerateTable(byte* table, int length, int semitone, Timbre timbre, int audctl);
+    AUDF CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_divisor, double divisor, int cycle, Timbre timbre) const;
 
     /*
         const TTuning dist_2_bell{ 12, 0, 48, 24 };
