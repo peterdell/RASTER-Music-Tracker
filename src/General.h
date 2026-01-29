@@ -4,9 +4,6 @@
 
 // ---------------------
 // Analyser and other RGB colors
-// TODO: Make also RGB
-#define COL_BLOCK		56
-
 class CRGBColor {
 
 public:
@@ -17,6 +14,8 @@ public:
     static constexpr COLORREF BACKGROUND = RGB(34, 50, 80);     // Dark blue
     static constexpr COLORREF LINES = RGB(149, 194, 240);       // Blue gray
     static constexpr COLORREF BLACK = RGB(0, 0, 0);             // Black
+    static constexpr BYTE COL_BLOCK = 56;                       // Blue portion of analyzer background block
+
 };
 // ----------------------------------------------------------------------------
 // GUI edit modes
@@ -40,11 +39,11 @@ enum class KeyboardLayout : int {
 };
 
 // ----------------------------------------------------------------------------
-// TODO: add more keys definition to simplify things
-#define VK_BACKSPACE	8
-#define VK_ENTER		13
-#define VK_PAGE_UP		33
-#define VK_PAGE_DOWN	34
+// TODO: Replace by accelerator bindings
+static constexpr byte VK_BACKSPACE = 8;
+static constexpr byte VK_ENTER = 13;
+static constexpr byte VK_PAGE_UP = 33;
+static constexpr byte VK_PAGE_DOWN = 34;
 
 #define CONFIG_FILENAME "rmt.ini"
 #define TUNING_FILENAME "tuning.ini"

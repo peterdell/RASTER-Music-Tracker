@@ -8,6 +8,9 @@
 #include "RuntimeException.h"
 #include <cassert>
 
+#include "Winuser.h"
+
+
 CStatusBar* g_statusBar = nullptr;
 
 

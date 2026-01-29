@@ -231,24 +231,24 @@ void CSong::DrawAnalyzer()
         // Left/Mono Channel
         // Draw which channels are joined by highpass filters or normal channel join
         a = memory[0xd208]; // AUDCTL @ $D208
-        if (a & 0x04) { col[2] = COL_BLOCK; Hook1(0, 2); yUp -= 2; }	// High pass filter on channel 1, clocked by channel 3
-        if (a & 0x02) { col[3] = COL_BLOCK;	Hook1(1, 3); yUp -= 2; }	// High pass filter on channel 3, clocked by channel 4
-        if (a & 0x10) { col[0] = COL_BLOCK;	Hook1(0, 1); yUp -= 2; }	// Join channels 1 + 2 (16 bit)
-        if (a & 0x08) { col[2] = COL_BLOCK;	Hook1(2, 3); yUp -= 2; }	// Join channels 3 + 4 (16 bit)
+        if (a & 0x04) { col[2] = CRGBColor::COL_BLOCK; Hook1(0, 2); yUp -= 2; }	// High pass filter on channel 1, clocked by channel 3
+        if (a & 0x02) { col[3] = CRGBColor::COL_BLOCK;	Hook1(1, 3); yUp -= 2; }	// High pass filter on channel 3, clocked by channel 4
+        if (a & 0x10) { col[0] = CRGBColor::COL_BLOCK;	Hook1(0, 1); yUp -= 2; }	// Join channels 1 + 2 (16 bit)
+        if (a & 0x08) { col[2] = CRGBColor::COL_BLOCK;	Hook1(2, 3); yUp -= 2; }	// Join channels 3 + 4 (16 bit)
 
         b = memory[0xd20f]; // SKCTL @ $D20F
-        if (b == 0x8b) { col[1] = COL_BLOCK; Hook1(0, 1); yUp -= 2; }	// Two tone mode (join channel 1 + 2)
+        if (b == 0x8b) { col[1] = CRGBColor::COL_BLOCK; Hook1(0, 1); yUp -= 2; }	// Two tone mode (join channel 1 + 2)
         yUp = 7;
 
         // Stereo Channel
         a = memory[0xd218]; // AUDCTL2 @ $D218
-        if (a & 0x04) { col[2 + 4] = COL_BLOCK; Hook1(0 + 4, 2 + 4); yUp -= 2; }	// High pass filter on channel 5 clocked by channel 7
-        if (a & 0x02) { col[3 + 4] = COL_BLOCK; Hook1(1 + 4, 3 + 4); yUp -= 2; }	// High pass filter on channel 7, clocked by channel 8
-        if (a & 0x10) { col[0 + 4] = COL_BLOCK; Hook1(0 + 4, 1 + 4); yUp -= 2; }	// Join channels 5 + 6 (16 bit)
-        if (a & 0x08) { col[2 + 4] = COL_BLOCK; Hook1(2 + 4, 3 + 4); yUp -= 2; }	// Join channels 7 + 8 (16 bit)
+        if (a & 0x04) { col[2 + 4] = CRGBColor::COL_BLOCK; Hook1(0 + 4, 2 + 4); yUp -= 2; }	// High pass filter on channel 5 clocked by channel 7
+        if (a & 0x02) { col[3 + 4] = CRGBColor::COL_BLOCK; Hook1(1 + 4, 3 + 4); yUp -= 2; }	// High pass filter on channel 7, clocked by channel 8
+        if (a & 0x10) { col[0 + 4] = CRGBColor::COL_BLOCK; Hook1(0 + 4, 1 + 4); yUp -= 2; }	// Join channels 5 + 6 (16 bit)
+        if (a & 0x08) { col[2 + 4] = CRGBColor::COL_BLOCK; Hook1(2 + 4, 3 + 4); yUp -= 2; }	// Join channels 7 + 8 (16 bit)
 
         b = memory[0xd21f]; // SKCTL2 @ $D21F
-        if (b == 0x8b) { col[1 + 4] = COL_BLOCK; Hook1(0 + 4, 1 + 4); yUp -= 2; }	// Two tone mode (join channel 5 + 6)
+        if (b == 0x8b) { col[1 + 4] = CRGBColor::COL_BLOCK; Hook1(0 + 4, 1 + 4); yUp -= 2; }	// Two tone mode (join channel 5 + 6)
 
         for (int channelNr = 0; channelNr < GetTracks(); channelNr++)
         {
@@ -304,24 +304,24 @@ void CSong::DrawAnalyzer()
         // Left / Mono Channel
         // Draw which channels are joined by highpass filters or normal channel join
         a = memory[0xd208]; // AUDCTL @ $D208
-        if (a & 0x04) { col[2] = COL_BLOCK; Hook2(0, 2); yUp -= 2; }	// High pass filter on channel 1, clocked by channel 3
-        if (a & 0x02) { col[3] = COL_BLOCK;	Hook2(1, 3); yUp -= 2; }	// High pass filter on channel 3, clocked by channel 4
-        if (a & 0x10) { col[0] = COL_BLOCK;	Hook2(0, 1); yUp -= 2; }	// Join channels 1 + 2 (16 bit)
-        if (a & 0x08) { col[2] = COL_BLOCK;	Hook2(2, 3); yUp -= 2; }	// Join channels 3 + 4 (16 bit)
+        if (a & 0x04) { col[2] = CRGBColor::COL_BLOCK; Hook2(0, 2); yUp -= 2; }	// High pass filter on channel 1, clocked by channel 3
+        if (a & 0x02) { col[3] = CRGBColor::COL_BLOCK;	Hook2(1, 3); yUp -= 2; }	// High pass filter on channel 3, clocked by channel 4
+        if (a & 0x10) { col[0] = CRGBColor::COL_BLOCK;	Hook2(0, 1); yUp -= 2; }	// Join channels 1 + 2 (16 bit)
+        if (a & 0x08) { col[2] = CRGBColor::COL_BLOCK;	Hook2(2, 3); yUp -= 2; }	// Join channels 3 + 4 (16 bit)
 
         b = memory[0xd20f]; // SKCTL @ $D20F
-        if (b == 0x8b) { col[1] = COL_BLOCK; Hook2(0, 1); yUp -= 2; }	// Two tone mode (join channel 1 + 2)
+        if (b == 0x8b) { col[1] = CRGBColor::COL_BLOCK; Hook2(0, 1); yUp -= 2; }	// Two tone mode (join channel 1 + 2)
         yUp = 7;
 
         // Stereo Channel
         a = memory[0xd218]; // AUDCTL2 @ $D218
-        if (a & 0x04) { col[2 + 4] = COL_BLOCK; Hook2(0 + 4, 2 + 4); yUp -= 2; }	// High pass filter on channel 5 clocked by channel 7
-        if (a & 0x02) { col[3 + 4] = COL_BLOCK; Hook2(1 + 4, 3 + 4); yUp -= 2; }	// High pass filter on channel 7, clocked by channel 8
-        if (a & 0x10) { col[0 + 4] = COL_BLOCK; Hook2(0 + 4, 1 + 4); yUp -= 2; }	// Join channels 5 + 6 (16 bit)
-        if (a & 0x08) { col[2 + 4] = COL_BLOCK; Hook2(2 + 4, 3 + 4); yUp -= 2; }	// Join channels 7 + 8 (16 bit)
+        if (a & 0x04) { col[2 + 4] = CRGBColor::COL_BLOCK; Hook2(0 + 4, 2 + 4); yUp -= 2; }	// High pass filter on channel 5 clocked by channel 7
+        if (a & 0x02) { col[3 + 4] = CRGBColor::COL_BLOCK; Hook2(1 + 4, 3 + 4); yUp -= 2; }	// High pass filter on channel 7, clocked by channel 8
+        if (a & 0x10) { col[0 + 4] = CRGBColor::COL_BLOCK; Hook2(0 + 4, 1 + 4); yUp -= 2; }	// Join channels 5 + 6 (16 bit)
+        if (a & 0x08) { col[2 + 4] = CRGBColor::COL_BLOCK; Hook2(2 + 4, 3 + 4); yUp -= 2; }	// Join channels 7 + 8 (16 bit)
 
         b = memory[0xd21f]; // SKCTL2 @ $D21F
-        if (b == 0x8b) { col[1 + 4] = COL_BLOCK; Hook2(0 + 4, 1 + 4); yUp -= 2; }	// Two tone mode (join channel 5 + 6)
+        if (b == 0x8b) { col[1 + 4] = CRGBColor::COL_BLOCK; Hook2(0 + 4, 1 + 4); yUp -= 2; }	// Two tone mode (join channel 5 + 6)
 
         for (int channelNr = 0; channelNr < g_tracks4_8; channelNr++)
         {
