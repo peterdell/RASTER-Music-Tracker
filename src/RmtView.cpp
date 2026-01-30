@@ -242,7 +242,15 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_SONG_TOGGLE_NTSC, OnSongToggleNTSC)
     //}}AFX_MSG_MAP
 
-END_MESSAGE_MAP()
+        ON_COMMAND(ID_CHANNELS_CHANNEL1, &CRmtView::OnChannelsChannel1)
+        ON_COMMAND(ID_CHANNELS_CHANNEL2, &CRmtView::OnChannelsChannel2)
+        ON_COMMAND(ID_CHANNELS_CHANNEL3, &CRmtView::OnChannelsChannel3)
+        ON_COMMAND(ID_CHANNELS_CHANNEL4, &CRmtView::OnChannelsChannel4)
+        ON_COMMAND(ID_CHANNELS_CHANNEL5, &CRmtView::OnChannelsChannel5)
+        ON_COMMAND(ID_CHANNELS_CHANNEL6, &CRmtView::OnChannelsChannel6)
+        ON_COMMAND(ID_CHANNELS_CHANNEL7, &CRmtView::OnChannelsChannel7)
+        ON_COMMAND(ID_CHANNELS_CHANNEL8, &CRmtView::OnChannelsChannel8)
+        END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CRmtView construction/destruction
@@ -1007,7 +1015,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
         SetCursor(m_cursorChanbelOnOff);
         if (mousebutt & MK_LBUTTON)
         {
-            SetChannelOnOff(px, -1);	//inversion
+            ToggleChannelOnOff(px);	//inversion
         }
         if (mousebutt & MK_RBUTTON)
         {
@@ -1550,7 +1558,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         else
         {
             int ch = g_Song.GetActiveColumn(); //mute current channel
-            SetChannelOnOff(ch, -1);
+            ToggleChannelOnOff(ch);
         }
         break;
 
@@ -1589,22 +1597,6 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     case VK_LMENU:
         g_altkey = 1;
         goto KeyDownNoUndoCheckPoint;
-        break;
-
-    case 49:	//VK_1
-    case 50:	//VK_2
-    case 51:	//VK_3
-    case 52:	//VK_4
-    case 53:	//VK_5
-    case 54:	//VK_6
-    case 55:	//VK_7
-    case 56:	//VK_8
-        if (g_controlkey && !g_shiftkey)	//CONTROL + 1-8
-        {
-            SetChannelOnOff(vk - 49, -1);		//inverts channel status 1-8 (=> on / off)
-        }
-        else
-            goto AllModesDefaultKey;
         break;
 
     default:
@@ -2340,54 +2332,14 @@ void CRmtView::OnUpdateBlockPlay(CCmdUI* pCmdUI)
 }
 
 //----------------------------------------------------------------------------
-//CHANNELS
+// CHANNELS
 
-void CRmtView::OnChan1()
-{
-    // TODO: Add your command handler code here
-}
 
-void CRmtView::OnChan2()
-{
-    // TODO: Add your command handler code here
-}
-
-void CRmtView::OnChan3()
-{
-    // TODO: Add your command handler code here
-}
-
-void CRmtView::OnChan4()
-{
-    // TODO: Add your command handler code here
-}
-
-void CRmtView::OnChan5()
-{
-    // TODO: Add your command handler code here
-}
-
-void CRmtView::OnChan6()
-{
-    // TODO: Add your command handler code here
-}
-
-void CRmtView::OnChan7()
-{
-    // TODO: Add your command handler code here
-}
-
-void CRmtView::OnChan8()
-{
-    // TODO: Add your command handler code here
-}
 
 void CRmtView::OnUpdateChan1_4(CCmdUI* pCmdUI)
 {
     // The first 4 channels are always visible.
 }
-
-
 
 void CRmtView::OnUpdateChan5_8(CCmdUI* pCmdUI)
 {
@@ -2876,4 +2828,44 @@ void CRmtView::OnUpdateTrackCursorgotothespeedcolumn(CCmdUI* pCmdUI)
 void CRmtView::OnSongToggleNTSC()
 {
     SetNTSC(!g_Song.IsNTSC());
+}
+
+void CRmtView::OnChannelsChannel1()
+{
+    ToggleChannelOnOff(0);
+}
+
+void CRmtView::OnChannelsChannel2()
+{
+    ToggleChannelOnOff(1);
+}
+
+void CRmtView::OnChannelsChannel3()
+{
+    ToggleChannelOnOff(2);
+}
+
+void CRmtView::OnChannelsChannel4()
+{
+    ToggleChannelOnOff(3);
+}
+
+void CRmtView::OnChannelsChannel5()
+{
+    ToggleChannelOnOff(4);
+}
+
+void CRmtView::OnChannelsChannel6()
+{
+    ToggleChannelOnOff(5);
+}
+
+void CRmtView::OnChannelsChannel7()
+{
+    ToggleChannelOnOff(6);
+}
+
+void CRmtView::OnChannelsChannel8()
+{
+    ToggleChannelOnOff(7);
 }

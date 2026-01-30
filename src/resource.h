@@ -380,6 +380,14 @@
 #define ID_TOOLS_OPEN_ASMA              32916
 #define ID_SONG_SONGPROPERTIES          32917
 #define ID_FILE_PROPERTIES              32918
+#define ID_CHANNELS_CHANNEL1            32950
+#define ID_CHANNELS_CHANNEL2            32951
+#define ID_CHANNELS_CHANNEL3            32952
+#define ID_CHANNELS_CHANNEL4            32953
+#define ID_CHANNELS_CHANNEL5            32954
+#define ID_CHANNELS_CHANNEL6            32955
+#define ID_CHANNELS_CHANNEL7            32956
+#define ID_CHANNELS_CHANNEL8            32957
 #define IDS_RMTVERSION                  61446
 #define IDS_RMT_VERSION                 61446
 #define IDS_RMTAUTHOR                   61447
@@ -391,7 +399,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        174
-#define _APS_NEXT_COMMAND_VALUE         32950
+#define _APS_NEXT_COMMAND_VALUE         32960
 #define _APS_NEXT_CONTROL_VALUE         1170
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

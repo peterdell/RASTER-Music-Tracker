@@ -1212,6 +1212,18 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Instrument Active Help",     ID_VIEW_INSTRUMENTACTIVEHELP
     END
+    POPUP "&Channels"
+    BEGIN
+        MENUITEM "Channel &1\tCtl+1",           ID_CHANNELS_CHANNEL1
+        MENUITEM "Channel &2\tCtl+2",           ID_CHANNELS_CHANNEL2
+        MENUITEM "Channel &3\tCtl+3",           ID_CHANNELS_CHANNEL3
+        MENUITEM "Channel &4\tCtl+4",           ID_CHANNELS_CHANNEL4
+        MENUITEM SEPARATOR
+        MENUITEM "Channel &5\tCtrl+5",          ID_CHANNELS_CHANNEL5
+        MENUITEM "Channel &6\tCtl+6",           ID_CHANNELS_CHANNEL6
+        MENUITEM "Channel &7\tCtl+7",           ID_CHANNELS_CHANNEL7
+        MENUITEM "Channel &8\tCtl+8",           ID_CHANNELS_CHANNEL8
+    END
     POPUP "&Song"
     BEGIN
         MENUITEM "&Copy Line",                  ID_SONG_COPY_LINE
@@ -1380,6 +1392,14 @@ BEGIN
     VK_ESCAPE,      ID_SONG_STOP,           VIRTKEY, NOINVERT
     VK_F12,         ID_SONG_TOGGLE_NTSC,    VIRTKEY, CONTROL, NOINVERT
     VK_SPACE,       ID_SWITCH_MODE,         VIRTKEY, CONTROL, NOINVERT
+    "1",            ID_CHANNELS_CHANNEL1,   VIRTKEY, CONTROL, NOINVERT
+    "2",            ID_CHANNELS_CHANNEL2,   VIRTKEY, CONTROL, NOINVERT
+    "3",            ID_CHANNELS_CHANNEL3,   VIRTKEY, CONTROL, NOINVERT
+    "4",            ID_CHANNELS_CHANNEL4,   VIRTKEY, CONTROL, NOINVERT
+    "5",            ID_CHANNELS_CHANNEL5,   VIRTKEY, CONTROL, NOINVERT
+    "6",            ID_CHANNELS_CHANNEL6,   VIRTKEY, CONTROL, NOINVERT
+    "7",            ID_CHANNELS_CHANNEL7,   VIRTKEY, CONTROL, NOINVERT
+    "8",            ID_CHANNELS_CHANNEL8,   VIRTKEY, CONTROL, NOINVERT
 END
 
 

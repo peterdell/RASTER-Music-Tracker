@@ -23,6 +23,14 @@
 | Menu View | Play Time Counter |  |  |
 | Menu View | Main Toolbar |  | Show or hide the main toolbar |
 | Menu View | Status Bar |  | Show or hide the status bar |
+| Menu Channels | Channel 1 | `Ctl+1` |  |
+| Menu Channels | Channel 2 | `Ctl+2` |  |
+| Menu Channels | Channel 3 | `Ctl+3` |  |
+| Menu Channels | Channel 4 | `Ctl+4` |  |
+| Menu Channels | Channel 5 | `Ctrl+5` |  |
+| Menu Channels | Channel 6 | `Ctl+6` |  |
+| Menu Channels | Channel 7 | `Ctl+7` |  |
+| Menu Channels | Channel 8 | `Ctl+8` |  |
 | Menu Song | Copy Line |  |  |
 | Menu Song | Paste Line |  |  |
 | Menu Song | Clear Line |  |  |

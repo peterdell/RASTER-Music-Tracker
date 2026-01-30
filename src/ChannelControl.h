@@ -8,6 +8,7 @@ public:
 };
 
 extern void SetChannelOnOff(int ch, int onoff);
+extern void ToggleChannelOnOff(int ch);
 extern int GetChannelOnOff(int ch);
 extern void SetChannelSolo(int ch);
 

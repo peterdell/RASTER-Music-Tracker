@@ -165,14 +165,6 @@ protected:
     afx_msg void OnUpdateBlockBackup(CCmdUI* pCmdUI);
     afx_msg void OnBlockPlay();
     afx_msg void OnUpdateBlockPlay(CCmdUI* pCmdUI);
-    afx_msg void OnChan1();
-    afx_msg void OnChan2();
-    afx_msg void OnChan3();
-    afx_msg void OnChan4();
-    afx_msg void OnChan5();
-    afx_msg void OnChan6();
-    afx_msg void OnChan7();
-    afx_msg void OnChan8();
     afx_msg void OnUpdateChan1_4(CCmdUI* pCmdUI);
     afx_msg void OnUpdateChan5_8(CCmdUI* pCmdUI);
     afx_msg void OnMouseMove(UINT nFlags, CPoint point);
@@ -275,6 +267,15 @@ protected:
     afx_msg void OnWantExit();
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
+public:
+    afx_msg void OnChannelsChannel1();
+    afx_msg void OnChannelsChannel2();
+    afx_msg void OnChannelsChannel3();
+    afx_msg void OnChannelsChannel4();
+    afx_msg void OnChannelsChannel5();
+    afx_msg void OnChannelsChannel6();
+    afx_msg void OnChannelsChannel7();
+    afx_msg void OnChannelsChannel8();
 };
 
 #ifndef _DEBUG  // debug version in RmtView.cpp
