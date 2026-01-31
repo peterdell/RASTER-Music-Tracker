@@ -42,11 +42,6 @@ void CChannelControl::ToggleChannelOnOff(const ChannelNumber ch) {
     SetChannelOnOff(ch, -1);
 }
 
-int CChannelControl::GetChannelOnOff(const ChannelNumber ch)
-{
-    return g_channelon[ch];
-}
-
 void CChannelControl::SetAllChannelsOff() {
     SetChannelOnOff(-1, 0);
 }
@@ -71,7 +66,7 @@ void CChannelControl::SetChannelSolo(const ChannelNumber ch)
         // If any other channel is on then turn them all off except for the target channel
         for (int i = 0; i < g_tracks4_8; i++)
         {
-            if (i != ch && GetChannelOnOff(i)) goto Channel_SOLO;
+            if (i != ch && IsChannelOn(i)) goto Channel_SOLO;
         }
         // All other channels are off, turn them all on
         SetAllChannelsOn();

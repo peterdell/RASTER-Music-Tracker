@@ -7,7 +7,6 @@ public:
     static bool IsChannelOn(const ChannelNumber channel);
 
     static void ToggleChannelOnOff(const ChannelNumber ch);
-    static int GetChannelOnOff(const ChannelNumber ch);
 
     static void SetAllChannelsOn();
     static void SetAllChannelsOff();
