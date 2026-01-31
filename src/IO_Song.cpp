@@ -130,11 +130,11 @@ void CSong::FileReload()
 
     // Stop the music first
     Stop();
-    int answer = MessageBox(g_hwnd, "Discard all changes since your last save?\n\nWarning: Undo operation won't be possible!!!", "Reload", MB_YESNOCANCEL | MB_ICONQUESTION);
+    auto answer = MessageBox(g_hwnd, "Discard all changes since your last save?\n\nWarning: Undo operation won't be possible!!!", "Reload", MB_YESNOCANCEL | MB_ICONQUESTION);
     if (answer == IDYES)
     {
-        CString filename = m_filename;
-        FileOpen((LPCTSTR)filename, 0); // Without Warning for changes
+        auto filename = m_filename;
+        FileOpen((LPCTSTR)filename, FALSE); // Without warning for unsaved changes
     }
 }
 
@@ -169,9 +169,9 @@ BOOL CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
         if (!g_defaultSongsPath.IsEmpty()) { dlg.m_ofn.lpstrInitialDir = g_defaultSongsPath; }
     }
 
-    if (GetIOType() == SongIOType::RMT) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_RMT; }
-    if (GetIOType() == SongIOType::TXT) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_TXT; }
-    if (GetIOType() == SongIOType::RMW) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_RMW; }
+    if (GetIOType() == SongIOType::RMT) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::RMT; }
+    if (GetIOType() == SongIOType::TXT) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::TXT; }
+    if (GetIOType() == SongIOType::RMW) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::RMW; }
 
     CString fileToLoad = "";
     int filterIndex = 0;
@@ -179,11 +179,11 @@ BOOL CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
     {
         fileToLoad = filename;
         CString ext = fileToLoad.Right(4).MakeLower();
-        if (ext == ".rmt") filterIndex = FILE_LOADSAVE::FILTER_IDX_RMT;
+        if (ext == ".rmt") filterIndex = FILE_LOADSAVE::RMT;
         else
-            if (ext == ".txt") filterIndex = FILE_LOADSAVE::FILTER_IDX_TXT;
+            if (ext == ".txt") filterIndex = FILE_LOADSAVE::TXT;
             else
-                if (ext == ".rmw") filterIndex = FILE_LOADSAVE::FILTER_IDX_RMW;
+                if (ext == ".rmw") filterIndex = FILE_LOADSAVE::RMW;
     }
     else
     {
@@ -224,17 +224,17 @@ BOOL CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
     auto loadedOk = false;
     switch (filterIndex)
     {
-    case FILE_LOADSAVE::FILTER_IDX_RMT: // RMT choice in Dialog
+    case FILE_LOADSAVE::RMT: // RMT choice in Dialog
         loadedOk = LoadRMT(in);
         m_ioType = SongIOType::RMT; // TODO: Move into Load...
         break;
 
-    case FILE_LOADSAVE::FILTER_IDX_TXT: // TXT choice in Dialog
+    case FILE_LOADSAVE::TXT: // TXT choice in Dialog
         loadedOk = LoadTxt(in);
         m_ioType = SongIOType::TXT;
         break;
 
-    case FILE_LOADSAVE::FILTER_IDX_RMW: // RMW choice in Dialog
+    case FILE_LOADSAVE::RMW: // RMW choice in Dialog
         loadedOk = LoadRMW(in);
         m_ioType = SongIOType::RMW;
         break;
@@ -252,7 +252,7 @@ BOOL CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
     m_filename = fileToLoad;
     m_speed = m_mainSpeed;			// Init speed
     SetRMTTitle();					// Window name
-    SetChannelOnOff(-1, 1);			// All channels ON (unmute all) -1 = all, 1 = on
+    SetAllChannelsOn();
     return TRUE;
 
 }
@@ -289,15 +289,15 @@ void CSong::FileSave()
     bool saveResult = false;
     switch (GetIOType())
     {
-    case SongIOType::RMT: // RMT
+    case SongIOType::RMT:
         saveResult = ExportV2(*this, out, SongIOType::RMT);
         break;
 
-    case SongIOType::TXT: // TXT
+    case SongIOType::TXT:
         saveResult = SaveTxt(out);
         break;
 
-    case SongIOType::RMW: // RMW
+    case SongIOType::RMW:
         // NOTE:
         // Remembers the current octave and volume for the active instrument (for saving to RMW) 
         // It is only saved when the instrument is changed and could change the octave or volume before saving without subsequently changing the current instrument
@@ -360,9 +360,9 @@ void CSong::FileSaveAs()
     }
 
     // Set the type according to the last save
-    if (GetIOType() == SongIOType::RMT) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_RMT; }
-    if (GetIOType() == SongIOType::TXT) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_TXT; }
-    if (GetIOType() == SongIOType::RMW) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_RMW; }
+    if (GetIOType() == SongIOType::RMT) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::RMT; }
+    if (GetIOType() == SongIOType::TXT) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::TXT; }
+    if (GetIOType() == SongIOType::RMW) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::RMW; }
 
     //if not ok, nothing will be saved
     if (dlg.DoModal() == IDOK)
@@ -375,23 +375,21 @@ void CSong::FileSaveAs()
         }
 
         m_filename = dlg.GetPathName();
-        auto exttype = fileDialogParameters.GetExtensionArray();
-        auto ext = m_filename.Right(4).MakeLower();
-        if (ext != exttype[filterIndex - 1]) { m_filename += exttype[filterIndex - 1]; }
+        fileDialogParameters.EnsureFileExtension(m_filename, filterIndex);
 
         g_lastLoadPath_Songs = GetFilePath(m_filename);
 
         switch (filterIndex)
         {
-        case FILE_LOADSAVE::FILTER_IDX_RMT: // RMT choice
+        case FILE_LOADSAVE::RMT: // RMT choice
             m_ioType = SongIOType::RMT;
             break;
 
-        case FILE_LOADSAVE::FILTER_IDX_TXT: // TXT choice
+        case FILE_LOADSAVE::TXT: // TXT choice
             m_ioType = SongIOType::TXT;
             break;
 
-        case FILE_LOADSAVE::FILTER_IDX_RMW: // RWM choice
+        case FILE_LOADSAVE::RMW: // RWM choice
             m_ioType = SongIOType::RMW;
             break;
 
@@ -412,12 +410,13 @@ void CSong::FileNew()
     // Stop the music first
     Stop();
 
-    //if the last changes were not saved, nothing will be created
-    if (WarnUnsavedChanges()) return;
+    // If the last changes were not saved, nothing will be created
+    if (WarnUnsavedChanges()) { return; }
 
     CFileNewDlg dlg;
-    if (dlg.DoModal() != IDOK)
+    if (dlg.DoModal() != IDOK) {
         return;
+    }
 
     // Apply the settings and reset the song data
     g_Tracks.SetMaxTrackLength(dlg.m_maxTrackLength);
@@ -432,7 +431,7 @@ void CSong::FileNew()
     m_songgo[1] = 0;
 
     // All channels ON (unmute all)
-    SetChannelOnOff(-1, 1);		// -1 = all, 1 = on
+    SetAllChannelsOn();
 
     // Delete undo history
     g_Undo.Clear();
@@ -457,18 +456,21 @@ void CSong::FileImport()
         OFN_HIDEREADONLY,
         fileDialogParamerters.GetFilters()
     );
-    dlg.m_ofn.lpstrTitle = "Import song file";
+    dlg.m_ofn.lpstrTitle = "Import Song File";
 
-    if (!g_lastLoadPath_Songs.IsEmpty())
+    if (!g_lastLoadPath_Songs.IsEmpty()) {
         dlg.m_ofn.lpstrInitialDir = g_lastLoadPath_Songs;
-    else if (!g_defaultSongsPath.IsEmpty())
+    }
+    else if (!g_defaultSongsPath.IsEmpty()) {
         dlg.m_ofn.lpstrInitialDir = g_defaultSongsPath;
+    }
 
-    if (l_lastImportTypeIndex >= 0) dlg.m_ofn.nFilterIndex = l_lastImportTypeIndex;		// Restore the last imported file type
+    if (l_lastImportTypeIndex >= 0) { dlg.m_ofn.nFilterIndex = l_lastImportTypeIndex; }	// Restore the last imported file type
 
     // If not ok, nothing will be imported
-    if (dlg.DoModal() != IDOK)
+    if (dlg.DoModal() != IDOK) {
         return;
+    }
 
     CString fn = dlg.GetPathName();
     g_lastLoadPath_Songs = GetFilePath(fn);	//direct way
@@ -490,10 +492,10 @@ void CSong::FileImport()
     int importResult = 0;
     switch (filterIndex)
     {
-    case FILE_IMPORT::FILTER_IDX_MOD: // MOD choice in Dialog
+    case FILE_IMPORT::MOD: // MOD choice in Dialog
         importResult = ImportMOD(in);
         break;
-    case FILE_IMPORT::FILTER_IDX_TMC: // TMC choice in Dialog
+    case FILE_IMPORT::TMC: // TMC choice in Dialog
         importResult = ImportTMC(in);
         break;
     }
@@ -501,7 +503,7 @@ void CSong::FileImport()
     in.close();
     m_filename = "";
 
-    if (importResult == 0)				// Import failed?
+    if (importResult == FALSE)				// Import failed?
         ClearSong(g_tracks4_8);			// Delete everything
     else
     {
@@ -512,7 +514,7 @@ void CSong::FileImport()
         //SetRMTTitle();
     }
     // All channels ON (unmute all)
-    SetChannelOnOff(-1, 1);		// -1 = all, 1 = on
+    SetAllChannelsOn();
 
     // Initialise RMT routine
     g_AtariTrackerDriver->Init();
@@ -533,11 +535,12 @@ void CSong::FileExportAs()
         return;
     }
 
+    FILE_EXPORT fileDialogParameters;
     CFileDialog dlg(FALSE,
         NULL,
         NULL,
         OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-        FILE_EXPORT_FILTERS
+        fileDialogParameters.GetFilters()
     );
 
     dlg.m_ofn.lpstrTitle = "Export song as...";
@@ -547,13 +550,13 @@ void CSong::FileExportAs()
     else
         if (!g_defaultSongsPath.IsEmpty()) dlg.m_ofn.lpstrInitialDir = g_defaultSongsPath;
 
-    if (m_lastExportIOType == SongIOType::RMTSTRIPPED) dlg.m_ofn.nFilterIndex = FILE_EXPORT::FILTER_IDX_STRIPPED_RMT;
-    if (m_lastExportIOType == SongIOType::ASM) dlg.m_ofn.nFilterIndex = FILE_EXPORT::FILTER_IDX_SIMPLE_ASM;
-    if (m_lastExportIOType == SongIOType::SAPR) dlg.m_ofn.nFilterIndex = FILE_EXPORT::FILTER_IDX_SAPR;
-    if (m_lastExportIOType == SongIOType::LZSS) dlg.m_ofn.nFilterIndex = FILE_EXPORT::FILTER_IDX_LZSS;
-    if (m_lastExportIOType == SongIOType::LZSS_SAP) dlg.m_ofn.nFilterIndex = FILE_EXPORT::FILTER_IDX_SAP;
-    if (m_lastExportIOType == SongIOType::LZSS_XEX) dlg.m_ofn.nFilterIndex = FILE_EXPORT::FILTER_IDX_XEX;
-    if (m_lastExportIOType == SongIOType::ASM_RMTPLAYER) dlg.m_ofn.nFilterIndex = FILE_EXPORT::FILTER_IDX_RELOC_ASM;
+    if (m_lastExportIOType == SongIOType::RMTSTRIPPED) dlg.m_ofn.nFilterIndex = FILE_EXPORT::STRIPPED_RMT;
+    if (m_lastExportIOType == SongIOType::ASM) dlg.m_ofn.nFilterIndex = FILE_EXPORT::SIMPLE_ASM;
+    if (m_lastExportIOType == SongIOType::SAPR) dlg.m_ofn.nFilterIndex = FILE_EXPORT::SAPR;
+    if (m_lastExportIOType == SongIOType::LZSS) dlg.m_ofn.nFilterIndex = FILE_EXPORT::LZSS;
+    if (m_lastExportIOType == SongIOType::LZSS_SAP) dlg.m_ofn.nFilterIndex = FILE_EXPORT::SAP;
+    if (m_lastExportIOType == SongIOType::LZSS_XEX) dlg.m_ofn.nFilterIndex = FILE_EXPORT::XEX;
+    if (m_lastExportIOType == SongIOType::ASM_RMTPLAYER) dlg.m_ofn.nFilterIndex = FILE_EXPORT::RELOC_ASM;
     if (m_lastExportIOType == SongIOType::WAV) dlg.m_ofn.nFilterIndex = FILE_EXPORT::FILTER_IDX_WAV;
 
     // If not ok, nothing will be saved
@@ -562,18 +565,12 @@ void CSong::FileExportAs()
         CString fn = dlg.GetPathName();
         int formatChoiceIndexFromDialog = dlg.m_ofn.nFilterIndex;
 
-        if (formatChoiceIndexFromDialog < FILE_EXPORT::FILTER_IDX_MIN
-            || formatChoiceIndexFromDialog > FILE_EXPORT::FILTER_IDX_MAX)
+        if (!fileDialogParameters.IsValidFilterIndex(formatChoiceIndexFromDialog))
         {
             return;
         }
 
-        const char* exttype[] = FILE_EXPORT_EXTENSIONS_ARRAY;
-        const int extlength[] = FILE_EXPORT_EXTENSIONS_LENGTH_ARRAY;
-        int extoff = extlength[formatChoiceIndexFromDialog - 1];
-
-        CString ext = fn.Right(extoff).MakeLower();
-        if (ext != exttype[formatChoiceIndexFromDialog - 1]) fn += exttype[formatChoiceIndexFromDialog - 1];
+        fileDialogParameters.EnsureFileExtension(fn, formatChoiceIndexFromDialog);
 
         g_lastLoadPath_Songs = GetFilePath(fn);
 
@@ -588,31 +585,31 @@ void CSong::FileExportAs()
         bool exportResult = false;
         switch (formatChoiceIndexFromDialog)
         {
-        case FILE_EXPORT::FILTER_IDX_STRIPPED_RMT:
+        case FILE_EXPORT::STRIPPED_RMT:
             m_lastExportIOType = SongIOType::RMTSTRIPPED;
             break;
 
-        case FILE_EXPORT::FILTER_IDX_SIMPLE_ASM:
+        case FILE_EXPORT::SIMPLE_ASM:
             m_lastExportIOType = SongIOType::ASM;
             break;
 
-        case FILE_EXPORT::FILTER_IDX_SAPR:
+        case FILE_EXPORT::SAPR:
             m_lastExportIOType = SongIOType::SAPR;
             break;
 
-        case FILE_EXPORT::FILTER_IDX_LZSS:
+        case FILE_EXPORT::LZSS:
             m_lastExportIOType = SongIOType::LZSS;
             break;
 
-        case FILE_EXPORT::FILTER_IDX_SAP:
+        case FILE_EXPORT::SAP:
             m_lastExportIOType = SongIOType::LZSS_SAP;
             break;
 
-        case FILE_EXPORT::FILTER_IDX_XEX:
+        case FILE_EXPORT::XEX:
             m_lastExportIOType = SongIOType::LZSS_XEX;
             break;
 
-        case FILE_EXPORT::FILTER_IDX_RELOC_ASM:	// Relocatable ASM for RMTPlayer
+        case FILE_EXPORT::RELOC_ASM:	// Relocatable ASM for RMTPlayer
             m_lastExportIOType = SongIOType::ASM_RMTPLAYER;
             break;
 

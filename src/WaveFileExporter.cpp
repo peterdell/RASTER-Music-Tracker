@@ -41,7 +41,7 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
     pokeyStream.SetState(CPokeyStream::WRITE);
 
     g_AtariTrackerDriver->Init();	// Reset the Atari memory 
-    SetChannelOnOff(-1, 1);	// Unmute all channels
+    SetAllChannelsOn();
 
     // Create the sound buffer to copy from and to
     auto bufferSize = CXPokey::BUFFER_SIZE;
@@ -78,7 +78,7 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
         frames++;
     }
 
-    SetChannelOnOff(-1, 0);	// Mute all channels
+    SetAllChannelsOff();
 
     // Finished doing WAV things...
     wavefile.CloseFile();
@@ -86,5 +86,6 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
     // Also make sure to delete the buffer once it's no longer needed
     delete buffer;
 
+    // TODO: Set channels on again?
     return true;
 }

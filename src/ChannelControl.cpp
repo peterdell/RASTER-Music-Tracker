@@ -42,21 +42,25 @@ int GetChannelOnOff(int ch)
     return g_channelon[ch];
 }
 
+void SetAllChannelsOff() {
+    SetChannelOnOff(-1, 0);
+}
+
+void SetAllChannelsOn() {
+    SetChannelOnOff(-1, 1);
+}
+
+void ToggleAllChannelsOnOff() {
+    SetChannelOnOff(-1, -1);
+}
+
 /// <summary>
 /// Turn ON only one channel, making sure that all others are turned off
 /// </summary>
 /// <param name="ch"></param>
 void SetChannelSolo(int ch)
 {
-    int on = GetChannelOnOff(ch);
-    if (!on)
-    {
-        // Target channel is OFF
-    Channel_SOLO:
-        SetChannelOnOff(-1, 0);	// Turn all off
-        SetChannelOnOff(ch, 1);	// and turn ON only the solo channel
-    }
-    else
+    if (CChannelControl::IsChannelOn(ch))
     {
         // Target channel is ON
         // If any other channel is on then turn them all off except for the target channel
@@ -65,8 +69,16 @@ void SetChannelSolo(int ch)
             if (i != ch && GetChannelOnOff(i)) goto Channel_SOLO;
         }
         // All other channels are off, turn them all on
-        SetChannelOnOff(-1, 1);	//turn them all on
+        SetAllChannelsOn();
     }
+    else
+    {
+        // Target channel is OFF
+    Channel_SOLO:
+        SetAllChannelsOff();
+        SetChannelOnOff(ch, 1);	// and turn ON only the solo channel
+    }
+
 }
 
 bool CChannelControl::IsChannelOn(const ChannelNumber channel) {

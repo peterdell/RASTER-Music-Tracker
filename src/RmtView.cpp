@@ -920,7 +920,7 @@ void CRmtView::OnInitialUpdate()
     g_active_ti = Part::PART_TRACKS;	//below the active tracks
 
     //turn on all channels
-    SetChannelOnOff(-1, 1);
+    SetAllChannelsOn();
 
     //CONFIGURATION
     ReadRMTConfig();
@@ -1200,11 +1200,11 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
 
             if (mousebutt & MK_LBUTTON)
             {
-                SetChannelOnOff(px, -1);	//inversion
+               ToggleChannelOnOff(px);	// inversion
             }
             if (mousebutt & MK_RBUTTON)
             {
-                SetChannelSolo(px);		//solo/mute/on/off
+                SetChannelSolo(px);		// solo/mute/on/off
             }
             return 1;
         }
@@ -1548,7 +1548,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     case VK_F9:
         if (!g_controlkey && g_shiftkey)
         {
-            SetChannelOnOff(-1, -1);		//switch all channels on or off
+            ToggleAllChannelsOnOff();		//switch all channels on or off
         }
         else if (g_controlkey)
         {

@@ -10,6 +10,10 @@ public:
 extern void SetChannelOnOff(int ch, int onoff);
 extern void ToggleChannelOnOff(int ch);
 extern int GetChannelOnOff(int ch);
+
+extern void SetAllChannelsOn();
+extern void SetAllChannelsOff();
+extern void ToggleAllChannelsOnOff();
 extern void SetChannelSolo(int ch);
 
 

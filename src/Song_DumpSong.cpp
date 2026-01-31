@@ -23,7 +23,7 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, 
 
     Stop();					// Make sure RMT is stopped 
     g_AtariTrackerDriver->Init();	// Reset the RMT routines 
-    SetChannelOnOff(-1, 0);	// Switch all channels off 
+    SetAllChannelsOff();
 
     // Activate stream recording mode.
     m_pokeyStream = &pokeyStream;
