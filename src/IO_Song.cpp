@@ -157,7 +157,7 @@ BOOL CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
         NULL,
         NULL,
         OFN_HIDEREADONLY,
-        FILE_LOADSAVE_FILTERS
+        FILE_LOADSAVE::GetFilters()
     );
     dlg.m_ofn.lpstrTitle = "Load song file";
 
@@ -330,14 +330,17 @@ void CSong::FileSaveAs()
         NULL,
         NULL,
         OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-        FILE_LOADSAVE_FILTERS
+        FILE_LOADSAVE::GetFilters()
     );
     dlg.m_ofn.lpstrTitle = "Save song as...";
 
-    if (!g_lastLoadPath_Songs.IsEmpty())
+    if (!g_lastLoadPath_Songs.IsEmpty()) {
         dlg.m_ofn.lpstrInitialDir = g_lastLoadPath_Songs;
+    }
     else
-        if (!g_defaultSongsPath.IsEmpty()) dlg.m_ofn.lpstrInitialDir = g_defaultSongsPath;
+    {
+        if (!g_defaultSongsPath.IsEmpty()) { dlg.m_ofn.lpstrInitialDir = g_defaultSongsPath; }
+    }
 
     // Specifies the name of the file according to the last saved one
     char filenamebuff[1024];
@@ -356,9 +359,9 @@ void CSong::FileSaveAs()
     }
 
     // Set the type according to the last save
-    if (GetIOType() == SongIOType::RMT) dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_RMT;
-    if (GetIOType() == SongIOType::TXT) dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_TXT;
-    if (GetIOType() == SongIOType::RMW) dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_RMW;
+    if (GetIOType() == SongIOType::RMT) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_RMT; }
+    if (GetIOType() == SongIOType::TXT) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_TXT; }
+    if (GetIOType() == SongIOType::RMW) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_RMW; }
 
     //if not ok, nothing will be saved
     if (dlg.DoModal() == IDOK)
@@ -372,9 +375,9 @@ void CSong::FileSaveAs()
         }
 
         m_filename = dlg.GetPathName();
-        const char* exttype[] = FILE_LOADSAVE_EXTENSIONS_ARRAY;
-        CString ext = m_filename.Right(4).MakeLower();
-        if (ext != exttype[formatChoiceIndexFromDialog - 1]) m_filename += exttype[formatChoiceIndexFromDialog - 1];
+        auto exttype = FILE_LOADSAVE::GetExtensionArray();
+        auto ext = m_filename.Right(4).MakeLower();
+        if (ext != exttype[formatChoiceIndexFromDialog - 1]) { m_filename += exttype[formatChoiceIndexFromDialog - 1]; }
 
         g_lastLoadPath_Songs = GetFilePath(m_filename);
 
