@@ -16,7 +16,7 @@ public:
 
 private:
     // Parameter onoff is 0=off, 1=on, -1=toggle
-    static void SetChannelOnOff(const ChannelNumber ch, int onoff);
+    static void SetChannelOnOff(const int ch, int onoff);
 };
 
 

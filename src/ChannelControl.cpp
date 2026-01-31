@@ -18,7 +18,7 @@ bool CChannelControl::IsChannelOn(const ChannelNumber channel) {
 /// </summary>
 /// <param name="ch">-1 = all channels, 0 - 7 = the sound channel</param>
 /// <param name="onoff">-1 = invert state, 0 = off, 1 = on</param>
-void CChannelControl::SetChannelOnOff(const ChannelNumber ch, int onoff)
+void CChannelControl::SetChannelOnOff(const int ch, int onoff)
 {
     if (ch < 0)
     {
