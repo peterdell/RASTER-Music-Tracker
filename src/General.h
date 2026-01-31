@@ -163,16 +163,6 @@ public:
 
 
 
-// ----------------------------------------------------------------------------
-// File open/save dialog format selections
-// .rmt / .txt / .rmw
-#define FILE_LOADSAVE_FILTERS "RMT song file (*.rmt)|*.rmt|TXT song file (*.txt)|*.txt|RMW song work file (*.rmw)|*.rmw||"
-#define FILE_LOADSAVE_FILTER_IDX_RMT 1
-#define FILE_LOADSAVE_FILTER_IDX_TXT 2
-#define FILE_LOADSAVE_FILTER_IDX_RMW 3
-#define FILE_LOADSAVE_FILTER_IDX_MIN FILE_LOADSAVE_FILTER_IDX_RMT
-#define FILE_LOADSAVE_FILTER_IDX_MAX FILE_LOADSAVE_FILTER_IDX_RMW
-#define FILE_LOADSAVE_EXTENSIONS_ARRAY { ".rmt",".txt",".rmw" }
 
 // ----------------------------------------------------------------------------
 // File import dialog format selections

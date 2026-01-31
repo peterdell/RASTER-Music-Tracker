@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 
 #include "Song.h"
+#include "SongIO.h"
 #include "Memory.h"
 
 #include "FileNewDlg.h"
@@ -167,9 +168,9 @@ BOOL CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
         if (!g_defaultSongsPath.IsEmpty()) { dlg.m_ofn.lpstrInitialDir = g_defaultSongsPath; }
     }
 
-    if (GetIOType() == SongIOType::RMT) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE_FILTER_IDX_RMT; }
-    if (GetIOType() == SongIOType::TXT) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE_FILTER_IDX_TXT; }
-    if (GetIOType() == SongIOType::RMW) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE_FILTER_IDX_RMW; }
+    if (GetIOType() == SongIOType::RMT) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_RMT; }
+    if (GetIOType() == SongIOType::TXT) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_TXT; }
+    if (GetIOType() == SongIOType::RMW) { dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_RMW; }
 
     CString fileToLoad = "";
     int formatChoiceIndexFromDialog = 0;
@@ -177,11 +178,11 @@ BOOL CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
     {
         fileToLoad = filename;
         CString ext = fileToLoad.Right(4).MakeLower();
-        if (ext == ".rmt") formatChoiceIndexFromDialog = FILE_LOADSAVE_FILTER_IDX_RMT;
+        if (ext == ".rmt") formatChoiceIndexFromDialog = FILE_LOADSAVE::FILTER_IDX_RMT;
         else
-            if (ext == ".txt") formatChoiceIndexFromDialog = FILE_LOADSAVE_FILTER_IDX_TXT;
+            if (ext == ".txt") formatChoiceIndexFromDialog = FILE_LOADSAVE::FILTER_IDX_TXT;
             else
-                if (ext == ".rmw") formatChoiceIndexFromDialog = FILE_LOADSAVE_FILTER_IDX_RMW;
+                if (ext == ".rmw") formatChoiceIndexFromDialog = FILE_LOADSAVE::FILTER_IDX_RMW;
     }
     else
     {
@@ -203,8 +204,8 @@ BOOL CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
     g_lastLoadPath_Songs = GetFilePath(fileToLoad);
 
     // Make sure .rmt, .txt or .rmw file was selected
-    if (formatChoiceIndexFromDialog < FILE_LOADSAVE_FILTER_IDX_MIN
-        || formatChoiceIndexFromDialog > FILE_LOADSAVE_FILTER_IDX_MAX)
+    if (formatChoiceIndexFromDialog < FILE_LOADSAVE::FILTER_IDX_MIN
+        || formatChoiceIndexFromDialog > FILE_LOADSAVE::FILTER_IDX_MAX)
     {
         return FALSE;
     }
@@ -223,17 +224,17 @@ BOOL CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
     auto loadedOk = false;
     switch (formatChoiceIndexFromDialog)
     {
-    case FILE_LOADSAVE_FILTER_IDX_RMT: // RMT choice in Dialog
+    case FILE_LOADSAVE::FILTER_IDX_RMT: // RMT choice in Dialog
         loadedOk = LoadRMT(in);
         m_ioType = SongIOType::RMT; // TODO: Move into Load...
         break;
 
-    case FILE_LOADSAVE_FILTER_IDX_TXT: // TXT choice in Dialog
+    case FILE_LOADSAVE::FILTER_IDX_TXT: // TXT choice in Dialog
         loadedOk = LoadTxt(in);
         m_ioType = SongIOType::TXT;
         break;
 
-    case FILE_LOADSAVE_FILTER_IDX_RMW: // RMW choice in Dialog
+    case FILE_LOADSAVE::FILTER_IDX_RMW: // RMW choice in Dialog
         loadedOk = LoadRMW(in);
         m_ioType = SongIOType::RMW;
         break;
@@ -355,17 +356,17 @@ void CSong::FileSaveAs()
     }
 
     // Set the type according to the last save
-    if (GetIOType() == SongIOType::RMT) dlg.m_ofn.nFilterIndex = FILE_LOADSAVE_FILTER_IDX_RMT;
-    if (GetIOType() == SongIOType::TXT) dlg.m_ofn.nFilterIndex = FILE_LOADSAVE_FILTER_IDX_TXT;
-    if (GetIOType() == SongIOType::RMW) dlg.m_ofn.nFilterIndex = FILE_LOADSAVE_FILTER_IDX_RMW;
+    if (GetIOType() == SongIOType::RMT) dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_RMT;
+    if (GetIOType() == SongIOType::TXT) dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_TXT;
+    if (GetIOType() == SongIOType::RMW) dlg.m_ofn.nFilterIndex = FILE_LOADSAVE::FILTER_IDX_RMW;
 
     //if not ok, nothing will be saved
     if (dlg.DoModal() == IDOK)
     {
         // Validate that the file type selection is valid
-        int formatChoiceIndexFromDialog = dlg.m_ofn.nFilterIndex;
-        if (formatChoiceIndexFromDialog < FILE_LOADSAVE_FILTER_IDX_MIN
-            || formatChoiceIndexFromDialog > FILE_LOADSAVE_FILTER_IDX_MAX)
+        auto formatChoiceIndexFromDialog = dlg.m_ofn.nFilterIndex;
+        if (formatChoiceIndexFromDialog < FILE_LOADSAVE::FILTER_IDX_MIN
+            || formatChoiceIndexFromDialog > FILE_LOADSAVE::FILTER_IDX_MAX)
         {
             return;
         }
@@ -379,15 +380,15 @@ void CSong::FileSaveAs()
 
         switch (formatChoiceIndexFromDialog)
         {
-        case FILE_LOADSAVE_FILTER_IDX_RMT: // RMT choice
+        case FILE_LOADSAVE::FILTER_IDX_RMT: // RMT choice
             m_ioType = SongIOType::RMT;
             break;
 
-        case FILE_LOADSAVE_FILTER_IDX_TXT: // TXT choice
+        case FILE_LOADSAVE::FILTER_IDX_TXT: // TXT choice
             m_ioType = SongIOType::TXT;
             break;
 
-        case FILE_LOADSAVE_FILTER_IDX_RMW: // RWM choice
+        case FILE_LOADSAVE::FILTER_IDX_RMW: // RWM choice
             m_ioType = SongIOType::RMW;
             break;
 
