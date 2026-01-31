@@ -5,7 +5,8 @@
 #include "StdAfx.h"
 #include "PokeyRederer.h"
 #include "AtariTrackerDriver.h"
-#include "ChannelControl.h" // For IsChannelOn
+#include "ChannelControl.h" 
+#include "Global.h"
 
 extern BOOL g_nohwsoundbuffer;	// From Global.h
 extern HWND g_hwnd; // From Global.h
@@ -353,16 +354,17 @@ void CXPokey::RenderSoundV2(int instrspeed, BYTE* buffer, int& length)
 void CXPokey::CopyAtariMemoryToPokey()
 {
     // Write bytes 0-7. Write 0x00 if the channel is inactive.
-    for (int i = 0; i <= 8; i++)	//
+    for (int i = 0; i < 8; i++)	//
     {
         const auto channel = i / 2;
-        auto on = CChannelControl::IsChannelOn(i / 2);
+        auto on = g_ChannelControl.IsChannelOn(channel);
         auto b = on ? g_AtariTrackerDriver->GetAtari()->GetByteAt(0xd200 + i) : 0x00; // TODO: Have GetPOKEYRegister()
         m_pokey.PutByte(i, b);
         if (stereo) {
-            auto on = CChannelControl::IsChannelOn(channel + 4);
+            auto rightChannel = channel + 4;
+            auto on = g_ChannelControl.IsChannelOn(rightChannel);
             b = on ? g_AtariTrackerDriver->GetAtari()->GetByteAt(0xd210 + i) : 0x00;
-            m_pokey.PutByte(i + 16, (i & 0x01) && !CChannelControl::IsChannelOn(i / 2 + 4) ? 0 : b);
+            m_pokey.PutByte(i + 16, b);
         }
     }
 

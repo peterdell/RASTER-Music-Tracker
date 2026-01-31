@@ -4,7 +4,7 @@
 #include "GuiHelpers.h"
 #include "LZSSFile.h"
 #include "AtariTrackerDriver.h"
-#include "ChannelControl.h"
+#include "Global.h"
 #include "AtariTrackerDriver.h"
 
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
@@ -41,7 +41,7 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
     pokeyStream.SetState(CPokeyStream::WRITE);
 
     g_AtariTrackerDriver->Init();	// Reset the Atari memory 
-    CChannelControl::SetAllChannelsOn();
+    g_ChannelControl.SetAllChannelsOn();
 
     // Create the sound buffer to copy from and to
     auto bufferSize = CXPokey::BUFFER_SIZE;
@@ -78,7 +78,7 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
         frames++;
     }
 
-    CChannelControl::SetAllChannelsOff();
+    g_ChannelControl.SetAllChannelsOff();
 
     // Finished doing WAV things...
     wavefile.CloseFile();

@@ -1,13 +1,15 @@
 #include "StdAfx.h"
 #include "ChannelControl.h"
 
-#include "General.h"
-
-#include "Global.h"
-
-
 bool CChannelControl::IsChannelOn(const ChannelNumber channel) {
-    return g_channelon[channel] != 0;
+    return m_channelon[channel];
+}
+
+CChannelControl::CChannelControl(unsigned int channelCount) : m_channelCount(channelCount) {
+
+    for (unsigned int i = 0; i < channelCount; i++) {
+        m_channelon.push_back(false);
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -24,17 +26,17 @@ void CChannelControl::SetChannelOnOff(const int ch, int onoff)
     {
         // All channels
         if (onoff >= 0)
-            for (int i = 0; i < SONGTRACKS; i++) { g_channelon[i] = onoff; }// set the given on/off state
+            for (unsigned int i = 0; i < m_channelon.size(); i++) { m_channelon[i] = onoff; } // Set the given on/off state
         else
-            for (int i = 0; i < SONGTRACKS; i++) { g_channelon[i] ^= 1; }	// invert the on/off state
+            for (unsigned int i = 0; i < m_channelon.size(); i++) { m_channelon[i] = !m_channelon[ch]; } // Invert the on/off state
     }
-    else if (ch < SONGTRACKS)
+    else if (ch < m_channelon.size())
     {
         // Just that one
         if (onoff >= 0)
-            g_channelon[ch] = onoff;	// set the given on/off state
+            m_channelon[ch] = onoff;	// Set the given on/off state
         else
-            g_channelon[ch] ^= 1;		// invert the on/off state
+            m_channelon[ch] = !m_channelon[ch];		// Invert the on/off state
     }
 }
 
@@ -64,7 +66,7 @@ void CChannelControl::SetChannelSolo(const ChannelNumber ch)
     {
         // Target channel is ON
         // If any other channel is on then turn them all off except for the target channel
-        for (int i = 0; i < g_tracks4_8; i++)
+        for (unsigned int i = 0; i < m_channelCount; i++)
         {
             if (i != ch && IsChannelOn(i)) goto Channel_SOLO;
         }

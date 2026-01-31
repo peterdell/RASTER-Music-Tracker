@@ -920,7 +920,7 @@ void CRmtView::OnInitialUpdate()
     g_active_ti = Part::PART_TRACKS;	//below the active tracks
 
     //turn on all channels
-    CChannelControl::SetAllChannelsOn();
+   g_ChannelControl.SetAllChannelsOn();
 
     //CONFIGURATION
     ReadRMTConfig();
@@ -1015,11 +1015,11 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
         SetCursor(m_cursorChanbelOnOff);
         if (mousebutt & MK_LBUTTON)
         {
-            CChannelControl::ToggleChannelOnOff(px);	//inversion
+           g_ChannelControl.ToggleChannelOnOff(px);	//inversion
         }
         if (mousebutt & MK_RBUTTON)
         {
-            CChannelControl::SetChannelSolo(px);		//solo/mute on off
+           g_ChannelControl.SetChannelSolo(px);		//solo/mute on off
         }
         return 1;
     }
@@ -1200,11 +1200,11 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
 
             if (mousebutt & MK_LBUTTON)
             {
-                CChannelControl::ToggleChannelOnOff(px);	// inversion
+                g_ChannelControl.ToggleChannelOnOff(px);	// inversion
             }
             if (mousebutt & MK_RBUTTON)
             {
-                CChannelControl::SetChannelSolo(px);		// solo/mute/on/off
+                g_ChannelControl.SetChannelSolo(px);		// solo/mute/on/off
             }
             return 1;
         }
@@ -1548,17 +1548,17 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     case VK_F9:
         if (!g_controlkey && g_shiftkey)
         {
-            CChannelControl::ToggleAllChannelsOnOff();		//switch all channels on or off
+           g_ChannelControl.ToggleAllChannelsOnOff();		//switch all channels on or off
         }
         else if (g_controlkey)
         {
             auto ch = g_Song.GetActiveColumn(); //solo current channel
-            CChannelControl::SetChannelSolo(ch);
+           g_ChannelControl.SetChannelSolo(ch);
         }
         else
         {
             auto ch = g_Song.GetActiveColumn(); //mute current channel
-            CChannelControl::ToggleChannelOnOff(ch);
+           g_ChannelControl.ToggleChannelOnOff(ch);
         }
         break;
 
@@ -2832,40 +2832,40 @@ void CRmtView::OnSongToggleNTSC()
 
 void CRmtView::OnChannelsChannel1()
 {
-    CChannelControl::ToggleChannelOnOff(0);
+   g_ChannelControl.ToggleChannelOnOff(0);
 }
 
 void CRmtView::OnChannelsChannel2()
 {
-    CChannelControl::ToggleChannelOnOff(1);
+   g_ChannelControl.ToggleChannelOnOff(1);
 }
 
 void CRmtView::OnChannelsChannel3()
 {
-    CChannelControl::ToggleChannelOnOff(2);
+   g_ChannelControl.ToggleChannelOnOff(2);
 }
 
 void CRmtView::OnChannelsChannel4()
 {
-    CChannelControl::ToggleChannelOnOff(3);
+   g_ChannelControl.ToggleChannelOnOff(3);
 }
 
 void CRmtView::OnChannelsChannel5()
 {
-    CChannelControl::ToggleChannelOnOff(4);
+   g_ChannelControl.ToggleChannelOnOff(4);
 }
 
 void CRmtView::OnChannelsChannel6()
 {
-    CChannelControl::ToggleChannelOnOff(5);
+   g_ChannelControl.ToggleChannelOnOff(5);
 }
 
 void CRmtView::OnChannelsChannel7()
 {
-    CChannelControl::ToggleChannelOnOff(6);
+   g_ChannelControl.ToggleChannelOnOff(6);
 }
 
 void CRmtView::OnChannelsChannel8()
 {
-    CChannelControl::ToggleChannelOnOff(7);
+   g_ChannelControl.ToggleChannelOnOff(7);
 }

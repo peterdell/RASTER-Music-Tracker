@@ -3,7 +3,7 @@
 #include "PokeyStream.h"
 #include "LZSSFile.h"
 #include "AtariTrackerDriver.h"
-#include "ChannelControl.h"
+#include "Global.h"
 #include "Song.h"
 #include "General.h"
 
@@ -259,5 +259,5 @@ void CPokeyStream::FinishedRecording()
     }
 
     m_AtariTrackerDriver->Init();	//reset the Atari memory 
-    CChannelControl::SetAllChannelsOn(); //switch all channels back on, since they were purposefully turned off during the recording
+    g_ChannelControl.SetAllChannelsOn(); //switch all channels back on, since they were purposefully turned off during the recording
 }

@@ -266,10 +266,10 @@ void CSong::DrawAnalyzer()
             g_mem_dc->FillSolidRect(ANALYZER_X + a + 2, ANALYZER_Y, 15 * ANALYZER_S, ANALYZER_H, RGB(R[channelNr], G[channelNr], col[channelNr]));
 
             // Determine the color of the channels volume bar: Normal, mute or Volume only
-            acol = CChannelControl::IsChannelOn(channelNr) ? ((audc & 0x10) ? CRGBColor::VOLUME_ONLY : CRGBColor::NORMAL) : CRGBColor::MUTE;
+            acol = g_ChannelControl.IsChannelOn(channelNr) ? ((audc & 0x10) ? CRGBColor::VOLUME_ONLY : CRGBColor::NORMAL) : CRGBColor::MUTE;
 
             // Check if its a two tone channel (1 or 5)
-            if (CChannelControl::IsChannelOn(channelNr) && ((skctl1 == 0x8b && channelNr == 0) || (skctl2 == 0x8b && channelNr == 4))) { acol = CRGBColor::TWO_TONE; }
+            if (g_ChannelControl.IsChannelOn(channelNr) && ((skctl1 == 0x8b && channelNr == 0) || (skctl2 == 0x8b && channelNr == 4))) { acol = CRGBColor::TWO_TONE; }
 
             // Draw the volume bar in the selected color
             if (vol) { g_mem_dc->FillSolidRect(ANALYZER_X + a + 3 + (15 - vol) * ANALYZER_S / 2, ANALYZER_Y, vol * ANALYZER_S, ANALYZER_H, acol); }
@@ -337,10 +337,10 @@ void CSong::DrawAnalyzer()
             g_mem_dc->FillSolidRect(ANALYZER2_X + channelNr * 3 * 8, ANALYZER2_Y, 15 * ANALYZER2_S, ANALYZER2_H, RGB(R[channelNr], G[channelNr], col[channelNr]));
 
             // Determine the color of the channels volume bar: Normal, mute or Volume only
-            acol = CChannelControl::IsChannelOn(channelNr) ? ((audc & 0x10) ? CRGBColor::VOLUME_ONLY : CRGBColor::NORMAL) : CRGBColor::MUTE;
+            acol = g_ChannelControl.IsChannelOn(channelNr) ? ((audc & 0x10) ? CRGBColor::VOLUME_ONLY : CRGBColor::NORMAL) : CRGBColor::MUTE;
 
             // Check if its a two tone channel (1 or 5)
-            if (CChannelControl::IsChannelOn(channelNr) && ((skctl1 == 0x8b && channelNr == 0) || (skctl2 == 0x8b && channelNr == 4))) acol = CRGBColor::TWO_TONE;
+            if (g_ChannelControl.IsChannelOn(channelNr) && ((skctl1 == 0x8b && channelNr == 0) || (skctl2 == 0x8b && channelNr == 4))) acol = CRGBColor::TWO_TONE;
 
             // Draw the volume bar in the selected color
             if (vol) g_mem_dc->FillSolidRect(ANALYZER2_X + channelNr * 3 * 8 + (15 - vol) * ANALYZER2_S / 2, ANALYZER2_Y, vol * ANALYZER2_S, ANALYZER2_H, acol);
@@ -845,7 +845,7 @@ void CSong::DrawSong()
     for (i = 0; i < 4; i++, k += 24)
     {
         szBuffer[1] = i + '1';	//character 1-4
-        if (CChannelControl::IsChannelOn(i))
+        if (g_ChannelControl.IsChannelOn(i))
         {
             if (m_trackactivecol == i) color = (g_prove) ? TextColor::BLUE : TextColor::RED;	//active channel highlight
             else color = TextColor::WHITE; //normal channel
@@ -857,7 +857,7 @@ void CSong::DrawSong()
     for (i = 4; i < GetTracks(); i++, k += 24)
     {
         szBuffer[1] = i + 49 - 4;	//character 1-4
-        if (CChannelControl::IsChannelOn(i))
+        if (g_ChannelControl.IsChannelOn(i))
         {
             if (m_trackactivecol == i) color = (g_prove) ? TextColor::BLUE : TextColor::RED;	//active channel highlight
             else color = TextColor::WHITE; //normal channel
@@ -1015,7 +1015,7 @@ void CSong::DrawTracks()
         s[8] = tnames[i * 2];
         s[9] = tnames[i * 2 + 1];
 
-        color = (CChannelControl::IsChannelOn(i)) ? TextColor::WHITE : TextColor::GRAY;	//channels off are in gray
+        color = (g_ChannelControl.IsChannelOn(i)) ? TextColor::WHITE : TextColor::GRAY;	//channels off are in gray
         //TextXY(s, x + 12, TRACKS_Y, color);
         TextXY(s, x, CSongScreenLayout::TRACKS_Y, color);
 

@@ -4,7 +4,7 @@
 #include "Instruments.h"
 #include "AtariTrackerDriver.h"
 #include "PokeyStream.h"
-#include "ChannelControl.h"
+#include "Global.h"
 
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
 extern CInstruments	g_Instruments;
@@ -23,7 +23,7 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, 
 
     Stop();					// Make sure RMT is stopped 
     g_AtariTrackerDriver->Init();	// Reset the RMT routines 
-    CChannelControl::SetAllChannelsOff();
+    g_ChannelControl.SetAllChannelsOff();
 
     // Activate stream recording mode.
     m_pokeyStream = &pokeyStream;

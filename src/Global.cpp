@@ -84,7 +84,8 @@ int g_cursoractview = 0;		//default position, line 0
 BOOL g_displayflatnotes = 0;	//flats instead of sharps
 BOOL g_usegermannotation = 0;	//H notes instead of B
 
-int g_channelon[SONGTRACKS];
+CChannelControl g_ChannelControl(8);
+
 int g_rmtinstr[SONGTRACKS];
 
 TrackerDriverVersion g_trackerDriverVersion = TrackerDriverVersion::PATCH16;

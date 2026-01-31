@@ -1,21 +1,31 @@
 #pragma once
 
+#include "StdAfx.h"
+
+#include <vector>
+
 class CChannelControl {
 
 public:
+
+    CChannelControl(unsigned int channelCount);
+
     typedef unsigned int ChannelNumber;
-    static bool IsChannelOn(const ChannelNumber channel);
+    bool IsChannelOn(const ChannelNumber channel);
 
-    static void ToggleChannelOnOff(const ChannelNumber ch);
+    void ToggleChannelOnOff(const ChannelNumber ch);
 
-    static void SetAllChannelsOn();
-    static void SetAllChannelsOff();
-    static void ToggleAllChannelsOnOff();
-    static void SetChannelSolo(const ChannelNumber ch);
+    void SetAllChannelsOn();
+    void SetAllChannelsOff();
+    void ToggleAllChannelsOnOff();
+    void SetChannelSolo(const ChannelNumber ch);
 
 private:
+    unsigned int m_channelCount;
+    std::vector<bool> m_channelon;
+
     // Parameter onoff is 0=off, 1=on, -1=toggle
-    static void SetChannelOnOff(const int ch, int onoff);
+    void SetChannelOnOff(const int ch, int onoff);
 };
 
 

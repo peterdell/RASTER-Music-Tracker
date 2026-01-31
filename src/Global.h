@@ -8,7 +8,7 @@
 
 #include "General.h"
 #include "TuningTypes.h"
-
+#include "ChannelControl.h"
 #include "SongTypes.h"
 #include "Atari.h"
 #include "AtariTrackerDriver.h"
@@ -90,7 +90,8 @@ extern int g_cursoractview;		//default position, line 0
 extern BOOL g_displayflatnotes;	//flats instead of sharps
 extern BOOL g_usegermannotation;	//H notes instead of B
 
-extern int g_channelon[SONGTRACKS];
+extern CChannelControl g_ChannelControl;
+
 extern int g_rmtinstr[SONGTRACKS];
 
 struct TViewState {
