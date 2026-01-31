@@ -920,7 +920,7 @@ void CRmtView::OnInitialUpdate()
     g_active_ti = Part::PART_TRACKS;	//below the active tracks
 
     //turn on all channels
-    SetAllChannelsOn();
+    CChannelControl::SetAllChannelsOn();
 
     //CONFIGURATION
     ReadRMTConfig();
@@ -1015,11 +1015,11 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
         SetCursor(m_cursorChanbelOnOff);
         if (mousebutt & MK_LBUTTON)
         {
-            ToggleChannelOnOff(px);	//inversion
+            CChannelControl::ToggleChannelOnOff(px);	//inversion
         }
         if (mousebutt & MK_RBUTTON)
         {
-            SetChannelSolo(px);		//solo/mute on off
+            CChannelControl::SetChannelSolo(px);		//solo/mute on off
         }
         return 1;
     }
@@ -1200,11 +1200,11 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
 
             if (mousebutt & MK_LBUTTON)
             {
-               ToggleChannelOnOff(px);	// inversion
+                CChannelControl::ToggleChannelOnOff(px);	// inversion
             }
             if (mousebutt & MK_RBUTTON)
             {
-                SetChannelSolo(px);		// solo/mute/on/off
+                CChannelControl::SetChannelSolo(px);		// solo/mute/on/off
             }
             return 1;
         }
@@ -1548,17 +1548,17 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     case VK_F9:
         if (!g_controlkey && g_shiftkey)
         {
-            ToggleAllChannelsOnOff();		//switch all channels on or off
+            CChannelControl::ToggleAllChannelsOnOff();		//switch all channels on or off
         }
         else if (g_controlkey)
         {
-            int ch = g_Song.GetActiveColumn(); //solo current channel
-            SetChannelSolo(ch);
+            auto ch = g_Song.GetActiveColumn(); //solo current channel
+            CChannelControl::SetChannelSolo(ch);
         }
         else
         {
-            int ch = g_Song.GetActiveColumn(); //mute current channel
-            ToggleChannelOnOff(ch);
+            auto ch = g_Song.GetActiveColumn(); //mute current channel
+            CChannelControl::ToggleChannelOnOff(ch);
         }
         break;
 
@@ -2832,40 +2832,40 @@ void CRmtView::OnSongToggleNTSC()
 
 void CRmtView::OnChannelsChannel1()
 {
-    ToggleChannelOnOff(0);
+    CChannelControl::ToggleChannelOnOff(0);
 }
 
 void CRmtView::OnChannelsChannel2()
 {
-    ToggleChannelOnOff(1);
+    CChannelControl::ToggleChannelOnOff(1);
 }
 
 void CRmtView::OnChannelsChannel3()
 {
-    ToggleChannelOnOff(2);
+    CChannelControl::ToggleChannelOnOff(2);
 }
 
 void CRmtView::OnChannelsChannel4()
 {
-    ToggleChannelOnOff(3);
+    CChannelControl::ToggleChannelOnOff(3);
 }
 
 void CRmtView::OnChannelsChannel5()
 {
-    ToggleChannelOnOff(4);
+    CChannelControl::ToggleChannelOnOff(4);
 }
 
 void CRmtView::OnChannelsChannel6()
 {
-    ToggleChannelOnOff(5);
+    CChannelControl::ToggleChannelOnOff(5);
 }
 
 void CRmtView::OnChannelsChannel7()
 {
-    ToggleChannelOnOff(6);
+    CChannelControl::ToggleChannelOnOff(6);
 }
 
 void CRmtView::OnChannelsChannel8()
 {
-    ToggleChannelOnOff(7);
+    CChannelControl::ToggleChannelOnOff(7);
 }

@@ -5,6 +5,11 @@
 
 #include "Global.h"
 
+
+bool CChannelControl::IsChannelOn(const ChannelNumber channel) {
+    return g_channelon[channel] != 0;
+}
+
 // ----------------------------------------------------------------------------
 // Channel On/Off helper functions
 
@@ -13,7 +18,7 @@
 /// </summary>
 /// <param name="ch">-1 = all channels, 0 - 7 = the sound channel</param>
 /// <param name="onoff">-1 = invert state, 0 = off, 1 = on</param>
-void SetChannelOnOff(int ch, int onoff)
+void CChannelControl::SetChannelOnOff(const ChannelNumber ch, int onoff)
 {
     if (ch < 0)
     {
@@ -33,24 +38,24 @@ void SetChannelOnOff(int ch, int onoff)
     }
 }
 
-void ToggleChannelOnOff(int ch) {
+void CChannelControl::ToggleChannelOnOff(const ChannelNumber ch) {
     SetChannelOnOff(ch, -1);
 }
 
-int GetChannelOnOff(int ch)
+int CChannelControl::GetChannelOnOff(const ChannelNumber ch)
 {
     return g_channelon[ch];
 }
 
-void SetAllChannelsOff() {
+void CChannelControl::SetAllChannelsOff() {
     SetChannelOnOff(-1, 0);
 }
 
-void SetAllChannelsOn() {
+void CChannelControl::SetAllChannelsOn() {
     SetChannelOnOff(-1, 1);
 }
 
-void ToggleAllChannelsOnOff() {
+void CChannelControl::ToggleAllChannelsOnOff() {
     SetChannelOnOff(-1, -1);
 }
 
@@ -58,9 +63,9 @@ void ToggleAllChannelsOnOff() {
 /// Turn ON only one channel, making sure that all others are turned off
 /// </summary>
 /// <param name="ch"></param>
-void SetChannelSolo(int ch)
+void CChannelControl::SetChannelSolo(const ChannelNumber ch)
 {
-    if (CChannelControl::IsChannelOn(ch))
+    if (IsChannelOn(ch))
     {
         // Target channel is ON
         // If any other channel is on then turn them all off except for the target channel
@@ -79,8 +84,4 @@ void SetChannelSolo(int ch)
         SetChannelOnOff(ch, 1);	// and turn ON only the solo channel
     }
 
-}
-
-bool CChannelControl::IsChannelOn(const ChannelNumber channel) {
-    return g_channelon[channel] != 0;
 }

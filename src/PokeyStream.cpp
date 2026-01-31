@@ -259,5 +259,5 @@ void CPokeyStream::FinishedRecording()
     }
 
     m_AtariTrackerDriver->Init();	//reset the Atari memory 
-    SetAllChannelsOn(); //switch all channels back on, since they were purposefully turned off during the recording
+    CChannelControl::SetAllChannelsOn(); //switch all channels back on, since they were purposefully turned off during the recording
 }

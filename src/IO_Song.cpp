@@ -252,7 +252,7 @@ BOOL CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
     m_filename = fileToLoad;
     m_speed = m_mainSpeed;			// Init speed
     SetRMTTitle();					// Window name
-    SetAllChannelsOn();
+    CChannelControl::SetAllChannelsOn();
     return TRUE;
 
 }
@@ -431,7 +431,7 @@ void CSong::FileNew()
     m_songgo[1] = 0;
 
     // All channels ON (unmute all)
-    SetAllChannelsOn();
+    CChannelControl::SetAllChannelsOn();
 
     // Delete undo history
     g_Undo.Clear();
@@ -514,7 +514,7 @@ void CSong::FileImport()
         //SetRMTTitle();
     }
     // All channels ON (unmute all)
-    SetAllChannelsOn();
+    CChannelControl::SetAllChannelsOn();
 
     // Initialise RMT routine
     g_AtariTrackerDriver->Init();

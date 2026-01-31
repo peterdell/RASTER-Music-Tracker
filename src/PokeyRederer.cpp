@@ -362,7 +362,7 @@ void CXPokey::CopyAtariMemoryToPokey()
         if (stereo) {
             auto on = CChannelControl::IsChannelOn(channel + 4);
             b = on ? g_AtariTrackerDriver->GetAtari()->GetByteAt(0xd210 + i) : 0x00;
-            m_pokey.PutByte(i + 16, (i & 0x01) && !GetChannelOnOff(i / 2 + 4) ? 0 : b);
+            m_pokey.PutByte(i + 16, (i & 0x01) && !CChannelControl::GetChannelOnOff(i / 2 + 4) ? 0 : b);
         }
     }
 
