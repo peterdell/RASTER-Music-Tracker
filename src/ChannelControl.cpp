@@ -1,5 +1,5 @@
-#include "StdAfx.h"
 #include "ChannelControl.h"
+#include "StdAfx.h"
 
 bool CChannelControl::IsChannelOn(const ChannelNumber channel) {
     return m_channelon[channel];
@@ -33,10 +33,12 @@ void CChannelControl::SetChannelOnOff(const int ch, int onoff)
     else if (ch < m_channelon.size())
     {
         // Just that one
-        if (onoff >= 0)
+        if (onoff >= 0) {
             m_channelon[ch] = onoff;	// Set the given on/off state
-        else
+        }
+        else {
             m_channelon[ch] = !m_channelon[ch];		// Invert the on/off state
+        }
     }
 }
 
