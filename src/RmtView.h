@@ -1,4 +1,4 @@
-// RmtView.h : interface of the CRmtView class
+// RmtView.h : The main controller class for the app
 //
 /////////////////////////////////////////////////////////////////////////////
 
@@ -269,27 +269,27 @@ protected:
     DECLARE_MESSAGE_MAP()
 public:
     afx_msg void OnChannelsChannel1();
+    afx_msg void OnUpdateChannelsChannel1(CCmdUI* pCmdUI);
     afx_msg void OnChannelsChannel2();
+    afx_msg void OnUpdateChannelsChannel2(CCmdUI* pCmdUI);
     afx_msg void OnChannelsChannel3();
+    afx_msg void OnUpdateChannelsChannel3(CCmdUI* pCmdUI);
     afx_msg void OnChannelsChannel4();
+    afx_msg void OnUpdateChannelsChannel4(CCmdUI* pCmdUI);
     afx_msg void OnChannelsChannel5();
+    afx_msg void OnUpdateChannelsChannel5(CCmdUI* pCmdUI);
     afx_msg void OnChannelsChannel6();
+    afx_msg void OnUpdateChannelsChannel6(CCmdUI* pCmdUI);
     afx_msg void OnChannelsChannel7();
+    afx_msg void OnUpdateChannelsChannel7(CCmdUI* pCmdUI);
     afx_msg void OnChannelsChannel8();
+    afx_msg void OnUpdateChannelsChannel8(CCmdUI* pCmdUI);
     afx_msg void OnChannelsToggleActiveChannelOnOff();
     afx_msg void OnUpdateChannelsToggleActiveChannelOnOff(CCmdUI* pCmdUI);
     afx_msg void OnChannelsToggleActiveChannelSolo();
     afx_msg void OnUpdateChannelsToggleActiveChannelSolo(CCmdUI* pCmdUI);
     afx_msg void OnChannelsToggleAllChannelsOnOff();
     afx_msg void OnUpdateChannelsToggleAllChannelsOnOff(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateChannelsChannel1(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateChannelsChannel2(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateChannelsChannel3(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateChannelsChannel4(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateChannelsChannel5(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateChannelsChannel6(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateChannelsChannel7(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateChannelsChannel8(CCmdUI* pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in RmtView.cpp

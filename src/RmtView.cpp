@@ -2797,7 +2797,7 @@ void CRmtView::OnFileExit() // Called from the menu File/Exit ID_FILE_EXIT inste
         return; // There is no exit
     }
     g_Song.Stop();
-    g_closeApplication = 1;
+    g_closeApplication = TRUE;
     g_Song.StopTimer();
     WriteRMTConfig();		// Save the current configuration 
     WriteTuningConfig();	// Save the current tuning parameters 
