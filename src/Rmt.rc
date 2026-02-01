@@ -144,7 +144,7 @@ BEGIN
     BUTTON      ID_PART_INFO
     BUTTON      ID_PART_SONG
     SEPARATOR
-    BUTTON      ID_PROVEMODE
+    BUTTON      ID_TOOLBAR_SWITCH_EDIT_MODE
     SEPARATOR
     BUTTON      ID_MIDIONOFF
     SEPARATOR
@@ -1198,6 +1198,9 @@ BEGIN
         MENUITEM "&Redo\tCtrl+Y",               ID_EDIT_REDO
         MENUITEM SEPARATOR
         MENUITEM "&Clear Undo && Redo History", ID_EDIT_CLEAR_UNDO_REDO_HISTORY
+        MENUITEM SEPARATOR
+        MENUITEM "Switch &Edit Mode\tCtrl+SPACE", ID_EDIT_SWITCH_EDIT_MODE
+        MENUITEM "Activate Pokey E&xplorer Mode\tCtrl+Shift+F5", ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE
     END
     POPUP "&View"
     BEGIN
@@ -1394,6 +1397,7 @@ BEGIN
     VK_F9,          ID_CHANNELS_TOGGLE_ALL_CHANNELS_ON_OFF, VIRTKEY, SHIFT, NOINVERT
     VK_F1,          ID_CONTEXT_HELP,        VIRTKEY, SHIFT, NOINVERT
     "Y",            ID_EDIT_REDO,           VIRTKEY, CONTROL, NOINVERT
+    VK_SPACE,       ID_EDIT_SWITCH_EDIT_MODE, VIRTKEY, CONTROL, NOINVERT
     "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
     "W",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
     "L",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
@@ -1407,7 +1411,7 @@ BEGIN
     VK_F5,          ID_SONG_PLAY_FROM_START, VIRTKEY, NOINVERT
     VK_ESCAPE,      ID_SONG_STOP,           VIRTKEY, NOINVERT
     VK_F12,         ID_SONG_TOGGLE_NTSC,    VIRTKEY, CONTROL, NOINVERT
-    VK_SPACE,       ID_SWITCH_MODE,         VIRTKEY, CONTROL, NOINVERT
+    VK_RETURN,      ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE, VIRTKEY, SHIFT, CONTROL, NOINVERT
 END
 
 
@@ -1428,6 +1432,8 @@ BEGIN
                             "Mute all channels except active channel / Unmute all channels (Ctrl+F9)"
     ID_CHANNELS_TOGGLE_ALL_CHANNELS_ON_OFF 
                             "Mute / Umnute all channels (Shift+F9)"
+    ID_EDIT_SWITCH_EDIT_MODE 
+                            "Switch between ""Edit"" mode and ""Jam"" modes\nSwitch Edit Mode (Ctrl+SPACE)"
 END
 
 STRINGTABLE
@@ -1522,7 +1528,6 @@ BEGIN
     ID_PART_INSTRUMENTS     "Switch to instrument edit view\nEdit Instruments (F2)"
     ID_PART_INFO            "Move cursor to info edit area\nEdit Info (F3)"
     ID_PART_SONG            "Move cursor to song edit area\nEdit Song (F4)"
-    ID_SWITCH_MODE          "Switch between ""Edit"" mode and ""Jam"" modes\nSwitch between ""Edit"" mode and ""Jam"" modes (Ctrl+SPACE)"
     ID_BLOCK_TRANSPOSE_NOTES_UP 
                             "Transpose the notes one semitone up\nTranspose the Notes One Semitone Up (Ctrl+F2)"
     ID_BLOCK_TRANSPOSE_NOTES_DOWN 
@@ -1564,6 +1569,14 @@ BEGIN
     ID_HELP_ABOUT           "Display program information, version number and copyright"
     ID_TOOLS_OPEN_ASAP_FILE "Open an .SAP or other Atari Sound Module File"
     ID_TOOLS_OPEN_ASMA      "Open the Atari Sound Music Archive Website"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE 
+                            "Activate POKEY Explorer Mode (Ctrl+Shift+F5)"
+    ID_TOOLBAR_SWITCH_EDIT_MODE 
+                            "Switch between ""Edit"" mode and ""Jam"" modes\nSwitch Edit Mode (Ctrl+SPACE)"
 END
 
 #endif    // English (United States) resources

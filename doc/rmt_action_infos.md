@@ -13,7 +13,9 @@
 | Menu File | Print Setup... |  | Change the printer and printing options |
 | Menu File | Print... |  | Print the active view<br><span style="color:red;">ERROR: Expected description 'Print...' instead of 'Print... (Ctrl-P)'</span> |
 | Menu File | Print Preview |  | Preview the print version of the view |
+| Menu Edit | Switch Edit Mode | `Ctrl+SPACE` | Switch between "Edit" mode and "Jam" modes |
 | Menu Edit | Clear Undo && Redo History |  |  |
+| Menu Edit | Activate Pokey Explorer Mode | `Ctrl+Shift+F5` | Activate POKEY Explorer Mode (Ctrl+Shift+F5) |
 | Menu Edit | Undo | `Ctrl+Z` | Undo the last action |
 | Menu Edit | Redo | `Ctrl+Y` | Show or hide the toolbar |
 | Menu View | Volume Analyzer |  |  |

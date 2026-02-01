@@ -25,7 +25,9 @@
 #define IDD_EXPSAP                      135
 #define IDD_EXPPORT_SAP_TYPE_R          135
 #define IDD_EXPORT_SAP_TYPE_R           135
+#define ID_EDIT_SWITCH_EDIT_MODE        135
 #define IDD_EXPORT_STRIPPED_RMT         136
+#define ID_TOOLBAR_SWITCH_EDIT_MOD      136
 #define IDD_EXPMSX                      137
 #define IDR_TOOLBAR_BLOCK               138
 #define IDR_TOOLBAR_CHANNELS            140
@@ -290,8 +292,6 @@
 #define ID_PART_INSTRUMENTS             32807
 #define ID_PART_INFO                    32808
 #define ID_PART_SONG                    32809
-#define ID_PROVEMODE                    32810
-#define ID_SWITCH_MODE                  32810
 #define ID_VIEW_VOLUMEANALYZER          32811
 #define ID_VIEW_INSTRUMENTACTIVEHELP    32812
 #define ID_VIEW_BLOCKTOOLBAR            32813
@@ -394,6 +394,8 @@
 #define ID_CHANNELS_MUTE                32960
 #define ID_CHANNELS_SOLOACTIVECHANNEL   32961
 #define ID_CHANNELS_MUTE32962           32962
+#define ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE 32970
+#define ID_TOOLBAR_SWITCH_EDIT_MODE     32971
 #define IDS_RMTVERSION                  61446
 #define IDS_RMT_VERSION                 61446
 #define IDS_RMTAUTHOR                   61447
@@ -404,8 +406,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        175
-#define _APS_NEXT_COMMAND_VALUE         32969
+#define _APS_NEXT_RESOURCE_VALUE        176
+#define _APS_NEXT_COMMAND_VALUE         32974
 #define _APS_NEXT_CONTROL_VALUE         1170
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

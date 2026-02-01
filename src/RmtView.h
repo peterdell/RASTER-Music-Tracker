@@ -135,8 +135,8 @@ protected:
     afx_msg void OnUpdatePlay1(CCmdUI* pCmdUI);
     afx_msg void OnUpdatePlay2(CCmdUI* pCmdUI);
     afx_msg void OnUpdatePlay3(CCmdUI* pCmdUI);
-    afx_msg void OnSwitchMode();
-    afx_msg void OnUpdateSwitchMode(CCmdUI* pCmdUI);
+    afx_msg void OnEditSwitchEditMode();
+    afx_msg void OnUpdateEditSwitchEditMode(CCmdUI* pCmdUI);
     afx_msg void OnTimer(UINT_PTR nIDEvent);
     afx_msg void OnDestroy();
     afx_msg void OnViewVolumeanalyzer();
@@ -290,6 +290,10 @@ public:
     afx_msg void OnUpdateChannelsToggleActiveChannelSolo(CCmdUI* pCmdUI);
     afx_msg void OnChannelsToggleAllChannelsOnOff();
     afx_msg void OnUpdateChannelsToggleAllChannelsOnOff(CCmdUI* pCmdUI);
+    afx_msg void OnToolbarSwitchEditMode();
+    afx_msg void OnUpdateToolbarSwitchEditMode(CCmdUI* pCmdUI);
+    afx_msg void OnEditActivatePokeyExplorerMode();
+    afx_msg void OnUpdateEditActivatePokeyExplorerMode(CCmdUI* pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in RmtView.cpp

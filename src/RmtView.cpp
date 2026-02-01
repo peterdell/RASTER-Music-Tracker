@@ -100,8 +100,8 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnUpdatePlay3)
     ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnSongPlayFromCurrentPositionAndLoop)
 
-    ON_COMMAND(ID_SWITCH_MODE, OnSwitchMode)
-    ON_UPDATE_COMMAND_UI(ID_SWITCH_MODE, OnUpdateSwitchMode)
+    ON_COMMAND(ID_EDIT_SWITCH_EDIT_MODE, OnEditSwitchEditMode)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_SWITCH_EDIT_MODE, OnUpdateEditSwitchEditMode)
     ON_WM_TIMER()
     ON_WM_DESTROY()
     ON_COMMAND(ID_VIEW_VOLUMEANALYZER, OnViewVolumeanalyzer)
@@ -256,6 +256,10 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL6, &CRmtView::OnUpdateChannelsChannel6)
     ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL7, &CRmtView::OnUpdateChannelsChannel7)
     ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL8, &CRmtView::OnUpdateChannelsChannel8)
+    ON_COMMAND(ID_TOOLBAR_SWITCH_EDIT_MODE, &CRmtView::OnToolbarSwitchEditMode)
+    ON_UPDATE_COMMAND_UI(ID_TOOLBAR_SWITCH_EDIT_MODE, &CRmtView::OnUpdateToolbarSwitchEditMode)
+    ON_COMMAND(ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE, &CRmtView::OnEditActivatePokeyExplorerMode)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE, &CRmtView::OnUpdateEditActivatePokeyExplorerMode)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1517,14 +1521,6 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             goto AllModesDefaultKey;
         break;
 
-    case VK_F5:
-        if (g_controlkey && g_shiftkey)
-        {
-            SetEditMode(EditMode::POKEY_EXPLORER_MODE);	//POKEY EXPLORER MODE -- KEYBOARD INPUT AND FORMULAE DISPLAY
-            break;
-        }
-        break;
-
     case VK_F6:
         if (g_shiftkey) g_Song.Play(PLAY_BLOCK, g_Song.GetFollowPlayMode());	//play block and follow
         else g_Song.Play(PLAY_TRACK, g_Song.GetFollowPlayMode());				//play pattern and follow	
@@ -2113,17 +2109,19 @@ void CRmtView::OnUpdateEmSong(CCmdUI* pCmdUI)
     pCmdUI->SetCheck(ch);
 }
 
-void CRmtView::OnSwitchMode()
-{
 
-    SwitchEditMode(EditMode::EDIT_MODE, g_Song.IsStereo());
+void CRmtView::OnToolbarSwitchEditMode()
+{
+    OnEditSwitchEditMode();
 }
 
-void CRmtView::OnUpdateSwitchMode(CCmdUI* pCmdUI)
+
+void CRmtView::OnUpdateToolbarSwitchEditMode(CCmdUI* pCmdUI)
 {
     int ch = (IsProveMode()) ? 1 : 0;
     pCmdUI->SetCheck(ch);
 }
+
 
 void CRmtView::ChangeViewElements(BOOL writeconfig)
 {
@@ -2775,6 +2773,33 @@ void CRmtView::OnUpdateUndoClearundoredo(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(g_Song.UndoGetUndoSteps() || g_Song.UndoGetRedoSteps());
 }
+
+
+void CRmtView::OnEditSwitchEditMode()
+{
+
+    SwitchEditMode(EditMode::EDIT_MODE, g_Song.IsStereo());
+}
+
+
+void CRmtView::OnUpdateEditSwitchEditMode(CCmdUI* pCmdUI)
+{
+
+    pCmdUI->Enable();
+}
+
+
+void CRmtView::OnEditActivatePokeyExplorerMode()
+{
+    SetEditMode(EditMode::POKEY_EXPLORER_MODE);
+}
+
+
+void CRmtView::OnUpdateEditActivatePokeyExplorerMode(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(IsEditMode(EditMode::POKEY_EXPLORER_MODE) ? 0 : 1);
+}
+
 
 void CRmtView::OnFileExit() // Called from the menu File/Exit ID_FILE_EXIT instead of the original ID_APP_EXIT
 {
