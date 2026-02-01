@@ -1520,7 +1520,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     case VK_F5:
         if (g_controlkey && g_shiftkey)
         {
-            g_prove = EditMode::POKEY_EXPLORER_MODE;	//POKEY EXPLORER MODE -- KEYBOARD INPUT AND FORMULAE DISPLAY
+            SetEditMode(EditMode::POKEY_EXPLORER_MODE);	//POKEY EXPLORER MODE -- KEYBOARD INPUT AND FORMULAE DISPLAY
             break;
         }
         break;
@@ -2061,25 +2061,25 @@ void CRmtView::OnUpdatePlay0(CCmdUI* pCmdUI)
 {
     int ch = g_Song.IsBookmark();
     pCmdUI->Enable(ch);
-    ch = (g_Song.GetPlayMode() == PLAY_BOOKMARK);
+    ch = (g_Song.GetPlayMode() == PlayMode::PLAY_BOOKMARK);
     pCmdUI->SetCheck(ch);
 }
 
 void CRmtView::OnUpdatePlay1(CCmdUI* pCmdUI)
 {
-    int ch = (g_Song.GetPlayMode() == 1) ? 1 : 0;
+    int ch = (g_Song.GetPlayMode() == PlayMode::PLAY_SONG) ? 1 : 0;
     pCmdUI->SetCheck(ch);
 }
 
 void CRmtView::OnUpdatePlay2(CCmdUI* pCmdUI)
 {
-    int ch = (g_Song.GetPlayMode() == 2) ? 1 : 0;
+    int ch = (g_Song.GetPlayMode() == PlayMode::PLAY_FROM) ? 1 : 0;
     pCmdUI->SetCheck(ch);
 }
 
 void CRmtView::OnUpdatePlay3(CCmdUI* pCmdUI)
 {
-    int ch = (g_Song.GetPlayMode() == 3) ? 1 : 0;
+    int ch = (g_Song.GetPlayMode() == PlayMode::PLAY_TRACK) ? 1 : 0;
     pCmdUI->SetCheck(ch);
 }
 
@@ -2115,23 +2115,13 @@ void CRmtView::OnUpdateEmSong(CCmdUI* pCmdUI)
 
 void CRmtView::OnSwitchMode()
 {
-    if (g_prove == EditMode::EDIT_MODE) { g_prove = EditMode::JAM_MONO_MODE; }
-    else if (IsSpecialProveMode()) { g_prove = EditMode::EDIT_MODE; }// Disable the special test modes immediately
-    else
-    {
-        // Mono Jam or stereo jam?
-        if (g_prove == EditMode::JAM_MONO_MODE && g_tracks4_8 > 4) {
-            g_prove = EditMode::JAM_STEREO_MODE;
-        }
-        else {
-            g_prove = EditMode::EDIT_MODE;
-        }
-    }
+
+    SwitchEditMode(EditMode::EDIT_MODE, g_Song.IsStereo());
 }
 
 void CRmtView::OnUpdateSwitchMode(CCmdUI* pCmdUI)
 {
-    int ch = (g_prove > EditMode::EDIT_MODE) ? 1 : 0;
+    int ch = (IsProveMode()) ? 1 : 0;
     pCmdUI->SetCheck(ch);
 }
 

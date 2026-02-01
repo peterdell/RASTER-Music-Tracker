@@ -48,6 +48,7 @@ BOOL volatile g_screenupdate = 0;
 BOOL volatile g_rmtroutine; // => TODO: PokeyRenderer?
 
 EditMode volatile g_prove;		// Edit notes or test notes without editing
+
 bool IsEditMode(const EditMode editMode) {
     return g_prove == editMode;
 }
@@ -56,10 +57,30 @@ bool IsProveMode() {
     return g_prove == EditMode::JAM_MONO_MODE || g_prove == EditMode::JAM_STEREO_MODE || IsSpecialProveMode();
 }
 
-extern bool IsSpecialProveMode() {
+bool IsSpecialProveMode() {
     return g_prove == EditMode::MIDI_CH15_MODE || g_prove == EditMode::POKEY_EXPLORER_MODE;
 }
 
+extern void SetEditMode(const EditMode editMode) {
+    g_prove = editMode;
+}
+
+void SwitchEditMode(const EditMode targetEditMode, const bool stereo) {
+    auto editMode = g_prove;
+    if (editMode == EditMode::EDIT_MODE) { editMode = EditMode::JAM_MONO_MODE; }
+    else if (IsSpecialProveMode()) { editMode = EditMode::EDIT_MODE; }// Disable the special test modes immediately
+    else
+    {
+        // Mono Jam or stereo jam?
+        if (editMode == EditMode::JAM_MONO_MODE && stereo) {
+            editMode = EditMode::JAM_STEREO_MODE;
+        }
+        else {
+            editMode = targetEditMode;
+        }
+    }
+    SetEditMode(editMode);
+}
 
 
 int volatile g_respectvolume;	//does not change the volume if it is already there

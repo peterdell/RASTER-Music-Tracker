@@ -130,7 +130,7 @@ void CSong::ClearSong(int numOfTracks)
     //g_tracks4_8 = numOfTracks;			// Track for 4/8 channels
     SetTracks(numOfTracks);
     g_rmtroutine = TRUE;				// RMT routine execution enabled
-    g_prove = EditMode::EDIT_MODE;
+    SetEditMode(EditMode::EDIT_MODE);
     g_respectvolume = 0;
     g_rmtstripped_adr_module = 0x4000;	// Default standard address for stripped RMT modules
     g_rmtstripped_sfx = 0;				// Is not a standard sfx variety stripped RMT

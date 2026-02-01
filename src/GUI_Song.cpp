@@ -164,7 +164,7 @@ void CSong::DrawAnalyzer()
 
     BOOL DEBUG_POKEY = TRUE;	//registers debug display
     BOOL DEBUG_MEMORY = FALSE;	//memory debug display
-    BOOL DEBUG_SOUND = (g_prove == EditMode::POKEY_EXPLORER_MODE) ? TRUE : FALSE;	//POKEY EXPLORER MODE
+    auto DEBUG_SOUND = IsEditMode(EditMode::POKEY_EXPLORER_MODE);
 
     if (g_width < MINIMAL_WIDTH_TRACKS && g_active_ti == Part::PART_TRACKS) DEBUG_POKEY = DEBUG_MEMORY = 0;
     if (g_width < MINIMAL_WIDTH_INSTRUMENTS && g_active_ti == Part::PART_INSTRUMENTS) DEBUG_POKEY = DEBUG_MEMORY = 0;
@@ -1230,12 +1230,12 @@ void CSong::DrawInfo()
     // Line 4: (Mode)  Octive (X-X)
     int xpos = CSongScreenLayout::INFO_X;
     int ypos = CSongScreenLayout::INFO_Y_LINE_4;
-    if (g_prove == EditMode::POKEY_EXPLORER_MODE)	// test mode exclusive to keyboard input for sound debugging, this cannot be set by accident unless I did something stupid
+    if (IsEditMode(EditMode::POKEY_EXPLORER_MODE))	// test mode exclusive to keyboard input for sound debugging, this cannot be set by accident unless I did something stupid
         TextXY("EXPLORER MODE (PITCH CALCULATIONS)", xpos, ypos, TextColor::TURQUOISE);
-    else if (g_prove == EditMode::MIDI_CH15_MODE)	// test mode exclusive from MIDI CH15 inputs, this cannot be set by accident unless I did something stupid
+    else if (IsEditMode(EditMode::MIDI_CH15_MODE))	// test mode exclusive from MIDI CH15 inputs, this cannot be set by accident unless I did something stupid
         TextXY("EXPLORER MODE (MIDI CH15)", xpos, ypos, TextColor::TURQUOISE);
-    else if (g_prove > EditMode::EDIT_MODE)
-        TextXY((g_prove == EditMode::JAM_MONO_MODE) ? "JAM MODE (MONO)" : "JAM MODE (STEREO)", xpos, ypos, TextColor::BLUE);
+    else if (IsProveMode())
+        TextXY((IsEditMode(EditMode::JAM_MONO_MODE)) ? "JAM MODE (MONO)" : "JAM MODE (STEREO)", xpos, ypos, TextColor::BLUE);
     else
         TextXY("EDIT MODE", xpos, ypos, TextColor::RED);
 
@@ -2272,7 +2272,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
     int note, i;
     note = NoteKey(vk);
 
-    if (g_prove == EditMode::POKEY_EXPLORER_MODE)	//POKEY EXPLORER MODE: FULL CONTROL OVER THE POKEY (IGNORE RMT ROUTINES EXCEPT SETPOKEY)
+    if (IsEditMode(EditMode::POKEY_EXPLORER_MODE))	//POKEY EXPLORER MODE: FULL CONTROL OVER THE POKEY (IGNORE RMT ROUTINES EXCEPT SETPOKEY)
     {
         //trackn_audf => memory[0x3178]
         //trackn_audc => memory[0x3180]
@@ -2456,7 +2456,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         if (i >= 0 && i < CNotes::NOTESNUM)		//only within limits
         {
             SetPlayPressedTonesTNIV(m_trackactivecol, i, m_activeinstr, m_volume);
-            if ((control || g_prove == EditMode::JAM_STEREO_MODE) && g_tracks4_8 > 4)
+            if ((control || IsEditMode(EditMode::JAM_STEREO_MODE)) && g_tracks4_8 > 4)
             {
                 //with control or in prove2 => stereo test
                 SetPlayPressedTonesTNIV((m_trackactivecol + 4) & 0x07, i, m_activeinstr, m_volume);

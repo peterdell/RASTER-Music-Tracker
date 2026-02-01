@@ -60,6 +60,10 @@ extern EditMode volatile g_prove;		// Edit notes or test notes without editing
 extern bool IsEditMode(const EditMode editMode = EditMode::EDIT_MODE);
 extern bool IsProveMode();
 extern bool IsSpecialProveMode();       // MIDI or Pokey Explorer mode?
+extern void SetEditMode(const EditMode editMode);
+extern void SwitchEditMode(const EditMode targetEditMode, const bool stereo);
+
+
 
 extern int volatile g_respectvolume;	// Does not change the volume if it is already there
 
