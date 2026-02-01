@@ -130,14 +130,6 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_BLOCK_RESTORE_FROM_BACKUP, OnUpdateBlockBackup)
     ON_COMMAND(ID_BLOCK_PLAY_AND_LOOP, OnBlockPlay)
     ON_UPDATE_COMMAND_UI(ID_BLOCK_PLAY_AND_LOOP, OnUpdateBlockPlay)
-    ON_UPDATE_COMMAND_UI(ID_CHAN1, OnUpdateChan1_4)
-    ON_UPDATE_COMMAND_UI(ID_CHAN2, OnUpdateChan1_4)
-    ON_UPDATE_COMMAND_UI(ID_CHAN3, OnUpdateChan1_4)
-    ON_UPDATE_COMMAND_UI(ID_CHAN4, OnUpdateChan1_4)
-    ON_UPDATE_COMMAND_UI(ID_CHAN5, OnUpdateChan5_8)
-    ON_UPDATE_COMMAND_UI(ID_CHAN6, OnUpdateChan5_8)
-    ON_UPDATE_COMMAND_UI(ID_CHAN7, OnUpdateChan5_8)
-    ON_UPDATE_COMMAND_UI(ID_CHAN8, OnUpdateChan5_8)
     ON_WM_MOUSEMOVE()
     ON_WM_SETCURSOR()
     ON_WM_LBUTTONUP()
@@ -256,6 +248,14 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_SOLO, &CRmtView::OnUpdateChannelsToggleActiveChannelSolo)
     ON_COMMAND(ID_CHANNELS_TOGGLE_ALL_CHANNELS_ON_OFF, &CRmtView::OnChannelsToggleAllChannelsOnOff)
     ON_UPDATE_COMMAND_UI(ID_CHANNELS_TOGGLE_ALL_CHANNELS_ON_OFF, &CRmtView::OnUpdateChannelsToggleAllChannelsOnOff)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL1, &CRmtView::OnUpdateChannelsChannel1)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL2, &CRmtView::OnUpdateChannelsChannel2)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL3, &CRmtView::OnUpdateChannelsChannel3)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL4, &CRmtView::OnUpdateChannelsChannel4)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL5, &CRmtView::OnUpdateChannelsChannel5)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL6, &CRmtView::OnUpdateChannelsChannel6)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL7, &CRmtView::OnUpdateChannelsChannel7)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL8, &CRmtView::OnUpdateChannelsChannel8)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2824,9 +2824,19 @@ void CRmtView::OnChannelsChannel1()
     g_ChannelControl.ToggleChannelOnOff(0);
 }
 
+void CRmtView::OnUpdateChannelsChannel1(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_ChannelControl.IsChannelOn(0));
+}
+
 void CRmtView::OnChannelsChannel2()
 {
     g_ChannelControl.ToggleChannelOnOff(1);
+}
+
+void CRmtView::OnUpdateChannelsChannel2(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_ChannelControl.IsChannelOn(1));
 }
 
 void CRmtView::OnChannelsChannel3()
@@ -2834,14 +2844,30 @@ void CRmtView::OnChannelsChannel3()
     g_ChannelControl.ToggleChannelOnOff(2);
 }
 
+void CRmtView::OnUpdateChannelsChannel3(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_ChannelControl.IsChannelOn(2));
+}
+
 void CRmtView::OnChannelsChannel4()
 {
     g_ChannelControl.ToggleChannelOnOff(3);
 }
 
+void CRmtView::OnUpdateChannelsChannel4(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_ChannelControl.IsChannelOn(3));
+}
+
+
 void CRmtView::OnChannelsChannel5()
 {
     g_ChannelControl.ToggleChannelOnOff(4);
+}
+
+void CRmtView::OnUpdateChannelsChannel5(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_ChannelControl.IsChannelOn(4));
 }
 
 void CRmtView::OnChannelsChannel6()
@@ -2849,15 +2875,34 @@ void CRmtView::OnChannelsChannel6()
     g_ChannelControl.ToggleChannelOnOff(5);
 }
 
+void CRmtView::OnUpdateChannelsChannel6(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_ChannelControl.IsChannelOn(5));
+
+}
+
 void CRmtView::OnChannelsChannel7()
 {
     g_ChannelControl.ToggleChannelOnOff(6);
+}
+
+
+void CRmtView::OnUpdateChannelsChannel7(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_ChannelControl.IsChannelOn(6));
 }
 
 void CRmtView::OnChannelsChannel8()
 {
     g_ChannelControl.ToggleChannelOnOff(7);
 }
+
+
+void CRmtView::OnUpdateChannelsChannel8(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_ChannelControl.IsChannelOn(7));
+}
+
 
 void CRmtView::OnChannelsToggleActiveChannelOnOff()
 {

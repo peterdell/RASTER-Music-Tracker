@@ -282,6 +282,14 @@ public:
     afx_msg void OnUpdateChannelsToggleActiveChannelSolo(CCmdUI* pCmdUI);
     afx_msg void OnChannelsToggleAllChannelsOnOff();
     afx_msg void OnUpdateChannelsToggleAllChannelsOnOff(CCmdUI* pCmdUI);
+    afx_msg void OnUpdateChannelsChannel1(CCmdUI* pCmdUI);
+    afx_msg void OnUpdateChannelsChannel2(CCmdUI* pCmdUI);
+    afx_msg void OnUpdateChannelsChannel3(CCmdUI* pCmdUI);
+    afx_msg void OnUpdateChannelsChannel4(CCmdUI* pCmdUI);
+    afx_msg void OnUpdateChannelsChannel5(CCmdUI* pCmdUI);
+    afx_msg void OnUpdateChannelsChannel6(CCmdUI* pCmdUI);
+    afx_msg void OnUpdateChannelsChannel7(CCmdUI* pCmdUI);
+    afx_msg void OnUpdateChannelsChannel8(CCmdUI* pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in RmtView.cpp

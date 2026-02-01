@@ -7,18 +7,18 @@
 class CChannelControl {
 
 public:
+    typedef unsigned int ChannelNumber;
 
     CChannelControl(unsigned int channelCount);
 
-    typedef unsigned int ChannelNumber;
-    bool IsChannelOn(const ChannelNumber channel);
+    bool IsChannelOn(const ChannelNumber channelNumber) const;
 
-    void ToggleChannelOnOff(const ChannelNumber ch);
+    void ToggleChannelOnOff(const ChannelNumber channelNumber);
 
     void SetAllChannelsOn();
     void SetAllChannelsOff();
     void ToggleAllChannelsOnOff();
-    void SetChannelSolo(const ChannelNumber ch);
+    void SetChannelSolo(const ChannelNumber channelNumber);
 
 private:
     unsigned int m_channelCount;

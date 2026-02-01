@@ -9,7 +9,7 @@ CChannelControl::CChannelControl(unsigned int channelCount) : m_channelCount(cha
 }
 
 
-bool CChannelControl::IsChannelOn(const ChannelNumber channel) {
+bool CChannelControl::IsChannelOn(const ChannelNumber channel) const {
     return m_channelon[channel];
 }
 
