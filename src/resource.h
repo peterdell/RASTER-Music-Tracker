@@ -18,7 +18,10 @@
 #define ID_SONG_TOGGLE_NTSC             130
 #define IDD_FILE_NEW                    131
 #define ID_SONG_ESCAPE                  131
+#define ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_ON_OFF 132
 #define IDR_TOOLBAR_PLAY                133
+#define ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_SOLO 133
+#define ID_CHANNELS_TOGGLE_ALL_CHANNELS_ON_OFF 134
 #define IDD_EXPSAP                      135
 #define IDD_EXPPORT_SAP_TYPE_R          135
 #define IDD_EXPORT_SAP_TYPE_R           135
@@ -388,6 +391,9 @@
 #define ID_CHANNELS_CHANNEL6            32955
 #define ID_CHANNELS_CHANNEL7            32956
 #define ID_CHANNELS_CHANNEL8            32957
+#define ID_CHANNELS_MUTE                32960
+#define ID_CHANNELS_SOLOACTIVECHANNEL   32961
+#define ID_CHANNELS_MUTE32962           32962
 #define IDS_RMTVERSION                  61446
 #define IDS_RMT_VERSION                 61446
 #define IDS_RMTAUTHOR                   61447
@@ -398,8 +404,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        174
-#define _APS_NEXT_COMMAND_VALUE         32960
+#define _APS_NEXT_RESOURCE_VALUE        175
+#define _APS_NEXT_COMMAND_VALUE         32963
 #define _APS_NEXT_CONTROL_VALUE         1170
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

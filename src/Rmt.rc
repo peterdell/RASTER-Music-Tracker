@@ -1223,6 +1223,10 @@ BEGIN
         MENUITEM "Channel &6\tCtl+6",           ID_CHANNELS_CHANNEL6
         MENUITEM "Channel &7\tCtl+7",           ID_CHANNELS_CHANNEL7
         MENUITEM "Channel &8\tCtl+8",           ID_CHANNELS_CHANNEL8
+        MENUITEM SEPARATOR
+        MENUITEM "Mute/Unmute Active Channel\tF9", ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_ON_OFF
+        MENUITEM "Mute/Unmute All channels\tShift+F9", ID_CHANNELS_TOGGLE_ALL_CHANNELS_ON_OFF
+        MENUITEM "Solo Active Channel\tCtrl+F9", ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_SOLO
     END
     POPUP "&Song"
     BEGIN
@@ -1414,6 +1418,11 @@ BEGIN
     IDS_RMT_REPOSITORY      "https://github.com/raster-atari-org/RASTER-Music-Tracker"
     ID_SONG_TOGGLE_NTSC     "Toggle NTSC/PAL"
     ID_SONG_ESCAPE          "Escape"
+    ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_ON_OFF 
+                            "Mute/unmute the active channel (F9)"
+    ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_SOLO 
+                            "Mute all channels except active channel / Unmute all channels (Ctrl+F9)"
+    ID_CHANNELS_TOGGLE_ALL_CHANNELS_ON_OFF "Mute / Umnute all channels ("
 END
 
 STRINGTABLE
@@ -1504,10 +1513,6 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_EDIT_TRACKS          "Edit Tracks"
-    ID_EDIT_INSTRUMENTS     "Edit Instrument"
-    ID_EDIT_SONG            "Edit Song Lines"
-    ID_EDIT_INFO            "Edit Module Info"
     ID_PART_TRACKS          "Switch to track edit view\nEdit Tracks (F1)"
     ID_PART_INSTRUMENTS     "Switch to instrument edit view\nEdit Instruments (F2)"
     ID_PART_INFO            "Move cursor to info edit area\nEdit Info (F3)"
