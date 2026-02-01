@@ -1,5 +1,5 @@
-#include "TracksControl.h"
 #include "GuiHelpers.h"
+#include "TracksControl.h"
 
 #include "Global.h"
 #include "IOHelpers.h"
@@ -16,7 +16,7 @@ CTracksControl::~CTracksControl() {
 
 void CTracksControl::DrawTrackHeader(const CTracks& tracks, int x, int y, int tr, TextColor col)
 {
-    auto * tt = tracks.GetConstTrack(tr);
+    auto* tt = tracks.GetConstTrack(tr);
     CString s = "--  -----";
 
     if (tt)
@@ -103,7 +103,7 @@ void CTracksControl::DrawTrackLine(const CTracks& tracks, int col, int x, int y,
     // The displayed colors are set from lowest to highest priority, depending on the matching conditions
     if (line >= len) color = TextColor::GRAY;
     if (line == pline) color = TextColor::YELLOW;
-    if (line == aline) color = (g_prove) ? TextColor::BLUE : TextColor::RED;
+    if (line == aline) color = (IsProveMode()) ? TextColor::BLUE : TextColor::RED;
     if (oob) color = TextColor::DARK_GRAY;
 
     // Output the constructed row once it's ready, using the cursor position for highlighted column 

@@ -301,7 +301,7 @@
       <Filter>Source Files\GUI</Filter>
     </ClCompile>
     <ClCompile Include="SongIO.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -528,7 +528,7 @@
       <Filter>Source Files\GUI</Filter>
     </ClInclude>
     <ClInclude Include="SongIO.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -773,7 +773,7 @@ void CSong::DrawSong()
             color = (isOutOfBounds) ? TextColor::DARK_GRAY : TextColor::WHITE;	//white, for the number used, or gray if out of bounds
             if (line == m_songactiveline)
             {
-                if (g_prove) color = (g_activepart == Part::PART_SONG) ? LogicalTextColor::SELECTED_PROVE : TextColor::BLUE;
+                if (IsProveMode()) color = (g_activepart == Part::PART_SONG) ? LogicalTextColor::SELECTED_PROVE : TextColor::BLUE;
                 else color = (g_activepart == Part::PART_SONG) ? LogicalTextColor::SELECTED : TextColor::RED;
             }
             szBuffer[0] = CharH4(j);
@@ -805,8 +805,8 @@ void CSong::DrawSong()
 
                 if (line == m_songactiveline && j == m_trackactivecol)
                 {
-                    if (g_prove) color = (g_activepart == Part::PART_SONG) ? LogicalTextColor::SELECTED_PROVE : TextColor::BLUE;
-                    else color = (g_activepart == Part::PART_SONG) ? LogicalTextColor::SELECTED : TextColor::RED;
+                    if (IsProveMode()) { color = (g_activepart == Part::PART_SONG) ? LogicalTextColor::SELECTED_PROVE : TextColor::BLUE; }
+                    else { color = (g_activepart == Part::PART_SONG) ? LogicalTextColor::SELECTED : TextColor::RED; }
                 }
                 else color = (line == m_songplayline) ? TextColor::YELLOW : TextColor::WHITE;
                 if (isOutOfBounds) color = TextColor::DARK_GRAY;	//darker gray, out of bounds
@@ -815,7 +815,7 @@ void CSong::DrawSong()
         }
     }
     // Draw an arrow pointing to the current song line
-    color = (g_prove) ? TextColor::BLUE : TextColor::RED;
+    color = (IsProveMode()) ? TextColor::BLUE : TextColor::RED;
     int arrowpos = (WINDOW_OFFSET) ? CSongScreenLayout::SONG_Y + 48 : CSongScreenLayout::SONG_Y + 80;
     TextXY("\x04\x05", SONG_OFFSET, arrowpos, color);
 
@@ -847,7 +847,7 @@ void CSong::DrawSong()
         szBuffer[1] = i + '1';	//character 1-4
         if (g_ChannelControl.IsChannelOn(i))
         {
-            if (m_trackactivecol == i) color = (g_prove) ? TextColor::BLUE : TextColor::RED;	//active channel highlight
+            if (m_trackactivecol == i) color = IsProveMode() ? TextColor::BLUE : TextColor::RED;	//active channel highlight
             else color = TextColor::WHITE; //normal channel
         }
         else color = TextColor::GRAY; //switched off channels are in gray
@@ -859,7 +859,7 @@ void CSong::DrawSong()
         szBuffer[1] = i + 49 - 4;	//character 1-4
         if (g_ChannelControl.IsChannelOn(i))
         {
-            if (m_trackactivecol == i) color = (g_prove) ? TextColor::BLUE : TextColor::RED;	//active channel highlight
+            if (m_trackactivecol == i) color = IsProveMode() ? TextColor::BLUE : TextColor::RED;	//active channel highlight
             else color = TextColor::WHITE; //normal channel
         }
         else color = TextColor::GRAY; //switched off channels are in gray
@@ -893,7 +893,7 @@ void CSong::DrawTracks()
     {
         int TRACKS_OFFSET = (IsStereo()) ? 62 : 30;
         TextXY("GO TO LINE ", CSongScreenLayout::TRACKS_X + TRACKS_OFFSET * 8, CSongScreenLayout::TRACKS_Y + 8 * 16, TextColor::TURQUOISE);
-        if (g_prove) color = (g_activepart == Part::PART_TRACKS) ? LogicalTextColor::SELECTED_PROVE : TextColor::BLUE;
+        if (IsProveMode()) color = (g_activepart == Part::PART_TRACKS) ? LogicalTextColor::SELECTED_PROVE : TextColor::BLUE;
         else color = (g_activepart == Part::PART_TRACKS) ? LogicalTextColor::SELECTED : TextColor::RED;
         sprintf(s, "%02X", SongGetGo());
         TextXY(s, CSongScreenLayout::TRACKS_X + TRACKS_OFFSET * 8 + 11 * 8, CSongScreenLayout::TRACKS_Y + 8 * 16, color);
@@ -982,7 +982,7 @@ void CSong::DrawTracks()
         if (line % g_trackLineSecondaryHighlight == 0)  color = TextColor::GREEN;
         if (line % g_trackLinePrimaryHighlight == 0) color = TextColor::CYAN;
         if (line == trackplayline) color = TextColor::YELLOW;
-        if (line == trackactiveline) color = (g_prove) ? TextColor::BLUE : TextColor::RED;
+        if (line == trackactiveline) color = (IsProveMode()) ? TextColor::BLUE : TextColor::RED;
         if (oob) color = TextColor::DARK_GRAY;
         TextXY(s, CSongScreenLayout::TRACKS_X, y, color);
 
@@ -1170,7 +1170,7 @@ void CSong::DrawInfo()
 
     // 2x Line highlights XX/XX (go and override --)
     TextXY("HIGHLIGHT: --/--", 344, CSongScreenLayout::INFO_Y_LINE_1, TextColor::WHITE);
-    auto color = g_prove ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED;
+    auto color = IsProveMode() ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED;
 
     sprintf(szBuffer, "%02X", g_trackLinePrimaryHighlight);
     selected = (g_activepart == Part::PART_INFO && m_infoact == EditArea::FIRST_HIGHLIGHT) ? TRUE : FALSE;
@@ -1192,7 +1192,7 @@ void CSong::DrawInfo()
     {
         is_editing_infos = 1;
         i = m_songnamecur;
-        color = g_prove ? TextColor::BLUE : TextColor::RED;
+        color = IsProveMode() ? TextColor::BLUE : TextColor::RED;
     }
     else
     {
@@ -1206,7 +1206,7 @@ void CSong::DrawInfo()
     TextXY("MUSIC SPEED: --/--/-    MAXTRACKLENGTH: --", CSongScreenLayout::INFO_X, CSongScreenLayout::INFO_Y_LINE_3, TextColor::WHITE);
 
     // 3x Speed indicators XX/XX/X (go and override --)
-    color = g_prove ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED;
+    color = IsProveMode() ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED;
 
     sprintf(szBuffer, "%02X", m_speed);
     selected = (g_activepart == Part::PART_INFO && m_infoact == EditArea::SPEED) ? TRUE : FALSE;

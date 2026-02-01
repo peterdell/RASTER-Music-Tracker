@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include "General.h"
-#include "TuningTypes.h"
-#include "ChannelControl.h"
-#include "SongTypes.h"
 #include "Atari.h"
 #include "AtariTrackerDriver.h"
+#include "ChannelControl.h"
+#include "General.h"
+#include "SongTypes.h"
+#include "TuningTypes.h"
 #include <filesystem>
 
 
@@ -54,8 +54,14 @@ extern BOOL g_altkey;	//unfinished implementation, doesn't work yet for some rea
 extern BOOL volatile g_screenupdate;
 extern BOOL volatile g_rmtroutine;
 
-extern int volatile g_prove;			//test notes without editing (0 = off, 1 = mono, 2 = stereo)
-extern int volatile g_respectvolume;	//does not change the volume if it is already there
+
+
+extern EditMode volatile g_prove;		// Edit notes or test notes without editing
+extern bool IsEditMode(const EditMode editMode = EditMode::EDIT_MODE);
+extern bool IsProveMode();
+extern bool IsSpecialProveMode();       // MIDI or Pokey Explorer mode?
+
+extern int volatile g_respectvolume;	// Does not change the volume if it is already there
 
 extern WORD g_rmtstripped_adr_module;	//address for export RMT stripped file
 extern BOOL g_rmtstripped_sfx;			//sfx offshoot RMT stripped file

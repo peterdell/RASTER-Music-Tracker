@@ -1,11 +1,11 @@
-#include "StdAfx.h"
+#include "Clipboard.h"
 #include "Global.h"
+#include "Memory.h"
 #include "PokeyRederer.h"
 #include "RmtMidi.h"
-#include "Clipboard.h"
-#include "Tuning.h"
-#include "Memory.h"
+#include "StdAfx.h"
 #include "TracksControl.h"
+#include "Tuning.h"
 
 #include "Song.h"
 #include "Undo.h"
@@ -47,7 +47,21 @@ int g_tracks4_8 = 8; // TODO Move out // Had to be hardcoded to 8 to prevent "Re
 BOOL volatile g_screenupdate = 0;
 BOOL volatile g_rmtroutine; // => TODO: PokeyRenderer?
 
-int volatile g_prove;			// Test notes without editing (0 = off, 1 = mono jam, 2 = stereo jam)
+EditMode volatile g_prove;		// Edit notes or test notes without editing
+bool IsEditMode(const EditMode editMode) {
+    return g_prove == editMode;
+}
+
+bool IsProveMode() {
+    return g_prove == EditMode::JAM_MONO_MODE || g_prove == EditMode::JAM_STEREO_MODE || IsSpecialProveMode();
+}
+
+extern bool IsSpecialProveMode() {
+    return g_prove == EditMode::MIDI_CH15_MODE || g_prove == EditMode::POKEY_EXPLORER_MODE;
+}
+
+
+
 int volatile g_respectvolume;	//does not change the volume if it is already there
 
 WORD g_rmtstripped_adr_module;	//address for export RMT stripped file

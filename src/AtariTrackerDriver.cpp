@@ -1,5 +1,5 @@
-#include "AtariTrackerDriver.h"
 #include "AtariBinaries.h"
+#include "AtariTrackerDriver.h"
 
 #include "AtariIO.h"
 
@@ -44,11 +44,12 @@ int CAtariTrackerDriver::Init() {
 void CAtariTrackerDriver::Play()
 {
     auto cycles = m_atari->GetFrameCycleCount();
- 
+
     auto adr = RMT_P3; //(without SetPokey) one run of RMT routine but from rmt_p3 (wrap processing)
     BYTE a = 0, x = 0, y = 0;
-    if (g_prove < EditMode::EDIT_AND_JAM_MODES) { 
-        // this is only good for tests, this trigger prevents the RMT driver running at all, leaving only SetPokey available
+
+    // this is only good for tests, this trigger prevents the RMT driver running at all, leaving only SetPokey available
+    if (!IsSpecialProveMode()) {
         C6502::JSR(adr, a, x, y, cycles);
     }
     adr = RMT_SETPOKEY;

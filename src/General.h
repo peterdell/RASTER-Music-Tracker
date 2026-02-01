@@ -19,16 +19,12 @@ public:
 };
 // ----------------------------------------------------------------------------
 // GUI edit modes
-class EditMode {
-public:
-
-    static constexpr int EDIT_MODE = 0;				// Hit the Jam mode button to switch between
-    static constexpr int JAM_MONO_MODE = 1;			// the first three modes
-    static constexpr int JAM_STEREO_MODE = 2;		// Can only get here in stereo mode
-    static constexpr int EDIT_AND_JAM_MODES = 3;	// < this is edit and jam
-    // TODO How can this also be 3?!?!
-    static constexpr int MIDI_CH15_MODE = 3;		// Hit RECORD key in Midi channel 15 to cycle to this mode
-    static constexpr int POKEY_EXPLORER_MODE = 4;	// Ctrl + Shift + F5
+enum class EditMode : int {
+    EDIT_MODE = 0,			// Hit the Jam mode button to switch between
+    JAM_MONO_MODE = 1,		// the first three modes
+    JAM_STEREO_MODE = 2,	// Can only get here in stereo mode
+    MIDI_CH15_MODE = 3,		// Hit RECORD key in Midi channel 15 to cycle to this mode
+    POKEY_EXPLORER_MODE = 4	// 
 };
 
 // ----------------------------------------------------------------------------

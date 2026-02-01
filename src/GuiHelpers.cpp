@@ -1,5 +1,5 @@
-#include "StdAfx.h"
 #include "General.h"
+#include "StdAfx.h"
 
 #include "GuiHelpers.h"
 
@@ -256,7 +256,7 @@ void TextXYSelN(const char* txt, int n, int x, int y, TextColor color)
 {
     auto colorY = GetColorY(color);
 
-    int col = GetColorY(g_prove ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED);
+    int col = GetColorY(IsProveMode() ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED);
     int cur = GetColorY(LogicalTextColor::HOVERED);
 
     // The characters 'n' will use the "select" color, everything else will use the 'color' parameter, unless they are hovered by the mouse cursor
@@ -273,7 +273,7 @@ void TextXYCol(const char* txt, int x, int y, int acu, TextColor color)
     auto colorY = GetColorY(color);
 
     int num = 0, curnum = 0, curoff = 0;
-    auto col = GetColorY(g_prove ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED);
+    auto col = GetColorY(IsProveMode() ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED);
     auto cur = GetColorY(LogicalTextColor::HOVERED);
 
     switch (acu)

@@ -1,5 +1,5 @@
-#include "StdAfx.h"
 #include "resource.h"
+#include "StdAfx.h"
 #include <fstream>
 
 #include "AtariTrackerDriver.h"
@@ -258,7 +258,7 @@ void CInstruments::DrawName(int instrNr)
     if (g_activepart == Part::PART_INSTRUMENTS && GetActiveEditSection(instrNr) == InstrumentSection::NAME)  // is an active change of instrument name
     {
         cursorPos = GetNameCursorPosition(instrNr);
-        color = g_prove ? TextColor::BLUE : TextColor::RED;
+        color = IsProveMode() ? TextColor::BLUE : TextColor::RED;
         g_isEditingInstrumentName = 1;
     }
 
@@ -287,7 +287,7 @@ void CInstruments::DrawParameter(int p, int instrNr)
     // If the cursor is on the main parameters
     if (g_activepart == Part::PART_INSTRUMENTS && GetActiveEditSection(instrNr) == InstrumentSection::PARAMETERS && GetParameterNumber(instrNr) == p)
     {
-        color = (g_prove) ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED;
+        color = (IsProveMode()) ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED;
     }
 
     // Some parameters are 0..x but 1..x + 1 is displayed
@@ -512,7 +512,7 @@ void CInstruments::DrawEnv(int e, int it)
 
         if (j == ay && g_activepart == Part::PART_INSTRUMENTS)
         {
-            color = (g_prove) ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED;
+            color = IsProveMode() ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED;
         }
         else {
             color = TextColor::WHITE;
@@ -550,7 +550,7 @@ void CInstruments::DrawNoteTableValue(int noteIdx, int instrNr)
     auto color = TextColor::WHITE;
     if (data->activeEditSection == InstrumentSection::NOTETABLE && data->editNoteTableCursorPos == noteIdx && g_activepart == Part::PART_INSTRUMENTS)
     {
-        color = (g_prove) ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED;
+        color = (IsProveMode()) ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED;
     }
 
     TextXY(szBuffer, InstrumentGUIPosition::TABLE_X + noteIdx * 24, InstrumentGUIPosition::TABLE_Y + 8, color);

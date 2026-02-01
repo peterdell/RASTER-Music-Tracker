@@ -1623,7 +1623,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             break;
 
         case Part::PART_TRACKS:
-            if (g_prove)
+            if (IsProveMode())
                 g_Song.ProveKey(vk, g_shiftkey, g_controlkey);
             else if (g_shiftkey && (NoteKey(vk) >= 0 || Numblock09Key(vk) >= 0 || vk == VK_SPACE))
                 g_Song.ProveKey(vk, g_shiftkey, g_controlkey);
@@ -1662,7 +1662,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             break;
 
         case Part::PART_SONG:
-            if (g_prove)
+            if (IsProveMode())
                 g_Song.ProveKey(vk, g_shiftkey, g_controlkey);
             else if (g_shiftkey && (NoteKey(vk) >= 0 || Numblock09Key(vk) >= 0 || vk == VK_SPACE))
                 g_Song.ProveKey(vk, g_shiftkey, g_controlkey);
@@ -2113,19 +2113,13 @@ void CRmtView::OnUpdateEmSong(CCmdUI* pCmdUI)
     pCmdUI->SetCheck(ch);
 }
 
-/// <summary>
-/// Switch the edit mode
-/// 0 = edit
-/// 1 = Mono jam
-/// 2 = Stereo jam
-/// </summary>
 void CRmtView::OnSwitchMode()
 {
-    if (g_prove == EditMode::EDIT_MODE) g_prove = EditMode::JAM_MONO_MODE;
-    else if (g_prove >= EditMode::EDIT_AND_JAM_MODES) g_prove = EditMode::EDIT_MODE;		//disable the special test modes immediately
+    if (g_prove == EditMode::EDIT_MODE) { g_prove = EditMode::JAM_MONO_MODE; }
+    else if (IsSpecialProveMode()) { g_prove = EditMode::EDIT_MODE; }// Disable the special test modes immediately
     else
     {
-        // Mono Jam or stereo jamP
+        // Mono Jam or stereo jam?
         if (g_prove == EditMode::JAM_MONO_MODE && g_tracks4_8 > 4) {
             g_prove = EditMode::JAM_STEREO_MODE;
         }
