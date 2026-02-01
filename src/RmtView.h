@@ -117,9 +117,9 @@ protected:
     afx_msg void OnSongCopyline();
     afx_msg void OnSongPasteline();
     afx_msg void OnSongClearline();
-    afx_msg void OnPlay1();
-    afx_msg void OnPlay2();
-    afx_msg void OnPlay3();
+    afx_msg void OnSongPlayerFromStart();
+    afx_msg void OnSongPlayFromCurrentPosition();
+    afx_msg void OnSongPlayFromCurrentPositionAndLoop();
     afx_msg void OnSongStop();
     afx_msg void OnUpdateSongStop(CCmdUI* pCmdUI);
     afx_msg void OnSongPlayFollow();

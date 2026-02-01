@@ -1,5 +1,7 @@
 #pragma once
 
+#include "StdAfx.h"
+
 #include <cassert>
 
 // Helper defines to make the code a bit more readable

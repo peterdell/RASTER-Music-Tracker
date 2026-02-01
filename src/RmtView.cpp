@@ -79,9 +79,9 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_SONG_COPY_LINE, OnSongCopyline)
     ON_COMMAND(ID_SONG_PASTE_LINE, OnSongPasteline)
     ON_COMMAND(ID_SONG_CLEAR_LINE, OnSongClearline)
-    ON_COMMAND(ID_SONG_PLAY_FROM_START, OnPlay1)
-    ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION, OnPlay2)
-    ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnPlay3)
+    ON_COMMAND(ID_SONG_PLAY_FROM_START, OnSongPlayerFromStart)
+    ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION, OnSongPlayFromCurrentPosition)
+    ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnSongPlayFromCurrentPositionAndLoop)
     ON_COMMAND(ID_SONG_STOP, OnSongStop)
     ON_UPDATE_COMMAND_UI(ID_SONG_STOP, OnUpdateSongStop)
 
@@ -98,7 +98,7 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_START, OnUpdatePlay1)
     ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_CURRENT_POSITION, OnUpdatePlay2)
     ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnUpdatePlay3)
-    ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnPlay3)
+    ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnSongPlayFromCurrentPositionAndLoop)
 
     ON_COMMAND(ID_SWITCH_MODE, OnSwitchMode)
     ON_UPDATE_COMMAND_UI(ID_SWITCH_MODE, OnUpdateSwitchMode)
@@ -1523,7 +1523,6 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             g_prove = EditMode::POKEY_EXPLORER_MODE;	//POKEY EXPLORER MODE -- KEYBOARD INPUT AND FORMULAE DISPLAY
             break;
         }
-        g_Song.Play(PLAY_SONG, g_Song.GetFollowPlayMode());	//play song from start
         break;
 
     case VK_F6:
@@ -1987,22 +1986,22 @@ void CRmtView::OnUpdateSongMaketracksduplicate(CCmdUI* pCmdUI)
 
 void CRmtView::OnPlay0()
 {
-    g_Song.Play(PLAY_BOOKMARK, g_Song.GetFollowPlayMode());	//from the bookmark - with respect to followplay
+    g_Song.Play(PLAY_BOOKMARK, g_Song.GetFollowPlayMode());	// from the bookmark - with respect to followplay
 }
 
-void CRmtView::OnPlay1()
+void CRmtView::OnSongPlayerFromStart()
 {
-    g_Song.Play(PLAY_SONG, g_Song.GetFollowPlayMode());		//whole song from start - with respect to followplay
+    g_Song.Play(PLAY_SONG, g_Song.GetFollowPlayMode());		// whole song from start - with respect to followplay
 }
 
-void CRmtView::OnPlay2()
+void CRmtView::OnSongPlayFromCurrentPosition()
 {
-    g_Song.Play(PLAY_FROM, g_Song.GetFollowPlayMode());		//from the current position - with respect to followplay
+    g_Song.Play(PLAY_FROM, g_Song.GetFollowPlayMode());		// from the current position - with respect to followplay
 }
 
-void CRmtView::OnPlay3()
+void CRmtView::OnSongPlayFromCurrentPositionAndLoop()
 {
-    g_Song.Play(PLAY_TRACK, g_Song.GetFollowPlayMode());		//current pattern and loop - with respect to followplay
+    g_Song.Play(PLAY_TRACK, g_Song.GetFollowPlayMode());	// from current pattern and loop - with respect to followplay
 }
 
 void CRmtView::OnSongStop()
@@ -2126,10 +2125,13 @@ void CRmtView::OnSwitchMode()
     else if (g_prove >= EditMode::EDIT_AND_JAM_MODES) g_prove = EditMode::EDIT_MODE;		//disable the special test modes immediately
     else
     {
-        if (g_prove == EditMode::JAM_MONO_MODE && g_tracks4_8 > 4)	//PROVE 2 only works for 8 tracks
+        // Mono Jam or stereo jamP
+        if (g_prove == EditMode::JAM_MONO_MODE && g_tracks4_8 > 4) {
             g_prove = EditMode::JAM_STEREO_MODE;
-        else
+        }
+        else {
             g_prove = EditMode::EDIT_MODE;
+        }
     }
 }
 

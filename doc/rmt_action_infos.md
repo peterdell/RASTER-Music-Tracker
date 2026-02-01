@@ -25,7 +25,7 @@
 | Menu View | Status Bar |  | Show or hide the status bar |
 | Menu Channels | Mute/Unmute Active Channel | `F9` | Mute/unmute the active channel (F9) |
 | Menu Channels | Solo Active Channel | `Ctrl+F9` | Mute all channels except active channel / Unmute all channels (Ctrl+F9) |
-| Menu Channels | Mute/Unmute All channels | `Shift+F9` | Mute / Umnute all channels (Shift+F9) |
+| Menu Channels | Mute/Unmute All Channels | `Shift+F9` | Mute / Umnute all channels (Shift+F9) |
 | Menu Channels | Channel 1 | `Ctl+1` |  |
 | Menu Channels | Channel 2 | `Ctl+2` |  |
 | Menu Channels | Channel 3 | `Ctl+3` |  |

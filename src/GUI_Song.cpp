@@ -1,5 +1,5 @@
-#include "StdAfx.h"
 #include "GuiHelpers.h"
+#include "StdAfx.h"
 
 // MFC interface code
 #include "Song.h"
@@ -8,19 +8,19 @@
 
 #include "Atari.h"
 #include "AtariTrackerDriver.h"
-#include "Notes.h"
 #include "IOHelpers.h"
+#include "Notes.h"
 
+#include "Clipboard.h"
 #include "Instruments.h"
 #include "Song.h"
-#include "Clipboard.h"
 
 #include "Global.h"
 #include "TracksControl.h"
 
-#include "Tuning.h"
-#include "Keyboard2NoteMapping.h"
 #include "ChannelControl.h"
+#include "Keyboard2NoteMapping.h"
+#include "Tuning.h"
 
 #include "Rmt.h"
 
@@ -120,7 +120,7 @@ void CSong::SetRMTTitle()
                 s = "Noname *";
             }
             else
-            {	
+            {
                 s = g_app.GetVersionAndBuild();
             }
         }
@@ -162,9 +162,9 @@ void CSong::DrawAnalyzer()
     if (g_tracks4_8 == 4 && g_active_ti == Part::PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) INSTRUMENT_OFFSET = 260;
     int SONG_OFFSET = CSongScreenLayout::SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((g_tracks4_8 == 4) ? -200 : 310);	//displace the SONG block depending on certain parameters
 
-    BOOL DEBUG_POKEY = 1;	//registers debug display
-    BOOL DEBUG_MEMORY = 0;	//memory debug display
-    BOOL DEBUG_SOUND = (g_prove == EditMode::POKEY_EXPLORER_MODE) ? 1 : 0;	//POKEY EXPLORER MODE
+    BOOL DEBUG_POKEY = TRUE;	//registers debug display
+    BOOL DEBUG_MEMORY = FALSE;	//memory debug display
+    BOOL DEBUG_SOUND = (g_prove == EditMode::POKEY_EXPLORER_MODE) ? TRUE : FALSE;	//POKEY EXPLORER MODE
 
     if (g_width < MINIMAL_WIDTH_TRACKS && g_active_ti == Part::PART_TRACKS) DEBUG_POKEY = DEBUG_MEMORY = 0;
     if (g_width < MINIMAL_WIDTH_INSTRUMENTS && g_active_ti == Part::PART_INSTRUMENTS) DEBUG_POKEY = DEBUG_MEMORY = 0;
