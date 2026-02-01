@@ -4,31 +4,31 @@
 // reworked by VinsCool, 2021-2022
 //
 
-#include "StdAfx.h"
-#include "RmtDoc.h"
-#include <chrono>
+#include "Atari.h"
 #include "Clipboard.h"
-#include <iomanip>
+#include "EffectsDlg.h"
+#include "FileNewDlg.h"
 #include "Fraction.h"
-#include "RmtView.h"
 #include "MainFrm.h"
 #include "OptionsDialog.h"
-#include "FileNewDlg.h"
-#include "TuningDialog.h"
-#include "Atari.h"
 #include "PokeyRederer.h"
+#include "RmtDoc.h"
 #include "RmtMidi.h"
-#include "EffectsDlg.h"
+#include "RmtView.h"
+#include "StdAfx.h"
+#include "TuningDialog.h"
+#include <chrono>
+#include <iomanip>
 
 #include "Global.h"
 
+#include "ChannelControl.h"
 #include "GuiHelpers.h"
 #include "Keyboard2NoteMapping.h"
-#include "ChannelControl.h"
-#include "Undo.h"
+#include "Rmt.h"
 #include "Song.h"
 #include "Tuning.h"
-#include "Rmt.h"
+#include "Undo.h"
 
 
 
@@ -234,7 +234,7 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_VIEW_STATUS_BAR, OnViewStatusBar)
     ON_UPDATE_COMMAND_UI(ID_VIEW_STATUS_BAR, OnUpdateViewStatusBar)
     ON_COMMAND(ID_SONG_SONGCHANGEMAXIMALLENGTHOFTRACKS, OnSongSongchangemaximallengthoftracks)
-    ON_COMMAND(ID_FILE_EXIT, OnWantExit)
+    ON_COMMAND(ID_FILE_EXIT, OnFileExit)
     // Standard printing commands
     ON_COMMAND(ID_FILE_PRINT, CView::OnFilePrint)
     ON_COMMAND(ID_FILE_PRINT_DIRECT, CView::OnFilePrint)
@@ -242,15 +242,15 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_SONG_TOGGLE_NTSC, OnSongToggleNTSC)
     //}}AFX_MSG_MAP
 
-        ON_COMMAND(ID_CHANNELS_CHANNEL1, &CRmtView::OnChannelsChannel1)
-        ON_COMMAND(ID_CHANNELS_CHANNEL2, &CRmtView::OnChannelsChannel2)
-        ON_COMMAND(ID_CHANNELS_CHANNEL3, &CRmtView::OnChannelsChannel3)
-        ON_COMMAND(ID_CHANNELS_CHANNEL4, &CRmtView::OnChannelsChannel4)
-        ON_COMMAND(ID_CHANNELS_CHANNEL5, &CRmtView::OnChannelsChannel5)
-        ON_COMMAND(ID_CHANNELS_CHANNEL6, &CRmtView::OnChannelsChannel6)
-        ON_COMMAND(ID_CHANNELS_CHANNEL7, &CRmtView::OnChannelsChannel7)
-        ON_COMMAND(ID_CHANNELS_CHANNEL8, &CRmtView::OnChannelsChannel8)
-        END_MESSAGE_MAP()
+    ON_COMMAND(ID_CHANNELS_CHANNEL1, &CRmtView::OnChannelsChannel1)
+    ON_COMMAND(ID_CHANNELS_CHANNEL2, &CRmtView::OnChannelsChannel2)
+    ON_COMMAND(ID_CHANNELS_CHANNEL3, &CRmtView::OnChannelsChannel3)
+    ON_COMMAND(ID_CHANNELS_CHANNEL4, &CRmtView::OnChannelsChannel4)
+    ON_COMMAND(ID_CHANNELS_CHANNEL5, &CRmtView::OnChannelsChannel5)
+    ON_COMMAND(ID_CHANNELS_CHANNEL6, &CRmtView::OnChannelsChannel6)
+    ON_COMMAND(ID_CHANNELS_CHANNEL7, &CRmtView::OnChannelsChannel7)
+    ON_COMMAND(ID_CHANNELS_CHANNEL8, &CRmtView::OnChannelsChannel8)
+END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CRmtView construction/destruction
@@ -920,7 +920,7 @@ void CRmtView::OnInitialUpdate()
     g_active_ti = Part::PART_TRACKS;	//below the active tracks
 
     //turn on all channels
-   g_ChannelControl.SetAllChannelsOn();
+    g_ChannelControl.SetAllChannelsOn();
 
     //CONFIGURATION
     ReadRMTConfig();
@@ -1015,11 +1015,11 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
         SetCursor(m_cursorChanbelOnOff);
         if (mousebutt & MK_LBUTTON)
         {
-           g_ChannelControl.ToggleChannelOnOff(px);	//inversion
+            g_ChannelControl.ToggleChannelOnOff(px);	//inversion
         }
         if (mousebutt & MK_RBUTTON)
         {
-           g_ChannelControl.SetChannelSolo(px);		//solo/mute on off
+            g_ChannelControl.SetChannelSolo(px);		//solo/mute on off
         }
         return 1;
     }
@@ -1548,17 +1548,17 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     case VK_F9:
         if (!g_controlkey && g_shiftkey)
         {
-           g_ChannelControl.ToggleAllChannelsOnOff();		//switch all channels on or off
+            g_ChannelControl.ToggleAllChannelsOnOff();	// switch all channels on or off
         }
         else if (g_controlkey)
         {
-            auto ch = g_Song.GetActiveColumn(); //solo current channel
-           g_ChannelControl.SetChannelSolo(ch);
+            auto ch = g_Song.GetActiveColumn(); // solo current channel
+            g_ChannelControl.SetChannelSolo(ch);
         }
         else
         {
-            auto ch = g_Song.GetActiveColumn(); //mute current channel
-           g_ChannelControl.ToggleChannelOnOff(ch);
+            auto ch = g_Song.GetActiveColumn(); // mute current channel
+            g_ChannelControl.ToggleChannelOnOff(ch);
         }
         break;
 
@@ -2801,7 +2801,7 @@ void CRmtView::OnUpdateUndoClearundoredo(CCmdUI* pCmdUI)
     pCmdUI->Enable(g_Song.UndoGetUndoSteps() || g_Song.UndoGetRedoSteps());
 }
 
-void CRmtView::OnWantExit() // Called from the menu File/Exit ID_FILE_EXIT instead of the original ID_APP_EXIT
+void CRmtView::OnFileExit() // Called from the menu File/Exit ID_FILE_EXIT instead of the original ID_APP_EXIT
 {
     if (g_Song.WarnUnsavedChanges())
     {
@@ -2832,40 +2832,40 @@ void CRmtView::OnSongToggleNTSC()
 
 void CRmtView::OnChannelsChannel1()
 {
-   g_ChannelControl.ToggleChannelOnOff(0);
+    g_ChannelControl.ToggleChannelOnOff(0);
 }
 
 void CRmtView::OnChannelsChannel2()
 {
-   g_ChannelControl.ToggleChannelOnOff(1);
+    g_ChannelControl.ToggleChannelOnOff(1);
 }
 
 void CRmtView::OnChannelsChannel3()
 {
-   g_ChannelControl.ToggleChannelOnOff(2);
+    g_ChannelControl.ToggleChannelOnOff(2);
 }
 
 void CRmtView::OnChannelsChannel4()
 {
-   g_ChannelControl.ToggleChannelOnOff(3);
+    g_ChannelControl.ToggleChannelOnOff(3);
 }
 
 void CRmtView::OnChannelsChannel5()
 {
-   g_ChannelControl.ToggleChannelOnOff(4);
+    g_ChannelControl.ToggleChannelOnOff(4);
 }
 
 void CRmtView::OnChannelsChannel6()
 {
-   g_ChannelControl.ToggleChannelOnOff(5);
+    g_ChannelControl.ToggleChannelOnOff(5);
 }
 
 void CRmtView::OnChannelsChannel7()
 {
-   g_ChannelControl.ToggleChannelOnOff(6);
+    g_ChannelControl.ToggleChannelOnOff(6);
 }
 
 void CRmtView::OnChannelsChannel8()
 {
-   g_ChannelControl.ToggleChannelOnOff(7);
+    g_ChannelControl.ToggleChannelOnOff(7);
 }

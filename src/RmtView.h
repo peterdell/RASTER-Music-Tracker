@@ -264,7 +264,7 @@ protected:
     afx_msg void OnUpdateViewStatusBar(CCmdUI* pCmdUI);
     afx_msg void OnSongSongchangemaximallengthoftracks();
     afx_msg void OnSongToggleNTSC();
-    afx_msg void OnWantExit();
+    afx_msg void OnFileExit();
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
 public:
