@@ -1,16 +1,18 @@
 #include "ChannelControl.h"
 #include "StdAfx.h"
 
-bool CChannelControl::IsChannelOn(const ChannelNumber channel) {
-    return m_channelon[channel];
-}
-
 CChannelControl::CChannelControl(unsigned int channelCount) : m_channelCount(channelCount) {
 
     for (unsigned int i = 0; i < channelCount; i++) {
         m_channelon.push_back(false);
     }
 }
+
+
+bool CChannelControl::IsChannelOn(const ChannelNumber channel) {
+    return m_channelon[channel];
+}
+
 
 // ----------------------------------------------------------------------------
 // Channel On/Off helper functions
@@ -28,7 +30,7 @@ void CChannelControl::SetChannelOnOff(const int ch, int onoff)
         if (onoff >= 0)
             for (unsigned int i = 0; i < m_channelon.size(); i++) { m_channelon[i] = onoff; } // Set the given on/off state
         else
-            for (unsigned int i = 0; i < m_channelon.size(); i++) { m_channelon[i] = !m_channelon[ch]; } // Invert the on/off state
+            for (unsigned int i = 0; i < m_channelon.size(); i++) { m_channelon[i] = !m_channelon[i]; } // Invert the on/off state
     }
     else if (ch < m_channelon.size())
     {
@@ -42,8 +44,8 @@ void CChannelControl::SetChannelOnOff(const int ch, int onoff)
     }
 }
 
-void CChannelControl::ToggleChannelOnOff(const ChannelNumber ch) {
-    SetChannelOnOff(ch, -1);
+void CChannelControl::ToggleChannelOnOff(const ChannelNumber channelNumber) {
+    SetChannelOnOff(channelNumber, -1);
 }
 
 void CChannelControl::SetAllChannelsOff() {
@@ -62,15 +64,15 @@ void CChannelControl::ToggleAllChannelsOnOff() {
 /// Turn ON only one channel, making sure that all others are turned off
 /// </summary>
 /// <param name="ch"></param>
-void CChannelControl::SetChannelSolo(const ChannelNumber ch)
+void CChannelControl::SetChannelSolo(const ChannelNumber channelNumber)
 {
-    if (IsChannelOn(ch))
+    if (IsChannelOn(channelNumber))
     {
         // Target channel is ON
         // If any other channel is on then turn them all off except for the target channel
         for (unsigned int i = 0; i < m_channelCount; i++)
         {
-            if (i != ch && IsChannelOn(i)) goto Channel_SOLO;
+            if (i != channelNumber && IsChannelOn(i)) goto Channel_SOLO;
         }
         // All other channels are off, turn them all on
         SetAllChannelsOn();
@@ -80,7 +82,7 @@ void CChannelControl::SetChannelSolo(const ChannelNumber ch)
         // Target channel is OFF
     Channel_SOLO:
         SetAllChannelsOff();
-        SetChannelOnOff(ch, 1);	// and turn ON only the solo channel
+        SetChannelOnOff(channelNumber, 1);	// and turn ON only the solo channel
     }
 
 }

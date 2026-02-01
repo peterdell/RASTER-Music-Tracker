@@ -6,17 +6,17 @@
 
 #include "Notes.h"
 
-#include "FileNewDlg.h"
 #include "EffectsDlg.h"
+#include "FileNewDlg.h"
 #include "MainFrm.h"
 
 #include "Atari.h"
 #include "AtariTrackerDriver.h"
-#include "PokeyRederer.h"
-#include "IOHelpers.h"
-#include "Instruments.h"
 #include "Clipboard.h"
 #include "Global.h"
+#include "Instruments.h"
+#include "IOHelpers.h"
+#include "PokeyRederer.h"
 
 #include "SongTimer.h"
 

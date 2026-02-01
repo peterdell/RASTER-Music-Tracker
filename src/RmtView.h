@@ -276,6 +276,12 @@ public:
     afx_msg void OnChannelsChannel6();
     afx_msg void OnChannelsChannel7();
     afx_msg void OnChannelsChannel8();
+    afx_msg void OnChannelsToggleActiveChannelOnOff();
+    afx_msg void OnUpdateChannelsToggleActiveChannelOnOff(CCmdUI* pCmdUI);
+    afx_msg void OnChannelsToggleActiveChannelSolo();
+    afx_msg void OnUpdateChannelsToggleActiveChannelSolo(CCmdUI* pCmdUI);
+    afx_msg void OnChannelsToggleAllChannelsOnOff();
+    afx_msg void OnUpdateChannelsToggleAllChannelsOnOff(CCmdUI* pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in RmtView.cpp

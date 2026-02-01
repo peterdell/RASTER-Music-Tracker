@@ -250,6 +250,12 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_CHANNELS_CHANNEL6, &CRmtView::OnChannelsChannel6)
     ON_COMMAND(ID_CHANNELS_CHANNEL7, &CRmtView::OnChannelsChannel7)
     ON_COMMAND(ID_CHANNELS_CHANNEL8, &CRmtView::OnChannelsChannel8)
+    ON_COMMAND(ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_ON_OFF, &CRmtView::OnChannelsToggleActiveChannelOnOff)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_ON_OFF, &CRmtView::OnUpdateChannelsToggleActiveChannelOnOff)
+    ON_COMMAND(ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_SOLO, &CRmtView::OnChannelsToggleActiveChannelSolo)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_SOLO, &CRmtView::OnUpdateChannelsToggleActiveChannelSolo)
+    ON_COMMAND(ID_CHANNELS_TOGGLE_ALL_CHANNELS_ON_OFF, &CRmtView::OnChannelsToggleAllChannelsOnOff)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_TOGGLE_ALL_CHANNELS_ON_OFF, &CRmtView::OnUpdateChannelsToggleAllChannelsOnOff)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1543,23 +1549,6 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         else {
             g_Song.SetBookmark();
         } // set song bookmark
-        break;
-
-    case VK_F9:
-        if (!g_controlkey && g_shiftkey)
-        {
-            g_ChannelControl.ToggleAllChannelsOnOff();	// switch all channels on or off
-        }
-        else if (g_controlkey)
-        {
-            auto ch = g_Song.GetActiveColumn(); // solo current channel
-            g_ChannelControl.SetChannelSolo(ch);
-        }
-        else
-        {
-            auto ch = g_Song.GetActiveColumn(); // mute current channel
-            g_ChannelControl.ToggleChannelOnOff(ch);
-        }
         break;
 
         //F10 can't be used for some reason... it seems to be binded to native Windows functions and so it would take priority instead of any shortcut I would like to use for it.
@@ -2868,4 +2857,36 @@ void CRmtView::OnChannelsChannel7()
 void CRmtView::OnChannelsChannel8()
 {
     g_ChannelControl.ToggleChannelOnOff(7);
+}
+
+void CRmtView::OnChannelsToggleActiveChannelOnOff()
+{
+    auto channelNumber = g_Song.GetActiveColumn();
+    g_ChannelControl.ToggleChannelOnOff(channelNumber);
+}
+
+void CRmtView::OnUpdateChannelsToggleActiveChannelOnOff(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_Song.GetActiveColumn() >= 0);
+}
+
+void CRmtView::OnChannelsToggleActiveChannelSolo()
+{
+    auto channelNumber = g_Song.GetActiveColumn();
+    g_ChannelControl.SetChannelSolo(channelNumber);
+}
+
+void CRmtView::OnUpdateChannelsToggleActiveChannelSolo(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_Song.GetActiveColumn() >= 0);
+}
+
+void CRmtView::OnChannelsToggleAllChannelsOnOff()
+{
+    g_ChannelControl.ToggleAllChannelsOnOff();
+}
+
+void CRmtView::OnUpdateChannelsToggleAllChannelsOnOff(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(true);
 }
