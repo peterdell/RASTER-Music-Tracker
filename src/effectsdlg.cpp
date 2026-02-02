@@ -1,14 +1,14 @@
 // EffectsDlg.cpp : implementation file
 //
 
-#include "StdAfx.h"
 #include "Notes.h"
+#include "StdAfx.h"
 
 #include "EffectsDlg.h"
 
-#include "Song.h"
+#include "Global.h"
 #include "IOHelpers.h"
-#include "global.h"
+#include "Song.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -52,10 +52,10 @@ void CEffectsDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CEffectsDlg, CDialog)
     //{{AFX_MSG_MAP(CEffectsDlg)
     ON_CBN_SELCHANGE(IDC_EFF_COMBO, OnSelchangeEffCombo)
-    ON_BN_CLICKED(IDDEFAULT, OnDefault)
-    ON_BN_CLICKED(IDTRY, OnTry)
-    ON_BN_CLICKED(IDRESTORE, OnRestore)
-    ON_BN_CLICKED(IDPLAYSTOP, OnSongStop)
+    ON_BN_CLICKED(ID_EFFECT_DEFAULT, OnDefault)
+    ON_BN_CLICKED(ID_EFFECT_TRY, OnEffectTry)
+    ON_BN_CLICKED(ID_EFFECT_RESTORE, OnEffectRestore)
+    ON_BN_CLICKED(ID_EFFECT_STOP, OnSongStop)
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -207,7 +207,7 @@ void CEffectsDlg::OnOK()
 
 void CEffectsDlg::OnCancel()
 {
-    OnRestore();
+    OnEffectRestore();
     CDialog::OnCancel();
 }
 
@@ -221,22 +221,24 @@ void CEffectsDlg::OnDefault()
     eff_ed[m_effai][2] = effects[m_effai].e3;
 }
 
-void CEffectsDlg::OnTry()
+void CEffectsDlg::OnEffectTry()
 {
     PerformEffect();
 }
 
-void CEffectsDlg::OnRestore()
+void CEffectsDlg::OnEffectRestore()
 {
     memcpy(m_trackptr, m_trackorig, sizeof(TTrack));
 }
 
 void CEffectsDlg::OnSongStop()
 {
-    if (g_Song.GetPlayMode())
+    if (g_Song.GetPlayMode()) {
         g_Song.Stop();
-    else
+    }
+    else {
         g_Song.Play(PLAY_BLOCK, g_Song.GetFollowPlayMode());
+    }
 }
 
 void CEffectsDlg::PerformEffect()

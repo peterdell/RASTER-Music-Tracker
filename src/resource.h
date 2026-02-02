@@ -2,13 +2,12 @@
 // Microsoft Visual C++ generated include file.
 // Used by Rmt.rc
 //
-#define IDMODULE_TUNING                 3
-#define IDDEFAULT                       10
-#define IDPLAYSTOP                      12
-#define IDRESET                         13
-#define IDRESTORE                       14
-#define IDTESTNOW                       15
-#define IDTRY                           16
+#define ID_EFFECT_DEFAULT               10
+#define ID_EFFECT_STOP                  12
+#define ID_TUNING_RESET                 13
+#define ID_EFFECT_RESTORE               14
+#define ID_TUNING_TEST                  15
+#define ID_EFFECT_TRY                   16
 #define IDR_MAIN_WINDOW                 102
 #define IDR_RMTTYPE                     103
 #define ID_SONG_SET_BOOKMARK            103
@@ -357,6 +356,7 @@
 #define ID_VIEW_PLAYTIMECOUNTER         32905
 #define ID_VIEW_POKEYREGS               32906
 #define ID_VIEW_VOLUMEANALYZER          32907
+#define ID_EDIT_EDITTRACKS              32911
 
 // Next default values for new objects
 // 
@@ -364,7 +364,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        205
-#define _APS_NEXT_COMMAND_VALUE         32911
+#define _APS_NEXT_COMMAND_VALUE         32912
 #define _APS_NEXT_CONTROL_VALUE         1198
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

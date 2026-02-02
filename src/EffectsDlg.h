@@ -61,8 +61,8 @@ protected:
 	afx_msg void OnSelchangeEffCombo();
 	virtual void OnOK();
 	afx_msg void OnDefault();
-	afx_msg void OnTry();
-	afx_msg void OnRestore();
+	afx_msg void OnEffectTry();
+	afx_msg void OnEffectRestore();
 	virtual void OnCancel();
 	afx_msg void OnSongStop();
 	//}}AFX_MSG

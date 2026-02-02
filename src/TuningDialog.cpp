@@ -3,8 +3,8 @@
 
 
 #include "StdAfx.h"
-#include "TuningDialog.h"
 #include "Tuning.h"
+#include "TuningDialog.h"
 
 // TODO Make parameter
 #include "Global.h"
@@ -69,9 +69,9 @@ void TuningDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 BEGIN_MESSAGE_MAP(TuningDlg, CDialog)
-    ON_BN_CLICKED(IDTESTNOW, OnClickedIdtestnow)
-    ON_BN_CLICKED(IDRESET, OnClickedIdreset)
-    ON_BN_CLICKED(IDCANCEL, OnBnClickedCancel)
+    ON_BN_CLICKED(ID_TUNING_TEST, OnTuningTest)
+    ON_BN_CLICKED(ID_TUNING_RESET, OnTuningReset)
+    ON_BN_CLICKED(IDCANCEL, OnCancel)
 END_MESSAGE_MAP()
 
 // TuningDlg message handlers
@@ -89,12 +89,12 @@ BOOL TuningDlg::OnInitDialog()
 
 void TuningDlg::OnOK()
 {
-    OnClickedIdtestnow();
+    OnTuningTest();
 
     CDialog::OnOK();
 }
 
-void TuningDlg::OnClickedIdtestnow()
+void TuningDlg::OnTuningTest()
 {
 
     // Get current screen values.
@@ -106,7 +106,7 @@ void TuningDlg::OnClickedIdtestnow()
     g_Tuning.InitTuning();
 }
 
-void TuningDlg::OnClickedIdreset()
+void TuningDlg::OnTuningReset()
 {
     // Retrieve the last backed up values.
     g_tuning = m_tuningSettingsBackup;
@@ -115,10 +115,10 @@ void TuningDlg::OnClickedIdreset()
     g_Tuning.InitTuning();
 }
 
-void TuningDlg::OnBnClickedCancel()
+void TuningDlg::OnCancel()
 {
     // Reset the values from the last backup.
-    OnClickedIdreset();
+    OnTuningReset();
     // And done, nothing else to be done here.
     CDialog::OnCancel();
 }

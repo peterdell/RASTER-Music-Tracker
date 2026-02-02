@@ -18,7 +18,10 @@
 | Menu Help | Help | `F1` | Display help for current task or command<br><span style="color:red;">ERROR: Expected description 'Help (F1)' instead of 'Help'</span> |
 | Menu Edit | Activate Pokey Explorer Mode | `Ctrl+Shift+F5` | Activate POKEY Explorer Mode (Ctrl+Shift+F5) |
 | Menu Edit | Clear Undo && Redo History |  |  |
+| Menu Edit | Edit Instruments | `F3` |  |
+| Menu Edit | Edit Song | `F2` |  |
 | Menu Edit | Switch Edit Mode | `Ctrl+SPACE` | Switch between "Edit" mode and "Jam" modes |
+| Menu Edit | Edit Tracks | `F4` |  |
 | Menu Edit | Undo | `Ctrl+Z` | Undo the last action |
 | Menu Edit | Redo | `Ctrl+Y` | Redo the last action |
 | Menu View | Block Toolbar |  |  |
