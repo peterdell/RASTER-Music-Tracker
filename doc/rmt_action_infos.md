@@ -13,6 +13,9 @@
 | Menu File | Print Setup... |  | Change the printer and printing options |
 | Menu File | Print... |  | Print the active view<br><span style="color:red;">ERROR: Expected description 'Print...' instead of 'Print... (Ctrl-P)'</span> |
 | Menu File | Print Preview |  | Preview the print version of the view |
+| Menu Help | About RASTER Music Tracker |  | Display information about the app and its version in a pop-up dialog |
+| Menu Help | Online Help | `Shift+F1` | Display help for clicked on buttons, menus and windows<br><span style="color:red;">ERROR: Expected description 'Online Help (Shift+F1)' instead of 'Help'</span> |
+| Menu Help | Help | `F1` | Display help for current task or command<br><span style="color:red;">ERROR: Expected description 'Help (F1)' instead of 'Help'</span> |
 | Menu Edit | Switch Edit Mode | `Ctrl+SPACE` | Switch between "Edit" mode and "Jam" modes |
 | Menu Edit | Clear Undo && Redo History |  |  |
 | Menu Edit | Activate Pokey Explorer Mode | `Ctrl+Shift+F5` | Activate POKEY Explorer Mode (Ctrl+Shift+F5) |
@@ -25,6 +28,11 @@
 | Menu View | Play Time Counter |  |  |
 | Menu View | Main Toolbar |  | Show or hide the main toolbar |
 | Menu View | Status Bar |  | Show or hide the status bar |
+| Menu Play | Play From Start | `F5` | Play song from start position |
+| Menu Play | Play | `F7` | Play song from current position |
+| Menu Play | Play And Loop Song Line | `F6` | Play and loop current song line |
+| Menu Play | Stop | `ESC` | Stop playing the song. Mute all sounds. |
+| Menu Play | Play From Bookmark | `Shift+F7` | Play song from bookmark position |
 | Menu Channels | Mute/Unmute Active Channel | `F9` | Mute/unmute the active channel (F9) |
 | Menu Channels | Solo Active Channel | `Ctrl+F9` | Mute all channels except active channel / Unmute all channels (Ctrl+F9) |
 | Menu Channels | Mute/Unmute All Channels | `Shift+F9` | Mute / Umnute all channels (Shift+F9) |
@@ -98,9 +106,6 @@
 | Menu Tools | Options... |  | Open the application options dialog |
 | Menu Tools | Open ASAP File... |  | Open an .SAP or other Atari Sound Module File |
 | Menu Tools | Open ASMA |  | Open the Atari Sound Music Archive Website |
-| Menu Help | About RASTER Music Tracker |  | Display information about the app and its version in a pop-up dialog |
-| Menu Help | Online Help | `Shift+F1` | Display help for clicked on buttons, menus and windows<br><span style="color:red;">ERROR: Expected description 'Online Help (Shift+F1)' instead of 'Help'</span> |
-| Menu Help | Help | `F1` | Display help for current task or command<br><span style="color:red;">ERROR: Expected description 'Help (F1)' instead of 'Help'</span> |
 |  |  |  | Transpose the notes one semitone up |
 |  |  |  | Transpose the notes one semitone down |
 |  |  |  | Increase the volume |

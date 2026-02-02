@@ -2040,8 +2040,8 @@ void CRmtView::OnSongStop()
 }
 
 void CRmtView::OnUpdateSongStop(CCmdUI* pCmdUI) {
-    int state = ((g_Song.GetPlayMode() == PlayMode::PLAY_STOP) ? 2 : 1);
-    pCmdUI->SetCheck(state);
+    BOOL enabled = ((g_Song.GetPlayMode() == PlayMode::PLAY_STOP) ? FALSE : TRUE);
+    pCmdUI->Enable(enabled);
 }
 
 void CRmtView::OnSongPlayFollow()

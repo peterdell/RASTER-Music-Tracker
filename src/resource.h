@@ -27,7 +27,6 @@
 #define IDD_EXPORT_SAP_TYPE_R           135
 #define ID_EDIT_SWITCH_EDIT_MODE        135
 #define IDD_EXPORT_STRIPPED_RMT         136
-#define ID_TOOLBAR_SWITCH_EDIT_MOD      136
 #define IDD_EXPMSX                      137
 #define IDR_TOOLBAR_BLOCK               138
 #define IDR_TOOLBAR_CHANNELS            140
@@ -396,6 +395,12 @@
 #define ID_CHANNELS_MUTE32962           32962
 #define ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE 32970
 #define ID_TOOLBAR_SWITCH_EDIT_MODE     32971
+#define ID_PLAY_E                       32974
+#define ID_PLAY_E32975                  32975
+#define ID_PLAY_PLAY                    32976
+#define ID_PLAY_PLAY32977               32977
+#define ID_PLAY_STOP                    32978
+#define ID_SONG_PLAY                    32979
 #define IDS_RMTVERSION                  61446
 #define IDS_RMT_VERSION                 61446
 #define IDS_RMTAUTHOR                   61447
@@ -407,7 +412,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        176
-#define _APS_NEXT_COMMAND_VALUE         32974
+#define _APS_NEXT_COMMAND_VALUE         32980
 #define _APS_NEXT_CONTROL_VALUE         1170
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

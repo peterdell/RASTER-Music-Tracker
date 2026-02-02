@@ -132,9 +132,9 @@ BEGIN
     BUTTON      ID_HELP_ABOUT
     SEPARATOR
     BUTTON      ID_SONG_PLAY_FROM_BOOKMARK
-    BUTTON      ID_SONG_PLAY_FROM_START
-    BUTTON      ID_SONG_PLAY_FROM_CURRENT_POSITION
+    BUTTON      ID_SONG_PREPARENEWLINEWITHUNUSEDTRACKS
     BUTTON      ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP
+    BUTTON      ID_SONG_PLAY_FROM_START
     BUTTON      ID_SONG_STOP
     SEPARATOR
     BUTTON      ID_SONG_PLAY_FOLLOW
@@ -1215,6 +1215,14 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Instrument Active Help",     ID_VIEW_INSTRUMENTACTIVEHELP
     END
+    POPUP "&Play"
+    BEGIN
+        MENUITEM "Play From Bookmark\tShift+F7", ID_PLAY_FROM_BOOKMARK
+        MENUITEM "Play From Start\tF5",         ID_SONG_PLAY_FROM_START
+        MENUITEM "Play\tF7",                    ID_SONG_PLAY_FROM_CURRENT_POSITION
+        MENUITEM "Play And Loop Song Line\tF6", ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP
+        MENUITEM "Stop\tESC",                   ID_SONG_STOP
+    END
     POPUP "&Channels"
     BEGIN
         MENUITEM "Channel &1\tCtl+1",           ID_CHANNELS_CHANNEL1
@@ -1458,7 +1466,7 @@ BEGIN
     ID_TRACK_SKIP_LINES_AFTER_NOTE_COMBOBOX 
                             "Insert note spacing\nInsert note spacing"
     ID_SONG_PLAY_FROM_BOOKMARK 
-                            "Play song from bookmark position\nPlay from bookmark (Shift+F7)"
+                            "Play song from bookmark position\nPlay From Bookmark (Shift+F7)"
     ID_FILE_REOPEN          "Discard current module file changes and reopen the last saved version\nReopen (Ctrl+R)"
 END
 
@@ -1518,7 +1526,7 @@ BEGIN
     ID_SONG_PLAY_FROM_CURRENT_POSITION 
                             "Play song from current position\nPlay (F7)"
     ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP 
-                            "Play and loop current song line\nLoop Song Line (F6)"
+                            "Play and loop current song line\nPlay And Loop Song Line (F6)"
     ID_SONG_STOP            "Stop playing the song. Mute all sounds.\nStop (ESC)"
 END
 
