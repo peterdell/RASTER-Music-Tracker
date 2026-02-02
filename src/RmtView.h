@@ -216,6 +216,11 @@ protected:
     afx_msg void OnSongToggleNTSC();
     afx_msg void OnSongTracksorderchange();
 
+    afx_msg void OnSongClearBookmark();
+    afx_msg void OnUpdateSongClearBookmark(CCmdUI* pCmdUI);
+    afx_msg void OnSongSetBookmark();
+
+    // Menu Tools
 
     afx_msg void OnToolsOptions();
 
@@ -338,6 +343,8 @@ protected:
 
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
+public:
+
 };
 
 #ifndef _DEBUG  // debug version in RmtView.cpp

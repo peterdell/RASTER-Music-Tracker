@@ -194,6 +194,8 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMELRENVELOPESONLY, OnInstrumentPastespecialVolumeLRenvelopesonly)
     ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMERENVELOPEONLY, OnInstrumentPastespecialVolumeRenvelopeonly)
     ON_COMMAND(ID_INSTRUMENT_RENUMBERALLINSTRUMENTS, OnInstrumentRenumberallinstruments)
+
+    // Menu Song
     ON_COMMAND(ID_SONG_DELETEACTUALLINE, OnSongDeleteactualline)
     ON_COMMAND(ID_SONG_EXPANDLOOPSINALLTRACKS, OnSongExpandloopsinalltracks)
     ON_COMMAND(ID_SONG_INSERTCOPYORCLONEOFSONGLINES, OnSongInsertcopyorcloneofsonglines)
@@ -212,6 +214,12 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_TRACK_SEARCHANDBUILDLOOP, OnTrackSearchandbuildloop)
     ON_UPDATE_COMMAND_UI(ID_INSTRUMENT_PASTESPECIAL_VOLUMERENVELOPEONLY, OnUpdateInstrumentPastespecialVolumerenvelopeonly)
     ON_UPDATE_COMMAND_UI(ID_SONG_SONG_TOGGLE_TRACK_NUMBER, OnUpdateSongSongswitch4_8)
+
+    ON_COMMAND(ID_SONG_CLEAR_BOOKMARK, &CRmtView::OnSongClearBookmark)
+    ON_UPDATE_COMMAND_UI(ID_SONG_CLEAR_BOOKMARK, &CRmtView::OnUpdateSongClearBookmark)
+    ON_COMMAND(ID_SONG_SET_BOOKMARK, &CRmtView::OnSongSetBookmark)
+
+    // Menu Track
     ON_UPDATE_COMMAND_UI(ID_TRACK_COPY, OnUpdateTrackCopy)
     ON_UPDATE_COMMAND_UI(ID_TRACK_CUT, OnUpdateTrackCut)
     ON_UPDATE_COMMAND_UI(ID_TRACK_DELETE, OnUpdateTrackDelete)
@@ -293,6 +301,8 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_TOOLBAR_SWITCH_EDIT_MODE, &CRmtView::OnUpdateToolbarSwitchEditMode)
     ON_COMMAND(ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE, &CRmtView::OnEditActivatePokeyExplorerMode)
     ON_UPDATE_COMMAND_UI(ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE, &CRmtView::OnUpdateEditActivatePokeyExplorerMode)
+
+    // More
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1553,31 +1563,6 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             goto AllModesDefaultKey;
         break;
 
-    case VK_F6:
-        if (g_shiftkey) g_Song.Play(PLAY_BLOCK, g_Song.GetFollowPlayMode());	//play block and follow
-        else g_Song.Play(PLAY_TRACK, g_Song.GetFollowPlayMode());				//play pattern and follow	
-        break;
-
-    case VK_F7:
-        if (g_Song.IsBookmark() && g_shiftkey)
-        {   //play song from bookmark
-            g_Song.Play(PLAY_BOOKMARK, g_Song.GetFollowPlayMode());
-        }
-        else {
-            //play song from current position
-            g_Song.Play(PLAY_FROM, g_Song.GetFollowPlayMode());
-        }
-        break;
-
-    case VK_F8:
-        if (g_controlkey) {
-            g_Song.ClearBookmark();	//clear bookmark
-        }
-        else {
-            g_Song.SetBookmark();
-        } // set song bookmark
-        break;
-
         //F10 can't be used for some reason... it seems to be binded to native Windows functions and so it would take priority instead of any shortcut I would like to use for it.
 
     case VK_F11:
@@ -2564,6 +2549,23 @@ void CRmtView::OnInstrAllinstrumentscleanup()
         g_Instruments.InitInstruments();
     }
 }
+
+
+void CRmtView::OnSongClearBookmark()
+{
+    g_Song.ClearBookmark();
+}
+
+void CRmtView::OnUpdateSongClearBookmark(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_Song.IsBookmark());
+}
+
+void CRmtView::OnSongSetBookmark()
+{
+    g_Song.SetBookmark();
+}
+
 
 void CRmtView::OnSongTracksorderchange()
 {
