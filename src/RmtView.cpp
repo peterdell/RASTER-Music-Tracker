@@ -97,7 +97,7 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_CURRENT_POSITION, OnUpdatePlayFrom)
     ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnUpdatePlayTrack)
     ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnSongPlayFromCurrentPositionAndLoop)
-    ON_COMMAND(ID_SONG_PLAY_FROM_START, OnSongPlayerFromStart)
+    ON_COMMAND(ID_SONG_PLAY_FROM_START, OnSongPlayeFromStart)
     ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION, OnSongPlayFromCurrentPosition)
     ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnSongPlayFromCurrentPositionAndLoop)
     ON_COMMAND(ID_SONG_STOP, OnSongStop)
@@ -181,44 +181,44 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_MIDIONOFF, OnMidiOnOff)
     ON_UPDATE_COMMAND_UI(ID_MIDIONOFF, OnUpdateMidiOnOff)
 
-    ON_COMMAND(ID_TRACK_ALLTRACKSCLEANUP, OnTrackAlltrackscleanup)
+    ON_COMMAND(ID_BLOCK_PASTESPECIAL_MERGEWITHCURRENTCONTENT, OnBlockPastespecialMergewithcurrentcontent)
+    ON_COMMAND(ID_BLOCK_PASTESPECIAL_SPEEDVALUESONLY, OnBlockPastespecialSpeedvaluesonly)
+    ON_COMMAND(ID_BLOCK_PASTESPECIAL_VOLUMEVALUESONLY, OnBlockPastespecialVolumevaluesonly)
     ON_COMMAND(ID_INSTR_ALLINSTRUMENTSCLEANUP, OnInstrAllinstrumentscleanup)
+    ON_COMMAND(ID_INSTRUMENT_CHANGE, OnInstrumentChange)
+    ON_COMMAND(ID_INSTRUMENT_CLEARALLUNUSEDINSTRUMENTS, OnInstrumentClearallunusedinstruments)
+    ON_COMMAND(ID_INSTRUMENT_INFO, OnInstrumentInfo)
+    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_ENVELOPEPARAMETERSONLY, OnInstrumentPastespecialEnvelopeparametersonly)
+    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_TABLEONLY, OnInstrumentPastespecialTableonly)
+    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMELENVELOPEONLY, OnInstrumentPastespecialVolumeLenvelopeonly)
+    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMELRENVELOPESONLY, OnInstrumentPastespecialVolumeLRenvelopesonly)
+    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMERENVELOPEONLY, OnInstrumentPastespecialVolumeRenvelopeonly)
+    ON_COMMAND(ID_INSTRUMENT_RENUMBERALLINSTRUMENTS, OnInstrumentRenumberallinstruments)
     ON_COMMAND(ID_SONG_DELETEACTUALLINE, OnSongDeleteactualline)
+    ON_COMMAND(ID_SONG_EXPANDLOOPSINALLTRACKS, OnSongExpandloopsinalltracks)
+    ON_COMMAND(ID_SONG_INSERTCOPYORCLONEOFSONGLINES, OnSongInsertcopyorcloneofsonglines)
     ON_COMMAND(ID_SONG_INSERTNEWEMPTYLINE, OnSongInsertnewemptyline)
     ON_COMMAND(ID_SONG_INSERTNEWLINEWITHUNUSEDTRACKS, OnSongInsertnewlinewithunusedtracks)
-    ON_COMMAND(ID_SONG_INSERTCOPYORCLONEOFSONGLINES, OnSongInsertcopyorcloneofsonglines)
-    ON_UPDATE_COMMAND_UI(ID_SONG_SONG_TOGGLE_TRACK_NUMBER, OnUpdateSongSongswitch4_8)
+    ON_COMMAND(ID_SONG_PUTNEWEMPTYUNUSEDTRACK, OnSongPutnewemptyunusedtrack)
+    ON_COMMAND(ID_SONG_SEARCHANDBUILDLOOPSINALLTRACKS, OnSongSearchandrebuildloopsinalltracks)
+    ON_COMMAND(ID_SONG_SIZEOPTIMIZATION, OnSongSizeoptimization)
     ON_COMMAND(ID_SONG_SONG_TOGGLE_TRACK_NUMBER, OnSongSongswitch4_8)
     ON_COMMAND(ID_SONG_TRACKSORDERCHANGE, OnSongTracksorderchange)
-    ON_COMMAND(ID_INSTRUMENT_INFO, OnInstrumentInfo)
-    ON_COMMAND(ID_INSTRUMENT_CHANGE, OnInstrumentChange)
-    ON_COMMAND(ID_TRACK_SEARCHANDBUILDLOOP, OnTrackSearchandbuildloop)
-    ON_UPDATE_COMMAND_UI(ID_TRACK_SEARCHANDBUILDLOOP, OnUpdateTrackSearchandbuildloop)
-    ON_COMMAND(ID_SONG_SEARCHANDBUILDLOOPSINALLTRACKS, OnSongSearchandrebuildloopsinalltracks)
-    ON_COMMAND(ID_TRACK_EXPANDLOOP, OnTrackExpandloop)
-    ON_UPDATE_COMMAND_UI(ID_TRACK_EXPANDLOOP, OnUpdateTrackExpandloop)
-    ON_COMMAND(ID_SONG_EXPANDLOOPSINALLTRACKS, OnSongExpandloopsinalltracks)
-    ON_COMMAND(ID_SONG_SIZEOPTIMIZATION, OnSongSizeoptimization)
-    ON_COMMAND(ID_INSTRUMENT_CLEARALLUNUSEDINSTRUMENTS, OnInstrumentClearallunusedinstruments)
+    ON_COMMAND(ID_TRACK_ALLTRACKSCLEANUP, OnTrackAlltrackscleanup)
     ON_COMMAND(ID_TRACK_CLEARALLTRACKSUNUSEDINSONG, OnTrackClearalltracksunusedinsong)
-    ON_UPDATE_COMMAND_UI(ID_TRACK_INFOABOUTUSINGOFACTUALTRACK, OnUpdateTrackInfoaboutusingofactualtrack)
+    ON_COMMAND(ID_TRACK_EXPANDLOOP, OnTrackExpandloop)
     ON_COMMAND(ID_TRACK_INFOABOUTUSINGOFACTUALTRACK, OnTrackInfoaboutusingofactualtrack)
     ON_COMMAND(ID_TRACK_RENUMBERALLTRACKS, OnTrackRenumberalltracks)
-    ON_COMMAND(ID_INSTRUMENT_RENUMBERALLINSTRUMENTS, OnInstrumentRenumberallinstruments)
+    ON_COMMAND(ID_TRACK_SEARCHANDBUILDLOOP, OnTrackSearchandbuildloop)
+    ON_UPDATE_COMMAND_UI(ID_INSTRUMENT_PASTESPECIAL_VOLUMERENVELOPEONLY, OnUpdateInstrumentPastespecialVolumerenvelopeonly)
+    ON_UPDATE_COMMAND_UI(ID_SONG_SONG_TOGGLE_TRACK_NUMBER, OnUpdateSongSongswitch4_8)
     ON_UPDATE_COMMAND_UI(ID_TRACK_COPY, OnUpdateTrackCopy)
     ON_UPDATE_COMMAND_UI(ID_TRACK_CUT, OnUpdateTrackCut)
     ON_UPDATE_COMMAND_UI(ID_TRACK_DELETE, OnUpdateTrackDelete)
+    ON_UPDATE_COMMAND_UI(ID_TRACK_EXPANDLOOP, OnUpdateTrackExpandloop)
+    ON_UPDATE_COMMAND_UI(ID_TRACK_INFOABOUTUSINGOFACTUALTRACK, OnUpdateTrackInfoaboutusingofactualtrack)
     ON_UPDATE_COMMAND_UI(ID_TRACK_PASTE, OnUpdateTrackPaste)
-    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMELRENVELOPESONLY, OnInstrumentPastespecialVolumeLRenvelopesonly)
-    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMELENVELOPEONLY, OnInstrumentPastespecialVolumeLenvelopeonly)
-    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_TABLEONLY, OnInstrumentPastespecialTableonly)
-    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMERENVELOPEONLY, OnInstrumentPastespecialVolumeRenvelopeonly)
-    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_ENVELOPEPARAMETERSONLY, OnInstrumentPastespecialEnvelopeparametersonly)
-    ON_UPDATE_COMMAND_UI(ID_INSTRUMENT_PASTESPECIAL_VOLUMERENVELOPEONLY, OnUpdateInstrumentPastespecialVolumerenvelopeonly)
-    ON_COMMAND(ID_BLOCK_PASTESPECIAL_VOLUMEVALUESONLY, OnBlockPastespecialVolumevaluesonly)
-    ON_COMMAND(ID_BLOCK_PASTESPECIAL_SPEEDVALUESONLY, OnBlockPastespecialSpeedvaluesonly)
-    ON_COMMAND(ID_BLOCK_PASTESPECIAL_MERGEWITHCURRENTCONTENT, OnBlockPastespecialMergewithcurrentcontent)
-    ON_COMMAND(ID_SONG_PUTNEWEMPTYUNUSEDTRACK, OnSongPutnewemptyunusedtrack)
+    ON_UPDATE_COMMAND_UI(ID_TRACK_SEARCHANDBUILDLOOP, OnUpdateTrackSearchandbuildloop)
 
     ON_COMMAND(ID_TRACK_LOAD, OnTrackLoad)
     ON_COMMAND(ID_TRACK_SAVE, OnTrackSave)
@@ -230,27 +230,37 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
 
     ON_COMMAND(ID_SONG_PLAY_FROM_BOOKMARK, OnSongPlayFromBookmark)
     ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_BOOKMARK, OnUpdateSongPlayBookmark)
-    ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
-    ON_UPDATE_COMMAND_UI(ID_EDIT_UNDO, OnUpdateEditUndo)
+
+    // Menu Edit
+    ON_COMMAND(ID_EDIT_CLEAR_UNDO_REDO_HISTORY, OnEditClearUndoRedoHistory)
     ON_COMMAND(ID_EDIT_REDO, OnEditRedo)
+    ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
+
+    ON_UPDATE_COMMAND_UI(ID_EDIT_CLEAR_UNDO_REDO_HISTORY, OnUpdateEditClearUndoRedoHistory)
     ON_UPDATE_COMMAND_UI(ID_EDIT_REDO, OnUpdateEditRedo)
-    ON_COMMAND(ID_EDIT_CLEAR_UNDO_REDO_HISTORY, OnUndoClearundoredo)
-    ON_UPDATE_COMMAND_UI(ID_EDIT_CLEAR_UNDO_REDO_HISTORY, OnUpdateUndoClearundoredo)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_UNDO, OnUpdateEditUndo)
+
     ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_INSERTVOLUMEENVSANDENVELOPEPARSTOCURSORPOSITION, OnInstrumentPastespecialInsertvolenvsandenvparstocurpos)
-    ON_UPDATE_COMMAND_UI(ID_INSTRUMENT_PASTESPECIAL_INSERTVOLUMEENVSANDENVELOPEPARSTOCURSORPOSITION, OnUpdateInstrumentPastespecialInsertvolenvsandenvparstocurpos)
     ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMEENVANDENVELOPEPARSONLY, OnInstrumentPastespecialVolumeenvandenvelopeparsonly)
     ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMELTORENVELOPEONLY, OnInstrumentPastespecialVolumeltorenvelopeonly)
-    ON_UPDATE_COMMAND_UI(ID_INSTRUMENT_PASTESPECIAL_VOLUMELTORENVELOPEONLY, OnUpdateInstrumentPastespecialVolumeltorenvelopeonly)
     ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMERTOLENVELOPEONLY, OnInstrumentPastespecialVolumertolenvelopeonly)
-    ON_UPDATE_COMMAND_UI(ID_INSTRUMENT_PASTESPECIAL_VOLUMERTOLENVELOPEONLY, OnUpdateInstrumentPastespecialVolumertolenvelopeonly)
-    ON_UPDATE_COMMAND_UI(ID_INSTRUMENT_PASTESPECIAL_VOLUMELENVELOPEONLY, OnUpdateInstrumentPastespecialVolumelenvelopeonly)
-    ON_COMMAND(ID_TRACK_CURSORGOTOTHESPEEDCOLUMN, OnTrackCursorgotothespeedcolumn)
-    ON_UPDATE_COMMAND_UI(ID_TRACK_CURSORGOTOTHESPEEDCOLUMN, OnUpdateTrackCursorgotothespeedcolumn)
-    ON_COMMAND(ID_VIEW_TOOLBAR, OnViewToolbar)
-    ON_UPDATE_COMMAND_UI(ID_VIEW_TOOLBAR, OnUpdateViewToolbar)
-    ON_COMMAND(ID_VIEW_STATUS_BAR, OnViewStatusBar)
-    ON_UPDATE_COMMAND_UI(ID_VIEW_STATUS_BAR, OnUpdateViewStatusBar)
     ON_COMMAND(ID_SONG_SONGCHANGEMAXIMALLENGTHOFTRACKS, OnSongSongchangemaximallengthoftracks)
+    ON_COMMAND(ID_TRACK_CURSORGOTOTHESPEEDCOLUMN, OnTrackCursorgotothespeedcolumn)
+
+
+    ON_UPDATE_COMMAND_UI(ID_INSTRUMENT_PASTESPECIAL_INSERTVOLUMEENVSANDENVELOPEPARSTOCURSORPOSITION, OnUpdateInstrumentPastespecialInsertvolenvsandenvparstocurpos)
+    ON_UPDATE_COMMAND_UI(ID_INSTRUMENT_PASTESPECIAL_VOLUMELENVELOPEONLY, OnUpdateInstrumentPastespecialVolumelenvelopeonly)
+    ON_UPDATE_COMMAND_UI(ID_INSTRUMENT_PASTESPECIAL_VOLUMELTORENVELOPEONLY, OnUpdateInstrumentPastespecialVolumeltorenvelopeonly)
+    ON_UPDATE_COMMAND_UI(ID_INSTRUMENT_PASTESPECIAL_VOLUMERTOLENVELOPEONLY, OnUpdateInstrumentPastespecialVolumertolenvelopeonly)
+    ON_UPDATE_COMMAND_UI(ID_TRACK_CURSORGOTOTHESPEEDCOLUMN, OnUpdateTrackCursorgotothespeedcolumn)
+
+
+    // Menu View
+    ON_COMMAND(ID_VIEW_STATUS_BAR, OnViewStatusBar)
+    ON_COMMAND(ID_VIEW_TOOLBAR, OnViewToolbar)
+
+    ON_UPDATE_COMMAND_UI(ID_VIEW_STATUS_BAR, OnUpdateViewStatusBar)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_TOOLBAR, OnUpdateViewToolbar)
 
     //}}AFX_MSG_MAP
 
@@ -2007,7 +2017,7 @@ void CRmtView::OnSongPlayFromBookmark()
     g_Song.Play(PLAY_BOOKMARK, g_Song.GetFollowPlayMode());	// from the bookmark - with respect to followplay
 }
 
-void CRmtView::OnSongPlayerFromStart()
+void CRmtView::OnSongPlayeFromStart()
 {
     g_Song.Play(PLAY_SONG, g_Song.GetFollowPlayMode());		// whole song from start - with respect to followplay
 }
@@ -2786,12 +2796,12 @@ void CRmtView::OnUpdateEditRedo(CCmdUI* pCmdUI)
     }
 }
 
-void CRmtView::OnUndoClearundoredo()
+void CRmtView::OnEditClearUndoRedoHistory()
 {
     g_Undo.Clear();
 }
 
-void CRmtView::OnUpdateUndoClearundoredo(CCmdUI* pCmdUI)
+void CRmtView::OnUpdateEditClearUndoRedoHistory(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(g_Song.UndoGetUndoSteps() || g_Song.UndoGetRedoSteps());
 }
