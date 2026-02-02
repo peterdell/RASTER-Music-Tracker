@@ -1246,8 +1246,8 @@ BEGIN
         MENUITEM "&Paste Line",                 ID_SONG_PASTE_LINE
         MENUITEM "Cl&ear Line",                 ID_SONG_CLEAR_LINE
         MENUITEM SEPARATOR
-        MENUITEM "Set Bookmark\tF8",            ID_SONG_SET_BOOKMARK
-        MENUITEM "Clear Bookmark\tCtrl+F8",     ID_SONG_CLEAR_BOOKMARK
+        MENUITEM "Set &Bookmark\tF8",           ID_SONG_SET_BOOKMARK
+        MENUITEM "C&lear Bookmark\tCtrl+F8",    ID_SONG_CLEAR_BOOKMARK
         MENUITEM SEPARATOR
         MENUITEM "Delete c&urrent line\tCtrl+U", ID_SONG_DELETEACTUALLINE
         MENUITEM "&Insert new empty line\tCtrl+I", ID_SONG_INSERTNEWEMPTYLINE
