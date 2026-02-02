@@ -4,13 +4,11 @@
 //
 #define IDMODULE_TUNING                 3
 #define IDDEFAULT                       10
-#define IDOK2                           11
 #define IDPLAYSTOP                      12
 #define IDRESET                         13
 #define IDRESTORE                       14
 #define IDTESTNOW                       15
 #define IDTRY                           16
-#define IDR_ACCELERATOR1                101
 #define IDR_MAIN_WINDOW                 102
 #define IDR_RMTTYPE                     103
 #define ID_SONG_SET_BOOKMARK            103
@@ -29,8 +27,6 @@
 #define IDD_EXPORT_RMTPLAYER_ASM        115
 #define IDD_EXPORT_SAP_TYPE_R           116
 #define IDD_EXPORT_STRIPPED_RMT         117
-#define IDD_EXPPORT_SAP_TYPE_R          118
-#define IDD_EXPSAP                      119
 #define IDD_FILE_NEW                    120
 #define IDD_FILE_PROPRTIES              121
 #define IDD_IMPORTMOD                   122
@@ -41,7 +37,6 @@
 #define IDD_INSTRUMENTSELECT            127
 #define IDD_OCTAVESELECT                128
 #define IDD_OPTIONS                     129
-#define IDD_OPTIONS2                    130
 #define IDD_OPTIONS_FILE_PATHS          131
 #define IDD_RENUMBERINSTRUMENTS         132
 #define IDD_RENUMBERTRACKS              133
@@ -50,12 +45,9 @@
 #define IDD_TRACKSLOAD                  136
 #define IDD_TUNING                      137
 #define IDD_VOLUMESELECT                138
-#define IDS_RMTAUTHOR                   200
-#define IDS_RMTVERSION                  201
 #define IDS_RMT_AUTHOR                  202
 #define IDS_RMT_REPOSITORY              203
 #define IDS_RMT_VERSION                 204
-#define IDA_MAIN                        371
 #define IDC_ABOUT6502                   1001
 #define IDC_ABOUTPOKEY                  1002
 #define IDC_ADDR                        1003
@@ -67,7 +59,6 @@
 #define IDC_BROWSE_TRACK_FILES_FOLDER   1009
 #define IDC_BUTTON1                     1010
 #define IDC_BUTTON2                     1011
-#define IDC_BUTTON3                     1012
 #define IDC_CHECK1                      1013
 #define IDC_CHECK10                     1014
 #define IDC_CHECK11                     1015
@@ -85,7 +76,6 @@
 #define IDC_CHK_RELOCATE_INSTRUMENTS    1027
 #define IDC_CHK_RELOCATE_SONG           1028
 #define IDC_CHK_RELOCATE_TRACKS         1029
-#define IDC_CHK_RELOCATE_TRACKS2        1030
 #define IDC_CLEARALL                    1031
 #define IDC_CLONETRACKS                 1032
 #define IDC_COLORNUMBER                 1033
@@ -107,10 +97,7 @@
 #define IDC_COPYLEFTRIGHT               1049
 #define IDC_COPYRIGHTLEFT               1050
 #define IDC_COPYTOCLIPBOARD             1051
-#define IDC_CREDITS                     1052
-#define IDC_CURSORMAXLATITUDE           1053
 #define IDC_CURSOR_CHANNEL_ON_OFF       1054
-#define IDC_CURSOR_CHANNEL_ON_OFF1      1055
 #define IDC_CURSOR_DIALOG               1056
 #define IDC_CURSOR_ENVELOPE_VOLUME      1057
 #define IDC_CURSOR_GOTO                 1058
@@ -119,7 +106,6 @@
 #define IDC_DEBUGDISPLAY                1061
 #define IDC_DEFAULT                     1062
 #define IDC_DISPLAYFLATNOTES            1063
-#define IDC_DRIVERVERSION               1064
 #define IDC_EDIT                        1065
 #define IDC_EDIT1                       1066
 #define IDC_EDIT2                       1067
@@ -133,11 +119,9 @@
 #define IDC_EFF_P1                      1075
 #define IDC_EFF_P2                      1076
 #define IDC_EFF_P3                      1077
-#define IDC_EXPORT_SAP                  1078
 #define IDC_GLOBALVOLUMEFADE            1079
 #define IDC_INFO                        1080
 #define IDC_INFO2                       1081
-#define IDC_INSTRUMENT                  1082
 #define IDC_INSTRUMENT_FILES_FOLDER     1083
 #define IDC_KEYBOARD_ASKWHENCONTROL_S   1084
 #define IDC_KEYBOARD_ESCRESETATARISOUND 1085
@@ -192,7 +176,6 @@
 #define IDC_OCTAVE_L                    1134
 #define IDC_OCTAVE_R                    1135
 #define IDC_OPTIONS_PATHS               1136
-#define IDC_OPTIONS_TAB                 1137
 #define IDC_OPTIONS_TUNING              1138
 #define IDC_PERFECT_4TH_L               1139
 #define IDC_PERFECT_4TH_R               1140
@@ -216,11 +199,8 @@
 #define IDC_RADIO7                      1158
 #define IDC_RASM_SFX                    1159
 #define IDC_RASTERLINE                  1160
-#define IDC_RMTAUTHOR                   1161
 #define IDC_RMTFEAT                     1162
-#define IDC_RMTVERSION                  1163
 #define IDC_RMT_AUTHOR                  1164
-#define IDC_RMT_BASE_ADDR               1165
 #define IDC_RMT_MODULE_ASM_LABEL        1166
 #define IDC_RMT_REPOSITORY              1167
 #define IDC_RMT_VERSION                 1168
@@ -228,7 +208,6 @@
 #define IDC_SCROLLBAR1                  1170
 #define IDC_SFX                         1171
 #define IDC_SMOOTH_SCROLL               1172
-#define IDC_SONGLINE                    1173
 #define IDC_SONGLINEFROM                1174
 #define IDC_SONGLINETO                  1175
 #define IDC_SPEEDINFO                   1176
@@ -242,7 +221,6 @@
 #define IDC_TRACKERDRIVERVERSION        1184
 #define IDC_TRACKLINEALTNUMBERING       1185
 #define IDC_TRACKLINEPRIMARYHIGHLIGHT   1186
-#define IDC_TRACKLINEPRIMARYHIGHLIGHT2  1187
 #define IDC_TRACKLINESECONDARYHIGHLIGHT 1188
 #define IDC_TRACK_FILES_FOLDER          1189
 #define IDC_TRITONE_L                   1190
@@ -293,7 +271,6 @@
 #define ID_CHANNELS_TOGGLE_ALL_CHANNELS_ON_OFF 32811
 #define ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE 32812
 #define ID_EDIT_CLEAR_UNDO_REDO_HISTORY 32813
-#define ID_EDIT_INFO                    32814
 #define ID_EDIT_INSTRUMENTS             32815
 #define ID_EDIT_SONG                    32816
 #define ID_EDIT_SWITCH_EDIT_MODE        32817
@@ -348,7 +325,6 @@
 #define ID_SONG_PLAY_FROM_CURRENT_POSITION 32871
 #define ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP 32872
 #define ID_SONG_PLAY_FROM_START         32873
-#define ID_SONG_PREPARENEWLINEWITHUNUSEDTRACKS 32874
 #define ID_SONG_PUTNEWEMPTYUNUSEDTRACK  32875
 #define ID_SONG_SEARCHANDBUILDLOOPSINALLTRACKS 32876
 #define ID_SONG_SIZEOPTIMIZATION        32877
@@ -357,7 +333,6 @@
 #define ID_SONG_STOP                    32880
 #define ID_SONG_TOGGLE_NTSC             32881
 #define ID_SONG_TRACKSORDERCHANGE       32882
-#define ID_SONG_TRACKSORDERCHANGEMONOSTEREO 32883
 #define ID_TOOLBAR_SWITCH_EDIT_MODE     32884
 #define ID_TOOLS_OPEN_ASAP_FILE         32885
 #define ID_TOOLS_OPEN_ASMA              32886

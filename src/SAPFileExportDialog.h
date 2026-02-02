@@ -21,7 +21,7 @@ public:
     // Dialog Data
     CString m_title;
     //{{AFX_DATA(CSAPFileExportDialog)
-    enum { IDD = IDD_EXPSAP };
+    enum { IDD = IDD_EXPORT_SAP_TYPE_R };
     CString	m_author;
     CString	m_date;
     CString	m_name;

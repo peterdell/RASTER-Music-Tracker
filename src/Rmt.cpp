@@ -186,7 +186,7 @@ CString CRmtApp::GetVersionAndBuild() const {
     CString version;
     CString result;
 
-    version.LoadString(IDS_RMTVERSION);
+    version.LoadString(IDS_RMT_VERSION);
 
     result.Format("%s (%s %s)", version, __DATE__, __TIME__);
     return result;

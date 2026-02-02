@@ -253,6 +253,7 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMELTORENVELOPEONLY, OnInstrumentPastespecialVolumeltorenvelopeonly)
     ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMERTOLENVELOPEONLY, OnInstrumentPastespecialVolumertolenvelopeonly)
     ON_COMMAND(ID_SONG_SONGCHANGEMAXIMALLENGTHOFTRACKS, OnSongSongchangemaximallengthoftracks)
+    // TODO: ID_TRACK_CURSORGOTOTHESPEEDCOLUMN is not referenced in the .rc
     ON_COMMAND(ID_TRACK_CURSORGOTOTHESPEEDCOLUMN, OnTrackCursorgotothespeedcolumn)
 
 
@@ -581,7 +582,7 @@ void CRmtView::WriteRMTConfig()
 
     ou << "# RMT CONFIGURATION FILE" << std::endl;
     CString version;
-    version.LoadString(IDS_RMTVERSION);
+    version.LoadString(IDS_RMT_VERSION);
     ou << "# " << version << std::endl;
     ou << std::setprecision(16);
 
@@ -758,7 +759,7 @@ void CRmtView::WriteTuningConfig()
 
     os << "# RMT CONFIGURATION FILE" << std::endl;
     CString version;
-    version.LoadString(IDS_RMTVERSION);
+    version.LoadString(IDS_RMT_VERSION);
     os << "# " << version << std::endl;
     os << std::setprecision(16);
 

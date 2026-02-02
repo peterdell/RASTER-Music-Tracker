@@ -1,29 +1,29 @@
 #include "StdAfx.h"
 
+#include "Memory.h"
 #include "Song.h"
 #include "SongIO.h"
-#include "Memory.h"
 
 #include "FileNewDlg.h"
 
 #include "ImportDlgs.h"
 
-#include "AtariTrackerDriver.h"
 #include "AtariIO.h"
+#include "AtariTrackerDriver.h"
 #include "PokeyRederer.h"
 
 #include "IOHelpers.h"
 
-#include "Instruments.h"
 #include "Clipboard.h"
+#include "Instruments.h"
 
 #include "Global.h"
 
 #include "ChannelControl.h"
 #include "RmtMidi.h"
 
-#include "SongExporter.h"
 #include "ASMFileExporter.h"
+#include "SongExporter.h"
 
 
 extern CInstruments	g_Instruments;
@@ -898,7 +898,7 @@ void CSong::FileTrackLoad()
 bool CSong::SaveRMW(std::ofstream& ou)
 {
     CString version;
-    version.LoadString(IDS_RMTVERSION);
+    version.LoadString(IDS_RMT_VERSION);
     ou << (unsigned char*)(LPCSTR)version << std::endl;
     //
     ou.write((char*)m_songname, sizeof(m_songname));
@@ -925,7 +925,7 @@ bool CSong::LoadRMW(std::ifstream& in)
     ClearSong(8);	// Always clear 8 tracks 
 
     CString version;
-    version.LoadString(IDS_RMTVERSION);
+    version.LoadString(IDS_RMT_VERSION);
     char filever[256];
     in.getline(filever, 255);
     if (strcmp((char*)(LPCTSTR)version, filever) != 0)
