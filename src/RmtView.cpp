@@ -1491,7 +1491,6 @@ void CRmtView::OnSysChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 const int  NChaCode[] = { 36,  38,  33, VK_SUBTRACT,  37,  12,  39, VK_ADD,  35,  40,  34,  45 };
 const char FlaToCha[] = { 0x67,0x68,0x69,109,0x64,0x65,0x66,107,0x61,0x62,0x63,0x60 };
-//const char layout2[]={VK_F5,VK_F6,VK_F7,VK_F8, VK_F3,VK_F2,VK_F4,VK_ESCAPE};
 
 void CRmtView::SetNTSC(const bool ntsc) {
     // TODO  code... well 3 times..

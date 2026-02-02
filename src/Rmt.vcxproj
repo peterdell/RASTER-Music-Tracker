@@ -366,6 +366,7 @@
     <ClInclude Include="Notes.h" />
     <ClInclude Include="Pokey.h" />
     <ClInclude Include="PokeyRederer.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="RmtCommandLineInfo.h" />
     <ClInclude Include="RmtFile.h" />
     <ClInclude Include="Memory.h" />
@@ -406,7 +407,6 @@
     <ClInclude Include="Tuning.h" />
     <ClInclude Include="importdlgs.h" />
     <ClInclude Include="MainFrm.h" />
-    <ClInclude Include="Resource.h" />
     <ClInclude Include="Rmt.h" />
     <ClInclude Include="RmtDoc.h" />
     <ClInclude Include="RmtMidi.h" />

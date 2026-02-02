@@ -311,9 +311,6 @@
     <ClInclude Include="FileNewDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -529,6 +526,9 @@
     </ClInclude>
     <ClInclude Include="SongIO.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

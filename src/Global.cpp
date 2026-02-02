@@ -111,7 +111,7 @@ int g_line_y = 0;			//active line coordinate, used to reference g_cursoractview 
 int g_trackLinePrimaryHighlight = 8;	// Primary line highlighted every x lines
 int g_trackLineSecondaryHighlight = 4;	// Secondary line highlighted every x lines
 BOOL g_tracklinealtnumbering = 0;		// Alternative way of line numbering in tracks
-int g_SkipLinesAfterNoteInsert;						// Number of lines to scroll after inserting a note (initializes in CSong :: Clear)
+int g_SkipLinesAfterNoteInsert;			// Number of lines to scroll after inserting a note (initialized in CSong :: Clear)
 
 BOOL g_nohwsoundbuffer = 0;	//Don't use hardware soundbuffer
 int g_cursoractview = 0;		//default position, line 0

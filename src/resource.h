@@ -268,23 +268,14 @@
 #define ID_SONG_COPY_LINE               32782
 #define ID_SONG_PASTE_LINE              32783
 #define ID_SONG_CLEAR_LINE              32784
-#define ID_BUTTON32785                  32785
-#define ID_BUTTON32786                  32786
-#define ID_BUTTON32787                  32787
-#define ID_BUTTON32788                  32788
-#define ID_BUTTPLAY1                    32789
-#define ID_BUTTON32790                  32790
-#define ID_BUTTON32791                  32791
-#define ID_BUTTON32792                  32792
 #define ID_SONG_PLAY_FOLLOW             32793
 #define ID_SONG_PLAY_FROM_START         32796
 #define ID_SONG_PLAY_FROM_CURRENT_POSITION 32797
 #define ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP 32798
 #define ID_SONG_STOP                    32799
 #define ID_EDIT_TRACKS                  32800
-#define ID_BUTTON32801                  32801
+
 #define ID_EDIT_INSTRUMENTS             32802
-#define ID_BUTTON32803                  32803
 #define ID_EDIT_SONG                    32804
 #define ID_EDIT_INFO                    32805
 #define ID_PART_TRACKS                  32806
@@ -364,8 +355,8 @@
 #define ID_SONG_PLAY_FROM_BOOKMARK      32894
 #define ID_FILE_REOPEN                  32895
 #define ID_EDIT_CLEAR_UNDO_REDO_HISTORY 32898
-#define ID_WANTEXIT                     32899
 #define ID_FILE_EXIT                    32899
+
 #define ID_INSTRUMENT_PASTESPECIAL_VOLUMERTOLENVELOPEONLY 32900
 #define ID_INSTRUMENT_PASTESPECIAL_VOLUMELTORENVELOPEONLY 32901
 #define ID_INSTRUMENT_PASTESPECIAL_VOLUMEENVANDENVELOPEPARSONLY 32902
@@ -380,7 +371,6 @@
 #define ID_HELP_ABOUT                   32913
 #define ID_TOOLS_OPEN_ASAP_FILE         32915
 #define ID_TOOLS_OPEN_ASMA              32916
-#define ID_SONG_SONGPROPERTIES          32917
 #define ID_FILE_PROPERTIES              32918
 #define ID_CHANNELS_CHANNEL1            32950
 #define ID_CHANNELS_CHANNEL2            32951
@@ -395,11 +385,6 @@
 #define ID_CHANNELS_MUTE32962           32962
 #define ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE 32970
 #define ID_TOOLBAR_SWITCH_EDIT_MODE     32971
-#define ID_PLAY_E                       32974
-#define ID_PLAY_E32975                  32975
-#define ID_PLAY_PLAY                    32976
-#define ID_PLAY_PLAY32977               32977
-#define ID_PLAY_STOP                    32978
 #define ID_SONG_PLAY                    32979
 #define IDS_RMTVERSION                  61446
 #define IDS_RMT_VERSION                 61446
