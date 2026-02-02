@@ -238,8 +238,8 @@ protected:
     afx_msg void OnSongMaketracksduplicate();
     afx_msg void OnUpdateSongMaketracksduplicate(CCmdUI* pCmdUI);
     afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
-    afx_msg void OnPlay0();
-    afx_msg void OnUpdatePlayBookmark(CCmdUI* pCmdUI);
+    afx_msg void OnSongPlayFromBookmark();
+    afx_msg void OnUpdateSongPlayBookmark(CCmdUI* pCmdUI);
     afx_msg void OnFileReopen();
     afx_msg void OnUpdateFileReopen(CCmdUI* pCmdUI);
     afx_msg void OnEditUndo();

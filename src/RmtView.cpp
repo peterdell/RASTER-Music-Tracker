@@ -228,8 +228,8 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_SONG_MAKETRACKSDUPLICATE, OnSongMaketracksduplicate)
     ON_UPDATE_COMMAND_UI(ID_SONG_MAKETRACKSDUPLICATE, OnUpdateSongMaketracksduplicate)
 
-    ON_COMMAND(ID_PLAY_FROM_BOOKMARK, OnPlay0)
-    ON_UPDATE_COMMAND_UI(ID_PLAY_FROM_BOOKMARK, OnUpdatePlayBookmark)
+    ON_COMMAND(ID_SONG_PLAY_FROM_BOOKMARK, OnSongPlayFromBookmark)
+    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_BOOKMARK, OnUpdateSongPlayBookmark)
     ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
     ON_UPDATE_COMMAND_UI(ID_EDIT_UNDO, OnUpdateEditUndo)
     ON_COMMAND(ID_EDIT_REDO, OnEditRedo)
@@ -2002,7 +2002,7 @@ void CRmtView::OnUpdateSongMaketracksduplicate(CCmdUI* pCmdUI)
     pCmdUI->Enable(g_Song.SongGetActiveTrack() >= 0);
 }
 
-void CRmtView::OnPlay0()
+void CRmtView::OnSongPlayFromBookmark()
 {
     g_Song.Play(PLAY_BOOKMARK, g_Song.GetFollowPlayMode());	// from the bookmark - with respect to followplay
 }
@@ -2075,7 +2075,7 @@ void CRmtView::OnPartSong()
     g_TrackClipboard.BlockDeselect();
 }
 
-void CRmtView::OnUpdatePlayBookmark(CCmdUI* pCmdUI)
+void CRmtView::OnUpdateSongPlayBookmark(CCmdUI* pCmdUI)
 {
     int ch = g_Song.IsBookmark();
     pCmdUI->Enable(ch);
