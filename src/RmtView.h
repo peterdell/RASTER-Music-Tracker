@@ -103,7 +103,7 @@ protected:
     afx_msg void OnFileSave();
     afx_msg void OnFileSaveAs();
     afx_msg void OnFileNew();
-    afx_msg void OnFileExportAs();
+    afx_msg void OnFileExport();
     afx_msg void OnInstrLoad();
     afx_msg void OnInstrSave();
     afx_msg void OnInstrCopy();
@@ -131,10 +131,10 @@ protected:
     afx_msg void OnUpdateEmInstruments(CCmdUI* pCmdUI);
     afx_msg void OnUpdateEmInfo(CCmdUI* pCmdUI);
     afx_msg void OnUpdateEmSong(CCmdUI* pCmdUI);
-    afx_msg void OnUpdatePlayfollow(CCmdUI* pCmdUI);
-    afx_msg void OnUpdatePlay1(CCmdUI* pCmdUI);
-    afx_msg void OnUpdatePlay2(CCmdUI* pCmdUI);
-    afx_msg void OnUpdatePlay3(CCmdUI* pCmdUI);
+    afx_msg void OnUpdateSongPlayFollow(CCmdUI* pCmdUI);
+    afx_msg void OnUpdatePlaySong(CCmdUI* pCmdUI);
+    afx_msg void OnUpdatePlayFrom(CCmdUI* pCmdUI);
+    afx_msg void OnUpdatePlayTrack(CCmdUI* pCmdUI);
     afx_msg void OnEditSwitchEditMode();
     afx_msg void OnUpdateEditSwitchEditMode(CCmdUI* pCmdUI);
     afx_msg void OnTimer(UINT_PTR nIDEvent);
@@ -163,8 +163,8 @@ protected:
     afx_msg void OnUpdateBlockInstrall(CCmdUI* pCmdUI);
     afx_msg void OnBlockBackup();
     afx_msg void OnUpdateBlockBackup(CCmdUI* pCmdUI);
-    afx_msg void OnBlockPlay();
-    afx_msg void OnUpdateBlockPlay(CCmdUI* pCmdUI);
+    afx_msg void OnBlockPlayAndLoop();
+    afx_msg void OnUpdateBlockPlayAndLoop(CCmdUI* pCmdUI);
     afx_msg void OnUpdateChan1_4(CCmdUI* pCmdUI);
     afx_msg void OnUpdateChan5_8(CCmdUI* pCmdUI);
     afx_msg void OnMouseMove(UINT nFlags, CPoint point);
@@ -175,8 +175,8 @@ protected:
     afx_msg void OnRButtonDblClk(UINT nFlags, CPoint point);
     afx_msg void OnViewPokeyregs();
     afx_msg void OnUpdateViewPokeyregs(CCmdUI* pCmdUI);
-    afx_msg void OnMidionoff();
-    afx_msg void OnUpdateMidionoff(CCmdUI* pCmdUI);
+    afx_msg void OnMidiOnOff();
+    afx_msg void OnUpdateMidiOnOff(CCmdUI* pCmdUI);
     afx_msg void OnToolsOptions();
     afx_msg void OnBlockCopy();
     afx_msg void OnBlockCut();
@@ -239,7 +239,7 @@ protected:
     afx_msg void OnUpdateSongMaketracksduplicate(CCmdUI* pCmdUI);
     afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
     afx_msg void OnPlay0();
-    afx_msg void OnUpdatePlay0(CCmdUI* pCmdUI);
+    afx_msg void OnUpdatePlayBookmark(CCmdUI* pCmdUI);
     afx_msg void OnFileReopen();
     afx_msg void OnUpdateFileReopen(CCmdUI* pCmdUI);
     afx_msg void OnEditUndo();
@@ -265,9 +265,8 @@ protected:
     afx_msg void OnSongSongchangemaximallengthoftracks();
     afx_msg void OnSongToggleNTSC();
     afx_msg void OnFileExit();
-    //}}AFX_MSG
-    DECLARE_MESSAGE_MAP()
-public:
+
+    // Channels
     afx_msg void OnChannelsChannel1();
     afx_msg void OnUpdateChannelsChannel1(CCmdUI* pCmdUI);
     afx_msg void OnChannelsChannel2();
@@ -294,6 +293,8 @@ public:
     afx_msg void OnUpdateToolbarSwitchEditMode(CCmdUI* pCmdUI);
     afx_msg void OnEditActivatePokeyExplorerMode();
     afx_msg void OnUpdateEditActivatePokeyExplorerMode(CCmdUI* pCmdUI);
+    //}}AFX_MSG
+    DECLARE_MESSAGE_MAP()
 };
 
 #ifndef _DEBUG  // debug version in RmtView.cpp

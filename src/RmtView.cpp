@@ -16,7 +16,6 @@
 #include "RmtMidi.h"
 #include "RmtView.h"
 #include "StdAfx.h"
-#include "TuningDialog.h"
 #include <chrono>
 #include <iomanip>
 
@@ -27,7 +26,6 @@
 #include "Keyboard2NoteMapping.h"
 #include "Rmt.h"
 #include "Song.h"
-#include "Tuning.h"
 #include "Undo.h"
 
 
@@ -61,11 +59,23 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_WM_SYSCHAR()
     ON_WM_KEYDOWN()
     ON_WM_KEYUP()
+
+    // Menu File
+    ON_COMMAND(ID_FILE_NEW, OnFileNew)
     ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
+    ON_COMMAND(ID_FILE_REOPEN, OnFileReopen)
+    ON_UPDATE_COMMAND_UI(ID_FILE_REOPEN, OnUpdateFileReopen)
     ON_COMMAND(ID_FILE_SAVE, OnFileSave)
     ON_COMMAND(ID_FILE_SAVE_AS, OnFileSaveAs)
-    ON_COMMAND(ID_FILE_NEW, OnFileNew)
-    ON_COMMAND(ID_FILE_EXPORT, OnFileExportAs)
+    ON_COMMAND(ID_FILE_IMPORT, OnFileImport)
+    ON_COMMAND(ID_FILE_EXPORT, OnFileExport)
+    // Standard printing commands
+    ON_COMMAND(ID_FILE_PRINT, CView::OnFilePrint)
+    ON_COMMAND(ID_FILE_PRINT_DIRECT, CView::OnFilePrint)
+    ON_COMMAND(ID_FILE_PRINT_PREVIEW, CView::OnFilePrintPreview)
+    ON_COMMAND(ID_FILE_EXIT, OnFileExit)
+
+    // Instruments
     ON_COMMAND(ID_INSTR_LOAD, OnInstrLoad)
     ON_COMMAND(ID_INSTR_SAVE, OnInstrSave)
     ON_COMMAND(ID_INSTR_COPY, OnInstrCopy)
@@ -76,9 +86,17 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_TRACK_COPY, OnTrackCopy)
     ON_COMMAND(ID_TRACK_PASTE, OnTrackPaste)
     ON_COMMAND(ID_TRACK_CUT, OnTrackCut)
+
+    // Song
+    ON_COMMAND(ID_SONG_TOGGLE_NTSC, OnSongToggleNTSC)
     ON_COMMAND(ID_SONG_COPY_LINE, OnSongCopyline)
     ON_COMMAND(ID_SONG_PASTE_LINE, OnSongPasteline)
     ON_COMMAND(ID_SONG_CLEAR_LINE, OnSongClearline)
+    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FOLLOW, OnUpdateSongPlayFollow)
+    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_START, OnUpdatePlaySong)
+    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_CURRENT_POSITION, OnUpdatePlayFrom)
+    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnUpdatePlayTrack)
+    ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnSongPlayFromCurrentPositionAndLoop)
     ON_COMMAND(ID_SONG_PLAY_FROM_START, OnSongPlayerFromStart)
     ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION, OnSongPlayFromCurrentPosition)
     ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnSongPlayFromCurrentPositionAndLoop)
@@ -94,16 +112,13 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_PART_INSTRUMENTS, OnUpdateEmInstruments)
     ON_UPDATE_COMMAND_UI(ID_PART_INFO, OnUpdateEmInfo)
     ON_UPDATE_COMMAND_UI(ID_PART_SONG, OnUpdateEmSong)
-    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FOLLOW, OnUpdatePlayfollow)
-    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_START, OnUpdatePlay1)
-    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_CURRENT_POSITION, OnUpdatePlay2)
-    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnUpdatePlay3)
-    ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnSongPlayFromCurrentPositionAndLoop)
+
 
     ON_COMMAND(ID_EDIT_SWITCH_EDIT_MODE, OnEditSwitchEditMode)
     ON_UPDATE_COMMAND_UI(ID_EDIT_SWITCH_EDIT_MODE, OnUpdateEditSwitchEditMode)
-    ON_WM_TIMER()
-    ON_WM_DESTROY()
+
+
+    // Menu View
     ON_COMMAND(ID_VIEW_VOLUMEANALYZER, OnViewVolumeanalyzer)
     ON_UPDATE_COMMAND_UI(ID_VIEW_VOLUMEANALYZER, OnUpdateViewVolumeanalyzer)
     ON_COMMAND(ID_VIEW_PLAYTIMECOUNTER, OnViewPlaytimecounter)
@@ -112,6 +127,10 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_VIEW_INSTRUMENTACTIVEHELP, OnUpdateViewInstrumentactivehelp)
     ON_COMMAND(ID_VIEW_BLOCKTOOLBAR, OnViewBlocktoolbar)
     ON_UPDATE_COMMAND_UI(ID_VIEW_BLOCKTOOLBAR, OnUpdateViewBlocktoolbar)
+    ON_COMMAND(ID_VIEW_POKEYREGS, OnViewPokeyregs)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_POKEYREGS, OnUpdateViewPokeyregs)
+
+    // Menu Block
     ON_COMMAND(ID_BLOCK_TRANSPOSE_NOTES_UP, OnBlockNoteup)
     ON_UPDATE_COMMAND_UI(ID_BLOCK_TRANSPOSE_NOTES_UP, OnUpdateBlockNoteup)
     ON_COMMAND(ID_BLOCK_DECREASE_VOLUME, OnBlockVolumedown)
@@ -128,19 +147,8 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_BLOCK_TOGGLE_MODIFICATION_MODE, OnUpdateBlockInstrall)
     ON_COMMAND(ID_BLOCK_RESTORE_FROM_BACKUP, OnBlockBackup)
     ON_UPDATE_COMMAND_UI(ID_BLOCK_RESTORE_FROM_BACKUP, OnUpdateBlockBackup)
-    ON_COMMAND(ID_BLOCK_PLAY_AND_LOOP, OnBlockPlay)
-    ON_UPDATE_COMMAND_UI(ID_BLOCK_PLAY_AND_LOOP, OnUpdateBlockPlay)
-    ON_WM_MOUSEMOVE()
-    ON_WM_SETCURSOR()
-    ON_WM_LBUTTONUP()
-    ON_WM_RBUTTONUP()
-    ON_WM_LBUTTONDBLCLK()
-    ON_WM_RBUTTONDBLCLK()
-    ON_COMMAND(ID_VIEW_POKEYREGS, OnViewPokeyregs)
-    ON_UPDATE_COMMAND_UI(ID_VIEW_POKEYREGS, OnUpdateViewPokeyregs)
-    ON_COMMAND(ID_MIDIONOFF, OnMidionoff)
-    ON_UPDATE_COMMAND_UI(ID_MIDIONOFF, OnUpdateMidionoff)
-    ON_COMMAND(ID_TOOLS_OPTIONS, OnToolsOptions)
+    ON_COMMAND(ID_BLOCK_PLAY_AND_LOOP, OnBlockPlayAndLoop)
+    ON_UPDATE_COMMAND_UI(ID_BLOCK_PLAY_AND_LOOP, OnUpdateBlockPlayAndLoop)
     ON_COMMAND(ID_BLOCK_COPY, OnBlockCopy)
     ON_COMMAND(ID_BLOCK_CUT, OnBlockCut)
     ON_COMMAND(ID_BLOCK_DELETE, OnBlockDelete)
@@ -152,13 +160,33 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_BLOCK_DELETE, OnUpdateBlockDelete)
     ON_UPDATE_COMMAND_UI(ID_BLOCK_APPLY_EFFECTS, OnUpdateBlockEffect)
     ON_UPDATE_COMMAND_UI(ID_BLOCK_EXCHANGE, OnUpdateBlockExchange)
+
+    // Timer
+    ON_WM_TIMER()
+    ON_WM_DESTROY()
+
+    // Mouse
+    ON_WM_MOUSEMOVE()
+    ON_WM_MOUSEWHEEL()
+    ON_WM_SETCURSOR()
+    ON_WM_LBUTTONUP()
+    ON_WM_RBUTTONUP()
+    ON_WM_LBUTTONDBLCLK()
+    ON_WM_RBUTTONDBLCLK()
+
+    // Window
+    ON_WM_SETFOCUS()
+    ON_WM_KILLFOCUS()
+
+    ON_COMMAND(ID_MIDIONOFF, OnMidiOnOff)
+    ON_UPDATE_COMMAND_UI(ID_MIDIONOFF, OnUpdateMidiOnOff)
+
     ON_COMMAND(ID_TRACK_ALLTRACKSCLEANUP, OnTrackAlltrackscleanup)
     ON_COMMAND(ID_INSTR_ALLINSTRUMENTSCLEANUP, OnInstrAllinstrumentscleanup)
     ON_COMMAND(ID_SONG_DELETEACTUALLINE, OnSongDeleteactualline)
     ON_COMMAND(ID_SONG_INSERTNEWEMPTYLINE, OnSongInsertnewemptyline)
     ON_COMMAND(ID_SONG_INSERTNEWLINEWITHUNUSEDTRACKS, OnSongInsertnewlinewithunusedtracks)
     ON_COMMAND(ID_SONG_INSERTCOPYORCLONEOFSONGLINES, OnSongInsertcopyorcloneofsonglines)
-    ON_COMMAND(ID_FILE_IMPORT, OnFileImport)
     ON_UPDATE_COMMAND_UI(ID_SONG_SONG_TOGGLE_TRACK_NUMBER, OnUpdateSongSongswitch4_8)
     ON_COMMAND(ID_SONG_SONG_TOGGLE_TRACK_NUMBER, OnSongSongswitch4_8)
     ON_COMMAND(ID_SONG_TRACKSORDERCHANGE, OnSongTracksorderchange)
@@ -191,8 +219,7 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_BLOCK_PASTESPECIAL_SPEEDVALUESONLY, OnBlockPastespecialSpeedvaluesonly)
     ON_COMMAND(ID_BLOCK_PASTESPECIAL_MERGEWITHCURRENTCONTENT, OnBlockPastespecialMergewithcurrentcontent)
     ON_COMMAND(ID_SONG_PUTNEWEMPTYUNUSEDTRACK, OnSongPutnewemptyunusedtrack)
-    ON_WM_SETFOCUS()
-    ON_WM_KILLFOCUS()
+
     ON_COMMAND(ID_TRACK_LOAD, OnTrackLoad)
     ON_COMMAND(ID_TRACK_SAVE, OnTrackSave)
     ON_UPDATE_COMMAND_UI(ID_TRACK_LOAD, OnUpdateTrackLoad)
@@ -200,11 +227,9 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_TRACK_CLEARALLDUPLICATEDTRACKS, OnTrackClearallduplicatedtracks)
     ON_COMMAND(ID_SONG_MAKETRACKSDUPLICATE, OnSongMaketracksduplicate)
     ON_UPDATE_COMMAND_UI(ID_SONG_MAKETRACKSDUPLICATE, OnUpdateSongMaketracksduplicate)
-    ON_WM_MOUSEWHEEL()
+
     ON_COMMAND(ID_PLAY_FROM_BOOKMARK, OnPlay0)
-    ON_UPDATE_COMMAND_UI(ID_PLAY_FROM_BOOKMARK, OnUpdatePlay0)
-    ON_COMMAND(ID_FILE_REOPEN, OnFileReopen)
-    ON_UPDATE_COMMAND_UI(ID_FILE_REOPEN, OnUpdateFileReopen)
+    ON_UPDATE_COMMAND_UI(ID_PLAY_FROM_BOOKMARK, OnUpdatePlayBookmark)
     ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
     ON_UPDATE_COMMAND_UI(ID_EDIT_UNDO, OnUpdateEditUndo)
     ON_COMMAND(ID_EDIT_REDO, OnEditRedo)
@@ -226,14 +251,12 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_VIEW_STATUS_BAR, OnViewStatusBar)
     ON_UPDATE_COMMAND_UI(ID_VIEW_STATUS_BAR, OnUpdateViewStatusBar)
     ON_COMMAND(ID_SONG_SONGCHANGEMAXIMALLENGTHOFTRACKS, OnSongSongchangemaximallengthoftracks)
-    ON_COMMAND(ID_FILE_EXIT, OnFileExit)
-    // Standard printing commands
-    ON_COMMAND(ID_FILE_PRINT, CView::OnFilePrint)
-    ON_COMMAND(ID_FILE_PRINT_DIRECT, CView::OnFilePrint)
-    ON_COMMAND(ID_FILE_PRINT_PREVIEW, CView::OnFilePrintPreview)
-    ON_COMMAND(ID_SONG_TOGGLE_NTSC, OnSongToggleNTSC)
+
     //}}AFX_MSG_MAP
 
+    ON_COMMAND(ID_TOOLS_OPTIONS, OnToolsOptions)
+
+    // Menu Channels
     ON_COMMAND(ID_CHANNELS_CHANNEL1, &CRmtView::OnChannelsChannel1)
     ON_COMMAND(ID_CHANNELS_CHANNEL2, &CRmtView::OnChannelsChannel2)
     ON_COMMAND(ID_CHANNELS_CHANNEL3, &CRmtView::OnChannelsChannel3)
@@ -1752,7 +1775,7 @@ void CRmtView::OnFileImport()
     g_Song.FileImport();
 }
 
-void CRmtView::OnFileExportAs()
+void CRmtView::OnFileExport()
 {
     g_Song.FileExportAs();
 }
@@ -2029,31 +2052,31 @@ void CRmtView::OnSongPlayFollow()
 void CRmtView::OnPartTracks()
 {
     g_Undo.Separator();
-    g_activepart = g_active_ti = Part::PART_TRACKS;	//tracks
+    g_activepart = g_active_ti = Part::PART_TRACKS;
 }
 
 void CRmtView::OnPartInstruments()
 {
     g_Undo.Separator();
-    g_activepart = g_active_ti = Part::PART_INSTRUMENTS;	//instrs
+    g_activepart = g_active_ti = Part::PART_INSTRUMENTS;
     g_TrackClipboard.BlockDeselect();
 }
 
 void CRmtView::OnPartInfo()
 {
     g_Undo.Separator();
-    g_activepart = Part::PART_INFO;		//info
+    g_activepart = Part::PART_INFO;
     g_TrackClipboard.BlockDeselect();
 }
 
 void CRmtView::OnPartSong()
 {
     g_Undo.Separator();
-    g_activepart = Part::PART_SONG;		//song
+    g_activepart = Part::PART_SONG;
     g_TrackClipboard.BlockDeselect();
 }
 
-void CRmtView::OnUpdatePlay0(CCmdUI* pCmdUI)
+void CRmtView::OnUpdatePlayBookmark(CCmdUI* pCmdUI)
 {
     int ch = g_Song.IsBookmark();
     pCmdUI->Enable(ch);
@@ -2061,25 +2084,25 @@ void CRmtView::OnUpdatePlay0(CCmdUI* pCmdUI)
     pCmdUI->SetCheck(ch);
 }
 
-void CRmtView::OnUpdatePlay1(CCmdUI* pCmdUI)
+void CRmtView::OnUpdatePlaySong(CCmdUI* pCmdUI)
 {
     int ch = (g_Song.GetPlayMode() == PlayMode::PLAY_SONG) ? 1 : 0;
     pCmdUI->SetCheck(ch);
 }
 
-void CRmtView::OnUpdatePlay2(CCmdUI* pCmdUI)
+void CRmtView::OnUpdatePlayFrom(CCmdUI* pCmdUI)
 {
     int ch = (g_Song.GetPlayMode() == PlayMode::PLAY_FROM) ? 1 : 0;
     pCmdUI->SetCheck(ch);
 }
 
-void CRmtView::OnUpdatePlay3(CCmdUI* pCmdUI)
+void CRmtView::OnUpdatePlayTrack(CCmdUI* pCmdUI)
 {
     int ch = (g_Song.GetPlayMode() == PlayMode::PLAY_TRACK) ? 1 : 0;
     pCmdUI->SetCheck(ch);
 }
 
-void CRmtView::OnUpdatePlayfollow(CCmdUI* pCmdUI)
+void CRmtView::OnUpdateSongPlayFollow(CCmdUI* pCmdUI)
 {
     int ch = g_Song.GetFollowPlayMode();
     pCmdUI->SetCheck(ch);
@@ -2292,12 +2315,12 @@ void CRmtView::OnUpdateBlockBackup(CCmdUI* pCmdUI)
     pCmdUI->Enable(g_TrackClipboard.IsBlockSelected());
 }
 
-void CRmtView::OnBlockPlay()
+void CRmtView::OnBlockPlayAndLoop()
 {
     g_Song.Play(PLAY_BLOCK, g_Song.GetFollowPlayMode());	//selected block and loop - with respect to followplay
 }
 
-void CRmtView::OnUpdateBlockPlay(CCmdUI* pCmdUI)
+void CRmtView::OnUpdateBlockPlayAndLoop(CCmdUI* pCmdUI)
 {
     auto blockMode = (g_Song.GetPlayMode() == PlayMode::PLAY_BLOCK);
     pCmdUI->SetCheck(blockMode);
@@ -2319,7 +2342,7 @@ void CRmtView::OnUpdateChan5_8(CCmdUI* pCmdUI)
     pCmdUI->Enable((g_tracks4_8 > 4));
 }
 
-void CRmtView::OnMidionoff()
+void CRmtView::OnMidiOnOff()
 {
     if (g_Midi.IsOn())
         g_Midi.MidiOff();
@@ -2327,7 +2350,7 @@ void CRmtView::OnMidionoff()
         g_Midi.MidiOn();
 }
 
-void CRmtView::OnUpdateMidionoff(CCmdUI* pCmdUI)
+void CRmtView::OnUpdateMidiOnOff(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(g_Midi.GetMidiDevId() >= 0);
     pCmdUI->SetCheck(g_Midi.IsOn());
