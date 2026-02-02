@@ -45,6 +45,8 @@
 | Menu Channels | Mute/Unmute Active Channel | `F9` | Mute/unmute the active channel (F9) |
 | Menu Channels | Solo Active Channel | `Ctrl+F9` | Mute all channels except active channel / Unmute all channels (Ctrl+F9) |
 | Menu Channels | Mute/Unmute All Channels | `Shift+F9` | Mute / Umnute all channels (Shift+F9) |
+| Menu Song | Set Bookmark | `F8` | Set a bookmark in the current song line |
+| Menu Song | Clear Bookmark | `Ctrl+F8` | Clear the bookmark in the current song line |
 | Menu Song | Clear Line |  |  |
 | Menu Song | Copy Line |  |  |
 | Menu Song | Delete current line | `Ctrl+U` |  |

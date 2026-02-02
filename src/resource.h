@@ -1,7 +1,8 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by Rmt.rc
 //
+#define IDMODULE_TUNING                 3
 #define IDDEFAULT                       10
 #define IDOK2                           11
 #define IDPLAYSTOP                      12
@@ -12,7 +13,9 @@
 #define IDR_ACCELERATOR1                101
 #define IDR_MAIN_WINDOW                 102
 #define IDR_RMTTYPE                     103
+#define ID_SONG_SET_BOOKMARK            103
 #define IDR_TOOLBAR_BLOCK               104
+#define ID_SONG_CLEAR_BOOKMARK          104
 #define IDR_TOOLBAR_CHANNELS            105
 #define IDR_TOOLBAR_PLAY                106
 #define IDB_GFX                         107
@@ -52,6 +55,7 @@
 #define IDS_RMT_AUTHOR                  202
 #define IDS_RMT_REPOSITORY              203
 #define IDS_RMT_VERSION                 204
+#define IDA_MAIN                        371
 #define IDC_ABOUT6502                   1001
 #define IDC_ABOUTPOKEY                  1002
 #define IDC_ADDR                        1003
@@ -379,16 +383,14 @@
 #define ID_VIEW_PLAYTIMECOUNTER         32905
 #define ID_VIEW_POKEYREGS               32906
 #define ID_VIEW_VOLUMEANALYZER          32907
-#define IDA_MAIN                        371
-#define IDMODULE_TUNING                 3
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_3D_CONTROLS                1
+#define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        205
-#define _APS_NEXT_COMMAND_VALUE         32908
+#define _APS_NEXT_COMMAND_VALUE         32911
 #define _APS_NEXT_CONTROL_VALUE         1198
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
