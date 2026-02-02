@@ -20,7 +20,7 @@
 | Menu Edit | Clear Undo && Redo History |  |  |
 | Menu Edit | Switch Edit Mode | `Ctrl+SPACE` | Switch between "Edit" mode and "Jam" modes |
 | Menu Edit | Undo | `Ctrl+Z` | Undo the last action |
-| Menu Edit | Redo | `Ctrl+Y` | Show or hide the toolbar |
+| Menu Edit | Redo | `Ctrl+Y` | Redo the last action |
 | Menu View | Block Toolbar |  |  |
 | Menu View | Instrument Active Help |  |  |
 | Menu View | Play Time Counter |  |  |
