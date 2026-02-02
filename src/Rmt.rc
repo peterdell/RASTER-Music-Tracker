@@ -1199,9 +1199,10 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Clear Undo && Redo History", ID_EDIT_CLEAR_UNDO_REDO_HISTORY
         MENUITEM SEPARATOR
-        MENUITEM "Edit Song\tF2",               ID_EDIT_SONG
-        MENUITEM "Edit Instruments\tF3",        ID_EDIT_INSTRUMENTS
-        MENUITEM "Edit Tracks\tF4",             ID_EDIT_TRACKS
+        MENUITEM "Edit Tracks\tF1",             ID_PART_TRACKS
+        MENUITEM "Edit Instruments\tF2",        ID_PART_INSTRUMENTS
+        MENUITEM "Edit Info\tF3",               ID_PART_INFO
+        MENUITEM "Edit Song\tF4",               ID_PART_SONG
         MENUITEM SEPARATOR
         MENUITEM "Switch &Edit Mode\tCtrl+SPACE", ID_EDIT_SWITCH_EDIT_MODE
         MENUITEM "Activate Pokey E&xplorer Mode\tCtrl+Shift+F5", ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE

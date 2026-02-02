@@ -270,10 +270,7 @@
 #define ID_CHANNELS_TOGGLE_ALL_CHANNELS_ON_OFF 32811
 #define ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE 32812
 #define ID_EDIT_CLEAR_UNDO_REDO_HISTORY 32813
-#define ID_EDIT_INSTRUMENTS             32815
-#define ID_EDIT_SONG                    32816
 #define ID_EDIT_SWITCH_EDIT_MODE        32817
-#define ID_EDIT_TRACKS                  32818
 #define ID_FILE_EXIT                    32819
 #define ID_FILE_EXPORT                  32820
 #define ID_FILE_IMPORT                  32821
@@ -356,7 +353,6 @@
 #define ID_VIEW_PLAYTIMECOUNTER         32905
 #define ID_VIEW_POKEYREGS               32906
 #define ID_VIEW_VOLUMEANALYZER          32907
-#define ID_EDIT_EDITTRACKS              32911
 
 // Next default values for new objects
 // 
