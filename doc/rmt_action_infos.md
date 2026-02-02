@@ -28,6 +28,7 @@
 | Menu View | Play Time Counter |  |  |
 | Menu View | Main Toolbar |  | Show or hide the main toolbar |
 | Menu View | Status Bar |  | Show or hide the status bar |
+| Menu Play | Toggle Follow Mode | `F12` | Toggle the follow mode |
 | Menu Play | Play From Start | `F5` | Play song from start position |
 | Menu Play | Play | `F7` | Play song from current position |
 | Menu Play | Play And Loop Song Line | `F6` | Play and loop current song line |
