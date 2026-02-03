@@ -1544,17 +1544,19 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
     switch (vk)
     {
-        //F10 can't be used for some reason... it seems to be binded to native Windows functions and so it would take priority instead of any shortcut I would like to use for it.
 
     case VK_F11:
         g_Undo.Separator();	//respect volume
-        g_respectvolume ^= 1;
+        g_respectvolume ^= TRUE;
         break;
 
     case VK_MEDIA_PLAY_PAUSE:
-        if (g_Song.GetPlayMode() == 0)
+        if (g_Song.GetPlayMode() == PlayMode::PLAY_STOP) {
             g_Song.Play(PLAY_SONG, g_Song.GetFollowPlayMode());	//play song from start
-        else g_Song.Stop();								//if playing, stop
+        }
+        else {
+            g_Song.Stop();								//if playing, stop
+        }
         break;
 
     case VK_MEDIA_NEXT_TRACK:

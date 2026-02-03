@@ -83,7 +83,7 @@ void SwitchEditMode(const EditMode targetEditMode, const bool stereo) {
 }
 
 
-int volatile g_respectvolume;	//does not change the volume if it is already there
+BOOL volatile g_respectvolume;	//does not change the volume if it is already there
 
 WORD g_rmtstripped_adr_module;	//address for export RMT stripped file
 BOOL g_rmtstripped_sfx;			//sfx offshoot RMT stripped file

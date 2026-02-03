@@ -65,7 +65,7 @@ extern void SwitchEditMode(const EditMode targetEditMode, const bool stereo);
 
 
 
-extern int volatile g_respectvolume;	// Does not change the volume if it is already there
+extern BOOL volatile g_respectvolume;	// Does not change the volume if it is already there
 
 extern WORD g_rmtstripped_adr_module;	//address for export RMT stripped file
 extern BOOL g_rmtstripped_sfx;			//sfx offshoot RMT stripped file
