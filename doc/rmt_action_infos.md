@@ -99,6 +99,8 @@
 | Menu Track | Renumber all tracks... |  |  |
 | Menu Track | Save track as... |  |  |
 | Menu Track | Search and build wise loop |  |  |
+| Menu Track | Increase Step Size | `Ctrl++` | Increase the pattern step size |
+| Menu Track | Decrease Step Size | `Ctrl+-` | Decrease the pattern step size |
 | Menu Block<br>Tool BarBlock | Effects/Tools... | `Ctrl+F` | Apply Effects... (Ctrl+F) |
 | Menu Block | Copy | `Ctrl+C` |  |
 | Menu Block | Cut | `Ctrl+X` |  |

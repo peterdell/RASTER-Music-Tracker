@@ -345,6 +345,8 @@ protected:
     DECLARE_MESSAGE_MAP()
 public:
 
+    afx_msg void OnSongIncreasePatternStepSize();
+    afx_msg void OnSongDecreasePatternStepSize();
 };
 
 #ifndef _DEBUG  // debug version in RmtView.cpp

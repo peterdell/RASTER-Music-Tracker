@@ -307,6 +307,8 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE, &CRmtView::OnUpdateEditActivatePokeyExplorerMode)
 
     // More
+    ON_COMMAND(ID_SONG_INCREASE_PATTERN_STEP_SIZE, &CRmtView::OnSongIncreasePatternStepSize)
+    ON_COMMAND(ID_SONG_DECREASE_PATTERN_STEP_SIZE, &CRmtView::OnSongDecreasePatternStepSize)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1542,31 +1544,6 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
     switch (vk)
     {
-
-    case VK_SUBTRACT:
-        if (g_controlkey && !g_shiftkey)
-        {
-            g_SkipLinesAfterNoteInsert--;
-            if (g_SkipLinesAfterNoteInsert < 0) { g_SkipLinesAfterNoteInsert = 8; }
-            auto mf = ((CMainFrame*)AfxGetMainWnd());
-            if (mf) { mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_SkipLinesAfterNoteInsert); }
-        }
-        else
-            goto AllModesDefaultKey;
-        break;
-
-    case VK_ADD:
-        if (g_controlkey && !g_shiftkey)
-        {
-            g_SkipLinesAfterNoteInsert++;
-            if (g_SkipLinesAfterNoteInsert > 8) { g_SkipLinesAfterNoteInsert = 0; }
-            auto mf = ((CMainFrame*)AfxGetMainWnd());
-            if (mf) { mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_SkipLinesAfterNoteInsert); }
-        }
-        else
-            goto AllModesDefaultKey;
-        break;
-
         //F10 can't be used for some reason... it seems to be binded to native Windows functions and so it would take priority instead of any shortcut I would like to use for it.
 
     case VK_F11:
@@ -2983,4 +2960,20 @@ void CRmtView::OnChannelsToggleAllChannelsOnOff()
 void CRmtView::OnUpdateChannelsToggleAllChannelsOnOff(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(true);
+}
+
+void CRmtView::OnSongIncreasePatternStepSize()
+{
+    g_SkipLinesAfterNoteInsert++;
+    if (g_SkipLinesAfterNoteInsert > 8) { g_SkipLinesAfterNoteInsert = 0; }
+    auto mf = ((CMainFrame*)AfxGetMainWnd());
+    if (mf) { mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_SkipLinesAfterNoteInsert); }
+}
+
+void CRmtView::OnSongDecreasePatternStepSize()
+{
+    g_SkipLinesAfterNoteInsert--;
+    if (g_SkipLinesAfterNoteInsert < 0) { g_SkipLinesAfterNoteInsert = 8; }
+    auto mf = ((CMainFrame*)AfxGetMainWnd());
+    if (mf) { mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_SkipLinesAfterNoteInsert); }
 }

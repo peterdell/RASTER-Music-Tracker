@@ -40,7 +40,11 @@ Changes in RMT 1.35
     - "Reload" => "Reopen"
     - "Properties" (New)
   - Menu "Undo" => "Edit"
+	- New entries
   - Menu "View" (moved here, after "Edit")
+  - Song
+  - Instrument
+  - Track => Pattern?
   - Menu "Tools" (New)
     - "Configuration" => "Options" (was in "View")
 	- "Paths...": Now uses standard folder picker control
@@ -48,7 +52,7 @@ Changes in RMT 1.35
 - Menu and dialog captions, mnemonics for (ALT+\<key>) added or/reworked
 
 
-- Include the instruments and samples in the download again. (Build 2026-01-14)
+- Included the instruments and samples in the download again. (Build 2026-01-14)
 - https://github.com/raster-atari-org/RASTER-Music-Tracker/pull/16
 - https://github.com/raster-atari-org/RASTER-Music-Tracker/pull/15
 - A complete version history was added (doc/rmt_version.md), including external download links and (where possible) branches. (2026-01-12)
