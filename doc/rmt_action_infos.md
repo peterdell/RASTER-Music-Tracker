@@ -13,10 +13,12 @@
 | Menu File | Print Setup... |  | Change the printer and printing options |
 | Menu File | Print... |  | Print the active view<br><span style="color:red;">ERROR: Expected description 'Print...' instead of 'Print... (Ctrl-P)'</span> |
 | Menu File | Print Preview |  | Preview the print version of the view |
+| Menu Tools | Open ASAP File... |  | Open an .SAP or other Atari Sound Module File |
+| Menu Tools | Open ASMA |  | Open the Atari Sound Music Archive Website |
+| Menu Tools | Options... |  | Open the application options dialog |
 | Menu Help | About RASTER Music Tracker |  | Display information about the app and its version in a pop-up dialog |
 | Menu Help | Online Help | `Shift+F1` | Display help for clicked on buttons, menus and windows<br><span style="color:red;">ERROR: Expected description 'Online Help (Shift+F1)' instead of 'Help'</span> |
 | Menu Help | Help | `F1` | Display help for current task or command<br><span style="color:red;">ERROR: Expected description 'Help (F1)' instead of 'Help'</span> |
-| Menu Edit | Activate Pokey Explorer Mode | `Ctrl+Shift+F5` | Activate POKEY Explorer Mode (Ctrl+Shift+F5) |
 | Menu Edit | Clear Undo && Redo History |  |  |
 | Menu Edit | Switch Edit Mode | `Ctrl+SPACE` | Switch between "Edit" mode and "Jam" modes |
 | Menu Edit | Edit Info | `F3` | Move cursor to info edit area |
@@ -28,7 +30,6 @@
 | Menu View | Block Toolbar |  |  |
 | Menu View | Instrument Active Help |  |  |
 | Menu View | Play Time Counter |  |  |
-| Menu View | Pokey Chip Registers |  |  |
 | Menu View | Volume Analyzer |  |  |
 | Menu View | Main Toolbar |  | Show or hide the main toolbar |
 | Menu View | Status Bar |  | Show or hide the status bar |
@@ -112,9 +113,24 @@
 | Menu Block / Paste Special | Merge With Current Content | `Ctrl+M` |  |
 | Menu Block / Paste Special | Paste Only Speed Values |  |  |
 | Menu Block / Paste Special | Paste Only Volume Values |  |  |
-| Menu Tools | Open ASAP File... |  | Open an .SAP or other Atari Sound Module File |
-| Menu Tools | Open ASMA |  | Open the Atari Sound Music Archive Website |
-| Menu Tools | Options... |  | Open the application options dialog |
+| Menu Pokey | Activate Pokey Explorer Mode | `Ctrl+Shift+F5` | Activate POKEY Explorer Mode (Ctrl+Shift+F5) |
+| Menu Pokey | Pokey Chip Registers |  |  |
+| Menu Pokey / Channel | Next Channel | `RETURN` |  |
+| Menu Pokey / Channel | Previous Channel | `Backspace` |  |
+| Menu Pokey / AUDF0 | Increase By 0x01 | `1` |  |
+| Menu Pokey / AUDF0 | Increase By 0x10 | `Shift+1` |  |
+| Menu Pokey / AUDF0 | Decrease By 0x01 | `Q` |  |
+| Menu Pokey / AUDF0 | Decrease By 0x11 | `Shift+Q` |  |
+| Menu Pokey / AUDF1 | Increase AUDF1 | `3` |  |
+| Menu Pokey / AUDF1 | Decrease AUDF1 | `E` |  |
+| Menu Pokey / AUDF2 | Increase AUDF2 | `5` |  |
+| Menu Pokey / AUDF2 | Decrease AUDF2 | `T` |  |
+| Menu Pokey / AUDF3 | Increase AUDF3 | `7` |  |
+| Menu Pokey / AUDF3 | Decrease AUDF3 | `U` |  |
+| Menu Pokey / Divisor | Increase Divisor By 0.1 | `+` |  |
+| Menu Pokey / Divisor | Decrease Divisor By 0.1 | `-` |  |
+| Menu Pokey / Divisor | Decrease Divisor By 1.0 | `Shift+-` |  |
+| Menu Pokey / Divisor | Increase Divisor By 1.0 | `Shift++` |  |
 |  |  |  | Decrease the volume |
 |  |  |  | Increase the volume |
 |  |  |  | Play the block and loop |

@@ -24,6 +24,7 @@
 
 #include "Rmt.h"
 
+#include "PokeyController.h"
 
 extern CRmtApp g_app;
 extern CSong g_Song;
@@ -571,7 +572,8 @@ void CSong::DrawAnalyzer()
                 snprintf(t, 2, "%d", tracks);
                 TextMiniXY(t, ANALYZER3_X + 8 * 56, ANALYZER3_Y + 8 * 10, TextMiniColor::WHITE);
 
-                if (DEBUG_SOUND && i == e_ch_idx)	//Debug sound, must only be run once per loops, so this prevents it being overwritten
+                const auto channel_index = m_PokeyController->GetChannelIndex();
+                if (DEBUG_SOUND && i == channel_index)	//Debug sound, must only be run once per loops, so this prevents it being overwritten
                 {
                     TextMiniXY("COARSE_DIVISOR:    , DIVISOR:       , MODOFFSET:  , AUDF: $    , AUDC: $  ", ANALYZER3_X, ANALYZER3_Y + 8 * 12, TextMiniColor::GRAY);
                     TextMiniXY("CH_IDX:  , MODULO:    , IS_VALID:  ", ANALYZER3_X, ANALYZER3_Y + 8 * 13, TextMiniColor::GRAY);
@@ -603,7 +605,9 @@ void CSong::DrawAnalyzer()
                             break;
                     }
 
-                    e_pitch = g_Tuning.GetPitch(i_audf, e_coarse_divisor, e_divisor, e_modoffset);
+                    const auto divisor = m_PokeyController->GetDivisor();
+
+                    e_pitch = g_Tuning.GetPitch(i_audf, e_coarse_divisor, divisor, e_modoffset);
                     static constexpr auto color = TextMiniColor::WHITE;
                     snprintf(p, 10, "%9.2f", e_pitch);
                     TextMiniXY(p, ANALYZER3_X, ANALYZER3_Y + 8 * 15, color);
@@ -611,7 +615,7 @@ void CSong::DrawAnalyzer()
                     snprintf(t, 4, "%d", e_coarse_divisor);
                     TextMiniXY(t, ANALYZER3_X + 8 * 16, ANALYZER3_Y + 8 * 12, color);
 
-                    snprintf(p, 10, "%6.1f", e_divisor);
+                    snprintf(p, 10, "%6.1f", divisor);
                     TextMiniXY(p, ANALYZER3_X + 8 * 30, ANALYZER3_Y + 8 * 12, color);
 
                     snprintf(t, 4, "%d", e_modoffset);
@@ -623,7 +627,7 @@ void CSong::DrawAnalyzer()
 
                     NumberMiniXY(e_audc, ANALYZER3_X + 8 * 72, ANALYZER3_Y + 8 * 12, color);
 
-                    snprintf(t, 4, "%d", e_ch_idx);
+                    snprintf(t, 4, "%d", channel_index);
                     TextMiniXY(t, ANALYZER3_X + 8 * 8, ANALYZER3_Y + 8 * 13, color);
 
                     snprintf(t, 4, "%d", e_modulo);
@@ -2265,171 +2269,223 @@ BOOL CSong::CursorToSpeedColumn()
     return 1;
 }
 
-BOOL CSong::ProveKeyPokeyExplorerMode(int vk, int shift, int control, int& e_ch_idx)
+BOOL CSong::ProveKeyPokeyExplorerMode(int vk, int shift, int control)
 {
-    const auto memory = g_Atari.GetMemoryAt(0);
-
-    static constexpr int audf = 0x3178; // 8 bytes
-    static constexpr int audc = 0x3180; // 8 bytes
-    static constexpr int audctl = 0x3C69;
-    static constexpr int skctl = 0x3CD3;
-
-    int ch = 0;	//channel separation used in registers write
-    int step = (g_shiftkey) ? 0x10 : 0x01;	//when the SHIFT key is held, increments/decrements are in steps are $10
-
     switch (vk)
     {
         //General variables manipulation
 
     case VK_RETURN:
-        e_ch_idx++;
-        if (e_ch_idx > 3) {
-            e_ch_idx = 0;
-        }
+        m_PokeyController->OnNextChannel();
         break;
 
     case VK_BACK:
-        e_ch_idx--;
-        if (e_ch_idx < 0)
-            e_ch_idx = 3;
+        m_PokeyController->OnPreviousChannel();
         break;
 
     case VK_OEM_PLUS:
-        e_divisor += (g_shiftkey) ? 1 : 0.1;
-        if (e_divisor > 10000) {
-            e_divisor = 10000;
+        if (shift) {
+            m_PokeyController->OnIncreaseDivisorBy10();
+        }
+        else {
+            m_PokeyController->OnIncreaseDivisorBy01();
         }
         break;
 
     case VK_OEM_MINUS:
-        e_divisor -= (g_shiftkey) ? 1 : 0.1;
-        if (e_divisor < 1) {
-            e_divisor = 1;
+        if (shift) {
+            m_PokeyController->OnDecreaseDivisorBy10();
+        }
+        else {
+            m_PokeyController->OnDecreaseDivisorBy01();
         }
         break;
 
         //AUDF channels
 
     case VK_1:
-        ch = 0;
-        memory[audf + ch] += step;
+        if (shift) {
+            m_PokeyController->OnIncreaseAUDF0By10();
+        }
+        else {
+            m_PokeyController->OnIncreaseAUDF0By01();
+        }
         break;
 
     case VK_Q:
-        ch = 0;
-        memory[audf + ch] -= step;
+        if (shift) {
+            m_PokeyController->OnDecreaseAUDF0By10();
+        }
+        else {
+            m_PokeyController->OnDecreaseAUDF0By01();
+        }
         break;
 
     case VK_3:
-        ch = 1;
-        memory[audf + ch] += step;
+        if (shift) {
+            m_PokeyController->OnIncreaseAUDF1By10();
+        }
+        else {
+            m_PokeyController->OnIncreaseAUDF1By01();
+        }
         break;
 
     case VK_E:
-        ch = 1;
-        memory[audf + ch] -= step;
+        if (shift) {
+            m_PokeyController->OnDecreaseAUDF1By10();
+        }
+        else {
+            m_PokeyController->OnDecreaseAUDF1By01();
+        }
         break;
 
     case VK_5:
-        ch = 2;
-        memory[audf + ch] += step;
+        if (shift) {
+            m_PokeyController->OnIncreaseAUDF2By10();
+        }
+        else {
+            m_PokeyController->OnIncreaseAUDF2By01();
+        }
         break;
 
     case VK_T:
-        ch = 2;
-        memory[audf + ch] -= step;
+        if (shift) {
+            m_PokeyController->OnDecreaseAUDF2By10();
+        }
+        else {
+            m_PokeyController->OnDecreaseAUDF2By01();
+        }
         break;
 
     case VK_7:
-        ch = 3;
-        memory[audf + ch] += step;
+        if (shift) {
+            m_PokeyController->OnIncreaseAUDF3By10();
+        }
+        else {
+            m_PokeyController->OnIncreaseAUDF3By01();
+        }
         break;
 
     case VK_U:
-        ch = 3;
-        memory[audf + ch] -= step;
+        if (shift) {
+            m_PokeyController->OnDecreaseAUDF3By10();
+        }
+        else {
+            m_PokeyController->OnDecreaseAUDF3By01();
+        }
         break;
 
         //AUDC channels
 
     case VK_2:
-        ch = 0;
-        memory[audc + ch] += step;
+        if (shift) {
+            m_PokeyController->OnIncreaseAUDC0By10();
+        }
+        else {
+            m_PokeyController->OnIncreaseAUDC0By01();
+        }
         break;
 
     case VK_W:
-        ch = 0;
-        memory[audc + ch] -= step;
+        if (shift) {
+            m_PokeyController->OnDecreaseAUDC0By10();
+        }
+        else {
+            m_PokeyController->OnDecreaseAUDC0By01();
+        }
         break;
 
     case VK_4:
-        ch = 1;
-        memory[audc + ch] += step;
+        if (shift) {
+            m_PokeyController->OnIncreaseAUDC1By10();
+        }
+        else {
+            m_PokeyController->OnIncreaseAUDC1By01();
+        }
         break;
 
     case VK_R:
-        ch = 1;
-        memory[audc + ch] -= step;
+        if (shift) {
+            m_PokeyController->OnDecreaseAUDC1By10();
+        }
+        else {
+            m_PokeyController->OnDecreaseAUDC1By01();
+        }
         break;
 
     case VK_6:
-        ch = 2;
-        memory[audc + ch] += step;
+        if (shift) {
+            m_PokeyController->OnIncreaseAUDC2By10();
+        }
+        else {
+            m_PokeyController->OnIncreaseAUDC2By01();
+        }
         break;
 
     case VK_Y:
-        ch = 2;
-        memory[audc + ch] -= step;
+        if (shift) {
+            m_PokeyController->OnDecreaseAUDC2By10();
+        }
+        else {
+            m_PokeyController->OnDecreaseAUDC2By01();
+        }
         break;
 
     case VK_8:
-        ch = 3;
-        memory[audc + ch] += step;
+        if (shift) {
+            m_PokeyController->OnIncreaseAUDC3By10();
+        }
+        else {
+            m_PokeyController->OnIncreaseAUDC3By01();
+        }
         break;
 
     case VK_I:
-        ch = 3;
-        memory[audc + ch] -= step;
+        if (shift) {
+            m_PokeyController->OnDecreaseAUDC3By10();
+        }
+        else {
+            m_PokeyController->OnDecreaseAUDC3By01();
+        }
         break;
 
         //AUDCTL bits
 
     case VK_P:
-        memory[audctl] ^= 0x80;
+        m_PokeyController->OnToggleAUDCTLBit7();
         break;
 
     case VK_A:
-        memory[audctl] ^= 0x40;
+        m_PokeyController->OnToggleAUDCTLBit6();
         break;
 
     case VK_D:
-        memory[audctl] ^= 0x20;
+        m_PokeyController->OnToggleAUDCTLBit5();
         break;
 
     case VK_J:
-        memory[audctl] ^= 0x10;
+        m_PokeyController->OnToggleAUDCTLBit4();
         break;
 
     case VK_K:
-        memory[audctl] ^= 0x08;
+        m_PokeyController->OnToggleAUDCTLBit3();
         break;
 
     case VK_F:
-        memory[audctl] ^= 0x04;
+        m_PokeyController->OnToggleAUDCTLBit2();
         break;
 
     case VK_G:
-        memory[audctl] ^= 0x02;
+        m_PokeyController->OnToggleAUDCTLBit1();
         break;
 
     case VK_C:
-        memory[audctl] ^= 0x01;
+        m_PokeyController->OnToggleAUDCTLBit0();
         break;
 
 
     case VK_M:
-        //SKCTL Two-Tone toggle
-        memory[skctl] ^= 0x88;
+        m_PokeyController->OnToggleTwoTone();
         break;
 
     default:
@@ -2446,7 +2502,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
     if (IsEditMode(EditMode::POKEY_EXPLORER_MODE))	//POKEY EXPLORER MODE: FULL CONTROL OVER THE POKEY (IGNORE RMT ROUTINES EXCEPT SETPOKEY)
     {
 
-        return ProveKeyPokeyExplorerMode(vk, shift, control, e_ch_idx);
+        return ProveKeyPokeyExplorerMode(vk, shift, control);
 
     }
 
@@ -2712,13 +2768,14 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
 BOOL CSong::TrackKey(int vk, int shift, int control)
 {
     //
-#define VKX_SONGINSERTLINE	VK_I
-#define VKX_SONGDELETELINE	VK_U
-#define VKX_SONGDUPLICATELINE VK_O
-#define VKX_SONGPREPARELINE VK_P
-#define VKX_SONGPUTNEWTRACK VK_N
-#define VKX_SONGMAKETRACKSDUPLICATE VK_D
-//
+    static constexpr int VKX_SONGINSERTLINE = VK_I;
+    static constexpr int  VKX_SONGDELETELINE = VK_U;
+    static constexpr int  VKX_SONGDUPLICATELINE = VK_O;
+    static constexpr int  VKX_SONGPREPARELINE = VK_P;
+    static constexpr int  VKX_SONGPUTNEWTRACK = VK_N;
+    static constexpr int  VKX_SONGMAKETRACKSDUPLICATE = VK_D;
+
+    //
     int note, i, j;
 
     if (g_TrackClipboard.IsBlockSelected() && SongGetActiveTrack() != g_TrackClipboard.m_seltrack) BLOCKDESELECT();

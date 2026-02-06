@@ -11,6 +11,7 @@
 #include "SongTypes.h"
 
 class CASMFileExporter;
+class CPokeyController;
 
 class CSong
 {
@@ -67,7 +68,7 @@ public:
 
     BOOL CursorToSpeedColumn();
 
-    BOOL ProveKeyPokeyExplorerMode(int vk, int shift, int control, int& e_ch_idx); // private
+    BOOL ProveKeyPokeyExplorerMode(int vk, int shift, int control); // private
 
     BOOL ProveKey(int vk, int shift, int control);
     BOOL TrackKey(int vk, int shift, int control);
@@ -307,8 +308,7 @@ private:
     BOOL m_ch_offset = 0;
 
     //POKEY EXPLORER variables, used for tests involving pitch calculations and sound debugging displayed on screen
-    int e_ch_idx = 0;
-    double e_divisor = 1;
+    CPokeyController* m_PokeyController;
 
     EditArea m_infoact;					// Which part of the info area is active for editing: 0 = name, 
     char m_songname[SONG_NAME_MAX_LEN + 1];

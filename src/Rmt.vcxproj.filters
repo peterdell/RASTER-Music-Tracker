@@ -303,6 +303,9 @@
     <ClCompile Include="SongIO.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClCompile>
+    <ClCompile Include="PokeyController.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EffectsDlg.h">
@@ -531,6 +534,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Keyboard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PokeyController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

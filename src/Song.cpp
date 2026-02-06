@@ -4,15 +4,15 @@
 
 #include "Notes.h"
 
-#include "EffectsDlg.h"
-#include "MainFrm.h"
-
 #include "Atari.h"
 #include "AtariTrackerDriver.h"
 #include "Clipboard.h"
+#include "EffectsDlg.h"
 #include "Global.h"
 #include "Instruments.h"
 #include "IOHelpers.h"
+#include "MainFrm.h"
+#include "PokeyController.h"
 #include "PokeyRederer.h"
 
 #include "SongTimer.h"
@@ -45,6 +45,8 @@ CSong::CSong()
     m_quantization_note = -1; // init
     m_quantization_instr = -1;
     m_quantization_vol = -1;
+
+    m_PokeyController = new CPokeyController(&g_Atari);
 }
 
 CSong::~CSong()
