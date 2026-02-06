@@ -115,24 +115,41 @@
 | Menu Block / Paste Special | Paste Only Volume Values |  |  |
 | Menu Pokey | Activate Pokey Explorer Mode | `Ctrl+Shift+F5` | Activate POKEY Explorer Mode (Ctrl+Shift+F5) |
 | Menu Pokey | Pokey Chip Registers |  |  |
-| Menu Pokey / AUDF0 | Increase By 0x01 | `1` |  |
-| Menu Pokey / AUDF0 | Increase By 0x10 | `Shift+1` |  |
-| Menu Pokey / AUDF0 | Decrease By 0x01 | `Q` |  |
-| Menu Pokey / AUDF0 | Decrease By 0x11 | `Shift+Q` |  |
-| Menu Pokey / AUDF1 | Increase By 0x01 | `3` |  |
-| Menu Pokey / AUDF1 | Decrease By 0x01 | `E` |  |
-| Menu Pokey / AUDF1 | Increase By 0x10 | `Shift+3` |  |
-| Menu Pokey / AUDF1 | Decrease By 0x10 | `Shift+E` |  |
-| Menu Pokey / AUDF2 | Increase AUDF2 | `5` |  |
-| Menu Pokey / AUDF2 | Decrease AUDF2 | `T` |  |
-| Menu Pokey / AUDF3 | Increase AUDF3 | `7` |  |
-| Menu Pokey / AUDF3 | Decrease AUDF3 | `U` |  |
-| Menu Pokey / Channel | Next Channel | `RETURN` |  |
-| Menu Pokey / Channel | Previous Channel | `Backspace` |  |
-| Menu Pokey / Divisor | Increase Divisor By 0.1 | `+` |  |
-| Menu Pokey / Divisor | Decrease Divisor By 0.1 | `-` |  |
-| Menu Pokey / Divisor | Decrease Divisor By 1.0 | `Shift+-` |  |
-| Menu Pokey / Divisor | Increase Divisor By 1.0 | `Shift++` |  |
+| Menu Pokey / Channel 1 | AUDC0 |  |  |
+| Menu Pokey / Channel 1 / AUDF0 | Increase By 0x01 | `1` |  |
+| Menu Pokey / Channel 1 / AUDF0 | Increase By 0x10 | `Shift+1` |  |
+| Menu Pokey / Channel 1 / AUDF0 | Decrease By 0x01 | `Q` |  |
+| Menu Pokey / Channel 1 / AUDF0 | Decrease By 0x11 | `Shift+Q` |  |
+| Menu Pokey / Channel 2 | AUDC1 |  |  |
+| Menu Pokey / Channel 2 / AUDF1 | Increase By 0x01 | `3` |  |
+| Menu Pokey / Channel 2 / AUDF1 | Decrease By 0x01 | `E` |  |
+| Menu Pokey / Channel 2 / AUDF1 | Increase By 0x10 | `Shift+3` |  |
+| Menu Pokey / Channel 2 / AUDF1 | Decrease By 0x10 | `Shift+E` |  |
+| Menu Pokey / Channel 3 | AUDC2 |  |  |
+| Menu Pokey / Channel 3 / AUDF2 | Increase By 0x01 | `5` |  |
+| Menu Pokey / Channel 3 / AUDF2 | Decrease By 0x01 | `T` |  |
+| Menu Pokey / Channel 3 / AUDF2 | Increase By 0x10 | `Shift+5` |  |
+| Menu Pokey / Channel 3 / AUDF2 | Decrease By 0x10 | `Shift+T` |  |
+| Menu Pokey / Channel 4 | AUDC3 |  |  |
+| Menu Pokey / Channel 4 / AUDF3 | Increase By 0x01 | `7` |  |
+| Menu Pokey / Channel 4 / AUDF3 | Decrease By 0x01 | `U` |  |
+| Menu Pokey / Channel 4 / AUDF3 | Increase By 0x10 | `Shift+7` |  |
+| Menu Pokey / Channel 4 / AUDF3 | Decrease By 0x10 | `Shift+U` |  |
+| Menu Pokey / AUDCTL | Bit 0 |  |  |
+| Menu Pokey / AUDCTL | Bit 7 |  |  |
+| Menu Pokey / AUDCTL | Bit 6 |  |  |
+| Menu Pokey / AUDCTL | Bit 5 |  |  |
+| Menu Pokey / AUDCTL | Bit 4 |  |  |
+| Menu Pokey / AUDCTL | Bit 3 |  |  |
+| Menu Pokey / AUDCTL | Bit 2 |  |  |
+| Menu Pokey / AUDCTL | Bit 1 |  |  |
+| Menu Pokey / SKCTL | Two Tone Mode |  |  |
+| Menu Pokey / Debug Channel | Next Channel | `Enter` |  |
+| Menu Pokey / Debug Channel | Previous Channel | `Backspace` |  |
+| Menu Pokey / Divisor | Increase By 0.1 | `+` |  |
+| Menu Pokey / Divisor | Decrease By 0.1 | `-` |  |
+| Menu Pokey / Divisor | Decrease By 1.0 | `Shift+-` |  |
+| Menu Pokey / Divisor | Increase By 1.0 | `Shift++` |  |
 |  |  |  | Decrease the volume |
 |  |  |  | Increase the volume |
 |  |  |  | Play the block and loop |

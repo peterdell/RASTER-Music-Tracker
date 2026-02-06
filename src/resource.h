@@ -410,6 +410,37 @@
 #define ID_POKEY_AUDF1_INCREASE_BY_10   32975
 #define ID_AUDF1_DECREASEAUDF1          32976
 #define ID_POKEY_AUDF1_DECREASEBY_10    32977
+#define ID_POKEY_AUDF2_INCREASE_BY_01   32978
+#define ID_POKEY_AUDFS_DECREASE_BY_01   32979
+#define ID_POKEY_AUDF2_INCREASE_BY_10   32980
+#define ID_POKEY_AUDFS_DECREASE_BY_10   32981
+#define ID_POKEY_AUDF3_INCREASE_BY01    32982
+#define ID_POKEY_AUDF3_DECREASE_BY_01   32983
+#define ID_POKEY_AUDF3_INCREASE_BY10    32984
+#define ID_POKEY_AUDF3_DECREASE_BY_10   32985
+#define ID_POKEY_AUDC1                  32986
+#define ID_POKEY_AUDC2                  32987
+#define ID_POKEY_AUDC3                  32988
+#define ID_POKEY_AUDC4                  32989
+#define ID_POKEY_CHANNEL1               32990
+#define ID_POKEY_CHANNEL2               32991
+#define ID_POKEY_CHANNEL3               32992
+#define ID_POKEY_CHANNEL4               32993
+#define ID_CHANNEL1_1                   32994
+#define ID_CHANNEL2_2                   32995
+#define ID_CHANNEL3_3                   32996
+#define ID_CHANNEL4_4                   32997
+#define ID_POKEY_AUDCTL                 32998
+#define ID_POKEY_SKCTL                  32999
+#define ID_AUDCTL_BIT0                  33000
+#define ID_AUDCTL_BIT7                  33001
+#define ID_AUDCTL_BIT6                  33002
+#define ID_AUDCTL_BIT5                  33003
+#define ID_AUDCTL_BIT4                  33004
+#define ID_AUDCTL_BIT3                  33005
+#define ID_AUDCTL_BIT2                  33006
+#define ID_AUDCTL_BIT1                  33007
+#define ID_SKCTL_TWOTONEMODE            33008
 
 // Next default values for new objects
 // 
@@ -417,7 +448,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        206
-#define _APS_NEXT_COMMAND_VALUE         32978
+#define _APS_NEXT_COMMAND_VALUE         33009
 #define _APS_NEXT_CONTROL_VALUE         1198
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
