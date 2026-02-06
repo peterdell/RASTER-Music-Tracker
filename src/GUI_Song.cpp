@@ -2262,7 +2262,7 @@ BOOL CSong::InfoCursorGotoInstrumentSelect(int x, int y)
 BOOL CSong::CursorToSpeedColumn()
 {
     if (g_activepart != Part::PART_TRACKS || SongGetActiveTrack() < 0) return 0;
-    BLOCKDESELECT;
+    BLOCKDESELECT();
     m_trackactivecur = 3;
     return 1;
 }
@@ -2719,7 +2719,7 @@ BOOL CSong::TrackKey(int vk, int shift, int control)
 //
     int note, i, j;
 
-    if (g_TrackClipboard.IsBlockSelected() && SongGetActiveTrack() != g_TrackClipboard.m_seltrack) BLOCKDESELECT;
+    if (g_TrackClipboard.IsBlockSelected() && SongGetActiveTrack() != g_TrackClipboard.m_seltrack) BLOCKDESELECT();
 
     if (SongGetGo() >= 0) //is active song go to line => they must not edit anything
     {
@@ -2758,7 +2758,7 @@ TrackKeyOk:
             i = note + m_octave * 12;
             if (i >= 0 && i < CNotes::NOTESNUM)		//only within limits
             {
-                BLOCKDESELECT;
+                BLOCKDESELECT();
                 //Quantization
                 if (m_play && m_followplay && (m_speeda < (m_speed / 2)))
                 {
@@ -2782,7 +2782,7 @@ TrackKeyOk:
                 note = TrackGetNote();
                 if (note >= 0)		//is there a note?
                 {
-                    BLOCKDESELECT;
+                    BLOCKDESELECT();
                     note = (note % 12) + ((j - 1) * 12);		//changes its octave according to the number pressed on the numblock
                     if (note >= 0 && note < CNotes::NOTESNUM)
                     {
@@ -2801,7 +2801,7 @@ TrackKeyOk:
         note = NoteKey(vk);	//workaround: the note key is known early in case it is needed
         if (i >= 0 && !shift && !control)
         {
-            BLOCKDESELECT;
+            BLOCKDESELECT();
             if (TrackGetNote() >= 0) //the instrument number can only be changed if there is a note
             {
                 j = ((TrackGetInstr() & 0x0f) << 4) | i;
@@ -2814,7 +2814,7 @@ TrackKeyOk:
         else if (note >= 0 && !shift && !control)
         {
         testnotevalue:
-            BLOCKDESELECT;
+            BLOCKDESELECT();
             if (TrackGetNote() >= 0) break; //do not input a note if there is already a note!
             else goto insertnotes;	//force a note insertion otherwise
         }
@@ -2824,7 +2824,7 @@ TrackKeyOk:
         i = NumbKey(vk);
         if (i >= 0 && !shift && !control)
         {
-            BLOCKDESELECT;
+            BLOCKDESELECT();
             if (TrackSetVol(i) && !(m_play && m_followplay)) TrackDown(g_SkipLinesAfterNoteInsert);
             return 1;
         }
@@ -2834,7 +2834,7 @@ TrackKeyOk:
         i = NumbKey(vk);
         if (i >= 0 && !shift && !control)
         {
-            BLOCKDESELECT;
+            BLOCKDESELECT();
             j = TrackGetSpeed();
             if (j < 0) j = 0;
             j = ((j & 0x0f) << 4) | i;
@@ -2865,24 +2865,24 @@ TrackKeyOk:
             if (shift && !control)
             {
                 //block selection
-                BLOCKSETBEGIN;
+                BLOCKSETBEGIN();
                 if (!g_SkipLinesAfterNoteInsert) TrackUp(1);
                 else TrackUp(g_SkipLinesAfterNoteInsert);
-                BLOCKSETEND;
+                BLOCKSETEND();
             }
             else
                 if (control && !shift)
                 {
-                    if (ISBLOCKSELECTED)
+                    if (ISBLOCKSELECTED())
                     {
-                        BLOCKDESELECT;
+                        BLOCKDESELECT();
                         break;
                     }
                     else SongUp();
                 }
                 else
                 {
-                    BLOCKDESELECT;
+                    BLOCKDESELECT();
                     if (!g_SkipLinesAfterNoteInsert) TrackUp(1);
                     else TrackUp(g_SkipLinesAfterNoteInsert);
                 }
@@ -2904,17 +2904,17 @@ TrackKeyOk:
             if (shift && !control)
             {
                 //block selection
-                BLOCKSETBEGIN;
+                BLOCKSETBEGIN();
                 if (!g_SkipLinesAfterNoteInsert) TrackDown(1, 0);
                 else TrackDown(g_SkipLinesAfterNoteInsert, 0);	//will not stop on the last line
-                BLOCKSETEND;
+                BLOCKSETEND();
             }
             else
                 if (control && !shift)
                 {
-                    if (ISBLOCKSELECTED)
+                    if (ISBLOCKSELECTED())
                     {
-                        BLOCKDESELECT;
+                        BLOCKDESELECT();
                         break;
                     }
                     else
@@ -2924,7 +2924,7 @@ TrackKeyOk:
                 }
                 else
                 {
-                    BLOCKDESELECT;
+                    BLOCKDESELECT();
                     if (!g_SkipLinesAfterNoteInsert) TrackDown(1, 0);
                     else TrackDown(g_SkipLinesAfterNoteInsert, 0);	//will not stop on the last line
                 }
@@ -2948,16 +2948,16 @@ TrackKeyOk:
             else
                 if (control && !shift)
                 {
-                    if (ISBLOCKSELECTED)
+                    if (ISBLOCKSELECTED())
                     {
-                        BLOCKDESELECT;
+                        BLOCKDESELECT();
                         break;
                     }
                     else SongTrackDec();
                 }
                 else
                 {
-                    BLOCKDESELECT;
+                    BLOCKDESELECT();
                     TrackLeft();
                 }
         break;
@@ -2980,16 +2980,16 @@ TrackKeyOk:
             else
                 if (control && !shift)
                 {
-                    if (ISBLOCKSELECTED)
+                    if (ISBLOCKSELECTED())
                     {
-                        BLOCKDESELECT;
+                        BLOCKDESELECT();
                         break;
                     }
                     else SongTrackInc();
                 }
                 else
                 {
-                    BLOCKDESELECT;
+                    BLOCKDESELECT();
                     TrackRight();
                 }
         break;
@@ -2997,21 +2997,21 @@ TrackKeyOk:
     case VK_PRIOR:
         if (!shift && control)
         {
-            BLOCKDESELECT;
+            BLOCKDESELECT();
             SongUp();
         }
         else
             if (!control && shift)
             {
                 //move to the previous goto
-                BLOCKDESELECT;
+                BLOCKDESELECT();
                 SongSubsongPrev();
             }
             else
                 if (m_play && m_followplay) break;	//prevents moving at all during play+follow
                 else
                 {
-                    BLOCKDESELECT;
+                    BLOCKDESELECT();
                     if (m_trackactiveline > 0)
                     {
                         m_trackactiveline = ((m_trackactiveline - 1) / g_trackLinePrimaryHighlight) * g_trackLinePrimaryHighlight;
@@ -3022,21 +3022,21 @@ TrackKeyOk:
     case VK_NEXT:
         if (!shift && control)
         {
-            BLOCKDESELECT;
+            BLOCKDESELECT();
             SongDown();
         }
         else
             if (!control && shift)
             {
                 //move to the next goto
-                BLOCKDESELECT;
+                BLOCKDESELECT();
                 SongSubsongNext();
             }
             else
                 if (m_play && m_followplay) break;	//prevents moving at all during play+follow
                 else
                 {
-                    BLOCKDESELECT;
+                    BLOCKDESELECT();
                     m_trackactiveline = ((m_trackactiveline + g_trackLinePrimaryHighlight) / g_trackLinePrimaryHighlight) * g_trackLinePrimaryHighlight;
                     if (m_trackactiveline > GetSmallestMaxtracklen(m_songactiveline) - 1)
                         m_trackactiveline -= g_trackLinePrimaryHighlight;
@@ -3060,7 +3060,7 @@ TrackKeyOk:
         break;
 
     case VK_TAB:
-        BLOCKDESELECT;
+        BLOCKDESELECT();
         if (shift)
             TrackLeft(1); //SHIFT+TAB
         else if (control)
@@ -3070,7 +3070,7 @@ TrackKeyOk:
         break;
 
     case VK_ESCAPE:
-        BLOCKDESELECT;
+        BLOCKDESELECT();
         break;
 
     case 65:	//VK_A
@@ -3124,7 +3124,7 @@ TrackKeyOk:
     case 0x4D:	//VK_M
         if (control && !shift)
         {
-            BLOCKDESELECT;
+            BLOCKDESELECT();
             BlockPaste(1);	//paste merge
         }
         break;
@@ -3132,7 +3132,7 @@ TrackKeyOk:
     case 86:	//VK_V
         if (control && !shift)
         {
-            BLOCKDESELECT;
+            BLOCKDESELECT();
             BlockPaste();	//classic paste
         }
         break;
@@ -3160,18 +3160,18 @@ TrackKeyOk:
         break;
 
     case 71:	//VK_G		//song goto on/off
-        BLOCKDESELECT;
+        BLOCKDESELECT();
         if (control && !shift) SongTrackGoOnOff();	//control+G => goto on/off line in the song
         break;
 
     case VKX_SONGPUTNEWTRACK:	//VK_N
-        BLOCKDESELECT;
+        BLOCKDESELECT();
         if (control && !shift)
             SongPutnewemptyunusedtrack();
         break;
 
     case VKX_SONGMAKETRACKSDUPLICATE:	//VK_D
-        BLOCKDESELECT;
+        BLOCKDESELECT();
         if (control && !shift)
             SongMaketracksduplicate();
         break;
@@ -3183,9 +3183,9 @@ TrackKeyOk:
         {
             if (shift)
             {
-                BLOCKSETBEGIN;
+                BLOCKSETBEGIN();
                 m_trackactiveline = 0;		//line 0
-                BLOCKSETEND;
+                BLOCKSETEND();
             }
             else
             {
@@ -3205,7 +3205,7 @@ TrackKeyOk:
                         i = TrackGetGoLine();
                         if (i >= 0) m_trackactiveline = i;	//at the beginning of the GO loop
                     }
-                    BLOCKDESELECT;
+                    BLOCKDESELECT();
                 }
             }
         }
@@ -3218,16 +3218,16 @@ TrackKeyOk:
         {
             if (shift)
             {
-                BLOCKSETBEGIN;
+                BLOCKSETBEGIN();
                 if (TrackGetGoLine() >= 0)
                     m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1; //last line
                 else
                     m_trackactiveline = TrackGetLastLine();	//end line
-                BLOCKSETEND;
+                BLOCKSETEND();
                 if (m_trackactiveline < 0)
                 {
                     m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1; //failsafe in case the active line is out of bounds
-                    BLOCKDESELECT;	//prevents selecting invalid data
+                    BLOCKDESELECT();	//prevents selecting invalid data
                 }
             }
             else
@@ -3248,7 +3248,7 @@ TrackKeyOk:
                         if (m_trackactiveline < 0) m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1; //failsafe in case the active line is out of bounds
                     }
                     else m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1; //last line
-                    BLOCKDESELECT;
+                    BLOCKDESELECT();
                 }
             }
         }
@@ -3259,7 +3259,7 @@ TrackKeyOk:
         {
             if (shift && control)
             {
-                BLOCKDESELECT;
+                BLOCKDESELECT();
                 TrackSetEnd();
                 break;
             }
@@ -3320,7 +3320,7 @@ TrackKeyOk:
     case VK_INSERT:
     {
     insertline:
-        BLOCKDESELECT;
+        BLOCKDESELECT();
         g_Undo.ChangeTrack(SongGetActiveTrack(), m_trackactiveline, UETYPE_TRACKDATA, 0);
         g_Tracks.InsertLine(SongGetActiveTrack(), m_trackactiveline);
     }
@@ -3337,7 +3337,7 @@ TrackKeyOk:
             if (!shift)
             {
             deleteline:
-                BLOCKDESELECT;
+                BLOCKDESELECT();
                 g_Undo.ChangeTrack(SongGetActiveTrack(), m_trackactiveline, UETYPE_TRACKDATA, 0);
                 g_Tracks.DeleteLine(SongGetActiveTrack(), m_trackactiveline);
             }
@@ -3345,7 +3345,7 @@ TrackKeyOk:
 
     case VK_SPACE:
         if (control) break; //fixes the "return to EDIT MODE space input" bug, by ignoring SPACE if CTRL is also detected
-        BLOCKDESELECT;
+        BLOCKDESELECT();
         if (TrackDelNoteInstrVolSpeed(1 + 2 + 4 + 8)) //all
         {
             if (!(m_play && m_followplay)) TrackDown(g_SkipLinesAfterNoteInsert);
@@ -3354,7 +3354,7 @@ TrackKeyOk:
 
     case 8:			//VK_BACKSPACE:
     {
-        BLOCKDESELECT;
+        BLOCKDESELECT();
         int r = 0;
         switch (m_trackactivecur)
         {
@@ -3505,12 +3505,12 @@ BOOL CSong::SongKey(int vk, int shift, int control)
     switch (vk)
     {
     case VK_UP:
-        BLOCKDESELECT;
+        BLOCKDESELECT();
         SongUp();
         break;
 
     case VK_DOWN:
-        BLOCKDESELECT;
+        BLOCKDESELECT();
         SongDown();
         break;
 
@@ -3579,7 +3579,7 @@ BOOL CSong::SongKey(int vk, int shift, int control)
         break;
 
     case VKX_SONGMAKETRACKSDUPLICATE:	//Control+VK_D
-        BLOCKDESELECT;
+        BLOCKDESELECT();
         if (control)
             SongMaketracksduplicate();
         break;

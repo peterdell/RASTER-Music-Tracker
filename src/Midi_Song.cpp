@@ -348,7 +348,7 @@ void CSong::MidiEvent(DWORD dwParam)
                         else
                             if (TrackSetNoteInstrVol(note, m_activeinstr, vol))
                             {
-                                BLOCKDESELECT;
+                                BLOCKDESELECT();
                                 g_Midi.m_LastNoteOnChannel[atc] = note; //last key pressed on this midi channel
                                 g_Midi.m_NoteVolumeOnChannel[atc] = vol;		//volume
                                 g_Midi.m_InstrumentOnChannel[atc] = m_activeinstr;		//instrument numbers
@@ -595,7 +595,7 @@ void CSong::MidiEvent(DWORD dwParam)
                     else
                         if (TrackSetNoteInstrVol(note, m_activeinstr, vol))
                         {
-                            BLOCKDESELECT;
+                            BLOCKDESELECT();
                             g_Midi.m_LastNoteOnChannel[chn] = note; //last key pressed on this midi channel
                             if (g_respectvolume)
                             {

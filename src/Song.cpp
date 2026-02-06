@@ -35,6 +35,8 @@ extern int g_tracks4_8;
 
 CSongTimer g_SongTimer;
 
+
+
 // ----------------------------------------------------------------------------
 
 CSong::CSong()
@@ -131,10 +133,10 @@ void CSong::ClearSong(int numOfTracks)
     SetTracks(numOfTracks);
     g_rmtroutine = TRUE;				// RMT routine execution enabled
     SetEditMode(EditMode::EDIT_MODE);
-    g_respectvolume = 0;
+    g_respectvolume = FALSE;
     g_rmtstripped_adr_module = 0x4000;	// Default standard address for stripped RMT modules
-    g_rmtstripped_sfx = 0;				// Is not a standard sfx variety stripped RMT
-    g_rmtstripped_gvf = 0;				// Default does not use Feat GlobalVolumeFade
+    g_rmtstripped_sfx = FALSE;			// Is not a standard sfx variety stripped RMT
+    g_rmtstripped_gvf = FALSE;			// Default does not use Feat GlobalVolumeFade
     g_rmtmsxtext = "";					// Clear the text for XEX export
     g_PrefixForAllAsmLabels = "MUSIC";	// Default label prefix for exporting simple ASM notation
 
@@ -1002,14 +1004,14 @@ BOOL CSong::TrackUp(int lines)
 
     if (m_trackactiveline < 0)	//track line is below 0
     {
-        if (ISBLOCKSELECTED)	//a selection block is currently in use
+        if (ISBLOCKSELECTED())	//a selection block is currently in use
         {
             m_trackactiveline = 0;	//prevent moving anywhere else
             return 1;
         }
         if (g_keyboard_updowncontinue)	//navigation between tracks is enabled
         {
-            BLOCKDESELECT;
+            BLOCKDESELECT();
             SongUp();	//go to the next songline with current trackline position
             trlen = GetSmallestMaxtracklen(m_songactiveline);	//fetch the new pattern length as well
         }
@@ -1040,7 +1042,7 @@ BOOL CSong::TrackDown(int lines, BOOL stoponlastline)
 
     if (m_trackactiveline >= trlen)	//active line is equal or above max track length
     {
-        if (ISBLOCKSELECTED)
+        if (ISBLOCKSELECTED())
         {
             //m_trackactiveline = g_Tracks.m_maxtracklen - 1;	//prevent moving anywhere else
             m_trackactiveline = trlen - 1;	//prevent moving anywhere else
@@ -1050,7 +1052,7 @@ BOOL CSong::TrackDown(int lines, BOOL stoponlastline)
         m_trackactiveline = m_trackactiveline % trlen;	//active line is modulo of track length, it will roll over 
         if (g_keyboard_updowncontinue)	//navigation between tracks is enabled
         {
-            BLOCKDESELECT;
+            BLOCKDESELECT();
             SongDown();	//go to the next songline with current trackline position
             trlen = GetSmallestMaxtracklen(m_songactiveline);	//fetch the new pattern length as well
         }
@@ -1263,7 +1265,7 @@ void CSong::SongJump(int lines)
 
 BOOL CSong::SongUp()
 {
-    BLOCKDESELECT;
+    BLOCKDESELECT();
     g_Undo.Separator();
 
     m_songactiveline--;
@@ -1298,7 +1300,7 @@ BOOL CSong::SongUp()
 
 BOOL CSong::SongDown()
 {
-    BLOCKDESELECT;
+    BLOCKDESELECT();
     g_Undo.Separator();
 
     m_songactiveline++;
@@ -1559,7 +1561,7 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLines(int& line)
     dlg.m_volumep = 100;	//100%
 
     if (dlg.DoModal() != IDOK) return 1;
-    BLOCKDESELECT;					//the block is deselected only if it is OK
+    BLOCKDESELECT();					//the block is deselected only if it is OK
 
     BYTE tracks[TRACKSNUM];
     memset(tracks, 0, TRACKSNUM); //init
@@ -3163,7 +3165,7 @@ BOOL CSong::Play(PlayMode mode, BOOL follow, int special)
         if (m_songactiveline > 255) m_songactiveline = 255;
         m_songplayline = m_songactiveline;
         m_trackplayline = m_trackactiveline = 0;
-        if (mode == PLAY_SEEK_NEXT) mode = PLAY_FROM;
+        if (mode == PLAY_SEEK_NEXT) { mode = PLAY_FROM; }
         break;
 
     case PLAY_SEEK_PREV: //from seeking prev
@@ -3171,7 +3173,7 @@ BOOL CSong::Play(PlayMode mode, BOOL follow, int special)
         if (m_songactiveline < 0) m_songactiveline = 0;
         m_songplayline = m_songactiveline;
         m_trackplayline = m_trackactiveline = 0;
-        if (mode == PLAY_SEEK_PREV) mode = PLAY_FROM;
+        if (mode == PLAY_SEEK_PREV) { mode = PLAY_FROM; }
         break;
 
     }
@@ -3406,4 +3408,22 @@ void CSong::TimerRoutine()
     ChangeTimer(IsNTSC() ? m_timerRoutineTick[g_timerGlobalCount % 3] : 20);
 
     g_timerGlobalCount++;			// Increment by one each time Timer Routine was processed
+}
+
+
+void CSong::BLOCKSETBEGIN() {
+    g_TrackClipboard.BlockSetBegin(m_trackactivecol, SongGetActiveTrack(), m_trackactiveline);
+}
+
+void CSong::BLOCKSETEND() {
+    g_TrackClipboard.BlockSetEnd(m_trackactiveline);
+}
+
+
+void CSong::BLOCKDESELECT() {
+    g_TrackClipboard.BlockDeselect();
+}
+
+BOOL CSong::ISBLOCKSELECTED() {
+    return g_TrackClipboard.IsBlockSelected();
 }

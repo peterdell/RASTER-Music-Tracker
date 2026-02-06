@@ -3,15 +3,14 @@
 
 #include "General.h"
 
-#include "Undo.h"
 #include "Instruments.h"
-#include "Tracks.h"
 #include "PokeyStream.h"
+#include "Tracks.h"
+#include "Undo.h"
 
 #include "SongTypes.h"
 
 class CASMFileExporter;
-
 
 class CSong
 {
@@ -268,6 +267,12 @@ public:
     BOOL IsSongGo(int songline) const { return IsValidSongline(songline) ? m_songgo[songline] >= 0 : 0; };
 
     void SongJump(int lines);
+
+
+    void BLOCKSETBEGIN();
+    void BLOCKSETEND();
+    void BLOCKDESELECT();
+    BOOL ISBLOCKSELECTED();
 
 private:
     int m_song[SONGLEN][SONGTRACKS];
