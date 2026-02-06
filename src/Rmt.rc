@@ -1345,22 +1345,19 @@ BEGIN
     BEGIN
         MENUITEM "Pokey Chip &Registers",       ID_VIEW_POKEYREGS
         MENUITEM "Activate Pokey E&xplorer Mode\tCtrl+Shift+F5", ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE
-        POPUP "Channel"
-        BEGIN
-            MENUITEM "Next Channel\tRETURN",        ID_POKEY_NEXTCHANNEL
-            MENUITEM "Previous Channel\tBackspace", ID_POKEY_PREVIOUSCHANNEL
-        END
         POPUP "AUDF0"
         BEGIN
-            MENUITEM "Increase By 0x01\t1",         ID_POKEY_AUDF0_INCREASE_BY_X01
-            MENUITEM "Increase By 0x10\tShift+1",   ID_POKEY_AUDF0_INCREASE_BY_0X10
-            MENUITEM "Decrease By 0x01\tQ",         ID_POKEY_AUDF0_DECREASE_BY_X01
-            MENUITEM "Decrease By 0x11\tShift+Q",   ID_POKEY_AUDF0_DECREASE_BY_0X11
+            MENUITEM "Increase By 0x01\t1",         ID_POKEY_AUDF0_INCREASE_BY_01
+            MENUITEM "Increase By 0x10\tShift+1",   ID_POKEY_AUDF0_INCREASE_BY_10
+            MENUITEM "Decrease By 0x01\tQ",         ID_POKEY_AUDF0_DECREASE_BY_01
+            MENUITEM "Decrease By 0x11\tShift+Q",   ID_POKEY_AUDF0_DECREASE_BY_10
         END
         POPUP "AUDF1"
         BEGIN
-            MENUITEM "Increase AUDF1\t3",           ID_POKEY_INCREASEAUDF1
-            MENUITEM "Decrease AUDF1\tE",           ID_POKEY_DECREASEAUDF1
+            MENUITEM "Increase By 0x01\t3",         ID_POKEY_AUDF1_INCREASE_BY_01
+            MENUITEM "Increase By 0x10\tShift+3",   ID_POKEY_AUDF1_INCREASE_BY_10
+            MENUITEM "Decrease By 0x01\tE",         ID_POKEY_AUDF1_DECREASEBY_01
+            MENUITEM "Decrease By 0x10\tShift+E",   ID_POKEY_AUDF1_DECREASEBY_10
         END
         POPUP "AUDF2"
         BEGIN
@@ -1371,6 +1368,11 @@ BEGIN
         BEGIN
             MENUITEM "Increase AUDF3\t7",           ID_POKEY_INCREASEAUDF3
             MENUITEM "Decrease AUDF3\tU",           ID_POKEY_DECREASEAUDF3
+        END
+        POPUP "Channel"
+        BEGIN
+            MENUITEM "Next Channel\tRETURN",        ID_POKEY_NEXTCHANNEL
+            MENUITEM "Previous Channel\tBackspace", ID_POKEY_PREVIOUSCHANNEL
         END
         POPUP "Divisor"
         BEGIN
@@ -1477,6 +1479,11 @@ BEGIN
     VK_ESCAPE,      ID_SONG_STOP,           VIRTKEY, NOINVERT
     VK_F12,         ID_SONG_TOGGLE_NTSC,    VIRTKEY, CONTROL, NOINVERT
     VK_F6,          ID_BLOCK_PLAY_AND_LOOP, VIRTKEY, SHIFT, NOINVERT
+END
+
+IDR_POKEY_EXPLORER ACCELERATORS
+BEGIN
+    VK_RETURN,      ID_POKEY_AUDF0_DECREASE_BY_0X11, VIRTKEY, NOINVERT
 END
 
 

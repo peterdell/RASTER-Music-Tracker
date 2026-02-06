@@ -47,6 +47,7 @@
 #define IDS_RMT_AUTHOR                  202
 #define IDS_RMT_REPOSITORY              203
 #define IDS_RMT_VERSION                 204
+#define IDR_POKEY_EXPLORER              205
 #define IDC_ABOUT6502                   1001
 #define IDC_ABOUTPOKEY                  1002
 #define IDC_ADDR                        1003
@@ -399,14 +400,24 @@
 #define ID_POKEY_AUDF0_INCREASE_BY_0X10 32963
 #define ID_POKEY_AUDF0_DECREASE_BY_X01  32964
 #define ID_POKEY_AUDF0_DECREASE_BY_0X11 32965
+#define ID_POKEY_AUDF0_INCREASE_BY_01   32968
+#define ID_POKEY_AUDF0_INCREASE_BY_10   32969
+#define ID_POKEY_AUDF0_DECREASE_BY_01   32970
+#define ID_POKEY_AUDF0_DECREASE_BY_10   32971
+#define ID_POKEY_AUDF1_INCREASE_BY_01   32972
+#define ID_POKEY_AUDF1_DECREASEBY_01    32973
+#define ID_AUDF1_INCREASEAUDF1          32974
+#define ID_POKEY_AUDF1_INCREASE_BY_10   32975
+#define ID_AUDF1_DECREASEAUDF1          32976
+#define ID_POKEY_AUDF1_DECREASEBY_10    32977
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        205
-#define _APS_NEXT_COMMAND_VALUE         32966
+#define _APS_NEXT_RESOURCE_VALUE        206
+#define _APS_NEXT_COMMAND_VALUE         32978
 #define _APS_NEXT_CONTROL_VALUE         1198
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

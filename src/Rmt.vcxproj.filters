@@ -537,7 +537,7 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PokeyController.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

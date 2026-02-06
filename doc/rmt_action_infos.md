@@ -115,18 +115,20 @@
 | Menu Block / Paste Special | Paste Only Volume Values |  |  |
 | Menu Pokey | Activate Pokey Explorer Mode | `Ctrl+Shift+F5` | Activate POKEY Explorer Mode (Ctrl+Shift+F5) |
 | Menu Pokey | Pokey Chip Registers |  |  |
-| Menu Pokey / Channel | Next Channel | `RETURN` |  |
-| Menu Pokey / Channel | Previous Channel | `Backspace` |  |
 | Menu Pokey / AUDF0 | Increase By 0x01 | `1` |  |
 | Menu Pokey / AUDF0 | Increase By 0x10 | `Shift+1` |  |
 | Menu Pokey / AUDF0 | Decrease By 0x01 | `Q` |  |
 | Menu Pokey / AUDF0 | Decrease By 0x11 | `Shift+Q` |  |
-| Menu Pokey / AUDF1 | Increase AUDF1 | `3` |  |
-| Menu Pokey / AUDF1 | Decrease AUDF1 | `E` |  |
+| Menu Pokey / AUDF1 | Increase By 0x01 | `3` |  |
+| Menu Pokey / AUDF1 | Decrease By 0x01 | `E` |  |
+| Menu Pokey / AUDF1 | Increase By 0x10 | `Shift+3` |  |
+| Menu Pokey / AUDF1 | Decrease By 0x10 | `Shift+E` |  |
 | Menu Pokey / AUDF2 | Increase AUDF2 | `5` |  |
 | Menu Pokey / AUDF2 | Decrease AUDF2 | `T` |  |
 | Menu Pokey / AUDF3 | Increase AUDF3 | `7` |  |
 | Menu Pokey / AUDF3 | Decrease AUDF3 | `U` |  |
+| Menu Pokey / Channel | Next Channel | `RETURN` |  |
+| Menu Pokey / Channel | Previous Channel | `Backspace` |  |
 | Menu Pokey / Divisor | Increase Divisor By 0.1 | `+` |  |
 | Menu Pokey / Divisor | Decrease Divisor By 0.1 | `-` |  |
 | Menu Pokey / Divisor | Decrease Divisor By 1.0 | `Shift+-` |  |
