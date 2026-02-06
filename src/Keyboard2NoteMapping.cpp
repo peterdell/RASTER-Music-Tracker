@@ -135,7 +135,7 @@ const char keynumblock09[256] =
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 };
 
-int NoteKey(int vk) {
+char NoteKey(int vk) {
     if (g_keyboard_layout == KeyboardLayout::QWERTY)
     {
         return keynotes_QWERTY[vk];

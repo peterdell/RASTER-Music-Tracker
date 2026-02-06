@@ -4,11 +4,11 @@
 // MFC interface code
 #include "Song.h"
 
-#include "EffectsDlg.h"
-
 #include "Atari.h"
 #include "AtariTrackerDriver.h"
+#include "EffectsDlg.h"
 #include "IOHelpers.h"
+#include "Keyboard.h"
 #include "Notes.h"
 
 #include "Clipboard.h"
@@ -577,20 +577,18 @@ void CSong::DrawAnalyzer()
                     TextMiniXY("CH_IDX:  , MODULO:    , IS_VALID:  ", ANALYZER3_X, ANALYZER3_Y + 8 * 13, TextMiniColor::GRAY);
                     TextMiniXY("         HZ = ((FREQ17 / (COARSE_DIVISOR * DIVISOR)) / (AUDF + MODOFFSET)) / 2", ANALYZER3_X, ANALYZER3_Y + 8 * 15, TextMiniColor::GRAY);
 
-                    //e_ch_idx = 0;				//defined manually elsewhere
-
                     int i_audf = (JOIN_16BIT || JOIN_64KHZ || JOIN_15KHZ) ? audf16 : audf;
                     int e_audf = audf;
                     int e_audf2 = audf2;
                     int e_audc = audc;
 
-                    e_valid = 1;				//always valid for now
-                    e_modulo = 0;				//does not matter right now, used in tandem with e_valid
-                    e_pitch = 0;				//always initialised to 0
+                    BOOL e_valid = TRUE;		//always valid for now
+                    int e_modulo = 0;			//does not matter right now, used in tandem with e_valid
+                    double e_pitch = 0;			//always initialised to 0
 
                     //always initialised to 1 to avoid a division by 0 error
-                    e_modoffset = 1;
-                    e_coarse_divisor = 1;
+                    int e_modoffset = 1;
+                    int e_coarse_divisor = 1;
 
                     //set the divisor and modoffset variables based on the AUDCTL bits currently set
                     if (JOIN_16BIT) e_modoffset = 7;
@@ -1379,7 +1377,7 @@ BOOL CSong::InfoKey(int vk, int shift, int control)
     int areaIndex = (int)m_infoact;
     int volatile& infp = *infptab[areaIndex - 1];
     int infand = infandtab[areaIndex - 1];
-    BOOL CAPSLOCK = GetKeyState(20);	//VK_CAPS_LOCK
+    BOOL CAPSLOCK = GetKeyState(VK_CAPITAL);
 
     if (m_infoact == EditArea::NAME)
     {
@@ -1535,7 +1533,7 @@ edit_ok:
     }
     return 1;
 
-    case 13:		//VK_ENTER
+    case VK_RETURN:
         g_activepart = g_active_ti;
         return 1;
 
@@ -1578,7 +1576,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
     int& at = ai->noteTable[ai->editNoteTableCursorPos];
     int i;
 
-    BOOL CAPSLOCK = GetKeyState(20);	//VK_CAPS_LOCK
+    BOOL CAPSLOCK = GetKeyState(VK_CAPITAL);
 
     if (!control && !shift && NumbKey(vk) >= 0)
     {
@@ -1950,13 +1948,13 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             }
             return 1;
 
-        case 8:			//VK_BACKSPACE:
+        case VK_BACK:
             g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
             ae = 0;
             goto ChangeInstrumentEnv;
             return 1;
 
-        case VK_SPACE:	//VK_SPACE
+        case VK_SPACE:
             if (control) break;	//prevents inputing a SPACE while exiting PROVE mode
             {
                 g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
@@ -2106,11 +2104,11 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             ai->editNoteTableCursorPos = i;
             goto ChangeInstrumentTab;
 
-        case VK_SPACE:	//VK_SPACE: parameter reset and shift by 1 to the right
+        case VK_SPACE:	// parameter reset and shift by 1 to the right
             if (control) break;	//prevents inputing a SPACE while exiting PROVE mode
             if (ai->editNoteTableCursorPos < ai->parameters[PAR_TBL_LENGTH]) ai->editNoteTableCursorPos++;
             //and proceeds the same as VK_BACKSPACE
-        case 8:			//VK_BACKSPACE: parameter reset
+        case VK_BACK: // parameter reset
             g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
             at = 0;
             goto ChangeInstrumentTab;
@@ -2271,8 +2269,8 @@ BOOL CSong::ProveKeyPokeyExplorerMode(int vk, int shift, int control, int& e_ch_
 {
     const auto memory = g_Atari.GetMemoryAt(0);
 
-    static constexpr int audf = 0x3178;
-    static constexpr int audc = 0x3180;
+    static constexpr int audf = 0x3178; // 8 bytes
+    static constexpr int audc = 0x3180; // 8 bytes
     static constexpr int audctl = 0x3C69;
     static constexpr int skctl = 0x3CD3;
 
@@ -2283,13 +2281,14 @@ BOOL CSong::ProveKeyPokeyExplorerMode(int vk, int shift, int control, int& e_ch_
     {
         //General variables manipulation
 
-    case 13:	//VK_ENTER
+    case VK_RETURN:
         e_ch_idx++;
-        if (e_ch_idx > 3)
+        if (e_ch_idx > 3) {
             e_ch_idx = 0;
+        }
         break;
 
-    case 8:		//VK_BACKSPACE
+    case VK_BACK:
         e_ch_idx--;
         if (e_ch_idx < 0)
             e_ch_idx = 3;
@@ -2297,137 +2296,139 @@ BOOL CSong::ProveKeyPokeyExplorerMode(int vk, int shift, int control, int& e_ch_
 
     case VK_OEM_PLUS:
         e_divisor += (g_shiftkey) ? 1 : 0.1;
-        if (e_divisor > 10000)
+        if (e_divisor > 10000) {
             e_divisor = 10000;
+        }
         break;
 
     case VK_OEM_MINUS:
         e_divisor -= (g_shiftkey) ? 1 : 0.1;
-        if (e_divisor < 1)
+        if (e_divisor < 1) {
             e_divisor = 1;
+        }
         break;
 
         //AUDF channels
 
-    case 0x31:	//VK_1
+    case VK_1:
         ch = 0;
         memory[audf + ch] += step;
         break;
 
-    case 0x51:	//VK_Q
+    case VK_Q:
         ch = 0;
         memory[audf + ch] -= step;
         break;
 
-    case 0x33:	//VK_3
+    case VK_3:
         ch = 1;
         memory[audf + ch] += step;
         break;
 
-    case 0x45:	//VK_E
+    case VK_E:
         ch = 1;
         memory[audf + ch] -= step;
         break;
 
-    case 0x35:	//VK_5
+    case VK_5:
         ch = 2;
         memory[audf + ch] += step;
         break;
 
-    case 0x54:	//VK_T
+    case VK_T:
         ch = 2;
         memory[audf + ch] -= step;
         break;
 
-    case 0x37:	//VK_7
+    case VK_7:
         ch = 3;
         memory[audf + ch] += step;
         break;
 
-    case 0x55:	//VK_U
+    case VK_U:
         ch = 3;
         memory[audf + ch] -= step;
         break;
 
         //AUDC channels
 
-    case 0x32:	//VK_2
+    case VK_2:
         ch = 0;
         memory[audc + ch] += step;
         break;
 
-    case 0x57:	//VK_W
+    case VK_W:
         ch = 0;
         memory[audc + ch] -= step;
         break;
 
-    case 0x34:	//VK_4
+    case VK_4:
         ch = 1;
         memory[audc + ch] += step;
         break;
 
-    case 0x52:	//VK_R
+    case VK_R:
         ch = 1;
         memory[audc + ch] -= step;
         break;
 
-    case 0x36:	//VK_6
+    case VK_6:
         ch = 2;
         memory[audc + ch] += step;
         break;
 
-    case 0x59:	//VK_Y
+    case VK_Y:
         ch = 2;
         memory[audc + ch] -= step;
         break;
 
-    case 0x38:	//VK_8
+    case VK_8:
         ch = 3;
         memory[audc + ch] += step;
         break;
 
-    case 0x49:	//VK_I
+    case VK_I:
         ch = 3;
         memory[audc + ch] -= step;
         break;
 
         //AUDCTL bits
 
-    case 0x50:	//VK_P
+    case VK_P:
         memory[audctl] ^= 0x80;
         break;
 
-    case 0x41:	//VK_A
+    case VK_A:
         memory[audctl] ^= 0x40;
         break;
 
-    case 0x44:	//VK_D
+    case VK_D:
         memory[audctl] ^= 0x20;
         break;
 
-    case 0x4A:	// VK_J
+    case VK_J:
         memory[audctl] ^= 0x10;
         break;
 
-    case 0x4B:	//VK_K
+    case VK_K:
         memory[audctl] ^= 0x08;
         break;
 
-    case 0x46:	//VK_F
+    case VK_F:
         memory[audctl] ^= 0x04;
         break;
 
-    case 0x47:	//VK_G
+    case VK_G:
         memory[audctl] ^= 0x02;
         break;
 
-    case 0x43:	//VK_C
+    case VK_C:
         memory[audctl] ^= 0x01;
         break;
 
-        //SKCTL Two-Tone toggle
 
-    case 0x4D:	//VK_M
+    case VK_M:
+        //SKCTL Two-Tone toggle
         memory[skctl] ^= 0x88;
         break;
 
@@ -2449,7 +2450,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
 
     }
 
-    auto note = NoteKey(vk);
+    int note = NoteKey(vk);
 
     if (note >= 0)
     {
@@ -2659,7 +2660,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         }
         break;
 
-    case 13:		//VK_ENTER:
+    case VK_RETURN:
         if (g_activepart == Part::PART_TRACKS)
         {
             int instr, vol;
@@ -2711,12 +2712,12 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
 BOOL CSong::TrackKey(int vk, int shift, int control)
 {
     //
-#define VKX_SONGINSERTLINE	73		//VK_I
-#define VKX_SONGDELETELINE	85		//VK_U
-#define VKX_SONGDUPLICATELINE 79	//VK_O
-#define VKX_SONGPREPARELINE 80		//VK_P
-#define VKX_SONGPUTNEWTRACK 78		//VK_N
-#define VKX_SONGMAKETRACKSDUPLICATE 68	//VK_D
+#define VKX_SONGINSERTLINE	VK_I
+#define VKX_SONGDELETELINE	VK_U
+#define VKX_SONGDUPLICATELINE VK_O
+#define VKX_SONGPREPARELINE VK_P
+#define VKX_SONGPUTNEWTRACK VK_N
+#define VKX_SONGMAKETRACKSDUPLICATE VK_D
 //
     int note, i, j;
 
@@ -3074,7 +3075,7 @@ TrackKeyOk:
         BLOCKDESELECT();
         break;
 
-    case 65:	//VK_A
+    case VK_A:
         if (g_TrackClipboard.IsBlockSelected() && shift && control)
         {	//Shift+control+A
             //switch ALL / no ALL
@@ -3091,7 +3092,7 @@ TrackKeyOk:
             }
         break;
 
-    case 66:	//VK_B			//restore block from backup
+    case VK_B:			//restore block from backup
         if (g_TrackClipboard.IsBlockSelected() && control && !shift)
         {
             g_Undo.ChangeTrack(SongGetActiveTrack(), m_trackactiveline, UETYPE_TRACKDATA, 1);
@@ -3099,7 +3100,7 @@ TrackKeyOk:
         }
         break;
 
-    case 67:	//VK_C
+    case VK_C:
         if (control && !shift)
         {
             if (!g_TrackClipboard.IsBlockSelected())
@@ -3111,7 +3112,7 @@ TrackKeyOk:
         }
         break;
 
-    case 69:	//VK_E
+    case VK_E:
         if (control && !shift)		//exchange block and clipboard
         {
             if (g_TrackClipboard.IsBlockSelected())
@@ -3122,7 +3123,7 @@ TrackKeyOk:
         }
         break;
 
-    case 0x4D:	//VK_M
+    case VK_M:
         if (control && !shift)
         {
             BLOCKDESELECT();
@@ -3130,7 +3131,7 @@ TrackKeyOk:
         }
         break;
 
-    case 86:	//VK_V
+    case VK_V:
         if (control && !shift)
         {
             BLOCKDESELECT();
@@ -3138,7 +3139,7 @@ TrackKeyOk:
         }
         break;
 
-    case 88:	//VK_X
+    case VK_X:
         if (control && !shift)
         {
             if (!g_TrackClipboard.IsBlockSelected())
@@ -3152,7 +3153,7 @@ TrackKeyOk:
         }
         break;
 
-    case 70:	//VK_F
+    case VK_F:
         if (control && !shift && g_TrackClipboard.IsBlockSelected())
         {
             g_Undo.ChangeTrack(SongGetActiveTrack(), m_trackactiveline, UETYPE_TRACKDATA, 1);
@@ -3160,18 +3161,18 @@ TrackKeyOk:
         }
         break;
 
-    case 71:	//VK_G		//song goto on/off
+    case VK_G:		//song goto on/off
         BLOCKDESELECT();
         if (control && !shift) SongTrackGoOnOff();	//control+G => goto on/off line in the song
         break;
 
-    case VKX_SONGPUTNEWTRACK:	//VK_N
+    case VK_N:
         BLOCKDESELECT();
         if (control && !shift)
             SongPutnewemptyunusedtrack();
         break;
 
-    case VKX_SONGMAKETRACKSDUPLICATE:	//VK_D
+    case VK_D:
         BLOCKDESELECT();
         if (control && !shift)
             SongMaketracksduplicate();
@@ -3255,7 +3256,7 @@ TrackKeyOk:
         }
         break;
 
-    case 13:		//VK_ENTER:	//FIXME: Channels are desynched when track End or Loops are detected, bad hack...
+    case VK_RETURN:	//FIXME: Channels are desynched when track End or Loops are detected, bad hack...
         int instr, vol, oldline;
         {
             if (shift && control)
@@ -3308,12 +3309,12 @@ TrackKeyOk:
         }
         break;
 
-    case VKX_SONGINSERTLINE:	//VK_I:
+    case VK_I:
         if (control && !shift)
             goto insertline;
         break;
 
-    case VKX_SONGDELETELINE:	//VK_U:
+    case VK_U:
         if (control && !shift)
             goto deleteline;
         break;
@@ -3353,7 +3354,7 @@ TrackKeyOk:
         }
         break;
 
-    case 8:			//VK_BACKSPACE:
+    case VK_BACK:
     {
         BLOCKDESELECT();
         int r = 0;
@@ -3552,52 +3553,52 @@ BOOL CSong::SongKey(int vk, int shift, int control)
             TrackRight(1);
         break;
 
-    case VKX_SONGDELETELINE:	//Control+VK_U:
+    case VK_U:	//Control+VK_U:
         if (!control) break;
     case VK_DELETE:
         SongDeleteLine(m_songactiveline);
         break;
 
-    case VKX_SONGINSERTLINE:	//Control+VK_I:
+    case VK_I:	//Control+VK_I:
         if (!control) break;
     case VK_INSERT:
         SongInsertLine(m_songactiveline);
         break;
 
-    case VKX_SONGDUPLICATELINE:	//Control+VK_O
+    case VK_O:	//Control+VK_O
         if (control)
             SongInsertCopyOrCloneOfSongLines(m_songactiveline);
         break;
 
-    case VKX_SONGPREPARELINE:	//Control+VK_P
+    case VK_P:	//Control+VK_P
         if (control)
             SongPrepareNewLine(m_songactiveline);
         break;
 
-    case VKX_SONGPUTNEWTRACK:	//Control+VK_N
+    case VK_N:	//Control+VK_N
         if (control)
             SongPutnewemptyunusedtrack();
         break;
 
-    case VKX_SONGMAKETRACKSDUPLICATE:	//Control+VK_D
+    case VK_D:	//Control+VK_D
         BLOCKDESELECT();
         if (control)
             SongMaketracksduplicate();
         break;
 
-    case 8:			//VK_BACKSPACE:
+    case VK_BACK:
         if (isgo)
             SongTrackGoOnOff();	//Go off
         else
             SongTrackEmpty();
         break;
 
-    case 71:		//VK_G
+    case VK_G:
         if (control)
             SongTrackGoOnOff();	//Go on/off
         break;
 
-    case 13:		//VK_ENTER
+    case VK_RETURN:
         g_activepart = g_active_ti;
         break;
 

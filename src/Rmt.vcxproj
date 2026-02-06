@@ -360,6 +360,7 @@
     <ClInclude Include="Commands.h" />
     <ClInclude Include="Fraction.h" />
     <ClInclude Include="Clipboard.h" />
+    <ClInclude Include="Keyboard.h" />
     <ClInclude Include="OptionsDialog.h" />
     <ClInclude Include="InstrumentTypes.h" />
     <ClInclude Include="LZSSFile.h" />

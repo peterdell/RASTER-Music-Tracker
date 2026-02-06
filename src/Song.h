@@ -308,12 +308,7 @@ private:
 
     //POKEY EXPLORER variables, used for tests involving pitch calculations and sound debugging displayed on screen
     int e_ch_idx = 0;
-    int e_modoffset = 1;
-    int e_coarse_divisor = 1;
-    int e_modulo = 0;
-    BOOL e_valid = 1;
     double e_divisor = 1;
-    double e_pitch = 0;
 
     EditArea m_infoact;					// Which part of the info area is active for editing: 0 = name, 
     char m_songname[SONG_NAME_MAX_LEN + 1];
