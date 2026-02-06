@@ -1584,8 +1584,7 @@ void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         break;
 
     default:
-    AllModesDefaultKey:
-        BOOL CAPSLOCK = GetKeyState(20);	//VK_CAPS_LOCK
+        BOOL CAPSLOCK = GetKeyState(VK_CAPITAL);
         switch (g_activepart)
         {
         case Part::PART_INFO:

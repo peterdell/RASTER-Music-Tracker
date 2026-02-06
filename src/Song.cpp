@@ -1,13 +1,10 @@
 #include "StdAfx.h"
-#include <fstream>
 
-#include "GuiHelpers.h"
 #include "Song.h"
 
 #include "Notes.h"
 
 #include "EffectsDlg.h"
-#include "FileNewDlg.h"
 #include "MainFrm.h"
 
 #include "Atari.h"
@@ -29,10 +26,10 @@ extern CInstruments g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 extern CXPokey g_Pokey;
 extern CString g_PrefixForAllAsmLabels;
+
 // These two should be song attributes instead
 
 extern int g_tracks4_8;
-
 CSongTimer g_SongTimer;
 
 

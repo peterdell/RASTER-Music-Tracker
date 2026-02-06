@@ -44,7 +44,7 @@ char g_debugmem[CAtari::MEMORY_SIZE];	//debug display of memory bytes directly, 
 
 
 
-BOOL IsnotMovementVKey(int vk)
+BOOL IsNotAMovementVKey(int vk)
 {
     //returns 1 if it is not a scroll key
     return (vk != VK_RIGHT && vk != VK_LEFT && vk != VK_UP && vk != VK_DOWN && vk != VK_TAB && vk != 13 && vk != VK_HOME && vk != VK_END && vk != VK_PRIOR && vk != VK_NEXT && vk != VK_CAPITAL);
@@ -1386,7 +1386,7 @@ BOOL CSong::InfoKey(int vk, int shift, int control)
         is_editing_infos = 1;
         if (vk == VK_DIVIDE || vk == VK_MULTIPLY || vk == VK_ADD || vk == VK_SUBTRACT) goto edit_ok;	//a workaround so the Octave and Volume can be set anywhere
         if (((!CAPSLOCK && shift) || (CAPSLOCK && !shift)) && (vk == VK_LEFT || vk == VK_RIGHT)) goto edit_ok;	//a workaround so the active instrument can be set anywhere
-        if (IsnotMovementVKey(vk))
+        if (IsNotAMovementVKey(vk))
         {	//saves undo only if it is not cursor movement
             g_Undo.ChangeInfo(0, UETYPE_INFODATA);
         }
@@ -1749,7 +1749,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
     {
         g_isEditingInstrumentName = 1;
         //NAME
-        if (IsnotMovementVKey(vk))
+        if (IsNotAMovementVKey(vk))
         {	//saves undo only if it is not cursor movement
             g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
         }
@@ -2267,192 +2267,193 @@ BOOL CSong::CursorToSpeedColumn()
     return 1;
 }
 
+BOOL CSong::ProveKeyPokeyExplorerMode(int vk, int shift, int control, int& e_ch_idx)
+{
+    const auto memory = g_Atari.GetMemoryAt(0);
+
+    static constexpr int audf = 0x3178;
+    static constexpr int audc = 0x3180;
+    static constexpr int audctl = 0x3C69;
+    static constexpr int skctl = 0x3CD3;
+
+    int ch = 0;	//channel separation used in registers write
+    int step = (g_shiftkey) ? 0x10 : 0x01;	//when the SHIFT key is held, increments/decrements are in steps are $10
+
+    switch (vk)
+    {
+        //General variables manipulation
+
+    case 13:	//VK_ENTER
+        e_ch_idx++;
+        if (e_ch_idx > 3)
+            e_ch_idx = 0;
+        break;
+
+    case 8:		//VK_BACKSPACE
+        e_ch_idx--;
+        if (e_ch_idx < 0)
+            e_ch_idx = 3;
+        break;
+
+    case VK_OEM_PLUS:
+        e_divisor += (g_shiftkey) ? 1 : 0.1;
+        if (e_divisor > 10000)
+            e_divisor = 10000;
+        break;
+
+    case VK_OEM_MINUS:
+        e_divisor -= (g_shiftkey) ? 1 : 0.1;
+        if (e_divisor < 1)
+            e_divisor = 1;
+        break;
+
+        //AUDF channels
+
+    case 0x31:	//VK_1
+        ch = 0;
+        memory[audf + ch] += step;
+        break;
+
+    case 0x51:	//VK_Q
+        ch = 0;
+        memory[audf + ch] -= step;
+        break;
+
+    case 0x33:	//VK_3
+        ch = 1;
+        memory[audf + ch] += step;
+        break;
+
+    case 0x45:	//VK_E
+        ch = 1;
+        memory[audf + ch] -= step;
+        break;
+
+    case 0x35:	//VK_5
+        ch = 2;
+        memory[audf + ch] += step;
+        break;
+
+    case 0x54:	//VK_T
+        ch = 2;
+        memory[audf + ch] -= step;
+        break;
+
+    case 0x37:	//VK_7
+        ch = 3;
+        memory[audf + ch] += step;
+        break;
+
+    case 0x55:	//VK_U
+        ch = 3;
+        memory[audf + ch] -= step;
+        break;
+
+        //AUDC channels
+
+    case 0x32:	//VK_2
+        ch = 0;
+        memory[audc + ch] += step;
+        break;
+
+    case 0x57:	//VK_W
+        ch = 0;
+        memory[audc + ch] -= step;
+        break;
+
+    case 0x34:	//VK_4
+        ch = 1;
+        memory[audc + ch] += step;
+        break;
+
+    case 0x52:	//VK_R
+        ch = 1;
+        memory[audc + ch] -= step;
+        break;
+
+    case 0x36:	//VK_6
+        ch = 2;
+        memory[audc + ch] += step;
+        break;
+
+    case 0x59:	//VK_Y
+        ch = 2;
+        memory[audc + ch] -= step;
+        break;
+
+    case 0x38:	//VK_8
+        ch = 3;
+        memory[audc + ch] += step;
+        break;
+
+    case 0x49:	//VK_I
+        ch = 3;
+        memory[audc + ch] -= step;
+        break;
+
+        //AUDCTL bits
+
+    case 0x50:	//VK_P
+        memory[audctl] ^= 0x80;
+        break;
+
+    case 0x41:	//VK_A
+        memory[audctl] ^= 0x40;
+        break;
+
+    case 0x44:	//VK_D
+        memory[audctl] ^= 0x20;
+        break;
+
+    case 0x4A:	// VK_J
+        memory[audctl] ^= 0x10;
+        break;
+
+    case 0x4B:	//VK_K
+        memory[audctl] ^= 0x08;
+        break;
+
+    case 0x46:	//VK_F
+        memory[audctl] ^= 0x04;
+        break;
+
+    case 0x47:	//VK_G
+        memory[audctl] ^= 0x02;
+        break;
+
+    case 0x43:	//VK_C
+        memory[audctl] ^= 0x01;
+        break;
+
+        //SKCTL Two-Tone toggle
+
+    case 0x4D:	//VK_M
+        memory[skctl] ^= 0x88;
+        break;
+
+    default:
+        return FALSE;
+
+    }
+    return TRUE;
+
+}
+
 BOOL CSong::ProveKey(int vk, int shift, int control)
 {
-    int note, i;
-    note = NoteKey(vk);
 
     if (IsEditMode(EditMode::POKEY_EXPLORER_MODE))	//POKEY EXPLORER MODE: FULL CONTROL OVER THE POKEY (IGNORE RMT ROUTINES EXCEPT SETPOKEY)
     {
-        //trackn_audf => memory[0x3178]
-        //trackn_audc => memory[0x3180]
-        //v_audctl => memory[0x3C69]
-        //v_skctl => memory[0x3CD3]
 
-
-        const auto memory = g_Atari.GetMemoryAt(0);
-
-        int audf = 0x3178;
-        int audc = 0x3180;
-        int audctl = 0x3C69;
-        int skctl = 0x3CD3;
-
-        int ch = 0;	//channel separation used in registers write
-        int step = (g_shiftkey) ? 0x10 : 0x01;	//when the SHIFT key is held, increments/decrements are in steps are $10
-
-        switch (vk)
-        {
-            //General variables manipulation
-
-        case 13:	//VK_ENTER
-            e_ch_idx++;
-            if (e_ch_idx > 3)
-                e_ch_idx = 0;
-            break;
-
-        case 8:		//VK_BACKSPACE
-            e_ch_idx--;
-            if (e_ch_idx < 0)
-                e_ch_idx = 3;
-            break;
-
-        case VK_OEM_PLUS:
-            e_divisor += (g_shiftkey) ? 1 : 0.1;
-            if (e_divisor > 10000)
-                e_divisor = 10000;
-            break;
-
-        case VK_OEM_MINUS:
-            e_divisor -= (g_shiftkey) ? 1 : 0.1;
-            if (e_divisor < 1)
-                e_divisor = 1;
-            break;
-
-            //AUDF channels
-
-        case 0x31:	//VK_1
-            ch = 0;
-            memory[audf + ch] += step;
-            break;
-
-        case 0x51:	//VK_Q
-            ch = 0;
-            memory[audf + ch] -= step;
-            break;
-
-        case 0x33:	//VK_3
-            ch = 1;
-            memory[audf + ch] += step;
-            break;
-
-        case 0x45:	//VK_E
-            ch = 1;
-            memory[audf + ch] -= step;
-            break;
-
-        case 0x35:	//VK_5
-            ch = 2;
-            memory[audf + ch] += step;
-            break;
-
-        case 0x54:	//VK_T
-            ch = 2;
-            memory[audf + ch] -= step;
-            break;
-
-        case 0x37:	//VK_7
-            ch = 3;
-            memory[audf + ch] += step;
-            break;
-
-        case 0x55:	//VK_U
-            ch = 3;
-            memory[audf + ch] -= step;
-            break;
-
-            //AUDC channels
-
-        case 0x32:	//VK_2
-            ch = 0;
-            memory[audc + ch] += step;
-            break;
-
-        case 0x57:	//VK_W
-            ch = 0;
-            memory[audc + ch] -= step;
-            break;
-
-        case 0x34:	//VK_4
-            ch = 1;
-            memory[audc + ch] += step;
-            break;
-
-        case 0x52:	//VK_R
-            ch = 1;
-            memory[audc + ch] -= step;
-            break;
-
-        case 0x36:	//VK_6
-            ch = 2;
-            memory[audc + ch] += step;
-            break;
-
-        case 0x59:	//VK_Y
-            ch = 2;
-            memory[audc + ch] -= step;
-            break;
-
-        case 0x38:	//VK_8
-            ch = 3;
-            memory[audc + ch] += step;
-            break;
-
-        case 0x49:	//VK_I
-            ch = 3;
-            memory[audc + ch] -= step;
-            break;
-
-            //AUDCTL bits
-
-        case 0x50:	//VK_P
-            memory[audctl] ^= 0x80;
-            break;
-
-        case 0x41:	//VK_A
-            memory[audctl] ^= 0x40;
-            break;
-
-        case 0x44:	//VK_D
-            memory[audctl] ^= 0x20;
-            break;
-
-        case 0x4A:	//VK_J
-            memory[audctl] ^= 0x10;
-            break;
-
-        case 0x4B:	//VK_K
-            memory[audctl] ^= 0x08;
-            break;
-
-        case 0x46:	//VK_F
-            memory[audctl] ^= 0x04;
-            break;
-
-        case 0x47:	//VK_G
-            memory[audctl] ^= 0x02;
-            break;
-
-        case 0x43:	//VK_C
-            memory[audctl] ^= 0x01;
-            break;
-
-            //SKCTL Two-Tone toggle
-
-        case 0x4D:	//VK_M
-            memory[skctl] ^= 0x88;
-            break;
-
-        default:
-            return 0;
-
-        }
-        return 1;
+        return ProveKeyPokeyExplorerMode(vk, shift, control, e_ch_idx);
 
     }
 
+    auto note = NoteKey(vk);
+
     if (note >= 0)
     {
-        i = note + m_octave * 12;
+        int i = note + m_octave * 12;
         if (i >= 0 && i < CNotes::NOTESNUM)		//only within limits
         {
             SetPlayPressedTonesTNIV(m_trackactivecol, i, m_activeinstr, m_volume);
@@ -2665,7 +2666,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
             if ((BOOL)control != (BOOL)g_keyboard_swapenter)	//control+Enter => plays a whole line (all tracks)
             {
                 //for all track columns except the active track column
-                for (i = 0; i < g_tracks4_8; i++)
+                for (int i = 0; i < g_tracks4_8; i++)
                 {
                     if (i != m_trackactivecol)
                     {

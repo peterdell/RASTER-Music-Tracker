@@ -1,8 +1,8 @@
-#include "StdAfx.h"
 #include "Clipboard.h"
-#include "Song.h"
 #include "EffectsDlg.h"
 #include "GuiHelpers.h"
+#include "Song.h"
+#include "StdAfx.h"
 
 
 #define EXCH(a, b)	{ int xch = a; a = b; b = xch; }
@@ -112,7 +112,7 @@ void CTrackClipboard::BlockAllOnOff()
     {
         // Reset the state of the selected base track upon toggle
         BlockInitBase(m_seltrack);
-        m_all ^= 1;
+        m_all ^= TRUE;
     }
 }
 

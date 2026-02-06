@@ -66,6 +66,9 @@ public:
     void SetPlayLine(int line);
 
     BOOL CursorToSpeedColumn();
+
+    BOOL ProveKeyPokeyExplorerMode(int vk, int shift, int control, int& e_ch_idx); // private
+
     BOOL ProveKey(int vk, int shift, int control);
     BOOL TrackKey(int vk, int shift, int control);
     BOOL TrackCursorGoto(CPoint point);

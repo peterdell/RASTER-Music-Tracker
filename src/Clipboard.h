@@ -27,13 +27,13 @@ public:
     void BlockInstrumentChange(int instr, int addinstr);
     void BlockVolumeChange(int instr, int addvol);
 
-    //block effect
+    // block effect
     BOOL BlockEffect();
 
     void BlockAllOnOff();
     void BlockInitBase(int track);
 
-    //block
+    // block
     int m_selcol;					//0-7
     int m_seltrack;
     int m_selsongline;
