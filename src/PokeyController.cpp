@@ -1,7 +1,236 @@
 #include "Atari.h"
 #include "PokeyController.h"
 
+#include "Keyboard.h"
+
 CPokeyController::CPokeyController(CAtari* atari) : m_atari(atari), m_channel_index(0), m_divisor(1.0) {
+
+}
+
+BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
+{
+    switch (vk)
+    {
+        //General variables manipulation
+
+    case VK_RETURN:
+        OnNextChannel();
+        break;
+
+    case VK_BACK:
+        OnPreviousChannel();
+        break;
+
+    case VK_OEM_PLUS:
+        if (shift) {
+            OnIncreaseDivisorBy10();
+        }
+        else {
+            OnIncreaseDivisorBy01();
+        }
+        break;
+
+    case VK_OEM_MINUS:
+        if (shift) {
+            OnDecreaseDivisorBy10();
+        }
+        else {
+            OnDecreaseDivisorBy01();
+        }
+        break;
+
+        //AUDF channels
+
+    case VK_1:
+        if (shift) {
+            OnIncreaseAUDF0By10();
+        }
+        else {
+            OnIncreaseAUDF0By01();
+        }
+        break;
+
+    case VK_Q:
+        if (shift) {
+            OnDecreaseAUDF0By10();
+        }
+        else {
+            OnDecreaseAUDF0By01();
+        }
+        break;
+
+    case VK_3:
+        if (shift) {
+            OnIncreaseAUDF1By10();
+        }
+        else {
+            OnIncreaseAUDF1By01();
+        }
+        break;
+
+    case VK_E:
+        if (shift) {
+            OnDecreaseAUDF1By10();
+        }
+        else {
+            OnDecreaseAUDF1By01();
+        }
+        break;
+
+    case VK_5:
+        if (shift) {
+            OnIncreaseAUDF2By10();
+        }
+        else {
+            OnIncreaseAUDF2By01();
+        }
+        break;
+
+    case VK_T:
+        if (shift) {
+            OnDecreaseAUDF2By10();
+        }
+        else {
+            OnDecreaseAUDF2By01();
+        }
+        break;
+
+    case VK_7:
+        if (shift) {
+            OnIncreaseAUDF3By10();
+        }
+        else {
+            OnIncreaseAUDF3By01();
+        }
+        break;
+
+    case VK_U:
+        if (shift) {
+            OnDecreaseAUDF3By10();
+        }
+        else {
+            OnDecreaseAUDF3By01();
+        }
+        break;
+
+        //AUDC channels
+
+    case VK_2:
+        if (shift) {
+            OnIncreaseAUDC0By10();
+        }
+        else {
+            OnIncreaseAUDC0By01();
+        }
+        break;
+
+    case VK_W:
+        if (shift) {
+            OnDecreaseAUDC0By10();
+        }
+        else {
+            OnDecreaseAUDC0By01();
+        }
+        break;
+
+    case VK_4:
+        if (shift) {
+            OnIncreaseAUDC1By10();
+        }
+        else {
+            OnIncreaseAUDC1By01();
+        }
+        break;
+
+    case VK_R:
+        if (shift) {
+            OnDecreaseAUDC1By10();
+        }
+        else {
+            OnDecreaseAUDC1By01();
+        }
+        break;
+
+    case VK_6:
+        if (shift) {
+            OnIncreaseAUDC2By10();
+        }
+        else {
+            OnIncreaseAUDC2By01();
+        }
+        break;
+
+    case VK_Y:
+        if (shift) {
+            OnDecreaseAUDC2By10();
+        }
+        else {
+            OnDecreaseAUDC2By01();
+        }
+        break;
+
+    case VK_8:
+        if (shift) {
+            OnIncreaseAUDC3By10();
+        }
+        else {
+            OnIncreaseAUDC3By01();
+        }
+        break;
+
+    case VK_I:
+        if (shift) {
+            OnDecreaseAUDC3By10();
+        }
+        else {
+            OnDecreaseAUDC3By01();
+        }
+        break;
+
+        //AUDCTL bits
+
+    case VK_P:
+        OnToggleAUDCTLBit7();
+        break;
+
+    case VK_A:
+        OnToggleAUDCTLBit6();
+        break;
+
+    case VK_D:
+        OnToggleAUDCTLBit5();
+        break;
+
+    case VK_J:
+        OnToggleAUDCTLBit4();
+        break;
+
+    case VK_K:
+        OnToggleAUDCTLBit3();
+        break;
+
+    case VK_F:
+        OnToggleAUDCTLBit2();
+        break;
+
+    case VK_G:
+        OnToggleAUDCTLBit1();
+        break;
+
+    case VK_C:
+        OnToggleAUDCTLBit0();
+        break;
+
+
+    case VK_M:
+        OnToggleTwoTone();
+        break;
+
+    default:
+        return FALSE;
+
+    }
+    return TRUE;
 
 }
 

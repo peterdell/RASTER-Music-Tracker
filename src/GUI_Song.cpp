@@ -985,237 +985,12 @@ BOOL CSong::InfoCursorGotoInstrumentSelect(int x, int y)
 
 BOOL CSong::CursorToSpeedColumn()
 {
-    if (g_activepart != Part::PART_TRACKS || SongGetActiveTrack() < 0) return 0;
+    if (g_activepart != Part::PART_TRACKS || SongGetActiveTrack() < 0) {
+        return FALSE;
+    }
     BLOCKDESELECT();
     m_trackactivecur = 3;
-    return 1;
-}
-
-BOOL CSong::ProveKeyPokeyExplorerMode(int vk, int shift, int control)
-{
-    switch (vk)
-    {
-        //General variables manipulation
-
-    case VK_RETURN:
-        m_PokeyController->OnNextChannel();
-        break;
-
-    case VK_BACK:
-        m_PokeyController->OnPreviousChannel();
-        break;
-
-    case VK_OEM_PLUS:
-        if (shift) {
-            m_PokeyController->OnIncreaseDivisorBy10();
-        }
-        else {
-            m_PokeyController->OnIncreaseDivisorBy01();
-        }
-        break;
-
-    case VK_OEM_MINUS:
-        if (shift) {
-            m_PokeyController->OnDecreaseDivisorBy10();
-        }
-        else {
-            m_PokeyController->OnDecreaseDivisorBy01();
-        }
-        break;
-
-        //AUDF channels
-
-    case VK_1:
-        if (shift) {
-            m_PokeyController->OnIncreaseAUDF0By10();
-        }
-        else {
-            m_PokeyController->OnIncreaseAUDF0By01();
-        }
-        break;
-
-    case VK_Q:
-        if (shift) {
-            m_PokeyController->OnDecreaseAUDF0By10();
-        }
-        else {
-            m_PokeyController->OnDecreaseAUDF0By01();
-        }
-        break;
-
-    case VK_3:
-        if (shift) {
-            m_PokeyController->OnIncreaseAUDF1By10();
-        }
-        else {
-            m_PokeyController->OnIncreaseAUDF1By01();
-        }
-        break;
-
-    case VK_E:
-        if (shift) {
-            m_PokeyController->OnDecreaseAUDF1By10();
-        }
-        else {
-            m_PokeyController->OnDecreaseAUDF1By01();
-        }
-        break;
-
-    case VK_5:
-        if (shift) {
-            m_PokeyController->OnIncreaseAUDF2By10();
-        }
-        else {
-            m_PokeyController->OnIncreaseAUDF2By01();
-        }
-        break;
-
-    case VK_T:
-        if (shift) {
-            m_PokeyController->OnDecreaseAUDF2By10();
-        }
-        else {
-            m_PokeyController->OnDecreaseAUDF2By01();
-        }
-        break;
-
-    case VK_7:
-        if (shift) {
-            m_PokeyController->OnIncreaseAUDF3By10();
-        }
-        else {
-            m_PokeyController->OnIncreaseAUDF3By01();
-        }
-        break;
-
-    case VK_U:
-        if (shift) {
-            m_PokeyController->OnDecreaseAUDF3By10();
-        }
-        else {
-            m_PokeyController->OnDecreaseAUDF3By01();
-        }
-        break;
-
-        //AUDC channels
-
-    case VK_2:
-        if (shift) {
-            m_PokeyController->OnIncreaseAUDC0By10();
-        }
-        else {
-            m_PokeyController->OnIncreaseAUDC0By01();
-        }
-        break;
-
-    case VK_W:
-        if (shift) {
-            m_PokeyController->OnDecreaseAUDC0By10();
-        }
-        else {
-            m_PokeyController->OnDecreaseAUDC0By01();
-        }
-        break;
-
-    case VK_4:
-        if (shift) {
-            m_PokeyController->OnIncreaseAUDC1By10();
-        }
-        else {
-            m_PokeyController->OnIncreaseAUDC1By01();
-        }
-        break;
-
-    case VK_R:
-        if (shift) {
-            m_PokeyController->OnDecreaseAUDC1By10();
-        }
-        else {
-            m_PokeyController->OnDecreaseAUDC1By01();
-        }
-        break;
-
-    case VK_6:
-        if (shift) {
-            m_PokeyController->OnIncreaseAUDC2By10();
-        }
-        else {
-            m_PokeyController->OnIncreaseAUDC2By01();
-        }
-        break;
-
-    case VK_Y:
-        if (shift) {
-            m_PokeyController->OnDecreaseAUDC2By10();
-        }
-        else {
-            m_PokeyController->OnDecreaseAUDC2By01();
-        }
-        break;
-
-    case VK_8:
-        if (shift) {
-            m_PokeyController->OnIncreaseAUDC3By10();
-        }
-        else {
-            m_PokeyController->OnIncreaseAUDC3By01();
-        }
-        break;
-
-    case VK_I:
-        if (shift) {
-            m_PokeyController->OnDecreaseAUDC3By10();
-        }
-        else {
-            m_PokeyController->OnDecreaseAUDC3By01();
-        }
-        break;
-
-        //AUDCTL bits
-
-    case VK_P:
-        m_PokeyController->OnToggleAUDCTLBit7();
-        break;
-
-    case VK_A:
-        m_PokeyController->OnToggleAUDCTLBit6();
-        break;
-
-    case VK_D:
-        m_PokeyController->OnToggleAUDCTLBit5();
-        break;
-
-    case VK_J:
-        m_PokeyController->OnToggleAUDCTLBit4();
-        break;
-
-    case VK_K:
-        m_PokeyController->OnToggleAUDCTLBit3();
-        break;
-
-    case VK_F:
-        m_PokeyController->OnToggleAUDCTLBit2();
-        break;
-
-    case VK_G:
-        m_PokeyController->OnToggleAUDCTLBit1();
-        break;
-
-    case VK_C:
-        m_PokeyController->OnToggleAUDCTLBit0();
-        break;
-
-
-    case VK_M:
-        m_PokeyController->OnToggleTwoTone();
-        break;
-
-    default:
-        return FALSE;
-
-    }
     return TRUE;
-
 }
 
 BOOL CSong::ProveKey(int vk, int shift, int control)
@@ -1224,7 +999,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
     if (IsEditMode(EditMode::POKEY_EXPLORER_MODE))	//POKEY EXPLORER MODE: FULL CONTROL OVER THE POKEY (IGNORE RMT ROUTINES EXCEPT SETPOKEY)
     {
 
-        return ProveKeyPokeyExplorerMode(vk, shift, control);
+        return m_PokeyController->OnKeyDown(vk, shift, control);
 
     }
 
@@ -1242,7 +1017,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
                 SetPlayPressedTonesTNIV((m_trackactivecol + 4) & 0x07, i, m_activeinstr, m_volume);
             }
         }
-        return 0; //they don't have to redraw
+        return FALSE; //they don't have to redraw
     }
 
     if (SongGetGo() >= 0) //is active song go to line => they must not edit anything
@@ -1258,7 +1033,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         {
             m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1;
             TrackDown(1, 0);
-            return 1;
+            return TRUE;
         }
     }
 
@@ -1314,7 +1089,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         if (shift)
             TrackLeft(1); // Shift+TAB
         else if (control)
-            CursorToSpeedColumn(); //Ctral+TAB
+            CursorToSpeedColumn(); // Ctrl+TAB
         else
             TrackRight(1);
         break;
@@ -1475,15 +1250,14 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
             if (g_activepart != Part::PART_TRACKS)
             {
                 g_activepart = g_active_ti;
-                return 1;
+                return TRUE;
             }
         break;
 
     default:
-        return 0;
-        break;
+        return FALSE;
     }
-    return 1;
+    return TRUE;
 }
 
 
@@ -1843,9 +1617,9 @@ TrackKeyOk:
     case VK_TAB:
         BLOCKDESELECT();
         if (shift)
-            TrackLeft(1); //SHIFT+TAB
+            TrackLeft(1); //Shift+TAB
         else if (control)
-            CursorToSpeedColumn(); //CTRL+TAB
+            CursorToSpeedColumn(); //Ctrl+TAB
         else
             TrackRight(1);
         break;

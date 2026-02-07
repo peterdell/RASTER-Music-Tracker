@@ -15,6 +15,10 @@ public:
     int GetChannelIndex() const;
     double GetDivisor() const;
 
+    BOOL OnKeyDown(int vk, int shift, int control);
+
+private:
+
     void OnNextChannel();
     void OnPreviousChannel();
 
