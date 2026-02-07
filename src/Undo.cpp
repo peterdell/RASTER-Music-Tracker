@@ -1,26 +1,25 @@
-#include "resource.h"
+
 #include "StdAfx.h"
 
 #include "Clipboard.h"
 #include "Song.h"
 #include "Undo.h"
 
-#include "global.h"
+#include "Global.h"
 
 
 extern CSong g_Song;
 extern CInstruments g_Instruments;
-extern CTrackClipboard g_TrackClipboard;
 
 
 CUndo::CUndo()
 {
-    for (int i = 0; i < MAXUNDO; i++) m_uar[i] = NULL;
+    for (int i = 0; i < MAXUNDO; i++) { m_uar[i] = NULL; }
 }
 
 CUndo::~CUndo()
 {
-    for (int i = 0; i < MAXUNDO; i++) DeleteEvent(i);
+    for (int i = 0; i < MAXUNDO; i++) { DeleteEvent(i); }
 }
 
 void CUndo::Init()
@@ -34,7 +33,7 @@ void CUndo::Clear()
     m_tail = 0;
     m_headmax = 0;
     m_undosteps = m_redosteps = 0;
-    for (int i = 0; i < MAXUNDO; i++) DeleteEvent(i);
+    for (int i = 0; i < MAXUNDO; i++) { DeleteEvent(i); }
 }
 
 char CUndo::DeleteEvent(int i)
@@ -50,9 +49,14 @@ char CUndo::DeleteEvent(int i)
     return sep;
 }
 
+
+int CUndo::GetUndoSteps() const {
+    return m_undosteps;
+};
+
 BOOL CUndo::Undo()
 {
-    if (m_head == m_tail)	return 0; //nothing to keep
+    if (m_head == m_tail) { return FALSE; } //nothing to keep
 
     g_Song.Stop();
 
@@ -70,12 +74,16 @@ BOOL CUndo::Undo()
     m_undosteps--;
     m_redosteps++;
 
-    return 1;
+    return TRUE;
 }
+
+int CUndo::GetRedoSteps() const {
+    return m_redosteps;
+};
 
 BOOL CUndo::Redo()
 {
-    if (m_head == m_headmax) return 0; //nothing to return
+    if (m_head == m_headmax) { return FALSE; } //nothing to return
 
     g_Song.Stop();
 
@@ -89,7 +97,7 @@ BOOL CUndo::Redo()
     m_redosteps--;
     m_undosteps++;
 
-    return 1;
+    return TRUE;
 }
 
 void CUndo::InsertEvent(TUndoEvent* ue)
@@ -144,7 +152,7 @@ void CUndo::InsertEvent(TUndoEvent* ue)
 
 void CUndo::DropLast()
 {
-    if (m_head == m_tail) return;
+    if (m_head == m_tail) { return; }
     m_head = (m_head + MAXUNDO - 1) % MAXUNDO;
     DeleteEvent(m_head);
     m_undosteps--;		//will count this step
@@ -152,18 +160,17 @@ void CUndo::DropLast()
 
 void CUndo::Separator(int sep)
 {
-    TUndoEvent* le;
-    le = m_uar[(m_head + MAXUNDO - 1) % MAXUNDO];
-    if (!le) return;
+    auto le = m_uar[(m_head + MAXUNDO - 1) % MAXUNDO];
+    if (!le) { return; }
     if (sep < 0 && le->separator >= 0) m_undosteps--; //the number of undo counted in InsertEvent
     le->separator = sep;
 }
 
-void CUndo::ChangeTrack(int tracknum, int trackline, int type, char separator)
+void CUndo::ChangeTrack(int tracknum, int trackline, UndoType type, char separator)
 {
     if (!g_Tracks.IsValidTrack(tracknum) || !g_Tracks.IsValidLine(trackline)) return;
 
-    TTrack* tr = g_Tracks.GetTrack(tracknum);
+    auto tr = g_Tracks.GetTrack(tracknum);
 
     // An event with the original status at a different place
     TUndoEvent* ue = new TUndoEvent;
@@ -221,7 +228,7 @@ void CUndo::ChangeTrack(int tracknum, int trackline, int type, char separator)
     InsertEvent(ue);
 }
 
-void CUndo::ChangeSong(int songline, int trackcol, int type, char separator)
+void CUndo::ChangeSong(int songline, int trackcol, UndoType type, char separator)
 {
     if (songline < 0 || trackcol < 0) return;
 
@@ -264,7 +271,7 @@ void CUndo::ChangeSong(int songline, int trackcol, int type, char separator)
     InsertEvent(ue);
 }
 
-void CUndo::ChangeInstrument(int instrnum, int paridx, int type, char separator)
+void CUndo::ChangeInstrument(int instrnum, int paridx, UndoType type, char separator)
 {
     TInstrument* instr = g_Instruments.GetInstrument(instrnum);
     TInstrumentsAll* insall = g_Instruments.GetInstrumentsAll();
@@ -300,7 +307,7 @@ void CUndo::ChangeInstrument(int instrnum, int paridx, int type, char separator)
     InsertEvent(ue);
 }
 
-void CUndo::ChangeInfo(int paridx, int type, char separator)
+void CUndo::ChangeInfo(int paridx, UndoType type, char separator)
 {
     // An event with the original status at a different place
     TUndoEvent* ue = new TUndoEvent;
@@ -326,22 +333,25 @@ void CUndo::ChangeInfo(int paridx, int type, char separator)
     InsertEvent(ue);
 }
 
-BOOL CUndo::PosIsEqual(int* pos1, int* pos2, int type)
+BOOL CUndo::PosIsEqual(int* pos1, int* pos2, UndoType type)
 {
     int len;
     switch (type >> 6)	//  /64
     {
-    case 0:		len = POSGROUPTYPE0_63SIZE;
+    case 0:
+        len = POSGROUPTYPE0_63SIZE;
         break;
-    case 1:		len = POSGROUPTYPE64_127SIZE;
+    case 1:
+        len = POSGROUPTYPE64_127SIZE;
         break;
-    case 2:		len = POSGROUPTYPE128_191SIZE;
+    case 2:
+        len = POSGROUPTYPE128_191SIZE;
         break;
     default:
-        return 0;
+        return FALSE;
     }
-    for (int i = 0; i < len; i++) if (pos1[i] != pos2[i]) return 0;
-    return 1;
+    for (int i = 0; i < len; i++) { if (pos1[i] != pos2[i]) { return FALSE; } }
+    return TRUE;
 }
 
 void ExchangeInt(int& a, int& b)
@@ -488,7 +498,7 @@ char CUndo::PerformEvent(int i)
         memcpy((void*)data, (void*)temp, sizeof(TInstrumentsAll));
         delete temp;
         // Must save to Atari
-        for (i = 0; i < INSTRSNUM; i++) g_Instruments.Update(i);
+        for (i = 0; i < INSTRSNUM; i++) { g_Instruments.Update(i); }
         break;
 
     case UETYPE_INFODATA:
