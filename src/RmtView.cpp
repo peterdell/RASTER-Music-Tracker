@@ -26,6 +26,7 @@
 #include "Keyboard2NoteMapping.h"
 #include "Rmt.h"
 #include "Song.h"
+#include "SongUI.h"
 #include "Undo.h"
 
 
@@ -39,6 +40,7 @@ static char THIS_FILE[] = __FILE__;
 
 extern CRmtApp	g_app;
 extern CSong	g_Song;
+extern CSongUI* g_SongUI;
 extern CRmtMidi	g_Midi;
 extern CUndo	g_Undo;
 extern CXPokey	g_Pokey;
@@ -438,7 +440,7 @@ void CRmtView::DrawAll()
     // Draw the secondary screen elements
     g_Song.DrawInfo();
     g_Song.DrawSong();
-    g_Song.DrawAnalyzer();
+    g_SongUI->DrawAnalyzer();
     g_Song.DrawPlayTimeCounter();
 
     // Draw the primary screen above everything

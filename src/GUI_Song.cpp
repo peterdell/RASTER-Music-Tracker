@@ -10,6 +10,7 @@
 #include "IOHelpers.h"
 #include "Keyboard.h"
 #include "Notes.h"
+#include "PokeyController.h"
 
 #include "Clipboard.h"
 #include "Instruments.h"
@@ -40,10 +41,12 @@ extern int g_tracks4_8; // TODO Move out
 // TODO
 char g_debugmem[CAtari::MEMORY_SIZE];	//debug display of memory bytes directly, slow and terrible, do not use unless there is a purpose for it 
 
+CSongUI::CSongUI(CSong& song) : m_song(&song) {
+
+}
+
 // ----------------------------------------------------------------------------
 // Support routines
-
-
 
 BOOL IsNotAMovementVKey(int vk)
 {
@@ -152,7 +155,7 @@ int CSong::WarnUnsavedChanges()
 /// <summary>
 /// Draw a volume analyser above each track
 /// </summary>
-void CSong::DrawAnalyzer()
+void CSongUI::DrawAnalyzer()
 {
     if (!g_view.volumeAnalyzer) return;	//the analyser won't be displayed without the setting enabled first
 
@@ -214,7 +217,7 @@ void CSong::DrawAnalyzer()
     int R[8];
     int G[8];
     int yUp = 7;
-    for (int i = 0; i < GetTracks(); i++) { col[i] = 102; R[i] = 44; G[i] = 60; }
+    for (int i = 0; i < m_song->GetTracks(); i++) { col[i] = 102; R[i] = 44; G[i] = 60; }
     int a;
     int b;
     COLORREF acol;
@@ -251,7 +254,7 @@ void CSong::DrawAnalyzer()
         b = memory[0xd21f]; // SKCTL2 @ $D21F
         if (b == 0x8b) { col[1 + 4] = CRGBColor::COL_BLOCK; Hook1(0 + 4, 1 + 4); yUp -= 2; }	// Two tone mode (join channel 5 + 6)
 
-        for (int channelNr = 0; channelNr < GetTracks(); channelNr++)
+        for (int channelNr = 0; channelNr < m_song->GetTracks(); channelNr++)
         {
             audf = memory[idx[channelNr]];		// Get the frequency
             audc = memory[idx[channelNr] + 1];	// Get audio control, Bits: 0-3 = volume, 4 = Volume only, 5-7 = Distortion
@@ -548,7 +551,7 @@ void CSong::DrawAnalyzer()
                 int basenote = g_tuning.basenote;
                 int reverse_basenote = (24 - basenote) % 12;	//since things are wack I had to do this
                 //int FREQ_17 = (g_ntsc) ? FREQ_17_NTSC : FREQ_17_PAL;	//useful for debugging I guess
-                auto cycles = CAtari::GetFrameCycleCount(IsNTSC());
+                auto cycles = CAtari::GetFrameCycleCount(m_song->IsNTSC());
                 int tracks = g_Song.GetTracks();
                 char t[12] = { 0 };
 
@@ -562,17 +565,17 @@ void CSong::DrawAnalyzer()
 
                 TextMiniXY(n, ANALYZER3_X, ANALYZER3_Y + 8 * 9, TextMiniColor::GRAY);	//overwrite A- to the given basenote
 
-                TextMiniXY(IsNTSC() ? "NTSC" : "PAL", ANALYZER3_X + 8 * 21, ANALYZER3_Y + 8 * 9, TextMiniColor::BLUE);
+                TextMiniXY(m_song->IsNTSC() ? "NTSC" : "PAL", ANALYZER3_X + 8 * 21, ANALYZER3_Y + 8 * 9, TextMiniColor::BLUE);
 
                 TextMiniXY("FREQ17:        HZ, MAXSCREENCYCLES:      , G_TRACKS4_8:", ANALYZER3_X, ANALYZER3_Y + 8 * 10, TextMiniColor::GRAY);
-                snprintf(t, 8, "%d", CAtari::GetClockFrequency(IsNTSC()));
+                snprintf(t, 8, "%d", CAtari::GetClockFrequency(m_song->IsNTSC()));
                 TextMiniXY(t, ANALYZER3_X + 8 * 8, ANALYZER3_Y + 8 * 10, TextMiniColor::WHITE);
                 snprintf(t, 8, "%d", cycles);
                 TextMiniXY(t, ANALYZER3_X + 8 * 36, ANALYZER3_Y + 8 * 10, TextMiniColor::WHITE);
                 snprintf(t, 2, "%d", tracks);
                 TextMiniXY(t, ANALYZER3_X + 8 * 56, ANALYZER3_Y + 8 * 10, TextMiniColor::WHITE);
 
-                const auto channel_index = m_PokeyController->GetChannelIndex();
+                const auto channel_index = m_song->m_PokeyController->GetChannelIndex();
                 if (DEBUG_SOUND && i == channel_index)	//Debug sound, must only be run once per loops, so this prevents it being overwritten
                 {
                     TextMiniXY("COARSE_DIVISOR:    , DIVISOR:       , MODOFFSET:  , AUDF: $    , AUDC: $  ", ANALYZER3_X, ANALYZER3_Y + 8 * 12, TextMiniColor::GRAY);
@@ -605,7 +608,7 @@ void CSong::DrawAnalyzer()
                             break;
                     }
 
-                    const auto divisor = m_PokeyController->GetDivisor();
+                    const auto divisor = m_song->m_PokeyController->GetDivisor();
 
                     e_pitch = g_Tuning.GetPitch(i_audf, e_coarse_divisor, divisor, e_modoffset);
                     static constexpr auto color = TextMiniColor::WHITE;

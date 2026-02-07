@@ -3,19 +3,19 @@
 // reworked by VinsCool, 2021-2022
 //
 
-#include "StdAfx.h"
-#include "Rmt.h"
+#include "AboutDialog.h"
 #include "Commands.h"
+#include "Global.h"
+#include "GuiHelpers.h" // For SendErrorMessage
 #include "MainFrm.h"
+#include "Rmt.h"
+#include "RmtCommandLineInfo.h"
 #include "RmtDoc.h"
 #include "RmtView.h"
+#include "Shell.h"
 #include "Song.h"
 #include "SongExporterTest.h"
-#include "AboutDialog.h"
-#include "GuiHelpers.h" // For SendErrorMessage
-#include "RmtCommandLineInfo.h"
-#include "Global.h"
-#include "Shell.h"
+#include "StdAfx.h"
 
 #include "RmtTest.h"
 
@@ -129,6 +129,9 @@ BOOL CRmtApp::InitInstance()
 
 
     g_Song.ClearSong(8);
+    g_SongUI = new CSongUI(g_Song);
+
+
 
     // Parse the command line for standard shell commands, DDE, file open.
     CRmtCommandLineInfo cmdInfo;

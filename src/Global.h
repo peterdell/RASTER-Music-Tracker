@@ -14,6 +14,7 @@
 #include "TuningTypes.h"
 #include <filesystem>
 
+#include "SongUI.h"
 
 void SetProgramFolderPath(const CString& folderPath);
 CString GetResourceFolderPath(const CString& folderName);
@@ -37,6 +38,8 @@ extern int g_tracks4_8; // TODO Move out
 
 extern HWND g_hwnd;
 extern HWND g_viewhwnd;
+
+extern CSongUI* g_SongUI;
 
 extern HINSTANCE g_c6502_dll;
 extern BOOL volatile g_is6502;

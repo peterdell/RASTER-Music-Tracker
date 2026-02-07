@@ -539,6 +539,9 @@
     <ClInclude Include="PokeyController.h">
       <Filter>Source Files\UI</Filter>
     </ClInclude>
+    <ClInclude Include="SongUI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\build\build_rmt-daily.bat">

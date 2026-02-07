@@ -11,6 +11,7 @@
 #include "Undo.h"
 
 CAtari g_Atari;
+class CSongUI;
 CAtariTrackerDriver* g_AtariTrackerDriver;
 
 
@@ -180,6 +181,7 @@ BOOL g_keyboard_askwhencontrol_s = 1;	//1 yes, 0 no
 // Here are the main global objects that make up 99% of RMT.
 //
 CSong			g_Song;				// There is one active song
+CSongUI* g_SongUI;
 CRmtMidi		g_Midi;				// There is one midi interface
 CUndo			g_Undo;				// Undo buffer tracker
 CXPokey			g_Pokey;			// The simulated Pokey chip

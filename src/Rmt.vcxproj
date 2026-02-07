@@ -401,6 +401,7 @@
     <ClInclude Include="SongIO.h" />
     <ClInclude Include="SongTimer.h" />
     <ClInclude Include="SongTypes.h" />
+    <ClInclude Include="SongUI.h" />
     <ClInclude Include="TrackerDriverVersion.h" />
     <ClInclude Include="tracker_obx.h" />
     <ClInclude Include="Tracks.h" />

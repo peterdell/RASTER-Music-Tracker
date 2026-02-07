@@ -13,10 +13,13 @@
 class CASMFileExporter;
 class CPokeyController;
 
+class CSongUI;
+
 class CSong
 {
 public:
     friend CASMFileExporter; // JAC! TODO Remove
+    friend CSongUI;
 
     CSong();
     ~CSong();
@@ -43,7 +46,6 @@ public:
     void DrawTracks();
     void DrawInstrument();
     void DrawInfo();			//top left corner
-    void DrawAnalyzer();
     void DrawPlayTimeCounter();
 
     BOOL InfoKey(int vk, int shift, int control);
@@ -347,3 +349,4 @@ private:
     int m_TracksOrderChange_songlinefrom; //is defined as a member variable to keep in use
     int m_TracksOrderChange_songlineto;	  //the last values used remain
 };
+
