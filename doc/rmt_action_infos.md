@@ -115,35 +115,47 @@
 | Menu Block / Paste Special | Paste Only Volume Values |  |  |
 | Menu Pokey | Activate Pokey Explorer Mode | `Ctrl+Shift+F5` | Activate POKEY Explorer Mode (Ctrl+Shift+F5) |
 | Menu Pokey | Pokey Chip Registers |  |  |
-| Menu Pokey / Channel 1 | AUDC0 |  |  |
 | Menu Pokey / Channel 1 / AUDF0 | Increase By 0x01 | `1` |  |
 | Menu Pokey / Channel 1 / AUDF0 | Increase By 0x10 | `Shift+1` |  |
 | Menu Pokey / Channel 1 / AUDF0 | Decrease By 0x01 | `Q` |  |
 | Menu Pokey / Channel 1 / AUDF0 | Decrease By 0x11 | `Shift+Q` |  |
-| Menu Pokey / Channel 2 | AUDC1 |  |  |
+| Menu Pokey / Channel 1 / AUDC0 | Increase By 0x01 | `2` |  |
+| Menu Pokey / Channel 1 / AUDC0 | Increase By 0x10 | `Shift+2` |  |
+| Menu Pokey / Channel 1 / AUDC0 | Decrease By 0x01 | `W` |  |
+| Menu Pokey / Channel 1 / AUDC0 | Decrease By 0x10 | `Shift+W` |  |
 | Menu Pokey / Channel 2 / AUDF1 | Increase By 0x01 | `3` |  |
 | Menu Pokey / Channel 2 / AUDF1 | Decrease By 0x01 | `E` |  |
 | Menu Pokey / Channel 2 / AUDF1 | Increase By 0x10 | `Shift+3` |  |
 | Menu Pokey / Channel 2 / AUDF1 | Decrease By 0x10 | `Shift+E` |  |
-| Menu Pokey / Channel 3 | AUDC2 |  |  |
+| Menu Pokey / Channel 2 / AUDC1 | Increase By 0x01 | `4` |  |
+| Menu Pokey / Channel 2 / AUDC1 | Increase By 0x10 | `Shift+4` |  |
+| Menu Pokey / Channel 2 / AUDC1 | Decrease By 0x01 | `R` |  |
+| Menu Pokey / Channel 2 / AUDC1 | Decrease By 0x10 | `Shift+R` |  |
 | Menu Pokey / Channel 3 / AUDF2 | Increase By 0x01 | `5` |  |
 | Menu Pokey / Channel 3 / AUDF2 | Decrease By 0x01 | `T` |  |
 | Menu Pokey / Channel 3 / AUDF2 | Increase By 0x10 | `Shift+5` |  |
 | Menu Pokey / Channel 3 / AUDF2 | Decrease By 0x10 | `Shift+T` |  |
-| Menu Pokey / Channel 4 | AUDC3 |  |  |
+| Menu Pokey / Channel 3 / AUDC2 | Increase By 0x01 | `6` |  |
+| Menu Pokey / Channel 3 / AUDC2 | Increase By 0x10 | `Shift+6` |  |
+| Menu Pokey / Channel 3 / AUDC2 | Decrease By 0x01 | `Z` |  |
+| Menu Pokey / Channel 3 / AUDC2 | Decrease By 0x10 | `Shift+Z` |  |
 | Menu Pokey / Channel 4 / AUDF3 | Increase By 0x01 | `7` |  |
 | Menu Pokey / Channel 4 / AUDF3 | Decrease By 0x01 | `U` |  |
 | Menu Pokey / Channel 4 / AUDF3 | Increase By 0x10 | `Shift+7` |  |
 | Menu Pokey / Channel 4 / AUDF3 | Decrease By 0x10 | `Shift+U` |  |
-| Menu Pokey / AUDCTL | Bit 0 |  |  |
-| Menu Pokey / AUDCTL | Bit 7 |  |  |
-| Menu Pokey / AUDCTL | Bit 6 |  |  |
-| Menu Pokey / AUDCTL | Bit 5 |  |  |
-| Menu Pokey / AUDCTL | Bit 4 |  |  |
-| Menu Pokey / AUDCTL | Bit 3 |  |  |
-| Menu Pokey / AUDCTL | Bit 2 |  |  |
-| Menu Pokey / AUDCTL | Bit 1 |  |  |
-| Menu Pokey / SKCTL | Two Tone Mode |  |  |
+| Menu Pokey / Channel 4 / AUDC3 | Increase By 0x01 | `8` |  |
+| Menu Pokey / Channel 4 / AUDC3 | Increase By 0x10 | `Shift+8` |  |
+| Menu Pokey / Channel 4 / AUDC3 | Decrease By 0x01 | `I` |  |
+| Menu Pokey / Channel 4 / AUDC3 | Decrease By 0x10 | `Shift+I` |  |
+| Menu Pokey / AUDCTL | Bit 0 - Change Main Base Clock From 64 KHz To 15 KHz | `C` |  |
+| Menu Pokey / AUDCTL | Bit 1 - High Pass Filter Into Channel 2, Clocked By Channel 4 | `G` |  |
+| Menu Pokey / AUDCTL | Bit 2 - High Pass Filter Into Channel 1, Clocked By Channel 3 | `F` |  |
+| Menu Pokey / AUDCTL | Bit 3 - Join Channels 3 and 4 (16-bit Frequency) | `K` |  |
+| Menu Pokey / AUDCTL | Bit 4 - Join Channels 1 and 2 (16-Bit Frequency) | `J` |  |
+| Menu Pokey / AUDCTL | Bit 5 - Clock Channel 3 With 1.79 MHz | `D` |  |
+| Menu Pokey / AUDCTL | Bit 6 - Clock channel 1 with 1.79 MHz | `A` |  |
+| Menu Pokey / AUDCTL | Bit 7 - Change The 17-Bit Poly To 9-Bit Poly (Only For Distortion 0 and 8) | `P` |  |
+| Menu Pokey / SKCTL | Two Tone Mode | `M` |  |
 | Menu Pokey / Debug Channel | Next Channel | `Enter` |  |
 | Menu Pokey / Debug Channel | Previous Channel | `Backspace` |  |
 | Menu Pokey / Divisor | Increase By 0.1 | `+` |  |

@@ -441,6 +441,48 @@
 #define ID_AUDCTL_BIT2                  33006
 #define ID_AUDCTL_BIT1                  33007
 #define ID_SKCTL_TWOTONEMODE            33008
+#define ID_AUDC0_1                      33009
+#define ID_AUDC0_2                      33010
+#define ID_AUDC0_3                      33011
+#define ID_AUDC0_4                      33012
+#define ID_POKEY_AUDC0_INCREASE_BY_01   33013
+#define ID_POKEY_AUDC0_INCREASE_BY_10   33014
+#define ID_POKEY_AUDC0_DECREASE_BY_01   33015
+#define ID_POKEY_AUDC0_DECREASE_BY_10   33016
+#define ID_AUDC1_1                      33017
+#define ID_AUDC1_2                      33018
+#define ID_AUDC1_3                      33019
+#define ID_AUDC1_4                      33020
+#define ID_AUDC2_1                      33021
+#define ID_AUDC2_2                      33022
+#define ID_AUDC2_3                      33023
+#define ID_AUDC2_4                      33024
+#define ID_AUDC3_1                      33025
+#define ID_AUDC3_2                      33026
+#define ID_AUDC3_3                      33027
+#define ID_AUDC3_4                      33028
+#define ID_POKEY_AUDC1_INCREASE_BY_01   33029
+#define ID_POKEY_AUDC1_INCREASE_BY_10   33030
+#define ID_POKEY_AUDC1_DECREASE_BY_01   33031
+#define ID_AUDC1_MENUEDITOR             33032
+#define ID_POKEY_AUDC1_DECREASE_BY_10   33033
+#define ID_POKEY_AUDC2_INCREASE_BY_01   33034
+#define ID_POKEY_AUDC3_INCREASE_BY_01   33035
+#define ID_POKEY_AUDC2_INCREASE_BY_10   33036
+#define ID_POKEY_AUDC3_INCREASE_BY_10   33037
+#define ID_POKEY_AUDC2_DECREASE_BY_01   33038
+#define ID_POKEY_AUDC3_DECREASE_BY_01   33039
+#define ID_POKEY_AUDC2_DECREASE_BY_10   33040
+#define ID_POKEY_AUDC3_DECREASE_BY_10   33041
+#define ID_POKEY_SKCTL_TWO_TONE_MODE    33042
+#define ID_POKEY_AUDCTL_BIT0            33043
+#define ID_POKEY_AUDCTL_BIT1            33044
+#define ID_POKEY_AUDCTL_BIT2            33045
+#define ID_POKEY_AUDCTL_BIT3            33046
+#define ID_POKEY_AUDCTL_BIT4            33047
+#define ID_POKEY_AUDCTL_BIT5            33048
+#define ID_POKEY_AUDCTL_BIT6            33049
+#define ID_POKEY_AUDCTL_BIT7            33050
 
 // Next default values for new objects
 // 
@@ -448,7 +490,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        206
-#define _APS_NEXT_COMMAND_VALUE         33009
+#define _APS_NEXT_COMMAND_VALUE         33051
 #define _APS_NEXT_CONTROL_VALUE         1198
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

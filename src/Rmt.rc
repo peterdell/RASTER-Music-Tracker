@@ -1349,23 +1349,35 @@ BEGIN
         BEGIN
             POPUP "AUD&F0"
             BEGIN
-                MENUITEM "Increase By 0x01\t1",         ID_POKEY_AUDF0_INCREASE_BY_01
-                MENUITEM "Increase By 0x10\tShift+1",   ID_POKEY_AUDF0_INCREASE_BY_10
-                MENUITEM "Decrease By 0x01\tQ",         ID_POKEY_AUDF0_DECREASE_BY_01
-                MENUITEM "Decrease By 0x11\tShift+Q",   ID_POKEY_AUDF0_DECREASE_BY_10
+                MENUITEM "&Increase By 0x01\t1",        ID_POKEY_AUDF0_INCREASE_BY_01
+                MENUITEM "I&ncrease By 0x10\tShift+1",  ID_POKEY_AUDF0_INCREASE_BY_10
+                MENUITEM "&Decrease By 0x01\tQ",        ID_POKEY_AUDF0_DECREASE_BY_01
+                MENUITEM "D&ecrease By 0x11\tShift+Q",  ID_POKEY_AUDF0_DECREASE_BY_10
             END
-            MENUITEM "AUD&C0",                      ID_POKEY_AUDC4
+            POPUP "AUD&C0"
+            BEGIN
+                MENUITEM "&Increase By 0x01\t2",        ID_POKEY_AUDC0_INCREASE_BY_01
+                MENUITEM "I&ncrease By 0x10\tShift+2",  ID_POKEY_AUDC0_INCREASE_BY_10
+                MENUITEM "&Decrease By 0x01\tW",        ID_POKEY_AUDC0_DECREASE_BY_01
+                MENUITEM "D&ecrease By 0x10\tShift+W",  ID_POKEY_AUDC0_DECREASE_BY_10
+            END
         END
         POPUP "Channel &2"
         BEGIN
             POPUP "AUD&F1"
             BEGIN
-                MENUITEM "Increase By 0x01\t3",         ID_POKEY_AUDF1_INCREASE_BY_01
-                MENUITEM "Increase By 0x10\tShift+3",   ID_POKEY_AUDF1_INCREASE_BY_10
-                MENUITEM "Decrease By 0x01\tE",         ID_POKEY_AUDF1_DECREASEBY_01
-                MENUITEM "Decrease By 0x10\tShift+E",   ID_POKEY_AUDF1_DECREASEBY_10
+                MENUITEM "&Increase By 0x01\t3",        ID_POKEY_AUDF1_INCREASE_BY_01
+                MENUITEM "I&ncrease By 0x10\tShift+3",  ID_POKEY_AUDF1_INCREASE_BY_10
+                MENUITEM "&Decrease By 0x01\tE",        ID_POKEY_AUDF1_DECREASEBY_01
+                MENUITEM "D&ecrease By 0x10\tShift+E",  ID_POKEY_AUDF1_DECREASEBY_10
             END
-            MENUITEM "AUD&C1",                      ID_POKEY_AUDC1
+            POPUP "AUD&C1"
+            BEGIN
+                MENUITEM "&Increase By 0x01\t4",        ID_POKEY_AUDC1_INCREASE_BY_01
+                MENUITEM "I&ncrease By 0x10\tShift+4",  ID_POKEY_AUDC1_INCREASE_BY_10
+                MENUITEM "&Decrease By 0x01\tR",        ID_POKEY_AUDC1_DECREASE_BY_01
+                MENUITEM "D&ecrease By 0x10\tShift+R",  ID_POKEY_AUDC1_DECREASE_BY_10
+            END
         END
         POPUP "Channel &3"
         BEGIN
@@ -1376,7 +1388,13 @@ BEGIN
                 MENUITEM "Decrease By 0x01\tT",         ID_POKEY_AUDFS_DECREASE_BY_01
                 MENUITEM "Decrease By 0x10\tShift+T",   ID_POKEY_AUDFS_DECREASE_BY_10
             END
-            MENUITEM "AUD&C2",                      ID_POKEY_AUDC2
+            POPUP "AUD&C2"
+            BEGIN
+                MENUITEM "&Increase By 0x01\t6",        ID_POKEY_AUDC2_INCREASE_BY_01
+                MENUITEM "I&ncrease By 0x10\tShift+6",  ID_POKEY_AUDC2_INCREASE_BY_10
+                MENUITEM "&Decrease By 0x01\tZ",        ID_POKEY_AUDC2_DECREASE_BY_01
+                MENUITEM "D&ecrease By 0x10\tShift+Z",  ID_POKEY_AUDC2_DECREASE_BY_10
+            END
         END
         POPUP "Channel &4"
         BEGIN
@@ -1387,22 +1405,28 @@ BEGIN
                 MENUITEM "Decrease By 0x01\tU",         ID_POKEY_AUDF3_DECREASE_BY_01
                 MENUITEM "Decrease By 0x10\tShift+U",   ID_POKEY_AUDF3_DECREASE_BY_10
             END
-            MENUITEM "AUD&C3",                      ID_POKEY_AUDC3
+            POPUP "AUD&C3"
+            BEGIN
+                MENUITEM "&Increase By 0x01\t8",        ID_POKEY_AUDC3_INCREASE_BY_01
+                MENUITEM "I&ncrease By 0x10\tShift+8",  ID_POKEY_AUDC3_INCREASE_BY_10
+                MENUITEM "&Decrease By 0x01\tI",        ID_POKEY_AUDC3_DECREASE_BY_01
+                MENUITEM "D&ecrease By 0x10\tShift+I",  ID_POKEY_AUDC3_DECREASE_BY_10
+            END
         END
         POPUP "AUDCTL"
         BEGIN
-            MENUITEM "Bit 7",                       ID_AUDCTL_BIT7
-            MENUITEM "Bit 6",                       ID_AUDCTL_BIT6
-            MENUITEM "Bit 5",                       ID_AUDCTL_BIT5
-            MENUITEM "Bit 4",                       ID_AUDCTL_BIT4
-            MENUITEM "Bit 3",                       ID_AUDCTL_BIT3
-            MENUITEM "Bit 2",                       ID_AUDCTL_BIT2
-            MENUITEM "Bit 1",                       ID_AUDCTL_BIT1
-            MENUITEM "Bit 0",                       ID_AUDCTL_BIT0
+            MENUITEM "Bit &0 - Change Main Base Clock From 64 KHz To 15 KHz\tC", ID_POKEY_AUDCTL_BIT0
+            MENUITEM "Bit &1 - High Pass Filter Into Channel 2, Clocked By Channel 4\tG", ID_POKEY_AUDCTL_BIT1
+            MENUITEM "Bit &2 - High Pass Filter Into Channel 1, Clocked By Channel 3\tF", ID_POKEY_AUDCTL_BIT2
+            MENUITEM "Bit &3 - Join Channels 3 and 4 (16-bit Frequency)\tK", ID_POKEY_AUDCTL_BIT3
+            MENUITEM "Bit &4 - Join Channels 1 and 2 (16-Bit Frequency)\tJ", ID_POKEY_AUDCTL_BIT4
+            MENUITEM "Bit &5 - Clock Channel 3 With 1.79 MHz\tD", ID_POKEY_AUDCTL_BIT5
+            MENUITEM "Bit &6 - Clock channel 1 with 1.79 MHz\tA", ID_POKEY_AUDCTL_BIT6
+            MENUITEM "Bit &7 - Change The 17-Bit Poly To 9-Bit Poly (Only For Distortion 0 and 8)\tP", ID_POKEY_AUDCTL_BIT7
         END
         POPUP "SKCTL"
         BEGIN
-            MENUITEM "&Two Tone Mode",              ID_SKCTL_TWOTONEMODE
+            MENUITEM "&Two Tone Mode\tM",           ID_POKEY_SKCTL_TWO_TONE_MODE
         END
         POPUP "Debug &Channel"
         BEGIN
