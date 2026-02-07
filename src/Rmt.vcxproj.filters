@@ -306,6 +306,9 @@
     <ClCompile Include="PokeyController.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
+    <ClCompile Include="SongUI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EffectsDlg.h">
@@ -540,7 +543,7 @@
       <Filter>Source Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="SongUI.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files\GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

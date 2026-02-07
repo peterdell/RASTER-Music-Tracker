@@ -42,12 +42,6 @@ public:
 
     void MidiEvent(DWORD dwParam);
 
-    void DrawSong();				// Draw the song line info on the right
-    void DrawTracks();
-    void DrawInstrument();
-    void DrawInfo();			//top left corner
-    void DrawPlayTimeCounter();
-
     BOOL InfoKey(int vk, int shift, int control);
     BOOL InfoCursorGotoSongname(int x);
     BOOL InfoCursorGotoSpeed(int x);

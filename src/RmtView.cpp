@@ -438,19 +438,19 @@ void CRmtView::DrawAll()
 
     m_mem_dc.FillSolidRect(0, 0, m_width, m_height, CRGBColor::BACKGROUND);
     // Draw the secondary screen elements
-    g_Song.DrawInfo();
-    g_Song.DrawSong();
+    g_SongUI->DrawInfo();
+    g_SongUI->DrawSong();
     g_SongUI->DrawAnalyzer();
-    g_Song.DrawPlayTimeCounter();
+    g_SongUI->DrawPlayTimeCounter();
 
     // Draw the primary screen above everything
     if (g_active_ti == Part::PART_TRACKS)
     {
-        g_Song.DrawTracks();
+        g_SongUI->DrawTracks();
     }
     else
     {
-        g_Song.DrawInstrument();
+        g_SongUI->DrawInstrument();
     }
 }
 

@@ -265,6 +265,7 @@
     <ClCompile Include="SongExporterTest.cpp" />
     <ClCompile Include="SongIO.cpp" />
     <ClCompile Include="SongTimer.cpp" />
+    <ClCompile Include="SongUI.cpp" />
     <ClCompile Include="Song_DumpSong.cpp" />
     <ClCompile Include="IO_Tracks.cpp" />
     <ClCompile Include="Keyboard2NoteMapping.cpp" />
