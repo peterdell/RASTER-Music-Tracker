@@ -4,39 +4,35 @@
 // MFC interface code
 #include "Song.h"
 
-#include "Atari.h"
 #include "AtariTrackerDriver.h"
 #include "EffectsDlg.h"
-#include "IOHelpers.h"
+
 #include "Keyboard.h"
 #include "Notes.h"
 #include "PokeyController.h"
 
 #include "Clipboard.h"
+#include "Global.h"
 #include "Instruments.h"
 #include "Song.h"
 
-#include "Global.h"
-#include "TracksControl.h"
-
-#include "ChannelControl.h"
 #include "Keyboard2NoteMapping.h"
-#include "Tuning.h"
+
 
 #include "Rmt.h"
 
-#include "PokeyController.h"
 
 extern CRmtApp g_app;
 extern CSong g_Song;
-extern CTuning g_Tuning;
-extern CTracksControl g_TracksControl;
 
 extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
-extern int g_tracks4_8; // TODO Move out
+
+int GetTracks() {
+    return g_Song.GetTracks();
+};
 
 // ----------------------------------------------------------------------------
 // Support routines
@@ -586,7 +582,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             if (i > 0)
             {
                 i--;
-                if (i == 0 && g_tracks4_8 <= 4) i = 7;	//mono mode
+                if (i == 0 && GetTracks() <= 4) i = 7;	//mono mode
             }
             else
                 i = 7;
@@ -609,7 +605,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
                 goto EnvelopeDec;
             }
             i = ai->editEnvelopeY;
-            if (i < 7) i++; else i = (g_tracks4_8 > 4) ? 0 : 1;
+            if (i < 7) i++; else i = (GetTracks() > 4) ? 0 : 1;
             ai->editEnvelopeY = i;
             return 1;
 
@@ -1240,7 +1236,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         if (i >= 0 && i < CNotes::NOTESNUM)		//only within limits
         {
             SetPlayPressedTonesTNIV(m_trackactivecol, i, m_activeinstr, m_volume);
-            if ((control || IsEditMode(EditMode::JAM_STEREO_MODE)) && g_tracks4_8 > 4)
+            if ((control || IsEditMode(EditMode::JAM_STEREO_MODE)) && GetTracks() > 4)
             {
                 //with control or in prove2 => stereo test
                 SetPlayPressedTonesTNIV((m_trackactivecol + 4) & 0x07, i, m_activeinstr, m_volume);
@@ -1435,7 +1431,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
             int i, j, la = 0;
             for (j = 0; j < SONGLEN; j++)
             {
-                for (i = 0; i < g_tracks4_8; i++) if (m_song[j][i] >= 0) { la = j; break; }
+                for (i = 0; i < GetTracks(); i++) if (m_song[j][i] >= 0) { la = j; break; }
                 if (m_songgo[j] >= 0) la = j;
             }
             m_songactiveline = la;
@@ -1449,7 +1445,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
             if ((BOOL)control != (BOOL)g_keyboard_swapenter)	//control+Enter => plays a whole line (all tracks)
             {
                 //for all track columns except the active track column
-                for (int i = 0; i < g_tracks4_8; i++)
+                for (int i = 0; i < GetTracks(); i++)
                 {
                     if (i != m_trackactivecol)
                     {
@@ -2051,7 +2047,7 @@ TrackKeyOk:
             if (!shift && (BOOL)control != (BOOL)g_keyboard_swapenter)	//control+Enter => plays a whole line (all tracks)
             {
                 //for all track columns except the active track column
-                for (i = 0; i < g_tracks4_8; i++)
+                for (i = 0; i < GetTracks(); i++)
                 {
                     if (i != m_trackactivecol)
                     {
@@ -2235,7 +2231,7 @@ BOOL CSong::TrackCursorGoto(CPoint point)
     //if (y >= 0 && y < g_Tracks.m_maxtracklen)
     if (y >= 0 && y < GetSmallestMaxtracklen(m_songactiveline))	//variable pattern size, to prevent clicking "out of bounds" with the new tracks display
     {
-        if (xch >= 0 && xch < g_tracks4_8) m_trackactivecol = xch;
+        if (xch >= 0 && xch < GetTracks()) m_trackactivecol = xch;
         if (m_play && m_followplay)	//prevents moving at all during play+follow
             goto notracklinechange;
         else
@@ -2394,7 +2390,7 @@ BOOL CSong::SongKey(int vk, int shift, int control)
         int i, j, la = 0;
         for (j = 0; j < SONGLEN; j++)
         {
-            for (i = 0; i < g_tracks4_8; i++) if (m_song[j][i] >= 0) { la = j; break; }
+            for (i = 0; i < GetTracks(); i++) if (m_song[j][i] >= 0) { la = j; break; }
             if (m_songgo[j] >= 0) la = j;
         }
         m_songactiveline = la;
@@ -2460,7 +2456,7 @@ BOOL CSong::SongCursorGoto(CPoint point)
     y = (point.y + 0) / 16 - 2 + m_songactiveline;
     if (y >= 0 && y < SONGLEN)
     {
-        if (xch >= 0 && xch < g_tracks4_8) m_trackactivecol = xch;
+        if (xch >= 0 && xch < GetTracks()) m_trackactivecol = xch;
         if (y != m_songactiveline)
         {
             g_activepart = Part::PART_SONG;
