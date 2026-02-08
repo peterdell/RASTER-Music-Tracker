@@ -6,8 +6,10 @@
 #endif // _MSC_VER > 1000
 // ExportDlgs.h : header file
 //
-#include "resource.h"
 #include "AssemblerTypes.h"
+#include "resource.h"
+#include "Song.h"
+#include "StdAfx.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CExpRMTDlg dialog

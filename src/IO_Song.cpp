@@ -25,6 +25,7 @@
 #include "ASMFileExporter.h"
 #include "SongExporter.h"
 
+#include "RmtExporter.h"
 
 extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
@@ -1323,8 +1324,8 @@ bool CSong::ExportV2(CSong& song, std::ofstream& ou, SongIOType iotype, LPCTSTR 
     CSongExport songExport(songContainer, filename);
     switch (iotype)
     {
-    case SongIOType::RMT: return ExportAsRMT(song, ou, &exportDesc);
-    case SongIOType::RMTSTRIPPED: return ExportAsStrippedRMT(song, ou, &exportDesc, filename);
+    case SongIOType::RMT: return CRmtExporter::ExportAsRMT(song, ou, &exportDesc);
+    case SongIOType::RMTSTRIPPED: return CRmtExporter::ExportAsStrippedRMT(song, ou, &exportDesc, filename);
     case SongIOType::ASM: return CASMFileExporter::ExportAsAsm(song, ou, &exportDesc);
     case SongIOType::ASM_RMTPLAYER: return CASMFileExporter::ExportAsRelocatableAsmForRmtPlayer(song, ou, &exportDesc);
     case SongIOType::SAPR: return songExporter.ExportSAP_R(songExport, ou);
@@ -1337,45 +1338,7 @@ bool CSong::ExportV2(CSong& song, std::ofstream& ou, SongIOType iotype, LPCTSTR 
     return false;	// Failed
 }
 
-/// <summary>
-/// Export the song data as an RMT module with full instrument and song names.
-/// Writes two data blocks.
-/// </summary>
-/// <param name="ou">Output stream</param>
-/// <param name="exportDesc">Data about the packed RMT module</param>
-/// <returns>true = saved ok</returns>
-bool CSong::ExportAsRMT(CSong& song, std::ofstream& ou, TExportDescription* exportDesc)
-{
-    // Save the 1st RMT module block: Song, Tracks & Instruments
-    CAtariIO::SaveBinaryBlock(ou, exportDesc->mem, exportDesc->targetAddrOfModule, exportDesc->firstByteAfterModule - 1, TRUE);
 
-    // Save the 2nd RMT module block: Song and Instrument Names
-    // The individual names are truncated by spaces and terminated by a zero
-    // Song name (0 terminated)
-    CString name;
-    int addrOfSongName = exportDesc->firstByteAfterModule;
-    name = song.GetName();
-    int len = name.GetLength() + 1;	// including 0 after the string
-    strncpy((char*)(exportDesc->mem + addrOfSongName), (LPCSTR)name, len);
-
-    // Each saved instrument's name is written to the second module
-    int addrInstrumentNames = addrOfSongName + len;
-    for (int i = 0; i < INSTRSNUM; i++)
-    {
-        if (exportDesc->instrumentSavedFlags[i])
-        {
-            name = g_Instruments.GetName(i);
-            name.TrimRight();
-            len = name.GetLength() + 1;	//including 0 after the string
-            strncpy((char*)(exportDesc->mem + addrInstrumentNames), name, len);
-            addrInstrumentNames += len;
-        }
-    }
-    // and now, save the 2nd block
-    CAtariIO::SaveBinaryBlock(ou, exportDesc->mem, addrOfSongName, addrInstrumentNames - 1, FALSE);
-
-    return true;
-}
 
 
 /// <summary>

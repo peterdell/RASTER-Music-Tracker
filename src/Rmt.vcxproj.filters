@@ -82,6 +82,9 @@
     <Filter Include="Source Files\Options">
       <UniqueIdentifier>{38225b79-6297-47e6-ad21-6b669cb7aced}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\IO - Load/Save/Export/Import/Midi\RMT">
+      <UniqueIdentifier>{f2c3fe85-2e60-415c-b78a-0d4afe66efac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EffectsDlg.cpp">
@@ -308,6 +311,9 @@
     </ClCompile>
     <ClCompile Include="SongUI.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RmtExporter.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\RMT</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -544,6 +550,9 @@
     </ClInclude>
     <ClInclude Include="SongUI.h">
       <Filter>Source Files\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="RmtExporter.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\RMT</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

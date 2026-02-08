@@ -187,8 +187,6 @@ public:
     // Export methods shall be separeated from song itself
     // CSong argument is not yet const, because the DumpPokey... methods change its state
     static bool ExportV2(CSong& song, std::ofstream& ou, SongIOType iotype, LPCTSTR filename = NULL);
-    static bool ExportAsRMT(CSong& song, std::ofstream& ou, TExportDescription* exportDesc);
-    static bool ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDescription* exportDesc, LPCTSTR filename);
 
     void DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, int songline, int trackline);
 

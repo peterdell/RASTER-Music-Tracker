@@ -3,6 +3,7 @@
 #include <iosfwd>
 
 #include "Memory.h"
+#include "StdAfx.h"
 
 class CAtariIO
 {
