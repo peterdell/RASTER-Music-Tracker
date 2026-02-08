@@ -72,7 +72,7 @@ enum class SongIOType : int {
     XEX = 5,            // Only for export, TODO: Not used anymore? Old RMT 1.28 XEX export is disabled?
     TXT = 6,            // TODO: For import and export?
     ASM = 7,            // Only for export
-    RMF = 8,            // TODO: What is this?
+    // RMF = 8,         // Obsolete
     ASM_RMTPLAYER = 9,  // Only for export
 
     SAPR = 10,          // Only for export

@@ -3,8 +3,8 @@
 #include <fstream>
 
 #include "SongTypes.h"
-#include "TrackTypes.h"
 #include "Tracks.h"
+#include "TrackTypes.h"
 
 #include "Notes.h"
 
@@ -60,7 +60,6 @@ public:
     void SetTracksAll(TTracksAll* fromTracks);
 
     TrackNumber TrackToAta(TrackNumber trackNr, unsigned char* dest, int max) const;
-    TrackNumber TrackToAtaRMF(TrackNumber trackNr, unsigned char* dest, int max) const;
     BOOL AtaToTrack(unsigned char* mem, int trackLength, TrackNumber trackNr);
 
     int SaveAll(std::ofstream& ou, SongIOType iotype);

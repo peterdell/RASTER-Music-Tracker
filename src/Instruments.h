@@ -58,7 +58,6 @@ public:
     int LoadInstrument(int instr, std::ifstream& in, InstrumentIOType iotype);
 
     BYTE InstrToAta(int instr, unsigned char* ata, int max);
-    BYTE InstrToAtaRMF(int instr, unsigned char* ata, int max);
     BOOL AtaToInstr(unsigned char* ata, int instr);
 
     BOOL AtaV0ToInstr(unsigned char* ata, int instr);	// Due to the loading of the old version

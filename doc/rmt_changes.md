@@ -20,7 +20,7 @@ Changes in RMT 2.00 (Planned)
 
 Changes in RMT 1.35 (Planned)
 -----------------------------
-- Remove the parts of the "RMF" file format that Raster started but never completed.
+
 - Have an additional ".ini" file as an intermediate step to the RMT file format version 2. There, the module-specific settings from the "RMT.ini" and "Tuning.ini" could be preserved. Also, the file's existence indicates it is an RMT in 1.34 format.
 - Map the official Windows standard key combinations to the correct Windows standard function. Find alterative for their current binding.
   - Help Topics (n/a) => Help Topics (F1)
@@ -34,6 +34,7 @@ Technical:
 Changes in RMT 1.35
 -------------------
 
+- Removed the parts of the "RMF" file format that Raster started but never completed.
 - Main menu restructured
   - Menu "File"
     - "Load..." => "Open..."
@@ -45,6 +46,7 @@ Changes in RMT 1.35
   - Song
   - Instrument
   - Track => Pattern?
+  - Pokey (New)
   - Menu "Tools" (New)
     - "Configuration" => "Options" (was in "View")
 	- "Paths...": Now uses standard folder picker control

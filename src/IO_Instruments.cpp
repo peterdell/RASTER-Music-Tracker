@@ -1,5 +1,5 @@
-#include "stdafx.h"
 #include "resource.h"
+#include "stdafx.h"
 #include <fstream>
 
 #include "Atari.h"
@@ -361,78 +361,6 @@ BYTE CInstruments::InstrToAta(int instr, unsigned char* ata, int max)
         ata[j + 1] = (env[EnvelopeParameter::FILTER] << 7)
             | (env[EnvelopeParameter::COMMAND] << 4)	//0-7
             | (env[EnvelopeParameter::DISTORTION])	//0,2,4,6,8,A,C,E
-            | (env[EnvelopeParameter::PORTAMENTO]);
-        ata[j + 2] = (env[EnvelopeParameter::X] << 4)
-            | (env[EnvelopeParameter::Y]);
-    }
-    return tablelast + 1 + (len + 1) * 3;	//returns the data length of the instrument
-}
-
-BYTE CInstruments::InstrToAtaRMF(int instr, unsigned char* ata, int max)
-{
-    TInstrument* ai = GetInstrument(instr);
-    int i, j;
-    int* par = ai->parameters;
-
-    /*							RMF
-      0 IDXTABLEEND
-      1 IDXTABLEGO
-      2 IDXENVEND				+1
-      3 IDXENVGO
-      4 TABTYPEMODESPEED
-      5 AUDCTL
-      6 VSLIDE
-      7 VMIN
-      8 EFFDELAY
-      9 EFVIBRATO
-     10 FSHIFT
-     11 0 (unused)				omitted
-    */
-
-    const int INSTRPAR = 11;			//RMF (default is 12)
-
-    int tablelast = par[PAR_TBL_LENGTH] + INSTRPAR;	 //+12	//12th byte starts the table
-    ata[0] = tablelast;
-    ata[1] = par[PAR_TBL_GOTO] + INSTRPAR;				//12th byte starts the table
-    ata[2] = par[PAR_ENV_LENGTH] * 3 + tablelast + 1 + 1;	//behind the table is the envelope // RMF +1
-    ata[3] = par[PAR_ENV_GOTO] * 3 + tablelast + 1;
-    //
-    ata[4] = (par[PAR_TBL_TYPE] << 7)
-        | (par[PAR_TBL_MODE] << 6)
-        | (par[PAR_TBL_SPEED]);
-    //
-    ata[5] = par[PAR_AUDCTL_15KHZ]
-        | (par[PAR_AUDCTL_HPF_CH2] << 1)
-        | (par[PAR_AUDCTL_HPF_CH1] << 2)
-        | (par[PAR_AUDCTL_JOIN_3_4] << 3)
-        | (par[PAR_AUDCTL_JOIN_1_2] << 4)
-        | (par[PAR_AUDCTL_179_CH3] << 5)
-        | (par[PAR_AUDCTL_179_CH1] << 6)
-        | (par[PAR_AUDCTL_POLY9] << 7);
-    ata[6] = par[PAR_VOL_FADEOUT];
-    ata[7] = par[PAR_VOL_MIN] << 4;
-    ata[8] = par[PAR_DELAY];
-    ata[9] = par[PAR_VIBRATO] & 0x03;
-    ata[10] = par[PAR_FREQ_SHIFT];
-    ata[11] = 0; //unused
-
-    //write for the entire length of the table
-    for (i = 0; i <= par[PAR_TBL_LENGTH]; i++) ata[INSTRPAR + i] = ai->noteTable[i];
-
-    //envelope is behind the table
-    BOOL stereo = (g_tracks4_8 > 4);
-    int len = par[PAR_ENV_LENGTH];
-    for (i = 0, j = tablelast + 1; i <= len; i++, j += 3)
-    {
-        int* env = (int*)&ai->envelope[i];
-        ata[j] = (stereo) ?
-            (env[EnvelopeParameter::VOLUMER] << 4) | (env[EnvelopeParameter::VOLUMEL]) //stereo
-            :
-            (env[EnvelopeParameter::VOLUMEL] << 4) | (env[EnvelopeParameter::VOLUMEL]); //mono, VOLUME R = VOLUME L
-
-        ata[j + 1] = (env[EnvelopeParameter::FILTER] << 7)
-            | (env[EnvelopeParameter::COMMAND] << 4)	//0-7
-            | (env[EnvelopeParameter::DISTORTION])	//0,2,4,..14
             | (env[EnvelopeParameter::PORTAMENTO]);
         ata[j + 2] = (env[EnvelopeParameter::X] << 4)
             | (env[EnvelopeParameter::Y]);
