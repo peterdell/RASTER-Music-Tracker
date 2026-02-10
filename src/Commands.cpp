@@ -377,6 +377,46 @@ void CCommands::AnalyeAcceleratorTable(const UINT id) {
     HACCEL hAccel = LoadAccelerators(g_app.m_hInstance, MAKEINTRESOURCE(id));
     if (hAccel) {
         // TODO Mail sent to CycoPH hA
+		int cAccelEntries = ::CopyAcceleratorTable(hAccel, NULL, 0);
+		if (cAccelEntries > 0) {
+			ACCEL* pAccel = new ACCEL[cAccelEntries];
+			::CopyAcceleratorTable(hAccel, pAccel, cAccelEntries);
+
+			// Iterate through pAccel[i].cmd, pAccel[i].key, pAccel[i].fVirt
+			// ... process data ...
+			CString allCommandsAsText = _T("Commands in Accelerator Table:\n");
+
+			for (int i = 0; i < cAccelEntries; ++i) 
+            {
+				WORD key = pAccel[i].key; // The key (e.g., 'C', VK_F1)
+				BYTE flags = pAccel[i].fVirt; // Modifier flags
+				WORD cmd = pAccel[i].cmd; // Command ID
+
+                CString cmdAsString;
+
+				// Interpret flags (FCONTROL, FALT, FSHIFT, FVIRTKEY)
+				if (flags & FCONTROL) cmdAsString += "Ctrl+";
+				if (flags & FALT) cmdAsString += "Alt+";
+				if (flags & FSHIFT) cmdAsString += "Shift+";
+
+				// Display key (if FVIRTKEY is set, key is a Virtual Key Code)
+                if (flags & FVIRTKEY) {
+                    // Convert virtual key code to string
+                    char keyName[64];
+                    GetKeyNameTextA(MapVirtualKeyA(key, MAPVK_VK_TO_VSC) << 16, keyName, sizeof(keyName));
+                    cmdAsString += keyName;
+                }
+                else {
+                    cmdAsString += (char)key; // Regular character
+				}
+				// Add the command ID to the string
+				allCommandsAsText += cmdAsString + "\n";
+			}
+
+			MessageBoxA(NULL, allCommandsAsText, "Accelerator Table Commands", MB_OK);
+
+			delete[] pAccel;
+		}
     }
 }
 
