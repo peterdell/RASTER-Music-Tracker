@@ -201,7 +201,11 @@ CString CRmtApp::GetVersionAndBuild() const {
 
 void CRmtApp::OnHelp()
 {
-    CShell::OpenFile(GetResourceFilePath(std::filesystem::path("docs"), "rmt_en.html"));
+    if (!helpOpened) {
+        helpOpened = true;
+        CShell::OpenLocalFile(GetResourceFilePath(std::filesystem::path("docs"), "rmt_en.html"));
+        helpOpened = false;
+    }
 }
 
 

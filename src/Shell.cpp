@@ -37,3 +37,15 @@ BOOL CShell::OpenFile(const CString& filePath) {
     }
     return TRUE;
 }
+
+BOOL CShell::OpenLocalFile(const CString& filePath) {
+    CFileStatus status;
+    if (!CFile::GetStatus(filePath, status)) {
+        CString message;
+        message.Format("Cannot open file\"%s\". The file does not exist.", filePath);
+        SendErrorMessage(message);
+        return FALSE;
+    }
+    return OpenFile(filePath);
+}
+

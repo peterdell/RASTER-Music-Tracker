@@ -51,6 +51,10 @@ public:
     afx_msg void OnHelpAboutApp();
     afx_msg void OnHelp();
     //}}AFX_MSG
+
+private:
+    bool helpOpened;
+
 };
 
 
