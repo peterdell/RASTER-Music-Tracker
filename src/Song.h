@@ -298,7 +298,9 @@ private:
     BOOL m_ch_offset = 0;
 
     //POKEY EXPLORER variables, used for tests involving pitch calculations and sound debugging displayed on screen
+public:// TODO
     CPokeyController* m_PokeyController;
+private:
 
     EditArea m_infoact;					// Which part of the info area is active for editing: 0 = name, 
     char m_songname[SONG_NAME_MAX_LEN + 1];

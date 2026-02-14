@@ -309,11 +309,14 @@
     <ClCompile Include="PokeyController.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
-    <ClCompile Include="SongUI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="RmtExporter.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\RMT</Filter>
+    </ClCompile>
+    <ClCompile Include="PokeyView.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="SongUI.cpp">
+      <Filter>Source Files\GUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -553,6 +556,9 @@
     </ClInclude>
     <ClInclude Include="RmtExporter.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\RMT</Filter>
+    </ClInclude>
+    <ClInclude Include="PokeyView.h">
+      <Filter>Source Files\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
