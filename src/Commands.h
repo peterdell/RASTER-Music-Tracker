@@ -3,9 +3,28 @@
 // Use Accelerator Key Mapping in Rmt.rc
 
 #include "StdAfx.h"
-#include <map>
 #include <list>
+#include <map>
 
+
+class CAcceleratorTable {
+public:
+
+    CAcceleratorTable();
+    ~CAcceleratorTable();
+
+    void Clear();
+    void Add(const UINT id);
+
+    int GetSize() const;
+    const ACCEL& GetEntry(const int index) const;
+    ACCEL* GetEntryByCommand(const WORD cmd) const;
+    CString GetText(ACCEL& entry) const;
+
+private:
+    int size;
+    ACCEL* pAccel;
+};
 
 class CMenuEntry {
 public:
@@ -81,6 +100,7 @@ public:
 
 private:
 
+    CAcceleratorTable m_acceleratorTable;
     ActionInfoMap m_actionInfoMap;
 
     void ClearActionInfos();
@@ -94,8 +114,6 @@ private:
 
     void AnalyzeToolBar(const CString& namne, const CToolBar& toolBar);
     void AnalyzeToolBar(const UINT id, const CString& name);
-
-    void AnalyeAcceleratorTable(const UINT id);
 
 };
 

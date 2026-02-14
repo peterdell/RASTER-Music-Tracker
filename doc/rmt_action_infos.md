@@ -39,14 +39,14 @@
 | Menu Play | Play And Loop Song Line | `F6` | Play and loop current song line |
 | Menu Play | Play From Start | `F5` | Play song from start position |
 | Menu Play | Stop | `ESC` | Stop playing the song. Mute all sounds. |
-| Menu Channels | Channel 1 | `Ctl+1` |  |
-| Menu Channels | Channel 2 | `Ctl+2` |  |
-| Menu Channels | Channel 3 | `Ctl+3` |  |
-| Menu Channels | Channel 4 | `Ctl+4` |  |
+| Menu Channels | Channel 1 | `Ctrl+1` |  |
+| Menu Channels | Channel 2 | `Ctrl+2` |  |
+| Menu Channels | Channel 3 | `Ctrl+3` |  |
+| Menu Channels | Channel 4 | `Ctrl+4` |  |
 | Menu Channels | Channel 5 | `Ctrl+5` |  |
-| Menu Channels | Channel 6 | `Ctl+6` |  |
-| Menu Channels | Channel 7 | `Ctl+7` |  |
-| Menu Channels | Channel 8 | `Ctl+8` |  |
+| Menu Channels | Channel 6 | `Ctrl+6` |  |
+| Menu Channels | Channel 7 | `Ctrl+7` |  |
+| Menu Channels | Channel 8 | `Ctrl+8` |  |
 | Menu Channels | Mute/Unmute Active Channel | `F9` | Mute/unmute the active channel (F9) |
 | Menu Channels | Solo Active Channel | `Ctrl+F9` | Mute all channels except active channel / Unmute all channels (Ctrl+F9) |
 | Menu Channels | Mute/Unmute All Channels | `Shift+F9` | Mute / Umnute all channels (Shift+F9) |

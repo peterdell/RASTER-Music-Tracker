@@ -1,12 +1,96 @@
 #include "Commands.h"
 #include "GuiHelpers.h"
 
-#include "Rmt.h"
+#include "afxacceleratorkey.h"
 #include "resource.h"
-#include <iostream>
+#include "Rmt.h"
 #include <fstream>
+#include <iostream>
 
 extern CRmtApp g_app;
+
+
+CAcceleratorTable::CAcceleratorTable() : size(0), pAccel(nullptr) {
+
+}
+
+CAcceleratorTable::~CAcceleratorTable() {
+    Clear();
+}
+
+
+void CAcceleratorTable::Clear() {
+    if (pAccel != nullptr) {
+        delete[] pAccel;
+        pAccel = nullptr;
+        size = 0;
+    }
+}
+
+void CAcceleratorTable::Add(const UINT id) {
+    Clear();
+    HACCEL hAccel = LoadAccelerators(g_app.m_hInstance, MAKEINTRESOURCE(id));
+    if (hAccel) {
+        size = ::CopyAcceleratorTable(hAccel, NULL, 0);
+        pAccel = new ACCEL[size];
+
+        if (size > 0) {
+            ::CopyAcceleratorTable(hAccel, pAccel, size);
+        }
+    }
+}
+
+int CAcceleratorTable::GetSize() const {
+    return size;
+}
+
+const ACCEL& CAcceleratorTable::GetEntry(const int index) const {
+    return  pAccel[index];
+}
+
+ACCEL* CAcceleratorTable::GetEntryByCommand(const WORD cmd) const {
+    for (int i = 0; i < GetSize(); i++) {
+        if (pAccel[i].cmd == cmd) {
+            return &pAccel[i];
+        }
+    }
+    return nullptr;
+}
+
+CString  CAcceleratorTable::GetText(ACCEL& entry) const {
+    auto key = entry.key; // The key (e.g., 'C', VK_F1)
+    auto flags = entry.fVirt; // Modifier flags
+
+    CString result;
+
+    CMFCAcceleratorKey test(&entry);
+    test.Format(result);
+
+    /*
+    // Interpret flags (FCONTROL, FALT, FSHIFT, FVIRTKEY)
+    if (flags & FSHIFT) {
+        result += "Shift+";
+    }
+    if (flags & FCONTROL) {
+        result += "Ctrl+";
+    }
+    if (flags & FALT) {
+        result += "Alt+";
+    }
+
+    // Display key (if FVIRTKEY is set, key is a Virtual Key Code)
+    if (flags & FVIRTKEY) {
+        // Convert virtual key code to string
+        char keyName[64];
+        GetKeyNameTextA(MapVirtualKeyA(key, MAPVK_VK_TO_VSC) << 16, keyName, sizeof(keyName));
+        result += keyName;
+    }
+    else {
+        result += (char)key; // Regular character
+    }*/
+    return result;
+
+}
 
 
 CMenuEntry::CMenuEntry(const MenuPath& menuIDPath, const MenuPath& menuTextPath, const UINT id, const CString& text) {
@@ -214,7 +298,6 @@ CCommands::CActionInfo* CCommands::GetMutableActionInfo(UINT id) {
     return result;
 }
 
-
 void  CCommands::PrintActionInfos() const {
 
     ActionInfoList actionInfoList;
@@ -234,12 +317,24 @@ void  CCommands::PrintActionInfos() const {
     for (auto it = actionInfoList.begin(); it != actionInfoList.end(); it++) {
         CString s;
         auto actionInfo = (*it);
+        auto acceleratorEntry = m_acceleratorTable.GetEntryByCommand(actionInfo->GetID());
+
+        CString acceleratorKey;
+        if (acceleratorEntry != nullptr) {
+            acceleratorKey = m_acceleratorTable.GetText(*acceleratorEntry);
+        }
+
+
         auto menuEntry = actionInfo->GetMenuEntry();
-        CString acceleratorKeyFormatted;
         if (menuEntry != nullptr) {
-            acceleratorKeyFormatted = menuEntry->GetAcceleatorKey();
-            if (!acceleratorKeyFormatted.IsEmpty()) {
-                acceleratorKeyFormatted = "`" + acceleratorKeyFormatted + "`";
+            auto menuEcceleratorKey = menuEntry->GetAcceleatorKey();
+            if (!menuEcceleratorKey.IsEmpty()) {
+                if (acceleratorKey.IsEmpty()) {
+                    acceleratorKey = menuEcceleratorKey;
+                }
+                else if (acceleratorKey != menuEcceleratorKey) {
+                    acceleratorKey = "ERROR: " + acceleratorKey + " vs. " + menuEcceleratorKey;
+                }
             }
         }
 
@@ -257,7 +352,7 @@ void  CCommands::PrintActionInfos() const {
         }
         CString accessPath;
         if (menuEntry != nullptr) {
-            accessPath = "Menu "+menuEntry->GetMenuTextPathString();
+            accessPath = "Menu " + menuEntry->GetMenuTextPathString();
             if (!actionInfo->GetToolBar().IsEmpty()) {
                 accessPath += "<br>Tool Bar" + actionInfo->GetToolBar();
             }
@@ -267,6 +362,12 @@ void  CCommands::PrintActionInfos() const {
             accessText = menuEntry->GetPlainText();
         }
 
+
+        CString acceleratorKeyFormatted;
+        if (!acceleratorKey.IsEmpty()) {
+            acceleratorKeyFormatted = "`" + acceleratorKey + "`";
+
+        }
 
         s.Format("| %s | %s | %s | %s |", accessPath, accessText, acceleratorKeyFormatted, text);
 
@@ -372,71 +473,38 @@ void  CCommands::AnalyzeToolBar(const UINT id, const CString& name) {
     }
 }
 
-void CCommands::AnalyeAcceleratorTable(const UINT id) {
-    // https://learn.microsoft.com/en-us/windows/win32/learnwin32/accelerator-tables
-    HACCEL hAccel = LoadAccelerators(g_app.m_hInstance, MAKEINTRESOURCE(id));
-    if (hAccel) {
-        // TODO Mail sent to CycoPH hA
-		int cAccelEntries = ::CopyAcceleratorTable(hAccel, NULL, 0);
-		if (cAccelEntries > 0) {
-			ACCEL* pAccel = new ACCEL[cAccelEntries];
-			::CopyAcceleratorTable(hAccel, pAccel, cAccelEntries);
-
-			// Iterate through pAccel[i].cmd, pAccel[i].key, pAccel[i].fVirt
-			// ... process data ...
-			CString allCommandsAsText = _T("Commands in Accelerator Table:\n");
-
-			for (int i = 0; i < cAccelEntries; ++i) 
-            {
-				WORD key = pAccel[i].key; // The key (e.g., 'C', VK_F1)
-				BYTE flags = pAccel[i].fVirt; // Modifier flags
-				WORD cmd = pAccel[i].cmd; // Command ID
-
-                CString cmdAsString;
-
-				// Interpret flags (FCONTROL, FALT, FSHIFT, FVIRTKEY)
-				if (flags & FCONTROL) cmdAsString += "Ctrl+";
-				if (flags & FALT) cmdAsString += "Alt+";
-				if (flags & FSHIFT) cmdAsString += "Shift+";
-
-				// Display key (if FVIRTKEY is set, key is a Virtual Key Code)
-                if (flags & FVIRTKEY) {
-                    // Convert virtual key code to string
-                    char keyName[64];
-                    GetKeyNameTextA(MapVirtualKeyA(key, MAPVK_VK_TO_VSC) << 16, keyName, sizeof(keyName));
-                    cmdAsString += keyName;
-                }
-                else {
-                    cmdAsString += (char)key; // Regular character
-				}
-				// Add the command ID to the string
-				allCommandsAsText += cmdAsString + "\n";
-			}
-
-			MessageBoxA(NULL, allCommandsAsText, "Accelerator Table Commands", MB_OK);
-
-			delete[] pAccel;
-		}
-    }
-}
-
 CCommands::CCommands() {
 
 }
 
 void CCommands::Analyze() {
+    HKL  hkl;
+    hkl = LoadKeyboardLayoutA(
+        "04090409", //  U.S. English layout 
+        KLF_ACTIVATE
+    );
+    auto oldhKL = ActivateKeyboardLayout(hkl, KLF_ACTIVATE);
 
 
     ClearActionInfos();
+    m_acceleratorTable.Clear();
+    m_acceleratorTable.Add(IDR_MAIN_WINDOW);
+    m_acceleratorTable.Add(IDR_POKEY_EXPLORER);
 
     AnalyzeMenu(IDR_MAIN_WINDOW, "Main", "");
 
     AnalyzeToolBar(IDR_TOOLBAR_BLOCK, "Block");
 
-    AnalyeAcceleratorTable(IDR_MAIN_WINDOW);
 
     PrintActionInfos();
 
     ClearActionInfos();
+
+
+    oldhKL = LoadKeyboardLayoutA(
+        "04070407", //  German
+        KLF_ACTIVATE
+    );
+    ActivateKeyboardLayout(oldhKL, KLF_ACTIVATE);
 
 }

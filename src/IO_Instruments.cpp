@@ -1,5 +1,5 @@
 #include "resource.h"
-#include "stdafx.h"
+#include "StdAfx.h"
 #include <fstream>
 
 #include "Atari.h"
@@ -9,7 +9,6 @@
 
 #include "Global.h"
 
-#include "GuiHelpers.h"
 
 
 int CInstruments::SaveAll(std::ofstream& ou, InstrumentIOType iotype)
