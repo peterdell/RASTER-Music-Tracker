@@ -480,7 +480,7 @@ CCommands::CCommands() {
 void CCommands::Analyze() {
     HKL  hkl;
     hkl = LoadKeyboardLayoutA(
-        "04090409", //  U.S. English layout 
+        "00000409", //  U.S. English layout 
         KLF_ACTIVATE
     );
     auto oldhKL = ActivateKeyboardLayout(hkl, KLF_ACTIVATE);
@@ -502,7 +502,7 @@ void CCommands::Analyze() {
 
 
     oldhKL = LoadKeyboardLayoutA(
-        "04070407", //  German
+        "00000407", //  German layout
         KLF_ACTIVATE
     );
     ActivateKeyboardLayout(oldhKL, KLF_ACTIVATE);
