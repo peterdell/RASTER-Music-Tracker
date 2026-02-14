@@ -4,8 +4,8 @@
 #include "PokeyController.h"
 #include "Tuning.h"
 
-static int idx[8] = { 0xd200,0xd202,0xd204,0xd206,0xd210,0xd212,0xd214,0xd216 };	// AUDF and AUDC for mono and stereo
-static int idx2[2] = { 0xd208,0xd218 };	//AUDCTL and SKCTL
+static int AUDF_ADDRESS[8] = { 0xd200,0xd202,0xd204,0xd206,0xd210,0xd212,0xd214,0xd216 };	// AUDF and AUDC for mono and stereo
+static int AUDCTL_ADDRESS[2] = { 0xd208,0xd218 };	//AUDCTL and SKCTL
 
 #define ANALYZER3_X	(canvas->GetOriginX()) 
 #define ANALYZER3_Y	(CSongScreenLayout::TRACKS_Y+50) 
@@ -53,22 +53,22 @@ void CPokeyView::Draw(CSong* m_song, int a) {
     {
         BOOL IS_RIGHT_POKEY = (i >= 4) ? 1 : 0;
 
-        audctl = memory[idx2[IS_RIGHT_POKEY]];
-        skctl = memory[idx2[IS_RIGHT_POKEY] + 7];
-        audf = memory[idx[i]];
-        audc = memory[idx[i] + 1];
+        audctl = memory[AUDCTL_ADDRESS[IS_RIGHT_POKEY]];
+        skctl = memory[AUDCTL_ADDRESS[IS_RIGHT_POKEY] + 7];
+        audf = memory[AUDF_ADDRESS[i]];
+        audc = memory[AUDF_ADDRESS[i] + 1];
 
         vol = audc & 0x0f;
         dist = audc & 0xf0;
         pitch = audf;
 
         if (i % 4 == 0)								//only in valid sawtooth channels
-            audf3 = memory[idx[i + 2]];
+            audf3 = memory[AUDF_ADDRESS[i + 2]];
 
         if (i % 2 == 1)								//only in valid 16-bit channels
         {
-            audf2 = memory[idx[i - 1]];
-            audc2 = memory[idx[i - 1] + 1];
+            audf2 = memory[AUDF_ADDRESS[i - 1]];
+            audc2 = memory[AUDF_ADDRESS[i - 1] + 1];
             vol2 = audc2 & 0x0f;
             audf16 = audf;
             audf16 <<= 8;

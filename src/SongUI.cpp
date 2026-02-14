@@ -89,23 +89,21 @@ void CSongUI::DrawAnalyzer()
     if (g_width < MINIMAL_WIDTH_INSTRUMENTS && g_active_ti == Part::PART_INSTRUMENTS) DEBUG_POKEY = DEBUG_MEMORY = 0;
 
 #define ANALYZER_X	(CSongScreenLayout::TRACKS_X+6*8+4)		// 68
-#define ANALYZER_Y	(CSongScreenLayout::TRACKS_Y-8)			// Line 8 = 128
-#define ANALYZER_S	6 
-#define ANALYZER_H	5 
-#define ANALYZER_HP	8 
-    //
-#define ANALYZER2_X	(SONG_OFFSET+6*8) 
-#define ANALYZER2_Y	(CSongScreenLayout::TRACKS_Y-128) 
-#define ANALYZER2_S	1 
-#define ANALYZER2_H	4 
-#define ANALYZER2_HP 8 
+    static constexpr int ANALYZER_Y(CSongScreenLayout::TRACKS_Y - 8);			// Line 8 = 128
+    static constexpr int ANALYZER_S = 6;
+    static constexpr int ANALYZER_H = 5;
+    static constexpr int ANALYZER_HP = 8;
 
-//
+#define ANALYZER2_X	(SONG_OFFSET+6*8) 
+    static constexpr int ANALYZER2_Y = CSongScreenLayout::TRACKS_Y - 128;
+    static constexpr int ANALYZER2_S = 1;
+    static constexpr int ANALYZER2_H = 4;
+    static constexpr int  ANALYZER2_HP = 8;
+
+    //
 #define ANALYZER3_X	(SONG_OFFSET+6*8-32) 
 #define ANALYZER3_Y	(CSongScreenLayout::TRACKS_Y+50) 
-#define ANALYZER3_S	6 
-#define ANALYZER3_H	5 
-#define ANALYZER3_HP 8 
+
 
 // Draw a bridge between two columns (on the tracks view)
 #define Hook1(g1, g2)																				\
@@ -125,9 +123,8 @@ void CSongUI::DrawAnalyzer()
 		g_mem_dc->LineTo(ANALYZER2_X + ANALYZER2_S * 15 / 2 + 3 * 8 * (g2), ANALYZER_Y - 120);		\
 	}
 
-    int audf, audf2, audf3, audf16, audc, audc2, audctl, skctl, pitch, dist, vol, vol2;
+    int audf, audc, vol;
     static int idx[8] = { 0xd200,0xd202,0xd204,0xd206,0xd210,0xd212,0xd214,0xd216 };	// AUDF and AUDC for mono and stereo
-    static int idx2[2] = { 0xd208,0xd218 };	//AUDCTL and SKCTL
     int col[8];
     int R[8];
     int G[8];
@@ -267,8 +264,6 @@ void CSongUI::DrawAnalyzer()
     }
     if (DEBUG_POKEY)	// Detailed registers viewer (TODO: move to another place)
     {
-
-
         CCanvas ANALYZER3(ANALYZER3_X, ANALYZER3_Y);
         CPokeyView pokeyView(ANALYZER3);
         pokeyView.Draw(m_song, a);
