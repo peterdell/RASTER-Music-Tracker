@@ -22,9 +22,9 @@ CPokeyView::CPokeyView(CCanvas& canvas) : canvas(&canvas) {
 
 void CPokeyView::Draw(CSong* m_song, int a) {
 
-    auto DEBUG_SOUND = IsEditMode(EditMode::POKEY_EXPLORER_MODE);
-
     canvas->FillSolidRect(0, 0, 680, 192, CRGBColor::BACKGROUND);
+
+    auto DEBUG_SOUND = IsEditMode(EditMode::POKEY_EXPLORER_MODE);
 
     int audf, audf2, audf3, audf16, audc, audc2, audctl, skctl, pitch, dist, vol, vol2;
 
@@ -62,10 +62,11 @@ void CPokeyView::Draw(CSong* m_song, int a) {
         dist = audc & 0xf0;
         pitch = audf;
 
-        if (i % 4 == 0)								//only in valid sawtooth channels
+        if (i % 4 == 0) {								// only in valid sawtooth channels
             audf3 = memory[AUDF_ADDRESS[i + 2]];
+        }
 
-        if (i % 2 == 1)								//only in valid 16-bit channels
+        if (i % 2 == 1)								    // only in valid 16-bit channels
         {
             audf2 = memory[AUDF_ADDRESS[i - 1]];
             audc2 = memory[AUDF_ADDRESS[i - 1] + 1];
@@ -95,7 +96,7 @@ void CPokeyView::Draw(CSong* m_song, int a) {
         POLY9 = audctl & 0x80;
         TWO_TONE = (skctl == 0x8B) ? 1 : 0;
 
-        //combined modes for some special output...
+        // Combined modes for some special output...
         SAWTOOTH = (CH1_179 && CH3_179 && HPF_CH13 && (dist == 0xA0 || dist == 0xE0) && (i == 0 || i == 4)) ? 1 : 0;
         SAWTOOTH_INVERTED = 0;
         JOIN_16BIT = ((JOIN_12 && CH1_179 && (i == 1 || i == 5)) || (JOIN_34 && CH3_179 && (i == 3 || i == 7))) ? 1 : 0;
@@ -104,7 +105,7 @@ void CPokeyView::Draw(CSong* m_song, int a) {
         JOIN_WRONG = (((JOIN_12 && (i == 0 || i == 4)) || (JOIN_34 && (i == 2 || i == 6))) && (vol == 0x00));	//16-bit, invalid channel, no volume
         REVERSE_16 = (((JOIN_12 && (i == 0 || i == 4)) || (JOIN_34 && (i == 2 || i == 6))) && (vol > 0x00));	//16-bit, invalid channel, with volume (Reverse-16)
         CLOCK_179 = ((CH1_179 && (i == 0 || i == 4)) || (CH3_179 && (i == 2 || i == 6))) ? 1 : 0;
-        if (JOIN_16BIT || CLOCK_179) CLOCK_15 = 0;	//override, these 2 take priority over 15khz mode
+        if (JOIN_16BIT || CLOCK_179) { CLOCK_15 = 0; }	// Override, these 2 take priority over 15khz mode
 
         int modoffset = 1;
         int coarse_divisor = 1;
@@ -243,12 +244,13 @@ void CPokeyView::Draw(CSong* m_song, int a) {
             TextMiniXY(m_song->IsNTSC() ? "NTSC" : "PAL", ANALYZER3_X + 8 * 21, ANALYZER3_Y + 8 * 9, TextMiniColor::BLUE);
 
             TextMiniXY("FREQ17:        HZ, MAXSCREENCYCLES:      , G_TRACKS4_8:", ANALYZER3_X, ANALYZER3_Y + 8 * 10, TextMiniColor::GRAY);
+            canvas->ColorMini(TextMiniColor::WHITE);
             snprintf(t, 8, "%d", CAtari::GetClockFrequency(m_song->IsNTSC()));
-            TextMiniXY(t, ANALYZER3_X + 8 * 8, ANALYZER3_Y + 8 * 10, TextMiniColor::WHITE);
+            canvas->At(8, 10).TextMini(t);
             snprintf(t, 8, "%d", cycles);
-            TextMiniXY(t, ANALYZER3_X + 8 * 36, ANALYZER3_Y + 8 * 10, TextMiniColor::WHITE);
+            canvas->At(35, 10).TextMini(t);
             snprintf(t, 2, "%d", tracks);
-            TextMiniXY(t, ANALYZER3_X + 8 * 56, ANALYZER3_Y + 8 * 10, TextMiniColor::WHITE);
+            canvas->At(56, 10).TextMini(t);
 
             const auto channel_index = m_song->m_PokeyController->GetChannelIndex();
             if (DEBUG_SOUND && i == channel_index)	//Debug sound, must only be run once per loops, so this prevents it being overwritten

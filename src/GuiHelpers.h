@@ -101,13 +101,34 @@ public:
         return originY;
     }
 
+    CCanvas& ColorMini(const TextMiniColor colorMini) {
+        this->colorMini = colorMini;
+        return *this;
+    }
+
+    CCanvas& At(const int row, const int column) {
+        this->column = column;
+        this->row = row;
+        return *this;
+    }
+
     void TextMiniAt(const char* txt, int row, int column, TextMiniColor color = TextMiniColor::GRAY);
+    CCanvas& TextMini(const char* txt) {
+        TextMiniAt(txt, row, column, colorMini);
+        return *this;
+    }
+
     void FillSolidRect(int x, int y, int width, int height, COLORREF color);
 private:
     int originX;
     int originY;
     int charWidth = 8;
     int charHeight = 8;
+
+    TextMiniColor colorMini;
+    int column;
+    int row;
+
 };
 
 template <typename T>
