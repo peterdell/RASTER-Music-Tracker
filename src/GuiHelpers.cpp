@@ -332,3 +332,15 @@ void IconMiniXY(const int icon, int x, int y)
     }
 }
 
+CCanvas::CCanvas(int originRow, int originColumn) : originX(originRow), originY(originColumn) {
+}
+
+
+void CCanvas::TextMiniAt(const char* txt, int row, int column, TextMiniColor color) {
+    TextMiniXY(txt, originX + row * charWidth, originY + column * charHeight, color);
+}
+
+void CCanvas::FillSolidRect(int x, int y, int width, int height, COLORREF color) {
+    g_mem_dc->FillSolidRect(originX + x, originY + y, width, height, color);
+}
+
