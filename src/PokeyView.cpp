@@ -20,7 +20,7 @@ CPokeyView::CPokeyView(CCanvas& canvas) : canvas(&canvas) {
 
 }
 
-void CPokeyView::Draw(CSong* m_song, int a) {
+void CPokeyView::Draw(CSong* m_song) {
 
     canvas->FillSolidRect(0, 0, 680, 192, CRGBColor::BACKGROUND);
 
@@ -78,12 +78,11 @@ void CPokeyView::Draw(CSong* m_song, int a) {
 
         int gap = (IS_RIGHT_POKEY) ? 64 : 0;
         int gap2 = (IS_RIGHT_POKEY) ? 96 : 0;
-        a = i * 8 + gap + 16;
+        int a = i * 8 + gap + 16;
         int minus = (IS_RIGHT_POKEY) ? -8 : 0;
         int audnum = (i * 2) + minus;
         char s[2];
         char p[12];
-        char n[4];
         double PITCH = 0;
 
         CLOCK_15 = audctl & 0x01;
@@ -221,7 +220,9 @@ void CPokeyView::Draw(CSong* m_song, int a) {
                 TextMiniXY("1", ANALYZER3_X + 8 * 3, ANALYZER3_Y + gap2 + 48, TextMiniColor::GRAY);
                 TextMiniXY("1", ANALYZER3_X + 8 * 3, ANALYZER3_Y + gap2 + 48 + 8, TextMiniColor::GRAY);
             }
-            else TextMiniXY("POKEY REGISTERS", ANALYZER3_X, ANALYZER3_Y, TextMiniColor::GRAY);
+            else {
+                TextMiniXY("POKEY REGISTERS", ANALYZER3_X, ANALYZER3_Y, TextMiniColor::GRAY);
+            }
 
             double tuning = g_tuning.basetuning;	//defined in Tuning.cpp through initialisation using input parameter
             int basenote = g_tuning.basenote;
@@ -229,28 +230,19 @@ void CPokeyView::Draw(CSong* m_song, int a) {
             //int FREQ_17 = (g_ntsc) ? FREQ_17_NTSC : FREQ_17_PAL;	//useful for debugging I guess
             auto cycles = CAtari::GetFrameCycleCount(m_song->IsNTSC());
             int tracks = m_song->GetTracks();
-            char t[12] = { 0 };
 
-            TextMiniXY("A- TUNING:       HZ,", ANALYZER3_X, ANALYZER3_Y + 8 * 9, TextMiniColor::GRAY);
-            snprintf(t, 10, "%3.2f", tuning);
-            TextMiniXY(t, ANALYZER3_X + 8 * 11, ANALYZER3_Y + 8 * 9, TextMiniColor::WHITE);
 
-            n[0] = CNotes::GetNote(reverse_basenote)[0];
-            n[1] = CNotes::GetNote(reverse_basenote)[1];
-            n[2] = 0;
+            canvas->ColorMini(TextMiniColor::GRAY).At(0, 9).PrintMini("A- TUNING:       HZ,");
+            canvas->AtColumn(0).PrintfMini(2, "%s", CNotes::GetNote(reverse_basenote)); //overwrite A- with the given basenote
+            canvas->ColorMini(TextMiniColor::WHITE).AtColumn(11).PrintfMini(10, "%3.2f", tuning);
 
-            TextMiniXY(n, ANALYZER3_X, ANALYZER3_Y + 8 * 9, TextMiniColor::GRAY);	//overwrite A- to the given basenote
+            canvas->ColorMini(TextMiniColor::BLUE).At(21, 9).PrintMini(m_song->IsNTSC() ? "NTSC" : "PAL").NextRow();
+            canvas->ColorMini(TextMiniColor::GRAY).AtColumn(0).PrintMini("FREQ17:        HZ, MAXSCREENCYCLES:      , G_TRACKS4_8:");
 
-            TextMiniXY(m_song->IsNTSC() ? "NTSC" : "PAL", ANALYZER3_X + 8 * 21, ANALYZER3_Y + 8 * 9, TextMiniColor::BLUE);
-
-            TextMiniXY("FREQ17:        HZ, MAXSCREENCYCLES:      , G_TRACKS4_8:", ANALYZER3_X, ANALYZER3_Y + 8 * 10, TextMiniColor::GRAY);
             canvas->ColorMini(TextMiniColor::WHITE);
-            snprintf(t, 8, "%d", CAtari::GetClockFrequency(m_song->IsNTSC()));
-            canvas->At(8, 10).TextMini(t);
-            snprintf(t, 8, "%d", cycles);
-            canvas->At(35, 10).TextMini(t);
-            snprintf(t, 2, "%d", tracks);
-            canvas->At(56, 10).TextMini(t);
+            canvas->AtColumn(8).PrintfMini(7, "%d", CAtari::GetClockFrequency(m_song->IsNTSC()));
+            canvas->AtColumn(35).PrintfMini(7, "%d", cycles);
+            canvas->AtColumn(56).PrintfMini(1, "%d", tracks);
 
             const auto channel_index = m_song->m_PokeyController->GetChannelIndex();
             if (DEBUG_SOUND && i == channel_index)	//Debug sound, must only be run once per loops, so this prevents it being overwritten
@@ -292,14 +284,15 @@ void CPokeyView::Draw(CSong* m_song, int a) {
                 snprintf(p, 10, "%9.2f", e_pitch);
                 TextMiniXY(p, ANALYZER3_X, ANALYZER3_Y + 8 * 15, color);
 
-                snprintf(t, 4, "%d", e_coarse_divisor);
-                TextMiniXY(t, ANALYZER3_X + 8 * 16, ANALYZER3_Y + 8 * 12, color);
+                snprintf(p, 4, "%d", e_coarse_divisor);
+                canvas->ColorMini(color).At(16, 12).PrintMini(p);
+                //TextMiniXY(t, ANALYZER3_X + 8 * 16, ANALYZER3_Y + 8 * 12, color);
 
                 snprintf(p, 10, "%6.1f", divisor);
                 TextMiniXY(p, ANALYZER3_X + 8 * 30, ANALYZER3_Y + 8 * 12, color);
 
-                snprintf(t, 4, "%d", e_modoffset);
-                TextMiniXY(t, ANALYZER3_X + 8 * 49, ANALYZER3_Y + 8 * 12, color);
+                snprintf(p, 4, "%d", e_modoffset);
+                TextMiniXY(p, ANALYZER3_X + 8 * 49, ANALYZER3_Y + 8 * 12, color);
 
                 NumberMiniXY(e_audf, ANALYZER3_X + 8 * 59, ANALYZER3_Y + 8 * 12, color);
                 if (JOIN_16BIT || JOIN_64KHZ || JOIN_15KHZ)
@@ -307,14 +300,14 @@ void CPokeyView::Draw(CSong* m_song, int a) {
 
                 NumberMiniXY(e_audc, ANALYZER3_X + 8 * 72, ANALYZER3_Y + 8 * 12, color);
 
-                snprintf(t, 4, "%d", channel_index);
-                TextMiniXY(t, ANALYZER3_X + 8 * 8, ANALYZER3_Y + 8 * 13, color);
+                snprintf(p, 4, "%d", channel_index);
+                TextMiniXY(p, ANALYZER3_X + 8 * 8, ANALYZER3_Y + 8 * 13, color);
 
-                snprintf(t, 4, "%d", e_modulo);
-                TextMiniXY(t, ANALYZER3_X + 8 * 19, ANALYZER3_Y + 8 * 13, color);
+                snprintf(p, 4, "%d", e_modulo);
+                TextMiniXY(p, ANALYZER3_X + 8 * 19, ANALYZER3_Y + 8 * 13, color);
 
-                snprintf(t, 4, "%d", e_valid);
-                TextMiniXY(t, ANALYZER3_X + 8 * 34, ANALYZER3_Y + 8 * 13, color);
+                snprintf(p, 4, "%d", e_valid);
+                TextMiniXY(p, ANALYZER3_X + 8 * 34, ANALYZER3_Y + 8 * 13, color);
 
             }
 
@@ -345,17 +338,12 @@ void CPokeyView::Draw(CSong* m_song, int a) {
                     else
                         TextMiniXY("-", ANALYZER3_X + 8 * 49, ANALYZER3_Y + a, TextMiniColor::GRAY);
 
-                    if (note < 0)
+                    if (note < 0) {
                         note *= -1;	//invert the negative to prevent going out of bounds
+                    }
 
-                    const auto noteString = CNotes::GetNote(note);
-                    n[0] = noteString[0];
-                    n[1] = noteString[1];
-                    n[2] = 0;
-
-                    sprintf(szBuffer, "%1d", octave);
-                    TextMiniXY(n, ANALYZER3_X + 8 * 44, ANALYZER3_Y + a, TextMiniColor::WHITE);
-                    TextMiniXY(szBuffer, ANALYZER3_X + 8 * 46, ANALYZER3_Y + a, TextMiniColor::WHITE);
+                    canvas->ColorMini(TextMiniColor::WHITE).At(44, a / 8);
+                    canvas->PrintfMini(2, "%s", CNotes::GetNote(note)).PrintfMini(1, "%1d", octave);
 
                 }
             }

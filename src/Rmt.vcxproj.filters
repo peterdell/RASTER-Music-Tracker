@@ -318,6 +318,9 @@
     <ClCompile Include="SongUI.cpp">
       <Filter>Source Files\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="Canvas.cpp">
+      <Filter>Source Files\GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EffectsDlg.h">
@@ -559,6 +562,9 @@
     </ClInclude>
     <ClInclude Include="PokeyView.h">
       <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Canvas.h">
+      <Filter>Source Files\GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

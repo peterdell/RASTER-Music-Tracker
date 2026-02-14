@@ -2,6 +2,7 @@
 
 #include "Song.h"
 
+#include "Canvas.h"
 #include "GuiHelpers.h"
 
 #include "IOHelpers.h"
@@ -266,7 +267,7 @@ void CSongUI::DrawAnalyzer()
     {
         CCanvas ANALYZER3(ANALYZER3_X, ANALYZER3_Y);
         CPokeyView pokeyView(ANALYZER3);
-        pokeyView.Draw(m_song, a);
+        pokeyView.Draw(m_song);
     }
 
     if (DEBUG_MEMORY)	//Atari memory display, do not use unless there is a useful purpose for it

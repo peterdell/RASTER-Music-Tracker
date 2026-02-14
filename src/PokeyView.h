@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GuiHelpers.h"
+#include "Canvas.h"
 
 #include "Song.h"
 
@@ -11,7 +11,7 @@ public:
 
     CPokeyView(CCanvas& canvas);
 
-    void Draw(CSong* m_song, int a);
+    void Draw(CSong* m_song);
 
 private:
     CCanvas* canvas;

@@ -89,48 +89,6 @@ extern void TextMiniXY(const char* txt, int x, int y, TextMiniColor color = Text
 extern void IconMiniXY(const int icon, int x, int y);
 
 
-class CCanvas {
-public:
-    CCanvas(int originX, int originY);
-
-    int GetOriginX() const {
-        return originX;
-    }
-
-    int GetOriginY() const {
-        return originY;
-    }
-
-    CCanvas& ColorMini(const TextMiniColor colorMini) {
-        this->colorMini = colorMini;
-        return *this;
-    }
-
-    CCanvas& At(const int row, const int column) {
-        this->column = column;
-        this->row = row;
-        return *this;
-    }
-
-    void TextMiniAt(const char* txt, int row, int column, TextMiniColor color = TextMiniColor::GRAY);
-    CCanvas& TextMini(const char* txt) {
-        TextMiniAt(txt, row, column, colorMini);
-        return *this;
-    }
-
-    void FillSolidRect(int x, int y, int width, int height, COLORREF color);
-private:
-    int originX;
-    int originY;
-    int charWidth = 8;
-    int charHeight = 8;
-
-    TextMiniColor colorMini;
-    int column;
-    int row;
-
-};
-
 template <typename T>
 class TypedComboBox : public CComboBox {
 public:
