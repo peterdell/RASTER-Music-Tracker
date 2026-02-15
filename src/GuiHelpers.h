@@ -1,9 +1,6 @@
 #pragma once
 
 #include "StdAfx.h"
-
-#include "TextColors.h"
-
 #include <cassert>
 
 // Helper defines to make the code a bit more readable
@@ -43,14 +40,4 @@ extern int EditText(int vk, int shift, int control, char* txt, int& cur, int max
 
 extern BOOL IsHoveredXY(int x, int y, int xLength, int yLength);
 
-// Text
-extern void TextXY(const char* txt, int x, int y, TextColor color = TextColor::WHITE);
-extern void TextXYFull(const char* txt, int& x, int& y);
-extern void TextXYSelN(const char* txt, int n, int x, int y, TextColor color = TextColor::WHITE);
-extern void TextXYCol(const char* txt, int x, int y, int acu, TextColor color = TextColor::WHITE);
-extern void TextDownXY(const char* txt, int x, int y, TextColor color = TextColor::WHITE);
 
-// Mini Texts
-extern void NumberMiniXY(const BYTE num, int x, int y, TextMiniColor color = TextMiniColor::GRAY);
-extern void TextMiniXY(const char* txt, int x, int y, TextMiniColor color = TextMiniColor::GRAY);
-extern void IconMiniXY(const int icon, int x, int y);

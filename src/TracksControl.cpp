@@ -1,10 +1,11 @@
-#include "GuiHelpers.h"
+
 #include "TracksControl.h"
 
+#include "CanvasXY.h"
 #include "Global.h"
 #include "IOHelpers.h"
-
 #include "Notes.h"
+#include "TextColors.h"
 
 CTracksControl::CTracksControl(CCanvas& canvas) : canvas(&canvas) {
 
@@ -30,9 +31,9 @@ void CTracksControl::DrawTrackHeader(const CTracks& tracks, int x, int y, int tr
         }
     }
 
-    TextXY(s, x, y, col);
-    TextXYSelN("<>", -1, x + 8 * 11, y, col);
-    TextMiniXY("FX1", x + 8 * 10, y - 8);
+    CCanvasXY::TextXY(s, x, y, col);
+    CCanvasXY::TextXYSelN("<>", -1, x + 8 * 11, y, col);
+    CCanvasXY::TextMiniXY("FX1", x + 8 * 10, y - 8);
 }
 
 void CTracksControl::DrawTrackLine(const CTracks& tracks, int col, int x, int y, int tr, int line, int aline, int cactview, int pline, BOOL isactive, int acu, int oob)
@@ -107,13 +108,12 @@ void CTracksControl::DrawTrackLine(const CTracks& tracks, int col, int x, int y,
     if (oob) color = TextColor::DARK_GRAY;
 
     // Output the constructed row once it's ready, using the cursor position for highlighted column 
-    //TextXYCol(s, x, y, colac[g_activepart == PART_TRACKS && (isactive && line == aline && !oob) ? acu : 4], color);
-    TextXYCol(s, x, y, g_activepart == Part::PART_TRACKS && (isactive && line == aline && !oob) ? acu : -1, color);
+    CCanvasXY::TextXYCol(s, x, y, g_activepart == Part::PART_TRACKS && (isactive && line == aline && !oob) ? acu : -1, color);
 
     // Mark the end of a pattern here, if it ends on the next line
     if (line + 1 == last && len > 0 && last != tracks.GetMaxTrackLength())
     {
-        TextXY("\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B", x + 7, y + 13, (oob) ? TextColor::DARK_GRAY : TextColor::WHITE);
+        CCanvasXY::TextXY("\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B", x + 7, y + 13, (oob) ? TextColor::DARK_GRAY : TextColor::WHITE);
     }
 
 }

@@ -200,6 +200,7 @@
     <ClCompile Include="AtariTrackerDriver.cpp" />
     <ClCompile Include="C6502.cpp" />
     <ClCompile Include="Canvas.cpp" />
+    <ClCompile Include="CanvasXY.cpp" />
     <ClCompile Include="Commands.cpp" />
     <ClCompile Include="Fraction.cpp" />
     <ClCompile Include="ChannelControl.cpp" />
@@ -364,6 +365,7 @@
     <ClInclude Include="AtariTrackerDriver.h" />
     <ClInclude Include="C6502.h" />
     <ClInclude Include="Canvas.h" />
+    <ClInclude Include="CanvasXY.h" />
     <ClInclude Include="Commands.h" />
     <ClInclude Include="Fraction.h" />
     <ClInclude Include="Clipboard.h" />

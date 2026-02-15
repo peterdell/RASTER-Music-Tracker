@@ -2,7 +2,7 @@
 
 #include "StdAfx.h"
 
-#include "GuiHelpers.h"
+#include "TextColors.h"
 
 class CCanvas {
 public:

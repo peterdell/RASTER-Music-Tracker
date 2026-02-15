@@ -21,8 +21,6 @@ CString GetResourceFolderPath(const CString& folderName);
 CString GetResourceFilePath(const std::filesystem::path& relativeFolderPath, const CString& fileName);
 
 extern BOOL g_closeApplication;
-extern CDC* g_mem_dc;
-extern CDC* g_gfx_dc;
 
 extern int g_width;
 extern int g_height;

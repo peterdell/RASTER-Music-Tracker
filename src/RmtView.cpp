@@ -21,6 +21,7 @@
 
 #include "Global.h"
 
+#include "CanvasXY.h"
 #include "ChannelControl.h"
 #include "GuiHelpers.h"
 #include "Keyboard2NoteMapping.h"
@@ -322,7 +323,7 @@ CRmtView::CRmtView()
 
 CRmtView::~CRmtView()
 {
-    if (g_mem_dc) { g_mem_dc->SelectObject(m_penorig); }    // Reset to the original pen
+    if (CCanvasXY::g_mem_dc) { CCanvasXY::g_mem_dc->SelectObject(m_penorig); }    // Reset to the original pen
     if (m_pen1) { delete m_pen1; }
 }
 
@@ -940,10 +941,10 @@ void CRmtView::Resize()
     m_mem_bitmap.CreateCompatibleBitmap(dc, m_width, m_height);
     m_mem_dc.CreateCompatibleDC(dc);
     m_mem_dc.SelectObject(&m_mem_bitmap);
-    g_mem_dc = &m_mem_dc;
-    if (m_pen1) delete m_pen1;
+    CCanvasXY::g_mem_dc = &m_mem_dc;
+    if (m_pen1) { delete m_pen1; }
     m_pen1 = new CPen(PS_SOLID, 1, CRGBColor::LINES);
-    m_penorig = g_mem_dc->SelectObject(m_pen1);
+    m_penorig = CCanvasXY::g_mem_dc->SelectObject(m_pen1);
     ReleaseDC(dc);
 }
 
@@ -957,7 +958,7 @@ void CRmtView::OnInitialUpdate()
     m_gfx_bitmap.LoadBitmap(MAKEINTRESOURCE(IDB_GFX));
     m_gfx_dc.CreateCompatibleDC(dc);
     m_gfx_dc.SelectObject(&m_gfx_bitmap);
-    g_gfx_dc = &m_gfx_dc;
+    CCanvasXY::g_gfx_dc = &m_gfx_dc;
     g_hwnd = AfxGetApp()->GetMainWnd()->m_hWnd;
     g_viewhwnd = this->m_hWnd;
     ReleaseDC(dc);
