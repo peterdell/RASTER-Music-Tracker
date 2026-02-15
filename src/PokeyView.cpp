@@ -12,34 +12,48 @@ CPokeyView::CPokeyView(CCanvas& canvas) : canvas(&canvas) {
 }
 
 void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool explorerMode, const CPokeyController& pokeyController, const CAtari& atari) {
+    const int tuningRow = 9;
+
+    const int pokey1Row = 0;
+    const int pokey2Row = 12;
 
     canvas->FillSolidRect(0, 0, 680, 192, CRGBColor::BACKGROUND);
 
 
-    int  audf2, audf3, audf16, audc2, pitch, vol2;
+    // Tuning
+    const double basetuning = g_tuning.basetuning;	// Defined in Tuning.cpp through initialisation using input parameter
+    const int basenote = g_tuning.basenote;
+    const int reverse_basenote = (24 - basenote) % 12;	// Since things are wack I had to do this
+    const auto cycles = CAtari::GetFrameCycleCount(m_song.IsNTSC());
+    const auto tracks = m_song.GetTracks();
 
-    // AUDCTL bits
-    BOOL CLOCK_15 = 0;	//0x01
-    BOOL HPF_CH24 = 0;	//0x02
-    BOOL HPF_CH13 = 0;	//0x04
-    BOOL JOIN_34 = 0;	//0x08
-    BOOL JOIN_12 = 0;	//0x10
-    BOOL CH3_179 = 0;	//0x20
-    BOOL CH1_179 = 0;	//0x40
-    BOOL POLY9 = 0;	//0x80
-    BOOL TWO_TONE = 0;	//0x8B
+    canvas->ColorMini(TextMiniColor::GRAY).At(0, tuningRow).PrintMini("A- TUNING:       HZ,");
+    canvas->PrintfMini(2, "%s", CNotes::GetNote(reverse_basenote)); //overwrite A- with the given basenote
+    canvas->ColorMini(TextMiniColor::WHITE).AtColumn(11).PrintfMini(10, "%3.2f", basetuning);
 
-    BOOL JOIN_16BIT = 0;
-    BOOL JOIN_64KHZ = 0;
-    BOOL JOIN_15KHZ = 0;
-    BOOL JOIN_WRONG = 0;
-    BOOL REVERSE_16 = 0;
-    BOOL SAWTOOTH = 0;
-    BOOL SAWTOOTH_INVERTED = 0;
-    BOOL CLOCK_179 = 0;
+    canvas->ColorMini(TextMiniColor::BLUE).AtColumn(21).PrintMini(m_song.IsNTSC() ? "NTSC" : "PAL").NextRow();
+    canvas->ColorMini(TextMiniColor::GRAY).AtColumn(0).PrintMini("FREQ17:        HZ, MAXSCREENCYCLES:      ");
+
+    canvas->ColorMini(TextMiniColor::WHITE);
+    canvas->AtColumn(8).PrintfMini(7, "%d", CAtari::GetClockFrequency(m_song.IsNTSC()));
+    canvas->AtColumn(35).PrintfMini(7, "%d", cycles);
+
+    // Pokeys
+
+    canvas->ColorMini(TextMiniColor::GRAY);
+    if (m_song.IsStereo())
+    {
+        canvas->At(0, pokey1Row).PrintMini("POKEY REGISTERS (LEFT)");
+        canvas->At(0, pokey2Row).PrintMini("POKEY REGISTERS (RIGHT)");
+    }
+    else {
+        canvas->At(0, pokey1Row).PrintMini("POKEY REGISTERS");
+    }
+
+
 
     const auto memory = atari.GetConstMemoryAt(0);
-    for (int channel = 0; channel < m_song.GetTracks(); channel++)
+    for (int channel = 0; channel < tracks; channel++)
     {
         const BOOL IS_RIGHT_POKEY = (channel >= 4) ? 1 : 0;
 
@@ -53,7 +67,10 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
 
         const byte vol = audc & 0x0f;
         const byte dist = audc & 0xf0;
-        pitch = audf;
+
+        int  audf2, audf3, audf16, audc2, vol2;
+
+        int pitch = audf;
 
         if (channel % 4 == 0) {								// only in valid sawtooth channels
             audf3 = memory[AUDF_ADDRESS[channel + 2]];
@@ -62,7 +79,7 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
             audf3 = 0;
         }
 
-        if (channel % 2 == 1)								    // only in valid 16-bit channels
+        if (channel % 2 == 1)								// only in valid 16-bit channels
         {
             audf2 = memory[AUDF_ADDRESS[channel - 1]];
             audc2 = memory[AUDF_ADDRESS[channel - 1] + 1];
@@ -81,31 +98,31 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
         const int pokeyBaseRow = (IS_RIGHT_POKEY) ? 8 : 0;
         const int channelRow = pokeyBaseRow + 2 + channel;
 
-        auto audctlRow = ((IS_RIGHT_POKEY) ? 12 : 0) + 6;
+        auto audctlRow = ((IS_RIGHT_POKEY) ? pokey2Row : pokey1Row) + 6;
         auto skctlRow = audctlRow + 1;
 
         int minus = (IS_RIGHT_POKEY) ? -8 : 0;
         int audnum = (channel * 2) + minus;
 
-        CLOCK_15 = audctl & 0x01;
-        HPF_CH24 = audctl & 0x02;
-        HPF_CH13 = audctl & 0x04;
-        JOIN_34 = audctl & 0x08;
-        JOIN_12 = audctl & 0x10;
-        CH3_179 = audctl & 0x20;
-        CH1_179 = audctl & 0x40;
-        POLY9 = audctl & 0x80;
-        TWO_TONE = (skctl == 0x8B) ? 1 : 0;
+        BOOL CLOCK_15 = audctl & 0x01;
+        BOOL HPF_CH24 = audctl & 0x02;
+        BOOL HPF_CH13 = audctl & 0x04;
+        BOOL JOIN_34 = audctl & 0x08;
+        BOOL JOIN_12 = audctl & 0x10;
+        BOOL CH3_179 = audctl & 0x20;
+        BOOL CH1_179 = audctl & 0x40;
+        BOOL POLY9 = audctl & 0x80;
+        BOOL TWO_TONE = (skctl == 0x8B) ? 1 : 0;
 
         // Combined modes for some special output...
-        SAWTOOTH = (CH1_179 && CH3_179 && HPF_CH13 && (dist == 0xA0 || dist == 0xE0) && (channel == 0 || channel == 4)) ? 1 : 0;
-        SAWTOOTH_INVERTED = 0;
-        JOIN_16BIT = ((JOIN_12 && CH1_179 && (channel == 1 || channel == 5)) || (JOIN_34 && CH3_179 && (channel == 3 || channel == 7))) ? 1 : 0;
-        JOIN_64KHZ = ((JOIN_12 && !CH1_179 && !CLOCK_15 && (channel == 1 || channel == 5)) || (JOIN_34 && !CH3_179 && !CLOCK_15 && (channel == 3 || channel == 7))) ? 1 : 0;
-        JOIN_15KHZ = ((JOIN_12 && !CH1_179 && CLOCK_15 && (channel == 1 || channel == 5)) || (JOIN_34 && !CH3_179 && CLOCK_15 && (channel == 3 || channel == 7))) ? 1 : 0;
-        JOIN_WRONG = (((JOIN_12 && (channel == 0 || channel == 4)) || (JOIN_34 && (channel == 2 || channel == 6))) && (vol == 0x00));	// 16-bit, invalid channel, no volume
-        REVERSE_16 = (((JOIN_12 && (channel == 0 || channel == 4)) || (JOIN_34 && (channel == 2 || channel == 6))) && (vol > 0x00));	// 16-bit, invalid channel, with volume (Reverse-16)
-        CLOCK_179 = ((CH1_179 && (channel == 0 || channel == 4)) || (CH3_179 && (channel == 2 || channel == 6))) ? 1 : 0;
+        BOOL SAWTOOTH = (CH1_179 && CH3_179 && HPF_CH13 && (dist == 0xA0 || dist == 0xE0) && (channel == 0 || channel == 4)) ? 1 : 0;
+        BOOL SAWTOOTH_INVERTED = 0;
+        BOOL JOIN_16BIT = ((JOIN_12 && CH1_179 && (channel == 1 || channel == 5)) || (JOIN_34 && CH3_179 && (channel == 3 || channel == 7))) ? 1 : 0;
+        BOOL JOIN_64KHZ = ((JOIN_12 && !CH1_179 && !CLOCK_15 && (channel == 1 || channel == 5)) || (JOIN_34 && !CH3_179 && !CLOCK_15 && (channel == 3 || channel == 7))) ? 1 : 0;
+        BOOL JOIN_15KHZ = ((JOIN_12 && !CH1_179 && CLOCK_15 && (channel == 1 || channel == 5)) || (JOIN_34 && !CH3_179 && CLOCK_15 && (channel == 3 || channel == 7))) ? 1 : 0;
+        BOOL JOIN_WRONG = (((JOIN_12 && (channel == 0 || channel == 4)) || (JOIN_34 && (channel == 2 || channel == 6))) && (vol == 0x00));	// 16-bit, invalid channel, no volume
+        BOOL REVERSE_16 = (((JOIN_12 && (channel == 0 || channel == 4)) || (JOIN_34 && (channel == 2 || channel == 6))) && (vol > 0x00));	// 16-bit, invalid channel, with volume (Reverse-16)
+        BOOL CLOCK_179 = ((CH1_179 && (channel == 0 || channel == 4)) || (CH3_179 && (channel == 2 || channel == 6))) ? 1 : 0;
         if (JOIN_16BIT || CLOCK_179) { CLOCK_15 = 0; }	// Override, these 2 take priority over 15khz mode
 
         int modoffset = 1;
@@ -233,37 +250,6 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
 
         canvas->AtColumn(4).PrintfMini(1, "%d", audnum); 	//register number
 
-
-        canvas->ColorMini(TextMiniColor::GRAY);
-        if (IS_RIGHT_POKEY)
-        {
-            // TODO: Move out of loop
-            canvas->At(0, 0).PrintMini("POKEY REGISTERS (LEFT)");
-            canvas->At(0, 12).PrintMini("POKEY REGISTERS (RIGHT)");
-        }
-        else {
-            canvas->At(0, 0).PrintMini("POKEY REGISTERS");
-        }
-
-        double basetuning = g_tuning.basetuning;	// Defined in Tuning.cpp through initialisation using input parameter
-        int basenote = g_tuning.basenote;
-        int reverse_basenote = (24 - basenote) % 12;	// Since things are wack I had to do this
-        //int FREQ_17 = (g_ntsc) ? FREQ_17_NTSC : FREQ_17_PAL;	//useful for debugging I guess
-        auto cycles = CAtari::GetFrameCycleCount(m_song.IsNTSC());
-        int tracks = m_song.GetTracks();
-
-
-        canvas->ColorMini(TextMiniColor::GRAY).At(0, 9).PrintMini("A- TUNING:       HZ,");
-        canvas->AtColumn(0).PrintfMini(2, "%s", CNotes::GetNote(reverse_basenote)); //overwrite A- with the given basenote
-        canvas->ColorMini(TextMiniColor::WHITE).AtColumn(11).PrintfMini(10, "%3.2f", basetuning);
-
-        canvas->ColorMini(TextMiniColor::BLUE).At(21, 9).PrintMini(m_song.IsNTSC() ? "NTSC" : "PAL").NextRow();
-        canvas->ColorMini(TextMiniColor::GRAY).AtColumn(0).PrintMini("FREQ17:        HZ, MAXSCREENCYCLES:      , G_TRACKS4_8:");
-
-        canvas->ColorMini(TextMiniColor::WHITE);
-        canvas->AtColumn(8).PrintfMini(7, "%d", CAtari::GetClockFrequency(m_song.IsNTSC()));
-        canvas->AtColumn(35).PrintfMini(7, "%d", cycles);
-        canvas->AtColumn(56).PrintfMini(1, "%d", tracks);
 
         const auto channel_index = pokeyController.GetChannelIndex();
         if (explorerMode && channel == channel_index)	// Debug sound, must only be run once per loops, so this prevents it being overwritten
