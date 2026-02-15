@@ -11,13 +11,16 @@ CPokeyView::CPokeyView(CCanvas& canvas) : canvas(&canvas) {
 
 void CPokeyView::Draw(const CSong& song, const CTuning& tuning, const bool explorerMode, const CPokeyController& pokeyController, const CAtari& atari) {
     static constexpr int tuningRow = 0;
+    static constexpr int pokeyRows = 9;
+
     static constexpr int pokey1Row = tuningRow + 3;
-    static constexpr int pokey2Row = pokey1Row + 10;
+    static constexpr int pokey2Row = pokey1Row + pokeyRows;
+    static constexpr int explorerRow = pokey2Row + pokeyRows;
 
     // Tuning
     const double basetuning = g_tuning.basetuning;
     const int basenote = g_tuning.basenote;
-    const int reverse_basenote = (24 - basenote) % 12; // TODO: Should be notes per octave probably?
+    const int reverse_basenote = (24 - basenote) % g_notesperoctave;
     canvas->ColorMini(TextMiniColor::GRAY).At(0, tuningRow).PrintMini("A- TUNING:       HZ, PAL  , FREQ:        HZ, CYCLES: ");
     canvas->PrintfMini(2, "%s", CNotes::GetNote(reverse_basenote)); //overwrite A- with the given basenote
     canvas->ColorMini(TextMiniColor::WHITE).AtColumn(11).PrintfMini(10, "%3.2f", basetuning);
@@ -246,24 +249,20 @@ void CPokeyView::Draw(const CSong& song, const CTuning& tuning, const bool explo
             }
 
             // Pokey Explorer Mode
-
-
-            // Debug sound, must only be run once per loops, so this prevents it being overwritten
             if (explorerMode) {
                 const auto e_channel_index = pokey * POKEY_CHANNELS + pokeyChannel;
                 if (pokeyController.GetChannelIndex() == e_channel_index) {
-                    const int row = 25;
+                    static constexpr int row = explorerRow;
 
                     canvas->ColorMini(TextMiniColor::GRAY).At(0, row);
-                    canvas->PrintMini("CH_IDX:  , MODULO:    ").NextRow();
-                    canvas->PrintMini("COARSE_DIVISOR:    , DIVISOR:       , MODOFFSET:  , AUDF: $    , AUDC: $  ").NextRow();
+                    canvas->PrintMini("CH_IDX:   , AUDF: $     , AUDC: $   , MODULO:    ").NextRow();
+                    canvas->PrintMini("COARSE_DIVISOR:    , DIVISOR:       , MODOFFSET:  ").NextRow();
                     canvas->PrintMini("         HZ = ((FREQ17 / (COARSE_DIVISOR * DIVISOR)) / (AUDF + MODOFFSET)) / 2");
 
                     const int e_audf = audf;
                     const int e_audfLow = audfLow;
                     const int e_audc = audc;
 
-                    int e_modulo = 0;			// Does not matter right now, used in tandem with e_valid
 
                     // Always initialised to 1 to avoid a division by 0 error
                     int e_modoffset = 1;
@@ -274,7 +273,8 @@ void CPokeyView::Draw(const CSong& song, const CTuning& tuning, const bool explo
                     else if (CLOCK_179) { e_modoffset = 4; }
                     else { e_coarse_divisor = (CLOCK_15) ? 114 : 28; }
 
-                    // Identify the first Modulo value that results to 0 when used
+                    // Identify the first modulo value that results to 0 when used
+                    int e_modulo = 0; // Does not matter right now, used in tandem with e_valid
                     for (int i = 3; i < 256; i++)
                     {
                         e_modulo = i;
@@ -287,17 +287,17 @@ void CPokeyView::Draw(const CSong& song, const CTuning& tuning, const bool explo
                     const auto e_pitch = tuning.GetPitch(i_audf, e_coarse_divisor, e_divisor, e_modoffset);
 
                     canvas->ColorMini(TextMiniColor::WHITE).At(0, row);
-                    canvas->AtColumn(8).PrintfMini(3, "%d", e_channel_index);
-                    canvas->AtColumn(19).PrintfMini(3, "%d", e_modulo).NextRow();
-
-                    canvas->AtColumn(16).PrintfMini(2, "%d", e_coarse_divisor);
-                    canvas->AtColumn(30).PrintfMini(9, "%6.1f", e_divisor);
-                    canvas->AtColumn(49).PrintfMini(3, "%d", e_modoffset);
-                    canvas->AtColumn(59).PrintByte(e_audf);
+                    canvas->AtColumn(8).PrintfMini(1, "%d", e_channel_index);
+                    canvas->AtColumn(19).PrintByte(e_audf);
                     if (JOIN_16BIT || JOIN_64KHZ || JOIN_15KHZ) {
                         canvas->AtColumn(61).PrintByte(e_audfLow);
                     }
-                    canvas->AtColumn(72).PrintByte(e_audc).NextRow();
+                    canvas->AtColumn(33).PrintByte(e_audc);
+                    canvas->AtColumn(46).PrintfMini(3, "%d", e_modulo).NextRow();;
+
+                    canvas->AtColumn(16).PrintfMini(3, "%d", e_coarse_divisor);
+                    canvas->AtColumn(30).PrintfMini(9, "%6.1f", e_divisor);
+                    canvas->AtColumn(49).PrintfMini(3, "%d", e_modoffset).NextRow();
                     canvas->AtColumn(0).PrintfMini(9, "%9.2f", e_pitch);
                 }
             }
@@ -311,14 +311,14 @@ void CPokeyView::Draw(const CSong& song, const CTuning& tuning, const bool explo
                     // Most of the lines below could get some improvements...
                     const double centnum = 1200 * log2(PITCH / basetuning);
                     const int notenum = (int)round(centnum * 0.01) + 60;
-                    const int octave = (((notenum + 96) - basenote) / 12) - 8;
+                    const int octave = (((notenum + 96) - basenote) / g_notesperoctave) - 8;
                     const int cents = (int)round(centnum - (notenum - 60) * 100);
 
                     canvas->ColorMini(TextMiniColor::WHITE).At(49, channelRow).PrintfMini(3, "%03d", cents);
                     canvas->ColorMini(TextMiniColor::GRAY).PrintMini((cents >= 0) ? "+" : "-");
 
 
-                    int note = ((notenum + 96) - basenote) % 12;
+                    int note = ((notenum + 96) - basenote) % g_notesperoctave;
                     if (note < 0) {
                         note *= -1;	// Invert the negative to prevent going out of bounds
                     }

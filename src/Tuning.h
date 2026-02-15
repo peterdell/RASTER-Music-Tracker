@@ -52,7 +52,7 @@ public:
     static constexpr size_t  PRESETS_LENGTH = 20 + 1; 				// Length of the largest preset table, used for the 2 dimensional array boundaries 
 
     typedef double Pitch;
-    typedef int AUDF;
+    typedef int AUDF; // Can be 8-bit or 16-bit
 
     void InitTuning(const C6502::ClockFrequency clockFrequency, byte* table_memory);
 
