@@ -22,6 +22,10 @@ public:
 
     CCanvas& PrintMini(const char* txt);
 
+    // Pribt a value between $0 and $F
+    CCanvas& PrintNibble(const byte value);
+
+    // Pribt a value between $00 and $FF
     CCanvas& PrintByte(const byte value);
 
     CCanvas& PrintfMini(const size_t  size, char const* const format, ...);

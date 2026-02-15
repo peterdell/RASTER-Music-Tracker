@@ -7,15 +7,18 @@
 
 #include "Global.h"
 #include "Tuning.h"
+#include <assert.h>
 
 /// <summary> Generate the POKEY audio pitch using the given parameters </summary>
 /// <param name = "audc"> POKEY Distortion and Volume output mode </param>
 /// <param name = "audf"> POKEY Frequency, either 8-bit or 16-bit </param>
 /// <param name = "audctl"> POKEY modes used to generate the frequencies, typically, 15Khz/64Khz clock, 1.79mHz clock, 16-bit mode, etc </param>
-/// <param name = "channel"> POKEY channel number, multiple parameters might give different results </param>
+/// <param name = "channel"> POKEY channel number between 0 and 3, multiple parameters might give different results </param>
 /// <returns> POKEY audio pitch (in Hertz) </returns> 
-CTuning::Pitch CTuning::GetPOKEYPPitch(int audc, AUDF audf, int audctl, int channel) const
+CTuning::Pitch CTuning::GetPOKEYPPitch(const int audc, const AUDF audf, const int audctl, const int channel) const
 {
+    assert(0 <= channel && channel <= 3);
+
     // variables for pitch calculation, divisors must never be 0!
     double divisor = 1;
     int coarse_divisor = 1;
@@ -35,9 +38,9 @@ CTuning::Pitch CTuning::GetPOKEYPPitch(int audc, AUDF audf, int audctl, int chan
     bool POLY9 = audctl & 0x80;
 
     //combined modes for some special output...
-    bool JOIN_16BIT = ((JOIN_12 && CH1_179 && (channel == 1 || channel == 5)) || (JOIN_34 && CH3_179 && (channel == 3 || channel == 7))) ? 1 : 0;
-    bool CLOCK_179 = ((CH1_179 && (channel == 0 || channel == 4)) || (CH3_179 && (channel == 2 || channel == 6))) ? 1 : 0;
-    if (JOIN_16BIT || CLOCK_179) CLOCK_15 = 0;	//override, these 2 take priority over 15khz mode if they are enabled at the same time
+    bool JOIN_16BIT = ((JOIN_12 && CH1_179 && (channel == 1) || (JOIN_34 && CH3_179 && (channel == 3)))) ? true : false;
+    bool CLOCK_179 = ((CH1_179 && (channel == 0)) || (CH3_179 && (channel == 2))) ? true : false;
+    if (JOIN_16BIT || CLOCK_179) { CLOCK_15 = false; }	//override, these 2 take priority over 15khz mode if they are enabled at the same time
 
     /*
     //TODO: Sawtooth generation needs to be optimal in order to compromise the high pitched hiss versus the tuning accuracy

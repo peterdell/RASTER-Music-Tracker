@@ -56,6 +56,10 @@ CCanvas& CCanvas::PrintfMini(
     return *this;
 }
 
+CCanvas& CCanvas::PrintNibble(const byte value) {
+    return PrintfMini(1, "%01hX", value << 4);
+}
+
 CCanvas& CCanvas::PrintByte(const byte value) {
     return PrintfMini(2, "%02hX", value);
 }

@@ -60,7 +60,7 @@ public:
 
     AUDF GetAUDF(Pitch pitch, int coarse_divisor, double divisor, int cycle) const;
     Pitch GetPitch(AUDF audf, int coarse_divisor, double divisor, int cycle) const;
-    Pitch GetPOKEYPPitch(int audc, AUDF audf, int audctl, int channel) const;
+    Pitch GetPOKEYPPitch(const int audc, const AUDF audf, const int audctl, const int channel) const;
 
 private:
 
