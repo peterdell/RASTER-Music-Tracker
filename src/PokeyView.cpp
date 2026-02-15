@@ -1,28 +1,20 @@
 #include "PokeyView.h"
 
 #include "Global.h"
-#include "PokeyController.h"
-#include "Tuning.h"
+
 
 static int AUDF_ADDRESS[8] = { 0xd200,0xd202,0xd204,0xd206,0xd210,0xd212,0xd214,0xd216 };	// AUDF and AUDC for mono and stereo
 static int AUDCTL_ADDRESS[2] = { 0xd208,0xd218 };	//AUDCTL and SKCTL
-
-#define ANALYZER3_X	(canvas->GetOriginX()) 
-static constexpr int ANALYZER3_Y = CSongScreenLayout::TRACKS_Y + 50;
-
-extern CTuning g_Tuning;
 
 
 CPokeyView::CPokeyView(CCanvas& canvas) : canvas(&canvas) {
 
 }
 
-void CPokeyView::Draw(CSong* m_song) {
+void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool explorerMode, const CPokeyController& pokeyController, const CAtari& atari) {
 
     canvas->FillSolidRect(0, 0, 680, 192, CRGBColor::BACKGROUND);
 
-
-    auto DEBUG_SOUND = IsEditMode(EditMode::POKEY_EXPLORER_MODE);
 
     int  audf2, audf3, audf16, audc2, pitch, vol2;
 
@@ -46,8 +38,8 @@ void CPokeyView::Draw(CSong* m_song) {
     BOOL SAWTOOTH_INVERTED = 0;
     BOOL CLOCK_179 = 0;
 
-    const auto memory = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
-    for (int i = 0; i < g_tracks4_8; i++)
+    const auto memory = atari.GetConstMemoryAt(0);
+    for (int i = 0; i < m_song.GetTracks(); i++)
     {
         const BOOL IS_RIGHT_POKEY = (i >= 4) ? 1 : 0;
 
@@ -130,7 +122,6 @@ void CPokeyView::Draw(CSong* m_song) {
 
         // TODO: This is not the loop
         canvas->At(0, gap2Rows + 6).PrintMini("$D208: $  ").NextRow().PrintMini("$D20F: $  ");
-        const auto testX = ANALYZER3_X + 8 * 76;
 
         const char* text = "";
         if (CLOCK_15) {	//15khz
@@ -230,12 +221,12 @@ void CPokeyView::Draw(CSong* m_song) {
         canvas->At(8, gap2Rows + 6).PrintByte(audctl);
         canvas->At(8, gap2Rows + 7).PrintByte(skctl);
 
-        const double PITCH = g_Tuning.GetPOKEYPPitch(audc, i_audf, audctl, i);
+        const double PITCH = tuning.GetPOKEYPPitch(audc, i_audf, audctl, i);
 
         char p[12] = {};
         canvas->ColorMini(TextMiniColor::WHITE).At(32, aRows).PrintfMini(10, "%9.2f", PITCH);
         canvas->ColorMini(TextMiniColor::GRAY).AtColumn(61).PrintMini("$"); 	//character $ to overwrite the left volume nibble TODO: Rather just print nible
-        canvas->AtColumn(61).PrintMini(","); //character , to overwrite the right distortion nibble, TODO: Rather just print nible
+        canvas->AtColumn(74).PrintMini(","); //character , to overwrite the right distortion nibble, TODO: Rather just print nible
 
         canvas->AtColumn(4).PrintfMini(1, "%d", audnum); 	//register number
 
@@ -255,28 +246,28 @@ void CPokeyView::Draw(CSong* m_song) {
             canvas->At(0, 0).PrintMini("POKEY REGISTERS");
         }
 
-        double tuning = g_tuning.basetuning;	//defined in Tuning.cpp through initialisation using input parameter
+        double basetuning = g_tuning.basetuning;	// Defined in Tuning.cpp through initialisation using input parameter
         int basenote = g_tuning.basenote;
-        int reverse_basenote = (24 - basenote) % 12;	//since things are wack I had to do this
+        int reverse_basenote = (24 - basenote) % 12;	// Since things are wack I had to do this
         //int FREQ_17 = (g_ntsc) ? FREQ_17_NTSC : FREQ_17_PAL;	//useful for debugging I guess
-        auto cycles = CAtari::GetFrameCycleCount(m_song->IsNTSC());
-        int tracks = m_song->GetTracks();
+        auto cycles = CAtari::GetFrameCycleCount(m_song.IsNTSC());
+        int tracks = m_song.GetTracks();
 
 
         canvas->ColorMini(TextMiniColor::GRAY).At(0, 9).PrintMini("A- TUNING:       HZ,");
         canvas->AtColumn(0).PrintfMini(2, "%s", CNotes::GetNote(reverse_basenote)); //overwrite A- with the given basenote
-        canvas->ColorMini(TextMiniColor::WHITE).AtColumn(11).PrintfMini(10, "%3.2f", tuning);
+        canvas->ColorMini(TextMiniColor::WHITE).AtColumn(11).PrintfMini(10, "%3.2f", basetuning);
 
-        canvas->ColorMini(TextMiniColor::BLUE).At(21, 9).PrintMini(m_song->IsNTSC() ? "NTSC" : "PAL").NextRow();
+        canvas->ColorMini(TextMiniColor::BLUE).At(21, 9).PrintMini(m_song.IsNTSC() ? "NTSC" : "PAL").NextRow();
         canvas->ColorMini(TextMiniColor::GRAY).AtColumn(0).PrintMini("FREQ17:        HZ, MAXSCREENCYCLES:      , G_TRACKS4_8:");
 
         canvas->ColorMini(TextMiniColor::WHITE);
-        canvas->AtColumn(8).PrintfMini(7, "%d", CAtari::GetClockFrequency(m_song->IsNTSC()));
+        canvas->AtColumn(8).PrintfMini(7, "%d", CAtari::GetClockFrequency(m_song.IsNTSC()));
         canvas->AtColumn(35).PrintfMini(7, "%d", cycles);
         canvas->AtColumn(56).PrintfMini(1, "%d", tracks);
 
-        const auto channel_index = m_song->m_PokeyController->GetChannelIndex();
-        if (DEBUG_SOUND && i == channel_index)	// Debug sound, must only be run once per loops, so this prevents it being overwritten
+        const auto channel_index = pokeyController.GetChannelIndex();
+        if (explorerMode && i == channel_index)	// Debug sound, must only be run once per loops, so this prevents it being overwritten
         {
             const int row = 25;
 
@@ -290,20 +281,20 @@ void CPokeyView::Draw(CSong* m_song) {
             const int e_audf2 = audf2;
             const int e_audc = audc;
 
-            BOOL e_valid = TRUE;		//always valid for now
-            int e_modulo = 0;			//does not matter right now, used in tandem with e_valid
-            double e_pitch = 0;			//always initialised to 0
+            BOOL e_valid = TRUE;		// Always valid for now
+            int e_modulo = 0;			// Does not matter right now, used in tandem with e_valid
+            double e_pitch = 0;			// Always initialised to 0
 
-            //always initialised to 1 to avoid a division by 0 error
+            // Always initialised to 1 to avoid a division by 0 error
             int e_modoffset = 1;
             int e_coarse_divisor = 1;
 
-            //set the divisor and modoffset variables based on the AUDCTL bits currently set
+            // Set the divisor and modoffset variables based on the AUDCTL bits currently set
             if (JOIN_16BIT) e_modoffset = 7;
             else if (CLOCK_179) e_modoffset = 4;
             else e_coarse_divisor = (CLOCK_15) ? 114 : 28;
 
-            //identify the first Modulo value that results to 0 when used
+            // Identify the first Modulo value that results to 0 when used
             for (int i = 3; i < 256; i++)
             {
                 e_modulo = i;
@@ -311,72 +302,53 @@ void CPokeyView::Draw(CSong* m_song) {
                     break;
             }
 
-            const auto divisor = m_song->m_PokeyController->GetDivisor();
-
-            e_pitch = g_Tuning.GetPitch(i_audf, e_coarse_divisor, divisor, e_modoffset);
-            static constexpr auto color = TextMiniColor::WHITE;
-            canvas->ColorMini(TextMiniColor::WHITE);
-            canvas->At(0, row + 3).PrintfMini(10, "%9.2f", e_pitch);
-
-
-            canvas->ColorMini(color).At(16, row).PrintfMini(3, "%d", e_coarse_divisor);
-
-            snprintf(p, 10, "%6.1f", divisor);
-            TextMiniXY(p, ANALYZER3_X + 8 * 30, ANALYZER3_Y + 8 * row, color);
-
-            snprintf(p, 4, "%d", e_modoffset);
-            TextMiniXY(p, ANALYZER3_X + 8 * 49, ANALYZER3_Y + 8 * row, color);
-
-            NumberMiniXY(e_audf, ANALYZER3_X + 8 * 59, ANALYZER3_Y + 8 * row, color);
+            canvas->ColorMini(TextMiniColor::WHITE).At(0, row);
+            canvas->AtColumn(16).PrintfMini(2, "%d", e_coarse_divisor);
+            canvas->AtColumn(30).PrintfMini(9, "%6.1f", divisor);
+            canvas->AtColumn(49).PrintfMini(3, "%d", e_modoffset);
+            canvas->AtColumn(59).PrintByte(e_audf);
             if (JOIN_16BIT || JOIN_64KHZ || JOIN_15KHZ) {
-                NumberMiniXY(e_audf2, ANALYZER3_X + 8 * 61, ANALYZER3_Y + 8 * row, color);
+                canvas->AtColumn(61).PrintByte(e_audf2);
             }
+            canvas->AtColumn(72).PrintByte(e_audc).NextRow();
 
-            NumberMiniXY(e_audc, ANALYZER3_X + 8 * 72, ANALYZER3_Y + 8 * row, color);
+            canvas->AtColumn(8).PrintfMini(3, "%d", channel_index);
+            canvas->AtColumn(19).PrintfMini(3, "%d", e_modulo);
+            canvas->AtColumn(34).PrintfMini(3, "%d", e_valid);
 
-            snprintf(p, 4, "%d", channel_index);
-            TextMiniXY(p, ANALYZER3_X + 8 * 8, ANALYZER3_Y + 8 * (row + 1), color);
 
-            snprintf(p, 4, "%d", e_modulo);
-            TextMiniXY(p, ANALYZER3_X + 8 * 19, ANALYZER3_Y + 8 * (row + 1), color);
+            const auto divisor = pokeyController.GetDivisor();
+            e_pitch = tuning.GetPitch(i_audf, e_coarse_divisor, divisor, e_modoffset);
 
-            snprintf(p, 4, "%d", e_valid);
-            TextMiniXY(p, ANALYZER3_X + 8 * 34, ANALYZER3_Y + 8 * (row + 1), color);
-
+            canvas->ColorMini(TextMiniColor::WHITE);
+            canvas->At(0, row + 3).PrintfMini(9, "%9.2f", e_pitch);
         }
 
-        if (PITCH)	// If 0.0 is read, there is nothing to show. Volume Only mode or invalid parameters may return this
+        if (PITCH)	// If 0.0 is read, there is nothing to show. The volume-only mode or invalid parameters may result in this.
         {
-            if (JOIN_WRONG)	//16-bit, but wrong channels, and the volume is 0
+            if (JOIN_WRONG)	// 16-bit, but wrong channels, and the volume is 0
             {
-                TextMiniXY("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", ANALYZER3_X + 8 * 17, ANALYZER3_Y + aY, TextMiniColor::GRAY);	//masking parts of the line,cursed patch but that works so who cares
+                // TODO: masking parts of the line,cursed patch but that works so who cares
+                canvas->At(17, aRows).PrintMini("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
             }
             else
             {
-                char szBuffer[16];
+                // Most of the lines below could get some improvements...
+                const double centnum = 1200 * log2(PITCH / basetuning);
+                const int notenum = (int)round(centnum * 0.01) + 60;
+                const int octave = (((notenum + 96) - basenote) / 12) - 8;
+                const int cents = (int)round(centnum - (notenum - 60) * 100);
 
-                //most of the lines below could get some improvements...
-                double centnum = 1200 * log2(PITCH / tuning);
-                int notenum = (int)round(centnum * 0.01) + 60;
+                canvas->ColorMini(TextMiniColor::WHITE).At(49, aRows).PrintfMini(3, "%03d", cents);
+                canvas->ColorMini(TextMiniColor::GRAY).At(49, aRows).PrintMini((cents >= 0) ? "+" : "-");
+
+
                 int note = ((notenum + 96) - basenote) % 12;
-
-                int octave = (((notenum + 96) - basenote) / 12) - 8;
-
-                int cents = (int)round(centnum - (notenum - 60) * 100);
-
-                snprintf(szBuffer, 4, "%03d", cents);
-                TextMiniXY(szBuffer, ANALYZER3_X + 8 * 49, ANALYZER3_Y + aY, TextMiniColor::WHITE);
-
-                if (cents >= 0)
-                    TextMiniXY("+", ANALYZER3_X + 8 * 49, ANALYZER3_Y + aY, TextMiniColor::GRAY);
-                else
-                    TextMiniXY("-", ANALYZER3_X + 8 * 49, ANALYZER3_Y + aY, TextMiniColor::GRAY);
-
                 if (note < 0) {
-                    note *= -1;	//invert the negative to prevent going out of bounds
+                    note *= -1;	// Invert the negative to prevent going out of bounds
                 }
 
-                canvas->ColorMini(TextMiniColor::WHITE).At(44, aY / 8);
+                canvas->ColorMini(TextMiniColor::WHITE).At(44, aRows);
                 canvas->PrintfMini(2, "%s", CNotes::GetNote(note)).AtColumn(46).PrintfMini(1, "%1d", octave);
 
             }

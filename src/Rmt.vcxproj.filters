@@ -566,6 +566,9 @@
     <ClInclude Include="Canvas.h">
       <Filter>Source Files\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="TextColors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\build\build_rmt-daily.bat">

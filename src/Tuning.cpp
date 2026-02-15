@@ -5,8 +5,8 @@
 //
 // TODO: further cleanup, better documentation, better structure, fix any bug I may have missed so far
 
-#include "Tuning.h"
 #include "Global.h"
+#include "Tuning.h"
 
 /// <summary> Generate the POKEY audio pitch using the given parameters </summary>
 /// <param name = "audc"> POKEY Distortion and Volume output mode </param>
@@ -291,7 +291,7 @@ void CTuning::GenerateTable(byte* table, int length, int semitone, Timbre timbre
 /// <param name = "divisor"> Fine division, variable relative to Distortion, Cycle, and frequency modulo, 1 for no division </param> 
 /// <param name = "cycle"> Offset added to AUDF, 4 for 1.79mHz mode, 7 for 16-bit+1.79mHz mode, 1 for neither </param>
 /// <returns> POKEY audio pitch (in Hertz) </returns> 
-CTuning::Pitch CTuning::GetPitch(AUDF audf, int coarse_divisor, double divisor, int cycle)  const
+CTuning::Pitch CTuning::GetPitch(AUDF audf, int coarse_divisor, double divisor, int cycle) const
 {
     return ((m_clockFrequency / (coarse_divisor * divisor)) / (audf + cycle)) / 2;
 }

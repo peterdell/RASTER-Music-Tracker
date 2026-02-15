@@ -268,7 +268,7 @@ void CSongUI::DrawAnalyzer()
 
         CCanvas pokeyCanvas(ANALYZER3_X, ANALYZER3_Y);
         CPokeyView pokeyView(pokeyCanvas);
-        pokeyView.Draw(m_song);
+        pokeyView.Draw(*m_song, g_Tuning, IsEditMode(EditMode::POKEY_EXPLORER_MODE), *m_song->m_PokeyController, g_Atari);
     }
 
     if (DEBUG_MEMORY)	//Atari memory display, do not use unless there is a useful purpose for it
