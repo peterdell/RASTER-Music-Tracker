@@ -15,7 +15,7 @@
 /// <param name = "audctl"> POKEY modes used to generate the frequencies, typically, 15Khz/64Khz clock, 1.79mHz clock, 16-bit mode, etc </param>
 /// <param name = "channel"> POKEY channel number between 0 and 3, multiple parameters might give different results </param>
 /// <returns> POKEY audio pitch (in Hertz) </returns> 
-CTuning::Pitch CTuning::GetPOKEYPPitch(const int audc, const AUDF audf, const int audctl, const int channel) const
+CTuning::Pitch CTuning::GetPOKEYPitch(const int audc, const AUDF audf, const int audctl, const int channel) const
 {
     assert(0 <= channel && channel <= 3);
 
