@@ -43,31 +43,6 @@ enum class KeyboardLayout : int {
 #define PADDEC(width, val) std::setfill('0') << std::setw(width) << std::dec << (unsigned)val
 
 
-class CSongScreenLayout {
-public:
-    static constexpr int CHARACTER_WIDTH = 8;
-    static constexpr int HEIGHT_WIDTH = 16;
-
-    static constexpr int TRACKS_X = 2 * 8;
-    static constexpr int TRACKS_Y = 8 * 16 + 8;
-    static constexpr int SONG_X = 768;
-    static constexpr int SONG_Y = 16;
-
-    // Info area
-    // Shown at top-left
-    // 6 lines of text
-    static constexpr int INFO_X = 2 * 8;
-    static constexpr int INFO_Y = 1 * 16;
-
-    static constexpr int INFO_Y_LINE_1 = INFO_Y;
-    static constexpr int INFO_Y_LINE_2 = INFO_Y + 1 * 16;
-    static constexpr int INFO_Y_LINE_3 = INFO_Y + 2 * 16;
-    static constexpr int INFO_Y_LINE_4 = INFO_Y + 3 * 16;
-    static constexpr int INFO_Y_LINE_5 = INFO_Y + 4 * 16;
-    static constexpr int INFO_Y_LINE_6 = INFO_Y + 5 * 16;
-
-};
-
 // Which part of the info area is active for editing (drawn in red)
 enum class EditArea : int {
     NAME = 0,			// Song name can be edited

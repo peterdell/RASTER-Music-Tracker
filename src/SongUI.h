@@ -25,4 +25,8 @@ private:
     CSong* m_song;
 
     CCanvasXY* canvasXY;
+
+    void Hook1(int ANALYZER_X, int ANALYZER_Y, int g1, int g2, int yUp);
+    void Hook2(int ANALYZER2_X, int ANALYZER_Y, int g1, int g2, int yUp);
+
 };

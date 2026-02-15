@@ -581,6 +581,9 @@
     <ClInclude Include="CanvasXY.h">
       <Filter>Source Files\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="RmtScreenLayout.h">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\build\build_rmt-daily.bat">

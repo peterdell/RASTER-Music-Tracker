@@ -11,6 +11,7 @@
 
 #include "CanvasXY.h"
 #include "RmtDoc.h"
+#include "RmtScreenLayout.h"
 
 constexpr int TOOLBAR_ZOOM = 2;
 

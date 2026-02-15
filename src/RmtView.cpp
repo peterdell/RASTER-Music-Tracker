@@ -926,7 +926,7 @@ void CRmtView::Resize()
     g_height = INVERSE_SCALE(m_height);
 
     // The number of track lines that can be displayed is based on the scaled window height
-    g_tracklines = (g_height - (CSongScreenLayout::TRACKS_Y + 3 * 16) - 40) / 16;
+    g_tracklines = (g_height - (CRmtScreenLayout::TRACKS_Y + 3 * 16) - 40) / 16;
     g_line_y = g_tracklines / 2;
 
     // Clear the current Bitmap object
@@ -1042,12 +1042,12 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
     int WINDOW_OFFSET = (g_width < 1320 && g_tracks4_8 > 4 && g_active_ti == Part::PART_TRACKS) ? -250 : 0;	//test displacement with the window size
     int INSTRUMENT_OFFSET = (g_active_ti == Part::PART_INSTRUMENTS && g_tracks4_8 > 4) ? -250 : 0;
     if (g_tracks4_8 == 4 && g_active_ti == Part::PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) INSTRUMENT_OFFSET = 260;
-    int SONG_OFFSET = CSongScreenLayout::SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((g_tracks4_8 == 4) ? -200 : 310);	//displace the SONG block depending on certain parameters
+    int SONG_OFFSET = CRmtScreenLayout::SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((g_tracks4_8 == 4) ? -200 : 310);	//displace the SONG block depending on certain parameters
 
     int linescount = (WINDOW_OFFSET) ? 5 : 9;	//songlines displayed depend on the window offset, if it's displaced to the left side, only 5 lines will be visible, else, 9 will be displayed
 
     //SONG PARTS
-    CRect rec(SONG_OFFSET + 6 * 8, CSongScreenLayout::SONG_Y + 16, SONG_OFFSET + 6 * 8 + g_tracks4_8 * 3 * 8 - 8, CSongScreenLayout::SONG_Y + 16 + linescount * 16);
+    CRect rec(SONG_OFFSET + 6 * 8, CRmtScreenLayout::SONG_Y + 16, SONG_OFFSET + 6 * 8 + g_tracks4_8 * 3 * 8 - 8, CRmtScreenLayout::SONG_Y + 16 + linescount * 16);
     if (rec.PtInRect(point))
     {
         //Song
@@ -1055,7 +1055,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
 
         if (mousebutt & MK_LBUTTON)
         {
-            int lineoffset = (WINDOW_OFFSET) ? CSongScreenLayout::SONG_Y + 16 : CSongScreenLayout::SONG_Y + 48;
+            int lineoffset = (WINDOW_OFFSET) ? CRmtScreenLayout::SONG_Y + 16 : CRmtScreenLayout::SONG_Y + 48;
             g_Song.SongCursorGoto(CPoint(point.x - (SONG_OFFSET + 6 * 8), point.y - lineoffset));
         }
         if (wheelzDelta != 0)
@@ -1067,7 +1067,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
         return 5;
     }
 
-    rec.SetRect(SONG_OFFSET + 6 * 8, CSongScreenLayout::SONG_Y, SONG_OFFSET + 6 * 8 + g_tracks4_8 * 3 * 8 - 8, CSongScreenLayout::SONG_Y + 16);
+    rec.SetRect(SONG_OFFSET + 6 * 8, CRmtScreenLayout::SONG_Y, SONG_OFFSET + 6 * 8 + g_tracks4_8 * 3 * 8 - 8, CRmtScreenLayout::SONG_Y + 16);
     if (rec.PtInRect(point))
     {
         //over Song L1-R4 for channel on/off/solo/inversion
@@ -1252,11 +1252,11 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
     //LOWER PARTS
     if (g_active_ti == Part::PART_TRACKS)
     {
-        rec.SetRect(CSongScreenLayout::TRACKS_X + 3 * 16, CSongScreenLayout::TRACKS_Y - 12, CSongScreenLayout::TRACKS_X + 3 * 8 + g_tracks4_8 * 8 * 16, CSongScreenLayout::TRACKS_Y + 32);
+        rec.SetRect(CRmtScreenLayout::TRACKS_X + 3 * 16, CRmtScreenLayout::TRACKS_Y - 12, CRmtScreenLayout::TRACKS_X + 3 * 8 + g_tracks4_8 * 8 * 16, CRmtScreenLayout::TRACKS_Y + 32);
 
         if (rec.PtInRect(point))
         {
-            i = (point.x - (CSongScreenLayout::TRACKS_X + 5 * 8)) / (8 * 16);
+            i = (point.x - (CRmtScreenLayout::TRACKS_X + 5 * 8)) / (8 * 16);
             if (i < 0) i = 0;
             else
                 if (i >= g_tracks4_8) i = g_tracks4_8 - 1;
@@ -1275,13 +1275,13 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
             return 1;
         }
         //the number of tracklines is adjusted based on the window height
-        rec.SetRect(CSongScreenLayout::TRACKS_X + 6 * 8, CSongScreenLayout::TRACKS_Y + 48, CSongScreenLayout::TRACKS_X + 3 * 8 + g_tracks4_8 * 8 * 16, CSongScreenLayout::TRACKS_Y + 48 + g_tracklines * 16);
+        rec.SetRect(CRmtScreenLayout::TRACKS_X + 6 * 8, CRmtScreenLayout::TRACKS_Y + 48, CRmtScreenLayout::TRACKS_X + 3 * 8 + g_tracks4_8 * 8 * 16, CRmtScreenLayout::TRACKS_Y + 48 + g_tracklines * 16);
         if (rec.PtInRect(point))
         {
             SetCursor(m_cursorGoto);
             if (mousebutt & MK_LBUTTON)
             {
-                g_Song.TrackCursorGoto(CPoint(point.x - (CSongScreenLayout::TRACKS_X + 6 * 8), point.y - (CSongScreenLayout::TRACKS_Y + 48)));
+                g_Song.TrackCursorGoto(CPoint(point.x - (CRmtScreenLayout::TRACKS_X + 6 * 8), point.y - (CRmtScreenLayout::TRACKS_Y + 48)));
             }
             if (wheelzDelta != 0)
             {

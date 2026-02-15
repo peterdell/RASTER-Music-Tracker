@@ -383,6 +383,7 @@
     <ClInclude Include="RmtExporter.h" />
     <ClInclude Include="RmtFile.h" />
     <ClInclude Include="Memory.h" />
+    <ClInclude Include="RmtScreenLayout.h" />
     <ClInclude Include="RmtTest.h" />
     <ClInclude Include="RuntimeException.h" />
     <ClInclude Include="SAPFile.h" />
