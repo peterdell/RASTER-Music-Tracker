@@ -1,10 +1,8 @@
 #include "Clipboard.h"
 #include "Global.h"
-#include "Memory.h"
-#include "PokeyRederer.h"
+#include "PokeyRenderer.h"
 #include "RmtMidi.h"
 #include "StdAfx.h"
-#include "TracksControl.h"
 #include "Tuning.h"
 
 #include "Song.h"

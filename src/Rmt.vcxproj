@@ -217,7 +217,7 @@
     <ClCompile Include="Notes.cpp" />
     <ClCompile Include="Pokey.cpp" />
     <ClCompile Include="PokeyController.cpp" />
-    <ClCompile Include="PokeyRederer.cpp" />
+    <ClCompile Include="PokeyRenderer.cpp" />
     <ClCompile Include="PokeyView.cpp" />
     <ClCompile Include="RmtCommandLineInfo.cpp" />
     <ClCompile Include="RmtExporter.cpp" />
@@ -378,7 +378,7 @@
     <ClInclude Include="Notes.h" />
     <ClInclude Include="Pokey.h" />
     <ClInclude Include="PokeyController.h" />
-    <ClInclude Include="PokeyRederer.h" />
+    <ClInclude Include="PokeyRenderer.h" />
     <ClInclude Include="PokeyView.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RmtCommandLineInfo.h" />

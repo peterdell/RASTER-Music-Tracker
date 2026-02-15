@@ -353,7 +353,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
         }
     }
 
-    //for name, parameters, envelope and table
+    // For name, parameters, envelope and table
     switch (vk)
     {
     case VK_TAB:

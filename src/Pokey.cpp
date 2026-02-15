@@ -2,9 +2,9 @@
 
 // TODO: Replace the plugin interface with a permanent emulation core
 
-#include "StdAfx.h"
-#include "Pokey.h"
 #include "Atari.h"
+#include "Pokey.h"
+#include "StdAfx.h"
 
 extern HWND g_hwnd;
 
@@ -162,7 +162,7 @@ bool CPokey::IsSoundDriverLoaded() const {
 
 void CPokey::InitPokeys(const bool ntsc, const bool stereo, const DWORD samplesPerSec) {
 
-    if (!m_initialized || m_ntsc != ntsc || m_stereo != stereo || m_samplesPerSec!= samplesPerSec) {
+    if (!m_initialized || m_ntsc != ntsc || m_stereo != stereo || m_samplesPerSec != samplesPerSec) {
         switch (GetSoundDriver())
         {
         case CPokey::SoundDriver::APOKEYSND:
@@ -171,7 +171,7 @@ void CPokey::InitPokeys(const bool ntsc, const bool stereo, const DWORD samplesP
             break;
 
         case CPokey::SoundDriver::SA_POKEY:
-            // Currently cast to WORD, because no rate avve 64kHz are supported.
+            // Currently cast to WORD, because no rates above 64kHz are supported.
             Pokey_SoundInit(CAtari::GetClockFrequency(ntsc), (WORD)samplesPerSec, stereo ? 2 : 1);
             break;
         }

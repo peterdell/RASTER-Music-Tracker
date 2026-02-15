@@ -1,9 +1,9 @@
 #pragma once
 
+#include "PokeyRenderer.h"
 #include "Song.h"
-#include <iosfwd>
-#include "PokeyRederer.h"
 #include "SongExport.h"
+#include <iosfwd>
 
 extern CString g_rmtmsxtext;
 

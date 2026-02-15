@@ -13,7 +13,7 @@
 #include "IOHelpers.h"
 #include "MainFrm.h"
 #include "PokeyController.h"
-#include "PokeyRederer.h"
+#include "PokeyRenderer.h"
 
 #include "SongTimer.h"
 

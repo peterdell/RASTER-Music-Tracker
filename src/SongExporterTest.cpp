@@ -8,7 +8,7 @@
 
 #include "SongExport.h"
 
-#include "PokeyRederer.h"
+#include "PokeyRenderer.h"
 
 #include "Global.h"
 

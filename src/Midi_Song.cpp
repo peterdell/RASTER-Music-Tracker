@@ -2,7 +2,7 @@
 #include "Clipboard.h"
 #include "Global.h"
 #include "Instruments.h"
-#include "PokeyRederer.h"
+#include "PokeyRenderer.h"
 #include "RmtMidi.h"
 #include "Song.h"
 #include "StdAfx.h"

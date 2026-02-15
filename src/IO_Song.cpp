@@ -10,7 +10,7 @@
 
 #include "AtariIO.h"
 #include "AtariTrackerDriver.h"
-#include "PokeyRederer.h"
+#include "PokeyRenderer.h"
 
 #include "IOHelpers.h"
 

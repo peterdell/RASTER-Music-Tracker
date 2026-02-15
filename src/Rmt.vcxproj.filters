@@ -240,7 +240,7 @@
     <ClCompile Include="C6502.cpp">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
-    <ClCompile Include="PokeyRederer.cpp">
+    <ClCompile Include="PokeyRenderer.cpp">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
     <ClCompile Include="Pokey.cpp">
@@ -470,7 +470,7 @@
     <ClInclude Include="C6502.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
-    <ClInclude Include="PokeyRederer.h">
+    <ClInclude Include="PokeyRenderer.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
     <ClInclude Include="Pokey.h">

@@ -11,7 +11,7 @@
 #include "Fraction.h"
 #include "MainFrm.h"
 #include "OptionsDialog.h"
-#include "PokeyRederer.h"
+#include "PokeyRenderer.h"
 #include "RmtDoc.h"
 #include "RmtMidi.h"
 #include "RmtView.h"

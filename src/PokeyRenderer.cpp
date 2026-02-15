@@ -2,11 +2,11 @@
 // Experimental changes and additions by VinsCool, 2021-2023
 // FIXME: Use a better backend (DirectSound is outdated...)
 
-#include "StdAfx.h"
-#include "PokeyRederer.h"
 #include "AtariTrackerDriver.h"
 #include "ChannelControl.h" 
 #include "Global.h"
+#include "PokeyRenderer.h"
+#include "StdAfx.h"
 
 extern BOOL g_nohwsoundbuffer;	// From Global.h
 extern HWND g_hwnd; // From Global.h
