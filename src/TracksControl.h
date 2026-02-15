@@ -6,6 +6,7 @@
 #include "Canvas.h"
 #include "CanvasXY.h"
 
+#include "Notes.h"
 #include "TextColors.h"
 
 class CTracksControl
@@ -17,7 +18,7 @@ public:
     void SetCanvas(CCanvasXY& canvasXY);
 
     void DrawTrackHeader(const CTracks& tracks, int x, int y, int tr, TextColor col);
-    void DrawTrackLine(const CTracks& tracks, int col, int x, int y, int tr, int line, int aline, int cactview, int pline, BOOL isactive, int acu, int oob);
+    void DrawTrackLine(const CTracks& tracks, int col, int x, int y, int tr, const int line, int aline, int cactview, int pline, BOOL isactive, int acu, int oob, Notation notation);
 
 private:
     CCanvas* canvas;

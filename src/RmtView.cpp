@@ -439,7 +439,7 @@ void CRmtView::DrawAll()
     // Draw the secondary screen elements
     g_SongUI->DrawInfo();
     g_SongUI->DrawSong();
-    g_SongUI->DrawAnalyzer();
+    g_SongUI->DrawVolumeAnalyzer();
     g_SongUI->DrawPlayTimeCounter();
 
     // Draw the primary screen above everything

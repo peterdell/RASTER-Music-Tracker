@@ -14,7 +14,7 @@ public:
 
     void SetCanvas(CCanvasXY& canvasXY);
 
-    void DrawAnalyzer();
+    void DrawVolumeAnalyzer();
     void DrawTracks();
     void DrawSong();				// Draw the song line info on the right
     void DrawInstrument();

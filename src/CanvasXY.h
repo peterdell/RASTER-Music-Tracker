@@ -26,6 +26,7 @@ public:
     void TextDownXY(const char* txt, int x, int y, TextColor color = TextColor::WHITE);
 
     void TextXYFull(const char* txt, int& x, int& y);
+
     void TextXYSelN(const char* txt, int n, int x, int y, TextColor color = TextColor::WHITE);
 
     // Mini Texts

@@ -72,7 +72,7 @@ void GetAtariMemHexStr(int adr, int len)
 /// <summary>
 /// Draw a volume analyser above each track
 /// </summary>
-void CSongUI::DrawAnalyzer()
+void CSongUI::DrawVolumeAnalyzer()
 {
 
     if (!g_view.volumeAnalyzer) return;	//the analyser won't be displayed without the setting enabled first
@@ -136,7 +136,7 @@ void CSongUI::DrawAnalyzer()
     int b;
     COLORREF acol;
 
-    if (g_active_ti == Part::PART_TRACKS) //bigger look for track edit mode
+    if (g_active_ti == Part::PART_TRACKS) // bigger look for track edit mode
     {
         // In tracks drawing mode
         // Draw bridge connections between channels. For each connection we move 2 pixels up.
@@ -523,7 +523,7 @@ void CSongUI::DrawTracks()
         return;
     }
 
-    //the cursor position is alway centered regardless of the window size with this simple formula
+    // the cursor position is alway centered regardless of the window size with this simple formula
     g_cursoractview = trackactiveline + 8 - g_line_y;
 
     BOOL active_smooth = (g_view.smoothScrolling && m_song->m_play && m_song->m_followplay && speed > 1) ? 1 : 0;	//could also be used as an offset
@@ -537,6 +537,13 @@ void CSongUI::DrawTracks()
     BOOL is_goto = 0;
     CTracksControl tracksControl(tracksCanvas);
     tracksControl.SetCanvas(*canvasXY);
+
+    // TODO -- FIXME: set the Notation elsewhere instead of computing it every time
+    Notation notation = 0;	// Standard notation
+
+    if (g_displayflatnotes) { notation += 1; }
+    if (g_usegermannotation) { notation += 2; }
+    if (g_notesperoctave != 12) { notation = 4; }	// Non-12 scales don't yet have proper display
 
     for (i = 0; i < g_tracklines + active_smooth * 2; i++, y += 16)
     {
@@ -620,8 +627,9 @@ void CSongUI::DrawTracks()
             tr = m_song->m_song[sl][j];
 
             //is it playing?
-            if (songplayline == songactiveline) t = trackplayline; else t = -1;
-            tracksControl.DrawTrackLine(g_Tracks, j, x, y, tr, line, trackactiveline, g_cursoractview, t, (m_song->m_trackactivecol == j), m_song->m_trackactivecur, oob);
+            if (songplayline == songactiveline) { t = trackplayline; }
+            else { t = -1; }
+            tracksControl.DrawTrackLine(g_Tracks, j, x, y, tr, line, trackactiveline, g_cursoractview, t, (m_song->m_trackactivecol == j), m_song->m_trackactivecur, oob, notation);
         }
         x = CSongScreenLayout::TRACKS_X + 5 * 8;
     }
