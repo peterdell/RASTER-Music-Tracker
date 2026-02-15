@@ -34,9 +34,9 @@ private:
     int charWidth = 8;
     int charHeight = 8;
 
-    TextMiniColor colorMini;
-    int column;
-    int row;
+    TextMiniColor colorMini = TextMiniColor::WHITE;
+    int column = 0;
+    int row = 0;
 
     char buffer[1024];
 

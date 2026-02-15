@@ -1,13 +1,12 @@
 #include "SongUI.h"
 
-#include "Song.h"
-
 #include "Canvas.h"
 #include "CanvasXY.h"
-
 #include "IOHelpers.h"
 #include "RmtScreenLayout.h"
+#include "Song.h"
 #include "Tuning.h"
+#include <assert.h>
 
 #include "TracksControl.h"
 
@@ -34,9 +33,6 @@ extern CInstruments	g_Instruments;
 
 
 // TODO
-char g_debugmem[CAtari::MEMORY_SIZE];	//debug display of memory bytes directly, slow and terrible, do not use unless there is a purpose for it 
-
-
 
 CSongUI::CSongUI(CSong& song) : m_song(&song) {
 
@@ -46,41 +42,33 @@ void CSongUI::SetCanvas(CCanvasXY& canvasXY) {
     this->canvasXY = &canvasXY;
 }
 
-//debug display of memory bytes directly, slow and terrible, do not use unless there is a purpose for it 
-void GetAtariMemHexStr(int adr, int len)
+const char* GetAtariMemoryHexString(MemoryAddress adr, MemorySize len)
 {
-    unsigned int a = 0;
-    char c[8] = { 0 };
-    memset(g_debugmem, 0, 65536);
+    static constexpr MemorySize MAX_LENGTH = 256;
+
+    assert(len < MAX_LENGTH);
+    static char g_debugmem[6 + MAX_LENGTH * 4 + 1];
+
     const auto memory = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
+
+    auto p = g_debugmem;
+    sprintf(p, "$%04hX ", adr);
+    p += 6;
 
     for (int i = 0; i < len; i++)
     {
-        a = memory[adr + i];
-        sprintf(c, "$%x, ", a);
-        g_debugmem[i * 4] = c[0];	//$
-        //force uppercase on characters "a" to "f"
-        if (c[1] >= 0x61 && c[1] < 0x67) c[1] -= 0x20;
-        if (c[2] >= 0x61 && c[2] < 0x67) c[2] -= 0x20;
-        if (a > 0xF)	//0x10 and above
-        {
-            g_debugmem[(i * 4) + 1] = c[1];	//nybble 1
-            g_debugmem[(i * 4) + 2] = c[2];	//nybble 2
-        }
-        else	//single digit hex character, add padding 0
-        {
-            g_debugmem[(i * 4) + 1] = '0';	//nybble 1
-            g_debugmem[(i * 4) + 2] = c[1];	//nybble 2
-        }
-        if (i != len - 1) g_debugmem[(i * 4) + 3] = ',';
-        else g_debugmem[(i * 4) + 3] = ' ';	//, or space if last character
+        auto a = memory[adr + i];
+        sprintf(p, "$%02hX ", a);
+        p += 4;
     }
+    *p = 0;
+    return g_debugmem;
 }
 
 
 
 // Draw a bridge between two columns (on the tracks view)
-void CSongUI::Hook1(int ANALYZER_X, int ANALYZER_Y, int g1, int g2, int yUp)
+void CSongUI::DrawTracksHook(int ANALYZER_X, int ANALYZER_Y, int g1, int g2, int yUp)
 {
 
     canvasXY->MoveTo(ANALYZER_X + 2 + ANALYZER_S * 15 / 2 + 16 * 8 * (g1), ANALYZER_Y - 1);
@@ -90,7 +78,7 @@ void CSongUI::Hook1(int ANALYZER_X, int ANALYZER_Y, int g1, int g2, int yUp)
 }
 
 // Draw a bridge between two columns (on the instrument view)
-void CSongUI::Hook2(int ANALYZER2_X, int ANALYZER_Y, int g1, int g2, int yUp)
+void CSongUI::DrawInstrumentHook(int ANALYZER2_X, int ANALYZER_Y, int g1, int g2, int yUp)
 {
     canvasXY->MoveTo(ANALYZER2_X + ANALYZER2_S * 15 / 2 + 3 * 8 * (g1), ANALYZER_Y - 120 - 1);
     canvasXY->LineTo(ANALYZER2_X + ANALYZER2_S * 15 / 2 + 3 * 8 * (g1), ANALYZER_Y - 120 - yUp);
@@ -114,8 +102,9 @@ void CSongUI::DrawVolumeAnalyzer()
     if (g_tracks4_8 == 4 && g_active_ti == Part::PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) { INSTRUMENT_OFFSET = 260; }
     const int SONG_OFFSET = CRmtScreenLayout::SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((g_tracks4_8 == 4) ? -200 : 310);	//displace the SONG block depending on certain parameters
 
-    BOOL DEBUG_POKEY = TRUE;	//registers debug display
-    BOOL DEBUG_MEMORY = FALSE;	//memory debug display
+    auto viewPokeyRegisters = g_view.pokeyRegisters;
+    BOOL DEBUG_POKEY = viewPokeyRegisters;	// registers debug display
+    BOOL DEBUG_MEMORY = FALSE;	// memory debug display
 
     if (g_width < MINIMAL_WIDTH_TRACKS && g_active_ti == Part::PART_TRACKS) DEBUG_POKEY = DEBUG_MEMORY = FALSE;
     if (g_width < MINIMAL_WIDTH_INSTRUMENTS && g_active_ti == Part::PART_INSTRUMENTS) DEBUG_POKEY = DEBUG_MEMORY = FALSE;
@@ -153,24 +142,24 @@ void CSongUI::DrawVolumeAnalyzer()
         // Left/Mono Channel
         // Draw which channels are joined by highpass filters or normal channel join
         a = memory[0xd208]; // AUDCTL @ $D208
-        if (a & 0x04) { col[2] = CRGBColor::COL_BLOCK; Hook1(ANALYZER_X, ANALYZER_Y, 0, 2, yUp); yUp -= 2; }	// High pass filter on channel 1, clocked by channel 3
-        if (a & 0x02) { col[3] = CRGBColor::COL_BLOCK;	Hook1(ANALYZER_X, ANALYZER_Y, 1, 3, yUp); yUp -= 2; }	// High pass filter on channel 3, clocked by channel 4
-        if (a & 0x10) { col[0] = CRGBColor::COL_BLOCK;	Hook1(ANALYZER_X, ANALYZER_Y, 0, 1, yUp); yUp -= 2; }	// Join channels 1 + 2 (16 bit)
-        if (a & 0x08) { col[2] = CRGBColor::COL_BLOCK;	Hook1(ANALYZER_X, ANALYZER_Y, 2, 3, yUp); yUp -= 2; }	// Join channels 3 + 4 (16 bit)
+        if (a & 0x04) { col[2] = CRGBColor::COL_BLOCK; DrawTracksHook(ANALYZER_X, ANALYZER_Y, 0, 2, yUp); yUp -= 2; }	// High pass filter on channel 1, clocked by channel 3
+        if (a & 0x02) { col[3] = CRGBColor::COL_BLOCK;	DrawTracksHook(ANALYZER_X, ANALYZER_Y, 1, 3, yUp); yUp -= 2; }	// High pass filter on channel 3, clocked by channel 4
+        if (a & 0x10) { col[0] = CRGBColor::COL_BLOCK;	DrawTracksHook(ANALYZER_X, ANALYZER_Y, 0, 1, yUp); yUp -= 2; }	// Join channels 1 + 2 (16 bit)
+        if (a & 0x08) { col[2] = CRGBColor::COL_BLOCK;	DrawTracksHook(ANALYZER_X, ANALYZER_Y, 2, 3, yUp); yUp -= 2; }	// Join channels 3 + 4 (16 bit)
 
         b = memory[0xd20f]; // SKCTL @ $D20F
-        if (b == 0x8b) { col[1] = CRGBColor::COL_BLOCK; Hook1(ANALYZER_X, ANALYZER_Y, 0, 1, yUp); yUp -= 2; }	// Two tone mode (join channel 1 + 2)
+        if (b == 0x8b) { col[1] = CRGBColor::COL_BLOCK; DrawTracksHook(ANALYZER_X, ANALYZER_Y, 0, 1, yUp); yUp -= 2; }	// Two tone mode (join channel 1 + 2)
         yUp = 7;
 
         // Stereo Channel
         a = memory[0xd218]; // AUDCTL2 @ $D218
-        if (a & 0x04) { col[2 + 4] = CRGBColor::COL_BLOCK; Hook1(ANALYZER_X, ANALYZER_Y, 0 + 4, 2 + 4, yUp); yUp -= 2; }	// High pass filter on channel 5 clocked by channel 7
-        if (a & 0x02) { col[3 + 4] = CRGBColor::COL_BLOCK; Hook1(ANALYZER_X, ANALYZER_Y, 1 + 4, 3 + 4, yUp); yUp -= 2; }	// High pass filter on channel 7, clocked by channel 8
-        if (a & 0x10) { col[0 + 4] = CRGBColor::COL_BLOCK; Hook1(ANALYZER_X, ANALYZER_Y, 0 + 4, 1 + 4, yUp); yUp -= 2; }	// Join channels 5 + 6 (16 bit)
-        if (a & 0x08) { col[2 + 4] = CRGBColor::COL_BLOCK; Hook1(ANALYZER_X, ANALYZER_Y, 2 + 4, 3 + 4, yUp); yUp -= 2; }	// Join channels 7 + 8 (16 bit)
+        if (a & 0x04) { col[2 + 4] = CRGBColor::COL_BLOCK; DrawTracksHook(ANALYZER_X, ANALYZER_Y, 0 + 4, 2 + 4, yUp); yUp -= 2; }	// High pass filter on channel 5 clocked by channel 7
+        if (a & 0x02) { col[3 + 4] = CRGBColor::COL_BLOCK; DrawTracksHook(ANALYZER_X, ANALYZER_Y, 1 + 4, 3 + 4, yUp); yUp -= 2; }	// High pass filter on channel 7, clocked by channel 8
+        if (a & 0x10) { col[0 + 4] = CRGBColor::COL_BLOCK; DrawTracksHook(ANALYZER_X, ANALYZER_Y, 0 + 4, 1 + 4, yUp); yUp -= 2; }	// Join channels 5 + 6 (16 bit)
+        if (a & 0x08) { col[2 + 4] = CRGBColor::COL_BLOCK; DrawTracksHook(ANALYZER_X, ANALYZER_Y, 2 + 4, 3 + 4, yUp); yUp -= 2; }	// Join channels 7 + 8 (16 bit)
 
         b = memory[0xd21f]; // SKCTL2 @ $D21F
-        if (b == 0x8b) { col[1 + 4] = CRGBColor::COL_BLOCK; Hook1(ANALYZER_X, ANALYZER_Y, 0 + 4, 1 + 4, yUp); yUp -= 2; }	// Two tone mode (join channel 5 + 6)
+        if (b == 0x8b) { col[1 + 4] = CRGBColor::COL_BLOCK; DrawTracksHook(ANALYZER_X, ANALYZER_Y, 0 + 4, 1 + 4, yUp); yUp -= 2; }	// Two tone mode (join channel 5 + 6)
 
         for (int channelNr = 0; channelNr < m_song->GetTracks(); channelNr++)
         {
@@ -197,13 +186,13 @@ void CSongUI::DrawVolumeAnalyzer()
             if (vol) { canvasXY->FillSolidRect(ANALYZER_X + a + 3 + (15 - vol) * ANALYZER_S / 2, ANALYZER_Y, vol * ANALYZER_S, ANALYZER_H, acol); }
 
             // Draw the frequency and audio control numbers for this channel
-            if (g_view.pokeyRegisters)
+            if (viewPokeyRegisters)
             {
                 canvasXY->NumberMiniXY(audf, ANALYZER_X + 10 + a + 17, ANALYZER_Y - 8, TextMiniColor::GRAY);
                 canvasXY->NumberMiniXY(audc, ANALYZER_X + 36 + a + 17, ANALYZER_Y - 8, TextMiniColor::GRAY);
             }
         }
-        if (g_view.pokeyRegisters)
+        if (viewPokeyRegisters)
         {
             // Draw the AUDCTL (audio control) register value
             canvasXY->NumberMiniXY(memory[0xd208], ANALYZER_X + 23 + 1 * 8 * 16 + 80, ANALYZER_Y - 8);						// Mono
@@ -227,24 +216,24 @@ void CSongUI::DrawVolumeAnalyzer()
             // Left / Mono Channel
             // Draw which channels are joined by highpass filters or normal channel join
             a = memory[0xd208]; // AUDCTL @ $D208
-            if (a & 0x04) { col[2] = CRGBColor::COL_BLOCK; Hook2(ANALYZER2_X, ANALYZER_Y, 0, 2, yUp); yUp -= 2; }	// High pass filter on channel 1, clocked by channel 3
-            if (a & 0x02) { col[3] = CRGBColor::COL_BLOCK;	Hook2(ANALYZER2_X, ANALYZER_Y, 1, 3, yUp); yUp -= 2; }	// High pass filter on channel 3, clocked by channel 4
-            if (a & 0x10) { col[0] = CRGBColor::COL_BLOCK;	Hook2(ANALYZER2_X, ANALYZER_Y, 0, 1, yUp); yUp -= 2; }	// Join channels 1 + 2 (16 bit)
-            if (a & 0x08) { col[2] = CRGBColor::COL_BLOCK;	Hook2(ANALYZER2_X, ANALYZER_Y, 2, 3, yUp); yUp -= 2; }	// Join channels 3 + 4 (16 bit)
+            if (a & 0x04) { col[2] = CRGBColor::COL_BLOCK; DrawInstrumentHook(ANALYZER2_X, ANALYZER_Y, 0, 2, yUp); yUp -= 2; }	// High pass filter on channel 1, clocked by channel 3
+            if (a & 0x02) { col[3] = CRGBColor::COL_BLOCK; DrawInstrumentHook(ANALYZER2_X, ANALYZER_Y, 1, 3, yUp); yUp -= 2; }	// High pass filter on channel 3, clocked by channel 4
+            if (a & 0x10) { col[0] = CRGBColor::COL_BLOCK; DrawInstrumentHook(ANALYZER2_X, ANALYZER_Y, 0, 1, yUp); yUp -= 2; }	// Join channels 1 + 2 (16 bit)
+            if (a & 0x08) { col[2] = CRGBColor::COL_BLOCK; DrawInstrumentHook(ANALYZER2_X, ANALYZER_Y, 2, 3, yUp); yUp -= 2; }	// Join channels 3 + 4 (16 bit)
 
             b = memory[0xd20f]; // SKCTL @ $D20F
-            if (b == 0x8b) { col[1] = CRGBColor::COL_BLOCK; Hook2(ANALYZER2_X, ANALYZER_Y, 0, 1, yUp); yUp -= 2; }	// Two tone mode (join channel 1 + 2)
+            if (b == 0x8b) { col[1] = CRGBColor::COL_BLOCK; DrawInstrumentHook(ANALYZER2_X, ANALYZER_Y, 0, 1, yUp); yUp -= 2; }	// Two tone mode (join channel 1 + 2)
             yUp = 7;
 
             // Stereo Channel
             a = memory[0xd218]; // AUDCTL2 @ $D218
-            if (a & 0x04) { col[2 + 4] = CRGBColor::COL_BLOCK; Hook2(ANALYZER2_X, ANALYZER_Y, 0 + 4, 2 + 4, yUp); yUp -= 2; }	// High pass filter on channel 5 clocked by channel 7
-            if (a & 0x02) { col[3 + 4] = CRGBColor::COL_BLOCK; Hook2(ANALYZER2_X, ANALYZER_Y, 1 + 4, 3 + 4, yUp); yUp -= 2; }	// High pass filter on channel 7, clocked by channel 8
-            if (a & 0x10) { col[0 + 4] = CRGBColor::COL_BLOCK; Hook2(ANALYZER2_X, ANALYZER_Y, 0 + 4, 1 + 4, yUp); yUp -= 2; }	// Join channels 5 + 6 (16 bit)
-            if (a & 0x08) { col[2 + 4] = CRGBColor::COL_BLOCK; Hook2(ANALYZER2_X, ANALYZER_Y, 2 + 4, 3 + 4, yUp); yUp -= 2; }	// Join channels 7 + 8 (16 bit)
+            if (a & 0x04) { col[2 + 4] = CRGBColor::COL_BLOCK; DrawInstrumentHook(ANALYZER2_X, ANALYZER_Y, 0 + 4, 2 + 4, yUp); yUp -= 2; }	// High pass filter on channel 5 clocked by channel 7
+            if (a & 0x02) { col[3 + 4] = CRGBColor::COL_BLOCK; DrawInstrumentHook(ANALYZER2_X, ANALYZER_Y, 1 + 4, 3 + 4, yUp); yUp -= 2; }	// High pass filter on channel 7, clocked by channel 8
+            if (a & 0x10) { col[0 + 4] = CRGBColor::COL_BLOCK; DrawInstrumentHook(ANALYZER2_X, ANALYZER_Y, 0 + 4, 1 + 4, yUp); yUp -= 2; }	// Join channels 5 + 6 (16 bit)
+            if (a & 0x08) { col[2 + 4] = CRGBColor::COL_BLOCK; DrawInstrumentHook(ANALYZER2_X, ANALYZER_Y, 2 + 4, 3 + 4, yUp); yUp -= 2; }	// Join channels 7 + 8 (16 bit)
 
             b = memory[0xd21f]; // SKCTL2 @ $D21F
-            if (b == 0x8b) { col[1 + 4] = CRGBColor::COL_BLOCK; Hook2(ANALYZER2_X, ANALYZER_Y, 0 + 4, 1 + 4, yUp); yUp -= 2; }	// Two tone mode (join channel 5 + 6)
+            if (b == 0x8b) { col[1 + 4] = CRGBColor::COL_BLOCK; DrawInstrumentHook(ANALYZER2_X, ANALYZER_Y, 0 + 4, 1 + 4, yUp); yUp -= 2; }	// Two tone mode (join channel 5 + 6)
 
             for (int channelNr = 0; channelNr < g_tracks4_8; channelNr++)
             {
@@ -269,37 +258,23 @@ void CSongUI::DrawVolumeAnalyzer()
                 if (vol) canvasXY->FillSolidRect(ANALYZER2_X + channelNr * 3 * 8 + (15 - vol) * ANALYZER2_S / 2, ANALYZER2_Y, vol * ANALYZER2_S, ANALYZER2_H, acol);
             }
         }
-        if (DEBUG_POKEY && g_view.pokeyRegisters)	// Detailed registers viewer
-        {
-
+        if (DEBUG_POKEY) {
             CCanvas pokeyCanvas(*canvasXY, ANALYZER3_X, ANALYZER3_Y);
             CPokeyView pokeyView(pokeyCanvas);
             pokeyView.Draw(*m_song, g_Tuning, IsEditMode(EditMode::POKEY_EXPLORER_MODE), *m_song->m_PokeyController, g_Atari);
         }
 
-        if (DEBUG_MEMORY)	//Atari memory display, do not use unless there is a useful purpose for it
-        {
-            canvasXY->FillSolidRect(ANALYZER3_X, ANALYZER3_Y + 192, 680 + (8 * 42), 432, CRGBColor::BACKGROUND);
-
-            int gap = 0; int gap2 = 32; int page = 0;
-
-            for (int d = 0; d < 40; d++)	//1 memory page => 0x100, 32 bytes per line
-            {
-                //larger font...
-                //GetAtariMemHexStr(0xB200 + (0x10 * d), 16);	//Distortion C page
-                //TextXY(g_debugmem, ANALYZER3_X, ANALYZER3_Y + 240 + 16 * d + 8 + gap, TextColor::WHITE);
-                gap += (d % 8 == 0) ? 8 : 0;
-                page += (d % 8 == 0 && d != 0) ? 1 : 0;
-                gap2 = 16 * page;
-                GetAtariMemHexStr(0xB000 + 0x20 * d, 32);
-                canvasXY->TextMiniXY(g_debugmem, ANALYZER3_X, ANALYZER3_Y + 192 + 8 * d + 8 + gap + gap2, TextMiniColor::WHITE);
-
-                if (d % 8 == 0)
-                {
-                    canvasXY->TextMiniXY("memory (      ):", ANALYZER3_X, ANALYZER3_Y + 192 + 8 * d + gap + gap2 - 8, TextMiniColor::GRAY);
-                    canvasXY->NumberMiniXY(page, ANALYZER3_X + 8 * 14, ANALYZER3_Y + 192 + 8 * d + gap + gap2 - 8, TextMiniColor::WHITE);
-                    canvasXY->TextMiniXY("0XB 00", ANALYZER3_X + 8 * 12, ANALYZER3_Y + 192 + 8 * d + gap + gap2 - 8, TextMiniColor::WHITE);
-                }
+        if (DEBUG_MEMORY) {
+            static constexpr int ADDRESS = 0x3000; // RMTPLAYR_TABLES;
+            static constexpr int BPL = 32;
+            static constexpr int BLOCK = 8;
+            CCanvas memoryCanvas(*canvasXY, ANALYZER3_X, ANALYZER3_Y + 192);
+            memoryCanvas.ColorMini(TextMiniColor::GRAY).PrintMini("MEMORY").NextRow().NextRow();
+            memoryCanvas.ColorMini(TextMiniColor::WHITE);
+            for (int d = 0; d < 32; d++) {
+                const auto text = GetAtariMemoryHexString(ADDRESS + BPL * d, BPL);
+                memoryCanvas.PrintMini(text).NextRow();
+                if (d % BLOCK == BLOCK - 1) { memoryCanvas.NextRow(); }
             }
         }
     }
