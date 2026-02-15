@@ -327,6 +327,9 @@
     <ClCompile Include="CanvasXY.cpp">
       <Filter>Source Files\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="AtariView.cpp">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EffectsDlg.h">
@@ -583,6 +586,9 @@
     </ClInclude>
     <ClInclude Include="RmtScreenLayout.h">
       <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="AtariView.h">
+      <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

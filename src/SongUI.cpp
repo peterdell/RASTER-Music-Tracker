@@ -1,14 +1,14 @@
 #include "SongUI.h"
 
+#include "AtariView.h"
 #include "Canvas.h"
 #include "CanvasXY.h"
 #include "IOHelpers.h"
 #include "RmtScreenLayout.h"
 #include "Song.h"
+#include "TracksControl.h"
 #include "Tuning.h"
 #include <assert.h>
-
-#include "TracksControl.h"
 
 #include "Clipboard.h"
 #include "Global.h"
@@ -42,30 +42,6 @@ void CSongUI::SetCanvas(CCanvasXY& canvasXY) {
     this->canvasXY = &canvasXY;
 }
 
-const char* GetAtariMemoryHexString(MemoryAddress adr, MemorySize len)
-{
-    static constexpr MemorySize MAX_LENGTH = 256;
-
-    assert(len < MAX_LENGTH);
-    static char g_debugmem[6 + MAX_LENGTH * 4 + 1];
-
-    const auto memory = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
-
-    auto p = g_debugmem;
-    sprintf(p, "$%04hX ", adr);
-    p += 6;
-
-    for (int i = 0; i < len; i++)
-    {
-        auto a = memory[adr + i];
-        sprintf(p, "$%02hX ", a);
-        p += 4;
-    }
-    *p = 0;
-    return g_debugmem;
-}
-
-
 
 // Draw a bridge between two columns (on the tracks view)
 void CSongUI::DrawTracksHook(int ANALYZER_X, int ANALYZER_Y, int g1, int g2, int yUp)
@@ -98,15 +74,16 @@ void CSongUI::DrawVolumeAnalyzer()
     const auto stereo = m_song->IsStereo();
     const int MINIMAL_WIDTH_TRACKS = (stereo && g_active_ti == Part::PART_TRACKS) ? 1420 : 960;
     const int MINIMAL_WIDTH_INSTRUMENTS = (stereo && g_active_ti == Part::PART_INSTRUMENTS) ? 1220 : 1220;
-    const int WINDOW_OFFSET = (g_width < 1320 && stereo && g_active_ti == Part::PART_TRACKS) ? -250 : 0;	//test displacement with the window size
+    const int WINDOW_OFFSET = (g_width < 1320 && stereo && g_active_ti == Part::PART_TRACKS) ? -250 : 0; // test displacement with the window size
     int INSTRUMENT_OFFSET = (g_active_ti == Part::PART_INSTRUMENTS && stereo) ? -250 : 0;
     if (!stereo && g_active_ti == Part::PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) { INSTRUMENT_OFFSET = 260; }
-    const int SONG_OFFSET_X = CRmtScreenLayout::SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((!stereo) ? -200 : 310);	//displace the SONG block depending on certain parameters
+    const int SONG_OFFSET_X = CRmtScreenLayout::SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((!stereo) ? -200 : 310);	// displace the SONG block depending on certain parameters
 
     auto viewPokeyRegisters = g_view.pokeyRegisters;
     BOOL DEBUG_POKEY = viewPokeyRegisters;	// registers debug display
     BOOL DEBUG_MEMORY = FALSE;	// memory debug display
 
+    // Hide if not enough space is available.
     if ((g_width < MINIMAL_WIDTH_TRACKS && g_active_ti == Part::PART_TRACKS)
         || (g_width < MINIMAL_WIDTH_INSTRUMENTS && g_active_ti == Part::PART_INSTRUMENTS)) {
         DEBUG_POKEY = DEBUG_MEMORY = FALSE;
@@ -268,17 +245,10 @@ void CSongUI::DrawVolumeAnalyzer()
         }
 
         if (DEBUG_MEMORY) {
-            static constexpr int ADDRESS = 0x3000; // RMTPLAYR_TABLES;
-            static constexpr int BPL = 32;
-            static constexpr int BLOCK = 8;
-            CCanvas memoryCanvas(*canvasXY, POKEY_VIEW_X, POKEY_VIEW_Y + 192);
-            memoryCanvas.ColorMini(TextMiniColor::GRAY).PrintMini("MEMORY").NextRow().NextRow();
-            memoryCanvas.ColorMini(TextMiniColor::WHITE);
-            for (int d = 0; d < 32; d++) {
-                const auto text = GetAtariMemoryHexString(ADDRESS + BPL * d, BPL);
-                memoryCanvas.PrintMini(text).NextRow();
-                if (d % BLOCK == BLOCK - 1) { memoryCanvas.NextRow(); }
-            }
+            CCanvas atariCanvas(*canvasXY, POKEY_VIEW_X, POKEY_VIEW_Y + 192);
+            CAtariView atariView(atariCanvas);
+            atariView.Draw(g_Atari);
+
         }
     }
 }
