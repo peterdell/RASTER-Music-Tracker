@@ -1,8 +1,10 @@
 #pragma once
 
+#include "StdAfx.h"
+#include <assert.h>
 
 template <typename T>
-class TypedComboBox : public CComboBox {
+class CTypedComboBox : public CComboBox {
 public:
     void AddItem(const T value, const CString& text) {
         const auto i = this->AddString(text);

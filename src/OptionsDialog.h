@@ -31,9 +31,9 @@ public:
     // Dialog Data
         //{{AFX_DATA(COptionsDialog)
     enum { IDD = IDD_OPTIONS };
-    TypedComboBox<KeyboardLayout> m_keyboardLayoutComboBox;
+    CTypedComboBox<KeyboardLayout> m_keyboardLayoutComboBox;
     CComboBox	m_midi_c_device;
-    TypedComboBox<TrackerDriverVersion>	m_trackerDriverVersionComboBox;
+    CTypedComboBox<TrackerDriverVersion>	m_trackerDriverVersionComboBox;
     BOOL	m_midi_TouchResponse;
     int		m_midi_VolumeOffset;
     int		m_trackLinePrimaryHighlight;
