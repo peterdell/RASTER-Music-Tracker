@@ -334,6 +334,7 @@
     </ClCompile>
     <ClCompile Include="TuningDialog.cpp" />
     <ClCompile Include="TuningTypes.cpp" />
+    <ClCompile Include="TypedComboBox.cpp" />
     <ClCompile Include="Undo.cpp" />
     <ClCompile Include="VUPlayer.cpp" />
     <ClCompile Include="WaveFile.cpp" />
@@ -426,6 +427,7 @@
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="TuningDialog.h" />
     <ClInclude Include="TuningTypes.h" />
+    <ClInclude Include="TypedComboBox.h" />
     <ClInclude Include="Undo.h" />
     <ClInclude Include="VUPlayer.h" />
     <ClInclude Include="WaveFile.h" />

@@ -43,44 +43,14 @@ extern int EditText(int vk, int shift, int control, char* txt, int& cur, int max
 
 extern BOOL IsHoveredXY(int x, int y, int xLength, int yLength);
 
-
+// Text
 extern void TextXY(const char* txt, int x, int y, TextColor color = TextColor::WHITE);
 extern void TextXYFull(const char* txt, int& x, int& y);
 extern void TextXYSelN(const char* txt, int n, int x, int y, TextColor color = TextColor::WHITE);
 extern void TextXYCol(const char* txt, int x, int y, int acu, TextColor color = TextColor::WHITE);
 extern void TextDownXY(const char* txt, int x, int y, TextColor color = TextColor::WHITE);
+
+// Mini Texts
 extern void NumberMiniXY(const BYTE num, int x, int y, TextMiniColor color = TextMiniColor::GRAY);
 extern void TextMiniXY(const char* txt, int x, int y, TextMiniColor color = TextMiniColor::GRAY);
 extern void IconMiniXY(const int icon, int x, int y);
-
-
-template <typename T>
-class TypedComboBox : public CComboBox {
-public:
-    void AddItem(const T value, const CString& text) {
-        const auto i = this->AddString(text);
-        assert(i != CB_ERRSPACE);
-        this->SetItemData(i, (DWORD_PTR)value);
-    }
-
-    void SetSelectedItem(const  T value) {
-        for (int i = 0; i < this->GetCount(); i++) {
-            if (this->GetItemData(i) == (DWORD_PTR)value) {
-                this->SetCurSel(i);
-                return;
-            }
-        }
-        if (this->GetCount() > 0) {
-            this->SetCurSel(0);
-        }
-    }
-
-    T GetSelectedItem(const T& defaultItem) const {
-        auto i = this->GetCurSel();
-        if (i != CB_ERR) {
-            return (T)this->GetItemData(i);
-        }
-        return defaultItem;
-    }
-};
-

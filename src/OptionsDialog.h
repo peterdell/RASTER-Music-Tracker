@@ -9,7 +9,7 @@
 
 #include "General.h"
 #include "TrackerDriverVersion.h"
-#include "GuiHelpers.h"
+#include "TypedComboBox.h"
 
 extern CString g_defaultSongsPath;			// Default path for songs
 extern CString g_defaultInstrumentsPath;	// Default path for instruments

@@ -321,6 +321,9 @@
     <ClCompile Include="Canvas.cpp">
       <Filter>Source Files\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="TypedComboBox.cpp">
+      <Filter>Source Files\GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EffectsDlg.h">
@@ -568,6 +571,9 @@
     </ClInclude>
     <ClInclude Include="TextColors.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TypedComboBox.h">
+      <Filter>Source Files\GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
