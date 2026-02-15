@@ -1037,10 +1037,11 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
     StoreMouseInformation(point.x, point.y, mousebutt, wheelzDelta);
 
     //TODO: make those parameters global so they won't have to be re-initialised in multiple functions separately
-    int MINIMAL_WIDTH_TRACKS = (g_tracks4_8 > 4 && g_active_ti == Part::PART_TRACKS) ? 1420 : 960;
-    int MINIMAL_WIDTH_INSTRUMENTS = (g_tracks4_8 > 4 && g_active_ti == Part::PART_INSTRUMENTS) ? 1220 : 1220;
-    int WINDOW_OFFSET = (g_width < 1320 && g_tracks4_8 > 4 && g_active_ti == Part::PART_TRACKS) ? -250 : 0;	//test displacement with the window size
-    int INSTRUMENT_OFFSET = (g_active_ti == Part::PART_INSTRUMENTS && g_tracks4_8 > 4) ? -250 : 0;
+    const auto stereo = g_Song.IsStereo();
+    int MINIMAL_WIDTH_TRACKS = (stereo && g_active_ti == Part::PART_TRACKS) ? 1420 : 960;
+    int MINIMAL_WIDTH_INSTRUMENTS = (stereo && g_active_ti == Part::PART_INSTRUMENTS) ? 1220 : 1220;
+    int WINDOW_OFFSET = (g_width < 1320 && stereo && g_active_ti == Part::PART_TRACKS) ? -250 : 0;	//test displacement with the window size
+    int INSTRUMENT_OFFSET = (g_active_ti == Part::PART_INSTRUMENTS && stereo) ? -250 : 0;
     if (g_tracks4_8 == 4 && g_active_ti == Part::PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) INSTRUMENT_OFFSET = 260;
     int SONG_OFFSET = CRmtScreenLayout::SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((g_tracks4_8 == 4) ? -200 : 310);	//displace the SONG block depending on certain parameters
 

@@ -93,30 +93,33 @@ void CSongUI::DrawInstrumentHook(int ANALYZER2_X, int ANALYZER_Y, int g1, int g2
 void CSongUI::DrawVolumeAnalyzer()
 {
 
-    if (!g_view.volumeAnalyzer) return;	//the analyser won't be displayed without the setting enabled first
+    if (!g_view.volumeAnalyzer) { return; } //the analyser won't be displayed without the setting enabled first
 
-    const int MINIMAL_WIDTH_TRACKS = (g_tracks4_8 > 4 && g_active_ti == Part::PART_TRACKS) ? 1420 : 960;
-    const int MINIMAL_WIDTH_INSTRUMENTS = (g_tracks4_8 > 4 && g_active_ti == Part::PART_INSTRUMENTS) ? 1220 : 1220;
-    const int WINDOW_OFFSET = (g_width < 1320 && g_tracks4_8 > 4 && g_active_ti == Part::PART_TRACKS) ? -250 : 0;	//test displacement with the window size
-    int INSTRUMENT_OFFSET = (g_active_ti == Part::PART_INSTRUMENTS && g_tracks4_8 > 4) ? -250 : 0;
-    if (g_tracks4_8 == 4 && g_active_ti == Part::PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) { INSTRUMENT_OFFSET = 260; }
-    const int SONG_OFFSET = CRmtScreenLayout::SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((g_tracks4_8 == 4) ? -200 : 310);	//displace the SONG block depending on certain parameters
+    const auto stereo = m_song->IsStereo();
+    const int MINIMAL_WIDTH_TRACKS = (stereo && g_active_ti == Part::PART_TRACKS) ? 1420 : 960;
+    const int MINIMAL_WIDTH_INSTRUMENTS = (stereo && g_active_ti == Part::PART_INSTRUMENTS) ? 1220 : 1220;
+    const int WINDOW_OFFSET = (g_width < 1320 && stereo && g_active_ti == Part::PART_TRACKS) ? -250 : 0;	//test displacement with the window size
+    int INSTRUMENT_OFFSET = (g_active_ti == Part::PART_INSTRUMENTS && stereo) ? -250 : 0;
+    if (!stereo && g_active_ti == Part::PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) { INSTRUMENT_OFFSET = 260; }
+    const int SONG_OFFSET_X = CRmtScreenLayout::SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((!stereo) ? -200 : 310);	//displace the SONG block depending on certain parameters
 
     auto viewPokeyRegisters = g_view.pokeyRegisters;
     BOOL DEBUG_POKEY = viewPokeyRegisters;	// registers debug display
     BOOL DEBUG_MEMORY = FALSE;	// memory debug display
 
-    if (g_width < MINIMAL_WIDTH_TRACKS && g_active_ti == Part::PART_TRACKS) DEBUG_POKEY = DEBUG_MEMORY = FALSE;
-    if (g_width < MINIMAL_WIDTH_INSTRUMENTS && g_active_ti == Part::PART_INSTRUMENTS) DEBUG_POKEY = DEBUG_MEMORY = FALSE;
+    if ((g_width < MINIMAL_WIDTH_TRACKS && g_active_ti == Part::PART_TRACKS)
+        || (g_width < MINIMAL_WIDTH_INSTRUMENTS && g_active_ti == Part::PART_INSTRUMENTS)) {
+        DEBUG_POKEY = DEBUG_MEMORY = FALSE;
+    }
 
     const auto  ANALYZER_X = CRmtScreenLayout::TRACKS_X + 6 * 8 + 4;		// 68
     static constexpr int ANALYZER_Y(CRmtScreenLayout::TRACKS_Y - 8);			// Line 8 = 128
 
-    const auto ANALYZER2_X = SONG_OFFSET + 6 * 8;
+    const auto ANALYZER2_X = SONG_OFFSET_X + 6 * 8;
     static constexpr int ANALYZER2_Y = CRmtScreenLayout::TRACKS_Y - 128;
 
-    const auto ANALYZER3_X = SONG_OFFSET + 6 * 8 - 32;
-    static constexpr auto ANALYZER3_Y = (CRmtScreenLayout::TRACKS_Y + 50);
+    const auto POKEY_VIEW_X = SONG_OFFSET_X + 6 * 8 - 32;
+    static constexpr auto POKEY_VIEW_Y = (CRmtScreenLayout::TRACKS_Y + 50);
 
     int audf, audc, vol;
     static int idx[8] = { 0xd200,0xd202,0xd204,0xd206,0xd210,0xd212,0xd214,0xd216 };	// AUDF and AUDC for mono and stereo
@@ -196,11 +199,11 @@ void CSongUI::DrawVolumeAnalyzer()
         {
             // Draw the AUDCTL (audio control) register value
             canvasXY->NumberMiniXY(memory[0xd208], ANALYZER_X + 23 + 1 * 8 * 16 + 80, ANALYZER_Y - 8);						// Mono
-            if (g_tracks4_8 > 4) { canvasXY->NumberMiniXY(memory[0xd218], ANALYZER_X + 23 + 5 * 8 * 16 + 80, ANALYZER_Y - 8); }// Stereo
+            if (stereo) { canvasXY->NumberMiniXY(memory[0xd218], ANALYZER_X + 23 + 5 * 8 * 16 + 80, ANALYZER_Y - 8); }// Stereo
 
             // Draw the SKCTL (Two tone control/Serial port control) register value
             canvasXY->NumberMiniXY(memory[0xd20f], ANALYZER_X + 23 + 1 * 8 * 16 + 80, ANALYZER_Y - 0);						// Mono
-            if (g_tracks4_8 > 4) {
+            if (stereo) {
                 canvasXY->NumberMiniXY(memory[0xd21f], ANALYZER_X + 23 + 5 * 8 * 16 + 80, ANALYZER_Y - 0);	// Stereo
             }
         }
@@ -241,7 +244,7 @@ void CSongUI::DrawVolumeAnalyzer()
                 int skctl1 = memory[0xd20f];		// Two tone mode Mono
                 int skctl2 = memory[0xd21f];		// Two tone mode Stereo
 
-                vol = audc & 0x0f;						// Volume in lower nibble 
+                vol = audc & 0x0f;					// Volume in lower nibble 
 
                 // Draw the background box of the volume analyser for this channel
                 // 15 unit wide, each unit is 6 pixels (ANALYZER_S)
@@ -259,7 +262,7 @@ void CSongUI::DrawVolumeAnalyzer()
             }
         }
         if (DEBUG_POKEY) {
-            CCanvas pokeyCanvas(*canvasXY, ANALYZER3_X, ANALYZER3_Y);
+            CCanvas pokeyCanvas(*canvasXY, POKEY_VIEW_X, POKEY_VIEW_Y);
             CPokeyView pokeyView(pokeyCanvas);
             pokeyView.Draw(*m_song, g_Tuning, IsEditMode(EditMode::POKEY_EXPLORER_MODE), *m_song->m_PokeyController, g_Atari);
         }
@@ -268,7 +271,7 @@ void CSongUI::DrawVolumeAnalyzer()
             static constexpr int ADDRESS = 0x3000; // RMTPLAYR_TABLES;
             static constexpr int BPL = 32;
             static constexpr int BLOCK = 8;
-            CCanvas memoryCanvas(*canvasXY, ANALYZER3_X, ANALYZER3_Y + 192);
+            CCanvas memoryCanvas(*canvasXY, POKEY_VIEW_X, POKEY_VIEW_Y + 192);
             memoryCanvas.ColorMini(TextMiniColor::GRAY).PrintMini("MEMORY").NextRow().NextRow();
             memoryCanvas.ColorMini(TextMiniColor::WHITE);
             for (int d = 0; d < 32; d++) {
@@ -297,11 +300,11 @@ void CSongUI::DrawSong()
 
     auto smooth_scroll = g_view.smoothScrolling;	//TODO: make smooth scrolling an option that can be saved to .ini file
 
-    int MINIMAL_WIDTH_INSTRUMENTS = (m_song->IsStereo() && g_active_ti == Part::PART_INSTRUMENTS) ? 1220 : 1220;
-    int WINDOW_OFFSET = (g_width < 1320 && m_song->IsStereo() && g_active_ti == Part::PART_TRACKS) ? -250 : 0;	//test displacement with the window size
+    const int MINIMAL_WIDTH_INSTRUMENTS = (m_song->IsStereo() && g_active_ti == Part::PART_INSTRUMENTS) ? 1220 : 1220;
+    const int WINDOW_OFFSET = (g_width < 1320 && m_song->IsStereo() && g_active_ti == Part::PART_TRACKS) ? -250 : 0;	//test displacement with the window size
     int INSTRUMENT_OFFSET = (g_active_ti == Part::PART_INSTRUMENTS && m_song->IsStereo()) ? -250 : 0;
-    if (!m_song->IsStereo() && g_active_ti == Part::PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) INSTRUMENT_OFFSET = 260;
-    int SONG_OFFSET = CRmtScreenLayout::SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((!m_song->IsStereo()) ? -200 : 310);	//displace the SONG block depending on certain parameters
+    if (!m_song->IsStereo() && g_active_ti == Part::PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) { INSTRUMENT_OFFSET = 260; }
+    const int SONG_OFFSET_X = CRmtScreenLayout::SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((!m_song->IsStereo()) ? -200 : 310);	//displace the SONG block depending on certain parameters
 
     auto active_smooth = (smooth_scroll && m_song->m_play && m_song->m_followplay) ? 1 : 0;	//could also be used as an offset
     int pattern_len = 0;
@@ -341,7 +344,7 @@ void CSongUI::DrawSong()
         {
             // Draw: "Go to line"
             color = (isOutOfBounds) ? TextColor::DARK_GRAY : TextColor::TURQUOISE;	//turquoise text, blank tiles to mask text if needed, else gray if out of bounds
-            canvasXY->TextXY("GO\x1fTO\x1fLINE", SONG_OFFSET + 16, y, color);
+            canvasXY->TextXY("GO\x1fTO\x1fLINE", SONG_OFFSET_X + 16, y, color);
 
             // Draw: "XX"
             color = (isOutOfBounds) ? TextColor::DARK_GRAY : TextColor::WHITE;	//white, for the number used, or gray if out of bounds
@@ -353,7 +356,7 @@ void CSongUI::DrawSong()
             szBuffer[0] = CharH4(j);
             szBuffer[1] = CharL4(j);
             szBuffer[2] = 0;
-            canvasXY->TextXY(szBuffer, SONG_OFFSET + 16 + 11 * 8, y, color);
+            canvasXY->TextXY(szBuffer, SONG_OFFSET_X + 16 + 11 * 8, y, color);
         }
         else
         {
@@ -364,7 +367,7 @@ void CSongUI::DrawSong()
             szBuffer[3] = 0;
             color = (line == m_song->m_songplayline) ? TextColor::YELLOW : TextColor::WHITE;
             if (isOutOfBounds) color = TextColor::DARK_GRAY;	//darker gray, out of bounds
-            canvasXY->TextXY(szBuffer, SONG_OFFSET + 16, y, color);
+            canvasXY->TextXY(szBuffer, SONG_OFFSET_X + 16, y, color);
 
             // For each track that is part of the song draw its number
             szBuffer[2] = 0;
@@ -384,20 +387,20 @@ void CSongUI::DrawSong()
                 }
                 else color = (line == m_song->m_songplayline) ? TextColor::YELLOW : TextColor::WHITE;
                 if (isOutOfBounds) color = TextColor::DARK_GRAY;	//darker gray, out of bounds
-                canvasXY->TextXY(szBuffer, SONG_OFFSET + 16 + k, y, color);
+                canvasXY->TextXY(szBuffer, SONG_OFFSET_X + 16 + k, y, color);
             }
         }
     }
     // Draw an arrow pointing to the current song line
     color = (IsProveMode()) ? TextColor::BLUE : TextColor::RED;
     int arrowpos = (WINDOW_OFFSET) ? CRmtScreenLayout::SONG_Y + 48 : CRmtScreenLayout::SONG_Y + 80;
-    canvasXY->TextXY("\x04\x05", SONG_OFFSET, arrowpos, color);
+    canvasXY->TextXY("\x04\x05", SONG_OFFSET_X, arrowpos, color);
 
     if (m_song->IsStereo())	//a line delimiting the boundary between left/right
     {
         int fl = 32;
         int tl = 32 + linescount * 16;
-        int x = CRmtScreenLayout::SONG_Y + 80 + 5 * 8 + 3 + SONG_OFFSET;
+        int x = CRmtScreenLayout::SONG_Y + 80 + 5 * 8 + 3 + SONG_OFFSET_X;
 
         canvasXY->MoveTo(x, fl);
         canvasXY->LineTo(x, tl);
@@ -407,13 +410,13 @@ void CSongUI::DrawSong()
     // This gets rid of the pixels we dont want to see with smooth scrolling
     int width = 8 * ((m_song->IsStereo()) ? 30 : 18);
     int height = 32;
-    canvasXY->FillSolidRect(SONG_OFFSET, 0, width, height, CRGBColor::BACKGROUND);	//top
-    canvasXY->FillSolidRect(SONG_OFFSET, linescount * 16 + 32, width, height, CRGBColor::BACKGROUND);	//bottom
+    canvasXY->FillSolidRect(SONG_OFFSET_X, 0, width, height, CRGBColor::BACKGROUND);	//top
+    canvasXY->FillSolidRect(SONG_OFFSET_X, linescount * 16 + 32, width, height, CRGBColor::BACKGROUND);	//bottom
 
-    canvasXY->TextXY("SONG", SONG_OFFSET + 8, CRmtScreenLayout::SONG_Y, TextColor::WHITE);
+    canvasXY->TextXY("SONG", SONG_OFFSET_X + 8, CRmtScreenLayout::SONG_Y, TextColor::WHITE);
 
     //print L1 .. L4 R1 .. R4 with highlighted current track
-    k = SONG_OFFSET + 6 * 8;
+    k = SONG_OFFSET_X + 6 * 8;
     szBuffer[0] = 'L';
     szBuffer[2] = 0;
     for (i = 0; i < 4; i++, k += 24)
@@ -442,8 +445,7 @@ void CSongUI::DrawSong()
 }
 
 
-// TODO provat
-void GetTracklineText(char* dest, int line)
+void CSongUI::GetTracklineText(char* dest, int line)
 {
     if (line < 0 || line>0xff) { dest[0] = 0; return; }
     if (g_tracklinealtnumbering)
@@ -464,8 +466,9 @@ void GetTracklineText(char* dest, int line)
         dest[1] = b;
         dest[2] = 0;
     }
-    else
+    else {
         sprintf(dest, "%02X", line);
+    }
 }
 
 void CSongUI::DrawTracks()
@@ -648,7 +651,7 @@ void CSongUI::DrawTracks()
     canvasXY->LineTo(x, y + 19);
 
     //a line delimiting the boundary between left/right-- there is a bug with some tracks but the entire function needs to be rewritten anyway...
-    if (g_tracks4_8 > 4)
+    if (m_song->IsStereo())
     {
         y = (CRmtScreenLayout::TRACKS_Y + 3 * 16);
         int line_end = y + g_tracklines * 16;

@@ -26,6 +26,7 @@ private:
 
     CCanvasXY* canvasXY;
 
+    void GetTracklineText(char* dest, int line);
     void DrawTracksHook(int ANALYZER_X, int ANALYZER_Y, int g1, int g2, int yUp);
     void DrawInstrumentHook(int ANALYZER2_X, int ANALYZER_Y, int g1, int g2, int yUp);
 
