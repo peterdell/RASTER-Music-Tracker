@@ -22,10 +22,6 @@ void CPokeyView::Draw(CSong* m_song) {
     canvas->FillSolidRect(0, 0, 680, 192, CRGBColor::BACKGROUND);
 
 
-    if (!g_view.pokeyRegisters) {
-        return;
-    }
-
     auto DEBUG_SOUND = IsEditMode(EditMode::POKEY_EXPLORER_MODE);
 
     int  audf2, audf3, audf16, audc2, pitch, vol2;
@@ -94,8 +90,6 @@ void CPokeyView::Draw(CSong* m_song) {
 
         int minus = (IS_RIGHT_POKEY) ? -8 : 0;
         int audnum = (i * 2) + minus;
-        char s[2];
-        char p[12] = {};
 
         CLOCK_15 = audctl & 0x01;
         HPF_CH24 = audctl & 0x02;
@@ -129,8 +123,7 @@ void CPokeyView::Draw(CSong* m_song) {
         else { coarse_divisor = (CLOCK_15) ? 114 : 28; }
 
         const int i_audf = (JOIN_16BIT || JOIN_64KHZ || JOIN_15KHZ) ? audf16 : audf;
-        const double PITCH = g_Tuning.GetPOKEYPPitch(audc, i_audf, audctl, i);
-        snprintf(p, 10, "%9.2f", PITCH);
+
 
         canvas->ColorMini(TextMiniColor::GRAY);
         canvas->At(0, aRows).PrintMini("$D200: $   $     PITCH = $     (         HZ ---  +  ), VOL = $ , DIST = $ ,");
@@ -183,58 +176,69 @@ void CPokeyView::Draw(CSong* m_song) {
 
         if (HPF_CH13)
         {
+            canvas->ColorMini(TextMiniColor::BLUE).At(32, gap2Rows + 6);
             if (SAWTOOTH && !SAWTOOTH_INVERTED) {
-                TextMiniXY("CH1: HIGH PASS FILTER, SAWTOOTH", ANALYZER3_X + 8 * 32, ANALYZER3_Y + gap2Y + 48, TextMiniColor::BLUE);
+                canvas->PrintMini("CH1: HIGH PASS FILTER, SAWTOOTH");
             }
             else {
                 if (SAWTOOTH && SAWTOOTH_INVERTED) {
-                    TextMiniXY("CH1: HIGH PASS FILTER, SAWTOOTH (INVERTED)", ANALYZER3_X + 8 * 32, ANALYZER3_Y + gap2Y + 48, TextMiniColor::BLUE);
+                    canvas->PrintMini("CH1: HIGH PASS FILTER, SAWTOOTH (INVERTED)");
                 }
                 else {
-                    TextMiniXY("CH1: HIGH PASS FILTER", ANALYZER3_X + 8 * 32, ANALYZER3_Y + gap2Y + 48, TextMiniColor::BLUE);
+                    canvas->PrintMini("CH1: HIGH PASS FILTER");
                 }
             }
         }
 
+        canvas->ColorMini(TextMiniColor::BLUE);
         if (HPF_CH24) {
-            TextMiniXY("CH2: HIGH PASS FILTER", ANALYZER3_X + 8 * 32, ANALYZER3_Y + gap2Y + 48 + 8, TextMiniColor::BLUE);
+            canvas->At(32, gap2Rows + 7).PrintMini("CH2: HIGH PASS FILTER");
         }
 
-        if (POLY9)
-            TextMiniXY("POLY9 ENABLED", ANALYZER3_X + 8 * 11, ANALYZER3_Y + gap2Y + 48, TextMiniColor::BLUE);
+        if (POLY9) {
+            canvas->At(11, gap2Rows + 6).PrintMini("POLY9 ENABLED");
+        }
 
-        if (TWO_TONE)
-            TextMiniXY("CH1: TWO TONE FILTER", ANALYZER3_X + 8 * 11, ANALYZER3_Y + gap2Y + 48 + 8, TextMiniColor::BLUE);
+        if (TWO_TONE) {
+            canvas->At(11, gap2Rows + 7).PrintMini("CH1: TWO TONE FILTER");
+        }
 
         if (REVERSE_16)
         {
             if (i == 0 || i == 4) {
-                TextMiniXY("CH1: REVERSE-16 OUTPUT", ANALYZER3_X + 8 * 54, ANALYZER3_Y + gap2Y + 48, TextMiniColor::BLUE);
+                canvas->At(54, gap2Rows + 6).PrintMini("CH1: REVERSE - 16 OUTPUT");
             }
             else if (i == 2 || i == 6) {
-                TextMiniXY("CH3: REVERSE-16 OUTPUT", ANALYZER3_X + 8 * 54, ANALYZER3_Y + gap2Y + 48 + 8, TextMiniColor::BLUE);
+                canvas->At(54, gap2Rows + 6).PrintMini("CH3: REVERSE - 16 OUTPUT");
             }
         }
+        canvas->ColorMini(TextMiniColor::WHITE);
+        canvas->At(8, aRows).PrintByte(audf);
+        canvas->AtColumn(12).PrintByte(audc);
+        canvas->AtColumn(26).PrintByte(pitch);
 
-        NumberMiniXY(audf, ANALYZER3_X + 8 * 8, ANALYZER3_Y + aY, TextMiniColor::WHITE);
-        NumberMiniXY(audc, ANALYZER3_X + 8 * 12, ANALYZER3_Y + aY, TextMiniColor::WHITE);
-        NumberMiniXY(pitch, ANALYZER3_X + 8 * 26, ANALYZER3_Y + aY, TextMiniColor::WHITE);
+        if ((JOIN_16BIT || JOIN_64KHZ || JOIN_15KHZ) && !vol2) { //16-bit without Reverse-16 output
+            canvas->AtColumn(28).PrintByte(audf2);
+        }
 
-        if ((JOIN_16BIT || JOIN_64KHZ || JOIN_15KHZ) && !vol2)	//16-bit without Reverse-16 output
-            NumberMiniXY(audf2, ANALYZER3_X + 8 * 28, ANALYZER3_Y + aY, TextMiniColor::WHITE);
 
-        NumberMiniXY(vol, ANALYZER3_X + 8 * 61, ANALYZER3_Y + aY, TextMiniColor::WHITE);
-        NumberMiniXY(dist, ANALYZER3_X + 8 * 73, ANALYZER3_Y + aY, TextMiniColor::WHITE);
-        if (dist == 0xf0) TextMiniXY("e", ANALYZER3_X + 8 * 73, ANALYZER3_Y + aY, TextMiniColor::WHITE);	//empty tile
-        NumberMiniXY(audctl, ANALYZER3_X + 8 * 8, ANALYZER3_Y + gap2Y + 48, TextMiniColor::WHITE);
-        NumberMiniXY(skctl, ANALYZER3_X + 8 * 8, ANALYZER3_Y + gap2Y + 48 + 8, TextMiniColor::WHITE);
+        canvas->AtColumn(61).PrintByte(vol);
+        canvas->AtColumn(73).PrintByte(dist);
+        if (dist == 0xf0) { canvas->PrintMini("e"); }	//empty tile
 
-        TextMiniXY(p, ANALYZER3_X + 8 * 32, ANALYZER3_Y + aY, TextMiniColor::WHITE);	//pitch calculation
-        TextMiniXY("$", ANALYZER3_X + 8 * 61, ANALYZER3_Y + aY, TextMiniColor::GRAY);	//character $ to overwrite the left volume nibble
-        TextMiniXY(",", ANALYZER3_X + 8 * 74, ANALYZER3_Y + aY, TextMiniColor::GRAY);	//character , to overwrite the right distortion nibble
+        // TODO: Not in loop
+        canvas->At(8, gap2Rows + 6).PrintByte(audctl);
+        canvas->At(8, gap2Rows + 7).PrintByte(skctl);
 
-        sprintf(s, "%d", audnum);
-        TextMiniXY(s, ANALYZER3_X + 8 * 4, ANALYZER3_Y + aY, TextMiniColor::GRAY);		//register number
+        const double PITCH = g_Tuning.GetPOKEYPPitch(audc, i_audf, audctl, i);
+
+        char p[12] = {};
+        canvas->ColorMini(TextMiniColor::WHITE).At(32, aRows).PrintfMini(10, "%9.2f", PITCH);
+        canvas->ColorMini(TextMiniColor::GRAY).AtColumn(61).PrintMini("$"); 	//character $ to overwrite the left volume nibble TODO: Rather just print nible
+        canvas->AtColumn(61).PrintMini(","); //character , to overwrite the right distortion nibble, TODO: Rather just print nible
+
+        canvas->AtColumn(4).PrintfMini(1, "%d", audnum); 	//register number
+
 
         canvas->ColorMini(TextMiniColor::GRAY);
         if (IS_RIGHT_POKEY)
@@ -274,7 +278,9 @@ void CPokeyView::Draw(CSong* m_song) {
         const auto channel_index = m_song->m_PokeyController->GetChannelIndex();
         if (DEBUG_SOUND && i == channel_index)	// Debug sound, must only be run once per loops, so this prevents it being overwritten
         {
-            canvas->ColorMini(TextMiniColor::GRAY).At(0, 12);
+            const int row = 25;
+
+            canvas->ColorMini(TextMiniColor::GRAY).At(0, row);
             canvas->PrintMini("COARSE_DIVISOR:    , DIVISOR:       , MODOFFSET:  , AUDF: $    , AUDC: $  ").NextRow();
             canvas->PrintMini("CH_IDX:  , MODULO:    , IS_VALID:  ").NextRow().NextRow();
             canvas->PrintMini("         HZ = ((FREQ17 / (COARSE_DIVISOR * DIVISOR)) / (AUDF + MODOFFSET)) / 2");
@@ -309,31 +315,33 @@ void CPokeyView::Draw(CSong* m_song) {
 
             e_pitch = g_Tuning.GetPitch(i_audf, e_coarse_divisor, divisor, e_modoffset);
             static constexpr auto color = TextMiniColor::WHITE;
-            snprintf(p, 10, "%9.2f", e_pitch);
-            TextMiniXY(p, ANALYZER3_X, ANALYZER3_Y + 8 * 15, color);
+            canvas->ColorMini(TextMiniColor::WHITE);
+            canvas->At(0, row + 3).PrintfMini(10, "%9.2f", e_pitch);
 
-            canvas->ColorMini(color).At(16, 12).PrintfMini(3, "%d", e_coarse_divisor);
+
+            canvas->ColorMini(color).At(16, row).PrintfMini(3, "%d", e_coarse_divisor);
 
             snprintf(p, 10, "%6.1f", divisor);
-            TextMiniXY(p, ANALYZER3_X + 8 * 30, ANALYZER3_Y + 8 * 12, color);
+            TextMiniXY(p, ANALYZER3_X + 8 * 30, ANALYZER3_Y + 8 * row, color);
 
             snprintf(p, 4, "%d", e_modoffset);
-            TextMiniXY(p, ANALYZER3_X + 8 * 49, ANALYZER3_Y + 8 * 12, color);
+            TextMiniXY(p, ANALYZER3_X + 8 * 49, ANALYZER3_Y + 8 * row, color);
 
-            NumberMiniXY(e_audf, ANALYZER3_X + 8 * 59, ANALYZER3_Y + 8 * 12, color);
-            if (JOIN_16BIT || JOIN_64KHZ || JOIN_15KHZ)
-                NumberMiniXY(e_audf2, ANALYZER3_X + 8 * 61, ANALYZER3_Y + 8 * 12, color);
+            NumberMiniXY(e_audf, ANALYZER3_X + 8 * 59, ANALYZER3_Y + 8 * row, color);
+            if (JOIN_16BIT || JOIN_64KHZ || JOIN_15KHZ) {
+                NumberMiniXY(e_audf2, ANALYZER3_X + 8 * 61, ANALYZER3_Y + 8 * row, color);
+            }
 
-            NumberMiniXY(e_audc, ANALYZER3_X + 8 * 72, ANALYZER3_Y + 8 * 12, color);
+            NumberMiniXY(e_audc, ANALYZER3_X + 8 * 72, ANALYZER3_Y + 8 * row, color);
 
             snprintf(p, 4, "%d", channel_index);
-            TextMiniXY(p, ANALYZER3_X + 8 * 8, ANALYZER3_Y + 8 * 13, color);
+            TextMiniXY(p, ANALYZER3_X + 8 * 8, ANALYZER3_Y + 8 * (row + 1), color);
 
             snprintf(p, 4, "%d", e_modulo);
-            TextMiniXY(p, ANALYZER3_X + 8 * 19, ANALYZER3_Y + 8 * 13, color);
+            TextMiniXY(p, ANALYZER3_X + 8 * 19, ANALYZER3_Y + 8 * (row + 1), color);
 
             snprintf(p, 4, "%d", e_valid);
-            TextMiniXY(p, ANALYZER3_X + 8 * 34, ANALYZER3_Y + 8 * 13, color);
+            TextMiniXY(p, ANALYZER3_X + 8 * 34, ANALYZER3_Y + 8 * (row + 1), color);
 
         }
 

@@ -21,6 +21,8 @@ public:
 
     CCanvas& PrintMini(const char* txt);
 
+    CCanvas& PrintByte(const byte value);
+
     CCanvas& PrintfMini(
         size_t      const size,
         char const* const format, ...);

@@ -263,10 +263,11 @@ void CSongUI::DrawAnalyzer()
             if (vol) g_mem_dc->FillSolidRect(ANALYZER2_X + channelNr * 3 * 8 + (15 - vol) * ANALYZER2_S / 2, ANALYZER2_Y, vol * ANALYZER2_S, ANALYZER2_H, acol);
         }
     }
-    if (DEBUG_POKEY)	// Detailed registers viewer (TODO: move to another place)
+    if (DEBUG_POKEY && g_view.pokeyRegisters)	// Detailed registers viewer
     {
-        CCanvas ANALYZER3(ANALYZER3_X, ANALYZER3_Y);
-        CPokeyView pokeyView(ANALYZER3);
+
+        CCanvas pokeyCanvas(ANALYZER3_X, ANALYZER3_Y);
+        CPokeyView pokeyView(pokeyCanvas);
         pokeyView.Draw(m_song);
     }
 

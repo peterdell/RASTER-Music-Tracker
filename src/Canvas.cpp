@@ -54,6 +54,10 @@ CCanvas& CCanvas::PrintfMini(
     return *this;
 }
 
+CCanvas& CCanvas::PrintByte(const byte value) {
+    return PrintfMini(2, "%02hX", value);
+}
+
 void CCanvas::TextMiniAt(const char* txt, int row, int column, TextMiniColor color) {
     TextMiniXY(txt, originX + row * charWidth, originY + column * charHeight, color);
 }
