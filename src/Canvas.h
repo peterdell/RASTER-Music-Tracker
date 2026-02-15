@@ -1,12 +1,13 @@
 #pragma once
 
+#include "CanvasXY.h"
 #include "StdAfx.h"
 
 #include "TextColors.h"
 
 class CCanvas {
 public:
-    CCanvas(const int originX, const int originY);
+    CCanvas(CCanvasXY& canvasXY, const int originX, const int originY);
 
     int GetOriginX() const;
     int GetOriginY() const;
@@ -27,6 +28,7 @@ public:
 
     void FillSolidRect(int x, int y, int width, int height, COLORREF color);
 private:
+    CCanvasXY* canvasXY;
     int originX;
     int originY;
     int charWidth = 8;

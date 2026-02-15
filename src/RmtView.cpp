@@ -316,6 +316,7 @@ END_MESSAGE_MAP()
 
 CRmtView::CRmtView()
 {
+    m_canvasXY = nullptr;
     m_width = 0;
     m_height = 0;
     m_pen1 = NULL;
@@ -323,7 +324,7 @@ CRmtView::CRmtView()
 
 CRmtView::~CRmtView()
 {
-    if (g_canvasXY) { g_canvasXY->SelectObject(m_penorig); }    // Reset to the original pen
+    if (m_canvasXY) { m_canvasXY->SelectObject(m_penorig); }    // Reset to the original pen
     if (m_pen1) { delete m_pen1; }
 }
 
@@ -941,16 +942,16 @@ void CRmtView::Resize()
     m_mem_bitmap.CreateCompatibleBitmap(dc, m_width, m_height);
     m_mem_dc.CreateCompatibleDC(dc);
     m_mem_dc.SelectObject(&m_mem_bitmap);
-    if (g_canvasXY == nullptr) {
-        g_canvasXY = new CCanvasXY();
+    if (m_canvasXY == nullptr) {
+        m_canvasXY = new CCanvasXY();
     }
-    g_canvasXY->SetCDC(m_mem_dc);
-    g_Instruments.SetCanvas(*g_canvasXY);
-    g_SongUI->SetCanvas(*g_canvasXY);
+    m_canvasXY->SetCDC(m_mem_dc);
+    g_Instruments.SetCanvas(*m_canvasXY);
+    g_SongUI->SetCanvas(*m_canvasXY);
 
     if (m_pen1) { delete m_pen1; }
     m_pen1 = new CPen(PS_SOLID, 1, CRGBColor::LINES);
-    m_penorig = (CPen*)g_canvasXY->SelectObject(m_pen1);
+    m_penorig = (CPen*)m_canvasXY->SelectObject(m_pen1);
     ReleaseDC(dc);
 }
 

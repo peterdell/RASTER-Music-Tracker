@@ -9,6 +9,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#include "CanvasXY.h"
 #include "RmtDoc.h"
 
 constexpr int TOOLBAR_ZOOM = 2;
@@ -38,6 +39,7 @@ public:
     // Used to handle the window size and most dynamic elements related to it
     void Resize();
 
+    CCanvasXY* m_canvasXY;
     int  m_width;
     int  m_height;
 

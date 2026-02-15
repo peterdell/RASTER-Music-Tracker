@@ -41,6 +41,4 @@ private:
 };
 
 
-extern CCanvasXY* g_canvasXY;
-
 

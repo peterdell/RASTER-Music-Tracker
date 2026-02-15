@@ -4,7 +4,6 @@
 
 #include "Global.h" 
 
-
 CCanvasXY::CCanvasXY() : mem_dc(nullptr) {
 }
 

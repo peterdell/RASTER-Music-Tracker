@@ -3,9 +3,9 @@
 
 #include "CanvasXY.h"
 
-CCanvasXY* g_canvasXY;
 
-CCanvas::CCanvas(const  int originX, const int originY) : originX(originX), originY(originY) {
+
+CCanvas::CCanvas(CCanvasXY& canvasXY, const  int originX, const int originY) : canvasXY(&canvasXY), originX(originX), originY(originY) {
 }
 
 
@@ -61,9 +61,9 @@ CCanvas& CCanvas::PrintByte(const byte value) {
 }
 
 void CCanvas::TextMiniAt(const char* txt, int row, int column, TextMiniColor color) {
-    g_canvasXY->TextMiniXY(txt, originX + row * charWidth, originY + column * charHeight, color);
+    canvasXY->TextMiniXY(txt, originX + row * charWidth, originY + column * charHeight, color);
 }
 
 void CCanvas::FillSolidRect(int x, int y, int width, int height, COLORREF color) {
-    g_canvasXY->FillSolidRect(originX + x, originY + y, width, height, color);
+    canvasXY->FillSolidRect(originX + x, originY + y, width, height, color);
 }

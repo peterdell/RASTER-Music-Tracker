@@ -52,8 +52,8 @@ void CInstruments::DrawInstrument(int instrNr)
     // Draw envelope volume markers
     canvasXY->TextDownXY("\x0e\x0e\x0e\x0e", InstrumentGUIPosition::ENV_X + 11 * 8 - 1, InstrumentGUIPosition::ENV_Y + 3 * 16, TextColor::GRAY);
     //delimitation of space for Envelope VOLUME
-    g_canvasXY->MoveTo(InstrumentGUIPosition::ENV_X + 12 * 8 - 1, InstrumentGUIPosition::ENV_Y + 7 * 16 - 1);
-    g_canvasXY->LineTo(InstrumentGUIPosition::ENV_X + 12 * 8 + ENVELOPE_MAX_COLUMNS * 8, InstrumentGUIPosition::ENV_Y + 7 * 16 - 1);
+    canvasXY->MoveTo(InstrumentGUIPosition::ENV_X + 12 * 8 - 1, InstrumentGUIPosition::ENV_Y + 7 * 16 - 1);
+    canvasXY->LineTo(InstrumentGUIPosition::ENV_X + 12 * 8 + ENVELOPE_MAX_COLUMNS * 8, InstrumentGUIPosition::ENV_Y + 7 * 16 - 1);
 
     if (t->activeEditSection == InstrumentSection::ENVELOPE)
     {
@@ -74,8 +74,8 @@ void CInstruments::DrawInstrument(int instrNr)
     {
         canvasXY->TextXY(shenv[0].name, shenv[0].xpos, shenv[0].ypos, TextColor::WHITE); //"VOLUME R:"
         canvasXY->TextDownXY("\x0e\x0e\x0e\x0e", InstrumentGUIPosition::ENV_X + 11 * 8 - 1, InstrumentGUIPosition::ENV_Y - 2 * 16, TextColor::GRAY);
-        g_canvasXY->MoveTo(InstrumentGUIPosition::ENV_X + 12 * 8 - 1, InstrumentGUIPosition::ENV_Y + 2 * 16 - 1);
-        g_canvasXY->LineTo(InstrumentGUIPosition::ENV_X + 12 * 8 + ENVELOPE_MAX_COLUMNS * 8, InstrumentGUIPosition::ENV_Y + 2 * 16 - 1);
+        canvasXY->MoveTo(InstrumentGUIPosition::ENV_X + 12 * 8 - 1, InstrumentGUIPosition::ENV_Y + 2 * 16 - 1);
+        canvasXY->LineTo(InstrumentGUIPosition::ENV_X + 12 * 8 + ENVELOPE_MAX_COLUMNS * 8, InstrumentGUIPosition::ENV_Y + 2 * 16 - 1);
     }
 
     for (i = 0; i < NUMBER_OF_PARAMS; i++) DrawParameter(i, instrNr);
@@ -495,11 +495,11 @@ void CInstruments::DrawEnv(int e, int it)
 
     // Volume column
     if (volL) {
-        g_canvasXY->FillSolidRect(x, InstrumentGUIPosition::ENV_Y + 3 * 16 + 4 + 4 * (15 - volL), 8, volL * 4, fillColor);
+        canvasXY->FillSolidRect(x, InstrumentGUIPosition::ENV_Y + 3 * 16 + 4 + 4 * (15 - volL), 8, volL * 4, fillColor);
     }
 
     if (g_tracks4_8 > 4 && volR) {
-        g_canvasXY->FillSolidRect(x, InstrumentGUIPosition::ENV_Y - 2 * 16 + 4 + 4 * (15 - volR), 8, volR * 4, fillColor);
+        canvasXY->FillSolidRect(x, InstrumentGUIPosition::ENV_Y - 2 * 16 + 4 + 4 * (15 - volR), 8, volR * 4, fillColor);
     }
 
     for (int j = 0; j < 8; j++)

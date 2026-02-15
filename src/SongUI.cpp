@@ -74,7 +74,6 @@ void GetAtariMemHexStr(int adr, int len)
 /// </summary>
 void CSongUI::DrawAnalyzer()
 {
-    auto canvasXY = g_canvasXY;
 
     if (!g_view.volumeAnalyzer) return;	//the analyser won't be displayed without the setting enabled first
 
@@ -269,7 +268,7 @@ void CSongUI::DrawAnalyzer()
         if (DEBUG_POKEY && g_view.pokeyRegisters)	// Detailed registers viewer
         {
 
-            CCanvas pokeyCanvas(ANALYZER3_X, ANALYZER3_Y);
+            CCanvas pokeyCanvas(*canvasXY, ANALYZER3_X, ANALYZER3_Y);
             CPokeyView pokeyView(pokeyCanvas);
             pokeyView.Draw(*m_song, g_Tuning, IsEditMode(EditMode::POKEY_EXPLORER_MODE), *m_song->m_PokeyController, g_Atari);
         }
@@ -316,8 +315,6 @@ void CSongUI::DrawSong()
     int line, i, j, k, y, t;
     char szBuffer[32];
     TextColor color;
-
-    auto canvasXY = g_canvasXY;
 
     auto smooth_scroll = g_view.smoothScrolling;	//TODO: make smooth scrolling an option that can be saved to .ini file
 
@@ -501,8 +498,7 @@ void CSongUI::DrawTracks()
     int t;
 
     BOOL printdebug = g_view.debugDisplay;
-    auto canvasXY = g_canvasXY;
-    CCanvas tracksCanvas(CSongScreenLayout::TRACKS_X, CSongScreenLayout::TRACKS_Y);
+    CCanvas tracksCanvas(*canvasXY, CSongScreenLayout::TRACKS_X, CSongScreenLayout::TRACKS_Y);
 
     //caching certain global variables makes sure they remain the same until the function finishes drawing the tracks
     //this appears to be related to routine timing, and might actually explain why certain bugs seem to happen randomly
@@ -539,7 +535,9 @@ void CSongUI::DrawTracks()
     strcpy(s, "--\x2");	//2 digits and the "|" tile on the right side
 
     BOOL is_goto = 0;
-    CTracksControl g_TracksControl(tracksCanvas);
+    CTracksControl tracksControl(tracksCanvas);
+    tracksControl.SetCanvas(*canvasXY);
+
     for (i = 0; i < g_tracklines + active_smooth * 2; i++, y += 16)
     {
         line = g_cursoractview + i - 8 - active_smooth;		//8 lines from above
@@ -623,7 +621,7 @@ void CSongUI::DrawTracks()
 
             //is it playing?
             if (songplayline == songactiveline) t = trackplayline; else t = -1;
-            g_TracksControl.DrawTrackLine(g_Tracks, j, x, y, tr, line, trackactiveline, g_cursoractview, t, (m_song->m_trackactivecol == j), m_song->m_trackactivecur, oob);
+            tracksControl.DrawTrackLine(g_Tracks, j, x, y, tr, line, trackactiveline, g_cursoractview, t, (m_song->m_trackactivecol == j), m_song->m_trackactivecur, oob);
         }
         x = CSongScreenLayout::TRACKS_X + 5 * 8;
     }
@@ -650,7 +648,7 @@ void CSongUI::DrawTracks()
         tr = m_song->m_song[songactiveline][i];
 
         //g_Tracks.DrawTrackHeader(x + 24, TRACKS_Y + 16, tr, color);
-        g_TracksControl.DrawTrackHeader(g_Tracks, x + 8, CSongScreenLayout::TRACKS_Y + 16, tr, color);
+        tracksControl.DrawTrackHeader(g_Tracks, x + 8, CSongScreenLayout::TRACKS_Y + 16, tr, color);
     }
 
     //lines delimiting the current line
