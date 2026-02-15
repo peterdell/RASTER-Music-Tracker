@@ -19,7 +19,6 @@
 #include "PokeyController.h"
 
 extern CTuning g_Tuning;
-extern CTracksControl g_TracksControl;
 
 extern CTrackClipboard g_TrackClipboard;
 
@@ -495,6 +494,7 @@ void CSongUI::DrawTracks()
     int t;
 
     BOOL printdebug = g_view.debugDisplay;
+    CCanvas tracksCanvas(CSongScreenLayout::TRACKS_X, CSongScreenLayout::TRACKS_Y);
 
     //caching certain global variables makes sure they remain the same until the function finishes drawing the tracks
     //this appears to be related to routine timing, and might actually explain why certain bugs seem to happen randomly
@@ -531,7 +531,7 @@ void CSongUI::DrawTracks()
     strcpy(s, "--\x2");	//2 digits and the "|" tile on the right side
 
     BOOL is_goto = 0;
-
+    CTracksControl g_TracksControl(tracksCanvas);
     for (i = 0; i < g_tracklines + active_smooth * 2; i++, y += 16)
     {
         line = g_cursoractview + i - 8 - active_smooth;		//8 lines from above

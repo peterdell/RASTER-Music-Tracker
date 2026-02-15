@@ -187,6 +187,5 @@ CUndo			g_Undo;				// Undo buffer tracker
 CXPokey			g_Pokey;			// The simulated Pokey chip
 CInstruments	g_Instruments;
 CTracks			g_Tracks;
-CTracksControl  g_TracksControl;
 CTrackClipboard g_TrackClipboard;
 CTuning			g_Tuning;			// Tuning calculations and POKEY tuning lookup tables generation

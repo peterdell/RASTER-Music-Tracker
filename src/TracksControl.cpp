@@ -6,7 +6,7 @@
 
 #include "Notes.h"
 
-CTracksControl::CTracksControl() {
+CTracksControl::CTracksControl(CCanvas& canvas) : canvas(&canvas) {
 
 }
 

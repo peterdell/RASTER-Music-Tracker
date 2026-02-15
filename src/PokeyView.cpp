@@ -158,16 +158,16 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
         if (JOIN_16BIT || JOIN_64KHZ || JOIN_15KHZ) {
             text = "16-BIT";
         }
-        canvas->ColorMini(TextMiniColor::BLUE).At(76, channelRow).PrintMini(text);
 
-        /*
+        /* TODO
         if (JOIN_16BIT)
-            TextMiniXY("16-BIT, 1.79MHZ", ANALYZER3_X + 8 * 76, ANALYZER3_Y + aY, TextMiniColor::BLUE);
+            text = "16-BIT, 1.79MHZ";
         else if (JOIN_64KHZ)
-            TextMiniXY("16-BIT, 64KHZ", ANALYZER3_X + 8 * 76, ANALYZER3_Y + aY, TextMiniColor::BLUE);
+            text= "16-BIT, 64KHZ";
         else if (JOIN_15KHZ)
-            TextMiniXY("16-BIT, 15KHZ", ANALYZER3_X + 8 * 76, ANALYZER3_Y + aY, TextMiniColor::BLUE);
+            text ="16-BIT, 15KHZ";
         */
+        canvas->ColorMini(TextMiniColor::BLUE).At(76, channelRow).PrintMini(text);
 
         /*
         if (dist == 0xC0)
@@ -178,9 +178,9 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
             IS_VALID = ((audf + modoffset) % v_modulo == 0) ? 0 : 1;
             if (IS_VALID)
             {
-                if (IS_BUZZY_DIST_C) TextMiniXY("BUZZY", ANALYZER3_X + 8 * 84, ANALYZER3_Y + aY, TextMiniColor::BLUE);
-                else if (IS_UNSTABLE_DIST_C) TextMiniXY("UNSTABLE", ANALYZER3_X + 8 * 84, ANALYZER3_Y + aY, TextMiniColor::BLUE);
-                else TextMiniXY("GRITTY", ANALYZER3_X + 8 * 84, ANALYZER3_Y + aY, TextMiniColor::BLUE);
+                if (IS_BUZZY_DIST_C) PrintMini("BUZZY", 84,);
+                else if (IS_UNSTABLE_DIST_C) PrintMini("UNSTABLE",  84);
+                else PrintMini("GRITTY",84,);
             }
         }
         */
