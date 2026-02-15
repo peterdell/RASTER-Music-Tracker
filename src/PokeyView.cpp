@@ -3,8 +3,8 @@
 #include "Global.h"
 
 
-static int AUDF_ADDRESS[8] = { 0xd200,0xd202,0xd204,0xd206,0xd210,0xd212,0xd214,0xd216 };	// AUDF and AUDC for mono and stereo
-static int AUDCTL_ADDRESS[2] = { 0xd208,0xd218 };	//AUDCTL and SKCTL
+static MemoryAddress AUDF_ADDRESS[8] = { 0xd200,0xd202,0xd204,0xd206,0xd210,0xd212,0xd214,0xd216 };	// AUDF and AUDC for mono and stereo
+static MemoryAddress AUDCTL_ADDRESS[2] = { 0xd208,0xd218 };	//AUDCTL and SKCTL
 
 
 CPokeyView::CPokeyView(CCanvas& canvas) : canvas(&canvas) {
@@ -39,27 +39,33 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
     BOOL CLOCK_179 = 0;
 
     const auto memory = atari.GetConstMemoryAt(0);
-    for (int i = 0; i < m_song.GetTracks(); i++)
+    for (int channel = 0; channel < m_song.GetTracks(); channel++)
     {
-        const BOOL IS_RIGHT_POKEY = (i >= 4) ? 1 : 0;
+        const BOOL IS_RIGHT_POKEY = (channel >= 4) ? 1 : 0;
 
-        const auto audctl = memory[AUDCTL_ADDRESS[IS_RIGHT_POKEY]];
-        const auto skctl = memory[AUDCTL_ADDRESS[IS_RIGHT_POKEY] + 7];
-        const auto audf = memory[AUDF_ADDRESS[i]];
-        const auto audc = memory[AUDF_ADDRESS[i] + 1];
+        const auto audctlAddress = AUDCTL_ADDRESS[IS_RIGHT_POKEY];
+        const auto audctl = memory[audctlAddress];
+        const auto skctlAddress = audctlAddress + 7;
+        const auto skctl = memory[audctlAddress + 7];
+        const auto audfAddress = AUDF_ADDRESS[channel];
+        const auto audf = memory[audfAddress];
+        const auto audc = memory[AUDF_ADDRESS[channel] + 1];
 
         const byte vol = audc & 0x0f;
         const byte dist = audc & 0xf0;
         pitch = audf;
 
-        if (i % 4 == 0) {								// only in valid sawtooth channels
-            audf3 = memory[AUDF_ADDRESS[i + 2]];
+        if (channel % 4 == 0) {								// only in valid sawtooth channels
+            audf3 = memory[AUDF_ADDRESS[channel + 2]];
+        }
+        else {
+            audf3 = 0;
         }
 
-        if (i % 2 == 1)								    // only in valid 16-bit channels
+        if (channel % 2 == 1)								    // only in valid 16-bit channels
         {
-            audf2 = memory[AUDF_ADDRESS[i - 1]];
-            audc2 = memory[AUDF_ADDRESS[i - 1] + 1];
+            audf2 = memory[AUDF_ADDRESS[channel - 1]];
+            audc2 = memory[AUDF_ADDRESS[channel - 1] + 1];
             vol2 = audc2 & 0x0f;
             audf16 = audf;
             audf16 <<= 8;
@@ -72,16 +78,14 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
             audf16 = 0;
         }
 
-        const int gapRows = (IS_RIGHT_POKEY) ? 8 : 0;
-        const int gap2Rows = (IS_RIGHT_POKEY) ? 12 : 0;
-        const int gapY = gapRows * 8;
-        const int gap2Y = gap2Rows * 8;
+        const int pokeyBaseRow = (IS_RIGHT_POKEY) ? 8 : 0;
+        const int channelRow = pokeyBaseRow + 2 + channel;
 
-        const int aRows = i + gapRows + 2;
-        const int aY = aRows * 8;
+        auto audctlRow = ((IS_RIGHT_POKEY) ? 12 : 0) + 6;
+        auto skctlRow = audctlRow + 1;
 
         int minus = (IS_RIGHT_POKEY) ? -8 : 0;
-        int audnum = (i * 2) + minus;
+        int audnum = (channel * 2) + minus;
 
         CLOCK_15 = audctl & 0x01;
         HPF_CH24 = audctl & 0x02;
@@ -94,14 +98,14 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
         TWO_TONE = (skctl == 0x8B) ? 1 : 0;
 
         // Combined modes for some special output...
-        SAWTOOTH = (CH1_179 && CH3_179 && HPF_CH13 && (dist == 0xA0 || dist == 0xE0) && (i == 0 || i == 4)) ? 1 : 0;
+        SAWTOOTH = (CH1_179 && CH3_179 && HPF_CH13 && (dist == 0xA0 || dist == 0xE0) && (channel == 0 || channel == 4)) ? 1 : 0;
         SAWTOOTH_INVERTED = 0;
-        JOIN_16BIT = ((JOIN_12 && CH1_179 && (i == 1 || i == 5)) || (JOIN_34 && CH3_179 && (i == 3 || i == 7))) ? 1 : 0;
-        JOIN_64KHZ = ((JOIN_12 && !CH1_179 && !CLOCK_15 && (i == 1 || i == 5)) || (JOIN_34 && !CH3_179 && !CLOCK_15 && (i == 3 || i == 7))) ? 1 : 0;
-        JOIN_15KHZ = ((JOIN_12 && !CH1_179 && CLOCK_15 && (i == 1 || i == 5)) || (JOIN_34 && !CH3_179 && CLOCK_15 && (i == 3 || i == 7))) ? 1 : 0;
-        JOIN_WRONG = (((JOIN_12 && (i == 0 || i == 4)) || (JOIN_34 && (i == 2 || i == 6))) && (vol == 0x00));	// 16-bit, invalid channel, no volume
-        REVERSE_16 = (((JOIN_12 && (i == 0 || i == 4)) || (JOIN_34 && (i == 2 || i == 6))) && (vol > 0x00));	// 16-bit, invalid channel, with volume (Reverse-16)
-        CLOCK_179 = ((CH1_179 && (i == 0 || i == 4)) || (CH3_179 && (i == 2 || i == 6))) ? 1 : 0;
+        JOIN_16BIT = ((JOIN_12 && CH1_179 && (channel == 1 || channel == 5)) || (JOIN_34 && CH3_179 && (channel == 3 || channel == 7))) ? 1 : 0;
+        JOIN_64KHZ = ((JOIN_12 && !CH1_179 && !CLOCK_15 && (channel == 1 || channel == 5)) || (JOIN_34 && !CH3_179 && !CLOCK_15 && (channel == 3 || channel == 7))) ? 1 : 0;
+        JOIN_15KHZ = ((JOIN_12 && !CH1_179 && CLOCK_15 && (channel == 1 || channel == 5)) || (JOIN_34 && !CH3_179 && CLOCK_15 && (channel == 3 || channel == 7))) ? 1 : 0;
+        JOIN_WRONG = (((JOIN_12 && (channel == 0 || channel == 4)) || (JOIN_34 && (channel == 2 || channel == 6))) && (vol == 0x00));	// 16-bit, invalid channel, no volume
+        REVERSE_16 = (((JOIN_12 && (channel == 0 || channel == 4)) || (JOIN_34 && (channel == 2 || channel == 6))) && (vol > 0x00));	// 16-bit, invalid channel, with volume (Reverse-16)
+        CLOCK_179 = ((CH1_179 && (channel == 0 || channel == 4)) || (CH3_179 && (channel == 2 || channel == 6))) ? 1 : 0;
         if (JOIN_16BIT || CLOCK_179) { CLOCK_15 = 0; }	// Override, these 2 take priority over 15khz mode
 
         int modoffset = 1;
@@ -118,11 +122,10 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
 
 
         canvas->ColorMini(TextMiniColor::GRAY);
-        canvas->At(0, aRows).PrintMini("$D200: $   $     PITCH = $     (         HZ ---  +  ), VOL = $ , DIST = $ ,");
+        canvas->At(0, channelRow).PrintfMini(5, "$%04hX", audfAddress).AtColumn(5).PrintMini(": $   $     PITCH = $(HZ-- - +), VOL = $, DIST = $, ");
 
         // TODO: This is not the loop
-        canvas->At(0, gap2Rows + 6).PrintMini("$D208: $  ").NextRow().PrintMini("$D20F: $  ");
-
+        canvas->At(0, audctlRow).PrintfMini(8, "$%0hX: $", audctlAddress).NextRow().PrintfMini(8, "$%0hX: $", skctlAddress);
         const char* text = "";
         if (CLOCK_15) {	//15khz
             text = "15KHZ";
@@ -138,7 +141,7 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
         if (JOIN_16BIT || JOIN_64KHZ || JOIN_15KHZ) {
             text = "16-BIT";
         }
-        canvas->ColorMini(TextMiniColor::BLUE).At(76, aRows).PrintMini(text);
+        canvas->ColorMini(TextMiniColor::BLUE).At(76, channelRow).PrintMini(text);
 
         /*
         if (JOIN_16BIT)
@@ -167,7 +170,7 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
 
         if (HPF_CH13)
         {
-            canvas->ColorMini(TextMiniColor::BLUE).At(32, gap2Rows + 6);
+            canvas->ColorMini(TextMiniColor::BLUE).At(32, audctlRow);
             if (SAWTOOTH && !SAWTOOTH_INVERTED) {
                 canvas->PrintMini("CH1: HIGH PASS FILTER, SAWTOOTH");
             }
@@ -183,28 +186,28 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
 
         canvas->ColorMini(TextMiniColor::BLUE);
         if (HPF_CH24) {
-            canvas->At(32, gap2Rows + 7).PrintMini("CH2: HIGH PASS FILTER");
+            canvas->At(32, skctlRow).PrintMini("CH2: HIGH PASS FILTER");
         }
 
         if (POLY9) {
-            canvas->At(11, gap2Rows + 6).PrintMini("POLY9 ENABLED");
+            canvas->At(11, audctlRow).PrintMini("POLY9 ENABLED");
         }
 
         if (TWO_TONE) {
-            canvas->At(11, gap2Rows + 7).PrintMini("CH1: TWO TONE FILTER");
+            canvas->At(11, skctlRow).PrintMini("CH1: TWO TONE FILTER");
         }
 
         if (REVERSE_16)
         {
-            if (i == 0 || i == 4) {
-                canvas->At(54, gap2Rows + 6).PrintMini("CH1: REVERSE - 16 OUTPUT");
+            if (channel == 0 || channel == 4) {
+                canvas->At(54, audctlRow).PrintMini("CH1: REVERSE - 16 OUTPUT");
             }
-            else if (i == 2 || i == 6) {
-                canvas->At(54, gap2Rows + 6).PrintMini("CH3: REVERSE - 16 OUTPUT");
+            else if (channel == 2 || channel == 6) {
+                canvas->At(54, audctlRow).PrintMini("CH3: REVERSE - 16 OUTPUT");
             }
         }
         canvas->ColorMini(TextMiniColor::WHITE);
-        canvas->At(8, aRows).PrintByte(audf);
+        canvas->At(8, channelRow).PrintByte(audf);
         canvas->AtColumn(12).PrintByte(audc);
         canvas->AtColumn(26).PrintByte(pitch);
 
@@ -218,13 +221,13 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
         if (dist == 0xf0) { canvas->PrintMini("e"); }	//empty tile
 
         // TODO: Not in loop
-        canvas->At(8, gap2Rows + 6).PrintByte(audctl);
-        canvas->At(8, gap2Rows + 7).PrintByte(skctl);
+        canvas->At(8, audctlRow).PrintByte(audctl);
+        canvas->At(8, skctlRow).PrintByte(skctl);
 
-        const double PITCH = tuning.GetPOKEYPPitch(audc, i_audf, audctl, i);
+        const double PITCH = tuning.GetPOKEYPPitch(audc, i_audf, audctl, channel);
 
         char p[12] = {};
-        canvas->ColorMini(TextMiniColor::WHITE).At(32, aRows).PrintfMini(10, "%9.2f", PITCH);
+        canvas->ColorMini(TextMiniColor::WHITE).At(32, channelRow).PrintfMini(10, "%9.2f", PITCH);
         canvas->ColorMini(TextMiniColor::GRAY).AtColumn(61).PrintMini("$"); 	//character $ to overwrite the left volume nibble TODO: Rather just print nible
         canvas->AtColumn(74).PrintMini(","); //character , to overwrite the right distortion nibble, TODO: Rather just print nible
 
@@ -237,10 +240,6 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
             // TODO: Move out of loop
             canvas->At(0, 0).PrintMini("POKEY REGISTERS (LEFT)");
             canvas->At(0, 12).PrintMini("POKEY REGISTERS (RIGHT)");
-
-            // TODO: Make $D20? a $D21?
-            canvas->At(3, aRows).PrintMini("1");
-            canvas->At(3, gap2Rows + 6).PrintMini("1").NextRow().PrintMini("1");
         }
         else {
             canvas->At(0, 0).PrintMini("POKEY REGISTERS");
@@ -267,7 +266,7 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
         canvas->AtColumn(56).PrintfMini(1, "%d", tracks);
 
         const auto channel_index = pokeyController.GetChannelIndex();
-        if (explorerMode && i == channel_index)	// Debug sound, must only be run once per loops, so this prevents it being overwritten
+        if (explorerMode && channel == channel_index)	// Debug sound, must only be run once per loops, so this prevents it being overwritten
         {
             const int row = 25;
 
@@ -329,7 +328,7 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
             if (JOIN_WRONG)	// 16-bit, but wrong channels, and the volume is 0
             {
                 // TODO: masking parts of the line,cursed patch but that works so who cares
-                canvas->At(17, aRows).PrintMini("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+                canvas->At(17, channelRow).PrintMini("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
             }
             else
             {
@@ -339,8 +338,8 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
                 const int octave = (((notenum + 96) - basenote) / 12) - 8;
                 const int cents = (int)round(centnum - (notenum - 60) * 100);
 
-                canvas->ColorMini(TextMiniColor::WHITE).At(49, aRows).PrintfMini(3, "%03d", cents);
-                canvas->ColorMini(TextMiniColor::GRAY).At(49, aRows).PrintMini((cents >= 0) ? "+" : "-");
+                canvas->ColorMini(TextMiniColor::WHITE).At(49, channelRow).PrintfMini(3, "%03d", cents);
+                canvas->ColorMini(TextMiniColor::GRAY).At(49, channelRow).PrintMini((cents >= 0) ? "+" : "-");
 
 
                 int note = ((notenum + 96) - basenote) % 12;
@@ -348,7 +347,7 @@ void CPokeyView::Draw(const CSong& m_song, const CTuning& tuning, const bool exp
                     note *= -1;	// Invert the negative to prevent going out of bounds
                 }
 
-                canvas->ColorMini(TextMiniColor::WHITE).At(44, aRows);
+                canvas->ColorMini(TextMiniColor::WHITE).At(44, channelRow);
                 canvas->PrintfMini(2, "%s", CNotes::GetNote(note)).AtColumn(46).PrintfMini(1, "%1d", octave);
 
             }
