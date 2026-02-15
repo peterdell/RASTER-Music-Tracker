@@ -4,11 +4,15 @@
 
 #include "Song.h"
 
+#include "CanvasXY.h"
+
 class CSongUI
 {
 
 public:
     CSongUI(CSong& song);
+
+    void SetCanvas(CCanvasXY& canvasXY);
 
     void DrawAnalyzer();
     void DrawTracks();
@@ -19,4 +23,6 @@ public:
 
 private:
     CSong* m_song;
+
+    CCanvasXY* canvasXY;
 };

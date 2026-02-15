@@ -323,7 +323,7 @@ CRmtView::CRmtView()
 
 CRmtView::~CRmtView()
 {
-    if (CCanvasXY::g_mem_dc) { CCanvasXY::g_mem_dc->SelectObject(m_penorig); }    // Reset to the original pen
+    if (g_canvasXY) { g_canvasXY->SelectObject(m_penorig); }    // Reset to the original pen
     if (m_pen1) { delete m_pen1; }
 }
 
@@ -913,7 +913,7 @@ void CRmtView::Resize()
     int height = r.bottom - r.top;
 
     // If the current dimensions are the same, there is nothing to be done here
-    if (width == m_width && height == m_height) return;
+    if (width == m_width && height == m_height) { return; }
 
     // If the values are beyond those limits, reset the default scaling as a failsafe
     if (g_scaling_percentage > 300 || g_scaling_percentage < 100) g_scaling_percentage = 100;
@@ -941,10 +941,16 @@ void CRmtView::Resize()
     m_mem_bitmap.CreateCompatibleBitmap(dc, m_width, m_height);
     m_mem_dc.CreateCompatibleDC(dc);
     m_mem_dc.SelectObject(&m_mem_bitmap);
-    CCanvasXY::g_mem_dc = &m_mem_dc;
+    if (g_canvasXY == nullptr) {
+        g_canvasXY = new CCanvasXY();
+    }
+    g_canvasXY->SetCDC(m_mem_dc);
+    g_Instruments.SetCanvas(*g_canvasXY);
+    g_SongUI->SetCanvas(*g_canvasXY);
+
     if (m_pen1) { delete m_pen1; }
     m_pen1 = new CPen(PS_SOLID, 1, CRGBColor::LINES);
-    m_penorig = CCanvasXY::g_mem_dc->SelectObject(m_pen1);
+    m_penorig = (CPen*)g_canvasXY->SelectObject(m_pen1);
     ReleaseDC(dc);
 }
 

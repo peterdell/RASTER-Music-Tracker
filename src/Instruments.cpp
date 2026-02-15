@@ -1,9 +1,9 @@
 #include "StdAfx.h"
 
 #include "AtariTrackerDriver.h"
+#include "Global.h"
 #include "Instruments.h"
 #include "Notes.h"
-#include "Global.h"
 
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
 extern int g_tracks4_8; // TODO Move out
@@ -61,9 +61,8 @@ const Tshenv shenv[ENVROWS] =
 /// The struct TInstrument will be initialised in order to use Instruments
 /// TODO: Initialise more parameters, set #define values to static constants
 /// </summary>
-CInstruments::CInstruments()
+CInstruments::CInstruments() :canvasXY(nullptr)
 {
-    if (m_instr) delete m_instr;
     m_instr = new TInstrument[INSTRSNUM];
 }
 
@@ -76,6 +75,10 @@ CInstruments::~CInstruments()
 {
     if (m_instr) delete m_instr;
     m_instr = NULL;
+}
+
+void CInstruments::SetCanvas(CCanvasXY& canvasXY) {
+    this->canvasXY = &canvasXY;
 }
 
 /// <summary>

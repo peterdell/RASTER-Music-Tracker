@@ -4,6 +4,36 @@
 
 #include "Global.h" 
 
+
+CCanvasXY::CCanvasXY() : mem_dc(nullptr) {
+}
+
+CCanvasXY::~CCanvasXY() {
+
+}
+
+
+void CCanvasXY::SetCDC(CDC& mem_dc) {
+    this->mem_dc = &mem_dc;
+}
+
+CPoint CCanvasXY::MoveTo(int x, int y) {
+    return mem_dc->MoveTo(x, y);
+}
+
+BOOL CCanvasXY::LineTo(int x, int y) {
+    return mem_dc->LineTo(x, y);
+}
+
+
+CGdiObject* CCanvasXY::SelectObject(CGdiObject* pObject) {
+    return mem_dc->SelectObject(pObject);
+}
+
+void CCanvasXY::FillSolidRect(int x, int y, int cx, int cy, COLORREF clr) {
+    mem_dc->FillSolidRect(x, y, cx, cy, clr);
+}
+
 // Every text color is a line of 16 pixels height
 int  GetColorY(const TextColor color) {
     return ((int)color) << 4;
@@ -17,11 +47,10 @@ int  GetColorY(const TextMiniColor color) {
 }
 
 
-CDC* CCanvasXY::g_mem_dc;
 CDC* CCanvasXY::g_gfx_dc;
 
 void CCanvasXY::BitBltText(int x, int y, int nWidth, int nHeight, int xSrc, int ySrc) {
-    g_mem_dc->BitBlt(x, y, nWidth, nHeight, g_gfx_dc, xSrc, ySrc, SRCCOPY);
+    mem_dc->BitBlt(x, y, nWidth, nHeight, g_gfx_dc, xSrc, ySrc, SRCCOPY);
 }
 
 
@@ -136,7 +165,7 @@ void  CCanvasXY::IconMiniXY(const int icon, int x, int y)
     static constexpr int c = 128 - 6;
     if (icon >= 1 && icon <= 4)
     {
-        g_mem_dc->BitBlt(x, y, 32, 6, g_gfx_dc, (icon - 1) * 32, c, SRCCOPY);
+        mem_dc->BitBlt(x, y, 32, 6, g_gfx_dc, (icon - 1) * 32, c, SRCCOPY);
 
     }
 }

@@ -3,6 +3,8 @@
 
 #include <iosfwd>
 
+#include "CanvasXY.h"
+
 #include "General.h"
 
 #include "InstrumentTypes.h"
@@ -17,6 +19,8 @@ class CInstruments
 public:
     CInstruments();
     ~CInstruments();
+
+    void SetCanvas(CCanvasXY& canvasXY);
 
     void InitInstruments();
     void ClearInstrument(int it);
@@ -63,7 +67,11 @@ public:
     BOOL AtaV0ToInstr(unsigned char* ata, int instr);	// Due to the loading of the old version
 
 private:
+    CCanvasXY* canvasXY;
+
     TInstrument* m_instr;					// Pointer to TInstrument struct, used for instruments data
+
+
     void DrawName(int instrNr);				// Draw the instrument name (Show edit state with cursor position)
     void DrawParameter(int p, int instrNr);
     void DrawEnv(int e, int instrNr);

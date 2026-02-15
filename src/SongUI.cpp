@@ -34,8 +34,9 @@ CSongUI::CSongUI(CSong& song) : m_song(&song) {
 
 }
 
-
-
+void CSongUI::SetCanvas(CCanvasXY& canvasXY) {
+    this->canvasXY = &canvasXY;
+}
 
 //debug display of memory bytes directly, slow and terrible, do not use unless there is a purpose for it 
 void GetAtariMemHexStr(int adr, int len)
@@ -73,7 +74,7 @@ void GetAtariMemHexStr(int adr, int len)
 /// </summary>
 void CSongUI::DrawAnalyzer()
 {
-    auto g_mem_dc = CCanvasXY::g_mem_dc;
+    auto canvasXY = g_canvasXY;
 
     if (!g_view.volumeAnalyzer) return;	//the analyser won't be displayed without the setting enabled first
 
@@ -110,19 +111,19 @@ void CSongUI::DrawAnalyzer()
 // Draw a bridge between two columns (on the tracks view)
 #define Hook1(g1, g2)																				\
 	{																								\
-		g_mem_dc->MoveTo(ANALYZER_X + 2 + ANALYZER_S * 15 / 2 + 16 * 8 * (g1), ANALYZER_Y - 1);		\
-		g_mem_dc->LineTo(ANALYZER_X + 2 + ANALYZER_S * 15 / 2 + 16 * 8 * (g1), ANALYZER_Y - yUp);	\
-		g_mem_dc->LineTo(ANALYZER_X + 2 + ANALYZER_S * 15 / 2 + 16 * 8 * (g2), ANALYZER_Y - yUp);	\
-		g_mem_dc->LineTo(ANALYZER_X + 2 + ANALYZER_S * 15 / 2 + 16 * 8 * (g2), ANALYZER_Y);			\
+		canvasXY->MoveTo(ANALYZER_X + 2 + ANALYZER_S * 15 / 2 + 16 * 8 * (g1), ANALYZER_Y - 1);		\
+		canvasXY->LineTo(ANALYZER_X + 2 + ANALYZER_S * 15 / 2 + 16 * 8 * (g1), ANALYZER_Y - yUp);	\
+		canvasXY->LineTo(ANALYZER_X + 2 + ANALYZER_S * 15 / 2 + 16 * 8 * (g2), ANALYZER_Y - yUp);	\
+		canvasXY->LineTo(ANALYZER_X + 2 + ANALYZER_S * 15 / 2 + 16 * 8 * (g2), ANALYZER_Y);			\
 	}
 
 // Draw a bridge between two columns (on the instrument view)
 #define Hook2(g1, g2)																				\
 	{																								\
-		g_mem_dc->MoveTo(ANALYZER2_X + ANALYZER2_S * 15 / 2 + 3 * 8 * (g1), ANALYZER_Y - 120 - 1);	\
-		g_mem_dc->LineTo(ANALYZER2_X + ANALYZER2_S * 15 / 2 + 3 * 8 * (g1), ANALYZER_Y - 120 - yUp);\
-		g_mem_dc->LineTo(ANALYZER2_X + ANALYZER2_S * 15 / 2 + 3 * 8 * (g2), ANALYZER_Y - 120 - yUp);\
-		g_mem_dc->LineTo(ANALYZER2_X + ANALYZER2_S * 15 / 2 + 3 * 8 * (g2), ANALYZER_Y - 120);		\
+		canvasXY->MoveTo(ANALYZER2_X + ANALYZER2_S * 15 / 2 + 3 * 8 * (g1), ANALYZER_Y - 120 - 1);	\
+		canvasXY->LineTo(ANALYZER2_X + ANALYZER2_S * 15 / 2 + 3 * 8 * (g1), ANALYZER_Y - 120 - yUp);\
+		canvasXY->LineTo(ANALYZER2_X + ANALYZER2_S * 15 / 2 + 3 * 8 * (g2), ANALYZER_Y - 120 - yUp);\
+		canvasXY->LineTo(ANALYZER2_X + ANALYZER2_S * 15 / 2 + 3 * 8 * (g2), ANALYZER_Y - 120);		\
 	}
 
     int audf, audc, vol;
@@ -144,7 +145,7 @@ void CSongUI::DrawAnalyzer()
         const auto memory = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
 
         // Clear the area where the analyser is to be drawn
-        g_mem_dc->FillSolidRect(ANALYZER_X, ANALYZER_Y - ANALYZER_HP, g_tracks4_8 * 16 * 8 - 34, ANALYZER_H + ANALYZER_HP, CRGBColor::BACKGROUND);
+        canvasXY->FillSolidRect(ANALYZER_X, ANALYZER_Y - ANALYZER_HP, g_tracks4_8 * 16 * 8 - 34, ANALYZER_H + ANALYZER_HP, CRGBColor::BACKGROUND);
 
         // Left/Mono Channel
         // Draw which channels are joined by highpass filters or normal channel join
@@ -181,7 +182,7 @@ void CSongUI::DrawAnalyzer()
             // Draw the background box of the volume analyser for this channel
             // 15 unit wide, each unit is 6 pixels (ANALYZER_S)
             // Default color is RGB(44, 60, 102) - Dark blue
-            g_mem_dc->FillSolidRect(ANALYZER_X + a + 2, ANALYZER_Y, 15 * ANALYZER_S, ANALYZER_H, RGB(R[channelNr], G[channelNr], col[channelNr]));
+            canvasXY->FillSolidRect(ANALYZER_X + a + 2, ANALYZER_Y, 15 * ANALYZER_S, ANALYZER_H, RGB(R[channelNr], G[channelNr], col[channelNr]));
 
             // Determine the color of the channels volume bar: Normal, mute or Volume only
             acol = g_ChannelControl.IsChannelOn(channelNr) ? ((audc & 0x10) ? CRGBColor::VOLUME_ONLY : CRGBColor::NORMAL) : CRGBColor::MUTE;
@@ -190,110 +191,112 @@ void CSongUI::DrawAnalyzer()
             if (g_ChannelControl.IsChannelOn(channelNr) && ((skctl1 == 0x8b && channelNr == 0) || (skctl2 == 0x8b && channelNr == 4))) { acol = CRGBColor::TWO_TONE; }
 
             // Draw the volume bar in the selected color
-            if (vol) { g_mem_dc->FillSolidRect(ANALYZER_X + a + 3 + (15 - vol) * ANALYZER_S / 2, ANALYZER_Y, vol * ANALYZER_S, ANALYZER_H, acol); }
+            if (vol) { canvasXY->FillSolidRect(ANALYZER_X + a + 3 + (15 - vol) * ANALYZER_S / 2, ANALYZER_Y, vol * ANALYZER_S, ANALYZER_H, acol); }
 
             // Draw the frequency and audio control numbers for this channel
             if (g_view.pokeyRegisters)
             {
-                CCanvasXY::NumberMiniXY(audf, ANALYZER_X + 10 + a + 17, ANALYZER_Y - 8, TextMiniColor::GRAY);
-                CCanvasXY::NumberMiniXY(audc, ANALYZER_X + 36 + a + 17, ANALYZER_Y - 8, TextMiniColor::GRAY);
+                canvasXY->NumberMiniXY(audf, ANALYZER_X + 10 + a + 17, ANALYZER_Y - 8, TextMiniColor::GRAY);
+                canvasXY->NumberMiniXY(audc, ANALYZER_X + 36 + a + 17, ANALYZER_Y - 8, TextMiniColor::GRAY);
             }
         }
         if (g_view.pokeyRegisters)
         {
             // Draw the AUDCTL (audio control) register value
-            CCanvasXY::NumberMiniXY(memory[0xd208], ANALYZER_X + 23 + 1 * 8 * 16 + 80, ANALYZER_Y - 8);						// Mono
-            if (g_tracks4_8 > 4)  CCanvasXY::NumberMiniXY(memory[0xd218], ANALYZER_X + 23 + 5 * 8 * 16 + 80, ANALYZER_Y - 8);	// Stereo
+            canvasXY->NumberMiniXY(memory[0xd208], ANALYZER_X + 23 + 1 * 8 * 16 + 80, ANALYZER_Y - 8);						// Mono
+            if (g_tracks4_8 > 4) { canvasXY->NumberMiniXY(memory[0xd218], ANALYZER_X + 23 + 5 * 8 * 16 + 80, ANALYZER_Y - 8); }// Stereo
 
             // Draw the SKCTL (Two tone control/Serial port control) register value
-            CCanvasXY::NumberMiniXY(memory[0xd20f], ANALYZER_X + 23 + 1 * 8 * 16 + 80, ANALYZER_Y - 0);						// Mono
-            if (g_tracks4_8 > 4)  CCanvasXY::NumberMiniXY(memory[0xd21f], ANALYZER_X + 23 + 5 * 8 * 16 + 80, ANALYZER_Y - 0);	// Stereo
+            canvasXY->NumberMiniXY(memory[0xd20f], ANALYZER_X + 23 + 1 * 8 * 16 + 80, ANALYZER_Y - 0);						// Mono
+            if (g_tracks4_8 > 4) {
+                canvasXY->NumberMiniXY(memory[0xd21f], ANALYZER_X + 23 + 5 * 8 * 16 + 80, ANALYZER_Y - 0);	// Stereo
+            }
         }
-    }
-    else if (g_active_ti == Part::PART_INSTRUMENTS) //smaller appearance for instrument edit mode
-    {
-        // In instrument drawing mode
-
-        // Clear the area where the mini volume controls are to be drawn
-        g_mem_dc->FillSolidRect(ANALYZER2_X, ANALYZER2_Y - ANALYZER2_HP, g_tracks4_8 * 3 * 8 - 8, ANALYZER2_H + ANALYZER2_HP, CRGBColor::BACKGROUND);
-
-        const auto memory = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
-
-        // Left / Mono Channel
-        // Draw which channels are joined by highpass filters or normal channel join
-        a = memory[0xd208]; // AUDCTL @ $D208
-        if (a & 0x04) { col[2] = CRGBColor::COL_BLOCK; Hook2(0, 2); yUp -= 2; }	// High pass filter on channel 1, clocked by channel 3
-        if (a & 0x02) { col[3] = CRGBColor::COL_BLOCK;	Hook2(1, 3); yUp -= 2; }	// High pass filter on channel 3, clocked by channel 4
-        if (a & 0x10) { col[0] = CRGBColor::COL_BLOCK;	Hook2(0, 1); yUp -= 2; }	// Join channels 1 + 2 (16 bit)
-        if (a & 0x08) { col[2] = CRGBColor::COL_BLOCK;	Hook2(2, 3); yUp -= 2; }	// Join channels 3 + 4 (16 bit)
-
-        b = memory[0xd20f]; // SKCTL @ $D20F
-        if (b == 0x8b) { col[1] = CRGBColor::COL_BLOCK; Hook2(0, 1); yUp -= 2; }	// Two tone mode (join channel 1 + 2)
-        yUp = 7;
-
-        // Stereo Channel
-        a = memory[0xd218]; // AUDCTL2 @ $D218
-        if (a & 0x04) { col[2 + 4] = CRGBColor::COL_BLOCK; Hook2(0 + 4, 2 + 4); yUp -= 2; }	// High pass filter on channel 5 clocked by channel 7
-        if (a & 0x02) { col[3 + 4] = CRGBColor::COL_BLOCK; Hook2(1 + 4, 3 + 4); yUp -= 2; }	// High pass filter on channel 7, clocked by channel 8
-        if (a & 0x10) { col[0 + 4] = CRGBColor::COL_BLOCK; Hook2(0 + 4, 1 + 4); yUp -= 2; }	// Join channels 5 + 6 (16 bit)
-        if (a & 0x08) { col[2 + 4] = CRGBColor::COL_BLOCK; Hook2(2 + 4, 3 + 4); yUp -= 2; }	// Join channels 7 + 8 (16 bit)
-
-        b = memory[0xd21f]; // SKCTL2 @ $D21F
-        if (b == 0x8b) { col[1 + 4] = CRGBColor::COL_BLOCK; Hook2(0 + 4, 1 + 4); yUp -= 2; }	// Two tone mode (join channel 5 + 6)
-
-        for (int channelNr = 0; channelNr < g_tracks4_8; channelNr++)
+        else if (g_active_ti == Part::PART_INSTRUMENTS) //smaller appearance for instrument edit mode
         {
-            audc = memory[idx[channelNr] + 1];	// Get the frequency
-            int skctl1 = memory[0xd20f];		// Two tone mode Mono
-            int skctl2 = memory[0xd21f];		// Two tone mode Stereo
+            // In instrument drawing mode
 
-            vol = audc & 0x0f;						// Volume in lower nibble 
+            // Clear the area where the mini volume controls are to be drawn
+            canvasXY->FillSolidRect(ANALYZER2_X, ANALYZER2_Y - ANALYZER2_HP, g_tracks4_8 * 3 * 8 - 8, ANALYZER2_H + ANALYZER2_HP, CRGBColor::BACKGROUND);
 
-            // Draw the background box of the volume analyser for this channel
-            // 15 unit wide, each unit is 6 pixels (ANALYZER_S)
-            // Default color is RGB(44, 60, 102) - Dark blue
-            g_mem_dc->FillSolidRect(ANALYZER2_X + channelNr * 3 * 8, ANALYZER2_Y, 15 * ANALYZER2_S, ANALYZER2_H, RGB(R[channelNr], G[channelNr], col[channelNr]));
+            const auto memory = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
 
-            // Determine the color of the channels volume bar: Normal, mute or Volume only
-            acol = g_ChannelControl.IsChannelOn(channelNr) ? ((audc & 0x10) ? CRGBColor::VOLUME_ONLY : CRGBColor::NORMAL) : CRGBColor::MUTE;
+            // Left / Mono Channel
+            // Draw which channels are joined by highpass filters or normal channel join
+            a = memory[0xd208]; // AUDCTL @ $D208
+            if (a & 0x04) { col[2] = CRGBColor::COL_BLOCK; Hook2(0, 2); yUp -= 2; }	// High pass filter on channel 1, clocked by channel 3
+            if (a & 0x02) { col[3] = CRGBColor::COL_BLOCK;	Hook2(1, 3); yUp -= 2; }	// High pass filter on channel 3, clocked by channel 4
+            if (a & 0x10) { col[0] = CRGBColor::COL_BLOCK;	Hook2(0, 1); yUp -= 2; }	// Join channels 1 + 2 (16 bit)
+            if (a & 0x08) { col[2] = CRGBColor::COL_BLOCK;	Hook2(2, 3); yUp -= 2; }	// Join channels 3 + 4 (16 bit)
 
-            // Check if its a two tone channel (1 or 5)
-            if (g_ChannelControl.IsChannelOn(channelNr) && ((skctl1 == 0x8b && channelNr == 0) || (skctl2 == 0x8b && channelNr == 4))) acol = CRGBColor::TWO_TONE;
+            b = memory[0xd20f]; // SKCTL @ $D20F
+            if (b == 0x8b) { col[1] = CRGBColor::COL_BLOCK; Hook2(0, 1); yUp -= 2; }	// Two tone mode (join channel 1 + 2)
+            yUp = 7;
 
-            // Draw the volume bar in the selected color
-            if (vol) g_mem_dc->FillSolidRect(ANALYZER2_X + channelNr * 3 * 8 + (15 - vol) * ANALYZER2_S / 2, ANALYZER2_Y, vol * ANALYZER2_S, ANALYZER2_H, acol);
-        }
-    }
-    if (DEBUG_POKEY && g_view.pokeyRegisters)	// Detailed registers viewer
-    {
+            // Stereo Channel
+            a = memory[0xd218]; // AUDCTL2 @ $D218
+            if (a & 0x04) { col[2 + 4] = CRGBColor::COL_BLOCK; Hook2(0 + 4, 2 + 4); yUp -= 2; }	// High pass filter on channel 5 clocked by channel 7
+            if (a & 0x02) { col[3 + 4] = CRGBColor::COL_BLOCK; Hook2(1 + 4, 3 + 4); yUp -= 2; }	// High pass filter on channel 7, clocked by channel 8
+            if (a & 0x10) { col[0 + 4] = CRGBColor::COL_BLOCK; Hook2(0 + 4, 1 + 4); yUp -= 2; }	// Join channels 5 + 6 (16 bit)
+            if (a & 0x08) { col[2 + 4] = CRGBColor::COL_BLOCK; Hook2(2 + 4, 3 + 4); yUp -= 2; }	// Join channels 7 + 8 (16 bit)
 
-        CCanvas pokeyCanvas(ANALYZER3_X, ANALYZER3_Y);
-        CPokeyView pokeyView(pokeyCanvas);
-        pokeyView.Draw(*m_song, g_Tuning, IsEditMode(EditMode::POKEY_EXPLORER_MODE), *m_song->m_PokeyController, g_Atari);
-    }
+            b = memory[0xd21f]; // SKCTL2 @ $D21F
+            if (b == 0x8b) { col[1 + 4] = CRGBColor::COL_BLOCK; Hook2(0 + 4, 1 + 4); yUp -= 2; }	// Two tone mode (join channel 5 + 6)
 
-    if (DEBUG_MEMORY)	//Atari memory display, do not use unless there is a useful purpose for it
-    {
-        g_mem_dc->FillSolidRect(ANALYZER3_X, ANALYZER3_Y + 192, 680 + (8 * 42), 432, CRGBColor::BACKGROUND);
-
-        int gap = 0; int gap2 = 32; int page = 0;
-
-        for (int d = 0; d < 40; d++)	//1 memory page => 0x100, 32 bytes per line
-        {
-            //larger font...
-            //GetAtariMemHexStr(0xB200 + (0x10 * d), 16);	//Distortion C page
-            //TextXY(g_debugmem, ANALYZER3_X, ANALYZER3_Y + 240 + 16 * d + 8 + gap, TextColor::WHITE);
-            gap += (d % 8 == 0) ? 8 : 0;
-            page += (d % 8 == 0 && d != 0) ? 1 : 0;
-            gap2 = 16 * page;
-            GetAtariMemHexStr(0xB000 + 0x20 * d, 32);
-            CCanvasXY::TextMiniXY(g_debugmem, ANALYZER3_X, ANALYZER3_Y + 192 + 8 * d + 8 + gap + gap2, TextMiniColor::WHITE);
-
-            if (d % 8 == 0)
+            for (int channelNr = 0; channelNr < g_tracks4_8; channelNr++)
             {
-                CCanvasXY::TextMiniXY("memory (      ):", ANALYZER3_X, ANALYZER3_Y + 192 + 8 * d + gap + gap2 - 8, TextMiniColor::GRAY);
-                CCanvasXY::NumberMiniXY(page, ANALYZER3_X + 8 * 14, ANALYZER3_Y + 192 + 8 * d + gap + gap2 - 8, TextMiniColor::WHITE);
-                CCanvasXY::TextMiniXY("0XB 00", ANALYZER3_X + 8 * 12, ANALYZER3_Y + 192 + 8 * d + gap + gap2 - 8, TextMiniColor::WHITE);
+                audc = memory[idx[channelNr] + 1];	// Get the frequency
+                int skctl1 = memory[0xd20f];		// Two tone mode Mono
+                int skctl2 = memory[0xd21f];		// Two tone mode Stereo
+
+                vol = audc & 0x0f;						// Volume in lower nibble 
+
+                // Draw the background box of the volume analyser for this channel
+                // 15 unit wide, each unit is 6 pixels (ANALYZER_S)
+                // Default color is RGB(44, 60, 102) - Dark blue
+                canvasXY->FillSolidRect(ANALYZER2_X + channelNr * 3 * 8, ANALYZER2_Y, 15 * ANALYZER2_S, ANALYZER2_H, RGB(R[channelNr], G[channelNr], col[channelNr]));
+
+                // Determine the color of the channels volume bar: Normal, mute or Volume only
+                acol = g_ChannelControl.IsChannelOn(channelNr) ? ((audc & 0x10) ? CRGBColor::VOLUME_ONLY : CRGBColor::NORMAL) : CRGBColor::MUTE;
+
+                // Check if its a two tone channel (1 or 5)
+                if (g_ChannelControl.IsChannelOn(channelNr) && ((skctl1 == 0x8b && channelNr == 0) || (skctl2 == 0x8b && channelNr == 4))) acol = CRGBColor::TWO_TONE;
+
+                // Draw the volume bar in the selected color
+                if (vol) canvasXY->FillSolidRect(ANALYZER2_X + channelNr * 3 * 8 + (15 - vol) * ANALYZER2_S / 2, ANALYZER2_Y, vol * ANALYZER2_S, ANALYZER2_H, acol);
+            }
+        }
+        if (DEBUG_POKEY && g_view.pokeyRegisters)	// Detailed registers viewer
+        {
+
+            CCanvas pokeyCanvas(ANALYZER3_X, ANALYZER3_Y);
+            CPokeyView pokeyView(pokeyCanvas);
+            pokeyView.Draw(*m_song, g_Tuning, IsEditMode(EditMode::POKEY_EXPLORER_MODE), *m_song->m_PokeyController, g_Atari);
+        }
+
+        if (DEBUG_MEMORY)	//Atari memory display, do not use unless there is a useful purpose for it
+        {
+            canvasXY->FillSolidRect(ANALYZER3_X, ANALYZER3_Y + 192, 680 + (8 * 42), 432, CRGBColor::BACKGROUND);
+
+            int gap = 0; int gap2 = 32; int page = 0;
+
+            for (int d = 0; d < 40; d++)	//1 memory page => 0x100, 32 bytes per line
+            {
+                //larger font...
+                //GetAtariMemHexStr(0xB200 + (0x10 * d), 16);	//Distortion C page
+                //TextXY(g_debugmem, ANALYZER3_X, ANALYZER3_Y + 240 + 16 * d + 8 + gap, TextColor::WHITE);
+                gap += (d % 8 == 0) ? 8 : 0;
+                page += (d % 8 == 0 && d != 0) ? 1 : 0;
+                gap2 = 16 * page;
+                GetAtariMemHexStr(0xB000 + 0x20 * d, 32);
+                canvasXY->TextMiniXY(g_debugmem, ANALYZER3_X, ANALYZER3_Y + 192 + 8 * d + 8 + gap + gap2, TextMiniColor::WHITE);
+
+                if (d % 8 == 0)
+                {
+                    canvasXY->TextMiniXY("memory (      ):", ANALYZER3_X, ANALYZER3_Y + 192 + 8 * d + gap + gap2 - 8, TextMiniColor::GRAY);
+                    canvasXY->NumberMiniXY(page, ANALYZER3_X + 8 * 14, ANALYZER3_Y + 192 + 8 * d + gap + gap2 - 8, TextMiniColor::WHITE);
+                    canvasXY->TextMiniXY("0XB 00", ANALYZER3_X + 8 * 12, ANALYZER3_Y + 192 + 8 * d + gap + gap2 - 8, TextMiniColor::WHITE);
+                }
             }
         }
     }
@@ -314,7 +317,7 @@ void CSongUI::DrawSong()
     char szBuffer[32];
     TextColor color;
 
-    auto g_mem_dc = CCanvasXY::g_mem_dc;
+    auto canvasXY = g_canvasXY;
 
     auto smooth_scroll = g_view.smoothScrolling;	//TODO: make smooth scrolling an option that can be saved to .ini file
 
@@ -362,7 +365,7 @@ void CSongUI::DrawSong()
         {
             // Draw: "Go to line"
             color = (isOutOfBounds) ? TextColor::DARK_GRAY : TextColor::TURQUOISE;	//turquoise text, blank tiles to mask text if needed, else gray if out of bounds
-            CCanvasXY::TextXY("GO\x1fTO\x1fLINE", SONG_OFFSET + 16, y, color);
+            canvasXY->TextXY("GO\x1fTO\x1fLINE", SONG_OFFSET + 16, y, color);
 
             // Draw: "XX"
             color = (isOutOfBounds) ? TextColor::DARK_GRAY : TextColor::WHITE;	//white, for the number used, or gray if out of bounds
@@ -374,7 +377,7 @@ void CSongUI::DrawSong()
             szBuffer[0] = CharH4(j);
             szBuffer[1] = CharL4(j);
             szBuffer[2] = 0;
-            CCanvasXY::TextXY(szBuffer, SONG_OFFSET + 16 + 11 * 8, y, color);
+            canvasXY->TextXY(szBuffer, SONG_OFFSET + 16 + 11 * 8, y, color);
         }
         else
         {
@@ -385,7 +388,7 @@ void CSongUI::DrawSong()
             szBuffer[3] = 0;
             color = (line == m_song->m_songplayline) ? TextColor::YELLOW : TextColor::WHITE;
             if (isOutOfBounds) color = TextColor::DARK_GRAY;	//darker gray, out of bounds
-            CCanvasXY::CCanvasXY::TextXY(szBuffer, SONG_OFFSET + 16, y, color);
+            canvasXY->TextXY(szBuffer, SONG_OFFSET + 16, y, color);
 
             // For each track that is part of the song draw its number
             szBuffer[2] = 0;
@@ -405,14 +408,14 @@ void CSongUI::DrawSong()
                 }
                 else color = (line == m_song->m_songplayline) ? TextColor::YELLOW : TextColor::WHITE;
                 if (isOutOfBounds) color = TextColor::DARK_GRAY;	//darker gray, out of bounds
-                CCanvasXY::TextXY(szBuffer, SONG_OFFSET + 16 + k, y, color);
+                canvasXY->TextXY(szBuffer, SONG_OFFSET + 16 + k, y, color);
             }
         }
     }
     // Draw an arrow pointing to the current song line
     color = (IsProveMode()) ? TextColor::BLUE : TextColor::RED;
     int arrowpos = (WINDOW_OFFSET) ? CSongScreenLayout::SONG_Y + 48 : CSongScreenLayout::SONG_Y + 80;
-    CCanvasXY::TextXY("\x04\x05", SONG_OFFSET, arrowpos, color);
+    canvasXY->TextXY("\x04\x05", SONG_OFFSET, arrowpos, color);
 
     if (m_song->IsStereo())	//a line delimiting the boundary between left/right
     {
@@ -420,18 +423,18 @@ void CSongUI::DrawSong()
         int tl = 32 + linescount * 16;
         int x = CSongScreenLayout::SONG_Y + 80 + 5 * 8 + 3 + SONG_OFFSET;
 
-        g_mem_dc->MoveTo(x, fl);
-        g_mem_dc->LineTo(x, tl);
+        canvasXY->MoveTo(x, fl);
+        canvasXY->LineTo(x, tl);
     }
 
     // Draw mask rectangles over the extra pixels above and below the song lines.
     // This gets rid of the pixels we dont want to see with smooth scrolling
     int width = 8 * ((m_song->IsStereo()) ? 30 : 18);
     int height = 32;
-    g_mem_dc->FillSolidRect(SONG_OFFSET, 0, width, height, CRGBColor::BACKGROUND);	//top
-    g_mem_dc->FillSolidRect(SONG_OFFSET, linescount * 16 + 32, width, height, CRGBColor::BACKGROUND);	//bottom
+    canvasXY->FillSolidRect(SONG_OFFSET, 0, width, height, CRGBColor::BACKGROUND);	//top
+    canvasXY->FillSolidRect(SONG_OFFSET, linescount * 16 + 32, width, height, CRGBColor::BACKGROUND);	//bottom
 
-    CCanvasXY::TextXY("SONG", SONG_OFFSET + 8, CSongScreenLayout::SONG_Y, TextColor::WHITE);
+    canvasXY->TextXY("SONG", SONG_OFFSET + 8, CSongScreenLayout::SONG_Y, TextColor::WHITE);
 
     //print L1 .. L4 R1 .. R4 with highlighted current track
     k = SONG_OFFSET + 6 * 8;
@@ -446,7 +449,7 @@ void CSongUI::DrawSong()
             else color = TextColor::WHITE; //normal channel
         }
         else color = TextColor::GRAY; //switched off channels are in gray
-        CCanvasXY::TextXY(szBuffer, k, CSongScreenLayout::SONG_Y, color);
+        canvasXY->TextXY(szBuffer, k, CSongScreenLayout::SONG_Y, color);
     }
     szBuffer[0] = 'R';
     for (i = 4; i < m_song->GetTracks(); i++, k += 24)
@@ -458,7 +461,7 @@ void CSongUI::DrawSong()
             else color = TextColor::WHITE; //normal channel
         }
         else color = TextColor::GRAY; //switched off channels are in gray
-        CCanvasXY::TextXY(szBuffer, k, CSongScreenLayout::SONG_Y, color);
+        canvasXY->TextXY(szBuffer, k, CSongScreenLayout::SONG_Y, color);
     }
 }
 
@@ -498,7 +501,7 @@ void CSongUI::DrawTracks()
     int t;
 
     BOOL printdebug = g_view.debugDisplay;
-    auto g_mem_dc = CCanvasXY::g_mem_dc;
+    auto canvasXY = g_canvasXY;
     CCanvas tracksCanvas(CSongScreenLayout::TRACKS_X, CSongScreenLayout::TRACKS_Y);
 
     //caching certain global variables makes sure they remain the same until the function finishes drawing the tracks
@@ -516,11 +519,11 @@ void CSongUI::DrawTracks()
     if (m_song->SongGetGo() >= 0)		//it's a GOTO line, it won't draw tracks
     {
         int TRACKS_OFFSET = (m_song->IsStereo()) ? 62 : 30;
-        CCanvasXY::TextXY("GO TO LINE ", CSongScreenLayout::TRACKS_X + TRACKS_OFFSET * 8, CSongScreenLayout::TRACKS_Y + 8 * 16, TextColor::TURQUOISE);
+        canvasXY->TextXY("GO TO LINE ", CSongScreenLayout::TRACKS_X + TRACKS_OFFSET * 8, CSongScreenLayout::TRACKS_Y + 8 * 16, TextColor::TURQUOISE);
         if (IsProveMode()) color = (g_activepart == Part::PART_TRACKS) ? LogicalTextColor::SELECTED_PROVE : TextColor::BLUE;
         else color = (g_activepart == Part::PART_TRACKS) ? LogicalTextColor::SELECTED : TextColor::RED;
         sprintf(s, "%02X", m_song->SongGetGo());
-        CCanvasXY::TextXY(s, CSongScreenLayout::TRACKS_X + TRACKS_OFFSET * 8 + 11 * 8, CSongScreenLayout::TRACKS_Y + 8 * 16, color);
+        canvasXY->TextXY(s, CSongScreenLayout::TRACKS_X + TRACKS_OFFSET * 8 + 11 * 8, CSongScreenLayout::TRACKS_Y + 8 * 16, color);
         return;
     }
 
@@ -589,16 +592,16 @@ void CSongUI::DrawTracks()
         if (is_goto)
         {
             //mask out the first line
-            g_mem_dc->FillSolidRect(CSongScreenLayout::TRACKS_X, y, mask_x, 16, CRGBColor::BACKGROUND);
+            canvasXY->FillSolidRect(CSongScreenLayout::TRACKS_X, y, mask_x, 16, CRGBColor::BACKGROUND);
 
             //get the songline that has the goto set
             sl = songactiveline + oob;
             if (sl < 0 || sl > 255) { sl += 256; sl %= 256; }
 
             //if the line is 2 patterns or more away, it must also be gray
-            CCanvasXY::TextXY("GO TO LINE ", CSongScreenLayout::TRACKS_X + 6 * 8, y, (oob - 1) ? TextColor::DARK_GRAY : TextColor::TURQUOISE);
+            canvasXY->TextXY("GO TO LINE ", CSongScreenLayout::TRACKS_X + 6 * 8, y, (oob - 1) ? TextColor::DARK_GRAY : TextColor::TURQUOISE);
             sprintf(s, "%02X", m_song->m_songgo[sl]);
-            CCanvasXY::TextXY(s, CSongScreenLayout::TRACKS_X + 17 * 8, y, (oob - 1) ? TextColor::DARK_GRAY : TextColor::WHITE);
+            canvasXY->TextXY(s, CSongScreenLayout::TRACKS_X + 17 * 8, y, (oob - 1) ? TextColor::DARK_GRAY : TextColor::WHITE);
             break;
         }
 
@@ -608,7 +611,7 @@ void CSongUI::DrawTracks()
         if (line == trackplayline) color = TextColor::YELLOW;
         if (line == trackactiveline) color = (IsProveMode()) ? TextColor::BLUE : TextColor::RED;
         if (oob) color = TextColor::DARK_GRAY;
-        CCanvasXY::TextXY(s, CSongScreenLayout::TRACKS_X, y, color);
+        canvasXY->TextXY(s, CSongScreenLayout::TRACKS_X, y, color);
 
         for (int j = 0; j < g_tracks4_8; j++, x += 16 * 8)
         {
@@ -626,8 +629,8 @@ void CSongUI::DrawTracks()
     }
 
     //mask rectangles for hiding extra rendered lines
-    g_mem_dc->FillSolidRect(CSongScreenLayout::TRACKS_X - 8, CSongScreenLayout::TRACKS_Y + 1 * 16, mask_x, 32, CRGBColor::BACKGROUND);
-    g_mem_dc->FillSolidRect(CSongScreenLayout::TRACKS_X - 8, CSongScreenLayout::TRACKS_Y + 2 * 16 + ((g_tracklines + 1) * 16) + 1, mask_x, 48, CRGBColor::BACKGROUND);
+    canvasXY->FillSolidRect(CSongScreenLayout::TRACKS_X - 8, CSongScreenLayout::TRACKS_Y + 1 * 16, mask_x, 32, CRGBColor::BACKGROUND);
+    canvasXY->FillSolidRect(CSongScreenLayout::TRACKS_X - 8, CSongScreenLayout::TRACKS_Y + 2 * 16 + ((g_tracklines + 1) * 16) + 1, mask_x, 48, CRGBColor::BACKGROUND);
 
     //tracks
     strcpy(s, "  TRACK XX   ");
@@ -641,7 +644,7 @@ void CSongUI::DrawTracks()
 
         color = (g_ChannelControl.IsChannelOn(i)) ? TextColor::WHITE : TextColor::GRAY;	//channels off are in gray
         //TextXY(s, x + 12, TRACKS_Y, color);
-        CCanvasXY::TextXY(s, x, CSongScreenLayout::TRACKS_Y, color);
+        canvasXY->TextXY(s, x, CSongScreenLayout::TRACKS_Y, color);
 
         //track in the current line of the song
         tr = m_song->m_song[songactiveline][i];
@@ -654,10 +657,10 @@ void CSongUI::DrawTracks()
     x = mask_x;
     y = CSongScreenLayout::TRACKS_Y + 3 * 16 - 2 + g_line_y * 16;
 
-    g_mem_dc->MoveTo(CSongScreenLayout::TRACKS_X, y);
-    g_mem_dc->LineTo(x, y);
-    g_mem_dc->MoveTo(CSongScreenLayout::TRACKS_X, y + 19);
-    g_mem_dc->LineTo(x, y + 19);
+    canvasXY->MoveTo(CSongScreenLayout::TRACKS_X, y);
+    canvasXY->LineTo(x, y);
+    canvasXY->MoveTo(CSongScreenLayout::TRACKS_X, y + 19);
+    canvasXY->LineTo(x, y + 19);
 
     //a line delimiting the boundary between left/right-- there is a bug with some tracks but the entire function needs to be rewritten anyway...
     if (g_tracks4_8 > 4)
@@ -670,13 +673,13 @@ void CSongUI::DrawTracks()
             line_end = y + (8 - g_cursoractview + m_song->GetSmallestMaxtracklen(songactiveline)) * 16 + smooth_y;
         }
 
-        g_mem_dc->MoveTo(CSongScreenLayout::TRACKS_X + 50 * 11 - 3, y);
-        g_mem_dc->LineTo(CSongScreenLayout::TRACKS_X + 50 * 11 - 3, line_end);
+        canvasXY->MoveTo(CSongScreenLayout::TRACKS_X + 50 * 11 - 3, y);
+        canvasXY->LineTo(CSongScreenLayout::TRACKS_X + 50 * 11 - 3, line_end);
     }
 
     //mask out any extra pixels after rendering each elements
-    g_mem_dc->FillSolidRect(CSongScreenLayout::TRACKS_X - 8, CSongScreenLayout::TRACKS_Y + 2 * 16, mask_x, 16, CRGBColor::BACKGROUND);
-    g_mem_dc->FillSolidRect(CSongScreenLayout::TRACKS_X - 8, CSongScreenLayout::TRACKS_Y + 2 * 16 + (g_tracklines + 1) * 16, mask_x, 32, CRGBColor::BACKGROUND);
+    canvasXY->FillSolidRect(CSongScreenLayout::TRACKS_X - 8, CSongScreenLayout::TRACKS_Y + 2 * 16, mask_x, 16, CRGBColor::BACKGROUND);
+    canvasXY->FillSolidRect(CSongScreenLayout::TRACKS_X - 8, CSongScreenLayout::TRACKS_Y + 2 * 16 + (g_tracklines + 1) * 16, mask_x, 32, CRGBColor::BACKGROUND);
 
     //selected block
     if (g_TrackClipboard.IsBlockSelected())
@@ -700,17 +703,17 @@ void CSongUI::DrawTracks()
         {
             //a rectangle delimiting the selected block
             CPen redpen(PS_SOLID, 1, RGB(255, 255, 255));
-            CPen* origpen = g_mem_dc->SelectObject(&redpen);
+            CPen* origpen = (CPen*)canvasXY->SelectObject(&redpen);
 
-            g_mem_dc->MoveTo(x, y - 2 - fls + yf * 16);
-            g_mem_dc->LineTo(x, y + 2 + tls + yt * 16);
-            g_mem_dc->MoveTo(xt, y - 2 - fls + yf * 16);
-            g_mem_dc->LineTo(xt, y + 2 + tls + yt * 16);
+            canvasXY->MoveTo(x, y - 2 - fls + yf * 16);
+            canvasXY->LineTo(x, y + 2 + tls + yt * 16);
+            canvasXY->MoveTo(xt, y - 2 - fls + yf * 16);
+            canvasXY->LineTo(xt, y + 2 + tls + yt * 16);
 
-            if (p1) { g_mem_dc->MoveTo(x, y - 2 + yf * 16); g_mem_dc->LineTo(xt, y - 2 + yf * 16); }
-            if (p2) { g_mem_dc->MoveTo(x, y + 2 + yt * 16); g_mem_dc->LineTo(xt + 1, y + 2 + yt * 16); }
+            if (p1) { canvasXY->MoveTo(x, y - 2 + yf * 16); canvasXY->LineTo(xt, y - 2 + yf * 16); }
+            if (p2) { canvasXY->MoveTo(x, y + 2 + yt * 16); canvasXY->LineTo(xt + 1, y + 2 + yt * 16); }
 
-            g_mem_dc->SelectObject(origpen);
+            canvasXY->SelectObject(origpen);
         }
 
         char tx[96];
@@ -721,19 +724,19 @@ void CSongUI::DrawTracks()
         //mask out any extra pixels after rendering the selection box before drawing the infos below
         if (active_smooth)
         {
-            g_mem_dc->FillSolidRect(CSongScreenLayout::TRACKS_X - 8, CSongScreenLayout::TRACKS_Y + 2 * 16, mask_x, 16, CRGBColor::BACKGROUND);
-            g_mem_dc->FillSolidRect(CSongScreenLayout::TRACKS_X - 8, CSongScreenLayout::TRACKS_Y + 2 * 16 + (g_tracklines + 1) * 16, mask_x, 16, CRGBColor::BACKGROUND);
+            canvasXY->FillSolidRect(CSongScreenLayout::TRACKS_X - 8, CSongScreenLayout::TRACKS_Y + 2 * 16, mask_x, 16, CRGBColor::BACKGROUND);
+            canvasXY->FillSolidRect(CSongScreenLayout::TRACKS_X - 8, CSongScreenLayout::TRACKS_Y + 2 * 16 + (g_tracklines + 1) * 16, mask_x, 16, CRGBColor::BACKGROUND);
         }
 
         sprintf(tx, "%i line(s) [%s-%s] selected in the pattern track %02X", bto - bfro + 1, s1, s2, g_TrackClipboard.m_seltrack);
-        CCanvasXY::TextXY(tx, CSongScreenLayout::TRACKS_X + 4 * 8, CSongScreenLayout::TRACKS_Y + (4 + g_tracklines) * 16, TextColor::WHITE);
+        canvasXY->TextXY(tx, CSongScreenLayout::TRACKS_X + 4 * 8, CSongScreenLayout::TRACKS_Y + (4 + g_tracklines) * 16, TextColor::WHITE);
         x = CSongScreenLayout::TRACKS_X + 4 * 8 + (int)strlen(tx) * 8 + 8;
 
         if (g_TrackClipboard.m_all)
             strcpy(tx, "[edit ALL data]");
         else
             sprintf(tx, "[edit data ONLY for instrument %02X]", m_song->m_activeinstr);
-        CCanvasXY::TextXY(tx, x, CSongScreenLayout::TRACKS_Y + (4 + g_tracklines) * 16, TextColor::RED);
+        canvasXY->TextXY(tx, x, CSongScreenLayout::TRACKS_Y + (4 + g_tracklines) * 16, TextColor::RED);
     }
 
     // Debug display at the bottom of the screen, this could be toggled on if needed 
@@ -761,7 +764,7 @@ void CSongUI::DrawTracks()
             case 12: d.Format("WD=%02d", g_mouse.wheelDelta); break;
             default: continue;
             }
-            CCanvasXY::TextXY(d, CSongScreenLayout::TRACKS_X + i * width, g_height - 32, TextColor::TURQUOISE);
+            canvasXY->TextXY(d, CSongScreenLayout::TRACKS_X + i * width, g_height - 32, TextColor::TURQUOISE);
         }
     }
 }
@@ -791,25 +794,25 @@ void CSongUI::DrawInfo()
     auto printdebug = g_view.debugDisplay;
 
     // Line 1: Time  BPM  PAL/NTSC  Hightlight (XX/XX)  FPS
-    CCanvasXY::TextXY((m_song->IsNTSC()) ? "NTSC" : "PAL", CSongScreenLayout::INFO_X + 33 * 8, CSongScreenLayout::INFO_Y_LINE_1, TextColor::TURQUOISE);
+    canvasXY->TextXY((m_song->IsNTSC()) ? "NTSC" : "PAL", CSongScreenLayout::INFO_X + 33 * 8, CSongScreenLayout::INFO_Y_LINE_1, TextColor::TURQUOISE);
 
     // 2x Line highlights XX/XX (go and override --)
-    CCanvasXY::TextXY("HIGHLIGHT: --/--", 344, CSongScreenLayout::INFO_Y_LINE_1, TextColor::WHITE);
+    canvasXY->TextXY("HIGHLIGHT: --/--", 344, CSongScreenLayout::INFO_Y_LINE_1, TextColor::WHITE);
     auto color = IsProveMode() ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED;
 
     sprintf(szBuffer, "%02X", g_trackLinePrimaryHighlight);
     selected = (g_activepart == Part::PART_INFO && m_song->m_infoact == EditArea::FIRST_HIGHLIGHT) ? TRUE : FALSE;
-    CCanvasXY::TextXY(szBuffer, 344 + 11 * 8, CSongScreenLayout::INFO_Y_LINE_1, (selected) ? color : TextColor::TURQUOISE);
+    canvasXY->TextXY(szBuffer, 344 + 11 * 8, CSongScreenLayout::INFO_Y_LINE_1, (selected) ? color : TextColor::TURQUOISE);
 
     sprintf(szBuffer, "%02X", g_trackLineSecondaryHighlight);
     selected = (g_activepart == Part::PART_INFO && m_song->m_infoact == EditArea::SECOND_HIGHLIGHT) ? TRUE : FALSE;
-    CCanvasXY::TextXY(szBuffer, 344 + 14 * 8, CSongScreenLayout::INFO_Y_LINE_1, (selected) ? color : TextColor::TURQUOISE);
+    canvasXY->TextXY(szBuffer, 344 + 14 * 8, CSongScreenLayout::INFO_Y_LINE_1, (selected) ? color : TextColor::TURQUOISE);
 
     if (printdebug)
     {
         // A poor attempt at an FPS counter
         snprintf(szBuffer, 16, "%1.2f FPS", last_fps);
-        CCanvasXY::TextXY(szBuffer, 560 - 9 * 8, CSongScreenLayout::INFO_Y_LINE_1, TextColor::TURQUOISE);
+        canvasXY->TextXY(szBuffer, 560 - 9 * 8, CSongScreenLayout::INFO_Y_LINE_1, TextColor::TURQUOISE);
     }
 
     // Line 2: Name
@@ -824,63 +827,63 @@ void CSongUI::DrawInfo()
         i = -1;
         color = TextColor::TURQUOISE;
     }
-    CCanvasXY::TextXY("NAME:", CSongScreenLayout::INFO_X, CSongScreenLayout::INFO_Y_LINE_2, TextColor::WHITE);
-    CCanvasXY::TextXYSelN(m_song->m_songname, i, CSongScreenLayout::INFO_X + 6 * 8, CSongScreenLayout::INFO_Y_LINE_2, color);
+    canvasXY->TextXY("NAME:", CSongScreenLayout::INFO_X, CSongScreenLayout::INFO_Y_LINE_2, TextColor::WHITE);
+    canvasXY->TextXYSelN(m_song->m_songname, i, CSongScreenLayout::INFO_X + 6 * 8, CSongScreenLayout::INFO_Y_LINE_2, color);
 
     // Line 3: Speed (XX/XX/X)  MaxTrackLength (XX)  (Mono/Stereo)
-    CCanvasXY::TextXY("MUSIC SPEED: --/--/-    MAXTRACKLENGTH: --", CSongScreenLayout::INFO_X, CSongScreenLayout::INFO_Y_LINE_3, TextColor::WHITE);
+    canvasXY->TextXY("MUSIC SPEED: --/--/-    MAXTRACKLENGTH: --", CSongScreenLayout::INFO_X, CSongScreenLayout::INFO_Y_LINE_3, TextColor::WHITE);
 
     // 3x Speed indicators XX/XX/X (go and override --)
     color = IsProveMode() ? LogicalTextColor::SELECTED_PROVE : LogicalTextColor::SELECTED;
 
     sprintf(szBuffer, "%02X", m_song->m_speed);
     selected = (g_activepart == Part::PART_INFO && m_song->m_infoact == EditArea::SPEED) ? TRUE : FALSE;
-    CCanvasXY::TextXY(szBuffer, CSongScreenLayout::INFO_X + 13 * 8, CSongScreenLayout::INFO_Y_LINE_3, (selected) ? color : TextColor::TURQUOISE);
+    canvasXY->TextXY(szBuffer, CSongScreenLayout::INFO_X + 13 * 8, CSongScreenLayout::INFO_Y_LINE_3, (selected) ? color : TextColor::TURQUOISE);
 
     sprintf(szBuffer, "%02X", m_song->m_mainSpeed);
     selected = (g_activepart == Part::PART_INFO && m_song->m_infoact == EditArea::MAIN_SPEED) ? TRUE : FALSE;
-    CCanvasXY::TextXY(szBuffer, CSongScreenLayout::INFO_X + 16 * 8, CSongScreenLayout::INFO_Y_LINE_3, (selected) ? color : TextColor::TURQUOISE);
+    canvasXY->TextXY(szBuffer, CSongScreenLayout::INFO_X + 16 * 8, CSongScreenLayout::INFO_Y_LINE_3, (selected) ? color : TextColor::TURQUOISE);
 
     sprintf(szBuffer, "%X", m_song->m_instrumentSpeed);
     selected = (g_activepart == Part::PART_INFO && m_song->m_infoact == EditArea::INSTR_SPEED) ? TRUE : FALSE;
-    CCanvasXY::TextXY(szBuffer, CSongScreenLayout::INFO_X + 19 * 8, CSongScreenLayout::INFO_Y_LINE_3, (selected) ? color : TextColor::TURQUOISE);
+    canvasXY->TextXY(szBuffer, CSongScreenLayout::INFO_X + 19 * 8, CSongScreenLayout::INFO_Y_LINE_3, (selected) ? color : TextColor::TURQUOISE);
 
     // Max Track Length @ 40 chars
     sprintf(szBuffer, "%02X", g_Tracks.GetMaxTrackLength());
-    CCanvasXY::TextXY(szBuffer, CSongScreenLayout::INFO_X + 40 * 8, CSongScreenLayout::INFO_Y_LINE_3, TextColor::TURQUOISE);
+    canvasXY->TextXY(szBuffer, CSongScreenLayout::INFO_X + 40 * 8, CSongScreenLayout::INFO_Y_LINE_3, TextColor::TURQUOISE);
 
     // Mono or Stereo @ 46 chars
-    CCanvasXY::TextXY(m_song->IsStereo() ? "STEREO-8-TRACKS" : "MONO-4-TRACKS", CSongScreenLayout::INFO_X + 46 * 8, CSongScreenLayout::INFO_Y_LINE_3, TextColor::TURQUOISE);
+    canvasXY->TextXY(m_song->IsStereo() ? "STEREO-8-TRACKS" : "MONO-4-TRACKS", CSongScreenLayout::INFO_X + 46 * 8, CSongScreenLayout::INFO_Y_LINE_3, TextColor::TURQUOISE);
 
     // Line 4: (Mode)  Octive (X-X)
     int xpos = CSongScreenLayout::INFO_X;
     int ypos = CSongScreenLayout::INFO_Y_LINE_4;
     if (IsEditMode(EditMode::POKEY_EXPLORER_MODE))	// test mode exclusive to keyboard input for sound debugging, this cannot be set by accident unless I did something stupid
-        CCanvasXY::TextXY("EXPLORER MODE (PITCH CALCULATIONS)", xpos, ypos, TextColor::TURQUOISE);
+        canvasXY->TextXY("EXPLORER MODE (PITCH CALCULATIONS)", xpos, ypos, TextColor::TURQUOISE);
     else if (IsEditMode(EditMode::MIDI_CH15_MODE))	// test mode exclusive from MIDI CH15 inputs, this cannot be set by accident unless I did something stupid
-        CCanvasXY::TextXY("EXPLORER MODE (MIDI CH15)", xpos, ypos, TextColor::TURQUOISE);
+        canvasXY->TextXY("EXPLORER MODE (MIDI CH15)", xpos, ypos, TextColor::TURQUOISE);
     else if (IsProveMode())
-        CCanvasXY::TextXY((IsEditMode(EditMode::JAM_MONO_MODE)) ? "JAM MODE (MONO)" : "JAM MODE (STEREO)", xpos, ypos, TextColor::BLUE);
+        canvasXY->TextXY((IsEditMode(EditMode::JAM_MONO_MODE)) ? "JAM MODE (MONO)" : "JAM MODE (STEREO)", xpos, ypos, TextColor::BLUE);
     else
-        CCanvasXY::TextXY("EDIT MODE", xpos, ypos, TextColor::RED);
+        canvasXY->TextXY("EDIT MODE", xpos, ypos, TextColor::RED);
 
     sprintf(szBuffer, "OCTAVE %i-%i", m_song->m_octave + 1, m_song->m_octave + 2);
     szBuffer[6] = 0;
-    CCanvasXY::TextXY(szBuffer, CSongScreenLayout::INFO_X + 55 * 8, CSongScreenLayout::INFO_Y_LINE_4, TextColor::WHITE);
-    CCanvasXY::TextXY(szBuffer + 7, CSongScreenLayout::INFO_X + 62 * 8, CSongScreenLayout::INFO_Y_LINE_4, TextColor::TURQUOISE);
+    canvasXY->TextXY(szBuffer, CSongScreenLayout::INFO_X + 55 * 8, CSongScreenLayout::INFO_Y_LINE_4, TextColor::WHITE);
+    canvasXY->TextXY(szBuffer + 7, CSongScreenLayout::INFO_X + 62 * 8, CSongScreenLayout::INFO_Y_LINE_4, TextColor::TURQUOISE);
 
     // Line 5: Instrument (XX): (name)
-    CCanvasXY::TextXY("INSTRUMENT", CSongScreenLayout::INFO_X, CSongScreenLayout::INFO_Y_LINE_5, TextColor::WHITE);
+    canvasXY->TextXY("INSTRUMENT", CSongScreenLayout::INFO_X, CSongScreenLayout::INFO_Y_LINE_5, TextColor::WHITE);
     sprintf(szBuffer, "%02X: %s", m_song->m_activeinstr, g_Instruments.GetName(m_song->m_activeinstr));
     szBuffer[3] = 0;
-    CCanvasXY::TextXY(szBuffer, CSongScreenLayout::INFO_X + 11 * 8, CSongScreenLayout::INFO_Y_LINE_5, TextColor::WHITE);
+    canvasXY->TextXY(szBuffer, CSongScreenLayout::INFO_X + 11 * 8, CSongScreenLayout::INFO_Y_LINE_5, TextColor::WHITE);
     szBuffer[40] = 0;
-    CCanvasXY::TextXY(szBuffer + 4, CSongScreenLayout::INFO_X + 15 * 8, CSongScreenLayout::INFO_Y_LINE_5, TextColor::TURQUOISE);
+    canvasXY->TextXY(szBuffer + 4, CSongScreenLayout::INFO_X + 15 * 8, CSongScreenLayout::INFO_Y_LINE_5, TextColor::TURQUOISE);
 
     sprintf(szBuffer, "%cVOLUME %X", g_respectvolume ? '*' : ' ', m_song->m_volume);	// Put a * infront of Volume if the RESPECT volume mode is on
     szBuffer[7] = 0;
-    CCanvasXY::TextXY(szBuffer, CSongScreenLayout::INFO_X + 56 * 8, CSongScreenLayout::INFO_Y_LINE_5, TextColor::WHITE);
-    CCanvasXY::TextXY(szBuffer + 8, CSongScreenLayout::INFO_X + 64 * 8, CSongScreenLayout::INFO_Y_LINE_5, TextColor::TURQUOISE);
+    canvasXY->TextXY(szBuffer, CSongScreenLayout::INFO_X + 56 * 8, CSongScreenLayout::INFO_Y_LINE_5, TextColor::WHITE);
+    canvasXY->TextXY(szBuffer + 8, CSongScreenLayout::INFO_X + 64 * 8, CSongScreenLayout::INFO_Y_LINE_5, TextColor::TURQUOISE);
 
     // Line 6: Under the instrument line draw small text indicating the instrument flags
     BYTE flag = g_Instruments.GetFlag(m_song->m_activeinstr);
@@ -893,15 +896,15 @@ void CSongUI::DrawInfo()
     {
         if (activeChannel > 2)
         {
-            CCanvasXY::TextMiniXY("NO FILTER", x, y, TextMiniColor::GRAY);
+            canvasXY->TextMiniXY("NO FILTER", x, y, TextMiniColor::GRAY);
             x += 10 * 8;
         }
         else
         {
             if (activeChannel == 1)
-                CCanvasXY::TextMiniXY("AUTOFILTER(1+3)", x, y, TextMiniColor::BLUE);
+                canvasXY->TextMiniXY("AUTOFILTER(1+3)", x, y, TextMiniColor::BLUE);
             else
-                CCanvasXY::TextMiniXY("AUTOFILTER(2+4)", x, y, TextMiniColor::BLUE);
+                canvasXY->TextMiniXY("AUTOFILTER(2+4)", x, y, TextMiniColor::BLUE);
             x += 16 * 8;
         }
     }
@@ -910,24 +913,24 @@ void CSongUI::DrawInfo()
     {
         if (activeChannel == 2)
         {
-            CCanvasXY::TextMiniXY("BASS16(2+1)", x, y, TextMiniColor::BLUE);
+            canvasXY->TextMiniXY("BASS16(2+1)", x, y, TextMiniColor::BLUE);
             x += 12 * 8;
         }
         else if (activeChannel == 4)
         {
-            CCanvasXY::TextMiniXY("BASS16(4+3)", x, y, TextMiniColor::BLUE);
+            canvasXY->TextMiniXY("BASS16(4+3)", x, y, TextMiniColor::BLUE);
             x += 12 * 8;
         }
         else
         {
-            CCanvasXY::TextMiniXY("NO BASS16", x, y, TextMiniColor::GRAY);;
+            canvasXY->TextMiniXY("NO BASS16", x, y, TextMiniColor::GRAY);;
             x += 10 * 8;
         }
     }
 
     if (flag & IF_PORTAMENTO)
     {
-        CCanvasXY::TextMiniXY("PORTAMENTO", x, y, TextMiniColor::BLUE);
+        canvasXY->TextMiniXY("PORTAMENTO", x, y, TextMiniColor::BLUE);
         x += 11 * 8;
     }
 
@@ -942,7 +945,7 @@ void CSongUI::DrawInfo()
             | g_Instruments.GetParameter(m_song->m_activeinstr, PAR_AUDCTL_179_CH1) << 6
             | g_Instruments.GetParameter(m_song->m_activeinstr, PAR_AUDCTL_POLY9) << 7;
         sprintf(szBuffer, "AUDCTL:%02X", audctl);
-        CCanvasXY::TextMiniXY(szBuffer, x, y, TextMiniColor::BLUE);
+        canvasXY->TextMiniXY(szBuffer, x, y, TextMiniColor::BLUE);
         // x += 6 * 8;
     }
 }
@@ -980,9 +983,9 @@ void CSongUI::DrawPlayTimeCounter()
     snprintf(timstr, 16, !(timesec & 1) ? "%2d:%02d.%02d" : "%2d %02d.%02d", timemin, timesec, timemilisec);
     snprintf(bpmstr, 8, (m_song->m_play) ? "%1.2f" : "0.00", bpm);
 
-    CCanvasXY::TextXY("TIME:             BPM:", PLAYTC_X, PLAYTC_Y, TextColor::WHITE);
-    CCanvasXY::TextXY(timstr, PLAYTC_X + 8 * 6, PLAYTC_Y, (m_song->m_play) ? TextColor::WHITE : TextColor::GRAY);
-    CCanvasXY::TextXY(bpmstr, PLAYTC_X + 8 * 23, PLAYTC_Y, (m_song->m_play) ? TextColor::WHITE : TextColor::GRAY);
+    canvasXY->TextXY("TIME:             BPM:", PLAYTC_X, PLAYTC_Y, TextColor::WHITE);
+    canvasXY->TextXY(timstr, PLAYTC_X + 8 * 6, PLAYTC_Y, (m_song->m_play) ? TextColor::WHITE : TextColor::GRAY);
+    canvasXY->TextXY(bpmstr, PLAYTC_X + 8 * 23, PLAYTC_Y, (m_song->m_play) ? TextColor::WHITE : TextColor::GRAY);
 
     //if (pDC) pDC->BitBlt( SCALE(PLAYTC_X), SCALE(PLAYTC_Y), SCALE(PLAYTC_W), SCALE(PLAYTC_H), g_mem_dc, SCALE(PLAYTC_X), SCALE(PLAYTC_Y), SRCCOPY);
 }

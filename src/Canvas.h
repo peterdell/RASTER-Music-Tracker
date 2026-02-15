@@ -23,9 +23,7 @@ public:
 
     CCanvas& PrintByte(const byte value);
 
-    CCanvas& PrintfMini(
-        size_t      const size,
-        char const* const format, ...);
+    CCanvas& PrintfMini(const size_t  size, char const* const format, ...);
 
     void FillSolidRect(int x, int y, int width, int height, COLORREF color);
 private:
