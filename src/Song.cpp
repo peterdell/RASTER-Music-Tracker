@@ -704,16 +704,18 @@ int CSong::DecodeModule(unsigned char* mem, int fromAddr, int endAddr, BYTE* ins
 
 BOOL CSong::PlayPressedTonesInit()
 {
-    for (int t = 0; t < SONGTRACKS; t++)
+    for (int t = 0; t < SONGTRACKS; t++) {
         SetPlayPressedTonesTNIV(t, -1, -1, -1);
-    return 1;
+    }
+    return TRUE;
 }
 
 BOOL CSong::SetPlayPressedTonesSilence()
 {
-    for (int t = 0; t < SONGTRACKS; t++)
+    for (int t = 0; t < SONGTRACKS; t++) {
         SetPlayPressedTonesTNIV(t, -1, -1, 0);
-    return 1;
+    }
+    return TRUE;
 }
 
 BOOL CSong::PlayPressedTones()
@@ -736,7 +738,7 @@ BOOL CSong::PlayPressedTones()
             SetPlayPressedTonesTNIV(t, -1, -1, -1);
         }
     }
-    return 1;
+    return TRUE;
 }
 
 

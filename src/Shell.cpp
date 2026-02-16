@@ -12,7 +12,7 @@ BOOL CShell::OpenFile(const CString& filePath) {
        ); "*/
     const auto result = ShellExecute(NULL, TEXT("open"), filePath, TEXT(""), NULL, SW_SHOWNORMAL);
     if ((INT_PTR)result < 32) {
-        LPTSTR lpMsgBuf;
+        LPTSTR lpMsgBuf = nullptr;
         DWORD dw = GetLastError();
 
         if (FormatMessage(

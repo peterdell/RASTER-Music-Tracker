@@ -2,7 +2,7 @@
 
 #include "StdAfx.h"
 
-// Display info messae in the status bar or in the log.
+// Display info message in the status bar or in the log.
 extern void SendInfoMessage(const char* message);
 
 // Display error message in a message box or in the the log. Optionally with title.

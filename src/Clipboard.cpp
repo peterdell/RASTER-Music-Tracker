@@ -316,7 +316,7 @@ int CTrackClipboard::BlockRestoreFromBackup()
     return 0;
 }
 
-void CTrackClipboard::GetFromTo(int& from, int& to)
+void CTrackClipboard::GetFromTo(int& from, int& to) const
 {
     from = 1; to = 0;
 
