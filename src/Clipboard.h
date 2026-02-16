@@ -20,8 +20,8 @@ public:
     int BlockClear();
     int BlockRestoreFromBackup();
 
-    void GetFromTo(int& from, int& to);
-    int	GetCol() { return m_selcol; };
+    void GetFromTo(int& from, int& to) const;
+    int	GetCol() const { return m_selcol; };
 
     void BlockNoteTransposition(int instr, int addnote);
     void BlockInstrumentChange(int instr, int addinstr);
