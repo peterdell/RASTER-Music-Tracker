@@ -1,11 +1,11 @@
-#include "StdAfx.h"
-#include "WaveFileExporter.h"
-#include "WaveFile.h"
-#include "GuiHelpers.h"
-#include "LZSSFile.h"
+#include "AtariTrackerDriver.h"
 #include "AtariTrackerDriver.h"
 #include "Global.h"
-#include "AtariTrackerDriver.h"
+#include "LZSSFile.h"
+#include "Messages.h"
+#include "StdAfx.h"
+#include "WaveFile.h"
+#include "WaveFileExporter.h"
 
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
 

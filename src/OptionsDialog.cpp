@@ -1,11 +1,10 @@
 // ConfigDlg.cpp : implementation file
 //
 
+#include "Global.h"
 #include "OptionsDialog.h"
-#include "GuiHelpers.h"
 #include "StdAfx.h"
 #include "TuningDialog.h"
-#include "Global.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

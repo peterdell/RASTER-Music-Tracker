@@ -27,13 +27,6 @@ private:
 extern void ClearStatusBar();
 extern void SetStatusBarText(const char* text);
 
-// Display info messae in the status bar or in the log.
-extern void SendInfoMessage(const char* message);
-
-// Display error message in a message box or in the the log. Optionally with title.
-extern void SendErrorMessage(const char* message);
-extern void SendErrorMessage(const char* title, const char* message);
-
 extern BOOL RefreshScreen(int frameskip = 0);
 
 extern int EditText(int vk, int shift, int control, char* txt, int& cur, int max);

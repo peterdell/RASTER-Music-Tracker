@@ -1,7 +1,7 @@
-#include "StdAfx.h"
 #include "SongContainer.h"
+#include "StdAfx.h"
 
-#include "GuiHelpers.h"
+#include "Messages.h"
 #include "RuntimeException.h"
 
 CSongContainer::CSongContainer(CSong& song) {

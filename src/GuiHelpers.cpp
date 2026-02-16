@@ -11,7 +11,7 @@
 #include "Winuser.h"
 
 
-CStatusBar* g_statusBar = nullptr;
+extern CStatusBar* g_statusBar;
 
 
 void ClearStatusBar() {
@@ -29,32 +29,6 @@ void SetStatusBarText(const char* text)
         g_statusBar->SetWindowText(text);
     }
 }
-
-void SendInfoMessage(const char* message) {
-    SetStatusBarText(message);
-}
-
-void SendErrorMessage(const char* message) {
-    SendErrorMessage(nullptr, message);
-}
-
-void SendErrorMessage(const char* title, const char* message) {
-    if (g_statusBar == nullptr) {
-        OutputDebugString("ERROR: ");
-        if (title) {
-            OutputDebugString(title);
-            OutputDebugString("\n");
-        }
-
-        OutputDebugString(message);
-        OutputDebugString("\n");
-    }
-    else {
-        MessageBox(g_hwnd, message, title, MB_ICONERROR);
-    }
-}
-
-
 
 int DisableEventSection::eventsDisabledCounter = 0;
 HCURSOR DisableEventSection::oldCursor = NULL;

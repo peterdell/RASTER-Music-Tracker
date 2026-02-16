@@ -6,8 +6,8 @@
 #include "AboutDialog.h"
 #include "Commands.h"
 #include "Global.h"
-#include "GuiHelpers.h" // For SendErrorMessage
 #include "MainFrm.h"
+#include "Messages.h" 
 #include "Rmt.h"
 #include "RmtCommandLineInfo.h"
 #include "RmtDoc.h"

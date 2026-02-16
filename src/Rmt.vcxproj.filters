@@ -306,14 +306,8 @@
     <ClCompile Include="SongIO.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClCompile>
-    <ClCompile Include="PokeyController.cpp">
-      <Filter>Source Files\UI</Filter>
-    </ClCompile>
     <ClCompile Include="RmtExporter.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\RMT</Filter>
-    </ClCompile>
-    <ClCompile Include="PokeyView.cpp">
-      <Filter>Source Files\UI</Filter>
     </ClCompile>
     <ClCompile Include="SongUI.cpp">
       <Filter>Source Files\GUI</Filter>
@@ -329,6 +323,15 @@
     </ClCompile>
     <ClCompile Include="AtariView.cpp">
       <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="PokeyView.cpp">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="PokeyController.cpp">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="Messages.cpp">
+      <Filter>Source Files\Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -455,9 +458,6 @@
     <ClInclude Include="WaveFileExporter.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\WAV</Filter>
     </ClInclude>
-    <ClInclude Include="RuntimeException.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="General.h">
       <Filter>Source Files\Common</Filter>
     </ClInclude>
@@ -560,23 +560,14 @@
     <ClInclude Include="Keyboard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PokeyController.h">
-      <Filter>Source Files\UI</Filter>
-    </ClInclude>
     <ClInclude Include="SongUI.h">
       <Filter>Source Files\GUI</Filter>
     </ClInclude>
     <ClInclude Include="RmtExporter.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\RMT</Filter>
     </ClInclude>
-    <ClInclude Include="PokeyView.h">
-      <Filter>Source Files\UI</Filter>
-    </ClInclude>
     <ClInclude Include="Canvas.h">
       <Filter>Source Files\GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="TextColors.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TypedComboBox.h">
       <Filter>Source Files\GUI</Filter>
@@ -589,6 +580,21 @@
     </ClInclude>
     <ClInclude Include="AtariView.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="PokeyView.h">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="PokeyController.h">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="TextColors.h">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="RuntimeException.h">
+      <Filter>Source Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Messages.h">
+      <Filter>Source Files\Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

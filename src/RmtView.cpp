@@ -274,8 +274,7 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_UPDATE_COMMAND_UI(ID_VIEW_STATUS_BAR, OnUpdateViewStatusBar)
     ON_UPDATE_COMMAND_UI(ID_VIEW_TOOLBAR, OnUpdateViewToolbar)
 
-    //}}AFX_MSG_MAP
-
+    // Menu Tools
     ON_COMMAND(ID_TOOLS_OPTIONS, OnToolsOptions)
 
     // Menu Channels

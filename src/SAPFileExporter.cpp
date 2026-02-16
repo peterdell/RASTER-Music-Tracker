@@ -1,11 +1,14 @@
-#include "StdAfx.h"
-#include "SAPFileExporter.h"
-#include "Memory.h"
-#include "lzss_sap.h"
-#include "LZSSFile.h"
-#include "VUPlayer.h"
 #include "AtariIO.h"
 #include "GuiHelpers.h"
+#include "lzss_sap.h"
+#include "LZSSFile.h"
+#include "Memory.h"
+#include "Messages.h"
+#include "Messages.h"
+#include "SAPFileExporter.h"
+#include "StdAfx.h"
+#include "VUPlayer.h"
+
 #include "Global.h"
 
 bool CSAPFileExporter::ExportSAP_B_LZSS(CSongExport& songExport, CSAPFile& sapFile, std::ofstream& ou) {

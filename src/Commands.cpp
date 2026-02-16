@@ -1,9 +1,10 @@
 #include "Commands.h"
-#include "GuiHelpers.h"
+#include "Messages.h"
 
 #include "afxacceleratorkey.h"
 #include "resource.h"
 #include "Rmt.h"
+#include <assert.h>
 #include <fstream>
 #include <iostream>
 

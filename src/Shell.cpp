@@ -1,6 +1,5 @@
+#include "Messages.h"
 #include "Shell.h"
-
-#include "GuiHelpers.h"
 
 BOOL CShell::OpenFile(const CString& filePath) {
     /* "HINSTANCE ShellExecuteA(

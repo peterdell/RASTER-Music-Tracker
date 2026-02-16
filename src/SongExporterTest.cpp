@@ -1,10 +1,10 @@
+#include "SongExporterTest.h"
 #include "StdAfx.h"
 #include <ctime> 
-#include "SongExporterTest.h"
 
-#include <string>
 #include "Song.h"
 #include "SongContainer.h"
+#include <string>
 
 #include "SongExport.h"
 
@@ -12,7 +12,7 @@
 
 #include "Global.h"
 
-#include "GuiHelpers.h"
+#include "Messages.h"
 
 #include "SAPFile.h"
 #include "SAPFileExporter.h"

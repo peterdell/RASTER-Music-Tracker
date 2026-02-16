@@ -2,7 +2,7 @@
 
 class CAtari;
 
-// Controller classe for the Pokey Explorer mode.
+// Controller class for the Pokey Explorer mode.
 
 class CPokeyController {
 
