@@ -479,12 +479,12 @@ CCommands::CCommands() {
 }
 
 void CCommands::Analyze() {
-    HKL  hkl;
-    hkl = LoadKeyboardLayoutA(
+    auto oldhKL = GetKeyboardLayout(0);
+    auto hkl = LoadKeyboardLayoutA(
         "00000409", //  U.S. English layout 
         KLF_ACTIVATE
     );
-    auto oldhKL = ActivateKeyboardLayout(hkl, KLF_ACTIVATE);
+    ActivateKeyboardLayout(hkl, KLF_REORDER);
 
 
     ClearActionInfos();
@@ -501,11 +501,6 @@ void CCommands::Analyze() {
 
     ClearActionInfos();
 
-
-    oldhKL = LoadKeyboardLayoutA(
-        "00000407", //  German layout
-        KLF_ACTIVATE
-    );
-    ActivateKeyboardLayout(oldhKL, KLF_ACTIVATE);
+    ActivateKeyboardLayout(oldhKL, KLF_REORDER);
 
 }
