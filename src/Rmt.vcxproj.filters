@@ -333,6 +333,9 @@
     <ClCompile Include="Messages.cpp">
       <Filter>Source Files\Common</Filter>
     </ClCompile>
+    <ClCompile Include="CStringUtility.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EffectsDlg.h">
@@ -594,6 +597,9 @@
       <Filter>Source Files\Common</Filter>
     </ClInclude>
     <ClInclude Include="Messages.h">
+      <Filter>Source Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="CStringUtility.h">
       <Filter>Source Files\Common</Filter>
     </ClInclude>
   </ItemGroup>
