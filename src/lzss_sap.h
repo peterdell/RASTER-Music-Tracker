@@ -16,11 +16,6 @@
 #include "StdAfx.h"
 
 
-#define bits_literal (1+8)                      // Number of bits for encoding a literal
-#define bits_match (1 + bits_moff + bits_mlen)  // Bits for encoding a match
-#define max_mlen (min_mlen + (1<<bits_mlen) -1) // Maximum match length
-#define max_off (1<<bits_moff)                  // Maximum offset
-
  // Struct for LZ optimal parsing
 struct lzop
 {
@@ -57,13 +52,12 @@ enum class SAPROptimization : int {
 };
 
 
-class CCompressLzss
+class CLzss
 {
 public:
-    CCompressLzss();
-    int LZSS_SAP(const unsigned char* src, int srclen, unsigned char* dst, SAPROptimization optimisation = SAPROptimization::AUDC);
+    CLzss();
 
-private:
+public:
     int bits_moff;                              // Number of bits used for OFFSET
     int bits_mlen;                              // Number of bits used for MATCH
     int min_mlen;                               // Minimum match length
@@ -71,6 +65,18 @@ private:
     int fmt_pos_start_zero;                     // Match positions start at 0, else start at max
     int* stat_len;                              // Statistics
     int* stat_off;
+
+
+    int bits_literal() { return (1 + 8); }                      // Number of bits for encoding a literal
+    int bits_match() {
+        return  (1 + bits_moff + bits_mlen);
+    } // Bits for encoding a match
+    int max_mlen() {
+        return  (min_mlen + (1 << bits_mlen) - 1);
+    } // Maximum match length
+    int max_off() {
+        return  (1 << bits_moff);
+    }  // Maximum offset
 
     void init(struct bf* x);
     void bflush(struct bf* x);
@@ -86,6 +92,17 @@ private:
     void lzop_backfill(struct lzop* lz, int last_literal);
     int lzop_last_is_match(const struct lzop* lz);
     int lzop_encode(struct bf* b, const struct lzop* lz, int pos, int lpos);
+};
+
+class CCompressLzss
+{
+public:
+    CCompressLzss();
+    int LZSS_SAP(const unsigned char* src, int srclen, unsigned char* dst, SAPROptimization optimisation = SAPROptimization::AUDC);
+
+private:
+    CLzss lzss;
+
     void Optimise_AUDC(uint8_t* buf);
     void Optimise_AUDCTL(uint8_t* buf);
     void Optimise_AUDF(uint8_t* buf);
