@@ -16,7 +16,9 @@
 #include "StdAfx.h"
 
 
- // Struct for LZ optimal parsing
+static constexpr int REGISTERS = 9;
+
+// Struct for LZ optimal parsing
 struct lzop
 {
     const uint8_t* data;                        // The data to compress
@@ -98,12 +100,17 @@ class CCompressLzss
 {
 public:
     CCompressLzss();
-    int LZSS_SAP(const unsigned char* src, int srclen, unsigned char* dst, SAPROptimization optimisation = SAPROptimization::AUDC);
+    int LZSS_SAP(const byte* src, const size_t srclen, unsigned char* dst, SAPROptimization optimisation = SAPROptimization::AUDC);
+
+    int LZSS_SAP(const int registers, const byte* src, const size_t srclen, unsigned char* dst, SAPROptimization optimisation);
 
 private:
     CLzss lzss;
 
+    int Optimize(const int registers, const unsigned char* src, const size_t srclen, const SAPROptimization optimisation, uint8_t** data);
     void Optimise_AUDC(uint8_t* buf);
     void Optimise_AUDCTL(uint8_t* buf);
     void Optimise_AUDF(uint8_t* buf);
+
+    int Compress(uint8_t** data, const int sz, unsigned char* dst, const int show_stats, const bool force_last_literal, FILE* log);
 };

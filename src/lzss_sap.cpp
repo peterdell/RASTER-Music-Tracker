@@ -38,8 +38,9 @@ void CLzss::init(struct bf* x)
 
 void CLzss::bflush(struct bf* x)
 {
-    if (x->len)
+    if (x->len) {
         memcpy(x->out + x->total, x->buf, x->len);
+    }
     x->total += x->len;
     x->len = 0;
     x->bnum = 0;
@@ -355,190 +356,142 @@ void CCompressLzss::Optimise_AUDF(uint8_t* buf)
     }
 }
 
-// Hacked up version of main() by VinsCool, stripping out most options that aren't needed for RMT 
-int CCompressLzss::LZSS_SAP(const unsigned char* src, int srclen, unsigned char* dst, SAPROptimization optimisation)
-{
-    struct bf b;
-    uint8_t buf[9], * data[9];
-    int lpos[9];
-    int show_stats = 2; // Full Verbose for debugging purposes
-    int bits_mtotal = lzss.bits_moff + lzss.bits_mlen;
-    int bits_set = 0;
-    int force_last_literal = 1;
-    int format_version = 0;  // LZSS format version - 0 means last version
 
-    int opt = '6';  //LZ16 always, however this may be changed if needed
+int CCompressLzss::Optimize(const int registers, const unsigned char* src, const size_t srclen, const SAPROptimization optimisation, uint8_t** data) {
+    static constexpr size_t BUFFER_SIZE = 128 * 1024; // 128 k
 
-    switch (opt)
+    uint8_t registerBufferArray[REGISTERS];
+
+    // Allocate buffers
+    for (int i = 0; i < REGISTERS; i++)
     {
-    case '2':
-        lzss.bits_moff = 7;
-        lzss.bits_mlen = 5;
-        bits_mtotal = 12;
-        bits_set |= 8;
-        break;
-    case '8':
-        lzss.bits_moff = 4;
-        lzss.bits_mlen = 4;
-        bits_mtotal = 8;
-        bits_set |= 8;
-        break;
-    case '6':
-        lzss.bits_moff = 8;
-        lzss.bits_mlen = 8;
-        bits_mtotal = 16;
-        lzss.min_mlen = 1;
-        bits_set |= 8;
-        break;
-    default:
-        break;
-    }
-
-    // Set format flags:
-    switch (format_version)
-    {
-    case 1:
-        lzss.fmt_literal_first = 0;
-        lzss.fmt_pos_start_zero = 1;
-        break;
-    default:
-        lzss.fmt_literal_first = 1;
-        lzss.fmt_pos_start_zero = 0;
-        break;
-    }
-
-    // Calculate bits
-    switch (bits_set)
-    {
-    case 0:
-    case 1:
-    case 4:
-    case 5:
-        lzss.bits_mlen = bits_mtotal - lzss.bits_moff;
-        break;
-    case 2:
-    case 6:
-        lzss.bits_moff = bits_mtotal - lzss.bits_mlen;
-        break;
-    case 3:
-    case 8:
-        // OK
-        break;
-    default:
-        return 0;
-        break;
-    }
-
-    // Alloc statistic arrays
-    lzss.stat_len = (int*)calloc(sizeof(int), lzss.max_mlen() + 1);
-    lzss.stat_off = (int*)calloc(sizeof(int), lzss.max_off() + 1);
-
-    // Max size of each bufer: 128k
-    for (int i = 0; i < 9; i++)
-    {
-        data[i] = (uint8_t*)malloc(128 * 1024);
-        lpos[i] = -1;
+        data[i] = (uint8_t*)malloc(BUFFER_SIZE);
     }
 
     // Read all data
-    int sz = 0;
-    int mem = 0;
+    int size = 0;
+    int srcIndex = 0;
 
     // Buffered bytes are loaded from source memory pointer
-    for (sz = 0; mem < srclen && sz < (128 * 1024); sz++)
+    for (size = 0; srcIndex < srclen && size < BUFFER_SIZE - REGISTERS; size++)
     {
-        // SAP-R frames are processed in groups of 9 bytes, in this order: 
+        // SAP-R frames are processed in groups of REGISTERS bytes, in this order: 
         // AUDF0, AUDC0, AUDF1, AUDC1, AUDF2, AUDC2, AUDF3, AUDC3, AUDCTL
-        for (int i = 0; i < 9; i++) { buf[i] = src[mem + i]; }
+        for (int i = 0; i < REGISTERS; i++) { registerBufferArray[i] = src[srcIndex + i]; }
 
         // Apply desired optimisations to the buffered bytes
         switch (optimisation)
         {
         case SAPROptimization::AUDC:
-            Optimise_AUDC(buf);
+            Optimise_AUDC(registerBufferArray);
             break;
 
         case SAPROptimization::AUDCTL:
-            Optimise_AUDCTL(buf);
+            Optimise_AUDCTL(registerBufferArray);
             break;
 
         case SAPROptimization::AUDF:
-            Optimise_AUDF(buf);
+            Optimise_AUDF(registerBufferArray);
             break;
 
         case SAPROptimization::AUDC_AUDF:
-            Optimise_AUDC(buf);
-            Optimise_AUDF(buf);
+            Optimise_AUDC(registerBufferArray);
+            Optimise_AUDF(registerBufferArray);
             break;
 
         case SAPROptimization::AUDCTL_AUDC:
-            Optimise_AUDC(buf);
-            Optimise_AUDCTL(buf);
+            Optimise_AUDC(registerBufferArray);
+            Optimise_AUDCTL(registerBufferArray);
             break;
 
         case SAPROptimization::AUDCTL_AUDF:
-            Optimise_AUDCTL(buf);
-            Optimise_AUDF(buf);
+            Optimise_AUDCTL(registerBufferArray);
+            Optimise_AUDF(registerBufferArray);
             break;
 
         case SAPROptimization::ALL:
-            Optimise_AUDC(buf);
-            Optimise_AUDCTL(buf);
-            Optimise_AUDF(buf);
+            Optimise_AUDC(registerBufferArray);
+            Optimise_AUDCTL(registerBufferArray);
+            Optimise_AUDF(registerBufferArray);
             break;
         }
 
         // Write the processed bytes once the optimisations were applied to them
-        for (int i = 0; i < 9; i++) { data[i][sz] = buf[i]; }
+        for (int i = 0; i < REGISTERS; i++) { data[i][size] = registerBufferArray[i]; }
 
         // Adjust the offset for the next buffer chunk
-        mem += 9;
+        srcIndex += REGISTERS;
+    }
+
+    return size;
+}
+
+int CCompressLzss::Compress(uint8_t** data, const int sz, unsigned char* dst, const int show_stats, const bool force_last_literal, FILE* log) {
+
+    // Alloc statistic arrays
+    lzss.stat_len = (int*)calloc(sizeof(int), lzss.max_mlen() + 1);
+    lzss.stat_off = (int*)calloc(sizeof(int), lzss.max_off() + 1);
+
+    // Compress
+    static constexpr int REGISTERS = 9;
+
+    int lpos[REGISTERS];
+    for (int i = 0; i < REGISTERS; i++)
+    {
+        lpos[i] = -1;
     }
 
     // Set the output to the destination memory pointer 
+    struct bf b;
     b.out = dst;
 
     // Check for empty streams and warn
-    int chn_skip[9];
+    int chn_skip[REGISTERS];
     lzss.init(&b);
-    for (int i = 8; i >= 0; i--)
+    for (int i = REGISTERS - 1; i >= 0; i--)
     {
-        const uint8_t* p = data[i], s = *p;
+        const uint8_t* p = data[i];
+        uint8_t s = *p;
         int n = 0;
         for (int j = 0; j < sz; j++)
             if (*p++ != s)
                 n++;
         if (i != 0 && !n)
         {
-            if (show_stats)
-                fprintf(stderr, "Skipping channel #%d, set with $%02x.\n", i, s);
+            if (show_stats) {
+                fprintf(log, "Skipping channel #%d, set with $%02x.\n", i, s);
+            }
             lzss.add_bit(&b, 1);
             chn_skip[i] = 1;
         }
         else
         {
-            if (i)
+            if (i) {
                 lzss.add_bit(&b, 0);
+            }
             chn_skip[i] = 0;
             if (!n)
             {
-                fprintf(stderr, "WARNING: stream #%d ", i);
-                if (s == 0)
-                    fprintf(stderr, "is empty");
-                else
-                    fprintf(stderr, "contains only $%02X", s);
-                fprintf(stderr, ", should not be included in output!\n");
+                fprintf(log, "WARNING: stream #%d ", i);
+                if (s == 0) {
+                    fprintf(log, "is empty");
+                }
+                else {
+                    fprintf(log, "contains only $%02X", s);
+                }
+                fprintf(log, ", should not be included in output!\n");
             }
         }
     }
     lzss.bflush(&b);
 
     // Now, we store initial values for all chanels:
-    for (int i = 8; i >= 0; i--)
+    for (int i = REGISTERS - 1; i >= 0; i--)
     {
         // In version 1 we only store init byte for the skipped channels
-        if (lzss.fmt_literal_first || chn_skip[i])
+        if (lzss.fmt_literal_first || chn_skip[i]) {
             lzss.add_byte(&b, *data[i]);
+        }
     }
     lzss.bflush(&b);
 
@@ -565,19 +518,19 @@ int CCompressLzss::LZSS_SAP(const unsigned char* src, int srclen, unsigned char*
     // a literal - just fix stream 0, as this is always encoded:
     if (force_last_literal && end_not_ok)
     {
-        fprintf(stderr, "LZSS: fixing up stream #0 to end in a literal\n");
+        fprintf(log, "LZSS: fixing up stream #0 to end in a literal\n");
         lzss.lzop_backfill(&lz[0], 1);
     }
     else if (end_not_ok)
     {
-        fprintf(stderr, "WARNING: stream does not end in a literal.\n");
-        fprintf(stderr, "WARNING: this can produce errors at the end of decoding.\n");
+        fprintf(log, "WARNING: stream does not end in a literal.\n");
+        fprintf(log, "WARNING: this can produce errors at the end of decoding.\n");
     }
 
     // Compress
     for (int pos = lzss.fmt_literal_first ? 1 : 0; pos < sz; pos++)
     {
-        for (int i = 8; i >= 0; i--)
+        for (int i = REGISTERS - 1; i >= 0; i--)
         {
             if (!chn_skip[i])
                 lpos[i] = lzss.lzop_encode(&b, &lz[i], pos, lpos[i]);
@@ -586,16 +539,16 @@ int CCompressLzss::LZSS_SAP(const unsigned char* src, int srclen, unsigned char*
     lzss.bflush(&b);
 
     // Show stats
-    fprintf(stderr, "LZSS: max offset= %d,\tmax len= %d,\tmatch bits= %d,\t",
+    fprintf(log, "LZSS: max offset= %d,\tmax len= %d,\tmatch bits= %d,\t",
         lzss.max_off(), lzss.max_mlen(), lzss.bits_match() - 1);
-    fprintf(stderr, "ratio: %5d / %d = %5.2f%%\n", b.total, 9 * sz, (100.0 * b.total) / (9.0 * sz));
+    fprintf(log, "ratio: %5d / %d = %5.2f%%\n", b.total, 9 * sz, (100.0 * b.total) / (9.0 * sz));
     if (show_stats)
     {
         for (int i = 0; i < 9; i++)
         {
             if (!chn_skip[i])
             {
-                fprintf(stderr, " Stream #%d: %d bits,\t%5.2f%%,\t%5.2f%% of output\n", i,
+                fprintf(log, " Stream #%d: %d bits,\t%5.2f%%,\t%5.2f%% of output\n", i,
                     lz[i].bits[0], (100.0 * lz[i].bits[0]) / (8.0 * sz),
                     (100.0 * lz[i].bits[0]) / (8.0 * b.total));
             }
@@ -604,25 +557,108 @@ int CCompressLzss::LZSS_SAP(const unsigned char* src, int srclen, unsigned char*
 
     if (show_stats > 1)
     {
-        fprintf(stderr, "\nvalue\t  POS\t  LEN\n");
+        fprintf(log, "\nvalue\t  POS\t  LEN\n");
         for (int i = 0; i <= lzss.maximum(lzss.max_mlen(), lzss.max_off()); i++)
         {
-            fprintf(stderr, "%2d\t%5d\t%5d\n", i,
+            fprintf(log, "%2d\t%5d\t%5d\n", i,
                 (i <= lzss.max_off()) ? lzss.stat_off[i] : 0,
                 (i <= lzss.max_mlen()) ? lzss.stat_len[i] : 0);
         }
     }
 
     // Free memory
-    for (int i = 0; i < 9; i++)
+    for (int i = 0; i < REGISTERS; i++)
     {
         free(data[i]);
-        if (!chn_skip[i])
+        if (!chn_skip[i]) {
             lzss.lzop_free(&lz[i]);
+        }
     }
     free(lzss.stat_len);
     free(lzss.stat_off);
 
     // Size of compressed data is returned, for use with the destination memory pointer
     return b.total;
+}
+
+// Hacked up version of main() by VinsCool, stripping out most options that aren't needed for RMT 
+int CCompressLzss::LZSS_SAP(const byte* src, const size_t srclen, unsigned char* dst, SAPROptimization optimisation) {
+    return LZSS_SAP(REGISTERS, src, srclen, dst, optimisation);
+}
+
+int CCompressLzss::LZSS_SAP(const int registers, const byte* src, const size_t srclen, unsigned char* dst, SAPROptimization optimisation)
+{
+
+    uint8_t* data[REGISTERS];
+
+    auto sz = Optimize(registers, src, srclen, optimisation, data);
+
+    int show_stats = 2; // Full Verbose for debugging purposes
+    int bits_set = 0;
+    int force_last_literal = 1;
+    int format_version = 0;  // LZSS format version - 0 means last version
+
+    int opt = '6';  // LZ16 always, however this may be changed if needed
+
+    switch (opt)
+    {
+    case '2':
+        lzss.bits_moff = 7;
+        lzss.bits_mlen = 5;
+        bits_set |= 8;
+        break;
+    case '8':
+        lzss.bits_moff = 4;
+        lzss.bits_mlen = 4;
+        bits_set |= 8;
+        break;
+    case '6':
+        lzss.bits_moff = 8;
+        lzss.bits_mlen = 8;
+        lzss.min_mlen = 1;
+        bits_set |= 8;
+        break;
+    default:
+        return 0;
+        break;
+    }
+
+
+    // Set format flags:
+    switch (format_version)
+    {
+    case 1:
+        lzss.fmt_literal_first = 0;
+        lzss.fmt_pos_start_zero = 1;
+        break;
+    default:
+        lzss.fmt_literal_first = 1;
+        lzss.fmt_pos_start_zero = 0;
+        break;
+    }
+
+    // Calculate bits
+    const int bits_mtotal = lzss.bits_moff + lzss.bits_mlen;
+
+    switch (bits_set)
+    {
+    case 0:
+    case 1:
+    case 4:
+    case 5:
+        lzss.bits_mlen = bits_mtotal - lzss.bits_moff;
+        break;
+    case 2:
+    case 6:
+        lzss.bits_moff = bits_mtotal - lzss.bits_mlen;
+        break;
+    case 3:
+    case 8:
+        // OK
+        break;
+    default:
+        return 0;
+        break;
+    }
+    return Compress(data, sz, dst, show_stats, force_last_literal, stderr);
 }
