@@ -6,7 +6,7 @@
 
 #include "asap\wasap.h"
 
-
+#include "CStringUtility.h"
 #include "Global.h"
 #include <assert.h>
 #include <filesystem>
@@ -14,6 +14,8 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+
+#include "lzss_sap.h"
 
 using std::ios;
 
@@ -146,6 +148,85 @@ void Analyze(const CStringArray& menuPath, CMenu& menu) {
     }
 
 }
+
+void WriteByteArray(const CString fileName, const byte* buffer, const size_t bufferSize) {
+    std::string ofname = (const char*)fileName;
+    std::ofstream ostream(ofname, std::ios_base::binary);
+    ostream.write((const char*)buffer, bufferSize);
+    ostream.close();
+
+}
+
+void TestLZSS(CString fileName) {
+
+    CCompressLzss compressLzss;
+    CString message;
+
+    auto sapr = CStringUtility::EndsWithNoCase(fileName, ".sapr");
+
+    std::string stdFileName = (const char*)fileName;
+    std::filesystem::path inputFilePath{ stdFileName };
+    if (!std::filesystem::exists(inputFilePath)) {
+        message.Format("File '%s' not found.", stdFileName.c_str());
+        SendErrorMessage(message);
+        return;
+    }
+    auto inputFileLength = std::filesystem::file_size(inputFilePath);
+    size_t headerSize = 0;
+    if (inputFileLength > 0) {
+        std::vector<std::byte> buffer(inputFileLength);
+        std::ifstream istream(stdFileName, std::ios_base::binary);
+        istream >> std::noskipws;
+
+        size_t dataSize = inputFileLength;
+
+        if (sapr) {
+            bool text = true;
+            char c1, c2, c3, c4;
+            c1 = c2 = c3 = c4 = 0;
+            while (text) {
+                byte c;
+                if (istream.eof()) {
+                    text = false;
+                }
+                istream >> c;
+
+                c1 = c2; c2 = c3; c3 = c4; c4 = c;
+                if (c1 == 0x0d && c2 == 0x0a && c3 == 0x0d && c4 == 0x0a) {
+                    text = false;
+                }
+                headerSize += 1;
+            }
+            dataSize -= headerSize;
+            message.Format("Skipped %lu bytes of SAP header skipped in '%s'.", headerSize, stdFileName.c_str(), dataSize);
+            SendInfoMessage(message);
+        }
+
+        int registers = REGISTERS;
+        size_t states = dataSize / registers;
+        int leftover = dataSize % registers;
+        message.Format(" %lu bytes of data. %lu (0x%lx) states of %d bytes. %d leftover bytes.", dataSize, states, states, registers, leftover);
+        SendInfoMessage(message);
+
+        istream.read(reinterpret_cast<char*>(buffer.data()), dataSize);
+        istream.close();
+        const byte* src = (const byte*)buffer.data();
+        auto  srclen = buffer.size();
+        byte* dest = new byte[dataSize];
+        auto destSize = compressLzss.LZSS_SAP(src, srclen, dest, SAPROptimization::NONE);
+        message.Format("LZSS compression of %lu (0x%lx) bytes completed result %u (0x%x) bytes.", dataSize, dataSize, destSize, destSize);
+        SendInfoMessage(message);
+
+
+        WriteByteArray(fileName + ".raw", src, srclen);
+
+        WriteByteArray(fileName + ".raw.lzss", dest, destSize);
+
+        delete dest;
+
+    }
+}
+
 void CRmtTest::RunFor(const CRmtApp& app, const CString fileName) {
 
     // All these variables are initialized with their defaults.
@@ -154,13 +235,19 @@ void CRmtTest::RunFor(const CRmtApp& app, const CString fileName) {
     // - g_tuningRatios
     // - g_Song
 
-    SendInfoMessage("Test - Open and Export");
 
-    if (!g_Song.FileOpen(fileName, FALSE)) {
-        SendErrorMessage("Cannot load sonf from file '" + fileName + '.');
-        return;
+    if (!CStringUtility::EndsWithNoCase(fileName, ".sapr")) {
+        SendInfoMessage("Test - Open and Export");
+        if (!g_Song.FileOpen(fileName, FALSE)) {
+            SendErrorMessage("Cannot load song from file '" + fileName + '.');
+            return;
+        }
+        CSongExporterTest::Test(g_Song);
+
+    }
+    else {
+        TestLZSS(fileName);
     }
 
-    CSongExporterTest::Test(g_Song);
 
 }
