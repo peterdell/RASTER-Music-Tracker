@@ -333,7 +333,7 @@
     <ClCompile Include="Messages.cpp">
       <Filter>Source Files\Common</Filter>
     </ClCompile>
-    <ClCompile Include="CStringUtility.cpp">
+    <ClCompile Include="StringUtility.cpp">
       <Filter>Source Files\Common</Filter>
     </ClCompile>
   </ItemGroup>
@@ -599,7 +599,7 @@
     <ClInclude Include="Messages.h">
       <Filter>Source Files\Common</Filter>
     </ClInclude>
-    <ClInclude Include="CStringUtility.h">
+    <ClInclude Include="StringUtility.h">
       <Filter>Source Files\Common</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,4 +1,4 @@
-#include "CStringUtility.h"
+#include "StringUtility.h"
 
 
 bool CStringUtility::EndsWithNoCase(const CString string, const CString suffix) {

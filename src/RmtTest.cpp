@@ -6,8 +6,8 @@
 
 #include "asap\wasap.h"
 
-#include "CStringUtility.h"
 #include "Global.h"
+#include "StringUtility.h"
 #include <assert.h>
 #include <filesystem>
 #include <fstream>
