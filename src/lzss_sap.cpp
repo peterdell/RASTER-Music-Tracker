@@ -357,10 +357,11 @@ void CCompressLzss::Optimise_AUDF(uint8_t* buf)
 }
 
 
-int CCompressLzss::Optimize(const int registers, const unsigned char* src, const size_t srclen, const SAPROptimization optimisation, uint8_t** data) {
+int CCompressLzss::Optimize(const int registers, const unsigned char* src, const size_t srcSize, const SAPROptimization optimisation, uint8_t** data) {
     static constexpr size_t BUFFER_SIZE = 128 * 1024; // 128 k
+    // TODO: Why not srcSize
 
-    uint8_t registerBufferArray[REGISTERS];
+    uint8_t registerArray[REGISTERS];
 
     // Allocate buffers
     for (int i = 0; i < REGISTERS; i++)
@@ -369,61 +370,61 @@ int CCompressLzss::Optimize(const int registers, const unsigned char* src, const
     }
 
     // Read all data
-    int size = 0;
+    int destIndex = 0;
     int srcIndex = 0;
 
     // Buffered bytes are loaded from source memory pointer
-    for (size = 0; srcIndex < srclen && size < BUFFER_SIZE - REGISTERS; size++)
+    for (destIndex = 0; srcIndex < srcSize && destIndex < BUFFER_SIZE - REGISTERS; destIndex++)
     {
         // SAP-R frames are processed in groups of REGISTERS bytes, in this order: 
         // AUDF0, AUDC0, AUDF1, AUDC1, AUDF2, AUDC2, AUDF3, AUDC3, AUDCTL
-        for (int i = 0; i < REGISTERS; i++) { registerBufferArray[i] = src[srcIndex + i]; }
+        for (int i = 0; i < REGISTERS; i++) { registerArray[i] = src[srcIndex + i]; }
 
         // Apply desired optimisations to the buffered bytes
         switch (optimisation)
         {
         case SAPROptimization::AUDC:
-            Optimise_AUDC(registerBufferArray);
+            Optimise_AUDC(registerArray);
             break;
 
         case SAPROptimization::AUDCTL:
-            Optimise_AUDCTL(registerBufferArray);
+            Optimise_AUDCTL(registerArray);
             break;
 
         case SAPROptimization::AUDF:
-            Optimise_AUDF(registerBufferArray);
+            Optimise_AUDF(registerArray);
             break;
 
         case SAPROptimization::AUDC_AUDF:
-            Optimise_AUDC(registerBufferArray);
-            Optimise_AUDF(registerBufferArray);
+            Optimise_AUDC(registerArray);
+            Optimise_AUDF(registerArray);
             break;
 
         case SAPROptimization::AUDCTL_AUDC:
-            Optimise_AUDC(registerBufferArray);
-            Optimise_AUDCTL(registerBufferArray);
+            Optimise_AUDC(registerArray);
+            Optimise_AUDCTL(registerArray);
             break;
 
         case SAPROptimization::AUDCTL_AUDF:
-            Optimise_AUDCTL(registerBufferArray);
-            Optimise_AUDF(registerBufferArray);
+            Optimise_AUDCTL(registerArray);
+            Optimise_AUDF(registerArray);
             break;
 
         case SAPROptimization::ALL:
-            Optimise_AUDC(registerBufferArray);
-            Optimise_AUDCTL(registerBufferArray);
-            Optimise_AUDF(registerBufferArray);
+            Optimise_AUDC(registerArray);
+            Optimise_AUDCTL(registerArray);
+            Optimise_AUDF(registerArray);
             break;
         }
 
         // Write the processed bytes once the optimisations were applied to them
-        for (int i = 0; i < REGISTERS; i++) { data[i][size] = registerBufferArray[i]; }
+        for (int i = 0; i < REGISTERS; i++) { data[i][destIndex] = registerArray[i]; }
 
         // Adjust the offset for the next buffer chunk
         srcIndex += REGISTERS;
     }
 
-    return size;
+    return destIndex;
 }
 
 int CCompressLzss::Compress(uint8_t** data, const int sz, unsigned char* dst, const int show_stats, const bool force_last_literal, FILE* log) {

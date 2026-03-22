@@ -107,7 +107,7 @@ public:
 private:
     CLzss lzss;
 
-    int Optimize(const int registers, const unsigned char* src, const size_t srclen, const SAPROptimization optimisation, uint8_t** data);
+    int Optimize(const int registers, const unsigned char* src, const size_t srcSize, const SAPROptimization optimisation, uint8_t** data);
     void Optimise_AUDC(uint8_t* buf);
     void Optimise_AUDCTL(uint8_t* buf);
     void Optimise_AUDF(uint8_t* buf);
