@@ -102,12 +102,14 @@
          methods below are compiled here, with no dependency on Global.h. -->
     <ClCompile Include="..\Tuning.cpp" />
     <ClCompile Include="TuningInitStub.cpp" />
+    <ClCompile Include="..\lzss_sap.cpp" />
     <!-- Test sources. -->
     <ClCompile Include="FractionTests.cpp" />
     <ClCompile Include="StringUtilityTests.cpp" />
     <ClCompile Include="NotesTests.cpp" />
     <ClCompile Include="TuningTypesTests.cpp" />
     <ClCompile Include="TuningTests.cpp" />
+    <ClCompile Include="LzssTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Fraction.h" />
@@ -117,6 +119,7 @@
     <ClInclude Include="..\TuningTypes.h" />
     <ClInclude Include="..\Tuning.h" />
     <ClInclude Include="..\C6502.h" />
+    <ClInclude Include="..\lzss_sap.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="googletest\LICENSE" />

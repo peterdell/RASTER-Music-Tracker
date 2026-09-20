@@ -104,13 +104,18 @@ public:
 
     int LZSS_SAP(const int registers, const byte* src, const size_t srclen, unsigned char* dst, SAPROptimization optimisation);
 
+    // Public for testability: each transforms a single 9-byte SAP-R register
+    // frame in place and has no dependency on the rest of LZSS_SAP()'s state,
+    // so characterization tests call them directly instead of only
+    // indirectly through the full compressed output.
+    void Optimise_AUDC(uint8_t* buf);
+    void Optimise_AUDCTL(uint8_t* buf);
+    void Optimise_AUDF(uint8_t* buf);
+
 private:
     CLzss lzss;
 
     int Optimize(const int registers, const unsigned char* src, const size_t srcSize, const SAPROptimization optimisation, uint8_t** data);
-    void Optimise_AUDC(uint8_t* buf);
-    void Optimise_AUDCTL(uint8_t* buf);
-    void Optimise_AUDF(uint8_t* buf);
 
     int Compress(uint8_t** data, const int sz, unsigned char* dst, const int show_stats, const bool force_last_literal, FILE* log);
 };

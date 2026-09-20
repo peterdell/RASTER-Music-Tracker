@@ -223,6 +223,53 @@ and `RmtTests.exe` both build clean (0 errors, only the pre-existing `asap.c`
 warnings), and `RmtTests.exe` reports `43 tests from 6 test suites ... PASSED` in both
 Debug and Release.
 
+## Build verification workflow (2026-09-21, standing preference)
+
+The user pointed out that Debug and Release aren't just "same binary plus debug
+symbols" (Debug also disables optimization, enables `/RTC1` runtime checks, and links
+the debug CRT), but since Claude doesn't attach a debugger and only reads compiler/
+linker text output, it gets no benefit from Debug's symbols. **Going forward, verify
+changes by building/running only the Release|x64 configuration**, not both. Only also
+build/run Debug when a change is plausibly optimization- or undefined-behavior-
+sensitive, or before a larger checkpoint. (This is also saved as a standalone
+cross-session memory: `build-verification-config.md`.) Everything in this file from
+here on that says "verified" means Release-only unless stated otherwise.
+
+## Phase 2 continued (2026-09-21): `lzss_sap.cpp`/`CCompressLzss`
+
+Added tests for the SAP-R LZSS compressor (11 more, 54 total, all passing):
+
+- `lzss_sap.cpp` needed no cleanup split — it only includes `lzss_sap.h` (which
+  includes `StdAfx.h` for basic types, not `Global.h`), so it was already free of the
+  `Global.h` coupling problem hit with `Tuning.cpp`.
+- `CCompressLzss::Optimise_AUDC`/`Optimise_AUDCTL`/`Optimise_AUDF` were `private`.
+  Since each is a small, pure, single-9-byte-frame transform with no dependency on
+  the rest of the class's state, and this codebase has no LZSS *decoder* to invert
+  `LZSS_SAP()`'s output and recover their effect indirectly, the only way to test them
+  meaningfully was to make them directly callable. **Fix (same pattern as `CTuning`'s
+  test-only constructor): moved these three method declarations from `private` to
+  `public` in `lzss_sap.h`.** Purely a visibility change — no behavior change, and
+  `LZSS_SAP()` still calls them exactly as before internally. Added 8 hand-verified
+  tests (`OptimiseAudcTest`, `OptimiseAudcTlTest`, `OptimiseAudfTest`) — these were
+  straightforward to hand-derive since the bit logic is simple masking, unlike
+  `CTuning`'s branching modulo arithmetic.
+- Added 3 end-to-end `LzssTest` cases for `LZSS_SAP()` itself (the actual LZSS
+  matching/bit-packing), using the golden-master capture technique again: placeholder
+  expected byte vectors, run once, read the real output from the `EXPECT_EQ` failure
+  diagnostics (`--gtest_filter` to isolate one test, `2>/dev/null` to suppress
+  `LZSS_SAP()`'s own internal `fprintf(stderr, ...)` debug/stats dump which otherwise
+  drowns out the gtest failure text), then filled in the real values. Note: `LZSS_SAP()`
+  always runs with `show_stats=2` hardcoded internally (full verbose stats to
+  `stderr`), so running these tests is noisy on stderr — that's real, unmodified
+  behavior, not a test artifact worth suppressing at the source.
+- Destination buffers for compression must be sized generously (used `src.size() * 3
+  + 64` in the tests): a literal byte costs 9 encoded bits (1 flag + 8 data), i.e.
+  worse than 8 bits raw, so worst case compressed output can exceed input size for
+  small/incompressible inputs.
+
+Verified via a full Release|x64 solution rebuild (see workflow note above): `Rmt.exe`
+and `RmtTests.exe` both build clean (0 errors) and all 54 tests pass.
+
 ## Status
 
 - [x] Read `plans/OVERALL_PLAN.md`, `README.md`, and linked docs present in the repo.
@@ -232,22 +279,24 @@ Debug and Release.
 - [x] Phase 1 (move `src/*` to `src/cpp/`) done, build-verified, and committed
       (`ea3354b`).
 - [x] Phase 2 started: GoogleTest vendored + wired up, committed (`52b9073`).
-- [x] Phase 2 continued: split `Tuning.cpp`/`TuningTables.cpp` along its
-      pure-math/global-orchestration seam, added 15 more tests (43 total, all
-      passing, Debug + Release). Not yet committed.
+- [x] Phase 2 continued: split `Tuning.cpp`/`TuningTables.cpp`, 43 tests, committed
+      (`6cdabe7`).
+- [x] Phase 2 continued: `lzss_sap.cpp`/`CCompressLzss` tests, 54 tests total (11 new).
+      Not yet committed.
 - [ ] Ask user whether to commit this step.
 - [ ] Phase 2 continued: more characterization tests before any cleanup, roughly in
       order of increasing coupling:
-      - `lzss_sap.cpp`/`CCompressLzss` (pure data transform, good candidate, but
-        larger/more intricate — needs known-good input/output fixtures, e.g. round
-        trip a byte buffer, rather than guessed expected values; use the same
-        "capture actual output, then assert on it" technique used for `CTuning`).
       - `AssemblerTypes`, `Song` fixed-format struct parsing (`Track`, `Instruments`)
         where feasible without a live Atari/POKEY emulation.
       - Before starting a new module, always check whether it `#include`s `Global.h`
         (or another huge header) and, if so, whether the globally-coupled methods can
         be split out the same way as `Tuning.cpp`/`TuningTables.cpp` — check this
         early, since it changes the scope of the work.
+      - When a method needed for testing is `private` but pure (no dependency on
+        other private state) and there's no other way to exercise it (no decoder/
+        inverse operation, no way to observe its effect indirectly), the established
+        pattern here is: make it `public` with a one-line comment explaining why. Pure
+        visibility changes, no behavior change.
       - Everything touching `g_Song`/other globals, MFC dialogs, and the timer-driven
         sound generation is expected to need actual decoupling work (the "cleanup"
         half of Phase 2) before it's testable at all — do not attempt to test that
