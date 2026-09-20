@@ -1,7 +1,9 @@
 @echo off
 cd "%~dp0"
 
+setlocal
 set RELEASE=Rmt
+set CONFIGURATION=%1
 set BASE_DIR=C:\jac\system\Windows\Programming\Repositories\RASTER-Music-Tracker
 set TARGET_FILE=rmt135-daily.zip
 
@@ -20,8 +22,12 @@ set RELEASE_BASE_DIR=%TEMP%\%RELEASE%\
 rmdir /S /Q %RELEASE_BASE_DIR%
 mkdir %RELEASE_BASE_DIR%
 
+if not [%CONFIGURATION%]==[] goto :build_specified_configuration
+
+REM Build both configurations and upload the result.
 set CONFIGURATION=Debug
 call :build_configuration
+
 set CONFIGURATION=Release
 call :build_configuration
 
@@ -29,6 +35,12 @@ call :upload
 echo Done.
 pause
 goto :eof
+
+REM Build only the specified configurations and do not upload.
+:build_specified_configuration
+call :build_configuration
+goto: eof
+
 
 :build_configuration
 set CONFIGURATION_DIR=%CONFIGURATION%
