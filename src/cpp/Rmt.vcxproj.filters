@@ -102,6 +102,9 @@
     <ClCompile Include="Tuning.cpp">
       <Filter>Source Files\Tuning</Filter>
     </ClCompile>
+    <ClCompile Include="TuningTables.cpp">
+      <Filter>Source Files\Tuning</Filter>
+    </ClCompile>
     <ClCompile Include="TuningDialog.cpp">
       <Filter>Source Files\Tuning</Filter>
     </ClCompile>

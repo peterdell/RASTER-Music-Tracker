@@ -54,6 +54,14 @@ public:
     typedef double Pitch;
     typedef int AUDF; // Can be 8-bit or 16-bit
 
+    CTuning() = default;
+
+    // Test-only seam: lets tests exercise GetPitch()/GetAUDF()/GetPOKEYPitch()
+    // directly without going through InitTuning(), which reads global tuning
+    // state (g_tuning/g_tuningRatios) and can terminate the process via a
+    // MessageBox+exit(1) guard if that state hasn't been set up yet.
+    explicit CTuning(const C6502::ClockFrequency clockFrequency) : m_clockFrequency(clockFrequency) {}
+
     void InitTuning(const C6502::ClockFrequency clockFrequency, byte* table_memory);
 
     void InitTuning();
@@ -90,10 +98,10 @@ private:
         //Andreas Werckmeister's temperament III (the most famous one, 1681)
         { 1, 1.053497, 1.117403, 1.185185, 1.252827, 1.333333, 1.404663, 1.494927, 1.580246, 1.670436, 1.777777, 1.879240, 2 },
 
-        // Tempérament Égal à Quintes Justes 
+        // Tempï¿½rament ï¿½gal ï¿½ Quintes Justes 
         { 1, 1.059634, 1.122824, 1.189782, 1.260734, 1.335916, 1.415582, 1.5, 1.589451, 1.684236, 1.784674, 1.891101, 2.003875 },
 
-        // Alembert's and Rousseau's Tempérament Ordinaire (1752/1767)
+        // Alembert's and Rousseau's Tempï¿½rament Ordinaire (1752/1767)
         { 1, 1.051120, 1.118034, 1.181176, 1.250000, 1.331828, 1.403077, 1.495348, 1.574901, 1.671850, 1.773766, 1.872883, 2 },
 
         // Aron - Neidhardt equal beating well temperament
@@ -132,7 +140,7 @@ private:
         // Robert Schneider, scale of log(4) ..log(16), 1 / 1 = 264Hz
         { 1, 1.160964, 1.292481, 1.403677, 1.500000, 1.584962, 1.660964, 1.729715, 1.792481, 1.850219, 1.903677, 1.953445, 2 },
 
-        // Zarlino's Tempérament Extraordinaire, 1024 - tET mapping
+        // Zarlino's Tempï¿½rament Extraordinaire, 1024 - tET mapping
         { 1, 1.041450, 1.116652, 1.180385, 1.247756, 1.337855, 1.393309, 1.494930, 1.567469, 1.669316, 1.777781, 1.865308, 2 },
 
         //Fokker's 7-limit 12-tone just scale

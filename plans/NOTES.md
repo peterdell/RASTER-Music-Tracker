@@ -154,6 +154,75 @@ What was built:
   Characterized as-is in
   `NotesTests.cpp::IsValidNoteAcceptsOneOffTheEndOfItsDocumentedRange`.
 
+## Phase 2 continued (2026-09-21): CTuning tests + a real "cleanup" example
+
+Attempted to add characterization tests for `CTuning` (`GetPOKEYPitch`, `GetPitch`,
+`GetAUDF` — POKEY pitch/frequency math) and hit exactly the coupling problem the plan
+warned about, which led to a small, deliberate cleanup step rather than skipping the
+module. Notes on what happened, since the same pattern (a "pure-looking" method dragged
+into `Global.h`'s huge dependency graph by its enclosing translation unit) will very
+likely recur in other files:
+
+- `CTuning::GetPitch`/`GetAUDF`/`GetPOKEYPitch` are pure functions of their parameters
+  and the private `m_clockFrequency` member — no global reads. But `m_clockFrequency`
+  was previously only ever set via `InitTuning(clockFrequency, table_memory)`, which
+  calls the no-arg `InitTuning()`, which reads `g_tuning`/`g_tuningRatios`/
+  `g_notesperoctave` and can **terminate the process** via `MessageBox(...); exit(1);`
+  if `g_tuning.basetuning` is still `0.0` (its default before setup) — a real hazard
+  for an automated test binary. **Fix:** added a small, purely-additive test-only
+  constructor, `explicit CTuning(ClockFrequency)`, that sets `m_clockFrequency`
+  directly (`Tuning.h`). The implicit default constructor is preserved
+  (`CTuning() = default;`) since the global `g_Tuning` (`Global.cpp`) depends on
+  default-constructibility. No existing behavior changed.
+- Bigger problem: `Tuning.cpp` had `#include "Global.h"` at the top, and `Global.h`
+  transitively pulls in `Atari.h`, `AtariTrackerDriver.h`, `ChannelControl.h`,
+  `SongTypes.h`, `SongUI.h`, etc. — a huge slice of the application. Since MSVC links
+  a translation unit's object file as a whole, even though only `InitTuning()`/
+  `GenerateTable()` (2 of ~7 methods) actually touch globals, compiling `Tuning.cpp`
+  at all required resolving symbols for basically the whole app's global state, not
+  just 4 variables. **Fix (a real, minimal "cleanup" example for this phase):** split
+  `Tuning.cpp` into two files along the existing seam between pure math and
+  global-state orchestration:
+  - `Tuning.cpp` keeps `GetPOKEYPitch`, `GetPitch`, `GetAUDF`, `CalculateDeltaAUDF`,
+    `GetTruePitch`, and the two-arg `InitTuning(clockFrequency, table_memory)` (just
+    sets members and delegates) — **no longer includes `Global.h` at all.**
+  - New `src/cpp/TuningTables.cpp` holds `GenerateTable()` and the no-arg
+    `InitTuning()` — the only two methods that actually read `g_tuning`/
+    `g_tuningRatios`/`g_notesperoctave`/`g_hwnd`. Added to `Rmt.vcxproj` (production
+    build) right after `Tuning.cpp`.
+  - This is a pure mechanical move — method bodies are byte-for-byte identical, just
+    relocated — verified behavior-preserving by a full solution rebuild (see below).
+  - In `RmtTests.vcxproj`, a tiny link-only stub (`src/cpp/test/TuningInitStub.cpp`,
+    `void CTuning::InitTuning() {}`) satisfies the linker for the two-arg
+    `InitTuning()`'s reference to the no-arg one, without pulling in
+    `TuningTables.cpp`/`Global.h`. Tests never call `InitTuning()` at all — they use
+    the new direct-`m_clockFrequency` constructor.
+- **Takeaway for future modules:** when a file mixes a few globally-coupled methods
+  with otherwise-pure ones, check whether splitting along that seam (own file per
+  concern) is enough to make the pure part testable — much cheaper than either (a)
+  linking near-the-whole-app into the test binary, or (b) skipping the module
+  entirely. Not every file will have such a clean seam, though; when the coupling is
+  fundamental (not just "wrong file"), that's genuinely deferred to a larger
+  redesign, not a quick split.
+
+Added tests (15 more, 43 total, all passing in both Debug and Release):
+- `TuningTypesTests.cpp` — `TTuningSettings::Initialize` (PAL/NTSC base tuning) and
+  `TTuningRatios::Initialize` (interval ratios), fully pure, hand-verified expected
+  values (simple integer GCD reduction, e.g. the `MIN_2ND` literal `40/38` is actually
+  stored as `20/19` after `CFraction` normalizes it — characterized explicitly).
+- `TuningTests.cpp` — `CTuning::GetPitch`/`GetAUDF`/`GetPOKEYPitch` using the PAL POKEY
+  clock (1773447 Hz, matching `CAtari::FREQ_17_PAL`). Expected values were captured by
+  running the actual implementation once with placeholder assertions and reading the
+  real output from the test-failure diagnostics (a "golden master" approach) rather
+  than hand-derived, since the branching pitch-modulo logic is too intricate to safely
+  hand-verify — this is the right technique for characterization tests in general and
+  is now the precedent for any future test with non-trivial arithmetic/branching.
+
+Verified via full `MSBuild Rmt.sln -t:Rebuild` for both configurations again: `Rmt.exe`
+and `RmtTests.exe` both build clean (0 errors, only the pre-existing `asap.c`
+warnings), and `RmtTests.exe` reports `43 tests from 6 test suites ... PASSED` in both
+Debug and Release.
+
 ## Status
 
 - [x] Read `plans/OVERALL_PLAN.md`, `README.md`, and linked docs present in the repo.
@@ -162,18 +231,23 @@ What was built:
       test project location).
 - [x] Phase 1 (move `src/*` to `src/cpp/`) done, build-verified, and committed
       (`ea3354b`).
-- [x] Phase 2 started: GoogleTest vendored + wired up, 28 characterization tests
-      passing for `CFraction`, `CStringUtility`, `CNotes`. Not yet committed.
+- [x] Phase 2 started: GoogleTest vendored + wired up, committed (`52b9073`).
+- [x] Phase 2 continued: split `Tuning.cpp`/`TuningTables.cpp` along its
+      pure-math/global-orchestration seam, added 15 more tests (43 total, all
+      passing, Debug + Release). Not yet committed.
 - [ ] Ask user whether to commit this step.
 - [ ] Phase 2 continued: more characterization tests before any cleanup, roughly in
       order of increasing coupling:
-      - `TuningTypes`/`Tuning` (uses `CFraction`; check `Tuning.cpp` for MFC/global
-        coupling before starting).
       - `lzss_sap.cpp`/`CCompressLzss` (pure data transform, good candidate, but
         larger/more intricate — needs known-good input/output fixtures, e.g. round
-        trip a byte buffer, rather than guessed expected values).
+        trip a byte buffer, rather than guessed expected values; use the same
+        "capture actual output, then assert on it" technique used for `CTuning`).
       - `AssemblerTypes`, `Song` fixed-format struct parsing (`Track`, `Instruments`)
         where feasible without a live Atari/POKEY emulation.
+      - Before starting a new module, always check whether it `#include`s `Global.h`
+        (or another huge header) and, if so, whether the globally-coupled methods can
+        be split out the same way as `Tuning.cpp`/`TuningTables.cpp` — check this
+        early, since it changes the scope of the work.
       - Everything touching `g_Song`/other globals, MFC dialogs, and the timer-driven
         sound generation is expected to need actual decoupling work (the "cleanup"
         half of Phase 2) before it's testable at all — do not attempt to test that
