@@ -4,6 +4,8 @@ VisualStudioVersion = 18.1.11312.151
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Rmt", "src\cpp\Rmt.vcxproj", "{E3235CA6-2F97-40C9-AFFC-B8F2CE8F1CA3}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RmtTests", "src\cpp\test\RmtTests.vcxproj", "{9C6C52DE-D787-4D5B-8738-837AA9DD020C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -14,6 +16,10 @@ Global
 		{E3235CA6-2F97-40C9-AFFC-B8F2CE8F1CA3}.Debug|x64.Build.0 = Debug|x64
 		{E3235CA6-2F97-40C9-AFFC-B8F2CE8F1CA3}.Release|x64.ActiveCfg = Release|x64
 		{E3235CA6-2F97-40C9-AFFC-B8F2CE8F1CA3}.Release|x64.Build.0 = Release|x64
+		{9C6C52DE-D787-4D5B-8738-837AA9DD020C}.Debug|x64.ActiveCfg = Debug|x64
+		{9C6C52DE-D787-4D5B-8738-837AA9DD020C}.Debug|x64.Build.0 = Debug|x64
+		{9C6C52DE-D787-4D5B-8738-837AA9DD020C}.Release|x64.ActiveCfg = Release|x64
+		{9C6C52DE-D787-4D5B-8738-837AA9DD020C}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

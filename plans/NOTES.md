@@ -92,12 +92,90 @@ Verification performed: full `MSBuild Rmt.sln -t:Rebuild` for **both** `Debug|x6
 confirmed green. Changes are staged/modified in the working tree but **not committed**
 yet (per the "only commit when the user explicitly asks" rule).
 
+## Phase 2 started (2026-09-21): GoogleTest infrastructure + first characterization tests
+
+Decisions confirmed with user for this step:
+- GoogleTest source is **vendored** (not a NuGet package), consistent with how
+  `src/cpp/asap/` already vendors ASAP as source. Pinned to **v1.15.2**, unmodified,
+  under `src/cpp/test/googletest/` (`include/`, `src/`, `LICENSE`, `README.md`). Only
+  `gtest` was vendored, not `gmock` (not needed yet; add the same way later if mocking
+  becomes necessary once UI/model are decoupled).
+- The test project and test sources live at **`src/cpp/test/`**, colocated with the
+  C++ code it exercises.
+
+What was built:
+- `src/cpp/test/RmtTests.vcxproj`: a new console-subsystem project added to `Rmt.sln`
+  (GUID `9C6C52DE-D787-4D5B-8738-837AA9DD020C`), `Debug|x64`/`Release|x64` only (matches
+  the rest of the solution). `UseOfMfc=Dynamic` and `CharacterSet=MultiByte` mirror
+  `Rmt.vcxproj` because several production headers (`StringUtility.h`, `Notes.cpp`, via
+  `StdAfx.h`) pull in MFC (`CString` etc.) — the test binary needs to link the same way
+  to compile them unmodified. `OutDir`/`IntDir` point at `out\$(Configuration)\test\` /
+  `test-intermediate\`, separate from `out\$(Configuration)\output\` (the shipped Rmt
+  build), so `build/build_rmt-daily.bat`'s xcopy of the output folder never picks up
+  `RmtTests.exe`.
+- Test project compiles GoogleTest (`googletest/src/gtest-all.cc` + `gtest_main.cc`)
+  together with the **actual production `.cpp` files** it's testing, referenced
+  directly via relative `Include="..\Fraction.cpp"` paths — no code was copied or
+  duplicated. `AdditionalIncludeDirectories` = `..;googletest\include;googletest`.
+- First characterization tests (28, all passing) for the three least-coupled, most
+  self-contained modules found so far:
+  - `FractionTests.cpp` — `CFraction` (arithmetic, construction/reduction, sign
+    handling, conversions).
+  - `StringUtilityTests.cpp` — `CStringUtility::EndsWithNoCase`.
+  - `NotesTests.cpp` — `CNotes` (`IsValidNote`, `GetNote`, `GetNoteAndScale`).
+- Verified via full `MSBuild Rmt.sln -t:Rebuild` for both configurations: both `Rmt.exe`
+  and `RmtTests.exe` build with 0 errors, and running `RmtTests.exe` shows
+  `28 tests from 3 test suites ran ... PASSED`.
+
+### Known-behavior oddities found while characterizing (not fixed — flagged for a
+### deliberate decision during cleanup, not silently patched)
+
+- **`CFraction::operator==` is effectively always `false`.** It computes the reduced
+  difference of the two fractions and then checks `ff.denominator == 0`, but
+  `CFraction`'s own constructor/`simplify()`/`gcd()` always leaves a non-zero
+  denominator (even when the numerator reduces to 0), so the check can never succeed.
+  It looks like it should be checking `ff.numerator == 0` instead. A repo-wide search
+  found **no current caller** of this operator (`RmtView.cpp`'s `ReadFraction`/
+  `WriteFraction` only touch `.numerator`/`.denominator` fields directly), so this is
+  dead-but-broken code today, not a live bug — but the Java port must decide
+  deliberately whether to preserve or fix this behavior once/if it's used.
+  Characterized as-is in `FractionTests.cpp::EqualityOperatorIsCurrentlyAlwaysFalse`.
+  (Also note: writing `a == b` directly between two `CFraction`s no longer compiles
+  under C++20 — the implicit `operator double()` plus the compiler's synthesized
+  reversed `b == a` candidate make it ambiguous with the built-in `double==double`.
+  The test calls `a.operator==(b)` explicitly to route around this; any other code
+  written against this operator will need the same workaround, or the class needs a
+  `const`-correct/`<=>`-friendly rewrite.)
+- **`CNotes::IsValidNote` is off by one from its own documented range.** `NOTESNUM`
+  is commented "Notes 0-60 inclusive" (61 values), but the check is `note <= NOTESNUM`
+  (61) instead of `< NOTESNUM`, so note 61 is also accepted as "valid". Nothing
+  currently crashes because `GetNote()`'s backing array has a few extra padding
+  entries, but it's a latent bug worth a conscious fix-or-preserve decision later.
+  Characterized as-is in
+  `NotesTests.cpp::IsValidNoteAcceptsOneOffTheEndOfItsDocumentedRange`.
+
 ## Status
 
 - [x] Read `plans/OVERALL_PLAN.md`, `README.md`, and linked docs present in the repo.
 - [x] Surveyed current `src/` layout and build files.
-- [x] Decisions confirmed with user (move scope, test framework).
-- [x] Phase 1 (move `src/*` to `src/cpp/`) done and build-verified (Debug + Release).
-- [ ] Ask user whether to commit the Phase 1 change.
-- [ ] Phase 2: clean up the existing C++ source and add GoogleTest-based
-      characterization tests before touching behavior, since none exist today.
+- [x] Decisions confirmed with user (move scope, test framework, vendoring approach,
+      test project location).
+- [x] Phase 1 (move `src/*` to `src/cpp/`) done, build-verified, and committed
+      (`ea3354b`).
+- [x] Phase 2 started: GoogleTest vendored + wired up, 28 characterization tests
+      passing for `CFraction`, `CStringUtility`, `CNotes`. Not yet committed.
+- [ ] Ask user whether to commit this step.
+- [ ] Phase 2 continued: more characterization tests before any cleanup, roughly in
+      order of increasing coupling:
+      - `TuningTypes`/`Tuning` (uses `CFraction`; check `Tuning.cpp` for MFC/global
+        coupling before starting).
+      - `lzss_sap.cpp`/`CCompressLzss` (pure data transform, good candidate, but
+        larger/more intricate — needs known-good input/output fixtures, e.g. round
+        trip a byte buffer, rather than guessed expected values).
+      - `AssemblerTypes`, `Song` fixed-format struct parsing (`Track`, `Instruments`)
+        where feasible without a live Atari/POKEY emulation.
+      - Everything touching `g_Song`/other globals, MFC dialogs, and the timer-driven
+        sound generation is expected to need actual decoupling work (the "cleanup"
+        half of Phase 2) before it's testable at all — do not attempt to test that
+        code as-is; redesign first, matching the plan's own warning about UI/model/
+        timer mixing.
