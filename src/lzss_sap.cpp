@@ -106,12 +106,6 @@ int CLzss::get_mlen(const uint8_t* a, const uint8_t* b, int max)
     return max;
 }
 
-int CLzss::hsh(const uint8_t* p)
-{
-    size_t x = (size_t)p;
-    return 0xFF & (x ^ (x >> 8) ^ (x >> 16) ^ (x >> 24));
-}
-
 void CLzss::lzop_init(struct lzop* lz, const uint8_t* data, int size)
 {
     lz->data = data;
@@ -434,8 +428,6 @@ int CCompressLzss::Compress(uint8_t** data, const int sz, unsigned char* dst, co
     lzss.stat_off = (int*)calloc(sizeof(int), lzss.max_off() + 1);
 
     // Compress
-    static constexpr int REGISTERS = 9;
-
     int lpos[REGISTERS];
     for (int i = 0; i < REGISTERS; i++)
     {
@@ -455,8 +447,11 @@ int CCompressLzss::Compress(uint8_t** data, const int sz, unsigned char* dst, co
         uint8_t s = *p;
         int n = 0;
         for (int j = 0; j < sz; j++)
-            if (*p++ != s)
+        {
+            if (*p++ != s) {
                 n++;
+            }
+        }
         if (i != 0 && !n)
         {
             if (show_stats) {

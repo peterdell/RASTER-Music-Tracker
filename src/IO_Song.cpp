@@ -134,7 +134,7 @@ void CSong::FileReload()
     auto answer = MessageBox(g_hwnd, "Discard all changes since your last save?\n\nWarning: Undo operation won't be possible!!!", "Reload", MB_YESNOCANCEL | MB_ICONQUESTION);
     if (answer == IDYES)
     {
-        auto filename = m_filename;
+        CString filename = m_filename;
         FileOpen((LPCTSTR)filename, FALSE); // Without warning for unsaved changes
     }
 }
@@ -253,6 +253,7 @@ BOOL CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
     m_filename = fileToLoad;
     m_speed = m_mainSpeed;			// Init speed
     SetRMTTitle();					// Window name
+    // TODO: Check what's different after loading Buddy 15kHzs examples
     g_ChannelControl.SetAllChannelsOn();
     return TRUE;
 
@@ -518,7 +519,7 @@ void CSong::FileImport()
     g_ChannelControl.SetAllChannelsOn();
 
     // Initialise RMT routine
-    g_AtariTrackerDriver->Init();
+    ReInitSound();
 }
 
 /// <summary>

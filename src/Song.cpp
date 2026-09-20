@@ -201,8 +201,9 @@ void CSong::ClearSong(int numOfTracks)
     // Changes in the module
     g_changes = 0;
 
-    // Initialise RMT routine, to clear anything leftover in Atari memory
+    // Initialise RMT routine
     g_Atari.Init(IsNTSC());
+    g_AtariTrackerDriver->Init();
 }
 
 //---

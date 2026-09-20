@@ -49,8 +49,7 @@ void CFileUtility::SaveFile(const CString& filePath, const byte* buffer,
     fos.close();
 };
 
-CRmtTest::CRmtTest() {
-}
+CRmtTest::CRmtTest() {}
 
 
 void CRmtTest::TestASAP(const CRmtApp& app, const CString fileName) {
@@ -192,6 +191,7 @@ void TestLZSS(CString fileName) {
                 istream >> c;
 
                 c1 = c2; c2 = c3; c3 = c4; c4 = c;
+                // In SAP-R, a double CR-LF indicates the end of the header.
                 if (c1 == 0x0d && c2 == 0x0a && c3 == 0x0d && c4 == 0x0a) {
                     text = false;
                 }
@@ -205,22 +205,28 @@ void TestLZSS(CString fileName) {
         int registers = REGISTERS;
         size_t states = dataSize / registers;
         int leftover = dataSize % registers;
-        message.Format(" %lu bytes of data. %lu (0x%lx) states of %d bytes. %d leftover bytes.", dataSize, states, states, registers, leftover);
+        message.Format("Loaded %lu bytes of data. %lu (0x%lx) states of %d bytes. %d leftover bytes.", dataSize, states, states, registers, leftover);
         SendInfoMessage(message);
 
         istream.read(reinterpret_cast<char*>(buffer.data()), dataSize);
         istream.close();
         const byte* src = (const byte*)buffer.data();
-        auto  srclen = buffer.size();
+        auto  srcSize = buffer.size();
+
+        // If this was a SAP-R, write the raw data separately.
+        CString suffix = "";
+        if (sapr) {
+            suffix = ".raw";
+            WriteByteArray(fileName + suffix, src, srcSize);
+        }
+
+
         byte* dest = new byte[dataSize];
-        auto destSize = compressLzss.LZSS_SAP(src, srclen, dest, SAPROptimization::NONE);
+        auto destSize = compressLzss.LZSS_SAP(src, srcSize, dest, SAPROptimization::NONE);
         message.Format("LZSS compression of %lu (0x%lx) bytes completed result %u (0x%x) bytes.", dataSize, dataSize, destSize, destSize);
         SendInfoMessage(message);
 
-
-        WriteByteArray(fileName + ".raw", src, srclen);
-
-        WriteByteArray(fileName + ".raw.lzss", dest, destSize);
+        WriteByteArray(fileName + suffix + ".lzss", dest, destSize);
 
         delete dest;
 
@@ -236,7 +242,10 @@ void CRmtTest::RunFor(const CRmtApp& app, const CString fileName) {
     // - g_Song
 
 
-    if (!CStringUtility::EndsWithNoCase(fileName, ".sapr")) {
+    if (CStringUtility::EndsWithNoCase(fileName, ".sapr")) {
+        TestLZSS(fileName);
+    }
+    else {
         SendInfoMessage("Test - Open and Export");
         if (!g_Song.FileOpen(fileName, FALSE)) {
             SendErrorMessage("Cannot load song from file '" + fileName + '.');
@@ -245,9 +254,5 @@ void CRmtTest::RunFor(const CRmtApp& app, const CString fileName) {
         CSongExporterTest::Test(g_Song);
 
     }
-    else {
-        TestLZSS(fileName);
-    }
-
 
 }

@@ -1,10 +1,10 @@
-#include "StdAfx.h"
-#include "GuiHelpers.h"
-#include "Song.h"
-#include "Instruments.h"
 #include "AtariTrackerDriver.h"
-#include "PokeyStream.h"
 #include "Global.h"
+#include "GuiHelpers.h"
+#include "Instruments.h"
+#include "PokeyStream.h"
+#include "Song.h"
+#include "StdAfx.h"
 
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
 extern CInstruments	g_Instruments;
