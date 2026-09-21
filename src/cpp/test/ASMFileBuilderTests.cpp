@@ -71,3 +71,64 @@ TEST(BuildTracksDataTest, NonZeroTrackPosOutsideProcessedRangeFailsValidation) {
 
     EXPECT_EQ(size, 0); // signals failure: not every entry was consumed back to 0
 }
+
+// BuildSongData() encodes song lines (numTracks bytes each) plus an optional
+// 4-byte "goto" sequence: 0xFE, an unused filler byte (the byte count always
+// matches numTracks, mirroring CSong::SongToAta()/AtaToSong()'s own 4-byte
+// goto encoding for an 8-track song halved for 4 tracks here), then a
+// little-endian absolute target address (relative to "start") that gets
+// converted back to a "?line_NN" label reference.
+
+TEST(BuildSongDataTest, PlainLinesWithNoGotoEmitsByteRows) {
+    unsigned char buf[8] = { 1, 2, 3, 4, 5, 6, 7, 8 }; // 2 lines of 4 tracks
+    CString code;
+
+    int size = CASMFileBuilder::BuildSongData(code, "", buf, 0, 8, 0, 4, AssemblerFormat::ATASM);
+
+    EXPECT_EQ(size, 8);
+    EXPECT_STREQ(code,
+        "\n\n; Song data\n?SongData"
+        "\n?Line_00  {{byte}} $01,$02,$03,$04"
+        "\n?Line_01  {{byte}} $05,$06,$07,$08"
+        "\n");
+}
+
+TEST(BuildSongDataTest, GotoToLineZeroEmitsLineLabelReference) {
+    // Line 0 (4 bytes), then a goto sequence (0xFE, unused filler, low byte,
+    // high byte of target address 0) pointing back at line 0.
+    unsigned char buf[8] = { 1, 2, 3, 4, 0xFE, 0x00, 0x00, 0x00 };
+    CString code;
+
+    int size = CASMFileBuilder::BuildSongData(code, "", buf, 0, 8, 0, 4, AssemblerFormat::ATASM);
+
+    // The goto's filler + address bytes don't all count towards sizeSongLines
+    // (only the 0xFE marker and the filler byte do; the 2 address bytes are
+    // consumed purely for the jump calculation).
+    EXPECT_EQ(size, 6);
+    EXPECT_STREQ(code,
+        "\n\n; Song data\n?SongData"
+        "\n?Line_00  {{byte}} $01,$02,$03,$04"
+        "\n?Line_01  {{byte}} $fe,$00,<?line_00,>?line_00"
+        "\n");
+}
+
+TEST(BuildSongDataTest, MisalignedGotoTargetEmitsErrorComment) {
+    // Same shape as above, but the target address (3) isn't a multiple of
+    // numTracks (4) relative to offsetSong, so it can't map to a line
+    // number. The error message's format string is
+    // "$ % 04x[% x:% x]" - the space right after each '%' is consumed as
+    // the (no-op, for 'x') space flag rather than printed literally, so
+    // this behaves like "$ %04x[%x:%x]" with the visible spaces coming
+    // only from the literal ones already in the string before each '%'.
+    unsigned char buf[8] = { 1, 2, 3, 4, 0xFE, 0x00, 0x03, 0x00 };
+    CString code;
+
+    int size = CASMFileBuilder::BuildSongData(code, "", buf, 0, 8, 0, 4, AssemblerFormat::ATASM);
+
+    EXPECT_EQ(size, 6);
+    EXPECT_STREQ(code,
+        "\n\n; Song data\n?SongData"
+        "\n?Line_00  {{byte}} $01,$02,$03,$04"
+        "\n?Line_01  {{byte}} $fe,$00; ERROR malformed file(song jump bad $ 0003[0:8])\n,<($3+?SongData),>($3+?SongData)"
+        "\n");
+}

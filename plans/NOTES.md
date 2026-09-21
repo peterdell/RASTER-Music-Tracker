@@ -463,6 +463,25 @@ tests (90 total, all passing):
 Verified via a full Release|x64 solution rebuild: `Rmt.exe` and `RmtTests.exe` both
 build clean and all 90 tests pass.
 
+## Phase 2 continued (2026-09-21): finished `CASMFileBuilder::BuildSongData`
+
+Added the 3 remaining `BuildSongData` tests (93 total, all passing). This function
+encodes song lines (`numTracks` bytes each) plus an optional 4-byte "goto" sequence:
+`0xFE`, an unused filler byte, then a little-endian target address (relative to
+`start`) that gets converted back into a `?line_NN` label reference — the 4-byte
+shape (marker + filler + 2 address bytes) mirrors `CSong::SongToAta()`/`AtaToSong()`'s
+own goto encoding from the earlier `IO_Song.cpp` investigation (`dest[apos]=254`,
+`dest[apos+1]=go` (unused by this ASM builder), `dest[apos+2..3]=`the 16-bit address).
+All 3 tests were hand-derived by tracing the `jmp` state machine (0 = normal byte,
+-1/-2 = waiting for the two address bytes, >0 = address accumulated, being resolved)
+byte-by-byte, including the error-comment path's unusual format string
+`"$ % 04x[% x:% x]"` — the space immediately after each `%` is consumed as the (no-op,
+for `%x`) space flag rather than printed literally, verified correct by all 3 tests
+passing on the first run.
+
+Verified via a full Release|x64 solution rebuild: `Rmt.exe` and `RmtTests.exe` both
+build clean and all 93 tests pass.
+
 ## Status
 
 - [x] Read `plans/OVERALL_PLAN.md`, `README.md`, and linked docs present in the repo.
@@ -483,14 +502,12 @@ build clean and all 90 tests pass.
       (`e85f0f7`).
 - [x] Phase 2 continued: `CSong` investigated and deliberately deferred; `CSAPFile`
       tested instead, 78 tests total, committed (`3a6e1b9`).
-- [x] Phase 2 continued: `Keyboard2NoteMapping` + `CASMFileBuilder` (partial) tests,
-      90 tests total. Not yet committed.
+- [x] Phase 2 continued: `Keyboard2NoteMapping` + `CASMFileBuilder` tests (now
+      complete, including `BuildSongData`), 93 tests total, committed (`1c3e20b` +
+      this batch). Not yet committed.
 - [ ] Ask user whether to commit this step.
 - [ ] Phase 2 continued: more characterization tests before any cleanup, candidates in
       rough order:
-      - Finish `CASMFileBuilder::BuildSongData` (the jump/goto encoding state
-        machine) — likely needs the golden-master capture technique given its
-        complexity, like `CTuning`/LZSS rather than hand-derivation.
       - `ASMFile.cpp` is only 2 lines (essentially empty) — confirm there's nothing
         there before spending time on it.
       - **`CSong` stays deferred** until there's appetite for a real constructor
