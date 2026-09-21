@@ -269,26 +269,35 @@ public:
     BOOL ISBLOCKSELECTED();
 
 private:
-    int m_song[SONGLEN][SONGTRACKS];
-    int m_songgo[SONGLEN];						// If >= 0, then GO applies
+    // Members below are given explicit defaults (matching what the global
+    // g_Song already got for free from static zero-initialization) so any
+    // other CSong instance - e.g. one constructed directly in a test - is
+    // just as well-defined. Several of these are used as array indices
+    // elsewhere (m_songactiveline/m_songplayline into m_songgo[SONGLEN],
+    // m_trackactivecol into m_song[][SONGTRACKS], m_activeinstr into the
+    // instruments table), where an indeterminate value would be an
+    // out-of-bounds read, and m_pokeyStream is a pointer dereferenced by
+    // SongPlayNextLine() whenever it's non-null.
+    int m_song[SONGLEN][SONGTRACKS] = {};
+    int m_songgo[SONGLEN] = {};					// If >= 0, then GO applies
 
-    CPokeyStream* volatile m_pokeyStream;       // NULL or the stream to which we are currently recording
-    BOOL volatile m_followplay;
-    PlayMode volatile m_play;
-    int m_songactiveline;
-    int volatile m_songplayline;				// Which line of the song is currently being played
+    CPokeyStream* volatile m_pokeyStream = nullptr;       // NULL or the stream to which we are currently recording
+    BOOL volatile m_followplay = FALSE;
+    PlayMode volatile m_play = PLAY_STOP;
+    int m_songactiveline = 0;
+    int volatile m_songplayline = 0;				// Which line of the song is currently being played
 
-    int m_trackactiveline;
-    int volatile m_trackplayline;				// Which line of a track is currenyly being played
-    int m_trackactivecol;						// 0-7
-    int m_trackactivecur;						// 0-2
+    int m_trackactiveline = 0;
+    int volatile m_trackplayline = 0;				// Which line of a track is currenyly being played
+    int m_trackactivecol = 0;						// 0-7
+    int m_trackactivecur = 0;						// 0-2
 
-    int m_trackplayblockstart;
-    int m_trackplayblockend;
+    int m_trackplayblockstart = 0;
+    int m_trackplayblockend = 0;
 
-    int m_activeinstr;
-    int m_volume;
-    int m_octave;
+    int m_activeinstr = 0;
+    int m_volume = 0;
+    int m_octave = 0;
 
     //MIDI input variables, used for tests through MIDI CH15 
     int m_mod_wheel = 0;
@@ -302,41 +311,41 @@ public:// TODO
     CPokeyController* m_PokeyController;
 private:
 
-    EditArea m_infoact;					// Which part of the info area is active for editing: 0 = name, 
-    char m_songname[SONG_NAME_MAX_LEN + 1];
-    BOOL m_ntsc;
-    int m_songnamecur;
+    EditArea m_infoact = EditArea::NAME;					// Which part of the info area is active for editing: 0 = name,
+    char m_songname[SONG_NAME_MAX_LEN + 1] = {};
+    BOOL m_ntsc = FALSE;
+    int m_songnamecur = 0;
 
-    TBookmark m_bookmark;
+    TBookmark m_bookmark = {};
 
     double m_avgspeed[8] = { 0 };		// Use for calculating average BPM
 
-    int volatile m_mainSpeed;
-    int volatile m_speed;
-    int volatile m_speeda;
+    int volatile m_mainSpeed = 0;
+    int volatile m_speed = 0;
+    int volatile m_speeda = 0;
 
-    int volatile m_instrumentSpeed;
+    int volatile m_instrumentSpeed = 0;
 
-    int volatile m_quantization_note;
-    int volatile m_quantization_instr;
-    int volatile m_quantization_vol;
+    int volatile m_quantization_note = -1;
+    int volatile m_quantization_instr = -1;
+    int volatile m_quantization_vol = -1;
 
-    int m_playptnote[SONGTRACKS];
-    int m_playptinstr[SONGTRACKS];
-    int m_playptvolume[SONGTRACKS];
+    int m_playptnote[SONGTRACKS] = {};
+    int m_playptinstr[SONGTRACKS] = {};
+    int m_playptvolume[SONGTRACKS] = {};
 
-    TInstrument m_instrclipboard;
-    int m_songlineclipboard[SONGTRACKS];
-    int m_songgoclipboard;
+    TInstrument m_instrclipboard = {};
+    int m_songlineclipboard[SONGTRACKS] = {};
+    int m_songgoclipboard = 0;
 
-    bool volatile m_timerRoutineProcessed;
+    bool volatile m_timerRoutineProcessed = false;
     const BYTE m_timerRoutineTick[3] = { 17, 17, 16 };
 
     CString m_filename;
-    SongIOType m_ioType;
-    SongIOType m_lastExportIOType;      // Which data format was used to export a file the last time?
+    SongIOType m_ioType = SongIOType::NONE;
+    SongIOType m_lastExportIOType = SongIOType::NONE;      // Which data format was used to export a file the last time?
 
-    int m_TracksOrderChange_songlinefrom; //is defined as a member variable to keep in use
-    int m_TracksOrderChange_songlineto;	  //the last values used remain
+    int m_TracksOrderChange_songlinefrom = 0; //is defined as a member variable to keep in use
+    int m_TracksOrderChange_songlineto = 0;	  //the last values used remain
 };
 

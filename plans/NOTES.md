@@ -777,3 +777,58 @@ build clean and all 123 tests pass.
         half of Phase 2) before it's testable at all — do not attempt to test that
         code as-is; redesign first, matching the plan's own warning about UI/model/
         timer mixing.
+- [x] Phase 2 continued: `Song.cpp`/`IO_Song.cpp` scoped and split (first slice), 138
+      tests total. Not yet committed.
+      - Scoping pass: grepped every method in `Song.cpp` (103 methods) and
+        `IO_Song.cpp` (20 methods) for global references, sorting into four tiers —
+        Tier 1 (zero references, pure), Tier 2 (editing operations touching a few
+        globals), Tier 3 (heavy format/export logic), Tier 4 (live playback methods
+        deep in the timer loop). Only Tier 1 was implemented this batch; Tiers 2–4
+        remain for a future batch.
+      - Added default member initializers to ~25 `CSong` private members in
+        `Song.h` that previously had none — the same uninitialized-member class of
+        bug found in `CTracks`/`CInstruments`/`CAtari` earlier, but far more
+        extensive here given `CSong`'s size. Safe for the existing global
+        (`g_Song` already gets the same values for free via static
+        zero-initialization) and necessary for any locally-constructed `CSong`
+        (used by the new tests). Notably includes `m_play` (fixes the `Stop()` hang
+        risk flagged earlier — its default is now `PLAY_STOP`, matching what
+        `g_Song` already had) and several array-index members that were an
+        out-of-bounds-read risk uninitialized.
+      - Created `src/cpp/SongCore.cpp` with the constructor/destructor plus ~20
+        zero-global-reference methods moved out of `Song.cpp` (`GetName`,
+        `GetTracks`, `IsStereo`, `IsNTSC`, `GetInstrumentSpeed`,
+        `PlayPressedTonesInit`, `SetPlayPressedTonesSilence`,
+        `GetActiveInstr/Column/Line`, `GetPlayLine`, `SetActiveLine`, `SetPlayLine`,
+        `UECursorIsEqual`, `SongGetGo` (both overloads), `SongTrackGoDec/Inc`,
+        `FindNearTrackBySongLineAndColumn`, `SongPlayNextLine`) plus
+        `SongToAta`/`AtaToSong` moved out of `IO_Song.cpp` (same zero-global-
+        reference criterion). Pure mechanical moves, no behavior change — verified
+        by a full production `Rmt.exe` rebuild (0 errors) right after the move,
+        before any test code was added.
+      - `PokeyController.cpp` investigated as part of wiring `CSong`'s constructor
+        into the test binary (it does `new CPokeyController(&g_Atari)`): 0 global
+        references, trivial constructor, linked directly into `RmtTests.vcxproj`
+        with no stub needed.
+      - Added a real, default-constructed `CAtari g_Atari;` to
+        `test/AtariStub.cpp` (cheap, per the earlier `CAtari`-constructor
+        correction) since `SongCore.cpp`'s `CSong` constructor needs its address.
+      - Removed 4 now-redundant link-only `CSong` method stubs from
+        `test/SAPFileStub.cpp` (`GetName`/`IsStereo`/`IsNTSC`/`GetInstrumentSpeed`)
+        — they existed only because `SAPFile.cpp` needed those symbols to link
+        before `SongCore.cpp` provided the real definitions; keeping both caused
+        `LNK2005` multiply-defined-symbol errors once `SongCore.cpp` was linked
+        into the same test binary.
+      - Wrote `test/SongTests.cpp` (15 tests) covering every moved method,
+        including a hand-derived `SongToAta`/`AtaToSong` round trip for both track
+        data and goto-line encoding (`AtaToSong`'s `len` parameter represents how
+        much of the module's song section is being decoded, not `SongToAta`'s own
+        smaller "bytes actually used" return value — the round-trip test decodes a
+        wider byte range than `SongToAta` reported using, to keep the goto target
+        in bounds). All values verified correct on first run — no hand-derivation
+        errors found this time.
+      - Full solution rebuild (Release|x64) confirmed 0 errors for both `Rmt.exe`
+        and `RmtTests.exe`; 138 tests pass (up from 123, +15, 0 regressions).
+      - **`Song.cpp`/`IO_Song.cpp` Tiers 2–4 remain for a future batch** — editing
+        operations, format/export logic, and live playback methods respectively,
+        all still coupled to `g_Song`/other globals and not yet split out.

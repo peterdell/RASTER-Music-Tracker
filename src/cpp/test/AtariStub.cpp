@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 
+#include "Atari.h"
 #include "C6502.h"
 #include "Tuning.h"
 
@@ -19,3 +20,8 @@ void C6502::JSR(C6502::Address&, C6502::Register&, C6502::Register&, C6502::Regi
 // characterized for CTuning::InitTuning() earlier if g_tuning.basetuning is
 // still 0, which it is by default), so this only needs to exist for linking.
 CTuning g_Tuning;
+
+// Real, default-constructed CAtari (cheap and safe - see AtariTest.* above).
+// SongCore.cpp's CSong constructor takes its address for
+// "new CPokeyController(&g_Atari)".
+CAtari g_Atari;

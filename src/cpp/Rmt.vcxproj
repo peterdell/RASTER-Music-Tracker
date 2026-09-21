@@ -322,6 +322,7 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
     </ClCompile>
     <ClCompile Include="Song.cpp" />
+    <ClCompile Include="SongCore.cpp" />
     <ClCompile Include="SongExporter.cpp" />
     <ClCompile Include="Tracks.cpp" />
     <ClCompile Include="TracksEdit.cpp" />

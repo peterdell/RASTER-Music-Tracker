@@ -144,6 +144,9 @@
     <ClCompile Include="Song.cpp">
       <Filter>Source Files\Model</Filter>
     </ClCompile>
+    <ClCompile Include="SongCore.cpp">
+      <Filter>Source Files\Model</Filter>
+    </ClCompile>
     <ClCompile Include="GuiHelpers.cpp">
       <Filter>Source Files\GUI</Filter>
     </ClCompile>

@@ -36,39 +36,8 @@ CSongTimer g_SongTimer;
 
 // ----------------------------------------------------------------------------
 
-CSong::CSong()
-{
-    // Attributes
-    memset(m_songname, 0, SONG_NAME_MAX_LEN);
-
-    // Initialise Timer
-    m_quantization_note = -1; // init
-    m_quantization_instr = -1;
-    m_quantization_vol = -1;
-
-    m_PokeyController = new CPokeyController(&g_Atari);
-}
-
-CSong::~CSong()
-{
-    //KillTimer();
-}
-
-CString CSong::GetName() const {
-    CString result;
-    result = m_songname;
-    result.TrimRight();
-    return result;
-}
-
-int CSong::GetTracks() const {
-    return g_tracks4_8;
-
-}
-
-bool CSong::IsStereo() const {
-    return (GetTracks() > 4);
-}
+// CSong(), ~CSong(), GetName(), GetTracks(), and IsStereo() are implemented
+// in SongCore.cpp (no Global.h dependency).
 
 void CSong::SetTracks(const int tracksNum) {
     if (tracksNum != g_tracks4_8) {
@@ -77,9 +46,7 @@ void CSong::SetTracks(const int tracksNum) {
     }
 }
 
-BOOL CSong::IsNTSC() const {
-    return m_ntsc;
-}
+// IsNTSC() is implemented in SongCore.cpp.
 
 void CSong::SetNTSC(const BOOL ntsc) {
     if (ntsc != m_ntsc) {
@@ -96,9 +63,7 @@ void CSong::ReInitSound() {
 }
 
 
-int CSong::GetInstrumentSpeed() const {
-    return m_instrumentSpeed;
-}
+// GetInstrumentSpeed() is implemented in SongCore.cpp.
 
 // TODO: Move to CSontTimer
 
@@ -703,21 +668,8 @@ int CSong::DecodeModule(unsigned char* mem, int fromAddr, int endAddr, BYTE* ins
 
 //---
 
-BOOL CSong::PlayPressedTonesInit()
-{
-    for (int t = 0; t < SONGTRACKS; t++) {
-        SetPlayPressedTonesTNIV(t, -1, -1, -1);
-    }
-    return TRUE;
-}
-
-BOOL CSong::SetPlayPressedTonesSilence()
-{
-    for (int t = 0; t < SONGTRACKS; t++) {
-        SetPlayPressedTonesTNIV(t, -1, -1, 0);
-    }
-    return TRUE;
-}
+// PlayPressedTonesInit() and SetPlayPressedTonesSilence() are implemented in
+// SongCore.cpp.
 
 BOOL CSong::PlayPressedTones()
 {
@@ -761,30 +713,8 @@ void CSong::ActiveInstrNext()
 };
 
 
-int CSong::GetActiveInstr() const
-{
-    return m_activeinstr;
-};
-
-int CSong::GetActiveColumn() const
-{
-    return m_trackactivecol;
-};
-
-int CSong::GetActiveLine() const
-{
-    return m_trackactiveline;
-};
-
-int CSong::GetPlayLine() const
-{
-    return m_trackplayline;
-};
-void CSong::SetActiveLine(int line)
-{
-    m_trackactiveline = line;
-};
-void CSong::SetPlayLine(int line) { m_trackplayline = line; };
+// GetActiveInstr(), GetActiveColumn(), GetActiveLine(), GetPlayLine(),
+// SetActiveLine(), and SetPlayLine() are implemented in SongCore.cpp.
 
 BOOL CSong::TrackUp(int lines)
 {
@@ -1014,29 +944,7 @@ void CSong::SetUECursor(Part part, int* cursor)
     }
 }
 
-BOOL CSong::UECursorIsEqual(int* cursor1, int* cursor2, Part part)
-{
-    int len;
-    switch (part)
-    {
-    case Part::PART_TRACKS:
-        len = 4;
-        break;
-    case Part::PART_SONG:
-        len = 2;
-        break;
-    case Part::PART_INSTRUMENTS:
-        len = 6;
-        break;
-    case Part::PART_INFO:
-        len = 1;
-        break;
-    default:
-        return 0;
-    }
-    for (int i = 0; i < len; i++) if (cursor1[i] != cursor2[i]) return 0;
-    return 1;
-}
+// UECursorIsEqual() is implemented in SongCore.cpp.
 
 
 //----------
@@ -1272,25 +1180,8 @@ BOOL CSong::SongTrackGoOnOff()
     return 1;
 }
 
-int  CSong::SongGetGo() const
-{
-    return m_songgo[m_songactiveline];
-};
-
-int  CSong::SongGetGo(int songline) const
-{
-    return m_songgo[songline];
-};
-
-void  CSong::SongTrackGoDec()
-{
-    m_songgo[m_songactiveline] = (m_songgo[m_songactiveline] - 1) & 0xff;
-};
-
-void  CSong::SongTrackGoInc()
-{
-    m_songgo[m_songactiveline] = (m_songgo[m_songactiveline] + 1) & 0xff;
-};
+// SongGetGo() (both overloads), SongTrackGoDec(), and SongTrackGoInc() are
+// implemented in SongCore.cpp.
 
 BOOL CSong::SongInsertLine(int line)
 {
@@ -1477,33 +1368,7 @@ BOOL CSong::SongPrepareNewLine(int& line, int sourceline, BOOL alsoemptycolumns)
     return 1;
 }
 
-int CSong::FindNearTrackBySongLineAndColumn(int songline, int column, BYTE* arrayTRACKSNUM)
-{
-    int j, k, t;
-    for (j = songline; j >= 0; j--)
-    {
-        if (m_songgo[j] >= 0) continue;
-        if ((t = m_song[j][column]) >= 0)
-        {
-            //found the default track t
-            for (k = t + 1; k < TRACKSNUM; k++)
-            {
-                if (arrayTRACKSNUM[k] == 0) return k;
-            }
-            //because it did not find any behind it, it will try to look in front of it instead
-            for (k = t - 1; k >= 0; k--)
-            {
-                if (arrayTRACKSNUM[k] == 0) return k;
-            }
-        }
-    }
-    //will search for the first one usable from the beginning
-    for (k = 0; k < TRACKSNUM; k++)
-    {
-        if (arrayTRACKSNUM[k] == 0) return k;
-    }
-    return -1;
-}
+// FindNearTrackBySongLineAndColumn() is implemented in SongCore.cpp.
 
 BOOL CSong::SongPutnewemptyunusedtrack()
 {
@@ -3015,29 +2880,7 @@ void CSong::Stop()
     }
 }
 
-BOOL CSong::SongPlayNextLine()
-{
-    m_trackplayline = 0;	//first track pattern line 
-
-    // Normal play, play from current position, or play from bookmark => shift to the next line  
-    if (m_play == PLAY_SONG || m_play == PLAY_FROM || m_play == PLAY_BOOKMARK)
-    {
-        m_songplayline++;		// Increment the song line by 1
-        if (m_songplayline > 255)
-            m_songplayline = 0;	// Above 255, roll over to 0
-    }
-
-    // When a goto line is encountered, the player will jump right to the defined line and continue playback from that position
-    if (m_songgo[m_songplayline] >= 0)				// If a goto line is set here...
-        m_songplayline = m_songgo[m_songplayline];	// goto line xy
-
-    if (m_pokeyStream && m_pokeyStream->TrackSongLine(m_songplayline) == true)
-    {
-        // Song is done, so stop the play back
-        m_play = PLAY_STOP;					// Stop the player
-    }
-    return 1;
-}
+// SongPlayNextLine() is implemented in SongCore.cpp.
 
 BOOL CSong::PlayBeat()
 {
