@@ -1067,3 +1067,38 @@ void CSong::BLOCKDESELECT() {
 BOOL CSong::ISBLOCKSELECTED() {
     return g_TrackClipboard.IsBlockSelected();
 }
+
+// Both call Stop() first ("Stop the music first"), which only has any
+// effect if GetPlayMode() != PLAY_STOP (see Song.cpp) - a no-op as long as
+// Play() was never called on this instance, which is the only way these
+// are exercised in tests (see plans/SONG_IO_SONG_REMAINING_PLAN.md).
+
+void CSong::TracksAllBuildLoops(int& tracksmodified, int& beatsreduced)
+{
+    Stop();
+
+    int i;
+    int p = 0, u = 0;
+    for (i = 0; i < TRACKSNUM; i++)
+    {
+        int r = g_Tracks.TrackBuildLoop(i);
+        if (r > 0) { p++; u += r; }
+    }
+    tracksmodified = p;
+    beatsreduced = u;
+}
+
+void CSong::TracksAllExpandLoops(int& tracksmodified, int& loopsexpanded)
+{
+    Stop();
+
+    int i;
+    int p = 0, u = 0;
+    for (i = 0; i < TRACKSNUM; i++)
+    {
+        int r = g_Tracks.TrackExpandLoop(i);
+        if (r > 0) { p++; u += r; }
+    }
+    tracksmodified = p;
+    loopsexpanded = u;
+}

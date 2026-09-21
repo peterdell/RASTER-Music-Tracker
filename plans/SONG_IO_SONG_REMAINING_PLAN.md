@@ -62,15 +62,26 @@ plan, written up before touching any code.
    `CSong` (no default initializers on `m_song`/`m_timerRoutine`/
    `busyInCallback`/`m_timerRoutineProcessed`), so a locally-constructed
    instance is unsafe today regardless of the timer issue.
-5. One easy addition was missed by the last batch's grep-based scoping:
-   `TracksAllBuildLoops` only touches `g_Tracks` (already safe) - it should
-   have been in the `SongEditing.cpp` slice. Cheap to add whenever convenient
-   (see Batch 1).
+5. **Correction to an earlier version of this plan**: `TracksAllBuildLoops`/
+   `TracksAllExpandLoops` were flagged as an easy `g_Tracks`-only addition
+   based on a *direct*-reference-only grep - but both unconditionally call
+   `Stop()` first, which was missed by only checking direct globals (the
+   same class of oversight flagged earlier in `plans/NOTES.md`: verify the
+   call graph, not just direct references). `Stop()` itself, however, is a
+   no-op unless `GetPlayMode() != PLAY_STOP` - and since `m_play` defaults
+   to `PLAY_STOP` and no test calls `Play()` first, both methods are safe to
+   test in practice, just under a documented precondition ("never call
+   `Play()` on this instance first"), the same caveat pattern already used
+   for `SongJump`/`SongUp`/`SongDown` in Batch 4 - not the unconditionally-
+   free win originally claimed.
 
 ## Method inventory (grouped by proposed handling)
 
-### Batch 1 - one more safe-cluster method (trivial, ~5 min)
-- `TracksAllBuildLoops` (only `g_Tracks`) - add directly to `SongEditing.cpp`.
+### Batch 1 - two more safe-cluster methods, with a documented precondition (~10 min)
+- `TracksAllBuildLoops`, `TracksAllExpandLoops` (only `g_Tracks`, plus a
+  call to `Stop()` that's a no-op as long as `Play()` was never called on
+  the instance first - see correction #5 above) - add to `SongEditing.cpp`
+  with a comment documenting the precondition.
 
 ### Batch 2 - pure format encode/decode via memory buffers (promising)
 No `g_hwnd`, only already-safe globals (`g_Instruments`, `g_Tracks`,

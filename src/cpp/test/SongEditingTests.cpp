@@ -27,6 +27,12 @@ protected:
 
     void SetUp() override {
         g_tracks4_8 = 4;
+        // CTracks::InitTracks() doesn't reset m_maxTrackLength (only clears
+        // track data), so a prior test's ChangeMaxtracklen() call would
+        // otherwise leak into every later test - reset it first so
+        // ClearTrack() (called by InitTracks() below) resets each track's
+        // len to the right default too.
+        g_Tracks.SetMaxTrackLength(64);
         g_Tracks.InitTracks();
         g_Instruments.InitInstruments();
         // CInstruments::ClearInstrument() is a no-op stub in this test binary
@@ -453,6 +459,40 @@ TEST_F(SongEditingTest, SongClearUnusedTracksDeletesTracksNotReferencedInTheSong
 
     EXPECT_EQ(cleared, 1);
     EXPECT_TRUE(g_Tracks.IsEmptyTrack(1));
+}
+
+// --- TracksAllBuildLoops / TracksAllExpandLoops ---
+// Both call Stop() first, which is a no-op here since Play() is never
+// called on "song" first (see SongEditing.cpp's header comment there).
+
+TEST_F(SongEditingTest, TracksAllBuildLoopsFindsARepeatingPatternAndShortensTheTrack) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    for (int i = 0; i < TRACKLEN; i++) tr->note[i] = 5; // a full-length track repeating every line
+
+    int tracksmodified = 0, beatsreduced = 0;
+    song.TracksAllBuildLoops(tracksmodified, beatsreduced);
+
+    EXPECT_EQ(tracksmodified, 1);
+    EXPECT_EQ(beatsreduced, 63);
+    EXPECT_EQ(tr->len, 1);
+    EXPECT_EQ(tr->go, 0);
+}
+
+TEST_F(SongEditingTest, TracksAllExpandLoopsExpandsALoopingTrackToFullLength) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->len = 2;
+    tr->go = 0;
+    tr->note[0] = 7;
+    tr->note[1] = 8;
+
+    int tracksmodified = 0, loopsexpanded = 0;
+    song.TracksAllExpandLoops(tracksmodified, loopsexpanded);
+
+    EXPECT_EQ(tracksmodified, 1);
+    EXPECT_EQ(loopsexpanded, 62);
+    EXPECT_EQ(tr->len, g_Tracks.GetMaxTrackLength());
+    EXPECT_EQ(tr->go, -1);
+    EXPECT_EQ(tr->note[63], 8); // (63 - 2) % 2 == 1 -> repeats note[1]
 }
 
 // --- RenumberAllTracks ---

@@ -920,3 +920,48 @@ build clean and all 123 tests pass.
         methods needing `g_hwnd`/`g_AtariTrackerDriver`/other hazards) - none
         of these were in the "safe cluster" and still need their own,
         separate triage/decoupling work.
+- [x] Wrote a dedicated triage plan for the above (`plans/SONG_IO_SONG_REMAINING_PLAN.md`,
+      committed `7276946`/`f7d72c6`) before implementing further, given the
+      remaining work needs per-method judgment calls (not a single mechanical
+      pass). Key findings recorded there: every remaining `g_hwnd` use in
+      these two files is a `MessageBox` call (no real GDI/dialogs), but they
+      split into guard-only (avoidable), always-fires-on-success (blocking),
+      and confirmation-prompt (blocking + branches) categories; `InstrInfo`
+      already has an untapped pure-mode output parameter; `InstrChange`
+      instantiates a real MFC dialog; `CSongTimer::SetTimer()` confirmed to
+      start a real OS multimedia timer thread. Also recorded 4 resolved
+      decisions: `IDS_RMT_VERSION` becomes a compile-time constant (all 6
+      call sites, not just the 2 needed for testing) instead of working
+      around `LoadString`; `TrackInfo` gets a small refactor splitting its
+      pure string-building from the `MessageBox` display, mirroring
+      `InstrInfo`; the two confirmation-prompt methods stay deferred; batch
+      pacing continues one at a time with explicit approval.
+- [x] Phase 2 continued: plan's "Batch 1" (`TracksAllBuildLoops`/
+      `TracksAllExpandLoops`), 186 tests total. Not yet committed.
+      - **Correction to the plan**: these two were originally flagged as an
+        unconditionally-free `g_Tracks`-only addition based on a *direct*-
+        reference-only grep - missed that both unconditionally call `Stop()`
+        first (the same class of oversight flagged earlier: verify the call
+        graph, not just direct references). `Stop()` is a no-op unless
+        `GetPlayMode() != PLAY_STOP`, and since `m_play` defaults to
+        `PLAY_STOP` and no test calls `Play()` first, both are safe to test
+        - just under a documented precondition, not unconditionally free.
+      - Moved both into `SongEditing.cpp`. `Stop()` itself stays in
+        `Song.cpp` (still coupled to the real `g_SongTimer` hazard) and is
+        given a link-only stub (`test/SongEditingStub.cpp`) - behaviorally
+        identical to the real `Stop()` for the `PLAY_STOP` state these tests
+        are always in.
+      - **Real test-isolation bug found and fixed (in the test file, not
+        production code)**: `CTracks::InitTracks()` doesn't reset
+        `m_maxTrackLength` (only clears track data), so the earlier
+        `ChangeMaxtracklenShortensLongerTracksAndUpdatesTheGlobalLength` test
+        leaked its `SetMaxTrackLength(32)` change into every later test in
+        the suite - caught because the 2 new tests failed when the *full*
+        suite ran, despite passing in isolation. Fixed by having the fixture
+        call `g_Tracks.SetMaxTrackLength(64)` before `InitTracks()` in
+        `SetUp()`. Reinforces the standing practice of always running the
+        full suite, not just newly-added/filtered tests, before considering
+        a batch verified.
+      - 2 new hand-derived tests (a period-1 and a period-2 loop pattern),
+        both correct on first run. Full solution rebuild (Release|x64)
+        confirmed 0 errors; 186 tests pass (up from 184, +2, 0 regressions).

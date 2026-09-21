@@ -19,3 +19,13 @@ CSong g_Song;
 // when there's no real status bar window, which is always the case here.
 void ClearStatusBar() {}
 void SetStatusBarText(const char*) {}
+
+// Link-only stub: the real CSong::Stop() lives in Song.cpp (not linked here
+// - it needs g_SongTimer, a real OS multimedia timer, a genuine hazard -
+// see plans/SONG_IO_SONG_REMAINING_PLAN.md) and is reachable through
+// CSong::TracksAllBuildLoops()/TracksAllExpandLoops() (see
+// SongEditing.cpp). Its real body only does anything when
+// GetPlayMode() != PLAY_STOP, which is never true in these tests (nothing
+// calls Play() on the instance first), so an empty stub is behaviorally
+// identical to the real Stop() for every test that reaches it.
+void CSong::Stop() {}

@@ -1772,37 +1772,7 @@ void CSong::Songswitch4_8(int tracks4_8)
 
 // CSong::ChangeMaxtracklen() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 
-void CSong::TracksAllBuildLoops(int& tracksmodified, int& beatsreduced)
-{
-    // Stop the music first
-    Stop();
-
-    int i;
-    int p = 0, u = 0;
-    for (i = 0; i < TRACKSNUM; i++)
-    {
-        int r = g_Tracks.TrackBuildLoop(i);
-        if (r > 0) { p++; u += r; }
-    }
-    tracksmodified = p;
-    beatsreduced = u;
-}
-
-void CSong::TracksAllExpandLoops(int& tracksmodified, int& loopsexpanded)
-{
-    // Stop the music first
-    Stop();
-
-    int i;
-    int p = 0, u = 0;
-    for (i = 0; i < TRACKSNUM; i++)
-    {
-        int r = g_Tracks.TrackExpandLoop(i);
-        if (r > 0) { p++; u += r; }
-    }
-    tracksmodified = p;
-    loopsexpanded = u;
-}
+// CSong::TracksAllBuildLoops() and TracksAllExpandLoops() are implemented in SongEditing.cpp (only touch g_Tracks, plus a call to Stop() that's a no-op unless Play() was called first).
 
 // CSong::SongClearUnusedTracksAndParts() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 
