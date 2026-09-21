@@ -799,46 +799,7 @@ void CSong::InstrChange(int instr)
     }
 }
 
-void CSong::TrackInfo(int track)
-{
-    if (track < 0 || track >= TRACKSNUM) return;
-
-    const char* cnames[] = { "L1","L2","L3","L4","R1","R2","R3","R4" };
-
-    int i, ch;
-    int trackusedincolumn[SONGTRACKS];
-    int lines = 0, total = 0;
-
-    for (ch = 0; ch < SONGTRACKS; ch++) trackusedincolumn[ch] = 0;
-
-    for (int sline = 0; sline < SONGLEN; sline++)
-    {
-        if (m_songgo[sline] >= 0) continue;	//goto line is ignored
-
-        BOOL thisline = 0;
-        for (ch = 0; ch < g_tracks4_8; ch++)
-        {
-            int n = m_song[sline][ch];
-            if (n == track) { trackusedincolumn[ch]++; total++; thisline = 1; }
-        }
-
-        if (thisline) lines++;
-    }
-
-    CString s, s2;
-    s.Format("Track: %02X\nUsing in song:\n", track);
-    for (ch = 0; ch < g_tracks4_8; ch++)
-    {
-        i = trackusedincolumn[ch];
-        s2.Format("%s: %i   ", cnames[ch], i);
-        s += s2;
-    }
-
-    s2.Format("\nUsed in %i songlines, globally %i times.", lines, total);
-    s += s2;
-
-    MessageBox(g_hwnd, (LPCTSTR)s, "Track Info", MB_ICONINFORMATION);
-}
+// CSong::TrackInfo() is implemented in SongEditing.cpp.
 
 // CSong::SongCopyLine() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 

@@ -1542,6 +1542,55 @@ void CSong::InstrInfo(int instr, TInstrInfo* iinfo, int instrto)
     }
 }
 
+void CSong::TrackInfo(int track, TTrackInfo* tinfo)
+{
+    if (track < 0 || track >= TRACKSNUM) return;
+
+    const char* cnames[] = { "L1","L2","L3","L4","R1","R2","R3","R4" };
+
+    int i, ch;
+    int trackusedincolumn[SONGTRACKS];
+    int lines = 0, total = 0;
+
+    for (ch = 0; ch < SONGTRACKS; ch++) trackusedincolumn[ch] = 0;
+
+    for (int sline = 0; sline < SONGLEN; sline++)
+    {
+        if (m_songgo[sline] >= 0) continue;	//goto line is ignored
+
+        BOOL thisline = 0;
+        for (ch = 0; ch < g_tracks4_8; ch++)
+        {
+            int n = m_song[sline][ch];
+            if (n == track) { trackusedincolumn[ch]++; total++; thisline = 1; }
+        }
+
+        if (thisline) lines++;
+    }
+
+    if (tinfo)
+    {	//tinfo != NULL => set values
+        tinfo->count = total;
+        tinfo->lines = lines;
+        for (ch = 0; ch < SONGTRACKS; ch++) tinfo->usedincolumn[ch] = trackusedincolumn[ch];
+    }
+    else
+    {	//tinfo == NULL => shows dialog
+        CString s, s2;
+        s.Format("Track: %02X\nUsing in song:\n", track);
+        for (ch = 0; ch < g_tracks4_8; ch++)
+        {
+            i = trackusedincolumn[ch];
+            s2.Format("%s: %i   ", cnames[ch], i);
+            s += s2;
+        }
+
+        s2.Format("\nUsed in %i songlines, globally %i times.", lines, total);
+        s += s2;
+
+        MessageBox(g_hwnd, (LPCTSTR)s, "Track Info", MB_ICONINFORMATION);
+    }
+}
 
 void CSong::SetNTSC(const BOOL ntsc) {
     if (ntsc != m_ntsc) {

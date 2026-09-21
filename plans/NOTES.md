@@ -1165,3 +1165,36 @@ build clean and all 123 tests pass.
         new tests hand-derived correctly on first run.
       - Full solution rebuild (Release|x64) confirmed 0 errors; 212 tests
         pass (up from 208, +4, 0 regressions).
+- [x] Phase 2 continued: `CSong::TrackInfo` refactored to the same dual-mode
+      (output-parameter vs. `MessageBox`) design `InstrInfo` already has,
+      per the "Decisions (resolved)" call made earlier for this method.
+      Went through system-enforced Plan Mode given the header/struct-
+      placement design involved.
+      - Added `struct TTrackInfo { int count; int lines; int
+        usedincolumn[SONGTRACKS]; };` to `SongTypes.h`, right after
+        `TBookmark`. It doesn't live in `TrackTypes.h` (which would be the
+        more obvious home) because `TrackTypes.h` has no includes and
+        doesn't define `SONGTRACKS`, while `SongTypes.h` already includes
+        `TrackTypes.h` and already owns `SONGTRACKS`/`SONGLEN` - putting the
+        struct in `TrackTypes.h` would need it to include `SongTypes.h`
+        back, a circular include. No new `#include` was needed anywhere
+        else: `Song.h` already includes `SongTypes.h`, and both
+        `SongEditing.cpp` and `test/SongEditingTests.cpp` already include
+        `Song.h`.
+      - `Song.h`'s declaration became `void TrackInfo(int track, TTrackInfo*
+        tinfo = NULL);`, matching `InstrInfo`'s style exactly. The one real
+        call site (`RmtView.cpp`) needed no change thanks to the default
+        argument.
+      - Moved `TrackInfo`'s body from `Song.cpp` to `SongEditing.cpp`
+        (replaced with the same one-line "implemented in SongEditing.cpp"
+        comment already used for `InstrInfo`/`Play`), split into the same
+        `if (tinfo) {...} else {...}` shape `InstrInfo` uses - the
+        stats-gathering loop itself is untouched, byte for byte, from the
+        original. Placed right after `InstrInfo` in `SongEditing.cpp` to
+        keep the two "Info" methods adjacent.
+      - 2 new hand-derived tests (one exercising the populated-struct path,
+        one a guard test for out-of-range tracks - included even though
+        `InstrInfo` itself has no analogous guard test, since it's cheap and
+        mirrors this file's existing guard-test style), both correct on
+        first run. Full solution rebuild (Release|x64) confirmed 0 errors;
+        214 tests pass (up from 212, +2, 0 regressions).

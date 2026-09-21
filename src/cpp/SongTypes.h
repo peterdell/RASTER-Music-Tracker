@@ -34,6 +34,15 @@ struct TBookmark
     int speed;
 };
 
+// Populated by CSong::TrackInfo() - the track/song analogue of TInstrInfo
+// (InstrumentTypes.h), which CSong::InstrInfo() populates.
+struct TTrackInfo
+{
+    int count;                     // total occurrences of the track across all columns/songlines
+    int lines;                     // songlines the track appears in (goto lines excluded)
+    int usedincolumn[SONGTRACKS];  // per-column occurrence count (only columns < g_tracks4_8 are ever incremented)
+};
+
 struct TSong	//due to Undo
 {
     int song[SONGLEN][SONGTRACKS];

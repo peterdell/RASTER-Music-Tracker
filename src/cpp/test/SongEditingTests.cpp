@@ -647,6 +647,35 @@ TEST_F(SongEditingTest, InstrInfoPopulatesTheOutputStructWithoutShowingAMessageB
     EXPECT_EQ(info.maxvol, 8);
 }
 
+// --- TrackInfo ---
+// Called with a non-null tinfo, per its own tinfo-guarded design (mirroring
+// InstrInfo) - never touches the MessageBox("Track Info") branch.
+
+TEST_F(SongEditingTest, TrackInfoPopulatesTheOutputStructWithoutShowingAMessageBox) {
+    (*song.GetSong())[0][0] = 5;
+    (*song.GetSong())[1][2] = 5;
+
+    TTrackInfo info = {};
+    song.TrackInfo(5, &info);
+
+    EXPECT_EQ(info.count, 2);
+    EXPECT_EQ(info.lines, 2);
+    EXPECT_EQ(info.usedincolumn[0], 1);
+    EXPECT_EQ(info.usedincolumn[1], 0);
+    EXPECT_EQ(info.usedincolumn[2], 1);
+    EXPECT_EQ(info.usedincolumn[3], 0);
+}
+
+TEST_F(SongEditingTest, TrackInfoLeavesTheOutputStructUntouchedForAnOutOfRangeTrack) {
+    TTrackInfo info = { 99, 99, {1,1,1,1,1,1,1,1} };
+
+    song.TrackInfo(-1, &info);
+    EXPECT_EQ(info.count, 99);
+
+    song.TrackInfo(TRACKSNUM, &info);
+    EXPECT_EQ(info.count, 99);
+}
+
 // --- MakeModule / DecodeModule ---
 // Round-trip test, mirroring SongToAta/AtaToSong's approach in SongTests.cpp:
 // lets the real encode/decode logic prove itself internally consistent

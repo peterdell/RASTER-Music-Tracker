@@ -221,19 +221,14 @@ the already-resolved "confirm prompts stay deferred" decision.
   `CSongTracksOrderDlg`/`CEffectsDlg` respectively; confirmed while scoping
   Batches 1-4 - likely just defer all four, no output-parameter escape hatch
   like `InstrInfo` has)
-- `TrackInfo` (unconditional info `MessageBox`, no output-parameter escape
-  hatch like `InstrInfo` has)
+- `TrackInfo` - **DONE**: refactored to the same dual-mode (output-parameter
+  vs. `MessageBox`) design `InstrInfo` already has, moved into
+  `SongEditing.cpp`, 2 new tests, 214 tests passing (see
+  `plans/NOTES.md` for the full writeup)
 - `SongMaketracksduplicate`, `Songswitch4_8` (confirmation prompts only, no
   hidden dialogs - confirmed while scoping Batch 4 - deferred per the
   already-resolved decision)
 - `FileReload` and the rest of the `FileXxx` family (see Batch 7)
-
-**Open question for the user**: for `TrackInfo` specifically, is it worth a
-small production refactor (split the string-building into a pure helper,
-leave a thin `MessageBox`-only wrapper) to make it testable, the same way
-`InstrInfo` already happens to be split? This is a real (small) production
-code change, not just a mechanical move, so it needs an explicit go-ahead
-before doing it.
 
 ### Batch 6 - DONE (not yet committed) - live playback / timer
 
@@ -318,8 +313,7 @@ Needs its own dedicated triage pass before any of it can be attempted.
    `LoadRMT` info-dialog question)
 4. Batch 4 (heavier editing methods, one sub-group at a time given the
    number of individual checks needed)
-5. Decide Batch 5's open question (`TrackInfo` refactor - yes/no) before
-   attempting it
+5. `TrackInfo` refactor - **DONE**
 6. Batch 6 and 7: defer unless priorities change; `CSongTimer`'s
    uninitialized-member fix could be done opportunistically regardless
 
@@ -358,6 +352,6 @@ Needs its own dedicated triage pass before any of it can be attempted.
    decisions above)
 4. Batch 4 (heavier editing methods, one sub-group at a time given the
    number of individual checks needed)
-5. `TrackInfo`'s refactor + tests (now unblocked per the decision above)
+5. `TrackInfo`'s refactor + tests - **DONE**
 6. Batch 6 and 7: defer unless priorities change; `CSongTimer`'s
    uninitialized-member fix could be done opportunistically regardless

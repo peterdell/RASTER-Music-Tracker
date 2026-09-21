@@ -224,7 +224,7 @@ public:
 
     void InstrInfo(int instr, TInstrInfo* iinfo = NULL, int instrto = -1);
     void InstrChange(int instr);
-    void TrackInfo(int track);
+    void TrackInfo(int track, TTrackInfo* tinfo = NULL);
 
     void SongCopyLine();
     void SongPasteLine();
