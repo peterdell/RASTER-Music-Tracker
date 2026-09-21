@@ -1419,3 +1419,37 @@ build clean and all 123 tests pass.
         already-tested `LoadRMT`, same philosophy as `LoadRMT`'s own test).
         Full solution rebuild (Release|x64) confirmed 0 errors; 224 tests
         pass (up from 223, +1, 0 regressions).
+- [x] `ExportV2` Batch B: `CRmtExporter::ExportAsStrippedRMT`.
+      - Same dialog-gather-then-work shape as `InstrChange`/
+        `TracksOrderChange`: `CExportStrippedRMTDialog` supplies 7 fields,
+        all read into locals/globals right after `DoModal()`, then the rest
+        of the function (regenerate the module at the confirmed address/
+        SFX-ness, save it as a binary block) runs independently of the
+        dialog object. Extracted into
+        `CRmtExporter::ExportAsStrippedRMTApply(CSong&, std::ostream&, int
+        targetAddrOfModule, BOOL sfxSupport)` in `RmtExporterCore.cpp`,
+        widened to `std::ostream&` like `ExportAsRMT()` for the same
+        testability reason.
+      - Dropped one genuinely dead local (`int targetAddrOfModule =
+        dlg.m_exportAddr;` in the original wrapper) while moving the code -
+        confirmed by reading the rest of the function that it was never
+        read again (the code uses `g_rmtstripped_adr_module` directly
+        instead), so this is a zero-behavior-change cleanup, not a
+        judgment call.
+      - The wrapper's preliminary "build an SFX-variant module just to show
+        its size in the dialog" step (`exportTempDescription` before
+        `DoModal()`) stays in the wrapper - it's dialog-*adjacent* (only
+        used to populate dialog display fields), not dialog-independent
+        business logic, so there's nothing to gain by extracting it too.
+      - **Tests deliberately decode via `CAtariIO::LoadBinaryBlock()`/
+        `CSong::DecodeModule()` directly, not via `LoadRMT()`**:
+        `ExportAsStrippedRMTApply()` only ever writes a single block (no
+        names block), and `LoadRMT()` shows a real, blocking "Info"
+        `MessageBox` when it doesn't find a second block - avoided given
+        the firsthand confirmation from Batch A that these guard/info
+        `MessageBox` branches can actually hang a test run, not just fail
+        an assertion.
+      - 2 new hand-derived tests (one per `sfxSupport` value, both
+        confirming the block decodes successfully at the given target
+        address). Full solution rebuild (Release|x64) confirmed 0 errors;
+        226 tests pass (up from 224, +2, 0 regressions).

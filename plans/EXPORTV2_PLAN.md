@@ -139,8 +139,13 @@ for now, same posture as `TimerRoutine`/`ChangeTimer`/`ReInitSound`.
    confirming it really was already clean. 1 new round-trip test (through
    `LoadRMT`), 224 tests passing (see `plans/NOTES.md` for the full
    writeup, including a real hazard the test-writing process surfaced).
-2. **Batch B**: split `CRmtExporter::ExportAsStrippedRMT` (dialog-gather-
-   then-work, same treatment as `InstrChange`/`TracksOrderChange`).
+2. **Batch B - DONE**: split `CRmtExporter::ExportAsStrippedRMT` into a thin
+   dialog wrapper plus `ExportAsStrippedRMTApply(CSong&, std::ostream&, int
+   targetAddrOfModule, BOOL sfxSupport)` (`RmtExporterCore.cpp`), same
+   treatment as `InstrChange`/`TracksOrderChange`. 2 new tests, 226 tests
+   passing (see `plans/NOTES.md` for the full writeup, including why these
+   tests decode via `CAtariIO::LoadBinaryBlock`/`CSong::DecodeModule`
+   directly rather than through `LoadRMT`).
 3. **Batch C**: link `CASMFileExporter::BuildRelocatableAsm` directly (no
    split needed) and split `ExportAsRelocatableAsmForRmtPlayer`'s thin
    wrapper; split `ExportAsAsm` (4 dialog fields to extract). Remove the

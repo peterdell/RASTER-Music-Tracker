@@ -13,5 +13,9 @@ public:
     // in-memory stream (see test/SongEditingTests.cpp).
     static bool ExportAsRMT(CSong& song, std::ostream& ou, TExportDescription* exportDesc);
     static bool ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDescription* exportDesc, LPCTSTR filename);
+    // Extracted from ExportAsStrippedRMT(): the dialog-independent work,
+    // once the confirmed target address and SFX-support flag are known.
+    // Takes std::ostream& for the same reason as ExportAsRMT() above.
+    static bool ExportAsStrippedRMTApply(CSong& song, std::ostream& ou, int targetAddrOfModule, BOOL sfxSupport);
 };
 

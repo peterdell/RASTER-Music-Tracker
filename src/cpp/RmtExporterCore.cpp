@@ -50,3 +50,32 @@ bool CRmtExporter::ExportAsRMT(CSong& song, std::ostream& ou, TExportDescription
 
     return true;
 }
+
+// Extracted from CRmtExporter::ExportAsStrippedRMT() (RmtExporter.cpp): the
+// dialog-independent work, once the confirmed target address and
+// SFX-support flag are known. Only needs the already-safe
+// CSong::MakeModule()/CAtariIO::SaveBinaryBlock().
+bool CRmtExporter::ExportAsStrippedRMTApply(CSong& song, std::ostream& ou, int targetAddrOfModule, BOOL sfxSupport)
+{
+    TExportDescription exportTempDescription;
+    memset(&exportTempDescription, 0, sizeof(TExportDescription));
+    exportTempDescription.targetAddrOfModule = targetAddrOfModule;
+
+    exportTempDescription.firstByteAfterModule =
+        song.MakeModule(
+            exportTempDescription.mem,
+            exportTempDescription.targetAddrOfModule,
+            sfxSupport ? SongIOType::RMTSTRIPPED : SongIOType::RMT,
+            exportTempDescription.instrumentSavedFlags,
+            exportTempDescription.trackSavedFlags
+        );
+    if (exportTempDescription.firstByteAfterModule < 0)
+    {
+        return false;	// if the module could not be created
+    }
+
+    // And save the RMT module block
+    CAtariIO::SaveBinaryBlock(ou, exportTempDescription.mem, exportTempDescription.targetAddrOfModule, exportTempDescription.firstByteAfterModule, TRUE);
+
+    return true;		// Indicate that data was saved
+}

@@ -5,6 +5,7 @@
 #include "TuningTypes.h"
 #include "RmtVersion.h"
 #include "RmtExporter.h"
+#include "AtariIO.h"
 #include <sstream>
 
 extern int g_tracks4_8;
@@ -1034,6 +1035,70 @@ TEST_F(SongEditingTest, ExportAsRMTRoundTripsThroughLoadRMT) {
     CString instrName = g_Instruments.GetInstrument(2)->name;
     instrName.TrimRight();
     EXPECT_STREQ(instrName, "Lead");
+}
+
+// --- CRmtExporter::ExportAsStrippedRMTApply ---
+// Extracted from ExportAsStrippedRMT() - decoded directly via
+// CAtariIO::LoadBinaryBlock()/CSong::DecodeModule() rather than LoadRMT():
+// ExportAsStrippedRMTApply() only ever writes a single block (no names
+// block), and LoadRMT() shows a real, blocking "Info" MessageBox when it
+// doesn't find a second block - a hazard confirmed firsthand while testing
+// ExportAsRMT (see plans/NOTES.md), so it's never fed a single-block input.
+
+TEST_F(SongEditingTest, ExportAsStrippedRMTApplyWritesADecodableModuleBlock) {
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6; // DecodeModule() rejects a zero speed byte as invalid
+    info.instrspeed = 2;
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->len = 4;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 2;
+
+    std::ostringstream out;
+    ASSERT_TRUE(CRmtExporter::ExportAsStrippedRMTApply(song, out, 0x4000, FALSE));
+
+    std::istringstream in(out.str());
+    static unsigned char mem[65536] = {};
+    WORD fromAddr, toAddr;
+    int len = CAtariIO::LoadBinaryBlock(in, mem, fromAddr, toAddr);
+    ASSERT_GT(len, 0);
+    EXPECT_EQ(fromAddr, 0x4000);
+
+    BYTE instrLoadedFlags[INSTRSNUM] = {};
+    BYTE trackLoadedFlags[TRACKSNUM] = {};
+    CSong decoded;
+    EXPECT_GT(decoded.DecodeModule(mem, fromAddr, toAddr + 1, instrLoadedFlags, trackLoadedFlags), 0);
+}
+
+TEST_F(SongEditingTest, ExportAsStrippedRMTApplyWritesADecodableModuleBlockWhenSfxSupportIsOn) {
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 2;
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->len = 4;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 2;
+
+    std::ostringstream out;
+    ASSERT_TRUE(CRmtExporter::ExportAsStrippedRMTApply(song, out, 0x5000, TRUE));
+
+    std::istringstream in(out.str());
+    static unsigned char mem[65536] = {};
+    WORD fromAddr, toAddr;
+    int len = CAtariIO::LoadBinaryBlock(in, mem, fromAddr, toAddr);
+    ASSERT_GT(len, 0);
+    EXPECT_EQ(fromAddr, 0x5000); // sfxSupport doesn't affect the target address
+
+    BYTE instrLoadedFlags[INSTRSNUM] = {};
+    BYTE trackLoadedFlags[TRACKSNUM] = {};
+    CSong decoded;
+    EXPECT_GT(decoded.DecodeModule(mem, fromAddr, toAddr + 1, instrLoadedFlags, trackLoadedFlags), 0);
 }
 
 // --- SongJump / SongUp / SongDown / SongSubsongPrev / SongSubsongNext ---

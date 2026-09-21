@@ -57,35 +57,13 @@ bool CRmtExporter::ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDe
     if (dlg.DoModal() != IDOK) return false;
 
     // Save the configurations for later reuse
-    int targetAddrOfModule = dlg.m_exportAddr;
-
     g_rmtstripped_adr_module = dlg.m_exportAddr;
     g_rmtstripped_sfx = dlg.m_sfxSupport;
     g_rmtstripped_gvf = dlg.m_globalVolumeFade;
     g_rmtstripped_nos = dlg.m_noStartingSongLine;
     g_AsmFormat = dlg.m_assemblerFormat;
 
-    // Now we can regenerate the RMT module with the selected configuration
-    // - known start address
-    // - know if we want to strip out unused instruments and tracks => RMTSTRIPPED : RMT
-    memset(&exportTempDescription, 0, sizeof(TExportDescription));			// Clear it all again
-    exportTempDescription.targetAddrOfModule = g_rmtstripped_adr_module;	// Standard RMT modules are set to start @ $4000
-
-    exportTempDescription.firstByteAfterModule =
-        song.MakeModule(
-            exportTempDescription.mem,
-            exportTempDescription.targetAddrOfModule,
-            g_rmtstripped_sfx ? SongIOType::RMTSTRIPPED : SongIOType::RMT,
-            exportTempDescription.instrumentSavedFlags,
-            exportTempDescription.trackSavedFlags
-        );
-    if (exportTempDescription.firstByteAfterModule < 0)
-    {
-        return false;	// if the module could not be created
-    }
-
-    // And save the RMT module block
-    CAtariIO::SaveBinaryBlock(ou, exportTempDescription.mem, exportTempDescription.targetAddrOfModule, exportTempDescription.firstByteAfterModule, TRUE);
-
-    return true;		// Indicate that data was saved
+    return ExportAsStrippedRMTApply(song, ou, g_rmtstripped_adr_module, g_rmtstripped_sfx);
 }
+
+// CRmtExporter::ExportAsStrippedRMTApply() is implemented in RmtExporterCore.cpp.
