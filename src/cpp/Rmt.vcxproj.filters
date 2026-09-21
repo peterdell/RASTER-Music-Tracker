@@ -129,6 +129,12 @@
     <ClCompile Include="Instruments.cpp">
       <Filter>Source Files\Model</Filter>
     </ClCompile>
+    <ClCompile Include="InstrumentsCore.cpp">
+      <Filter>Source Files\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="InstrumentsAtaFormat.cpp">
+      <Filter>Source Files\Model</Filter>
+    </ClCompile>
     <ClCompile Include="Tracks.cpp">
       <Filter>Source Files\Model</Filter>
     </ClCompile>

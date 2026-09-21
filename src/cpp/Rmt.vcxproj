@@ -261,6 +261,8 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
     </ClCompile>
     <ClCompile Include="Instruments.cpp" />
+    <ClCompile Include="InstrumentsCore.cpp" />
+    <ClCompile Include="InstrumentsAtaFormat.cpp" />
     <ClCompile Include="IOHelpers.cpp" />
     <ClCompile Include="IO_Importer.cpp" />
     <ClCompile Include="IO_Instruments.cpp" />

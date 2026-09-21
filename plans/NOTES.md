@@ -331,6 +331,48 @@ Tests added (`TracksTests.cpp`):
 Verified via a full Release|x64 solution rebuild: `Rmt.exe` and `RmtTests.exe` both
 build clean and all 69 tests pass.
 
+## Phase 2 continued (2026-09-21): `CInstruments` (`Instruments.cpp`/`IO_Instruments.cpp`)
+
+Unlike `CTracks`, `CInstruments`'s coupling was split across **two** files (both
+`Instruments.cpp` and `IO_Instruments.cpp` included `Global.h`), and touched more
+globals: `g_AtariTrackerDriver`, `g_Atari` (a full `CAtari` instance — much heavier
+than `Tracks`'s trivial `g_Undo`/`g_respectvolume`), `g_tracks4_8`, and
+`g_keyboard_RememberOctavesAndVolumes`. Added 5 tests (74 total, all passing):
+
+- Found the **same `delete`/`delete[]` mismatch** as `CTracks` in `CInstruments`'s
+  destructor (`m_instr` allocated with `new TInstrument[INSTRSNUM]`, freed with plain
+  `delete`) — fixed to `delete[]`. (The constructor here was already safe: it
+  unconditionally assigns `m_instr` with no prior read, unlike `CTracks`'s.)
+- Split **both** files along the `g_Atari`/`g_AtariTrackerDriver` coupling seam:
+  - New `InstrumentsCore.cpp`: constructor/destructor, `SetCanvas`, `InitInstruments`,
+    `CheckInstrumentParameters`, `RecalculateFlag`, `CalculateNotEmpty`, `GetNote` —
+    none of these touch any global. `Instruments.cpp` keeps `ClearInstrument`,
+    `SetEnvelopeVolume`, `GetFrequency`, `MemorizeOctaveAndVolume`,
+    `RememberOctaveAndVolume` (all read a global) plus the large `shpar`/`shenv`
+    static data tables.
+  - New `InstrumentsAtaFormat.cpp`: `InstrToAta`, `AtaToInstr`, `AtaV0ToInstr` — the
+    "fixed-format struct parsing" functions (compact on-Atari instrument byte format),
+    which only need the trivial `g_tracks4_8` int, not `g_Atari`. `IO_Instruments.cpp`
+    keeps `SaveInstrument`/`LoadInstrument`/`SaveAll`/`LoadAll`/`Update` (the last of
+    which is the only one needing the heavy `g_Atari`).
+  - Both new files added to `Rmt.vcxproj`; production `Rmt.exe` rebuild verified clean.
+- For the test project, `InitInstruments()` (kept in `InstrumentsCore.cpp`) still
+  calls `ClearInstrument()` (which stayed behind, needing `g_Atari`), so linking
+  needed one more small stub: `src/cpp/test/InstrumentsStub.cpp` provides both the
+  storage for `g_tracks4_8` (a real, read/write global the tests flip between mono
+  (4) and stereo (8) to test both `InstrToAta`/`AtaToInstr` packing paths) and an
+  empty-body link-only stub for `ClearInstrument()`, since tests never call
+  `InitInstruments()` (they set up `TInstrument` fields directly via `GetInstrument()`
+  instead).
+- All 5 `InstrToAta`/`AtaToInstr`/`AtaV0ToInstr` tests use **hand-derived** expected
+  bytes (worked through the bit-packing arithmetic manually, including the format's
+  intentional mono-vs-stereo envelope-volume lossiness — mono packs a single nibble
+  so `VOLUMER` collapses to `VOLUMEL` on round-trip, stereo preserves both). All 5
+  passed on the first run, cross-checking the by-hand derivation.
+
+Verified via a full Release|x64 solution rebuild: `Rmt.exe` and `RmtTests.exe` both
+build clean and all 74 tests pass.
+
 ## Status
 
 - [x] Read `plans/OVERALL_PLAN.md`, `README.md`, and linked docs present in the repo.
@@ -344,30 +386,42 @@ build clean and all 69 tests pass.
       (`6cdabe7`).
 - [x] Phase 2 continued: `lzss_sap.cpp`/`CCompressLzss` tests, 54 tests total,
       committed (`9475297`).
-- [x] Phase 2 continued: `CTracks`/`IO_Tracks.cpp` tests + 3 real bug fixes
-      (uninitialized pointer, `delete` vs `delete[]`, include typo), 69 tests total.
-      Not yet committed.
+- [x] Phase 2 continued: `CTracks`/`IO_Tracks.cpp` tests + 3 real bug fixes, 69 tests
+      total, committed (`38a4d6f`).
+- [x] Phase 2 continued: `CInstruments`/`IO_Instruments.cpp` tests + 1 more
+      `delete`/`delete[]` fix, split across 2 new files, 74 tests total. Not yet
+      committed.
 - [ ] Ask user whether to commit this step.
 - [ ] Phase 2 continued: more characterization tests before any cleanup, candidates in
       rough order:
-      - `Instruments`/`IO_Instruments.cpp` — likely mirrors the `Tracks`/`IO_Tracks`
-        split (check for a `Global.h` include and an editing-vs-IO seam the same way).
       - `Song`'s fixed-format struct parsing pieces (check `IO_Song.cpp` first, given
         the established convention that `IO_*.cpp` files tend to already be
-        `Global.h`-free even when their `*.cpp` counterpart isn't).
+        `Global.h`-free even when their `*.cpp` counterpart isn't — though
+        `IO_Instruments.cpp` broke that pattern, so verify rather than assume).
       - Before starting a new module, always check whether it `#include`s `Global.h`
         (or another huge header) and, if so, whether the globally-coupled methods can
-        be split out the same way as `Tuning.cpp`/`TuningTables.cpp` and
-        `Tracks.cpp`/`TracksEdit.cpp` — check this early, since it changes the scope
-        of the work. Also worth a quick read-through for the same class of bugs found
-        in `CTracks` (uninitialized members with no default initializer, `delete`
-        vs `delete[]` mismatches, wrong/self-referential includes) — these are cheap
-        to spot while reading for coupling anyway, and safe, real fixes once found.
+        be split out the same way as `Tuning`/`Tracks`/`Instruments` — check this
+        early, since it changes the scope of the work. It's fine for the split to
+        land across more than one file if the coupling itself is spread across more
+        than one file (as with `Instruments.cpp` + `IO_Instruments.cpp` this round).
+      - Also worth a quick read-through for the same class of bugs found twice now
+        (uninitialized members with no default initializer, `delete` vs `delete[]`
+        mismatches on array allocations, wrong/self-referential includes) — cheap to
+        spot while reading for coupling anyway, and safe, real fixes once found. Two
+        for two classes with a raw-pointer array member have had a `delete`/`delete[]`
+        bug so far — worth specifically grep'ing `delete <member>;` (no brackets) near
+        any `new T[...]` allocation in whatever's read next.
       - When a method needed for testing is `private` but pure (no dependency on
         other private state) and there's no other way to exercise it (no decoder/
         inverse operation, no way to observe its effect indirectly), the established
         pattern here is: make it `public` with a one-line comment explaining why. Pure
         visibility changes, no behavior change.
+      - When a test needs a real, cross-checkable "seam" value that a coupled method
+        would otherwise supply from a global (like `CInstruments` tests flipping
+        `g_tracks4_8` between mono/stereo), prefer a small stub `.cpp` that defines
+        just that global (or an empty-body override for a call-graph-only dependency
+        like `ClearInstrument()`) over pulling in the whole subsystem that would
+        normally set it.
       - Everything touching `g_Song`/other globals, MFC dialogs, and the timer-driven
         sound generation is expected to need actual decoupling work (the "cleanup"
         half of Phase 2) before it's testable at all — do not attempt to test that
