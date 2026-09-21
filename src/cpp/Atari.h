@@ -74,6 +74,10 @@ private:
 
     byte m_memory[MEMORY_SIZE];
 
-    BOOL m_ntsc;
+    // Default-initialized so IsNTSC()/GetClockFrequency()/GetFrameCycleCount()
+    // are well-defined on any instance, not just the global g_Atari (which
+    // got FALSE for free from static zero-initialization). Only Init(bool)
+    // sets this otherwise.
+    BOOL m_ntsc = FALSE;
 
 };

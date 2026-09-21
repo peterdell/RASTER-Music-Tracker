@@ -575,6 +575,104 @@ before writing assertions:
 Verified via a full Release|x64 solution rebuild: `Rmt.exe` and `RmtTests.exe` both
 build clean and all 116 tests pass.
 
+## IMPORTANT CORRECTION (2026-09-21): `CSong`'s constructor is actually cheap — earlier
+## deferral reasoning was based on an assumption I never verified
+
+When `CSong` was first investigated, I said its constructor was blocked because it
+calls `m_PokeyController = new CPokeyController(&g_Atari);`, and concluded from that
+alone (without checking either class) that this "pulls in the full `CAtari`
+subsystem." **That conclusion was wrong, and I should have verified it at the time
+instead of inferring it from the call shape.** Having now actually opened both
+files while investigating `Atari.cpp`:
+
+- `CAtari`'s constructor is `CAtari() { ClearMemory(); }` — a single `memset` over a
+  64KB buffer. Nothing else. `g_Atari` (the global instance) is completely cheap to
+  construct.
+- `CPokeyController`'s constructor is `CPokeyController(CAtari* atari) :
+  m_atari(atari), m_channel_index(0), m_divisor(1.0) {}` — an initializer list and an
+  empty body. Also completely cheap.
+
+So `CSong::CSong()`'s only two statements beyond trivial member resets
+(`memset(m_songname, ...)`, three `-1` assignments) are cheap, **provided a `g_Atari`
+global (or stand-in) already exists for linking** — which is itself now known to be
+cheap and safe to stub (see `AtariStub.cpp`/`AtariTests.cpp` below).
+
+**This does not mean `CSong` is now fully testable** — the *constructor* being cheap
+is necessary but nowhere near sufficient:
+- `Song.cpp` is still 3224 lines in one translation unit, and compiling any of it
+  (even just to reach the constructor) requires the linker to resolve every global
+  every *other* method in the file touches (`g_AtariTrackerDriver`, `g_Instruments`,
+  `g_TrackClipboard`, `g_Pokey`, `g_tracks4_8`, `MainFrm.h`/`EffectsDlg.h`-linked UI
+  code, and more) — a much larger stubbing effort than any file done so far, not
+  fundamentally different in kind from the `Tuning`/`Tracks`/`Instruments` splits,
+  but bigger in scope. A clean split (constructor/destructor + whatever else turns
+  out pure into a `SongCore.cpp`, mirroring the established pattern) is very likely
+  possible but hasn't been attempted yet.
+- Individual methods have their own independent hazards even once construction is
+  solved. E.g. `CSong::Stop()` (called unconditionally by `CUndo::Undo()`/`Redo()`)
+  guards its body with `if (GetPlayMode() != PLAY_STOP)`, but `m_play` (the backing
+  field) has **no default member initializer** — the same uninitialized-member
+  pattern fixed for `CTracks`/`CInstruments`/`CAtari` elsewhere, except here a
+  garbage-triggered `true` branch calls `g_SongTimer.WaitForTimerRoutineProcessed()`,
+  which sounds like it could **block waiting for a timer thread that isn't running in
+  a test binary** — a hang risk, not just a crash risk. This alone should be fixed
+  (add `= PLAY_STOP` or equivalent) before anyone relies on constructing a bare
+  `CSong` for tests.
+
+**Net effect**: `CSong`'s constructor is no longer a valid reason to defer it, but the
+translation-unit size and per-method hazards like `Stop()`'s are real ones. Treat a
+proper `CSong`/`Song.cpp` split as a legitimately-sized, deliberate task (like the
+plan's own "cleanup" phase), not as blocked-forever. Downgrade "CSong deferred" from
+"can't construct it" to "haven't yet done the (larger, but same-pattern) split work."
+
+## Phase 2 continued (2026-09-21): `CanvasXY`, `C6502`, `Undo`, `Song_DumpSong`, `Atari`
+
+User asked to continue with these five specifically:
+
+- **`CanvasXY.cpp`** (`CCanvasXY`) — a GDI drawing wrapper (`CDC*`-based text/line/
+  rect drawing). Pure UI rendering, nothing to assert on without an in-memory device
+  context and pixel inspection; out of scope for characterization tests, same
+  category as `RmtView`/dialogs. Skipped.
+- **`Song_DumpSong.cpp`** — turned out to be a single function,
+  `CSong::DumpSongToPokeyStream`, i.e. just another `CSong` method (not a separate
+  class/file's worth of testable surface). Deeply entangled in the live playback
+  loop (`Play()`, `PlayVBI()`, message pumping, `g_AtariTrackerDriver`). Confirms it's
+  squarely inside the `CSong` split work above, not separately actionable. Skipped
+  for now.
+- **`C6502.cpp`** — confirmed a genuine, by-design hazard: `C6502::Init()` calls
+  `LoadLibrary("sa_c6502.dll")` and shows a **real blocking `MessageBox`** if the DLL
+  is missing. Not characterization-testable as-is (real DLL dependency, real UI
+  popup); this is *why* `CAtari::Init()`/`DeInit()`/`JSR()` needed link-only stubs
+  for `AtariTests.cpp` rather than linking the real `C6502.cpp`. No tests written for
+  `C6502.cpp` itself.
+- **`Undo.cpp`** (`CUndo`) — investigated in depth. Its constructor/destructor are
+  cheap (just null out / free a 302-entry array), but essentially every operational
+  method (`ChangeTrack`, `ChangeSong`, `ChangeInstrument`, `ChangeInfo`,
+  `PerformEvent`, `Undo`, `Redo`) reads and writes real `g_Song`/`g_Tracks`/
+  `g_Instruments` state, and `Undo()`/`Redo()` both call `CSong::Stop()` unconditionally
+  — which hits the hang risk described above. **Deferred**, not because `CSong` can't
+  be constructed (see correction above) but because testing `CUndo` meaningfully
+  needs a real, properly-initialized `g_Song`/`g_Tracks`/`g_Instruments` trio and
+  `Stop()`'s `m_play` hazard fixed first — squarely downstream of the `CSong` split
+  work, not a quick win by itself.
+- **`Atari.cpp`** (`CAtari`) — the actual win this batch. Added 7 tests (123 total,
+  all passing) for the pure memory-buffer methods (`GetByteAt`/`SetByteAt`/
+  `GetMemoryAt`/`GetConstMemoryAt`/`ClearMemory`, both `GetClockFrequency`/
+  `GetFrameCycleCount` overloads). Found and fixed the same uninitialized-member
+  pattern as `CTracks`/`CInstruments`: `m_ntsc` had no default initializer, so
+  `IsNTSC()` (and everything derived from it) was indeterminate on any non-global
+  instance. Fixed with `BOOL m_ntsc = FALSE;` (`Atari.h`) — safe for the existing
+  global `g_Atari` (already got `FALSE` for free from static zero-init) and now safe
+  for test-constructed instances too. `Init()`/`DeInit()`/`JSR()` (real C6502/DLL
+  calls) and `Init(bool ntsc)` (calls `CTuning::InitTuning()`, hazardous per
+  `TuningTests.cpp`) are all avoided; link-only stubs (`AtariStub.cpp`) provide
+  `C6502::Init/DeInit/JSR` (never called) and a real, cheap `g_Tuning` instance
+  (needed only because `Atari.cpp`'s translation unit references it, not because
+  tests use it).
+
+Verified via a full Release|x64 solution rebuild: `Rmt.exe` and `RmtTests.exe` both
+build clean and all 123 tests pass.
+
 ## Status
 
 - [x] Read `plans/OVERALL_PLAN.md`, `README.md`, and linked docs present in the repo.
@@ -593,36 +691,41 @@ build clean and all 116 tests pass.
 - [x] Phase 2 continued: `CInstruments`/`IO_Instruments.cpp` tests + 1 more
       `delete`/`delete[]` fix, split across 2 new files, 74 tests total, committed
       (`e85f0f7`).
-- [x] Phase 2 continued: `CSong` investigated and deliberately deferred; `CSAPFile`
-      tested instead, 78 tests total, committed (`3a6e1b9`).
+- [x] Phase 2 continued: `CSong` investigated, `CSAPFile` tested instead, 78 tests
+      total, committed (`3a6e1b9`). **(Note: the "CSong deferred" reasoning here was
+      later found incomplete — see the correction above.)**
 - [x] Phase 2 continued: `Keyboard2NoteMapping` + `CASMFileBuilder` tests (complete,
       including `BuildSongData`), 93 tests total, committed (`1c3e20b`, `3d84de4`).
 - [x] Phase 2 continued: fresh `Global.h`-free survey → `ChannelControl` +
       `RmtCommandLineInfo` tests, 107 tests total, committed (`f28854c`).
-- [x] Phase 2 continued: `Global.h`-*having* survey → `CPokeyStream` tests (link-only
-      stubs for its 2 coupled dependencies, no file split needed), 116 tests total.
-      Not yet committed.
+- [x] Phase 2 continued: `Global.h`-*having* survey → `CPokeyStream` tests, 116 tests
+      total, committed (`c0a0b0e`).
+- [x] Phase 2 continued: `CanvasXY`/`C6502`/`Undo`/`Song_DumpSong` investigated
+      (skipped/deferred, see above) + `CAtari` tests + 1 more uninitialized-member
+      fix, 123 tests total. Not yet committed.
 - [ ] Ask user whether to commit this step.
-- [ ] Phase 2 continued: more characterization tests before any cleanup. Both
-      `Global.h`-free and `Global.h`-having surveys have now been done once; the
-      remaining easy candidates are thinning out. Next time:
-      - Files not yet opened at all from either survey list are the next place to
-        look: from the `Global.h`-having list, e.g. `CanvasXY.cpp`,
-        `AtariTrackerDriver.cpp`, `Atari.cpp`, `C6502.cpp`, `Song_DumpSong.cpp`,
-        `Undo.cpp` — check each for the same "mostly pure, a few coupled methods"
-        shape `PokeyStream` and `Tuning`/`Tracks`/`Instruments` had before assuming
-        it's `CSong`-like.
-      - Prefer the **link-only-stub** approach (used for `PokeyStream`) over a
-        file-level split when the coupled and pure methods are woven through the
-        same file rather than cleanly separable — both are legitimate, pick whichever
-        fits the file's actual shape.
-      - Revisit whether it's time to tackle `CSong`'s constructor coupling
-        deliberately (a real decoupling task, not a quick split) — this would unblock
-        `LZSSFile`, `SongExport`, `SongContainer`, `SAPFileExporter`, `PokeyStream`'s
-        `StartRecording()`, and `CSong`'s own `SongToAta`/`AtaToSong`, all currently
-        blocked on it either directly or via a stubbed-around dependency.
+- [ ] Phase 2 continued: more characterization tests before any cleanup.
+      - **Reconsider a deliberate `Song.cpp`/`IO_Song.cpp` split** as the next
+        significant piece of work (not a quick win, but no longer blocked on "can't
+        construct `CSong`" — see the correction above). Before starting: (a) fix
+        `m_play`'s missing default initializer the same way `m_ntsc` was just fixed,
+        (b) identify which of `Song.cpp`'s ~3224 lines' worth of methods are pure vs.
+        which globals each coupled method needs, similar to the `Tuning`/`Tracks`/
+        `Instruments` triage, before deciding how many files the split needs to land
+        in. This would unblock `LZSSFile`, `SongExport`, `SongContainer`,
+        `SAPFileExporter`, `PokeyStream::StartRecording()`, `CUndo`, and `CSong`'s own
+        `SongToAta`/`AtaToSong`, all currently blocked on it either directly or via a
+        stubbed-around dependency.
+      - Remaining unopened files from the `Global.h`-having survey:
+        `AtariTrackerDriver.cpp` (worth checking now that `CAtari` turned out cheap —
+        may have a similarly-mistaken "looks heavy" assumption worth re-verifying).
       - `ASMFile.cpp` is only 2 lines (essentially empty) — confirm there's nothing
         there before spending time on it.
+      - General lesson from this batch: **when a class is deferred because it "needs"
+        another class, actually open and read that other class's constructor before
+        concluding it's heavy** — the assumption, not just the conclusion, needs
+        verification. This cost nothing to fix here since no code was based on the
+        wrong assumption, but it's worth being more careful about going forward.
       - **`CSong` stays deferred** until there's appetite for a real constructor
         decoupling pass (or a deliberate decision to add a riskier test-only seam
         there). Don't retry it opportunistically.

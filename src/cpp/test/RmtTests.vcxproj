@@ -118,6 +118,8 @@
     <ClCompile Include="..\RmtCommandLineInfo.cpp" />
     <ClCompile Include="..\PokeyStream.cpp" />
     <ClCompile Include="PokeyStreamStub.cpp" />
+    <ClCompile Include="..\Atari.cpp" />
+    <ClCompile Include="AtariStub.cpp" />
     <!-- Test sources. -->
     <ClCompile Include="FractionTests.cpp" />
     <ClCompile Include="StringUtilityTests.cpp" />
@@ -133,6 +135,7 @@
     <ClCompile Include="ChannelControlTests.cpp" />
     <ClCompile Include="RmtCommandLineInfoTests.cpp" />
     <ClCompile Include="PokeyStreamTests.cpp" />
+    <ClCompile Include="AtariTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Fraction.h" />
@@ -155,6 +158,7 @@
     <ClInclude Include="..\ChannelControl.h" />
     <ClInclude Include="..\RmtCommandLineInfo.h" />
     <ClInclude Include="..\PokeyStream.h" />
+    <ClInclude Include="..\Atari.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="googletest\LICENSE" />
