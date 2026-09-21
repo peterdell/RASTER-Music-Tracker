@@ -4,8 +4,36 @@
 #include "Clipboard.h"
 #include "TuningTypes.h"
 #include "AtariTrackerDriver.h"
+#include "SongTimer.h"
 
 extern CAtari g_Atari;
+
+// Real CSongTimer for CSong::Play()/Stop()/PlayBeat()/PlayVBI() (see
+// SongEditing.cpp), which only call WaitForTimerRoutineProcessed() on it -
+// confirmed by reading CSongTimer.cpp that this is a safe no-op as long as
+// m_timerRoutine stays 0, i.e. as long as SetTimer() (the one method that
+// calls the real, hazardous Windows timeSetEvent()) is never invoked. None
+// of Play()/Stop()/PlayBeat()/PlayVBI() call SetTimer(), ChangeTimer(), or
+// StopTimer() - only CSong::ChangeTimer()/TimerRoutine() do (both stay
+// unlinked/deferred, see plans/SONG_IO_SONG_REMAINING_PLAN.md), so this
+// stays a guaranteed safe no-op for every test in this binary. Do not add
+// a test that calls ChangeTimer()/StopTimer()/TimerRoutine() without
+// re-verifying this reasoning first.
+CSongTimer g_SongTimer;
+
+// Link-only stub for just this one CSongTimer method: the rest of
+// SongTimer.cpp (SetTimer()/KillTimer()/StopTimer()/Callback()) needs
+// winmm.lib (timeSetEvent/timeKillEvent) and CSong::TimerRoutine() - both
+// deliberately not linked here (see the g_SongTimer comment above). This
+// mirrors the real body's "if (m_timerRoutine)" guard (see SongTimer.cpp) -
+// m_timerRoutine stays 0 in this test binary since SetTimer() is never
+// called, so the guard's body (a busy-wait loop) is provably unreachable
+// and left out entirely, not behaviorally stubbed.
+void CSongTimer::WaitForTimerRoutineProcessed() {
+    if (m_timerRoutine) {
+        // Unreachable here - see comment above.
+    }
+}
 
 // Real CAtariTrackerDriver for CSong::PlayPressedTones()/InstrPaste() (see
 // SongEditing.cpp) - its constructor just stores a pointer, and the 3
@@ -62,22 +90,13 @@ BOOL g_keyboard_playautofollow = FALSE;
 BOOL g_keyboard_updowncontinue = FALSE;
 BOOL g_keyboard_RememberOctavesAndVolumes = FALSE;
 WORD g_rmtstripped_adr_module = 0x4000;
+long g_playtime = 0;
 
 // Link-only no-op stubs for GuiHelpers.cpp's status bar helpers (see
 // ClipboardCore.cpp) - their real bodies just no-op or OutputDebugString
 // when there's no real status bar window, which is always the case here.
 void ClearStatusBar() {}
 void SetStatusBarText(const char*) {}
-
-// Link-only stub: the real CSong::Stop() lives in Song.cpp (not linked here
-// - it needs g_SongTimer, a real OS multimedia timer, a genuine hazard -
-// see plans/SONG_IO_SONG_REMAINING_PLAN.md) and is reachable through
-// CSong::TracksAllBuildLoops()/TracksAllExpandLoops() (see
-// SongEditing.cpp). Its real body only does anything when
-// GetPlayMode() != PLAY_STOP, which is never true in these tests (nothing
-// calls Play() on the instance first), so an empty stub is behaviorally
-// identical to the real Stop() for every test that reaches it.
-void CSong::Stop() {}
 
 // Link-only stub: the real CSong::ReInitSound() lives in Song.cpp (not
 // linked here - it needs g_AtariTrackerDriver/g_Pokey, real Atari hardware
@@ -86,11 +105,3 @@ void CSong::Stop() {}
 // changes. Tests characterize SetTracks()'s own effect (the g_tracks4_8
 // assignment), not the resulting sound reinitialization.
 void CSong::ReInitSound() {}
-
-// Link-only stub: the real CSong::Play() lives in Song.cpp (not linked here
-// - it needs g_SongTimer, the same real OS multimedia timer hazard as
-// Stop()) and is reachable through CSong::SongUp()/SongDown()/
-// SongSubsongPrev()/SongSubsongNext() (see SongEditing.cpp), but only
-// inside "if (m_play && m_followplay)" branches that are never taken here
-// (m_play defaults to PLAY_STOP and nothing calls the real Play() first).
-BOOL CSong::Play(PlayMode, BOOL, int) { return FALSE; }

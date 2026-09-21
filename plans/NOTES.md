@@ -1113,3 +1113,55 @@ build clean and all 123 tests pass.
         `BlockEffect` (all instantiate real MFC dialogs) - need a deliberate
         decision (matching `TrackInfo`'s already-decided small-refactor
         treatment, or staying deferred) before any further characterization.
+- [x] Phase 2 continued: plan's "Batch 6" (`Play`, `Stop`, `PlayBeat`,
+      `PlayVBI`), 212 tests total. Not yet committed. **This batch carried
+      real hang risk** (a genuine OS timer thread) if the safety reasoning
+      below turned out wrong, so every step was verified with an explicit
+      timeout before proceeding to the next.
+      - **The plan's own "recommend defer this entire batch" turned out too
+        conservative** - re-verifying `CSongTimer`'s actual implementation
+        (not just trusting the earlier hazard note) found
+        `WaitForTimerRoutineProcessed()`/`StopTimer()`/`KillTimer()` are all
+        guarded by `if (m_timerRoutine)`, and the *only* method that ever
+        sets `m_timerRoutine` away from its default `0` is `SetTimer()`
+        (which calls the real, hazardous `timeSetEvent`). As long as nothing
+        ever calls `SetTimer()`/`CSong::ChangeTimer()`, every other
+        `CSongTimer` method is a provably safe no-op - confirmed by reading
+        `SongTimer.cpp` line by line, not assumed.
+      - Similarly, `g_Atari.Init()` (called by `Play()`'s `PLAY_SONG` case)
+        delegates to the already-stubbed no-op `C6502::Init()` - the same
+        delegation pattern found for `g_AtariTrackerDriver` in Batch 4.
+      - `TimerRoutine()` stays genuinely deferred: besides calling the
+        hazardous `ChangeTimer()`, it also calls `g_Pokey.RenderSound1_50()`,
+        and `CXPokey` (`PokeyRenderer.h`) holds a real
+        `LPDIRECTSOUNDBUFFER` - a real audio-hardware coupling, a
+        categorically different (and not yet investigated) hazard.
+        `ReInitSound()`/`ChangeTimer()` stay deferred/stubbed for the same
+        `g_SongTimer.SetTimer()`/`g_Pokey ` reasons.
+      - Added the same missing-default-member-initializer fix to
+        `CSongTimer` (`m_song`/`m_timerRoutine`/`busyInCallback`/
+        `m_timerRoutineProcessed`) as done earlier for `CTracks`/
+        `CInstruments`/`CAtari`/`CSong` - safe, zero production-behavior
+        change, and it's *why* a real `CSongTimer g_SongTimer;` global is
+        safe to add to the test project at all (matches what the existing
+        global already got for free from static zero-initialization).
+      - Discovered `TracksEdit.cpp` (already split from `Tracks.cpp` in a
+        prior session, per its own header comment) wasn't linked into the
+        test project yet - needed by `PlayVBI`'s quantization branch
+        (`CTracks::SetNoteInstrVol`/`SetVol`). Its only dependencies
+        (`g_Undo`, `g_respectvolume`) were already safe/real.
+      - Linking the *whole* `SongTimer.cpp` doesn't work for the test binary
+        (needs `winmm.lib` for `timeSetEvent`/`timeKillEvent`, and
+        `CSong::TimerRoutine()`, deliberately unlinked) - instead added a
+        link-only stub for just `WaitForTimerRoutineProcessed()` that
+        preserves the real guard (`if (m_timerRoutine)`) without the
+        unreachable busy-wait body, rather than stubbing it as an
+        unconditional no-op.
+      - Verified safety incrementally rather than all at once: built and ran
+        the existing suite (no new tests yet) with a timeout after wiring
+        `g_SongTimer` in; added and ran just the `Stop()` test alone with a
+        timeout; then added `Play`/`PlayBeat`/`PlayVBI` and re-verified with
+        a timeout before running the full suite. No hangs at any step; all
+        new tests hand-derived correctly on first run.
+      - Full solution rebuild (Release|x64) confirmed 0 errors; 212 tests
+        pass (up from 208, +4, 0 regressions).

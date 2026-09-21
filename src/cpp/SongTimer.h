@@ -35,9 +35,15 @@ public:
 
 private:
 
-    CSong* m_song;
-    UINT m_timerRoutine;
-    bool volatile busyInCallback;
-    bool volatile m_timerRoutineProcessed;
+    // Given explicit defaults (matching what the global g_SongTimer already
+    // got for free from static zero-initialization) so any other instance -
+    // e.g. one constructed directly in a test - is just as well-defined.
+    // m_timerRoutine == 0 is also what WaitForTimerRoutineProcessed()/
+    // StopTimer()/KillTimer() rely on to stay safe no-ops when no real timer
+    // was ever started via SetTimer().
+    CSong* m_song = nullptr;
+    UINT m_timerRoutine = 0;
+    bool volatile busyInCallback = false;
+    bool volatile m_timerRoutineProcessed = false;
 };
 

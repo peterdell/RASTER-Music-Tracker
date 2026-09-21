@@ -104,6 +104,7 @@
     <ClCompile Include="TuningInitStub.cpp" />
     <ClCompile Include="..\lzss_sap.cpp" />
     <ClCompile Include="..\Tracks.cpp" />
+    <ClCompile Include="..\TracksEdit.cpp" />
     <ClCompile Include="..\IO_Tracks.cpp" />
     <ClCompile Include="..\IOHelpers.cpp" />
     <ClCompile Include="..\InstrumentsCore.cpp" />

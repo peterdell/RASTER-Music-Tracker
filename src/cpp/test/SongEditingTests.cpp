@@ -914,3 +914,61 @@ TEST_F(SongEditingTest, InstrPasteNormalPasteCopiesTheClipboardIntoTheActiveInst
     EXPECT_STREQ(pastedName, "Lead");
     EXPECT_EQ(g_Instruments.GetInstrument(5)->activeEditSection, InstrumentSection::NAME);
 }
+
+// --- Stop ---
+// Calls the real g_SongTimer.WaitForTimerRoutineProcessed(), confirmed a
+// safe no-op as long as SetTimer() is never called (see
+// SongEditingStub.cpp's g_SongTimer comment) - which nothing in this test
+// binary does.
+
+TEST_F(SongEditingTest, StopSetsPlayModeToStopFromAnyOtherMode) {
+    song.SetPlayMode(PLAY_TRACK);
+    song.Stop();
+    EXPECT_EQ(song.GetPlayMode(), PLAY_STOP);
+}
+
+// --- Play ---
+// Also calls the real g_SongTimer.WaitForTimerRoutineProcessed() (same
+// safety argument as Stop() above) and g_Atari.Init() (PLAY_SONG mode only -
+// delegates to the already-stubbed no-op C6502::Init()).
+
+TEST_F(SongEditingTest, PlaySetsPlayModeAndInitializesPlayLines) {
+    song.SongSetActiveLine(3);
+    song.SetActiveLine(4);
+
+    EXPECT_TRUE(song.Play(PLAY_TRACK, FALSE));
+
+    EXPECT_EQ(song.GetPlayMode(), PLAY_TRACK);
+    EXPECT_EQ(song.SongGetPlayLine(), 3); // m_songplayline = m_songactiveline
+    EXPECT_EQ(song.GetPlayLine(), 0);     // special=0 (default) -> m_trackplayline = 0
+}
+
+// --- PlayBeat ---
+
+TEST_F(SongEditingTest, PlayBeatSendsTheNoteAndInstrumentFromTheCurrentTrackLine) {
+    (*song.GetSong())[0][0] = 5; // song line 0, column 0 -> track 5
+    song.SongSetActiveLine(0);
+    song.SetPlayMode(PLAY_TRACK);
+    song.SongSetPlayLine(0);
+    song.SetPlayLine(0);
+
+    TTrack* tr = g_Tracks.GetTrack(5);
+    tr->len = 4;
+    tr->note[0] = 20;
+    tr->instr[0] = 3;
+    tr->volume[0] = 10;
+
+    EXPECT_TRUE(song.PlayBeat());
+    EXPECT_EQ(g_rmtinstr[0], 3);
+}
+
+// --- PlayVBI ---
+
+TEST_F(SongEditingTest, PlayVBIAdvancesTheTrackPlayLineOnceSpeedElapses) {
+    song.SetPlayMode(PLAY_TRACK);
+    song.SongSetPlayLine(0);
+    song.SetPlayLine(5); // m_speeda defaults to 0, so "m_speeda--" makes the "too soon" check fail and it proceeds
+
+    EXPECT_TRUE(song.PlayVBI());
+    EXPECT_EQ(song.GetPlayLine(), 6);
+}
