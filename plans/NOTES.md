@@ -965,3 +965,46 @@ build clean and all 123 tests pass.
       - 2 new hand-derived tests (a period-1 and a period-2 loop pattern),
         both correct on first run. Full solution rebuild (Release|x64)
         confirmed 0 errors; 186 tests pass (up from 184, +2, 0 regressions).
+- [x] Phase 2 continued: plan's "Batch 2" (`ResetTuningVariables`, `SetTracks`,
+      `SetNTSC`, `MakeModule`, `DecodeModule`, `InstrInfo`), 191 tests total.
+      Not yet committed.
+      - **Two more corrections found while implementing, before touching any
+        code**: (1) `MakeTuningBlock`/`DecodeTuningBlock` are dead code -
+        entirely inside a `/* TODO: Unused ... */` block comment spanning
+        from just before `MakeTuningBlock`'s signature to just after
+        `DecodeTuningBlock`'s closing brace, with both declarations also
+        commented out in `Song.h`. The earlier plan's direct-globals grep
+        matched text *inside the comment* as if it were real code - removed
+        from the batch entirely (not "deferred", they don't compile). (2)
+        `DecodeModule` calls `SetTracks()`, missed by the direct-globals
+        check (a call to another `CSong` method, not a direct global
+        reference - the same class of oversight as Batch 1's `Stop()`
+        correction). `SetTracks()` conditionally calls `ReInitSound()` (real
+        `g_AtariTrackerDriver`/`g_Pokey` hazard) only when the track count
+        actually changes - given the same link-only no-op stub treatment as
+        `Stop()`, which makes `SetTracks()` itself genuinely safe-cluster
+        material (only needs `g_tracks4_8` directly).
+      - **`SetNTSC()` folded in too**: identical shape to `SetTracks()`
+        (conditionally calls the now-stubbed `ReInitSound()`), and directly
+        useful for testing `ResetTuningVariables()`'s NTSC/PAL branching.
+      - Added real `TTuningSettings g_tuning;`/`TTuningRatios g_tuningRatios;`
+        globals (both already globals-free per `TuningTypesTests.cpp`) and a
+        real `HWND g_hwnd = NULL;` (only ever passed to a `MessageBox()` call
+        on guard branches these tests never reach) to
+        `test/SongEditingStub.cpp`.
+      - **Real test-input bug found and fixed (in the test file, not
+        production code)**: the first `MakeModule`/`DecodeModule` round-trip
+        attempt failed with `DecodeModule` returning 0 - `m_mainSpeed`/
+        `m_instrumentSpeed` default to 0 on a fresh `CSong`, and
+        `DecodeModule` rejects a decoded speed byte of 0 as invalid ("there
+        can be no zero speed"). Fixed by setting both to valid values via
+        `SetSongInfoPars()` before encoding, the same pattern already used
+        in `SongCoreTest.GetInstrumentSpeedReflectsSongInfoPars`.
+      - `MakeModule`/`DecodeModule` tested via a round trip (mirroring
+        `SongToAta`/`AtaToSong`'s approach) rather than hand-deriving the RMT
+        header's byte layout - lets the real encode/decode logic prove
+        itself internally consistent. All other new tests hand-derived and
+        correct on first run.
+      - Full solution rebuild (Release|x64) confirmed 0 errors; 191 tests
+        pass (up from 186, +5, 0 regressions) - full suite run (not just
+        filtered) confirmed no cross-test isolation issues this time.

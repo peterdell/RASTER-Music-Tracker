@@ -2,6 +2,7 @@
 
 #include "Song.h"
 #include "Clipboard.h"
+#include "TuningTypes.h"
 
 // Real, default-constructed globals for CSong::SongEditing.cpp's editing
 // methods (see SongEditingTests.cpp) - CTracks/CInstruments/CTrackClipboard/
@@ -13,6 +14,19 @@ CTracks g_Tracks;
 CInstruments g_Instruments;
 CTrackClipboard g_TrackClipboard;
 CSong g_Song;
+
+// Real TTuningSettings/TTuningRatios globals for CSong::ResetTuningVariables()/
+// MakeModule()/DecodeModule() (see SongEditing.cpp) - both structs are
+// already globals-free and tested (TuningTypesTests.cpp), so real instances
+// are safe to link directly.
+TTuningSettings g_tuning;
+TTuningRatios g_tuningRatios;
+
+// Real HWND global for CSong::MakeModule()/InstrInfo() (see SongEditing.cpp) -
+// both only ever pass it to a MessageBox() call on a guard branch tests
+// never reach (malformed track data, or InstrInfo() called with iinfo ==
+// NULL, which these tests never do), so its value is never actually used.
+HWND g_hwnd = NULL;
 
 // Link-only no-op stubs for GuiHelpers.cpp's status bar helpers (see
 // ClipboardCore.cpp) - their real bodies just no-op or OutputDebugString
@@ -29,3 +43,11 @@ void SetStatusBarText(const char*) {}
 // calls Play() on the instance first), so an empty stub is behaviorally
 // identical to the real Stop() for every test that reaches it.
 void CSong::Stop() {}
+
+// Link-only stub: the real CSong::ReInitSound() lives in Song.cpp (not
+// linked here - it needs g_AtariTrackerDriver/g_Pokey, real Atari hardware
+// simulation) and is reachable through CSong::SetTracks() (see
+// SongEditing.cpp), which calls it only when the track count actually
+// changes. Tests characterize SetTracks()'s own effect (the g_tracks4_8
+// assignment), not the resulting sound reinitialization.
+void CSong::ReInitSound() {}

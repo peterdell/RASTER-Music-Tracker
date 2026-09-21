@@ -2,12 +2,15 @@
 
 #include "Song.h"
 #include "Clipboard.h"
+#include "TuningTypes.h"
 
 extern int g_tracks4_8;
 extern CTracks g_Tracks;
 extern CInstruments g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 extern CSong g_Song;
+extern TTuningSettings g_tuning;
+extern TTuningRatios g_tuningRatios;
 
 // Exercises the CSong/CTrackClipboard editing methods implemented in
 // SongEditing.cpp/ClipboardCore.cpp - see plans/NOTES.md for the Song.cpp/
@@ -569,4 +572,107 @@ TEST_F(SongEditingTest, SetBookmarkStoresCurrentPositionWhenSpeedIsValid) {
 TEST_F(SongEditingTest, SetBookmarkFailsWhenTheActiveTrackLineIsOutOfBounds) {
     song.SetActiveLine(100); // beyond g_Tracks.GetMaxTrackLength()'s default of 64
     EXPECT_FALSE(song.SetBookmark());
+}
+
+// --- SetTracks / SetNTSC ---
+// Both call ReInitSound() when the value actually changes, which is a
+// no-op stub here (see SongEditingStub.cpp) - real g_AtariTrackerDriver/
+// g_Pokey hardware simulation, not something these tests exercise.
+
+TEST_F(SongEditingTest, SetTracksUpdatesTheGlobalTrackCountWhenChanged) {
+    song.SetTracks(8);
+    EXPECT_EQ(g_tracks4_8, 8);
+}
+
+TEST_F(SongEditingTest, SetTracksLeavesTheGlobalTrackCountUnchangedWhenSame) {
+    song.SetTracks(4); // SetUp() already set g_tracks4_8 to 4
+    EXPECT_EQ(g_tracks4_8, 4);
+}
+
+// --- ResetTuningVariables ---
+
+TEST_F(SongEditingTest, ResetTuningVariablesUsesTheNtscOrPalBaseTuning) {
+    song.SetNTSC(TRUE);
+    song.ResetTuningVariables();
+    EXPECT_DOUBLE_EQ(g_tuning.basetuning, 444.895778867913);
+    EXPECT_EQ(g_tuning.basenote, 3);
+    EXPECT_EQ(g_tuning.temperament, 0);
+
+    song.SetNTSC(FALSE);
+    song.ResetTuningVariables();
+    EXPECT_DOUBLE_EQ(g_tuning.basetuning, 440.83751645933);
+}
+
+// --- InstrInfo ---
+// Called with a non-null iinfo, per its own iinfo-guarded design - never
+// touches the MessageBox("Instrument info") branch.
+
+TEST_F(SongEditingTest, InstrInfoPopulatesTheOutputStructWithoutShowingAMessageBox) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->len = 4;
+    tr->instr[0] = 2;
+    tr->note[0] = 10;
+    tr->volume[0] = 8;
+
+    TInstrInfo info = {};
+    song.InstrInfo(2, &info);
+
+    EXPECT_EQ(info.count, 1);
+    EXPECT_EQ(info.usedintracks, 1);
+    EXPECT_EQ(info.instrfrom, 2);
+    EXPECT_EQ(info.instrto, 2);
+    EXPECT_EQ(info.minnote, 10);
+    EXPECT_EQ(info.maxnote, 10);
+    EXPECT_EQ(info.minvol, 8);
+    EXPECT_EQ(info.maxvol, 8);
+}
+
+// --- MakeModule / DecodeModule ---
+// Round-trip test, mirroring SongToAta/AtaToSong's approach in SongTests.cpp:
+// lets the real encode/decode logic prove itself internally consistent
+// rather than hand-deriving the RMT header's byte layout.
+
+TEST_F(SongEditingTest, MakeModuleAndDecodeModuleRoundTripASimpleSong) {
+    // m_mainSpeed/m_instrumentSpeed default to 0, but DecodeModule() rejects
+    // a decoded speed byte of 0 as invalid (there can be no zero speed) -
+    // give them valid values first.
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 2;
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5; // song line 0, column 0 references track 5
+
+    TTrack* tr = g_Tracks.GetTrack(5);
+    tr->len = 4;
+    tr->note[0] = 10;
+    tr->instr[0] = 2;
+    tr->volume[0] = 8;
+
+    memcpy(g_Instruments.GetInstrument(2)->name, "Lead", 4);
+    g_Instruments.GetInstrument(2)->parameters[0] = 5;
+
+    static unsigned char mem[8192] = {};
+    BYTE instrSavedFlags[INSTRSNUM] = {};
+    BYTE trackSavedFlags[TRACKSNUM] = {};
+
+    int endAddr = song.MakeModule(mem, 0, SongIOType::RMT, instrSavedFlags, trackSavedFlags);
+    ASSERT_GT(endAddr, 0);
+    ASSERT_LE((size_t)endAddr, sizeof(mem));
+
+    CSong decoded;
+    BYTE instrLoadedFlags[INSTRSNUM] = {};
+    BYTE trackLoadedFlags[TRACKSNUM] = {};
+    int version = decoded.DecodeModule(mem, 0, endAddr, instrLoadedFlags, trackLoadedFlags);
+
+    EXPECT_EQ(version, RMTFormatVersion::V1);
+    EXPECT_EQ((*decoded.GetSong())[0][0], 5);
+    // DecodeModule() decodes back into the same global g_Tracks/g_Instruments
+    // it was encoded from (there's only one in production too).
+    EXPECT_EQ(g_Tracks.GetTrack(5)->note[0], 10);
+    EXPECT_EQ(g_Tracks.GetTrack(5)->instr[0], 2);
+    EXPECT_EQ(g_Tracks.GetTrack(5)->volume[0], 8);
+    EXPECT_STREQ(g_Instruments.GetInstrument(2)->name, "Lead");
+    EXPECT_EQ(g_Instruments.GetInstrument(2)->parameters[0], 5);
 }

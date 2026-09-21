@@ -77,24 +77,46 @@ plan, written up before touching any code.
 
 ## Method inventory (grouped by proposed handling)
 
-### Batch 1 - two more safe-cluster methods, with a documented precondition (~10 min)
+### Batch 1 - DONE (commit `91accd6`) - two more safe-cluster methods, with a documented precondition (~10 min)
 - `TracksAllBuildLoops`, `TracksAllExpandLoops` (only `g_Tracks`, plus a
   call to `Stop()` that's a no-op as long as `Play()` was never called on
   the instance first - see correction #5 above) - add to `SongEditing.cpp`
   with a comment documenting the precondition.
 
-### Batch 2 - pure format encode/decode via memory buffers (promising)
-No `g_hwnd`, only already-safe globals (`g_Instruments`, `g_Tracks`,
-`g_tracks4_8`, `g_tuning`/`g_tuningRatios` - already real & cheap via
-`AtariStub.cpp`/`TuningTests.cpp`):
-- `DecodeModule` (`g_Instruments`, `g_Tracks`)
+### Batch 2 - DONE (not yet committed) - pure format encode/decode via memory buffers
+
+**Two corrections found while implementing, before touching any code:**
+
+1. **`MakeTuningBlock`/`DecodeTuningBlock` are dead code** - the earlier
+   direct-globals grep matched text that is entirely inside a
+   `/* TODO: Unused ... */` block comment spanning from just before
+   `MakeTuningBlock`'s signature to just after `DecodeTuningBlock`'s closing
+   brace (confirmed by locating the literal `/*`/`*/` markers in `Song.cpp`).
+   Both methods' declarations in `Song.h` are separately commented out too.
+   There is nothing here to test or move - removed from this batch entirely
+   (not "deferred", they don't exist as compiled code).
+2. **`DecodeModule` calls `SetTracks()`**, which was not caught by the
+   direct-globals check because it's a call to another `CSong` method, not
+   a direct global reference (the same class of oversight as Batch 1's
+   `Stop()` correction). `SetTracks()` conditionally calls `ReInitSound()`
+   (real `g_AtariTrackerDriver`/`g_Pokey` hazard) only if
+   `tracksNum != g_tracks4_8`. Rather than requiring tests to always pass a
+   matching track count, `SetTracks()` moves into the safe cluster too (it
+   only needs `g_tracks4_8` directly) with `ReInitSound()` given a link-only
+   no-op stub in the test project - the same treatment `Stop()` got in
+   Batch 1, and it makes `SetTracks()` genuinely testable (including the
+   `g_tracks4_8` mutation) rather than just avoidable.
+
+Final batch 2 method list - no `g_hwnd` except one guard-only case, only
+already-safe globals (`g_Instruments`, `g_Tracks`, `g_tracks4_8`,
+`g_tuning`/`g_tuningRatios` - the latter two are `TTuningSettings`/
+`TTuningRatios` structs from `TuningTypes.cpp`, already compiled into the
+test project and confirmed globals-free themselves):
 - `ResetTuningVariables` (`g_tuning`, `g_tuningRatios`)
-- `MakeTuningBlock` / `DecodeTuningBlock` (`g_tuning`/`g_tuningRatios`/
-  `g_tuningRatioRight`, plus `g_trackLinePrimaryHighlight`/
-  `g_trackLineSecondaryHighlight` - need a quick type check, likely simple
-  ints)
+- `SetTracks` (`g_tracks4_8`, plus a stubbed `ReInitSound()` call)
 - `MakeModule` (`g_Instruments`, `g_Tracks`, `g_tracks4_8`, plus one
   guard-only `g_hwnd` MessageBox on malformed input - avoidable)
+- `DecodeModule` (`g_Instruments`, `g_Tracks`, calls `SetTracks()` above)
 - `InstrInfo` (call only with a non-null `iinfo`, per finding #2 above -
   never touches `g_hwnd` on that path)
 
