@@ -150,7 +150,7 @@ void CSAPFile::Normalize() {
     Normalize(m_date);
 }
 
-void CSAPFile::Export(std::ofstream& ou) {
+void CSAPFile::Export(std::ostream& ou) {
     Normalize();
     ou << "SAP" << EOL;
     ou << "AUTHOR \"" << m_author << "\"" << EOL;

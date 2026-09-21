@@ -109,6 +109,8 @@
     <ClCompile Include="..\InstrumentsCore.cpp" />
     <ClCompile Include="..\InstrumentsAtaFormat.cpp" />
     <ClCompile Include="InstrumentsStub.cpp" />
+    <ClCompile Include="..\SAPFile.cpp" />
+    <ClCompile Include="SAPFileStub.cpp" />
     <!-- Test sources. -->
     <ClCompile Include="FractionTests.cpp" />
     <ClCompile Include="StringUtilityTests.cpp" />
@@ -118,6 +120,7 @@
     <ClCompile Include="LzssTests.cpp" />
     <ClCompile Include="TracksTests.cpp" />
     <ClCompile Include="InstrumentsTests.cpp" />
+    <ClCompile Include="SAPFileTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Fraction.h" />
@@ -134,6 +137,7 @@
     <ClInclude Include="..\IOHelpers.h" />
     <ClInclude Include="..\Instruments.h" />
     <ClInclude Include="..\InstrumentTypes.h" />
+    <ClInclude Include="..\SAPFile.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="googletest\LICENSE" />

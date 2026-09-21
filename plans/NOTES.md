@@ -373,6 +373,65 @@ than `Tracks`'s trivial `g_Undo`/`g_respectvolume`), `g_tracks4_8`, and
 Verified via a full Release|x64 solution rebuild: `Rmt.exe` and `RmtTests.exe` both
 build clean and all 74 tests pass.
 
+## Phase 2 continued (2026-09-21): `CSong` confirmed as the "God Object" — deferred; `CSAPFile` tested instead
+
+Investigated `CSong` (`Song.h`/`Song.cpp`, 3224 lines) as the next "fixed-format struct
+parsing" candidate (`SongToAta`/`AtaToSong`, in `IO_Song.cpp`). **Confirmed this is
+exactly the class the plan's own risk note anticipated ("the current code fully mixes
+UI and model") and is not a quick-split candidate like `Tuning`/`Tracks`/`Instruments`
+were:**
+
+- `SongToAta`/`AtaToSong` themselves are actually pure (only touch `m_song`/`m_songgo`,
+  plain `int` arrays, plus the trivial `g_tracks4_8` global) — the problem is
+  constructing a `CSong` at all. Its constructor
+  (`CSong::CSong()`, `Song.cpp`) unconditionally does
+  `m_PokeyController = new CPokeyController(&g_Atari);` — meaning even a bare,
+  default-constructed `CSong` immediately pulls in `CPokeyController` and the full,
+  heavy `CAtari` global. Unlike `CTracks`/`CInstruments`, whose constructors were
+  clean, there's no cheap seam here (adding a test-only constructor that skips real
+  initialization felt too invasive/behavior-risky to do opportunistically, unlike the
+  earlier additive-only seams).
+- **Decision: skip `CSong` for now.** Don't force a large redesign into an
+  otherwise-incremental testing session. Revisit once/if a deliberate decoupling pass
+  on `CSong`'s construction is undertaken (a real "cleanup" task, not a quick split).
+
+Pivoted to `CSAPFile` (`SAPFile.h`/`.cpp`, SAP file header export) instead — a small,
+already well-encapsulated class whose only external coupling is `Init(const CSong&)`,
+which tests don't need to call. Added 4 tests (78 total, all passing):
+
+- `Export()` took `std::ofstream&`; **widened the parameter type to `std::ostream&`**
+  (`SAPFile.h`/`.cpp`) — every existing call site already passes an actual
+  `std::ofstream`, which satisfies `std::ostream&` too (public inheritance), so this
+  is behavior-preserving and lets tests capture output with a `std::ostringstream`
+  instead of touching a real file. Same "widen a parameter to the interface actually
+  needed" pattern as any other minimal testability seam here.
+- `SAPFile.cpp`'s only coupling is that `SAPFile.h` `#include`s `Song.h` (needed for
+  `Init()`'s `const CSong&` parameter), so the translation unit needs 4 `CSong` method
+  symbols resolved at link time (`GetName`, `IsStereo`, `IsNTSC`,
+  `GetInstrumentSpeed`) even though tests never call `Init()`. Rather than link real
+  `Song.cpp` (which would drag in the `CSong` constructor problem above), added
+  trivial link-only stub bodies for exactly those 4 methods
+  (`src/cpp/test/SAPFileStub.cpp`) — same pattern as the `ClearInstrument()`/
+  `InitTuning()` stubs.
+- **Found two more real hazards while writing tests, both characterized (not fixed)
+  since they'd need a deliberate redesign, unlike the earlier one-line-fix bugs:**
+  - `Export()`'s `DEFSONG` line prints `m_songs` instead of `m_defsong` — a genuine
+    copy-paste bug (`ou << "DEFSONG " << m_songs << EOL;`). Characterized as-is in
+    `SAPFileTest.ExportTypeBWithInitAndPlayer`'s comment and expected output, not
+    fixed, since fixing it changes real export output and deserves a deliberate call.
+  - `ThrowRuntimeException(...)` (used for `Export()`'s empty/invalid-TYPE error
+    paths) is **not a C++ exception** — `CRuntimeException`'s constructor shows a
+    blocking `MessageBox` and then calls `exit(2)`, unconditionally terminating the
+    whole process. This is the same class of hazard as `CTuning::InitTuning()`'s
+    `MessageBox`+`exit(1)` guard. Tests here never exercise those two branches (always
+    set a valid `"B"` or `"R"` type) to avoid hanging/killing the test binary. Whoever
+    eventually wants to test or use those paths should treat "rename it away from
+    `Exception`, or make it throw a real, catchable exception" as a prerequisite, not
+    something to route around per-callsite.
+
+Verified via a full Release|x64 solution rebuild: `Rmt.exe` and `RmtTests.exe` both
+build clean and all 78 tests pass.
+
 ## Status
 
 - [x] Read `plans/OVERALL_PLAN.md`, `README.md`, and linked docs present in the repo.
@@ -389,39 +448,55 @@ build clean and all 74 tests pass.
 - [x] Phase 2 continued: `CTracks`/`IO_Tracks.cpp` tests + 3 real bug fixes, 69 tests
       total, committed (`38a4d6f`).
 - [x] Phase 2 continued: `CInstruments`/`IO_Instruments.cpp` tests + 1 more
-      `delete`/`delete[]` fix, split across 2 new files, 74 tests total. Not yet
-      committed.
+      `delete`/`delete[]` fix, split across 2 new files, 74 tests total, committed
+      (`e85f0f7`).
+- [x] Phase 2 continued: `CSong` investigated and deliberately deferred (see above,
+      needs a real decoupling pass, not a quick split); `CSAPFile` tested instead (4
+      tests, 78 total). Not yet committed.
 - [ ] Ask user whether to commit this step.
 - [ ] Phase 2 continued: more characterization tests before any cleanup, candidates in
       rough order:
-      - `Song`'s fixed-format struct parsing pieces (check `IO_Song.cpp` first, given
-        the established convention that `IO_*.cpp` files tend to already be
-        `Global.h`-free even when their `*.cpp` counterpart isn't — though
-        `IO_Instruments.cpp` broke that pattern, so verify rather than assume).
+      - **`CSong` stays deferred** until there's appetite for a real constructor
+        decoupling pass (or a deliberate decision to add a riskier test-only seam
+        there). Don't retry it opportunistically.
+      - Other small, self-contained classes in the same vein as `CSAPFile`:
+        `ASMFile`/`ASMFileBuilder` (ASM export text generation), `Keyboard2NoteMapping`
+        (3 global refs, no `Global.h` — check what they are), `RuntimeException`-style
+        hazards may recur elsewhere (`grep -rn "ThrowRuntimeException"` across the
+        codebase to find every call site before assuming a given file's error paths
+        are safe to test).
       - Before starting a new module, always check whether it `#include`s `Global.h`
         (or another huge header) and, if so, whether the globally-coupled methods can
         be split out the same way as `Tuning`/`Tracks`/`Instruments` — check this
         early, since it changes the scope of the work. It's fine for the split to
         land across more than one file if the coupling itself is spread across more
-        than one file (as with `Instruments.cpp` + `IO_Instruments.cpp` this round).
-      - Also worth a quick read-through for the same class of bugs found twice now
+        than one file (as with `Instruments.cpp` + `IO_Instruments.cpp`). But if the
+        coupling is baked into the **constructor** itself (as with `CSong`), that's a
+        signal to defer rather than force a split, unlike coupling confined to a few
+        methods.
+      - Also worth a quick read-through for the same class of bugs found so far
         (uninitialized members with no default initializer, `delete` vs `delete[]`
-        mismatches on array allocations, wrong/self-referential includes) — cheap to
-        spot while reading for coupling anyway, and safe, real fixes once found. Two
-        for two classes with a raw-pointer array member have had a `delete`/`delete[]`
-        bug so far — worth specifically grep'ing `delete <member>;` (no brackets) near
-        any `new T[...]` allocation in whatever's read next.
+        mismatches on array allocations, wrong/self-referential includes, functions
+        with production side effects that make them unsafe to call in tests like
+        `MessageBox`+`exit()` or the `ThrowRuntimeException` macro) — cheap to spot
+        while reading for coupling anyway. Real, safe fixes (uninitialized members,
+        `delete`/`delete[]`, includes) get fixed immediately; hazards needing a real
+        redesign (`MessageBox`+`exit()`, non-throwing "exceptions") get characterized
+        and avoided in tests, not silently patched.
       - When a method needed for testing is `private` but pure (no dependency on
         other private state) and there's no other way to exercise it (no decoder/
         inverse operation, no way to observe its effect indirectly), the established
         pattern here is: make it `public` with a one-line comment explaining why. Pure
-        visibility changes, no behavior change.
+        visibility changes, no behavior change. Similarly, a parameter type narrower
+        than necessary (like `SAPFile::Export`'s old `std::ofstream&`) can usually be
+        safely widened to the actual interface used (`std::ostream&`) if every real
+        call site already satisfies the wider type.
       - When a test needs a real, cross-checkable "seam" value that a coupled method
         would otherwise supply from a global (like `CInstruments` tests flipping
         `g_tracks4_8` between mono/stereo), prefer a small stub `.cpp` that defines
         just that global (or an empty-body override for a call-graph-only dependency
-        like `ClearInstrument()`) over pulling in the whole subsystem that would
-        normally set it.
+        like `ClearInstrument()`/`CSong::GetName()`) over pulling in the whole
+        subsystem that would normally set it.
       - Everything touching `g_Song`/other globals, MFC dialogs, and the timer-driven
         sound generation is expected to need actual decoupling work (the "cleanup"
         half of Phase 2) before it's testable at all — do not attempt to test that

@@ -45,7 +45,10 @@ public:
 
     void Init(const CSong& song);
     void Normalize();
-    void Export(std::ofstream& ou); // Not const, because it calls Normalize
+    // Takes std::ostream (not just std::ofstream) so tests can capture the
+    // output with a std::ostringstream instead of writing a real file. Not
+    // const, because it calls Normalize.
+    void Export(std::ostream& ou);
 
 private:
     static constexpr LPCSTR EOL = "\x0d\x0a"; // EOL format SAP format is defined to be CR/LR
