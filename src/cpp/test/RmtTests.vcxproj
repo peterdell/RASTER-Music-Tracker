@@ -114,6 +114,8 @@
     <ClCompile Include="..\Keyboard2NoteMapping.cpp" />
     <ClCompile Include="Keyboard2NoteMappingStub.cpp" />
     <ClCompile Include="..\ASMFileBuilder.cpp" />
+    <ClCompile Include="..\ChannelControl.cpp" />
+    <ClCompile Include="..\RmtCommandLineInfo.cpp" />
     <!-- Test sources. -->
     <ClCompile Include="FractionTests.cpp" />
     <ClCompile Include="StringUtilityTests.cpp" />
@@ -126,6 +128,8 @@
     <ClCompile Include="SAPFileTests.cpp" />
     <ClCompile Include="Keyboard2NoteMappingTests.cpp" />
     <ClCompile Include="ASMFileBuilderTests.cpp" />
+    <ClCompile Include="ChannelControlTests.cpp" />
+    <ClCompile Include="RmtCommandLineInfoTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Fraction.h" />
@@ -145,6 +149,8 @@
     <ClInclude Include="..\SAPFile.h" />
     <ClInclude Include="..\Keyboard2NoteMapping.h" />
     <ClInclude Include="..\ASMFileBuilder.h" />
+    <ClInclude Include="..\ChannelControl.h" />
+    <ClInclude Include="..\RmtCommandLineInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="googletest\LICENSE" />

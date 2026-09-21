@@ -482,6 +482,42 @@ passing on the first run.
 Verified via a full Release|x64 solution rebuild: `Rmt.exe` and `RmtTests.exe` both
 build clean and all 93 tests pass.
 
+## Phase 2 continued (2026-09-21): fresh `Global.h`-free survey — `ChannelControl` and `RmtCommandLineInfo`
+
+Did a fresh repo-wide survey (`grep -L '"Global.h"' src/cpp/*.cpp`, then filtered out
+already-covered/tiny/dialog files) rather than continuing to guess at candidates one at
+a time. Found several more `CSong`-blocked files worth noting so they aren't
+re-investigated later:
+
+- `LZSSFile.cpp` (`CLZSSFile::GetFrameSize`) and `SongExport.cpp`
+  (`CSongExport`) both take/hold a `CSong&`/`CSongContainer&` — blocked by the same
+  deferred `CSong` construction problem as before; a stubbed method isn't enough here
+  since the test would need an actual instance to pass by reference, not just a
+  resolved symbol.
+- `Shell.cpp` (`CShell::OpenFile`/`OpenLocalFile`) wraps real Windows Shell API calls
+  (`ShellExecute`) — not a unit-test candidate as-is (would actually try to launch
+  files/programs); would need dependency injection to test meaningfully, out of scope
+  for a characterization pass.
+- `WaveFile.cpp` similarly wraps real `mmio*` Windows Multimedia I/O calls, writing an
+  actual file - same category as `Shell.cpp`, skipped for the same reason.
+
+Added 14 tests (107 total, all passing) for two clean, self-contained, zero-coupling
+classes found in the same survey:
+
+- `ChannelControl.cpp` (`CChannelControl`): per-channel on/off/toggle/solo state,
+  backed by a `std::vector<bool>`, no globals, no `Song`/`Atari` dependency at all.
+  Notable behavior characterized: `SetChannelSolo()` toggles — soloing an
+  already-solo'd channel (the only one on) turns *everything* back on rather than
+  leaving it soloed, which reads as intentional ("press solo again to un-solo") once
+  traced through, not a bug.
+- `RmtCommandLineInfo.cpp` (`CRmtCommandLineInfo`, an MFC `CCommandLineInfo`
+  subclass parsing `/SCRIPT:`/`/TEST:` command-line switches): also zero globals.
+  Compiles/links fine as an MFC subclass in the test project (no special stubbing
+  needed beyond what's already linked for `CString` etc.).
+
+Verified via a full Release|x64 solution rebuild: `Rmt.exe` and `RmtTests.exe` both
+build clean and all 107 tests pass.
+
 ## Status
 
 - [x] Read `plans/OVERALL_PLAN.md`, `README.md`, and linked docs present in the repo.
@@ -502,12 +538,24 @@ build clean and all 93 tests pass.
       (`e85f0f7`).
 - [x] Phase 2 continued: `CSong` investigated and deliberately deferred; `CSAPFile`
       tested instead, 78 tests total, committed (`3a6e1b9`).
-- [x] Phase 2 continued: `Keyboard2NoteMapping` + `CASMFileBuilder` tests (now
-      complete, including `BuildSongData`), 93 tests total, committed (`1c3e20b` +
-      this batch). Not yet committed.
+- [x] Phase 2 continued: `Keyboard2NoteMapping` + `CASMFileBuilder` tests (complete,
+      including `BuildSongData`), 93 tests total, committed (`1c3e20b`, `3d84de4`).
+- [x] Phase 2 continued: fresh `Global.h`-free survey → `ChannelControl` +
+      `RmtCommandLineInfo` tests, 107 tests total. Not yet committed.
 - [ ] Ask user whether to commit this step.
-- [ ] Phase 2 continued: more characterization tests before any cleanup, candidates in
-      rough order:
+- [ ] Phase 2 continued: more characterization tests before any cleanup. The easy,
+      zero-`CSong`, zero-`Global.h` candidates are now largely exhausted (see the
+      `LZSSFile`/`SongExport`/`Shell`/`WaveFile` notes above for why those specific
+      ones are out). Next time, either:
+      - Do another fresh `grep -L '"Global.h"' src/cpp/*.cpp` survey pass (some
+        `Global.h`-having files may still have a clean, splittable seam like
+        `Tuning`/`Tracks`/`Instruments` did — don't assume presence of `Global.h`
+        alone rules a file out), or
+      - Revisit whether it's time to tackle `CSong`'s constructor coupling
+        deliberately (a real decoupling task, not a quick split) — this would also
+        unblock `LZSSFile`, `SongExport`, and `SongContainer`, all currently blocked
+        on it, plus `CSong`'s own `SongToAta`/`AtaToSong` (confirmed pure back when
+        `CSong` was first investigated).
       - `ASMFile.cpp` is only 2 lines (essentially empty) — confirm there's nothing
         there before spending time on it.
       - **`CSong` stays deferred** until there's appetite for a real constructor
