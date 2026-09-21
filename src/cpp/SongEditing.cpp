@@ -27,15 +27,14 @@
 // unrelated to this split. Tests exercising those specific methods use
 // g_Song as the instance under test to match real usage.
 //
-// SaveRMW()/SaveTxt()/LoadRMT() (originally in IO_Song.cpp) are included
-// here too: SaveRMW()/SaveTxt() used to call CString::LoadString(
-// IDS_RMT_VERSION), an MFC resource-string load needing the app's compiled
-// resources - replaced with a compile-time RMT_VERSION_STRING constant
-// (see RmtVersion.h), removing the dependency everywhere it was used, not
-// just here. LoadRMW()/LoadTxt() still stay behind in IO_Song.cpp for now:
-// both call ClearSong(), which is unblocked as of this file's ClearSong()
-// below, but LoadRMW()/LoadTxt() themselves haven't been re-triaged yet -
-// see plans/SONG_IO_SONG_REMAINING_PLAN.md.
+// SaveRMW()/SaveTxt()/LoadRMT()/LoadRMW()/LoadTxt() (originally in
+// IO_Song.cpp) are included here too: SaveRMW()/SaveTxt()/LoadRMW() used to
+// call CString::LoadString(IDS_RMT_VERSION), an MFC resource-string load
+// needing the app's compiled resources - replaced with a compile-time
+// RMT_VERSION_STRING constant (see RmtVersion.h), removing the dependency
+// everywhere it was used, not just here. LoadRMW()/LoadTxt() both also call
+// ClearSong(), unblocked by this file's own ClearSong() below - the last
+// thing keeping them out of this "safe cluster".
 //
 // ClearSong() itself only had one real hazard once re-checked against the
 // safe-cluster progress of later batches: a real MFC AfxGetMainWnd()/
@@ -1751,6 +1750,37 @@ bool CSong::SaveRMW(std::ostream& ou)
     return true;
 }
 
+bool CSong::LoadRMW(std::istream& in)
+{
+    ClearSong(8);	// Always clear 8 tracks
+
+    CString version = RMT_VERSION_STRING;
+    char filever[256];
+    in.getline(filever, 255);
+    if (strcmp((char*)(LPCTSTR)version, filever) != 0)
+    {
+        MessageBox(g_hwnd, CString("Incorrect version: ") + filever, "Load error", MB_ICONERROR);
+        return false;
+    }
+    //
+    in.read((char*)m_songname, sizeof(m_songname));
+    //
+    DEFINE_MAINPARAMS;
+    int p = 0;
+    in.read((char*)&p, sizeof(p));	//read the number of main parameters
+    for (int i = 0; i < p; i++)
+        in.read((char*)mainparams[i], sizeof(mainparams[0]));
+
+    // Read the complete song and songgo
+    in.read((char*)m_song, sizeof(m_song));
+    in.read((char*)m_songgo, sizeof(m_songgo));
+
+    g_Instruments.LoadAll(in, InstrumentIOType::RMW);
+    g_Tracks.LoadAll(in, SongIOType::RMW);
+
+    return true;
+}
+
 bool CSong::SaveTxt(std::ostream& ou)
 {
     CString s, nambf;
@@ -1811,6 +1841,147 @@ bool CSong::SaveTxt(std::ostream& ou)
     // Now save the instruments and tracks to the output
     g_Instruments.SaveAll(ou, InstrumentIOType::TXT);
     g_Tracks.SaveAll(ou, SongIOType::TXT);
+
+    return true;
+}
+
+bool CSong::LoadTxt(std::istream& in)
+{
+    ClearSong(8);	// Always clear 8 tracks
+
+    g_Tracks.InitTracks();
+
+    char b;
+    char line[1025];
+    // Read until the first "[" is found. This indicates a segment [.....]
+    NextSegment(in);
+
+    while (!in.eof())
+    {
+        in.getline(line, 1024);			// Read the rest of the line
+        Trimstr(line);					// Get rid of /r/n at the end
+
+        if (strcmp(line, "MODULE]") == 0)
+        {
+            // [MODULE]
+            while (!in.eof())
+            {
+                // Check for next segment start '['
+                in.read((char*)&b, 1);
+                if (b == '[') break;
+                // Not a segment start so save the read character and get the rest of the line
+                line[0] = b;
+                in.getline(line + 1, 1024);
+
+                // Split on the ": " (COLON + SPACE) point
+                char* value = strstr(line, ": ");
+                if (value)
+                {
+                    value[1] = 0;	// Zero terminate the string on the left
+                    value += 2;		// move to the first character after the space
+                }
+                else
+                    continue;
+
+                // Process each of the possible commands in a [MODULE]
+                if (strcmp(line, "RMT:") == 0)
+                {
+                    // RMT version indicator: 4 or 8
+                    int v = Hexstr(value, 2);
+                    if (v <= 4)
+                        v = 4;
+                    else
+                        v = 8;
+                    SetTracks(v);
+                }
+                else
+                    if (strcmp(line, "NAME:") == 0)
+                    {
+                        // Set the name of the song.
+                        Trimstr(value);
+                        memset(m_songname, ' ', SONG_NAME_MAX_LEN);
+                        int lname = SONG_NAME_MAX_LEN;
+                        if (strlen(value) <= SONG_NAME_MAX_LEN) lname = (int)strlen(value);
+                        strncpy(m_songname, value, lname);
+                    }
+                    else
+                        if (strcmp(line, "MAXTRACKLEN:") == 0)
+                        {
+                            // Set how long a track is: MAXTRACKLEN: 00-FF
+                            int v = Hexstr(value, 2);
+                            if (v == 0) v = 256;
+                            g_Tracks.SetMaxTrackLength(v);
+                            g_Tracks.InitTracks();		// Reinitialise
+                        }
+                        else
+                            if (strcmp(line, "MAINSPEED:") == 0)
+                            {
+                                // Set the play speed: MAINSPEED: 01-FF
+                                int v = Hexstr(value, 2);
+                                if (v > 0) m_mainSpeed = v;
+                            }
+                            else
+                                if (strcmp(line, "INSTRSPEED:") == 0)
+                                {
+                                    // Set the instrument speed: INSTRSPEED: 01-FF
+                                    int v = Hexstr(value, 1);
+                                    if (v > 0) m_instrumentSpeed = v;
+                                }
+                                else
+                                    if (strcmp(line, "VERSION:") == 0)
+                                    {
+                                        // The version number is not needed for TXT yet, because it only selects the parameters it knows
+                                    }
+            }
+        }
+        else
+            if (strcmp(line, "SONG]") == 0)
+            {
+                // [SONG]
+                int idx, i;
+                for (idx = 0; !in.eof() && idx < SONGLEN; idx++)
+                {
+                    // Read the song line. Dump out if its the next section
+                    memset(line, 0, 32);
+                    in.read((char*)&b, 1);
+                    if (b == '[') break;
+                    line[0] = b;
+                    in.getline(line + 1, 1024);
+
+                    // The line go be one of two types
+                    // "Go to line XX"
+                    // "-- -- -- --" or "-- -- -- -- -- -- -- --"
+                    if (strncmp(line, "Go to line ", 11) == 0)
+                    {
+                        int go = Hexstr(line + 11, 2);
+                        if (go >= 0 && go < SONGLEN) m_songgo[idx] = go;
+                        continue;
+                    }
+                    for (i = 0; i < g_tracks4_8; i++)
+                    {
+                        // Parse the track
+                        int track = Hexstr(line + i * 3, 2);
+                        if (track >= 0 && track < TRACKSNUM) m_song[idx][i] = track;
+                    }
+                }
+            }
+            else
+                if (strcmp(line, "INSTRUMENT]") == 0)
+                {
+                    // [INSTRUMNENT]
+                    // Pass the instrument loading to the CInstruments class
+                    g_Instruments.LoadInstrument(-1, in, InstrumentIOType::TXT); //-1 => retrieve the instrument number from the TXT source
+                }
+                else
+                    if (strcmp(line, "TRACK]") == 0)
+                    {
+                        // [TRACK]
+                        // Pass the track loading to the CTracks class
+                        g_Tracks.LoadTrack(-1, in, SongIOType::TXT);	//-1 => retrieve the track number from TXT source
+                    }
+                    else
+                        NextSegment(in); // Look for the beginning of the next segment
+    }
 
     return true;
 }

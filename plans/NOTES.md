@@ -1248,3 +1248,56 @@ build clean and all 123 tests pass.
       - `LoadRMW`/`LoadTxt` (Batch 3) call `ClearSong()` and are now
         unblocked on that front, but haven't themselves been re-triaged -
         left for a future batch.
+- [x] `LoadRMW`/`LoadTxt` (Batch 3, dropped at the time for `ClearSong`'s
+      sake) - now unblocked. Turned out to need almost no further work once
+      re-checked:
+      - `LoadRMW`'s only remaining hazard was `CString::LoadString(
+        IDS_RMT_VERSION)` - the exact same resource-string hazard already
+        fixed for `SaveRMW`/`SaveTxt`/`Rmt.cpp`/`RmtView.cpp`, just never
+        applied to this 6th call site since `LoadRMW` was dropped from that
+        batch before the fix went in. Replaced with `RMT_VERSION_STRING`.
+      - `LoadTxt` had no hazard of its own at all beyond `ClearSong()` -
+        `NextSegment`/`Trimstr`/`Hexstr` (`IOHelpers.cpp`) are pure
+        functions already fully linked, and `g_Instruments.LoadInstrument`/
+        `g_Tracks.LoadTrack` are already real (`IO_Instruments.cpp`/
+        `IO_Tracks.cpp`, linked since Batch 3).
+      - Both moved to `SongEditing.cpp`, right after `SaveRMW`/`SaveTxt`
+        respectively (matching each format's Save/Load pairing). Widened
+        from `std::ifstream&` to `std::istream&`, matching `LoadRMT`'s
+        already-established precedent - the one real call site
+        (`FileOpen()` in `IO_Song.cpp`) already passes a genuine file
+        stream. Removed the now-dead `DEFINE_MAINPARAMS`/
+        `RMWMAINPARAMSCOUNT` macro duplicate from `IO_Song.cpp` (the only
+        remaining user there was `LoadRMW`, and `SongEditing.cpp` already
+        had its own copy from `SaveRMW`'s earlier move).
+      - **Found a genuine pre-existing bug while writing `LoadTxt`'s
+        round-trip test** (confirmed by dumping `SaveTxt()`'s exact byte
+        output and tracing `LoadTxt()`'s parser against it by hand, not
+        assumed): `SaveTxt()` writes a blank "gap" line between the
+        `[MODULE]` header block and `[SONG]` (e.g. `...\nVERSION: 01\n\n
+        [SONG]\n05 -- -- --\n`). `LoadTxt()`'s inner `[MODULE]`-segment loop
+        detects the next segment by calling `in.read(&b, 1)` one byte at a
+        time and checking `if (b == '[') break;` - but that gap's `'\n'` is
+        read as `b` first, not `'['`, so the `'['` that actually starts
+        `[SONG]` gets silently absorbed mid-buffer by the following
+        `getline()` call instead of being recognized as a segment boundary.
+        Net effect: loading a `.txt` file that RMT itself just saved does
+        not restore any song data (and likely not instrument/track data
+        either, since `CInstruments::SaveAll()`/`CTracks::SaveAll()`'s TXT
+        format follows the same "blank line, then `[SEGMENT]`" shape -
+        not independently confirmed here since this test's song had no
+        non-empty instruments/tracks to trigger those segments at all).
+      - Given this project's "characterize current behavior first" scope,
+        asked the user how to handle the finding rather than deciding
+        alone; the user chose to characterize it as-is. The test documents
+        both halves: the `[MODULE]` header (`RMT:`/`NAME:`/`MAINSPEED:`/
+        `INSTRSPEED:`) parses correctly, but the song grid stays at
+        `ClearSong()`'s `-1` default instead of the saved data. Fixing the
+        bug itself was explicitly left as a separate, not-yet-made decision.
+        Tracked upstream as
+        [raster-atari-org/RASTER-Music-Tracker#21](https://github.com/raster-atari-org/RASTER-Music-Tracker/issues/21).
+      - 2 new hand-derived tests (`LoadRMW`'s full round trip via
+        `SaveRMW`, since it has no comparable bug; `LoadTxt`'s
+        header-parses/song-doesn't split). Full solution rebuild
+        (Release|x64) confirmed 0 errors; 218 tests pass (up from 216, +2,
+        0 regressions).

@@ -178,6 +178,27 @@ implement the compile-time constant now, replacing all 6 `LoadString` call
 sites (`SaveRMW`/`LoadRMW` in `IO_Song.cpp`, plus `Rmt.cpp` and `RmtView.cpp`
 ×2), unblocking `SaveRMW`'s test.
 
+**`LoadRMW`/`LoadTxt` - DONE**, once `ClearSong` was resolved (see its own
+entry below) they turned out to need almost no further work: `LoadRMW`'s
+last remaining hazard was the same `LoadString(IDS_RMT_VERSION)` call
+already fixed for `SaveRMW`/`SaveTxt` elsewhere, and `LoadTxt` had no hazard
+of its own at all beyond `ClearSong()`. Both moved to `SongEditing.cpp`,
+widened to `std::istream&` (matching `LoadRMT`'s precedent), with the
+now-dead `DEFINE_MAINPARAMS`/`RMWMAINPARAMSCOUNT` macro duplicate removed
+from `IO_Song.cpp`. **Found a genuine pre-existing bug while writing
+`LoadTxt`'s round-trip test**: `SaveTxt()` writes a blank "gap" line before
+each `[SEGMENT]` marker, but `LoadTxt()`'s segment-boundary scan (byte-by-
+byte, checking for `'['`) reads that gap's `'\n'` first and never recognizes
+the following `'['` as a boundary - so `[SONG]` (and likely
+`[INSTRUMENT]`/`[TRACK]`) is silently skipped on load. Net effect: loading a
+`.txt` file RMT itself just saved does not restore the song data. Per this
+effort's "characterize current behavior first" scope, this was tested as-is
+(documenting both what parses correctly - the `[MODULE]` header - and what
+doesn't) rather than fixed; fixing it is a real production behavior change
+that needs its own explicit decision. Tracked upstream as
+[raster-atari-org/RASTER-Music-Tracker#21](https://github.com/raster-atari-org/RASTER-Music-Tracker/issues/21).
+See `plans/NOTES.md` for the full byte-level trace.
+
 ### Batch 4 - DONE (not yet committed) - heavier editing methods
 
 **Corrections found while scoping the implementation:**
@@ -298,10 +319,9 @@ moved to `SongEditing.cpp` unchanged. ~7 trivial new global stubs
 (`g_rmtroutine`, `g_rmtstripped_sfx`/`_gvf`, `g_rmtmsxtext`,
 `g_PrefixForAllAsmLabels`, `g_changes`, `g_SkipLinesAfterNoteInsert`) and a
 one-line `SetEditMode()` stub were added to the test project. 2 new tests,
-216 tests passing (see `plans/NOTES.md` for the full writeup). Note:
-`LoadRMW`/`LoadTxt` (Batch 3) call `ClearSong()` but haven't themselves
-been re-triaged yet - they're now unblocked on this front, but still need
-their own pass.
+216 tests passing (see `plans/NOTES.md` for the full writeup). `LoadRMW`/
+`LoadTxt` (Batch 3), unblocked by this, are now DONE too - see Batch 3's
+entry above.
 
 ### `ExportV2` (own category - needs its own triage)
 A dispatcher, not a simple encode: beyond the already-safe `MakeModule()`,

@@ -746,10 +746,61 @@ TEST_F(SongEditingTest, SaveTxtWritesModuleHeaderAndSongLineData) {
     EXPECT_NE(text.find("05 -- -- --\n"), std::string::npos); // track 05 in column 0, columns 1-3 empty
 }
 
+// --- LoadTxt ---
+// Round-trips through SaveTxt, same philosophy as LoadRMT's round trip
+// below. LoadTxt() has no unconditional-success dialog to avoid (unlike
+// LoadRMW's version-mismatch MessageBox) - it only ever fails silently by
+// leaving fields at their ClearSong() defaults for a segment it doesn't
+// recognize.
+//
+// BUG (pre-existing, not introduced by this move - confirmed by reading
+// SaveTxt's exact byte output against LoadTxt's parser): SaveTxt() writes a
+// blank "gap" line between the [MODULE] header block and "[SONG]" (and
+// likely before "[INSTRUMENT]"/"[TRACK]" too, via CInstruments::SaveAll()/
+// CTracks::SaveAll()'s TXT format). LoadTxt()'s inner [MODULE]-segment loop
+// detects the next segment by reading one byte at a time and checking for
+// '[' - but that gap's '\n' is read as that byte first, not '[', so the
+// '[' that starts "[SONG]" is never recognized as a segment boundary and
+// the whole segment is silently skipped. Net effect: loading a .txt file
+// that RMT itself just saved does not restore any song data. This is
+// characterized as-is (the header fields it does parse correctly, and the
+// song data it doesn't) rather than fixed, per this effort's "lock in
+// current behavior first" scope - see plans/NOTES.md.
+
+TEST_F(SongEditingTest, LoadTxtParsesTheModuleHeaderButNotTheSongDataDueToAPreExistingBug) {
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 2;
+    strncpy(info.songname, "TestSong", SONG_NAME_MAX_LEN);
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+
+    std::ostringstream out;
+    ASSERT_TRUE(song.SaveTxt(out));
+
+    std::istringstream in(out.str());
+    CSong loaded;
+    ASSERT_TRUE(loaded.LoadTxt(in));
+
+    // The [MODULE] header block parses correctly...
+    EXPECT_EQ(g_tracks4_8, 4); // RMT: 04 round-trips g_tracks4_8 via SetTracks()
+    TInfo loadedInfo = {};
+    loaded.GetSongInfoPars(&loadedInfo);
+    EXPECT_EQ(loadedInfo.mainspeed, 6);
+    EXPECT_EQ(loadedInfo.instrspeed, 2);
+    CString name(loadedInfo.songname, SONG_NAME_MAX_LEN);
+    name.TrimRight();
+    EXPECT_STREQ(name, "TestSong");
+
+    // ...but "[SONG]" itself is never recognized as a segment boundary (see
+    // the BUG comment above), so the song grid stays at ClearSong()'s -1
+    // default instead of the saved track 5.
+    EXPECT_EQ((*loaded.GetSong())[0][0], -1);
+}
+
 // --- SaveRMW ---
-// Only characterizes what's directly observable without a LoadRMW round
-// trip (LoadRMW stays deferred, see plans/SONG_IO_SONG_REMAINING_PLAN.md):
-// that it succeeds and starts with the (now compile-time) version string.
 
 TEST_F(SongEditingTest, SaveRMWWritesTheVersionStringFirst) {
     std::ostringstream out;
@@ -758,6 +809,44 @@ TEST_F(SongEditingTest, SaveRMWWritesTheVersionStringFirst) {
     std::string content = out.str();
     ASSERT_GE(content.size(), strlen(RMT_VERSION_STRING));
     EXPECT_EQ(content.substr(0, strlen(RMT_VERSION_STRING)), RMT_VERSION_STRING);
+}
+
+// --- LoadRMW ---
+// Round-trips through SaveRMW. LoadRMW's version-mismatch branch (a real
+// MessageBox, unconditional on the error path) is deliberately never
+// exercised - only ever fed a stream that starts with a matching version
+// string, same "avoidable with valid test data" treatment as LoadRMT's
+// guard-only error branches.
+
+TEST_F(SongEditingTest, LoadRMWRoundTripsSongDataThroughSaveRMW) {
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 2;
+    strncpy(info.songname, "TestSong", SONG_NAME_MAX_LEN);
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+    (*song.GetSongGo())[2] = 7;
+
+    std::ostringstream out;
+    ASSERT_TRUE(song.SaveRMW(out));
+
+    std::istringstream in(out.str());
+    CSong loaded;
+    ASSERT_TRUE(loaded.LoadRMW(in));
+
+    EXPECT_EQ((*loaded.GetSong())[0][0], 5);
+    EXPECT_EQ((*loaded.GetSongGo())[2], 7);
+
+    TInfo loadedInfo = {};
+    loaded.GetSongInfoPars(&loadedInfo);
+    EXPECT_EQ(loadedInfo.mainspeed, 6);
+    EXPECT_EQ(loadedInfo.instrspeed, 2);
+
+    CString name(loadedInfo.songname, SONG_NAME_MAX_LEN);
+    name.TrimRight();
+    EXPECT_STREQ(name, "TestSong");
 }
 
 // --- LoadRMT ---

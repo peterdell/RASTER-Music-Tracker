@@ -180,16 +180,17 @@ public:
     int SongToAta(unsigned char* dest, int max, int adr);
     BOOL AtaToSong(unsigned char* sour, int len, int adr);
 
-    // SaveTxt()/SaveRMW()/LoadRMT() take std::ostream&/std::istream& rather
-    // than std::ofstream&/std::ifstream& - every real call site passes a
-    // genuine file stream (which satisfies the wider base type), and the
-    // wider type lets tests use an in-memory stream (see SongEditingTests.cpp).
+    // SaveTxt()/SaveRMW()/LoadRMT()/LoadTxt()/LoadRMW() take
+    // std::ostream&/std::istream& rather than std::ofstream&/std::ifstream& -
+    // every real call site passes a genuine file stream (which satisfies the
+    // wider base type), and the wider type lets tests use an in-memory
+    // stream (see SongEditingTests.cpp).
     bool SaveTxt(std::ostream& ou);
     bool SaveRMW(std::ostream& ou);
     bool LoadRMT(std::istream& in);
 
-    bool LoadTxt(std::ifstream& in);
-    bool LoadRMW(std::ifstream& in);
+    bool LoadTxt(std::istream& in);
+    bool LoadRMW(std::istream& in);
 
     int ImportTMC(std::ifstream& in);
     int ImportMOD(std::ifstream& in);
