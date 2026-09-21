@@ -178,35 +178,54 @@ implement the compile-time constant now, replacing all 6 `LoadString` call
 sites (`SaveRMW`/`LoadRMW` in `IO_Song.cpp`, plus `Rmt.cpp` and `RmtView.cpp`
 ×2), unblocking `SaveRMW`'s test.
 
-### Batch 4 - heavier editing methods with guard-only `g_hwnd` (needs care, case by case)
-These use `g_hwnd` only for error/confirmation dialogs that a test can avoid
-by using valid preconditions - but each needs its own quick read to confirm
-the `MessageBox` really is skippable and to check for other coupling
-(`g_AtariTrackerDriver`, `g_TrackClipboard`, etc. - already safe/cheap):
-- `SongJump`, `SongUp`, `SongDown`, `SongSubsongPrev`, `SongSubsongNext` -
-  conditionally call `Stop()`/`Play()` only when `m_play && m_followplay`;
-  testable in the "not playing" branch (same technique already used for
-  `SongPlayNextLine`).
-- `TrackUp`, `TrackDown`
-- `SongInsertCopyOrCloneOfSongLines`, `SongPrepareNewLine`,
-  `SongPutnewemptyunusedtrack` (error-only `g_hwnd`)
-- `SongMaketracksduplicate` (has a **confirmation prompt**, not just an
-  error - needs the same decision as Batch 5's confirm-prompt methods, or
-  could be tested only via the "not asked" code paths if any exist)
-- `TracksOrderChange`, `Songswitch4_8` (also has a confirmation prompt),
-  `TracksAllExpandLoops`
-- `SetUECursor` (small; `g_active_ti`/`g_activepart` - check these are
-  simple globals, likely trivial to stub)
-- `PlayPressedTones`, `InstrPaste` (touch `g_AtariTrackerDriver` directly -
-  need to check if that's a guard-only or load-bearing dependency; may
-  belong in Batch 6 instead)
+### Batch 4 - DONE (not yet committed) - heavier editing methods
+
+**Corrections found while scoping the implementation:**
+
+1. **`SongInsertCopyOrCloneOfSongLines` and `TracksOrderChange` instantiate
+   real MFC dialogs** (`CInsertCopyOrCloneOfSongLinesDlg`/
+   `CSongTracksOrderDlg`, both calling `.DoModal()`) - not just a guard-only
+   `MessageBox` as originally assumed. Same hazard class as `InstrChange`'s
+   `CInstrumentChangeDlg` - both dropped from this batch, joining
+   `InstrChange`/`BlockEffect` in the "real dialog" category needing its own
+   deliberate decision (see below), not characterizable as-is.
+2. **`PlayPressedTones`/`InstrPaste` turned out safe**, not hazardous:
+   reading `CAtariTrackerDriver`'s actual methods found `CAtari::JSR()`
+   just delegates to `C6502::JSR()` - already a link-only no-op stub in the
+   test project. `CAtariTrackerDriver`'s constructor is just a pointer
+   store. `AtariTrackerDriver.cpp` was split the same way as other coupled
+   files: the safe methods (`SetTrackNoteInstrumentVolume`/
+   `SetTrackVolume`/`InstrumentTurnOff`/`GetAtari`/constructor/`GetByteAt`)
+   moved to a new `AtariTrackerDriverCore.cpp`; `LoadRMTRoutines`/`Init`/
+   `Play`/`SetPokey`/`Silence` stay behind (real driver-binary loading,
+   `Global.h`'s `IsSpecialProveMode()`).
+3. `TracksAllExpandLoops` was already done in Batch 1 (a stale leftover in
+   this list from before that correction).
+
+Final batch 4 scope, all confirmed safe: `SongJump`, `SongUp`, `SongDown`,
+`SongSubsongPrev`, `SongSubsongNext` (conditionally call `Stop()`/`Play()`
+only when `m_play && m_followplay`, never taken since nothing calls the real
+`Play()` first), `TrackUp`, `TrackDown`, `SetUECursor` (just
+`g_active_ti`/`g_activepart`, both already real globals from Batch 3's
+`DEFINE_MAINPARAMS` work), `SongPrepareNewLine`, `SongPutnewemptyunusedtrack`
+(error-only `g_hwnd`), `PlayPressedTones`, `InstrPaste` (see correction #2).
+
+`SongMaketracksduplicate` and `Songswitch4_8` confirmed to only have
+confirmation-prompt `MessageBox`es (no hidden dialogs) - stay deferred per
+the already-resolved "confirm prompts stay deferred" decision.
 
 ### Batch 5 - methods with an unconditional "success" dialog or confirm prompt (needs a decision)
-- `InstrChange` (real `CInstrumentChangeDlg` - likely just defer)
+- `InstrChange`, `SongInsertCopyOrCloneOfSongLines`, `TracksOrderChange`,
+  `BlockEffect` (all instantiate a real MFC dialog and call `.DoModal()` -
+  `CInstrumentChangeDlg`/`CInsertCopyOrCloneOfSongLinesDlg`/
+  `CSongTracksOrderDlg`/`CEffectsDlg` respectively; confirmed while scoping
+  Batches 1-4 - likely just defer all four, no output-parameter escape hatch
+  like `InstrInfo` has)
 - `TrackInfo` (unconditional info `MessageBox`, no output-parameter escape
   hatch like `InstrInfo` has)
-- `SongMaketracksduplicate`, `Songswitch4_8` (confirmation prompts - see
-  Batch 4)
+- `SongMaketracksduplicate`, `Songswitch4_8` (confirmation prompts only, no
+  hidden dialogs - confirmed while scoping Batch 4 - deferred per the
+  already-resolved decision)
 - `FileReload` and the rest of the `FileXxx` family (see Batch 7)
 
 **Open question for the user**: for `TrackInfo` specifically, is it worth a

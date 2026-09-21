@@ -3,6 +3,19 @@
 #include "Song.h"
 #include "Clipboard.h"
 #include "TuningTypes.h"
+#include "AtariTrackerDriver.h"
+
+extern CAtari g_Atari;
+
+// Real CAtariTrackerDriver for CSong::PlayPressedTones()/InstrPaste() (see
+// SongEditing.cpp) - its constructor just stores a pointer, and the 3
+// methods these call (SetTrackNoteInstrumentVolume/SetTrackVolume/
+// InstrumentTurnOff) only need g_rmtinstr and CAtari::JSR(), which
+// delegates to the already-stubbed no-op C6502::JSR() (see AtariStub.cpp) -
+// confirmed by reading AtariTrackerDriver.cpp itself, not assumed.
+int g_rmtinstr[SONGTRACKS] = { -1, -1, -1, -1, -1, -1, -1, -1 };
+CAtariTrackerDriver g_AtariTrackerDriverInstance(g_Atari);
+CAtariTrackerDriver* g_AtariTrackerDriver = &g_AtariTrackerDriverInstance;
 
 // Real, default-constructed globals for CSong::SongEditing.cpp's editing
 // methods (see SongEditingTests.cpp) - CTracks/CInstruments/CTrackClipboard/
@@ -73,3 +86,11 @@ void CSong::Stop() {}
 // changes. Tests characterize SetTracks()'s own effect (the g_tracks4_8
 // assignment), not the resulting sound reinitialization.
 void CSong::ReInitSound() {}
+
+// Link-only stub: the real CSong::Play() lives in Song.cpp (not linked here
+// - it needs g_SongTimer, the same real OS multimedia timer hazard as
+// Stop()) and is reachable through CSong::SongUp()/SongDown()/
+// SongSubsongPrev()/SongSubsongNext() (see SongEditing.cpp), but only
+// inside "if (m_play && m_followplay)" branches that are never taken here
+// (m_play defaults to PLAY_STOP and nothing calls the real Play() first).
+BOOL CSong::Play(PlayMode, BOOL, int) { return FALSE; }

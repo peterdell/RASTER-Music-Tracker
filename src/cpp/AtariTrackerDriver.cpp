@@ -5,15 +5,10 @@
 
 #include "Global.h"
 
-
-CAtariTrackerDriver::CAtariTrackerDriver(CAtari& atari) {
-    m_atari = &atari;
-}
-
-CAtari* CAtariTrackerDriver::GetAtari() {
-    return m_atari;
-
-}
+// CAtariTrackerDriver's constructor, GetAtari(), SetTrackNoteInstrumentVolume(),
+// SetTrackVolume(), InstrumentTurnOff(), and GetByteAt() are implemented in
+// AtariTrackerDriverCore.cpp (only need g_rmtinstr and CAtari::JSR(), which
+// delegates to the already-stubbed C6502::JSR() in tests).
 
 // Load RMT routine to $3400, setnoteinstrvol to $3d00, and setvol to $3e00
 int CAtariTrackerDriver::LoadRMTRoutines(const TrackerDriverVersion trackerDriverVersion)
@@ -74,52 +69,4 @@ void CAtariTrackerDriver::Silence()
     BYTE a = 0, x = 0, y = 0;
     auto cycles = m_atari->GetFrameCycleCount();
     m_atari->JSR(adr, a, x, y, cycles);
-}
-
-void CAtariTrackerDriver::SetTrackNoteInstrumentVolume(int t, int n, int i, int v)
-{
-
-    auto adr = RMT_ATA_SETNOTEINSTR;
-    BYTE a = n, x = t, y = i;
-    auto cycles = m_atari->GetFrameCycleCount();
-    m_atari->JSR(adr, a, x, y, cycles);
-    //
-    adr = RMT_ATA_SETVOLUME;
-    a = v; x = t; y = 0;
-    cycles = m_atari->GetFrameCycleCount();
-    m_atari->JSR(adr, a, x, y, cycles);
-
-    g_rmtinstr[t] = i;
-}
-
-void CAtariTrackerDriver::SetTrackVolume(int t, int v)
-{
-
-    auto adr = RMT_ATA_SETVOLUME;
-    BYTE a = v, x = t, y = 0;
-    auto cycles = m_atari->GetFrameCycleCount();
-    m_atari->JSR(adr, a, x, y, cycles);
-}
-
-
-void CAtariTrackerDriver::InstrumentTurnOff(int instr)
-{
-    auto cycles = m_atari->GetFrameCycleCount();
-    for (int i = 0; i < SONGTRACKS; i++)
-    {
-        // Does this POKEY channel have the instrument assigned?
-        if (g_rmtinstr[i] == instr)
-        {
-            auto adr = RMT_ATA_INSTROFF;
-            BYTE a = 0, x = i, y = 0;
-            m_atari->JSR(adr, a, x, y, cycles);
-            m_atari->SetByteAt(0xd200 + i * 2 + 1 + (i >= 4) * 16, 0); // Reset POKEY AUDCx memory
-            g_rmtinstr[i] = -1;
-        }
-    }
-}
-
-
-byte CAtariTrackerDriver::GetByteAt(const MemoryAddress address) {
-    return m_atari->GetByteAt(address);
 }

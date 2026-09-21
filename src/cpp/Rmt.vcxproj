@@ -198,6 +198,7 @@
     </ClCompile>
     <ClCompile Include="AtariIO.cpp" />
     <ClCompile Include="AtariTrackerDriver.cpp" />
+    <ClCompile Include="AtariTrackerDriverCore.cpp" />
     <ClCompile Include="AtariView.cpp" />
     <ClCompile Include="C6502.cpp" />
     <ClCompile Include="Canvas.cpp" />

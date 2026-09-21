@@ -310,28 +310,7 @@ int CSong::DecodeTuningBlock(unsigned char* mem, int addr, int endAddr)
 // PlayPressedTonesInit() and SetPlayPressedTonesSilence() are implemented in
 // SongCore.cpp.
 
-BOOL CSong::PlayPressedTones()
-{
-    int t, n, i, v;
-    for (t = 0; t < SONGTRACKS; t++)
-    {
-        if ((v = m_playptvolume[t]) >= 0) //volume is set last
-        {
-            n = m_playptnote[t];
-            i = m_playptinstr[t];
-            if (n >= 0 && i >= 0)
-            {
-                g_AtariTrackerDriver->SetTrackNoteInstrumentVolume(t, n, i, v);
-            }
-            else
-            {
-                g_AtariTrackerDriver->SetTrackVolume(t, v);
-            }
-            SetPlayPressedTonesTNIV(t, -1, -1, -1);
-        }
-    }
-    return TRUE;
-}
+// CSong::PlayPressedTones() is implemented in SongEditing.cpp.
 
 
 // CSong::ActiveInstrSet() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
@@ -344,79 +323,9 @@ BOOL CSong::PlayPressedTones()
 // GetActiveInstr(), GetActiveColumn(), GetActiveLine(), GetPlayLine(),
 // SetActiveLine(), and SetPlayLine() are implemented in SongCore.cpp.
 
-BOOL CSong::TrackUp(int lines)
-{
-    if (m_play && m_followplay)	//prevents moving at all during play+follow
-        return 0;
+// CSong::TrackUp() is implemented in SongEditing.cpp.
 
-    g_Undo.Separator();
-    m_trackactiveline -= lines;	//subtract the number of lines from active track line 
-
-    //GetSmallestMaxtracklen() seems to do a really good job for the navigation within the "compact" tracks display so far
-    int trlen = GetSmallestMaxtracklen(m_songactiveline);
-
-    if (m_trackactiveline < 0)	//track line is below 0
-    {
-        if (ISBLOCKSELECTED())	//a selection block is currently in use
-        {
-            m_trackactiveline = 0;	//prevent moving anywhere else
-            return 1;
-        }
-        if (g_keyboard_updowncontinue)	//navigation between tracks is enabled
-        {
-            BLOCKDESELECT();
-            SongUp();	//go to the next songline with current trackline position
-            trlen = GetSmallestMaxtracklen(m_songactiveline);	//fetch the new pattern length as well
-        }
-        m_trackactiveline = m_trackactiveline + trlen;	//active line should appear at the bottom line, from the previous pattern movement 
-        if (m_trackactiveline < 0)	//active line is still below 0? assume max track length to be the correct position, so the next movement up will rectify itself
-            m_trackactiveline = trlen - lines;
-    }
-    if (m_trackactiveline > trlen)
-        m_trackactiveline = trlen - lines;	//above max track length, snap back in-bounds, and take the number of used for movements as well 
-
-    return 1;
-}
-
-BOOL CSong::TrackDown(int lines, BOOL stoponlastline)
-{
-    if (m_play && m_followplay)	//prevents moving at all during play+follow
-        return 0;
-
-    if (!g_keyboard_updowncontinue && stoponlastline && m_trackactiveline + lines > TrackGetLastLine()) // an invalid combination should be ignored
-        return 0;
-
-    g_Undo.Separator();
-    m_trackactiveline += lines;	//add the number of lines to move down to the current active trackline
-
-    //GetSmallestMaxtracklen() seems to do a really good job for the navigation within the "compact" tracks display so far
-    int trlen = GetSmallestMaxtracklen(m_songactiveline);	//identify the true track length in song line 
-    if (!trlen) trlen = g_Tracks.GetMaxTrackLength();	//in case the smallest max track length returned zero (eg from a goto line)
-
-    if (m_trackactiveline >= trlen)	//active line is equal or above max track length
-    {
-        if (ISBLOCKSELECTED())
-        {
-            //m_trackactiveline = g_Tracks.m_maxtracklen - 1;	//prevent moving anywhere else
-            m_trackactiveline = trlen - 1;	//prevent moving anywhere else
-            return 1;
-        }
-        //m_trackactiveline = m_trackactiveline % g_Tracks.m_maxtracklen;
-        m_trackactiveline = m_trackactiveline % trlen;	//active line is modulo of track length, it will roll over 
-        if (g_keyboard_updowncontinue)	//navigation between tracks is enabled
-        {
-            BLOCKDESELECT();
-            SongDown();	//go to the next songline with current trackline position
-            trlen = GetSmallestMaxtracklen(m_songactiveline);	//fetch the new pattern length as well
-        }
-        if (m_trackactiveline < 0)	//active line is still below 0? assume max track length to be the correct position, so the next movement up will rectify itself
-            m_trackactiveline = 0 + lines;
-    }
-    if (m_trackactiveline > trlen)
-        m_trackactiveline = 0 + lines;	//above max track length, snap back in-bounds, and take the number of used for movements as well 
-
-    return 1;
-}
+// CSong::TrackDown() is implemented in SongEditing.cpp.
 
 // CSong::TrackLeft() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 
@@ -428,188 +337,22 @@ BOOL CSong::TrackDown(int lines, BOOL stoponlastline)
 
 // CSong::GetUECursor() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 
-void CSong::SetUECursor(Part part, int* cursor)
-{
-    switch (part)
-    {
-    case Part::PART_TRACKS:
-        m_songactiveline = cursor[0];
-        m_trackactiveline = cursor[1];
-        m_trackactivecol = cursor[2];
-        m_trackactivecur = cursor[3];
-        g_activepart = g_active_ti = Part::PART_TRACKS;
-        break;
-
-    case Part::PART_SONG:
-        m_songactiveline = cursor[0];
-        m_trackactivecol = cursor[1];
-        g_activepart = Part::PART_SONG;
-        break;
-
-    case Part::PART_INSTRUMENTS:
-        m_activeinstr = cursor[0];
-        //the other parameters 1-5 are within the instrument (TInstrument structure), so it is not necessary to set
-        g_activepart = g_active_ti = Part::PART_INSTRUMENTS;
-        break;
-
-    case Part::PART_INFO:
-        m_infoact = (EditArea)cursor[0];
-        g_activepart = Part::PART_INFO;
-        break;
-
-    default:
-        return;	//don't change g_activepart !!!
-
-    }
-}
+// CSong::SetUECursor() is implemented in SongEditing.cpp.
 
 // UECursorIsEqual() is implemented in SongCore.cpp.
 
 
 //----------
 
-void CSong::SongJump(int lines)
-{
-    int songline = SongGetActiveLine();
-    int toline = songline + lines;
+// CSong::SongJump() is implemented in SongEditing.cpp.
 
-    if (toline > songline)
-    {
-        SongSetActiveLine(toline - 1);
-        SongDown();
-    }
-    else
-    {
-        SongSetActiveLine(toline + 1);
-        SongUp();
-    }
-}
+// CSong::SongUp() is implemented in SongEditing.cpp.
 
-BOOL CSong::SongUp()
-{
-    BLOCKDESELECT();
-    g_Undo.Separator();
+// CSong::SongDown() is implemented in SongEditing.cpp.
 
-    m_songactiveline--;
+// CSong::SongSubsongPrev() is implemented in SongEditing.cpp.
 
-    if (!IsValidSongline(m_songactiveline))
-        m_songactiveline = SONGLEN - 1;
-
-    if (m_play && m_followplay)
-    {
-        // Play track in loop, else, play from cursor position
-        auto mode = (m_play == PLAY_TRACK) ? PLAY_TRACK : PLAY_FROM;
-        Stop();
-
-        // This is a Gotoline, skip another line above it
-        if (IsSongGo(m_songactiveline)) {
-            m_songactiveline--;
-        }
-
-        // If the line is no longer valid, force it to the last line instead
-        if (!IsValidSongline(m_songactiveline)) {
-            m_songactiveline = SONGLEN - 1;
-        }
-
-        m_songplayline = m_songactiveline;
-        m_trackplayline = m_trackactiveline = 0;
-
-        // Continue playing using the correct parameters
-        Play(mode, m_followplay);
-    }
-    return 1;
-}
-
-BOOL CSong::SongDown()
-{
-    BLOCKDESELECT();
-    g_Undo.Separator();
-
-    m_songactiveline++;
-
-    if (!IsValidSongline(m_songactiveline))
-        m_songactiveline = 0;
-
-    if (m_play && m_followplay)
-    {
-        // Play track in loop, else, play from cursor position
-        auto mode = (m_play == PLAY_TRACK) ? PLAY_TRACK : PLAY_FROM;
-        Stop();
-
-        // This is a Gotoline, skip another line below it
-        if (IsSongGo(m_songactiveline)) {
-            m_songactiveline++;
-        }
-
-        // If the line is no longer valid, force it to the first line instead
-        if (!IsValidSongline(m_songactiveline)) {
-            m_songactiveline = 0;
-        }
-
-        m_songplayline = m_songactiveline;
-        m_trackplayline = m_trackactiveline = 0;
-
-        // Continue playing using the correct parameters
-        Play(mode, m_followplay);
-    }
-    return 1;
-}
-
-BOOL CSong::SongSubsongPrev()
-{
-    g_Undo.Separator();
-    int i = m_songactiveline - 1;
-
-    //only few lines in track have been played, or active line is 0, search for 1 subsong earlier to avoid being sent back to the same line each time 
-    if ((m_play && m_followplay && m_trackplayline < 16) || m_trackactiveline == 0)
-        i--;
-    for (; i >= 0; i--)
-    {
-        if (m_songgo[i] >= 0)
-        {
-            m_songactiveline = i + 1;
-            break;
-        }
-    }
-    if (i < 0) m_songactiveline = 0;
-    m_trackactiveline = 0;
-    if (m_play && m_followplay)
-    {
-        auto mode = (m_play == PLAY_TRACK) ? PLAY_TRACK : PLAY_FROM;	//play track in loop, else, play from cursor position
-        Stop();
-        m_songplayline = m_songactiveline;
-        m_trackplayline = m_trackactiveline = 0;
-        Play(mode, m_followplay); // continue playing using the correct parameters
-    }
-    return 1;
-}
-
-BOOL CSong::SongSubsongNext()
-{
-    g_Undo.Separator();
-    int i;
-    for (i = m_songactiveline; i < SONGLEN; i++)
-    {
-        if (m_songgo[i] >= 0)
-        {
-            if (i < (SONGLEN - 1))
-                m_songactiveline = i + 1;
-            else
-                m_songactiveline = SONGLEN - 1; //Goto on the last songline (=> it is not possible to set a line below it!)
-            m_trackactiveline = 0;
-            break;
-        }
-    }
-    if (m_play && m_followplay)
-    {
-        auto mode = (m_play == PLAY_TRACK) ? PLAY_TRACK : PLAY_FROM;	//play track in loop, else, play from cursor position
-        Stop();
-        m_songplayline = m_songactiveline;
-        m_trackplayline = m_trackactiveline = 0;
-        Play(mode, m_followplay); // continue playing using the correct parameters
-    }
-    return 1;
-}
+// CSong::SongSubsongNext() is implemented in SongEditing.cpp.
 
 // CSong::SongTrackSet() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 
@@ -724,82 +467,11 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLines(int& line)
     return 1;
 }
 
-BOOL CSong::SongPrepareNewLine(int& line, int sourceline, BOOL alsoemptycolumns) //Inserts a songline with unused empty tracks
-{
-    int i, k;
-
-    if (sourceline < 0) sourceline = line + sourceline; //for -1 it is line-1
-
-    SongInsertLine(line);	//inserts a blank line
-
-    //prepares an online set of unused empty tracks
-
-    BYTE tracks[TRACKSNUM];
-    memset(tracks, 0, TRACKSNUM); //init
-    MarkTF_USED(tracks);
-    MarkTF_NOEMPTY(tracks);
-
-    int count = 0;
-    for (i = 0; i < g_tracks4_8; i++)
-    {
-        if (!alsoemptycolumns && sourceline >= 0 && m_song[sourceline][i] < 0) continue;
-
-        k = FindNearTrackBySongLineAndColumn(sourceline, i, tracks);
-        if (k >= 0)
-        {
-            m_song[line][i] = k;
-            tracks[k] = TrackFlag::TF_USED;
-            count++;
-        }
-    }
-
-    if (count < g_tracks4_8)
-    {
-        if (count == 0)
-            MessageBox(g_hwnd, "There isn't any empty unused track in song.", "Error", MB_ICONERROR);
-        else
-            MessageBox(g_hwnd, "Not enough empty unused tracks in song.", "Error", MB_ICONERROR);
-        return 0;
-    }
-
-    return 1;
-}
+// CSong::SongPrepareNewLine() is implemented in SongEditing.cpp.
 
 // FindNearTrackBySongLineAndColumn() is implemented in SongCore.cpp.
 
-BOOL CSong::SongPutnewemptyunusedtrack()
-{
-    int line = SongGetActiveLine();
-    if (m_songgo[line] >= 0) return 0;		//it can't be done on the "GO TO LINE" line
-
-    g_Undo.ChangeSong(line, m_trackactivecol, UETYPE_SONGTRACK, 0);
-
-    int cl = GetActiveColumn();
-    int act = m_song[line][cl];
-    int k = -1;
-    m_song[line][cl] = -1;	//at current position in song --
-
-    BYTE tracks[TRACKSNUM];
-    memset(tracks, 0, TRACKSNUM); //init
-    MarkTF_USED(tracks);
-    MarkTF_NOEMPTY(tracks);
-
-    if (act >= 0 && !tracks[act])
-        k = act;
-    else
-        k = FindNearTrackBySongLineAndColumn(line, cl, tracks);
-
-    if (k < 0)
-    {
-        m_song[line][cl] = act;
-        MessageBox(g_hwnd, "There isn't any empty unused track in song.", "Error", MB_ICONERROR);
-        //UpdateShiftControlKeys();
-        return 0;
-    }
-
-    m_song[line][cl] = k;
-    return 1;
-}
+// CSong::SongPutnewemptyunusedtrack() is implemented in SongEditing.cpp.
 
 BOOL CSong::SongMaketracksduplicate()
 {
@@ -874,108 +546,7 @@ BOOL CSong::SongMaketracksduplicate()
 
 // CSong::InstrCopy() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 
-void CSong::InstrPaste(int special)
-{
-    if (m_instrclipboard.activeEditSection == InstrumentSection::NONE) {
-        return;	// it has never been filled with anything
-    }
-
-    int i = GetActiveInstr();
-
-    g_Undo.ChangeInstrument(i, 0, UETYPE_INSTRDATA, 1);
-
-    TInstrument* ai = g_Instruments.GetInstrument(i);
-
-    g_AtariTrackerDriver->InstrumentTurnOff(i); //turns off this instrument on all channels
-
-    int x, y;
-    BOOL bl = 0, br = 0, ep = 0;
-    BOOL bltor = 0, brtol = 0;
-
-    switch (special)
-    {
-    case 0: //normal paste
-        memcpy(ai, &m_instrclipboard, sizeof(TInstrument));
-        ai->activeEditSection = InstrumentSection::NAME;
-        ai->editNameCursorPos = 0; //so that the cursor is at the beginning of the instrument name
-        break;
-
-    case 1: //volume L/R
-        bl = br = 1;
-        goto InstrPaste_Envelopes;
-    case 2: //volume R
-        br = 1;
-        goto InstrPaste_Envelopes;
-    case 3: //volume L
-        bl = 1;
-        goto InstrPaste_Envelopes;
-    case 4: //envelope parameters
-        ep = 1;
-    InstrPaste_Envelopes:
-        for (x = 0; x <= m_instrclipboard.parameters[PAR_ENV_LENGTH]; x++)
-        {
-            if (br) ai->envelope[x][EnvelopeParameter::VOLUMER] = m_instrclipboard.envelope[x][EnvelopeParameter::VOLUMER];
-            if (bl) ai->envelope[x][EnvelopeParameter::VOLUMEL] = m_instrclipboard.envelope[x][EnvelopeParameter::VOLUMEL];
-            if (bltor) ai->envelope[x][EnvelopeParameter::VOLUMER] = m_instrclipboard.envelope[x][EnvelopeParameter::VOLUMEL];
-            if (brtol) ai->envelope[x][EnvelopeParameter::VOLUMEL] = m_instrclipboard.envelope[x][EnvelopeParameter::VOLUMER];
-            if (ep)
-            {
-                for (y = EnvelopeParameter::DISTORTION; y < ENVROWS; y++) ai->envelope[x][y] = m_instrclipboard.envelope[x][y];
-            }
-        }
-        ai->parameters[PAR_ENV_LENGTH] = m_instrclipboard.parameters[PAR_ENV_LENGTH];
-        ai->parameters[PAR_ENV_GOTO] = m_instrclipboard.parameters[PAR_ENV_GOTO];
-        ai->editEnvelopeX = 0;
-        break;
-
-    case 5: //TABLE
-        for (x = 0; x <= m_instrclipboard.parameters[PAR_TBL_LENGTH]; x++) ai->noteTable[x] = m_instrclipboard.noteTable[x];
-        ai->parameters[PAR_TBL_LENGTH] = m_instrclipboard.parameters[PAR_TBL_LENGTH];
-        ai->parameters[PAR_TBL_GOTO] = m_instrclipboard.parameters[PAR_TBL_GOTO];
-        ai->editNoteTableCursorPos = 0;
-        break;
-
-    case 6: //vol+env
-        br = bl = ep = 1;
-        goto InstrPaste_Envelopes;
-    case 8: //volume L to R
-        bltor = 1;
-        goto InstrPaste_Envelopes;
-    case 9: //volume R to L
-        brtol = 1;
-        goto InstrPaste_Envelopes;
-
-    case 7: //vol+env insert to cursor
-        int sx = m_instrclipboard.parameters[PAR_ENV_LENGTH] + 1;
-        if (ai->editEnvelopeX + sx > ENVELOPE_MAX_COLUMNS) sx = ENVELOPE_MAX_COLUMNS - ai->editEnvelopeX;
-        for (x = ENVELOPE_MAX_COLUMNS - 2; x >= ai->editEnvelopeX; x--) //offset
-        {
-            int i = x + sx;
-            if (i >= ENVELOPE_MAX_COLUMNS) continue;
-            for (y = 0; y < ENVROWS; y++) ai->envelope[i][y] = ai->envelope[x][y];
-        }
-        for (x = 0; x < sx; x++) //insertion
-        {
-            int i = ai->editEnvelopeX + x;
-            for (y = 0; y < ENVROWS; y++) ai->envelope[i][y] = m_instrclipboard.envelope[x][y];
-        }
-        int i = ai->parameters[PAR_ENV_LENGTH] + sx;
-        if (i >= ENVELOPE_MAX_COLUMNS) i = ENVELOPE_MAX_COLUMNS - 1;
-        ai->parameters[PAR_ENV_LENGTH] = i;
-        if (ai->parameters[PAR_ENV_GOTO] > ai->editEnvelopeX)
-        {
-            i = ai->parameters[PAR_ENV_GOTO] + sx;
-            if (i >= ENVELOPE_MAX_COLUMNS) i = ENVELOPE_MAX_COLUMNS - 1;
-            ai->parameters[PAR_ENV_GOTO] = i;
-        }
-        i = ai->editEnvelopeX + sx;
-        if (i >= ENVELOPE_MAX_COLUMNS) i = ENVELOPE_MAX_COLUMNS - 1;
-        ai->editEnvelopeX = i;
-        break;
-
-    }
-    g_Instruments.Update(i); //write to Atari RAM
-}
+// CSong::InstrPaste() is implemented in SongEditing.cpp.
 
 // CSong::InstrCut() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 

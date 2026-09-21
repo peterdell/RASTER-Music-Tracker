@@ -1068,3 +1068,48 @@ build clean and all 123 tests pass.
         indefinitely - real dialog orchestration, no independent test value
         beyond what's already covered), and the heavier editing/playback
         methods from the original Batch 4/6 lists.
+- [x] Phase 2 continued: plan's "Batch 4" (`SongJump`, `SongUp`, `SongDown`,
+      `SongSubsongPrev`, `SongSubsongNext`, `TrackUp`, `TrackDown`,
+      `SetUECursor`, `SongPrepareNewLine`, `SongPutnewemptyunusedtrack`,
+      `PlayPressedTones`, `InstrPaste`), 208 tests total. Not yet committed.
+      - **Two more real-dialog corrections found while scoping, same class as
+        `InstrChange`**: `SongInsertCopyOrCloneOfSongLines` instantiates a
+        real `CInsertCopyOrCloneOfSongLinesDlg` and calls `.DoModal()` right
+        at the top - not just a guard-only `MessageBox` as the plan assumed.
+        `TracksOrderChange` does the same with `CSongTracksOrderDlg`. Both
+        dropped from this batch, joining `InstrChange`/`BlockEffect` as
+        "real dialog" hazards needing a deliberate decision, not
+        characterizable as-is. `Songswitch4_8`/`SongMaketracksduplicate`
+        confirmed to only have confirmation-prompt `MessageBox`es (matching
+        the earlier "defer both" decision) - no hidden dialogs there.
+      - **`PlayPressedTones`/`InstrPaste` initially looked hazard-only**
+        (both call `g_AtariTrackerDriver` unconditionally, not as a guard),
+        but reading `CAtariTrackerDriver`'s actual methods found
+        `CAtari::JSR()` just delegates to `C6502::JSR()` - already a
+        link-only no-op stub in the test project (see `AtariStub.cpp`,
+        established back when `C6502::Init()`'s real DLL-loading hazard was
+        first characterized). `CAtariTrackerDriver`'s constructor is also
+        just a pointer store. This unlocked both methods - another instance
+        of "verify before deferring."
+      - **Split `AtariTrackerDriver.cpp`** the same way as `Song.cpp`/
+        `Instruments.cpp` etc.: `SetTrackNoteInstrumentVolume`/
+        `SetTrackVolume`/`InstrumentTurnOff`/`GetAtari`/the constructor/
+        `GetByteAt` (only need `g_rmtinstr` and the now-safe `CAtari::JSR()`)
+        moved to a new `AtariTrackerDriverCore.cpp`; `LoadRMTRoutines`/
+        `Init`/`Play`/`SetPokey`/`Silence` stay behind (real driver-binary
+        loading, `Global.h`'s `IsSpecialProveMode()`). Removed a now-
+        redundant `GetByteAt()` link-only stub from `test/PokeyStreamStub.cpp`
+        (predates this session's `CAtariTrackerDriver` investigation) in
+        favor of the real implementation.
+      - Added a link-only stub for `CSong::Play()` (needed because
+        `SongUp`/`SongDown`/`SongSubsongPrev`/`SongSubsongNext` reference it
+        inside their never-taken `if (m_play && m_followplay)` branches -
+        same treatment as `Stop()`/`ReInitSound()`).
+      - 14 new hand-derived tests, all correct on first run. Full solution
+        rebuild (Release|x64) confirmed 0 errors; 208 tests pass (up from
+        194, +14, 0 regressions).
+      - **Remaining "own category" real-dialog hazards**: `InstrChange`,
+        `SongInsertCopyOrCloneOfSongLines`, `TracksOrderChange`,
+        `BlockEffect` (all instantiate real MFC dialogs) - need a deliberate
+        decision (matching `TrackInfo`'s already-decided small-refactor
+        treatment, or staying deferred) before any further characterization.

@@ -9,11 +9,10 @@
 // StartRecording() call these, but tests here only exercise the pure state
 // machine methods (SwitchIntoRecording/SwitchIntoStop/CallFromPlay/
 // TrackSongLine/CallFromPlayBeat) and never call those three, so real
-// bodies (which would need an actual CAtari-backed CAtariTrackerDriver, or a
-// real CSong - both blocked by CSong's g_Atari-coupled constructor, see
-// plans/NOTES.md) aren't needed - only the symbols, to satisfy the linker
-// for this translation unit.
-byte CAtariTrackerDriver::GetByteAt(const MemoryAddress) { return 0; }
+// bodies aren't needed - only the symbols, to satisfy the linker for this
+// translation unit. GetByteAt() used to be stubbed here too, but now has a
+// real body linked via AtariTrackerDriverCore.cpp (see
+// plans/SONG_IO_SONG_REMAINING_PLAN.md).
 int CAtariTrackerDriver::Init() { return 0; }
 int CLZSSFile::GetFrameSize(const CSong&) { return 9; }
 

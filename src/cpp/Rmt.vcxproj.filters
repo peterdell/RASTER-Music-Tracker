@@ -294,6 +294,9 @@
     <ClCompile Include="AtariTrackerDriver.cpp">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClCompile>
+    <ClCompile Include="AtariTrackerDriverCore.cpp">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClCompile>
     <ClCompile Include="AssemblerTypes.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\ASM</Filter>
     </ClCompile>

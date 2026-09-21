@@ -13,6 +13,7 @@ extern CTrackClipboard g_TrackClipboard;
 extern CSong g_Song;
 extern TTuningSettings g_tuning;
 extern TTuningRatios g_tuningRatios;
+extern int g_rmtinstr[SONGTRACKS];
 
 namespace {
     // Writes one "binary block" in CAtariIO::LoadBinaryBlock()'s expected
@@ -60,6 +61,10 @@ protected:
             memset(g_Instruments.GetInstrument(i), 0, sizeof(TInstrument));
         }
         g_TrackClipboard.Clear();
+
+        // g_rmtinstr persists across tests like g_Instruments' data above -
+        // reset it too (see PlayPressedTones/InstrPaste tests).
+        for (int i = 0; i < SONGTRACKS; i++) g_rmtinstr[i] = -1;
 
         BlankSong(song);
         BlankSong(g_Song);
@@ -773,4 +778,139 @@ TEST_F(SongEditingTest, LoadRMTDecodesTheModuleAndNamesBlocks) {
     CString instrName = g_Instruments.GetInstrument(2)->name;
     instrName.TrimRight();
     EXPECT_STREQ(instrName, "Lead");
+}
+
+// --- SongJump / SongUp / SongDown / SongSubsongPrev / SongSubsongNext ---
+// All conditionally call Stop()/Play() only inside "if (m_play &&
+// m_followplay)", never taken here (m_play defaults to PLAY_STOP).
+
+TEST_F(SongEditingTest, SongJumpMovesForwardViaSongDown) {
+    song.SongSetActiveLine(5);
+    song.SongJump(3); // toline=8>5 -> SongSetActiveLine(7) then SongDown() -> 8
+    EXPECT_EQ(song.SongGetActiveLine(), 8);
+}
+
+TEST_F(SongEditingTest, SongJumpMovesBackwardViaSongUp) {
+    song.SongSetActiveLine(5);
+    song.SongJump(-3); // toline=2<5 -> SongSetActiveLine(3) then SongUp() -> 2
+    EXPECT_EQ(song.SongGetActiveLine(), 2);
+}
+
+TEST_F(SongEditingTest, SongUpWrapsToTheLastLineFromLineZero) {
+    song.SongSetActiveLine(0);
+    song.SongUp();
+    EXPECT_EQ(song.SongGetActiveLine(), SONGLEN - 1);
+}
+
+TEST_F(SongEditingTest, SongDownWrapsToLineZeroFromTheLastLine) {
+    song.SongSetActiveLine(SONGLEN - 1);
+    song.SongDown();
+    EXPECT_EQ(song.SongGetActiveLine(), 0);
+}
+
+TEST_F(SongEditingTest, SongSubsongNextJumpsToTheLineAfterTheNextGotoMarker) {
+    song.SongSetActiveLine(5);
+    (*song.GetSongGo())[7] = 2;
+    song.SongSubsongNext();
+    EXPECT_EQ(song.SongGetActiveLine(), 8);
+}
+
+TEST_F(SongEditingTest, SongSubsongPrevJumpsToTheLineAfterThePreviousGotoMarker) {
+    song.SongSetActiveLine(10);
+    song.SetActiveLine(5); // nonzero trackactiveline avoids the extra "i--" that only applies when it's exactly 0
+    (*song.GetSongGo())[7] = 3;
+    song.SongSubsongPrev();
+    EXPECT_EQ(song.SongGetActiveLine(), 8);
+    EXPECT_EQ(song.GetActiveLine(), 0); // trackactiveline always resets
+}
+
+// --- TrackUp / TrackDown ---
+
+TEST_F(SongEditingTest, TrackUpMovesActiveLineUpWithinBounds) {
+    song.SetActiveLine(5);
+    song.TrackUp(2);
+    EXPECT_EQ(song.GetActiveLine(), 3);
+}
+
+TEST_F(SongEditingTest, TrackUpWrapsToTheBottomWhenGoingBelowZero) {
+    song.SetActiveLine(1);
+    song.TrackUp(3); // 1-3=-2, g_keyboard_updowncontinue is off, so -2 + trlen(64) = 62
+    EXPECT_EQ(song.GetActiveLine(), 62);
+}
+
+TEST_F(SongEditingTest, TrackDownMovesActiveLineDownWithinBounds) {
+    song.SetActiveLine(3);
+    song.TrackDown(2, FALSE); // stoponlastline=FALSE avoids TrackGetLastLine()'s -1-for-no-track edge case
+    EXPECT_EQ(song.GetActiveLine(), 5);
+}
+
+// --- SetUECursor ---
+
+TEST_F(SongEditingTest, SetUECursorPartTracksUpdatesTrackCursorFields) {
+    int cursor[4] = { 3, 4, 1, 2 };
+    song.SetUECursor(Part::PART_TRACKS, cursor);
+
+    EXPECT_EQ(song.SongGetActiveLine(), 3);
+    EXPECT_EQ(song.GetActiveLine(), 4);
+    EXPECT_EQ(song.GetActiveColumn(), 1);
+
+    // m_trackactivecur has no direct public getter - read it back via GetUECursor().
+    int* readback = song.GetUECursor(Part::PART_TRACKS);
+    EXPECT_EQ(readback[3], 2);
+    delete[] readback;
+}
+
+// --- SongPrepareNewLine / SongPutnewemptyunusedtrack ---
+
+TEST_F(SongEditingTest, SongPrepareNewLineFillsTheNewLineWithUnusedTracks) {
+    int line = 2;
+    EXPECT_TRUE(song.SongPrepareNewLine(line, -1, TRUE));
+
+    // With nothing else in the song, each column gets the next free track.
+    EXPECT_EQ((*song.GetSong())[2][0], 0);
+    EXPECT_EQ((*song.GetSong())[2][1], 1);
+    EXPECT_EQ((*song.GetSong())[2][2], 2);
+    EXPECT_EQ((*song.GetSong())[2][3], 3);
+}
+
+TEST_F(SongEditingTest, SongPutnewemptyunusedtrackAssignsAFreeTrackToTheActivePosition) {
+    song.SongSetActiveLine(0); // GetActiveColumn() defaults to column 0
+
+    EXPECT_TRUE(song.SongPutnewemptyunusedtrack());
+
+    EXPECT_EQ((*song.GetSong())[0][0], 0); // first free track assigned
+}
+
+// --- PlayPressedTones ---
+// Confirmed safe by reading CAtariTrackerDriver's methods: they only need
+// g_rmtinstr and CAtari::JSR(), which delegates to the already-stubbed
+// no-op C6502::JSR() (see AtariTrackerDriverCore.cpp's header comment).
+
+TEST_F(SongEditingTest, PlayPressedTonesRecordsTheInstrumentAndConsumesThePendingState) {
+    song.SetPlayPressedTonesTNIV(0, 5, 2, 10); // track 0: note 5, instr 2, volume 10
+
+    EXPECT_TRUE(song.PlayPressedTones());
+    EXPECT_EQ(g_rmtinstr[0], 2);
+
+    // The pending state was consumed (volume reset to -1) - a second call
+    // has nothing left to play.
+    g_rmtinstr[0] = -99;
+    EXPECT_TRUE(song.PlayPressedTones());
+    EXPECT_EQ(g_rmtinstr[0], -99);
+}
+
+// --- InstrPaste ---
+
+TEST_F(SongEditingTest, InstrPasteNormalPasteCopiesTheClipboardIntoTheActiveInstrument) {
+    song.ActiveInstrSet(3);
+    memcpy(g_Instruments.GetInstrument(3)->name, "Lead", 4);
+    song.InstrCopy(); // populates m_instrclipboard for real
+
+    song.ActiveInstrSet(5); // switch to a different, empty instrument
+    song.InstrPaste(0); // 0 = normal paste
+
+    CString pastedName = g_Instruments.GetInstrument(5)->name;
+    pastedName.TrimRight();
+    EXPECT_STREQ(pastedName, "Lead");
+    EXPECT_EQ(g_Instruments.GetInstrument(5)->activeEditSection, InstrumentSection::NAME);
 }

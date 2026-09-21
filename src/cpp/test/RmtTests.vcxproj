@@ -121,6 +121,7 @@
     <ClCompile Include="PokeyStreamStub.cpp" />
     <ClCompile Include="..\Atari.cpp" />
     <ClCompile Include="AtariStub.cpp" />
+    <ClCompile Include="..\AtariTrackerDriverCore.cpp" />
     <ClCompile Include="..\SongCore.cpp" />
     <ClCompile Include="..\PokeyController.cpp" />
     <ClCompile Include="..\SongEditing.cpp" />
