@@ -236,12 +236,18 @@ confirmation-prompt `MessageBox`es (no hidden dialogs) - stay deferred per
 the already-resolved "confirm prompts stay deferred" decision.
 
 ### Batch 5 - methods with an unconditional "success" dialog or confirm prompt (needs a decision)
-- `InstrChange`, `SongInsertCopyOrCloneOfSongLines`, `TracksOrderChange`,
-  `BlockEffect` (all instantiate a real MFC dialog and call `.DoModal()` -
-  `CInstrumentChangeDlg`/`CInsertCopyOrCloneOfSongLinesDlg`/
-  `CSongTracksOrderDlg`/`CEffectsDlg` respectively; confirmed while scoping
-  Batches 1-4 - likely just defer all four, no output-parameter escape hatch
-  like `InstrInfo` has)
+- `InstrChange`, `SongInsertCopyOrCloneOfSongLines`, `TracksOrderChange` -
+  **DONE**: re-analyzed in detail (per the same "verify before deferring"
+  lesson `ClearSong` taught) rather than accepting the original "likely just
+  defer all four" call. All three turned out to have the same shape as
+  `InstrInfo`/`TrackInfo`: the dialog only supplies a fixed set of input
+  parameters up front, and the actual mutation logic runs entirely
+  independently of the dialog object. Each was split into a thin dialog
+  wrapper (stays in `Song.cpp`) plus a testable `*Apply()` core (moved to
+  `SongEditing.cpp`) - see `plans/NOTES.md` for the full per-method
+  breakdown. `BlockEffect` is the one exception: confirmed to have no
+  extractable logic at all (see its own entry below) - the original "defer"
+  call stands for it specifically.
 - `TrackInfo` - **DONE**: refactored to the same dual-mode (output-parameter
   vs. `MessageBox`) design `InstrInfo` already has, moved into
   `SongEditing.cpp`, 2 new tests, 214 tests passing (see

@@ -279,6 +279,45 @@ TEST_F(SongEditingTest, SongDeleteLineShiftsSubsequentLinesUp) {
     EXPECT_EQ((*song.GetSong())[SONGLEN - 1][0], -1); // vacated slot at the end
 }
 
+// --- SongInsertCopyOrCloneOfSongLinesApply ---
+// Extracted from SongInsertCopyOrCloneOfSongLines() - its two MessageBox
+// calls are guard-only errors on song/track-range overrun, avoided here by
+// using valid from/to/line values and enough free tracks.
+
+TEST_F(SongEditingTest, SongInsertCopyOrCloneOfSongLinesApplyCopiesTheSourceLineWhenNotCloning) {
+    (*song.GetSong())[0][0] = 5;
+
+    int line = 1;
+    EXPECT_TRUE(song.SongInsertCopyOrCloneOfSongLinesApply(line, 0, 0, FALSE, 0, 100));
+
+    EXPECT_EQ((*song.GetSong())[0][0], 5); // source untouched
+    EXPECT_EQ((*song.GetSong())[1][0], 5); // copy landed at the insert point, same track number
+}
+
+TEST_F(SongEditingTest, SongInsertCopyOrCloneOfSongLinesApplyClonesIntoANewTrackWhenCloning) {
+    (*song.GetSong())[0][0] = 5;
+    TTrack* src = g_Tracks.GetTrack(5);
+    src->len = 2;
+    src->note[0] = 10;
+    src->instr[0] = 1;
+    src->volume[0] = 8;
+
+    int line = 1;
+    // tuning=0, volumep=100 - no actual edit, just characterizes that cloning
+    // creates a distinct track rather than reusing track 5.
+    EXPECT_TRUE(song.SongInsertCopyOrCloneOfSongLinesApply(line, 0, 0, TRUE, 0, 100));
+
+    EXPECT_EQ((*song.GetSong())[0][0], 5); // source untouched
+    int clonedTrack = (*song.GetSong())[1][0];
+    EXPECT_NE(clonedTrack, 5); // cloned into a different, previously-unused track
+    EXPECT_NE(clonedTrack, -1);
+
+    TTrack* dst = g_Tracks.GetTrack(clonedTrack);
+    EXPECT_EQ(dst->note[0], 10);
+    EXPECT_EQ(dst->instr[0], 1);
+    EXPECT_EQ(dst->volume[0], 8);
+}
+
 // --- TrackCopy / TrackPaste / TrackDelete / TrackCut / TrackCopyFromTo / TrackSwapFromTo ---
 
 TEST_F(SongEditingTest, TrackCopyAndPasteRoundTripTrackData) {
@@ -645,6 +684,65 @@ TEST_F(SongEditingTest, InstrInfoPopulatesTheOutputStructWithoutShowingAMessageB
     EXPECT_EQ(info.maxnote, 10);
     EXPECT_EQ(info.minvol, 8);
     EXPECT_EQ(info.maxvol, 8);
+}
+
+// --- InstrChangeApply ---
+// Extracted from InstrChange() - dual-mode like InstrInfo/TrackInfo, called
+// here with a non-null resultMsg so it never touches the
+// MessageBox("Instrument changes") branch.
+
+TEST_F(SongEditingTest, InstrChangeApplyRemapsMatchingNotesInstrumentsAndVolumes) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->len = 1;
+    tr->note[0] = 10;
+    tr->instr[0] = 2;
+    tr->volume[0] = 8;
+
+    TInstrChangeParams p = {};
+    p.snotefrom = 10; p.snoteto = 10;
+    p.svolmin = 8; p.svolmax = 8;
+    p.sinstrfrom = 2; p.sinstrto = 2;
+    p.dnotefrom = 15; p.dnoteto = 15;
+    p.dvolmin = 5; p.dvolmax = 5;
+    p.dinstrfrom = 3; p.dinstrto = 3;
+    p.onlytrack = -1;
+    p.onlychannels = -1;
+    p.onlysonglinefrom = -1;
+    p.onlysonglineto = -1;
+
+    CString resultMsg;
+    song.InstrChangeApply(p, &resultMsg);
+
+    EXPECT_EQ(tr->note[0], 15);
+    EXPECT_EQ(tr->instr[0], 3);
+    EXPECT_EQ(tr->volume[0], 5);
+    EXPECT_NE(resultMsg.Find("successfully"), -1);
+}
+
+TEST_F(SongEditingTest, InstrChangeApplyOnlyTrackRestrictsTheChangeToOneTrack) {
+    TTrack* tr0 = g_Tracks.GetTrack(0);
+    tr0->len = 1; tr0->note[0] = 10; tr0->instr[0] = 2; tr0->volume[0] = 8;
+
+    TTrack* tr1 = g_Tracks.GetTrack(1);
+    tr1->len = 1; tr1->note[0] = 10; tr1->instr[0] = 2; tr1->volume[0] = 8;
+
+    TInstrChangeParams p = {};
+    p.snotefrom = 10; p.snoteto = 10;
+    p.svolmin = 8; p.svolmax = 8;
+    p.sinstrfrom = 2; p.sinstrto = 2;
+    p.dnotefrom = 15; p.dnoteto = 15;
+    p.dvolmin = 5; p.dvolmax = 5;
+    p.dinstrfrom = 3; p.dinstrto = 3;
+    p.onlytrack = 0; // restrict to track 0 only
+    p.onlychannels = -1;
+    p.onlysonglinefrom = -1;
+    p.onlysonglineto = -1;
+
+    CString resultMsg;
+    song.InstrChangeApply(p, &resultMsg);
+
+    EXPECT_EQ(tr0->note[0], 15); // changed
+    EXPECT_EQ(tr1->note[0], 10); // untouched, restricted to track 0 only
 }
 
 // --- TrackInfo ---
@@ -1156,4 +1254,34 @@ TEST_F(SongEditingTest, ClearSongSetsTheTrackCount) {
 
     song.ClearSong(4);
     EXPECT_EQ(g_tracks4_8, 4);
+}
+
+// --- TracksOrderChangeApply ---
+// Extracted from TracksOrderChange() - the dialog and its mid-function
+// confirmation prompt (for clearing columns) both stay in the wrapper;
+// this only reorders/clears song columns once the range and column
+// mapping are known.
+
+TEST_F(SongEditingTest, TracksOrderChangeApplyReordersAndClearsColumnsPerMapping) {
+    (*song.GetSong())[0][0] = 10;
+    (*song.GetSong())[0][1] = 20;
+    (*song.GetSong())[0][2] = 30;
+    (*song.GetSong())[0][3] = 40;
+    (*song.GetSong())[1][0] = 11;
+    (*song.GetSong())[1][1] = 21;
+    (*song.GetSong())[1][2] = 31;
+    (*song.GetSong())[1][3] = 41;
+
+    int tracksorder[SONGTRACKS] = { 1, 0, -1, 3, -1, -1, -1, -1 };
+    song.TracksOrderChangeApply(0, 1, tracksorder);
+
+    EXPECT_EQ((*song.GetSong())[0][0], 20); // new col0 <- old col1
+    EXPECT_EQ((*song.GetSong())[0][1], 10); // new col1 <- old col0
+    EXPECT_EQ((*song.GetSong())[0][2], -1); // cleared
+    EXPECT_EQ((*song.GetSong())[0][3], 40); // new col3 <- old col3 (unchanged)
+
+    EXPECT_EQ((*song.GetSong())[1][0], 21);
+    EXPECT_EQ((*song.GetSong())[1][1], 11);
+    EXPECT_EQ((*song.GetSong())[1][2], -1);
+    EXPECT_EQ((*song.GetSong())[1][3], 41);
 }

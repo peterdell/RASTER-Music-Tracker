@@ -1301,3 +1301,56 @@ build clean and all 123 tests pass.
         header-parses/song-doesn't split). Full solution rebuild
         (Release|x64) confirmed 0 errors; 218 tests pass (up from 216, +2,
         0 regressions).
+- [x] The "real dialog cluster" (`InstrChange`, `SongInsertCopyOrCloneOfSongLines`,
+      `TracksOrderChange`, `BlockEffect`) - re-analyzed in detail before
+      accepting the plan's original "likely just defer all four" call, per
+      the same lesson `ClearSong` taught: 3 of the 4 turned out to have the
+      exact same shape as `InstrInfo`/`TrackInfo` - the dialog only supplies
+      a fixed set of input parameters up front, and all the real mutation
+      logic runs entirely independently of the dialog object afterward.
+      - **`BlockEffect`** (`CTrackClipboard`, `Clipboard.cpp`) is the one
+        confirmed exception: its entire body is 3 lines of setup before
+        `dlg.DoModal()` - all real work happens *live inside*
+        `CEffectsDlg`'s own UI handlers while the dialog is open (it's
+        passed a pointer straight into the live track data:
+        `dlg.m_trackptr = td;`). There's no separable business logic to
+        extract; the original "defer" call stands for this one specifically.
+      - **`InstrChange`**: added `struct TInstrChangeParams` (`SongTypes.h`,
+        16 fields, one per dialog control, named after the local variables
+        the method's body has always used internally) and
+        `CSong::InstrChangeApply(const TInstrChangeParams&, CString*
+        resultMsg = NULL)` (`SongEditing.cpp`, right after `InstrInfo`) -
+        dual-mode like `InstrInfo`/`TrackInfo`. `InstrChange()` itself
+        shrinks to: validate the instrument, show the dialog, and (if
+        confirmed) copy its 16 fields into a `TInstrChangeParams` and call
+        `InstrChangeApply()`. Zero other change to the ~200-line business
+        logic itself.
+      - **`SongInsertCopyOrCloneOfSongLines`**: added
+        `CSong::SongInsertCopyOrCloneOfSongLinesApply(int& line, int
+        linefrom, int lineto, BOOL clone, int tuning, int volumep)`
+        (`SongEditing.cpp`) - just 5 plain parameters, no new struct needed.
+        Its two `MessageBox` calls (song/track-range overrun) are guard-only
+        errors, avoidable with valid test data - same treatment as
+        `LoadRMT`'s guard-only branches, no dual-mode escape hatch needed.
+      - **`TracksOrderChange`**: has a *mid-function* `MB_YESNOCANCEL`
+        confirmation prompt gating further execution (same category as the
+        already-deferred `SongMaketracksduplicate`/`Songswitch4_8`) - the
+        one of the three that needed real design care. Added
+        `CSong::TracksOrderChangeApply(int fromline, int toline, const int
+        tracksorder[SONGTRACKS])`. Crucially, `m_TracksOrderChange_songlinefrom`/
+        `songlineto` get updated in the *wrapper*, not in `Apply()` - the
+        original code updates them right after range validation but
+        *before* the confirm prompt, so they persist even if the user
+        cancels at the confirm step. Moving that assignment into `Apply()`
+        (only reached after confirmation) would have silently changed that
+        behavior; keeping it in the wrapper preserves it exactly while still
+        making the reorder logic itself a pure, directly-testable function
+        of its explicit inputs.
+      - 5 new hand-derived tests, all correct on first run (remap +
+        `onlytrack` restriction for `InstrChangeApply`; copy + clone paths
+        for `SongInsertCopyOrCloneOfSongLinesApply`, including tracing
+        `FindNearTrackBySongLineAndColumn`'s search order and confirming
+        `g_Tracks.ModifyTrack(..., tuning=0, ..., volumep=100)` is a true
+        no-op by hand; column reorder/clear for `TracksOrderChangeApply`).
+        Full solution rebuild (Release|x64) confirmed 0 errors; 223 tests
+        pass (up from 218, +5, 0 regressions).

@@ -129,6 +129,9 @@ public:
     BOOL SongInsertLine(int line);
     BOOL SongDeleteLine(int line);
     BOOL SongInsertCopyOrCloneOfSongLines(int& line);
+    // Extracted from SongInsertCopyOrCloneOfSongLines(): the dialog-independent
+    // work, once its 5 dialog-derived parameters are known.
+    BOOL SongInsertCopyOrCloneOfSongLinesApply(int& line, int linefrom, int lineto, BOOL clone, int tuning, int volumep);
     BOOL SongPrepareNewLine(int& line, int sourceline = -1, BOOL alsoemptycolumns = 1);
     int FindNearTrackBySongLineAndColumn(int songline, int column, BYTE* arrayTRACKSNUM);
     BOOL SongPutnewemptyunusedtrack();
@@ -231,6 +234,10 @@ public:
 
     void InstrInfo(int instr, TInstrInfo* iinfo = NULL, int instrto = -1);
     void InstrChange(int instr);
+    // Extracted from InstrChange(): the dialog-independent work, once its
+    // parameters are known - dual-mode like InstrInfo/TrackInfo (resultMsg
+    // non-null returns the summary instead of showing it in a MessageBox).
+    void InstrChangeApply(const TInstrChangeParams& params, CString* resultMsg = NULL);
     void TrackInfo(int track, TTrackInfo* tinfo = NULL);
 
     void SongCopyLine();
@@ -238,6 +245,9 @@ public:
     void SongClearLine();
 
     void TracksOrderChange();
+    // Extracted from TracksOrderChange(): the dialog-independent reorder
+    // work, once the confirmed range/order are known.
+    void TracksOrderChangeApply(int fromline, int toline, const int tracksorder[SONGTRACKS]);
     void Songswitch4_8(int tracks4_8);
     int GetEffectiveMaxtracklen();
     int GetSmallestMaxtracklen(int songline);

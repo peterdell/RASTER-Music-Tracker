@@ -301,8 +301,7 @@ int CSong::DecodeTuningBlock(unsigned char* mem, int addr, int endAddr)
 
 BOOL CSong::SongInsertCopyOrCloneOfSongLines(int& line)
 {
-    int i, j, k, d, n, sou, des;
-    n = (line > 0) ? line - 1 : 0;
+    int n = (line > 0) ? line - 1 : 0;
     CInsertCopyOrCloneOfSongLinesDlg dlg;
 
     dlg.m_linefrom = n;
@@ -313,85 +312,11 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLines(int& line)
     dlg.m_volumep = 100;	//100%
 
     if (dlg.DoModal() != IDOK) return 1;
-    BLOCKDESELECT();					//the block is deselected only if it is OK
 
-    BYTE tracks[TRACKSNUM];
-    memset(tracks, 0, TRACKSNUM); //init
-    MarkTF_USED(tracks);
-    MarkTF_NOEMPTY(tracks);
-    int clonedto[TRACKSNUM];
-    for (i = 0; i < TRACKSNUM; i++) clonedto[i] = -1; //init
-
-    for (i = dlg.m_linefrom; i <= dlg.m_lineto; i++)
-    {
-        n = i - dlg.m_linefrom;
-        sou = i;
-        des = line + n;
-        BOOL diss = (des <= sou);
-        if (diss) sou += n;
-        BOOL sngo = 0;
-        if (sou < SONGLEN) sngo = (m_songgo[sou] >= 0);
-
-        if (diss) sou++;
-        if (sou < 0 || sou >= SONGLEN || des < 0 || des >= SONGLEN)
-        {
-            CString s;
-            s.Format("Copy/clone operation had to be aborted\nbecause overrun of song range occured.\nThere was %i song lines inserted only.", n);
-            MessageBox(g_hwnd, s, "Warning", MB_ICONSTOP);
-            return 0;
-        }
-
-        SongInsertLine(des);	//inserted blank line
-
-        if (dlg.m_clone && !sngo)
-        {
-            //clones
-            //SongPrepareNewLine(des,sou,0);	//omits empty columns
-
-            g_Undo.Separator(-1); //associates the previous insert lines to the next change
-            g_Undo.ChangeTrack(0, 0, UETYPE_TRACKSALL, 1); //with separator
-
-            for (j = 0; j < g_tracks4_8; j++)
-            {
-                k = m_song[sou][j]; //original track
-                d = -1;				//resulting track (initial initialization)
-                if (k < 0) continue;  //is there --
-                if (clonedto[k] >= 0)
-                {
-                    d = clonedto[k];	//this one has already been cloned, so it will also use it
-                }
-                else
-                {
-                    d = FindNearTrackBySongLineAndColumn(sou, j, tracks);
-                    if (d >= 0)
-                    {
-                        tracks[d] = TrackFlag::TF_USED;
-                        clonedto[k] = d;
-                        TrackCopyFromTo(k, d);
-                        //edit cloned track according to dlg.m_tuning and dlg.m_volumep
-                        g_Tracks.ModifyTrack(g_Tracks.GetTrack(d), 0, TRACKLEN - 1, -1, dlg.m_tuning, 0, dlg.m_volumep);
-                    }
-                    else
-                    {
-                        CString s;
-                        s.Format("Clone operation had to be aborted\nbecause out of unused empty tracks.\nThere was %i song line(s) inserted only.", n + 1);
-                        MessageBox(g_hwnd, s, "Warning", MB_ICONSTOP);
-                        return 0;
-                    }
-                }
-                m_song[des][j] = d;
-            }
-        }
-        else
-        {
-            //copies
-            m_songgo[des] = m_songgo[sou];
-            for (j = 0; j < g_tracks4_8; j++) m_song[des][j] = m_song[sou][j];
-        }
-    }
-
-    return 1;
+    return SongInsertCopyOrCloneOfSongLinesApply(line, dlg.m_linefrom, dlg.m_lineto, dlg.m_clone, dlg.m_tuning, dlg.m_volumep);
 }
+
+// CSong::SongInsertCopyOrCloneOfSongLinesApply() is implemented in SongEditing.cpp.
 
 // CSong::SongPrepareNewLine() is implemented in SongEditing.cpp.
 
@@ -486,244 +411,36 @@ void CSong::InstrChange(int instr)
 
     CInstrumentChangeDlg dlg;
 
-    CString s = "";
-
-    TTrack* st;						// Pointer to original track
-    TTrack* nt;						// Pointer to new track
-    TTrack at;						// Temporary track
-
-    BYTE tracks[TRACKSNUM];			// New tracks with changes 
-    BYTE track_yn[TRACKSNUM];		// Tracks to apply changes
-
-    int track_column[TRACKSNUM];	// The first occurrence in the selected area of the song
-    int track_line[TRACKSNUM];		// The first occurrence in the selected area of the song
-    int track_changeto[TRACKSNUM];	// Changed tracks to replace in song
-
-    int onlysomething = 0;			// Only apply changes to specific things
-    int trackcreated = 0;			// Number of newly created songs
-    int songchanges = 0;			// Number of changes in the song
-
-    int i, j, k, t, r, lasti, lastn, changes, note, ins, vol;
-
-    bool error = 0;
-
     dlg.m_combo9 = dlg.m_combo11 = instr;
     dlg.m_combo10 = dlg.m_combo12 = instr;
     dlg.m_onlytrack = SongGetActiveTrack();
     dlg.m_onlysonglinefrom = dlg.m_onlysonglineto = SongGetActiveLine();
 
     // Change all the instrument occurences
-    if (dlg.DoModal() == IDOK)
-    {
-        Stop();	// Stop playing before processing further
+    if (dlg.DoModal() != IDOK) return;
 
-        // Hide all tracks and the whole song
-        g_Undo.ChangeTrack(0, 0, UETYPE_TRACKSALL, -1);
-        g_Undo.ChangeSong(0, 0, UETYPE_SONGDATA, 1);
+    TInstrChangeParams p;
+    p.snotefrom = dlg.m_combo1;
+    p.snoteto = dlg.m_combo2;
+    p.svolmin = dlg.m_combo3;
+    p.svolmax = dlg.m_combo4;
+    p.sinstrfrom = dlg.m_combo11;
+    p.sinstrto = dlg.m_combo12;
+    p.dnotefrom = dlg.m_combo5;
+    p.dnoteto = dlg.m_combo6;
+    p.dvolmin = dlg.m_combo7;
+    p.dvolmax = dlg.m_combo8;
+    p.dinstrfrom = dlg.m_combo9;
+    p.dinstrto = dlg.m_combo10;
+    p.onlytrack = dlg.m_onlytrack;
+    p.onlychannels = dlg.m_onlychannels;
+    p.onlysonglinefrom = dlg.m_onlysonglinefrom;
+    p.onlysonglineto = dlg.m_onlysonglineto;
 
-        // Get the parameters from the dialog box
-        int snotefrom = dlg.m_combo1;
-        int snoteto = dlg.m_combo2;
-        int svolmin = dlg.m_combo3;
-        int svolmax = dlg.m_combo4;
-        int sinstrfrom = dlg.m_combo11;
-        int sinstrto = dlg.m_combo12;
-        int dnotefrom = dlg.m_combo5;
-        int dnoteto = dlg.m_combo6;
-        int dvolmin = dlg.m_combo7;
-        int dvolmax = dlg.m_combo8;
-        int dinstrfrom = dlg.m_combo9;
-        int dinstrto = dlg.m_combo10;
-        int onlytrack = dlg.m_onlytrack;
-        int onlychannels = dlg.m_onlychannels;
-        int onlysonglinefrom = dlg.m_onlysonglinefrom;
-        int onlysonglineto = dlg.m_onlysonglineto;
-
-        // Initialise memory
-        memset(track_yn, 0, TRACKSNUM);
-        for (i = 0; i < TRACKSNUM; i++) track_column[i] = track_line[i] = -1;
-
-        if (onlychannels >= 0 || (onlysonglinefrom >= 0 && onlysonglineto >= 0))
-        {
-            if (onlychannels <= 0) onlychannels = 0xff;				// All channels
-            if (onlysonglinefrom < 0) onlysonglinefrom = 0;			// From the beginning
-            if (onlysonglineto < 0) onlysonglineto = SONGLEN - 1;	// To the end
-            onlysomething = 1;										// Something specific to change
-
-            for (j = 0; j < SONGLEN; j++)
-            {
-                if (IsSongGo(j)) continue;
-
-                for (i = 0; i < g_tracks4_8; i++)
-                {
-                    t = m_song[j][i];
-
-                    if (!g_Tracks.IsValidTrack(t)) continue;
-
-                    r = (onlychannels & (1 << i)) && j >= onlysonglinefrom && j <= onlysonglineto;
-                    track_yn[t] |= (r) ? 1 : 2;	// 1 = yes, 2 = no, 3 = yesno (copy)
-
-                    // The first occurrence in the selected area of the song
-                    if (r && track_column[t] < 0)
-                    {
-                        track_column[t] = i;
-                        track_line[t] = j;
-                    }
-                }
-            }
-        }
-
-        else if (onlytrack >= 0)
-        {
-            track_yn[onlytrack] = 1;	// 1 = yes
-            onlysomething = 1;
-        }
-
-        if (!g_Tracks.IsValidNote(dnoteto)) dnoteto = dnotefrom + (snoteto - snotefrom);
-        if (!g_Tracks.IsValidVolume(dvolmax)) dvolmax = dvolmin + (svolmax - svolmin);
-        if (!g_Tracks.IsValidInstrument(dinstrto)) dinstrto = dinstrfrom + (sinstrto - sinstrfrom);
-
-        double notecoef = (snoteto - snotefrom > 0) ? (double)(dnoteto - dnotefrom) / (snoteto - snotefrom) : 0;
-        double volcoef = (svolmax - svolmin > 0) ? (double)(dvolmax - dvolmin) / (svolmax - svolmin) : 0;
-        double instrcoef = (sinstrto - sinstrfrom > 0) ? (double)(dinstrto - dinstrfrom) / (sinstrto - sinstrfrom) : 0;
-
-        for (i = 0; i < TRACKSNUM; i++)
-        {
-            track_changeto[i] = -1; // initialise
-
-            // It wants to change only some and this one is not
-            if (onlysomething && ((track_yn[i] & 1) != 1)) continue;
-
-            // Copy the original track to temporary track
-            st = g_Tracks.GetTrack(i);
-            at = *st;
-
-            changes = 0;
-            lasti = lastn = -1;
-
-            for (j = 0; j < at.len; j++)
-            {
-                if (g_Tracks.IsValidInstrument(at.instr[j])) lasti = at.instr[j];
-                if (g_Tracks.IsValidNote(at.note[j])) lastn = at.note[j];
-
-                if (lasti >= sinstrfrom && lasti <= sinstrto && lastn >= snotefrom && lastn <= snoteto && at.volume[j] >= svolmin && at.volume[j] <= svolmax)
-                {
-                    if (g_Tracks.IsValidNote(at.note[j]))
-                    {
-                        note = dnotefrom + (int)((double)(at.note[j] - snotefrom) * notecoef + 0.5);
-                        while (!g_Tracks.IsValidNote(note)) note -= 12;
-                        if (note != at.note[j])
-                        {
-                            at.note[j] = note;
-                            changes = 1;
-                        }
-                    }
-
-                    if (g_Tracks.IsValidInstrument(at.instr[j]))
-                    {
-                        ins = dinstrfrom + (int)((double)(at.instr[j] - sinstrfrom) * instrcoef + 0.5);
-                        if (!g_Tracks.IsValidInstrument(ins)) ins = INSTRSNUM - 1;
-                        if (ins != at.instr[j])
-                        {
-                            at.instr[j] = ins;
-                            changes = 1;
-                        }
-                    }
-
-                    if (g_Tracks.IsValidVolume(at.volume[j]))
-                    {
-                        vol = dvolmin + (int)((double)(at.volume[j] - svolmin) * volcoef + 0.5);
-                        if (!g_Tracks.IsValidVolume(vol)) vol = MAXVOLUME;
-                        if (vol != at.volume[j])
-                        {
-                            at.volume[j] = vol;
-                            changes = 1;
-                        }
-                    }
-                }
-            }
-
-            // There was something changed
-            if (changes)
-            {
-                // Create a new track if the track occurs both inside and outside the area
-                if (track_yn[i] & 2)
-                {
-                    memset(tracks, 0, TRACKSNUM);	// Initialise memory
-                    MarkTF_USED(tracks);
-                    MarkTF_NOEMPTY(tracks);
-                    k = FindNearTrackBySongLineAndColumn(track_line[i], track_column[i], tracks);
-
-                    // The process is aborted if there is no unused track available
-                    if (k < 0)
-                    {
-                        error = 1;
-                        s.AppendFormat("There aren't any more empty unused tracks in song, further changes could not be applied!\n\n");
-                        s.AppendFormat("Process halted in Track %02X, in Channel %u\n\n", track_line[i], track_column[i]);
-                        goto abortchanges;
-                    }
-
-                    // Copy the changed track (at) to the new track (nt)
-                    nt = g_Tracks.GetTrack(k);
-                    *nt = at;
-
-                    trackcreated++;
-
-                    // Put it in the song at least once (due to the search in the song used tracks)
-                    m_song[track_line[i]][track_column[i]] = k;
-                    songchanges++;
-
-                    // Will change all occurrences
-                    track_changeto[i] = k;
-                }
-
-                // Copy the changed track (at) back to the original track (st)
-                else
-                {
-                    *st = at;
-                }
-            }
-
-        }
-
-        // Subsequent changes in the song
-        if (onlysomething)
-        {
-            for (j = 0; j < SONGLEN; j++)
-            {
-                if (IsSongGo(j)) continue;
-
-                for (i = 0; i < g_tracks4_8; i++)
-                {
-                    t = m_song[j][i];
-
-                    if (!g_Tracks.IsValidTrack(t)) continue;
-
-                    r = (onlychannels & (1 << i)) && j >= onlysonglinefrom && j <= onlysonglineto;
-
-                    if (r && track_changeto[t] >= 0)
-                    {
-                        m_song[j][i] = track_changeto[t];
-                        songchanges++;
-                    }
-                }
-            }
-        }
-
-    abortchanges:
-        s.AppendFormat("Instrument changes were applied ");
-        s.AppendFormat(error ? "with errors, beware of data loss!\n\n" : "successfully!\n\n");
-
-        if (trackcreated || songchanges)
-        {
-            s.AppendFormat("Additional actions were also performed to accommodate the chosen parameters:\n\n");
-            s.AppendFormat("New tracks created: %u\n", trackcreated);
-            s.AppendFormat("Total changes in song: %u\n", songchanges);
-        }
-
-        MessageBox(g_hwnd, s, "Instrument changes", MB_ICONINFORMATION);
-    }
+    InstrChangeApply(p);
 }
+
+// CSong::InstrChangeApply() is implemented in SongEditing.cpp.
 
 // CSong::TrackInfo() is implemented in SongEditing.cpp.
 
@@ -740,52 +457,35 @@ void CSong::TracksOrderChange()
     CSongTracksOrderDlg dlg;
     dlg.m_songlinefrom.Format("%02X", m_TracksOrderChange_songlinefrom);
     dlg.m_songlineto.Format("%02X", m_TracksOrderChange_songlineto);
-    if (dlg.DoModal() == IDOK)
+    if (dlg.DoModal() != IDOK) return;
+
+    g_Undo.ChangeSong(m_songactiveline, m_trackactivecol, UETYPE_SONGDATA, 1);
+
+    int f = Hexstr((char*)(LPCTSTR)dlg.m_songlinefrom, 2);
+    int t = Hexstr((char*)(LPCTSTR)dlg.m_songlineto, 2);
+
+    if (f < 0 || f >= SONGLEN || t < 0 || t >= SONGLEN || t < f)
     {
-        g_Undo.ChangeSong(m_songactiveline, m_trackactivecol, UETYPE_SONGDATA, 1);
-
-        int m_buff[8];
-        int i, j;
-
-        int f = Hexstr((char*)(LPCTSTR)dlg.m_songlinefrom, 2);
-        int t = Hexstr((char*)(LPCTSTR)dlg.m_songlineto, 2);
-
-        if (f < 0 || f >= SONGLEN || t < 0 || t >= SONGLEN || t < f)
-        {
-            MessageBox(g_hwnd, "Bad songline (from-to) range.", "Error", MB_ICONERROR);
-            return;
-        }
-
-        m_TracksOrderChange_songlinefrom = f;
-        m_TracksOrderChange_songlineto = t;
-
-        int c = 0;
-        for (i = 0; i < g_tracks4_8; i++) if (dlg.m_tracksorder[i] < 0) c++;
-        if (c > 0)
-        {
-            CString s;
-            s.Format("Warning: %u song column(s) will be cleared completely.\nAre you sure to do it?", c);
-            if (MessageBox(g_hwnd, s, "Warning", MB_YESNOCANCEL | MB_ICONWARNING) != IDYES) return;
-        }
-
-        for (i = m_TracksOrderChange_songlinefrom; i <= m_TracksOrderChange_songlineto; i++)
-        {
-            for (j = 0; j < g_tracks4_8; j++)
-            {
-                m_buff[j] = m_song[i][j];
-                m_song[i][j] = -1;
-            }
-            for (j = 0; j < g_tracks4_8; j++)
-            {
-                int z = dlg.m_tracksorder[j];
-                if (z >= 0)
-                    m_song[i][j] = m_buff[z];
-                else
-                    m_song[i][j] = -1;
-            }
-        }
+        MessageBox(g_hwnd, "Bad songline (from-to) range.", "Error", MB_ICONERROR);
+        return;
     }
+
+    m_TracksOrderChange_songlinefrom = f;
+    m_TracksOrderChange_songlineto = t;
+
+    int c = 0;
+    for (int i = 0; i < g_tracks4_8; i++) if (dlg.m_tracksorder[i] < 0) c++;
+    if (c > 0)
+    {
+        CString s;
+        s.Format("Warning: %u song column(s) will be cleared completely.\nAre you sure to do it?", c);
+        if (MessageBox(g_hwnd, s, "Warning", MB_YESNOCANCEL | MB_ICONWARNING) != IDYES) return;
+    }
+
+    TracksOrderChangeApply(f, t, dlg.m_tracksorder);
 }
+
+// CSong::TracksOrderChangeApply() is implemented in SongEditing.cpp.
 
 void CSong::Songswitch4_8(int tracks4_8)
 {

@@ -43,6 +43,22 @@ struct TTrackInfo
     int usedincolumn[SONGTRACKS];  // per-column occurrence count (only columns < g_tracks4_8 are ever incremented)
 };
 
+// Input parameters for CSong::InstrChangeApply() - mirrors CInstrumentChangeDlg's
+// fields 1:1 (see EffectsDlg.h), letting InstrChange()'s actual instrument-remap
+// logic run independently of the dialog that normally supplies these values.
+// Field names match the local variables InstrChangeApply() has always used
+// internally.
+struct TInstrChangeParams
+{
+    int snotefrom, snoteto, svolmin, svolmax;   // source note/volume range to match
+    int sinstrfrom, sinstrto;                   // source instrument range to match
+    int dnotefrom, dnoteto, dvolmin, dvolmax;   // destination note/volume range to map to
+    int dinstrfrom, dinstrto;                   // destination instrument range to map to
+    int onlytrack;                              // >=0: restrict to a single track number
+    int onlychannels;                           // bitmask of song columns to restrict to
+    int onlysonglinefrom, onlysonglineto;       // songline range to restrict to
+};
+
 struct TSong	//due to Undo
 {
     int song[SONGLEN][SONGTRACKS];
