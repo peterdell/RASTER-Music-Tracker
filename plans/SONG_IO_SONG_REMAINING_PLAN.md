@@ -195,17 +195,41 @@ above.
 6. Batch 6 and 7: defer unless priorities change; `CSongTimer`'s
    uninitialized-member fix could be done opportunistically regardless
 
-## Open questions for the user (before implementing)
+## Decisions (resolved)
 
-1. **`TrackInfo` refactor** (Batch 5): worth a small pure/UI split like
-   `InstrInfo` already has, or leave deferred?
-2. **`SaveRMW`/`SaveTxt`'s `LoadString` blocker** (Batch 3): defer
-   permanently, link the resource string table into the test binary, or
-   stub a hardcoded version string?
+1. **`SaveRMW`/`SaveTxt`'s `LoadString` blocker**: `IDS_RMT_VERSION` becomes
+   a compile-time constant instead of a runtime resource lookup (e.g.
+   `constexpr const char* RMT_VERSION_STRING = "RASTER Music Tracker 1.35";`
+   in a small new header, with a comment noting it mirrors `Rmt.rc`'s
+   `IDS_RMT_VERSION` string resource and must be kept in sync with it). This
+   replaces **all 6** `LoadString(IDS_RMT_VERSION)` call sites (`IO_Song.cpp`
+   ×2 - `SaveRMW`/`LoadRMW`, `Rmt.cpp` ×1, `RmtView.cpp` ×2), not just the
+   two needed for testing, to avoid two sources of truth for the version
+   string. This is a small production change (not just test scaffolding)
+   and should be its own clearly-labeled step within whichever batch touches
+   `SaveRMW`/`LoadRMW`.
+2. **`TrackInfo` refactor**: do it. Split the pure string-building logic out
+   of `TrackInfo` into a testable form (output parameter or return value,
+   mirroring `InstrInfo`'s existing `iinfo`-parameter design), leaving
+   `MessageBox` as a thin wrapper around it.
 3. **Confirmation-prompt methods** (`SongMaketracksduplicate`,
-   `Songswitch4_8`, Batch 4/5): defer, or worth extracting the "what would
-   happen if the user said yes" logic into a testable helper?
-4. Batch size preference going forward: continue the "scope a batch, get
-   explicit go-ahead, implement" cadence per batch above, or would larger
-   combined batches (e.g. 2+3 together) be preferred now that the shape is
-   well understood?
+   `Songswitch4_8`): defer both entirely. Not worth extracting the
+   post-confirmation logic at this time.
+4. **Batch pacing**: continue one batch at a time, each scoped and approved
+   before implementation, verified via full rebuild, then a commit decision
+   - the same cadence used for every batch so far.
+
+## Suggested execution order
+
+1. Batch 1 (trivial, folds into existing `SongEditing.cpp`)
+2. Batch 2 (format encode/decode via buffers - same shape as prior work)
+3. Batch 3 (format encode/decode via streams; includes the `IDS_RMT_VERSION`
+   production change above for `SaveRMW`/`LoadRMW`; `LoadRMT`'s unconditional
+   "Info" summary dialog stays deferred like `TrackInfo` was before its
+   refactor - not revisited here since it wasn't part of the resolved
+   decisions above)
+4. Batch 4 (heavier editing methods, one sub-group at a time given the
+   number of individual checks needed)
+5. `TrackInfo`'s refactor + tests (now unblocked per the decision above)
+6. Batch 6 and 7: defer unless priorities change; `CSongTimer`'s
+   uninitialized-member fix could be done opportunistically regardless
