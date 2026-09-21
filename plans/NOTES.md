@@ -1354,3 +1354,40 @@ build clean and all 123 tests pass.
         no-op by hand; column reorder/clear for `TracksOrderChangeApply`).
         Full solution rebuild (Release|x64) confirmed 0 errors; 223 tests
         pass (up from 218, +5, 0 regressions).
+- [x] `ExportV2` triage (analysis only, no code changes) - written up in its
+      own `plans/EXPORTV2_PLAN.md`, mirroring this doc's own structure.
+      Read every method `ExportV2` can reach (`CRmtExporter`,
+      `CASMFileExporter`, `CSongExporter`, `CSongContainer`/`CSongExport`)
+      rather than assuming from the dispatcher's shape alone. Found two
+      starkly different tiers:
+      - `ExportV2` itself is a safe dispatcher even though it
+        unconditionally constructs `CSongContainer`/`CSongExporter`/
+        `CSongExport` regardless of `iotype` - both constructors just store
+        pointers/validate play mode; the real Atari rendering pipeline only
+        runs lazily, inside `CSongContainer::GetPokeyStream()`, the first
+        time something actually calls it.
+      - **RMT/ASM export family** (`CRmtExporter::ExportAsRMT`/
+        `ExportAsStrippedRMT`, `CASMFileExporter::ExportAsAsm`/
+        `ExportAsRelocatableAsmForRmtPlayer`/`BuildRelocatableAsm`): same
+        shape as the already-solved real-dialog cluster, or in
+        `BuildRelocatableAsm`'s case (~545 lines, the bulk of
+        `ASMFileExporter.cpp`) already a pure function taking explicit
+        parameters - confirmed by scanning its entire body for globals/
+        dialogs and finding none beyond already-safe `g_Instruments`/
+        `g_Tracks`. `ExportAsRMT` is fully clean today, blocked only on
+        widening `CAtariIO::SaveBinaryBlock` to `std::ostream&` (same
+        precedent as `LoadBinaryBlock`).
+      - **SAP/LZSS/WAV/XEX export family** (`CSongExporter`'s methods):
+        gated behind `CSong::DumpSongToPokeyStream()`, the real Atari
+        audio-rendering pipeline Batch 6 flagged but explicitly did not
+        investigate when scoping `TimerRoutine`. Recommended to stay
+        deferred pending its own dedicated investigation - not ruled
+        out, just correctly identified as out of scope for this pass.
+      - Found one incidental stale-stub risk for whichever future batch
+        links `ASMFileExporter.cpp`: `g_PrefixForAllAsmLabels` is currently
+        defined both there (real, unlinked) and in
+        `test/SongEditingStub.cpp` (a stub added during the `ClearSong`
+        batch) - the stub must be removed first to avoid an LNK2005 clash.
+      - No code changes, no build/test impact this pass - see
+        `plans/EXPORTV2_PLAN.md` for the full per-method breakdown and
+        suggested execution order (Batches A-D, plus what stays deferred).

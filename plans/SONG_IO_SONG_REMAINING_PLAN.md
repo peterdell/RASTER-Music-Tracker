@@ -329,14 +329,18 @@ one-line `SetEditMode()` stub were added to the test project. 2 new tests,
 `LoadTxt` (Batch 3), unblocked by this, are now DONE too - see Batch 3's
 entry above.
 
-### `ExportV2` (own category - needs its own triage)
+### `ExportV2` - triage DONE, see `plans/EXPORTV2_PLAN.md`
 A dispatcher, not a simple encode: beyond the already-safe `MakeModule()`,
 it switches over `iotype` and delegates to `CRmtExporter`,
 `CASMFileExporter`, and several `CSongExporter` methods (SAP-R, LZSS,
 SAP+LZSS, XEX+LZSS, WAV) via `CSongContainer`/`CSongExport` wrapper objects.
-None of these have been scoped for coupling yet - confirmed while scoping
-Batch 3, where it was originally assumed to be a Batch-3-shaped method.
-Needs its own dedicated triage pass before any of it can be attempted.
+Full triage written up in its own plan doc: the RMT/ASM export family
+(`CRmtExporter`, `CASMFileExporter`) turned out to be the same
+already-solved "real dialog cluster" shape (or, for `BuildRelocatableAsm`,
+already a pure function needing no split at all); the SAP/LZSS/WAV/XEX
+family is gated behind the real Atari audio-rendering pipeline
+(`CSong::DumpSongToPokeyStream()`) flagged but not investigated back in
+Batch 6, and stays deferred pending its own dedicated investigation.
 
 ## Suggested execution order
 
