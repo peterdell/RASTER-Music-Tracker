@@ -55,11 +55,15 @@ public:
     // IO
     void Update(int it);
 
-    int SaveAll(std::ofstream& ou, InstrumentIOType iotype);
-    int LoadAll(std::ifstream& in, InstrumentIOType iotype);
+    // std::ostream&/std::istream& rather than std::ofstream&/std::ifstream& -
+    // every real call site passes a genuine file stream (which satisfies the
+    // wider base type), and the wider type lets tests use an in-memory
+    // stream (see SongEditingTests.cpp).
+    int SaveAll(std::ostream& ou, InstrumentIOType iotype);
+    int LoadAll(std::istream& in, InstrumentIOType iotype);
 
-    int SaveInstrument(int instr, std::ofstream& ou, InstrumentIOType iotype);
-    int LoadInstrument(int instr, std::ifstream& in, InstrumentIOType iotype);
+    int SaveInstrument(int instr, std::ostream& ou, InstrumentIOType iotype);
+    int LoadInstrument(int instr, std::istream& in, InstrumentIOType iotype);
 
     BYTE InstrToAta(int instr, unsigned char* ata, int max);
     BOOL AtaToInstr(unsigned char* ata, int instr);

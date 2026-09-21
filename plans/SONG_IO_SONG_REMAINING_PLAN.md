@@ -124,24 +124,59 @@ This mirrors the `SongToAta`/`AtaToSong` work already done and is the most
 natural next batch: same file-splitting pattern (new sibling file, minimal
 includes), same "avoid the guard branch" precedent already established.
 
-### Batch 3 - format encode/decode via file streams (promising, same shape as Batch 2)
-- `LoadTxt` (`g_Instruments`, `g_Tracks`, `g_tracks4_8` - no `g_hwnd` at all)
-- `LoadRMW` (`g_hwnd` only on a version-mismatch guard - avoidable)
-- `LoadRMT` (`g_hwnd` used both for a guard-only error AND an unconditional
-  "Info" summary dialog at the very end - **has the same "always fires on
-  success" problem as `TrackInfo`**, needs the same decision)
-- `ExportV2` (static method; `g_Atari`, `g_Pokey` - needs checking exactly
-  what it does with them, since this generates actual Pokey audio dump data,
-  likely more involved than a straight encode)
-- `SaveRMW` / `SaveTxt` (already known-safe except for `CString::LoadString`
-  - see below)
+### Batch 3 - DONE (not yet committed) - format encode/decode via file streams
 
-**Known blocker, needs a decision**: `SaveRMW`/`SaveTxt` (deferred from the
-last batch) call `CString::LoadString(IDS_RMT_VERSION)`, which needs the
-app's compiled `.rc` resources - not linked into the test binary. Options:
-(a) leave deferred permanently, (b) find/link just the string table
-resource into the test binary, (c) accept a hardcoded version string via a
-stub. Not blocking Batch 3's other methods.
+**Corrections found while scoping the implementation, before touching any code:**
+
+1. **`LoadRMW`/`LoadTxt` both unconditionally call `ClearSong(8)` first**,
+   missed by the direct-globals check (a method call, not a direct
+   reference - the same recurring class of oversight from Batches 1-2).
+   Reading `ClearSong`'s body confirms it's genuinely the large, separate
+   decision the plan already flagged: besides already-safe calls (`Stop()`,
+   `SetTracks()`, `PlayPressedTonesInit()`, `ClearBookmark()`,
+   `g_TrackClipboard.Clear()`, `g_Tracks.InitTracks()`,
+   `g_Instruments.InitInstruments()`, `g_Undo.Init()`), it also calls
+   `SetEditMode()` (unexamined), `CMainFrame* mf = (CMainFrame*)AfxGetMainWnd();`
+   (a real MFC application-framework call needing a running `CWinApp` -
+   genuinely different in kind from a stubbable global), `g_Atari.Init(...)`,
+   and `g_AtariTrackerDriver->Init()` where `g_AtariTrackerDriver` is a
+   pointer never even instantiated in the test project. **`LoadRMW`/`LoadTxt`
+   are dropped from this batch** and stay blocked on `ClearSong`'s own
+   dedicated decision (see below).
+2. **`ExportV2` is a large dispatcher**, not a simple encode: beyond calling
+   the already-safe `MakeModule()`, it switches over `iotype` and delegates
+   to `CRmtExporter`, `CASMFileExporter`, and several `CSongExporter`
+   methods (SAP-R, LZSS, SAP+LZSS, XEX+LZSS, WAV) via `CSongContainer`/
+   `CSongExport` wrapper objects - none of which have been scoped for
+   coupling. **Dropped from this batch**, needs its own separate triage
+   (matching `ClearSong`'s treatment) rather than folding into "format
+   encode/decode via streams".
+3. **`LoadRMT` doesn't call `ClearSong`** and turns out fully testable: it
+   uses `CAtariIO::LoadBinaryBlock()` (in `AtariIO.cpp`, confirmed **zero**
+   global references, safe to link directly with no split needed) plus the
+   already-safe `DecodeModule()`. Its 3 `MessageBox` calls are: two
+   guard-only errors (avoidable with valid test data) and one "Info" dialog
+   that only fires for a *stripped* RMT file (missing the second, optional
+   name-data block) - avoidable simply by testing with a complete two-block
+   RMT file, without needing `TrackInfo`'s refactor treatment.
+4. **`IO_Instruments.cpp` needs no split at all** (matching the
+   already-established "some files need no split - check coupling first"
+   pattern): its 5 methods (`SaveAll`/`LoadAll`/`SaveInstrument`/
+   `LoadInstrument`/`Update`) have exactly one real global reference
+   (`g_Atari`, already safe) - the `#include "Global.h"`/`"resource.h"` were
+   dead includes, confirmed removable via a clean production rebuild. This
+   also means `CInstruments::Update()` can lose its no-op stub from Batch 2
+   and get real behavior in tests.
+
+Final batch 3 scope - `SaveRMW`, `SaveTxt`, `LoadRMT`, plus linking the now
+`Global.h`-free `IO_Instruments.cpp` directly (unblocking `SaveRMW`'s/
+`LoadRMW`'s calls to `g_Instruments.SaveAll`/`LoadAll`, and giving
+`Update()` real behavior instead of a stub).
+
+**`IDS_RMT_VERSION` decision** (already resolved - see Decisions above):
+implement the compile-time constant now, replacing all 6 `LoadString` call
+sites (`SaveRMW`/`LoadRMW` in `IO_Song.cpp`, plus `Rmt.cpp` and `RmtView.cpp`
+×2), unblocking `SaveRMW`'s test.
 
 ### Batch 4 - heavier editing methods with guard-only `g_hwnd` (needs care, case by case)
 These use `g_hwnd` only for error/confirmation dialogs that a test can avoid
@@ -209,11 +244,26 @@ real UI-testing approach, out of scope for this characterization effort.
 ### `ClearSong` (own category - large but maybe worth it later)
 Touches ~18 globals (`g_Atari`, `g_AtariTrackerDriver`, `g_Instruments`,
 `g_TrackClipboard`, `g_Tracks`, `g_Undo`, `g_tracks4_8`, plus several
-UI/state flags like `g_activepart`, `g_changes`, `g_rmtroutine`, etc.). It's
-called from many of the `FileXxx`/`LoadXxx` methods, so testing it would
-require stubbing a long tail of globals. Given the size, propose leaving it
-for its own dedicated future decision rather than folding into any batch
-above.
+UI/state flags like `g_activepart`, `g_changes`, `g_rmtroutine`, etc.),
+**plus a real `CMainFrame* mf = (CMainFrame*)AfxGetMainWnd();` MFC
+application-framework call** and `g_AtariTrackerDriver->Init()` on a
+pointer never instantiated in the test project (confirmed by reading its
+body while scoping Batch 3). It's called from many of the `FileXxx`/
+`LoadXxx` methods (including `LoadRMW`/`LoadTxt`, dropped from Batch 3 for
+this reason), so testing it would require stubbing a long tail of globals
+plus deciding how to handle the `AfxGetMainWnd()` call specifically (a
+different kind of hazard than a stubbable global). Given the size, propose
+leaving it for its own dedicated future decision rather than folding into
+any batch above.
+
+### `ExportV2` (own category - needs its own triage)
+A dispatcher, not a simple encode: beyond the already-safe `MakeModule()`,
+it switches over `iotype` and delegates to `CRmtExporter`,
+`CASMFileExporter`, and several `CSongExporter` methods (SAP-R, LZSS,
+SAP+LZSS, XEX+LZSS, WAV) via `CSongContainer`/`CSongExport` wrapper objects.
+None of these have been scoped for coupling yet - confirmed while scoping
+Batch 3, where it was originally assumed to be a Batch-3-shaped method.
+Needs its own dedicated triage pass before any of it can be attempted.
 
 ## Suggested execution order
 

@@ -62,11 +62,15 @@ public:
     TrackNumber TrackToAta(TrackNumber trackNr, unsigned char* dest, int max) const;
     BOOL AtaToTrack(unsigned char* mem, int trackLength, TrackNumber trackNr);
 
-    int SaveAll(std::ofstream& ou, SongIOType iotype);
-    int LoadAll(std::ifstream& in, SongIOType iotype);
+    // std::ostream&/std::istream& rather than std::ofstream&/std::ifstream& -
+    // every real call site passes a genuine file stream (which satisfies the
+    // wider base type), and the wider type lets tests use an in-memory
+    // stream (see SongEditingTests.cpp).
+    int SaveAll(std::ostream& ou, SongIOType iotype);
+    int LoadAll(std::istream& in, SongIOType iotype);
 
-    int SaveTrack(TrackNumber track, std::ofstream& ou, SongIOType iotype);
-    int LoadTrack(TrackNumber track, std::ifstream& in, SongIOType iotype);
+    int SaveTrack(TrackNumber track, std::ostream& ou, SongIOType iotype);
+    int LoadTrack(TrackNumber track, std::istream& in, SongIOType iotype);
 
     BOOL CalculateNotEmpty(TrackNumber track);
     BOOL CompareTracks(TrackNumber track1, TrackNumber track2) const;

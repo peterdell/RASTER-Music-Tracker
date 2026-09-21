@@ -4,6 +4,10 @@
 
 #include "Clipboard.h"
 #include "TuningTypes.h"
+#include "AtariIO.h"
+#include "IOHelpers.h"
+#include "RmtVersion.h"
+#include <fstream>
 
 // These CSong methods only touch g_Tracks/g_Instruments/g_Undo/
 // g_TrackClipboard/g_tracks4_8 (all confirmed cheap to construct - see
@@ -21,11 +25,15 @@
 // unrelated to this split. Tests exercising those specific methods use
 // g_Song as the instance under test to match real usage.
 //
-// SaveRMW()/SaveTxt() in IO_Song.cpp also only touch g_Tracks/g_Instruments/
-// g_tracks4_8 directly, but were deliberately left out of this slice: they
-// call CString::LoadString(IDS_RMT_VERSION), an MFC resource-string load
-// that needs the app's compiled resources and would be unreliable in a
-// console test binary.
+// SaveRMW()/SaveTxt()/LoadRMT() (originally in IO_Song.cpp) are included
+// here too: SaveRMW()/SaveTxt() used to call CString::LoadString(
+// IDS_RMT_VERSION), an MFC resource-string load needing the app's compiled
+// resources - replaced with a compile-time RMT_VERSION_STRING constant
+// (see RmtVersion.h), removing the dependency everywhere it was used, not
+// just here. LoadRMW()/LoadTxt() stay behind in IO_Song.cpp: both call
+// ClearSong() first, which needs its own dedicated decision (real
+// AfxGetMainWnd()/g_AtariTrackerDriver hazards, see
+// plans/SONG_IO_SONG_REMAINING_PLAN.md).
 
 extern CTrackClipboard g_TrackClipboard;
 extern CInstruments g_Instruments;
@@ -33,6 +41,26 @@ extern int g_tracks4_8;
 extern TTuningSettings g_tuning;
 extern TTuningRatios g_tuningRatios;
 extern HWND g_hwnd;
+extern WORD g_rmtstripped_adr_module;
+
+// DEFINE_MAINPARAMS (see below, used by SaveRMW()) takes the address of
+// each of these - all plain ints/enums/bools with no constructor or
+// hazard of their own.
+extern Part g_activepart;
+extern Part g_active_ti;
+extern EditMode volatile g_prove;
+extern BOOL volatile g_respectvolume;
+extern int g_trackLinePrimaryHighlight;
+extern BOOL g_tracklinealtnumbering;
+extern BOOL g_displayflatnotes;
+extern BOOL g_usegermannotation;
+extern int g_cursoractview;
+extern KeyboardLayout g_keyboard_layout;
+extern BOOL g_keyboard_escresetatarisound;
+extern BOOL g_keyboard_swapenter;
+extern BOOL g_keyboard_playautofollow;
+extern BOOL g_keyboard_updowncontinue;
+extern BOOL g_keyboard_RememberOctavesAndVolumes;
 
 int CSong::GetSubsongParts(CString& resultstr) const
 {
@@ -1514,4 +1542,191 @@ void CSong::SetNTSC(const BOOL ntsc) {
         m_ntsc = ntsc;
         ReInitSound();
     }
+}
+
+#define RMWMAINPARAMSCOUNT		31		//
+#define DEFINE_MAINPARAMS int* mainparams[RMWMAINPARAMSCOUNT]= {\
+	&g_tracks4_8,												\
+	(int*)&m_speed,(int*)&m_mainSpeed,(int*)&m_instrumentSpeed,	\
+	(int*)&m_songactiveline,(int*)&m_songplayline,				\
+	(int*)&m_trackactiveline,(int*)&m_trackplayline,			\
+	(int*)&g_activepart,(int*)&g_active_ti,						\
+	(int*)&g_prove,(int*)&g_respectvolume,						\
+	&g_trackLinePrimaryHighlight,								\
+	&g_tracklinealtnumbering,									\
+	&g_displayflatnotes,										\
+	&g_usegermannotation,										\
+	&g_cursoractview,											\
+	(int*)&g_keyboard_layout,											\
+	&g_keyboard_escresetatarisound,								\
+	&g_keyboard_swapenter,										\
+	&g_keyboard_playautofollow,									\
+	&g_keyboard_updowncontinue,									\
+	&g_keyboard_RememberOctavesAndVolumes,						\
+	&g_keyboard_escresetatarisound,								\
+	&m_trackactivecol,&m_trackactivecur,						\
+	&m_activeinstr,&m_volume,&m_octave,							\
+	(int*)&m_infoact,&m_songnamecur									\
+}
+
+bool CSong::SaveRMW(std::ostream& ou)
+{
+    CString version = RMT_VERSION_STRING;
+    ou << (unsigned char*)(LPCSTR)version << std::endl;
+    //
+    ou.write((char*)m_songname, sizeof(m_songname));
+    //
+    DEFINE_MAINPARAMS;
+
+    int p = RMWMAINPARAMSCOUNT;			// Number of stored parameters
+    ou.write((char*)&p, sizeof(p));		// Write the number of main parameters
+    for (int i = 0; i < p; i++)
+        ou.write((char*)mainparams[i], sizeof(mainparams[0]));
+
+    // Write a complete song and songgo
+    ou.write((char*)m_song, sizeof(m_song));
+    ou.write((char*)m_songgo, sizeof(m_songgo));
+
+    g_Instruments.SaveAll(ou, InstrumentIOType::RMW);
+    g_Tracks.SaveAll(ou, SongIOType::RMW);
+
+    return true;
+}
+
+bool CSong::SaveTxt(std::ostream& ou)
+{
+    CString s, nambf;
+    char bf[16];
+    nambf = m_songname;
+    nambf.TrimRight();
+    s.Format("[MODULE]\nRMT: %X\nNAME: %s\nMAXTRACKLEN: %02X\nMAINSPEED: %02X\nINSTRSPEED: %X\nVERSION: %02X\n", g_tracks4_8, (LPCTSTR)nambf, g_Tracks.GetMaxTrackLength(), m_mainSpeed, m_instrumentSpeed, RMTFormatVersion::V1);
+    ou << s << "\n"; //gap
+    ou << "[SONG]\n";
+    int i, j;
+    // Looking for the length of the song
+    int songLength = -1;
+    for (i = 0; i < SONGLEN; i++)
+    {
+        if (m_songgo[i] >= 0) { songLength = i; continue; }
+        for (j = 0; j < g_tracks4_8; j++)
+        {
+            if (m_song[i][j] >= 0 && m_song[i][j] < TRACKSNUM)
+            {
+                songLength = i;
+                break;
+            }
+        }
+    }
+
+    // Write the song
+    for (i = 0; i <= songLength; i++)
+    {
+        if (m_songgo[i] >= 0)
+        {
+            s.Format("Go to line %02X\n", m_songgo[i]);
+            ou << s;
+            continue;
+        }
+        for (j = 0; j < g_tracks4_8; j++)
+        {
+            int t = m_song[i][j];
+            if (t >= 0 && t < TRACKSNUM)
+            {
+                bf[0] = CharH4(t);
+                bf[1] = CharL4(t);
+            }
+            else
+            {
+                bf[0] = bf[1] = '-';
+            }
+            bf[2] = 0;
+            ou << bf;
+            if (j + 1 == g_tracks4_8)
+                ou << "\n";			//for the last end of the line
+            else
+                ou << " ";			//between them
+        }
+    }
+
+    ou << "\n"; // gap
+
+    // Now save the instruments and tracks to the output
+    g_Instruments.SaveAll(ou, InstrumentIOType::TXT);
+    g_Tracks.SaveAll(ou, SongIOType::TXT);
+
+    return true;
+}
+
+bool CSong::LoadRMT(std::istream& in)
+{
+    byte mem[RAM_SIZE]{};
+    WORD fromAddr, toAddr;
+    WORD bto_mainblock;
+
+    BYTE instrumentLoadedFlags[INSTRSNUM];
+    BYTE trackLoadedFlags[TRACKSNUM];
+
+    int len, i, idx, k;
+    int loadResult;
+
+    // RMT header+song data is the first main block of an RMT song
+    // There has to be 1 binary block with the header, song, instrument and track data
+    // Optional block with instrument and song name information
+    len = CAtariIO::LoadBinaryBlock(in, mem, fromAddr, toAddr);
+
+    if (len > 0)
+    {
+        loadResult = DecodeModule(mem, fromAddr, toAddr + 1, instrumentLoadedFlags, trackLoadedFlags);
+        if (loadResult == 0)
+        {
+            MessageBox(g_hwnd, "Bad RMT data format or old tracker version.", "Open error", MB_ICONERROR);
+            return false;
+        }
+        // The main block of the module is OK => take its boot address
+        g_rmtstripped_adr_module = fromAddr;
+        bto_mainblock = toAddr;
+    }
+    else
+    {
+        MessageBox(g_hwnd, "Corrupted file or unsupported format version.", "Open error", MB_ICONERROR);
+        return false;	// Did not retrieve any data in the first block
+    }
+
+    // RMT - now read the second block with names
+    len = CAtariIO::LoadBinaryBlock(in, mem, fromAddr, toAddr);
+    if (len < 1)
+    {
+        CString msg;
+        msg.Format("This file appears to be a stripped RMT module.\nThe song and instruments names are missing.\n\nMemory addresses: $%04X - $%04X.", g_rmtstripped_adr_module, bto_mainblock);
+        MessageBox(g_hwnd, (LPCTSTR)msg, "Info", MB_ICONINFORMATION);
+        return true;
+    }
+
+    char ch;
+    // Parse the song name (until we hit the terminating zero)
+    for (idx = 0; idx < SONG_NAME_MAX_LEN && (ch = mem[fromAddr + idx]); idx++)
+        m_songname[idx] = ch;
+
+    for (k = idx; k < SONG_NAME_MAX_LEN; k++) m_songname[k] = ' '; // fill in the gaps
+
+    int addrInstrumentNames = fromAddr + idx + 1; // +1 that's the zero behind the name
+    for (i = 0; i < INSTRSNUM; i++)
+    {
+        // Check if this instrument has been loaded
+        if (instrumentLoadedFlags[i])
+        {
+            // Yes its loaded, parse its name
+            for (idx = 0; idx < INSTRUMENT_NAME_MAX_LEN && (ch = mem[addrInstrumentNames + idx]); idx++)
+                //g_Instruments.m_instr[i].name[idx] = ch;
+                g_Instruments.GetName(i)[idx] = ch;
+
+            for (k = idx; k < INSTRUMENT_NAME_MAX_LEN; k++) //g_Instruments.m_instr[i].name[k] = ' '; //fill in the gaps
+                g_Instruments.GetName(i)[k] = ' '; // Fill in the gaps
+
+            // Move to source of the next instrument's name
+            addrInstrumentNames += idx + 1; //+1 is zero behind the name
+        }
+    }
+
+    return true;
 }

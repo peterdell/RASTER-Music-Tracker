@@ -28,6 +28,28 @@ TTuningRatios g_tuningRatios;
 // NULL, which these tests never do), so its value is never actually used.
 HWND g_hwnd = NULL;
 
+// Real, simple globals for DEFINE_MAINPARAMS (see SongEditing.cpp's
+// SaveRMW()/LoadRMW() - actually only SaveRMW() is linked here, LoadRMW()
+// needs ClearSong(), see plans/SONG_IO_SONG_REMAINING_PLAN.md). All are
+// plain ints/enums/bools with no constructor or hazard of their own - only
+// their *addresses* are taken, to build the RMW "main parameters" block.
+// g_keyboard_layout already exists in Keyboard2NoteMappingStub.cpp.
+Part g_activepart = Part::PART_TRACKS;
+Part g_active_ti = Part::PART_TRACKS;
+EditMode volatile g_prove = EditMode::EDIT_MODE;
+BOOL volatile g_respectvolume = FALSE;
+int g_trackLinePrimaryHighlight = 8;
+BOOL g_tracklinealtnumbering = FALSE;
+BOOL g_displayflatnotes = FALSE;
+BOOL g_usegermannotation = FALSE;
+int g_cursoractview = 0;
+BOOL g_keyboard_escresetatarisound = FALSE;
+BOOL g_keyboard_swapenter = FALSE;
+BOOL g_keyboard_playautofollow = FALSE;
+BOOL g_keyboard_updowncontinue = FALSE;
+BOOL g_keyboard_RememberOctavesAndVolumes = FALSE;
+WORD g_rmtstripped_adr_module = 0x4000;
+
 // Link-only no-op stubs for GuiHelpers.cpp's status bar helpers (see
 // ClipboardCore.cpp) - their real bodies just no-op or OutputDebugString
 // when there's no real status bar window, which is always the case here.

@@ -14,6 +14,7 @@
 #include "PokeyRenderer.h"
 #include "RmtDoc.h"
 #include "RmtMidi.h"
+#include "RmtVersion.h"
 #include "RmtView.h"
 #include "StdAfx.h"
 #include <chrono>
@@ -586,8 +587,7 @@ void CRmtView::WriteRMTConfig()
     }
 
     ou << "# RMT CONFIGURATION FILE" << std::endl;
-    CString version;
-    version.LoadString(IDS_RMT_VERSION);
+    CString version = RMT_VERSION_STRING;
     ou << "# " << version << std::endl;
     ou << std::setprecision(16);
 
@@ -763,8 +763,7 @@ void CRmtView::WriteTuningConfig()
     }
 
     os << "# RMT CONFIGURATION FILE" << std::endl;
-    CString version;
-    version.LoadString(IDS_RMT_VERSION);
+    CString version = RMT_VERSION_STRING;
     os << "# " << version << std::endl;
     os << std::setprecision(16);
 

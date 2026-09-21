@@ -3,6 +3,8 @@
 #include "Song.h"
 #include "Clipboard.h"
 #include "TuningTypes.h"
+#include "RmtVersion.h"
+#include <sstream>
 
 extern int g_tracks4_8;
 extern CTracks g_Tracks;
@@ -11,6 +13,19 @@ extern CTrackClipboard g_TrackClipboard;
 extern CSong g_Song;
 extern TTuningSettings g_tuning;
 extern TTuningRatios g_tuningRatios;
+
+namespace {
+    // Writes one "binary block" in CAtariIO::LoadBinaryBlock()'s expected
+    // format (no optional 0xFFFF header): fromAddr, toAddr (little-endian
+    // words), then the bytes in between.
+    void WriteBinaryBlock(std::ostream& out, const unsigned char* mem, WORD fromAddr, WORD toAddr) {
+        char lo = (char)(fromAddr & 0xff), hi = (char)((fromAddr >> 8) & 0xff);
+        out.write(&lo, 1); out.write(&hi, 1);
+        lo = (char)(toAddr & 0xff); hi = (char)((toAddr >> 8) & 0xff);
+        out.write(&lo, 1); out.write(&hi, 1);
+        out.write((const char*)mem + fromAddr, toAddr - fromAddr + 1);
+    }
+}
 
 // Exercises the CSong/CTrackClipboard editing methods implemented in
 // SongEditing.cpp/ClipboardCore.cpp - see plans/NOTES.md for the Song.cpp/
@@ -675,4 +690,87 @@ TEST_F(SongEditingTest, MakeModuleAndDecodeModuleRoundTripASimpleSong) {
     EXPECT_EQ(g_Tracks.GetTrack(5)->volume[0], 8);
     EXPECT_STREQ(g_Instruments.GetInstrument(2)->name, "Lead");
     EXPECT_EQ(g_Instruments.GetInstrument(2)->parameters[0], 5);
+}
+
+// --- SaveTxt ---
+
+TEST_F(SongEditingTest, SaveTxtWritesModuleHeaderAndSongLineData) {
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 2;
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5; // only line 0 has data - the rest stay "--"
+
+    std::ostringstream out;
+    EXPECT_TRUE(song.SaveTxt(out));
+
+    std::string text = out.str();
+    EXPECT_NE(text.find("[MODULE]"), std::string::npos);
+    EXPECT_NE(text.find("[SONG]"), std::string::npos);
+    EXPECT_NE(text.find("05 -- -- --\n"), std::string::npos); // track 05 in column 0, columns 1-3 empty
+}
+
+// --- SaveRMW ---
+// Only characterizes what's directly observable without a LoadRMW round
+// trip (LoadRMW stays deferred, see plans/SONG_IO_SONG_REMAINING_PLAN.md):
+// that it succeeds and starts with the (now compile-time) version string.
+
+TEST_F(SongEditingTest, SaveRMWWritesTheVersionStringFirst) {
+    std::ostringstream out;
+    EXPECT_TRUE(song.SaveRMW(out));
+
+    std::string content = out.str();
+    ASSERT_GE(content.size(), strlen(RMT_VERSION_STRING));
+    EXPECT_EQ(content.substr(0, strlen(RMT_VERSION_STRING)), RMT_VERSION_STRING);
+}
+
+// --- LoadRMT ---
+// Builds a valid two-block RMT file in memory (module block via MakeModule,
+// names block by hand) rather than hand-deriving the RMT header's byte
+// layout - same round-trip philosophy as MakeModule/DecodeModule above.
+
+TEST_F(SongEditingTest, LoadRMTDecodesTheModuleAndNamesBlocks) {
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 2;
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->len = 4;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 2;
+    memcpy(g_Instruments.GetInstrument(2)->name, "Lead", 4);
+
+    static unsigned char mem[8192] = {};
+    BYTE instrSavedFlags[INSTRSNUM] = {};
+    BYTE trackSavedFlags[TRACKSNUM] = {};
+    WORD fromAddr = 0x100;
+    int endAddr = song.MakeModule(mem, fromAddr, SongIOType::RMT, instrSavedFlags, trackSavedFlags);
+    ASSERT_GT(endAddr, 0);
+
+    std::ostringstream blocks;
+    WriteBinaryBlock(blocks, mem, fromAddr, (WORD)(endAddr - 1));
+
+    // Names block: song name, then the name of each *loaded* instrument (in
+    // index order) - here just instrument 2, since it's the only one used.
+    std::string namesData("TestSong", 9); // includes the trailing '\0'
+    namesData += "Lead";
+    namesData += '\0';
+    unsigned char namesMem[64] = {};
+    memcpy(namesMem, namesData.data(), namesData.size());
+    WriteBinaryBlock(blocks, namesMem, 0, (WORD)(namesData.size() - 1));
+
+    std::istringstream in(blocks.str());
+    CSong decoded;
+    ASSERT_TRUE(decoded.LoadRMT(in));
+
+    EXPECT_STREQ(decoded.GetName(), "TestSong");
+    // Unlike GetName(), the raw instrument name field isn't trimmed - LoadRMT
+    // fills the remainder with spaces up to INSTRUMENT_NAME_MAX_LEN.
+    CString instrName = g_Instruments.GetInstrument(2)->name;
+    instrName.TrimRight();
+    EXPECT_STREQ(instrName, "Lead");
 }

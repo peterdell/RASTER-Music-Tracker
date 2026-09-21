@@ -3,7 +3,7 @@
 #include <fstream>
 
 
-bool CAtariIO::LoadWord(std::ifstream& in, MemoryWord& w)
+bool CAtariIO::LoadWord(std::istream& in, MemoryWord& w)
 {
     char db, hb;
     if (in.eof()) { return false; }
@@ -16,7 +16,7 @@ bool CAtariIO::LoadWord(std::ifstream& in, MemoryWord& w)
     return true;
 }
 
-int CAtariIO::LoadBinaryBlock(std::ifstream& in, byte* memory, MemoryAddress& fromAddr, MemoryAddress& toAddr)
+int CAtariIO::LoadBinaryBlock(std::istream& in, byte* memory, MemoryAddress& fromAddr, MemoryAddress& toAddr)
 {
     if (!LoadWord(in, fromAddr)) {
         return 0;

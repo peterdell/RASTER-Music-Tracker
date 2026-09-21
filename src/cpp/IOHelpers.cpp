@@ -18,7 +18,7 @@ CString GetFilePath(CString pathandfilename)
 	return res;
 }
 
-BOOL NextSegment(std::ifstream& in)
+BOOL NextSegment(std::istream& in)
 {
 	char b;
 	while (!in.eof())

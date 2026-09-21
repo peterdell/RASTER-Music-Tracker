@@ -108,6 +108,7 @@
     <ClCompile Include="..\IOHelpers.cpp" />
     <ClCompile Include="..\InstrumentsCore.cpp" />
     <ClCompile Include="..\InstrumentsAtaFormat.cpp" />
+    <ClCompile Include="..\IO_Instruments.cpp" />
     <ClCompile Include="InstrumentsStub.cpp" />
     <ClCompile Include="..\SAPFile.cpp" />
     <ClCompile Include="SAPFileStub.cpp" />
@@ -124,6 +125,7 @@
     <ClCompile Include="..\PokeyController.cpp" />
     <ClCompile Include="..\SongEditing.cpp" />
     <ClCompile Include="..\ClipboardCore.cpp" />
+    <ClCompile Include="..\AtariIO.cpp" />
     <ClCompile Include="UndoStub.cpp" />
     <ClCompile Include="SongEditingStub.cpp" />
     <!-- Test sources. -->

@@ -1008,3 +1008,63 @@ build clean and all 123 tests pass.
       - Full solution rebuild (Release|x64) confirmed 0 errors; 191 tests
         pass (up from 186, +5, 0 regressions) - full suite run (not just
         filtered) confirmed no cross-test isolation issues this time.
+- [x] Phase 2 continued: plan's "Batch 3" (`SaveRMW`, `SaveTxt`, `LoadRMT`),
+      194 tests total. Not yet committed.
+      - **Three more corrections found while scoping the implementation**:
+        (1) `LoadRMW`/`LoadTxt` both unconditionally call `ClearSong(8)` -
+        reading `ClearSong`'s body confirmed it's genuinely the large,
+        separate decision already flagged in the plan (real
+        `AfxGetMainWnd()` MFC-framework call, `g_AtariTrackerDriver->Init()`
+        on a pointer never instantiated in the test project, on top of the
+        ~18 globals already known about) - both dropped from this batch,
+        stay blocked on `ClearSong`'s own future decision. (2) `ExportV2` is
+        a large dispatcher (`CRmtExporter`/`CASMFileExporter`/several
+        `CSongExporter` format methods), not a simple encode - dropped,
+        needs its own separate triage. (3) `LoadRMT` doesn't call
+        `ClearSong` and turned out fully testable via a hand-built two-block
+        binary file (mirroring `MakeModule`/`DecodeModule`'s round-trip
+        approach) - its 3 `MessageBox` calls are 2 guard-only errors plus
+        one "stripped RMT" info dialog, all avoidable with valid, complete
+        test input.
+      - **Implemented the `IDS_RMT_VERSION` → compile-time-constant decision**
+        from the previous session: added `RmtVersion.h`
+        (`RMT_VERSION_STRING`, with a comment noting it mirrors `Rmt.rc`'s
+        string resource) and replaced all 6 `LoadString(IDS_RMT_VERSION)`
+        call sites (`Rmt.cpp`, `RmtView.cpp` ×2, plus `SaveRMW`/`LoadRMW` in
+        the moved code), not just the ones needed for testing.
+      - **`IO_Instruments.cpp` needed no split at all** (matching the
+        "some files need no split - check coupling first" pattern): its 5
+        methods have exactly one real global reference (`g_Atari`, already
+        safe) - the `#include "Global.h"`/`"resource.h"` were dead includes,
+        confirmed removable via a production rebuild. `CInstruments::Update()`
+        lost its Batch-2 no-op stub and now has real behavior in tests.
+      - **Found two pure compile-time data tables misplaced in the coupled
+        `Instruments.cpp`**: `shpar[]`/`shenv[]` (parameter/envelope
+        descriptor tables) only reference `InstrumentGUIPosition`'s
+        `constexpr` layout constants - moved to the already-linked
+        `InstrumentsAtaFormat.cpp`, unblocking `IO_Instruments.cpp`'s link.
+      - **Widened `std::ofstream&`/`std::ifstream&` to `std::ostream&`/
+        `std::istream&`** across a small cascade of methods actually called
+        by `SaveRMW`/`SaveTxt`/`LoadRMT` - `CSong` itself, `CInstruments::
+        SaveAll/LoadAll/SaveInstrument/LoadInstrument`, `CTracks::
+        SaveAll/LoadAll/SaveTrack/LoadTrack`, `IOHelpers.cpp`'s
+        `NextSegment`, and `CAtariIO::LoadBinaryBlock/LoadWord` - same
+        precedent as `SAPFile::Export`'s earlier widening: every real call
+        site already passes a genuine file stream, and the wider type lets
+        tests use in-memory streams instead of real temp files.
+      - Added a `WriteBinaryBlock()` test helper replicating
+        `CAtariIO::LoadBinaryBlock()`'s expected byte format, used to build
+        a valid two-block RMT file in memory for `LoadRMT`'s test. One
+        hand-derivation error caught and fixed on first run: the raw
+        instrument-name field isn't trimmed the way `CSong::GetName()` is,
+        so the loaded name comes back space-padded to
+        `INSTRUMENT_NAME_MAX_LEN`.
+      - Full solution rebuild (Release|x64) confirmed 0 errors; 194 tests
+        pass (up from 191, +3, 0 regressions).
+      - **Remaining in `Song.cpp`/`IO_Song.cpp`**: `ClearSong` and `ExportV2`
+        (each its own dedicated future decision, see
+        `plans/SONG_IO_SONG_REMAINING_PLAN.md`), `LoadRMW`/`LoadTxt` (blocked
+        on `ClearSong`), the `FileXxx` family (recommended to stay deferred
+        indefinitely - real dialog orchestration, no independent test value
+        beyond what's already covered), and the heavier editing/playback
+        methods from the original Batch 4/6 lists.

@@ -10,6 +10,54 @@
 // keep this half directly testable - same pattern as
 // Tuning.cpp/TuningTables.cpp and Tracks.cpp/TracksEdit.cpp.
 
+/// <summary>
+/// Define information about each instrument parameter (not envelope table)
+/// </summary>
+const Tshpar shpar[NUMBER_OF_PARAMS] =
+{
+    //Nr, Draw Position															NAME			AND		MAX			Offset	"next param on cursor movement", Fieldname in txt file
+    //TABLE: LEN GO SPD TYPE MODE
+    { PAR_TBL_LENGTH,		InstrumentGUIPosition::PARAM_X + 16 * 8,InstrumentGUIPosition::PARAM_Y + 9 * 16,	"LENGTH:",		0x1f,	0x1f,		1,		 8,  1, 15, 15,		"LENGTH:"},
+    { PAR_TBL_GOTO,			InstrumentGUIPosition::PARAM_X + 18 * 8,InstrumentGUIPosition::PARAM_Y + 10 * 16,	  "GOTO:",		0x1f,	0x1f,		0,		 0,  2, 16, 16,		"GOTO:"},
+    { PAR_TBL_SPEED,		InstrumentGUIPosition::PARAM_X + 17 * 8,InstrumentGUIPosition::PARAM_Y + 11 * 16,	 "SPEED:",		0x3f,	0x3f,		1,		 1,  3, 17, 17,		"SPEED:"},
+    { PAR_TBL_TYPE,			InstrumentGUIPosition::PARAM_X + 18 * 8,InstrumentGUIPosition::PARAM_Y + 12 * 16,	  "TYPE:",		0x01,	0x01,		0,		 2,  4, 18, 18,		"TYPE:"},
+    { PAR_TBL_MODE,			InstrumentGUIPosition::PARAM_X + 18 * 8,InstrumentGUIPosition::PARAM_Y + 13 * 16,	  "MODE:",		0x01,	0x01,		0,		 3,  5, 19, 19,		"MODE:"},
+    //ENVELOPE: LEN GO VSLIDE VMIN
+    { PAR_ENV_LENGTH,		InstrumentGUIPosition::PARAM_X + 16 * 8,InstrumentGUIPosition::PARAM_Y + 2 * 16,	"LENGTH:",		0x3f,	0x2f,		1,		 4,  6,  9,  9,		"ENV_LENGTH:"},
+    { PAR_ENV_GOTO,			InstrumentGUIPosition::PARAM_X + 18 * 8,InstrumentGUIPosition::PARAM_Y + 3 * 16,	  "GOTO:",		0x3f,	0x2f,		0,		 5,  7, 10, 10,		"ENV_GOTO:"},
+    { PAR_VOL_FADEOUT,		InstrumentGUIPosition::PARAM_X + 15 * 8,InstrumentGUIPosition::PARAM_Y + 4 * 16,   "FADEOUT:",		0xff,	0xff,		0,		 6,  8, 11, 11,		"FADEOUT:"},
+    { PAR_VOL_MIN,			InstrumentGUIPosition::PARAM_X + 15 * 8,InstrumentGUIPosition::PARAM_Y + 5 * 16,   "VOL MIN:",		0x0f,	0x0f,		0,		 7,  0, 11, 11,		"VOL_MIN:"},
+    //EFFECT: DELAY VIBRATO FSHIFT
+    { PAR_DELAY,			InstrumentGUIPosition::PARAM_X + 3 * 8,InstrumentGUIPosition::PARAM_Y + 2 * 16,      "DELAY:",		0xff,	0xff,		0,		19, 10,  5,  5,		"EFF_DELAY:"},
+    { PAR_VIBRATO,			InstrumentGUIPosition::PARAM_X + 1 * 8,InstrumentGUIPosition::PARAM_Y + 3 * 16,    "VIBRATO:",		0x03,	0x03,		0,		 9, 11,  6,  6,		"EFF_VIBRATO:"},
+    { PAR_FREQ_SHIFT,		InstrumentGUIPosition::PARAM_X + -1 * 8,InstrumentGUIPosition::PARAM_Y + 4 * 16, "FREQSHIFT:",		0xff,	0xff,		0,		10, 12,  7,  7,		"EFF_FREQSHIFT:"},
+    //AUDCTL: 00-07
+    { PAR_AUDCTL_15KHZ,		InstrumentGUIPosition::PARAM_X + 3 * 8,InstrumentGUIPosition::PARAM_Y + 6 * 16,      "15KHZ:",		0x01,	0x01,		0,		11, 13,  0,  0,		"AUD_15KHZ:"},
+    { PAR_AUDCTL_HPF_CH2,	InstrumentGUIPosition::PARAM_X + 1 * 8,InstrumentGUIPosition::PARAM_Y + 7 * 16,    "HPF 2+4:",		0x01,	0x01,		0,		12, 14,  0,  0,		"AUD_HPF_CH2:"},
+    { PAR_AUDCTL_HPF_CH1,	InstrumentGUIPosition::PARAM_X + 1 * 8,InstrumentGUIPosition::PARAM_Y + 8 * 16,    "HPF 1+3:",		0x01,	0x01,		0,		13, 15,  0,  0,		"AUD_HPF_CH1:"},
+    { PAR_AUDCTL_JOIN_3_4,	InstrumentGUIPosition::PARAM_X + 0 * 8,InstrumentGUIPosition::PARAM_Y + 9 * 16,   "JOIN 3+4:",		0x01,	0x01,		0,		14, 16,  0,  0,		"AUD_JOIN34:"},
+    { PAR_AUDCTL_JOIN_1_2,	InstrumentGUIPosition::PARAM_X + 0 * 8,InstrumentGUIPosition::PARAM_Y + 10 * 16,  "JOIN 1+2:",		0x01,	0x01,		0,		15, 17,  1,  1,		"AUD_JOIN12:"},
+    { PAR_AUDCTL_179_CH3,	InstrumentGUIPosition::PARAM_X + 0 * 8,InstrumentGUIPosition::PARAM_Y + 11 * 16,  "1.79 CH3:",		0x01,	0x01,		0,		16, 18,  2,  2,		"AUD_179_CH3:"},
+    { PAR_AUDCTL_179_CH1,	InstrumentGUIPosition::PARAM_X + 0 * 8,InstrumentGUIPosition::PARAM_Y + 12 * 16,  "1.79 CH1:",		0x01,	0x01,		0,		17, 19,  3,  3,		"AUD_179_CH1:"},
+    { PAR_AUDCTL_POLY9,		InstrumentGUIPosition::PARAM_X + 3 * 8,InstrumentGUIPosition::PARAM_Y + 13 * 16,     "POLY9:",		0x01,	0x01,		0,		18,  9,  4,  4,		"AUD_POLY9:"}
+};
+
+/// <summary>
+/// Define information about envelope table
+/// </summary>
+const Tshenv shenv[ENVROWS] =
+{
+    //ENVELOPE
+    {   0,0x0f,1,-1,   "VOLUME R:",InstrumentGUIPosition::ENV_X + 2 * 8,InstrumentGUIPosition::ENV_Y + 2 * 16,		"ENV_VOLUME_R:"},	//volume right
+    {   0,0x0f,1,-1,   "VOLUME L:",InstrumentGUIPosition::ENV_X + 2 * 8,InstrumentGUIPosition::ENV_Y + 8 * 16,		"ENV_VOLUME_L:"},	//volume left
+    {   0,0x0e,2,-2, "DISTORTION:",InstrumentGUIPosition::ENV_X + 0 * 8,InstrumentGUIPosition::ENV_Y + 9 * 16,		"ENV_DISTORTION:"},	//distortion 0,2,4,6,...
+    {   0,0x07,1,-1,    "COMMAND:",InstrumentGUIPosition::ENV_X + 3 * 8,InstrumentGUIPosition::ENV_Y + 10 * 16,		"ENV_COMMNAND:"},	//command 0-7
+    {   0,0x0f,1,-1,         "X/:",InstrumentGUIPosition::ENV_X + 8 * 8,InstrumentGUIPosition::ENV_Y + 11 * 16,		"ENV_X:"},			//X
+    {   0,0x0f,1,-1,        "Y\\:",InstrumentGUIPosition::ENV_X + 8 * 8,InstrumentGUIPosition::ENV_Y + 12 * 16,		"ENV_Y:"},			//Y
+    {   9,0x01,1,-1, "AUTOFILTER:",InstrumentGUIPosition::ENV_X + 0 * 8,InstrumentGUIPosition::ENV_Y + 13 * 16,		"ENV_AUTOFILTER:"},		//filter *
+    {   9,0x01,1,-1, "PORTAMENTO:",InstrumentGUIPosition::ENV_X + 0 * 8,InstrumentGUIPosition::ENV_Y + 14 * 16,		"ENV_PORTAMENTO:"}	//portamento *
+};
+
 BYTE CInstruments::InstrToAta(int instr, unsigned char* ata, int max)
 {
     TInstrument* ai = GetInstrument(instr);

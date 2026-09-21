@@ -11,6 +11,7 @@
 #include "Rmt.h"
 #include "RmtCommandLineInfo.h"
 #include "RmtDoc.h"
+#include "RmtVersion.h"
 #include "RmtView.h"
 #include "Shell.h"
 #include "Song.h"
@@ -186,10 +187,8 @@ BOOL CRmtApp::InitInstance()
 }
 
 CString CRmtApp::GetVersionAndBuild() const {
-    CString version;
+    CString version = RMT_VERSION_STRING;
     CString result;
-
-    version.LoadString(IDS_RMT_VERSION);
 
     result.Format("%s (%s %s)", version, __DATE__, __TIME__);
     return result;

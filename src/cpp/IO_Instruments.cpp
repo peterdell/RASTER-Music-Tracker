@@ -1,4 +1,3 @@
-#include "resource.h"
 #include "StdAfx.h"
 #include <fstream>
 
@@ -6,12 +5,13 @@
 #include "IOHelpers.h"
 
 #include "Instruments.h"
+#include "SongTypes.h"
 
-#include "Global.h"
+extern CAtari g_Atari;
 
 
 
-int CInstruments::SaveAll(std::ofstream& ou, InstrumentIOType iotype)
+int CInstruments::SaveAll(std::ostream& ou, InstrumentIOType iotype)
 {
     for (int i = 0; i < INSTRSNUM; i++)
     {
@@ -21,7 +21,7 @@ int CInstruments::SaveAll(std::ofstream& ou, InstrumentIOType iotype)
     return 1;
 }
 
-int CInstruments::LoadAll(std::ifstream& in, InstrumentIOType iotype)
+int CInstruments::LoadAll(std::istream& in, InstrumentIOType iotype)
 {
     for (int i = 0; i < INSTRSNUM; i++)
     {
@@ -31,7 +31,7 @@ int CInstruments::LoadAll(std::ifstream& in, InstrumentIOType iotype)
     return 1;
 }
 
-int CInstruments::SaveInstrument(int instr, std::ofstream& ou, InstrumentIOType iotype)
+int CInstruments::SaveInstrument(int instr, std::ostream& ou, InstrumentIOType iotype)
 {
     TInstrument* ai = GetInstrument(instr);
 
@@ -124,7 +124,7 @@ int CInstruments::SaveInstrument(int instr, std::ofstream& ou, InstrumentIOType 
     return 1;
 }
 
-int CInstruments::LoadInstrument(int instr, std::ifstream& in, InstrumentIOType iotype)
+int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType iotype)
 {
     switch (iotype)
     {

@@ -4,7 +4,10 @@
 
 extern CString GetFilePath(CString pathandfilename);
 
-extern BOOL NextSegment(std::ifstream& in);
+// std::istream& rather than std::ifstream& - every real call site passes a
+// genuine file stream (which satisfies the wider base type), and the wider
+// type lets tests use an in-memory stream.
+extern BOOL NextSegment(std::istream& in);
 extern char CharH4(unsigned char b);
 extern char CharL4(unsigned char b);
 

@@ -18,7 +18,7 @@
 }
 
 
-int CTracks::SaveTrack(TrackNumber track, std::ofstream& ou, SongIOType iotype)
+int CTracks::SaveTrack(TrackNumber track, std::ostream& ou, SongIOType iotype)
 {
     TTrack* at = GetTrack(track);
     if (!at) return 0;
@@ -57,7 +57,7 @@ int CTracks::SaveTrack(TrackNumber track, std::ofstream& ou, SongIOType iotype)
     return 0;
 }
 
-int CTracks::LoadTrack(TrackNumber track, std::ifstream& in, SongIOType iotype)
+int CTracks::LoadTrack(TrackNumber track, std::istream& in, SongIOType iotype)
 {
     TTrack* at;
     int idx = 0;
@@ -166,7 +166,7 @@ int CTracks::LoadTrack(TrackNumber track, std::ifstream& in, SongIOType iotype)
     return 0;
 }
 
-int CTracks::SaveAll(std::ofstream& ou, SongIOType iotype)
+int CTracks::SaveAll(std::ostream& ou, SongIOType iotype)
 {
     switch (iotype)
     {
@@ -194,7 +194,7 @@ int CTracks::SaveAll(std::ofstream& ou, SongIOType iotype)
 }
 
 
-int CTracks::LoadAll(std::ifstream& in, SongIOType iotype)
+int CTracks::LoadAll(std::istream& in, SongIOType iotype)
 {
     InitTracks();
 

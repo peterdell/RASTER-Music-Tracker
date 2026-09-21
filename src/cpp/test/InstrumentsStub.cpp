@@ -24,9 +24,8 @@ void CInstruments::ClearInstrument(int) {}
 void CInstruments::MemorizeOctaveAndVolume(int, int, int) {}
 void CInstruments::RememberOctaveAndVolume(int, int&, int&) {}
 
-// Link-only stub: the real CInstruments::Update() lives in IO_Instruments.cpp,
-// which #includes Global.h (this test project deliberately doesn't link it).
-// It's reachable through CSong::RenumberAllInstruments() (see
-// SongEditingTests.cpp), which only cares about the TInstrument reordering,
-// not the resulting Atari-memory write.
-void CInstruments::Update(int) {}
+// CInstruments::Update() used to be stubbed here too, but IO_Instruments.cpp
+// turned out to need no Global.h dependency at all (only g_Atari, already
+// safe) once its dead #include "Global.h"/"resource.h" were removed - see
+// plans/SONG_IO_SONG_REMAINING_PLAN.md. It's linked directly now
+// (RmtTests.vcxproj), giving Update() real behavior in tests.
