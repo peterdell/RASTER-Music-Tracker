@@ -92,6 +92,25 @@ BOOL g_keyboard_RememberOctavesAndVolumes = FALSE;
 WORD g_rmtstripped_adr_module = 0x4000;
 long g_playtime = 0;
 
+// Real, simple globals for CSong::ClearSong() (see SongEditing.cpp) - all
+// plain BOOL/int/CString flags with no constructor or hazard of their own,
+// same treatment as the DEFINE_MAINPARAMS globals above.
+BOOL volatile g_rmtroutine = FALSE;
+BOOL g_rmtstripped_sfx = FALSE;
+BOOL g_rmtstripped_gvf = FALSE;
+CString g_rmtmsxtext;
+CString g_PrefixForAllAsmLabels;
+BOOL g_changes = FALSE;
+int g_SkipLinesAfterNoteInsert = 0;
+
+// Real one-line implementation for CSong::ClearSong() (see SongEditing.cpp) -
+// copied verbatim from Global.cpp. Global.cpp itself isn't linked here (it
+// pulls in a much wider dependency graph - the live timer, MIDI, real Atari
+// hardware access), but this one function only ever assigns to g_prove.
+void SetEditMode(const EditMode editMode) {
+    g_prove = editMode;
+}
+
 // Link-only no-op stubs for GuiHelpers.cpp's status bar helpers (see
 // ClipboardCore.cpp) - their real bodies just no-op or OutputDebugString
 // when there's no real status bar window, which is always the case here.
@@ -105,3 +124,10 @@ void SetStatusBarText(const char*) {}
 // changes. Tests characterize SetTracks()'s own effect (the g_tracks4_8
 // assignment), not the resulting sound reinitialization.
 void CSong::ReInitSound() {}
+
+// Link-only no-op stub: the real CSong::SyncSkipLinesAfterNoteInsertComboBox()
+// lives in Song.cpp (not linked here - it needs a real MFC AfxGetMainWnd()/
+// CMainFrame, unavailable in this console test binary) and is called at the
+// end of CSong::ClearSong() (see SongEditing.cpp) purely to push a value
+// into a UI combo box - no state ClearSong()'s own tests characterize.
+void CSong::SyncSkipLinesAfterNoteInsertComboBox() {}

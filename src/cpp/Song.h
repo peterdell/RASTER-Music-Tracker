@@ -40,6 +40,12 @@ public:
 
     void ClearSong(int numoftracks);
 
+    // Extracted from ClearSong(): pushes g_SkipLinesAfterNoteInsert into the
+    // main frame's combo box, if the app's main window exists. A real MFC
+    // AfxGetMainWnd()/CMainFrame call, so it stays in Song.cpp rather than
+    // moving with the rest of ClearSong() into SongEditing.cpp.
+    void SyncSkipLinesAfterNoteInsertComboBox();
+
     void MidiEvent(DWORD dwParam);
 
     BOOL InfoKey(int vk, int shift, int control);

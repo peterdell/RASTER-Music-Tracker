@@ -23,9 +23,7 @@
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
 extern CInstruments g_Instruments;
-extern CTrackClipboard g_TrackClipboard;
 extern CXPokey g_Pokey;
-extern CString g_PrefixForAllAsmLabels;
 
 // These two should be song attributes instead
 
@@ -75,90 +73,18 @@ void CSong::ChangeTimer(int ms)
     g_SongTimer.SetTimer(*this, ms);
 }
 
+// CSong::ClearSong() is implemented in SongEditing.cpp.
+
 /// <summary>
-/// Reset the song data to empty and return RMT into a default state
+/// Pushes g_SkipLinesAfterNoteInsert into the main frame's combo box, if the
+/// app's main window exists. Extracted from ClearSong() as its own method: a
+/// real MFC AfxGetMainWnd()/CMainFrame call, categorically different from a
+/// stubbable global.
 /// </summary>
-/// <param name="numOfTracks">How many tracks are supported 4 or 8</param>
-void CSong::ClearSong(int numOfTracks)
+void CSong::SyncSkipLinesAfterNoteInsertComboBox()
 {
-    Stop();
-
-    //g_tracks4_8 = numOfTracks;			// Track for 4/8 channels
-    SetTracks(numOfTracks);
-    g_rmtroutine = TRUE;				// RMT routine execution enabled
-    SetEditMode(EditMode::EDIT_MODE);
-    g_respectvolume = FALSE;
-    g_rmtstripped_adr_module = 0x4000;	// Default standard address for stripped RMT modules
-    g_rmtstripped_sfx = FALSE;			// Is not a standard sfx variety stripped RMT
-    g_rmtstripped_gvf = FALSE;			// Default does not use Feat GlobalVolumeFade
-    g_rmtmsxtext = "";					// Clear the text for XEX export
-    g_PrefixForAllAsmLabels = "MUSIC";	// Default label prefix for exporting simple ASM notation
-
-    PlayPressedTonesInit();
-
-    g_playtime = 0;
-    m_followplay = 1;
-    m_mainSpeed = m_speed = m_speeda = 16;
-    m_instrumentSpeed = 1;
-
-    g_activepart = g_active_ti = Part::PART_TRACKS;
-
-    m_songplayline = m_songactiveline = 0;
-    m_trackactiveline = m_trackplayline = 0;
-    m_trackactivecol = m_trackactivecur = 0;
-    m_activeinstr = 0;
-    m_octave = 0;
-    m_volume = MAXVOLUME;
-
-    ClearBookmark();
-
-    m_infoact = EditArea::NAME;
-
-    memset(m_songname, ' ', SONG_NAME_MAX_LEN);
-    strncpy(m_songname, "Noname song", 11);
-    m_songname[SONG_NAME_MAX_LEN] = 0;
-
-    m_songnamecur = 0;
-
-    m_filename = "";
-    m_ioType = SongIOType::NONE;
-    m_lastExportIOType = SongIOType::NONE;
-
-    m_TracksOrderChange_songlinefrom = 0x00;
-    m_TracksOrderChange_songlineto = SONGLEN - 1;
-
-    // Number of lines after inserting a note/space
-    g_SkipLinesAfterNoteInsert = 1; // Initial value
     CMainFrame* mf = ((CMainFrame*)AfxGetMainWnd());
     if (mf) mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_SkipLinesAfterNoteInsert);
-
-    for (int i = 0; i < SONGLEN; i++)
-    {
-        for (int j = 0; j < SONGTRACKS; j++)
-        {
-            m_song[i][j] = -1;	// TRACK --
-        }
-        m_songgo[i] = -1;		// Is not GO
-    }
-
-    // Empty clipboards
-    g_TrackClipboard.Clear();
-    m_instrclipboard.activeEditSection = InstrumentSection::NONE;	// According to -1 it knows that it is empty
-    m_songgoclipboard = -2;						// According to -2 it knows that it is empty
-
-    // Delete all tracks and instruments
-    g_Tracks.InitTracks();
-    g_Instruments.InitInstruments();
-
-    // Undo initialization
-    g_Undo.Init();
-
-    // Changes in the module
-    g_changes = 0;
-
-    // Initialise RMT routine
-    g_Atari.Init(IsNTSC());
-    g_AtariTrackerDriver->Init();
 }
 
 //---

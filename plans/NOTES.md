@@ -1198,3 +1198,53 @@ build clean and all 123 tests pass.
         mirrors this file's existing guard-test style), both correct on
         first run. Full solution rebuild (Release|x64) confirmed 0 errors;
         214 tests pass (up from 212, +2, 0 regressions).
+- [x] `ClearSong` - previously its own deferred category (~18 globals plus
+      a real `AfxGetMainWnd()`/`CMainFrame` call and `g_AtariTrackerDriver`
+      assumed uninstantiated). Re-analyzed in detail before touching any
+      code, since later batches (4/6) had already resolved most of what
+      made it look hazardous:
+      - `g_AtariTrackerDriver` is now a real instantiated object
+        (`test/SongEditingStub.cpp`, added for Batch 4/6), and both
+        `g_Atari.Init()` and `g_AtariTrackerDriver->Init()` delegate to
+        already-established-safe no-op stubs - the "pointer never
+        instantiated" note that originally blocked this method was stale.
+      - `g_Tracks.InitTracks()`, `g_Instruments.InitInstruments()`,
+        `g_Undo.Init()`, `g_TrackClipboard.Clear()` are all real in the
+        test project already and only touch their own class's state
+        (confirmed by reading each body, not assumed) - cheap and safe.
+      - The **only** genuine remaining hazard, once everything else was
+        re-verified: `CMainFrame* mf = (CMainFrame*)AfxGetMainWnd(); if
+        (mf) mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(...)` - a real
+        MFC application-framework call, categorically different from a
+        stubbable global.
+      - Extracted just those two lines into a new
+        `CSong::SyncSkipLinesAfterNoteInsertComboBox()`, which stays behind
+        in `Song.cpp` (link-only no-op stub in tests, same treatment as
+        `ReInitSound()`). Moved the rest of `ClearSong()`'s body, now
+        provably safe, into `SongEditing.cpp` verbatim - zero production
+        behavior change, since `ClearSong()`'s own signature and single
+        call-site pattern (`IO_Song.cpp`) are untouched.
+      - Added ~7 trivial new global stubs to `test/SongEditingStub.cpp`
+        (`g_rmtroutine`, `g_rmtstripped_sfx`/`_gvf`, `g_rmtmsxtext`,
+        `g_PrefixForAllAsmLabels`, `g_changes`, `g_SkipLinesAfterNoteInsert`)
+        - all plain `BOOL`/`int`/`CString` flags with no coupling of their
+        own, same treatment as `g_playtime`/`g_activepart` in Batch 6 - plus
+        a one-line real `SetEditMode()` implementation (copied verbatim
+        from `Global.cpp`, which itself stays unlinked).
+      - Removed two now-dead `extern` declarations (`g_TrackClipboard`,
+        `g_PrefixForAllAsmLabels`) from the top of `Song.cpp`, left over
+        from before `ClearSong()` was its only remaining user there -
+        directly reduces `Song.cpp`'s coupling, which was the point of this
+        analysis.
+      - Verified incrementally given the number of real subsystems this
+        method exercises: production-only build, then test-project build,
+        then the 2 new tests filtered alone with a timeout, then the full
+        suite with a timeout, before the final full clean rebuild - no
+        hangs or surprises at any step.
+      - 2 new hand-derived tests (song grid/song-go/position/song-info/
+        bookmark reset, and a separate test for the track-count plumbing),
+        both correct on first run. Full solution rebuild (Release|x64)
+        confirmed 0 errors; 216 tests pass (up from 214, +2, 0 regressions).
+      - `LoadRMW`/`LoadTxt` (Batch 3) call `ClearSong()` and are now
+        unblocked on that front, but haven't themselves been re-triaged -
+        left for a future batch.

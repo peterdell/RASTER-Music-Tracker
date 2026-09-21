@@ -32,10 +32,20 @@
 // IDS_RMT_VERSION), an MFC resource-string load needing the app's compiled
 // resources - replaced with a compile-time RMT_VERSION_STRING constant
 // (see RmtVersion.h), removing the dependency everywhere it was used, not
-// just here. LoadRMW()/LoadTxt() stay behind in IO_Song.cpp: both call
-// ClearSong() first, which needs its own dedicated decision (real
-// AfxGetMainWnd()/g_AtariTrackerDriver hazards, see
-// plans/SONG_IO_SONG_REMAINING_PLAN.md).
+// just here. LoadRMW()/LoadTxt() still stay behind in IO_Song.cpp for now:
+// both call ClearSong(), which is unblocked as of this file's ClearSong()
+// below, but LoadRMW()/LoadTxt() themselves haven't been re-triaged yet -
+// see plans/SONG_IO_SONG_REMAINING_PLAN.md.
+//
+// ClearSong() itself only had one real hazard once re-checked against the
+// safe-cluster progress of later batches: a real MFC AfxGetMainWnd()/
+// CMainFrame call to sync a UI combo box. That one line was extracted into
+// its own CSong::SyncSkipLinesAfterNoteInsertComboBox(), which stays behind
+// in Song.cpp (link-only no-op stub in tests) - everything else ClearSong()
+// touches turned out to already be real/safe here (g_Tracks/g_Instruments/
+// g_Undo/g_TrackClipboard/g_Atari.Init()/g_AtariTrackerDriver->Init(), all
+// confirmed while scoping this move) or a trivial global with no coupling
+// of its own.
 
 extern CTrackClipboard g_TrackClipboard;
 extern CInstruments g_Instruments;
@@ -44,6 +54,14 @@ extern TTuningSettings g_tuning;
 extern TTuningRatios g_tuningRatios;
 extern HWND g_hwnd;
 extern WORD g_rmtstripped_adr_module;
+extern BOOL volatile g_rmtroutine;
+extern BOOL g_rmtstripped_sfx;
+extern BOOL g_rmtstripped_gvf;
+extern CString g_rmtmsxtext;
+extern CString g_PrefixForAllAsmLabels;
+extern BOOL g_changes;
+extern int g_SkipLinesAfterNoteInsert;
+extern void SetEditMode(const EditMode editMode);
 
 // DEFINE_MAINPARAMS (see below, used by SaveRMW()) takes the address of
 // each of these - all plain ints/enums/bools with no constructor or
@@ -67,6 +85,91 @@ extern CAtariTrackerDriver* g_AtariTrackerDriver;
 extern CAtari g_Atari;
 extern CSongTimer g_SongTimer;
 extern long g_playtime;
+
+/// <summary>
+/// Reset the song data to empty and return RMT into a default state
+/// </summary>
+/// <param name="numOfTracks">How many tracks are supported 4 or 8</param>
+void CSong::ClearSong(int numOfTracks)
+{
+    Stop();
+
+    //g_tracks4_8 = numOfTracks;			// Track for 4/8 channels
+    SetTracks(numOfTracks);
+    g_rmtroutine = TRUE;				// RMT routine execution enabled
+    SetEditMode(EditMode::EDIT_MODE);
+    g_respectvolume = FALSE;
+    g_rmtstripped_adr_module = 0x4000;	// Default standard address for stripped RMT modules
+    g_rmtstripped_sfx = FALSE;			// Is not a standard sfx variety stripped RMT
+    g_rmtstripped_gvf = FALSE;			// Default does not use Feat GlobalVolumeFade
+    g_rmtmsxtext = "";					// Clear the text for XEX export
+    g_PrefixForAllAsmLabels = "MUSIC";	// Default label prefix for exporting simple ASM notation
+
+    PlayPressedTonesInit();
+
+    g_playtime = 0;
+    m_followplay = 1;
+    m_mainSpeed = m_speed = m_speeda = 16;
+    m_instrumentSpeed = 1;
+
+    g_activepart = g_active_ti = Part::PART_TRACKS;
+
+    m_songplayline = m_songactiveline = 0;
+    m_trackactiveline = m_trackplayline = 0;
+    m_trackactivecol = m_trackactivecur = 0;
+    m_activeinstr = 0;
+    m_octave = 0;
+    m_volume = MAXVOLUME;
+
+    ClearBookmark();
+
+    m_infoact = EditArea::NAME;
+
+    memset(m_songname, ' ', SONG_NAME_MAX_LEN);
+    strncpy(m_songname, "Noname song", 11);
+    m_songname[SONG_NAME_MAX_LEN] = 0;
+
+    m_songnamecur = 0;
+
+    m_filename = "";
+    m_ioType = SongIOType::NONE;
+    m_lastExportIOType = SongIOType::NONE;
+
+    m_TracksOrderChange_songlinefrom = 0x00;
+    m_TracksOrderChange_songlineto = SONGLEN - 1;
+
+    // Number of lines after inserting a note/space
+    g_SkipLinesAfterNoteInsert = 1; // Initial value
+    SyncSkipLinesAfterNoteInsertComboBox(); // Real AfxGetMainWnd()/CMainFrame call - stays in Song.cpp
+
+    for (int i = 0; i < SONGLEN; i++)
+    {
+        for (int j = 0; j < SONGTRACKS; j++)
+        {
+            m_song[i][j] = -1;	// TRACK --
+        }
+        m_songgo[i] = -1;		// Is not GO
+    }
+
+    // Empty clipboards
+    g_TrackClipboard.Clear();
+    m_instrclipboard.activeEditSection = InstrumentSection::NONE;	// According to -1 it knows that it is empty
+    m_songgoclipboard = -2;						// According to -2 it knows that it is empty
+
+    // Delete all tracks and instruments
+    g_Tracks.InitTracks();
+    g_Instruments.InitInstruments();
+
+    // Undo initialization
+    g_Undo.Init();
+
+    // Changes in the module
+    g_changes = 0;
+
+    // Initialise RMT routine
+    g_Atari.Init(IsNTSC());
+    g_AtariTrackerDriver->Init();
+}
 
 int CSong::GetSubsongParts(CString& resultstr) const
 {

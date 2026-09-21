@@ -281,20 +281,27 @@ covered by Batches 2-3 testing the underlying `MakeModule`/`SaveRMW`/
 wrapper methods directly; if UI-level coverage is ever wanted, it needs a
 real UI-testing approach, out of scope for this characterization effort.
 
-### `ClearSong` (own category - large but maybe worth it later)
-Touches ~18 globals (`g_Atari`, `g_AtariTrackerDriver`, `g_Instruments`,
-`g_TrackClipboard`, `g_Tracks`, `g_Undo`, `g_tracks4_8`, plus several
-UI/state flags like `g_activepart`, `g_changes`, `g_rmtroutine`, etc.),
-**plus a real `CMainFrame* mf = (CMainFrame*)AfxGetMainWnd();` MFC
-application-framework call** and `g_AtariTrackerDriver->Init()` on a
-pointer never instantiated in the test project (confirmed by reading its
-body while scoping Batch 3). It's called from many of the `FileXxx`/
-`LoadXxx` methods (including `LoadRMW`/`LoadTxt`, dropped from Batch 3 for
-this reason), so testing it would require stubbing a long tail of globals
-plus deciding how to handle the `AfxGetMainWnd()` call specifically (a
-different kind of hazard than a stubbable global). Given the size, propose
-leaving it for its own dedicated future decision rather than folding into
-any batch above.
+### `ClearSong` - DONE
+Originally flagged as its own large, deferred category (~18 globals plus a
+real `AfxGetMainWnd()`/`CMainFrame` call and `g_AtariTrackerDriver->Init()`
+on a pointer assumed never instantiated in the test project). Re-triaged
+after Batches 4/6 had already made most of that tail real/safe:
+`g_AtariTrackerDriver` is now a real instantiated object (`AtariTrackerDriverCore.cpp`),
+`g_Atari.Init()`/`g_AtariTrackerDriver->Init()` both delegate to
+already-stubbed-safe no-ops, and `g_Tracks.InitTracks()`/
+`g_Instruments.InitInstruments()`/`g_Undo.Init()`/`g_TrackClipboard.Clear()`
+are all real, cheap, own-state resets. The **only** genuine remaining
+hazard was the `AfxGetMainWnd()`/`CMainFrame` UI-sync call - extracted into
+its own `CSong::SyncSkipLinesAfterNoteInsertComboBox()` (stays in
+`Song.cpp`, link-only no-op stub in tests), with the rest of `ClearSong()`
+moved to `SongEditing.cpp` unchanged. ~7 trivial new global stubs
+(`g_rmtroutine`, `g_rmtstripped_sfx`/`_gvf`, `g_rmtmsxtext`,
+`g_PrefixForAllAsmLabels`, `g_changes`, `g_SkipLinesAfterNoteInsert`) and a
+one-line `SetEditMode()` stub were added to the test project. 2 new tests,
+216 tests passing (see `plans/NOTES.md` for the full writeup). Note:
+`LoadRMW`/`LoadTxt` (Batch 3) call `ClearSong()` but haven't themselves
+been re-triaged yet - they're now unblocked on this front, but still need
+their own pass.
 
 ### `ExportV2` (own category - needs its own triage)
 A dispatcher, not a simple encode: beyond the already-safe `MakeModule()`,

@@ -1001,3 +1001,70 @@ TEST_F(SongEditingTest, PlayVBIAdvancesTheTrackPlayLineOnceSpeedElapses) {
     EXPECT_TRUE(song.PlayVBI());
     EXPECT_EQ(song.GetPlayLine(), 6);
 }
+
+// --- ClearSong ---
+// ClearSong()'s only real hazard - a real MFC AfxGetMainWnd()/CMainFrame
+// call to sync a UI combo box - was extracted into its own
+// SyncSkipLinesAfterNoteInsertComboBox(), stubbed as a no-op here (see
+// SongEditingStub.cpp). Everything else it touches (g_Tracks/g_Instruments/
+// g_Undo/g_TrackClipboard/g_Atari.Init()/g_AtariTrackerDriver->Init(), plus
+// a handful of trivial BOOL/int/CString globals) is real in this test
+// binary, confirmed while scoping this move (see plans/NOTES.md).
+
+TEST_F(SongEditingTest, ClearSongResetsSongDataAndPositionBackToDefaults) {
+    (*song.GetSong())[0][0] = 5;
+    (*song.GetSongGo())[2] = 7;
+
+    song.SongSetActiveLine(3);
+    song.SetActiveLine(4);
+    song.SongSetPlayLine(3);
+    song.SetPlayLine(4);
+    song.ActiveInstrSet(5);
+    song.SetFollowPlayMode(FALSE);
+
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.speed = 6;
+    info.mainspeed = 6;
+    info.instrspeed = 3;
+    strncpy(info.songname, "Custom", SONG_NAME_MAX_LEN);
+    song.SetSongInfoPars(&info);
+
+    EXPECT_TRUE(song.SetBookmark());
+
+    song.ClearSong(4);
+
+    EXPECT_EQ((*song.GetSong())[0][0], -1);
+    EXPECT_EQ((*song.GetSongGo())[2], -1);
+
+    EXPECT_EQ(song.SongGetActiveLine(), 0);
+    EXPECT_EQ(song.GetActiveLine(), 0);
+    EXPECT_EQ(song.SongGetPlayLine(), 0);
+    EXPECT_EQ(song.GetPlayLine(), 0);
+    EXPECT_EQ(song.GetActiveInstr(), 0);
+    EXPECT_TRUE(song.GetFollowPlayMode());
+
+    TInfo cleared = {};
+    song.GetSongInfoPars(&cleared);
+    EXPECT_EQ(cleared.speed, 16);
+    EXPECT_EQ(cleared.mainspeed, 16);
+    EXPECT_EQ(cleared.instrspeed, 1);
+    CString name(cleared.songname, SONG_NAME_MAX_LEN);
+    name.TrimRight();
+    EXPECT_STREQ(name, "Noname song");
+
+    EXPECT_EQ(song.GetBookmark()->songline, -1);
+    EXPECT_EQ(song.GetBookmark()->trackline, -1);
+    EXPECT_EQ(song.GetBookmark()->speed, -1);
+
+    EXPECT_STREQ(song.GetFilename(), "");
+    EXPECT_EQ(song.GetIOType(), SongIOType::NONE);
+}
+
+TEST_F(SongEditingTest, ClearSongSetsTheTrackCount) {
+    song.ClearSong(8);
+    EXPECT_EQ(g_tracks4_8, 8);
+
+    song.ClearSong(4);
+    EXPECT_EQ(g_tracks4_8, 4);
+}
