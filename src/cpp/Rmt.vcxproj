@@ -207,6 +207,7 @@
     <ClCompile Include="Fraction.cpp" />
     <ClCompile Include="ChannelControl.cpp" />
     <ClCompile Include="Clipboard.cpp" />
+    <ClCompile Include="ClipboardCore.cpp" />
     <ClCompile Include="Messages.cpp" />
     <ClCompile Include="OptionsDialog.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
@@ -323,6 +324,7 @@
     </ClCompile>
     <ClCompile Include="Song.cpp" />
     <ClCompile Include="SongCore.cpp" />
+    <ClCompile Include="SongEditing.cpp" />
     <ClCompile Include="SongExporter.cpp" />
     <ClCompile Include="Tracks.cpp" />
     <ClCompile Include="TracksEdit.cpp" />

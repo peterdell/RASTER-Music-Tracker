@@ -126,6 +126,9 @@
     <ClCompile Include="Clipboard.cpp">
       <Filter>Source Files\Model</Filter>
     </ClCompile>
+    <ClCompile Include="ClipboardCore.cpp">
+      <Filter>Source Files\Model</Filter>
+    </ClCompile>
     <ClCompile Include="Instruments.cpp">
       <Filter>Source Files\Model</Filter>
     </ClCompile>
@@ -145,6 +148,9 @@
       <Filter>Source Files\Model</Filter>
     </ClCompile>
     <ClCompile Include="SongCore.cpp">
+      <Filter>Source Files\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="SongEditing.cpp">
       <Filter>Source Files\Model</Filter>
     </ClCompile>
     <ClCompile Include="GuiHelpers.cpp">

@@ -832,3 +832,91 @@ build clean and all 123 tests pass.
       - **`Song.cpp`/`IO_Song.cpp` Tiers 2–4 remain for a future batch** — editing
         operations, format/export logic, and live playback methods respectively,
         all still coupled to `g_Song`/other globals and not yet split out.
+- [x] Phase 2 continued: `Song.cpp`/`IO_Song.cpp`'s "editing operations" batch
+      (formerly Tier 2) done, plus a `Clipboard.cpp` split, 184 tests total. Not
+      yet committed.
+      - Fresh scoping pass found that **every remaining method in `Song.cpp`/
+        `IO_Song.cpp` is coupled**, even ones with zero *direct* global
+        references (e.g. `SongJump`, `TrackCut`) - they call other coupled
+        methods internally. A naive "zero direct refs" grep is not enough;
+        transitive call-graph analysis is needed (built a small Python script
+        for this, not checked in - see scratchpad).
+      - However, **`CUndo`'s constructor is also cheap** (just nulls an array)
+        - another instance of the "verify before deferring" lesson from
+        `CAtari`/`CPokeyController`. Combined with already-cheap `CTracks`/
+        `CInstruments`/`CTrackClipboard`, this unlocked a "safe cluster": 46
+        methods that only transitively touch `g_tracks4_8`/`g_Undo`/`g_Tracks`/
+        `g_Instruments`/`g_TrackClipboard`, all confirmed cheap.
+      - Extracted those 46 into a new `SongEditing.cpp` (mechanical move,
+        pure/behavior-preserving, verified via a production `Rmt.exe` rebuild
+        with 0 errors before any test code was added). Two candidates
+        (`SaveRMW`/`SaveTxt`) were deliberately excluded despite passing the
+        automated global-reference check: they call `CString::LoadString()`,
+        an MFC resource-string load unreliable in a console test binary -
+        left for the IO_Song.cpp format/export batch instead.
+      - **`Clipboard.cpp` turned out to be almost entirely extractable too**:
+        18 of its 19 methods (everything except `BlockEffect()`, which
+        instantiates a real `CEffectsDlg` MFC dialog) only touch `g_Tracks`/
+        `g_Song` and the trivial `ClearStatusBar()`/`SetStatusBarText()`
+        helpers - split into a new `ClipboardCore.cpp`, leaving `Clipboard.cpp`
+        with just `BlockEffect()`. Also verified via a clean production
+        rebuild before any tests were added.
+      - **Real, pre-existing design smell found (not fixed, characterized
+        instead)**: `CTrackClipboard`'s `BlockSetBegin()`/`BlockPasteToTrack()`
+        internally read the *global* `g_Song`, not necessarily the `CSong`
+        instance a caller's `BLOCKSETBEGIN()`/`BlockPaste()` was invoked on.
+        This means block-selection behavior is coupled to the global song
+        regardless of which `CSong` object hosts the call. Tests exercising
+        these specific methods use `g_Song` as the instance under test to
+        match real usage, rather than trying to fix or route around this.
+      - **Real gap found in the existing test harness (fixed)**: two more
+        "looks safe by direct-global-check" surprises, both from calling a
+        method whose *own* body needs a global outside the checked set:
+        `CInstruments::MemorizeOctaveAndVolume()`/`RememberOctaveAndVolume()`
+        (called by `ActiveInstrSet`) need `g_keyboard_RememberOctavesAndVolumes`
+        and live in the still-coupled `Instruments.cpp` (not linked into the
+        test project at all - would have been a linker error, not a silent
+        bug); `CInstruments::Update()` (called by `RenumberAllInstruments`)
+        lives in the still-`Global.h`-coupled `IO_Instruments.cpp`. Both
+        stubbed as no-ops in `InstrumentsStub.cpp`, alongside the pre-existing
+        `ClearInstrument()` stub. Lesson: a method call on an already-"safe"
+        global object doesn't guarantee the *called* method itself is
+        safe/linkable - always check the callee's own body and translation
+        unit too, not just which object it's called on.
+      - **Real test-isolation bug found and fixed (in the new test file, not
+        production code)**: since `CInstruments::ClearInstrument()` is a
+        no-op stub, `CInstruments::InitInstruments()` no longer actually
+        resets instrument data between tests in this binary, letting one
+        test's `TInstrument` field mutations leak into the next and produce
+        wrong `RenumberAllInstruments` results. Fixed by having the test
+        fixture directly `memset()` every instrument to zero in `SetUp()`
+        rather than relying on `InitInstruments()`.
+      - Added `test/UndoStub.cpp` (real bodies for `CUndo`'s pure bookkeeping
+        methods - constructor/destructor/`Init`/`Clear`/`DeleteEvent`/
+        `GetUndoSteps`/`GetRedoSteps`/`DropLast`/`Separator`/`PosIsEqual` -
+        plus no-op stubs for `ChangeTrack`/`ChangeSong`/`ChangeInstrument`/
+        `ChangeInfo`/`Undo`/`Redo`/`PerformEvent`/`InsertEvent`, which record/
+        replay real edits against `g_Tracks`/`g_Instruments`/`g_Song`/
+        `g_hwnd` - not needed since the editing methods under test only care
+        about the edit's own visible effect, not the undo recording).
+      - Added `test/SongEditingStub.cpp` (real `g_Tracks`/`g_Instruments`/
+        `g_TrackClipboard`/`g_Song` globals, plus no-op `ClearStatusBar()`/
+        `SetStatusBarText()` stubs).
+      - Wrote `test/SongEditingTests.cpp` (46 tests, one per moved method,
+        two derivation errors caught and fixed on first run: `SongTrackDec`'s
+        wraparound only triggers below -1, not at 0; `BlockPaste()` reads
+        from `CTrackClipboard::m_track` - populated by `BlockCopyToClipboard()`
+        - not `m_trackcopy`, which is `TrackCopy()`'s separate, unrelated
+        clipboard field).
+      - Full solution rebuild (Release|x64) confirmed 0 errors for both
+        `Rmt.exe` and `RmtTests.exe`; 184 tests pass (up from 138, +46, 0
+        regressions).
+      - **Remaining in `Song.cpp`/`IO_Song.cpp`**: format/export logic
+        (`MakeModule`/`DecodeModule`/`MakeTuningBlock`/`DecodeTuningBlock`/
+        `SaveRMW`/`SaveTxt`/`LoadRMW`/`LoadTxt`/`LoadRMT`/the `FileXxx`
+        methods/etc.) and live playback methods (`Play`/`Stop`/`PlayBeat`/
+        `PlayVBI`/`TimerRoutine`/etc.), plus `InstrChange`/`InstrInfo`/
+        `TrackInfo`/`TracksOrderChange`/`Songswitch4_8` (heavier editing
+        methods needing `g_hwnd`/`g_AtariTrackerDriver`/other hazards) - none
+        of these were in the "safe cluster" and still need their own,
+        separate triage/decoupling work.
