@@ -3,7 +3,7 @@
 #include <fstream>
 
 #include "SongTypes.h"
-#include "Tracks.h"
+#include "TracksTypes.h"
 #include "TrackTypes.h"
 
 #include "Notes.h"
@@ -87,7 +87,12 @@ public:
 
 private:
     int m_maxTrackLength;
-    TTrack* m_track;
+    // Initialized here (not just in the constructor body) because the
+    // constructor checks "if (m_track) delete[] m_track;" before assigning
+    // it, which would otherwise read an indeterminate value on any
+    // non-static-storage instance (the single global g_Tracks happened to
+    // get this for free from static zero-initialization).
+    TTrack* m_track = nullptr;
 };
 
 extern CTracks g_Tracks;

@@ -103,6 +103,9 @@
     <ClCompile Include="..\Tuning.cpp" />
     <ClCompile Include="TuningInitStub.cpp" />
     <ClCompile Include="..\lzss_sap.cpp" />
+    <ClCompile Include="..\Tracks.cpp" />
+    <ClCompile Include="..\IO_Tracks.cpp" />
+    <ClCompile Include="..\IOHelpers.cpp" />
     <!-- Test sources. -->
     <ClCompile Include="FractionTests.cpp" />
     <ClCompile Include="StringUtilityTests.cpp" />
@@ -110,6 +113,7 @@
     <ClCompile Include="TuningTypesTests.cpp" />
     <ClCompile Include="TuningTests.cpp" />
     <ClCompile Include="LzssTests.cpp" />
+    <ClCompile Include="TracksTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Fraction.h" />
@@ -120,6 +124,10 @@
     <ClInclude Include="..\Tuning.h" />
     <ClInclude Include="..\C6502.h" />
     <ClInclude Include="..\lzss_sap.h" />
+    <ClInclude Include="..\Tracks.h" />
+    <ClInclude Include="..\TracksTypes.h" />
+    <ClInclude Include="..\TrackTypes.h" />
+    <ClInclude Include="..\IOHelpers.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="googletest\LICENSE" />

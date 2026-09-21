@@ -322,6 +322,7 @@
     <ClCompile Include="Song.cpp" />
     <ClCompile Include="SongExporter.cpp" />
     <ClCompile Include="Tracks.cpp" />
+    <ClCompile Include="TracksEdit.cpp" />
     <ClCompile Include="TracksControl.cpp" />
     <ClCompile Include="Tuning.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>

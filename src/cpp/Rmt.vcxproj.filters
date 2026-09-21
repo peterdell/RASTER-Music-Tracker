@@ -132,6 +132,9 @@
     <ClCompile Include="Tracks.cpp">
       <Filter>Source Files\Model</Filter>
     </ClCompile>
+    <ClCompile Include="TracksEdit.cpp">
+      <Filter>Source Files\Model</Filter>
+    </ClCompile>
     <ClCompile Include="Song.cpp">
       <Filter>Source Files\Model</Filter>
     </ClCompile>

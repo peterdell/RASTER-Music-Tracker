@@ -270,6 +270,67 @@ Added tests for the SAP-R LZSS compressor (11 more, 54 total, all passing):
 Verified via a full Release|x64 solution rebuild (see workflow note above): `Rmt.exe`
 and `RmtTests.exe` both build clean (0 errors) and all 54 tests pass.
 
+## Phase 2 continued (2026-09-21): `CTracks` (`Tracks.cpp`/`IO_Tracks.cpp`)
+
+`AssemblerTypes.h/cpp` turned out to be a single trivial enum with nothing to test —
+skipped. Moved on to `CTracks`, which is the "fixed-format struct parsing" candidate
+the plan called out (`TrackToAta`/`AtaToTrack` encode/decode the compact on-Atari track
+byte format). Added 26 tests (69 total, all passing):
+
+Found and fixed two real, independent bugs while reading `Tracks.cpp` (both
+behavior-preserving for the only production caller, the global `g_Tracks`, but real
+hazards for constructing any other `CTracks` instance, e.g. in a test):
+- **Uninitialized-pointer read**: `CTracks`'s constructor did
+  `if (m_track) delete[] m_track;` before `m_track` was ever assigned, and `m_track`
+  had no default member initializer. For the single global `g_Tracks`, C++ static
+  zero-initialization happened to make this safe (globals start zeroed before their
+  constructor runs), but constructing a second, non-global `CTracks` (as a test would)
+  reads indeterminate stack/heap memory there — if that garbage happens to look
+  non-null, `delete[]` gets called on a bogus pointer. **Fixed** with a default member
+  initializer, `TTrack* m_track = nullptr;` (`Tracks.h`).
+- **`delete` instead of `delete[]`**: `m_track` is allocated with
+  `new TTrack[TRACKSNUM]` but freed with plain `delete` in both the constructor's
+  pre-check and the destructor — undefined behavior for an array allocation. `TTrack`
+  has no destructor of its own so this likely never visibly corrupted anything in
+  practice, but it's still UB and worth fixing outright, not just characterizing.
+  **Fixed**: both occurrences changed to `delete[]` (`Tracks.cpp`).
+- Also fixed an **include typo** in `Tracks.h`: it self-included `"Tracks.h"` (a
+  harmless no-op given `#pragma once`) where it clearly meant `"TracksTypes.h"` (the
+  header that actually defines `TTracksAll`/`TRACKSNUM`, which `Tracks.h` uses). It
+  only ever compiled because something else in the real app happened to include
+  `TracksTypes.h` first; a standalone include of `Tracks.h` (as the test project needs)
+  would not have compiled otherwise. **Fixed**: corrected the include.
+
+Coupling split (same pattern as `Tuning.cpp`/`TuningTables.cpp`): `Tracks.cpp` included
+`Global.h` only for 7 of its ~25 methods — the ones that record undo history (`g_Undo`)
+and consult `g_respectvolume`: `DelNoteInstrVolSpeed`, `SetNoteInstrVol`, `SetInstr`,
+`SetVol`, `SetSpeed`, `SetEnd`, `SetGo`. Moved exactly those into a new
+`src/cpp/TracksEdit.cpp` (added to `Rmt.vcxproj`); `Tracks.cpp` no longer includes
+`Global.h` at all. `IO_Tracks.cpp` (the `TrackToAta`/`AtaToTrack`/`Save*`/`Load*`
+methods) and `IOHelpers.cpp` (its `Hexstr`/`NextSegment`/etc. free-function
+dependencies) were **already** `Global.h`-free — no split needed there, just added
+directly to `RmtTests.vcxproj`.
+
+Tests added (`TracksTests.cpp`):
+- `TracksTest` fixture (constructs a real `CTracks`, calls `InitTracks()`): empty-track
+  detection, `ClearTrack`, `InsertLine`/`DeleteLine` (line-shifting), `CalculateNotEmpty`,
+  `CompareTracks`, and `TrackOptimizeVol0` — the last one is a genuinely intricate
+  redundant-zero-volume cleanup pass, hand-traced carefully against the source before
+  writing the test's expected values (see the test's own comment for the exact
+  redundancy rule it exercises).
+- `TracksModifiedValueTest`: `GetModifiedNote`/`GetModifiedInstr`/`GetModifiedVolumeP` —
+  pure transform functions (transpose/wrap/scale-and-clamp), all hand-verified.
+- `TrackAtaFormatTest`: two full round-trip tests (`TrackToAta` encode → exact expected
+  bytes → `AtaToTrack` decode → original field values restored) for a single-note line
+  and a leading-pause-then-note case. Byte values were hand-derived bit-by-bit from the
+  format comments already present in `IO_Tracks.cpp`, not captured — this format's
+  bit-packing is simple enough (unlike LZSS's) to safely hand-verify, and all 15 of
+  this batch's hand-derived tests passed on the very first run, which cross-checks the
+  hand-derivation was correct.
+
+Verified via a full Release|x64 solution rebuild: `Rmt.exe` and `RmtTests.exe` both
+build clean and all 69 tests pass.
+
 ## Status
 
 - [x] Read `plans/OVERALL_PLAN.md`, `README.md`, and linked docs present in the repo.
@@ -281,17 +342,27 @@ and `RmtTests.exe` both build clean (0 errors) and all 54 tests pass.
 - [x] Phase 2 started: GoogleTest vendored + wired up, committed (`52b9073`).
 - [x] Phase 2 continued: split `Tuning.cpp`/`TuningTables.cpp`, 43 tests, committed
       (`6cdabe7`).
-- [x] Phase 2 continued: `lzss_sap.cpp`/`CCompressLzss` tests, 54 tests total (11 new).
+- [x] Phase 2 continued: `lzss_sap.cpp`/`CCompressLzss` tests, 54 tests total,
+      committed (`9475297`).
+- [x] Phase 2 continued: `CTracks`/`IO_Tracks.cpp` tests + 3 real bug fixes
+      (uninitialized pointer, `delete` vs `delete[]`, include typo), 69 tests total.
       Not yet committed.
 - [ ] Ask user whether to commit this step.
-- [ ] Phase 2 continued: more characterization tests before any cleanup, roughly in
-      order of increasing coupling:
-      - `AssemblerTypes`, `Song` fixed-format struct parsing (`Track`, `Instruments`)
-        where feasible without a live Atari/POKEY emulation.
+- [ ] Phase 2 continued: more characterization tests before any cleanup, candidates in
+      rough order:
+      - `Instruments`/`IO_Instruments.cpp` — likely mirrors the `Tracks`/`IO_Tracks`
+        split (check for a `Global.h` include and an editing-vs-IO seam the same way).
+      - `Song`'s fixed-format struct parsing pieces (check `IO_Song.cpp` first, given
+        the established convention that `IO_*.cpp` files tend to already be
+        `Global.h`-free even when their `*.cpp` counterpart isn't).
       - Before starting a new module, always check whether it `#include`s `Global.h`
         (or another huge header) and, if so, whether the globally-coupled methods can
-        be split out the same way as `Tuning.cpp`/`TuningTables.cpp` — check this
-        early, since it changes the scope of the work.
+        be split out the same way as `Tuning.cpp`/`TuningTables.cpp` and
+        `Tracks.cpp`/`TracksEdit.cpp` — check this early, since it changes the scope
+        of the work. Also worth a quick read-through for the same class of bugs found
+        in `CTracks` (uninitialized members with no default initializer, `delete`
+        vs `delete[]` mismatches, wrong/self-referential includes) — these are cheap
+        to spot while reading for coupling anyway, and safe, real fixes once found.
       - When a method needed for testing is `private` but pure (no dependency on
         other private state) and there's no other way to exercise it (no decoder/
         inverse operation, no way to observe its effect indirectly), the established
