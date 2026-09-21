@@ -132,9 +132,13 @@ for now, same posture as `TimerRoutine`/`ChangeTimer`/`ReInitSound`.
 
 ## Suggested execution order
 
-1. **Batch A**: widen `CAtariIO::SaveBinaryBlock` to `std::ostream&`; link
-   `RmtExporter.cpp`'s safe half (`ExportAsRMT`) directly - no split needed,
-   it's already clean.
+1. **Batch A - DONE**: widened `CAtariIO::SaveBinaryBlock` to `std::ostream&`;
+   split `RmtExporter.cpp`'s safe half (`ExportAsRMT`) into a new
+   `RmtExporterCore.cpp` and linked it directly - no code change needed to
+   `ExportAsRMT` itself beyond widening its own `ou` parameter the same way,
+   confirming it really was already clean. 1 new round-trip test (through
+   `LoadRMT`), 224 tests passing (see `plans/NOTES.md` for the full
+   writeup, including a real hazard the test-writing process surfaced).
 2. **Batch B**: split `CRmtExporter::ExportAsStrippedRMT` (dialog-gather-
    then-work, same treatment as `InstrChange`/`TracksOrderChange`).
 3. **Batch C**: link `CASMFileExporter::BuildRelocatableAsm` directly (no

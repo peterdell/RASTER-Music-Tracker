@@ -128,6 +128,7 @@
     <ClCompile Include="..\SongEditing.cpp" />
     <ClCompile Include="..\ClipboardCore.cpp" />
     <ClCompile Include="..\AtariIO.cpp" />
+    <ClCompile Include="..\RmtExporterCore.cpp" />
     <ClCompile Include="UndoStub.cpp" />
     <ClCompile Include="SongEditingStub.cpp" />
     <!-- Test sources. -->

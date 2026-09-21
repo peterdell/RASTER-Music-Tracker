@@ -101,7 +101,7 @@ int CAtariIO::LoadDataAsBinaryFile(unsigned char* data, MemorySize size, byte* m
 /// <param name="toAddr">End address (last byte of the data)</param>
 /// <param name="withBinaryBlockHeader">True then the FROM,TO header will start with FFFF. Only required on the first block</param>
 /// <returns>Total number of bytes output</returns>
-int CAtariIO::SaveBinaryBlock(std::ofstream& out, const byte* memory, MemoryAddress fromAddr, MemoryAddress toAddr, bool withBinaryBlockHeader)
+int CAtariIO::SaveBinaryBlock(std::ostream& out, const byte* memory, MemoryAddress fromAddr, MemoryAddress toAddr, bool withBinaryBlockHeader)
 {
     //from "fromadr" to "toadr" inclusive
     if (fromAddr > toAddr) return 0;

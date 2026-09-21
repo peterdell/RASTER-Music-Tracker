@@ -26,7 +26,7 @@ public:
     static int LoadBinaryBlock(std::istream& in, byte* memory, MemoryAddress& fromadr, MemoryAddress& toadr);
     static int LoadBinaryFile(const char* fname, byte* memory, MemoryAddress& minadr, MemoryAddress& maxadr);
     static int LoadDataAsBinaryFile(unsigned char* data, MemorySize size, byte* memory, MemoryAddress& minadr, MemoryAddress& maxadr);
-    static int SaveBinaryBlock(std::ofstream& out, const byte* memory, MemoryAddress fromAddr, MemoryAddress toAddr, bool withBinaryBlockHeader);
+    static int SaveBinaryBlock(std::ostream& out, const byte* memory, MemoryAddress fromAddr, MemoryAddress toAddr, bool withBinaryBlockHeader);
 
 private:
     static bool LoadWord(std::istream& in, MemoryWord& w);

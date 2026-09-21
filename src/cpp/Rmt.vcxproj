@@ -225,6 +225,7 @@
     <ClCompile Include="PokeyView.cpp" />
     <ClCompile Include="RmtCommandLineInfo.cpp" />
     <ClCompile Include="RmtExporter.cpp" />
+    <ClCompile Include="RmtExporterCore.cpp" />
     <ClCompile Include="RmtTest.cpp" />
     <ClCompile Include="RuntimeException.cpp" />
     <ClCompile Include="SAPFile.cpp" />

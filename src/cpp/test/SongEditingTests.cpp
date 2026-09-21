@@ -4,6 +4,7 @@
 #include "Clipboard.h"
 #include "TuningTypes.h"
 #include "RmtVersion.h"
+#include "RmtExporter.h"
 #include <sstream>
 
 extern int g_tracks4_8;
@@ -991,6 +992,45 @@ TEST_F(SongEditingTest, LoadRMTDecodesTheModuleAndNamesBlocks) {
     EXPECT_STREQ(decoded.GetName(), "TestSong");
     // Unlike GetName(), the raw instrument name field isn't trimmed - LoadRMT
     // fills the remainder with spaces up to INSTRUMENT_NAME_MAX_LEN.
+    CString instrName = g_Instruments.GetInstrument(2)->name;
+    instrName.TrimRight();
+    EXPECT_STREQ(instrName, "Lead");
+}
+
+// --- CRmtExporter::ExportAsRMT ---
+// Round-trips through LoadRMT - the two blocks it writes are exactly what
+// LoadRMT expects, so this exercises ExportAsRMT for real rather than
+// hand-deriving the RMT header's byte layout, same philosophy as LoadRMT's
+// own test above (which instead builds those blocks by hand).
+
+TEST_F(SongEditingTest, ExportAsRMTRoundTripsThroughLoadRMT) {
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6; // DecodeModule() rejects a zero speed byte as invalid
+    info.instrspeed = 2;
+    strncpy(info.songname, "TestSong", SONG_NAME_MAX_LEN);
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->len = 4;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 2;
+    memcpy(g_Instruments.GetInstrument(2)->name, "Lead", 4);
+
+    TExportDescription exportDesc{};
+    exportDesc.targetAddrOfModule = 0x4000;
+    int maxAddr = song.MakeModule(exportDesc.mem, exportDesc.targetAddrOfModule, SongIOType::RMT, exportDesc.instrumentSavedFlags, exportDesc.trackSavedFlags);
+    ASSERT_GT(maxAddr, 0);
+    exportDesc.firstByteAfterModule = maxAddr;
+
+    std::ostringstream out;
+    ASSERT_TRUE(CRmtExporter::ExportAsRMT(song, out, &exportDesc));
+
+    std::istringstream in(out.str());
+    CSong decoded;
+    ASSERT_TRUE(decoded.LoadRMT(in));
+
+    EXPECT_STREQ(decoded.GetName(), "TestSong");
     CString instrName = g_Instruments.GetInstrument(2)->name;
     instrName.TrimRight();
     EXPECT_STREQ(instrName, "Lead");

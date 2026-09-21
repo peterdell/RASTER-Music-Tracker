@@ -1391,3 +1391,31 @@ build clean and all 123 tests pass.
       - No code changes, no build/test impact this pass - see
         `plans/EXPORTV2_PLAN.md` for the full per-method breakdown and
         suggested execution order (Batches A-D, plus what stays deferred).
+- [x] `ExportV2` Batch A: `CRmtExporter::ExportAsRMT` + `CAtariIO::SaveBinaryBlock`.
+      - Widened `SaveBinaryBlock()` to `std::ostream&` (from `std::ofstream&`),
+        matching `LoadBinaryBlock`'s existing precedent - its handful of
+        real call sites all pass a genuine file stream already.
+      - Split `RmtExporter.cpp` into a new `RmtExporterCore.cpp` holding
+        just `ExportAsRMT()` (widened to `std::ostream&` too, for the same
+        reason), leaving `ExportAsStrippedRMT()` (the real-dialog one,
+        Batch B) behind with a pointer comment. Removed the now-dead
+        `g_Instruments`/`Instruments.h` extern/include from
+        `RmtExporter.cpp` itself, since only `ExportAsRMT()` had used them.
+      - **A real hazard, seen firsthand, not just inferred from a comment**:
+        the first version of the new round-trip test forgot to set
+        `mainspeed`/`instrspeed` to non-zero values before calling
+        `MakeModule()` (the same "`DecodeModule()` rejects a zero speed
+        byte" gotcha documented back in Batch 2) - and `LoadRMT()`'s
+        guard-only error `MessageBox` for that failure is a real, blocking
+        WinAPI-style call. The test actually popped a real modal dialog and
+        hung for ~8 seconds before something dismissed it, instead of
+        failing fast. Fixed by setting `mainspeed`/`instrspeed` before
+        encoding, same as the existing `LoadRMT`/`MakeModule` tests already
+        do - but this is now first-hand confirmation (not just a comment)
+        that these guard-only `MessageBox` branches are a genuine, not
+        theoretical, test-safety hazard: getting the test data wrong
+        doesn't just fail an assertion, it can hang the whole run.
+      - 1 new hand-derived test (`ExportAsRMT` round-tripped through the
+        already-tested `LoadRMT`, same philosophy as `LoadRMT`'s own test).
+        Full solution rebuild (Release|x64) confirmed 0 errors; 224 tests
+        pass (up from 223, +1, 0 regressions).
