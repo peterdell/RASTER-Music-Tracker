@@ -111,6 +111,9 @@
     <ClCompile Include="InstrumentsStub.cpp" />
     <ClCompile Include="..\SAPFile.cpp" />
     <ClCompile Include="SAPFileStub.cpp" />
+    <ClCompile Include="..\Keyboard2NoteMapping.cpp" />
+    <ClCompile Include="Keyboard2NoteMappingStub.cpp" />
+    <ClCompile Include="..\ASMFileBuilder.cpp" />
     <!-- Test sources. -->
     <ClCompile Include="FractionTests.cpp" />
     <ClCompile Include="StringUtilityTests.cpp" />
@@ -121,6 +124,8 @@
     <ClCompile Include="TracksTests.cpp" />
     <ClCompile Include="InstrumentsTests.cpp" />
     <ClCompile Include="SAPFileTests.cpp" />
+    <ClCompile Include="Keyboard2NoteMappingTests.cpp" />
+    <ClCompile Include="ASMFileBuilderTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Fraction.h" />
@@ -138,6 +143,8 @@
     <ClInclude Include="..\Instruments.h" />
     <ClInclude Include="..\InstrumentTypes.h" />
     <ClInclude Include="..\SAPFile.h" />
+    <ClInclude Include="..\Keyboard2NoteMapping.h" />
+    <ClInclude Include="..\ASMFileBuilder.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="googletest\LICENSE" />

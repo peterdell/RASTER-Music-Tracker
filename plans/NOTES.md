@@ -432,6 +432,37 @@ which tests don't need to call. Added 4 tests (78 total, all passing):
 Verified via a full Release|x64 solution rebuild: `Rmt.exe` and `RmtTests.exe` both
 build clean and all 78 tests pass.
 
+## Phase 2 continued (2026-09-21): `Keyboard2NoteMapping` and `CASMFileBuilder`
+
+Two more small, self-contained modules, both with zero real coupling issues. Added 12
+tests (90 total, all passing):
+
+- `Keyboard2NoteMapping.cpp` (`NoteKey`/`NumbKey`/`Numblock09Key`, 3 free functions
+  doing lookups into fixed 256-entry virtual-key-code tables): only needs
+  `g_keyboard_layout` (a `KeyboardLayout` enum global), stubbed the same way as
+  `g_tracks4_8` earlier. 7 tests, hand-verified by carefully re-indexing the QWERTY/
+  AZERTY/numblock tables against real Windows virtual-key constants (`VK_A=0x41`,
+  `VK_Z=0x5A`, `VK_0=0x30`, `VK_NUMPAD0=0x60`, etc.) — all passed first try.
+- `ASMFileBuilder.cpp` (`CASMFileBuilder::BuildInstrumentData`/`BuildTracksData`/
+  `BuildSongData`, static methods generating ASM export text from byte buffers): zero
+  globals, zero `Global.h`, no split needed at all. Only gotcha: the test file itself
+  needs `#include "StdAfx.h"` before `ASMFileBuilder.h`, since that header uses
+  `CString` without including anything that declares it — production `.cpp` files get
+  away with this only because `StdAfx.h` is always included first via convention. 5
+  tests for `BuildInstrumentData`/`BuildTracksData` (didn't get to `BuildSongData` yet
+  — its jump/goto encoding state machine is the most intricate of the three).
+  - **Found a fragile-but-not-obviously-wrong contract**: `BuildTracksData`'s trailing
+    validity check scans `track_pos[0..65535]` unconditionally (not just the
+    `[from, to)` range the function actually processes), so any caller must pass an
+    array of at least 65536 `int`s or this reads out of bounds. Characterized (test
+    allocates a real 65536-entry `std::vector<int>`), not changed, since this might be
+    an intentional convention matching the emulated Atari 64K address space used
+    elsewhere in the codebase — flagging it here in case that assumption turns out to
+    be wrong when `BuildSongData` or real callers are examined more closely.
+
+Verified via a full Release|x64 solution rebuild: `Rmt.exe` and `RmtTests.exe` both
+build clean and all 90 tests pass.
+
 ## Status
 
 - [x] Read `plans/OVERALL_PLAN.md`, `README.md`, and linked docs present in the repo.
@@ -450,21 +481,24 @@ build clean and all 78 tests pass.
 - [x] Phase 2 continued: `CInstruments`/`IO_Instruments.cpp` tests + 1 more
       `delete`/`delete[]` fix, split across 2 new files, 74 tests total, committed
       (`e85f0f7`).
-- [x] Phase 2 continued: `CSong` investigated and deliberately deferred (see above,
-      needs a real decoupling pass, not a quick split); `CSAPFile` tested instead (4
-      tests, 78 total). Not yet committed.
+- [x] Phase 2 continued: `CSong` investigated and deliberately deferred; `CSAPFile`
+      tested instead, 78 tests total, committed (`3a6e1b9`).
+- [x] Phase 2 continued: `Keyboard2NoteMapping` + `CASMFileBuilder` (partial) tests,
+      90 tests total. Not yet committed.
 - [ ] Ask user whether to commit this step.
 - [ ] Phase 2 continued: more characterization tests before any cleanup, candidates in
       rough order:
+      - Finish `CASMFileBuilder::BuildSongData` (the jump/goto encoding state
+        machine) — likely needs the golden-master capture technique given its
+        complexity, like `CTuning`/LZSS rather than hand-derivation.
+      - `ASMFile.cpp` is only 2 lines (essentially empty) — confirm there's nothing
+        there before spending time on it.
       - **`CSong` stays deferred** until there's appetite for a real constructor
         decoupling pass (or a deliberate decision to add a riskier test-only seam
         there). Don't retry it opportunistically.
-      - Other small, self-contained classes in the same vein as `CSAPFile`:
-        `ASMFile`/`ASMFileBuilder` (ASM export text generation), `Keyboard2NoteMapping`
-        (3 global refs, no `Global.h` — check what they are), `RuntimeException`-style
-        hazards may recur elsewhere (`grep -rn "ThrowRuntimeException"` across the
-        codebase to find every call site before assuming a given file's error paths
-        are safe to test).
+      - `RuntimeException`-style hazards may recur elsewhere — run
+        `grep -rn "ThrowRuntimeException"` across the codebase to find every call site
+        before assuming a given file's error paths are safe to test.
       - Before starting a new module, always check whether it `#include`s `Global.h`
         (or another huge header) and, if so, whether the globally-coupled methods can
         be split out the same way as `Tuning`/`Tracks`/`Instruments` — check this
@@ -473,16 +507,19 @@ build clean and all 78 tests pass.
         than one file (as with `Instruments.cpp` + `IO_Instruments.cpp`). But if the
         coupling is baked into the **constructor** itself (as with `CSong`), that's a
         signal to defer rather than force a split, unlike coupling confined to a few
-        methods.
+        methods. Some files (`ASMFileBuilder.cpp`, `Keyboard2NoteMapping.cpp`) need no
+        split at all — check coupling before assuming a split is needed.
       - Also worth a quick read-through for the same class of bugs found so far
         (uninitialized members with no default initializer, `delete` vs `delete[]`
         mismatches on array allocations, wrong/self-referential includes, functions
         with production side effects that make them unsafe to call in tests like
-        `MessageBox`+`exit()` or the `ThrowRuntimeException` macro) — cheap to spot
-        while reading for coupling anyway. Real, safe fixes (uninitialized members,
-        `delete`/`delete[]`, includes) get fixed immediately; hazards needing a real
-        redesign (`MessageBox`+`exit()`, non-throwing "exceptions") get characterized
-        and avoided in tests, not silently patched.
+        `MessageBox`+`exit()` or the `ThrowRuntimeException` macro, or fragile
+        "processes a fixed-size range regardless of what was actually passed in"
+        contracts like `BuildTracksData`'s) — cheap to spot while reading for coupling
+        anyway. Real, safe fixes (uninitialized members, `delete`/`delete[]`,
+        includes) get fixed immediately; hazards needing a real redesign or a
+        deliberate decision get characterized and avoided in tests, not silently
+        patched.
       - When a method needed for testing is `private` but pure (no dependency on
         other private state) and there's no other way to exercise it (no decoder/
         inverse operation, no way to observe its effect indirectly), the established
@@ -493,10 +530,15 @@ build clean and all 78 tests pass.
         call site already satisfies the wider type.
       - When a test needs a real, cross-checkable "seam" value that a coupled method
         would otherwise supply from a global (like `CInstruments` tests flipping
-        `g_tracks4_8` between mono/stereo), prefer a small stub `.cpp` that defines
-        just that global (or an empty-body override for a call-graph-only dependency
-        like `ClearInstrument()`/`CSong::GetName()`) over pulling in the whole
-        subsystem that would normally set it.
+        `g_tracks4_8` between mono/stereo, or `Keyboard2NoteMapping` tests flipping
+        `g_keyboard_layout`), prefer a small stub `.cpp` that defines just that global
+        (or an empty-body override for a call-graph-only dependency like
+        `ClearInstrument()`/`CSong::GetName()`) over pulling in the whole subsystem
+        that would normally set it.
+      - When writing a standalone test `.cpp` for a header that (like
+        `ASMFileBuilder.h`) relies on `StdAfx.h` having already been included by
+        convention rather than including its own dependencies, add
+        `#include "StdAfx.h"` in the test file before including that header.
       - Everything touching `g_Song`/other globals, MFC dialogs, and the timer-driven
         sound generation is expected to need actual decoupling work (the "cleanup"
         half of Phase 2) before it's testable at all — do not attempt to test that
