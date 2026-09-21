@@ -518,6 +518,63 @@ classes found in the same survey:
 Verified via a full Release|x64 solution rebuild: `Rmt.exe` and `RmtTests.exe` both
 build clean and all 107 tests pass.
 
+## Phase 2 continued (2026-09-21): survey of `Global.h`-*having* files; `CPokeyStream`
+
+Followed up the "`Global.h`-free" survey with the complementary one: `grep -l
+'"Global.h"' src/cpp/*.cpp`, filtered to skip already-covered files, GUI/dialog files
+(`GUI_*`, `MainFrm`, `OptionsDialog`, `PokeyView`, `Rmt.cpp`, `RmtView`, `SongUI`,
+`TracksControl`, `TuningDialog`, `effectsdlg`), the already-produced coupled-half
+split-off files (`TracksEdit.cpp`, `TuningTables.cpp`), and `Song.cpp`/`IO_Song.cpp`
+(still deliberately deferred with `CSong`). Findings from the ones actually opened:
+
+- **`AtariBinaries.cpp`** (0 direct `g_*` refs, but calls `GetResourceFilePath()` from
+  `Global.h`, which reads real files from an on-disk `resources/` folder via
+  `CFile`/`CByteArray`) — a real-file-I/O candidate like `Shell.cpp`/`WaveFile.cpp`,
+  not pure buffer logic. Skipped for the same reason.
+- **`SAPFileExporter.cpp`** (0 direct `g_*` refs) — takes `CSongExport&`, blocked by
+  the same deferred `CSong` chain as `LZSSFile.cpp`/`SongExport.cpp`, plus also loads
+  a real binary resource file (`vu_player_v2.obx`) via `GetResourceFilePath()`. Two
+  independent reasons to skip.
+- **`Messages.cpp`** (3 `g_*` refs, tiny) — `SendInfoMessage`/`SendErrorMessage` just
+  route text to either `OutputDebugString` (nothing to assert on from a test — no
+  observable return value or side effect worth capturing) or a blocking `MessageBox`
+  (gated behind a file-scope `g_statusBar` pointer that a standalone test TU can't
+  reach since it's not declared `extern` in the header, so it always stays `nullptr`
+  in isolation — safe, but also nothing meaningful to test). Skipped: not because it's
+  hazardous, but because there's no assertable pure behavior once isolated.
+
+Added 9 tests (116 total, all passing) for **`CPokeyStream`** (`PokeyStream.cpp`,
+records POKEY register frames during quick-play for later SAP-R/LZSS export). Like
+`Tuning`/`Tracks`, this file mixes a few genuinely coupled methods
+(`StartRecording()` needs `const CSong&` for `CLZSSFile::GetFrameSize()`; `Record()`
+and `FinishedRecording()` dereference a `CAtariTrackerDriver*` set only by
+`StartRecording()`) with several pure state-machine methods that don't touch either.
+Rather than a file-level split (the coupled methods are woven through the same file,
+not cleanly separable into their own translation unit here), used **link-only
+stubs** for exactly the symbols needed (`CAtariTrackerDriver::GetByteAt`/`Init`
+returning constants, `CLZSSFile::GetFrameSize` returning a constant, and a real,
+already-tested `g_ChannelControl` instance) so the whole file compiles and links,
+while tests only ever call the methods that don't dereference the (deliberately
+left null) tracker-driver pointer — same reasoning as never calling
+`ThrowRuntimeException`'s paths or `CTuning::InitTuning()` without setup.
+
+Two behaviors worth remembering, both confirmed by tracing the state machine by hand
+before writing assertions:
+- `IsRecording()` means "not stopped" (`m_recordState != STOP`), which is **true**
+  for `RECORD`, `WRITE`, and `START` alike — not specifically "actively recording".
+  First guess at this was wrong and the test failure caught it immediately.
+- `TrackSongLine()` self-re-arms back to `RECORD` after detecting the first loop
+  (via an internal `SwitchIntoRecording()` call), but its simpler sibling
+  `CallFromPlayBeat()` does **not** — after one loop it's left in `WRITE`, and since
+  both methods gate all their logic behind `m_recordState == RECORD`, a second loop
+  via `CallFromPlayBeat()` alone is impossible without the caller manually calling
+  `SetState(RECORD)` again in between. Also: `Clear()` resets counters/buffer but
+  never touches `m_recordState`, so a stream that was mid-recording stays
+  "recording" (per `IsRecording()`) after `Clear()`.
+
+Verified via a full Release|x64 solution rebuild: `Rmt.exe` and `RmtTests.exe` both
+build clean and all 116 tests pass.
+
 ## Status
 
 - [x] Read `plans/OVERALL_PLAN.md`, `README.md`, and linked docs present in the repo.
@@ -541,21 +598,29 @@ build clean and all 107 tests pass.
 - [x] Phase 2 continued: `Keyboard2NoteMapping` + `CASMFileBuilder` tests (complete,
       including `BuildSongData`), 93 tests total, committed (`1c3e20b`, `3d84de4`).
 - [x] Phase 2 continued: fresh `Global.h`-free survey → `ChannelControl` +
-      `RmtCommandLineInfo` tests, 107 tests total. Not yet committed.
+      `RmtCommandLineInfo` tests, 107 tests total, committed (`f28854c`).
+- [x] Phase 2 continued: `Global.h`-*having* survey → `CPokeyStream` tests (link-only
+      stubs for its 2 coupled dependencies, no file split needed), 116 tests total.
+      Not yet committed.
 - [ ] Ask user whether to commit this step.
-- [ ] Phase 2 continued: more characterization tests before any cleanup. The easy,
-      zero-`CSong`, zero-`Global.h` candidates are now largely exhausted (see the
-      `LZSSFile`/`SongExport`/`Shell`/`WaveFile` notes above for why those specific
-      ones are out). Next time, either:
-      - Do another fresh `grep -L '"Global.h"' src/cpp/*.cpp` survey pass (some
-        `Global.h`-having files may still have a clean, splittable seam like
-        `Tuning`/`Tracks`/`Instruments` did — don't assume presence of `Global.h`
-        alone rules a file out), or
+- [ ] Phase 2 continued: more characterization tests before any cleanup. Both
+      `Global.h`-free and `Global.h`-having surveys have now been done once; the
+      remaining easy candidates are thinning out. Next time:
+      - Files not yet opened at all from either survey list are the next place to
+        look: from the `Global.h`-having list, e.g. `CanvasXY.cpp`,
+        `AtariTrackerDriver.cpp`, `Atari.cpp`, `C6502.cpp`, `Song_DumpSong.cpp`,
+        `Undo.cpp` — check each for the same "mostly pure, a few coupled methods"
+        shape `PokeyStream` and `Tuning`/`Tracks`/`Instruments` had before assuming
+        it's `CSong`-like.
+      - Prefer the **link-only-stub** approach (used for `PokeyStream`) over a
+        file-level split when the coupled and pure methods are woven through the
+        same file rather than cleanly separable — both are legitimate, pick whichever
+        fits the file's actual shape.
       - Revisit whether it's time to tackle `CSong`'s constructor coupling
-        deliberately (a real decoupling task, not a quick split) — this would also
-        unblock `LZSSFile`, `SongExport`, and `SongContainer`, all currently blocked
-        on it, plus `CSong`'s own `SongToAta`/`AtaToSong` (confirmed pure back when
-        `CSong` was first investigated).
+        deliberately (a real decoupling task, not a quick split) — this would unblock
+        `LZSSFile`, `SongExport`, `SongContainer`, `SAPFileExporter`, `PokeyStream`'s
+        `StartRecording()`, and `CSong`'s own `SongToAta`/`AtaToSong`, all currently
+        blocked on it either directly or via a stubbed-around dependency.
       - `ASMFile.cpp` is only 2 lines (essentially empty) — confirm there's nothing
         there before spending time on it.
       - **`CSong` stays deferred** until there's appetite for a real constructor
