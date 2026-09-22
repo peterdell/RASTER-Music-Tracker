@@ -190,13 +190,24 @@ every other batch in this project:
    across all four `MessageAnswer` values and all three `MessageButtons`
    sets. Full solution rebuild (Release|x64) confirmed 0 errors; 243 tests
    pass (up from 239, +4, 0 regressions).
-2. **Already-linked/near-linked files with fire-and-forget notices only**
-   (highest payoff - no new hazard categories, just removes `g_hwnd`
-   coupling and makes today's "avoid the guard branch" tests slightly more
-   robust): `SongEditing.cpp` (10 sites), `IO_ImporterCore.cpp` (6),
-   `IO_Importer.cpp` (6), `Undo.cpp` (5, all `"...BAD!"` internal-error
-   assertions on invalid enum values - already unreachable with valid
-   input), `TuningTables.cpp` (1).
+2. **Already-linked/near-linked files with fire-and-forget notices only -
+   DONE.** Re-counted against the actual source (the original survey's
+   per-file numbers were slightly off): `SongEditing.cpp` (14 sites, not
+   10), `IO_ImporterCore.cpp` (6), `IO_Importer.cpp` (6, including the
+   `errorCode`-driven `switch` from `ImportMOD`'s three header guards),
+   `Undo.cpp` (5, all `"...BAD!"` internal-error assertions on invalid enum
+   values - already unreachable with valid input), `TuningTables.cpp` (1) -
+   32 call sites total. `SongEditing.cpp`/`IO_ImporterCore.cpp` each had
+   their own `extern HWND g_hwnd;` removed (no longer referenced anywhere
+   in either file); `IO_Importer.cpp`/`Undo.cpp`/`TuningTables.cpp` keep
+   their existing `#include "Global.h"` since they still use other globals
+   from it (`g_tracks4_8`, `g_Song`/`g_activepart`/`g_changes`,
+   `g_notesperoctave`/`g_tuning`/`g_tuningRatios` respectively) -
+   fully removing `Global.h` from those three was out of scope for this
+   batch (a bigger, separate decision, not requested). No new tests - this
+   batch has no new hazard categories to characterize, it's a mechanical
+   swap. Full solution rebuild (Release|x64) confirmed 0 errors; 243 tests
+   pass (unchanged, 0 regressions).
 3. **`IO_Song.cpp`'s fire-and-forget notices** (18 sites) - this file
    itself stays deferred (`FileXxx` family, confirmed no dialog-free
    `Apply()` core exists - see `plans/SONG_IO_SONG_REMAINING_PLAN.md`

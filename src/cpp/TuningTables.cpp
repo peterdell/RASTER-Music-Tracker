@@ -12,6 +12,7 @@
 
 #include "Global.h"
 #include "Tuning.h"
+#include "Messages.h"
 
 /// <summary> Generate a POKEY Frequencies lookup table using the given parameters </summary>
 /// <param name = "table"> Memory address the table will be written to, typically the emulated Atari memory </param>
@@ -196,7 +197,7 @@ void CTuning::GenerateTable(byte* table, int length, int semitone, Timbre timbre
 void CTuning::InitTuning() {
     if (!g_tuning.basetuning)	//if base tuning is 0.0, make sure to reset it, else the program could crash!
     {
-        MessageBox(g_hwnd, "An invalid tuning has been detected!\n\nBasetuning is zero. ", "Program error", MB_ICONERROR);
+        SendErrorMessage("Program error", "An invalid tuning has been detected!\n\nBasetuning is zero. ");
         exit(1);
     }
 

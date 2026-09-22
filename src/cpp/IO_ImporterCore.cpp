@@ -6,6 +6,7 @@
 #include "Song.h"
 #include "Instruments.h"
 #include "Notes.h"
+#include "Messages.h"
 
 // CSong::ImportTMCParseHeader()/ImportTMCApply() (and their private helper
 // CConvertTracks, used only by ImportTMCApply()) split from IO_Importer.cpp
@@ -22,7 +23,6 @@
 // TracksAllBuildLoops/SongClearUnusedTracksAndParts).
 
 extern CInstruments g_Instruments;
-extern HWND g_hwnd;
 
 struct TSourceTrack
 {
@@ -1477,7 +1477,7 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
                 m_song[dsline][trackorder[ch]] = cit;
                 if (destnum >= TRACKSNUM)
                 {
-                    if (pass == 0) MessageBox(g_hwnd, "Out of RMT tracks. Tracks converting terminated.", "Warning", MB_ICONWARNING);
+                    if (pass == 0) SendWarningMessage("Warning", "Out of RMT tracks. Tracks converting terminated.");
                     goto OutOfTracks;	//the tracks have reached the end
                 }
 
@@ -1485,7 +1485,7 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
             dsline++; //increment the target number of songlines(?)
             if (dsline >= SONGLEN)
             {
-                if (pass == 0) MessageBox(g_hwnd, "Out of song lines. Song converting terminated.", "Warning", MB_ICONWARNING);
+                if (pass == 0) SendWarningMessage("Warning", "Out of song lines. Song converting terminated.");
                 goto OutOfSongLines;	//ran out of songlines
             }
 
@@ -1495,7 +1495,7 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
                 dsline++;
                 if (dsline >= SONGLEN)
                 {
-                    if (pass == 0) MessageBox(g_hwnd, "Out of song lines. Song converting terminated.", "Warning", MB_ICONWARNING);
+                    if (pass == 0) SendWarningMessage("Warning", "Out of song lines. Song converting terminated.");
                     goto OutOfSongLines;
                 }
             }
@@ -1590,7 +1590,7 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
         {
             CString s;
             s.Format("Can't seek sample #%02X data.", i);
-            MessageBox(g_hwnd, (LPCTSTR)s, "Warning", MB_ICONWARNING);
+            SendWarningMessage("Warning", (LPCTSTR)s);
         }
         else
         {
@@ -1599,7 +1599,7 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
             {
                 CString s;
                 s.Format("Can't read fully sample #%02X data.", i);
-                MessageBox(g_hwnd, (LPCTSTR)s, "Warning", MB_ICONWARNING);
+                SendWarningMessage("Warning", (LPCTSTR)s);
             }
         }
 
@@ -1685,7 +1685,7 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
         //is different
         CString s;
         s.Format("Bad length of module.\n(Last sample's end is at %i, but length of module is %i.)", smpfrom, modulelength);
-        MessageBox(g_hwnd, s, "Warning", MB_ICONWARNING);
+        SendWarningMessage("Warning", s);
     }
 
     //and only at the end

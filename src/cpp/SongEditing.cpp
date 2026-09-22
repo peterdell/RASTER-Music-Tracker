@@ -9,6 +9,7 @@
 #include "RmtVersion.h"
 #include "AtariTrackerDriver.h"
 #include "SongTimer.h"
+#include "Messages.h"
 #include <fstream>
 
 // These CSong methods only touch g_Tracks/g_Instruments/g_Undo/
@@ -51,7 +52,6 @@ extern CInstruments g_Instruments;
 extern int g_tracks4_8;
 extern TTuningSettings g_tuning;
 extern TTuningRatios g_tuningRatios;
-extern HWND g_hwnd;
 extern WORD g_rmtstripped_adr_module;
 extern BOOL volatile g_rmtroutine;
 extern BOOL g_rmtstripped_sfx;
@@ -562,7 +562,7 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLinesApply(int& line, int linefrom, int l
         {
             CString s;
             s.Format("Copy/clone operation had to be aborted\nbecause overrun of song range occured.\nThere was %i song lines inserted only.", n);
-            MessageBox(g_hwnd, s, "Warning", MB_ICONSTOP);
+            SendErrorMessage("Warning", s);
             return 0;
         }
 
@@ -600,7 +600,7 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLinesApply(int& line, int linefrom, int l
                     {
                         CString s;
                         s.Format("Clone operation had to be aborted\nbecause out of unused empty tracks.\nThere was %i song line(s) inserted only.", n + 1);
-                        MessageBox(g_hwnd, s, "Warning", MB_ICONSTOP);
+                        SendErrorMessage("Warning", s);
                         return 0;
                     }
                 }
@@ -1498,7 +1498,7 @@ int CSong::MakeModule(unsigned char* mem, int addr, SongIOType iotype, BYTE* ins
                 // Track cannot be saved to RMT
                 CString msg;
                 msg.Format("Fatal error in track %02X.\n\nThis track contains too many events (notes and speed commands),\nthat's why it can't be coded to RMT internal code format.", i);
-                MessageBox(g_hwnd, msg, "Internal format problem.", MB_ICONERROR);
+                SendErrorMessage("Internal format problem.", msg);
                 return -1;
             }
 
@@ -1759,7 +1759,7 @@ void CSong::InstrInfo(int instr, TInstrInfo* iinfo, int instrto)
                 }
             }
         }
-        MessageBox(g_hwnd, (LPCTSTR)s, "Instrument info", MB_ICONINFORMATION);
+        SendInformationMessage("Instrument info", (LPCTSTR)s);
     }
 }
 
@@ -2002,7 +2002,7 @@ abortchanges:
     }
     else
     {
-        MessageBox(g_hwnd, s, "Instrument changes", MB_ICONINFORMATION);
+        SendInformationMessage("Instrument changes", s);
     }
 }
 
@@ -2052,7 +2052,7 @@ void CSong::TrackInfo(int track, TTrackInfo* tinfo)
         s2.Format("\nUsed in %i songlines, globally %i times.", lines, total);
         s += s2;
 
-        MessageBox(g_hwnd, (LPCTSTR)s, "Track Info", MB_ICONINFORMATION);
+        SendInformationMessage("Track Info", (LPCTSTR)s);
     }
 }
 
@@ -2121,7 +2121,7 @@ bool CSong::LoadRMW(std::istream& in)
     in.getline(filever, 255);
     if (strcmp((char*)(LPCTSTR)version, filever) != 0)
     {
-        MessageBox(g_hwnd, CString("Incorrect version: ") + filever, "Load error", MB_ICONERROR);
+        SendErrorMessage("Load error", CString("Incorrect version: ") + filever);
         return false;
     }
     //
@@ -2370,7 +2370,7 @@ bool CSong::LoadRMT(std::istream& in)
         loadResult = DecodeModule(mem, fromAddr, toAddr + 1, instrumentLoadedFlags, trackLoadedFlags);
         if (loadResult == 0)
         {
-            MessageBox(g_hwnd, "Bad RMT data format or old tracker version.", "Open error", MB_ICONERROR);
+            SendErrorMessage("Open error", "Bad RMT data format or old tracker version.");
             return false;
         }
         // The main block of the module is OK => take its boot address
@@ -2379,7 +2379,7 @@ bool CSong::LoadRMT(std::istream& in)
     }
     else
     {
-        MessageBox(g_hwnd, "Corrupted file or unsupported format version.", "Open error", MB_ICONERROR);
+        SendErrorMessage("Open error", "Corrupted file or unsupported format version.");
         return false;	// Did not retrieve any data in the first block
     }
 
@@ -2389,7 +2389,7 @@ bool CSong::LoadRMT(std::istream& in)
     {
         CString msg;
         msg.Format("This file appears to be a stripped RMT module.\nThe song and instruments names are missing.\n\nMemory addresses: $%04X - $%04X.", g_rmtstripped_adr_module, bto_mainblock);
-        MessageBox(g_hwnd, (LPCTSTR)msg, "Info", MB_ICONINFORMATION);
+        SendInformationMessage("Info", (LPCTSTR)msg);
         return true;
     }
 
@@ -2745,9 +2745,9 @@ BOOL CSong::SongPrepareNewLine(int& line, int sourceline, BOOL alsoemptycolumns)
     if (count < g_tracks4_8)
     {
         if (count == 0)
-            MessageBox(g_hwnd, "There isn't any empty unused track in song.", "Error", MB_ICONERROR);
+            SendErrorMessage("Error", "There isn't any empty unused track in song.");
         else
-            MessageBox(g_hwnd, "Not enough empty unused tracks in song.", "Error", MB_ICONERROR);
+            SendErrorMessage("Error", "Not enough empty unused tracks in song.");
         return 0;
     }
 
@@ -2779,7 +2779,7 @@ BOOL CSong::SongPutnewemptyunusedtrack()
     if (k < 0)
     {
         m_song[line][cl] = act;
-        MessageBox(g_hwnd, "There isn't any empty unused track in song.", "Error", MB_ICONERROR);
+        SendErrorMessage("Error", "There isn't any empty unused track in song.");
         //UpdateShiftControlKeys();
         return 0;
     }
@@ -2987,7 +2987,7 @@ BOOL CSong::Play(PlayMode mode, BOOL follow, int special)
         if (m_songgo[m_songplayline] >= 0)
         {
             //goto into another goto
-            MessageBox(g_hwnd, "There is recursive \"Go to line\" to other \"Go to line\" in song.", "Recursive \"Go to line\"...", MB_ICONSTOP);
+            SendErrorMessage("Recursive \"Go to line\"...", "There is recursive \"Go to line\" to other \"Go to line\" in song.");
             return 0;
         }
     }

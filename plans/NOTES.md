@@ -1871,5 +1871,22 @@ build clean and all 123 tests pass.
         set, across all four answers and all three button sets.
       - Full solution rebuild (Release|x64) confirmed 0 errors; 243 tests
         pass (up from 239, +4, 0 regressions).
-      - Migration of the 71 real call sites (Batches 2-5 of
-        `plans/MESSAGEBOX_REFACTOR_PLAN.md`) not yet started.
+- [x] `MessageBox(g_hwnd, ...)` refactor, Batch 2: migrated all
+      fire-and-forget call sites in the already-linked/near-linked files -
+      `SongEditing.cpp` (14, not 10 as first estimated), `IO_ImporterCore.cpp`
+      (6), `IO_Importer.cpp` (6, including `ImportMOD`'s `errorCode`-driven
+      `switch`), `Undo.cpp` (5), `TuningTables.cpp` (1) - 32 sites total.
+      `SongEditing.cpp`/`IO_ImporterCore.cpp` each lost their now-dead
+      `extern HWND g_hwnd;` (no longer referenced anywhere in either file).
+      `IO_Importer.cpp`/`Undo.cpp`/`TuningTables.cpp` keep their existing
+      `#include "Global.h"` since they still need other globals from it -
+      fully removing `Global.h` there was explicitly left out of scope
+      (a bigger, separate decision from the one requested). Pure mechanical
+      swap, no new hazard categories, so no new tests. Full solution
+      rebuild (Release|x64) confirmed 0 errors; 243 tests pass (unchanged,
+      0 regressions).
+      - Remaining: Batch 3 (`IO_Song.cpp`'s 18 fire-and-forget sites, pure
+        consistency since that file stays deferred), Batch 4 (the 6
+        confirmation prompts via `SendQuestionMessage`, including
+        `SongMaketracksduplicate`/`Songswitch4_8` which could finally get
+        real tests), Batch 5 (hardware/DLL-coupled files, lowest priority).

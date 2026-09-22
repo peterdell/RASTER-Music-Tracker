@@ -8,6 +8,7 @@
 #include "Song.h"
 #include "Instruments.h"
 #include "Notes.h"
+#include "Messages.h"
 
 #include "Global.h"
 
@@ -28,7 +29,7 @@ int CSong::ImportTMC(std::ifstream& in)
     TImportTMCHeader header;
     if (!ImportTMCParseHeader(in, header))
     {
-        MessageBox(g_hwnd, "Corrupted TMC file or unsupported format version.", "Open error", MB_ICONERROR);
+        SendErrorMessage("Open error", "Corrupted TMC file or unsupported format version.");
         return 0;
     }
 
@@ -69,7 +70,7 @@ int CSong::ImportTMC(std::ifstream& in)
     {
         //did not give Ok, so it deletes
         ClearSong(originalg_tracks4_8); //returns the original value
-        MessageBox(g_hwnd, "Module import aborted.", "Import...", MB_ICONINFORMATION);
+        SendInformationMessage("Import...", "Module import aborted.");
     }
 
     return 1;
@@ -99,17 +100,17 @@ int CSong::ImportMOD(std::ifstream& in)
         switch (header.errorCode)
         {
         case 1:
-            MessageBox(g_hwnd, "Bad file format.", "Error", MB_ICONSTOP);
+            SendErrorMessage("Error", "Bad file format.");
             break;
         case 2:
         {
             CString es;
             es.Format("There isn't ProTracker identification header bytes.\nAllowed headers are \"M.K.\" or from \"4CHN\" to \"8CHN\",\nbut there is \"%s\".", header.head + 1080);
-            MessageBox(g_hwnd, (LPCTSTR)es, "Error", MB_ICONSTOP);
+            SendErrorMessage("Error", (LPCTSTR)es);
             break;
         }
         case 3:
-            MessageBox(g_hwnd, "Bad file.", "Error", MB_ICONSTOP);
+            SendErrorMessage("Error", "Bad file.");
             break;
         }
         return 0;
@@ -208,7 +209,7 @@ int CSong::ImportMOD(std::ifstream& in)
     {
         //did not give Ok, so it deletes
         ClearSong(originalg_tracks4_8); //returns the original value
-        MessageBox(g_hwnd, "Module import aborted.", "Import...", MB_ICONINFORMATION);
+        SendInformationMessage("Import...", "Module import aborted.");
     }
 
     return 1;

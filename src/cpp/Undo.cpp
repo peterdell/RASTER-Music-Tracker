@@ -4,6 +4,7 @@
 #include "Clipboard.h"
 #include "Song.h"
 #include "Undo.h"
+#include "Messages.h"
 
 #include "Global.h"
 
@@ -220,7 +221,7 @@ void CUndo::ChangeTrack(int tracknum, int trackline, UndoType type, char separat
         break;
 
     default:
-        MessageBox(g_hwnd, "CUndo::ChangeTrack BAD!", "Internal error", MB_ICONERROR);
+        SendErrorMessage("Internal error", "CUndo::ChangeTrack BAD!");
         data = NULL;
     }
 
@@ -263,7 +264,7 @@ void CUndo::ChangeSong(int songline, int trackcol, UndoType type, char separator
         break;
 
     default:
-        MessageBox(g_hwnd, "CUndo::ChangeSong BAD!", "Internal error", MB_ICONERROR);
+        SendErrorMessage("Internal error", "CUndo::ChangeSong BAD!");
         data = NULL;
     }
 
@@ -299,7 +300,7 @@ void CUndo::ChangeInstrument(int instrnum, int paridx, UndoType type, char separ
         break;
 
     default:
-        MessageBox(g_hwnd, "CUndo::ChangeInstrument BAD!", "Internal error", MB_ICONERROR);
+        SendErrorMessage("Internal error", "CUndo::ChangeInstrument BAD!");
         data = NULL;
     }
 
@@ -325,7 +326,7 @@ void CUndo::ChangeInfo(int paridx, UndoType type, char separator)
         break;
 
     default:
-        MessageBox(g_hwnd, "CUndo::ChangeInfo BAD!", "Internal error", MB_ICONERROR);
+        SendErrorMessage("Internal error", "CUndo::ChangeInfo BAD!");
         data = NULL;
     }
 
@@ -515,7 +516,7 @@ char CUndo::PerformEvent(int i)
         break;
 
     default:
-        MessageBox(g_hwnd, "PerformEvent BAD!", "Internal error", MB_ICONERROR);
+        SendErrorMessage("Internal error", "PerformEvent BAD!");
     }
 
     return sep; // Returns separator
