@@ -208,24 +208,37 @@ every other batch in this project:
    batch has no new hazard categories to characterize, it's a mechanical
    swap. Full solution rebuild (Release|x64) confirmed 0 errors; 243 tests
    pass (unchanged, 0 regressions).
-3. **`IO_Song.cpp`'s fire-and-forget notices** (18 sites) - this file
+3. **`IO_Song.cpp`'s fire-and-forget notices - DONE** (18 sites). This file
    itself stays deferred (`FileXxx` family, confirmed no dialog-free
    `Apply()` core exists - see `plans/SONG_IO_SONG_REMAINING_PLAN.md`
-   Batch 7), so this batch is pure consistency/cleanup, not a new testing
-   unlock. Lower priority than #2.
-4. **The 6 confirmation prompts** (`GUI_Song.cpp`, `IO_Song.cpp` x2,
-   `Song.cpp` x3) via `SendQuestionMessage` - this is where
-   `SongMaketracksduplicate`/`Songswitch4_8` (`Song.cpp`) can finally get
-   real characterization tests, on both the confirm and cancel branches,
-   using the test-injectable answer hook from #1. Worth flagging back to
-   `plans/SONG_IO_SONG_REMAINING_PLAN.md` if/when this happens.
-5. **Everything else** (`C6502.cpp`, `Pokey.cpp`, `PokeyRenderer.cpp`,
-   `RmtMidi.cpp`, `Messages.cpp`'s own remaining use once folded in) -
-   real hardware/DLL-coupled files already confirmed permanently out of
-   scope (`plans/BROADER_SURVEY_PLAN.md`). Pure architectural consistency,
-   no testability payoff, lowest priority - could reasonably be skipped
-   entirely if the goal is testability rather than a wall-to-wall
-   refactor.
+   Batch 7), so this batch was pure consistency/cleanup, not a new testing
+   unlock. `#include "Global.h"` kept (other globals still needed).
+4. **The 6 confirmation prompts - DONE** (`GUI_Song.cpp` x1, `IO_Song.cpp`
+   x2, `Song.cpp` x3) via `SendQuestionMessage`. Bundled in
+   `Song.cpp`'s own 2 stray fire-and-forget sites (lines 365/469 - not
+   named in the original survey's per-file list, found while touching the
+   file for its confirm prompts anyway). One transcription note:
+   `IO_Song.cpp`'s `TestBeforeFileSave()` reused a shared `int r` (declared
+   alongside several unrelated loop counters in one combined
+   declaration) for its `MessageBox()` result - removed `r` from that
+   declaration and introduced a locally-scoped `MessageAnswer answer`
+   at the call site instead, since `r` had no other use in the function.
+   This is where `SongMaketracksduplicate`/`Songswitch4_8` (`Song.cpp`)
+   *could* finally get real characterization tests using the
+   test-injectable answer hook from #1 - not done here, since `Song.cpp`
+   itself still isn't linked into `RmtTests.vcxproj` (other, unrelated
+   hazards keep it out - real MFC dialogs elsewhere in the file); actually
+   testing those two methods needs its own future move into
+   `SongEditing.cpp`, revisiting `plans/SONG_IO_SONG_REMAINING_PLAN.md`'s
+   "defer both entirely" decision - flagged there, not attempted here.
+5. **Everything else - DONE** (`C6502.cpp` x2, `Pokey.cpp` x3,
+   `PokeyRenderer.cpp` x5, `RmtMidi.cpp` x1 - 11 sites). Real hardware/
+   DLL-coupled files already confirmed permanently out of scope
+   (`plans/BROADER_SURVEY_PLAN.md`) - pure architectural consistency, no
+   testability payoff, but done anyway since the migration is now
+   complete everywhere: **zero** `MessageBox(g_hwnd, ...)` call sites
+   remain in the codebase outside `Messages.cpp`'s own real
+   implementation.
 
 ## Risks / things to double-check while migrating
 

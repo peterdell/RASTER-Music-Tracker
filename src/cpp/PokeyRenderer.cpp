@@ -7,9 +7,9 @@
 #include "Global.h"
 #include "PokeyRenderer.h"
 #include "StdAfx.h"
+#include "Messages.h"
 
 extern BOOL g_nohwsoundbuffer;	// From Global.h
-extern HWND g_hwnd; // From Global.h
 extern BOOL volatile g_rmtroutine;  // From Global.h
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
@@ -56,14 +56,14 @@ BOOL CXPokey::InitSoundInternal(const bool ntsc, const bool stereo, const WORD c
 
     if (DirectSoundCreate(NULL, &g_lpds, NULL) != DS_OK)
     {
-        MessageBox(g_hwnd, "Error: DirectSoundCreate", "DirectSound Error!", MB_OK | MB_ICONSTOP);
+        SendErrorMessage("DirectSound Error!", "Error: DirectSoundCreate");
         return FALSE;
     }
 
     // Set cooperative level
     if (g_lpds->SetCooperativeLevel(AfxGetApp()->GetMainWnd()->m_hWnd, DSSCL_PRIORITY) != DS_OK)
     {
-        MessageBox(g_hwnd, "Error: SetCooperativeLevel", "DirectSound Error!", MB_OK | MB_ICONSTOP);
+        SendErrorMessage("DirectSound Error!", "Error: SetCooperativeLevel");
         return FALSE;
     }
 
@@ -85,13 +85,13 @@ BOOL CXPokey::InitSoundInternal(const bool ntsc, const bool stereo, const WORD c
 
     if (g_lpds->CreateSoundBuffer(&dsbdesc, &g_lpdsbPrimary, NULL) != DS_OK)
     {
-        MessageBox(g_hwnd, "Error: CreatePrimarySoundBuffer", "DirectSound Error!", MB_OK | MB_ICONSTOP);
+        SendErrorMessage("DirectSound Error!", "Error: CreatePrimarySoundBuffer");
         return FALSE;
     }
 
     if (g_lpdsbPrimary->SetFormat(&m_SoundFormat) != DS_OK)
     {
-        MessageBox(g_hwnd, "Error: SetFormat", "DirectSound Error!", MB_OK | MB_ICONSTOP);
+        SendErrorMessage("DirectSound Error!", "Error: SetFormat");
         return FALSE;
     }
 
@@ -107,7 +107,7 @@ BOOL CXPokey::InitSoundInternal(const bool ntsc, const bool stereo, const WORD c
         dsbdesc.dwFlags = DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_LOCSOFTWARE | DSBCAPS_GLOBALFOCUS | DSBCAPS_STICKYFOCUS;
         if (g_lpds->CreateSoundBuffer(&dsbdesc, &m_SoundBuffer, NULL) != DS_OK)
         {
-            MessageBox(g_hwnd, "Error: CreateSoundBuffer", "DirectSound Error!", MB_OK | MB_ICONSTOP);
+            SendErrorMessage("DirectSound Error!", "Error: CreateSoundBuffer");
             return FALSE;
         }
     }

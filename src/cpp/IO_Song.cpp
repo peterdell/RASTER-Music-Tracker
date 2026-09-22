@@ -27,6 +27,8 @@
 
 #include "RmtExporter.h"
 
+#include "Messages.h"
+
 extern CInstruments	g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 extern CXPokey g_Pokey;
@@ -48,8 +50,8 @@ void CSong::FileReload()
 
     // Stop the music first
     Stop();
-    auto answer = MessageBox(g_hwnd, "Discard all changes since your last save?\n\nWarning: Undo operation won't be possible!!!", "Reload", MB_YESNOCANCEL | MB_ICONQUESTION);
-    if (answer == IDYES)
+    MessageAnswer answer = SendQuestionMessage("Reload", "Discard all changes since your last save?\n\nWarning: Undo operation won't be possible!!!", MessageButtons::YesNoCancel);
+    if (answer == MessageAnswer::Yes)
     {
         CString filename = m_filename;
         FileOpen((LPCTSTR)filename, FALSE); // Without warning for unsaved changes
@@ -132,7 +134,7 @@ BOOL CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
     std::ifstream in(fileToLoad, std::ios::binary);
     if (!in)
     {
-        MessageBox(g_hwnd, "Can't open this file: " + fileToLoad, "Open error", MB_ICONERROR);
+        SendErrorMessage("Open error", "Can't open this file: " + fileToLoad);
         return FALSE;
     }
 
@@ -191,7 +193,7 @@ void CSong::FileSave()
     // If the RMT module hasn't met the conditions required to be valid, it won't be saved/overwritten
     if (GetIOType() == SongIOType::RMT && !TestBeforeFileSave())
     {
-        MessageBox(g_hwnd, "Warning!\nNo data has been saved!", "Warning", MB_ICONEXCLAMATION);
+        SendWarningMessage("Warning", "Warning!\nNo data has been saved!");
         SetRMTTitle();
         return;
     }
@@ -201,7 +203,7 @@ void CSong::FileSave()
     std::ofstream out(m_filename, (GetIOType() == SongIOType::TXT) ? std::ios::out : std::ios::binary);
     if (!out)
     {
-        MessageBox(g_hwnd, "Can't create this file", "Write error", MB_ICONERROR);
+        SendErrorMessage("Write error", "Can't create this file");
         return;
     }
 
@@ -232,7 +234,7 @@ void CSong::FileSave()
     if (!saveResult) //failed to save
     {
         DeleteFile(m_filename);
-        MessageBox(g_hwnd, "RMT save aborted.\nFile was deleted, beware of data loss!", "Save aborted", MB_ICONEXCLAMATION);
+        SendWarningMessage("Save aborted", "RMT save aborted.\nFile was deleted, beware of data loss!");
     }
     else	//saved successfully
         g_changes = 0;	//changes have been saved
@@ -404,7 +406,7 @@ void CSong::FileImport()
     std::ifstream in(fn, std::ios::binary);
     if (!in)
     {
-        MessageBox(g_hwnd, "Can't open this file: " + fn, "Open error", MB_ICONERROR);
+        SendErrorMessage("Open error", "Can't open this file: " + fn);
         return;
     }
 
@@ -450,7 +452,7 @@ void CSong::FileExportAs()
     // Verify the integrity of the .rmt module to save first, so it won't be saved if it's not meeting the conditions for it
     if (!TestBeforeFileSave())
     {
-        MessageBox(g_hwnd, "Warning!\nNo data has been saved!", "Warning", MB_ICONEXCLAMATION);
+        SendWarningMessage("Warning", "Warning!\nNo data has been saved!");
         return;
     }
 
@@ -497,7 +499,7 @@ void CSong::FileExportAs()
         std::ofstream out(fn, std::ios::binary);
         if (!out)
         {
-            MessageBox(g_hwnd, "Can't create this file: " + fn, "Export error", MB_ICONERROR);
+            SendErrorMessage("Export error", "Can't create this file: " + fn);
             return;
         }
 
@@ -550,7 +552,7 @@ void CSong::FileExportAs()
             DeleteFile(fn);
             CString message;
             message.Format("Incomplete export file '%s' was deleted.", fn);
-            MessageBox(g_hwnd, message, "Export aborted", MB_ICONEXCLAMATION);
+            SendWarningMessage("Export aborted", message);
         }
     }
 }
@@ -587,7 +589,7 @@ void CSong::FileInstrumentSave()
         std::ofstream ou(fn, std::ios::binary);
         if (!ou)
         {
-            MessageBox(g_hwnd, "Can't create the instrument file: " + fn, "Write error", MB_ICONERROR);
+            SendErrorMessage("Write error", "Can't create the instrument file: " + fn);
             return;
         }
 
@@ -628,7 +630,7 @@ void CSong::FileInstrumentLoad()
         std::ifstream in(fn, std::ios::binary);
         if (!in)
         {
-            MessageBox(g_hwnd, "Can't open this file: " + fn, "Open error", MB_ICONERROR);
+            SendErrorMessage("Open error", "Can't open this file: " + fn);
             return;
         }
 
@@ -637,7 +639,7 @@ void CSong::FileInstrumentLoad()
 
         if (!loadState)
         {
-            MessageBox(g_hwnd, "Failed to load RTI format (standard version 0)", "Data error", MB_ICONERROR);
+            SendErrorMessage("Data error", "Failed to load RTI format (standard version 0)");
             return;
         }
     }
@@ -678,7 +680,7 @@ void CSong::FileTrackSave()
         std::ofstream ou(fn);	// text mode by default
         if (!ou)
         {
-            MessageBox(g_hwnd, "Can't create this file: " + fn, "Write error", MB_ICONERROR);
+            SendErrorMessage("Write error", "Can't create this file: " + fn);
             return;
         }
 
@@ -722,7 +724,7 @@ void CSong::FileTrackLoad()
         std::ifstream in(fn);	// text mode by default
         if (!in)
         {
-            MessageBox(g_hwnd, "Can't open this file: " + fn, "Open error", MB_ICONERROR);
+            SendErrorMessage("Open error", "Can't open this file: " + fn);
             return;
         }
 
@@ -738,7 +740,7 @@ void CSong::FileTrackLoad()
 
         if (nt == 0)
         {
-            MessageBox(g_hwnd, "Sorry, this file doesn't contain any track in TXT format", "Data error", MB_ICONERROR);
+            SendErrorMessage("Data error", "Sorry, this file doesn't contain any track in TXT format");
             return;
         }
         else if (nt > 1)
@@ -769,7 +771,7 @@ void CSong::FileTrackLoad()
                         track++;	//shift by 1 to load the next track
                         if (track >= TRACKSNUM)
                         {
-                            MessageBox(g_hwnd, "Track's maximum number reached.\nLoading aborted.", "Error", MB_ICONERROR);
+                            SendErrorMessage("Error", "Track's maximum number reached.\nLoading aborted.");
                             break;
                         }
                     }
@@ -784,7 +786,7 @@ void CSong::FileTrackLoad()
         {
             CString s;
             s.Format("%i track(s) loaded.", nr);
-            MessageBox(g_hwnd, s, "Track(s) loading finished.", MB_ICONINFORMATION);
+            SendInformationMessage("Track(s) loading finished.", s);
         }
     }
 }
@@ -837,7 +839,7 @@ bool CSong::TestBeforeFileSave()
     // and now it will be checked whether the song ends with GOTO line and if there is no GOTO on GOTO line
     CString errmsg, wrnmsg, s;
     int trx[SONGLEN];
-    int i, j, r, go, last = -1, tr = 0, empty = 0;
+    int i, j, go, last = -1, tr = 0, empty = 0;
 
     for (i = 0; i < SONGLEN; i++)
     {
@@ -912,7 +914,7 @@ bool CSong::TestBeforeFileSave()
     {
         char gotoline[140];
         sprintf(gotoline, "Song line[%02X]: Unexpected end of song.\nYou have to use \"go to line\" at the end of song.\n\nSong line [00] will be used by default.", last + 1);
-        MessageBox(g_hwnd, gotoline, "Warning", MB_ICONINFORMATION);
+        SendInformationMessage("Warning", gotoline);
         m_songgo[last + 1] = 0;	//force a goto line to the first track line
     }
 
@@ -923,12 +925,12 @@ bool CSong::TestBeforeFileSave()
         if (errmsg.IsEmpty())
         {
             wrnmsg += "\nIgnore warnings and save anyway?";
-            r = MessageBox(g_hwnd, wrnmsg, "Warnings", MB_YESNO | MB_ICONQUESTION);
-            if (r == IDYES) return true;
+            MessageAnswer answer = SendQuestionMessage("Warnings", wrnmsg, MessageButtons::YesNo);
+            if (answer == MessageAnswer::Yes) return true;
             return false;
         }
         // Otherwise, if there are any errors, always return failure
-        MessageBox(g_hwnd, errmsg + wrnmsg, "Errors", MB_ICONERROR);
+        SendErrorMessage("Errors", errmsg + wrnmsg);
         return false;
     }
 

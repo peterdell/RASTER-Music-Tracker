@@ -5,6 +5,7 @@
 //#include "Global.h" // TODO Get rid of this
 
 #include "C6502.h"
+#include "Messages.h"
 
 // DDL procedure pointers.
 typedef void (*SA_C6502_Initialise_PROC)(BYTE*);
@@ -20,8 +21,6 @@ HINSTANCE g_c6502_dll = NULL;
 BOOL volatile g_is6502 = FALSE;
 CString g_about6502;
 
-extern HWND g_hwnd;
-
 int C6502::Init(byte* memory)
 {
     if (g_c6502_dll) { DeInit(); }//just in case
@@ -29,7 +28,7 @@ int C6502::Init(byte* memory)
     g_c6502_dll = LoadLibrary("sa_c6502.dll");
     if (!g_c6502_dll)
     {
-        MessageBox(g_hwnd, "Warning:\n'sa_c6502.dll' library not found.\nTherefore, the Atari sound routines can't be performed.", "LoadLibrary error", MB_ICONEXCLAMATION);
+        SendWarningMessage("LoadLibrary error", "Warning:\n'sa_c6502.dll' library not found.\nTherefore, the Atari sound routines can't be performed.");
         DeInit();
         return 1;
     }
@@ -47,7 +46,7 @@ int C6502::Init(byte* memory)
 
     if (wrn != "")
     {
-        MessageBox(g_hwnd, "Error:\n'sa_c6502.dll' is not compatible.\nTherefore, the Atari sound routines can't be performed.\nIncompatibility with:" + wrn, "C6502 library error", MB_ICONEXCLAMATION);
+        SendWarningMessage("C6502 library error", "Error:\n'sa_c6502.dll' is not compatible.\nTherefore, the Atari sound routines can't be performed.\nIncompatibility with:" + wrn);
         DeInit();
         return 1;
     }

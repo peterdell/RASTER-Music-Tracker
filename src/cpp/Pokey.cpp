@@ -5,8 +5,7 @@
 #include "Atari.h"
 #include "Pokey.h"
 #include "StdAfx.h"
-
-extern HWND g_hwnd;
+#include "Messages.h"
 
 APokeySound_Initialize_PROC APokeySound_Initialize;
 APokeySound_PutByte_PROC APokeySound_PutByte;
@@ -93,7 +92,7 @@ CPokey::SoundDriver CPokey::InitPokeyDll()
         }
 
         // If an error is caught, the plugin will be unloaded with an error message showing the problematic procedures
-        MessageBox(g_hwnd, "Error:\nNo compatible 'apokeysnd.dll',\ntherefore the Pokey sound can't be performed.\nIncompatibility with:" + warningMessage, "Pokey library error", MB_ICONEXCLAMATION);
+        SendWarningMessage("Pokey library error", "Error:\nNo compatible 'apokeysnd.dll',\ntherefore the Pokey sound can't be performed.\nIncompatibility with:" + warningMessage);
         DeInitPokeyDll();
     }
 
@@ -131,12 +130,12 @@ CPokey::SoundDriver CPokey::InitPokeyDll()
         }
 
         // If an error is caught, the plugin will be unloaded with an error message showing the problematic procedures
-        MessageBox(g_hwnd, "Error:\nNo compatible 'sa_pokey.dll',\ntherefore the Pokey sound can't be performed.\nIncompatibility with:" + warningMessage, "Pokey library error", MB_ICONEXCLAMATION);
+        SendWarningMessage("Pokey library error", "Error:\nNo compatible 'sa_pokey.dll',\ntherefore the Pokey sound can't be performed.\nIncompatibility with:" + warningMessage);
         DeInitPokeyDll();
     }
 
     // If no POKEY emulation plugin was found, no sound emulation will be output
-    MessageBox(g_hwnd, "Warning:\nNone of 'apokeysnd.dll' or 'sa_pokey.dll' found,\ntherefore the Pokey sound can't be performed.", "LoadLibrary error", MB_ICONEXCLAMATION);
+    SendWarningMessage("LoadLibrary error", "Warning:\nNone of 'apokeysnd.dll' or 'sa_pokey.dll' found,\ntherefore the Pokey sound can't be performed.");
 
     return NONE;
 }

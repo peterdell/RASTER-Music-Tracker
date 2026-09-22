@@ -11,6 +11,7 @@
 #include "RmtMidi.h"
 #include "global.h"
 #include "Song.h"
+#include "Messages.h"
 
 
 extern CSong	g_Song;
@@ -79,7 +80,7 @@ int CRmtMidi::MidiInit()
 	// Turn
 	m_MidiInDeviceId = -1;
 
-	MessageBox(g_hwnd, CString("Can't init the MIDI IN device\n") + m_MidiInDeviceName, "MIDI IN error", MB_ICONEXCLAMATION);
+	SendWarningMessage("MIDI IN error", CString("Can't init the MIDI IN device\n") + m_MidiInDeviceName);
 
 	m_MidiInDeviceName[0] = 0;
 

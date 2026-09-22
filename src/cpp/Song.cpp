@@ -18,6 +18,7 @@
 #include "SongTimer.h"
 
 #include "PokeyStream.h"
+#include "Messages.h"
 #include "SongExporter.h"
 
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
@@ -347,8 +348,8 @@ BOOL CSong::SongMaketracksduplicate()
     {
         //not used anywhere else
         m_song[line][cl] = act;
-        int r = MessageBox(g_hwnd, "This track is used only once in song.\nAre you sure to make duplicate?", "Make track's duplicate...", MB_OKCANCEL | MB_ICONQUESTION);
-        if (r == IDOK)
+        MessageAnswer r = SendQuestionMessage("Make track's duplicate...", "This track is used only once in song.\nAre you sure to make duplicate?", MessageButtons::OkCancel);
+        if (r == MessageAnswer::Ok)
             k = FindNearTrackBySongLineAndColumn(line, cl, tracks);
         else
         {
@@ -362,7 +363,7 @@ BOOL CSong::SongMaketracksduplicate()
     if (k < 0)
     {
         m_song[line][cl] = act;
-        MessageBox(g_hwnd, "There isn't any empty unused track in song.", "Error", MB_ICONERROR);
+        SendErrorMessage("Error", "There isn't any empty unused track in song.");
         //UpdateShiftControlKeys();
         g_Undo.DropLast();
         return 0;
@@ -466,7 +467,7 @@ void CSong::TracksOrderChange()
 
     if (f < 0 || f >= SONGLEN || t < 0 || t >= SONGLEN || t < f)
     {
-        MessageBox(g_hwnd, "Bad songline (from-to) range.", "Error", MB_ICONERROR);
+        SendErrorMessage("Error", "Bad songline (from-to) range.");
         return;
     }
 
@@ -479,7 +480,7 @@ void CSong::TracksOrderChange()
     {
         CString s;
         s.Format("Warning: %u song column(s) will be cleared completely.\nAre you sure to do it?", c);
-        if (MessageBox(g_hwnd, s, "Warning", MB_YESNOCANCEL | MB_ICONWARNING) != IDYES) return;
+        if (SendQuestionMessage("Warning", s, MessageButtons::YesNoCancel) != MessageAnswer::Yes) return;
     }
 
     TracksOrderChangeApply(f, t, dlg.m_tracksorder);
@@ -506,8 +507,8 @@ void CSong::Songswitch4_8(int tracks4_8)
     }
 
     wrn += "\nAre you sure to do it?";
-    int res = MessageBox(g_hwnd, wrn, "Song switch mono/stereo", MB_YESNOCANCEL | MB_ICONEXCLAMATION);
-    if (res != IDYES) return;
+    MessageAnswer res = SendQuestionMessage("Song switch mono/stereo", wrn, MessageButtons::YesNoCancel);
+    if (res != MessageAnswer::Yes) return;
 
     g_Undo.Clear();
 

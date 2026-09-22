@@ -1885,8 +1885,32 @@ build clean and all 123 tests pass.
       swap, no new hazard categories, so no new tests. Full solution
       rebuild (Release|x64) confirmed 0 errors; 243 tests pass (unchanged,
       0 regressions).
-      - Remaining: Batch 3 (`IO_Song.cpp`'s 18 fire-and-forget sites, pure
-        consistency since that file stays deferred), Batch 4 (the 6
-        confirmation prompts via `SendQuestionMessage`, including
-        `SongMaketracksduplicate`/`Songswitch4_8` which could finally get
-        real tests), Batch 5 (hardware/DLL-coupled files, lowest priority).
+- [x] `MessageBox(g_hwnd, ...)` refactor, Batches 3-5 - completes the
+      migration. See `plans/MESSAGEBOX_REFACTOR_PLAN.md`.
+      - **Batch 3**: `IO_Song.cpp`'s 18 fire-and-forget sites. Pure
+        consistency (that file stays deferred per Batch 7 of
+        `plans/SONG_IO_SONG_REMAINING_PLAN.md`).
+      - **Batch 4**: the 6 confirmation prompts (`GUI_Song.cpp` x1,
+        `IO_Song.cpp` x2, `Song.cpp` x3) via `SendQuestionMessage`, bundled
+        with `Song.cpp`'s 2 stray fire-and-forget sites found while
+        touching the file anyway. `IO_Song.cpp`'s `TestBeforeFileSave()`
+        had to drop a shared `int r` from a combined declaration (used only
+        for its `MessageBox()` result) in favor of a locally-scoped
+        `MessageAnswer answer`. This is where `SongMaketracksduplicate`/
+        `Songswitch4_8` *could* finally get real tests via the
+        test-injectable answer hook - not done, since `Song.cpp` itself
+        still isn't linked into `RmtTests.vcxproj` for other, unrelated
+        reasons; actually testing those two needs its own future move into
+        `SongEditing.cpp`, revisiting `plans/SONG_IO_SONG_REMAINING_PLAN.md`'s
+        "defer both entirely" decision.
+      - **Batch 5**: the remaining hardware/DLL-coupled files (`C6502.cpp`
+        x2, `Pokey.cpp` x3, `PokeyRenderer.cpp` x5, `RmtMidi.cpp` x1),
+        confirmed permanently out of scope for testing but migrated anyway
+        for full consistency, per the user's "do all of these" request.
+      - **Zero `MessageBox(g_hwnd, ...)` call sites remain anywhere in the
+        codebase** outside `Messages.cpp`'s own real implementation - the
+        whole refactor described in `plans/MESSAGEBOX_REFACTOR_PLAN.md` is
+        complete.
+      - Full solution rebuild (Release|x64) confirmed 0 errors; 243 tests
+        pass (unchanged - none of Batches 3-5's files are linked into the
+        test project - 0 regressions).

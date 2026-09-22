@@ -13,6 +13,7 @@
 
 #include "Clipboard.h"
 #include "Global.h"
+#include "Messages.h"
 #include "Instruments.h"
 #include "Song.h"
 
@@ -73,9 +74,9 @@ int CSong::WarnUnsavedChanges()
 {
     //returns 1 upon cancelation
     if (!g_changes) return 0;
-    int r = MessageBox(g_hwnd, "Save current changes?", "Current song has been changed", MB_YESNOCANCEL | MB_ICONQUESTION);
-    if (r == IDCANCEL) return 1;
-    if (r == IDYES)
+    MessageAnswer r = SendQuestionMessage("Current song has been changed", "Save current changes?", MessageButtons::YesNoCancel);
+    if (r == MessageAnswer::Cancel) return 1;
+    if (r == MessageAnswer::Yes)
     {
         FileSave();
         SetRMTTitle();
