@@ -298,7 +298,7 @@ verified incrementally with an explicit timeout: the existing suite first
 (no new tests), then `Stop()` alone, then `Play`/`PlayBeat`/`PlayVBI`
 together, then the full suite - no hangs at any point.
 
-### Batch 7 - file-dialog orchestration (recommend deferring indefinitely)
+### Batch 7 - file-dialog orchestration - CONFIRMED deferred indefinitely (re-verified)
 `FileReload`, `FileOpen`, `FileSave`, `FileSaveAs`, `FileNew`, `FileImport`,
 `FileExportAs`, `FileInstrumentSave`, `FileInstrumentLoad`, `FileTrackSave`,
 `FileTrackLoad`. These are real `CFileDialog`/confirm-prompt/path-state
@@ -307,6 +307,35 @@ covered by Batches 2-3 testing the underlying `MakeModule`/`SaveRMW`/
 `LoadRMW`/etc. directly via buffers/streams. Recommend never testing these
 wrapper methods directly; if UI-level coverage is ever wanted, it needs a
 real UI-testing approach, out of scope for this characterization effort.
+
+**Re-verified by re-reading all 11 methods in full** (per the "verify before
+trusting old triage" lesson - this was originally a bulk assessment, not a
+per-method read like the other batches got). Confirmed there is no
+`InstrChange`/`TracksOrderChange`-style "thin dialog wrapper + testable
+Apply() core" split available here: those methods' dialogs only gather a
+fixed-shape parameter struct, with the mutation logic running identically
+regardless of *which* values were chosen. Here, the dialog's result (the
+chosen file path, or - for `FileOpen`/`FileReload` - whether to proceed at
+all) is not a parameter to route around, it's the entire reason the method
+exists; the "load/save with a known path" logic it dispatches to
+(`LoadRMT`/`LoadTxt`/`LoadRMW`/`SaveTxt`/`SaveRMW`/`ExportV2`/
+`g_Instruments.SaveInstrument`/`LoadInstrument`/`g_Tracks.SaveTrack`) is
+already exactly what Batches 2-3 and the `ExportV2` triage test directly.
+Every one of the 11 methods unconditionally constructs a real `CFileDialog`
+(`FileNew` uses `CFileNewDlg`) and unconditionally calls `.DoModal()` (except
+`FileOpen`/`FileReload`, which skip it only when a filename is already
+known - but even then still construct the dialog object). Same hazard class
+already established as blocking `InstrChange`/`SongInsertCopyOrCloneOfSongLines`/
+`TracksOrderChange` before their split was found; no such split exists here.
+Original call stands, now on a verified rather than assumed basis.
+
+**This closes out the deferred-hazard backlog for `Song.cpp`/`IO_Song.cpp`/
+`ExportV2`**: every remaining category (`BlockEffect`; the confirmation-only
+`SongMaketracksduplicate`/`Songswitch4_8`; `TimerRoutine`/`ChangeTimer`/
+`StopTimer`/`ReInitSound`; `ExportWAV`/`ExportLZSS`/`ExportCompactLZSS`; and
+now this `FileXxx` family) has been individually investigated and has a
+confirmed, non-speculative reason to stay deferred. There is no more
+"re-analyze and possibly unlock" work left in this plan.
 
 ### `ClearSong` - DONE
 Originally flagged as its own large, deferred category (~18 globals plus a

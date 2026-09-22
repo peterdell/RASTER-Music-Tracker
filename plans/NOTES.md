@@ -1713,3 +1713,29 @@ build clean and all 123 tests pass.
         `ExportLZSS`/`ExportCompactLZSS` (real multi-file disk writes,
         self-described as "hacked up"/"currently unused") remain
         deliberately deferred per that plan's findings.
+- [x] Re-verified the `FileXxx` family (Batch 7,
+      `plans/SONG_IO_SONG_REMAINING_PLAN.md`) - the last remaining
+      "deferred hazard category" from that plan not yet given a per-method
+      read (it was only ever assessed in bulk). Read all 11 methods
+      (`FileReload`/`FileOpen`/`FileSave`/`FileSaveAs`/`FileNew`/
+      `FileImport`/`FileExportAs`/`FileInstrumentSave`/`FileInstrumentLoad`/
+      `FileTrackSave`/`FileTrackLoad`) in full in `IO_Song.cpp`. Unlike
+      `InstrChange`/`SongInsertCopyOrCloneOfSongLines`/`TracksOrderChange`
+      (whose dialogs just gather a fixed-shape parameter struct, with
+      identical mutation logic regardless of which values were picked),
+      here the dialog's result - the chosen file path, or whether to
+      proceed at all - IS the method's entire reason for existing, so
+      there's no dialog-free "Apply()" core to extract; the logic each one
+      dispatches to once a path is known (`LoadRMT`/`LoadTxt`/`LoadRMW`/
+      `SaveTxt`/`SaveRMW`/`ExportV2`/instrument and track save/load) is
+      already exactly what earlier batches test directly. All 11
+      unconditionally construct a real `CFileDialog`/`CFileNewDlg` and
+      (except `FileOpen`/`FileReload`, which can skip `.DoModal()` when a
+      filename is already known, but still construct the dialog object)
+      unconditionally call `.DoModal()`. No code changed - this confirms
+      Batch 7's original bulk recommendation on a verified rather than
+      assumed basis, and closes out the deferred-hazard backlog for
+      `Song.cpp`/`IO_Song.cpp`/`ExportV2`: every remaining category now has
+      an individually-investigated, confirmed reason to stay deferred (see
+      `plans/SONG_IO_SONG_REMAINING_PLAN.md`'s Batch 7 section for the
+      full per-method writeup).
