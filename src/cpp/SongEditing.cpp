@@ -2788,6 +2788,112 @@ BOOL CSong::SongPutnewemptyunusedtrack()
     return 1;
 }
 
+// --- SongMaketracksduplicate / Songswitch4_8 ---
+// Both were deferred (plans/SONG_IO_SONG_REMAINING_PLAN.md's "Decisions
+// (resolved) #3") solely because of their confirmation prompt, previously
+// a real, unavoidable-in-tests MessageBox(). Now that MessageBox(g_hwnd,...)
+// calls route through SendQuestionMessage() (see
+// plans/MESSAGEBOX_REFACTOR_PLAN.md), which returns a test-injectable
+// answer, both are fully testable on every branch.
+
+BOOL CSong::SongMaketracksduplicate()
+{
+    int line = SongGetActiveLine();
+    if (m_songgo[line] >= 0) return 0;		//it can't be done on the "GO TO LINE" line
+
+    int cl = GetActiveColumn();
+    int act = m_song[line][cl];
+    if (act < 0) return 0;			//cannot be duplicated, no track selected
+
+    g_Undo.ChangeSong(line, cl, UETYPE_SONGTRACK, -1); //just cast
+
+    int k = -1;
+    m_song[line][cl] = -1;	//at current position in song --
+
+    BYTE tracks[TRACKSNUM];
+    memset(tracks, 0, TRACKSNUM); //init
+    MarkTF_USED(tracks);
+    MarkTF_NOEMPTY(tracks);
+
+    if (!(tracks[act] & TrackFlag::TF_USED))
+    {
+        //not used anywhere else
+        m_song[line][cl] = act;
+        MessageAnswer r = SendQuestionMessage("Make track's duplicate...", "This track is used only once in song.\nAre you sure to make duplicate?", MessageButtons::OkCancel);
+        if (r == MessageAnswer::Ok)
+            k = FindNearTrackBySongLineAndColumn(line, cl, tracks);
+        else
+        {
+            g_Undo.DropLast();
+            return 0;
+        }
+    }
+    else
+        k = FindNearTrackBySongLineAndColumn(line, cl, tracks);
+
+    if (k < 0)
+    {
+        m_song[line][cl] = act;
+        SendErrorMessage("Error", "There isn't any empty unused track in song.");
+        //UpdateShiftControlKeys();
+        g_Undo.DropLast();
+        return 0;
+    }
+
+    g_Undo.ChangeTrack(k, m_trackactiveline, UETYPE_TRACKDATA, 1);
+
+    //copies source track act to k
+    TrackCopyFromTo(act, k);
+
+    m_song[line][cl] = k;
+
+    return 1;
+}
+
+void CSong::Songswitch4_8(int tracks4_8)
+{
+    // Stop the music first
+    Stop();
+
+    CString wrn = "Warning: Undo operation won't be possible!!!\n";
+    int i, j;
+    if (tracks4_8 == 4)
+    {
+        int p = 0;
+        for (i = 0; i < SONGLEN; i++)
+        {
+            for (j = 4; j < 8; j++) if (m_song[i][j] >= 0) p++;
+        }
+
+        if (p > 0) wrn += "\nWarning: Song switch to mono 4 tracks will erase all the R1,R2,R3,R4 entries in song list.\n";
+    }
+
+    wrn += "\nAre you sure to do it?";
+    MessageAnswer res = SendQuestionMessage("Song switch mono/stereo", wrn, MessageButtons::YesNoCancel);
+    if (res != MessageAnswer::Yes) return;
+
+    g_Undo.Clear();
+
+    if (tracks4_8 == 4)
+    {
+        if (m_trackactivecol >= 4) { m_trackactivecol = 3; m_trackactivecur = 0; }
+        SetTracks(4);
+        for (i = 0; i < SONGLEN; i++)
+        {
+            for (j = 4; j < 8; j++) m_song[i][j] = -1;
+        }
+    }
+    else
+    {
+        if (tracks4_8 == 8)
+        {
+            SetTracks(8);
+        }
+    }
+
+    g_Atari.Init(IsNTSC());
+}
+
 void CSong::InstrPaste(int special)
 {
     if (m_instrclipboard.activeEditSection == InstrumentSection::NONE) {

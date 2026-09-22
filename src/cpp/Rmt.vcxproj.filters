@@ -85,6 +85,9 @@
     <Filter Include="Source Files\IO - Load/Save/Export/Import/Midi\RMT">
       <UniqueIdentifier>{f2c3fe85-2e60-415c-b78a-0d4afe66efac}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Agent Files">
+      <UniqueIdentifier>{22b37213-3a3b-4f65-9678-ebfa51d944a4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EffectsDlg.cpp">
@@ -205,9 +208,6 @@
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP</Filter>
     </ClCompile>
     <ClCompile Include="SAPFileExportDialog.cpp">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP</Filter>
-    </ClCompile>
-    <ClCompile Include="SAPFileExporter.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\SAP</Filter>
     </ClCompile>
     <ClCompile Include="lzss_sap.cpp">
@@ -359,6 +359,24 @@
     </ClCompile>
     <ClCompile Include="StringUtility.cpp">
       <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ASMFileExporterCore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RmtExporterCore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SAPFileExporterCore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IO_ImporterCore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SongExportV2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SongExporterCore.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

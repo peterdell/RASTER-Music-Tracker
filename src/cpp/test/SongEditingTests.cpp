@@ -10,6 +10,7 @@
 #include "SongContainer.h"
 #include "SAPFileExporter.h"
 #include "SongExporter.h"
+#include "Messages.h"
 #include <sstream>
 
 extern int g_tracks4_8;
@@ -1480,6 +1481,84 @@ TEST_F(SongEditingTest, SongPutnewemptyunusedtrackAssignsAFreeTrackToTheActivePo
     EXPECT_TRUE(song.SongPutnewemptyunusedtrack());
 
     EXPECT_EQ((*song.GetSong())[0][0], 0); // first free track assigned
+}
+
+// --- SongMaketracksduplicate / Songswitch4_8 ---
+// Both were deferred (plans/SONG_IO_SONG_REMAINING_PLAN.md's "Decisions
+// (resolved) #3") solely because of their confirmation prompt, previously
+// a real, unavoidable-in-tests MessageBox(). Now testable on every branch
+// via SendQuestionMessage()'s test-injectable answer (SetTestQuestionAnswer(),
+// see plans/MESSAGEBOX_REFACTOR_PLAN.md).
+
+TEST_F(SongEditingTest, SongMaketracksduplicateReturnsZeroOnAGotoLine) {
+    song.SongSetActiveLine(0);
+    (*song.GetSongGo())[0] = 1; // songline 0 is a goto line
+
+    EXPECT_FALSE(song.SongMaketracksduplicate());
+}
+
+TEST_F(SongEditingTest, SongMaketracksduplicateReturnsZeroWhenNoTrackSelected) {
+    song.SongSetActiveLine(0); // GetActiveColumn() defaults to column 0
+    (*song.GetSong())[0][0] = -1; // no track at the active position
+
+    EXPECT_FALSE(song.SongMaketracksduplicate());
+}
+
+TEST_F(SongEditingTest, SongMaketracksduplicateDuplicatesTheTrackWhenConfirmed) {
+    song.SongSetActiveLine(0); // GetActiveColumn() defaults to column 0
+    (*song.GetSong())[0][0] = 5; // used only here -> triggers the confirm prompt
+    g_Tracks.GetTrack(5)->len = 2;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 2;
+
+    SetTestQuestionAnswer(MessageAnswer::Ok);
+    EXPECT_TRUE(song.SongMaketracksduplicate());
+
+    int newTrack = (*song.GetSong())[0][0];
+    EXPECT_NE(newTrack, 5); // moved to a different, free track
+    EXPECT_EQ(g_Tracks.GetTrack(newTrack)->note[0], 10); // content duplicated
+    EXPECT_EQ(g_Tracks.GetTrack(newTrack)->instr[0], 2);
+}
+
+TEST_F(SongEditingTest, SongMaketracksduplicateLeavesTheTrackUnchangedWhenCancelled) {
+    song.SongSetActiveLine(0);
+    (*song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->len = 2;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+
+    SetTestQuestionAnswer(MessageAnswer::Cancel);
+    EXPECT_FALSE(song.SongMaketracksduplicate());
+
+    EXPECT_EQ((*song.GetSong())[0][0], 5); // unchanged
+}
+
+TEST_F(SongEditingTest, Songswitch4_8LeavesStateUnchangedWhenCancelled) {
+    song.SetTracks(8);
+    (*song.GetSong())[0][4] = 5; // an R1 column entry that would be erased if confirmed
+
+    SetTestQuestionAnswer(MessageAnswer::Cancel);
+    song.Songswitch4_8(4);
+
+    EXPECT_EQ(g_tracks4_8, 8); // unchanged
+    EXPECT_EQ((*song.GetSong())[0][4], 5); // unchanged
+}
+
+TEST_F(SongEditingTest, Songswitch4_8ClearsStereoColumnsWhenConfirmed) {
+    song.SetTracks(8);
+    (*song.GetSong())[0][4] = 5; // R1 column entry
+
+    SetTestQuestionAnswer(MessageAnswer::Yes);
+    song.Songswitch4_8(4);
+
+    EXPECT_EQ(g_tracks4_8, 4);
+    EXPECT_EQ((*song.GetSong())[0][4], -1); // R1-R4 columns cleared
+}
+
+TEST_F(SongEditingTest, Songswitch4_8SwitchesToStereoWhenConfirmed) {
+    SetTestQuestionAnswer(MessageAnswer::Yes);
+    song.Songswitch4_8(8);
+
+    EXPECT_EQ(g_tracks4_8, 8);
 }
 
 // --- PlayPressedTones ---

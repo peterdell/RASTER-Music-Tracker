@@ -1914,3 +1914,35 @@ build clean and all 123 tests pass.
       - Full solution rebuild (Release|x64) confirmed 0 errors; 243 tests
         pass (unchanged - none of Batches 3-5's files are linked into the
         test project - 0 regressions).
+- [x] `SongMaketracksduplicate`/`Songswitch4_8` unlocked - the follow-up the
+      MessageBox refactor was flagged as enabling. Both were deferred
+      indefinitely by `plans/SONG_IO_SONG_REMAINING_PLAN.md`'s "Decisions
+      (resolved) #3" solely because of their confirmation prompt, at the
+      time a real, unavoidable-in-tests `MessageBox`. Now that it routes
+      through `SendQuestionMessage()` (test-injectable answer), the prompt
+      itself is safe to trigger, so no `*Apply()`-style extraction was even
+      needed - re-verified every other dependency first (per this effort's
+      "verify before trusting old triage" habit): `MarkTF_USED`/
+      `MarkTF_NOEMPTY`/`FindNearTrackBySongLineAndColumn`/
+      `TrackCopyFromTo` are all already in `SongEditing.cpp` (linked/safe);
+      `g_Undo.ChangeSong`/`ChangeTrack` are already-established no-op
+      stubs, `g_Undo.DropLast`/`Clear` are real (`UndoStub.cpp`);
+      `Songswitch4_8`'s closing `g_Atari.Init(IsNTSC())` is the exact same
+      call `ClearSong` already makes (already proven safe - `CAtari::Init(bool)`
+      only sets `m_ntsc` then calls `CTuning::InitTuning(...)`, which
+      resolves to the already-stubbed no-op 0-arg overload in tests).
+      Moved both method bodies verbatim into `SongEditing.cpp` (zero code
+      changes beyond relocation); `Song.cpp` left with a one-line
+      "implemented in SongEditing.cpp" comment for each, matching every
+      other split in this effort.
+      - 7 new hand-derived tests, all passing on the first run: guard tests
+        (goto line, no track selected), a full duplicate-on-confirm test
+        (with real note/instr data proving the copy), a leave-unchanged-on-
+        cancel test, and three `Songswitch4_8` tests (cancel leaves state
+        untouched, confirmed 8→4 clears the R1-R4 columns, confirmed 4→8
+        switches). No test needed to reset `SetTestQuestionAnswer()`'s
+        default between tests - every test either never triggers a confirm
+        prompt or explicitly sets the answer first, so there's no
+        cross-test ordering dependency.
+      - Full solution rebuild (Release|x64) confirmed 0 errors; 250 tests
+        pass (up from 243, +7, 0 regressions).

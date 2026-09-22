@@ -224,13 +224,17 @@ every other batch in this project:
    declaration and introduced a locally-scoped `MessageAnswer answer`
    at the call site instead, since `r` had no other use in the function.
    This is where `SongMaketracksduplicate`/`Songswitch4_8` (`Song.cpp`)
-   *could* finally get real characterization tests using the
-   test-injectable answer hook from #1 - not done here, since `Song.cpp`
-   itself still isn't linked into `RmtTests.vcxproj` (other, unrelated
-   hazards keep it out - real MFC dialogs elsewhere in the file); actually
-   testing those two methods needs its own future move into
-   `SongEditing.cpp`, revisiting `plans/SONG_IO_SONG_REMAINING_PLAN.md`'s
-   "defer both entirely" decision - flagged there, not attempted here.
+   could finally get real characterization tests using the test-injectable
+   answer hook from #1. **Done as a follow-up**: both moved verbatim into
+   `SongEditing.cpp` (all their other dependencies - `MarkTF_USED`/
+   `MarkTF_NOEMPTY`/`FindNearTrackBySongLineAndColumn`/`TrackCopyFromTo`/
+   `SetTracks`/`g_Atari.Init(bool)` - were already safe and linked, so the
+   move needed zero code changes beyond relocating the two method bodies),
+   with `Song.cpp` left with a one-line "implemented in SongEditing.cpp"
+   comment for each, matching every other split in this effort. 7 new
+   tests cover both the confirm and cancel branches. See `plans/NOTES.md`
+   and `plans/SONG_IO_SONG_REMAINING_PLAN.md` (its "defer both entirely"
+   decision no longer applies to these two).
 5. **Everything else - DONE** (`C6502.cpp` x2, `Pokey.cpp` x3,
    `PokeyRenderer.cpp` x5, `RmtMidi.cpp` x1 - 11 sites). Real hardware/
    DLL-coupled files already confirmed permanently out of scope

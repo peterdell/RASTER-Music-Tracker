@@ -232,8 +232,13 @@ only when `m_play && m_followplay`, never taken since nothing calls the real
 (error-only `g_hwnd`), `PlayPressedTones`, `InstrPaste` (see correction #2).
 
 `SongMaketracksduplicate` and `Songswitch4_8` confirmed to only have
-confirmation-prompt `MessageBox`es (no hidden dialogs) - stay deferred per
-the already-resolved "confirm prompts stay deferred" decision.
+confirmation-prompt `MessageBox`es (no hidden dialogs) - stayed deferred at
+the time per the "confirm prompts stay deferred" decision below, until
+`plans/MESSAGEBOX_REFACTOR_PLAN.md`'s `SendQuestionMessage()` (with its
+test-injectable answer) made the confirm prompt itself safe to trigger in
+tests. **Both moved to `SongEditing.cpp` and tested - DONE** (see
+`plans/NOTES.md`); the "defer both entirely" decision (#3 below) no longer
+applies to these two specifically.
 
 ### Batch 5 - methods with an unconditional "success" dialog or confirm prompt (needs a decision)
 - `InstrChange`, `SongInsertCopyOrCloneOfSongLines`, `TracksOrderChange` -
@@ -252,9 +257,11 @@ the already-resolved "confirm prompts stay deferred" decision.
   vs. `MessageBox`) design `InstrInfo` already has, moved into
   `SongEditing.cpp`, 2 new tests, 214 tests passing (see
   `plans/NOTES.md` for the full writeup)
-- `SongMaketracksduplicate`, `Songswitch4_8` (confirmation prompts only, no
-  hidden dialogs - confirmed while scoping Batch 4 - deferred per the
-  already-resolved decision)
+- `SongMaketracksduplicate`, `Songswitch4_8` - **DONE** (confirmation
+  prompts only, no hidden dialogs - confirmed while scoping Batch 4;
+  unlocked and moved to `SongEditing.cpp` once
+  `plans/MESSAGEBOX_REFACTOR_PLAN.md`'s test-injectable
+  `SendQuestionMessage()` made the confirm prompt itself safe to trigger)
 - `FileReload` and the rest of the `FileXxx` family (see Batch 7)
 
 ### Batch 6 - DONE (not yet committed) - live playback / timer
@@ -401,8 +408,14 @@ Batch 6, and stays deferred pending its own dedicated investigation.
    mirroring `InstrInfo`'s existing `iinfo`-parameter design), leaving
    `MessageBox` as a thin wrapper around it.
 3. **Confirmation-prompt methods** (`SongMaketracksduplicate`,
-   `Songswitch4_8`): defer both entirely. Not worth extracting the
-   post-confirmation logic at this time.
+   `Songswitch4_8`): deferred at the time - not worth extracting the
+   post-confirmation logic while the confirm prompt itself was a real,
+   unavoidable `MessageBox`. **Superseded**: once
+   `plans/MESSAGEBOX_REFACTOR_PLAN.md` gave `SendQuestionMessage()` a
+   test-injectable answer, the confirm prompt itself became safe to
+   trigger, so no extraction was even needed - both moved to
+   `SongEditing.cpp` verbatim and tested on every branch (confirm and
+   cancel). See `plans/NOTES.md`.
 4. **Batch pacing**: continue one batch at a time, each scoped and approved
    before implementation, verified via full rebuild, then a commit decision
    - the same cadence used for every batch so far.
