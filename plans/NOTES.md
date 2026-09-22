@@ -1509,3 +1509,44 @@ build clean and all 123 tests pass.
         stream), all correct on first run. Full solution rebuild
         (Release|x64) confirmed 0 errors; 229 tests pass (up from 226, +3,
         0 regressions).
+- [x] `ExportV2` Batch D - attempted, found not practically testable as
+      scoped. Moved `CSong::ExportV2()` out of `IO_Song.cpp` into its own
+      new `SongExportV2.cpp` - a real structural improvement regardless of
+      the outcome below, since it isolates it from the rest of that file
+      (the `FileXxx` family, Batch 7, recommended deferred indefinitely).
+      - **Discovered by actually attempting the link, not by reasoning
+        about it in advance**: `ExportV2()`'s `switch (iotype)` statement
+        references all 9 branches syntactically in the compiled function
+        body, so the linker needs every one of those symbols to resolve
+        regardless of which `iotype` a given test would actually pass in.
+        Trying to link just the file produced 13 LNK2019/LNK2001 errors:
+        `CSongContainer`/`CSongExport`/`CSongExporter`'s constructors, all
+        5 of `CSongExporter`'s Tier-2 export methods (SAP-R/LZSS/SAP+LZSS/
+        XEX+LZSS/WAV - the ones gated behind the real Atari audio-rendering
+        pipeline, still deferred per this doc's Tier-2 findings), the two
+        real-dialog wrappers `CRmtExporter::ExportAsStrippedRMT()`/
+        `CASMFileExporter::ExportAsRelocatableAsmForRmtPlayer()` (not their
+        already-tested `*Apply()` siblings, which the switch doesn't call),
+        and a real `g_Pokey` global.
+      - Notably, `CSongContainer`'s constructor isn't even a "link-only,
+        never-really-called" case the way most stubs in this effort are -
+        it's constructed unconditionally before the switch, for every
+        `iotype` including `RMT`. Confirmed its own body is simple (stores
+        a pointer, validates the song is stopped), but the same
+        translation unit also holds `GetPokeyStream()`/
+        `GetModifiablePokeyStream()`, which call into the real rendering
+        pipeline - linking the constructor for real would mean either
+        linking those too (expanding into Tier 2) or splitting
+        `SongContainer.cpp` yet again, several layers deeper than this
+        batch's actual goal.
+      - Asked the user how to close this out given the disproportionate
+        new surface (7+ symbols, several of them exactly the
+        deferred/dialog territory this whole effort keeps out of the test
+        binary) versus the value (confirming a thin dispatch layer whose
+        every real branch is already directly tested via Batches A-C).
+        Chose to skip direct testing: keep the `SongExportV2.cpp` move for
+        production clarity, but don't add it to the test project.
+      - No new tests, no test-project changes. Production-only change
+        (the file move). Full solution rebuild (Release|x64) confirmed 0
+        errors; 229 tests still pass (unchanged from Batch C, 0
+        regressions).

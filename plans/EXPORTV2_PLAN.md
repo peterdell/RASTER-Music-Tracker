@@ -160,9 +160,21 @@ for now, same posture as `TimerRoutine`/`ChangeTimer`/`ReInitSound`.
    `InstrumentsCore.cpp` (a new orphan-safe-method finding, needed by
    `ExportAsAsmApply`'s frequency-lookup branch). 3 new tests, 229 tests
    passing (see `plans/NOTES.md` for the full writeup).
-4. **Batch D** (optional, once A-C land): characterize `ExportV2`'s own
-   dispatch logic directly for the `RMT`/`RMTSTRIPPED`/`ASM`/`ASM_RMTPLAYER`
-   branches, now that every callee they reach is safe.
+4. **Batch D - DONE, not testable as scoped**: attempted to characterize
+   `ExportV2`'s own dispatch logic directly. Moved it out of `IO_Song.cpp`
+   into its own `SongExportV2.cpp` for clarity (isolating it from the
+   permanently-deferred `FileXxx` family), but **actually attempting to
+   link it into the test project failed**: `ExportV2`'s switch statement
+   references all 9 `iotype` branches syntactically, so the linker needs
+   every one of them to resolve regardless of which case a test would
+   exercise. Testing even just the `RMT` case would require linking or
+   stubbing `CSongContainer`/`CSongExport`/`CSongExporter`'s constructors,
+   all 5 of `CSongExporter`'s Tier-2 methods, the two real-dialog wrappers
+   (`ExportAsStrippedRMT`/`ExportAsRelocatableAsmForRmtPlayer` - not their
+   already-tested `*Apply()` siblings), and a real `g_Pokey` global - a lot
+   of new surface for a thin dispatch layer whose every real branch is
+   already directly tested via Batches A-C. `SongExportV2.cpp` stays
+   production-only. See `plans/NOTES.md` for the full writeup.
 5. **Stays deferred**: the SAP/LZSS/WAV/XEX family (Tier 2 above) - needs
    its own dedicated investigation into whether `DumpSongToPokeyStream()`
    is safe to run in the test binary before anything here can be attempted.
