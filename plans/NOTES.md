@@ -1829,3 +1829,47 @@ build clean and all 123 tests pass.
       - Full solution rebuild (Release|x64) confirmed 0 errors; 239 tests
         pass (up from 236, +3, 0 regressions). This completes the
         `IO_Importer.cpp` triage (both `ImportTMC` and `ImportMOD`).
+- [x] `MessageBox(g_hwnd, ...)` → `Send<Type>Message(...)` refactor,
+      Batch 1 (the prerequisite + new functions) - user-requested, not a
+      characterization batch. See `plans/MESSAGEBOX_REFACTOR_PLAN.md` for
+      the full survey (71 call sites across 24 files) and the three
+      decisions the user made: merge `MB_ICONSTOP`/`MB_ICONERROR` into one
+      `SendErrorMessage` and `MB_ICONWARNING`/`MB_ICONEXCLAMATION` into one
+      `SendWarningMessage` (genuinely the same Win32 icon value in both
+      cases, confirmed, not just visually similar); extend the existing
+      `Messages.h`/`Messages.cpp` rather than a new file pair; give the new
+      `SendQuestionMessage` confirmation-prompt function a test-injectable
+      answer (`SetTestQuestionAnswer()`) rather than a fixed default, so
+      confirm-gated code can eventually be characterized on every branch
+      (not just automatically safe to avoid, like every other guard-only
+      `MessageBox` in this effort so far).
+      - `Messages.cpp` only needed one line changed
+        (`#include "Global.h"` → a direct `extern HWND g_hwnd;`, matching
+        the "declare individual externs" pattern) to become linkable for
+        real - it was already effectively `Global.h`-free otherwise. This
+        let it link into `RmtTests.vcxproj` directly for the first time,
+        removing two verbatim-copied duplicates that existed solely
+        because `Messages.cpp` wasn't linkable before now:
+        `test/AtariBinariesStub.cpp`'s copy of `SendErrorMessage()`/
+        `g_statusBar`, and `test/Song_DumpSongStub.cpp`'s copy of
+        `SendInfoMessage()`.
+      - Added `SendWarningMessage`/`SendInformationMessage` (mirroring
+        `SendErrorMessage`'s existing 1-arg/2-arg shape) and
+        `SendQuestionMessage`/`SetTestQuestionAnswer`/the
+        `MessageButtons`/`MessageAnswer` enums. All three fire-and-forget
+        functions share one new internal `SendMessageBox()` helper
+        (icon + log-prefix parameters) instead of tripling the
+        `if (g_statusBar == nullptr) {...} else {...}` logic.
+        `SendInformationMessage` is deliberately named differently from
+        the pre-existing `SendInfoMessage` (status-bar text, not a real
+        modal notice) - a near-miss name, flagged in the plan doc as worth
+        double-checking during the future call-site migration batches.
+      - 4 new tests in a new `test/MessagesTests.cpp`: smoke tests for the
+        three fire-and-forget functions (little else is observable - they
+        log to `OutputDebugString`), and a real round-trip test proving
+        `SendQuestionMessage` returns whatever `SetTestQuestionAnswer()`
+        set, across all four answers and all three button sets.
+      - Full solution rebuild (Release|x64) confirmed 0 errors; 243 tests
+        pass (up from 239, +4, 0 regressions).
+      - Migration of the 71 real call sites (Batches 2-5 of
+        `plans/MESSAGEBOX_REFACTOR_PLAN.md`) not yet started.

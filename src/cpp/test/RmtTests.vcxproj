@@ -116,6 +116,7 @@
     <ClCompile Include="..\VUPlayer.cpp" />
     <ClCompile Include="..\AtariBinaries.cpp" />
     <ClCompile Include="AtariBinariesStub.cpp" />
+    <ClCompile Include="..\Messages.cpp" />
     <ClCompile Include="..\LZSSFile.cpp" />
     <ClCompile Include="SAPFileStub.cpp" />
     <ClCompile Include="..\Keyboard2NoteMapping.cpp" />
@@ -145,6 +146,7 @@
     <ClCompile Include="SongEditingStub.cpp" />
     <!-- Test sources. -->
     <ClCompile Include="FractionTests.cpp" />
+    <ClCompile Include="MessagesTests.cpp" />
     <ClCompile Include="StringUtilityTests.cpp" />
     <ClCompile Include="NotesTests.cpp" />
     <ClCompile Include="TuningTypesTests.cpp" />

@@ -1,16 +1,6 @@
 #include "StdAfx.h"
 
 #include "GuiHelpers.h"
-#include "Messages.h"
-
-// Real one-line implementation for CSongContainer::GetModifiablePokeyStream()
-// (SongContainer.cpp) - copied verbatim from Messages.cpp, which itself
-// isn't linked here (its other function, SendErrorMessage(), needs Global.h's
-// g_hwnd/a real CStatusBar). SetStatusBarText() is already a real no-op stub
-// (see SongEditingStub.cpp).
-void SendInfoMessage(const char* message) {
-    SetStatusBarText(message);
-}
 
 // Link-only stubs for CSong::DumpSongToPokeyStream()'s (Song_DumpSong.cpp)
 // two GuiHelpers.cpp dependencies - GuiHelpers.cpp itself isn't linked here

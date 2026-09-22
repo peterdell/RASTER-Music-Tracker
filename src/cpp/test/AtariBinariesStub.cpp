@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 
-#include "Messages.h"
 #include <filesystem>
 
 // Real, simple globals/functions needed by AtariBinaries.cpp (already
@@ -43,35 +42,4 @@ namespace {
             SetProgramFolderPath((repoRoot / "rmt").string().c_str());
         }
     } g_initProgramFolderPath;
-}
-
-// Real implementations for CSAPFileExporter::ExportSAP_B_LZSS()
-// (SAPFileExporterCore.cpp) - copied verbatim from Messages.cpp (not
-// linked here). g_statusBar defaults to nullptr and no test sets it, so
-// the "if (g_statusBar == nullptr)" branch below is always taken - the
-// MessageBox() branch is preserved as real code but is unreachable here,
-// same treatment as CSongTimer::WaitForTimerRoutineProcessed()'s guard
-// (see test/SongEditingStub.cpp).
-extern HWND g_hwnd; // real global, see test/SongEditingStub.cpp
-
-CStatusBar* g_statusBar = nullptr;
-
-void SendErrorMessage(const char* message) {
-    SendErrorMessage(nullptr, message);
-}
-
-void SendErrorMessage(const char* title, const char* message) {
-    if (g_statusBar == nullptr) {
-        OutputDebugString("ERROR: ");
-        if (title) {
-            OutputDebugString(title);
-            OutputDebugString("\n");
-        }
-
-        OutputDebugString(message);
-        OutputDebugString("\n");
-    }
-    else {
-        MessageBox(g_hwnd, message, title, MB_ICONERROR);
-    }
 }
