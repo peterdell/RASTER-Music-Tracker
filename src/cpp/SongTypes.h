@@ -3,6 +3,7 @@
 #include "InstrumentTypes.h"
 #include "TracksTypes.h"
 #include "TrackTypes.h"
+#include <vector>
 
 
 
@@ -80,6 +81,48 @@ struct TImportTMCResult
     int songlines;
     int optitracks, optibeats;                         // only set if optimizeloops was requested
     int clearedtracks, truncatedtracks, truncatedbeats; // only set if truncateunusedparts was requested
+};
+
+// Populated by CSong::ImportMODParseHeader() (IO_ImporterCore.cpp) - same
+// two-phase split as TImportTMCHeader/TImportTMCResult above, for the same
+// reason (ImportMOD()'s options dialog needs the parsed channel/sample
+// count to build its own text). Unlike ImportTMC, ImportMODApply() also
+// needs continued access to the original input stream (sample data lives
+// beyond what's parsed here), so it takes std::istream& directly alongside
+// this header. See plans/IO_IMPORTER_PLAN.md.
+struct TImportMODHeader
+{
+    // 0 = ok; 1 = the file is too short to contain a full 1084-byte module
+    // header; 2 = its header doesn't carry a recognized ProTracker
+    // identification ("M.K." or NCHN, 4-8 channels - see head+1080..1083);
+    // 3 = the file is shorter than its own header claims it should be.
+    // Kept as a plain code (rather than showing a MessageBox in
+    // ImportMODParseHeader() itself) so the caller can reconstruct the
+    // three differently-worded original guard messages exactly (see
+    // ImportMOD() in IO_Importer.cpp).
+    int errorCode;
+    BYTE head[1085];           // the 1084-byte module header (+ head[1084]=0 terminator)
+    std::vector<BYTE> mem;     // the module's header+pattern data (not sample data - see ImportMODApply())
+    int modulelength;          // total file length in bytes
+    int chnls;                 // channel count (4-8)
+    int modsamples;            // 15 or 31, depending on module type
+    int song;                  // offset within mem where the song order table starts
+    int patstart;              // offset within mem where pattern data starts
+    int patternsize;           // bytes per pattern (chnls * 256)
+    int songlen;                // number of song order entries (clamped to SONGLEN-1)
+    int restartpos;            // restart position from the header
+    int maxpat;                // highest pattern number referenced by the song order table
+};
+
+// Populated by CSong::ImportMODApply() - the stats needed to build the
+// post-import confirmation dialog's text (see CImportModFinishedDlg).
+struct TImportMODResult
+{
+    int destnum;            // tracks converted
+    int nonemptysamples;    // instruments converted
+    int songlines;
+    int optitracks, optibeats;                          // only set if optimizeloops was requested
+    int clearedtracks, truncatedtracks, truncatedbeats;  // only set if truncateunusedparts was requested
 };
 
 struct TSong	//due to Undo

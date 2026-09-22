@@ -206,6 +206,19 @@ public:
     void ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL optimizeloops, BOOL truncateunusedparts, TImportTMCResult& result);
 
     int ImportTMC(std::ifstream& in);
+
+    // ImportMOD()'s two-phase split (see plans/IO_IMPORTER_PLAN.md and
+    // IO_ImporterCore.cpp): ParseHeader() does the unconditional real work
+    // needed before its options dialog can be shown (parses the module
+    // header, detects its channel/sample count, loads its header+pattern
+    // data); Apply() does the rest of the real conversion, taking the
+    // dialog's flags as parameters and returning the stats its confirmation
+    // dialog displays. Apply() also takes the same stream directly (sample
+    // data lives beyond what ParseHeader() loads). std::istream& rather
+    // than std::ifstream& lets tests use an in-memory stream.
+    bool ImportMODParseHeader(std::istream& in, TImportMODHeader& header);
+    void ImportMODApply(std::istream& in, const TImportMODHeader& header, int rmttype, const BYTE trackorder[8], BOOL shiftdownoctave, BOOL portamento, BOOL fullvolumerange, BOOL volumeincrease, BOOL decreaseinstrument, BOOL optimizeloops, BOOL truncateunusedparts, TImportMODResult& result);
+
     int ImportMOD(std::ifstream& in);
 
     // Export methods shall be separeated from song itself

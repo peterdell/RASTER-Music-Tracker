@@ -1766,3 +1766,97 @@ TEST_F(SongEditingTest, ImportTMCApplyConvertsANoteIntoTheDestinationTrack) {
     // to 0 too. This is real, faithful TMC-import behavior, not a test bug.
     EXPECT_EQ(track0->volume[0], 0);
 }
+
+// --- CSong::ImportMODParseHeader / ImportMODApply ---
+// Same two-phase split as ImportTMC above, for the same reason (the options
+// dialog needs the parsed channel/sample count to build its own text) - see
+// plans/IO_IMPORTER_PLAN.md. Unlike ImportTMC, ImportMODApply() also needs
+// continued access to the input stream (sample data lives beyond what
+// ParseHeader() loads), so both calls below share the same stream object.
+
+TEST_F(SongEditingTest, ImportMODParseHeaderFailsOnATruncatedHeader) {
+    std::istringstream in(""); // shorter than the required 1084-byte header
+
+    TImportMODHeader header;
+    EXPECT_FALSE(song.ImportMODParseHeader(in, header));
+    EXPECT_EQ(header.errorCode, 1);
+}
+
+TEST_F(SongEditingTest, ImportMODParseHeaderFailsOnUnrecognizedIdentification) {
+    // "2CHN" parses as a 2-channel module (chnls = '2' - '0') - out of the
+    // supported 4-8 range. An all-zero identification doesn't trigger this
+    // guard: bytes outside the printable "space".."Z" range are treated as
+    // an older, un-identified 15-sample module instead (chnls hardcoded to
+    // 4, always valid) - see ImportMODParseHeader()'s fallback branch.
+    std::string data(1084, '\0');
+    data[1080] = '2'; data[1081] = 'C'; data[1082] = 'H'; data[1083] = 'N';
+    std::istringstream in(data);
+
+    TImportMODHeader header;
+    EXPECT_FALSE(song.ImportMODParseHeader(in, header));
+    EXPECT_EQ(header.errorCode, 2);
+}
+
+TEST_F(SongEditingTest, ImportMODApplyConvertsANoteIntoTheDestinationTrack) {
+    // Hand-derived minimal standard ProTracker ("M.K.", 31-sample, 4-channel)
+    // module buffer. Total size (2116 bytes) is exact - ImportMODApply()'s
+    // final guard-only warning fires if the file is shorter/longer than the
+    // sample data it expects, so the layout below must add up precisely:
+    //  [0..19]      song name (blank)
+    //  [20..49]     sample #1's 30-byte header: [42..43] length word (BE,
+    //               in 16-bit words) = 4 -> 8 bytes of real sample data;
+    //               [45] volume = 0x40; repeat point/length left at 0 (no
+    //               loop)
+    //  [50..949]    samples #2-31's headers, all zero (length 0 -> skipped)
+    //  [950]        songlen = 1 (one song order position)
+    //  [951]        restart position = 0
+    //  [952]        song order[0] = pattern 0
+    //  [1080..1083] "M.K." identification (standard 4-channel module)
+    //  [1084..2107] pattern 0's 1024 bytes (4 channels * 256), all empty
+    //               cells except row 0/channel 0: period 0x06B0 (the
+    //               lowest note, "C3"), sample #1, no effect
+    //  [2108..2115] sample #1's 8 bytes of real (non-silent) data
+    std::vector<unsigned char> buf(2116, 0);
+    buf[42] = 0x00; buf[43] = 0x04; // sample #1 length = 4 words = 8 bytes
+    buf[45] = 0x40; // sample #1 volume
+    buf[950] = 1;   // songlen
+    buf[951] = 0;   // restartpos
+    buf[952] = 0;   // song order[0] -> pattern 0
+    buf[1080] = 'M'; buf[1081] = '.'; buf[1082] = 'K'; buf[1083] = '.';
+    buf[1084] = 0x06; buf[1085] = 0xB0; buf[1086] = 0x10; buf[1087] = 0x00; // row0/ch0: period 0x6B0, sample 1
+    buf[2108] = 0; buf[2109] = 50; buf[2110] = 0; buf[2111] = 50;
+    buf[2112] = 0; buf[2113] = 50; buf[2114] = 0; buf[2115] = 50;
+
+    std::string data(reinterpret_cast<char*>(buf.data()), buf.size());
+    std::istringstream in(data);
+
+    TImportMODHeader header;
+    ASSERT_TRUE(song.ImportMODParseHeader(in, header));
+    EXPECT_EQ(header.chnls, 4);
+    EXPECT_EQ(header.modsamples, 31);
+    EXPECT_EQ(header.songlen, 1);
+    EXPECT_EQ(header.modulelength, (int)buf.size());
+
+    BYTE trackorder[8] = { 0,1,2,3,4,5,6,7 };
+    TImportMODResult result;
+    song.ImportMODApply(in, header, /*rmttype=*/4, trackorder,
+        /*shiftdownoctave=*/FALSE, /*portamento=*/FALSE, /*fullvolumerange=*/FALSE,
+        /*volumeincrease=*/FALSE, /*decreaseinstrument=*/FALSE,
+        /*optimizeloops=*/FALSE, /*truncateunusedparts=*/FALSE, result);
+
+    EXPECT_EQ(result.destnum, 1); // only channel 0 produced a non-empty track
+    EXPECT_EQ(result.nonemptysamples, 1); // only sample #1 has real length
+    EXPECT_EQ(g_tracks4_8, 4); // rmttype=4
+
+    EXPECT_EQ((*song.GetSong())[0][0], 0); // track 0 placed at songline 0, column 0
+    EXPECT_EQ((*song.GetSong())[0][1], -1);
+
+    TTrack* track0 = g_Tracks.GetTrack(0);
+    EXPECT_EQ(track0->note[0], 0);
+    EXPECT_EQ(track0->instr[0], 1);
+    EXPECT_EQ(track0->volume[0], 15); // AtariVolume(0x40) = 15 (max)
+
+    TInstrument* instr1 = g_Instruments.GetInstrument(1);
+    EXPECT_EQ(instr1->parameters[PAR_ENV_LENGTH], 1);
+    EXPECT_EQ(instr1->parameters[PAR_ENV_GOTO], 1);
+}

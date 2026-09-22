@@ -165,3 +165,54 @@ a full-RAM buffer directly in a struct).
   the comment was just never updated.
 - Full solution rebuild (Release|x64) confirmed 0 errors; 236 tests pass
   (up from 233, +3, 0 regressions).
+
+## Batch B - DONE: `ImportMOD`
+
+Same two-phase `Apply()` design as Batch A, with one new wrinkle found while
+implementing: `ImportModApply()` needs *continued* access to the input
+stream, not just the parsed header - `ParseHeader()` only loads the
+module's header+pattern data into `header.mem` (a `std::vector<BYTE>`,
+runtime-sized unlike TMC's fixed 64KB buffer - cleaner than replicating the
+original's raw `new[]`/`delete[]`, same lifetime/content otherwise); the
+actual sample audio data lives further into the file and is read directly
+from the stream partway through `Apply()` (`in.seekg(smpfrom,...)`). So
+`ImportMODApply()` takes `std::istream&` directly, alongside the header.
+
+A second wrinkle: unlike `ImportTMC` (one guard-only failure mode),
+`ImportMOD`'s header-validation has **three** differently-worded original
+guard messages (bad header length, unsupported channel/identification
+bytes, truncated file). Collapsing them into a single bool would lose which
+message to show, so `TImportMODHeader` carries a plain `errorCode` (1/2/3)
+instead, and the thin wrapper (`ImportMOD()`) switches on it to reconstruct
+the exact original text (including the actual header bytes, for the
+"unsupported identification" case). The six *other*, guard-only
+`MessageBox` calls that live inside the real conversion logic itself (too
+many tracks/songlines during conversion, a sample seek/read failure, a
+final module-length mismatch) are kept exactly as-is in `Apply()` - same
+"avoidable with valid test data" treatment already established throughout
+this effort, not a new decision.
+
+`TMODInstrumentMark`/`AtariVolume()` (MOD-only helpers, confirmed unused by
+`ImportTMC`) moved into `IO_ImporterCore.cpp` alongside the new methods.
+`x_fourier` (the dialog's 8th checkbox) is captured by the original but
+only ever read inside a genuinely commented-out Fourier-transform block -
+same dead-code category as `MakeTuningBlock`/`DecodeTuningBlock` - so it's
+not threaded through to `Apply()` at all.
+
+3 new hand-derived tests: two small `ParseHeader` guard tests (a truncated
+header; an out-of-range channel count via a deliberately crafted "2CHN"
+identification - an *all-zero* identification does NOT trigger this guard,
+since bytes outside the printable range fall through to a legacy
+"15-sample module" branch that hardcodes a valid `chnls`, a genuine
+first-hand finding while writing the test, not assumed), and one full
+`ImportMODApply` conversion test built from a hand-crafted minimal
+"M.K." 31-sample module buffer (byte layout fully derived and commented in
+the test itself - the trickiest part was getting the total file length
+exactly right, since `Apply()`'s final guard compares the sample data's end
+position against the real file length). The large conversion test passed
+on the first run, confirming the byte-layout derivation was correct.
+
+Full solution rebuild (Release|x64) confirmed 0 errors; 239 tests pass (up
+from 236, +3, 0 regressions).
+
+This completes both batches of the `IO_Importer.cpp` triage.

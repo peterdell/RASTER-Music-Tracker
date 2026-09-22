@@ -1788,4 +1788,44 @@ build clean and all 123 tests pass.
         updated when that changed.
       - Full solution rebuild (Release|x64) confirmed 0 errors; 236 tests
         pass (up from 233, +3, 0 regressions).
-      - `ImportMOD` (Batch B) not yet started.
+- [x] `IO_Importer.cpp` Batch B: `CSong::ImportMOD` unlocked - completes the
+      `IO_Importer.cpp` triage. See `plans/IO_IMPORTER_PLAN.md`.
+      - Same two-phase `Apply()` split as `ImportTMC`, plus two new
+        wrinkles found while implementing (not assumed up front):
+        1. `ImportModApply()` needs *continued* stream access (sample audio
+           data lives beyond what `ParseHeader()` loads), so it takes
+           `std::istream&` directly alongside the parsed header.
+           `TImportMODHeader.mem` uses a `std::vector<BYTE>` (runtime-sized,
+           unlike TMC's fixed 64KB buffer) rather than replicating the
+           original's raw `new[]`/`delete[]` - same content/lifetime,
+           safer ownership.
+        2. Unlike `ImportTMC`'s one guard-only failure mode, `ImportMOD`'s
+           header validation has three differently-worded original guard
+           messages - collapsing to a single bool would lose which to show,
+           so `TImportMODHeader` carries a plain `errorCode` (1/2/3)
+           instead, and the wrapper switches on it to reconstruct the exact
+           original text. The six *other* guard-only `MessageBox` calls
+           living inside the real conversion logic (track/songline
+           overflow, sample seek/read failure, final length mismatch) are
+           kept exactly as-is - same "avoidable with valid test data"
+           treatment as everywhere else, not a new decision.
+      - `TMODInstrumentMark`/`AtariVolume()` (MOD-only, confirmed unused by
+        `ImportTMC`) moved alongside. `x_fourier` (dialog checkbox 8) is
+        captured by the original but only ever read inside a genuinely
+        commented-out Fourier-transform block - same dead-code category as
+        `MakeTuningBlock`/`DecodeTuningBlock` - so it's not threaded
+        through to `Apply()`.
+      - 3 new hand-derived tests: two small `ParseHeader` guard tests (a
+        truncated header; an out-of-range channel count via a deliberately
+        crafted "2CHN" identification - discovered while writing the test
+        that an *all-zero* identification does NOT trigger this guard,
+        since bytes outside the printable range fall through to a legacy
+        "15-sample module" branch that hardcodes a valid `chnls`), and one
+        full conversion test built from a hand-crafted minimal "M.K."
+        31-sample module buffer (byte layout derived and commented in the
+        test itself). The large conversion test passed on the first run,
+        confirming the derivation was correct on paper before ever
+        compiling it.
+      - Full solution rebuild (Release|x64) confirmed 0 errors; 239 tests
+        pass (up from 236, +3, 0 regressions). This completes the
+        `IO_Importer.cpp` triage (both `ImportTMC` and `ImportMOD`).
