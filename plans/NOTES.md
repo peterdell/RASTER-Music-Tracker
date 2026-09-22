@@ -1550,3 +1550,84 @@ build clean and all 123 tests pass.
         (the file move). Full solution rebuild (Release|x64) confirmed 0
         errors; 229 tests still pass (unchanged from Batch C, 0
         regressions).
+- [x] SAP/LZSS/WAV/XEX family (`ExportV2`'s Tier 2) - full triage and first
+      unlock. Full per-method breakdown in the new
+      `plans/SAP_LZSS_WAV_XEX_PLAN.md`; highlights below.
+      - **`CSong::DumpSongToPokeyStream()` (`Song_DumpSong.cpp`) - the real
+        prerequisite blocking this entire family - turned out safe.** It
+        runs a real `while (m_play != PLAY_STOP) { PlayVBI(); ... }`
+        playback loop, and nothing before this had ever proven it
+        terminates. Traced by hand: `SongPlayNextLine()` (`SongCore.cpp`)
+        sets `m_play = PLAY_STOP` once `CPokeyStream::TrackSongLine()`
+        detects a revisited songline, and for `PLAY_SONG`/`PLAY_FROM` (the
+        only modes this method is ever called with in production)
+        `m_songplayline` always advances or wraps at 255 - so a revisit,
+        and therefore a stop, is guaranteed within a small, bounded number
+        of songline advances regardless of song content. Independently
+        corroborated by `PokeyStreamTests.cpp`'s own
+        `TrackSongLineDetectsLoopOnSecondFullPassAndResolvesOnThird` test.
+      - `CPokeyStream` itself (the whole recording state machine) was
+        *already* fully linked and tested - its own header comment said
+        the "data path" needed a real `CAtariTrackerDriver`/`CAtari`,
+        blocked by "CSong's g_Atari-coupled constructor". That note was
+        stale: `g_AtariTrackerDriver`/`g_Atari` have been real, linked
+        globals since Batch 4/6, and nothing in `CSong`'s constructor
+        actually touches `g_Atari` at all. Comment corrected.
+      - **A genuinely severe hazard, found and defended against**:
+        `CSongContainer`'s constructor calls `ThrowRuntimeException()` if
+        the song isn't `PLAY_STOP` - and unlike every other guard-only
+        `MessageBox` this effort has been careful around, that one calls
+        `exit(2)` right after, terminating the *entire test process*, not
+        just failing one test. `song.Stop()` is now called defensively
+        before every `CSongContainer` construction in tests.
+      - Added link-only stubs for `g_AtariTrackerDriver->Play()` (only
+        called if `g_rmtroutine`, which no test sets), `RefreshScreen()`
+        (mirrors its own real, guaranteed-taken guard clause - it always
+        returns 0 immediately since `g_hwnd` is always NULL here) and
+        `DisableEventSection` (its real ctor/dtor are a purely cosmetic,
+        non-blocking cursor/window-enable toggle) in a new
+        `test/Song_DumpSongStub.cpp`, plus a real one-line
+        `SendInfoMessage()` (delegates to the already-stubbed
+        `SetStatusBarText()`).
+      - Verified incrementally with an explicit timeout at every step,
+        matching Batch 6's protocol for genuine hang risk: build, then the
+        one new test alone with a short timeout, then the full suite. The
+        first attempt "failed" in 0ms with wrong assertion values, not a
+        hang - the `m_instrumentSpeed` defaults to 0" gotcha (documented
+        back in Batch 2) hit for a third time, this time gating the
+        recording loop's inner `for` loop entirely so no frames were ever
+        recorded. Fixed by setting `instrspeed` non-zero, same as every
+        other time this has come up.
+      - **Process hygiene note**: kicked off a full clean rebuild in the
+        background and then kept editing source files before it finished -
+        the build read inconsistent file states mid-compile and failed
+        with a spurious linker error unrelated to any real code problem.
+        Re-ran cleanly once all edits were done; not a real regression.
+        Lesson: don't edit files a running build might still be compiling.
+      - **`CSongExporter::ExportSAP_R` unlocked and tested**: same "dialog
+        gathers params, real work happens independently" shape as the
+        RMT/ASM exporters - `CSAPFileExportDialog::Show()` populates a
+        `CSAPFile`, then delegates to the already dialog-free
+        `CSAPFileExporter::ExportSAP_R(songExport, sapFile, ou)`. No
+        `*Apply()` split needed, just linking it directly. Widened it and
+        `CPokeyStream::WriteToFile()` to `std::ostream&`. Split
+        `SAPFileExporter.cpp` into a new `SAPFileExporterCore.cpp` (just
+        `ExportSAP_R`) after confirming - by actually attempting to link
+        the whole file first - that `/Gy`'s function-level linking doesn't
+        eliminate the unused `ExportSAP_B_LZSS`'s dependencies in this
+        project (not built with `/OPT:REF`).
+      - The other four methods each stay deferred for their own distinct,
+        now-documented reasons rather than one blanket "Tier 2" excuse:
+        `ExportSAP_B_LZSS`/`ExportXEX_LZSS` need a real on-disk resource
+        file (`resources/players/vu_player_v2.obx`) - a new category of
+        test dependency this suite has never needed before;
+        `ExportWAV` is confirmed genuinely hazardous (real POKEY audio
+        *synthesis* via `CXPokey::RenderSoundV2()`, not just register
+        bookkeeping - the same category Batch 6 flagged for
+        `TimerRoutine`); `ExportLZSS`/`ExportCompactLZSS` write multiple
+        real files to disk by design and are self-described in their own
+        comments as "hacked up"/"currently unused?".
+      - 2 new hand-derived tests (`DumpSongToPokeyStream` via
+        `CSongContainer::GetPokeyStream()`; `ExportSAP_R`'s header + stream
+        data). Full solution rebuild (Release|x64) confirmed 0 errors; 231
+        tests pass (up from 229, +2, 0 regressions).

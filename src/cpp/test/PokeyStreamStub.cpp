@@ -16,6 +16,14 @@
 int CAtariTrackerDriver::Init() { return 0; }
 int CLZSSFile::GetFrameSize(const CSong&) { return 9; }
 
+// Link-only no-op stub: CSong::DumpSongToPokeyStream() (Song_DumpSong.cpp,
+// now linked - see Song_DumpSongStub.cpp) calls this only when g_rmtroutine
+// is true, which none of its tests ever set (defaults FALSE - see
+// SongEditingStub.cpp). Its real body lives in the still-unlinked
+// AtariTrackerDriver.cpp (needs Global.h's IsSpecialProveMode()) - same
+// "link-only, never really called" treatment as Init() above.
+void CAtariTrackerDriver::Play() {}
+
 // g_ChannelControl is a real, already-tested CChannelControl (see
 // ChannelControlTests.cpp) - FinishedRecording() calls SetAllChannelsOn() on
 // it, but again, tests here never call FinishedRecording(), so this only

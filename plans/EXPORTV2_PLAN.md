@@ -175,6 +175,10 @@ for now, same posture as `TimerRoutine`/`ChangeTimer`/`ReInitSound`.
    of new surface for a thin dispatch layer whose every real branch is
    already directly tested via Batches A-C. `SongExportV2.cpp` stays
    production-only. See `plans/NOTES.md` for the full writeup.
-5. **Stays deferred**: the SAP/LZSS/WAV/XEX family (Tier 2 above) - needs
-   its own dedicated investigation into whether `DumpSongToPokeyStream()`
-   is safe to run in the test binary before anything here can be attempted.
+5. **The SAP/LZSS/WAV/XEX family (Tier 2 above)**: investigated in its own
+   `plans/SAP_LZSS_WAV_XEX_PLAN.md`. `DumpSongToPokeyStream()` turned out
+   safe (traced by hand and confirmed bounded), unlocking `ExportSAP_R`;
+   the other four methods each stay deferred for their own distinct
+   reasons (a real on-disk resource-file dependency, genuine POKEY-
+   audio-hardware rendering, or real multi-file disk writes) - see that
+   doc for the per-method breakdown.

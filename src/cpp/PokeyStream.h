@@ -50,7 +50,11 @@ public:
     bool CallFromPlayBeat(int trackLine);
 
     void Record();
-    void WriteToFile(std::ofstream& ou, int frames, int offset) const;
+    // Takes std::ostream& rather than std::ofstream& - its one real call
+    // site (CSAPFileExporter::ExportSAP_R()) passes a genuine file stream
+    // (which satisfies the wider base type), and the wider type lets tests
+    // use an in-memory stream (see test/SongEditingTests.cpp).
+    void WriteToFile(std::ostream& ou, int frames, int offset) const;
     void FinishedRecording();
 
 private:

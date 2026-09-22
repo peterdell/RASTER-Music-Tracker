@@ -112,6 +112,7 @@
     <ClCompile Include="..\IO_Instruments.cpp" />
     <ClCompile Include="InstrumentsStub.cpp" />
     <ClCompile Include="..\SAPFile.cpp" />
+    <ClCompile Include="..\SAPFileExporterCore.cpp" />
     <ClCompile Include="SAPFileStub.cpp" />
     <ClCompile Include="..\Keyboard2NoteMapping.cpp" />
     <ClCompile Include="Keyboard2NoteMappingStub.cpp" />
@@ -130,6 +131,10 @@
     <ClCompile Include="..\ClipboardCore.cpp" />
     <ClCompile Include="..\AtariIO.cpp" />
     <ClCompile Include="..\RmtExporterCore.cpp" />
+    <ClCompile Include="..\Song_DumpSong.cpp" />
+    <ClCompile Include="..\SongContainer.cpp" />
+    <ClCompile Include="..\SongExport.cpp" />
+    <ClCompile Include="Song_DumpSongStub.cpp" />
     <ClCompile Include="UndoStub.cpp" />
     <ClCompile Include="SongEditingStub.cpp" />
     <!-- Test sources. -->

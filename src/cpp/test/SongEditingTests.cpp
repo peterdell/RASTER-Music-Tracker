@@ -7,6 +7,8 @@
 #include "RmtExporter.h"
 #include "ASMFileExporter.h"
 #include "AtariIO.h"
+#include "SongContainer.h"
+#include "SAPFileExporter.h"
 #include <sstream>
 
 extern int g_tracks4_8;
@@ -1186,6 +1188,98 @@ TEST_F(SongEditingTest, ExportAsRelocatableAsmForRmtPlayerApplyWritesToStream) {
     EXPECT_TRUE(CASMFileExporter::ExportAsRelocatableAsmForRmtPlayerApply(song, out, &exportDescStripped, &exportDescWithSFX, params));
 
     EXPECT_NE(out.str().find("MY_SONG"), std::string::npos);
+}
+
+// --- CSong::DumpSongToPokeyStream / CSongContainer::GetPokeyStream ---
+// The real Atari-hardware-adjacent piece of the SAP/LZSS/WAV/XEX export
+// family (plans/EXPORTV2_PLAN.md's Tier 2), previously deferred without
+// investigation. DumpSongToPokeyStream() runs a real "while (m_play !=
+// PLAY_STOP) { PlayVBI(); ... }" playback loop - traced by hand and
+// confirmed bounded: SongPlayNextLine() (SongCore.cpp) sets m_play =
+// PLAY_STOP as soon as CPokeyStream::TrackSongLine() detects a revisited
+// songline, and m_songplayline always advances (or wraps at 255) for
+// PLAY_SONG/PLAY_FROM - the only two modes DumpSongToPokeyStream() is ever
+// called with in production (SongContainer.cpp/SongExporter.cpp) - so a
+// revisit, and therefore a stop, is guaranteed within a small, bounded
+// number of songline advances regardless of song content. Independently
+// confirmed by PokeyStreamTests.cpp's own
+// TrackSongLineDetectsLoopOnSecondFullPassAndResolvesOnThird test, which
+// traces the same state machine in isolation.
+//
+// CSongContainer's constructor calls ThrowRuntimeException() (a real,
+// blocking MessageBox followed by exit(2), see RuntimeException.h) if the
+// song isn't PLAY_STOP - song.Stop() is called defensively first, on top
+// of the fixture's already-stopped default, given how severe that failure
+// mode would be.
+
+TEST_F(SongEditingTest, DumpSongToPokeyStreamRecordsFramesUntilTheSongLoops) {
+    song.Stop(); // defensive - see CSongContainer hazard note above
+
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 1; // 0 (the fixture default) means the recording loop's "for (i < m_instrumentSpeed)" never runs
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->len = 2;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 2;
+    (*song.GetSongGo())[1] = 0; // songline 1 goes back to songline 0 - guarantees a fast loop
+
+    CSongContainer container(song);
+    const CPokeyStream& stream = container.GetPokeyStream();
+
+    EXPECT_FALSE(stream.IsRecording()); // finished and stopped, not still recording
+    EXPECT_GT(stream.GetCurrentFrame(), 0);
+    // Songline 1 is a pure GOTO pass-through (redirected back to 0 before it's
+    // ever "landed on" by SongPlayNextLine()), so only songline 0 is ever
+    // handed to TrackSongLine() - it alone closes the loop.
+    EXPECT_EQ(stream.GetSonglineCount(), 1);
+}
+
+// --- CSAPFileExporter::ExportSAP_R ---
+// Extracted implicitly: CSongExporter::ExportSAP_R() (SongExporter.cpp)
+// shows a real dialog (CSAPFileExportDialog::Show()) then delegates to this
+// dialog-independent method with an already-populated CSAPFile - same
+// "dialog gathers params, real work happens independently" shape as the
+// RMT/ASM exporters, just without needing an explicit *Apply() split since
+// CSAPFileExporter::ExportSAP_R() was already its own separate,
+// dialog-free method. Only reachable now that CSongContainer/CSongExport
+// (and the CSong::DumpSongToPokeyStream() they lazily trigger) are linked.
+
+TEST_F(SongEditingTest, ExportSAPRWritesTheHeaderAndPokeyStreamData) {
+    song.Stop(); // defensive - see the CSongContainer hazard note above
+
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 1;
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->len = 2;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 2;
+    (*song.GetSongGo())[1] = 0; // guarantees a fast loop, see above
+
+    CSongContainer container(song);
+    CSongExport songExport(container, "test");
+
+    CSAPFile sapFile;
+    sapFile.SetAuthor("RCoder");
+    sapFile.SetName("RSong");
+    sapFile.SetDate("01/01/2000");
+
+    std::ostringstream out;
+    EXPECT_TRUE(CSAPFileExporter::ExportSAP_R(songExport, sapFile, out));
+
+    std::string text = out.str();
+    EXPECT_NE(text.find("TYPE R"), std::string::npos);
+    // The PokeyStream data appended after the header is raw binary, not
+    // text - just confirm WriteToFile() actually appended some bytes past
+    // the header (frameSize=9, stubbed - see PokeyStreamStub.cpp).
+    EXPECT_GT(text.size(), (size_t)64);
 }
 
 // --- SongJump / SongUp / SongDown / SongSubsongPrev / SongSubsongNext ---

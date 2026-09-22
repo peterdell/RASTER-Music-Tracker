@@ -5,12 +5,14 @@
 
 #include <fstream>
 
-// StartRecording()/Record()'s data path/FinishedRecording() all need a real
-// CAtariTrackerDriver (itself needing a real CAtari) or a real CSong, both
-// blocked by CSong's g_Atari-coupled constructor (see plans/NOTES.md).
-// Tests here exercise only CPokeyStream's pure state-machine methods, which
-// never touch m_AtariTrackerDriver or need a CSong, plus the two early-return
-// safety paths of Record()/WriteToFile() that don't touch them either.
+// Tests here exercise CPokeyStream's pure state-machine methods, plus the
+// two early-return safety paths of Record()/WriteToFile() that don't touch
+// m_AtariTrackerDriver. StartRecording()/Record()'s real data path (and the
+// whole CSong::DumpSongToPokeyStream() pipeline built on top of it) is
+// exercised for real in SongEditingTests.cpp instead, now that
+// g_AtariTrackerDriver/g_Atari are real, linked globals (see
+// plans/NOTES.md) - the "blocked by CSong's g_Atari-coupled constructor"
+// note that used to be here was stale by the time this was rechecked.
 
 TEST(PokeyStreamTest, NewStreamIsNotRecording) {
     CPokeyStream stream;

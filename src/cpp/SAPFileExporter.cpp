@@ -78,13 +78,5 @@ bool CSAPFileExporter::ExportSAP_B_LZSS(CSongExport& songExport, CSAPFile& sapFi
     return true;
 }
 
-bool CSAPFileExporter::ExportSAP_R(CSongExport& songExport, CSAPFile& sapFile, std::ofstream& ou) {
-    sapFile.SetType("R");
-    sapFile.Export(ou);
-
-    // Write the SAP-R stream to the output file defined in the path dialog with the data specified above
-    const CPokeyStream& pokeyStream = songExport.GetPokeyStream();
-    pokeyStream.WriteToFile(ou, pokeyStream.GetFirstCountPoint(), 0);
-
-    return true;
-}
+// CSAPFileExporter::ExportSAP_R() is implemented in SAPFileExporterCore.cpp
+// (no dialog/hazard of its own, unlike ExportSAP_B_LZSS() above).
