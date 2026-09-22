@@ -9,6 +9,7 @@
 #include "AtariIO.h"
 #include "SongContainer.h"
 #include "SAPFileExporter.h"
+#include "SongExporter.h"
 #include <sstream>
 
 extern int g_tracks4_8;
@@ -1325,6 +1326,57 @@ TEST_F(SongEditingTest, ExportSAPBLZSSLoadsTheRealResourceAndWritesCompressedDat
     // loaded successfully rather than silently no-op'ing via the
     // "!LoadBinaryFile(...)" guard.
     EXPECT_GT(text.size(), (size_t)3500);
+}
+
+// --- CSongExporter::ExportXEX_LZSS (CXEXFile overload) ---
+// Unlike ExportSAP_R/ExportSAP_B_LZSS (which delegate to the already
+// dialog-free CSAPFileExporter class), this overload of ExportXEX_LZSS IS
+// the dialog-independent real work itself - split into SongExporterCore.cpp
+// along with its own private helpers (StrToAtariVideo/BruteforceOptimalLZSS)
+// so it links without SongExporter.cpp's dialog-showing 1-arg overload
+// (ShowXEXExportDialog()). Needs the same real on-disk resource file as
+// ExportSAP_B_LZSS (resources/players/vu_player_v2.obx), loaded here via a
+// different route (CRmtAtariBinaries::GetVUPlayerBinary() ->
+// LoadResourceByteArray() -> LoadByteArray(), MFC CFile-based rather than
+// std::ifstream-based) - already satisfied by the same g_prgpath test setup
+// (see test/AtariBinariesStub.cpp). Calls CSong::DumpSongToPokeyStream()
+// directly (not via CSongContainer) with PLAY_FROM, confirmed safe.
+
+TEST_F(SongEditingTest, ExportXEXLZSSLoadsTheRealResourceAndWritesReconstructedBinary) {
+    song.Stop(); // defensive - see the CSongContainer hazard note above
+
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 1;
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->len = 2;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 2;
+    (*song.GetSongGo())[1] = 0; // guarantees a fast loop, see above
+
+    CSongContainer container(song);
+    CSongExport songExport(container, "test");
+
+    CXEXFile xexFile;
+    xexFile.InitFromSong(song);
+    xexFile.autoRegion = true; // skips the NOP-patching branch, simplifying the test
+    xexFile.displayRasterbar = false;
+    xexFile.rasterbarColor = 0;
+    memset(xexFile.atariText, ' ', CXEXFile::ATARI_TEXT_SIZE);
+
+    CSongExporter exporter;
+    std::ostringstream out;
+    ASSERT_TRUE(exporter.ExportXEX_LZSS(songExport, xexFile, out));
+
+    // The output is a reconstructed Atari binary (headers + raw data, not
+    // text) - just confirm a substantial amount of it actually landed, i.e.
+    // the real resource file loaded and the LZSS/DumpSongToPokeyStream
+    // pipeline produced real data rather than silently failing.
+    std::string data = out.str();
+    EXPECT_GT(data.size(), (size_t)3500);
 }
 
 // --- SongJump / SongUp / SongDown / SongSubsongPrev / SongSubsongNext ---

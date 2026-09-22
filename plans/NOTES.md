@@ -1667,3 +1667,49 @@ build clean and all 123 tests pass.
         the real file loaded and the whole pipeline ran). Full solution
         rebuild (Release|x64) confirmed 0 errors; 232 tests pass (up from
         231, +1, 0 regressions).
+- [x] `CSongExporter::ExportXEX_LZSS` unlocked - completes the user's
+      explicit "ExportSAP_B_LZSS/ExportXEX_LZSS" directive.
+      - Unlike `ExportSAP_R`/`ExportSAP_B_LZSS` (which delegate to the
+        already dialog-free `CSAPFileExporter` class), the real work here
+        - the `CXEXFile`-taking overload of `ExportXEX_LZSS` - lives
+        directly in `CSongExporter`, in the same `SongExporter.cpp`
+        translation unit as the dialog-showing 1-arg overload,
+        `ShowXEXExportDialog()`, `ExportWAV()`, and
+        `ExportLZSS()`/`ExportCompactLZSS()`. Split those four (plus the
+        two private static helpers the real overload calls,
+        `StrToAtariVideo()` and `BruteforceOptimalLZSS()`, and the empty
+        `CSongExporter()` ctor and `CXEXFile::InitFromSong()` - both
+        needed directly by the test) into a new `SongExporterCore.cpp`,
+        leaving the dialog/disk-write/audio-rendering methods behind in
+        `SongExporter.cpp`.
+      - Widened `ou` from `std::ofstream&` to `std::ostream&`, same
+        precedent as elsewhere; the 1-arg overload's `std::ofstream&`
+        argument still binds fine.
+      - Needs the same real on-disk `resources/players/vu_player_v2.obx`
+        resource `ExportSAP_B_LZSS` needed, but reached via a different,
+        previously-unexercised code path:
+        `CRmtAtariBinaries::GetVUPlayerBinary()` →
+        `LoadResourceByteArray()` → `LoadByteArray()` (MFC `CFile`-based),
+        vs. `ExportSAP_B_LZSS`'s `std::ifstream`-based
+        `CAtariIO::LoadBinaryFile()`. Confirmed this is the same hazard
+        category already accepted (real disk read via `g_prgpath`), not a
+        new one - `GetResourceFilePath()`/`g_prgpath` are shared by both
+        paths (`test/AtariBinariesStub.cpp`).
+      - Calls `CSong::DumpSongToPokeyStream()` directly with `PLAY_FROM`
+        (not via `CSongContainer` - it builds its own `CPokeyStream` per
+        subtune), reusing the loop-termination proof from the batch above.
+      - Newly linking `LZSSFile.cpp` (for the real
+        `CLZSSFile::GetFrameSize()`) surfaced a stale hardcoded stub for
+        the same method in `test/PokeyStreamStub.cpp` (`return 9;`,
+        `LNK2005` duplicate symbol) - removed the stub now that the real,
+        trivial body (`song.IsStereo() ? 18 : 9`) is linked for real.
+      - 1 new hand-derived test, correct on first run (6ms - the real
+        resource file loaded and the whole LZSS/`DumpSongToPokeyStream`
+        pipeline ran for real). Full solution rebuild (Release|x64)
+        confirmed 0 errors; 233 tests pass (up from 232, +1, 0
+        regressions).
+      - This completes `plans/SAP_LZSS_WAV_XEX_PLAN.md`'s actively-pursued
+        scope. `ExportWAV` (real `CXPokey` audio synthesis) and
+        `ExportLZSS`/`ExportCompactLZSS` (real multi-file disk writes,
+        self-described as "hacked up"/"currently unused") remain
+        deliberately deferred per that plan's findings.

@@ -73,7 +73,11 @@ public:
     bool ExportXEX_LZSS(CSongExport& songExport, std::ofstream& ou);
 
     // Non-interactive version.
-    bool ExportXEX_LZSS(CSongExport& songExport, CXEXFile xexFile, std::ofstream& ou);
+    // std::ostream& rather than std::ofstream& - the one real call site (the
+    // 1-arg overload above) passes a genuine file stream (which satisfies
+    // the wider base type), and the wider type lets tests use an in-memory
+    // stream (see test/SongEditingTests.cpp).
+    bool ExportXEX_LZSS(CSongExport& songExport, CXEXFile xexFile, std::ostream& ou);
 
 
 private:

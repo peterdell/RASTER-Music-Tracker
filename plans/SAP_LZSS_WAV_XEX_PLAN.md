@@ -113,31 +113,47 @@ the test project. 1 new test.
   refuse to touch RMT2LZSS ever again", and `ExportCompactLZSS` is marked
   "Currently unused?" - low-value, real-file-write targets, likely not
   worth the same testing investment as the rest of this family.
-- **`CSongExporter::ExportXEX_LZSS`** (the 2-arg overload doing the real
-  work) - **in progress**. It calls `DumpSongToPokeyStream()` directly
-  (safe, confirmed reachable with `PLAY_FROM`) and
-  `CRmtAtariBinaries::GetVUPlayerBinary()` → `LoadResourceByteArray()`,
-  the same real on-disk resource-file dependency `ExportSAP_B_LZSS` needed
-  - now resolved the same way. Unlike `ExportSAP_R`/`ExportSAP_B_LZSS`
-  (which delegate to a separate, already dialog-free `CSAPFileExporter`
-  class), the real work here is a `CSongExporter` method itself, living in
-  the same `SongExporter.cpp` translation unit as the dialog-showing
-  1-arg overload, `ShowXEXExportDialog()`, `ExportWAV()`, and
-  `ExportLZSS()`/`ExportCompactLZSS()` - none of which are linked or
-  wanted here. Needs its own `SongExporterCore.cpp` split (moving just the
-  2-arg `ExportXEX_LZSS()` and its `BruteforceOptimalLZSS()` helper) before
-  it can be linked at all.
+- **`CSongExporter::ExportXEX_LZSS`** (the `CXEXFile`-overload doing the
+  real work) - **DONE**. Called `DumpSongToPokeyStream()` directly (not via
+  `CSongContainer` - it builds its own `CPokeyStream` per subtune), safe
+  with `PLAY_FROM`, and `CRmtAtariBinaries::GetVUPlayerBinary()` →
+  `LoadResourceByteArray()` → `LoadByteArray()` - the same real on-disk
+  `resources/players/vu_player_v2.obx` dependency `ExportSAP_B_LZSS`
+  needed, but reached via a different, previously-unexercised route (MFC
+  `CFile`-based `LoadByteArray()` rather than `ExportSAP_B_LZSS`'s
+  `std::ifstream`-based `CAtariIO::LoadBinaryFile()`) - already satisfied
+  by the same `g_prgpath` test setup, no new hazard category. Unlike
+  `ExportSAP_R`/`ExportSAP_B_LZSS` (which delegate to a separate, already
+  dialog-free `CSAPFileExporter` class), the real work here is a
+  `CSongExporter` method itself, so it - along with its own private static
+  helpers `CSongExporter::CSongExporter()` (ctor), `StrToAtariVideo()`, and
+  `BruteforceOptimalLZSS()`, plus `CXEXFile::InitFromSong()` (needed
+  directly by the test) - was moved verbatim into a new
+  `SongExporterCore.cpp`, split from `SongExporter.cpp` (which keeps the
+  dialog-showing 1-arg `ExportXEX_LZSS` overload, `ShowXEXExportDialog()`,
+  `ExportWAV()`, `ExportLZSS()`/`ExportCompactLZSS()`, and the
+  `ExportSAP_R`/`ExportSAP_B_LZSS` thin wrappers - none linked or wanted
+  here). `ou` widened `std::ofstream&` → `std::ostream&`, same precedent as
+  elsewhere. `LZSSFile.cpp` (trivial, `CLZSSFile::GetFrameSize()`) newly
+  linked into the test project too - which surfaced and removed a stale
+  hardcoded stub (`return 9;`) for the same method in
+  `test/PokeyStreamStub.cpp`, now redundant with the real body linked.
+  1 new test.
 
 ## Suggested next steps
 
 1. ~~Decide whether real-resource-file dependencies are acceptable in this
    test suite at all.~~ **Resolved**: yes, `g_prgpath` is now set at
    static-init time to the repo's checked-in `rmt/` folder (see
-   `test/AtariBinariesStub.cpp`), unlocking `ExportSAP_B_LZSS` and paving
-   the way for `ExportXEX_LZSS`.
+   `test/AtariBinariesStub.cpp`), unlocking `ExportSAP_B_LZSS` and
+   `ExportXEX_LZSS`.
 2. **`ExportWAV`**: stays deferred pending its own dedicated investigation
    into `CXPokey`'s real audio-rendering hazard - same posture as
    `TimerRoutine`/`ChangeTimer`/`ReInitSound`.
 3. **`ExportLZSS`/`ExportCompactLZSS`**: low priority given their real-file-
    write design and the "hacked up"/"currently unused?" self-assessment in
    their own comments; likely not worth pursuing without a specific reason.
+
+All targets from the user's explicit `ExportSAP_B_LZSS/ExportXEX_LZSS`
+directive are now complete. What remains in this family (`ExportWAV`,
+`ExportLZSS`, `ExportCompactLZSS`) is deliberately deferred per the above.

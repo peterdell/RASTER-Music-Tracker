@@ -330,6 +330,7 @@
     <ClCompile Include="SongEditing.cpp" />
     <ClCompile Include="SongExportV2.cpp" />
     <ClCompile Include="SongExporter.cpp" />
+    <ClCompile Include="SongExporterCore.cpp" />
     <ClCompile Include="Tracks.cpp" />
     <ClCompile Include="TracksEdit.cpp" />
     <ClCompile Include="TracksControl.cpp" />

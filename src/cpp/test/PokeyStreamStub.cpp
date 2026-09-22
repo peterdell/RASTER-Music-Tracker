@@ -2,7 +2,6 @@
 
 #include "AtariTrackerDriver.h"
 #include "ChannelControl.h"
-#include "LZSSFile.h"
 #include "Song.h"
 
 // Link-only stubs. PokeyStream.cpp's Record()/FinishedRecording()/
@@ -12,9 +11,10 @@
 // bodies aren't needed - only the symbols, to satisfy the linker for this
 // translation unit. GetByteAt() used to be stubbed here too, but now has a
 // real body linked via AtariTrackerDriverCore.cpp (see
-// plans/SONG_IO_SONG_REMAINING_PLAN.md).
+// plans/SONG_IO_SONG_REMAINING_PLAN.md). CLZSSFile::GetFrameSize() used to be
+// stubbed here too (always returning 9); it now has a real body linked via
+// LZSSFile.cpp (see plans/SAP_LZSS_WAV_XEX_PLAN.md).
 int CAtariTrackerDriver::Init() { return 0; }
-int CLZSSFile::GetFrameSize(const CSong&) { return 9; }
 
 // Link-only no-op stub: CSong::DumpSongToPokeyStream() (Song_DumpSong.cpp,
 // now linked - see Song_DumpSongStub.cpp) calls this only when g_rmtroutine

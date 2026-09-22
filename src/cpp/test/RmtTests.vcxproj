@@ -116,6 +116,7 @@
     <ClCompile Include="..\VUPlayer.cpp" />
     <ClCompile Include="..\AtariBinaries.cpp" />
     <ClCompile Include="AtariBinariesStub.cpp" />
+    <ClCompile Include="..\LZSSFile.cpp" />
     <ClCompile Include="SAPFileStub.cpp" />
     <ClCompile Include="..\Keyboard2NoteMapping.cpp" />
     <ClCompile Include="Keyboard2NoteMappingStub.cpp" />
@@ -137,6 +138,7 @@
     <ClCompile Include="..\Song_DumpSong.cpp" />
     <ClCompile Include="..\SongContainer.cpp" />
     <ClCompile Include="..\SongExport.cpp" />
+    <ClCompile Include="..\SongExporterCore.cpp" />
     <ClCompile Include="Song_DumpSongStub.cpp" />
     <ClCompile Include="UndoStub.cpp" />
     <ClCompile Include="SongEditingStub.cpp" />
