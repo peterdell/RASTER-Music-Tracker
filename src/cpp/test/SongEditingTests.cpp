@@ -5,6 +5,7 @@
 #include "TuningTypes.h"
 #include "RmtVersion.h"
 #include "RmtExporter.h"
+#include "ASMFileExporter.h"
 #include "AtariIO.h"
 #include <sstream>
 
@@ -1099,6 +1100,92 @@ TEST_F(SongEditingTest, ExportAsStrippedRMTApplyWritesADecodableModuleBlockWhenS
     BYTE trackLoadedFlags[TRACKSNUM] = {};
     CSong decoded;
     EXPECT_GT(decoded.DecodeModule(mem, fromAddr, toAddr + 1, instrLoadedFlags, trackLoadedFlags), 0);
+}
+
+// --- CASMFileExporter::ExportAsAsmApply ---
+// Extracted from ExportAsAsm() - g_PrefixForAllAsmLabels is left at its
+// default empty value here (the wrapper writes the dialog's confirmed
+// value into it before calling this, so this Apply function just reads
+// whatever is already there).
+
+TEST_F(SongEditingTest, ExportAsAsmApplyWritesTracksOnlyOutput) {
+    (*song.GetSong())[0][0] = 5; // marks track 5 as "used" via MarkTF_USED
+    TTrack* tr = g_Tracks.GetTrack(5);
+    tr->len = 2;
+    tr->note[0] = 10;
+    tr->instr[0] = 2;
+
+    std::ostringstream out;
+    EXPECT_TRUE(CASMFileExporter::ExportAsAsmApply(song, out, 1 /* Tracks only */, 1 /* notes */, 1 /* notes only */));
+
+    std::string text = out.str();
+    EXPECT_NE(text.find(";ASM notation source"), std::string::npos);
+    EXPECT_NE(text.find(";Track $05"), std::string::npos);
+}
+
+// --- CASMFileExporter::BuildRelocatableAsm ---
+// Already a pure, dialog-independent function - no split needed, just
+// linked directly (see ASMFileExporterCore.cpp).
+
+TEST_F(SongEditingTest, BuildRelocatableAsmProducesAssemblerSourceForAValidModule) {
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 2;
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->len = 4;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 2;
+
+    TExportDescription exportDesc{};
+    exportDesc.targetAddrOfModule = 0x4000;
+    int maxAddr = song.MakeModule(exportDesc.mem, exportDesc.targetAddrOfModule, SongIOType::RMT, exportDesc.instrumentSavedFlags, exportDesc.trackSavedFlags);
+    ASSERT_GT(maxAddr, 0);
+    exportDesc.firstByteAfterModule = maxAddr;
+
+    CString asmCode;
+    BOOL ok = CASMFileExporter::BuildRelocatableAsm(song, asmCode, &exportDesc, "MY_SONG", "", "", "", XASM, FALSE, FALSE, FALSE, false);
+    ASSERT_TRUE(ok);
+
+    EXPECT_NE(asmCode.Find("MY_SONG"), -1);
+    EXPECT_NE(asmCode.Find("RMT4"), -1); // matches the module header's "RMTx" marker (4 tracks)
+}
+
+// --- CASMFileExporter::ExportAsRelocatableAsmForRmtPlayerApply ---
+// Extracted from ExportAsRelocatableAsmForRmtPlayer() - mostly a thin
+// wrapper around the already-tested BuildRelocatableAsm() above.
+
+TEST_F(SongEditingTest, ExportAsRelocatableAsmForRmtPlayerApplyWritesToStream) {
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 2;
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->len = 4;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 2;
+
+    TExportDescription exportDescStripped{};
+    exportDescStripped.targetAddrOfModule = 0x4000;
+    int maxAddr = song.MakeModule(exportDescStripped.mem, exportDescStripped.targetAddrOfModule, SongIOType::RMT, exportDescStripped.instrumentSavedFlags, exportDescStripped.trackSavedFlags);
+    ASSERT_GT(maxAddr, 0);
+    exportDescStripped.firstByteAfterModule = maxAddr;
+
+    TExportDescription exportDescWithSFX = exportDescStripped; // content doesn't matter here - sfxSupport is FALSE below
+
+    TRelocatableAsmExportParams params = {};
+    params.strAsmLabelForStartOfSong = "MY_SONG";
+    params.assemblerFormat = XASM;
+    params.sfxSupport = FALSE;
+
+    std::ostringstream out;
+    EXPECT_TRUE(CASMFileExporter::ExportAsRelocatableAsmForRmtPlayerApply(song, out, &exportDescStripped, &exportDescWithSFX, params));
+
+    EXPECT_NE(out.str().find("MY_SONG"), std::string::npos);
 }
 
 // --- SongJump / SongUp / SongDown / SongSubsongPrev / SongSubsongNext ---

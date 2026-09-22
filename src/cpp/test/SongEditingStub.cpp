@@ -95,11 +95,13 @@ long g_playtime = 0;
 // Real, simple globals for CSong::ClearSong() (see SongEditing.cpp) - all
 // plain BOOL/int/CString flags with no constructor or hazard of their own,
 // same treatment as the DEFINE_MAINPARAMS globals above.
+// g_PrefixForAllAsmLabels is NOT declared here - it's now provided for real
+// by ASMFileExporter.cpp (linked for ExportV2 Batch C); declaring it twice
+// would be an LNK2005 duplicate symbol.
 BOOL volatile g_rmtroutine = FALSE;
 BOOL g_rmtstripped_sfx = FALSE;
 BOOL g_rmtstripped_gvf = FALSE;
 CString g_rmtmsxtext;
-CString g_PrefixForAllAsmLabels;
 BOOL g_changes = FALSE;
 int g_SkipLinesAfterNoteInsert = 0;
 

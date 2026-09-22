@@ -72,41 +72,9 @@ void CInstruments::SetEnvelopeVolume(int instr, BOOL right, int px, int newVolum
     Update(instr);
 }
 
-/// <summary>
-/// Convert the note to a frequency according to distortion in first
-/// envelope column or first entry in the note table.
-/// </summary>
-/// <param name="instr">Instrument #</param>
-/// <param name="note">which note</param>
-/// <returns>frequency</returns>
-int CInstruments::GetFrequency(int instr, int note)
-{
-    TInstrument* tt = GetInstrument(instr);
-    if (!tt) return -1;
-
-    // Only for NOTES table
-    if (tt->parameters[PAR_TBL_TYPE] == 0)
-    {
-        // Shift notes according to table 0
-        note = (note + tt->noteTable[0]) & 0xff;
-    }
-
-    // The note must be within valid boundaries
-    if (note < 0 || note >= CNotes::NOTESNUM) return -1;
-
-    // IMPORTANT NOTE: Tables are not set to a constant location! 
-    // The function technically returns valid data, otherwise
-    switch (tt->envelope[0][EnvelopeParameter::DISTORTION])
-    {
-    case 0x0C:
-        return g_Atari.GetByteAt(RMT_FRQTABLES + 64 + note);
-    case 0x06:
-    case 0x0E:
-        return g_Atari.GetByteAt(RMT_FRQTABLES + 128 + note);
-    default:
-        return g_Atari.GetByteAt(RMT_FRQTABLES + 192 + note);
-    }
-}
+// CInstruments::GetFrequency() is implemented in InstrumentsCore.cpp (only
+// needs g_Atari.GetByteAt(), a plain array read on CAtari's own memory
+// buffer with no coupling of its own).
 
 /// <summary>
 /// Save octave and volume info in the instrument.

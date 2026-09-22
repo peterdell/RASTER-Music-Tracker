@@ -1,14 +1,19 @@
 #include "StdAfx.h"
 
+#include "Atari.h"
 #include "Instruments.h"
 #include "Notes.h"
 
 // The CInstruments methods here have no dependency on Global.h (unlike the
-// rest of Instruments.cpp, which reads g_AtariTrackerDriver/g_Atari/
-// g_tracks4_8/g_keyboard_RememberOctavesAndVolumes), so they're kept
-// separate to keep this half of the class testable without linking those
-// globals - same pattern as Tuning.cpp/TuningTables.cpp and
-// Tracks.cpp/TracksEdit.cpp.
+// rest of Instruments.cpp, which reads g_AtariTrackerDriver/g_tracks4_8/
+// g_keyboard_RememberOctavesAndVolumes), so they're kept separate to keep
+// this half of the class testable without linking those globals - same
+// pattern as Tuning.cpp/TuningTables.cpp and Tracks.cpp/TracksEdit.cpp.
+// GetFrequency() below is the one exception that does touch g_Atari, but
+// only via GetByteAt() - a plain array read on CAtari's own memory buffer,
+// with no coupling of its own (confirmed while scoping ExportV2 Batch C).
+
+extern CAtari g_Atari;
 
 /// <summary>
 /// CInstruments Class Object constructor
@@ -159,4 +164,40 @@ int CInstruments::GetNote(int instr, int note)
     // The note must be within valid boundaries
     if (!CNotes::IsValidNote(note)) { return -1; }
     return note;
+}
+
+/// <summary>
+/// Convert the note to a frequency according to distortion in first
+/// envelope column or first entry in the note table.
+/// </summary>
+/// <param name="instr">Instrument #</param>
+/// <param name="note">which note</param>
+/// <returns>frequency</returns>
+int CInstruments::GetFrequency(int instr, int note)
+{
+    TInstrument* tt = GetInstrument(instr);
+    if (!tt) return -1;
+
+    // Only for NOTES table
+    if (tt->parameters[PAR_TBL_TYPE] == 0)
+    {
+        // Shift notes according to table 0
+        note = (note + tt->noteTable[0]) & 0xff;
+    }
+
+    // The note must be within valid boundaries
+    if (note < 0 || note >= CNotes::NOTESNUM) return -1;
+
+    // IMPORTANT NOTE: Tables are not set to a constant location!
+    // The function technically returns valid data, otherwise
+    switch (tt->envelope[0][EnvelopeParameter::DISTORTION])
+    {
+    case 0x0C:
+        return g_Atari.GetByteAt(RMT_FRQTABLES + 64 + note);
+    case 0x06:
+    case 0x0E:
+        return g_Atari.GetByteAt(RMT_FRQTABLES + 128 + note);
+    default:
+        return g_Atari.GetByteAt(RMT_FRQTABLES + 192 + note);
+    }
 }

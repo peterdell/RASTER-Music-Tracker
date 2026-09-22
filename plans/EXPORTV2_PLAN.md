@@ -146,11 +146,20 @@ for now, same posture as `TimerRoutine`/`ChangeTimer`/`ReInitSound`.
    passing (see `plans/NOTES.md` for the full writeup, including why these
    tests decode via `CAtariIO::LoadBinaryBlock`/`CSong::DecodeModule`
    directly rather than through `LoadRMT`).
-3. **Batch C**: link `CASMFileExporter::BuildRelocatableAsm` directly (no
-   split needed) and split `ExportAsRelocatableAsmForRmtPlayer`'s thin
-   wrapper; split `ExportAsAsm` (4 dialog fields to extract). Remove the
-   stale `g_PrefixForAllAsmLabels` stub from `test/SongEditingStub.cpp`
-   first.
+3. **Batch C - DONE**: split `ExportAsAsm` into a thin wrapper plus
+   `ExportAsAsmApply(const CSong&, std::ostream&, int exportType, int
+   notesIndexOrFreq, int durationsType)`; split `ExportAsRelocatableAsmForRmtPlayer`
+   into a thin wrapper plus `ExportAsRelocatableAsmForRmtPlayerApply(...)`
+   (new `TRelocatableAsmExportParams` struct, `ASMFileExporter.h`); moved
+   `BuildRelocatableAsm()` (already pure) and its `ComposeRMTFEATstring()`
+   helper (confirmed pure too while scoping this) into a new
+   `ASMFileExporterCore.cpp`. Removed the stale `g_PrefixForAllAsmLabels`
+   stub from `test/SongEditingStub.cpp` - its real definition now lives in
+   `ASMFileExporterCore.cpp` (the linked half), not the dialog-only
+   `ASMFileExporter.cpp`. Also moved `CInstruments::GetFrequency()` into
+   `InstrumentsCore.cpp` (a new orphan-safe-method finding, needed by
+   `ExportAsAsmApply`'s frequency-lookup branch). 3 new tests, 229 tests
+   passing (see `plans/NOTES.md` for the full writeup).
 4. **Batch D** (optional, once A-C land): characterize `ExportV2`'s own
    dispatch logic directly for the `RMT`/`RMTSTRIPPED`/`ASM`/`ASM_RMTPLAYER`
    branches, now that every callee they reach is safe.

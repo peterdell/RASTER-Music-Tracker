@@ -116,6 +116,7 @@
     <ClCompile Include="..\Keyboard2NoteMapping.cpp" />
     <ClCompile Include="Keyboard2NoteMappingStub.cpp" />
     <ClCompile Include="..\ASMFileBuilder.cpp" />
+    <ClCompile Include="..\ASMFileExporterCore.cpp" />
     <ClCompile Include="..\ChannelControl.cpp" />
     <ClCompile Include="..\RmtCommandLineInfo.cpp" />
     <ClCompile Include="..\PokeyStream.cpp" />

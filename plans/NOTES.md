@@ -1453,3 +1453,59 @@ build clean and all 123 tests pass.
         confirming the block decodes successfully at the given target
         address). Full solution rebuild (Release|x64) confirmed 0 errors;
         226 tests pass (up from 224, +2, 0 regressions).
+- [x] `ExportV2` Batch C: `CASMFileExporter`.
+      - **`BuildRelocatableAsm()`** (~340 lines, confirmed pure while
+        scoping `ExportV2`'s original triage) needed one more piece to
+        actually link: it calls `ComposeRMTFEATstring()`, a separate
+        `CASMFileExporter` method still living in the dialog-only half of
+        the file. Re-read it in full and confirmed it's pure too - only
+        touches `song.m_songgo`/`song.m_song`/`song.GetTracks()`/
+        `song.GetInstrumentSpeed()`/`song.m_mainSpeed` (`CASMFileExporter`
+        is a `friend` of `CSong`, so it can read these directly - see
+        `Song.h`) and already-safe `g_Tracks`/`g_Instruments`. Moved both,
+        plus their small `rword()` helper, into a new
+        `ASMFileExporterCore.cpp`.
+      - **`ExportAsAsm()`**: same dialog-gather-then-work shape as the
+        earlier batches - `CExportAsmDlg` supplies 4 distinct fields
+        (`m_prefixForAllAsmLabels`, `m_exportType`, `m_notesIndexOrFreq`,
+        `m_durationsType`) referenced 16 times through an otherwise
+        dialog-independent ~250-line body. `m_prefixForAllAsmLabels` didn't
+        need to become a 4th parameter, though: the wrapper already writes
+        its confirmed value back into `g_PrefixForAllAsmLabels` *before*
+        calling the extracted method, so `ExportAsAsmApply()` just reads
+        that global directly, like `InstrChangeApply()` reading
+        `m_TracksOrderChange_songlinefrom` did for `TracksOrderChangeApply()`.
+      - **`ExportAsRelocatableAsmForRmtPlayer()`**: its dialog supplies 11
+        fields, but almost the entire post-dialog body was already a thin,
+        dialog-independent pass-through to `BuildRelocatableAsm()` (which
+        itself takes plain parameters, not `dlg` fields). Bundled those 11
+        fields into a new `TRelocatableAsmExportParams` struct
+        (`ASMFileExporter.h`, same pattern as `TInstrChangeParams` in
+        `SongTypes.h`) and extracted `ExportAsRelocatableAsmForRmtPlayerApply()`
+        - the `exportDescWithSFX`/`exportDescStripped` selection and the
+        final stream write are the only things it does beyond delegating.
+      - **Found and fixed a linker trap of my own making**: removing the
+        stale `g_PrefixForAllAsmLabels` test stub (per `EXPORTV2_PLAN.md`'s
+        Tier-1 findings) and just linking `ASMFileExporterCore.cpp` wasn't
+        enough - `ASMFileExporterCore.cpp`'s `ExportAsAsmApply()` needed the
+        global too, but its *definition* still lived in the dialog-only
+        `ASMFileExporter.cpp`, which the test project doesn't link. Fixed by
+        moving the definition itself into `ASMFileExporterCore.cpp` (the
+        linked half) and leaving an `extern` declaration behind in
+        `ASMFileExporter.cpp` - caught immediately by the first test build
+        (LNK2001), not by production (which still links both files).
+      - **Found and fixed a second orphan-safe-method case**:
+        `CInstruments::GetFrequency()` (`Instruments.cpp`, not linked in
+        tests) is called by `ExportAsAsmApply()`'s frequency-lookup branch.
+        Read its body and confirmed its only dependency is
+        `g_Atari.GetByteAt()` - a plain array read on `CAtari`'s own memory
+        buffer, already established safe back in Batch 6 - so moved it into
+        `InstrumentsCore.cpp` next to the already-there `GetNote()`, adding
+        `extern CAtari g_Atari;` there (already a real, linked global via
+        `test/AtariStub.cpp`).
+      - 3 new hand-derived tests (`ExportAsAsmApply`'s tracks-only output;
+        `BuildRelocatableAsm` producing valid assembler for a real encoded
+        module; `ExportAsRelocatableAsmForRmtPlayerApply` writing to its
+        stream), all correct on first run. Full solution rebuild
+        (Release|x64) confirmed 0 errors; 229 tests pass (up from 226, +3,
+        0 regressions).
