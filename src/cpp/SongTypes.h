@@ -59,6 +59,29 @@ struct TInstrChangeParams
     int onlysonglinefrom, onlysonglineto;       // songline range to restrict to
 };
 
+// Populated by CSong::ImportTMCParseHeader() (IO_ImporterCore.cpp) - the
+// unconditional real work ImportTMC() does before its options dialog can be
+// shown (the dialog's own text needs the parsed song name), carried forward
+// into CSong::ImportTMCApply() for the rest of the real conversion. See
+// plans/IO_IMPORTER_PLAN.md.
+struct TImportTMCHeader
+{
+    bool ok;                    // false = corrupted/unsupported file (see ImportTMCParseHeader())
+    unsigned char mem[65536];   // raw decoded TMC file bytes
+    WORD bfrom;                 // offset of the binary block within mem; all addressing below is relative to this
+};
+
+// Populated by CSong::ImportTMCApply() - the stats needed to build the
+// post-import confirmation dialog's text (see CImportTmcFinishedDlg).
+struct TImportTMCResult
+{
+    int numoftracks;
+    int nonemptyinstruments;
+    int songlines;
+    int optitracks, optibeats;                         // only set if optimizeloops was requested
+    int clearedtracks, truncatedtracks, truncatedbeats; // only set if truncateunusedparts was requested
+};
+
 struct TSong	//due to Undo
 {
     int song[SONGLEN][SONGTRACKS];

@@ -139,6 +139,7 @@
     <ClCompile Include="..\SongContainer.cpp" />
     <ClCompile Include="..\SongExport.cpp" />
     <ClCompile Include="..\SongExporterCore.cpp" />
+    <ClCompile Include="..\IO_ImporterCore.cpp" />
     <ClCompile Include="Song_DumpSongStub.cpp" />
     <ClCompile Include="UndoStub.cpp" />
     <ClCompile Include="SongEditingStub.cpp" />

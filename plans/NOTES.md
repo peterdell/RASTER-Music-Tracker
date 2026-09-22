@@ -1739,3 +1739,53 @@ build clean and all 123 tests pass.
       an individually-investigated, confirmed reason to stay deferred (see
       `plans/SONG_IO_SONG_REMAINING_PLAN.md`'s Batch 7 section for the
       full per-method writeup).
+- [x] Broader survey of every other production `.cpp` file not yet linked
+      into `RmtTests.vcxproj` (~55 files) - see `plans/BROADER_SURVEY_PLAN.md`.
+      Most are confirmed out of scope (real UI/dialogs/views, real hardware/
+      DLL coupling - verified `RmtMidi.cpp` genuinely calls
+      `midiInGetNumDevs()`/`midiInGetDevCaps()` - `Global.cpp`'s mega-wiring,
+      already-solved-shape remnants, or effectively empty). Four new
+      candidates found: `IO_Importer.cpp` (`ImportTMC`/`ImportMOD`, highest
+      value), `Undo.cpp`, and two small/cheap wins (`Instruments.cpp`'s and
+      `AtariTrackerDriver.cpp`'s remainders).
+- [x] `IO_Importer.cpp` Batch A: `CSong::ImportTMC` unlocked - see
+      `plans/IO_IMPORTER_PLAN.md`.
+      - `ImportTMC`/`ImportMOD` break every prior `*Apply()` split's
+        assumption: their options dialog's own display text needs data only
+        available after partially decoding the file (the parsed song
+        name), not just pre-existing state. Presented this as an explicit
+        design question; user chose the "two-phase `Apply()`" design (most
+        faithful to today's exact call sequence: `ParseHeader()` for the
+        unconditional pre-dialog work, `Apply()` for the rest, taking the
+        dialog's flags as parameters).
+      - Added `TImportTMCHeader`/`TImportTMCResult` to `SongTypes.h`
+        (`TImportTMCHeader.mem[65536]` mirrors the existing
+        `TExportDescription.mem[65536]` precedent for embedding a
+        full-RAM buffer directly in a struct).
+      - `ImportTMCApply()`'s ~500-line body is a verbatim transcription of
+        the original conversion logic (only `mem`/`bfrom` become
+        `header.mem`/`header.bfrom`, `x_usetable` etc. become parameters) -
+        including its inert commented-out dead-code block, kept
+        byte-for-byte rather than cleaned up, to keep this a pure
+        mechanical move.
+      - `CConvertTracks` (+3 supporting structs) confirmed TMC-only (grepped
+        `ImportMOD`'s body - no reference) and moved alongside.
+      - No new links needed in the test project - every global/method
+        `IO_ImporterCore.cpp` touches was already linked from prior batches.
+      - 3 new hand-derived tests, including a full conversion test built
+        from a hand-crafted minimal TMC byte buffer (byte-layout fully
+        derived and commented in the test itself). One assertion was wrong
+        on the first attempt (expected a note's volume to survive at 15,
+        got 0) - traced to real, faithful behavior: volume normalizes
+        against the *instrument's* tracked max envelope volume, which
+        defaults to 0 for an instrument that was never defined (the test's
+        deliberately minimal/degenerate input) - not a test bug; fixed the
+        expectation and documented why.
+      - Fixed a stale comment in `SongEditingTests.cpp` claiming
+        `CInstruments::Update()` was still stubbed as a no-op - it's had
+        real behavior since Batch 3 of
+        `plans/SONG_IO_SONG_REMAINING_PLAN.md`; the comment was just never
+        updated when that changed.
+      - Full solution rebuild (Release|x64) confirmed 0 errors; 236 tests
+        pass (up from 233, +3, 0 regressions).
+      - `ImportMOD` (Batch B) not yet started.

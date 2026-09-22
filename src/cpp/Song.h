@@ -195,6 +195,16 @@ public:
     bool LoadTxt(std::istream& in);
     bool LoadRMW(std::istream& in);
 
+    // ImportTMC()'s two-phase split (see plans/IO_IMPORTER_PLAN.md and
+    // IO_ImporterCore.cpp): ParseHeader() does the unconditional real work
+    // needed before its options dialog can be shown (parses/validates the
+    // file header, sets the song name); Apply() does the rest of the real
+    // conversion, taking the dialog's flags as parameters and returning the
+    // stats its confirmation dialog displays. std::istream& rather than
+    // std::ifstream& lets tests use an in-memory stream.
+    bool ImportTMCParseHeader(std::istream& in, TImportTMCHeader& header);
+    void ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL optimizeloops, BOOL truncateunusedparts, TImportTMCResult& result);
+
     int ImportTMC(std::ifstream& in);
     int ImportMOD(std::ifstream& in);
 

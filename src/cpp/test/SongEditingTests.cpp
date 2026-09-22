@@ -42,9 +42,11 @@ namespace {
 // UndoStub.cpp) - these methods call them only to *record* an edit for
 // later undo, so the tests below characterize the edit's own visible
 // effect, not the undo recording. Likewise CInstruments::ClearInstrument()/
-// Update()/MemorizeOctaveAndVolume()/RememberOctaveAndVolume() are stubbed
-// as no-ops (see InstrumentsStub.cpp) since their real bodies touch
-// g_AtariTrackerDriver/g_keyboard_RememberOctavesAndVolumes.
+// MemorizeOctaveAndVolume()/RememberOctaveAndVolume() are stubbed as no-ops
+// (see InstrumentsStub.cpp) since their real bodies touch
+// g_AtariTrackerDriver/g_keyboard_RememberOctavesAndVolumes - but
+// CInstruments::Update() now has real behavior (IO_Instruments.cpp needed no
+// Global.h dependency at all, see plans/SONG_IO_SONG_REMAINING_PLAN.md).
 
 class SongEditingTest : public ::testing::Test {
 protected:
@@ -1667,4 +1669,100 @@ TEST_F(SongEditingTest, TracksOrderChangeApplyReordersAndClearsColumnsPerMapping
     EXPECT_EQ((*song.GetSong())[1][1], 11);
     EXPECT_EQ((*song.GetSong())[1][2], -1);
     EXPECT_EQ((*song.GetSong())[1][3], 41);
+}
+
+// --- CSong::ImportTMCParseHeader / ImportTMCApply ---
+// ImportTMC()'s two-phase split (see plans/IO_IMPORTER_PLAN.md): its options
+// dialog needs the song name parsed from the file header to build its own
+// text, so ParseHeader() does that unconditional real work (also ClearSong,
+// per the original method), and Apply() does the rest of the real
+// conversion given the dialog's flags. The thin wrapper (still showing two
+// real dialogs) stays untested, same as every other dialog wrapper in this
+// suite.
+
+TEST_F(SongEditingTest, ImportTMCParseHeaderFailsOnATruncatedFile) {
+    std::istringstream in(""); // not even a valid 4-byte header
+
+    TImportTMCHeader header;
+    EXPECT_FALSE(song.ImportTMCParseHeader(in, header));
+    EXPECT_FALSE(header.ok);
+}
+
+TEST_F(SongEditingTest, ImportTMCParseHeaderSetsTheSongName) {
+    unsigned char mem[1] = { 'H' }; // song name field stops at the first 0 byte (from memset)
+    std::ostringstream out;
+    WriteBinaryBlock(out, mem, 0, 0);
+    std::istringstream in(out.str());
+
+    TImportTMCHeader header;
+    ASSERT_TRUE(song.ImportTMCParseHeader(in, header));
+    EXPECT_TRUE(header.ok);
+    EXPECT_EQ(header.bfrom, 0);
+
+    CString name = song.GetName();
+    name.TrimRight();
+    EXPECT_STREQ(name, "H");
+}
+
+TEST_F(SongEditingTest, ImportTMCApplyConvertsANoteIntoTheDestinationTrack) {
+    // Hand-derived minimal TMC buffer (all offsets relative to bfrom=0):
+    //  [0]       = 0xFF - doubles as the song name's first (blanked) char
+    //              and the "mem[adr]==0xFF" empty-track sentinel that all
+    //              127 unused track pointers (defaulting to address 0) hit.
+    //  [30]      = 5    -> mainspeed = 6
+    //  [31]      = 1    -> instrspeed = 1
+    //  [32..159] = 0    -> all 64 instrument pointers undefined
+    //  [160]     = 0xB0, [288] = 0x01 -> track_ptr[0] = 0x01B0 = 432
+    //  [161..287], [289..415] = 0     -> track_ptr[1..127] = 0 (sentinel)
+    //  [416..431] = songline 0: column 0 -> track 0, shift 0; columns 1-7
+    //               skipped (track byte 0xFF, out of the valid 0-127 range)
+    //  [432..434] = track 0's data: note 0 (byte 0x01), volume 15/15 (byte
+    //               0x00), end-of-track marker (byte 0xFF, "space=64")
+    unsigned char mem[435] = {};
+    mem[0] = 0xFF;
+    mem[30] = 5;
+    mem[31] = 1;
+    mem[160] = 0xB0;
+    mem[288] = 0x01;
+    mem[431] = 0x00; mem[430] = 0x00; // column 0: track 0, shift 0 (also: not a goto line)
+    mem[429] = 0xFF; mem[428] = 0x00; // column 1: skipped
+    mem[427] = 0xFF; mem[426] = 0x00; // column 2: skipped
+    mem[425] = 0xFF; mem[424] = 0x00; // column 3: skipped
+    mem[423] = 0xFF; mem[422] = 0x00; // column 4: skipped
+    mem[421] = 0xFF; mem[420] = 0x00; // column 5: skipped
+    mem[419] = 0xFF; mem[418] = 0x00; // column 6: skipped
+    mem[417] = 0xFF; mem[416] = 0x00; // column 7: skipped
+    mem[432] = 0x01; // note = (0x01 & 0x3f) - 1 = 0
+    mem[433] = 0x00; // volume: volL = volR = 15
+    mem[434] = 0xFF; // end of track (space = 64)
+
+    std::ostringstream out;
+    WriteBinaryBlock(out, mem, 0, 434);
+    std::istringstream in(out.str());
+
+    TImportTMCHeader header;
+    ASSERT_TRUE(song.ImportTMCParseHeader(in, header));
+
+    TImportTMCResult result;
+    song.ImportTMCApply(header, /*usetable=*/FALSE, /*optimizeloops=*/FALSE, /*truncateunusedparts=*/FALSE, result);
+
+    EXPECT_EQ(result.songlines, 1);
+    EXPECT_EQ(result.nonemptyinstruments, 0); // no instrument pointers defined
+    // numoftracks tracks the highest track *index* used (a pre-existing
+    // naming quirk, not something this effort changes) - index 0 is the
+    // only one used here, so it never exceeds its own initial value of 0.
+    EXPECT_EQ(result.numoftracks, 0);
+
+    EXPECT_EQ(g_tracks4_8, 4); // no stereo columns (4-7) used -> mono module
+    EXPECT_EQ((*song.GetSong())[0][0], 0); // track 0 placed at songline 0, column 0
+
+    TTrack* track0 = g_Tracks.GetTrack(0);
+    EXPECT_EQ(track0->note[0], 0);
+    EXPECT_EQ(track0->instr[0], 0);
+    // Volume gets normalized against the instrument's own max envelope
+    // volume (MakeOrFindTrackShiftLR() in IO_ImporterCore.cpp) - since
+    // instrument 0 is undefined here (no instrument pointers were set up),
+    // its tracked max volume defaults to 0, which floors this note's volume
+    // to 0 too. This is real, faithful TMC-import behavior, not a test bug.
+    EXPECT_EQ(track0->volume[0], 0);
 }
