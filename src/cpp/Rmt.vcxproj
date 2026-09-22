@@ -231,7 +231,6 @@
     <ClCompile Include="RuntimeException.cpp" />
     <ClCompile Include="SAPFile.cpp" />
     <ClCompile Include="SAPFileExportDialog.cpp" />
-    <ClCompile Include="SAPFileExporter.cpp" />
     <ClCompile Include="SAPFileExporterCore.cpp" />
     <ClCompile Include="EffectsDlg.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>

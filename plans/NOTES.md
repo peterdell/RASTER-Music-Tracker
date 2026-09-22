@@ -1631,3 +1631,39 @@ build clean and all 123 tests pass.
         `CSongContainer::GetPokeyStream()`; `ExportSAP_R`'s header + stream
         data). Full solution rebuild (Release|x64) confirmed 0 errors; 231
         tests pass (up from 229, +2, 0 regressions).
+- [x] `CSAPFileExporter::ExportSAP_B_LZSS` unlocked - this suite's first
+      real-on-disk-file-backed test.
+      - Asked the user how to handle the one remaining blocker
+        (`resources/players/vu_player_v2.obx`, loaded via
+        `GetResourceFilePath()`/`g_prgpath`, a global normally set once by
+        the real app's startup code); chose to set `g_prgpath` in test
+        setup rather than stay deferred. `g_prgpath` is now set once, at
+        static-init time (`test/AtariBinariesStub.cpp`), computed from
+        `__FILE__` to point at this repo's own checked-in `rmt/` folder -
+        stable as long as building and running stay on the same machine,
+        which this workflow always does.
+      - `ExportSAP_B_LZSS`'s remaining dependencies were all already safe
+        or trivial to link for real: `VUPlayer::PatchMemoryForSAP_B()`
+        (pure memory patching, confirmed reading the whole 53-line file),
+        `SendErrorMessage()` (real body copied verbatim - `g_statusBar`
+        defaults `nullptr` and no test sets it, so its `MessageBox()`
+        branch is preserved as real code but unreachable, same treatment
+        as `CSongTimer::WaitForTimerRoutineProcessed()`'s guard),
+        `CCompressLzss::LZSS_SAP()` (`lzss_sap.cpp`, already linked and
+        tested), `AtariBinaries.cpp` (needed linking - pure MFC `CFile`
+        I/O plus the externally-supplied `GetResourceFilePath()`).
+      - Once both `CSAPFileExporter` methods were safe, the
+        `SAPFileExporter.cpp`/`SAPFileExporterCore.cpp` split from the
+        previous batch was no longer needed - merged `ExportSAP_B_LZSS`
+        into `SAPFileExporterCore.cpp` and deleted the now-empty
+        `SAPFileExporter.cpp` (removed from `Rmt.vcxproj` too). Widened
+        `ExportSAP_B_LZSS` to `std::ostream&` to match.
+      - The real resource file's compression pass
+        (`CCompressLzss::LZSS_SAP()`) prints a lot of diagnostic output to
+        stdout (compression ratios, a per-value dump table) - pre-existing
+        production behavior, not introduced by this test; noisy but
+        harmless.
+      - 1 new hand-derived test, correct on first run (16ms, confirming
+        the real file loaded and the whole pipeline ran). Full solution
+        rebuild (Release|x64) confirmed 0 errors; 232 tests pass (up from
+        231, +1, 0 regressions).

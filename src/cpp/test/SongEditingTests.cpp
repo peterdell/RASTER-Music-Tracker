@@ -1282,6 +1282,51 @@ TEST_F(SongEditingTest, ExportSAPRWritesTheHeaderAndPokeyStreamData) {
     EXPECT_GT(text.size(), (size_t)64);
 }
 
+// --- CSAPFileExporter::ExportSAP_B_LZSS ---
+// Same dialog-then-delegate shape as ExportSAP_R above, but needs a real
+// on-disk resource file too (resources/players/vu_player_v2.obx) - the
+// first such dependency in this test suite. g_prgpath is set once, at
+// static-init time, to this repo's own checked-in rmt/ folder (see
+// test/AtariBinariesStub.cpp), so the real file loads for real.
+
+TEST_F(SongEditingTest, ExportSAPBLZSSLoadsTheRealResourceAndWritesCompressedData) {
+    song.Stop(); // defensive - see the CSongContainer hazard note above
+
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 1;
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->len = 2;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 2;
+    (*song.GetSongGo())[1] = 0; // guarantees a fast loop, see above
+
+    CSongContainer container(song);
+    CSongExport songExport(container, "test");
+
+    CSAPFile sapFile;
+    sapFile.SetType("B"); // ExportSAP_B_LZSS(), unlike ExportSAP_R(), doesn't set this itself
+    sapFile.SetAuthor("BCoder");
+    sapFile.SetName("BSong");
+    sapFile.SetDate("01/01/2000");
+
+    std::ostringstream out;
+    ASSERT_TRUE(CSAPFileExporter::ExportSAP_B_LZSS(songExport, sapFile, out));
+
+    std::string text = out.str();
+    EXPECT_NE(text.find("TYPE B"), std::string::npos);
+    // The reconstructed VUPlayer binary appended after the header is raw
+    // binary, not text - just confirm the two fixed-size SaveBinaryBlock()
+    // calls (0x1900-0x1EFF and 0x2000-0x27FF, 1536+2048 data bytes plus
+    // their block headers) actually landed, i.e. the real resource file
+    // loaded successfully rather than silently no-op'ing via the
+    // "!LoadBinaryFile(...)" guard.
+    EXPECT_GT(text.size(), (size_t)3500);
+}
+
 // --- SongJump / SongUp / SongDown / SongSubsongPrev / SongSubsongNext ---
 // All conditionally call Stop()/Play() only inside "if (m_play &&
 // m_followplay)", never taken here (m_play defaults to PLAY_STOP).

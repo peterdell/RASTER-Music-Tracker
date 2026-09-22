@@ -113,6 +113,9 @@
     <ClCompile Include="InstrumentsStub.cpp" />
     <ClCompile Include="..\SAPFile.cpp" />
     <ClCompile Include="..\SAPFileExporterCore.cpp" />
+    <ClCompile Include="..\VUPlayer.cpp" />
+    <ClCompile Include="..\AtariBinaries.cpp" />
+    <ClCompile Include="AtariBinariesStub.cpp" />
     <ClCompile Include="SAPFileStub.cpp" />
     <ClCompile Include="..\Keyboard2NoteMapping.cpp" />
     <ClCompile Include="Keyboard2NoteMappingStub.cpp" />
