@@ -2109,3 +2109,127 @@ build clean and all 123 tests pass.
         left alone as out of scope, same reasoning as the `.cpp` pass.
       - Full solution rebuild (`Rmt.exe` + `RmtTests.exe`, Release|x64)
         confirmed 0 errors; 250 tests pass, 0 regressions.
+- [x] Wrote `plans/FILE_TIERING_STRATEGY.md` (user question: after the `.h`
+      brace-style rollout, would headers also get split into tiers like
+      `SongCore.cpp`/`SongEditing.cpp`/etc.?). Explained that the `.cpp`
+      tiers are a per-class implementation split by runtime hazard (does a
+      method call `MessageBox`/timers/hardware?), not a header split -
+      confirmed by checking the actual class declarations: all ten of
+      `CSong`'s `.cpp` files (`Song.cpp`, `SongCore.cpp`,
+      `SongEditing.cpp`, `Song_DumpSong.cpp`, `SongExportV2.cpp`,
+      `IO_Song.cpp`, `IO_Importer.cpp`, `IO_ImporterCore.cpp`,
+      `GUI_Song.cpp`, `Midi_Song.cpp` - ~9,950 lines, ~151 methods) share
+      the single `Song.h`, and the same holds for `CTracks`/`Tracks.h` and
+      `CInstruments`/`Instruments.h`. `SongUI.h`/`SongTimer.h`/
+      `SongContainer.h`/`SongExporter.h` are not `CSong` tiers at all -
+      they declare genuinely separate classes that merely share the
+      "Song" name prefix. Answer: headers are never tiered, since a
+      declaration carries no runtime hazard regardless of which tier its
+      implementation lands in.
+      - Follow-up question: how does this `.cpp`-tier mechanism translate
+        when the Java port actually happens, given Java has no header/impl
+        split and no partial classes? Recorded two options in the same
+        plan doc as an open decision to revisit when the port begins,
+        rather than deciding now: (1) mechanically recombine each class's
+        tiers back into one large Java file per class, using the former
+        tier boundaries only as section comments; (2) use the tier
+        boundaries as seams for real composition instead - extract the
+        hazardous dependencies (dialogs, timers, hardware) behind
+        interfaces (`UserPrompt`, `AudioClock`, `SoundDevice`, ...) that
+        the core class depends on via injection, turning
+        `GUI_Song.cpp`/`Midi_Song.cpp` into their own classes that depend
+        on `Song` rather than hazard-tiers of it. Noted that either way,
+        this session's dual-mode refactors (`SendQuestionMessage()`'s
+        test-injectable answer, `InstrInfo`/`TrackInfo`'s optional
+        output-struct parameter) already preview option 2's seam design,
+        so that triage work carries over regardless of which option is
+        chosen later.
+- [x] Wrote `plans/DUAL_MODE_PATTERN_PLAN.md`: formalized the dual-mode
+      pattern's three established variants (optional output-parameter,
+      test-injectable answer, two-phase parse+apply), then audited every
+      remaining `Send<Type>Message()` call site in the codebase (~90)
+      against the existing triage docs before proposing any new batch.
+      **Corrected a mistake found during that audit**: an earlier draft of
+      `plans/FILE_TIERING_STRATEGY.md`'s recommendation had implied
+      `GUI_Song.cpp`/`Midi_Song.cpp` were untapped dual-mode candidates -
+      cross-checking `plans/BROADER_SURVEY_PLAN.md` showed both were
+      already investigated and confirmed genuinely hazardous (the real
+      keyboard-input dispatch layer; real MIDI hardware enumeration), with
+      no extractable logic. Fixed that section in place rather than
+      leaving it to mislead a future session. Conclusion: **the dual-mode
+      backlog is closed** - every remaining hazard is either already
+      dual-mode'd, guard-only (no split needed), a real dialog wrapper
+      with its core already extracted, or genuinely real UI/hardware
+      coupling. The one loose thread the audit turned up -
+      `Undo.cpp`/`CUndo`, not yet investigated per
+      `plans/BROADER_SURVEY_PLAN.md` - isn't itself dual-mode-shaped (its
+      `g_hwnd` uses are guard-only); flagged as a decision point rather
+      than started unilaterally.
+- [x] User chose to open `Undo.cpp`/`CUndo` as a new investigation. Wrote
+      `plans/UNDO_PLAN.md` after reading `Undo.cpp`/`Undo.h`/
+      `test/UndoStub.cpp` in full. Key findings:
+      - 8 of `CUndo`'s 16 methods (`Init`/`Clear`/`DeleteEvent`/
+        `GetUndoSteps`/`GetRedoSteps`/`DropLast`/`Separator`/`PosIsEqual`)
+        are already real, copied verbatim into `UndoStub.cpp` (confirmed
+        identical) since they touch no globals - just never given direct
+        characterization tests.
+      - The other 8's real dependencies (`g_Song`/`g_Tracks`/
+        `g_Instruments`/`g_TrackClipboard`/`g_activepart`/`g_changes`) are
+        now all real and already reset every test in
+        `SongEditingTest::SetUp()` - the stale premise that `CUndo` was
+        "downstream of the `CSong` split work" no longer holds now that
+        split is done.
+      - One real, not-yet-exercised hazard found: `InsertEvent()` calls
+        `g_Song.SetRMTTitle()` (`GUI_Song.cpp`, confirmed real UI) only on
+        the first change (`if (!g_changes)`), and that method
+        unconditionally calls `AfxGetApp()->GetMainWnd()` before its one
+        null-check (which only guards the *result*) - `RmtTests.exe` never
+        constructs a `CWinApp`, so `AfxGetApp()` returns MFC's default-null
+        pointer and this would likely crash. **Deliberately not verified
+        empirically**, matching this effort's established caution around
+        exactly this class of hazard (`plans/SONG_IO_SONG_REMAINING_PLAN.md`
+        Batch 6's timeout-guarded `CSongTimer` verification) - avoided
+        instead via a documented precondition (tests set `g_changes = 1`
+        before calling any `Change*()` method), the same treatment already
+        used for `Stop()`'s `m_play` precondition.
+      - Found a genuine `new`/`delete[]` mismatch: `DeleteEvent()` always
+        frees `TUndoEvent::data` with `delete[]`, but 5 of 11 `UndoType`
+        cases allocate it with scalar `new` (`new TTrack`/`new TTracksAll`/
+        `new TSong`/`new TInstrument`/`new TInstrumentsAll`) - the same bug
+        class already found and fixed in `CTracks`/`CInstruments`. Per this
+        effort's established policy, flagged to be fixed outright as part
+        of the implementation batch, not just characterized.
+      - Proposed two batches (characterize the 8 already-real bookkeeping
+        methods directly; then fix the `delete[]` bug, link `Undo.cpp`
+        for real in place of `UndoStub.cpp`'s remaining no-ops, and add
+        tests for every `UndoType` branch) - not yet implemented, this
+        was investigation/planning only, per this effort's "write the
+        plan before touching code" discipline for non-mechanical work.
+- [x] Implemented `plans/UNDO_PLAN.md` (user: "Implement"), as one combined
+      pass rather than two batches (the split had no independent value -
+      see the plan doc's own note). `Undo.h`'s `TUndoEvent` gets a new
+      `bool dataIsArray = false;` member fixing the `new`/`delete[]`
+      mismatch; `Undo.cpp`'s `DeleteEvent()` branches on it, and every
+      array-`new` call site sets it `true` (the scalar-`new` sites
+      correctly rely on the struct's `false` default). `Undo.cpp` is now
+      linked directly into `RmtTests.vcxproj`; `test/UndoStub.cpp` is
+      trimmed to just the `CUndo g_Undo;` global (all 16 methods are real
+      now). One new link-only stub needed:
+      `void CSong::SetRMTTitle() {}` in `SongEditingStub.cpp` -
+      `InsertEvent()` references it unconditionally even though
+      `UndoTests.cpp` never reaches it at runtime (tests pre-set
+      `g_changes = 1`, matching plan finding #3's documented precondition
+      to avoid `GUI_Song.cpp`'s real, crash-risking `AfxGetApp()` call).
+      New `test/UndoTests.cpp`: 30 tests covering all 8 bookkeeping methods
+      (including a cast out-of-range `UndoType` to reach `PosIsEqual`'s
+      128-191 group, which no real enum value populates), every
+      `Change*()` `UndoType` branch swapped correctly by `Undo()`/`Redo()`
+      in both directions, each `BAD!` guard branch characterized as
+      non-crashing, multi-step undo history, the `separator = 0`
+      coalescing behavior (confirmed it keeps only the first snapshot,
+      matching real "type several notes in a row" behavior), and
+      `Clear`/`Init`/`DropLast`. Also fixed a now-stale comment in
+      `SongEditingTests.cpp` claiming `g_Undo`'s `ChangeTrack`/
+      `ChangeSong` were still stubbed. Full solution rebuild (`Rmt.exe` +
+      `RmtTests.exe`, Release|x64) confirmed 0 errors; 280 tests pass (up
+      from 250, +30, 0 regressions). Not yet committed.

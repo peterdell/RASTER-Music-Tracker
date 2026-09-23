@@ -42,10 +42,11 @@ void WriteBinaryBlock(std::ostream& out, const unsigned char* mem, WORD fromAddr
 // SongEditing.cpp/ClipboardCore.cpp - see plans/NOTES.md for the Song.cpp/
 // IO_Song.cpp triage that identified this "safe cluster" (only touches
 // g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, all confirmed
-// cheap). g_Undo's ChangeTrack/ChangeSong are stubbed as no-ops (see
-// UndoStub.cpp) - these methods call them only to *record* an edit for
-// later undo, so the tests below characterize the edit's own visible
-// effect, not the undo recording. Likewise CInstruments::ClearInstrument()/
+// cheap). g_Undo's ChangeTrack/ChangeSong now have real behavior too (see
+// plans/UNDO_PLAN.md, UndoTests.cpp) - these methods call them only to
+// *record* an edit for later undo, so the tests below still only assert on
+// the edit's own visible effect, not the undo recording (UndoTests.cpp
+// covers that separately). Likewise CInstruments::ClearInstrument()/
 // MemorizeOctaveAndVolume()/RememberOctaveAndVolume() are stubbed as no-ops
 // (see InstrumentsStub.cpp) since their real bodies touch
 // g_AtariTrackerDriver/g_keyboard_RememberOctavesAndVolumes - but

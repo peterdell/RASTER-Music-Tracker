@@ -137,3 +137,15 @@ void CSong::ReInitSound() {
 // into a UI combo box - no state ClearSong()'s own tests characterize.
 void CSong::SyncSkipLinesAfterNoteInsertComboBox() {
 }
+
+// Link-only no-op stub: the real CSong::SetRMTTitle() lives in GUI_Song.cpp
+// (confirmed real UI, not linked here - it calls AfxGetApp()->GetMainWnd()
+// unconditionally before its one null-check, which would dereference a null
+// CWinApp* in this console test binary, since none is ever constructed
+// here) and is reachable from CUndo::InsertEvent() (see Undo.cpp) only on
+// the first change (`if (!g_changes)`). UndoTests.cpp always pre-sets
+// g_changes = 1 before calling any CUndo::Change*() method specifically to
+// avoid ever reaching this - see plans/UNDO_PLAN.md finding #3. This stub
+// only needs to exist to satisfy the linker; it's provably never called.
+void CSong::SetRMTTitle() {
+}

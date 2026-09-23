@@ -25,6 +25,7 @@ struct TUndoEvent {
     UndoType type; // type of changed data
     int* pos; // position of changed data
     void* data; // change data
+    bool dataIsArray = false; // true if `data` was allocated with array `new[]` (needs `delete[]`); false for a single struct allocated with plain `new` (needs `delete`)
     char separator; // = 0 accumulate continuous changes, = 1 completed change, = -1 more events for one step
 };
 

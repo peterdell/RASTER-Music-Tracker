@@ -154,6 +154,7 @@
     <ClCompile Include="..\SongExporterCore.cpp" />
     <ClCompile Include="..\IO_ImporterCore.cpp" />
     <ClCompile Include="Song_DumpSongStub.cpp" />
+    <ClCompile Include="..\Undo.cpp" />
     <ClCompile Include="UndoStub.cpp" />
     <ClCompile Include="SongEditingStub.cpp" />
     <!-- Test sources. -->
@@ -175,6 +176,7 @@
     <ClCompile Include="AtariTests.cpp" />
     <ClCompile Include="SongTests.cpp" />
     <ClCompile Include="SongEditingTests.cpp" />
+    <ClCompile Include="UndoTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Fraction.h" />

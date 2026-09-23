@@ -50,7 +50,11 @@ char CUndo::DeleteEvent(int i) {
         delete[] ue->pos;
     }
     if (ue->data) {
-        delete[] ue->data;
+        if (ue->dataIsArray) {
+            delete[] ue->data;
+        } else {
+            delete ue->data;
+        }
     }
     delete ue;
     m_uar[i] = NULL;
@@ -192,6 +196,7 @@ void CUndo::ChangeTrack(int tracknum, int trackline, UndoType type, char separat
         data[0] = tr->note[trackline];
         data[1] = tr->instr[trackline];
         data[2] = tr->volume[trackline];
+        ue->dataIsArray = true;
         break;
 
     case UETYPE_NOTEINSTRVOLSPEED:
@@ -200,17 +205,20 @@ void CUndo::ChangeTrack(int tracknum, int trackline, UndoType type, char separat
         data[1] = tr->instr[trackline];
         data[2] = tr->volume[trackline];
         data[3] = tr->speed[trackline];
+        ue->dataIsArray = true;
         break;
 
     case UETYPE_SPEED:
         data = new int[1];
         data[0] = tr->speed[trackline];
+        ue->dataIsArray = true;
         break;
 
     case UETYPE_LENGO:
         data = new int[2];
         data[0] = tr->len;
         data[1] = tr->go;
+        ue->dataIsArray = true;
         break;
 
     case UETYPE_TRACKDATA: // Whole track
@@ -252,11 +260,13 @@ void CUndo::ChangeSong(int songline, int trackcol, UndoType type, char separator
     case UETYPE_SONGTRACK:
         data = new int[1];
         data[0] = g_Song.SongGetTrack(songline, trackcol);
+        ue->dataIsArray = true;
         break;
 
     case UETYPE_SONGGO:
         data = new int[1];
         data[0] = g_Song.SongGetGo(songline);
+        ue->dataIsArray = true;
         break;
 
     case UETYPE_SONGDATA: // Whole song
