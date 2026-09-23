@@ -14,7 +14,9 @@
 // plans/SONG_IO_SONG_REMAINING_PLAN.md). CLZSSFile::GetFrameSize() used to be
 // stubbed here too (always returning 9); it now has a real body linked via
 // LZSSFile.cpp (see plans/SAP_LZSS_WAV_XEX_PLAN.md).
-int CAtariTrackerDriver::Init() { return 0; }
+int CAtariTrackerDriver::Init() {
+	return 0;
+}
 
 // Link-only no-op stub: CSong::DumpSongToPokeyStream() (Song_DumpSong.cpp,
 // now linked - see Song_DumpSongStub.cpp) calls this only when g_rmtroutine
@@ -22,7 +24,8 @@ int CAtariTrackerDriver::Init() { return 0; }
 // SongEditingStub.cpp). Its real body lives in the still-unlinked
 // AtariTrackerDriver.cpp (needs Global.h's IsSpecialProveMode()) - same
 // "link-only, never really called" treatment as Init() above.
-void CAtariTrackerDriver::Play() {}
+void CAtariTrackerDriver::Play() {
+}
 
 // g_ChannelControl is a real, already-tested CChannelControl (see
 // ChannelControlTests.cpp) - FinishedRecording() calls SetAllChannelsOn() on

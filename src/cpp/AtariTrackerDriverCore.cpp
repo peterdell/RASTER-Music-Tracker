@@ -23,8 +23,7 @@ CAtari* CAtariTrackerDriver::GetAtari() {
     return m_atari;
 }
 
-void CAtariTrackerDriver::SetTrackNoteInstrumentVolume(int t, int n, int i, int v)
-{
+void CAtariTrackerDriver::SetTrackNoteInstrumentVolume(int t, int n, int i, int v) {
 
     auto adr = RMT_ATA_SETNOTEINSTR;
     BYTE a = n, x = t, y = i;
@@ -32,15 +31,16 @@ void CAtariTrackerDriver::SetTrackNoteInstrumentVolume(int t, int n, int i, int 
     m_atari->JSR(adr, a, x, y, cycles);
     //
     adr = RMT_ATA_SETVOLUME;
-    a = v; x = t; y = 0;
+    a = v;
+    x = t;
+    y = 0;
     cycles = m_atari->GetFrameCycleCount();
     m_atari->JSR(adr, a, x, y, cycles);
 
     g_rmtinstr[t] = i;
 }
 
-void CAtariTrackerDriver::SetTrackVolume(int t, int v)
-{
+void CAtariTrackerDriver::SetTrackVolume(int t, int v) {
 
     auto adr = RMT_ATA_SETVOLUME;
     BYTE a = v, x = t, y = 0;
@@ -48,15 +48,11 @@ void CAtariTrackerDriver::SetTrackVolume(int t, int v)
     m_atari->JSR(adr, a, x, y, cycles);
 }
 
-
-void CAtariTrackerDriver::InstrumentTurnOff(int instr)
-{
+void CAtariTrackerDriver::InstrumentTurnOff(int instr) {
     auto cycles = m_atari->GetFrameCycleCount();
-    for (int i = 0; i < SONGTRACKS; i++)
-    {
+    for (int i = 0; i < SONGTRACKS; i++) {
         // Does this POKEY channel have the instrument assigned?
-        if (g_rmtinstr[i] == instr)
-        {
+        if (g_rmtinstr[i] == instr) {
             auto adr = RMT_ATA_INSTROFF;
             BYTE a = 0, x = i, y = 0;
             m_atari->JSR(adr, a, x, y, cycles);
@@ -65,7 +61,6 @@ void CAtariTrackerDriver::InstrumentTurnOff(int instr)
         }
     }
 }
-
 
 byte CAtariTrackerDriver::GetByteAt(const MemoryAddress address) {
     return m_atari->GetByteAt(address);

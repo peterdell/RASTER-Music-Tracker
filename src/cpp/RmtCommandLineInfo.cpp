@@ -1,38 +1,29 @@
 #include "StdAfx.h"
 #include "RmtCommandLineInfo.h"
 
-
-
 CRmtCommandLineInfo::CRmtCommandLineInfo(void) : m_scriptFileSpecified(false), m_testFileSpecified(false) {
-};
+                                                 };
 
 CRmtCommandLineInfo::~CRmtCommandLineInfo(void) {
 };
 
-
-bool CRmtCommandLineInfo::IsScriptFileSpecified() const
-{
+bool CRmtCommandLineInfo::IsScriptFileSpecified() const {
     return m_scriptFileSpecified;
 }
 
-CString CRmtCommandLineInfo::GetScriptFilePath() const
-{
+CString CRmtCommandLineInfo::GetScriptFilePath() const {
     return m_scriptFilePath;
 }
 
-bool CRmtCommandLineInfo::IsTestFileSpecified() const
-{
+bool CRmtCommandLineInfo::IsTestFileSpecified() const {
     return m_testFileSpecified;
 }
 
-CString CRmtCommandLineInfo::GetTestFilePath() const
-{
+CString CRmtCommandLineInfo::GetTestFilePath() const {
     return m_testFilePath;
 }
 
-
-void CRmtCommandLineInfo::ParseParam(const TCHAR* pszParam, BOOL bFlag, BOOL bLast)
-{
+void CRmtCommandLineInfo::ParseParam(const TCHAR* pszParam, BOOL bFlag, BOOL bLast) {
     // The bFlag is true for parameters of the form "/EXAMPLE:TEST"
     if (bFlag) {
         CString switchString(pszParam);
@@ -71,4 +62,3 @@ CString CRmtCommandLineInfo::GetSwitchValue(const CString& switchString) {
     }
     return "";
 }
-

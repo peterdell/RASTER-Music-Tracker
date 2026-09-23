@@ -20,48 +20,45 @@ CUndo g_Undo;
 // these tests characterize) happens independently of whether it was
 // recorded.
 
-CUndo::CUndo()
-{
-    for (int i = 0; i < MAXUNDO; i++) { m_uar[i] = NULL; }
+CUndo::CUndo() {
+    for (int i = 0; i < MAXUNDO; i++) {
+        m_uar[i] = NULL;
+    }
 }
 
-CUndo::~CUndo()
-{
-    for (int i = 0; i < MAXUNDO; i++) { DeleteEvent(i); }
+CUndo::~CUndo() {
+    for (int i = 0; i < MAXUNDO; i++) {
+        DeleteEvent(i);
+    }
 }
 
-void CUndo::Init()
-{
+void CUndo::Init() {
     Clear();
 }
 
-void CUndo::Clear()
-{
+void CUndo::Clear() {
     m_head = 0;
     m_tail = 0;
     m_headmax = 0;
     m_undosteps = m_redosteps = 0;
-    for (int i = 0; i < MAXUNDO; i++) { DeleteEvent(i); }
+    for (int i = 0; i < MAXUNDO; i++) {
+        DeleteEvent(i);
+    }
 }
 
-char CUndo::DeleteEvent(int i)
-{
+char CUndo::DeleteEvent(int i) {
     TUndoEvent* ue = m_uar[i];
-    if (!ue)
-    {
+    if (!ue) {
         return 1;
     }
     char sep = ue->separator;
-    if (ue->cursor)
-    {
+    if (ue->cursor) {
         delete[] ue->cursor;
     }
-    if (ue->pos)
-    {
+    if (ue->pos) {
         delete[] ue->pos;
     }
-    if (ue->data)
-    {
+    if (ue->data) {
         delete[] ue->data;
     }
     delete ue;
@@ -77,30 +74,29 @@ int CUndo::GetRedoSteps() const {
     return m_redosteps;
 }
 
-void CUndo::DropLast()
-{
-    if (m_head == m_tail) { return; }
+void CUndo::DropLast() {
+    if (m_head == m_tail) {
+        return;
+    }
     m_head = (m_head + MAXUNDO - 1) % MAXUNDO;
     DeleteEvent(m_head);
-    m_undosteps--;		//will count this step
+    m_undosteps--; //will count this step
 }
 
-void CUndo::Separator(int sep)
-{
+void CUndo::Separator(int sep) {
     auto le = m_uar[(m_head + MAXUNDO - 1) % MAXUNDO];
-    if (!le) { return; }
-    if (sep < 0 && le->separator >= 0)
-    {
+    if (!le) {
+        return;
+    }
+    if (sep < 0 && le->separator >= 0) {
         m_undosteps--; //the number of undo counted in InsertEvent
     }
     le->separator = sep;
 }
 
-BOOL CUndo::PosIsEqual(int* pos1, int* pos2, UndoType type)
-{
+BOOL CUndo::PosIsEqual(int* pos1, int* pos2, UndoType type) {
     int len;
-    switch (type >> 6)	//  /64
-    {
+    switch (type >> 6) { //  /64
     case 0:
         len = POSGROUPTYPE0_63SIZE;
         break;
@@ -113,16 +109,31 @@ BOOL CUndo::PosIsEqual(int* pos1, int* pos2, UndoType type)
     default:
         return FALSE;
     }
-    for (int i = 0; i < len; i++) { if (pos1[i] != pos2[i]) { return FALSE; } }
+    for (int i = 0; i < len; i++) {
+        if (pos1[i] != pos2[i]) {
+            return FALSE;
+        }
+    }
     return TRUE;
 }
 
 // Link-only no-op stubs - see file header comment.
-BOOL CUndo::Undo() { return FALSE; }
-BOOL CUndo::Redo() { return FALSE; }
-void CUndo::InsertEvent(TUndoEvent*) {}
-char CUndo::PerformEvent(int) { return 0; }
-void CUndo::ChangeTrack(int, int, UndoType, char) {}
-void CUndo::ChangeSong(int, int, UndoType, char) {}
-void CUndo::ChangeInstrument(int, int, UndoType, char) {}
-void CUndo::ChangeInfo(int, UndoType, char) {}
+BOOL CUndo::Undo() {
+    return FALSE;
+}
+BOOL CUndo::Redo() {
+    return FALSE;
+}
+void CUndo::InsertEvent(TUndoEvent*) {
+}
+char CUndo::PerformEvent(int) {
+    return 0;
+}
+void CUndo::ChangeTrack(int, int, UndoType, char) {
+}
+void CUndo::ChangeSong(int, int, UndoType, char) {
+}
+void CUndo::ChangeInstrument(int, int, UndoType, char) {
+}
+void CUndo::ChangeInfo(int, UndoType, char) {
+}

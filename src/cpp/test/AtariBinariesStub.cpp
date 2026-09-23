@@ -31,15 +31,15 @@ CString GetResourceFilePath(const std::filesystem::path& relativeFolderPath, con
 }
 
 namespace {
-    struct InitProgramFolderPath {
-        InitProgramFolderPath() {
-            std::filesystem::path sourceFile(__FILE__);          // .../src/cpp/test/AtariBinariesStub.cpp
-            std::filesystem::path repoRoot = sourceFile
-                .parent_path()  // .../src/cpp/test
-                .parent_path()  // .../src/cpp
-                .parent_path()  // .../src
-                .parent_path(); // repo root
-            SetProgramFolderPath((repoRoot / "rmt").string().c_str());
-        }
-    } g_initProgramFolderPath;
-}
+struct InitProgramFolderPath {
+    InitProgramFolderPath() {
+        std::filesystem::path sourceFile(__FILE__); // .../src/cpp/test/AtariBinariesStub.cpp
+        std::filesystem::path repoRoot = sourceFile
+                                             .parent_path() // .../src/cpp/test
+                                             .parent_path() // .../src/cpp
+                                             .parent_path() // .../src
+                                             .parent_path(); // repo root
+        SetProgramFolderPath((repoRoot / "rmt").string().c_str());
+    }
+} g_initProgramFolderPath;
+} // namespace

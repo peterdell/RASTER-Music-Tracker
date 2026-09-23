@@ -12,11 +12,9 @@
 // (which has no dependency on Global.h) - see Tracks.cpp for the plain
 // track-data methods.
 
-BOOL CTracks::DelNoteInstrVolSpeed(int noteinstrvolspeed, TrackNumber track, int line)
-{
+BOOL CTracks::DelNoteInstrVolSpeed(int noteinstrvolspeed, TrackNumber track, int line) {
     TTrack* tr = GetTrack(track);
-    if (!tr)
-    {
+    if (!tr) {
         return 0;
     }
 
@@ -24,22 +22,17 @@ BOOL CTracks::DelNoteInstrVolSpeed(int noteinstrvolspeed, TrackNumber track, int
     g_Undo.Separator();
 
     // If the line on track is within boundaries, continue
-    if (line >= 0 && line < tr->len)
-    {
-        if (noteinstrvolspeed & 1)
-        {
+    if (line >= 0 && line < tr->len) {
+        if (noteinstrvolspeed & 1) {
             tr->note[line] = -1;
         }
-        if (noteinstrvolspeed & 2)
-        {
+        if (noteinstrvolspeed & 2) {
             tr->instr[line] = -1;
         }
-        if (noteinstrvolspeed & 4)
-        {
+        if (noteinstrvolspeed & 4) {
             tr->volume[line] = -1;
         }
-        if (noteinstrvolspeed & 8)
-        {
+        if (noteinstrvolspeed & 8) {
             tr->speed[line] = -1;
         }
         return 1;
@@ -49,11 +42,9 @@ BOOL CTracks::DelNoteInstrVolSpeed(int noteinstrvolspeed, TrackNumber track, int
     return 0;
 }
 
-BOOL CTracks::SetNoteInstrVol(int note, int instr, int vol, TrackNumber track, int line)
-{
+BOOL CTracks::SetNoteInstrVol(int note, int instr, int vol, TrackNumber track, int line) {
     TTrack* tr = GetTrack(track);
-    if (!tr)
-    {
+    if (!tr) {
         return 0;
     }
 
@@ -61,15 +52,12 @@ BOOL CTracks::SetNoteInstrVol(int note, int instr, int vol, TrackNumber track, i
     g_Undo.Separator();
 
     // If the line on track is within boundaries, continue
-    if (line >= 0 && line < tr->len)
-    {
-        if (note < 0)
-        {
+    if (line >= 0 && line < tr->len) {
+        if (note < 0) {
             instr = vol = -1;
         }
 
-        if (!g_respectvolume || (g_respectvolume && (vol < 0 || tr->volume[line] < 0)))
-        {
+        if (!g_respectvolume || (g_respectvolume && (vol < 0 || tr->volume[line] < 0))) {
             tr->volume[line] = vol;
         }
 
@@ -82,11 +70,9 @@ BOOL CTracks::SetNoteInstrVol(int note, int instr, int vol, TrackNumber track, i
     return 0;
 }
 
-BOOL CTracks::SetInstr(int instr, TrackNumber track, int line)
-{
+BOOL CTracks::SetInstr(int instr, TrackNumber track, int line) {
     TTrack* tr = GetTrack(track);
-    if (!tr)
-    {
+    if (!tr) {
         return 0;
     }
 
@@ -94,8 +80,7 @@ BOOL CTracks::SetInstr(int instr, TrackNumber track, int line)
     //g_Undo.Separator();	// Why no undo separator?
 
     // If the line on track is within boundaries, continue
-    if (line >= 0 && line < tr->len)
-    {
+    if (line >= 0 && line < tr->len) {
         tr->instr[line] = instr;
         return 1;
     }
@@ -104,11 +89,9 @@ BOOL CTracks::SetInstr(int instr, TrackNumber track, int line)
     return 0;
 }
 
-BOOL CTracks::SetVol(int vol, TrackNumber track, int line)
-{
+BOOL CTracks::SetVol(int vol, TrackNumber track, int line) {
     TTrack* tr = GetTrack(track);
-    if (!tr)
-    {
+    if (!tr) {
         return 0;
     }
 
@@ -116,8 +99,7 @@ BOOL CTracks::SetVol(int vol, TrackNumber track, int line)
     //g_Undo.Separator();	// Why no undo separator?
 
     // If the line on track is within boundaries, continue
-    if (line >= 0 && line < tr->len)
-    {
+    if (line >= 0 && line < tr->len) {
         tr->volume[line] = vol;
         return 1;
     }
@@ -126,11 +108,9 @@ BOOL CTracks::SetVol(int vol, TrackNumber track, int line)
     return 0;
 }
 
-BOOL CTracks::SetSpeed(int speed, TrackNumber track, int line)
-{
+BOOL CTracks::SetSpeed(int speed, TrackNumber track, int line) {
     TTrack* tr = GetTrack(track);
-    if (!tr)
-    {
+    if (!tr) {
         return 0;
     }
 
@@ -138,8 +118,7 @@ BOOL CTracks::SetSpeed(int speed, TrackNumber track, int line)
     //g_Undo.Separator();	// Why no undo separator?
 
     // If the line on track is within boundaries, continue
-    if (line >= 0 && line < tr->len)
-    {
+    if (line >= 0 && line < tr->len) {
         tr->speed[line] = speed;
         return 1;
     }
@@ -148,11 +127,9 @@ BOOL CTracks::SetSpeed(int speed, TrackNumber track, int line)
     return 0;
 }
 
-BOOL CTracks::SetEnd(TrackNumber track, int line)
-{
+BOOL CTracks::SetEnd(TrackNumber track, int line) {
     TTrack* tr = GetTrack(track);
-    if (!tr)
-    {
+    if (!tr) {
         return 0;
     }
 
@@ -161,22 +138,18 @@ BOOL CTracks::SetEnd(TrackNumber track, int line)
 
     // Set the track length to
     tr->len = (line > 0 && tr->len != line) ? line : m_maxTrackLength;
-    if (tr->go >= tr->len)
-    {
+    if (tr->go >= tr->len) {
         tr->go = -1;
     }
     return 1;
 }
 
-BOOL CTracks::SetGo(TrackNumber track, int line)
-{
+BOOL CTracks::SetGo(TrackNumber track, int line) {
     TTrack* tr = GetTrack(track);
-    if (!tr)
-    {
+    if (!tr) {
         return 0;
     }
-    if (line >= tr->len)
-    {
+    if (line >= tr->len) {
         return 0;
     }
     g_Undo.ChangeTrack(track, line, UETYPE_LENGO, 1);

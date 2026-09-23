@@ -6,8 +6,8 @@
 #include <vector>
 
 TEST(BuildInstrumentDataTest, NoLabelEmitsPlainByteList) {
-    unsigned char buf[4] = { 0x01, 0x02, 0x03, 0x04 };
-    int info[4] = { 0, 0, 0, 0 };
+    unsigned char buf[4] = {0x01, 0x02, 0x03, 0x04};
+    int info[4] = {0, 0, 0, 0};
     CString code;
 
     int size = CASMFileBuilder::BuildInstrumentData(code, "", buf, 0, 4, info, AssemblerFormat::ATASM);
@@ -17,8 +17,8 @@ TEST(BuildInstrumentDataTest, NoLabelEmitsPlainByteList) {
 }
 
 TEST(BuildInstrumentDataTest, NonEmptyInfoEntryInsertsLabelAndRestartsRow) {
-    unsigned char buf[3] = { 0xAA, 0xBB, 0xCC };
-    int info[3] = { 0, 5, 0 }; // info[1]=5 -> label "?Instrument_4" (5-1), row restarts
+    unsigned char buf[3] = {0xAA, 0xBB, 0xCC};
+    int info[3] = {0, 5, 0}; // info[1]=5 -> label "?Instrument_4" (5-1), row restarts
     CString code;
 
     int size = CASMFileBuilder::BuildInstrumentData(code, "", buf, 0, 3, info, AssemblerFormat::ATASM);
@@ -29,8 +29,8 @@ TEST(BuildInstrumentDataTest, NonEmptyInfoEntryInsertsLabelAndRestartsRow) {
 }
 
 TEST(BuildInstrumentDataTest, NonEmptyLabelEmitsOrgLineInEachAssemblerFormat) {
-    unsigned char buf[1] = { 0x00 };
-    int info[1] = { 0 };
+    unsigned char buf[1] = {0x00};
+    int info[1] = {0};
     CString atasmCode, xasmCode;
 
     CASMFileBuilder::BuildInstrumentData(atasmCode, "INSTR_START", buf, 0, 1, info, AssemblerFormat::ATASM);
@@ -47,11 +47,11 @@ TEST(BuildInstrumentDataTest, NonEmptyLabelEmitsOrgLineInEachAssemblerFormat) {
 // of bounds - a real fragility in the function's contract, not something a
 // caller would guess from its signature. Characterized here, not changed.
 namespace {
-    constexpr int kTrackPosSize = 65536;
+constexpr int kTrackPosSize = 65536;
 }
 
 TEST(BuildTracksDataTest, NoLabelEmitsPlainByteList) {
-    unsigned char buf[4] = { 0x11, 0x22, 0x33, 0x44 };
+    unsigned char buf[4] = {0x11, 0x22, 0x33, 0x44};
     std::vector<int> trackPos(kTrackPosSize, 0);
     CString code;
 
@@ -62,7 +62,7 @@ TEST(BuildTracksDataTest, NoLabelEmitsPlainByteList) {
 }
 
 TEST(BuildTracksDataTest, NonZeroTrackPosOutsideProcessedRangeFailsValidation) {
-    unsigned char buf[2] = { 0x01, 0x02 };
+    unsigned char buf[2] = {0x01, 0x02};
     std::vector<int> trackPos(kTrackPosSize, 0);
     trackPos[100] = 1; // left set outside the [0,2) range actually consumed
     CString code;
@@ -80,23 +80,23 @@ TEST(BuildTracksDataTest, NonZeroTrackPosOutsideProcessedRangeFailsValidation) {
 // converted back to a "?line_NN" label reference.
 
 TEST(BuildSongDataTest, PlainLinesWithNoGotoEmitsByteRows) {
-    unsigned char buf[8] = { 1, 2, 3, 4, 5, 6, 7, 8 }; // 2 lines of 4 tracks
+    unsigned char buf[8] = {1, 2, 3, 4, 5, 6, 7, 8}; // 2 lines of 4 tracks
     CString code;
 
     int size = CASMFileBuilder::BuildSongData(code, "", buf, 0, 8, 0, 4, AssemblerFormat::ATASM);
 
     EXPECT_EQ(size, 8);
     EXPECT_STREQ(code,
-        "\n\n; Song data\n?SongData"
-        "\n?Line_00  {{byte}} $01,$02,$03,$04"
-        "\n?Line_01  {{byte}} $05,$06,$07,$08"
-        "\n");
+                 "\n\n; Song data\n?SongData"
+                 "\n?Line_00  {{byte}} $01,$02,$03,$04"
+                 "\n?Line_01  {{byte}} $05,$06,$07,$08"
+                 "\n");
 }
 
 TEST(BuildSongDataTest, GotoToLineZeroEmitsLineLabelReference) {
     // Line 0 (4 bytes), then a goto sequence (0xFE, unused filler, low byte,
     // high byte of target address 0) pointing back at line 0.
-    unsigned char buf[8] = { 1, 2, 3, 4, 0xFE, 0x00, 0x00, 0x00 };
+    unsigned char buf[8] = {1, 2, 3, 4, 0xFE, 0x00, 0x00, 0x00};
     CString code;
 
     int size = CASMFileBuilder::BuildSongData(code, "", buf, 0, 8, 0, 4, AssemblerFormat::ATASM);
@@ -106,10 +106,10 @@ TEST(BuildSongDataTest, GotoToLineZeroEmitsLineLabelReference) {
     // consumed purely for the jump calculation).
     EXPECT_EQ(size, 6);
     EXPECT_STREQ(code,
-        "\n\n; Song data\n?SongData"
-        "\n?Line_00  {{byte}} $01,$02,$03,$04"
-        "\n?Line_01  {{byte}} $fe,$00,<?line_00,>?line_00"
-        "\n");
+                 "\n\n; Song data\n?SongData"
+                 "\n?Line_00  {{byte}} $01,$02,$03,$04"
+                 "\n?Line_01  {{byte}} $fe,$00,<?line_00,>?line_00"
+                 "\n");
 }
 
 TEST(BuildSongDataTest, MisalignedGotoTargetEmitsErrorComment) {
@@ -120,15 +120,15 @@ TEST(BuildSongDataTest, MisalignedGotoTargetEmitsErrorComment) {
     // the (no-op, for 'x') space flag rather than printed literally, so
     // this behaves like "$ %04x[%x:%x]" with the visible spaces coming
     // only from the literal ones already in the string before each '%'.
-    unsigned char buf[8] = { 1, 2, 3, 4, 0xFE, 0x00, 0x03, 0x00 };
+    unsigned char buf[8] = {1, 2, 3, 4, 0xFE, 0x00, 0x03, 0x00};
     CString code;
 
     int size = CASMFileBuilder::BuildSongData(code, "", buf, 0, 8, 0, 4, AssemblerFormat::ATASM);
 
     EXPECT_EQ(size, 6);
     EXPECT_STREQ(code,
-        "\n\n; Song data\n?SongData"
-        "\n?Line_00  {{byte}} $01,$02,$03,$04"
-        "\n?Line_01  {{byte}} $fe,$00; ERROR malformed file(song jump bad $ 0003[0:8])\n,<($3+?SongData),>($3+?SongData)"
-        "\n");
+                 "\n\n; Song data\n?SongData"
+                 "\n?Line_00  {{byte}} $01,$02,$03,$04"
+                 "\n?Line_01  {{byte}} $fe,$00; ERROR malformed file(song jump bad $ 0003[0:8])\n,<($3+?SongData),>($3+?SongData)"
+                 "\n");
 }

@@ -1,6 +1,6 @@
 #include "SongExporterTest.h"
 #include "StdAfx.h"
-#include <ctime> 
+#include <ctime>
 
 #include "Song.h"
 #include "SongContainer.h"
@@ -17,10 +17,7 @@
 #include "SAPFile.h"
 #include "SAPFileExporter.h"
 
-
 extern CXPokey g_Pokey;
-
-
 
 void AssertTrue(bool actual) {
     if (actual != true) {
@@ -36,7 +33,7 @@ CString GetFileNameWithoutExtension(const CString& fileName) {
     return fileName;
 }
 
-static   time_t startTimestamp;
+static time_t startTimestamp;
 
 bool OpenOutputStream(const CString filePath, const int mode, std::ofstream& os) {
     SendInfoMessage("Opening '" + filePath + "' for output.");
@@ -57,13 +54,11 @@ void CloseOutputStream(const CString filePath, const bool result, std::ofstream&
     if (result) {
         CFile file(filePath, CFile::modeRead);
         SendInfoMessage("Output file '" + filePath + "' created in " + seconds.c_str() + " seconds with " + std::to_string(file.GetLength()).c_str() + " bytes.");
-    }
-    else {
+    } else {
         SendInfoMessage("Creation ofutput file '" + filePath + "' failed within " + seconds.c_str() + " seconds.");
         CFile::Remove(filePath);
     }
 }
-
 
 void CSongExporterTest::Test(CSong& song) {
 
@@ -150,7 +145,6 @@ void CSongExporterTest::Test(CSong& song) {
         }
     }
 
-
     if (WAV) {
         /* TODO: Make it work for WAV
         https://github.com/raster-atari-org/RASTER-Music-Tracker/issues/10
@@ -163,7 +157,5 @@ void CSongExporterTest::Test(CSong& song) {
             }
             CloseOutputStream(outFilePath, result, os);
         }
-
     }
-
 }

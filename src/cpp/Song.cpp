@@ -31,8 +31,6 @@ extern CXPokey g_Pokey;
 extern int g_tracks4_8;
 CSongTimer g_SongTimer;
 
-
-
 // ----------------------------------------------------------------------------
 
 // CSong(), ~CSong(), GetName(), GetTracks(), and IsStereo() are implemented
@@ -51,7 +49,6 @@ void CSong::ReInitSound() {
     g_AtariTrackerDriver->Init();
 }
 
-
 // GetInstrumentSpeed() is implemented in SongCore.cpp.
 
 // TODO: Move to CSontTimer
@@ -59,8 +56,7 @@ void CSong::ReInitSound() {
 /// <summary>
 /// Stop the timer and make sure that the timer event is not running
 /// </summary>
-void CSong::StopTimer()
-{
+void CSong::StopTimer() {
     g_SongTimer.StopTimer();
 }
 
@@ -69,8 +65,7 @@ void CSong::StopTimer()
 /// Depends on PAL or NTSC timing.
 /// </summary>
 /// <param name="ms">ms between calls (17=NTSC, 20=PAL)</param>
-void CSong::ChangeTimer(int ms)
-{
+void CSong::ChangeTimer(int ms) {
     g_SongTimer.SetTimer(*this, ms);
 }
 
@@ -82,11 +77,9 @@ void CSong::ChangeTimer(int ms)
 /// real MFC AfxGetMainWnd()/CMainFrame call, categorically different from a
 /// stubbable global.
 /// </summary>
-void CSong::SyncSkipLinesAfterNoteInsertComboBox()
-{
+void CSong::SyncSkipLinesAfterNoteInsertComboBox() {
     CMainFrame* mf = ((CMainFrame*)AfxGetMainWnd());
-    if (mf)
-    {
+    if (mf) {
         mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_SkipLinesAfterNoteInsert);
     }
 }
@@ -208,9 +201,7 @@ int CSong::DecodeTuningBlock(unsigned char* mem, int addr, int endAddr)
 }
 */
 
-
 // CSong::ResetTuningVariables() is implemented in SongEditing.cpp.
-
 
 /// <summary>
 /// Create the RMT data in memory.
@@ -242,13 +233,11 @@ int CSong::DecodeTuningBlock(unsigned char* mem, int addr, int endAddr)
 
 // CSong::PlayPressedTones() is implemented in SongEditing.cpp.
 
-
 // CSong::ActiveInstrSet() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 
 // CSong::ActiveInstrPrev() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 
 // CSong::ActiveInstrNext() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
-
 
 // GetActiveInstr(), GetActiveColumn(), GetActiveLine(), GetPlayLine(),
 // SetActiveLine(), and SetPlayLine() are implemented in SongCore.cpp.
@@ -270,7 +259,6 @@ int CSong::DecodeTuningBlock(unsigned char* mem, int addr, int endAddr)
 // CSong::SetUECursor() is implemented in SongEditing.cpp.
 
 // UECursorIsEqual() is implemented in SongCore.cpp.
-
 
 //----------
 
@@ -303,8 +291,7 @@ int CSong::DecodeTuningBlock(unsigned char* mem, int addr, int endAddr)
 
 // CSong::SongDeleteLine() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 
-BOOL CSong::SongInsertCopyOrCloneOfSongLines(int& line)
-{
+BOOL CSong::SongInsertCopyOrCloneOfSongLines(int& line) {
     int n = (line > 0) ? line - 1 : 0;
     CInsertCopyOrCloneOfSongLinesDlg dlg;
 
@@ -313,10 +300,9 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLines(int& line)
     dlg.m_lineinto = line;
     dlg.m_clone = 0;
     dlg.m_tuning = 0;
-    dlg.m_volumep = 100;	//100%
+    dlg.m_volumep = 100; //100%
 
-    if (dlg.DoModal() != IDOK)
-    {
+    if (dlg.DoModal() != IDOK) {
         return 1;
     }
 
@@ -334,7 +320,6 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLines(int& line)
 // CSong::SongMaketracksduplicate() is implemented in SongEditing.cpp - its
 // confirmation prompt (SendQuestionMessage()) is now safe to trigger in
 // tests via the test-injectable answer hook (see plans/MESSAGEBOX_REFACTOR_PLAN.md).
-
 
 //--clipboard functions
 
@@ -362,10 +347,8 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLines(int& line)
 
 // CSong::InstrInfo() is implemented in SongEditing.cpp.
 
-void CSong::InstrChange(int instr)
-{
-    if (!g_Instruments.IsValidInstrument(instr))
-    {
+void CSong::InstrChange(int instr) {
+    if (!g_Instruments.IsValidInstrument(instr)) {
         return;
     }
 
@@ -377,8 +360,7 @@ void CSong::InstrChange(int instr)
     dlg.m_onlysonglinefrom = dlg.m_onlysonglineto = SongGetActiveLine();
 
     // Change all the instrument occurences
-    if (dlg.DoModal() != IDOK)
-    {
+    if (dlg.DoModal() != IDOK) {
         return;
     }
 
@@ -413,15 +395,13 @@ void CSong::InstrChange(int instr)
 
 // CSong::SongClearLine() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 
-void CSong::TracksOrderChange()
-{
+void CSong::TracksOrderChange() {
     // Stop the sound first
     Stop();
     CSongTracksOrderDlg dlg;
     dlg.m_songlinefrom.Format("%02X", m_TracksOrderChange_songlinefrom);
     dlg.m_songlineto.Format("%02X", m_TracksOrderChange_songlineto);
-    if (dlg.DoModal() != IDOK)
-    {
+    if (dlg.DoModal() != IDOK) {
         return;
     }
 
@@ -430,8 +410,7 @@ void CSong::TracksOrderChange()
     int f = Hexstr((char*)(LPCTSTR)dlg.m_songlinefrom, 2);
     int t = Hexstr((char*)(LPCTSTR)dlg.m_songlineto, 2);
 
-    if (f < 0 || f >= SONGLEN || t < 0 || t >= SONGLEN || t < f)
-    {
+    if (f < 0 || f >= SONGLEN || t < 0 || t >= SONGLEN || t < f) {
         SendErrorMessage("Error", "Bad songline (from-to) range.");
         return;
     }
@@ -440,19 +419,15 @@ void CSong::TracksOrderChange()
     m_TracksOrderChange_songlineto = t;
 
     int c = 0;
-    for (int i = 0; i < g_tracks4_8; i++)
-    {
-        if (dlg.m_tracksorder[i] < 0)
-        {
+    for (int i = 0; i < g_tracks4_8; i++) {
+        if (dlg.m_tracksorder[i] < 0) {
             c++;
         }
     }
-    if (c > 0)
-    {
+    if (c > 0) {
         CString s;
         s.Format("Warning: %u song column(s) will be cleared completely.\nAre you sure to do it?", c);
-        if (SendQuestionMessage("Warning", s, MessageButtons::YesNoCancel) != MessageAnswer::Yes)
-        {
+        if (SendQuestionMessage("Warning", s, MessageButtons::YesNoCancel) != MessageAnswer::Yes) {
             return;
         }
     }
@@ -470,7 +445,6 @@ void CSong::TracksOrderChange()
 
 // CSong::GetSmallestMaxtracklen() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 
-
 // CSong::ChangeMaxtracklen() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 
 // CSong::TracksAllBuildLoops() and TracksAllExpandLoops() are implemented in SongEditing.cpp (only touch g_Tracks, plus a call to Stop() that's a no-op unless Play() was called first).
@@ -486,8 +460,6 @@ void CSong::TracksOrderChange()
 // CSong::ClearAllInstrumentsUnusedInAnyTrack() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 
 // CSong::RenumberAllInstruments() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
-
-
 
 //
 //--------------------------------------------------------------------------------------
@@ -508,11 +480,9 @@ void CSong::TracksOrderChange()
 /// <summary>
 /// Call this X times per second to handle the playing of the song
 /// </summary>
-void CSong::TimerRoutine()
-{
+void CSong::TimerRoutine() {
     // If the POKEY Stream is being recorded, the Timer Routine is bypassed entirely to run as fast as possible
-    if (m_pokeyStream == nullptr || !m_pokeyStream->IsRecording())
-    {
+    if (m_pokeyStream == nullptr || !m_pokeyStream->IsRecording()) {
         // Things that are solved 1x for vbi
         PlayVBI();
 
@@ -520,9 +490,11 @@ void CSong::TimerRoutine()
         PlayPressedTones();
 
         //--- Rendered Sound ---//
-        g_Pokey.RenderSound1_50(m_instrumentSpeed);		// Rendering of a piece of sample (1 / 50s = 20ms)
+        g_Pokey.RenderSound1_50(m_instrumentSpeed); // Rendering of a piece of sample (1 / 50s = 20ms)
 
-        if (m_play) { g_playtime++; }					// If the song is currently playing, increment the timer
+        if (m_play) {
+            g_playtime++;
+        } // If the song is currently playing, increment the timer
     }
 
     //--- NTSC timing hack during playback ---//
@@ -531,17 +503,15 @@ void CSong::TimerRoutine()
     // unfortunately, things run too slow with 17, or too fast 16
     // a good enough compromise for now is to make use of a '17-17-16' miliseconds "groove"
     // this isn't proper, but at least, this makes the timing much closer to the actual thing
-    // the only issue with this is that the sound will have very slight jitters during playback 
+    // the only issue with this is that the sound will have very slight jitters during playback
     ChangeTimer(IsNTSC() ? m_timerRoutineTick[g_timerGlobalCount % 3] : 20);
 
-    g_timerGlobalCount++;			// Increment by one each time Timer Routine was processed
+    g_timerGlobalCount++; // Increment by one each time Timer Routine was processed
 }
-
 
 // CSong::BLOCKSETBEGIN() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 
 // CSong::BLOCKSETEND() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
-
 
 // CSong::BLOCKDESELECT() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 

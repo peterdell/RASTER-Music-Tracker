@@ -15,7 +15,7 @@ CSong& CSongExport::GetSong() {
 }
 
 const CPokeyStream& CSongExport::GetPokeyStream() {
-    return  m_songContainer->GetPokeyStream();
+    return m_songContainer->GetPokeyStream();
 }
 
 CString CSongExport::GetFilePath() const {

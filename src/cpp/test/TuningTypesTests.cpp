@@ -19,9 +19,11 @@ TEST(TuningSettingsTest, InitializeNtsc) {
 }
 
 class TuningRatiosTest : public ::testing::Test {
-protected:
+  protected:
     TTuningRatios ratios;
-    void SetUp() override { ratios.Initialize(); }
+    void SetUp() override {
+        ratios.Initialize();
+    }
 };
 
 TEST_F(TuningRatiosTest, UnisonAndOctaveAreWholeNumberRatios) {

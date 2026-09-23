@@ -6,7 +6,7 @@
 extern KeyboardLayout g_keyboard_layout;
 
 class Keyboard2NoteMappingTest : public ::testing::Test {
-protected:
+  protected:
     void TearDown() override {
         g_keyboard_layout = KeyboardLayout::QWERTY; // restore default
     }

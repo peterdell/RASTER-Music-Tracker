@@ -9,50 +9,44 @@
 
 extern CAtari g_Atari;
 
-
-
-int CInstruments::SaveAll(std::ostream& ou, InstrumentIOType iotype)
-{
-    for (int i = 0; i < INSTRSNUM; i++)
-    {
-        if (iotype == InstrumentIOType::TXT && !CalculateNotEmpty(i)) { continue; } // to TXT only non-empty instruments
-        SaveInstrument(i, ou, iotype);	//,RMW);
+int CInstruments::SaveAll(std::ostream& ou, InstrumentIOType iotype) {
+    for (int i = 0; i < INSTRSNUM; i++) {
+        if (iotype == InstrumentIOType::TXT && !CalculateNotEmpty(i)) {
+            continue;
+        } // to TXT only non-empty instruments
+        SaveInstrument(i, ou, iotype); //,RMW);
     }
     return 1;
 }
 
-int CInstruments::LoadAll(std::istream& in, InstrumentIOType iotype)
-{
-    for (int i = 0; i < INSTRSNUM; i++)
-    {
-        LoadInstrument(i, in, iotype);	//RMW);
+int CInstruments::LoadAll(std::istream& in, InstrumentIOType iotype) {
+    for (int i = 0; i < INSTRSNUM; i++) {
+        LoadInstrument(i, in, iotype); //RMW);
     }
 
     return 1;
 }
 
-int CInstruments::SaveInstrument(int instr, std::ostream& ou, InstrumentIOType iotype)
-{
+int CInstruments::SaveInstrument(int instr, std::ostream& ou, InstrumentIOType iotype) {
     TInstrument* ai = GetInstrument(instr);
 
     int j, k;
 
-    switch (iotype)
-    {
-    case InstrumentIOType::RTI:
-    {
+    switch (iotype) {
+    case InstrumentIOType::RTI: {
         //RTI file
         static char head[4] = "RTI";
-        head[3] = 1;		// Type 1
-        ou.write(head, 4);	// 4 bytes header RTI1 (binary 1)
+        head[3] = 1; // Type 1
+        ou.write(head, 4); // 4 bytes header RTI1 (binary 1)
         ou.write(ai->name, sizeof(ai->name)); //name 32 byte + 33 is a binary zero terminating string
         const auto length = ATARI_MAX_INSTR_LENGTH;
         unsigned char ibf[length];
         BYTE len = InstrToAta(instr, ibf, length);
-        ou.write((char*)&len, sizeof(len));				    // instrument length in Atari bytes
-        if (len > 0) { ou.write((const char*)&ibf, len); }	// instrument data
-    }
-    break;
+        ou.write((char*)&len, sizeof(len)); // instrument length in Atari bytes
+        if (len > 0) {
+            ou.write((const char*)&ibf, len);
+        } // instrument data
+    } break;
 
     case InstrumentIOType::RMW:
         // instrument name
@@ -60,23 +54,19 @@ int CInstruments::SaveInstrument(int instr, std::ostream& ou, InstrumentIOType i
 
         char bfpar[PARCOUNT], bfenv[ENVELOPE_MAX_COLUMNS][ENVROWS], bftab[NOTE_TABLE_MAX_LEN];
         //
-        for (j = 0; j < PARCOUNT; j++)
-        {
+        for (j = 0; j < PARCOUNT; j++) {
             bfpar[j] = ai->parameters[j];
         }
         ou.write(bfpar, sizeof(bfpar));
         //
-        for (k = 0; k < ENVROWS; k++)
-        {
-            for (j = 0; j < ENVELOPE_MAX_COLUMNS; j++)
-            {
+        for (k = 0; k < ENVROWS; k++) {
+            for (j = 0; j < ENVELOPE_MAX_COLUMNS; j++) {
                 bfenv[j][k] = ai->envelope[j][k];
             }
         }
         ou.write((char*)bfenv, sizeof(bfenv));
         //
-        for (j = 0; j < NOTE_TABLE_MAX_LEN; j++)
-        {
+        for (j = 0; j < NOTE_TABLE_MAX_LEN; j++) {
             bftab[j] = ai->noteTable[j];
         }
         ou.write(bftab, sizeof(bftab));
@@ -101,25 +91,21 @@ int CInstruments::SaveInstrument(int instr, std::ostream& ou, InstrumentIOType i
         s.Format("[INSTRUMENT]\n%02X: %s\n", instr, (LPCTSTR)nambf);
         ou << (LPCTSTR)s;
         //instrument parameters
-        for (j = 0; j < NUMBER_OF_PARAMS; j++)
-        {
+        for (j = 0; j < NUMBER_OF_PARAMS; j++) {
             s.Format("%s %X\n", shpar[j].fieldName, ai->parameters[j] + shpar[j].displayOffset);
             ou << (LPCTSTR)s;
         }
         //table
         ou << "TABLE: ";
-        for (j = 0; j <= ai->parameters[PAR_TBL_LENGTH]; j++)
-        {
+        for (j = 0; j <= ai->parameters[PAR_TBL_LENGTH]; j++) {
             s.Format("%02X ", ai->noteTable[j]);
             ou << (LPCTSTR)s;
         }
         ou << std::endl;
         //envelope
-        for (k = 0; k < ENVROWS; k++)
-        {
+        for (k = 0; k < ENVROWS; k++) {
             char bf[ENVELOPE_MAX_COLUMNS + 1];
-            for (j = 0; j <= ai->parameters[PAR_ENV_LENGTH]; j++)
-            {
+            for (j = 0; j <= ai->parameters[PAR_ENV_LENGTH]; j++) {
                 bf[j] = CharL4(ai->envelope[j][k]);
             }
             bf[ai->parameters[PAR_ENV_LENGTH] + 1] = 0; //buffer termination
@@ -132,53 +118,51 @@ int CInstruments::SaveInstrument(int instr, std::ostream& ou, InstrumentIOType i
     return 1;
 }
 
-int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType iotype)
-{
-    switch (iotype)
-    {
-    case InstrumentIOType::RTI:
-    {
+int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType iotype) {
+    switch (iotype) {
+    case InstrumentIOType::RTI: {
         //RTI
-        if (instr < 0 || instr >= INSTRSNUM) { return 0; }
-        ClearInstrument(instr);	//it will first delete it before it reads
+        if (instr < 0 || instr >= INSTRSNUM) {
+            return 0;
+        }
+        ClearInstrument(instr); //it will first delete it before it reads
         TInstrument* ai = GetInstrument(instr);
         char head[4];
-        in.read(head, 4);	//4 bytes header
-        if (strncmp(head, "RTI", 3) != 0) { return 0; }		// if there is no RTI header
+        in.read(head, 4); //4 bytes header
+        if (strncmp(head, "RTI", 3) != 0) {
+            return 0;
+        } // if there is no RTI header
         int version = head[3];
-        if (version >= 2) { return 0; }			// it's version 2 and more (only 0 and 1 are supported)
+        if (version >= 2) {
+            return 0;
+        } // it's version 2 and more (only 0 and 1 are supported)
 
-        in.read(ai->name, sizeof(ai->name));	// name 32 bytes + 33rd byte terminating zero
+        in.read(ai->name, sizeof(ai->name)); // name 32 bytes + 33rd byte terminating zero
 
         BYTE len;
-        in.read((char*)&len, sizeof(len));			//instrument length in Atari bytes
-        if (len > 0)
-        {
+        in.read((char*)&len, sizeof(len)); //instrument length in Atari bytes
+        if (len > 0) {
             unsigned char ibf[ATARI_MAX_INSTR_LENGTH];
             in.read((char*)&ibf, len);
             BOOL r;
-            if (version == 0)
-            {
+            if (version == 0) {
                 r = AtaV0ToInstr(ibf, instr);
-            }
-            else
-            {
+            } else {
                 r = AtaToInstr(ibf, instr);
             }
-            Update(instr);	// writes to Atari RAM
-            if (!r)
-            {
+            Update(instr); // writes to Atari RAM
+            if (!r) {
                 return 0; // if there was some problem with the instrument, return 0
             }
         }
-    }
-    break;
+    } break;
 
-    case InstrumentIOType::RMW:
-    {
+    case InstrumentIOType::RMW: {
         //RMW
-        if (instr < 0 || instr >= INSTRSNUM) { return 0; }
-        ClearInstrument(instr);	//it will first delete it before it reads
+        if (instr < 0 || instr >= INSTRSNUM) {
+            return 0;
+        }
+        ClearInstrument(instr); //it will first delete it before it reads
         TInstrument* ai = GetInstrument(instr);
         //instrument name
         in.read((char*)ai->name, sizeof(ai->name));
@@ -187,27 +171,23 @@ int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType i
         int j, k;
         //
         in.read(bfpar, sizeof(bfpar));
-        for (j = 0; j < PARCOUNT; j++)
-        {
+        for (j = 0; j < PARCOUNT; j++) {
             ai->parameters[j] = bfpar[j];
         }
         //
         in.read((char*)bfenv, sizeof(bfenv));
-        for (j = 0; j < ENVELOPE_MAX_COLUMNS; j++)
-        {
-            for (k = 0; k < ENVROWS; k++)
-            {
+        for (j = 0; j < ENVELOPE_MAX_COLUMNS; j++) {
+            for (k = 0; k < ENVROWS; k++) {
                 ai->envelope[j][k] = bfenv[j][k];
             }
         }
         //
         in.read((char*)bftab, sizeof(bftab));
-        for (j = 0; j < NOTE_TABLE_MAX_LEN; j++)
-        {
+        for (j = 0; j < NOTE_TABLE_MAX_LEN; j++) {
             ai->noteTable[j] = bftab[j];
         }
         //
-        Update(instr);	//writes to Atari mem
+        Update(instr); //writes to Atari mem
         //
         //+editing options:
         in.read((char*)&ai->activeEditSection, sizeof(ai->activeEditSection));
@@ -219,90 +199,73 @@ int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType i
         //octaves and volumes
         in.read((char*)&ai->octave, sizeof(ai->octave));
         in.read((char*)&ai->volume, sizeof(ai->volume));
-    }
-    break;
+    } break;
 
-    case InstrumentIOType::TXT:
-    {
+    case InstrumentIOType::TXT: {
         char a;
         char b;
         char line[1025];
         in.getline(line, 1024); //first row of the instrument
         int iins = Hexstr(line, 2);
 
-        if (instr == -1)
-        {
+        if (instr == -1) {
             instr = iins; //takes over the instrument number
         }
 
-        if (instr < 0 || instr >= INSTRSNUM)
-        {
+        if (instr < 0 || instr >= INSTRSNUM) {
             NextSegment(in);
             return 1;
         }
 
-        ClearInstrument(instr);	//it will first delete it before it reads
+        ClearInstrument(instr); //it will first delete it before it reads
         TInstrument* ai = GetInstrument(instr);
 
         char* value = line + 4;
         Trimstr(value);
         memset(ai->name, ' ', INSTRUMENT_NAME_MAX_LEN);
         int lname = INSTRUMENT_NAME_MAX_LEN;
-        if (strlen(value) <= INSTRUMENT_NAME_MAX_LEN)
-        {
+        if (strlen(value) <= INSTRUMENT_NAME_MAX_LEN) {
             lname = (int)strlen(value);
         }
         strncpy(ai->name, value, lname);
 
         int v, j, k, vlen;
-        while (!in.eof())
-        {
+        while (!in.eof()) {
             in.read((char*)&b, 1);
-            if (b == '[')
-            {
+            if (b == '[') {
                 goto InstrEnd; //end of instrument (beginning of something else)
             }
             line[0] = b;
             in.getline(line + 1, 1024);
 
             value = strstr(line, ": ");
-            if (value)
-            {
-                value[1] = 0;	//close the gap by closing
-                value += 2;	//the first character after the space
-            }
-            else
-            {
+            if (value) {
+                value[1] = 0; //close the gap by closing
+                value += 2; //the first character after the space
+            } else {
                 continue;
             }
 
-            for (j = 0; j < NUMBER_OF_PARAMS; j++)
-            {
-                if (strcmp(line, shpar[j].fieldName) == 0)
-                {
+            for (j = 0; j < NUMBER_OF_PARAMS; j++) {
+                if (strcmp(line, shpar[j].fieldName) == 0) {
                     v = Hexstr(value, 2) - shpar[j].displayOffset;
-                    if (v < 0)
-                    {
+                    if (v < 0) {
                         goto NextInstrLine;
                     }
                     v &= shpar[j].parameterAND;
-                    if (v > shpar[j].maxParameterValue)
-                    {
+                    if (v > shpar[j].maxParameterValue) {
                         v = 0;
                     }
                     ai->parameters[shpar[j].paramIndex] = v;
                     goto NextInstrLine;
                 }
             }
-            if (strcmp(line, "TABLE:") == 0)
-            {
+            if (strcmp(line, "TABLE:") == 0) {
                 Trimstr(value);
                 vlen = (int)strlen(value);
-                for (j = 0; j < vlen; j += 3)
-                {
+                for (j = 0; j < vlen; j += 3) {
                     v = Hexstr(value + j, 2);
-                    if (v < 0)
-                    {
+                    if (v < 0) {
                         goto NextInstrLine;
                     }
                     ai->noteTable[j / 3] = v;
@@ -310,15 +273,11 @@ int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType i
                 goto NextInstrLine;
             }
 
-            for (j = 0; j < ENVROWS; j++)
-            {
-                if (strcmp(line, shenv[j].fieldName) == 0)
-                {
-                    for (k = 0; (a = value[k]) && k < ENVELOPE_MAX_COLUMNS; k++)
-                    {
+            for (j = 0; j < ENVROWS; j++) {
+                if (strcmp(line, shenv[j].fieldName) == 0) {
+                    for (k = 0; (a = value[k]) && k < ENVELOPE_MAX_COLUMNS; k++) {
                         v = Hexstr(&a, 1);
-                        if (v < 0)
-                        {
+                        if (v < 0) {
                             goto NextInstrLine;
                         }
                         v &= shenv[j].pand;
@@ -330,16 +289,13 @@ int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType i
         NextInstrLine: {}
         }
     }
-InstrEnd:
-    Update(instr);	//write to Atari mem
-    break;
-
+    InstrEnd:
+        Update(instr); //write to Atari mem
+        break;
     }
 
     return 1;
 }
-
-
 
 /// <summary>
 /// The instrument was modified in some way.
@@ -348,8 +304,7 @@ InstrEnd:
 /// </summary>
 /// <param name="instr">Instrument #</param>
 /// <returns></returns>
-void CInstruments::Update(int instr)
-{
+void CInstruments::Update(int instr) {
     auto memory = g_Atari.GetMemoryAt(0x4000 + instr * 256);
     //g_rmtroutine = FALSE;			//turn off RMT routines	// editing in real time is smoother without this switch
     InstrToAta(instr, memory, ATARI_MAX_INSTR_LENGTH);
@@ -357,5 +312,3 @@ void CInstruments::Update(int instr)
 
     RecalculateFlag(instr);
 }
-
-

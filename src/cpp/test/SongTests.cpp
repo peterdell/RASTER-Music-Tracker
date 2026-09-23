@@ -10,7 +10,7 @@ extern int g_tracks4_8; // TODO Move out (see Instruments.cpp/IO_Instruments.cpp
 // deliberate, larger split of the rest of Song.cpp happens.
 
 class SongCoreTest : public ::testing::Test {
-protected:
+  protected:
     CSong song;
 
     void SetUp() override {
@@ -24,8 +24,7 @@ protected:
         auto* songArr = song.GetSong();
         auto* songGoArr = song.GetSongGo();
         for (int line = 0; line < SONGLEN; line++) {
-            for (int col = 0; col < SONGTRACKS; col++)
-            {
+            for (int col = 0; col < SONGTRACKS; col++) {
                 (*songArr)[line][col] = -1;
             }
             (*songGoArr)[line] = -1;
@@ -81,22 +80,22 @@ TEST_F(SongCoreTest, PlayPressedTonesInitAndSilenceReturnTrue) {
 }
 
 TEST_F(SongCoreTest, UECursorIsEqualComparesTheRightNumberOfIntsPerPart) {
-    int a4[4] = { 1, 2, 3, 4 };
-    int b4[4] = { 1, 2, 3, 4 };
-    int c4[4] = { 1, 2, 3, 9 };
+    int a4[4] = {1, 2, 3, 4};
+    int b4[4] = {1, 2, 3, 4};
+    int c4[4] = {1, 2, 3, 9};
     EXPECT_TRUE(song.UECursorIsEqual(a4, b4, Part::PART_TRACKS));
     EXPECT_FALSE(song.UECursorIsEqual(a4, c4, Part::PART_TRACKS));
 
-    int a2[2] = { 5, 6 };
-    int b2[2] = { 5, 6 };
+    int a2[2] = {5, 6};
+    int b2[2] = {5, 6};
     EXPECT_TRUE(song.UECursorIsEqual(a2, b2, Part::PART_SONG));
 
-    int a6[6] = { 1, 2, 3, 4, 5, 6 };
-    int b6[6] = { 1, 2, 3, 4, 5, 7 };
+    int a6[6] = {1, 2, 3, 4, 5, 6};
+    int b6[6] = {1, 2, 3, 4, 5, 7};
     EXPECT_FALSE(song.UECursorIsEqual(a6, b6, Part::PART_INSTRUMENTS));
 
-    int a1[1] = { 9 };
-    int b1[1] = { 9 };
+    int a1[1] = {9};
+    int b1[1] = {9};
     EXPECT_TRUE(song.UECursorIsEqual(a1, b1, Part::PART_INFO));
 }
 
@@ -174,7 +173,7 @@ TEST_F(SongCoreTest, SongToAtaEncodesTrackDataThenFillsRestAsUnused) {
     (*song.GetSong())[0][2] = 15;
     (*song.GetSong())[0][3] = 20;
 
-    unsigned char dest[SONGLEN * 4] = { 0 };
+    unsigned char dest[SONGLEN * 4] = {0};
     int size = song.SongToAta(dest, sizeof(dest), 0x4000);
 
     ASSERT_EQ(size, 4);
@@ -193,7 +192,7 @@ TEST_F(SongCoreTest, SongToAtaAndAtaToSongRoundTripTrackData) {
     (*song.GetSong())[0][2] = 15;
     (*song.GetSong())[0][3] = 20;
 
-    unsigned char dest[SONGLEN * 4] = { 0 };
+    unsigned char dest[SONGLEN * 4] = {0};
     int size = song.SongToAta(dest, sizeof(dest), 0x4000);
 
     CSong decoded;
@@ -207,7 +206,7 @@ TEST_F(SongCoreTest, SongToAtaAndAtaToSongRoundTripTrackData) {
 TEST_F(SongCoreTest, SongToAtaAndAtaToSongRoundTripGotoLine) {
     (*song.GetSongGo())[0] = 1; // line 0: "goto line 1"
 
-    unsigned char dest[SONGLEN * 4] = { 0 };
+    unsigned char dest[SONGLEN * 4] = {0};
     int size = song.SongToAta(dest, sizeof(dest), 0x4000);
 
     ASSERT_EQ(size, 4);

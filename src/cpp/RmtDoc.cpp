@@ -15,16 +15,14 @@ static char THIS_FILE[] = __FILE__;
 IMPLEMENT_DYNCREATE(CRmtDoc, CDocument)
 
 BEGIN_MESSAGE_MAP(CRmtDoc, CDocument)
-	//{{AFX_MSG_MAP(CRmtDoc)
-		// NOTE - the ClassWizard will add and remove mapping macros here.
-		//    DO NOT EDIT what you see in these blocks of generated code!
-	//}}AFX_MSG_MAP
+//{{AFX_MSG_MAP(CRmtDoc)
+// NOTE - the ClassWizard will add and remove mapping macros here.
+//    DO NOT EDIT what you see in these blocks of generated code!
+//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
-BOOL CRmtDoc::OnNewDocument()
-{
-	if (!CDocument::OnNewDocument())
-	{
+BOOL CRmtDoc::OnNewDocument() {
+	if (!CDocument::OnNewDocument()) {
 		return FALSE;
 	}
 

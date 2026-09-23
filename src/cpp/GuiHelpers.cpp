@@ -10,22 +10,18 @@
 
 #include "Winuser.h"
 
-
 extern CStatusBar* g_statusBar;
-
 
 void ClearStatusBar() {
     SetStatusBarText("");
 }
 
-void SetStatusBarText(const char* text)
-{
+void SetStatusBarText(const char* text) {
     if (g_statusBar == nullptr) {
         OutputDebugString("INFO: ");
         OutputDebugString(text);
         OutputDebugString("\n");
-    }
-    else {
+    } else {
         g_statusBar->SetWindowText(text);
     }
 }
@@ -62,26 +58,21 @@ void DisableEventSection::EnableEvents() {
 
 static int lastTick;
 
-BOOL RefreshScreen(int frameskip)
-{
+BOOL RefreshScreen(int frameskip) {
     // Bail out of this function if it couldn't be performed
-    if (!g_hwnd || !g_viewhwnd || g_closeApplication)
-    {
+    if (!g_hwnd || !g_viewhwnd || g_closeApplication) {
         return 0;
     }
 
     // Frameskip of 1 or higher
-    if (frameskip > 0)
-    {
+    if (frameskip > 0) {
         // Frame was already processed
-        if (lastTick == g_timerGlobalCount)
-        {
+        if (lastTick == g_timerGlobalCount) {
             return 0;
         }
 
         // Skip frame with modulo
-        if ((g_timerGlobalCount % frameskip))
-        {
+        if ((g_timerGlobalCount % frameskip)) {
             return 0;
         }
 
@@ -98,132 +89,86 @@ BOOL RefreshScreen(int frameskip)
     return 1;
 }
 
-int EditText(int vk, int shift, int control, char* txt, int& cur, int max)
-{
+int EditText(int vk, int shift, int control, char* txt, int& cur, int max) {
     //returns 1 if TAB or ENTER was pressed
     max--;
-    if (vk == VK_BACK)
-    {
-        if (cur > 0)
-        {
+    if (vk == VK_BACK) {
+        if (cur > 0) {
             cur--;
-            for (int j = cur; j <= max - 1; j++)
-            {
+            for (int j = cur; j <= max - 1; j++) {
                 txt[j] = txt[j + 1];
             }
             txt[max] = ' ';
         }
-    }
-    else if (vk == VK_TAB || vk == VK_RETURN)
-    {
+    } else if (vk == VK_TAB || vk == VK_RETURN) {
         return 1;
-    }
-    else if (vk == VK_INSERT)
-    {
-        for (int j = max - 1; j >= cur; j--)
-        {
+    } else if (vk == VK_INSERT) {
+        for (int j = max - 1; j >= cur; j--) {
             txt[j + 1] = txt[j];
         }
         txt[cur] = ' ';
-    }
-    else if (vk == VK_DELETE)
-    {
-        for (int j = cur; j <= max - 1; j++)
-        {
+    } else if (vk == VK_DELETE) {
+        for (int j = cur; j <= max - 1; j++) {
             txt[j] = txt[j + 1];
         }
         txt[max] = ' ';
-    }
-    else
-    {
-        if (control)
-        {
+    } else {
+        if (control) {
             return 0;
         }
         char a = 0;
-        if (vk >= 'A' && vk <= 'Z') { a = (shift) ? vk : vk + 32; }						//letters - uppercase with SHIFT
-        else if (vk >= '0' && vk <= '9') { a = (shift) ? *(")!@#$%^&*(" + vk - 48) : vk; }	//numbers - special characters with SHIFT
-        else if (vk == ' ')
-        {
+        if (vk >= 'A' && vk <= 'Z') {
+            a = (shift) ? vk : vk + 32;
+        } //letters - uppercase with SHIFT
+        else if (vk >= '0' && vk <= '9') {
+            a = (shift) ? *(")!@#$%^&*(" + vk - 48) : vk;
+        } //numbers - special characters with SHIFT
+        else if (vk == ' ') {
             a = ' '; //space
-        }
-        else if (vk == 189)
-        {
+        } else if (vk == 189) {
             a = (shift) ? '_' : '-';
-        }
-        else if (vk == 187)
-        {
+        } else if (vk == 187) {
             a = (shift) ? '+' : '=';
-        }
-        else if (vk == 219)
-        {
+        } else if (vk == 219) {
             a = (shift) ? '{' : '[';
-        }
-        else if (vk == 221)
-        {
+        } else if (vk == 221) {
             a = (shift) ? '}' : ']';
-        }
-        else if (vk == 186)
-        {
+        } else if (vk == 186) {
             a = (shift) ? ':' : ';';
-        }
-        else if (vk == 222)
-        {
+        } else if (vk == 222) {
             a = (shift) ? '"' : '\'';
-        }
-        else if (vk == 188)
-        {
+        } else if (vk == 188) {
             a = (shift) ? '<' : ',';
-        }
-        else if (vk == 190)
-        {
+        } else if (vk == 190) {
             a = (shift) ? '>' : '.';
-        }
-        else if (vk == 191)
-        {
+        } else if (vk == 191) {
             a = (shift) ? '?' : '/';
-        }
-        else if (vk == 220)
-        {
+        } else if (vk == 220) {
             a = (shift) ? '|' : '\\';
-        }
-        else if (vk == VK_RIGHT)
-        {
-            if (cur < max)
-            {
+        } else if (vk == VK_RIGHT) {
+            if (cur < max) {
                 cur++;
             }
-        }
-        else if (vk == VK_LEFT)
-        {
-            if (cur > 0)
-            {
+        } else if (vk == VK_LEFT) {
+            if (cur > 0) {
                 cur--;
             }
-        }
-        else if (vk == VK_HOME)
-        {
+        } else if (vk == VK_HOME) {
             cur = 0;
-        }
-        else if (vk == VK_END)
-        {
+        } else if (vk == VK_END) {
             int j;
-            for (j = max; j >= 0 && (txt[j] == ' '); j--)
-            {
+            for (j = max; j >= 0 && (txt[j] == ' '); j--) {
                 ;
             }
             cur = (j < max) ? j + 1 : max;
         }
 
-        if (a > 0)
-        {
-            for (int j = max - 1; j >= cur; j--)
-            {
+        if (a > 0) {
+            for (int j = max - 1; j >= cur; j--) {
                 txt[j + 1] = txt[j];
             }
             txt[cur] = a;
-            if (cur < max)
-            {
+            if (cur < max) {
                 cur++;
             }
         }
@@ -231,11 +176,9 @@ int EditText(int vk, int shift, int control, char* txt, int& cur, int max)
     return 0;
 }
 
-BOOL IsHoveredXY(int x, int y, int xLength, int yLength)
-{
+BOOL IsHoveredXY(int x, int y, int xLength, int yLength) {
     int px = g_mouse.pointX, py = g_mouse.pointY;
     int xTo = x + xLength, yTo = y + yLength;
 
     return (px >= x && px < xTo) && (py >= y && py < yTo);
 }
-

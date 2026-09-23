@@ -6,8 +6,7 @@
 
 extern CRmtApp g_app;
 
-CAboutDialog::CAboutDialog() : CDialog(CAboutDialog::IDD)
-{
+CAboutDialog::CAboutDialog() : CDialog(CAboutDialog::IDD) {
     //{{AFX_DATA_INIT(CAboutDialog)
     m_rmtversion = _T("");
     m_rmtauthor = _T("");
@@ -16,8 +15,7 @@ CAboutDialog::CAboutDialog() : CDialog(CAboutDialog::IDD)
     //}}AFX_DATA_INIT
 }
 
-void CAboutDialog::DoDataExchange(CDataExchange* pDX)
-{
+void CAboutDialog::DoDataExchange(CDataExchange* pDX) {
     CDialog::DoDataExchange(pDX);
     //{{AFX_DATA_MAP(CAboutDialog)
     DDX_Text(pDX, IDC_RMT_VERSION, m_rmtversion);
@@ -29,14 +27,13 @@ void CAboutDialog::DoDataExchange(CDataExchange* pDX)
 }
 
 BEGIN_MESSAGE_MAP(CAboutDialog, CDialog)
-    //{{AFX_MSG_MAP(CAboutDialog)
-        // No message handlers
-    //}}AFX_MSG_MAP
-    ON_STN_CLICKED(IDC_RMT_REPOSITORY, &CAboutDialog::OnStnClickedRmtRepository)
+//{{AFX_MSG_MAP(CAboutDialog)
+// No message handlers
+//}}AFX_MSG_MAP
+ON_STN_CLICKED(IDC_RMT_REPOSITORY, &CAboutDialog::OnStnClickedRmtRepository)
 END_MESSAGE_MAP()
 
-void CAboutDialog::Show(const CString& about6502, const CString& aboutPokey)
-{
+void CAboutDialog::Show(const CString& about6502, const CString& aboutPokey) {
     CAboutDialog aboutDlg;
     aboutDlg.m_rmtversion = g_app.GetVersionAndBuild();
     aboutDlg.m_rmtauthor.LoadString(IDS_RMT_AUTHOR);
@@ -49,9 +46,6 @@ void CAboutDialog::Show(const CString& about6502, const CString& aboutPokey)
     aboutDlg.DoModal();
 }
 
-void CAboutDialog::OnStnClickedRmtRepository()
-{
+void CAboutDialog::OnStnClickedRmtRepository() {
     CShell::OpenFile(m_rmtrepository);
 }
-
-

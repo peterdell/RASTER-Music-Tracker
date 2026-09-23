@@ -16,14 +16,14 @@ BOOL CShell::OpenFile(const CString& filePath) {
         DWORD dw = GetLastError();
 
         if (FormatMessage(
-            FORMAT_MESSAGE_ALLOCATE_BUFFER |
-            FORMAT_MESSAGE_FROM_SYSTEM |
-            FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL,
-            dw,
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-            (LPTSTR)&lpMsgBuf, // What a cray API definition
-            0, NULL) == 0) {
+                FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                    FORMAT_MESSAGE_FROM_SYSTEM |
+                    FORMAT_MESSAGE_IGNORE_INSERTS,
+                NULL,
+                dw,
+                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                (LPTSTR)&lpMsgBuf, // What a cray API definition
+                0, NULL) == 0) {
             SendErrorMessage(lpMsgBuf);
             return FALSE;
         }
@@ -47,4 +47,3 @@ BOOL CShell::OpenLocalFile(const CString& filePath) {
     }
     return OpenFile(filePath);
 }
-

@@ -2006,3 +2006,47 @@ build clean and all 123 tests pass.
         confirmed 0 errors; 250 tests pass (unchanged - purely syntactic
         change, 0 regressions), confirming the bulk fix altered no
         behavior.
+- [x] Corrected the brace-placement rule and its enforcement to full K&R
+      style (user feedback: the first pass left function/method/class
+      bodies in Allman while only flipping control statements - both
+      should use the same brace style, matching Java's convention rather
+      than mixing two styles in one codebase):
+      - `plans/RULES.md` updated: the rule text no longer carves out
+        function/class/struct/enum bodies as an exception, and the
+        `BraceWrapping` enforcement details now list every `After*` key as
+        `false` (function, class, struct, enum, namespace), not just
+        `AfterControlStatement`.
+      - Previewed on `TuningTables.cpp` first (as requested) via a plain
+        whole-file `clang-format -i` (not `git-clang-format`, since nearly
+        every brace in the file needed moving - a diff-scoped pass would
+        have missed most of them) using the same anti-side-effect flags as
+        the original bulk fix (`PointerAlignment: Left`,
+        `DerivePointerAlignment: false`, `SortIncludes: false`,
+        `AlignTrailingComments: false`, `IndentCaseLabels: false`,
+        `SpaceBeforeParens: ControlStatements`, `ReflowComments: false`).
+      - **New gap found**: clang-format refuses to move a brace past an
+        existing end-of-line comment on the header line (e.g.
+        `if (cond) //comment` stays with `{` on the next line) - it won't
+        reorder the comment relative to the code that follows. Fixed by a
+        small Python pass (not clang-format) that merges each such
+        two-line pattern into `if (cond) { //comment`, restricted to lines
+        whose code portion ends in `)` or `else` (to avoid touching
+        commented-out dead code, bare scoping blocks, and array/aggregate
+        initializers, which all also end in a lone `{` line but are out of
+        this rule's scope and were intentionally left in their existing
+        style - confirmed by inspecting every non-matching case by hand
+        before running the merge).
+      - Rolled out to the rest of the codebase after the one-file preview
+        was confirmed clean and tests passed: same 111 files as the
+        original bulk fix (120 total `.cpp` files under `src/cpp` and
+        `src/cpp/test`, minus the 8 excluded pure-MFC files, minus
+        `TuningTables.cpp` already done), split by each file's dominant
+        tab/space convention (19 tab files, 92 space files) exactly as
+        before. 130 trailing-comment cases needed the manual merge; 29
+        remaining lone-`{` lines were confirmed out of scope (dead code
+        inside `/* */` block comments, bare `{ }` scoping blocks used for
+        local-variable lifetime inside a function/case body, and
+        array/struct initializer braces) and left untouched.
+      - Full solution rebuild (both `Rmt.exe` and `RmtTests.exe`,
+        Release|x64) confirmed 0 errors; 250 tests pass, 0 regressions -
+        confirming this second pass, like the first, was purely syntactic.

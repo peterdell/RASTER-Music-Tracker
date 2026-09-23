@@ -2,12 +2,11 @@
 #include "StdAfx.h"
 #include "WaveFile.h"
 
-bool CWaveFile::OpenFile(LPTSTR Filename, int SampleRate, int SampleSize, int Channels)
-{
+bool CWaveFile::OpenFile(LPTSTR Filename, int SampleRate, int SampleSize, int Channels) {
 	int nError;
 
 	WaveFormat.wf.wFormatTag = WAVE_FORMAT_PCM;
-	WaveFormat.wf.nChannels = Channels;	
+	WaveFormat.wf.nChannels = Channels;
 	WaveFormat.wf.nSamplesPerSec = SampleRate;
 	WaveFormat.wBitsPerSample = SampleSize;
 	WaveFormat.wf.nBlockAlign = (WaveFormat.wBitsPerSample / 8) * WaveFormat.wf.nChannels;
@@ -20,8 +19,7 @@ bool CWaveFile::OpenFile(LPTSTR Filename, int SampleRate, int SampleSize, int Ch
 
 	nError = mmioCreateChunk(hmmioOut, &ckOutRIFF, MMIO_CREATERIFF);
 
-	if (nError != MMSYSERR_NOERROR)
-	{
+	if (nError != MMSYSERR_NOERROR) {
 		return false;
 	}
 
@@ -30,8 +28,7 @@ bool CWaveFile::OpenFile(LPTSTR Filename, int SampleRate, int SampleSize, int Ch
 
 	nError = mmioCreateChunk(hmmioOut, &ckOut, 0);
 
-	if (nError != MMSYSERR_NOERROR)
-	{
+	if (nError != MMSYSERR_NOERROR) {
 		return false;
 	}
 
@@ -43,8 +40,7 @@ bool CWaveFile::OpenFile(LPTSTR Filename, int SampleRate, int SampleSize, int Ch
 
 	nError = mmioCreateChunk(hmmioOut, &ckOut, 0);
 
-	if (nError != MMSYSERR_NOERROR)
-	{
+	if (nError != MMSYSERR_NOERROR) {
 		return false;
 	}
 
@@ -53,8 +49,7 @@ bool CWaveFile::OpenFile(LPTSTR Filename, int SampleRate, int SampleSize, int Ch
 	return true;
 }
 
-void CWaveFile::CloseFile()
-{
+void CWaveFile::CloseFile() {
 	mmioinfoOut.dwFlags |= MMIO_DIRTY;
 	mmioSetInfo(hmmioOut, &mmioinfoOut, 0);
 	mmioAscend(hmmioOut, &ckOut, 0);
@@ -64,12 +59,9 @@ void CWaveFile::CloseFile()
 	mmioClose(hmmioOut, 0);
 }
 
-void CWaveFile::WriteWave(BYTE* Data, int Size)
-{
-	for (int i = 0; i < Size; i++)
-	{
-		if (mmioinfoOut.pchNext == mmioinfoOut.pchEndWrite)
-		{
+void CWaveFile::WriteWave(BYTE* Data, int Size) {
+	for (int i = 0; i < Size; i++) {
+		if (mmioinfoOut.pchNext == mmioinfoOut.pchEndWrite) {
 			mmioinfoOut.dwFlags |= MMIO_DIRTY;
 			mmioAdvance(hmmioOut, &mmioinfoOut, MMIO_WRITE);
 		}

@@ -21,44 +21,43 @@ void CSAPFile::Clear() {
     m_player = 0;
 }
 
-
-CString  CSAPFile::GetAuthor() const {
+CString CSAPFile::GetAuthor() const {
     return m_author;
 }
 
-void  CSAPFile::SetAuthor(const CString& author) {
+void CSAPFile::SetAuthor(const CString& author) {
     m_author = author;
 }
 
-CString  CSAPFile::GetName() const {
+CString CSAPFile::GetName() const {
     return m_name;
 }
 
-void  CSAPFile::SetName(const CString& name) {
+void CSAPFile::SetName(const CString& name) {
     m_name = name;
 }
 
-CString  CSAPFile::GetDate() const {
+CString CSAPFile::GetDate() const {
     return m_date;
 }
 
-void  CSAPFile::SetDate(const CString& date) {
+void CSAPFile::SetDate(const CString& date) {
     m_date = date;
 }
 
-int  CSAPFile::GetSongs() const {
+int CSAPFile::GetSongs() const {
     return m_songs;
 }
 
-void  CSAPFile::SetSongs(int songs) {
+void CSAPFile::SetSongs(int songs) {
     m_songs = songs;
 }
 
-int  CSAPFile::GetDefaultSong() const {
+int CSAPFile::GetDefaultSong() const {
     return m_defsong;
 }
 
-void  CSAPFile::SetDefaultSong(int defaultSong) {
+void CSAPFile::SetDefaultSong(int defaultSong) {
     m_defsong = defaultSong;
 }
 
@@ -66,42 +65,41 @@ bool CSAPFile::IsStereo() {
     return m_stereo;
 }
 
-void  CSAPFile::SetStereo(boolean stereo) {
+void CSAPFile::SetStereo(boolean stereo) {
     m_stereo = stereo;
 }
 
-bool  CSAPFile::IsNTSC() {
+bool CSAPFile::IsNTSC() {
     return m_ntsc;
 }
 
-void  CSAPFile::SetNTSC(boolean ntsc) {
+void CSAPFile::SetNTSC(boolean ntsc) {
     m_ntsc = ntsc;
 }
 
-CString  CSAPFile::GetType() const {
+CString CSAPFile::GetType() const {
     return m_type;
 }
 
-void  CSAPFile::SetType(const CString& type) {
+void CSAPFile::SetType(const CString& type) {
     m_type = type;
 }
 
-MemoryAddress  CSAPFile::GetInitAddress() const {
+MemoryAddress CSAPFile::GetInitAddress() const {
     return m_init;
 }
 
-void  CSAPFile::SetInitAddress(MemoryAddress init) {
+void CSAPFile::SetInitAddress(MemoryAddress init) {
     m_init = init;
 }
 
-MemoryAddress  CSAPFile::GetPlayerAddress() const {
+MemoryAddress CSAPFile::GetPlayerAddress() const {
     return m_player;
 }
 
-void  CSAPFile::SetPlayerAddress(MemoryAddress player) {
+void CSAPFile::SetPlayerAddress(MemoryAddress player) {
     m_player = player;
 }
-
 
 void CSAPFile::Init(const CSong& song) {
     m_author = "???";
@@ -115,10 +113,8 @@ void CSAPFile::Init(const CSong& song) {
     m_date = time.Format("%d/%m/%Y"); // DD/MM/YYYY
     m_stereo = song.IsStereo();
     m_ntsc = song.IsNTSC();
-    if (song.GetInstrumentSpeed() > 1)
-    {
-        switch (song.GetInstrumentSpeed())
-        {
+    if (song.GetInstrumentSpeed() > 1) {
+        switch (song.GetInstrumentSpeed()) {
         case 2:
             m_fastplay = m_ntsc ? 131 : 156;
             break;
@@ -136,8 +132,7 @@ void CSAPFile::Init(const CSong& song) {
             break;
         }
 
-    }
-    else {
+    } else {
         m_fastplay = 0;
     }
 
@@ -166,24 +161,20 @@ void CSAPFile::Export(std::ostream& ou) {
         ou << "DEFSONG " << m_songs << EOL;
     }
 
-    if (m_stereo)
-    {
+    if (m_stereo) {
         ou << "STEREO" << EOL;
     }
 
-    if (m_ntsc)
-    {
+    if (m_ntsc) {
         ou << "NTSC" << EOL;
     }
 
-    if (m_fastplay > 0)
-    {
+    if (m_fastplay > 0) {
         ou << "FASTPLAY " << m_fastplay << EOL;
     }
 
     if (m_type.IsEmpty()) {
         ThrowRuntimeException("SAP file has no type set.");
-
     }
     if (m_type == 'B') {
         if (m_init > 0) {
@@ -193,12 +184,10 @@ void CSAPFile::Export(std::ostream& ou) {
         if (m_player > 0) {
             ou << "PLAYER " << FormatMemoryAddress(m_player) << EOL;
         }
-    }
-    else if (m_type == 'R') {
+    } else if (m_type == 'R') {
 
-    }
-    else {
-        ThrowRuntimeException("SAP file has type \""+m_type+"\". Only type \"B\" and \"R\" are supported for export.");
+    } else {
+        ThrowRuntimeException("SAP file has type \"" + m_type + "\". Only type \"B\" and \"R\" are supported for export.");
     }
 
     // A double EOL is necessary for making the SAP-R export functional
@@ -206,13 +195,12 @@ void CSAPFile::Export(std::ostream& ou) {
 }
 
 void CSAPFile::Normalize(CString& string) {
-    string.TrimRight();			// Cuts spaces after the name
-    string.Replace('"', '\'');	// Replaces quotation marks with an apostrophe
+    string.TrimRight(); // Cuts spaces after the name
+    string.Replace('"', '\''); // Replaces quotation marks with an apostrophe
 }
 
 CString CSAPFile::FormatMemoryAddress(MemoryAddress address) {
     CString line;
     line.Format("%04X", address);
     return line;
-
 }

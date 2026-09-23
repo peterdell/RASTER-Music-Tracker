@@ -9,8 +9,7 @@
 
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
-bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CXPokey& pokey, byte* memory)
-{
+bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CXPokey& pokey, byte* memory) {
     CWaveFile wavefile{};
 
     BYTE* buffer = NULL;
@@ -19,16 +18,14 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
     int length = 0, frames = 0, offset = 0;
     const int frameSize = CLZSSFile::GetFrameSize(songExport.GetSong());
 
-    ou.close();	// hack, just to be able to actually use the filename for now...
+    ou.close(); // hack, just to be able to actually use the filename for now...
 
-    if (!(wfm = pokey.GetSoundFormat()))
-    {
+    if (!(wfm = pokey.GetSoundFormat())) {
         SendErrorMessage("Wave Export Failed", "Could not get sound format!");
         return false;
     }
 
-    if (!wavefile.OpenFile(songExport.GetFilePath().GetBuffer(), wfm->nSamplesPerSec, wfm->wBitsPerSample, wfm->nChannels))
-    {
+    if (!wavefile.OpenFile(songExport.GetFilePath().GetBuffer(), wfm->nSamplesPerSec, wfm->wBitsPerSample, wfm->nChannels)) {
         SendErrorMessage("Wave Export Failed", "Could not get sound format!");
         return false;
     }
@@ -40,7 +37,7 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
     // JAC! Does this problem really still exist?
     pokeyStream.SetState(CPokeyStream::WRITE);
 
-    g_AtariTrackerDriver->Init();	// Reset the Atari memory 
+    g_AtariTrackerDriver->Init(); // Reset the Atari memory
     g_ChannelControl.SetAllChannelsOn();
 
     // Create the sound buffer to copy from and to
@@ -48,8 +45,7 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
     buffer = new BYTE[CXPokey::BUFFER_SIZE];
     memset(buffer, 0x80, bufferSize);
 
-    while (frames < pokeyStream.GetFirstCountPoint())
-    {
+    while (frames < pokeyStream.GetFirstCountPoint()) {
         // Copy the SAP-R bytes to memory for this frame
         streambuffer = pokeyStream.GetStreamBuffer() + frames * frameSize;
 

@@ -41,7 +41,7 @@ void CSongTimer::WaitForTimerRoutineProcessed() {
 // InstrumentTurnOff) only need g_rmtinstr and CAtari::JSR(), which
 // delegates to the already-stubbed no-op C6502::JSR() (see AtariStub.cpp) -
 // confirmed by reading AtariTrackerDriver.cpp itself, not assumed.
-int g_rmtinstr[SONGTRACKS] = { -1, -1, -1, -1, -1, -1, -1, -1 };
+int g_rmtinstr[SONGTRACKS] = {-1, -1, -1, -1, -1, -1, -1, -1};
 CAtariTrackerDriver g_AtariTrackerDriverInstance(g_Atari);
 CAtariTrackerDriver* g_AtariTrackerDriver = &g_AtariTrackerDriverInstance;
 
@@ -116,8 +116,10 @@ void SetEditMode(const EditMode editMode) {
 // Link-only no-op stubs for GuiHelpers.cpp's status bar helpers (see
 // ClipboardCore.cpp) - their real bodies just no-op or OutputDebugString
 // when there's no real status bar window, which is always the case here.
-void ClearStatusBar() {}
-void SetStatusBarText(const char*) {}
+void ClearStatusBar() {
+}
+void SetStatusBarText(const char*) {
+}
 
 // Link-only stub: the real CSong::ReInitSound() lives in Song.cpp (not
 // linked here - it needs g_AtariTrackerDriver/g_Pokey, real Atari hardware
@@ -125,11 +127,13 @@ void SetStatusBarText(const char*) {}
 // SongEditing.cpp), which calls it only when the track count actually
 // changes. Tests characterize SetTracks()'s own effect (the g_tracks4_8
 // assignment), not the resulting sound reinitialization.
-void CSong::ReInitSound() {}
+void CSong::ReInitSound() {
+}
 
 // Link-only no-op stub: the real CSong::SyncSkipLinesAfterNoteInsertComboBox()
 // lives in Song.cpp (not linked here - it needs a real MFC AfxGetMainWnd()/
 // CMainFrame, unavailable in this console test binary) and is called at the
 // end of CSong::ClearSong() (see SongEditing.cpp) purely to push a value
 // into a UI combo box - no state ClearSong()'s own tests characterize.
-void CSong::SyncSkipLinesAfterNoteInsertComboBox() {}
+void CSong::SyncSkipLinesAfterNoteInsertComboBox() {
+}

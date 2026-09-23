@@ -11,8 +11,7 @@
 // delegates to the already-stubbed C6502::JSR() in tests).
 
 // Load RMT routine to $3400, setnoteinstrvol to $3d00, and setvol to $3e00
-int CAtariTrackerDriver::LoadRMTRoutines(const TrackerDriverVersion trackerDriverVersion)
-{
+int CAtariTrackerDriver::LoadRMTRoutines(const TrackerDriverVersion trackerDriverVersion) {
     WORD min, max;
     WORD size;
     byte* bin;
@@ -23,21 +22,20 @@ int CAtariTrackerDriver::LoadRMTRoutines(const TrackerDriverVersion trackerDrive
     return CAtariIO::LoadDataAsBinaryFile(bin, size, m_atari->GetMemoryAt(0), min, max);
 }
 
-
 int CAtariTrackerDriver::Init() {
-
 
     WORD adr = RMT_INIT;
     BYTE a = 0, x = 0x00, y = 0x3f;
     auto cycles = m_atari->GetFrameCycleCount();
     m_atari->JSR(adr, a, x, y, cycles);
-    for (int i = 0; i < SONGTRACKS; i++) { g_rmtinstr[i] = -1; }
+    for (int i = 0; i < SONGTRACKS; i++) {
+        g_rmtinstr[i] = -1;
+    }
 
     return (int)a;
 }
 
-void CAtariTrackerDriver::Play()
-{
+void CAtariTrackerDriver::Play() {
     auto cycles = m_atari->GetFrameCycleCount();
 
     auto adr = RMT_P3; //(without SetPokey) one run of RMT routine but from rmt_p3 (wrap processing)
@@ -52,8 +50,7 @@ void CAtariTrackerDriver::Play()
     C6502::JSR(adr, a, x, y, cycles);
 }
 
-void CAtariTrackerDriver::SetPokey()
-{
+void CAtariTrackerDriver::SetPokey() {
 
     auto adr = RMT_SETPOKEY;
     BYTE a = 0, x = 0, y = 0;
@@ -61,8 +58,7 @@ void CAtariTrackerDriver::SetPokey()
     m_atari->JSR(adr, a, x, y, cycles);
 }
 
-void CAtariTrackerDriver::Silence()
-{
+void CAtariTrackerDriver::Silence() {
 
     // Silence routine
     auto adr = RMT_SILENCE;

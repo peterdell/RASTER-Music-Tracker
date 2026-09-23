@@ -4,9 +4,7 @@
 #include "Song.h"
 #include "StdAfx.h"
 
-
 extern CSong g_Song;
-
 
 // CTrackClipboard::CTrackClipboard() is implemented in ClipboardCore.cpp (only touches g_Tracks/g_Song, not EffectsDlg.h's dialog or GuiHelpers.h's Global.h dependency).
 
@@ -46,19 +44,16 @@ extern CSong g_Song;
 
 // CTrackClipboard::BlockVolumeChange() is implemented in ClipboardCore.cpp (only touches g_Tracks/g_Song, not EffectsDlg.h's dialog or GuiHelpers.h's Global.h dependency).
 
-BOOL CTrackClipboard::BlockEffect()
-{
+BOOL CTrackClipboard::BlockEffect() {
     CEffectsDlg dlg;
     TTrack* td = g_Tracks.GetTrack(m_seltrack);
     TTrack m_trackorig;
     int bfro, bto;
     int ainstr = g_Song.GetActiveInstr();
 
-    if (td && IsBlockSelected() && IsTrackSelected())
-    {
+    if (td && IsBlockSelected() && IsTrackSelected()) {
         GetFromTo(bfro, bto);
-        if (bto >= td->len)
-        {
+        if (bto >= td->len) {
             bto = td->len - 1;
         }
 

@@ -4,13 +4,10 @@
 #include "Keyboard.h"
 
 CPokeyController::CPokeyController(CAtari* atari) : m_atari(atari), m_channel_index(0), m_divisor(1.0) {
-
 }
 
-BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
-{
-    switch (vk)
-    {
+BOOL CPokeyController::OnKeyDown(int vk, int shift, int control) {
+    switch (vk) {
         //General variables manipulation
 
     case VK_RETURN:
@@ -24,8 +21,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_OEM_PLUS:
         if (shift) {
             OnIncreaseDivisorBy10();
-        }
-        else {
+        } else {
             OnIncreaseDivisorBy01();
         }
         break;
@@ -33,8 +29,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_OEM_MINUS:
         if (shift) {
             OnDecreaseDivisorBy10();
-        }
-        else {
+        } else {
             OnDecreaseDivisorBy01();
         }
         break;
@@ -44,8 +39,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_1:
         if (shift) {
             OnIncreaseAUDF0By10();
-        }
-        else {
+        } else {
             OnIncreaseAUDF0By01();
         }
         break;
@@ -53,8 +47,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_Q:
         if (shift) {
             OnDecreaseAUDF0By10();
-        }
-        else {
+        } else {
             OnDecreaseAUDF0By01();
         }
         break;
@@ -62,8 +55,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_3:
         if (shift) {
             OnIncreaseAUDF1By10();
-        }
-        else {
+        } else {
             OnIncreaseAUDF1By01();
         }
         break;
@@ -71,8 +63,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_E:
         if (shift) {
             OnDecreaseAUDF1By10();
-        }
-        else {
+        } else {
             OnDecreaseAUDF1By01();
         }
         break;
@@ -80,8 +71,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_5:
         if (shift) {
             OnIncreaseAUDF2By10();
-        }
-        else {
+        } else {
             OnIncreaseAUDF2By01();
         }
         break;
@@ -89,8 +79,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_T:
         if (shift) {
             OnDecreaseAUDF2By10();
-        }
-        else {
+        } else {
             OnDecreaseAUDF2By01();
         }
         break;
@@ -98,8 +87,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_7:
         if (shift) {
             OnIncreaseAUDF3By10();
-        }
-        else {
+        } else {
             OnIncreaseAUDF3By01();
         }
         break;
@@ -107,8 +95,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_U:
         if (shift) {
             OnDecreaseAUDF3By10();
-        }
-        else {
+        } else {
             OnDecreaseAUDF3By01();
         }
         break;
@@ -118,8 +105,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_2:
         if (shift) {
             OnIncreaseAUDC0By10();
-        }
-        else {
+        } else {
             OnIncreaseAUDC0By01();
         }
         break;
@@ -127,8 +113,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_W:
         if (shift) {
             OnDecreaseAUDC0By10();
-        }
-        else {
+        } else {
             OnDecreaseAUDC0By01();
         }
         break;
@@ -136,8 +121,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_4:
         if (shift) {
             OnIncreaseAUDC1By10();
-        }
-        else {
+        } else {
             OnIncreaseAUDC1By01();
         }
         break;
@@ -145,8 +129,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_R:
         if (shift) {
             OnDecreaseAUDC1By10();
-        }
-        else {
+        } else {
             OnDecreaseAUDC1By01();
         }
         break;
@@ -154,8 +137,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_6:
         if (shift) {
             OnIncreaseAUDC2By10();
-        }
-        else {
+        } else {
             OnIncreaseAUDC2By01();
         }
         break;
@@ -163,8 +145,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_Y:
         if (shift) {
             OnDecreaseAUDC2By10();
-        }
-        else {
+        } else {
             OnDecreaseAUDC2By01();
         }
         break;
@@ -172,8 +153,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_8:
         if (shift) {
             OnIncreaseAUDC3By10();
-        }
-        else {
+        } else {
             OnIncreaseAUDC3By01();
         }
         break;
@@ -181,8 +161,7 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
     case VK_I:
         if (shift) {
             OnDecreaseAUDC3By10();
-        }
-        else {
+        } else {
             OnDecreaseAUDC3By01();
         }
         break;
@@ -221,19 +200,15 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control)
         OnToggleAUDCTLBit0();
         break;
 
-
     case VK_M:
         OnToggleTwoTone();
         break;
 
     default:
         return FALSE;
-
     }
     return TRUE;
-
 }
-
 
 int CPokeyController::GetChannelIndex() const {
     return m_channel_index;
@@ -241,7 +216,6 @@ int CPokeyController::GetChannelIndex() const {
 double CPokeyController::GetDivisor() const {
     return m_divisor;
 }
-
 
 void CPokeyController::Decrease(const int address, const int step) {
     Increase(address, -step);
@@ -264,24 +238,22 @@ void CPokeyController::OnNextChannel() {
     }
 }
 
-void  CPokeyController::OnPreviousChannel() {
+void CPokeyController::OnPreviousChannel() {
     if (m_channel_index < 0) {
         m_channel_index = 3;
     }
 }
 
-void  CPokeyController::OnIncreaseDivisorBy01() {
+void CPokeyController::OnIncreaseDivisorBy01() {
     IncreaseDivisor(0.1);
 }
-void  CPokeyController::OnIncreaseDivisorBy10() {
+void CPokeyController::OnIncreaseDivisorBy10() {
     IncreaseDivisor(1.0);
-
 }
-void  CPokeyController::OnDecreaseDivisorBy01() {
+void CPokeyController::OnDecreaseDivisorBy01() {
     DecreaseDivisor(0.1);
-
 }
-void  CPokeyController::OnDecreaseDivisorBy10() {
+void CPokeyController::OnDecreaseDivisorBy10() {
     DecreaseDivisor(1.0);
 }
 
@@ -300,8 +272,6 @@ void CPokeyController::DecreaseDivisor(const double step) {
         m_divisor = 1;
     }
 }
-
-
 
 void CPokeyController::OnIncreaseAUDF0By01() {
     Increase(AUDF + 0, 0x01);
@@ -328,7 +298,6 @@ void CPokeyController::OnIncreaseAUDC0By01() {
 void CPokeyController::OnIncreaseAUDC0By10() {
     Increase(AUDC + 0, 0x10);
 }
-
 
 void CPokeyController::OnIncreaseAUDF1By01() {
     Increase(AUDF + 1, 0x01);
@@ -381,7 +350,6 @@ void CPokeyController::OnIncreaseAUDC2By01() {
 void CPokeyController::OnIncreaseAUDC2By10() {
     Increase(AUDC + 2, 0x10);
 }
-
 
 void CPokeyController::OnIncreaseAUDF3By01() {
     Increase(AUDF + 3, 0x01);

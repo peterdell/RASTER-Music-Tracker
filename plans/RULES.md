@@ -8,19 +8,32 @@ Every `if`, `else`, `for`, `while`, and `do` must be followed by a `{ }`
 block, even when the body is a single statement or empty. Never rely on
 C++'s rule that a single statement following one of these needs no braces.
 
+The opening `{` goes on the **same line** as the `if`/`else`/`for`/
+`while`/`do` (not on its own line) - chosen to match the brace style this
+project will use in Java once it's ported there. This applies everywhere,
+not just control statements: function, method, class, struct, enum, and
+namespace bodies also put `{` on the same line as their header, matching
+the same Java-bound convention rather than mixing two brace styles in one
+codebase.
+
 ```cpp
 // Not allowed:
 if (x < 0)
     return false;
 
-// Required:
+// Not allowed either - braced, but not this project's chosen brace style:
 if (x < 0)
 {
     return false;
 }
+
+// Required:
+if (x < 0) {
+    return false;
+}
 ```
 
-**Why**: a brace-less body silently absorbs only the *next single
+**Why (braces themselves)**: a brace-less body silently absorbs only the *next single
 statement* into the `if`/`loop`. Adding a second statement later - a debug
 print, a log line, another assignment - without adding braces at the same
 time compiles cleanly but silently runs unconditionally, outside the
@@ -58,10 +71,25 @@ belongs to the wrong block):
   the wrong check list.
 - **One-time bulk fix applied** (see `plans/NOTES.md`) to bring the
   existing codebase into compliance: `clang-tidy --fix` inserts braces but
-  in a minimal/inline style that doesn't match this codebase's Allman
-  convention, so it was followed by `git-clang-format` (scoped to only the
-  lines `clang-tidy` had just changed, to avoid reformatting unrelated
-  code) to normalize brace placement.
+  in its own minimal/inline style, so it's followed by `git-clang-format`
+  (scoped to only the lines `clang-tidy` had just changed, to avoid
+  reformatting unrelated code) with `BreakBeforeBraces: Custom` /
+  `BraceWrapping: { AfterControlStatement: false, AfterFunction: false,
+  AfterClass: false, AfterStruct: false, AfterEnum: false,
+  AfterNamespace: false, BeforeElse: false, BeforeWhile: false,
+  BeforeCatch: false }` to place every brace - control statements, and
+  function/class/struct/enum/namespace bodies alike - on the same line as
+  their header, matching each file's existing tab/space convention.
+  `IndentCaseLabels: false`, `PointerAlignment: Left` (with
+  `DerivePointerAlignment: false`), `SortIncludes: false`, and
+  `AlignTrailingComments: false` are all set explicitly - without them, a
+  brace-only pass also reorders `#include`s, flips `Type* p` to `Type *p`,
+  and column-aligns trailing comments, none of which this rule is about.
+  clang-format also won't relocate a brace past an existing end-of-line
+  comment on the header line (e.g. `if (cond) //comment` stays with `{` on
+  its own line below) - these need a manual one-line fix moving the brace
+  before the comment (`if (cond) { //comment`); `TuningTables.cpp` had 2
+  such cases.
 - **Known gap**: 8 pure-UI/MFC files (`MainFrm.cpp`, `OptionsDialog.cpp`,
   `Rmt.cpp`, `RmtView.cpp`, `TuningDialog.cpp`, `effectsdlg.cpp`,
   `exportdlgs.cpp`, `importdlgs.cpp`) couldn't be processed by the

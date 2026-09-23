@@ -26,19 +26,16 @@ using std::ios;
 #include "Global.h"
 #include "SongExporterTest.h"
 
-
 extern CSong g_Song;
 
 class CFileUtility {
-public:
-
+  public:
     static void SaveFile(const CString& fileName, const byte* buffer,
-        const size_t size);
-
+                         const size_t size);
 };
 
 void CFileUtility::SaveFile(const CString& filePath, const byte* buffer,
-    const size_t size) {
+                            const size_t size) {
 
     SendInfoMessage((std::stringstream() << "Saving '" << filePath << "' with " << size << " bytes.\n").str().c_str());
     std::ofstream fos;
@@ -49,21 +46,21 @@ void CFileUtility::SaveFile(const CString& filePath, const byte* buffer,
     fos.close();
 };
 
-CRmtTest::CRmtTest() {}
-
+CRmtTest::CRmtTest() {
+}
 
 void CRmtTest::TestASAP(const CRmtApp& app, const CString fileName) {
     SendInfoMessage("Test - TestASAP");
     int sizeOfString = (fileName.GetLength() + 1);
     LPTSTR lpsz = new TCHAR[sizeOfString];
     _tcscpy_s(lpsz, sizeOfString, fileName);
-    //... modify lpsz as much as you want   
+    //... modify lpsz as much as you want
     WASAP_WinMain(app.m_hInstance, NULL, lpsz, 0);
     delete lpsz;
 }
 
 class CActionInfo {
-public:
+  public:
     UINT id;
     int menuLevel;
     CString CStringArray;
@@ -80,12 +77,10 @@ CString GetPlainMenuText(CString menuText) {
         if (c == '&') {
             if (ampersand) {
                 result.AppendChar(c);
-            }
-            else {
+            } else {
                 ampersand = !ampersand;
             }
-        }
-        else {
+        } else {
             result.AppendChar(c);
         }
     }
@@ -111,7 +106,6 @@ void Analyze(const CStringArray& menuPath, CMenu& menu) {
     s.Format("Anayzing level %d, menu %s: %p with %d entries", menuPath.GetSize(), GetPathString(menuPath), &menu, menu.GetMenuItemCount());
     SendInfoMessage(s);
 
-
     for (int pos = 0; pos < menu.GetMenuItemCount(); pos++) {
         CString posString;
         posString.Format("%d", pos);
@@ -122,7 +116,6 @@ void Analyze(const CStringArray& menuPath, CMenu& menu) {
 
         s.Format("Menu %s, Position %s: %d %s", GetPathString(menuPath), posString, menuItemId, menuItemText);
         SendInfoMessage(s);
-
 
         /*
         MENUITEMINFO menuItemInfo;
@@ -145,7 +138,6 @@ void Analyze(const CStringArray& menuPath, CMenu& menu) {
             Analyze(subMenuPath, *subMenu);
         }
     }
-
 }
 
 void WriteByteArray(const CString fileName, const byte* buffer, const size_t bufferSize) {
@@ -153,7 +145,6 @@ void WriteByteArray(const CString fileName, const byte* buffer, const size_t buf
     std::ofstream ostream(ofname, std::ios_base::binary);
     ostream.write((const char*)buffer, bufferSize);
     ostream.close();
-
 }
 
 void TestLZSS(CString fileName) {
@@ -164,7 +155,7 @@ void TestLZSS(CString fileName) {
     auto sapr = CStringUtility::EndsWithNoCase(fileName, ".sapr");
 
     std::string stdFileName = (const char*)fileName;
-    std::filesystem::path inputFilePath{ stdFileName };
+    std::filesystem::path inputFilePath{stdFileName};
     if (!std::filesystem::exists(inputFilePath)) {
         message.Format("File '%s' not found.", stdFileName.c_str());
         SendErrorMessage(message);
@@ -190,7 +181,10 @@ void TestLZSS(CString fileName) {
                 }
                 istream >> c;
 
-                c1 = c2; c2 = c3; c3 = c4; c4 = c;
+                c1 = c2;
+                c2 = c3;
+                c3 = c4;
+                c4 = c;
                 // In SAP-R, a double CR-LF indicates the end of the header.
                 if (c1 == 0x0d && c2 == 0x0a && c3 == 0x0d && c4 == 0x0a) {
                     text = false;
@@ -211,7 +205,7 @@ void TestLZSS(CString fileName) {
         istream.read(reinterpret_cast<char*>(buffer.data()), dataSize);
         istream.close();
         const byte* src = (const byte*)buffer.data();
-        auto  srcSize = buffer.size();
+        auto srcSize = buffer.size();
 
         // If this was a SAP-R, write the raw data separately.
         CString suffix = "";
@@ -219,7 +213,6 @@ void TestLZSS(CString fileName) {
             suffix = ".raw";
             WriteByteArray(fileName + suffix, src, srcSize);
         }
-
 
         byte* dest = new byte[dataSize];
         auto destSize = compressLzss.LZSS_SAP(src, srcSize, dest, SAPROptimization::NONE);
@@ -229,30 +222,25 @@ void TestLZSS(CString fileName) {
         WriteByteArray(fileName + suffix + ".lzss", dest, destSize);
 
         delete dest;
-
     }
 }
 
 void CRmtTest::RunFor(const CRmtApp& app, const CString fileName) {
 
     // All these variables are initialized with their defaults.
-    // - g_AtariTrackerDriver 
+    // - g_AtariTrackerDriver
     // - g_tuning
     // - g_tuningRatios
     // - g_Song
 
-
     if (CStringUtility::EndsWithNoCase(fileName, ".sapr")) {
         TestLZSS(fileName);
-    }
-    else {
+    } else {
         SendInfoMessage("Test - Open and Export");
         if (!g_Song.FileOpen(fileName, FALSE)) {
             SendErrorMessage("Cannot load song from file '" + fileName + '.');
             return;
         }
         CSongExporterTest::Test(g_Song);
-
     }
-
 }

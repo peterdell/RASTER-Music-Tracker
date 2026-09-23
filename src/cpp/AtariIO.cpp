@@ -2,42 +2,47 @@
 #include "AtariIO.h"
 #include <fstream>
 
-
-bool CAtariIO::LoadWord(std::istream& in, MemoryWord& w)
-{
+bool CAtariIO::LoadWord(std::istream& in, MemoryWord& w) {
     char db, hb;
-    if (in.eof()) { return false; }
+    if (in.eof()) {
+        return false;
+    }
     in.get(db);
     auto a1 = (byte)db;
-    if (in.eof()) { return false; }
+    if (in.eof()) {
+        return false;
+    }
     in.get(hb);
     auto a2 = (byte)hb;
     w = a1 + (a2 << 8);
     return true;
 }
 
-int CAtariIO::LoadBinaryBlock(std::istream& in, byte* memory, MemoryAddress& fromAddr, MemoryAddress& toAddr)
-{
+int CAtariIO::LoadBinaryBlock(std::istream& in, byte* memory, MemoryAddress& fromAddr, MemoryAddress& toAddr) {
     if (!LoadWord(in, fromAddr)) {
         return 0;
     }
-    if (fromAddr == 0xffff)
-    {
+    if (fromAddr == 0xffff) {
         // Skip the binary block header (0xFFFF)
-        if (!LoadWord(in, fromAddr)) { return 0; }
+        if (!LoadWord(in, fromAddr)) {
+            return 0;
+        }
     }
-    if (!LoadWord(in, toAddr)) { return 0; }
+    if (!LoadWord(in, toAddr)) {
+        return 0;
+    }
 
     // Sanity check that the end is not before the start.
-    if (toAddr < fromAddr) { return 0; }
+    if (toAddr < fromAddr) {
+        return 0;
+    }
 
     // Load the indicated number of bytes into the specified memory area
     in.read((char*)memory + fromAddr, toAddr - fromAddr + 1);
     return toAddr - fromAddr + 1;
 }
 
-int CAtariIO::LoadBinaryFile(const char* fname, byte* memory, MemoryAddress& minadr, MemoryAddress& maxadr)
-{
+int CAtariIO::LoadBinaryFile(const char* fname, byte* memory, MemoryAddress& minadr, MemoryAddress& maxadr) {
     int fsize, blen;
 
     WORD bfrom, bto;
@@ -47,20 +52,17 @@ int CAtariIO::LoadBinaryFile(const char* fname, byte* memory, MemoryAddress& min
         return 0;
     }
     fsize = 0;
-    minadr = 0xffff; maxadr = 0; //the opposite limits of the minimum and maximum address
-    while (!fin.eof())
-    {
+    minadr = 0xffff;
+    maxadr = 0; //the opposite limits of the minimum and maximum address
+    while (!fin.eof()) {
         blen = LoadBinaryBlock(fin, memory, bfrom, bto);
-        if (blen <= 0)
-        {
+        if (blen <= 0) {
             break;
         }
-        if (bfrom < minadr)
-        {
+        if (bfrom < minadr) {
             minadr = bfrom;
         }
-        if (bto > maxadr)
-        {
+        if (bto > maxadr) {
             maxadr = bto;
         }
         fsize += blen;
@@ -69,10 +71,8 @@ int CAtariIO::LoadBinaryFile(const char* fname, byte* memory, MemoryAddress& min
     return fsize;
 }
 
-int CAtariIO::LoadDataAsBinaryFile(unsigned char* data, MemorySize size, byte* memory, MemoryAddress& minadr, MemoryAddress& maxadr)
-{
-    if (!data)
-    {
+int CAtariIO::LoadDataAsBinaryFile(unsigned char* data, MemorySize size, byte* memory, MemoryAddress& minadr, MemoryAddress& maxadr) {
+    if (!data) {
         return 0;
     }
 
@@ -80,30 +80,26 @@ int CAtariIO::LoadDataAsBinaryFile(unsigned char* data, MemorySize size, byte* m
     int akp = 0;
     MemoryAddress bfrom, bto;
 
-    minadr = 0xffff; maxadr = 0; //the opposite limits of the minimum and maximum address
-    while (akp < size)
-    {
+    minadr = 0xffff;
+    maxadr = 0; //the opposite limits of the minimum and maximum address
+    while (akp < size) {
         bfrom = data[akp] | (data[akp + 1] << 8);
         akp += 2;
-        if (bfrom == 0xffff)
-        {
+        if (bfrom == 0xffff) {
             continue;
         }
         bto = data[akp] | (data[akp + 1] << 8);
         akp += 2;
         blen = bto - bfrom + 1;
-        if (blen <= 0)
-        {
+        if (blen <= 0) {
             break;
         }
         memcpy(memory + bfrom, data + akp, blen);
         akp += blen;
-        if (bfrom < minadr)
-        {
+        if (bfrom < minadr) {
             minadr = bfrom;
         }
-        if (bto > maxadr)
-        {
+        if (bto > maxadr) {
             maxadr = bto;
         }
     }
@@ -122,15 +118,12 @@ int CAtariIO::LoadDataAsBinaryFile(unsigned char* data, MemorySize size, byte* m
 /// <param name="toAddr">End address (last byte of the data)</param>
 /// <param name="withBinaryBlockHeader">True then the FROM,TO header will start with FFFF. Only required on the first block</param>
 /// <returns>Total number of bytes output</returns>
-int CAtariIO::SaveBinaryBlock(std::ostream& out, const byte* memory, MemoryAddress fromAddr, MemoryAddress toAddr, bool withBinaryBlockHeader)
-{
+int CAtariIO::SaveBinaryBlock(std::ostream& out, const byte* memory, MemoryAddress fromAddr, MemoryAddress toAddr, bool withBinaryBlockHeader) {
     //from "fromadr" to "toadr" inclusive
-    if (fromAddr > toAddr)
-    {
+    if (fromAddr > toAddr) {
         return 0;
     }
-    if (withBinaryBlockHeader)
-    {
+    if (withBinaryBlockHeader) {
         out.put((char)0xff);
         out.put((char)0xff);
     }

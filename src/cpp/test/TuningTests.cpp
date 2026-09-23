@@ -12,8 +12,8 @@
 static constexpr int PAL_CLOCK = 1773447;
 
 class TuningPitchTest : public ::testing::Test {
-protected:
-    CTuning tuning{ PAL_CLOCK };
+  protected:
+    CTuning tuning{PAL_CLOCK};
 };
 
 // Expected values below were captured by running the actual implementation

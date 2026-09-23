@@ -3,12 +3,12 @@
 #include "Tracks.h"
 
 namespace {
-    constexpr CTracks::TrackNumber kTrackA = 0;
-    constexpr CTracks::TrackNumber kTrackB = 1;
-}
+constexpr CTracks::TrackNumber kTrackA = 0;
+constexpr CTracks::TrackNumber kTrackB = 1;
+} // namespace
 
 class TracksTest : public ::testing::Test {
-protected:
+  protected:
     CTracks tracks;
 
     void SetUp() override {
@@ -32,7 +32,9 @@ TEST_F(TracksTest, ClearTrackResetsFieldsToInvalid) {
 TEST_F(TracksTest, InsertLineShiftsSubsequentLinesDownAndClearsInsertedLine) {
     TTrack* tr = tracks.GetTrack(kTrackA);
     tr->len = 4;
-    tr->note[0] = 1; tr->note[1] = 2; tr->note[2] = 3;
+    tr->note[0] = 1;
+    tr->note[1] = 2;
+    tr->note[2] = 3;
 
     tracks.InsertLine(kTrackA, 1);
 
@@ -45,7 +47,10 @@ TEST_F(TracksTest, InsertLineShiftsSubsequentLinesDownAndClearsInsertedLine) {
 TEST_F(TracksTest, DeleteLineShiftsSubsequentLinesUpAndClearsLastLine) {
     TTrack* tr = tracks.GetTrack(kTrackA);
     tr->len = 4;
-    tr->note[0] = 1; tr->note[1] = 2; tr->note[2] = 3; tr->note[3] = 4;
+    tr->note[0] = 1;
+    tr->note[1] = 2;
+    tr->note[2] = 3;
+    tr->note[3] = 4;
 
     tracks.DeleteLine(kTrackA, 1);
 
@@ -76,7 +81,9 @@ TEST_F(TracksTest, TrackOptimizeVol0RemovesRedundantZeroVolumeEntries) {
     TTrack* tr = tracks.GetTrack(kTrackA);
     tr->len = 4;
     tr->volume[0] = 0;
-    tr->note[1] = 5; tr->instr[1] = 0; tr->volume[1] = 0;
+    tr->note[1] = 5;
+    tr->instr[1] = 0;
+    tr->volume[1] = 0;
     tr->volume[2] = 0;
 
     tracks.TrackOptimizeVol0(kTrackA);
@@ -127,7 +134,7 @@ TEST(TracksModifiedValueTest, GetModifiedVolumePScalesAndClamps) {
 // Expected byte values were hand-derived from the format comments in
 // IO_Tracks.cpp, then confirmed to round-trip back to the original track data.
 class TrackAtaFormatTest : public ::testing::Test {
-protected:
+  protected:
     CTracks tracks;
 
     void SetUp() override {
@@ -138,9 +145,11 @@ protected:
 TEST_F(TrackAtaFormatTest, SingleNoteEncodesAndDecodesRoundTrip) {
     TTrack* src = tracks.GetTrack(kTrackA);
     src->len = 1;
-    src->note[0] = 0; src->instr[0] = 0; src->volume[0] = 10;
+    src->note[0] = 0;
+    src->instr[0] = 0;
+    src->volume[0] = 10;
 
-    unsigned char buffer[16] = { 0 };
+    unsigned char buffer[16] = {0};
     int size = tracks.TrackToAta(kTrackA, buffer, sizeof(buffer));
 
     ASSERT_EQ(size, 3);
@@ -160,9 +169,11 @@ TEST_F(TrackAtaFormatTest, LeadingPauseThenNoteEncodesAndDecodesRoundTrip) {
     TTrack* src = tracks.GetTrack(kTrackA);
     src->len = 2;
     // Line 0 stays fully empty (a 1-beat pause); line 1 has a note.
-    src->note[1] = 5; src->instr[1] = 2; src->volume[1] = 7;
+    src->note[1] = 5;
+    src->instr[1] = 2;
+    src->volume[1] = 7;
 
-    unsigned char buffer[16] = { 0 };
+    unsigned char buffer[16] = {0};
     int size = tracks.TrackToAta(kTrackA, buffer, sizeof(buffer));
 
     ASSERT_EQ(size, 4);

@@ -2,18 +2,15 @@
 #include "exportdlgs.h"
 #include "RmtExporter.h"
 
-
 extern AssemblerFormat g_AsmFormat;
 
-extern WORD g_rmtstripped_adr_module;	//address for export RMT stripped file
-extern BOOL g_rmtstripped_sfx;			//sfx offshoot RMT stripped file
-extern BOOL g_rmtstripped_gvf;			//gvs GlobalVolumeFade for feat
-extern BOOL g_rmtstripped_nos;			//nos NoStartingSongline for feat
-
+extern WORD g_rmtstripped_adr_module; //address for export RMT stripped file
+extern BOOL g_rmtstripped_sfx; //sfx offshoot RMT stripped file
+extern BOOL g_rmtstripped_gvf; //gvs GlobalVolumeFade for feat
+extern BOOL g_rmtstripped_nos; //nos NoStartingSongline for feat
 
 // CRmtExporter::ExportAsRMT() is implemented in RmtExporterCore.cpp (no
 // dialog/hazard of its own, unlike ExportAsStrippedRMT() below).
-
 
 /// <summary>
 /// Export the song data as assembler source code.
@@ -22,23 +19,21 @@ extern BOOL g_rmtstripped_nos;			//nos NoStartingSongline for feat
 /// <param name="exportStrippedDesc">Data about the packed RMT module</param>
 /// <param name="filename"></param>
 /// <returns>true is the save went ok</returns>
-bool CRmtExporter::ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDescription* exportStrippedDesc, LPCTSTR filename)
-{
+bool CRmtExporter::ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDescription* exportStrippedDesc, LPCTSTR filename) {
     TExportDescription exportTempDescription;
     memset(&exportTempDescription, 0, sizeof(TExportDescription));
-    exportTempDescription.targetAddrOfModule = 0x4000;		// Standard RMT modules are set to start @ $4000
+    exportTempDescription.targetAddrOfModule = 0x4000; // Standard RMT modules are set to start @ $4000
 
     // Create a variant for SFX (ie. including unused instruments and tracks)
     exportTempDescription.firstByteAfterModule = song.MakeModule(exportTempDescription.mem, exportTempDescription.targetAddrOfModule, SongIOType::RMT, exportTempDescription.instrumentSavedFlags, exportTempDescription.trackSavedFlags);
-    if (exportTempDescription.firstByteAfterModule < 0)
-    {
+    if (exportTempDescription.firstByteAfterModule < 0) {
         return false; // if the module could not be created
     }
 
     // Show the dialog to control the stripped output parameters
     CExportStrippedRMTDialog dlg;
     // Common data
-    dlg.m_exportAddr = g_rmtstripped_adr_module;	//global, so that it remains the same on repeated export
+    dlg.m_exportAddr = g_rmtstripped_adr_module; //global, so that it remains the same on repeated export
     dlg.m_globalVolumeFade = g_rmtstripped_gvf;
     dlg.m_noStartingSongLine = g_rmtstripped_nos;
     dlg.m_song = &song;
@@ -57,8 +52,7 @@ bool CRmtExporter::ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDe
     dlg.m_savedTracksFlagsForSFX = exportTempDescription.trackSavedFlags;
 
     // Show the dialog and get the stripped RMT configuration parameters
-    if (dlg.DoModal() != IDOK)
-    {
+    if (dlg.DoModal() != IDOK) {
         return false;
     }
 

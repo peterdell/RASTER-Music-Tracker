@@ -20,8 +20,7 @@ extern CAtari g_Atari;
 /// The struct TInstrument will be initialised in order to use Instruments
 /// TODO: Initialise more parameters, set #define values to static constants
 /// </summary>
-CInstruments::CInstruments() :canvasXY(nullptr)
-{
+CInstruments::CInstruments() : canvasXY(nullptr) {
     m_instr = new TInstrument[INSTRSNUM];
 }
 
@@ -30,10 +29,8 @@ CInstruments::CInstruments() :canvasXY(nullptr)
 /// The struct TInstrument will be deleted here, and set to NULL
 /// A new CInstruments object must be created to use Instruments afterwards
 /// </summary>
-CInstruments::~CInstruments()
-{
-    if (m_instr)
-    {
+CInstruments::~CInstruments() {
+    if (m_instr) {
         delete[] m_instr;
     }
     m_instr = NULL;
@@ -46,10 +43,8 @@ void CInstruments::SetCanvas(CCanvasXY& canvasXY) {
 /// <summary>
 /// Reset all 64 instruments to startup defaults
 /// </summary>
-void CInstruments::InitInstruments()
-{
-    for (int i = 0; i < INSTRSNUM; i++)
-    {
+void CInstruments::InitInstruments() {
+    for (int i = 0; i < INSTRSNUM; i++) {
         ClearInstrument(i);
     }
 }
@@ -58,35 +53,29 @@ void CInstruments::InitInstruments()
 /// Check the instrument parameters and adjust them to fit boundaries if needed
 /// </summary>
 /// <param name="instr"></param>
-void CInstruments::CheckInstrumentParameters(int instr)
-{
+void CInstruments::CheckInstrumentParameters(int instr) {
     TInstrument* ai = GetInstrument(instr);
-    if (!ai)
-    {
+    if (!ai) {
         return;
     }
 
     //ENVELOPE len-go loop control
-    if (ai->parameters[PAR_ENV_GOTO] > ai->parameters[PAR_ENV_LENGTH])
-    {
+    if (ai->parameters[PAR_ENV_GOTO] > ai->parameters[PAR_ENV_LENGTH]) {
         ai->parameters[PAR_ENV_GOTO] = ai->parameters[PAR_ENV_LENGTH];
     }
 
     //TABLE len-go loop control
-    if (ai->parameters[PAR_TBL_GOTO] > ai->parameters[PAR_TBL_LENGTH])
-    {
+    if (ai->parameters[PAR_TBL_GOTO] > ai->parameters[PAR_TBL_LENGTH]) {
         ai->parameters[PAR_TBL_GOTO] = ai->parameters[PAR_TBL_LENGTH];
     }
 
     //check the cursor in the envelope
-    if (ai->editEnvelopeX > ai->parameters[PAR_ENV_LENGTH])
-    {
+    if (ai->editEnvelopeX > ai->parameters[PAR_ENV_LENGTH]) {
         ai->editEnvelopeX = ai->parameters[PAR_ENV_LENGTH];
     }
 
     //check the cursor in the table
-    if (ai->editNoteTableCursorPos > ai->parameters[PAR_TBL_LENGTH])
-    {
+    if (ai->editNoteTableCursorPos > ai->parameters[PAR_TBL_LENGTH]) {
         ai->editNoteTableCursorPos = ai->parameters[PAR_TBL_LENGTH];
     }
 
@@ -99,8 +88,7 @@ void CInstruments::CheckInstrumentParameters(int instr)
 /// When the instrument name is rendered there will be some hints below it
 /// </summary>
 /// <param name="instr"></param>
-void CInstruments::RecalculateFlag(int instr)
-{
+void CInstruments::RecalculateFlag(int instr) {
     TInstrument* ti = GetInstrument(instr);
     if (!ti) {
         // Todo: Rather exception in GetInstrument()
@@ -110,39 +98,35 @@ void CInstruments::RecalculateFlag(int instr)
     BYTE flags = 0;
 
     // Analyse the instrument envelope for the Autofilter, Bass16 and Portamento flags
-    for (int i = 0; i <= ti->parameters[PAR_ENV_LENGTH]; i++)
-    {
+    for (int i = 0; i <= ti->parameters[PAR_ENV_LENGTH]; i++) {
         // Autofilter?
-        if (ti->envelope[i][EnvelopeParameter::FILTER])
-        {
+        if (ti->envelope[i][EnvelopeParameter::FILTER]) {
             flags |= IF_FILTER;
         }
 
         // Bass16?
-        if (ti->envelope[i][EnvelopeParameter::DISTORTION] == 6)
-        {
+        if (ti->envelope[i][EnvelopeParameter::DISTORTION] == 6) {
             flags |= IF_BASS16;
         }
 
         // Portamento?
-        if (ti->envelope[i][EnvelopeParameter::PORTAMENTO])
-        {
+        if (ti->envelope[i][EnvelopeParameter::PORTAMENTO]) {
             flags |= IF_PORTAMENTO;
         }
     }
 
     // Analyse the instrument parameters for the AUDCTL flag
-    for (int i = PAR_AUDCTL_15KHZ; i <= PAR_AUDCTL_POLY9; i++)
-    {
+    for (int i = PAR_AUDCTL_15KHZ; i <= PAR_AUDCTL_POLY9; i++) {
         // AUDCTL?
-        if (ti->parameters[i])
-        {
+        if (ti->parameters[i]) {
             flags |= IF_AUDCTL;
         }
     }
 
     // Autofilter takes priority over Bass16 (RMT 1.28 driver only)
-    if (flags & IF_FILTER && flags & IF_BASS16) { flags ^= IF_BASS16; }
+    if (flags & IF_FILTER && flags & IF_BASS16) {
+        flags ^= IF_BASS16;
+    }
 
     // Update the instrument hint flag to the new value
     ti->displayHintFlags = flags;
@@ -154,28 +138,21 @@ void CInstruments::RecalculateFlag(int instr)
 /// </summary>
 /// <param name="instr">Instrument #</param>
 /// <returns>true if the instrument has values, False if it is in default state</returns>
-BOOL CInstruments::CalculateNotEmpty(int instr)
-{
+BOOL CInstruments::CalculateNotEmpty(int instr) {
     TInstrument* ti = GetInstrument(instr);
-    if (!ti)
-    {
+    if (!ti) {
         return 0;
     }
 
-    for (int i = 0; i <= ti->parameters[PAR_ENV_LENGTH]; i++)
-    {
-        for (int j = 0; j < ENVROWS; j++)
-        {
-            if (ti->envelope[i][j] != 0)
-            {
+    for (int i = 0; i <= ti->parameters[PAR_ENV_LENGTH]; i++) {
+        for (int j = 0; j < ENVROWS; j++) {
+            if (ti->envelope[i][j] != 0) {
                 return 1;
             }
         }
     }
-    for (int i = 0; i < PARCOUNT; i++)
-    {
-        if (ti->parameters[i] != 0)
-        {
+    for (int i = 0; i < PARCOUNT; i++) {
+        if (ti->parameters[i] != 0) {
             return 1;
         }
     }
@@ -188,23 +165,22 @@ BOOL CInstruments::CalculateNotEmpty(int instr)
 /// <param name="instr">Instrument #</param>
 /// <param name="note">which note</param>
 /// <returns>note</returns>
-int CInstruments::GetNote(int instr, int note)
-{
+int CInstruments::GetNote(int instr, int note) {
     TInstrument* tt = GetInstrument(instr);
-    if (!tt)
-    {
+    if (!tt) {
         return -1;
     }
 
     // Only for NOTES table
-    if (tt->parameters[PAR_TBL_TYPE] == 0)
-    {
+    if (tt->parameters[PAR_TBL_TYPE] == 0) {
         // Shift notes according to table 0
         note = (note + tt->noteTable[0]) & 0xff;
     }
 
     // The note must be within valid boundaries
-    if (!CNotes::IsValidNote(note)) { return -1; }
+    if (!CNotes::IsValidNote(note)) {
+        return -1;
+    }
     return note;
 }
 
@@ -215,31 +191,26 @@ int CInstruments::GetNote(int instr, int note)
 /// <param name="instr">Instrument #</param>
 /// <param name="note">which note</param>
 /// <returns>frequency</returns>
-int CInstruments::GetFrequency(int instr, int note)
-{
+int CInstruments::GetFrequency(int instr, int note) {
     TInstrument* tt = GetInstrument(instr);
-    if (!tt)
-    {
+    if (!tt) {
         return -1;
     }
 
     // Only for NOTES table
-    if (tt->parameters[PAR_TBL_TYPE] == 0)
-    {
+    if (tt->parameters[PAR_TBL_TYPE] == 0) {
         // Shift notes according to table 0
         note = (note + tt->noteTable[0]) & 0xff;
     }
 
     // The note must be within valid boundaries
-    if (note < 0 || note >= CNotes::NOTESNUM)
-    {
+    if (note < 0 || note >= CNotes::NOTESNUM) {
         return -1;
     }
 
     // IMPORTANT NOTE: Tables are not set to a constant location!
     // The function technically returns valid data, otherwise
-    switch (tt->envelope[0][EnvelopeParameter::DISTORTION])
-    {
+    switch (tt->envelope[0][EnvelopeParameter::DISTORTION]) {
     case 0x0C:
         return g_Atari.GetByteAt(RMT_FRQTABLES + 64 + note);
     case 0x06:

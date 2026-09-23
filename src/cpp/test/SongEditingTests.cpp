@@ -23,17 +23,20 @@ extern TTuningRatios g_tuningRatios;
 extern int g_rmtinstr[SONGTRACKS];
 
 namespace {
-    // Writes one "binary block" in CAtariIO::LoadBinaryBlock()'s expected
-    // format (no optional 0xFFFF header): fromAddr, toAddr (little-endian
-    // words), then the bytes in between.
-    void WriteBinaryBlock(std::ostream& out, const unsigned char* mem, WORD fromAddr, WORD toAddr) {
-        char lo = (char)(fromAddr & 0xff), hi = (char)((fromAddr >> 8) & 0xff);
-        out.write(&lo, 1); out.write(&hi, 1);
-        lo = (char)(toAddr & 0xff); hi = (char)((toAddr >> 8) & 0xff);
-        out.write(&lo, 1); out.write(&hi, 1);
-        out.write((const char*)mem + fromAddr, toAddr - fromAddr + 1);
-    }
+// Writes one "binary block" in CAtariIO::LoadBinaryBlock()'s expected
+// format (no optional 0xFFFF header): fromAddr, toAddr (little-endian
+// words), then the bytes in between.
+void WriteBinaryBlock(std::ostream& out, const unsigned char* mem, WORD fromAddr, WORD toAddr) {
+    char lo = (char)(fromAddr & 0xff), hi = (char)((fromAddr >> 8) & 0xff);
+    out.write(&lo, 1);
+    out.write(&hi, 1);
+    lo = (char)(toAddr & 0xff);
+    hi = (char)((toAddr >> 8) & 0xff);
+    out.write(&lo, 1);
+    out.write(&hi, 1);
+    out.write((const char*)mem + fromAddr, toAddr - fromAddr + 1);
 }
+} // namespace
 
 // Exercises the CSong/CTrackClipboard editing methods implemented in
 // SongEditing.cpp/ClipboardCore.cpp - see plans/NOTES.md for the Song.cpp/
@@ -50,7 +53,7 @@ namespace {
 // Global.h dependency at all, see plans/SONG_IO_SONG_REMAINING_PLAN.md).
 
 class SongEditingTest : public ::testing::Test {
-protected:
+  protected:
     CSong song;
 
     void SetUp() override {
@@ -73,8 +76,7 @@ protected:
 
         // g_rmtinstr persists across tests like g_Instruments' data above -
         // reset it too (see PlayPressedTones/InstrPaste tests).
-        for (int i = 0; i < SONGTRACKS; i++)
-        {
+        for (int i = 0; i < SONGTRACKS; i++) {
             g_rmtinstr[i] = -1;
         }
 
@@ -92,8 +94,7 @@ protected:
         auto* songArr = s.GetSong();
         auto* songGoArr = s.GetSongGo();
         for (int line = 0; line < SONGLEN; line++) {
-            for (int col = 0; col < SONGTRACKS; col++)
-            {
+            for (int col = 0; col < SONGTRACKS; col++) {
                 (*songArr)[line][col] = -1;
             }
             (*songGoArr)[line] = -1;
@@ -110,8 +111,8 @@ TEST_F(SongEditingTest, GetSubsongPartsReturnsZeroWhenSongHasNoGotoLines) {
 }
 
 TEST_F(SongEditingTest, GetSubsongPartsFindsOneSubsongEndingInAGotoLine) {
-    (*song.GetSong())[0][0] = 5;         // a used track at line 0
-    (*song.GetSongGo())[1] = 0;          // line 1: "goto line 0" - closes the loop
+    (*song.GetSong())[0][0] = 5; // a used track at line 0
+    (*song.GetSongGo())[1] = 0; // line 1: "goto line 0" - closes the loop
 
     CString result;
     EXPECT_EQ(song.GetSubsongParts(result), 1);
@@ -122,7 +123,7 @@ TEST_F(SongEditingTest, GetSubsongPartsFindsOneSubsongEndingInAGotoLine) {
 
 TEST_F(SongEditingTest, MarkTFUsedMarksTracksReferencedByNonGotoLines) {
     (*song.GetSong())[0][0] = 3;
-    (*song.GetSongGo())[1] = 5;          // goto line: its track column is ignored
+    (*song.GetSongGo())[1] = 5; // goto line: its track column is ignored
     (*song.GetSong())[1][0] = 7;
 
     BYTE flags[TRACKSNUM] = {};
@@ -168,7 +169,7 @@ TEST_F(SongEditingTest, TrackLeftWrapsColumnAndCursorAtZero) {
     song.TrackLeft(false);
     int* cursor = song.GetUECursor(Part::PART_TRACKS);
     EXPECT_EQ(cursor[2], g_tracks4_8 - 1); // column wrapped
-    EXPECT_EQ(cursor[3], 3);               // cursor wrapped to the previous speed column
+    EXPECT_EQ(cursor[3], 3); // cursor wrapped to the previous speed column
     delete[] cursor;
 }
 
@@ -279,9 +280,9 @@ TEST_F(SongEditingTest, SongInsertLineShiftsSubsequentLinesDownAndClearsInserted
 
     song.SongInsertLine(1);
 
-    EXPECT_EQ((*song.GetSong())[0][0], 1);   // untouched
-    EXPECT_EQ((*song.GetSong())[1][0], -1);  // newly inserted, empty
-    EXPECT_EQ((*song.GetSong())[2][0], 2);   // shifted down
+    EXPECT_EQ((*song.GetSong())[0][0], 1); // untouched
+    EXPECT_EQ((*song.GetSong())[1][0], -1); // newly inserted, empty
+    EXPECT_EQ((*song.GetSong())[2][0], 2); // shifted down
 }
 
 TEST_F(SongEditingTest, SongDeleteLineShiftsSubsequentLinesUp) {
@@ -290,7 +291,7 @@ TEST_F(SongEditingTest, SongDeleteLineShiftsSubsequentLinesUp) {
 
     song.SongDeleteLine(0);
 
-    EXPECT_EQ((*song.GetSong())[0][0], 2);   // shifted up
+    EXPECT_EQ((*song.GetSong())[0][0], 2); // shifted up
     EXPECT_EQ((*song.GetSong())[SONGLEN - 1][0], -1); // vacated slot at the end
 }
 
@@ -520,7 +521,7 @@ TEST_F(SongEditingTest, SongClearUnusedTracksAndPartsDeletesTracksNotReferencedI
 TEST_F(SongEditingTest, SongClearDuplicatedTracksMergesIdenticalTracksAndRemapsTheSong) {
     g_Tracks.GetTrack(0)->note[0] = 5;
     g_Tracks.GetTrack(1)->note[0] = 5; // identical to track 0
-    (*song.GetSong())[0][0] = 1;       // song points at the duplicate
+    (*song.GetSong())[0][0] = 1; // song points at the duplicate
 
     int cleared = song.SongClearDuplicatedTracks();
 
@@ -544,8 +545,7 @@ TEST_F(SongEditingTest, SongClearUnusedTracksDeletesTracksNotReferencedInTheSong
 
 TEST_F(SongEditingTest, TracksAllBuildLoopsFindsARepeatingPatternAndShortensTheTrack) {
     TTrack* tr = g_Tracks.GetTrack(0);
-    for (int i = 0; i < TRACKLEN; i++)
-    {
+    for (int i = 0; i < TRACKLEN; i++) {
         tr->note[i] = 5; // a full-length track repeating every line
     }
 
@@ -717,12 +717,18 @@ TEST_F(SongEditingTest, InstrChangeApplyRemapsMatchingNotesInstrumentsAndVolumes
     tr->volume[0] = 8;
 
     TInstrChangeParams p = {};
-    p.snotefrom = 10; p.snoteto = 10;
-    p.svolmin = 8; p.svolmax = 8;
-    p.sinstrfrom = 2; p.sinstrto = 2;
-    p.dnotefrom = 15; p.dnoteto = 15;
-    p.dvolmin = 5; p.dvolmax = 5;
-    p.dinstrfrom = 3; p.dinstrto = 3;
+    p.snotefrom = 10;
+    p.snoteto = 10;
+    p.svolmin = 8;
+    p.svolmax = 8;
+    p.sinstrfrom = 2;
+    p.sinstrto = 2;
+    p.dnotefrom = 15;
+    p.dnoteto = 15;
+    p.dvolmin = 5;
+    p.dvolmax = 5;
+    p.dinstrfrom = 3;
+    p.dinstrto = 3;
     p.onlytrack = -1;
     p.onlychannels = -1;
     p.onlysonglinefrom = -1;
@@ -739,18 +745,30 @@ TEST_F(SongEditingTest, InstrChangeApplyRemapsMatchingNotesInstrumentsAndVolumes
 
 TEST_F(SongEditingTest, InstrChangeApplyOnlyTrackRestrictsTheChangeToOneTrack) {
     TTrack* tr0 = g_Tracks.GetTrack(0);
-    tr0->len = 1; tr0->note[0] = 10; tr0->instr[0] = 2; tr0->volume[0] = 8;
+    tr0->len = 1;
+    tr0->note[0] = 10;
+    tr0->instr[0] = 2;
+    tr0->volume[0] = 8;
 
     TTrack* tr1 = g_Tracks.GetTrack(1);
-    tr1->len = 1; tr1->note[0] = 10; tr1->instr[0] = 2; tr1->volume[0] = 8;
+    tr1->len = 1;
+    tr1->note[0] = 10;
+    tr1->instr[0] = 2;
+    tr1->volume[0] = 8;
 
     TInstrChangeParams p = {};
-    p.snotefrom = 10; p.snoteto = 10;
-    p.svolmin = 8; p.svolmax = 8;
-    p.sinstrfrom = 2; p.sinstrto = 2;
-    p.dnotefrom = 15; p.dnoteto = 15;
-    p.dvolmin = 5; p.dvolmax = 5;
-    p.dinstrfrom = 3; p.dinstrto = 3;
+    p.snotefrom = 10;
+    p.snoteto = 10;
+    p.svolmin = 8;
+    p.svolmax = 8;
+    p.sinstrfrom = 2;
+    p.sinstrto = 2;
+    p.dnotefrom = 15;
+    p.dnoteto = 15;
+    p.dvolmin = 5;
+    p.dvolmax = 5;
+    p.dinstrfrom = 3;
+    p.dinstrto = 3;
     p.onlytrack = 0; // restrict to track 0 only
     p.onlychannels = -1;
     p.onlysonglinefrom = -1;
@@ -783,7 +801,7 @@ TEST_F(SongEditingTest, TrackInfoPopulatesTheOutputStructWithoutShowingAMessageB
 }
 
 TEST_F(SongEditingTest, TrackInfoLeavesTheOutputStructUntouchedForAnOutOfRangeTrack) {
-    TTrackInfo info = { 99, 99, {1,1,1,1,1,1,1,1} };
+    TTrackInfo info = {99, 99, {1, 1, 1, 1, 1, 1, 1, 1}};
 
     song.TrackInfo(-1, &info);
     EXPECT_EQ(info.count, 99);
@@ -1458,7 +1476,7 @@ TEST_F(SongEditingTest, TrackDownMovesActiveLineDownWithinBounds) {
 // --- SetUECursor ---
 
 TEST_F(SongEditingTest, SetUECursorPartTracksUpdatesTrackCursorFields) {
-    int cursor[4] = { 3, 4, 1, 2 };
+    int cursor[4] = {3, 4, 1, 2};
     song.SetUECursor(Part::PART_TRACKS, cursor);
 
     EXPECT_EQ(song.SongGetActiveLine(), 3);
@@ -1629,7 +1647,7 @@ TEST_F(SongEditingTest, PlaySetsPlayModeAndInitializesPlayLines) {
 
     EXPECT_EQ(song.GetPlayMode(), PLAY_TRACK);
     EXPECT_EQ(song.SongGetPlayLine(), 3); // m_songplayline = m_songactiveline
-    EXPECT_EQ(song.GetPlayLine(), 0);     // special=0 (default) -> m_trackplayline = 0
+    EXPECT_EQ(song.GetPlayLine(), 0); // special=0 (default) -> m_trackplayline = 0
 }
 
 // --- PlayBeat ---
@@ -1745,7 +1763,7 @@ TEST_F(SongEditingTest, TracksOrderChangeApplyReordersAndClearsColumnsPerMapping
     (*song.GetSong())[1][2] = 31;
     (*song.GetSong())[1][3] = 41;
 
-    int tracksorder[SONGTRACKS] = { 1, 0, -1, 3, -1, -1, -1, -1 };
+    int tracksorder[SONGTRACKS] = {1, 0, -1, 3, -1, -1, -1, -1};
     song.TracksOrderChangeApply(0, 1, tracksorder);
 
     EXPECT_EQ((*song.GetSong())[0][0], 20); // new col0 <- old col1
@@ -1777,7 +1795,7 @@ TEST_F(SongEditingTest, ImportTMCParseHeaderFailsOnATruncatedFile) {
 }
 
 TEST_F(SongEditingTest, ImportTMCParseHeaderSetsTheSongName) {
-    unsigned char mem[1] = { 'H' }; // song name field stops at the first 0 byte (from memset)
+    unsigned char mem[1] = {'H'}; // song name field stops at the first 0 byte (from memset)
     std::ostringstream out;
     WriteBinaryBlock(out, mem, 0, 0);
     std::istringstream in(out.str());
@@ -1812,14 +1830,22 @@ TEST_F(SongEditingTest, ImportTMCApplyConvertsANoteIntoTheDestinationTrack) {
     mem[31] = 1;
     mem[160] = 0xB0;
     mem[288] = 0x01;
-    mem[431] = 0x00; mem[430] = 0x00; // column 0: track 0, shift 0 (also: not a goto line)
-    mem[429] = 0xFF; mem[428] = 0x00; // column 1: skipped
-    mem[427] = 0xFF; mem[426] = 0x00; // column 2: skipped
-    mem[425] = 0xFF; mem[424] = 0x00; // column 3: skipped
-    mem[423] = 0xFF; mem[422] = 0x00; // column 4: skipped
-    mem[421] = 0xFF; mem[420] = 0x00; // column 5: skipped
-    mem[419] = 0xFF; mem[418] = 0x00; // column 6: skipped
-    mem[417] = 0xFF; mem[416] = 0x00; // column 7: skipped
+    mem[431] = 0x00;
+    mem[430] = 0x00; // column 0: track 0, shift 0 (also: not a goto line)
+    mem[429] = 0xFF;
+    mem[428] = 0x00; // column 1: skipped
+    mem[427] = 0xFF;
+    mem[426] = 0x00; // column 2: skipped
+    mem[425] = 0xFF;
+    mem[424] = 0x00; // column 3: skipped
+    mem[423] = 0xFF;
+    mem[422] = 0x00; // column 4: skipped
+    mem[421] = 0xFF;
+    mem[420] = 0x00; // column 5: skipped
+    mem[419] = 0xFF;
+    mem[418] = 0x00; // column 6: skipped
+    mem[417] = 0xFF;
+    mem[416] = 0x00; // column 7: skipped
     mem[432] = 0x01; // note = (0x01 & 0x3f) - 1 = 0
     mem[433] = 0x00; // volume: volL = volR = 15
     mem[434] = 0xFF; // end of track (space = 64)
@@ -1877,7 +1903,10 @@ TEST_F(SongEditingTest, ImportMODParseHeaderFailsOnUnrecognizedIdentification) {
     // an older, un-identified 15-sample module instead (chnls hardcoded to
     // 4, always valid) - see ImportMODParseHeader()'s fallback branch.
     std::string data(1084, '\0');
-    data[1080] = '2'; data[1081] = 'C'; data[1082] = 'H'; data[1083] = 'N';
+    data[1080] = '2';
+    data[1081] = 'C';
+    data[1082] = 'H';
+    data[1083] = 'N';
     std::istringstream in(data);
 
     TImportMODHeader header;
@@ -1905,15 +1934,28 @@ TEST_F(SongEditingTest, ImportMODApplyConvertsANoteIntoTheDestinationTrack) {
     //               lowest note, "C3"), sample #1, no effect
     //  [2108..2115] sample #1's 8 bytes of real (non-silent) data
     std::vector<unsigned char> buf(2116, 0);
-    buf[42] = 0x00; buf[43] = 0x04; // sample #1 length = 4 words = 8 bytes
+    buf[42] = 0x00;
+    buf[43] = 0x04; // sample #1 length = 4 words = 8 bytes
     buf[45] = 0x40; // sample #1 volume
-    buf[950] = 1;   // songlen
-    buf[951] = 0;   // restartpos
-    buf[952] = 0;   // song order[0] -> pattern 0
-    buf[1080] = 'M'; buf[1081] = '.'; buf[1082] = 'K'; buf[1083] = '.';
-    buf[1084] = 0x06; buf[1085] = 0xB0; buf[1086] = 0x10; buf[1087] = 0x00; // row0/ch0: period 0x6B0, sample 1
-    buf[2108] = 0; buf[2109] = 50; buf[2110] = 0; buf[2111] = 50;
-    buf[2112] = 0; buf[2113] = 50; buf[2114] = 0; buf[2115] = 50;
+    buf[950] = 1; // songlen
+    buf[951] = 0; // restartpos
+    buf[952] = 0; // song order[0] -> pattern 0
+    buf[1080] = 'M';
+    buf[1081] = '.';
+    buf[1082] = 'K';
+    buf[1083] = '.';
+    buf[1084] = 0x06;
+    buf[1085] = 0xB0;
+    buf[1086] = 0x10;
+    buf[1087] = 0x00; // row0/ch0: period 0x6B0, sample 1
+    buf[2108] = 0;
+    buf[2109] = 50;
+    buf[2110] = 0;
+    buf[2111] = 50;
+    buf[2112] = 0;
+    buf[2113] = 50;
+    buf[2114] = 0;
+    buf[2115] = 50;
 
     std::string data(reinterpret_cast<char*>(buf.data()), buf.size());
     std::istringstream in(data);
@@ -1925,12 +1967,12 @@ TEST_F(SongEditingTest, ImportMODApplyConvertsANoteIntoTheDestinationTrack) {
     EXPECT_EQ(header.songlen, 1);
     EXPECT_EQ(header.modulelength, (int)buf.size());
 
-    BYTE trackorder[8] = { 0,1,2,3,4,5,6,7 };
+    BYTE trackorder[8] = {0, 1, 2, 3, 4, 5, 6, 7};
     TImportMODResult result;
     song.ImportMODApply(in, header, /*rmttype=*/4, trackorder,
-        /*shiftdownoctave=*/FALSE, /*portamento=*/FALSE, /*fullvolumerange=*/FALSE,
-        /*volumeincrease=*/FALSE, /*decreaseinstrument=*/FALSE,
-        /*optimizeloops=*/FALSE, /*truncateunusedparts=*/FALSE, result);
+                        /*shiftdownoctave=*/FALSE, /*portamento=*/FALSE, /*fullvolumerange=*/FALSE,
+                        /*volumeincrease=*/FALSE, /*decreaseinstrument=*/FALSE,
+                        /*optimizeloops=*/FALSE, /*truncateunusedparts=*/FALSE, result);
 
     EXPECT_EQ(result.destnum, 1); // only channel 0 produced a non-empty track
     EXPECT_EQ(result.nonemptysamples, 1); // only sample #1 has real length

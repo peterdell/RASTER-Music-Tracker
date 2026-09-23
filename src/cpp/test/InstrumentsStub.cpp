@@ -13,7 +13,8 @@ int g_tracks4_8 = 4;
 // TInstrument fields directly instead), but InitInstruments() is compiled
 // into the same translation unit as the rest of InstrumentsCore.cpp, so the
 // symbol still needs to exist to link.
-void CInstruments::ClearInstrument(int) {}
+void CInstruments::ClearInstrument(int) {
+}
 
 // Link-only stubs: the real CInstruments::MemorizeOctaveAndVolume()/
 // RememberOctaveAndVolume() live in Instruments.cpp and need
@@ -21,8 +22,10 @@ void CInstruments::ClearInstrument(int) {}
 // project deliberately doesn't link. They're reachable through
 // CSong::ActiveInstrSet() (see SongEditingTests.cpp), which only cares
 // about the resulting m_activeinstr change, not the octave/volume memory.
-void CInstruments::MemorizeOctaveAndVolume(int, int, int) {}
-void CInstruments::RememberOctaveAndVolume(int, int&, int&) {}
+void CInstruments::MemorizeOctaveAndVolume(int, int, int) {
+}
+void CInstruments::RememberOctaveAndVolume(int, int&, int&) {
+}
 
 // CInstruments::Update() used to be stubbed here too, but IO_Instruments.cpp
 // turned out to need no Global.h dependency at all (only g_Atari, already

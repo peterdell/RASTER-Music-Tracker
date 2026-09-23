@@ -10,15 +10,12 @@
 
 extern CRmtApp g_app;
 
-
 CAcceleratorTable::CAcceleratorTable() : size(0), pAccel(nullptr) {
-
 }
 
 CAcceleratorTable::~CAcceleratorTable() {
     Clear();
 }
-
 
 void CAcceleratorTable::Clear() {
     if (pAccel != nullptr) {
@@ -46,7 +43,7 @@ int CAcceleratorTable::GetSize() const {
 }
 
 const ACCEL& CAcceleratorTable::GetEntry(const int index) const {
-    return  pAccel[index];
+    return pAccel[index];
 }
 
 ACCEL* CAcceleratorTable::GetEntryByCommand(const WORD cmd) const {
@@ -58,7 +55,7 @@ ACCEL* CAcceleratorTable::GetEntryByCommand(const WORD cmd) const {
     return nullptr;
 }
 
-CString  CAcceleratorTable::GetText(ACCEL& entry) const {
+CString CAcceleratorTable::GetText(ACCEL& entry) const {
     auto key = entry.key; // The key (e.g., 'C', VK_F1)
     auto flags = entry.fVirt; // Modifier flags
 
@@ -90,9 +87,7 @@ CString  CAcceleratorTable::GetText(ACCEL& entry) const {
         result += (char)key; // Regular character
     }*/
     return result;
-
 }
-
 
 CMenuEntry::CMenuEntry(const MenuPath& menuIDPath, const MenuPath& menuTextPath, const UINT id, const CString& text) {
     this->menuIDPath.Append(menuIDPath);
@@ -119,7 +114,6 @@ CString CMenuEntry::GetMenuTextPathString() const {
     return GetMenuPathString(menuTextPath);
 }
 
-
 INT_PTR CMenuEntry::GetMenuLevel() const {
     return menuIDPath.GetSize();
 }
@@ -142,8 +136,7 @@ CString CMenuEntry::GetPlainText(const CString& menuText) {
         case '&':
             if (ampersand) {
                 result.AppendChar(c);
-            }
-            else {
+            } else {
                 ampersand = !ampersand;
             }
             break;
@@ -181,15 +174,13 @@ CString CMenuEntry::GetMenuPathString(const MenuPath& menuPath) {
     return result;
 }
 
-CString  CMenuEntry::GetPlainText() const {
+CString CMenuEntry::GetPlainText() const {
     return GetPlainText(text);
 }
 
-CString  CMenuEntry::GetAcceleatorKey() const {
+CString CMenuEntry::GetAcceleatorKey() const {
     return GetAcceleatorKey(text);
-
 }
-
 
 CCommands::CActionInfo::CActionInfo(const UINT id, const CMenuEntry* menuEntry) {
     this->id = id;
@@ -202,7 +193,7 @@ CCommands::CActionInfo::CActionInfo(const UINT id, const CMenuEntry* menuEntry) 
     this->menuEntry = menuEntry;
 }
 
-UINT  CCommands::CActionInfo::GetID() const {
+UINT CCommands::CActionInfo::GetID() const {
     return id;
 }
 
@@ -222,7 +213,6 @@ void CCommands::CActionInfo::SetMenuEntry(const CMenuEntry* menuEntry) {
     this->menuEntry = menuEntry;
 }
 
-
 CString CCommands::CActionInfo::GetToolBar() const {
     return toolBar;
 }
@@ -231,10 +221,7 @@ void CCommands::CActionInfo::SetToolBar(const CString& toolBar) {
     this->toolBar = toolBar;
 }
 
-
-
-bool CCommands::CActionInfo::Compare(const CCommands::CActionInfo* first, CCommands::CActionInfo* second)
-{
+bool CCommands::CActionInfo::Compare(const CCommands::CActionInfo* first, CCommands::CActionInfo* second) {
     if (first == second) {
         return 0;
     }
@@ -253,9 +240,7 @@ bool CCommands::CActionInfo::Compare(const CCommands::CActionInfo* first, CComma
     return result;
 }
 
-
-void  CCommands::ClearActionInfos() {
-
+void CCommands::ClearActionInfos() {
 
     for (auto it = m_actionInfoMap.begin(); it != m_actionInfoMap.end(); it++) {
         CString s;
@@ -265,10 +250,8 @@ void  CCommands::ClearActionInfos() {
             delete menuEntry;
         }
         delete actionEntry;
-
     }
 }
-
 
 const CCommands::CActionInfo* CCommands::GetActionInfo(UINT id) const {
     CCommands::CActionInfo* result = nullptr;
@@ -290,8 +273,7 @@ CCommands::CActionInfo* CCommands::GetMutableActionInfo(UINT id) {
     auto it = m_actionInfoMap.find(id);
     if (it != m_actionInfoMap.end()) {
         result = it->second;
-    }
-    else {
+    } else {
         result = new CActionInfo(id, nullptr);
         m_actionInfoMap.emplace(result->GetID(), result);
     }
@@ -299,7 +281,7 @@ CCommands::CActionInfo* CCommands::GetMutableActionInfo(UINT id) {
     return result;
 }
 
-void  CCommands::PrintActionInfos() const {
+void CCommands::PrintActionInfos() const {
 
     ActionInfoList actionInfoList;
 
@@ -325,15 +307,13 @@ void  CCommands::PrintActionInfos() const {
             acceleratorKey = m_acceleratorTable.GetText(*acceleratorEntry);
         }
 
-
         auto menuEntry = actionInfo->GetMenuEntry();
         if (menuEntry != nullptr) {
             auto menuEcceleratorKey = menuEntry->GetAcceleatorKey();
             if (!menuEcceleratorKey.IsEmpty()) {
                 if (acceleratorKey.IsEmpty()) {
                     acceleratorKey = menuEcceleratorKey;
-                }
-                else if (acceleratorKey != menuEcceleratorKey) {
+                } else if (acceleratorKey != menuEcceleratorKey) {
                     acceleratorKey = "ERROR: " + acceleratorKey + " vs. " + menuEcceleratorKey;
                 }
             }
@@ -363,28 +343,21 @@ void  CCommands::PrintActionInfos() const {
             accessText = menuEntry->GetPlainText();
         }
 
-
         CString acceleratorKeyFormatted;
         if (!acceleratorKey.IsEmpty()) {
             acceleratorKeyFormatted = "`" + acceleratorKey + "`";
-
         }
 
         s.Format("| %s | %s | %s | %s |", accessPath, accessText, acceleratorKeyFormatted, text);
-
 
         SendInfoMessage(s);
         myfile << s << "\n";
     }
 
     myfile.close();
-
 }
 
-
-
 void CCommands::AnalyzeMenu(const CMenuEntry::MenuPath& menuIDPath, const CMenuEntry::MenuPath& menuTextPath, const CMenu& menu) {
-
 
     for (int pos = 0; pos < menu.GetMenuItemCount(); pos++) {
         CString posString;
@@ -415,10 +388,9 @@ void CCommands::AnalyzeMenu(const CMenuEntry::MenuPath& menuIDPath, const CMenuE
             AnalyzeMenu(subMenuIDPath, subMenuTextPath, *subMenu);
         }
     }
-
 }
 
-void  CCommands::AnalyzeMenu(const UINT id, const CString& menuID, const CString& menuText) {
+void CCommands::AnalyzeMenu(const UINT id, const CString& menuID, const CString& menuText) {
     CMenu menu;
     if (menu.LoadMenu(id)) {
         CMenuEntry::MenuPath menuIDPath;
@@ -432,18 +404,15 @@ void  CCommands::AnalyzeMenu(const UINT id, const CString& menuID, const CString
         }
         AnalyzeMenu(menuIDPath, menuTextPath, menu);
 
-    }
-    else {
+    } else {
         auto lastError = GetLastError();
         CString s;
         s.Format("LoadMenu(%d) failed with error code %d", id, lastError);
         SendErrorMessage(s);
     }
-
 }
 
 void CCommands::AnalyzeToolBar(const CString& name, const CToolBar& toolBar) {
-
 
     for (int pos = 0; pos < toolBar.GetCount(); pos++) {
 
@@ -454,19 +423,15 @@ void CCommands::AnalyzeToolBar(const CString& name, const CToolBar& toolBar) {
             auto actionInfo = GetMutableActionInfo(itemID);
             actionInfo->SetToolBar(name);
         }
-
     }
-
 }
 
-
-void  CCommands::AnalyzeToolBar(const UINT id, const CString& name) {
+void CCommands::AnalyzeToolBar(const UINT id, const CString& name) {
     CToolBar toolBar;
     toolBar.Create(g_app.GetMainWnd());
     if (toolBar.LoadToolBar(id)) {
         AnalyzeToolBar(name, toolBar);
-    }
-    else {
+    } else {
         auto lastError = GetLastError();
         CString s;
         s.Format("LoadToolBar(%d) failed with error code %d", id, lastError);
@@ -475,17 +440,14 @@ void  CCommands::AnalyzeToolBar(const UINT id, const CString& name) {
 }
 
 CCommands::CCommands() {
-
 }
 
 void CCommands::Analyze() {
     auto oldhKL = GetKeyboardLayout(0);
     auto hkl = LoadKeyboardLayoutA(
-        "00000409", //  U.S. English layout 
-        KLF_ACTIVATE
-    );
+        "00000409", //  U.S. English layout
+        KLF_ACTIVATE);
     ActivateKeyboardLayout(hkl, KLF_REORDER);
-
 
     ClearActionInfos();
     m_acceleratorTable.Clear();
@@ -496,11 +458,9 @@ void CCommands::Analyze() {
 
     AnalyzeToolBar(IDR_TOOLBAR_BLOCK, "Block");
 
-
     PrintActionInfos();
 
     ClearActionInfos();
 
     ActivateKeyboardLayout(oldhKL, KLF_REORDER);
-
 }

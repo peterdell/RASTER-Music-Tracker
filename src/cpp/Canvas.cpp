@@ -1,19 +1,15 @@
 #include "Canvas.h"
 
-
 #include "CanvasXY.h"
 
-
-
-CCanvas::CCanvas(CCanvasXY& canvasXY, const  int originX, const int originY) : canvasXY(&canvasXY), originX(originX), originY(originY) {
+CCanvas::CCanvas(CCanvasXY& canvasXY, const int originX, const int originY) : canvasXY(&canvasXY), originX(originX), originY(originY) {
 }
 
-
-int  CCanvas::GetOriginX() const {
+int CCanvas::GetOriginX() const {
     return originX;
 }
 
-int  CCanvas::GetOriginY() const {
+int CCanvas::GetOriginY() const {
     return originY;
 }
 
@@ -38,14 +34,13 @@ CCanvas& CCanvas::NextRow() {
     return *this;
 }
 
-
 CCanvas& CCanvas::PrintMini(const char* txt) {
     TextMiniAt(txt, column, row, colorMini);
     return *this;
 }
 
 CCanvas& CCanvas::PrintfMini(
-    size_t      const size,
+    size_t const size,
     char const* const format, ...) {
 
     va_list ap;

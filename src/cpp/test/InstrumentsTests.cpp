@@ -5,59 +5,59 @@
 extern int g_tracks4_8; // TODO Move out (see Instruments.cpp/IO_Instruments.cpp)
 
 namespace {
-    constexpr int kInstr = 0;
+constexpr int kInstr = 0;
 
-    void SetUpSampleInstrument(CInstruments& instruments) {
-        TInstrument* ai = instruments.GetInstrument(kInstr);
-        int* par = ai->parameters;
-        par[PAR_TBL_LENGTH] = 1;
-        par[PAR_TBL_GOTO] = 0;
-        par[PAR_ENV_LENGTH] = 1;
-        par[PAR_ENV_GOTO] = 0;
-        par[PAR_TBL_TYPE] = 0;
-        par[PAR_TBL_MODE] = 0;
-        par[PAR_TBL_SPEED] = 5;
-        par[PAR_AUDCTL_15KHZ] = 1;
-        par[PAR_AUDCTL_HPF_CH2] = 0;
-        par[PAR_AUDCTL_HPF_CH1] = 1;
-        par[PAR_AUDCTL_JOIN_3_4] = 0;
-        par[PAR_AUDCTL_JOIN_1_2] = 0;
-        par[PAR_AUDCTL_179_CH3] = 0;
-        par[PAR_AUDCTL_179_CH1] = 0;
-        par[PAR_AUDCTL_POLY9] = 0;
-        par[PAR_VOL_FADEOUT] = 3;
-        par[PAR_VOL_MIN] = 2;
-        par[PAR_DELAY] = 4;
-        par[PAR_VIBRATO] = 1;
-        par[PAR_FREQ_SHIFT] = 7;
+void SetUpSampleInstrument(CInstruments& instruments) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    int* par = ai->parameters;
+    par[PAR_TBL_LENGTH] = 1;
+    par[PAR_TBL_GOTO] = 0;
+    par[PAR_ENV_LENGTH] = 1;
+    par[PAR_ENV_GOTO] = 0;
+    par[PAR_TBL_TYPE] = 0;
+    par[PAR_TBL_MODE] = 0;
+    par[PAR_TBL_SPEED] = 5;
+    par[PAR_AUDCTL_15KHZ] = 1;
+    par[PAR_AUDCTL_HPF_CH2] = 0;
+    par[PAR_AUDCTL_HPF_CH1] = 1;
+    par[PAR_AUDCTL_JOIN_3_4] = 0;
+    par[PAR_AUDCTL_JOIN_1_2] = 0;
+    par[PAR_AUDCTL_179_CH3] = 0;
+    par[PAR_AUDCTL_179_CH1] = 0;
+    par[PAR_AUDCTL_POLY9] = 0;
+    par[PAR_VOL_FADEOUT] = 3;
+    par[PAR_VOL_MIN] = 2;
+    par[PAR_DELAY] = 4;
+    par[PAR_VIBRATO] = 1;
+    par[PAR_FREQ_SHIFT] = 7;
 
-        ai->noteTable[0] = 10;
-        ai->noteTable[1] = 20;
+    ai->noteTable[0] = 10;
+    ai->noteTable[1] = 20;
 
-        int* env0 = ai->envelope[0];
-        env0[EnvelopeParameter::VOLUMER] = 3;
-        env0[EnvelopeParameter::VOLUMEL] = 5;
-        env0[EnvelopeParameter::DISTORTION] = 4;
-        env0[EnvelopeParameter::COMMAND] = 2;
-        env0[EnvelopeParameter::X] = 6;
-        env0[EnvelopeParameter::Y] = 9;
-        env0[EnvelopeParameter::FILTER] = 1;
-        env0[EnvelopeParameter::PORTAMENTO] = 1;
+    int* env0 = ai->envelope[0];
+    env0[EnvelopeParameter::VOLUMER] = 3;
+    env0[EnvelopeParameter::VOLUMEL] = 5;
+    env0[EnvelopeParameter::DISTORTION] = 4;
+    env0[EnvelopeParameter::COMMAND] = 2;
+    env0[EnvelopeParameter::X] = 6;
+    env0[EnvelopeParameter::Y] = 9;
+    env0[EnvelopeParameter::FILTER] = 1;
+    env0[EnvelopeParameter::PORTAMENTO] = 1;
 
-        int* env1 = ai->envelope[1];
-        env1[EnvelopeParameter::VOLUMER] = 7;
-        env1[EnvelopeParameter::VOLUMEL] = 8;
-        env1[EnvelopeParameter::DISTORTION] = 2;
-        env1[EnvelopeParameter::COMMAND] = 1;
-        env1[EnvelopeParameter::X] = 3;
-        env1[EnvelopeParameter::Y] = 4;
-        env1[EnvelopeParameter::FILTER] = 0;
-        env1[EnvelopeParameter::PORTAMENTO] = 0;
-    }
+    int* env1 = ai->envelope[1];
+    env1[EnvelopeParameter::VOLUMER] = 7;
+    env1[EnvelopeParameter::VOLUMEL] = 8;
+    env1[EnvelopeParameter::DISTORTION] = 2;
+    env1[EnvelopeParameter::COMMAND] = 1;
+    env1[EnvelopeParameter::X] = 3;
+    env1[EnvelopeParameter::Y] = 4;
+    env1[EnvelopeParameter::FILTER] = 0;
+    env1[EnvelopeParameter::PORTAMENTO] = 0;
 }
+} // namespace
 
 class InstrumentAtaFormatTest : public ::testing::Test {
-protected:
+  protected:
     CInstruments instruments;
 
     void TearDown() override {
@@ -69,14 +69,13 @@ TEST_F(InstrumentAtaFormatTest, InstrToAtaMonoEncodesExactBytes) {
     g_tracks4_8 = 4; // mono
     SetUpSampleInstrument(instruments);
 
-    unsigned char ata[32] = { 0 };
+    unsigned char ata[32] = {0};
     BYTE size = instruments.InstrToAta(kInstr, ata, sizeof(ata));
 
     ASSERT_EQ(size, 20);
     const unsigned char expected[20] = {
         0x0D, 0x0C, 0x11, 0x0E, 0x05, 0x05, 0x03, 0x20, 0x04, 0x01,
-        0x07, 0x00, 0x0A, 0x14, 0x55, 0xA5, 0x69, 0x88, 0x12, 0x34
-    };
+        0x07, 0x00, 0x0A, 0x14, 0x55, 0xA5, 0x69, 0x88, 0x12, 0x34};
     EXPECT_EQ(memcmp(ata, expected, size), 0);
 }
 
@@ -88,7 +87,7 @@ TEST_F(InstrumentAtaFormatTest, AtaToInstrMonoRoundTripLosesVolumeR) {
     g_tracks4_8 = 4; // mono
     SetUpSampleInstrument(instruments);
 
-    unsigned char ata[32] = { 0 };
+    unsigned char ata[32] = {0};
     BYTE size = instruments.InstrToAta(kInstr, ata, sizeof(ata));
 
     constexpr int kDecoded = 1;
@@ -125,14 +124,13 @@ TEST_F(InstrumentAtaFormatTest, AtaToInstrStereoRoundTripPreservesBothVolumes) {
     g_tracks4_8 = 8; // stereo
     SetUpSampleInstrument(instruments);
 
-    unsigned char ata[32] = { 0 };
+    unsigned char ata[32] = {0};
     BYTE size = instruments.InstrToAta(kInstr, ata, sizeof(ata));
 
     ASSERT_EQ(size, 20);
     const unsigned char expected[20] = {
         0x0D, 0x0C, 0x11, 0x0E, 0x05, 0x05, 0x03, 0x20, 0x04, 0x01,
-        0x07, 0x00, 0x0A, 0x14, 0x35, 0xA5, 0x69, 0x78, 0x12, 0x34
-    };
+        0x07, 0x00, 0x0A, 0x14, 0x35, 0xA5, 0x69, 0x78, 0x12, 0x34};
     EXPECT_EQ(memcmp(ata, expected, size), 0);
 
     constexpr int kDecoded = 1;
@@ -146,7 +144,7 @@ TEST_F(InstrumentAtaFormatTest, AtaToInstrStereoRoundTripPreservesBothVolumes) {
 }
 
 TEST_F(InstrumentAtaFormatTest, AtaToInstrRejectsOutOfBoundsEnvelope) {
-    unsigned char ata[32] = { 0 };
+    unsigned char ata[32] = {0};
     ata[0] = 12; // note table length 0, fine
     ata[1] = 12;
     ata[2] = 12 + 1 + (ENVELOPE_MAX_COLUMNS) * 3; // envelopeLength == ENVELOPE_MAX_COLUMNS -> out of bounds
@@ -157,27 +155,29 @@ TEST_F(InstrumentAtaFormatTest, AtaToInstrRejectsOutOfBoundsEnvelope) {
 
 TEST_F(InstrumentAtaFormatTest, AtaV0ToInstrDecodesOldFormat) {
     g_tracks4_8 = 4; // mono
-    unsigned char ata[32] = { 0 };
-    for (int i = 0; i < 8; i++)
-    {
+    unsigned char ata[32] = {0};
+    for (int i = 0; i < 8; i++) {
         ata[i] = i + 1; // note table 1..8
     }
-    ata[8] = 0x0A;  // ENV_LENGTH=1, TBL_LENGTH=2
-    ata[9] = 0x01;  // ENV_GOTO=0, TBL_GOTO=1
+    ata[8] = 0x0A; // ENV_LENGTH=1, TBL_LENGTH=2
+    ata[9] = 0x01; // ENV_GOTO=0, TBL_GOTO=1
     ata[10] = 0x45; // TBL_TYPE=0, TBL_MODE=1, TBL_SPEED=5
-    ata[11] = 9;    // VOL_FADEOUT
+    ata[11] = 9; // VOL_FADEOUT
     ata[12] = 0x33; // VOL_MIN=3, 15KHZ=1, POLY9=1
-    ata[13] = 6;    // DELAY
-    ata[14] = 2;    // VIBRATO
-    ata[15] = 11;   // FREQ_SHIFT
-    ata[16] = 0x37; ata[17] = 0x94; ata[18] = 0x5B; // envelope entry 0
-    ata[19] = 0x2C; ata[20] = 0x61; ata[21] = 0x8F; // envelope entry 1
+    ata[13] = 6; // DELAY
+    ata[14] = 2; // VIBRATO
+    ata[15] = 11; // FREQ_SHIFT
+    ata[16] = 0x37;
+    ata[17] = 0x94;
+    ata[18] = 0x5B; // envelope entry 0
+    ata[19] = 0x2C;
+    ata[20] = 0x61;
+    ata[21] = 0x8F; // envelope entry 1
 
     ASSERT_TRUE(instruments.AtaV0ToInstr(ata, kInstr));
     TInstrument* ai = instruments.GetInstrument(kInstr);
 
-    for (int i = 0; i < 8; i++)
-    {
+    for (int i = 0; i < 8; i++) {
         EXPECT_EQ(ai->noteTable[i], i + 1);
     }
     EXPECT_EQ(ai->parameters[PAR_ENV_LENGTH], 1);

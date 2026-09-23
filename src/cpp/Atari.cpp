@@ -9,7 +9,6 @@
 
 #include "Atari.h"
 
-
 #include "Tuning.h"
 
 #include "Global.h"
@@ -26,7 +25,6 @@ CAtari::CycleCount CAtari::GetFrameCycleCount(boolean ntsc) {
 
 CAtari::ClockFrequency CAtari::GetClockFrequency(boolean ntsc) {
     return ntsc ? FREQ_17_NTSC : FREQ_17_PAL;
-
 }
 
 CAtari::CAtari() {
@@ -49,8 +47,7 @@ void CAtari::DeInit() {
     C6502::DeInit();
 }
 
-void CAtari::ClearMemory()
-{
+void CAtari::ClearMemory() {
     memset(m_memory, 0, RAM_SIZE);
 }
 
@@ -82,10 +79,8 @@ CAtari::CycleCount CAtari::GetFrameCycleCount() const {
     return GetFrameCycleCount(IsNTSC());
 }
 
-void CAtari::Init(const bool ntsc)
-{
+void CAtari::Init(const bool ntsc) {
 
     m_ntsc = ntsc;
     g_Tuning.InitTuning(GetClockFrequency(), GetMemoryAt(RMT_FRQTABLES));
 }
-

@@ -3,9 +3,7 @@
 #include <filesystem>
 #include "Global.h"
 
-
 #include <map>
-
 
 static std::map<TrackerDriverVersion, CByteArray*> m_trackerDriverVersionBinary;
 
@@ -35,9 +33,7 @@ CByteArray* LoadResourceByteArray(const std::filesystem::path& relativePath, con
     return LoadByteArray(filePath);
 }
 
-
-bool CRmtAtariBinaries::GetTrackerDriverBinary(TrackerDriverVersion trackerDriverVersion, byte*& binary, WORD& size)
-{
+bool CRmtAtariBinaries::GetTrackerDriverBinary(TrackerDriverVersion trackerDriverVersion, byte*& binary, WORD& size) {
     binary = nullptr;
     size = 0;
 
@@ -45,8 +41,7 @@ bool CRmtAtariBinaries::GetTrackerDriverBinary(TrackerDriverVersion trackerDrive
     CByteArray* byteArray;
     if (byteArrayIt != m_trackerDriverVersionBinary.end()) {
         byteArray = (*byteArrayIt).second;
-    }
-    else {
+    } else {
 
         CString fileName;
         fileName.Format("rmt_driver_v%d.obx", (int)trackerDriverVersion);
@@ -54,7 +49,7 @@ bool CRmtAtariBinaries::GetTrackerDriverBinary(TrackerDriverVersion trackerDrive
         if (!byteArray) {
             return false;
         }
-        m_trackerDriverVersionBinary.insert({ trackerDriverVersion, byteArray });
+        m_trackerDriverVersionBinary.insert({trackerDriverVersion, byteArray});
     }
 
     binary = byteArray->GetData();

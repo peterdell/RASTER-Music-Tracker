@@ -10,9 +10,13 @@
 // binary, not just an untested dependency - so tests here never call
 // CAtari::Init()/DeInit()/JSR(), only the pure memory-buffer methods. These
 // stub bodies just need to exist for the linker.
-int C6502::Init(byte*) { return 0; }
-void C6502::DeInit() {}
-void C6502::JSR(C6502::Address&, C6502::Register&, C6502::Register&, C6502::Register&, C6502::CycleCount&) {}
+int C6502::Init(byte*) {
+	return 0;
+}
+void C6502::DeInit() {
+}
+void C6502::JSR(C6502::Address&, C6502::Register&, C6502::Register&, C6502::Register&, C6502::CycleCount&) {
+}
 
 // Real, default-constructed CTuning (cheap and safe - see TuningTests.cpp).
 // CAtari::Init(bool) calls g_Tuning.InitTuning(...), but tests never call

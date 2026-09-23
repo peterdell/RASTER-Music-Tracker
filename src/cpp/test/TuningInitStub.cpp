@@ -7,4 +7,5 @@
 // Tuning.cpp's two-arg InitTuning(clockFrequency, table_memory) overload still
 // references the no-arg one at link time, so this empty body satisfies the
 // linker without pulling in Global.h's dependency graph.
-void CTuning::InitTuning() {}
+void CTuning::InitTuning() {
+}
