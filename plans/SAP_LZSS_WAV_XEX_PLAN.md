@@ -93,17 +93,20 @@ the test project. 1 new test.
   now linked too; `ExportSAP_B_LZSS` moved into `SAPFileExporterCore.cpp`
   alongside `ExportSAP_R` (the now-empty `SAPFileExporter.cpp` deleted).
   1 new test - the first in this suite backed by a real on-disk file.
-- **`CSongExporter::ExportWAV` - stays deferred, confirmed genuinely
-  hazardous.** Delegates to `CWaveFileExporter::ExportWAV()`
-  (`WaveFileExporter.cpp`), which calls `pokey.GetSoundFormat()` and
-  `pokey.RenderSoundV2(...)` - real POKEY *audio synthesis*
-  (`CXPokey`/`PokeyRenderer.h`), not just register-value bookkeeping like
-  `CPokeyStream`. This is exactly the "real audio-hardware coupling"
-  category Batch 6 flagged for `TimerRoutine` (`CXPokey` holds a real
-  `LPDIRECTSOUNDBUFFER`) - a categorically deeper hazard than anything
-  else in this family, and it also opens/writes a real `.wav` file to
-  disk via `CWaveFile::OpenFile()`. Correctly identified as needing its
-  own investigation; not attempted here.
+- **`CSongExporter::ExportWAV` - DONE, see `plans/EXPORTWAV_PLAN.md`.**
+  The "genuinely hazardous" call here turned out to be only half right:
+  `ExportWAV` calls `CXPokey::RenderSoundV2()`, not the DirectSound-heavy
+  `RenderSound1_50()` - `RenderSoundV2()` only drives `CPokey`, whose
+  `GetSoundDriver()` defaults to `NONE` until `CPokey::InitSound()`
+  explicitly loads a POKEY DLL (never called in tests), so it safely
+  no-ops. Needed two more `*Core.cpp` splits (`Pokey.cpp`/`PokeyCore.cpp`,
+  `PokeyRenderer.cpp`/`PokeyRendererCore.cpp`) to link the safe halves
+  without the real `LoadLibrary()`/DirectSound calls, plus zero-initializing
+  `CXPokey`'s previously-uninitialized members (same `CTracks`/
+  `CInstruments` precedent). `CWaveFile::OpenFile()`'s real file write (the
+  first in this suite) needed `winmm.lib` linked into the test project -
+  no hardware or DLL dependency, since `mmioOpen`/`mmioCreateChunk` are
+  pure RIFF file I/O. 1 new test.
 - **`CSongExporter::ExportLZSS`/`ExportCompactLZSS` - stays deferred,
   different reason again.** Neither shows a dialog at all. Both write
   **multiple real files directly to disk**, with filenames derived from
@@ -147,13 +150,16 @@ the test project. 1 new test.
    static-init time to the repo's checked-in `rmt/` folder (see
    `test/AtariBinariesStub.cpp`), unlocking `ExportSAP_B_LZSS` and
    `ExportXEX_LZSS`.
-2. **`ExportWAV`**: stays deferred pending its own dedicated investigation
-   into `CXPokey`'s real audio-rendering hazard - same posture as
-   `TimerRoutine`/`ChangeTimer`/`ReInitSound`.
+2. ~~`ExportWAV`: stays deferred pending its own dedicated investigation
+   into `CXPokey`'s real audio-rendering hazard.~~ **Resolved**: see
+   `plans/EXPORTWAV_PLAN.md` - the hazard was narrower than assumed
+   (`RenderSoundV2()`, unlike `RenderSound1_50()`/`TimerRoutine`, never
+   touches DirectSound).
 3. **`ExportLZSS`/`ExportCompactLZSS`**: low priority given their real-file-
    write design and the "hacked up"/"currently unused?" self-assessment in
    their own comments; likely not worth pursuing without a specific reason.
 
 All targets from the user's explicit `ExportSAP_B_LZSS/ExportXEX_LZSS`
-directive are now complete. What remains in this family (`ExportWAV`,
-`ExportLZSS`, `ExportCompactLZSS`) is deliberately deferred per the above.
+directive are now complete, and `ExportWAV` was completed too (see
+`plans/EXPORTWAV_PLAN.md`). What remains in this family (`ExportLZSS`,
+`ExportCompactLZSS`) is deliberately deferred per the above.

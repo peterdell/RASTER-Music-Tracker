@@ -233,8 +233,10 @@
     <ClCompile Include="LZSSFile.cpp" />
     <ClCompile Include="Notes.cpp" />
     <ClCompile Include="Pokey.cpp" />
+    <ClCompile Include="PokeyCore.cpp" />
     <ClCompile Include="PokeyController.cpp" />
     <ClCompile Include="PokeyRenderer.cpp" />
+    <ClCompile Include="PokeyRendererCore.cpp" />
     <ClCompile Include="PokeyView.cpp" />
     <ClCompile Include="RmtCommandLineInfo.cpp" />
     <ClCompile Include="RmtExporter.cpp" />

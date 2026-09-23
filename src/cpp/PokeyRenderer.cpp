@@ -9,33 +9,18 @@
 #include "StdAfx.h"
 #include "Messages.h"
 
+// CXPokey's constructor/destructor and every method that never touches
+// DirectSound are implemented in PokeyRendererCore.cpp (only
+// InitSoundInternal()/InitSound()/ReInitSound()/RenderSound1_50() below
+// create/use a real LPDIRECTSOUND(BUFFER) - see plans/EXPORTWAV_PLAN.md).
+// g_lpds/g_lpdsbPrimary are defined there (shared with DeInitSound()).
+
 extern BOOL g_nohwsoundbuffer; // From Global.h
 extern BOOL volatile g_rmtroutine; // From Global.h
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
-static LPDIRECTSOUND g_lpds;
-static LPDIRECTSOUNDBUFFER g_lpdsbPrimary;
-
-int CXPokey::GetFrameRate(bool ntsc) {
-    // TODO: This is not the exacty framerate, so maybe that's why the frequencies are a little off in CPokey?
-    return ntsc ? 60 : 50;
-}
-
-int CXPokey::GetCyclesPerFrame(bool ntsc) {
-    return (int)(((float)CAtari::GetClockFrequency(ntsc)) / GetFrameRate(ntsc));
-}
-
-CXPokey::CXPokey() {
-    m_SoundBuffer = nullptr;
-}
-
-CXPokey::~CXPokey() {
-    DeInitSound();
-}
-
-const CPokey* CXPokey::GetPokey() const {
-    return &m_pokey;
-}
+extern LPDIRECTSOUND g_lpds;
+extern LPDIRECTSOUNDBUFFER g_lpdsbPrimary;
 
 BOOL CXPokey::InitSoundInternal(const bool ntsc, const bool stereo, const WORD channels, const DWORD samplesPerSec, const WORD bitsPerSample) {
 
@@ -133,56 +118,9 @@ BOOL CXPokey::InitSound(const bool ntsc, const bool stereo) {
     return InitSoundInternal(ntsc, stereo, 2, 44100, 8);
 }
 
-BOOL CXPokey::DeInitSound() {
-
-    m_pokey.DeInitSound();
-
-    if (m_SoundBuffer) {
-        m_SoundBuffer->Stop();
-        m_SoundBuffer->Release();
-    }
-    m_SoundBuffer = NULL;
-
-    if (g_lpdsbPrimary) {
-        g_lpdsbPrimary->Release();
-        g_lpdsbPrimary = NULL;
-    }
-
-    if (g_lpds) {
-        g_lpds->Release();
-        g_lpds = NULL;
-    }
-
-    return 1;
-}
-
 BOOL CXPokey::ReInitSound(const bool ntsc, const bool stereo) {
     DeInitSound();
     return InitSound(ntsc, stereo);
-}
-
-bool CXPokey::IsSoundDriverLoaded() const {
-    return m_pokey.IsSoundDriverLoaded();
-}
-
-CPokey::SoundDriver CXPokey::GetSoundDriver() const {
-    return m_pokey.GetSoundDriver();
-}
-
-const WAVEFORMATEX* CXPokey::GetSoundFormat() const {
-    return &m_SoundFormat;
-};
-
-WORD CXPokey::GetChannels() const {
-    return m_SoundFormat.nChannels;
-}
-
-int CXPokey::GetChunkSize() const {
-    return m_ChunkSize;
-}
-
-int CXPokey::GetLatencySize() const {
-    return (m_Latency * GetChunkSize());
 }
 
 BOOL CXPokey::RenderSound1_50(int instrspeed) {
@@ -290,56 +228,4 @@ BOOL CXPokey::RenderSound1_50(int instrspeed) {
     }
 
     return 0;
-}
-
-// Initial WAV recorder process
-// NOTE: This does NOT work with the Altirra plugin due to it hijacking the soundbuffer with its own thing...
-void CXPokey::RenderSoundV2(int instrspeed, BYTE* buffer, int& length) {
-    int rendersize = GetChunkSize();
-    int renderpartsize = 0;
-    int renderoffset = 0;
-
-    for (; instrspeed > 0; instrspeed--) {
-        g_AtariTrackerDriver->SetPokey();
-        CopyAtariMemoryToPokey();
-        renderpartsize = (rendersize / instrspeed) & 0xfffe;
-
-        switch (GetSoundDriver()) {
-        case CPokey::SoundDriver::SA_POKEY:
-            Pokey_Process(buffer + renderoffset, (unsigned short)renderpartsize);
-            rendersize -= renderpartsize;
-            renderoffset += renderpartsize;
-            break;
-        }
-    }
-
-    // Copy the actually generated sample data to buffer
-    length = renderoffset;
-}
-
-/// <summary>
-/// Transfer 9/18 Pokey registers values into the sound driver.
-/// Mono: D200-D208
-/// Stereo: D200-D208 and D210-D218
-/// </summary>
-void CXPokey::CopyAtariMemoryToPokey() {
-    // Write bytes 0-7. Write 0x00 if the channel is inactive.
-    for (int i = 0; i < 8; i++) { //
-        const auto channel = i / 2;
-        auto on = g_ChannelControl.IsChannelOn(channel);
-        auto b = on ? g_AtariTrackerDriver->GetAtari()->GetByteAt(0xd200 + i) : 0x00; // TODO: Have GetPOKEYRegister()
-        m_pokey.PutByte(i, b);
-        if (stereo) {
-            auto rightChannel = channel + 4;
-            auto on = g_ChannelControl.IsChannelOn(rightChannel);
-            b = on ? g_AtariTrackerDriver->GetAtari()->GetByteAt(0xd210 + i) : 0x00;
-            m_pokey.PutByte(i + 16, b);
-        }
-    }
-
-    // AUDCTL
-    m_pokey.PutByte(0x08, g_AtariTrackerDriver->GetAtari()->GetByteAt(0xd208));
-    if (stereo) {
-        m_pokey.PutByte(0x08, g_AtariTrackerDriver->GetAtari()->GetByteAt(0xd218));
-    }
 }

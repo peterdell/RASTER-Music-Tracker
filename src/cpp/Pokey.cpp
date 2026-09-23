@@ -7,49 +7,13 @@
 #include "StdAfx.h"
 #include "Messages.h"
 
-APokeySound_Initialize_PROC APokeySound_Initialize;
-APokeySound_PutByte_PROC APokeySound_PutByte;
-APokeySound_GetRandom_PROC APokeySound_GetRandom; // Unused?
-APokeySound_Generate_PROC APokeySound_Generate;
-APokeySound_About_PROC APokeySound_About;
-
-Pokey_Initialise_PROC Pokey_Initialise;
-Pokey_SoundInit_PROC Pokey_SoundInit;
-Pokey_Process_PROC Pokey_Process;
-Pokey_GetByte_PROC Pokey_GetByte; // Unused?
-Pokey_PutByte_PROC Pokey_PutByte;
-Pokey_About_PROC Pokey_About;
-
-CPokey::CPokey() {
-    m_soundDriver = NONE;
-    m_pokey_dll = NULL;
-
-    m_initialized = false;
-    m_ntsc = false;
-    m_stereo = false;
-}
-
-CPokey::~CPokey() {
-    DeInitSound();
-}
+// CPokey's constructor/destructor and pure bookkeeping methods are
+// implemented in PokeyCore.cpp (only InitSound()/InitPokeyDll() below
+// actually call LoadLibrary()/GetProcAddress() - a real DLL-loading hazard,
+// see plans/EXPORTWAV_PLAN.md).
 
 void CPokey::InitSound() {
     m_soundDriver = InitPokeyDll();
-}
-
-void CPokey::DeInitSound() {
-    m_soundDriver = NONE;
-    m_about = "No POKEY emulation loaded";
-
-    m_initialized = false;
-    m_ntsc = false;
-    m_stereo = false;
-
-    DeInitPokeyDll();
-}
-
-CString CPokey::GetAbout() const {
-    return m_about;
 }
 
 //TODO: Add a method for letting the user chose which plugin they would like to use instead of the current default/fallback setup
@@ -153,54 +117,5 @@ CPokey::SoundDriver CPokey::InitPokeyDll() {
     return NONE;
 }
 
-void CPokey::DeInitPokeyDll() {
-
-    if (m_pokey_dll) {
-        FreeLibrary(m_pokey_dll);
-        m_pokey_dll = NULL;
-    }
-}
-
-CPokey::SoundDriver CPokey::GetSoundDriver() const {
-    return m_soundDriver;
-}
-
-bool CPokey::IsSoundDriverLoaded() const {
-    return m_soundDriver != NONE;
-}
-
-void CPokey::InitPokeys(const bool ntsc, const bool stereo, const DWORD samplesPerSec) {
-
-    if (!m_initialized || m_ntsc != ntsc || m_stereo != stereo || m_samplesPerSec != samplesPerSec) {
-        switch (GetSoundDriver()) {
-        case CPokey::SoundDriver::APOKEYSND:
-            APokeySound_Initialize(stereo);
-
-            break;
-
-        case CPokey::SoundDriver::SA_POKEY:
-            // Currently cast to WORD, because no rates above 64kHz are supported.
-            Pokey_SoundInit(CAtari::GetClockFrequency(ntsc), (WORD)samplesPerSec, stereo ? 2 : 1);
-            break;
-        }
-
-        m_initialized = true;
-        m_ntsc = ntsc;
-        m_stereo = stereo;
-        m_samplesPerSec = samplesPerSec;
-    }
-}
-
-void CPokey::PutByte(const byte address, const byte value) {
-    switch (GetSoundDriver()) {
-    case CPokey::SoundDriver::APOKEYSND:
-
-        APokeySound_PutByte(address, value);
-        break;
-
-    case CPokey::SoundDriver::SA_POKEY:
-
-        Pokey_PutByte(address, value);
-        break;
-    }
-}
+// CPokey::DeInitPokeyDll()/GetSoundDriver()/IsSoundDriverLoaded()/
+// InitPokeys()/PutByte() are implemented in PokeyCore.cpp.

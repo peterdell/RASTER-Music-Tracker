@@ -32,26 +32,26 @@ public:
 private:
     CPokey m_pokey;
 
-    bool ntsc;
-    bool stereo;
+    bool ntsc = false;
+    bool stereo = false;
 
-    int m_Latency; // Chunks
+    int m_Latency = 0; // Chunks
 
-    int m_ChunkSize;
-    C6502::ClockFrequency m_ClockFrequency;
-    C6502::CycleCount m_CyclesPerFrame;
-    float m_CyclesPerSample;
+    int m_ChunkSize = 0;
+    C6502::ClockFrequency m_ClockFrequency = 0;
+    C6502::CycleCount m_CyclesPerFrame = 0;
+    float m_CyclesPerSample = 0;
 
-    DWORD m_LoadPos;
-    WAVEFORMATEX m_SoundFormat;
-    DWORD m_LoadSize;
-    LPDIRECTSOUNDBUFFER m_SoundBuffer;
-    DWORD dwSize1, dwSize2;
-    LPVOID Data1, Data2;
-    BYTE m_PlayBuffer[BUFFER_SIZE]; // Rendered part of the swing CHUNK_SIZE +- something (but it can be much bigger)
-    DWORD m_PlayCursor;
-    DWORD m_WriteCursor;
-    DWORD m_WriteCursorStart;
+    DWORD m_LoadPos = 0;
+    WAVEFORMATEX m_SoundFormat{};
+    DWORD m_LoadSize = 0;
+    LPDIRECTSOUNDBUFFER m_SoundBuffer = nullptr;
+    DWORD dwSize1 = 0, dwSize2 = 0;
+    LPVOID Data1 = nullptr, Data2 = nullptr;
+    BYTE m_PlayBuffer[BUFFER_SIZE] = {}; // Rendered part of the swing CHUNK_SIZE +- something (but it can be much bigger)
+    DWORD m_PlayCursor = 0;
+    DWORD m_WriteCursor = 0;
+    DWORD m_WriteCursorStart = 0;
 
     static int GetFrameRate(bool ntsc);
     static int GetCyclesPerFrame(bool ntsc);

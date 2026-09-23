@@ -10,8 +10,12 @@
 #include "SongContainer.h"
 #include "SAPFileExporter.h"
 #include "SongExporter.h"
+#include "WaveFileExporter.h"
+#include "AtariTrackerDriver.h"
 #include "Messages.h"
 #include <sstream>
+#include <fstream>
+#include <filesystem>
 
 extern int g_tracks4_8;
 extern CTracks g_Tracks;
@@ -21,6 +25,7 @@ extern CSong g_Song;
 extern TTuningSettings g_tuning;
 extern TTuningRatios g_tuningRatios;
 extern int g_rmtinstr[SONGTRACKS];
+extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
 namespace {
 // Writes one "binary block" in CAtariIO::LoadBinaryBlock()'s expected
@@ -1408,6 +1413,72 @@ TEST_F(SongEditingTest, ExportXEXLZSSLoadsTheRealResourceAndWritesReconstructedB
     // pipeline produced real data rather than silently failing.
     std::string data = out.str();
     EXPECT_GT(data.size(), (size_t)3500);
+}
+
+// --- CWaveFileExporter::ExportWAV ---
+// Unlike ExportSAP_R/ExportSAP_B_LZSS/ExportXEX_LZSS above, CWaveFile's
+// mmioOpen()-based file writing is hardcoded to a real on-disk path (there's
+// no std::ostream widening possible here) - this is this suite's first real
+// file *write*, to the OS temp directory, cleaned up at the end of the test.
+// Confirmed via full read of PokeyRenderer.cpp/WaveFile.cpp/
+// WaveFileExporter.cpp that this needs no real DirectSound/hardware/DLL
+// access: RenderSoundV2() (the method ExportWAV calls, unlike the
+// DirectSound-heavy RenderSound1_50()) only drives CPokey, whose
+// GetSoundDriver() defaults to NONE until CPokey::InitSound() explicitly
+// LoadLibrary()s a POKEY DLL - never called here - so every switch on
+// GetSoundDriver() in this path safely no-ops, same "no-op until explicitly
+// initialized" shape as g_SongTimer's m_timerRoutine guard. CWaveFile's own
+// mmioOpen/mmioCreateChunk/mmioWrite are pure RIFF file I/O, not hardware.
+// The one real fix needed: CXPokey's constructor left every member
+// (including the WAVEFORMATEX GetSoundFormat() returns) uninitialized -
+// harmless in production (InitSound() always runs first there) but
+// indeterminate for a freshly test-constructed CXPokey. Fixed by
+// zero-initializing every member in PokeyRenderer.h (same "just zero it"
+// treatment as CTracks::m_track/CInstruments::m_instr), rather than trying
+// to fabricate "realistic" values that production never actually reads
+// before InitSound() either way. See plans/EXPORTWAV_PLAN.md.
+//
+// The known Altirra-plugin interop bug (GitHub issue #10, referenced in
+// CXPokey::RenderSoundV2()'s own header comment) is unrelated to this test:
+// it's specific to a real POKEY DLL being hijacked by Altirra, and this
+// test never loads any POKEY DLL at all.
+
+TEST_F(SongEditingTest, ExportWAVWritesAValidRiffWaveHeaderWhenNoPokeyDriverIsLoaded) {
+    song.Stop(); // defensive - see the CSongContainer hazard note above
+
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 1;
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->len = 2;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 2;
+    (*song.GetSongGo())[1] = 0; // guarantees a fast loop, see above
+
+    CSongContainer container(song);
+
+    std::filesystem::path wavPath = std::filesystem::temp_directory_path() / "RmtTests_ExportWAV.wav";
+    CString filePath(wavPath.string().c_str());
+    CSongExport songExport(container, filePath);
+
+    std::ofstream ou(wavPath, std::ios::binary);
+    ASSERT_TRUE(ou.is_open());
+
+    CXPokey pokey; // freshly constructed - GetSoundDriver() == NONE, never calls InitSound()
+    ASSERT_TRUE(CWaveFileExporter::ExportWAV(songExport, ou, pokey, g_AtariTrackerDriver->GetAtari()->GetMemoryAt(0)));
+
+    std::ifstream check(wavPath, std::ios::binary);
+    ASSERT_TRUE(check.is_open());
+    char header[12];
+    check.read(header, sizeof(header));
+    EXPECT_EQ(memcmp(header, "RIFF", 4), 0);
+    EXPECT_EQ(memcmp(header + 8, "WAVE", 4), 0);
+    check.close();
+
+    std::filesystem::remove(wavPath);
 }
 
 // --- SongJump / SongUp / SongDown / SongSubsongPrev / SongSubsongNext ---

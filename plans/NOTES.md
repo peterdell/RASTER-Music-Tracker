@@ -2329,4 +2329,70 @@ build clean and all 123 tests pass.
         the real fix meant it was never actually needed).
       - Full solution rebuild (`Rmt.exe` + `RmtTests.exe`, Release|x64)
         confirmed 0 errors; 298 tests pass (up from 291, +7, 0
-        regressions). Not yet committed.
+        regressions). Committed (`fb40226`).
+- [x] Implemented `plans/EXPORTWAV_PLAN.md` (user: "Continue with
+      ExportWAV", the last remaining `ExportV2` Tier 2 family member).
+      Re-investigated from scratch rather than trusting
+      `plans/SAP_LZSS_WAV_XEX_PLAN.md`'s "genuinely hazardous, needs its
+      own investigation" note: `ExportWAV` calls `CXPokey::RenderSoundV2()`,
+      not the DirectSound-heavy `RenderSound1_50()` - `RenderSoundV2()`
+      only drives `CPokey`, whose `GetSoundDriver()` defaults to `NONE`
+      until `CPokey::InitSound()` explicitly `LoadLibrary()`s a POKEY DLL
+      (never called in tests), so every switch on it safely no-ops, same
+      shape as `CSongTimer`'s `m_timerRoutine` guard. `CWaveFile`'s
+      `mmioOpen`/`mmioCreateChunk`/etc. are pure RIFF file I/O, not
+      hardware - needs `winmm.lib` (a real production dependency), not
+      DirectSound.
+      - **Presented a proposed fix, then simplified it per user
+        feedback**: `CXPokey`'s constructor left every member
+        uninitialized (including the `WAVEFORMATEX` `GetSoundFormat()`
+        returns, and the `bool stereo` `CopyAtariMemoryToPokey()`
+        branches on). Initially proposed giving `m_SoundFormat`
+        "realistic" 44100Hz/8-bit/stereo defaults matching `InitSound()`'s
+        own hardcoded call; the user asked "wouldn't it suffice to
+        initialize all members of `CXPokey` to the initial/zero values?" -
+        simpler, matches the existing `CTracks::m_track`/
+        `CInstruments::m_instr` precedent exactly, and a degenerate
+        all-zero `WAVEFORMATEX` doesn't crash `mmioCreateChunk` (which
+        doesn't validate format sanity). Implemented that way instead:
+        default member initializers on every field in `PokeyRenderer.h`.
+      - **Two more `*Core.cpp` splits needed** to link `ExportWAV`'s safe
+        half without pulling in the real hazards, mirroring every prior
+        split in this effort: `Pokey.cpp`/`PokeyCore.cpp` (constructor/
+        destructor/bookkeeping methods + the 11 `APokeySound_*`/`Pokey_*`
+        function-pointer globals move to Core; only `InitSound()`/
+        `InitPokeyDll()` - the real `LoadLibrary()` calls - stay behind)
+        and `PokeyRenderer.cpp`/`PokeyRendererCore.cpp` (constructor/
+        destructor/`RenderSoundV2`/etc. move to Core, including
+        `g_lpds`/`g_lpdsbPrimary` - changed from file-`static` to plain
+        externs since both the Core destructor and the remainder's
+        `InitSoundInternal()` need them; only the actual DirectSound-
+        touching methods stay behind). Both new files added to
+        `Rmt.vcxproj` too, so production keeps 100% of the original
+        functionality across more files.
+      - Checked GitHub issue #10 ("Export as WAV does not work with
+        Altirra runtime libraries") before proceeding, since
+        `SongExporterTest.cpp` (a hand-run developer utility, not part of
+        the GoogleTest suite - hardcoded to the original author's own
+        desktop paths) has `WAV = false;` with a matching TODO comment.
+        Confirmed the known bug is specific to a real POKEY DLL being
+        hijacked by the Altirra emulator's own audio hook - unrelated to
+        and unaffected by this characterization, which never loads any
+        POKEY DLL at all.
+      - New test in `test/SongEditingTests.cpp`:
+        `ExportWAVWritesAValidRiffWaveHeaderWhenNoPokeyDriverIsLoaded` -
+        this suite's first real file *write* (as opposed to
+        `ExportSAP_B_LZSS`/`ExportXEX_LZSS`'s real file *reads*), since
+        `CWaveFile::OpenFile()`'s `mmioOpen()` is hardcoded to a real
+        on-disk path with no `std::ostream`-widening escape hatch like
+        the other exporters have. Written to the OS temp directory,
+        verified (`RIFF`/`WAVE` header bytes), then deleted.
+      - Verified incrementally with an explicit timeout given the
+        audio/file-I/O-adjacent hazard class (same caution as Batch 6's
+        `CSongTimer` verification): the new test alone first, then the
+        full suite - no hangs, no crashes.
+      - Full solution rebuild (`Rmt.exe` + `RmtTests.exe`, Release|x64)
+        confirmed 0 errors; 299 tests pass (up from 298, +1, 0
+        regressions). This closes out `plans/EXPORTV2_PLAN.md`'s Tier 2
+        family entirely except the deliberately-deferred, low-value
+        `ExportLZSS`/`ExportCompactLZSS`. Not yet committed.
