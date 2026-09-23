@@ -2395,4 +2395,47 @@ build clean and all 123 tests pass.
         confirmed 0 errors; 299 tests pass (up from 298, +1, 0
         regressions). This closes out `plans/EXPORTV2_PLAN.md`'s Tier 2
         family entirely except the deliberately-deferred, low-value
-        `ExportLZSS`/`ExportCompactLZSS`. Not yet committed.
+        `ExportLZSS`/`ExportCompactLZSS`. Committed (`2beb129`).
+- [x] Implemented `plans/EXPORTLZSS_PLAN.md` (user: "open
+      ExportLZSS/ExportCompactLZSS", the last two deliberately-deferred
+      items in the entire `ExportV2` family). Mechanical part: both
+      methods were already dialog-free, just stuck in `SongExporter.cpp`
+      alongside the real dialog-showing methods - moved both into the
+      already-linked `SongExporterCore.cpp` (same split already used for
+      `ExportXEX_LZSS`), needing only `#include <iomanip>` for `PADHEX`/
+      `PADDEC`'s `std::setfill`/`std::setw`.
+      - **Real finding that changed the test design mid-way**: tried
+        progressively more elaborate test songs (more songlines, higher
+        per-frame note/instrument/volume entropy, an explicit
+        intro-then-loop structure to make `GetThirdCountPoint()`
+        non-zero) trying to get `ExportLZSS`'s "> 16 compressed bytes"
+        guards to trigger - none worked, confirmed via a temporary
+        diagnostic print of `GetFirstCountPoint`/`GetSecondCountPoint`/
+        `GetThirdCountPoint` plus the LZSS compressor's own debug output
+        ("stream #0 is empty" on every attempt, regardless of song
+        content). Root cause: no test song's note/instrument content can
+        ever change the recorded `CPokeyStream` bytes, in this or any
+        other test in this suite - the actual "note -> POKEY register
+        write" translation happens inside the real RMT 6502 driver
+        routines, executed via `C6502::JSR()`, a no-op stub throughout
+        this entire project. Rewrote the test to characterize this
+        deterministic outcome directly (the caller's own path ends up
+        empty, `_INTRO.lzss`/`_LOOP.lzss` never get created) instead of
+        continuing to chase a byte count no test song here can produce -
+        removed the diagnostic print before finalizing.
+      - Also found a trivial test-writing mistake (not a production bug):
+        `ExportCompactLZSS`'s test initially searched its log output for
+        `"Index: 00"`, but `PADHEX` (`General.h`) prepends `"0x"`, so the
+        real text is `"Index: 0x00"`.
+      - Confirmed `ExportCompactLZSS`'s second `while` loop
+        (`// I don't know anymore, at this point...`) is genuinely dead
+        code (empty body, no side effects) by reading it directly - left
+        alone, out of scope.
+      - Verified incrementally with an explicit timeout given the
+        real-file-write hazard class (same posture as every prior test in
+        this family): both new tests alone first, then the full suite -
+        no hangs. Full solution rebuild (`Rmt.exe` + `RmtTests.exe`,
+        Release|x64) confirmed 0 errors; 301 tests pass (up from 299, +2,
+        0 regressions). This closes `plans/EXPORTV2_PLAN.md`'s Tier 2
+        family entirely - nothing from that scope remains deferred. Not
+        yet committed.

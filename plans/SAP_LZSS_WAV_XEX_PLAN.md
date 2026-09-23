@@ -107,15 +107,18 @@ the test project. 1 new test.
   first in this suite) needed `winmm.lib` linked into the test project -
   no hardware or DLL dependency, since `mmioOpen`/`mmioCreateChunk` are
   pure RIFF file I/O. 1 new test.
-- **`CSongExporter::ExportLZSS`/`ExportCompactLZSS` - stays deferred,
-  different reason again.** Neither shows a dialog at all. Both write
-  **multiple real files directly to disk**, with filenames derived from
-  `songExport.GetFilePath()` (e.g. `fn + "_INTRO.lzss"`) - ignoring the
-  `ou` parameter for most of their output. The code's own comments call
-  this "a hacked up method that was added only out of necessity... I
-  refuse to touch RMT2LZSS ever again", and `ExportCompactLZSS` is marked
-  "Currently unused?" - low-value, real-file-write targets, likely not
-  worth the same testing investment as the rest of this family.
+- **`CSongExporter::ExportLZSS`/`ExportCompactLZSS` - DONE, see
+  `plans/EXPORTLZSS_PLAN.md`.** Neither shows a dialog at all - the only
+  reason they weren't linked yet was living in `SongExporter.cpp` alongside
+  the real dialog-showing methods; moved to `SongExporterCore.cpp` instead,
+  same split already used for `ExportXEX_LZSS`. Both write real files to
+  disk (`_INTRO.lzss`/`_LOOP.lzss`/a `.txt` log). Real finding: no test
+  song can make the recorded `CPokeyStream` bytes vary at all, since the
+  actual note-to-POKEY-register translation only happens inside the real
+  RMT 6502 driver, which `C6502::JSR()`'s no-op stub never executes - so
+  `ExportLZSS`'s "> 16 compressed bytes" thresholds are deterministically
+  never crossed in this test environment, characterized as such rather
+  than fought. 2 new tests.
 - **`CSongExporter::ExportXEX_LZSS`** (the `CXEXFile`-overload doing the
   real work) - **DONE**. Called `DumpSongToPokeyStream()` directly (not via
   `CSongContainer` - it builds its own `CPokeyStream` per subtune), safe
@@ -155,11 +158,14 @@ the test project. 1 new test.
    `plans/EXPORTWAV_PLAN.md` - the hazard was narrower than assumed
    (`RenderSoundV2()`, unlike `RenderSound1_50()`/`TimerRoutine`, never
    touches DirectSound).
-3. **`ExportLZSS`/`ExportCompactLZSS`**: low priority given their real-file-
+3. ~~`ExportLZSS`/`ExportCompactLZSS`: low priority given their real-file-
    write design and the "hacked up"/"currently unused?" self-assessment in
-   their own comments; likely not worth pursuing without a specific reason.
+   their own comments; likely not worth pursuing without a specific
+   reason.~~ **Resolved**: opened at the user's explicit request once
+   nothing else remained - see `plans/EXPORTLZSS_PLAN.md`.
 
 All targets from the user's explicit `ExportSAP_B_LZSS/ExportXEX_LZSS`
-directive are now complete, and `ExportWAV` was completed too (see
-`plans/EXPORTWAV_PLAN.md`). What remains in this family (`ExportLZSS`,
-`ExportCompactLZSS`) is deliberately deferred per the above.
+directive are now complete, and so is the rest of this family
+(`ExportWAV` - see `plans/EXPORTWAV_PLAN.md`; `ExportLZSS`/
+`ExportCompactLZSS` - see `plans/EXPORTLZSS_PLAN.md`). Nothing from
+`plans/EXPORTV2_PLAN.md`'s Tier 2 scope remains deferred.

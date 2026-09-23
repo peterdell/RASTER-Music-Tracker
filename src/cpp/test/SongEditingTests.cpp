@@ -1481,6 +1481,123 @@ TEST_F(SongEditingTest, ExportWAVWritesAValidRiffWaveHeaderWhenNoPokeyDriverIsLo
     std::filesystem::remove(wavPath);
 }
 
+// --- CSongExporter::ExportLZSS / ExportCompactLZSS ---
+// Both take no dialog input and only need songExport.GetPokeyStream()
+// (already established safe) plus CCompressLzss::LZSS_SAP() (already
+// linked/tested - LzssTests.cpp) - no new hazard category. Both write
+// real files (like ExportWAV above), with paths derived from
+// songExport.GetFilePath() by stripping its last 5 characters (assumed to
+// be ".lzss" - the test paths below are long enough that this can't go
+// negative).
+//
+// Real finding while writing these tests: no amount of note/instrument
+// variation in the test song can make the recorded PokeyStream bytes vary,
+// in this or any test in this suite - the actual "note -> POKEY register
+// write" translation happens inside the real RMT 6502 driver routines,
+// executed via C6502::JSR(), which is a no-op stub throughout this whole
+// project (see AtariStub.cpp) precisely because running real 6502 code
+// isn't something this suite does. So the PokeyStream CCompressLzss
+// compresses here is always the same near-silent, highly repetitive
+// pattern regardless of song content, and ExportLZSS's own "> 16
+// compressed bytes" thresholds are - deterministically, not by chance -
+// never crossed by anything this test environment can produce. Confirmed
+// by trying several increasingly elaborate/high-entropy song shapes before
+// concluding this, not assumed from the first attempt.
+
+TEST_F(SongEditingTest, ExportLZSSNeverCrossesTheCompressedSizeThresholdInThisTestEnvironment) {
+    song.Stop(); // defensive - see the CSongContainer hazard note above
+
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 1;
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->len = 2;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 2;
+    (*song.GetSongGo())[1] = 0; // guarantees a fast loop, see above
+
+    CSongContainer container(song);
+
+    std::filesystem::path lzssPath = std::filesystem::temp_directory_path() / "RmtTests_ExportLZSS.lzss";
+    CString filePath(lzssPath.string().c_str());
+    CSongExport songExport(container, filePath);
+
+    std::ofstream ou(lzssPath, std::ios::binary);
+    ASSERT_TRUE(ou.is_open());
+
+    CSongExporter exporter;
+    ASSERT_TRUE(exporter.ExportLZSS(songExport, ou));
+
+    // The "full" section is written to the caller's own already-open path
+    // (ExportLZSS never opens a separate "_FULL.lzss" file - see its own
+    // comment), so that file always exists, but stays empty here since its
+    // compressed size never exceeds the "> 16 bytes" guard.
+    EXPECT_EQ(std::filesystem::file_size(lzssPath), (uintmax_t)0);
+
+    // "_INTRO.lzss"/"_LOOP.lzss" are only ever opened at all once their own
+    // sections cross the same threshold - neither does here, so neither
+    // file gets created.
+    std::filesystem::path introPath = std::filesystem::temp_directory_path() / "RmtTests_ExportLZSS_INTRO.lzss";
+    std::filesystem::path loopPath = std::filesystem::temp_directory_path() / "RmtTests_ExportLZSS_LOOP.lzss";
+    EXPECT_FALSE(std::filesystem::exists(introPath));
+    EXPECT_FALSE(std::filesystem::exists(loopPath));
+
+    std::filesystem::remove(lzssPath);
+}
+
+TEST_F(SongEditingTest, ExportCompactLZSSWritesADuplicateSonglineLogFile) {
+    song.Stop(); // defensive - see the CSongContainer hazard note above
+
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 3;
+    info.instrspeed = 1;
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+    (*song.GetSong())[1][0] = 6;
+    g_Tracks.GetTrack(5)->len = 2;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 2;
+    g_Tracks.GetTrack(6)->len = 2;
+    g_Tracks.GetTrack(6)->note[0] = 20;
+    g_Tracks.GetTrack(6)->instr[0] = 3;
+    (*song.GetSongGo())[2] = 0; // loop back to songline 0 after both play
+
+    CSongContainer container(song);
+
+    std::filesystem::path lzssPath = std::filesystem::temp_directory_path() / "RmtTests_ExportCompactLZSS.lzss";
+    CString filePath(lzssPath.string().c_str());
+    CSongExport songExport(container, filePath);
+
+    std::ofstream ou(lzssPath, std::ios::binary);
+    ASSERT_TRUE(ou.is_open());
+
+    CSongExporter exporter;
+    ASSERT_TRUE(exporter.ExportCompactLZSS(songExport, ou));
+
+    // Unlike ExportLZSS, the real output is a single ".txt" log file (not
+    // the ".lzss" path passed in, which ExportCompactLZSS immediately
+    // closes and never writes to again).
+    std::filesystem::path logPath = std::filesystem::temp_directory_path() / "RmtTests_ExportCompactLZSS.txt";
+    ASSERT_TRUE(std::filesystem::exists(logPath));
+
+    std::ifstream log(logPath);
+    std::string content((std::istreambuf_iterator<char>(log)), std::istreambuf_iterator<char>());
+    log.close();
+
+    // PADHEX (General.h) prepends "0x" to the hex value.
+    EXPECT_NE(content.find("Index: 0x00"), std::string::npos);
+    EXPECT_NE(content.find("Index: 0x01"), std::string::npos);
+    EXPECT_NE(content.find("Offset (real):"), std::string::npos);
+    EXPECT_NE(content.find("Bytes (LZ16 compressed):"), std::string::npos);
+
+    std::filesystem::remove(logPath);
+}
+
 // --- SongJump / SongUp / SongDown / SongSubsongPrev / SongSubsongNext ---
 // All conditionally call Stop()/Play() only inside "if (m_play &&
 // m_followplay)", never taken here (m_play defaults to PLAY_STOP).
