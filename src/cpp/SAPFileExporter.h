@@ -3,8 +3,7 @@
 #include "SongExport.h"
 #include "SAPFile.h"
 
-class CSAPFileExporter
-{
+class CSAPFileExporter {
 
 public:
     // Both take std::ostream& rather than std::ofstream& - their one real
@@ -15,6 +14,4 @@ public:
     static bool ExportSAP_B_LZSS(CSongExport& songExport, CSAPFile& sapFile, std::ostream& ou);
 
     static bool ExportSAP_R(CSongExport& songExport, CSAPFile& sapFile, std::ostream& ou);
-
 };
-

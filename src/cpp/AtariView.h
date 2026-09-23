@@ -3,8 +3,7 @@
 #include "Atari.h"
 #include "Canvas.h"
 
-class CAtariView
-{
+class CAtariView {
 public:
     CAtariView(CCanvas& canvas);
     void Draw(const CAtari& atari);
@@ -14,4 +13,3 @@ private:
 
     const char* GetAtariMemoryHexString(const byte* memory, const MemoryAddress address, const MemorySize length);
 };
-

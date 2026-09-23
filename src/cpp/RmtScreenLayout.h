@@ -22,5 +22,4 @@ public:
     static constexpr int INFO_Y_LINE_4 = INFO_Y + 3 * CHARACTER_HEIGHT;
     static constexpr int INFO_Y_LINE_5 = INFO_Y + 4 * CHARACTER_HEIGHT;
     static constexpr int INFO_Y_LINE_6 = INFO_Y + 5 * CHARACTER_HEIGHT;
-
 };

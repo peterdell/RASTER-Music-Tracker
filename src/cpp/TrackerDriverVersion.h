@@ -4,8 +4,7 @@
 // These binaries were designed for being ran within the emulated Atari setup created by Raster.
 // Most of these were not official versions of the RMT driver, but patches with few changes.
 //
-enum class TrackerDriverVersion : int
-{
+enum class TrackerDriverVersion : int {
     NONE = 0,
     UNPATCHED = 1,
     UNPATCHED_WITH_TUNING = 2,

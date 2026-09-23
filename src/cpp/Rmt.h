@@ -1,7 +1,7 @@
 // Rmt.h : main header file for the RMT application
 //
 // The following style guides are applied in the source:
-// 
+//
 // - Interface names start with "I", example "ISong" and are in camel case.
 // - Class names start with "C", example "CSong" and are in camel case.
 // - Structure type names start with "T", "TViewState" and are in camel case.
@@ -20,20 +20,19 @@
 #error include 'stdafx.h' before including this file for PCH
 #endif
 
-#include "resource.h"       // main symbols
+#include "resource.h" // main symbols
 
 /////////////////////////////////////////////////////////////////////////////
 // CRmtApp:
 //
 
-class CRmtApp : public CWinApp
-{
+class CRmtApp : public CWinApp {
 public:
     CRmtApp();
 
     // Overrides
-        // ClassWizard generated virtual function overrides
-        //{{AFX_VIRTUAL(CRmtApp)
+    // ClassWizard generated virtual function overrides
+    //{{AFX_VIRTUAL(CRmtApp)
 public:
     virtual BOOL InitInstance();
     //}}AFX_VIRTUAL
@@ -54,9 +53,7 @@ public:
 
 private:
     bool helpOpened;
-
 };
-
 
 /////////////////////////////////////////////////////////////////////////////
 

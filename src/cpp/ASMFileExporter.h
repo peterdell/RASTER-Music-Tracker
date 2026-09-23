@@ -8,8 +8,7 @@
 // letting the actual export work (a thin wrapper around the already-pure
 // BuildRelocatableAsm()) run independently of the dialog that normally
 // supplies these values.
-struct TRelocatableAsmExportParams
-{
+struct TRelocatableAsmExportParams {
     CString strAsmLabelForStartOfSong;
     BOOL wantRelocatableInstruments;
     BOOL wantRelocatableTracks;
@@ -23,11 +22,9 @@ struct TRelocatableAsmExportParams
     BOOL noStartingSongLine;
 };
 
-class CASMFileExporter
-{
+class CASMFileExporter {
 
 public:
-
     /// <summary>
     /// Export the RMT module as assembler
     /// </summary>
@@ -58,7 +55,6 @@ public:
     // final stream write that live outside of it.
     static bool ExportAsRelocatableAsmForRmtPlayerApply(CSong& song, std::ostream& ou, TExportDescription* exportDescStripped, TExportDescription* exportDescWithSFX, const TRelocatableAsmExportParams& params);
 
-
     // TODO: Used by export dialog
     void static ComposeRMTFEATstring(const CSong& song, CString& dest, const char* filename, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags, BOOL sfx, BOOL gvf, BOOL nos, AssemblerFormat assemblerFormat);
 
@@ -74,7 +70,6 @@ public:
         BOOL gvf,
         BOOL nos,
         bool bWantSizeInfoOnly);
+
 private:
-
 };
-

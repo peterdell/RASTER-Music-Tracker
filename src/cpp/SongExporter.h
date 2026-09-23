@@ -7,8 +7,7 @@
 
 extern CString g_rmtmsxtext;
 
-class CXEXFile
-{
+class CXEXFile {
 public:
     static const size_t ATARI_TEXT_SIZE = 5 * 40;
     char songname[SONG_NAME_MAX_LEN + 1];
@@ -36,7 +35,6 @@ public:
     /// <param name="filename">Filename to output additional files, required for splitting the Intro and Loop sections of a song</param>
     /// <returns></returns>
     bool ExportLZSS(CSongExport& songExport, std::ofstream& ou);
-
 
     /// <summary>
     /// Generate a SAP-R data stream, compress it and optimise the compression further by removing redundancy.
@@ -79,7 +77,6 @@ public:
     // stream (see test/SongEditingTests.cpp).
     bool ExportXEX_LZSS(CSongExport& songExport, CXEXFile xexFile, std::ostream& ou);
 
-
 private:
     static void StrToAtariVideo(char* txt, int count);
 
@@ -87,4 +84,3 @@ private:
     static int BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigned char* dst);
     static bool ShowXEXExportDialog(const CSong& song, CXEXFile& xexFile);
 };
-

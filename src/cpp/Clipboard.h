@@ -3,8 +3,7 @@
 
 #include "Tracks.h"
 
-class CTrackClipboard
-{
+class CTrackClipboard {
 public:
     CTrackClipboard();
     void Clear();
@@ -21,7 +20,7 @@ public:
     int BlockRestoreFromBackup();
 
     void GetFromTo(int& from, int& to) const;
-    int	GetCol() const { return m_selcol; };
+    int GetCol() const { return m_selcol; };
 
     void BlockNoteTransposition(int instr, int addnote);
     void BlockInstrumentChange(int instr, int addinstr);
@@ -34,7 +33,7 @@ public:
     void BlockInitBase(int track);
 
     // block
-    int m_selcol;					//0-7
+    int m_selcol; //0-7
     int m_seltrack;
     int m_selsongline;
     int m_selfrom;
@@ -42,11 +41,11 @@ public:
     TTrack m_track;
 
     //block changes
-    BOOL m_all;						//TRUE = changes all / FALSE = changes only for the same instrument as the current one
+    BOOL m_all; //TRUE = changes all / FALSE = changes only for the same instrument as the current one
     int m_instrbase;
     int m_changenote;
-    int	m_changeinstr;
-    int	m_changevolume;
+    int m_changeinstr;
+    int m_changevolume;
     TTrack m_trackbase;
 
     TTrack m_trackbackup;
@@ -57,4 +56,3 @@ public:
 private:
     void ClearTrack();
 };
-

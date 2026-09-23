@@ -15,8 +15,7 @@
 
 constexpr int TOOLBAR_ZOOM = 2;
 
-class CRmtView : public CView
-{
+class CRmtView : public CView {
 protected: // create from serialization only
     CRmtView();
     DECLARE_DYNCREATE(CRmtView)
@@ -41,13 +40,13 @@ public:
     void Resize();
 
     CCanvasXY* m_canvasXY;
-    int  m_width;
-    int  m_height;
+    int m_width;
+    int m_height;
 
     CBitmap m_mem_bitmap;
-    CDC		m_mem_dc;
+    CDC m_mem_dc;
     CBitmap m_gfx_bitmap;
-    CDC		m_gfx_dc;
+    CDC m_gfx_dc;
 
     CPen* m_pen1;
     CPen* m_penorig;
@@ -60,7 +59,7 @@ public:
     HCURSOR m_cursorSetPosition;
 
     UINT_PTR m_timerDisplay;
-    const BYTE m_timerDisplayTick[3] = { 16, 16, 15 };
+    const BYTE m_timerDisplayTick[3] = {16, 16, 15};
 
 private:
     void StoreMouseInformation(int px, int py, int mousebutt, short wheelzDelta);
@@ -68,22 +67,22 @@ private:
 
     // Operations
 public:
-
     // Overrides
-        // ClassWizard generated virtual function overrides
-        //{{AFX_VIRTUAL(CRmtView)
+    // ClassWizard generated virtual function overrides
+    //{{AFX_VIRTUAL(CRmtView)
 public:
-    virtual void OnDraw(CDC* pDC);  // overridden to draw this view
-    virtual void OnSize(UINT nType, int cx, int cy);	//allows proper window resize and adjust things related to it
+    virtual void OnDraw(CDC* pDC); // overridden to draw this view
+    virtual void OnSize(UINT nType, int cx, int cy); //allows proper window resize and adjust things related to it
     virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
     virtual void OnInitialUpdate();
+
 protected:
     virtual BOOL OnPreparePrinting(CPrintInfo* pInfo);
     virtual void OnBeginPrinting(CDC* pDC, CPrintInfo* pInfo);
     virtual void OnEndPrinting(CDC* pDC, CPrintInfo* pInfo);
     //}}AFX_VIRTUAL
 
-// Implementation
+    // Implementation
 public:
     virtual ~CRmtView();
 #ifdef _DEBUG
@@ -92,7 +91,6 @@ public:
 #endif
 
 protected:
-
     // Generated message map functions
 protected:
     //{{AFX_MSG(CRmtView)
@@ -159,7 +157,6 @@ protected:
     afx_msg void OnFileReopen();
     afx_msg void OnFileSave();
     afx_msg void OnFileSaveAs();
-
 
     // Menu Instruments
     afx_msg void OnInstrAllinstrumentscleanup();
@@ -294,8 +291,6 @@ protected:
     afx_msg void OnUpdateSongSongswitch4_8(CCmdUI* pCmdUI);
     afx_msg void OnUpdateSongStop(CCmdUI* pCmdUI);
 
-
-
     // Menu View
     afx_msg void OnViewBlocktoolbar();
     afx_msg void OnViewInstrumentactivehelp();
@@ -347,14 +342,12 @@ protected:
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
 public:
-
     afx_msg void OnSongIncreasePatternStepSize();
     afx_msg void OnSongDecreasePatternStepSize();
 };
 
-#ifndef _DEBUG  // debug version in RmtView.cpp
-inline CRmtDoc* CRmtView::GetDocument()
-{
+#ifndef _DEBUG // debug version in RmtView.cpp
+inline CRmtDoc* CRmtView::GetDocument() {
     return (CRmtDoc*)m_pDocument;
 }
 #endif

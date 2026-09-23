@@ -3,8 +3,7 @@
 #include "StdAfx.h"
 #include <mmsystem.h>
 
-class CWaveFile
-{
+class CWaveFile {
 public:
 	bool OpenFile(LPTSTR Filename, int SampleRate, int SampleSize, int Channels);
 	void CloseFile();

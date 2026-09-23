@@ -12,7 +12,7 @@ public:
         this->SetItemData(i, (DWORD_PTR)value);
     }
 
-    void SetSelectedItem(const  T value) {
+    void SetSelectedItem(const T value) {
         for (int i = 0; i < this->GetCount(); i++) {
             if (this->GetItemData(i) == (DWORD_PTR)value) {
                 this->SetCurSel(i);
@@ -32,6 +32,3 @@ public:
         return defaultItem;
     }
 };
-
-
-

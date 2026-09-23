@@ -4,8 +4,7 @@
 #include "PokeyStream.h"
 
 // Song with lazily created dump of the Pokey stream.
-class CSongContainer
-{
+class CSongContainer {
 public:
     CSongContainer(CSong& song);
     ~CSongContainer();
@@ -19,4 +18,3 @@ private:
     CPokeyStream m_pokeyStream;
     bool m_pokeyStreamReady;
 };
-

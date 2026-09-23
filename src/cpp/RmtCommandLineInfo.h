@@ -2,9 +2,7 @@
 
 #include "StdAfx.h"
 
-
-class CRmtCommandLineInfo : public CCommandLineInfo
-{
+class CRmtCommandLineInfo : public CCommandLineInfo {
 public:
     CRmtCommandLineInfo(void);
     virtual ~CRmtCommandLineInfo(void);
@@ -36,4 +34,3 @@ private:
     static CString GetSwitchName(const CString& switchString);
     static CString GetSwitchValue(const CString& switchString);
 };
-

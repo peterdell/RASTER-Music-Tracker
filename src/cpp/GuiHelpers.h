@@ -9,7 +9,6 @@
 #define SCREENUPDATE g_screenupdate = TRUE
 #define NO_SCREENUPDATE g_screenupdate = FALSE
 
-
 class DisableEventSection {
 public:
     DisableEventSection();
@@ -32,5 +31,3 @@ extern BOOL RefreshScreen(int frameskip = 0);
 extern int EditText(int vk, int shift, int control, char* txt, int& cur, int max);
 
 extern BOOL IsHoveredXY(int x, int y, int xLength, int yLength);
-
-

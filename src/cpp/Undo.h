@@ -19,22 +19,18 @@ enum UndoType : int {
     UETYPE_INFODATA = 69
 };
 
-struct TUndoEvent
-{
-    Part part;		// the part in which the editing is performed
-    int* cursor;	// cursor
-    UndoType type;	// type of changed data
-    int* pos;		// position of changed data
-    void* data;		// change data
-    char separator;	// = 0 accumulate continuous changes, = 1 completed change, = -1 more events for one step
+struct TUndoEvent {
+    Part part; // the part in which the editing is performed
+    int* cursor; // cursor
+    UndoType type; // type of changed data
+    int* pos; // position of changed data
+    void* data; // change data
+    char separator; // = 0 accumulate continuous changes, = 1 completed change, = -1 more events for one step
 };
-
-
 
 //-----------------------------------------------------
 
-class CUndo
-{
+class CUndo {
 public:
     CUndo();
     ~CUndo();
@@ -44,13 +40,11 @@ public:
 
     void DropLast();
 
-
     int GetUndoSteps() const;
     BOOL Undo();
 
     int GetRedoSteps() const;
     BOOL Redo();
-
 
     BOOL PosIsEqual(int* pos1, int* pos2, UndoType type);
 
@@ -61,10 +55,9 @@ public:
     void ChangeInfo(int paridx, UndoType type, char separator = 0);
 
 private:
-
     // Undo operation (one can consume up to 3 records)
     static constexpr int UNDOSTEPS = 100;
-    static constexpr int MAXUNDO = (UNDOSTEPS * 3 + 8);	// 302	// 2 extra separating gap
+    static constexpr int MAXUNDO = (UNDOSTEPS * 3 + 8); // 302	// 2 extra separating gap
 
     static constexpr int POSGROUPTYPE0_63SIZE = 2;
     static constexpr int POSGROUPTYPE64_127SIZE = 1;

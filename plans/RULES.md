@@ -90,6 +90,25 @@ belongs to the wrong block):
   its own line below) - these need a manual one-line fix moving the brace
   before the comment (`if (cond) { //comment`); `TuningTables.cpp` had 2
   such cases.
+- **`.h` files are in scope too**, applied the same way as `.cpp` files:
+  each header is passed to `clang-tidy`/`clang-format` directly (not
+  reached transitively via a `.cpp`'s `#include`s), with `/FIStdAfx.h`
+  (plus `/FIMemory.h`/`/FIostream` for the couple of headers that assume
+  those without including them directly) force-included so a header can
+  be checked standalone despite relying on the project's
+  precompiled-header include order. `AllowShortFunctionsOnASingleLine:
+  InlineOnly` is also set for headers specifically - unlike `.cpp` files,
+  headers have many one-line inline accessor methods
+  (`BOOL Undo() { return g_Undo.Undo(); };`) that are already compliant
+  with the brace rule as written and must stay on one line; without this,
+  clang-format force-expands every one of them across 3 lines, which has
+  nothing to do with brace placement. `AccessModifierOffset: -4` is also
+  needed for headers (not `.cpp` files, which have no class bodies) so
+  `public:`/`private:`/`protected:` stay at column 0 instead of LLVM's
+  default half-indent. Auto-generated files (`resource.h`) are excluded
+  outright - they have no braces to fix and clang-format's other
+  normalizations (mainly comment-column dealignment) would otherwise
+  produce a large, pointless diff.
 - **Known gap**: 8 pure-UI/MFC files (`MainFrm.cpp`, `OptionsDialog.cpp`,
   `Rmt.cpp`, `RmtView.cpp`, `TuningDialog.cpp`, `effectsdlg.cpp`,
   `exportdlgs.cpp`, `importdlgs.cpp`) couldn't be processed by the

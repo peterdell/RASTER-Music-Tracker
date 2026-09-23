@@ -1,6 +1,5 @@
 #pragma once
-class CRuntimeException
-{
+class CRuntimeException {
 
 public:
     CRuntimeException(const CString& file, const long line, const CString function, const CString& message) {
@@ -13,4 +12,7 @@ public:
     }
 };
 
-#define ThrowRuntimeException(message) { CRuntimeException exception(CString(__FILE__), __LINE__, CString(__FUNCTION__),  message); }
+#define ThrowRuntimeException(message)                                                            \
+    {                                                                                             \
+        CRuntimeException exception(CString(__FILE__), __LINE__, CString(__FUNCTION__), message); \
+    }

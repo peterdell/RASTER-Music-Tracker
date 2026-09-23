@@ -7,10 +7,7 @@ class CAtari;
 class CPokeyController {
 
 public:
-
-
     CPokeyController(CAtari* atari);
-
 
     int GetChannelIndex() const;
     double GetDivisor() const;
@@ -18,7 +15,6 @@ public:
     BOOL OnKeyDown(int vk, int shift, int control);
 
 private:
-
     void OnNextChannel();
     void OnPreviousChannel();
 
@@ -96,6 +92,4 @@ private:
     void Decrease(const int address, const int step);
     void Increase(const int address, const int step);
     void Eor(const int address, const byte mask);
-
 };
-

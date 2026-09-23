@@ -8,9 +8,8 @@
 
 class VUPlayer {
 public:
-
     static constexpr MemoryAddress LOOP_FLAG = LZSSP_LOOP_COUNT; // VUPlayer's address for the Loop flag
-    static constexpr MemoryAddress STEREO_FLAG = LZSSP_IS_STEREO_FLAG; // VUPlayer's address for the Stereo flag 
+    static constexpr MemoryAddress STEREO_FLAG = LZSSP_IS_STEREO_FLAG; // VUPlayer's address for the Stereo flag
     static constexpr MemoryAddress SONG_SPEED = LZSSP_PLAYER_SONG_SPEED; // VUPlayer's address for setting the song speed
     static constexpr MemoryAddress DO_PLAY_ADDR = LZSSP_DO_PLAY; // VUPlayer's address for Play, for SAP exports bypassing the mainloop code
     static constexpr MemoryAddress RTS_NOP = LZSSP_VU_PLAYER_RTS_NOP; // VUPlayer's address for JMP loop being patched to RTS NOP NOP with the SAP format

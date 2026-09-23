@@ -4,8 +4,7 @@
 
 #include "TrackerDriverVersion.h"
 
-class CRmtAtariBinaries
-{
+class CRmtAtariBinaries {
 
 public:
     // TODO Return CByteArray*
@@ -13,4 +12,3 @@ public:
     static bool GetTrackerDriverBinary(TrackerDriverVersion trackerDriverVersion, byte*& binary, WORD& size);
     static bool GetVUPlayerBinary(byte*& binary, WORD& size);
 };
-

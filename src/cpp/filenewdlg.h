@@ -11,30 +11,27 @@
 /////////////////////////////////////////////////////////////////////////////
 // CFileNewDlg dialog
 
-class CFileNewDlg : public CDialog
-{
-// Construction
+class CFileNewDlg : public CDialog {
+	// Construction
 public:
-	CFileNewDlg(CWnd* pParent = NULL);   // standard constructor
+	CFileNewDlg(CWnd* pParent = NULL); // standard constructor
 
-// Dialog Data
+	// Dialog Data
 	//{{AFX_DATA(CFileNewDlg)
 	enum { IDD = IDD_FILE_NEW };
-	int		m_maxTrackLength;			// How many notes/beats per track 1 - 256
-	int		m_comboMonoOrStereo;		// 0 = mono, 1 = stereo
+	int m_maxTrackLength; // How many notes/beats per track 1 - 256
+	int m_comboMonoOrStereo; // 0 = mono, 1 = stereo
 	//}}AFX_DATA
 
-
-// Overrides
+	// Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CFileNewDlg)
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX); // DDX/DDV support
 	//}}AFX_VIRTUAL
 
-// Implementation
+	// Implementation
 protected:
-
 	// Generated message map functions
 	//{{AFX_MSG(CFileNewDlg)
 	virtual void OnOK();
@@ -45,33 +42,30 @@ protected:
 /////////////////////////////////////////////////////////////////////////////
 // CChangeMaxtracklenDlg dialog
 
-class CChangeMaxtracklenDlg : public CDialog
-{
-// Construction
+class CChangeMaxtracklenDlg : public CDialog {
+	// Construction
 public:
-	CChangeMaxtracklenDlg(CWnd* pParent = NULL);   // standard constructor
+	CChangeMaxtracklenDlg(CWnd* pParent = NULL); // standard constructor
 
-// Dialog Data
+	// Dialog Data
 	//{{AFX_DATA(CChangeMaxtracklenDlg)
 	enum { IDD = IDD_CHANGEMAXTRACKLEN };
-	CString	m_info;
-	int		m_maxtracklen;
+	CString m_info;
+	int m_maxtracklen;
 	//}}AFX_DATA
 
-
-// Overrides
+	// Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CChangeMaxtracklenDlg)
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX); // DDX/DDV support
 	//}}AFX_VIRTUAL
 
-// Implementation
+	// Implementation
 protected:
-
 	// Generated message map functions
 	//{{AFX_MSG(CChangeMaxtracklenDlg)
-		// NOTE: the ClassWizard will add member functions here
+	// NOTE: the ClassWizard will add member functions here
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

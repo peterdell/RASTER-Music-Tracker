@@ -32,8 +32,13 @@ extern void SendInformationMessage(const char* title, const char* message);
 // SetTestQuestionAnswer() below - rather than a fixed default, so code
 // paths gated on the user's choice (e.g. "are you sure?" prompts) can be
 // characterized on every branch.
-enum class MessageButtons { YesNo, YesNoCancel, OkCancel };
-enum class MessageAnswer { Yes, No, Ok, Cancel };
+enum class MessageButtons { YesNo,
+							YesNoCancel,
+							OkCancel };
+enum class MessageAnswer { Yes,
+						   No,
+						   Ok,
+						   Cancel };
 extern MessageAnswer SendQuestionMessage(const char* title, const char* message, MessageButtons buttons);
 
 // Test-only hook: sets the answer SendQuestionMessage() returns whenever no

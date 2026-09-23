@@ -3,8 +3,7 @@
 #include "Song.h"
 #include "StdAfx.h"
 
-class CRmtExporter
-{
+class CRmtExporter {
 
 public:
     // ExportAsRMT() takes std::ostream& rather than std::ofstream& - its one
@@ -18,4 +17,3 @@ public:
     // Takes std::ostream& for the same reason as ExportAsRMT() above.
     static bool ExportAsStrippedRMTApply(CSong& song, std::ostream& ou, int targetAddrOfModule, BOOL sfxSupport);
 };
-

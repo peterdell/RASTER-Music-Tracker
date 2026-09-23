@@ -6,10 +6,8 @@
 #include <list>
 #include <map>
 
-
 class CAcceleratorTable {
 public:
-
     CAcceleratorTable();
     ~CAcceleratorTable();
 
@@ -46,7 +44,6 @@ public:
 
     INT_PTR GetMenuLevel() const;
 
-
     UINT GetID() const;
 
     // Get text including accelerator and shortchut.
@@ -59,16 +56,13 @@ private:
     MenuPath menuTextPath;
     UINT id;
     CString text;
-
 };
 
-class CCommands
-{
+class CCommands {
 
 public:
     CCommands();
     void Analyze();
-
 
     class CActionInfo {
     public:
@@ -91,15 +85,12 @@ public:
         CString description;
         const CMenuEntry* menuEntry;
         CString toolBar;
-
-
     };
 
     typedef std::map<UINT, CActionInfo*> ActionInfoMap;
     typedef std::list<CActionInfo*> ActionInfoList;
 
 private:
-
     CAcceleratorTable m_acceleratorTable;
     ActionInfoMap m_actionInfoMap;
 
@@ -114,6 +105,4 @@ private:
 
     void AnalyzeToolBar(const CString& namne, const CToolBar& toolBar);
     void AnalyzeToolBar(const UINT id, const CString& name);
-
 };
-

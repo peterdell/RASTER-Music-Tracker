@@ -9,11 +9,8 @@
 #include "Song.h"
 #include "Tuning.h"
 
-class CPokeyView
-{
+class CPokeyView {
 public:
-
-
     CPokeyView(CCanvas& canvas);
 
     void Draw(const CSong& m_song, const CTuning& tuning, const bool explorerMode, const CPokeyController& pokeyController, const CAtari& atari);
@@ -21,4 +18,3 @@ public:
 private:
     CCanvas* canvas;
 };
-

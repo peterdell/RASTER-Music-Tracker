@@ -1,7 +1,7 @@
 #pragma once
 
 #include "StdAfx.h"
-#include<vector>
+#include <vector>
 
 class FileDialogParameters {
 
@@ -25,10 +25,7 @@ public:
 
 protected:
     virtual std::vector<CString> GetExtensionArray() { return {}; }
-
-
 };
-
 
 // File open/save dialog format selections
 class FILE_LOADSAVE : public FileDialogParameters {
@@ -37,19 +34,17 @@ public:
     static constexpr FilterIndex TXT = 2;
     static constexpr FilterIndex RMW = 3;
 
-
     CString GetFilters() {
-        return  "RMT song file (*.rmt)|*.rmt|"\
-            "TXT song file(*.txt)|*.txt|"\
-            "RMW song work file(*.rmw)|*.rmw|"\
-            "|";
+        return "RMT song file (*.rmt)|*.rmt|"
+               "TXT song file(*.txt)|*.txt|"
+               "RMW song work file(*.rmw)|*.rmw|"
+               "|";
     }
-
 
 protected:
     std::vector<CString> GetExtensionArray() {
 
-        return { ".rmt", ".txt", ".rmw" };
+        return {".rmt", ".txt", ".rmw"};
     }
 };
 
@@ -61,23 +56,21 @@ public:
     static constexpr FilterIndex TMC = 2;
 
     CString GetFilters() {
-        return   "ProTracker Modules (*.mod)|*.mod|"\
-            "TMC Song Files (*.tmc, *.tm8)|*.tmc; *.tm8|"\
-            "|";
+        return "ProTracker Modules (*.mod)|*.mod|"
+               "TMC Song Files (*.tmc, *.tm8)|*.tmc; *.tm8|"
+               "|";
     }
-
 
 protected:
     std::vector<CString> GetExtensionArray() {
 
-        return { ".mod", ".tmc; .tm8" }; // TODO Dangerous, two extension in one entry
+        return {".mod", ".tmc; .tm8"}; // TODO Dangerous, two extension in one entry
     }
 };
 
 // ----------------------------------------------------------------------------
 // File export dialog format selections
 class FILE_EXPORT : public FileDialogParameters {
-
 
 public:
     static constexpr int STRIPPED_RMT = 1;
@@ -86,33 +79,27 @@ public:
     static constexpr int LZSS = 4;
     static constexpr int SAP = 5;
     static constexpr int XEX = 6;
-    static constexpr int RELOC_ASM= 7;
+    static constexpr int RELOC_ASM = 7;
     static constexpr int FILTER_IDX_WAV = 8;
 
     CString GetFilters() {
-        return 		"RMT stripped song file (*.rmt)|*.rmt|" \
-            "ASM simple notation source (*.asm)|*.asm|" \
-            "SAP-R data stream (*.sapr)|*.sapr|" \
-            "Compressed SAP-R data stream (*.lzss)|*.lzss|" \
-            "SAP file + LZSS driver (*.sap)|*.sap|" \
-            "XEX Atari executable + LZSS driver (*.xex)|*.xex|" \
-            "Relocatable ASM for RMTPlayer (*.asm)|*.asm|" \
-            "WAV audio file (*.wav)|*.wav|" \
-            "|";
+        return "RMT stripped song file (*.rmt)|*.rmt|"
+               "ASM simple notation source (*.asm)|*.asm|"
+               "SAP-R data stream (*.sapr)|*.sapr|"
+               "Compressed SAP-R data stream (*.lzss)|*.lzss|"
+               "SAP file + LZSS driver (*.sap)|*.sap|"
+               "XEX Atari executable + LZSS driver (*.xex)|*.xex|"
+               "Relocatable ASM for RMTPlayer (*.asm)|*.asm|"
+               "WAV audio file (*.wav)|*.wav|"
+               "|";
     }
-
 
 protected:
     std::vector<CString> GetExtensionArray() {
 
-        return { ".rmt",".asm",".sapr",".lzss",".sap",".xex",".asm",".wav" };
+        return {".rmt", ".asm", ".sapr", ".lzss", ".sap", ".xex", ".asm", ".wav"};
     }
-
 };
 
-
-class SongIO
-{
-
+class SongIO {
 };
-

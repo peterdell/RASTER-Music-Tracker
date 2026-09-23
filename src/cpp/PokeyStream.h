@@ -9,11 +9,9 @@ class CAtariTrackerDriver;
 /// This happens during quick-play.
 /// These values can then be exported by various paths: SAP-R, with LZSS etc
 /// </summary>
-class CPokeyStream
-{
+class CPokeyStream {
 public:
-    typedef enum
-    {
+    typedef enum {
         STOP = 0,
         RECORD = 1,
         WRITE = 2,
@@ -58,26 +56,24 @@ public:
     void FinishedRecording();
 
 private:
-    STREAM_STATE m_recordState;		// What state is the recorder in?
+    STREAM_STATE m_recordState; // What state is the recorder in?
     CAtariTrackerDriver* m_AtariTrackerDriver;
 
-    unsigned char* m_StreamBuffer;	// Ptr to the buffer to hold the Pokey values
-    int m_BufferSize;				// What size if the m_StreamBuffer currently
+    unsigned char* m_StreamBuffer; // Ptr to the buffer to hold the Pokey values
+    int m_BufferSize; // What size if the m_StreamBuffer currently
 
     int m_FrameSize;
-    int m_FrameCounter;				// How many Pokey frames have been recorded?
+    int m_FrameCounter; // How many Pokey frames have been recorded?
 
-    int m_SongLoopedCounter;		// How may times has the song been looped?
+    int m_SongLoopedCounter; // How may times has the song been looped?
 
-    int m_SonglineCounter;			// How many songlines were played?
+    int m_SonglineCounter; // How many songlines were played?
 
-    int m_PlayCount[256];			// Keeping track of loop points
-    int m_FramesPerSongline[256];	// Keeping track of frames per songline
-    int m_OffsetPerSongline[256];	// Keeping track of index offset per songline
+    int m_PlayCount[256]; // Keeping track of loop points
+    int m_FramesPerSongline[256]; // Keeping track of frames per songline
+    int m_OffsetPerSongline[256]; // Keeping track of index offset per songline
 
-    int m_FirstCountPoint;			// How many frames until we hit the first loop point
-    int m_SecondCountPoint;			// How many frames until we hit the second loop point
-    int m_ThirdCountPoint;			// How many frames between the first and second loop point
-
+    int m_FirstCountPoint; // How many frames until we hit the first loop point
+    int m_SecondCountPoint; // How many frames until we hit the second loop point
+    int m_ThirdCountPoint; // How many frames between the first and second loop point
 };
-

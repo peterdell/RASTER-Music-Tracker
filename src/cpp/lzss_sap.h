@@ -15,21 +15,18 @@
 
 #include "StdAfx.h"
 
-
 static constexpr int REGISTERS = 9;
 
 // Struct for LZ optimal parsing
-struct lzop
-{
-    const uint8_t* data;                        // The data to compress
-    int size;                                   // Data size
-    int* bits;                                  // Number of bits needed to code from position
-    int* mlen;                                  // Best match length at position (0 == no match);
-    int* mpos;                                  // Best match offset at position
+struct lzop {
+    const uint8_t* data; // The data to compress
+    int size; // Data size
+    int* bits; // Number of bits needed to code from position
+    int* mlen; // Best match length at position (0 == no match);
+    int* mpos; // Best match offset at position
 };
 
-struct bf
-{
+struct bf {
     int len;
     uint8_t buf[128 * 1024];
     int bnum;
@@ -39,46 +36,49 @@ struct bf
     unsigned char* out;
 };
 
-
 // ----------------------------------------------------------------------------
-// SAP-R optimisations pattern, for optimal data compression to LZSS 
+// SAP-R optimisations pattern, for optimal data compression to LZSS
 // This is a set of combinations that may or may not provide better compression ratios
-// Results vary wildly between any given stream of bytes, due to many variables at play 
+// Results vary wildly between any given stream of bytes, due to many variables at play
 // Bruteforcing each pattern is more or less a requirement for optimal results
 // Ideally, the resulting compressed data should be as small as possible
 // If several patterns gave identical results, the first optimal pattern will be used
-// 
+//
 enum class SAPROptimization : int {
-    NONE, AUDC, AUDCTL, AUDF, AUDC_AUDF, AUDCTL_AUDC, AUDCTL_AUDF, ALL
+    NONE,
+    AUDC,
+    AUDCTL,
+    AUDF,
+    AUDC_AUDF,
+    AUDCTL_AUDC,
+    AUDCTL_AUDF,
+    ALL
 
 };
 
-
-class CLzss
-{
+class CLzss {
 public:
     CLzss();
 
 public:
-    int bits_moff;                              // Number of bits used for OFFSET
-    int bits_mlen;                              // Number of bits used for MATCH
-    int min_mlen;                               // Minimum match length
-    int fmt_literal_first;                      // Always include first literal in the output
-    int fmt_pos_start_zero;                     // Match positions start at 0, else start at max
-    int* stat_len;                              // Statistics
+    int bits_moff; // Number of bits used for OFFSET
+    int bits_mlen; // Number of bits used for MATCH
+    int min_mlen; // Minimum match length
+    int fmt_literal_first; // Always include first literal in the output
+    int fmt_pos_start_zero; // Match positions start at 0, else start at max
+    int* stat_len; // Statistics
     int* stat_off;
 
-
-    int bits_literal() { return (1 + 8); }                      // Number of bits for encoding a literal
+    int bits_literal() { return (1 + 8); } // Number of bits for encoding a literal
     int bits_match() {
-        return  (1 + bits_moff + bits_mlen);
+        return (1 + bits_moff + bits_mlen);
     } // Bits for encoding a match
     int max_mlen() {
-        return  (min_mlen + (1 << bits_mlen) - 1);
+        return (min_mlen + (1 << bits_mlen) - 1);
     } // Maximum match length
     int max_off() {
-        return  (1 << bits_moff);
-    }  // Maximum offset
+        return (1 << bits_moff);
+    } // Maximum offset
 
     void init(struct bf* x);
     void bflush(struct bf* x);
@@ -96,8 +96,7 @@ public:
     int lzop_encode(struct bf* b, const struct lzop* lz, int pos, int lpos);
 };
 
-class CCompressLzss
-{
+class CCompressLzss {
 public:
     CCompressLzss();
     int LZSS_SAP(const byte* src, const size_t srclen, unsigned char* dst, SAPROptimization optimisation = SAPROptimization::AUDC);

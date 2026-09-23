@@ -5,7 +5,6 @@
 
 class CCanvasXY {
 public:
-
     static CDC* g_gfx_dc;
 
     CCanvasXY();
@@ -34,12 +33,8 @@ public:
     void TextMiniXY(const char* txt, int x, int y, TextMiniColor color = TextMiniColor::GRAY);
     void IconMiniXY(const int icon, int x, int y);
 
-
 private:
     CDC* mem_dc;
 
     void BitBltText(int x, int y, int nWidth, int nHeight, int xSrc, int ySrc);
 };
-
-
-

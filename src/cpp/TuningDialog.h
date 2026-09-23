@@ -1,15 +1,13 @@
 #pragma once
 
-
 #include "resource.h"
 #include "TuningTypes.h"
 
 // TuningDlg dialog
-class TuningDlg : public CDialog
-{
+class TuningDlg : public CDialog {
     // Construction
 public:
-    TuningDlg(CWnd* pParent = NULL);   // standard constructor
+    TuningDlg(CWnd* pParent = NULL); // standard constructor
 
     // Dialog Data
     enum { IDD = IDD_TUNING };
@@ -25,7 +23,7 @@ private:
     BOOL m_test;
 
 protected:
-    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+    virtual void DoDataExchange(CDataExchange* pDX); // DDX/DDV support
 
     // backup values loaded during initialisation, which can then be retrieved in case the dialog was canceled
     TTuningSettings m_tuningSettingsBackup;

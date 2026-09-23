@@ -9,7 +9,7 @@
 
 #include "C6502.h"
 
-#include "tracker_obx.h"				// The ASM generated C header file
+#include "tracker_obx.h" // The ASM generated C header file
 
 // bass16bit low byte, bass 0C, bass 0E, clean tones 0A and 0,2,4,8, bass16bit hi byte, this might require different addresses? What is this even used for anyway?
 static constexpr MemoryAddress RMT_FRQTABLES = RMTPLAYR_PAGE_DISTORTION_2;
@@ -27,9 +27,7 @@ static constexpr MemoryAddress RMT_ATA_INSTROFF = RMTPLAYR_STOPINSTRUMENT;
 // immediately after RMT_ATA_INSTROFF, there is some bytes left unused, these will be used as plaintext data to display the RMT driver version used
 static constexpr MemoryAddress RMT_ATA_DRIVERVERSION = RMTPLAYR_DRIVERVERSION;
 
-
 class CAtari {
-
 
 public:
     static constexpr size_t MEMORY_SIZE = 0x10000;
@@ -44,12 +42,10 @@ public:
 
     static ClockFrequency GetClockFrequency(boolean ntsc);
 
-
     // The maximum clock count for the entire screen in PAL (default) and NTSC region
     typedef int CycleCount;
 
     static CycleCount GetFrameCycleCount(boolean ntsc);
-
 
     CAtari();
     ~CAtari();
@@ -71,7 +67,6 @@ public:
     void JSR(C6502::Address& adr, C6502::Register& a, C6502::Register& x, C6502::Register& y, C6502::CycleCount& cycles);
 
 private:
-
     byte m_memory[MEMORY_SIZE];
 
     // Default-initialized so IsNTSC()/GetClockFrequency()/GetFrameCycleCount()
@@ -79,5 +74,4 @@ private:
     // got FALSE for free from static zero-initialization). Only Init(bool)
     // sets this otherwise.
     BOOL m_ntsc = FALSE;
-
 };

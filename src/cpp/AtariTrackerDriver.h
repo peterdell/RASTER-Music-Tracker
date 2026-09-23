@@ -23,8 +23,4 @@ public:
 
 private:
     CAtari* m_atari;
-
 };
-
-
-

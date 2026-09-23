@@ -15,8 +15,7 @@ class CPokeyController;
 
 class CSongUI;
 
-class CSong
-{
+class CSong {
 public:
     friend CASMFileExporter; // JAC! TODO Remove
     friend CSongUI;
@@ -97,9 +96,9 @@ public:
     void SetUECursor(Part part, int* cursor);
     BOOL UECursorIsEqual(int* cursor1, int* cursor2, Part part);
     BOOL Undo() { return g_Undo.Undo(); };
-    int	 UndoGetUndoSteps() { return g_Undo.GetUndoSteps(); };
+    int UndoGetUndoSteps() { return g_Undo.GetUndoSteps(); };
     BOOL Redo() { return g_Undo.Redo(); };
-    int  UndoGetRedoSteps() { return g_Undo.GetRedoSteps(); };
+    int UndoGetRedoSteps() { return g_Undo.GetRedoSteps(); };
 
     BOOL SongKey(int vk, int shift, int control);
     BOOL SongCursorGoto(CPoint point);
@@ -137,11 +136,39 @@ public:
     BOOL SongPutnewemptyunusedtrack();
     BOOL SongMaketracksduplicate();
 
-    BOOL OctaveUp() { if (m_octave < 4) { m_octave++; return 1; } else return 0; };
-    BOOL OctaveDown() { if (m_octave > 0) { m_octave--; return 1; } else return 0; };
+    BOOL OctaveUp() {
+        if (m_octave < 4) {
+            m_octave++;
+            return 1;
+        } else {
+            return 0;
+        }
+    };
+    BOOL OctaveDown() {
+        if (m_octave > 0) {
+            m_octave--;
+            return 1;
+        } else {
+            return 0;
+        }
+    };
 
-    BOOL VolumeUp() { if (m_volume < MAXVOLUME) { m_volume++; return 1; } else return 0; };
-    BOOL VolumeDown() { if (m_volume > 0) { m_volume--; return 1; } else return 0; };
+    BOOL VolumeUp() {
+        if (m_volume < MAXVOLUME) {
+            m_volume++;
+            return 1;
+        } else {
+            return 0;
+        }
+    };
+    BOOL VolumeDown() {
+        if (m_volume > 0) {
+            m_volume--;
+            return 1;
+        } else {
+            return 0;
+        }
+    };
 
     void ClearBookmark() { m_bookmark.songline = m_bookmark.trackline = m_bookmark.speed = -1; };
     BOOL IsBookmark() { return (m_bookmark.speed > 0 && m_bookmark.trackline < g_Tracks.GetMaxTrackLength()); };
@@ -155,8 +182,16 @@ public:
     BOOL PlayVBI();
 
     BOOL PlayPressedTonesInit();
-    BOOL SetPlayPressedTonesTNIV(int t, int n, int i, int v) { m_playptnote[t] = n; m_playptinstr[t] = i; m_playptvolume[t] = v; return 1; }
-    BOOL SetPlayPressedTonesV(int t, int v) { m_playptvolume[t] = v; return 1; };
+    BOOL SetPlayPressedTonesTNIV(int t, int n, int i, int v) {
+        m_playptnote[t] = n;
+        m_playptinstr[t] = i;
+        m_playptvolume[t] = v;
+        return 1;
+    }
+    BOOL SetPlayPressedTonesV(int t, int v) {
+        m_playptvolume[t] = v;
+        return 1;
+    };
     BOOL SetPlayPressedTonesSilence();
     BOOL PlayPressedTones();
 
@@ -227,7 +262,6 @@ public:
 
     void DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, int songline, int trackline);
 
-
     bool TestBeforeFileSave();
     int GetSubsongParts(CString& resultstr) const;
 
@@ -289,8 +323,8 @@ public:
     CString GetFilename() const { return m_filename; };
     SongIOType GetIOType() const { return m_ioType; };
 
-    int(*GetSong())[SONGLEN][SONGTRACKS]{ return &m_song; };
-    int(*GetSongGo())[SONGLEN] { return &m_songgo; };
+    int (*GetSong()) [SONGLEN][SONGTRACKS] { return &m_song; };
+    int (*GetSongGo()) [SONGLEN] { return &m_songgo; };
     TBookmark* GetBookmark() { return &m_bookmark; };
 
     PlayMode GetPlayMode() const { return m_play; };
@@ -298,14 +332,25 @@ public:
     BOOL GetFollowPlayMode() const { return m_followplay; };
     void SetFollowPlayMode(BOOL follow) { m_followplay = follow; };
 
-    void GetSongInfoPars(TInfo* info) { memcpy(info->songname, m_songname, SONG_NAME_MAX_LEN); info->speed = m_speed; info->mainspeed = m_mainSpeed; info->instrspeed = m_instrumentSpeed; info->songnamecur = m_songnamecur; };
-    void SetSongInfoPars(TInfo* info) { memcpy(m_songname, info->songname, SONG_NAME_MAX_LEN); m_speed = info->speed; m_mainSpeed = info->mainspeed; m_instrumentSpeed = info->instrspeed; m_songnamecur = info->songnamecur; };
+    void GetSongInfoPars(TInfo* info) {
+        memcpy(info->songname, m_songname, SONG_NAME_MAX_LEN);
+        info->speed = m_speed;
+        info->mainspeed = m_mainSpeed;
+        info->instrspeed = m_instrumentSpeed;
+        info->songnamecur = m_songnamecur;
+    };
+    void SetSongInfoPars(TInfo* info) {
+        memcpy(m_songname, info->songname, SONG_NAME_MAX_LEN);
+        m_speed = info->speed;
+        m_mainSpeed = info->mainspeed;
+        m_instrumentSpeed = info->instrspeed;
+        m_songnamecur = info->songnamecur;
+    };
 
     BOOL IsValidSongline(int songline) const { return songline >= 0 && songline < SONGLEN; };
     BOOL IsSongGo(int songline) const { return IsValidSongline(songline) ? m_songgo[songline] >= 0 : 0; };
 
     void SongJump(int lines);
-
 
     void BLOCKSETBEGIN();
     void BLOCKSETEND();
@@ -323,18 +368,18 @@ private:
     // out-of-bounds read, and m_pokeyStream is a pointer dereferenced by
     // SongPlayNextLine() whenever it's non-null.
     int m_song[SONGLEN][SONGTRACKS] = {};
-    int m_songgo[SONGLEN] = {};					// If >= 0, then GO applies
+    int m_songgo[SONGLEN] = {}; // If >= 0, then GO applies
 
-    CPokeyStream* volatile m_pokeyStream = nullptr;       // NULL or the stream to which we are currently recording
+    CPokeyStream* volatile m_pokeyStream = nullptr; // NULL or the stream to which we are currently recording
     BOOL volatile m_followplay = FALSE;
     PlayMode volatile m_play = PLAY_STOP;
     int m_songactiveline = 0;
-    int volatile m_songplayline = 0;				// Which line of the song is currently being played
+    int volatile m_songplayline = 0; // Which line of the song is currently being played
 
     int m_trackactiveline = 0;
-    int volatile m_trackplayline = 0;				// Which line of a track is currenyly being played
-    int m_trackactivecol = 0;						// 0-7
-    int m_trackactivecur = 0;						// 0-2
+    int volatile m_trackplayline = 0; // Which line of a track is currenyly being played
+    int m_trackactivecol = 0; // 0-7
+    int m_trackactivecur = 0; // 0-2
 
     int m_trackplayblockstart = 0;
     int m_trackplayblockend = 0;
@@ -343,7 +388,7 @@ private:
     int m_volume = 0;
     int m_octave = 0;
 
-    //MIDI input variables, used for tests through MIDI CH15 
+    //MIDI input variables, used for tests through MIDI CH15
     int m_mod_wheel = 0;
     int m_vol_slider = 0;
     int m_heldkeys = 0;
@@ -351,18 +396,18 @@ private:
     BOOL m_ch_offset = 0;
 
     //POKEY EXPLORER variables, used for tests involving pitch calculations and sound debugging displayed on screen
-public:// TODO
+public: // TODO
     CPokeyController* m_PokeyController;
-private:
 
-    EditArea m_infoact = EditArea::NAME;					// Which part of the info area is active for editing: 0 = name,
+private:
+    EditArea m_infoact = EditArea::NAME; // Which part of the info area is active for editing: 0 = name,
     char m_songname[SONG_NAME_MAX_LEN + 1] = {};
     BOOL m_ntsc = FALSE;
     int m_songnamecur = 0;
 
     TBookmark m_bookmark = {};
 
-    double m_avgspeed[8] = { 0 };		// Use for calculating average BPM
+    double m_avgspeed[8] = {0}; // Use for calculating average BPM
 
     int volatile m_mainSpeed = 0;
     int volatile m_speed = 0;
@@ -383,13 +428,12 @@ private:
     int m_songgoclipboard = 0;
 
     bool volatile m_timerRoutineProcessed = false;
-    const BYTE m_timerRoutineTick[3] = { 17, 17, 16 };
+    const BYTE m_timerRoutineTick[3] = {17, 17, 16};
 
     CString m_filename;
     SongIOType m_ioType = SongIOType::NONE;
-    SongIOType m_lastExportIOType = SongIOType::NONE;      // Which data format was used to export a file the last time?
+    SongIOType m_lastExportIOType = SongIOType::NONE; // Which data format was used to export a file the last time?
 
     int m_TracksOrderChange_songlinefrom = 0; //is defined as a member variable to keep in use
-    int m_TracksOrderChange_songlineto = 0;	  //the last values used remain
+    int m_TracksOrderChange_songlineto = 0; //the last values used remain
 };
-

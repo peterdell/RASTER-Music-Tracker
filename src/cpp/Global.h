@@ -29,7 +29,6 @@ extern int g_scaling_percentage;
 
 extern int g_notesperoctave;
 
-
 extern TTuningSettings g_tuning;
 extern TTuningRatios g_tuningRatios;
 extern int g_tracks4_8; // TODO Move out
@@ -45,61 +44,56 @@ extern CString g_about6502;
 extern CAtari g_Atari;
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
-extern BOOL g_changes;	//have there been any changes in the module?
+extern BOOL g_changes; //have there been any changes in the module?
 
 extern int g_RmtHasFocus;
 extern BOOL g_shiftkey;
 extern BOOL g_controlkey;
-extern BOOL g_altkey;	//unfinished implementation, doesn't work yet for some reason
+extern BOOL g_altkey; //unfinished implementation, doesn't work yet for some reason
 
 extern BOOL volatile g_screenupdate;
 extern BOOL volatile g_rmtroutine;
 
-
-
-extern EditMode volatile g_prove;		// Edit notes or test notes without editing
+extern EditMode volatile g_prove; // Edit notes or test notes without editing
 extern bool IsEditMode(const EditMode editMode = EditMode::EDIT_MODE);
 extern bool IsProveMode();
-extern bool IsSpecialProveMode();       // MIDI or Pokey Explorer mode?
+extern bool IsSpecialProveMode(); // MIDI or Pokey Explorer mode?
 extern void SetEditMode(const EditMode editMode);
 extern void SwitchEditMode(const EditMode targetEditMode, const bool stereo);
 
+extern BOOL volatile g_respectvolume; // Does not change the volume if it is already there
 
+extern WORD g_rmtstripped_adr_module; //address for export RMT stripped file
+extern BOOL g_rmtstripped_sfx; //sfx offshoot RMT stripped file
+extern BOOL g_rmtstripped_gvf; //gvs GlobalVolumeFade for feat
+extern BOOL g_rmtstripped_nos; //nos NoStartingSongline for feat
 
-extern BOOL volatile g_respectvolume;	// Does not change the volume if it is already there
-
-extern WORD g_rmtstripped_adr_module;	//address for export RMT stripped file
-extern BOOL g_rmtstripped_sfx;			//sfx offshoot RMT stripped file
-extern BOOL g_rmtstripped_gvf;			//gvs GlobalVolumeFade for feat
-extern BOOL g_rmtstripped_nos;			//nos NoStartingSongline for feat
-
-extern Part last_activepart;		    //if equal to g_activepart, no block clear necessary
-extern Part last_active_ti;			    //if equal to g_active_ti, no screen clear necessary
+extern Part last_activepart; //if equal to g_activepart, no block clear necessary
+extern Part last_active_ti; //if equal to g_active_ti, no screen clear necessary
 extern uint64_t last_ms;
 extern uint64_t last_sec;
 extern int real_fps;
 extern double last_fps;
 extern double avg_fps[120];
 
-extern Part g_activepart;			    // 0 info, 1 edittracks, 2 editinstruments, 3 song
-extern Part g_active_ti;			    // 1 tracks, 2 instrs
+extern Part g_activepart; // 0 info, 1 edittracks, 2 editinstruments, 3 song
+extern Part g_active_ti; // 1 tracks, 2 instrs
 
-extern BOOL g_isEditingInstrumentName;		//0 no, 1 instrument name is edited
-extern BOOL is_editing_infos;		    //0 no, 1 song name is edited
+extern BOOL g_isEditingInstrumentName; //0 no, 1 instrument name is edited
+extern BOOL is_editing_infos; //0 no, 1 song name is edited
 
-extern int g_line_y;			    //active line coordinate, used to reference g_cursoractview to the correct position
+extern int g_line_y; //active line coordinate, used to reference g_cursoractview to the correct position
 
-extern int g_trackLinePrimaryHighlight;	//primary line highlighted every x lines
-extern int g_trackLineSecondaryHighlight;	//secondary line highlighted every x lines
+extern int g_trackLinePrimaryHighlight; //primary line highlighted every x lines
+extern int g_trackLineSecondaryHighlight; //secondary line highlighted every x lines
 extern BOOL g_tracklinealtnumbering; //alternative way of line numbering in tracks
-extern int g_SkipLinesAfterNoteInsert;			//number of lines to scroll after inserting a note (initializes in CSong :: Clear)
+extern int g_SkipLinesAfterNoteInsert; //number of lines to scroll after inserting a note (initializes in CSong :: Clear)
 
-extern BOOL g_nohwsoundbuffer;	//Don't use hardware soundbuffer
-extern int g_cursoractview;		//default position, line 0
+extern BOOL g_nohwsoundbuffer; //Don't use hardware soundbuffer
+extern int g_cursoractview; //default position, line 0
 
-
-extern BOOL g_displayflatnotes;	//flats instead of sharps
-extern BOOL g_usegermannotation;	//H notes instead of B
+extern BOOL g_displayflatnotes; //flats instead of sharps
+extern BOOL g_usegermannotation; //H notes instead of B
 
 extern CChannelControl g_ChannelControl;
 
@@ -113,17 +107,17 @@ struct TViewState {
     BOOL volumeAnalyzer;
     BOOL pokeyRegisters;
     BOOL instrumentEditHelp;
-    BOOL smoothScrolling;	// if TRUE, then the track and note data is smooth scrolled during playback 
-    BOOL debugDisplay;		// Display Debug informations on screen if enabled 
+    BOOL smoothScrolling; // if TRUE, then the track and note data is smooth scrolled during playback
+    BOOL debugDisplay; // Display Debug informations on screen if enabled
 };
 
 extern TViewState g_view;
 
 extern TrackerDriverVersion g_trackerDriverVersion;
-extern int g_timerGlobalCount;		// Initialised once, ticking forever
-extern long g_playtime;				//1 yes, 0 no
+extern int g_timerGlobalCount; // Initialised once, ticking forever
+extern long g_playtime; //1 yes, 0 no
 
-extern UINT g_mousebutt;			//mouse button
+extern UINT g_mousebutt; //mouse button
 
 // Mouse Information
 struct TMouseInfomation {
@@ -134,18 +128,18 @@ struct TMouseInfomation {
 };
 extern TMouseInfomation g_mouse;
 
-extern int g_lastKeyPressed;		//for debugging vk input
+extern int g_lastKeyPressed; //for debugging vk input
 
-extern CString g_lastLoadPath_Songs;		//the path of the last song loaded
+extern CString g_lastLoadPath_Songs; //the path of the last song loaded
 extern CString g_lastLoadPath_Instruments; //the path of the last instrument loaded
-extern CString g_lastLoadPath_Tracks;		//the path of the last track loaded
+extern CString g_lastLoadPath_Tracks; //the path of the last track loaded
 
-extern CString g_defaultSongsPath;		//default path for songs
-extern CString g_defaultInstrumentsPath;	//default path for instruments
-extern CString g_defaultTracksPath;		//default path for tracks
+extern CString g_defaultSongsPath; //default path for songs
+extern CString g_defaultInstrumentsPath; //default path for instruments
+extern CString g_defaultTracksPath; //default path for tracks
 
-extern KeyboardLayout g_keyboard_layout;			//Keyboard layout is used by RMT. eg: QWERTY, AZERTY, etc
-extern BOOL g_keyboard_swapenter;// probably not needed anymore but will be kept for now
+extern KeyboardLayout g_keyboard_layout; //Keyboard layout is used by RMT. eg: QWERTY, AZERTY, etc
+extern BOOL g_keyboard_swapenter; // probably not needed anymore but will be kept for now
 extern BOOL g_keyboard_playautofollow;
 extern BOOL g_keyboard_updowncontinue;
 extern BOOL g_keyboard_RememberOctavesAndVolumes;

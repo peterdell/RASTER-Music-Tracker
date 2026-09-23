@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 // ----------------------------------------------------------------------------
 // GUI color setup
 // The text is defined in IDB_GFX as bitmap font in various colors
@@ -22,13 +20,11 @@ enum class TextColor : int {
     TURQUOISE = 14
 };
 
-
 class LogicalTextColor {
 public:
-
-    static const TextColor SELECTED = TextColor::INVERSE_RED;		// Highlight color
-    static const TextColor SELECTED_PROVE = TextColor::INVERSE_BLUE;		// Highlight color in PROVE mode
-    static const TextColor HOVERED = TextColor::INVERSE_WHITE;	// Highlight color from cursor hover
+    static const TextColor SELECTED = TextColor::INVERSE_RED; // Highlight color
+    static const TextColor SELECTED_PROVE = TextColor::INVERSE_BLUE; // Highlight color in PROVE mode
+    static const TextColor HOVERED = TextColor::INVERSE_WHITE; // Highlight color from cursor hover
 };
 
 enum class TextMiniColor : int {

@@ -9,8 +9,7 @@
 #include "Notes.h"
 #include "TextColors.h"
 
-class CTracksControl
-{
+class CTracksControl {
 public:
     CTracksControl(CCanvas& canvas);
     ~CTracksControl();

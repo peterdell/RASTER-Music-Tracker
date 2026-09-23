@@ -28,9 +28,10 @@ public:
     // Pribt a value between $00 and $FF
     CCanvas& PrintByte(const byte value);
 
-    CCanvas& PrintfMini(const size_t  size, char const* const format, ...);
+    CCanvas& PrintfMini(const size_t size, char const* const format, ...);
 
     void FillSolidRect(int x, int y, int width, int height, COLORREF color);
+
 private:
     CCanvasXY* canvasXY;
     int originX;
@@ -43,5 +44,4 @@ private:
     int row = 0;
 
     char buffer[1024];
-
 };

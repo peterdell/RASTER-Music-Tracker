@@ -2050,3 +2050,62 @@ build clean and all 123 tests pass.
       - Full solution rebuild (both `Rmt.exe` and `RmtTests.exe`,
         Release|x64) confirmed 0 errors; 250 tests pass, 0 regressions -
         confirming this second pass, like the first, was purely syntactic.
+- [x] Extended the K&R brace-style rule to `.h` files (user question: the
+      .cpp rollout had split files into tiers for tooling reasons - would
+      headers get the same treatment? Answer: they'd been skipped
+      entirely so far, not deliberately excluded - `.clang-tidy`'s
+      `HeaderFilterRegex: '^$'` only meant "don't reach into headers
+      transitively from a .cpp", never "don't check a header directly").
+      84 headers surveyed under `src/cpp` (no vendored/third-party headers
+      live there - `asap/` and `test/googletest/` are separate
+      subdirectories, correctly never touched). None hit the 8-file
+      MFC-macro parse hazard that blocked some `.cpp` files, since
+      `ON_COMMAND` message maps live in `.cpp` files, not headers.
+      - Getting `clang-tidy`/`clang-format` to parse a header standalone
+        needed `/TP` (force C++ mode - `cl` infers C from the `.h`
+        extension otherwise) and `/FIStdAfx.h` (force-include the
+        project's precompiled header), since headers routinely assume
+        MFC/CRT types are already visible via the project's PCH include
+        order rather than including everything they use themselves. Two
+        headers (`PokeyController.h`, `PokeyStream.h`) needed additional
+        `/FIMemory.h`/`/FIostream` force-includes for the same reason.
+        `Memory.h` and `StdAfx.h` themselves needed their own
+        force-include list to exclude force-including themselves - doing
+        so duplicates their content (a `#pragma once` guard has no effect
+        on a file being force-included into itself as its own primary
+        translation unit, unlike a normal `#include`).
+      - `clang-tidy --fix` found exactly 6 real brace-around-statements
+        violations (`Song.h` x4, `Tracks.h` x2 - one-line accessors like
+        `BOOL OctaveUp() { if (...) { ...; return 1; } else return 0; };`
+        missing braces on the `else`).
+      - **Two new side effects found and fixed, both header-specific**
+        (neither ever surfaced during the `.cpp` passes because `.cpp`
+        files essentially never contain the patterns that trigger them -
+        confirmed by grepping the already-committed `.cpp` history for
+        both before accepting this explanation rather than assuming it):
+        1. `AllowShortFunctionsOnASingleLine: None` (inherited from the
+           `.cpp` style) force-expanded every already-compliant one-line
+           inline accessor (`BOOL Undo() { return g_Undo.Undo(); };`) into
+           3 lines, even though the brace was already on the same line -
+           pure scope creep unrelated to brace placement, and it was most
+           of the diff on the largest-changed headers (`Song.h`,
+           `Tracks.h`). Fixed by using `AllowShortFunctionsOnASingleLine:
+           InlineOnly` for headers specifically (keeps existing one-liners
+           as one-liners; still splits ones that need real brace fixes,
+           like the 6 above).
+        2. LLVM's default half-indent for `public:`/`private:`/
+           `protected:` access specifiers doesn't match this codebase's
+           convention of keeping them at column 0 (same column as the
+           class's own brace) - first pass reindented ~63 headers' access
+           specifiers. Fixed with `AccessModifierOffset: -4`.
+      - `resource.h` (Visual-Studio-auto-generated `#define` list, zero
+        braces) was caught and excluded after its first pass produced an
+        886-line diff that was pure `#define`-value column-realignment -
+        nothing to do with braces at all.
+      - Same 3 manual struct-header fixes as the `.cpp` pass needed
+        (`InstrumentTypes.h`, `SongTypes.h`, `TracksTypes.h` - a
+        trailing-comment-on-the-struct-line case clang-format won't merge
+        on its own); one array-initializer brace in `Tuning.h` correctly
+        left alone as out of scope, same reasoning as the `.cpp` pass.
+      - Full solution rebuild (`Rmt.exe` + `RmtTests.exe`, Release|x64)
+        confirmed 0 errors; 250 tests pass, 0 regressions.

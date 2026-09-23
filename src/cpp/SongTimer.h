@@ -4,8 +4,7 @@
 
 #include "Song.h"
 
-class CSongTimer
-{
+class CSongTimer {
 
 public:
     /// <summary>
@@ -25,7 +24,6 @@ public:
     /// <param name="ms">ms between calls (17=NTSC, 20=PAL)</param>
     void SetTimer(CSong& song, int ms);
 
-
     void Callback();
 
     /// <summary>
@@ -34,7 +32,6 @@ public:
     void WaitForTimerRoutineProcessed();
 
 private:
-
     // Given explicit defaults (matching what the global g_SongTimer already
     // got for free from static zero-initialization) so any other instance -
     // e.g. one constructed directly in a test - is just as well-defined.
@@ -46,4 +43,3 @@ private:
     bool volatile busyInCallback = false;
     bool volatile m_timerRoutineProcessed = false;
 };
-

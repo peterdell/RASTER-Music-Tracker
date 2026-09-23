@@ -6,8 +6,7 @@
 
 #include "CanvasXY.h"
 
-class CSongUI
-{
+class CSongUI {
 
 public:
     CSongUI(CSong& song);
@@ -16,9 +15,9 @@ public:
 
     void DrawVolumeAnalyzer();
     void DrawTracks();
-    void DrawSong();				// Draw the song line info on the right
+    void DrawSong(); // Draw the song line info on the right
     void DrawInstrument();
-    void DrawInfo();			//top left corner
+    void DrawInfo(); //top left corner
     void DrawPlayTimeCounter();
 
 private:
@@ -29,5 +28,4 @@ private:
     void GetTracklineText(char* dest, int line);
     void DrawTracksHook(int ANALYZER_X, int ANALYZER_Y, int g1, int g2, int yUp);
     void DrawInstrumentHook(int ANALYZER2_X, int ANALYZER_Y, int g1, int g2, int yUp);
-
 };

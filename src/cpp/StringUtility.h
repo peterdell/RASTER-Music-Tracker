@@ -2,10 +2,8 @@
 
 #include "StdAfx.h"
 
-class CStringUtility
-{
+class CStringUtility {
 
 public:
     static bool EndsWithNoCase(const CString string, const CString suffix);
 };
-

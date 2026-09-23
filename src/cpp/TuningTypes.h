@@ -5,14 +5,11 @@
 struct TTuningSettings {
 
     double basetuning;
-    int basenote;	// 3 = A-
-    int temperament = 0;	// each preset is assigned to a number. 0 means no Temperament, any value that is not assigned defaults to custom
+    int basenote; // 3 = A-
+    int temperament = 0; // each preset is assigned to a number. 0 means no Temperament, any value that is not assigned defaults to custom
 
     void Initialize(bool ntsc);
-
 };
-
-
 
 // ratio used for each note => NOTE_L / NOTE_R, must be treated as doubles!!!
 struct TTuningRatios {
@@ -32,5 +29,3 @@ struct TTuningRatios {
 
     void Initialize();
 };
-
-

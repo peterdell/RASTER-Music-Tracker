@@ -14,23 +14,22 @@
 /////////////////////////////////////////////////////////////////////////////
 // CExpRMTDlg dialog
 
-class CExportStrippedRMTDialog : public CDialog
-{
+class CExportStrippedRMTDialog : public CDialog {
     // Construction
 public:
-    CExportStrippedRMTDialog(CWnd* pParent = NULL);   // standard constructor
+    CExportStrippedRMTDialog(CWnd* pParent = NULL); // standard constructor
 
     // Dialog Data
-        //{{AFX_DATA(CExpRMTDlg)
+    //{{AFX_DATA(CExpRMTDlg)
     enum { IDD = IDD_EXPORT_STRIPPED_RMT };
     CComboBox m_cmbAsmFormat;
-    CButton	m_c_gvf;
-    CButton	m_c_nos;
-    CStatic	m_c_warning;
-    CButton	m_ctrlWithSfx;
-    CEdit	m_c_rmtfeat;
-    CEdit	m_ctrlExportAddress;
-    CStatic	m_c_info;
+    CButton m_c_gvf;
+    CButton m_c_nos;
+    CStatic m_c_warning;
+    CButton m_ctrlWithSfx;
+    CEdit m_c_rmtfeat;
+    CEdit m_ctrlExportAddress;
+    CStatic m_c_info;
     //}}AFX_DATA
 
     int m_exportAddr;
@@ -46,25 +45,24 @@ public:
     CSong* m_song;
     char* m_filename;
     // Stripped RMT data
-    BYTE* m_savedInstrFlagsForStrippedRMT;			// Array of flags indicating which instruments are being used
-    BYTE* m_savedTracksFlagsForStrippedRMT;			// Array of flags to indicate which tracks are being used
+    BYTE* m_savedInstrFlagsForStrippedRMT; // Array of flags indicating which instruments are being used
+    BYTE* m_savedTracksFlagsForStrippedRMT; // Array of flags to indicate which tracks are being used
 
     // Full RMT (with SFX) data
-    BYTE* m_savedInstrFlagsForSFX;					// Array of flags indicating which instruments are not empty or used
-    BYTE* m_savedTracksFlagsForSFX;					// Array of flags to indicate which tracks are not empty
+    BYTE* m_savedInstrFlagsForSFX; // Array of flags indicating which instruments are not empty or used
+    BYTE* m_savedTracksFlagsForSFX; // Array of flags to indicate which tracks are not empty
 
     void ChangeParams();
 
     // Overrides
-        // ClassWizard generated virtual function overrides
-        //{{AFX_VIRTUAL(CExpRMTDlg)
+    // ClassWizard generated virtual function overrides
+    //{{AFX_VIRTUAL(CExpRMTDlg)
 protected:
-    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+    virtual void DoDataExchange(CDataExchange* pDX); // DDX/DDV support
     //}}AFX_VIRTUAL
 
-// Implementation
+    // Implementation
 protected:
-
     // Generated message map functions
     //{{AFX_MSG(CExpRMTDlg)
     virtual BOOL OnInitDialog();
@@ -82,25 +80,24 @@ public:
 /////////////////////////////////////////////////////////////////////////////
 // CExpMSXDlg dialog
 
-class CExpMSXDlg : public CDialog
-{
+class CExpMSXDlg : public CDialog {
     // Construction
 public:
-    CExpMSXDlg(CWnd* pParent = NULL);   // standard constructor
+    CExpMSXDlg(CWnd* pParent = NULL); // standard constructor
 
     // Dialog Data
-        //{{AFX_DATA(CExpMSXDlg)
+    //{{AFX_DATA(CExpMSXDlg)
     enum { IDD = IDD_EXPMSX };
-    CScrollBar	m_scroll1;
-    CStatic	m_colorinfotext;
-    CButton	m_checkkeytest;
-    CEdit	m_prev;
-    CEdit	m_edit;
-    BOOL	m_meter;
-    BOOL	m_msx_shuffle;
-    BOOL	m_region_auto;
+    CScrollBar m_scroll1;
+    CStatic m_colorinfotext;
+    CButton m_checkkeytest;
+    CEdit m_prev;
+    CEdit m_edit;
+    BOOL m_meter;
+    BOOL m_msx_shuffle;
+    BOOL m_region_auto;
 
-    CString	m_speedinfo;
+    CString m_speedinfo;
     //}}AFX_DATA
 
     int m_metercolor;
@@ -111,15 +108,14 @@ public:
     void ChangeParams();
 
     // Overrides
-        // ClassWizard generated virtual function overrides
-        //{{AFX_VIRTUAL(CExpMSXDlg)
+    // ClassWizard generated virtual function overrides
+    //{{AFX_VIRTUAL(CExpMSXDlg)
 protected:
-    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+    virtual void DoDataExchange(CDataExchange* pDX); // DDX/DDV support
     //}}AFX_VIRTUAL
 
-// Implementation
+    // Implementation
 protected:
-
     // Generated message map functions
     //{{AFX_MSG(CExpMSXDlg)
     virtual BOOL OnInitDialog();
@@ -134,32 +130,30 @@ protected:
 /////////////////////////////////////////////////////////////////////////////
 // CExportAsmDlg dialog
 
-class CExportAsmDlg : public CDialog
-{
+class CExportAsmDlg : public CDialog {
     // Construction
 public:
-    CExportAsmDlg(CWnd* pParent = NULL);   // standard constructor
+    CExportAsmDlg(CWnd* pParent = NULL); // standard constructor
 
     // Dialog Data
-        //{{AFX_DATA(CExportAsmDlg)
+    //{{AFX_DATA(CExportAsmDlg)
     enum { IDD = IDD_EXPORT_ASM };
-    CString	m_prefixForAllAsmLabels;
+    CString m_prefixForAllAsmLabels;
     //}}AFX_DATA
 
-    int m_exportType;				// 1 = Tracks, 2 = Whole song
+    int m_exportType; // 1 = Tracks, 2 = Whole song
     int m_notesIndexOrFreq;
     int m_durationsType;
 
     // Overrides
-        // ClassWizard generated virtual function overrides
-        //{{AFX_VIRTUAL(CExportAsmDlg)
+    // ClassWizard generated virtual function overrides
+    //{{AFX_VIRTUAL(CExportAsmDlg)
 protected:
-    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+    virtual void DoDataExchange(CDataExchange* pDX); // DDX/DDV support
     //}}AFX_VIRTUAL
 
-// Implementation
+    // Implementation
 protected:
-
     // Generated message map functions
     //{{AFX_MSG(CExportAsmDlg)
     virtual void OnOK();
@@ -171,34 +165,33 @@ protected:
 
 /////////////////////////////////////////////////////////////////////////////
 // CExportRelocatableAsmForRmtPlayer dialog
-class CExportRelocatableAsmForRmtPlayer : public CDialog
-{
+class CExportRelocatableAsmForRmtPlayer : public CDialog {
     // Construction
 public:
-    CExportRelocatableAsmForRmtPlayer(CWnd* pParent = NULL);   // standard constructor
+    CExportRelocatableAsmForRmtPlayer(CWnd* pParent = NULL); // standard constructor
 
     // Dialog Data
-        //{{AFX_DATA(CExportRelocatableAsmForRmtPlayer)
+    //{{AFX_DATA(CExportRelocatableAsmForRmtPlayer)
     enum { IDD = IDD_EXPORT_RMTPLAYER_ASM };
-    CEdit	m_editRmtModuleAsmLabel;
+    CEdit m_editRmtModuleAsmLabel;
     CButton m_chkWantRelocatableTracks;
-    CEdit	m_editTracksLabel;
+    CEdit m_editTracksLabel;
     CButton m_chkWantRelocatableSongLines;
-    CEdit	m_editSongLinesLabel;
+    CEdit m_editSongLinesLabel;
     CButton m_chkWantRelocatableInstruments;
-    CEdit	m_editInstrumentsLabel;
+    CEdit m_editInstrumentsLabel;
 
     CComboBox m_cmbAsmFormat;
 
-    CButton	m_c_gvf;
-    CButton	m_c_nos;
-    CButton	m_ctrlWithSfx;
-    CEdit	m_c_rmtfeat;
-    CStatic	m_c_info;
+    CButton m_c_gvf;
+    CButton m_c_nos;
+    CButton m_ctrlWithSfx;
+    CEdit m_c_rmtfeat;
+    CStatic m_c_info;
     //}}AFX_DATA
 
     // Data transfer values
-    CString m_strAsmLabelForStartOfSong;			// What label is the song data starting with?
+    CString m_strAsmLabelForStartOfSong; // What label is the song data starting with?
 
     BOOL m_wantRelocatableInstruments;
     BOOL m_wantRelocatableTracks;
@@ -207,7 +200,7 @@ public:
     CString m_strAsmTracksLabel;
     CString m_strAsmSongLinesLabel;
 
-    AssemblerFormat m_assemblerFormat;						// 0 = Atasm, 1 = Xasm
+    AssemblerFormat m_assemblerFormat; // 0 = Atasm, 1 = Xasm
 
     BOOL m_sfxSupport;
     BOOL m_globalVolumeFade;
@@ -224,15 +217,14 @@ public:
     void ChangeParams();
 
     // Overrides
-        // ClassWizard generated virtual function overrides
-        //{{AFX_VIRTUAL(CExportRelocatableAsmForRmtPlayer)
+    // ClassWizard generated virtual function overrides
+    //{{AFX_VIRTUAL(CExportRelocatableAsmForRmtPlayer)
 protected:
-    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+    virtual void DoDataExchange(CDataExchange* pDX); // DDX/DDV support
     //}}AFX_VIRTUAL
 
-// Implementation
+    // Implementation
 protected:
-
     // Generated message map functions
     //{{AFX_MSG(CExportRelocatableAsmForRmtPlayer)
     virtual BOOL OnInitDialog();
@@ -241,7 +233,6 @@ protected:
     afx_msg void OnCbnSelchange();
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
-
 
 public:
 };
