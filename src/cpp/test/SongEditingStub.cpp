@@ -113,6 +113,13 @@ void SetEditMode(const EditMode editMode) {
     g_prove = editMode;
 }
 
+// Real implementation for CAtariTrackerDriver::Play() (see
+// AtariTrackerDriver.cpp) - copied verbatim from Global.cpp, same treatment
+// as SetEditMode() above: only reads g_prove.
+bool IsSpecialProveMode() {
+    return g_prove == EditMode::MIDI_CH15_MODE || g_prove == EditMode::POKEY_EXPLORER_MODE;
+}
+
 // Link-only no-op stubs for GuiHelpers.cpp's status bar helpers (see
 // ClipboardCore.cpp) - their real bodies just no-op or OutputDebugString
 // when there's no real status bar window, which is always the case here.

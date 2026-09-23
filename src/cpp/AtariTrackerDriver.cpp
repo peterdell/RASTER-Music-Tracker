@@ -15,7 +15,7 @@ int CAtariTrackerDriver::LoadRMTRoutines(const TrackerDriverVersion trackerDrive
     WORD min, max;
     WORD size;
     byte* bin;
-    if (!CRmtAtariBinaries::GetTrackerDriverBinary(g_trackerDriverVersion, bin, size)) {
+    if (!CRmtAtariBinaries::GetTrackerDriverBinary(trackerDriverVersion, bin, size)) {
         return 0;
     }
 

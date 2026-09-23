@@ -96,20 +96,30 @@ deferring" discipline as the rest of this effort.
    baselines were removed again. `CTracks::m_track` itself is unchanged -
    this fix was scoped to `CInstruments` only, not requested more broadly.
    291 tests passing (up from 280), 0 regressions.
-4. **`AtariTrackerDriver.cpp` remainder (72 lines, small).** `Init()`,
-   `SetPokey()`, `Silence()` all delegate only to the already-stubbed no-op
-   `m_atari->JSR()`. `LoadRMTRoutines()` uses the same
+4. **`AtariTrackerDriver.cpp` remainder - DONE.** `Init()`, `SetPokey()`,
+   `Silence()` confirmed to delegate only to the already-stubbed no-op
+   `m_atari->JSR()`; `IsSpecialProveMode()` (needed by `Play()`) confirmed
+   trivial (only reads `g_prove`) and copied verbatim into
+   `SongEditingStub.cpp`, next to its existing `SetEditMode()`.
+   `LoadRMTRoutines()` confirmed to use the same
    `CRmtAtariBinaries::Get*Binary()`/`CAtariIO::LoadDataAsBinaryFile()`
-   resource-loading path this session already unlocked for
-   `ExportSAP_B_LZSS`/`ExportXEX_LZSS` (loads
-   `resources/drivers/rmt_driver_v%d.obx` instead of the VU player binary -
-   same `g_prgpath` machinery already in place). Notably, `Init()` is
-   *currently* shadowed by a hardcoded no-op stub in
-   `test/PokeyStreamStub.cpp` (`int CAtariTrackerDriver::Init() { return 0; }`)
-   - upgrading it to the real body mirrors the `CInstruments::Update()`
-   stub-to-real precedent from Batch 3. Only `Play()`'s call to
-   `IsSpecialProveMode()` (declared in `Global.h`, not yet checked) needs
-   investigating before this file is fully scoped.
+   resource-loading path already unlocked for `ExportSAP_B_LZSS`/
+   `ExportXEX_LZSS` (loads `resources/drivers/rmt_driver_v6.obx`, the
+   default `PATCH16` driver, already checked into `rmt/`). Linked
+   `AtariTrackerDriver.cpp` directly (`RmtTests.vcxproj`); removed its
+   `Init()`/`Play()` no-op stubs from `test/PokeyStreamStub.cpp`. 7 new
+   tests (`AtariTrackerDriverTests.cpp`).
+   - **Found and fixed a real bug while writing the "unknown driver
+     version" guard test**: `LoadRMTRoutines()` ignored its own
+     `trackerDriverVersion` parameter entirely, always passing the global
+     `g_trackerDriverVersion` to `GetTrackerDriverBinary()` instead.
+     Harmless in production today - both real call sites (`Rmt.cpp`,
+     `RmtView.cpp`) always pass `g_trackerDriverVersion` as the argument
+     anyway, so the bug never changed observable behavior - but fixed
+     outright since the fix changes nothing for any real caller and
+     removes a dead-parameter footgun.
+   - Full solution rebuild (`Rmt.exe` + `RmtTests.exe`, Release|x64)
+     confirmed 0 errors; 298 tests pass (up from 291, +7, 0 regressions).
 
 ## Suggested priority
 

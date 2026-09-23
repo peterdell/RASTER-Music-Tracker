@@ -143,6 +143,7 @@
     <ClCompile Include="..\Atari.cpp" />
     <ClCompile Include="AtariStub.cpp" />
     <ClCompile Include="..\AtariTrackerDriverCore.cpp" />
+    <ClCompile Include="..\AtariTrackerDriver.cpp" />
     <ClCompile Include="..\SongCore.cpp" />
     <ClCompile Include="..\PokeyController.cpp" />
     <ClCompile Include="..\SongEditing.cpp" />
@@ -178,6 +179,7 @@
     <ClCompile Include="SongTests.cpp" />
     <ClCompile Include="SongEditingTests.cpp" />
     <ClCompile Include="UndoTests.cpp" />
+    <ClCompile Include="AtariTrackerDriverTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Fraction.h" />

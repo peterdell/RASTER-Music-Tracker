@@ -2287,4 +2287,46 @@ build clean and all 123 tests pass.
       Full solution rebuild (`Rmt.exe` + `RmtTests.exe`, Release|x64)
       confirmed 0 errors; 291 tests pass, 0 regressions (purely an
       initialization fix - no test needed to change its assertions, only
-      the redundant setup lines were removable). Not yet committed.
+      the redundant setup lines were removable). Committed (`a180186`).
+- [x] Implemented `plans/BROADER_SURVEY_PLAN.md`'s `AtariTrackerDriver.cpp`
+      remainder candidate (user: "Continue", after the prior "what pieces
+      are next?" answer named it as the next priority item). Confirmed by
+      reading `AtariTrackerDriver.cpp` in full: `Init()`/`SetPokey()`/
+      `Silence()` only call the already-stubbed no-op `m_atari->JSR()`;
+      `Play()` additionally needs `IsSpecialProveMode()` (`Global.h`),
+      confirmed trivial (`return g_prove == MIDI_CH15_MODE ||
+      g_prove == POKEY_EXPLORER_MODE;`, `g_prove` already a real global)
+      and copied verbatim into `SongEditingStub.cpp`, matching its
+      existing `SetEditMode()` precedent; `LoadRMTRoutines()` needs
+      `CRmtAtariBinaries::GetTrackerDriverBinary()`
+      (`AtariBinaries.cpp`, already linked for `ExportSAP_B_LZSS`/
+      `ExportXEX_LZSS`) and `CAtariIO::LoadDataAsBinaryFile()`
+      (`AtariIO.cpp`, already linked, pure in-memory parsing like the
+      already-safe `LoadBinaryBlock`) - both real dependencies already
+      satisfied by prior work, and the matching
+      `rmt/resources/drivers/rmt_driver_v6.obx` (the default `PATCH16`
+      driver) is already checked into the repo. Linked
+      `AtariTrackerDriver.cpp` directly (`RmtTests.vcxproj`); removed its
+      now-redundant `Init()`/`Play()` no-op stubs from
+      `test/PokeyStreamStub.cpp`. New `test/AtariTrackerDriverTests.cpp`:
+      7 tests, using locally-constructed `CAtari`/`CAtariTrackerDriver`
+      instances (both cheap, matching `AtariTests.cpp`'s own precedent)
+      rather than the shared globals, for full isolation.
+      - **Found and fixed a real bug while writing the "unknown driver
+        version returns 0" guard test**: it kept returning the *default*
+        driver's byte count regardless of which (nonexistent) version was
+        requested. Traced to `LoadRMTRoutines()` passing the global
+        `g_trackerDriverVersion` to `GetTrackerDriverBinary()` instead of
+        its own `trackerDriverVersion` parameter - the parameter was
+        entirely dead code. Confirmed harmless in production (`Rmt.cpp`/
+        `RmtView.cpp`, the only two real call sites, always pass
+        `g_trackerDriverVersion` as the argument anyway, so the bug never
+        produced a wrong driver load in practice) before fixing it
+        outright, matching this effort's policy for real, safe,
+        zero-observable-behavior-change fixes. Removed the now-unused
+        `g_trackerDriverVersion` test-project global this fix made
+        unnecessary (added, then removed again in the same session, once
+        the real fix meant it was never actually needed).
+      - Full solution rebuild (`Rmt.exe` + `RmtTests.exe`, Release|x64)
+        confirmed 0 errors; 298 tests pass (up from 291, +7, 0
+        regressions). Not yet committed.
