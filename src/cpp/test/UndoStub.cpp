@@ -47,11 +47,23 @@ void CUndo::Clear()
 char CUndo::DeleteEvent(int i)
 {
     TUndoEvent* ue = m_uar[i];
-    if (!ue) return 1;
+    if (!ue)
+    {
+        return 1;
+    }
     char sep = ue->separator;
-    if (ue->cursor) delete[] ue->cursor;
-    if (ue->pos) delete[] ue->pos;
-    if (ue->data) delete[] ue->data;
+    if (ue->cursor)
+    {
+        delete[] ue->cursor;
+    }
+    if (ue->pos)
+    {
+        delete[] ue->pos;
+    }
+    if (ue->data)
+    {
+        delete[] ue->data;
+    }
     delete ue;
     m_uar[i] = NULL;
     return sep;
@@ -77,7 +89,10 @@ void CUndo::Separator(int sep)
 {
     auto le = m_uar[(m_head + MAXUNDO - 1) % MAXUNDO];
     if (!le) { return; }
-    if (sep < 0 && le->separator >= 0) m_undosteps--; //the number of undo counted in InsertEvent
+    if (sep < 0 && le->separator >= 0)
+    {
+        m_undosteps--; //the number of undo counted in InsertEvent
+    }
     le->separator = sep;
 }
 

@@ -28,9 +28,13 @@ void CChannelControl::SetChannelOnOff(const int ch, int onoff)
     {
         // All channels
         if (onoff >= 0)
+        {
             for (unsigned int i = 0; i < m_channelon.size(); i++) { m_channelon[i] = onoff; } // Set the given on/off state
+        }
         else
+        {
             for (unsigned int i = 0; i < m_channelon.size(); i++) { m_channelon[i] = !m_channelon[i]; } // Invert the on/off state
+        }
     }
     else if (ch < m_channelon.size())
     {
@@ -72,7 +76,10 @@ void CChannelControl::SetChannelSolo(const ChannelNumber channelNumber)
         // If any other channel is on then turn them all off except for the target channel
         for (unsigned int i = 0; i < m_channelCount; i++)
         {
-            if (i != channelNumber && IsChannelOn(i)) goto Channel_SOLO;
+            if (i != channelNumber && IsChannelOn(i))
+            {
+                goto Channel_SOLO;
+            }
         }
         // All other channels are off, turn them all on
         SetAllChannelsOn();

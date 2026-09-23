@@ -68,19 +68,34 @@ CPokey::SoundDriver CPokey::InitPokeyDll()
         CString warningMessage = "";
 
         APokeySound_Initialize = (APokeySound_Initialize_PROC)GetProcAddress(m_pokey_dll, "APokeySound_Initialize");
-        if (!APokeySound_Initialize) warningMessage += "APokeySound_Initialize\n";
+        if (!APokeySound_Initialize)
+        {
+            warningMessage += "APokeySound_Initialize\n";
+        }
 
         APokeySound_PutByte = (APokeySound_PutByte_PROC)GetProcAddress(m_pokey_dll, "APokeySound_PutByte");
-        if (!APokeySound_PutByte) warningMessage += "APokeySound_PutByte\n";
+        if (!APokeySound_PutByte)
+        {
+            warningMessage += "APokeySound_PutByte\n";
+        }
 
         APokeySound_GetRandom = (APokeySound_GetRandom_PROC)GetProcAddress(m_pokey_dll, "APokeySound_GetRandom");
-        if (!APokeySound_GetRandom) warningMessage += "APokeySound_GetRandom\n";
+        if (!APokeySound_GetRandom)
+        {
+            warningMessage += "APokeySound_GetRandom\n";
+        }
 
         APokeySound_Generate = (APokeySound_Generate_PROC)GetProcAddress(m_pokey_dll, "APokeySound_Generate");
-        if (!APokeySound_Generate) warningMessage += "APokeySound_Generate\n";
+        if (!APokeySound_Generate)
+        {
+            warningMessage += "APokeySound_Generate\n";
+        }
 
         APokeySound_About = (APokeySound_About_PROC)GetProcAddress(m_pokey_dll, "APokeySound_About");
-        if (!APokeySound_About) warningMessage += "APokeySound_About\n";
+        if (!APokeySound_About)
+        {
+            warningMessage += "APokeySound_About\n";
+        }
 
         // Get "About" data from apokeysnd driver, then finalise the inisialisation
         if (warningMessage.IsEmpty())
@@ -102,22 +117,40 @@ CPokey::SoundDriver CPokey::InitPokeyDll()
         CString warningMessage = "";
 
         Pokey_Initialise = (Pokey_Initialise_PROC)GetProcAddress(m_pokey_dll, "Pokey_Initialise");
-        if (!Pokey_Initialise) warningMessage += "Pokey_Initialise\n";
+        if (!Pokey_Initialise)
+        {
+            warningMessage += "Pokey_Initialise\n";
+        }
 
         Pokey_SoundInit = (Pokey_SoundInit_PROC)GetProcAddress(m_pokey_dll, "Pokey_SoundInit");
-        if (!Pokey_SoundInit) warningMessage += "Pokey_SoundInit\n";
+        if (!Pokey_SoundInit)
+        {
+            warningMessage += "Pokey_SoundInit\n";
+        }
 
         Pokey_Process = (Pokey_Process_PROC)GetProcAddress(m_pokey_dll, "Pokey_Process");
-        if (!Pokey_Process) warningMessage += "Pokey_Process\n";
+        if (!Pokey_Process)
+        {
+            warningMessage += "Pokey_Process\n";
+        }
 
         Pokey_GetByte = (Pokey_GetByte_PROC)GetProcAddress(m_pokey_dll, "Pokey_GetByte");
-        if (!Pokey_GetByte) warningMessage += "Pokey_GetByte\n";
+        if (!Pokey_GetByte)
+        {
+            warningMessage += "Pokey_GetByte\n";
+        }
 
         Pokey_PutByte = (Pokey_PutByte_PROC)GetProcAddress(m_pokey_dll, "Pokey_PutByte");
-        if (!Pokey_PutByte) warningMessage += "Pokey_PutByte\n";
+        if (!Pokey_PutByte)
+        {
+            warningMessage += "Pokey_PutByte\n";
+        }
 
         Pokey_About = (Pokey_About_PROC)GetProcAddress(m_pokey_dll, "Pokey_About");
-        if (!Pokey_About) warningMessage += "Pokey_About\n";
+        if (!Pokey_About)
+        {
+            warningMessage += "Pokey_About\n";
+        }
 
         // Get "About" data from sa_pokey driver, then finalise the inisialisation
         if (warningMessage.IsEmpty())

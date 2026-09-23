@@ -85,7 +85,10 @@ void CSong::ChangeTimer(int ms)
 void CSong::SyncSkipLinesAfterNoteInsertComboBox()
 {
     CMainFrame* mf = ((CMainFrame*)AfxGetMainWnd());
-    if (mf) mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_SkipLinesAfterNoteInsert);
+    if (mf)
+    {
+        mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_SkipLinesAfterNoteInsert);
+    }
 }
 
 //---
@@ -312,7 +315,10 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLines(int& line)
     dlg.m_tuning = 0;
     dlg.m_volumep = 100;	//100%
 
-    if (dlg.DoModal() != IDOK) return 1;
+    if (dlg.DoModal() != IDOK)
+    {
+        return 1;
+    }
 
     return SongInsertCopyOrCloneOfSongLinesApply(line, dlg.m_linefrom, dlg.m_lineto, dlg.m_clone, dlg.m_tuning, dlg.m_volumep);
 }
@@ -358,7 +364,10 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLines(int& line)
 
 void CSong::InstrChange(int instr)
 {
-    if (!g_Instruments.IsValidInstrument(instr)) return;
+    if (!g_Instruments.IsValidInstrument(instr))
+    {
+        return;
+    }
 
     CInstrumentChangeDlg dlg;
 
@@ -368,7 +377,10 @@ void CSong::InstrChange(int instr)
     dlg.m_onlysonglinefrom = dlg.m_onlysonglineto = SongGetActiveLine();
 
     // Change all the instrument occurences
-    if (dlg.DoModal() != IDOK) return;
+    if (dlg.DoModal() != IDOK)
+    {
+        return;
+    }
 
     TInstrChangeParams p;
     p.snotefrom = dlg.m_combo1;
@@ -408,7 +420,10 @@ void CSong::TracksOrderChange()
     CSongTracksOrderDlg dlg;
     dlg.m_songlinefrom.Format("%02X", m_TracksOrderChange_songlinefrom);
     dlg.m_songlineto.Format("%02X", m_TracksOrderChange_songlineto);
-    if (dlg.DoModal() != IDOK) return;
+    if (dlg.DoModal() != IDOK)
+    {
+        return;
+    }
 
     g_Undo.ChangeSong(m_songactiveline, m_trackactivecol, UETYPE_SONGDATA, 1);
 
@@ -425,12 +440,21 @@ void CSong::TracksOrderChange()
     m_TracksOrderChange_songlineto = t;
 
     int c = 0;
-    for (int i = 0; i < g_tracks4_8; i++) if (dlg.m_tracksorder[i] < 0) c++;
+    for (int i = 0; i < g_tracks4_8; i++)
+    {
+        if (dlg.m_tracksorder[i] < 0)
+        {
+            c++;
+        }
+    }
     if (c > 0)
     {
         CString s;
         s.Format("Warning: %u song column(s) will be cleared completely.\nAre you sure to do it?", c);
-        if (SendQuestionMessage("Warning", s, MessageButtons::YesNoCancel) != MessageAnswer::Yes) return;
+        if (SendQuestionMessage("Warning", s, MessageButtons::YesNoCancel) != MessageAnswer::Yes)
+        {
+            return;
+        }
     }
 
     TracksOrderChangeApply(f, t, dlg.m_tracksorder);

@@ -26,7 +26,10 @@ void CALLBACK MidiInProc(
    )
 {
 	// Forward MIDI data and error messages to the global song object
-	if (wMsg != MIM_DATA && wMsg != MIM_ERROR) return;
+	if (wMsg != MIM_DATA && wMsg != MIM_ERROR)
+	{
+		return;
+	}
 	g_Song.MidiEvent(dwParam1);
 }
 
@@ -72,7 +75,10 @@ int CRmtMidi::MidiInit()
 		if (strcmp(m_MidiInDeviceName, micaps.szPname) == 0)
 		{
 			m_MidiInDeviceId = i;   //found midi in by configfile
-			if (wasOnOff) MidiOn();
+			if (wasOnOff)
+			{
+				MidiOn();
+			}
 			return 1;
 		}
 	}
@@ -100,7 +106,10 @@ int CRmtMidi::MidiOn()
 
 	if (m_MidiInDeviceId>=0)
 	{
-		if (IsOn()) MidiOff();
+		if (IsOn())
+		{
+			MidiOff();
+		}
 		int status = midiInOpen( &m_MidiInHandle,
 					m_MidiInDeviceId,
 					(DWORD_PTR) MidiInProc,

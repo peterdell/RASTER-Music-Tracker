@@ -21,7 +21,10 @@
 int CTracks::SaveTrack(TrackNumber track, std::ostream& ou, SongIOType iotype)
 {
     TTrack* at = GetTrack(track);
-    if (!at) return 0;
+    if (!at)
+    {
+        return 0;
+    }
 
     CString s;
 
@@ -30,10 +33,22 @@ int CTracks::SaveTrack(TrackNumber track, std::ostream& ou, SongIOType iotype)
     case SongIOType::RMW:
         ou.write((char*)&at->len, sizeof(at->len));
         ou.write((char*)&at->go, sizeof(at->go));
-        for (int i = 0; i < m_maxTrackLength; i++) ou.write((char*)&at->note[i], 1);
-        for (int i = 0; i < m_maxTrackLength; i++) ou.write((char*)&at->instr[i], 1);
-        for (int i = 0; i < m_maxTrackLength; i++) ou.write((char*)&at->volume[i], 1);
-        for (int i = 0; i < m_maxTrackLength; i++) ou.write((char*)&at->speed[i], 1);
+        for (int i = 0; i < m_maxTrackLength; i++)
+        {
+            ou.write((char *)&at->note[i], 1);
+        }
+        for (int i = 0; i < m_maxTrackLength; i++)
+        {
+            ou.write((char *)&at->instr[i], 1);
+        }
+        for (int i = 0; i < m_maxTrackLength; i++)
+        {
+            ou.write((char *)&at->volume[i], 1);
+        }
+        for (int i = 0; i < m_maxTrackLength; i++)
+        {
+            ou.write((char *)&at->speed[i], 1);
+        }
         return 1;
 
     case SongIOType::TXT:
@@ -86,7 +101,10 @@ int CTracks::LoadTrack(TrackNumber track, std::istream& in, SongIOType iotype)
         in.getline(line, 1024); // The first line of the track
 
         // If the track is invalid, it is set to the value found in the text file
-        if (!IsValidTrack(track)) track = Hexstr(line, 2);
+        if (!IsValidTrack(track))
+        {
+            track = Hexstr(line, 2);
+        }
 
         // If the track is still invalid, it will be skipped
         if (!IsValidTrack(track))
@@ -112,7 +130,10 @@ int CTracks::LoadTrack(TrackNumber track, std::istream& in, SongIOType iotype)
                 in.read((char*)&b, 1);
 
                 // End of track (beginning of something else)
-                if (b == '[') return 1;
+                if (b == '[')
+                {
+                    return 1;
+                }
 
                 // Right at the beginning of the line is EOL, or the maximal length was reached
                 if (b == 10 || b == 13 || idx >= TRACKLEN)
@@ -152,9 +173,18 @@ int CTracks::LoadTrack(TrackNumber track, std::istream& in, SongIOType iotype)
                 at->volume[idx] = IsValidVolume(a = Hexstr(line + 7, 1)) ? a : -1;
                 at->speed[idx] = IsValidSpeed(a = Hexstr(line + 8, 2)) ? a : -1;
 
-                if (at->note[idx] >= 0 && at->instr[idx] < 0) at->instr[idx] = 0;			// If the note is without an instrument, then instrument 0 hits there
-                if (at->instr[idx] >= 0 && at->note[idx] < 0) at->instr[idx] = -1;			// If the instrument is without a note, then it cancels it
-                if (at->note[idx] >= 0 && at->volume[idx] < 0) at->volume[idx] = MAXVOLUME;	// If the note is non-volume, adds the maximum volume
+                if (at->note[idx] >= 0 && at->instr[idx] < 0)
+                {
+                    at->instr[idx] = 0; // If the note is without an instrument, then instrument 0 hits there
+                }
+                if (at->instr[idx] >= 0 && at->note[idx] < 0)
+                {
+                    at->instr[idx] = -1; // If the instrument is without a note, then it cancels it
+                }
+                if (at->note[idx] >= 0 && at->volume[idx] < 0)
+                {
+                    at->volume[idx] = MAXVOLUME; // If the note is non-volume, adds the maximum volume
+                }
 
                 idx++;	// Increment the line index for the next iteration
             }
@@ -184,7 +214,10 @@ int CTracks::SaveAll(std::ostream& ou, SongIOType iotype)
     {
         for (int i = 0; i < TRACKSNUM; i++)
         {
-            if (!CalculateNotEmpty(i)) continue;	//saves only non-empty tracks
+            if (!CalculateNotEmpty(i))
+            {
+                continue; //saves only non-empty tracks
+            }
             SaveTrack(i, ou, iotype);
         }
     }
@@ -211,7 +244,10 @@ int CTracks::TrackToAta(TrackNumber track, unsigned char* dest, int max) const
 {
     // Get the data that describes the track
     auto tr = GetConstTrack(track);
-    if (!tr) return 0;
+    if (!tr)
+    {
+        return 0;
+    }
 
     int note, instr, volume, speed;
     int idx = 0;
@@ -238,7 +274,10 @@ int CTracks::TrackToAta(TrackNumber track, unsigned char* dest, int max) const
             }
 
             // It will jump with a go loop
-            if (tr->go == i) goidx = idx;
+            if (tr->go == i)
+            {
+                goidx = idx;
+            }
 
             // Speed changes are stored BEFORE note data
             if (speed >= 0)
@@ -331,7 +370,10 @@ int CTracks::TrackToAta(TrackNumber track, unsigned char* dest, int max) const
 BOOL CTracks::AtaToTrack(unsigned char* mem, int trackLength, TrackNumber trackNr)
 {
     TTrack* tr = GetTrack(trackNr);
-    if (!tr) return 0;
+    if (!tr)
+    {
+        return 0;
+    }
 
     unsigned char data, count;
     int gotoIndex = -1;
@@ -339,7 +381,10 @@ BOOL CTracks::AtaToTrack(unsigned char* mem, int trackLength, TrackNumber trackN
     if (trackLength >= 2)
     {
         // There is a go loop at the end of the track
-        if (mem[trackLength - 2] == 128 + 63) gotoIndex = mem[trackLength - 1];	// Store its index
+        if (mem[trackLength - 2] == 128 + 63)
+        {
+            gotoIndex = mem[trackLength - 1]; // Store its index
+        }
     }
 
     int line = 0;
@@ -348,7 +393,10 @@ BOOL CTracks::AtaToTrack(unsigned char* mem, int trackLength, TrackNumber trackN
     while (src < trackLength)
     {
         // Jump to gotoIndex => set go to this line
-        if (src == gotoIndex) tr->go = line;
+        if (src == gotoIndex)
+        {
+            tr->go = line;
+        }
 
         data = mem[src] & 0x3f;
 
@@ -383,7 +431,10 @@ BOOL CTracks::AtaToTrack(unsigned char* mem, int trackLength, TrackNumber trackN
             if (count == 0)
             {
                 // Pause is 0 then the number of lines to skip is in the next byte
-                if (mem[src + 1] == 0) break;			// Infinite pause => end
+                if (mem[src + 1] == 0)
+                {
+                    break; // Infinite pause => end
+                }
                 line += mem[src + 1];	// Shift line
                 src += 2;
             }

@@ -11,7 +11,10 @@ CFraction::CFraction(int n) :CFraction(n, 1) {
 }
 
 CFraction::CFraction(int n, int d) {
-    if (d == 0) throw invalid_argument("d");
+    if (d == 0)
+    {
+        throw invalid_argument("d");
+    }
     numerator = n;
     denominator = d;
     simplify();

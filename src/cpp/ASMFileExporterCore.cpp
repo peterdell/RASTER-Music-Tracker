@@ -45,7 +45,9 @@ bool CASMFileExporter::ExportAsAsmApply(const CSong& song, std::ostream& ou, int
         {
             // Only process if the track is used
             if (!(tracksFlags[trackNr] & TrackFlag::TF_USED))
+            {
                 continue;
+            }
 
             s.Format(";Track $%02X", trackNr);
             ou << CASMFile::EOL << s;
@@ -71,16 +73,33 @@ bool CASMFileExporter::ExportAsAsmApply(const CSong& song, std::ostream& ou, int
                 if (note >= 0)
                 {
                     instrumentNr = tempTrack.instr[idx];
-                    if (notesIndexOrFreq == 1) //notes
+                    if (notesIndexOrFreq == 1)
+                    { //notes
                         note = g_Instruments.GetNote(instrumentNr, note);
-                    else				//frequencies
+                    }
+                    else
+                    { //frequencies
                         note = g_Instruments.GetFrequency(instrumentNr, note);
+                    }
                 }
-                if (note >= 0) snot.Format("$%02X", note); else snot = "XXX";
-                for (dur = 1; idx + dur < tempTrack.len && tempTrack.note[idx + dur] < 0; dur++);
+                if (note >= 0)
+                {
+                    snot.Format("$%02X", note);
+                }
+                else
+                {
+                    snot = "XXX";
+                }
+                for (dur = 1; idx + dur < tempTrack.len && tempTrack.note[idx + dur] < 0; dur++)
+                {
+                    ;
+                }
                 if (durationsType == 1 /* Notes only */)
                 {
-                    if (ova > 0) ou << ",";
+                    if (ova > 0)
+                    {
+                        ou << ",";
+                    }
                     ou << snot; ova++;
                     for (j = 1; j < dur; j++, ova++)
                     {
@@ -90,19 +109,27 @@ bool CASMFileExporter::ExportAsAsmApply(const CSong& song, std::ostream& ou, int
                             ou << CASMFile::EOL << "\tdta XXX";
                         }
                         else
+                        {
                             ou << ",XXX";
+                        }
                     }
                 }
                 else if (durationsType == 2 /* Note, duration */)
                 {
-                    if (ova > 0) ou << ",";
+                    if (ova > 0)
+                    {
+                        ou << ",";
+                    }
                     ou << snot;
                     ou << "," << dur;
                     ova += 2;
                 }
                 else if (durationsType == 3 /* Duration, Note */)
                 {
-                    if (ova > 0) ou << ",";
+                    if (ova > 0)
+                    {
+                        ou << ",";
+                    }
                     ou << dur << ",";
                     ou << snot;
                     ova += 2;
@@ -144,10 +171,19 @@ bool CASMFileExporter::ExportAsAsmApply(const CSong& song, std::ostream& ou, int
                 for (int i = 0; i < song.GetTracks(); i++)
                 {
                     int at = song.m_song[sline][i];
-                    if (at < 0 || at >= TRACKSNUM) continue;
-                    if (g_Tracks.GetGoLine(at) >= 0) continue;
+                    if (at < 0 || at >= TRACKSNUM)
+                    {
+                        continue;
+                    }
+                    if (g_Tracks.GetGoLine(at) >= 0)
+                    {
+                        continue;
+                    }
                     int al = g_Tracks.GetLastLine(at) + 1;
-                    if (al < trackslen) trackslen = al;
+                    if (al < trackslen)
+                    {
+                        trackslen = al;
+                    }
                 }
                 int t, i, j, anot, dur, ins;
                 int ova = maxova;
@@ -170,7 +206,9 @@ bool CASMFileExporter::ExportAsAsmApply(const CSong& song, std::ostream& ou, int
                                 ou << CASMFile::EOL << "\tdta XXX";
                             }
                             else
+                            {
                                 ou << ",XXX";
+                            }
                         }
                     }
                     else
@@ -214,16 +252,33 @@ bool CASMFileExporter::ExportAsAsmApply(const CSong& song, std::ostream& ou, int
                     if (anot >= 0)
                     {
                         ins = tempTrack.instr[i];
-                        if (notesIndexOrFreq == 1) //notes
+                        if (notesIndexOrFreq == 1)
+                        { //notes
                             anot = g_Instruments.GetNote(ins, anot);
-                        else				//frequencies
+                        }
+                        else
+                        { //frequencies
                             anot = g_Instruments.GetFrequency(ins, anot);
+                        }
                     }
-                    if (anot >= 0) snot.Format("$%02X", anot); else snot = "XXX";
-                    for (dur = 1; i + dur < trackslen && tempTrack.note[i + dur] < 0; dur++);
+                    if (anot >= 0)
+                    {
+                        snot.Format("$%02X", anot);
+                    }
+                    else
+                    {
+                        snot = "XXX";
+                    }
+                    for (dur = 1; i + dur < trackslen && tempTrack.note[i + dur] < 0; dur++)
+                    {
+                        ;
+                    }
                     if (durationsType == 1)
                     {
-                        if (ova > 0) ou << ",";
+                        if (ova > 0)
+                        {
+                            ou << ",";
+                        }
                         ou << snot; ova++;
                         for (j = 1; j < dur; j++, ova++)
                         {
@@ -233,13 +288,18 @@ bool CASMFileExporter::ExportAsAsmApply(const CSong& song, std::ostream& ou, int
                                 ou << CASMFile::EOL << "\tdta XXX";
                             }
                             else
+                            {
                                 ou << ",XXX";
+                            }
                         }
                     }
                     else
                         if (durationsType == 2)
                         {
-                            if (ova > 0) ou << ",";
+                            if (ova > 0)
+                            {
+                                ou << ",";
+                            }
                             ou << snot;
                             ou << "," << dur;
                             ova += 2;
@@ -247,7 +307,10 @@ bool CASMFileExporter::ExportAsAsmApply(const CSong& song, std::ostream& ou, int
                         else
                             if (durationsType == 3)
                             {
-                                if (ova > 0) ou << ",";
+                                if (ova > 0)
+                                {
+                                    ou << ",";
+                                }
                                 ou << dur << ",";
                                 ou << snot;
                                 ova += 2;
@@ -289,7 +352,9 @@ bool CASMFileExporter::ExportAsRelocatableAsmForRmtPlayerApply(CSong& song, std:
     );
 
     if (!isGood)
+    {
         return false;
+    }
 
     ou << strAsmForModule << CASMFile::EOL;
 
@@ -359,7 +424,9 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
     // Sanity checks
     strAsmStartLabel.Trim();
     if (strAsmStartLabel.IsEmpty())
+    {
         strAsmStartLabel = "RMT_SONG_DATA";
+    }
 
     strCode.Format("; Cut and paste the data from the line ';* --------BEGIN--------'  to the line ';* --------END--------'\n; into rmt_feat%s\n",
         assemblerFormat == ATASM ? ".asm" : "./65"
@@ -400,7 +467,9 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
                 return 0;
             }
             if (x < first_track)
+            {
                 first_track = x;
+            }
         }
     }
     // Read all instrument addresses searching for the lowest address
@@ -416,7 +485,9 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
                 return 0;
             }
             if (x < first_instr)
+            {
                 first_instr = x;
+            }
         }
     }
     if (first_instr < 0 || first_instr >= len ||
@@ -427,7 +498,9 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
             strCode += "; No instrument data!\n";
         }
         if (first_track)
+        {
             return 0;
+        }
     }
     if (offsetTrackPtrTableHigh + numtrk != first_instr)
     {
@@ -449,9 +522,13 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
     strCode += str;
 
     if (assemblerFormat == ATASM)
+    {
         str.Format("    {{byte}} \"RMT%c\"\n", buf[3]);
+    }
     else
+    {
         str.Format("    dta c'RMT%c'\n", buf[3]);
+    }
     strCode += str;
 
     str.Format("?song_info\n"
@@ -503,7 +580,9 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
             str.Format(assemblerFormat == ATASM ? "?Instrument_%d" : "a(?Instrument_%d)", i >> 1);
         }
         else if (loc == -start)
+        {
             str = (assemblerFormat == ATASM ? "  $0000" : " a($0000)");
+        }
         else
         {
             return 0;
@@ -525,9 +604,13 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
     {
         int loc = buf[i + offsetTrackPtrTableLow] + (buf[i + offsetTrackPtrTableHigh] << 8) - start;
         if (i % 8 == 0)
+        {
             strCode += (assemblerFormat == ATASM ? "\n    .byte " : "\n    dta ");
+        }
         else
+        {
             strCode += ",";
+        }
         if (loc >= first_track && loc < offsetSong && loc < len)
         {
             track_pos[loc] = i + 1;
@@ -535,7 +618,9 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
             strCode += str;
         }
         else if (loc == -start)
+        {
             strCode += "$00";
+        }
         else
         {
             return 0;
@@ -548,16 +633,22 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
     {
         int loc = buf[i + offsetTrackPtrTableLow] + (buf[i + offsetTrackPtrTableHigh] << 8) - start;
         if (i % 8 == 0)
+        {
             strCode += (assemblerFormat == ATASM ? "\n    .byte " : "\n    dta ");
+        }
         else
+        {
             strCode += ",";
+        }
         if (loc >= first_track && loc < offsetSong && loc < len)
         {
             str.Format(assemblerFormat == ATASM ? ">?Track_%02x" : "h(__Track_%02x)", i);
             strCode += str;
         }
         else if (loc == -start)
+        {
             strCode += "$00";
+        }
         else
         {
             return 0;
@@ -580,7 +671,9 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
     {
         sizeTrack = CASMFileBuilder::BuildTracksData(str, "", buf, first_track, offsetSong, track_pos, assemblerFormat);
         if (sizeTrack == 0)
+        {
             return 0;
+        }
         strCode += str;
         strModuleSequence += "  Tracks\n";
     }
@@ -602,7 +695,9 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
     {
         sizeTrack = CASMFileBuilder::BuildTracksData(str, strTracksLabel, buf, first_track, offsetSong, track_pos, assemblerFormat);
         if (sizeTrack == 0)
+        {
             return 0;
+        }
         strCode += str;
         strModuleSequence += "Relocated Tracks\n";
     }
@@ -617,8 +712,9 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
     strCode.Replace("?", "__");
 
     if (assemblerFormat == XASM)
+    {
         strCode.Replace(".local", "");
-
+    }
 
     if (bWantSizeInfoOnly)
     {
@@ -674,7 +770,9 @@ void CASMFileExporter::ComposeRMTFEATstring(
     //char* equal = "equ";
     const char* equal = "equ";
     if (assemblerFormat == ATASM)
+    {
         equal = "=";
+    }
 
 #define DEST(var,str)	s.Format("%s\t\t%s %i\t\t;(%i times)\n",str,equal,(var>0),var); dest+=s;
 
@@ -704,12 +802,18 @@ void CASMFileExporter::ComposeRMTFEATstring(
 
     for (int songLineNr = 0; songLineNr < SONGLEN; songLineNr++)
     {
-        if (song.m_songgo[songLineNr] >= 0) continue;	// goto line
+        if (song.m_songgo[songLineNr] >= 0)
+        {
+            continue; // goto line
+        }
         for (int channelNr = 0; channelNr < song.GetTracks(); channelNr++)
         {
             // Get the track# that is at the song line and at the channel
             int trackNr = song.m_song[songLineNr][channelNr];
-            if (trackNr < 0 || trackNr >= TRACKSNUM) continue;
+            if (trackNr < 0 || trackNr >= TRACKSNUM)
+            {
+                continue;
+            }
 
             TTrack* tt = g_Tracks.GetTrack(trackNr);		// Get the track data
             for (int i = 0; i < tt->len; i++)
@@ -717,11 +821,16 @@ void CASMFileExporter::ComposeRMTFEATstring(
                 // Track which instruments are used
                 int instrumentNr = tt->instr[i];
                 if (instrumentNr >= 0 && instrumentNr < INSTRSNUM)
+                {
                     instrumentUsedOnChannelX[instrumentNr][channelNr]++;
+                }
 
                 // Track how often the speed is changed
                 int chsp = tt->speed[i];
-                if (chsp >= 0) howManySpeedChanges++;
+                if (chsp >= 0)
+                {
+                    howManySpeedChanges++;
+                }
             }
         }
     }
@@ -747,15 +856,22 @@ void CASMFileExporter::ComposeRMTFEATstring(
                         for (int channelNr = 0; channelNr < song.GetTracks(); channelNr++)
                         {
                             if (instrumentUsedOnChannelX[instrumentNr][channelNr])
+                            {
                                 usedCommand7_VolumeOnlyOnChannelX[channelNr]++;
+                            }
                         }
                     }
                     else
+                    {
                         usedCommand7_SetNote++;
+                    }
                 }
 
                 // Portamento
-                if (ai->envelope[j][EnvelopeParameter::PORTAMENTO]) usedPortamento++;
+                if (ai->envelope[j][EnvelopeParameter::PORTAMENTO])
+                {
+                    usedPortamento++;
+                }
 
                 // Filter
                 if (ai->envelope[j][EnvelopeParameter::FILTER])
@@ -764,7 +880,9 @@ void CASMFileExporter::ComposeRMTFEATstring(
                     for (int channelNr = 0; channelNr < song.GetTracks(); channelNr++)
                     {
                         if (instrumentUsedOnChannelX[instrumentNr][channelNr])
+                        {
                             usedFilterOnChannelX[channelNr]++;
+                        }
                     }
                 }
 
@@ -775,33 +893,49 @@ void CASMFileExporter::ComposeRMTFEATstring(
                     for (int channelNr = 0; channelNr < song.GetTracks(); channelNr++)
                     {
                         if (instrumentUsedOnChannelX[instrumentNr][channelNr])
+                        {
                             usedBass16OnChannelX[channelNr]++;
+                        }
                     }
                 }
 
             }
             // table type
-            if (ai->parameters[PAR_TBL_TYPE]) usedTableType++;
+            if (ai->parameters[PAR_TBL_TYPE])
+            {
+                usedTableType++;
+            }
             // table mode
-            if (ai->parameters[PAR_TBL_MODE]) usedTableMode++;
+            if (ai->parameters[PAR_TBL_MODE])
+            {
+                usedTableMode++;
+            }
             // table go
-            if (ai->parameters[PAR_TBL_GOTO]) usedTableGoto++;	//non-zero table go
+            if (ai->parameters[PAR_TBL_GOTO])
+            {
+                usedTableGoto++; //non-zero table go
+            }
             // AUDCTL manual set
-            if (ai->parameters[PAR_AUDCTL_15KHZ]
-                || ai->parameters[PAR_AUDCTL_HPF_CH2]
-                || ai->parameters[PAR_AUDCTL_HPF_CH1]
-                || ai->parameters[PAR_AUDCTL_JOIN_3_4]
-                || ai->parameters[PAR_AUDCTL_JOIN_1_2]
-                || ai->parameters[PAR_AUDCTL_179_CH3]
-                || ai->parameters[PAR_AUDCTL_179_CH1]
-                || ai->parameters[PAR_AUDCTL_POLY9]) usedAudctlManualSet++;
+            if (ai->parameters[PAR_AUDCTL_15KHZ] || ai->parameters[PAR_AUDCTL_HPF_CH2] || ai->parameters[PAR_AUDCTL_HPF_CH1] || ai->parameters[PAR_AUDCTL_JOIN_3_4] || ai->parameters[PAR_AUDCTL_JOIN_1_2] || ai->parameters[PAR_AUDCTL_179_CH3] || ai->parameters[PAR_AUDCTL_179_CH1] || ai->parameters[PAR_AUDCTL_POLY9])
+            {
+                usedAudctlManualSet++;
+            }
             // Volume mininum
-            if (ai->parameters[PAR_VOL_MIN]) usedVolumeMin++;
+            if (ai->parameters[PAR_VOL_MIN])
+            {
+                usedVolumeMin++;
+            }
             // Effect vibrato and frequency shift
             if (ai->parameters[PAR_DELAY]) // only when the effect delay is non-zero
             {
-                if (ai->parameters[PAR_VIBRATO]) usedEffectVibrato++;
-                if (ai->parameters[PAR_FREQ_SHIFT]) usedEffectFrequencyShift++;
+                if (ai->parameters[PAR_VIBRATO])
+                {
+                    usedEffectVibrato++;
+                }
+                if (ai->parameters[PAR_FREQ_SHIFT])
+                {
+                    usedEffectFrequencyShift++;
+                }
             }
         }
     }

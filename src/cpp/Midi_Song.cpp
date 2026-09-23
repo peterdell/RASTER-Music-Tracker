@@ -103,7 +103,10 @@ void CSong::MidiEvent(DWORD dwParam)
         return; //END
     }
 
-    if (!g_RmtHasFocus && !IsProveMode()) return;	//when it has no focus and is not in prove mode, the MIDI input will be ignored, to avoid overwriting patterns accidentally
+    if (!g_RmtHasFocus && !IsProveMode())
+    {
+        return; //when it has no focus and is not in prove mode, the MIDI input will be ignored, to avoid overwriting patterns accidentally
+    }
 
     //test input from my own MIDI controller. CH15 for most events input, and CH9 specifically for the drumpad buttons, used for certain shortcuts triggered with MIDI NOTE ON events
     if (chn == 15 || chn == 9)
@@ -120,23 +123,38 @@ void CSong::MidiEvent(DWORD dwParam)
 
             case 7:		//volume slider
                 m_vol_slider = pr2 / 8;
-                if (m_vol_slider == 0) m_vol_slider++;
-                if (m_vol_slider > 15) m_vol_slider = 15;
+                if (m_vol_slider == 0)
+                {
+                    m_vol_slider++;
+                }
+                if (m_vol_slider > 15)
+                {
+                    m_vol_slider = 15;
+                }
                 m_volume = m_vol_slider;
                 break;
 
             case 115:	//LOOP key
-                if (!pr2) break;	//no key press
+                if (!pr2)
+                {
+                    break; //no key press
+                }
                 Play(PLAY_TRACK, m_followplay, 0);
                 break;
 
             case 116:	//STOP key
-                if (!pr2) break;	//no key press
+                if (!pr2)
+                {
+                    break; //no key press
+                }
                 Stop();
                 break;
 
             case 117:	//PLAY key
-                if (!pr2) break;	//no key press
+                if (!pr2)
+                {
+                    break; //no key press
+                }
                 Play(PLAY_SONG, m_followplay, 0);
                 break;
 
@@ -146,7 +164,10 @@ void CSong::MidiEvent(DWORD dwParam)
                 break;
 
             case 123:
-                if (!pr2) break;	//no key press
+                if (!pr2)
+                {
+                    break; //no key press
+                }
                 Stop();
                 //Atari_Init();
                 goto MIDISystemReset;
@@ -226,45 +247,81 @@ void CSong::MidiEvent(DWORD dwParam)
             switch (pr1)
             {
             case 60:	//drumpad 1, toggle High Pass Filter in ch1+3
-                if (!pr2) break;	//no key press
+                if (!pr2)
+                {
+                    break; //no key press
+                }
                 memory[0x3C69] ^= 0x04;
                 break;
 
             case 62:	//drumpad 2, toggle High Pass Filter in ch2+4
-                if (!pr2) break;	//no key press
+                if (!pr2)
+                {
+                    break; //no key press
+                }
                 memory[0x3C69] ^= 0x02;
                 break;
 
             case 66:	//drumpad 3, toggle 1.79mHz mode in the respective channels
-                if (!pr2) break;	//no key press
+                if (!pr2)
+                {
+                    break; //no key press
+                }
                 memory[0x3C69] ^= (m_ch_offset) ? 0x20 : 0x40;
                 break;
 
             case 70:	//drumpad 4, toggle Join 16-bit mode in the respective channels
-                if (!pr2) break;	//no key press
+                if (!pr2)
+                {
+                    break; //no key press
+                }
                 memory[0x3C69] ^= (m_ch_offset) ? 0x08 : 0x10;
                 break;
 
             case 74:	//drumpad 5, select the POKEY channels 1 and 2 or 3 and 4
-                if (!pr2) break;	//no key press
-                if (m_ch_offset) m_ch_offset = 0;
-                else  m_ch_offset = 1;
+                if (!pr2)
+                {
+                    break; //no key press
+                }
+                if (m_ch_offset)
+                {
+                    m_ch_offset = 0;
+                }
+                else
+                {
+                    m_ch_offset = 1;
+                }
                 break;
 
             case 69:	//drumpad 6, reset all AUDCTL and SKCTL bits
-                if (!pr2) break;	//no key press
+                if (!pr2)
+                {
+                    break; //no key press
+                }
                 memory[0x3CD3] = 0x03;	//SKCTL
                 memory[0x3C69] = 0x00;	//AUDCTL
                 break;
 
             case 75:	//drumpad 7, toggle Two-Tone filter
-                if (!pr2) break;	//no key press
-                if (memory[0x3CD3] == 0x03) memory[0x3CD3] = 0x8B;
-                else memory[0x3CD3] = 0x03;
+                if (!pr2)
+                {
+                    break; //no key press
+                }
+                if (memory[0x3CD3] == 0x03)
+                {
+                    memory[0x3CD3] = 0x8B;
+                }
+                else
+                {
+                    memory[0x3CD3] = 0x03;
+                }
                 break;
 
             case 73:	//drumpad 8, toggle 15kHz mode
-                if (!pr2) break;	//no key press
+                if (!pr2)
+                {
+                    break; //no key press
+                }
                 memory[0x3C69] ^= 0x01;
                 break;
 
@@ -275,7 +332,10 @@ void CSong::MidiEvent(DWORD dwParam)
             return;
         }
 
-        if (chn == 9) return;	//we do not want any of those MIDI events outside of the drumpads!!!
+        if (chn == 9)
+        {
+            return; //we do not want any of those MIDI events outside of the drumpads!!!
+        }
 
         //default notes input event, which is mostly copied from the CH0 code. This is a very terrible approach, and will eventually be replaced (see above)
         if (chn == 15 && !IsEditMode(EditMode::MIDI_CH15_MODE))
@@ -294,7 +354,10 @@ void CSong::MidiEvent(DWORD dwParam)
                 g_Midi.m_LastNoteOnChannel[atc] = -1;
                 g_Midi.m_InstrumentOnChannel[atc] = m_activeinstr;		//instrument numbers
                 //}
-                if (m_heldkeys < 0) m_heldkeys = 0;
+                if (m_heldkeys < 0)
+                {
+                    m_heldkeys = 0;
+                }
                 return;
             }
 
@@ -309,16 +372,24 @@ void CSong::MidiEvent(DWORD dwParam)
 
                 if (pr2 == 0)
                 {
-                    if (!g_Midi.m_NoteOff) return;	//note off is not recognized
+                    if (!g_Midi.m_NoteOff)
+                    {
+                        return; //note off is not recognized
+                    }
                     vol = 0;			//keyoff
                 }
                 else
                     if (g_Midi.m_TouchResponse)
                     {
                         vol = g_Midi.m_VolumeOffset + pr2 / 8;	//dynamics
-                        if (vol == 0) vol++;		//vol=1
-                        else
-                            if (vol > 15) vol = 15;
+                        if (vol == 0)
+                        {
+                            vol++; //vol=1
+                        }
+                        else if (vol > 15)
+                        {
+                            vol = 15;
+                        }
 
                         m_volume = vol;
                     }
@@ -329,7 +400,10 @@ void CSong::MidiEvent(DWORD dwParam)
 
                 if (note >= 0 && note < CNotes::NOTESNUM)		//only within this range
                 {
-                    if (g_activepart != Part::PART_TRACKS || IsProveMode() || g_shiftkey || g_controlkey) goto Prove_midi_test;	//play notes but do not record them if the active screen is not TRACKS, or if any other PROVE combo is detected
+                    if (g_activepart != Part::PART_TRACKS || IsProveMode() || g_shiftkey || g_controlkey)
+                    {
+                        goto Prove_midi_test; //play notes but do not record them if the active screen is not TRACKS, or if any other PROVE combo is detected
+                    }
 
                     if (vol > 0)
                     {
@@ -355,7 +429,10 @@ void CSong::MidiEvent(DWORD dwParam)
                                 if (g_respectvolume)
                                 {
                                     int v = TrackGetVol();
-                                    if (v >= 0 && v <= MAXVOLUME) vol = v;
+                                    if (v >= 0 && v <= MAXVOLUME)
+                                    {
+                                        vol = v;
+                                    }
                                 }
                                 goto NextLine_midi_test;
                             }
@@ -369,16 +446,20 @@ void CSong::MidiEvent(DWORD dwParam)
                             {
                                 m_quantization_note = -2;
                             }
-                            else
-                                if (TrackSetNoteActualInstrVol(-1) && TrackSetVol(0))
-                                    goto NextLine_midi_test;
+                            else if (TrackSetNoteActualInstrVol(-1) && TrackSetVol(0))
+                            {
+                                goto NextLine_midi_test;
+                            }
                         }
                     }
 
                     if (0) //inside jumps only through goto
                     {
                     NextLine_midi_test:
-                        if (!(m_play && m_followplay)) TrackDown(g_SkipLinesAfterNoteInsert);	//scrolls only when there is no followplay
+                        if (!(m_play && m_followplay))
+                        {
+                            TrackDown(g_SkipLinesAfterNoteInsert); //scrolls only when there is no followplay
+                        }
                     Prove_midi_test:
                         //SetPlayPressedTonesTNIV(m_trackactivecol, note, m_activeinstr, vol);
                         SetPlayPressedTonesTNIV(atc, note, m_activeinstr, vol);
@@ -399,9 +480,12 @@ void CSong::MidiEvent(DWORD dwParam)
 
             char midi_audctl = 0x00;							//AUDCTL without any special effect, default 64khz clock
             char midi_audc = 0x00;								//AUDC, for the Distortion and Volume
-            char midi_audf = 0x00;								//AUDF, for the frequency 
+            char midi_audf = 0x00;								//AUDF, for the frequency
 
-            if (note > 63) return;								//crossing the boundary of the older table, so let's ignore it for now
+            if (note > 63)
+            {
+                return; //crossing the boundary of the older table, so let's ignore it for now
+            }
 
             if (cmd == 0xc0)
             {
@@ -413,7 +497,10 @@ void CSong::MidiEvent(DWORD dwParam)
             if (cmd == 0x80)
             {
                 m_heldkeys--;
-                if (m_heldkeys < 0) m_heldkeys = 0;				//if by any mean the count is desynced, force it to be 0
+                if (m_heldkeys < 0)
+                {
+                    m_heldkeys = 0; //if by any mean the count is desynced, force it to be 0
+                }
                 track = (m_trackactivecol + m_heldkeys) % 4;	//offset to the previous channel
                 for (int i = 0; i < 4; i++)
                 {
@@ -467,13 +554,22 @@ void CSong::MidiEvent(DWORD dwParam)
             //combined modes for some special output...
             bool JOIN_16BIT = ((JOIN_12 && CH1_179 && (track == 1 || track == 5)) || (JOIN_34 && CH3_179 && (track == 3 || track == 7))) ? 1 : 0;
             bool CLOCK_179 = ((CH1_179 && (track == 0 || track == 4)) || (CH3_179 && (track == 2 || track == 6))) ? 1 : 0;
-            if (JOIN_16BIT || CLOCK_179) CLOCK_15 = 0;	//override, these 2 take priority over 15khz mode
+            if (JOIN_16BIT || CLOCK_179)
+            {
+                CLOCK_15 = 0; //override, these 2 take priority over 15khz mode
+            }
 
             if (CH1_179 && CH3_179)
             {
                 //force only valid 1.79mhz channels even if the current track doesn't support it, if both are enabled but not in the right channel
-                if (track > 0 && track < 2) track = 2;
-                else if (track > 2) track = 0;
+                if (track > 0 && track < 2)
+                {
+                    track = 2;
+                }
+                else if (track > 2)
+                {
+                    track = 0;
+                }
                 CLOCK_179 = 1;
             }
 
@@ -491,9 +587,13 @@ void CSong::MidiEvent(DWORD dwParam)
                     midi_audf = memory[0xB040 + note];
                 }
                 else if (CLOCK_15)
+                {
                     goto case_default;
+                }
                 else
+                {
                     midi_audf = memory[0xB000 + note];
+                }
                 break;
 
             case 0x40:
@@ -506,32 +606,50 @@ void CSong::MidiEvent(DWORD dwParam)
 
             case 0xC0:
                 if (CLOCK_179)
+                {
                     midi_audf = memory[0xB240 + note];
-                else if (CLOCK_15)	//PAGE_EXTRA_0 => Address 0xB400, 0xB480 for 15khz Pure and 0xB4C0 for 15khz Buzzy
+                }
+                else if (CLOCK_15)
+                { //PAGE_EXTRA_0 => Address 0xB400, 0xB480 for 15khz Pure and 0xB4C0 for 15khz Buzzy
                     midi_audf = memory[0xB4C0 + note];
+                }
                 else
+                {
                     midi_audf = memory[0xB200 + note];
+                }
                 break;
 
             case 0xE0:
                 midi_audc = (char)0xC0;	//Distortion C bass E
                 if (CLOCK_179)
+                {
                     midi_audf = memory[0xB340 + note];
-                else if (CLOCK_15)	//PAGE_EXTRA_0 => Address 0xB400, 0xB480 for 15khz Pure and 0xB4C0 for 15khz Buzzy
+                }
+                else if (CLOCK_15)
+                { //PAGE_EXTRA_0 => Address 0xB400, 0xB480 for 15khz Pure and 0xB4C0 for 15khz Buzzy
                     midi_audf = memory[0xB4C0 + note];
+                }
                 else
+                {
                     midi_audf = memory[0xB300 + note];
+                }
                 break;
 
             case 0xA0:
             default:
             case_default:
                 if (CLOCK_179)
+                {
                     midi_audf = memory[0xB140 + note];
-                else if (CLOCK_15)	//PAGE_EXTRA_0 => Address 0xB400, 0xB480 for 15khz Pure and 0xB4C0 for 15khz Buzzy
+                }
+                else if (CLOCK_15)
+                { //PAGE_EXTRA_0 => Address 0xB400, 0xB480 for 15khz Pure and 0xB4C0 for 15khz Buzzy
                     midi_audf = memory[0xB480 + note];
+                }
                 else
+                {
                     midi_audf = memory[0xB100 + note];
+                }
                 break;
             }
 
@@ -559,16 +677,24 @@ void CSong::MidiEvent(DWORD dwParam)
             int vol;
             if (pr2 == 0)
             {
-                if (!g_Midi.m_NoteOff) return;	//note off is not recognized
+                if (!g_Midi.m_NoteOff)
+                {
+                    return; //note off is not recognized
+                }
                 vol = 0;			//keyoff
             }
             else
                 if (g_Midi.m_TouchResponse)
                 {
                     vol = g_Midi.m_VolumeOffset + pr2 / 8;	//dynamics
-                    if (vol == 0) vol++;		//vol=1
-                    else
-                        if (vol > 15) vol = 15;
+                    if (vol == 0)
+                    {
+                        vol++; //vol=1
+                    }
+                    else if (vol > 15)
+                    {
+                        vol = 15;
+                    }
 
                     m_volume = vol;
                 }
@@ -579,7 +705,10 @@ void CSong::MidiEvent(DWORD dwParam)
 
             if (note >= 0 && note < CNotes::NOTESNUM)		//only within this range
             {
-                if (g_activepart != Part::PART_TRACKS || IsProveMode() || g_shiftkey || g_controlkey) goto Prove_midi;	//play notes but do not record them if the active screen is not TRACKS, or if any other PROVE combo is detected
+                if (g_activepart != Part::PART_TRACKS || IsProveMode() || g_shiftkey || g_controlkey)
+                {
+                    goto Prove_midi; //play notes but do not record them if the active screen is not TRACKS, or if any other PROVE combo is detected
+                }
 
                 if (vol > 0)
                 {
@@ -600,7 +729,10 @@ void CSong::MidiEvent(DWORD dwParam)
                             if (g_respectvolume)
                             {
                                 int v = TrackGetVol();
-                                if (v >= 0 && v <= MAXVOLUME) vol = v;
+                                if (v >= 0 && v <= MAXVOLUME)
+                                {
+                                    vol = v;
+                                }
                             }
                             goto NextLine_midi;
                         }
@@ -614,16 +746,20 @@ void CSong::MidiEvent(DWORD dwParam)
                         {
                             m_quantization_note = -2;
                         }
-                        else
-                            if (TrackSetNoteActualInstrVol(-1) && TrackSetVol(0))
-                                goto NextLine_midi;
+                        else if (TrackSetNoteActualInstrVol(-1) && TrackSetVol(0))
+                        {
+                            goto NextLine_midi;
+                        }
                     }
                 }
 
                 if (0) //inside jumps only through goto
                 {
                 NextLine_midi:
-                    if (!(m_play && m_followplay)) TrackDown(g_SkipLinesAfterNoteInsert);	//scrolls only when there is no followplay
+                    if (!(m_play && m_followplay))
+                    {
+                        TrackDown(g_SkipLinesAfterNoteInsert); //scrolls only when there is no followplay
+                    }
                 Prove_midi:
                     SetPlayPressedTonesTNIV(m_trackactivecol, note, m_activeinstr, vol);
                     if ((IsEditMode(EditMode::JAM_STEREO_MODE) || g_controlkey) && IsStereo())

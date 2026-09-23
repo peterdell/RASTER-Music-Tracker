@@ -21,7 +21,9 @@ bool CWaveFile::OpenFile(LPTSTR Filename, int SampleRate, int SampleSize, int Ch
 	nError = mmioCreateChunk(hmmioOut, &ckOutRIFF, MMIO_CREATERIFF);
 
 	if (nError != MMSYSERR_NOERROR)
+	{
 		return false;
+	}
 
 	ckOut.ckid = mmioFOURCC('f', 'm', 't', ' ');
 	ckOut.cksize = sizeof(PCMWAVEFORMAT);
@@ -29,7 +31,9 @@ bool CWaveFile::OpenFile(LPTSTR Filename, int SampleRate, int SampleSize, int Ch
 	nError = mmioCreateChunk(hmmioOut, &ckOut, 0);
 
 	if (nError != MMSYSERR_NOERROR)
+	{
 		return false;
+	}
 
 	mmioWrite(hmmioOut, (HPSTR)&WaveFormat, sizeof(PCMWAVEFORMAT));
 	mmioAscend(hmmioOut, &ckOut, 0);
@@ -40,7 +44,9 @@ bool CWaveFile::OpenFile(LPTSTR Filename, int SampleRate, int SampleSize, int Ch
 	nError = mmioCreateChunk(hmmioOut, &ckOut, 0);
 
 	if (nError != MMSYSERR_NOERROR)
+	{
 		return false;
+	}
 
 	mmioGetInfo(hmmioOut, &mmioinfoOut, 0);
 

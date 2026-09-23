@@ -45,6 +45,18 @@
   <PropertyGroup>
     <_ProjectFileVersion>16.0.31727.243</_ProjectFileVersion>
   </PropertyGroup>
+  <!-- Enables Visual Studio's built-in Clang-Tidy analysis (Analyze > Run
+       Code Analysis, and live in-editor squiggles) to enforce
+       plans/RULES.md's "always brace if/else/for/while/do" rule. Only
+       affects on-demand/background analysis, not normal Build/Rebuild.
+       ClangTidyChecks must be kept in sync with the repo-root .clang-tidy
+       file - Visual Studio's integration always passes its own -checks=
+       argument, which would otherwise override that file's Checks: key. -->
+  <PropertyGroup>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
+    <ClangTidyChecks>-*,readability-braces-around-statements,readability-misleading-indentation</ClangTidyChecks>
+    <ClangTidyHeaderFilter>^$</ClangTidyHeaderFilter>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
@@ -494,6 +506,14 @@
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
     </CopyFileToFolders>
+    <None Include="..\..\plans\BROADER_SURVEY_PLAN.md" />
+    <None Include="..\..\plans\EXPORTV2_PLAN.md" />
+    <None Include="..\..\plans\IO_IMPORTER_PLAN.md" />
+    <None Include="..\..\plans\MESSAGEBOX_REFACTOR_PLAN.md" />
+    <None Include="..\..\plans\NOTES.md" />
+    <None Include="..\..\plans\OVERALL_PLAN.md" />
+    <None Include="..\..\plans\SAP_LZSS_WAV_XEX_PLAN.md" />
+    <None Include="..\..\plans\SONG_IO_SONG_REMAINING_PLAN.md" />
     <None Include="..\..\README.md" />
     <None Include=".gitignore" />
     <None Include="asap\asap.md" />

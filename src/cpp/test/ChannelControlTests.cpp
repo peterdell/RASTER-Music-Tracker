@@ -23,10 +23,16 @@ TEST(ChannelControlTest, ToggleChannelOnOffFlipsOnlyThatChannel) {
 TEST(ChannelControlTest, SetAllChannelsOnAndOff) {
     CChannelControl channels(3);
     channels.SetAllChannelsOn();
-    for (unsigned int i = 0; i < 3; i++) EXPECT_TRUE(channels.IsChannelOn(i));
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        EXPECT_TRUE(channels.IsChannelOn(i));
+    }
 
     channels.SetAllChannelsOff();
-    for (unsigned int i = 0; i < 3; i++) EXPECT_FALSE(channels.IsChannelOn(i));
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        EXPECT_FALSE(channels.IsChannelOn(i));
+    }
 }
 
 TEST(ChannelControlTest, ToggleAllChannelsOnOffInvertsEachIndependently) {
@@ -59,7 +65,10 @@ TEST(ChannelControlTest, SoloAgainWhenAlreadyAloneTurnsAllBackOn) {
 
     channels.SetChannelSolo(1); // solo an already-solo'd channel
 
-    for (unsigned int i = 0; i < 4; i++) EXPECT_TRUE(channels.IsChannelOn(i));
+    for (unsigned int i = 0; i < 4; i++)
+    {
+        EXPECT_TRUE(channels.IsChannelOn(i));
+    }
 }
 
 TEST(ChannelControlTest, SoloFromAllOffTurnsOnlyTargetOn) {

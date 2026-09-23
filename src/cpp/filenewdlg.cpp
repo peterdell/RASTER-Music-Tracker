@@ -54,7 +54,10 @@ void CFileNewDlg::OnOK()
     if (mtl > 64 && mtl <= TRACKLEN)
     {
         int r = MessageBox("Warning:\nLength of tracks is greater than 64.\nRMT's internal module format allows for a maximum of\n256 bytes for each track. It is not recommended to use\na large number of events in long tracks.\nEach track event (note or speed command) uses about 2 bytes.\n\nWhen saving the RMT file it will report any problems with it.\n\nOk?", "New RMT module - Warning", MB_YESNO | MB_ICONQUESTION);
-        if (r != IDYES) return;
+        if (r != IDYES)
+        {
+            return;
+        }
     }
     CDialog::OnOK();
 }

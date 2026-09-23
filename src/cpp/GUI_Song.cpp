@@ -73,14 +73,23 @@ void CSong::SetRMTTitle()
 int CSong::WarnUnsavedChanges()
 {
     //returns 1 upon cancelation
-    if (!g_changes) return 0;
+    if (!g_changes)
+    {
+        return 0;
+    }
     MessageAnswer r = SendQuestionMessage("Current song has been changed", "Save current changes?", MessageButtons::YesNoCancel);
-    if (r == MessageAnswer::Cancel) return 1;
+    if (r == MessageAnswer::Cancel)
+    {
+        return 1;
+    }
     if (r == MessageAnswer::Yes)
     {
         FileSave();
         SetRMTTitle();
-        if (g_changes) return 1; //failed to save or canceled
+        if (g_changes)
+        {
+            return 1; //failed to save or canceled
+        }
     }
     return 0;
 }
@@ -109,8 +118,14 @@ BOOL CSong::InfoKey(int vk, int shift, int control)
     if (m_infoact == EditArea::NAME)
     {
         is_editing_infos = 1;
-        if (vk == VK_DIVIDE || vk == VK_MULTIPLY || vk == VK_ADD || vk == VK_SUBTRACT) goto edit_ok;	//a workaround so the Octave and Volume can be set anywhere
-        if (((!CAPSLOCK && shift) || (CAPSLOCK && !shift)) && (vk == VK_LEFT || vk == VK_RIGHT)) goto edit_ok;	//a workaround so the active instrument can be set anywhere
+        if (vk == VK_DIVIDE || vk == VK_MULTIPLY || vk == VK_ADD || vk == VK_SUBTRACT)
+        {
+            goto edit_ok; //a workaround so the Octave and Volume can be set anywhere
+        }
+        if (((!CAPSLOCK && shift) || (CAPSLOCK && !shift)) && (vk == VK_LEFT || vk == VK_RIGHT))
+        {
+            goto edit_ok; //a workaround so the active instrument can be set anywhere
+        }
         if (IsNotAMovementVKey(vk))
         {	//saves undo only if it is not cursor movement
             g_Undo.ChangeInfo(0, UETYPE_INFODATA);
@@ -126,10 +141,15 @@ BOOL CSong::InfoKey(int vk, int shift, int control)
             i = infp & 0x0f; //lower digit (hex)
             if (infand < 0x0f)
             {
-                if (num <= infand) i = num;
+                if (num <= infand)
+                {
+                    i = num;
+                }
             }
             else
+            {
                 i = ((i << 4) | num) & infand;
+            }
         }
         //couldn't quite get decimal to work yet... 
         else if (m_infoact == EditArea::FIRST_HIGHLIGHT || m_infoact == EditArea::SECOND_HIGHLIGHT)
@@ -140,18 +160,27 @@ BOOL CSong::InfoKey(int vk, int shift, int control)
             i = infp & 0x0f; //lower digit (hex)
             if (infand < 0x0f)
             {
-                if (num <= infand) i = num;
+                if (num <= infand)
+                {
+                    i = num;
+                }
             }
             else
             {
                 i = (i << 4) | num;
-                if (i > infand) i = infand;
+                if (i > infand)
+                {
+                    i = infand;
+                }
                 //i = ((i * 10) | num) & infand;
                 //if (i > infand) i = infand;
             }
 
         }
-        if (i <= 0) i = 1;	//all values must be at least 1
+        if (i <= 0)
+        {
+            i = 1; //all values must be at least 1
+        }
         g_Undo.ChangeInfo(0, UETYPE_INFODATA);
         infp = i;
         return 1;
@@ -160,7 +189,10 @@ edit_ok:
     switch (vk)
     {
     case VK_TAB:
-        if (control) break;	//do nothing
+        if (control)
+        {
+            break; //do nothing
+        }
         if (shift)
         {
             m_infoact = EditArea::NAME;	//Shift+TAB => Name
@@ -181,24 +213,42 @@ edit_ok:
         return 1;
 
     case VK_UP:
-        if (control && shift) break;	//do nothing
-        if (control) goto IncrementInfoPar;
+        if (control && shift)
+        {
+            break; //do nothing
+        }
+        if (control)
+        {
+            goto IncrementInfoPar;
+        }
         break;
 
     case VK_DOWN:
-        if (control && shift) break;	//do nothing
-        if (control) goto DecrementInfoPar;
+        if (control && shift)
+        {
+            break; //do nothing
+        }
+        if (control)
+        {
+            goto DecrementInfoPar;
+        }
         break;
 
     case VK_LEFT:
     {
-        if (control && shift) break;	//do nothing
+        if (control && shift)
+        {
+            break; //do nothing
+        }
         if (control)
         {
         DecrementInfoPar:
             i = infp;
             i--;
-            if (i <= 0) i = infand; //value must be at least 1, roll back to the maximum defined earlier 
+            if (i <= 0)
+            {
+                i = infand; //value must be at least 1, roll back to the maximum defined earlier
+            }
             g_Undo.ChangeInfo(0, UETYPE_INFODATA);
             infp = i;
         }
@@ -228,13 +278,19 @@ edit_ok:
 
     case VK_RIGHT:
     {
-        if (control && shift) break;	//do nothing
+        if (control && shift)
+        {
+            break; //do nothing
+        }
         if (control)
         {
         IncrementInfoPar:
             i = infp;
             i++;
-            if (i > infand) i = 1;	//value must be at least 1
+            if (i > infand)
+            {
+                i = 1; //value must be at least 1
+            }
             g_Undo.ChangeInfo(0, UETYPE_INFODATA);
             infp = i;
         }
@@ -311,21 +367,32 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
         {
             int pmax = shpar[ai->editParameterNr].maxParameterValue;
             int pfrom = shpar[ai->editParameterNr].displayOffset;
-            if (NumbKey(vk) > pmax + pfrom) return 0;
+            if (NumbKey(vk) > pmax + pfrom)
+            {
+                return 0;
+            }
             i = ap + pfrom;
             i &= 0x0f; //lower digit
             if (pmax + pfrom > 0x0f)
             {
                 i = (i << 4) | NumbKey(vk);
                 if (i > pmax + pfrom)
+                {
                     i &= 0x0f;		//leaves only the lower digit
+                }
             }
             else
             {
-                if (NumbKey(vk) >= pfrom) i = NumbKey(vk);
+                if (NumbKey(vk) >= pfrom)
+                {
+                    i = NumbKey(vk);
+                }
             }
             i -= pfrom;
-            if (i < 0) i = 0;
+            if (i < 0)
+            {
+                i = 0;
+            }
             g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
             ap = i;
             goto ChangeInstrumentPar;
@@ -335,12 +402,18 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             int eand = shenv[ai->editEnvelopeY].pand;
             int num = NumbKey(vk);
             i = num & eand;
-            if (i != num) return 0; //something else came out after and number pressed out of range
+            if (i != num)
+            {
+                return 0; //something else came out after and number pressed out of range
+            }
             g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
             ae = i;
             //shift to the right
             i = ai->editEnvelopeX;
-            if (i < ai->parameters[PAR_ENV_LENGTH]) i++;	// else i=0; //length of env
+            if (i < ai->parameters[PAR_ENV_LENGTH])
+            {
+                i++; // else i=0; //length of env
+            }
             ai->editEnvelopeX = i;
             goto ChangeInstrumentEnv;
         }
@@ -358,7 +431,10 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
     switch (vk)
     {
     case VK_TAB:
-        if (control) break;	//do nothing
+        if (control)
+        {
+            break; //do nothing
+        }
         if (ai->activeEditSection == InstrumentSection::NAME) {
             break;	//is editing text
         }
@@ -404,10 +480,19 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
 
     case VK_UP:
     case VK_DOWN:
-        if (CAPSLOCK && shift) break;
+        if (CAPSLOCK && shift)
+        {
+            break;
+        }
 
-        if (shift && !control) return 0;	//the combination Shift + Control + UP / DOWN is enabled for edit ENVELOPE and TABLE
-        if (shift && control && ai->activeEditSection == InstrumentSection::PARAMETERS) return 0;	//except for edit PARAM, is not allowed there
+        if (shift && !control)
+        {
+            return 0; //the combination Shift + Control + UP / DOWN is enabled for edit ENVELOPE and TABLE
+        }
+        if (shift && control && ai->activeEditSection == InstrumentSection::PARAMETERS)
+        {
+            return 0; //except for edit PARAM, is not allowed there
+        }
         break;
 
     case VK_MULTIPLY:
@@ -429,20 +514,41 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
         {
             g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
             BOOL br = 0, bl = 0;
-            if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == EnvelopeParameter::VOLUMER) br = 1;
+            if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == EnvelopeParameter::VOLUMER)
+            {
+                br = 1;
+            }
+            else if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == EnvelopeParameter::VOLUMEL)
+            {
+                bl = 1;
+            }
             else
-                if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == EnvelopeParameter::VOLUMEL) bl = 1;
-                else
-                    br = bl = 1;
+            {
+                br = bl = 1;
+            }
             for (int i = 0; i <= ai->parameters[PAR_ENV_LENGTH]; i++)
             {
-                if (br) { if (ai->envelope[i][EnvelopeParameter::VOLUMER] > 0) ai->envelope[i][EnvelopeParameter::VOLUMER]--; }
-                if (bl) { if (ai->envelope[i][EnvelopeParameter::VOLUMEL] > 0) ai->envelope[i][EnvelopeParameter::VOLUMEL]--; }
+                if (br)
+                {
+                    if (ai->envelope[i][EnvelopeParameter::VOLUMER] > 0)
+                    {
+                        ai->envelope[i][EnvelopeParameter::VOLUMER]--;
+                    }
+                }
+                if (bl)
+                {
+                    if (ai->envelope[i][EnvelopeParameter::VOLUMEL] > 0)
+                    {
+                        ai->envelope[i][EnvelopeParameter::VOLUMEL]--;
+                    }
+                }
             }
             goto ChangeInstrumentEnv;
         }
         else
+        {
             VolumeDown();
+        }
         return 1;
         break;
 
@@ -451,20 +557,41 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
         {
             g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
             BOOL br = 0, bl = 0;
-            if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == EnvelopeParameter::VOLUMER) br = 1;
+            if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == EnvelopeParameter::VOLUMER)
+            {
+                br = 1;
+            }
+            else if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == EnvelopeParameter::VOLUMEL)
+            {
+                bl = 1;
+            }
             else
-                if (ai->activeEditSection == InstrumentSection::ENVELOPE && ai->editEnvelopeY == EnvelopeParameter::VOLUMEL) bl = 1;
-                else
-                    br = bl = 1;
+            {
+                br = bl = 1;
+            }
             for (int i = 0; i <= ai->parameters[PAR_ENV_LENGTH]; i++)
             {
-                if (br) { if (ai->envelope[i][EnvelopeParameter::VOLUMER] < 0x0f) ai->envelope[i][EnvelopeParameter::VOLUMER]++; }
-                if (bl) { if (ai->envelope[i][EnvelopeParameter::VOLUMEL] < 0x0f) ai->envelope[i][EnvelopeParameter::VOLUMEL]++; }
+                if (br)
+                {
+                    if (ai->envelope[i][EnvelopeParameter::VOLUMER] < 0x0f)
+                    {
+                        ai->envelope[i][EnvelopeParameter::VOLUMER]++;
+                    }
+                }
+                if (bl)
+                {
+                    if (ai->envelope[i][EnvelopeParameter::VOLUMEL] < 0x0f)
+                    {
+                        ai->envelope[i][EnvelopeParameter::VOLUMEL]++;
+                    }
+                }
             }
             goto ChangeInstrumentEnv;
         }
         else
+        {
             VolumeUp();
+        }
         return 1;
         break;
     }
@@ -492,12 +619,18 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
         switch (vk)
         {
         case VK_UP:
-            if (control) goto ParameterInc;
+            if (control)
+            {
+                goto ParameterInc;
+            }
             ai->editParameterNr = shpar[ai->editParameterNr].gotoUp;
             return 1;
 
         case VK_DOWN:
-            if (control) goto ParameterDec;
+            if (control)
+            {
+                goto ParameterDec;
+            }
             ai->editParameterNr = shpar[ai->editParameterNr].gotoDown;
             return 1;
 
@@ -508,7 +641,10 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             ParameterDec:
                 g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
                 int v = ap - 1;
-                if (v < 0) v = shpar[ai->editParameterNr].maxParameterValue;
+                if (v < 0)
+                {
+                    v = shpar[ai->editParameterNr].maxParameterValue;
+                }
                 ap = v;
                 goto ChangeInstrumentPar;
             }
@@ -526,7 +662,10 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             ParameterInc:
                 g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
                 int v = ap + 1;
-                if (v > shpar[ai->editParameterNr].maxParameterValue) v = 0;
+                if (v > shpar[ai->editParameterNr].maxParameterValue)
+                {
+                    v = 0;
+                }
                 ap = v;
                 goto ChangeInstrumentPar;
             }
@@ -542,7 +681,10 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             return 1;
 
         case VK_SPACE:
-            if (control) break;	//prevents inputing a SPACE while exiting PROVE mode
+            if (control)
+            {
+                break; //prevents inputing a SPACE while exiting PROVE mode
+            }
         case VK_BACK:	//BACKSPACE
         case VK_DELETE:
             g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
@@ -583,10 +725,15 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             if (i > 0)
             {
                 i--;
-                if (i == 0 && GetTracks() <= 4) i = 7;	//mono mode
+                if (i == 0 && GetTracks() <= 4)
+                {
+                    i = 7; //mono mode
+                }
             }
             else
+            {
                 i = 7;
+            }
             ai->editEnvelopeY = i;
             return 1;
 
@@ -606,7 +753,14 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
                 goto EnvelopeDec;
             }
             i = ai->editEnvelopeY;
-            if (i < 7) i++; else i = (GetTracks() > 4) ? 0 : 1;
+            if (i < 7)
+            {
+                i++;
+            }
+            else
+            {
+                i = (GetTracks() > 4) ? 0 : 1;
+            }
             ai->editEnvelopeY = i;
             return 1;
 
@@ -621,7 +775,14 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             else
             {
                 i = ai->editEnvelopeX;
-                if (i > 0) i--; else i = ai->parameters[PAR_ENV_LENGTH]; //length of env
+                if (i > 0)
+                {
+                    i--;
+                }
+                else
+                {
+                    i = ai->parameters[PAR_ENV_LENGTH]; //length of env
+                }
                 ai->editEnvelopeX = i;
             }
             return 1;
@@ -637,7 +798,14 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             else
             {
                 i = ai->editEnvelopeX;
-                if (i < ai->parameters[PAR_ENV_LENGTH]) i++; else i = 0; //length of env
+                if (i < ai->parameters[PAR_ENV_LENGTH])
+                {
+                    i++;
+                }
+                else
+                {
+                    i = 0; //length of env
+                }
                 ai->editEnvelopeX = i;
             }
             return 1;
@@ -653,9 +821,13 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             {
                 //goes left to column 0 or to the beginning of the GO loop
                 if (ai->editEnvelopeX != 0)
+                {
                     ai->editEnvelopeX = 0;
+                }
                 else
+                {
                     ai->editEnvelopeX = ai->parameters[PAR_ENV_GOTO];
+                }
             }
             return 1;
 
@@ -663,10 +835,14 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             if (control)
             {
                 g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
-                if (ai->editEnvelopeX == ai->parameters[PAR_ENV_LENGTH])	//sets ENVLEN to this column or to the end
+                if (ai->editEnvelopeX == ai->parameters[PAR_ENV_LENGTH])
+                { //sets ENVLEN to this column or to the end
                     ai->parameters[PAR_ENV_LENGTH] = ENVELOPE_MAX_COLUMNS - 1;
+                }
                 else
+                {
                     ai->parameters[PAR_ENV_LENGTH] = ai->editEnvelopeX;
+                }
                 goto ChangeInstrumentPar;	//yes, changed PAR from envelope
             }
             else
@@ -682,11 +858,20 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             return 1;
 
         case VK_SPACE:
-            if (control) break;	//prevents inputing a SPACE while exiting PROVE mode
+            if (control)
+            {
+                break; //prevents inputing a SPACE while exiting PROVE mode
+            }
             {
                 g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
-                for (int j = 0; j < ENVROWS; j++) ai->envelope[ai->editEnvelopeX][j] = 0;
-                if (ai->editEnvelopeX < ai->parameters[PAR_ENV_LENGTH]) ai->editEnvelopeX++; //shift to the right
+                for (int j = 0; j < ENVROWS; j++)
+                {
+                    ai->envelope[ai->editEnvelopeX][j] = 0;
+                }
+                if (ai->editEnvelopeX < ai->parameters[PAR_ENV_LENGTH])
+                {
+                    ai->editEnvelopeX++; //shift to the right
+                }
             }
             goto ChangeInstrumentEnv;
             return 1;
@@ -698,14 +883,29 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
                 int i, j;
                 int ele = ai->parameters[PAR_ENV_LENGTH];
                 int ego = ai->parameters[PAR_ENV_GOTO];
-                if (ele < ENVELOPE_MAX_COLUMNS - 1) ele++;
-                if (ai->editEnvelopeX < ego && ego < ENVELOPE_MAX_COLUMNS - 1) ego++;
+                if (ele < ENVELOPE_MAX_COLUMNS - 1)
+                {
+                    ele++;
+                }
+                if (ai->editEnvelopeX < ego && ego < ENVELOPE_MAX_COLUMNS - 1)
+                {
+                    ego++;
+                }
                 for (i = ENVELOPE_MAX_COLUMNS - 2; i >= ai->editEnvelopeX; i--)
                 {
-                    for (j = 0; j < ENVROWS; j++) ai->envelope[i + 1][j] = ai->envelope[i][j];
+                    for (j = 0; j < ENVROWS; j++)
+                    {
+                        ai->envelope[i + 1][j] = ai->envelope[i][j];
+                    }
                 }
                 //improvement: with shift it will leave it there (it will not erase the column)
-                if (!shift) for (j = 0; j < ENVROWS; j++) ai->envelope[ai->editEnvelopeX][j] = 0;
+                if (!shift)
+                {
+                    for (j = 0; j < ENVROWS; j++)
+                    {
+                        ai->envelope[ai->editEnvelopeX][j] = 0;
+                    }
+                }
                 ai->parameters[PAR_ENV_LENGTH] = ele;
                 ai->parameters[PAR_ENV_GOTO] = ego;
                 goto ChangeInstrumentPar;	//changed length and / or go parameters
@@ -724,19 +924,37 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
                     ele--;
                     for (i = ai->editEnvelopeX; i < ENVELOPE_MAX_COLUMNS - 1; i++)
                     {
-                        for (j = 0; j < ENVROWS; j++) ai->envelope[i][j] = ai->envelope[i + 1][j];
+                        for (j = 0; j < ENVROWS; j++)
+                        {
+                            ai->envelope[i][j] = ai->envelope[i + 1][j];
+                        }
                     }
-                    for (j = 0; j < ENVROWS; j++) ai->envelope[ENVELOPE_MAX_COLUMNS - 1][j] = 0;
+                    for (j = 0; j < ENVROWS; j++)
+                    {
+                        ai->envelope[ENVELOPE_MAX_COLUMNS - 1][j] = 0;
+                    }
                 }
                 else
                 {
-                    for (j = 0; j < ENVROWS; j++) ai->envelope[0][j] = 0;
+                    for (j = 0; j < ENVROWS; j++)
+                    {
+                        ai->envelope[0][j] = 0;
+                    }
                 }
-                if (ai->editEnvelopeX < ego) ego--;
-                if (ego > ele) ego = ele;
+                if (ai->editEnvelopeX < ego)
+                {
+                    ego--;
+                }
+                if (ego > ele)
+                {
+                    ego = ele;
+                }
                 ai->parameters[PAR_ENV_GOTO] = ego;
                 ai->parameters[PAR_ENV_LENGTH] = ele;
-                if (ai->editEnvelopeX > ele) ai->editEnvelopeX = ele;
+                if (ai->editEnvelopeX > ele)
+                {
+                    ai->editEnvelopeX = ele;
+                }
                 goto ChangeInstrumentPar;	//changed length and / or go parameters
             }
             return 0; //without screen update
@@ -758,16 +976,23 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             {	//set a TABLE go loop here
                 g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
                 ai->parameters[PAR_TBL_GOTO] = ai->editNoteTableCursorPos;
-                if (ai->editNoteTableCursorPos > ai->parameters[PAR_TBL_LENGTH]) ai->parameters[PAR_TBL_LENGTH] = ai->editNoteTableCursorPos;
+                if (ai->editNoteTableCursorPos > ai->parameters[PAR_TBL_LENGTH])
+                {
+                    ai->parameters[PAR_TBL_LENGTH] = ai->editNoteTableCursorPos;
+                }
                 goto ChangeInstrumentPar;
             }
             else
             {
                 //go to the beginning of the TABLE and to the beginning of the TABLE loop
                 if (ai->editNoteTableCursorPos != 0)
+                {
                     ai->editNoteTableCursorPos = 0;
+                }
                 else
+                {
                     ai->editNoteTableCursorPos = ai->parameters[PAR_TBL_GOTO];
+                }
             }
             return 1;
 
@@ -776,13 +1001,19 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             {	//set TABLE only by location
                 g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
                 if (ai->editNoteTableCursorPos == ai->parameters[PAR_TBL_LENGTH])
+                {
                     ai->parameters[PAR_TBL_LENGTH] = NOTE_TABLE_MAX_LEN - 1;
+                }
                 else
+                {
                     ai->parameters[PAR_TBL_LENGTH] = ai->editNoteTableCursorPos;
+                }
                 goto ChangeInstrumentPar;
             }
-            else	//goes to the last parameter in the TABLE
+            else
+            { //goes to the last parameter in the TABLE
                 ai->editNoteTableCursorPos = ai->parameters[PAR_TBL_LENGTH];
+            }
             return 1;
 
         case VK_UP:
@@ -791,7 +1022,10 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
                 if (shift)	//Shift+Control+UP
                 {
                     g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
-                    for (int i = 0; i <= ai->parameters[PAR_TBL_LENGTH]; i++) ai->noteTable[i] = (ai->noteTable[i] + 1) & 0xff;
+                    for (int i = 0; i <= ai->parameters[PAR_TBL_LENGTH]; i++)
+                    {
+                        ai->noteTable[i] = (ai->noteTable[i] + 1) & 0xff;
+                    }
                     goto ChangeInstrumentTab;
                 }
             TableInc:
@@ -807,7 +1041,10 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
                 if (shift)	//Shift+Control+DOWN
                 {
                     g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
-                    for (int i = 0; i <= ai->parameters[PAR_TBL_LENGTH]; i++) ai->noteTable[i] = (ai->noteTable[i] - 1) & 0xff;
+                    for (int i = 0; i <= ai->parameters[PAR_TBL_LENGTH]; i++)
+                    {
+                        ai->noteTable[i] = (ai->noteTable[i] - 1) & 0xff;
+                    }
                     goto ChangeInstrumentTab;
                 }
             TableDec:
@@ -818,22 +1055,40 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
             return 1;
 
         case VK_LEFT:
-            if (control) goto TableDec;
+            if (control)
+            {
+                goto TableDec;
+            }
             i = ai->editNoteTableCursorPos - 1;
-            if (i < 0) i = ai->parameters[PAR_TBL_LENGTH];
+            if (i < 0)
+            {
+                i = ai->parameters[PAR_TBL_LENGTH];
+            }
             ai->editNoteTableCursorPos = i;
             goto ChangeInstrumentTab;
 
         case VK_RIGHT:
-            if (control) goto TableInc;
+            if (control)
+            {
+                goto TableInc;
+            }
             i = ai->editNoteTableCursorPos + 1;
-            if (i > ai->parameters[PAR_TBL_LENGTH]) i = 0;
+            if (i > ai->parameters[PAR_TBL_LENGTH])
+            {
+                i = 0;
+            }
             ai->editNoteTableCursorPos = i;
             goto ChangeInstrumentTab;
 
         case VK_SPACE:	// parameter reset and shift by 1 to the right
-            if (control) break;	//prevents inputing a SPACE while exiting PROVE mode
-            if (ai->editNoteTableCursorPos < ai->parameters[PAR_TBL_LENGTH]) ai->editNoteTableCursorPos++;
+            if (control)
+            {
+                break; //prevents inputing a SPACE while exiting PROVE mode
+            }
+            if (ai->editNoteTableCursorPos < ai->parameters[PAR_TBL_LENGTH])
+            {
+                ai->editNoteTableCursorPos++;
+            }
             //and proceeds the same as VK_BACKSPACE
         case VK_BACK: // parameter reset
             g_Undo.ChangeInstrument(m_activeinstr, 0, UETYPE_INSTRDATA);
@@ -847,10 +1102,22 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
                 int i;
                 int tle = ai->parameters[PAR_TBL_LENGTH];
                 int tgo = ai->parameters[PAR_TBL_GOTO];
-                if (tle < NOTE_TABLE_MAX_LEN - 1) tle++;
-                if (ai->editNoteTableCursorPos < tgo && tgo < NOTE_TABLE_MAX_LEN - 1) tgo++;
-                for (i = NOTE_TABLE_MAX_LEN - 2; i >= ai->editNoteTableCursorPos; i--) ai->noteTable[i + 1] = ai->noteTable[i];
-                if (!shift) ai->noteTable[ai->editNoteTableCursorPos] = 0; //with the shift it will leave there
+                if (tle < NOTE_TABLE_MAX_LEN - 1)
+                {
+                    tle++;
+                }
+                if (ai->editNoteTableCursorPos < tgo && tgo < NOTE_TABLE_MAX_LEN - 1)
+                {
+                    tgo++;
+                }
+                for (i = NOTE_TABLE_MAX_LEN - 2; i >= ai->editNoteTableCursorPos; i--)
+                {
+                    ai->noteTable[i + 1] = ai->noteTable[i];
+                }
+                if (!shift)
+                {
+                    ai->noteTable[ai->editNoteTableCursorPos] = 0; //with the shift it will leave there
+                }
                 ai->parameters[PAR_TBL_LENGTH] = tle;
                 ai->parameters[PAR_TBL_GOTO] = tgo;
                 //goto ChangeInstrumentTab; <-- It is not enough!
@@ -868,16 +1135,30 @@ BOOL CSong::InstrKey(int vk, int shift, int control)
                 if (tle > 0)
                 {
                     tle--;
-                    for (i = ai->editNoteTableCursorPos; i < NOTE_TABLE_MAX_LEN - 1; i++) ai->noteTable[i] = ai->noteTable[i + 1];
+                    for (i = ai->editNoteTableCursorPos; i < NOTE_TABLE_MAX_LEN - 1; i++)
+                    {
+                        ai->noteTable[i] = ai->noteTable[i + 1];
+                    }
                     ai->noteTable[NOTE_TABLE_MAX_LEN - 1] = 0;
                 }
                 else
+                {
                     ai->noteTable[0] = 0;
-                if (ai->editNoteTableCursorPos < tgo) tgo--;
-                if (tgo > tle) tgo = tle;
+                }
+                if (ai->editNoteTableCursorPos < tgo)
+                {
+                    tgo--;
+                }
+                if (tgo > tle)
+                {
+                    tgo = tle;
+                }
                 ai->parameters[PAR_TBL_LENGTH] = tle;
                 ai->parameters[PAR_TBL_GOTO] = tgo;
-                if (ai->editNoteTableCursorPos > tle) ai->editNoteTableCursorPos = tle;
+                if (ai->editNoteTableCursorPos > tle)
+                {
+                    ai->editNoteTableCursorPos = tle;
+                }
                 //goto ChangeInstrumentTab; <-- It is not enough!
                 goto ChangeInstrumentPar; //changed TABLE LEN or GO, must stop the instrument
             }
@@ -910,9 +1191,18 @@ BOOL CSong::InfoCursorGotoSongname(int x)
 BOOL CSong::InfoCursorGotoSpeed(int x)
 {
     x = (x - 4) / 8;
-    if (x < 2) m_infoact = EditArea::SPEED;
-    else if (x < 5) m_infoact = EditArea::MAIN_SPEED;
-    else m_infoact = EditArea::INSTR_SPEED;
+    if (x < 2)
+    {
+        m_infoact = EditArea::SPEED;
+    }
+    else if (x < 5)
+    {
+        m_infoact = EditArea::MAIN_SPEED;
+    }
+    else
+    {
+        m_infoact = EditArea::INSTR_SPEED;
+    }
     g_activepart = Part::PART_INFO;
     is_editing_infos = 0;	//Song Speed is being edited
     return 1;
@@ -921,8 +1211,14 @@ BOOL CSong::InfoCursorGotoSpeed(int x)
 BOOL CSong::InfoCursorGotoHighlight(int x)
 {
     x = (x - 4) / 8;
-    if (x < 2) m_infoact = EditArea::FIRST_HIGHLIGHT;
-    else m_infoact = EditArea::SECOND_HIGHLIGHT;
+    if (x < 2)
+    {
+        m_infoact = EditArea::FIRST_HIGHLIGHT;
+    }
+    else
+    {
+        m_infoact = EditArea::SECOND_HIGHLIGHT;
+    }
     g_activepart = Part::PART_INFO;
     is_editing_infos = 0;	//Song Highlight is being edited
     return 1;
@@ -934,7 +1230,10 @@ BOOL CSong::InfoCursorGotoOctaveSelect(int x, int y)
     CRect rec;
     ::GetWindowRect(g_viewhwnd, &rec);
     dlg.m_pos = rec.TopLeft() + CPoint(x - 64 - 9, y - 7);
-    if (dlg.m_pos.x < 0) dlg.m_pos.x = 0;
+    if (dlg.m_pos.x < 0)
+    {
+        dlg.m_pos.x = 0;
+    }
     dlg.m_octave = m_octave;
     g_mousebutt = 0;				//because the dialog sessions of the OnLbuttonUP event
     if (dlg.DoModal() == IDOK)
@@ -951,7 +1250,10 @@ BOOL CSong::InfoCursorGotoVolumeSelect(int x, int y)
     CRect rec;
     ::GetWindowRect(g_viewhwnd, &rec);
     dlg.m_pos = rec.TopLeft() + CPoint(x - 64 - 9, y - 7);
-    if (dlg.m_pos.x < 0) dlg.m_pos.x = 0;
+    if (dlg.m_pos.x < 0)
+    {
+        dlg.m_pos.x = 0;
+    }
     dlg.m_volume = m_volume;
     dlg.m_respectvolume = g_respectvolume;
 
@@ -972,7 +1274,10 @@ BOOL CSong::InfoCursorGotoInstrumentSelect(int x, int y)
     CRect rec;
     ::GetWindowRect(g_viewhwnd, &rec);
     dlg.m_pos = rec.TopLeft() + CPoint(x - 64 - 82, y - 7);
-    if (dlg.m_pos.x < 0) dlg.m_pos.x = 0;
+    if (dlg.m_pos.x < 0)
+    {
+        dlg.m_pos.x = 0;
+    }
     dlg.m_selected = m_activeinstr;
 
     g_mousebutt = 0;				//because the dialog sessions of the OnLbuttonUP event
@@ -1026,8 +1331,14 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         if (!control && (vk == VK_UP || vk == VK_PRIOR))  //GO - key up
         {
             m_trackactiveline = 0;
-            if (!g_SkipLinesAfterNoteInsert) TrackUp(1);
-            else TrackUp(g_SkipLinesAfterNoteInsert);
+            if (!g_SkipLinesAfterNoteInsert)
+            {
+                TrackUp(1);
+            }
+            else
+            {
+                TrackUp(g_SkipLinesAfterNoteInsert);
+            }
             return 1;
         }
         if (!control && (vk == VK_DOWN || vk == VK_NEXT)) //GO - key down
@@ -1041,62 +1352,107 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
     switch (vk)
     {
     case VK_LEFT:
-        if (control) break;	//do nothing
+        if (control)
+        {
+            break; //do nothing
+        }
         if (shift)
+        {
             ActiveInstrPrev();
-        else if (g_activepart != Part::PART_TRACKS)	//anywhere but tracks
+        }
+        else if (g_activepart != Part::PART_TRACKS)
+        { //anywhere but tracks
             TrackLeft(1);
+        }
         else
+        {
             TrackLeft();
+        }
         break;
 
     case VK_RIGHT:
-        if (control) break;	//do nothing
+        if (control)
+        {
+            break; //do nothing
+        }
         if (shift)
+        {
             ActiveInstrNext();
-        else if (g_activepart != Part::PART_TRACKS)	//anywhere but tracks
+        }
+        else if (g_activepart != Part::PART_TRACKS)
+        { //anywhere but tracks
             TrackRight(1);
+        }
         else
+        {
             TrackRight();
+        }
         break;
 
     case VK_UP:
-        if (shift) break;	//do nothing
+        if (shift)
+        {
+            break; //do nothing
+        }
         if (control || g_activepart != Part::PART_TRACKS)	//anywhere but tracks
         {
             SongUp();
         }
         else
         {
-            if (!g_SkipLinesAfterNoteInsert) TrackUp(1);
-            else TrackUp(g_SkipLinesAfterNoteInsert);
+            if (!g_SkipLinesAfterNoteInsert)
+            {
+                TrackUp(1);
+            }
+            else
+            {
+                TrackUp(g_SkipLinesAfterNoteInsert);
+            }
         }
         break;
 
     case VK_DOWN:
-        if (shift) break;	//do nothing
+        if (shift)
+        {
+            break; //do nothing
+        }
         if (control || g_activepart != Part::PART_TRACKS)	//anywhere but tracks
         {
             SongDown();
         }
         else
         {
-            if (!g_SkipLinesAfterNoteInsert) TrackDown(1, 0);
-            else TrackDown(g_SkipLinesAfterNoteInsert, 0);	//stoponlastline = 0 => will not stop on the last line of the track
+            if (!g_SkipLinesAfterNoteInsert)
+            {
+                TrackDown(1, 0);
+            }
+            else
+            {
+                TrackDown(g_SkipLinesAfterNoteInsert, 0); //stoponlastline = 0 => will not stop on the last line of the track
+            }
         }
         break;
 
     case VK_TAB:
         if (shift)
+        {
             TrackLeft(1); // Shift+TAB
+        }
         else if (control)
+        {
             CursorToSpeedColumn(); // Ctrl+TAB
+        }
         else
+        {
             TrackRight(1);
+        }
         break;
 
     case VK_SPACE:
-        if (control) break;	//prevents inputing a SPACE while exiting PROVE mode
+        if (control)
+        {
+            break; //prevents inputing a SPACE while exiting PROVE mode
+        }
         break;
 
     case VK_SUBTRACT:
@@ -1119,7 +1475,9 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         if (g_activepart != Part::PART_TRACKS)
         {
             if (shift)
+            {
                 SongSubsongPrev();
+            }
             else
             {
                 SongUp();
@@ -1139,13 +1497,16 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
                         //move to the previous goto
                         SongSubsongPrev();
                     }
-                if (m_play && m_followplay) break;	//prevents moving at all during play+follow
-                else
-                {
-                    if (m_trackactiveline > 0)
+                    if (m_play && m_followplay)
                     {
-                        m_trackactiveline = ((m_trackactiveline - 1) / g_trackLinePrimaryHighlight) * g_trackLinePrimaryHighlight;
+                        break; //prevents moving at all during play+follow
                     }
+                    else
+                    {
+                        if (m_trackactiveline > 0)
+                        {
+                            m_trackactiveline = ((m_trackactiveline - 1) / g_trackLinePrimaryHighlight) * g_trackLinePrimaryHighlight;
+                        }
                 }
             }
         break;
@@ -1154,7 +1515,9 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
         if (g_activepart != Part::PART_TRACKS)
         {
             if (shift)
+            {
                 SongSubsongNext();
+            }
             else
             {
                 SongDown();
@@ -1174,41 +1537,73 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
                         //move to the next goto
                         SongSubsongNext();
                     }
-                if (m_play && m_followplay) break;	//prevents moving at all during play+follow
-                else
-                {
-                    m_trackactiveline = ((m_trackactiveline + g_trackLinePrimaryHighlight) / g_trackLinePrimaryHighlight) * g_trackLinePrimaryHighlight;
-                    if (m_trackactiveline > GetSmallestMaxtracklen(m_songactiveline) - 1)
-                        m_trackactiveline -= g_trackLinePrimaryHighlight;
+                    if (m_play && m_followplay)
+                    {
+                        break; //prevents moving at all during play+follow
+                    }
+                    else
+                    {
+                        m_trackactiveline = ((m_trackactiveline + g_trackLinePrimaryHighlight) / g_trackLinePrimaryHighlight) * g_trackLinePrimaryHighlight;
+                        if (m_trackactiveline > GetSmallestMaxtracklen(m_songactiveline) - 1)
+                        {
+                            m_trackactiveline -= g_trackLinePrimaryHighlight;
+                        }
                 }
             }
         break;
 
     case VK_HOME:
-        if (control || shift) break; //do nothing
-        if (g_activepart == Part::PART_TRACKS)	//tracks
+        if (control || shift)
+        {
+            break; //do nothing
+        }
+        if (g_activepart == Part::PART_TRACKS)
+        {                               //tracks
             m_trackactiveline = 0;		//line 0
-        else if (g_activepart == Part::PART_SONG)	//song lines
+        }
+        else if (g_activepart == Part::PART_SONG)
+        { //song lines
             m_songactiveline = 0;
+        }
         break;
 
     case VK_END:
-        if (control || shift) break; //do nothing
+        if (control || shift)
+        {
+            break; //do nothing
+        }
         if (g_activepart == Part::PART_TRACKS)	//tracks
         {
             if (TrackGetGoLine() >= 0)
+            {
                 m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1; //last line
+            }
             else
+            {
                 m_trackactiveline = TrackGetLastLine();	//end line
-            if (m_trackactiveline < 0) m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1; //failsafe in case the active line is out of bounds
+            }
+            if (m_trackactiveline < 0)
+            {
+                m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1; //failsafe in case the active line is out of bounds
+            }
         }
         else if (g_activepart == Part::PART_SONG)	//song lines
         {
             int i, j, la = 0;
             for (j = 0; j < SONGLEN; j++)
             {
-                for (i = 0; i < GetTracks(); i++) if (m_song[j][i] >= 0) { la = j; break; }
-                if (m_songgo[j] >= 0) la = j;
+                for (i = 0; i < GetTracks(); i++)
+                {
+                    if (m_song[j][i] >= 0)
+                    {
+                        la = j;
+                        break;
+                    }
+                }
+                if (m_songgo[j] >= 0)
+                {
+                    la = j;
+                }
             }
             m_songactiveline = la;
         }
@@ -1226,11 +1621,14 @@ BOOL CSong::ProveKey(int vk, int shift, int control)
                     if (i != m_trackactivecol)
                     {
                         TrackGetLoopingNoteInstrVol(m_song[m_songactiveline][i], note, instr, vol);
-                        if (note >= 0)		//is there a note?
+                        if (note >= 0)
+                        {                                                   //is there a note?
                             SetPlayPressedTonesTNIV(i, note, instr, vol);	//it will lose it as it is there
-                        else
-                            if (vol >= 0) //there is no note, but is there a separate volume?
-                                SetPlayPressedTonesV(i, vol);				//adjust the volume as it is
+                        }
+                        else if (vol >= 0)
+                        {                                 //there is no note, but is there a separate volume?
+                            SetPlayPressedTonesV(i, vol); //adjust the volume as it is
+                        }
                     }
                 }
             }
@@ -1275,15 +1673,24 @@ BOOL CSong::TrackKey(int vk, int shift, int control)
     //
     int note, i, j;
 
-    if (g_TrackClipboard.IsBlockSelected() && SongGetActiveTrack() != g_TrackClipboard.m_seltrack) BLOCKDESELECT();
+    if (g_TrackClipboard.IsBlockSelected() && SongGetActiveTrack() != g_TrackClipboard.m_seltrack)
+    {
+        BLOCKDESELECT();
+    }
 
     if (SongGetGo() >= 0) //is active song go to line => they must not edit anything
     {
         if (!control && (vk == VK_UP || vk == VK_PRIOR))  //GO - key up
         {
             m_trackactiveline = 0;	//always assume it went from line 0
-            if (!g_SkipLinesAfterNoteInsert) TrackUp(1);
-            else TrackUp(g_SkipLinesAfterNoteInsert);
+            if (!g_SkipLinesAfterNoteInsert)
+            {
+                TrackUp(1);
+            }
+            else
+            {
+                TrackUp(g_SkipLinesAfterNoteInsert);
+            }
             return 1;
         }
         if (!control && (vk == VK_DOWN || vk == VK_NEXT)) //GO - key down
@@ -1292,21 +1699,33 @@ BOOL CSong::TrackKey(int vk, int shift, int control)
             TrackDown(1, 0);
             return 1;
         }
-        if (!control && !shift) return 0;
+        if (!control && !shift)
+        {
+            return 0;
+        }
         if (control && (vk == 8 || vk == 71)) //control+backspace or control+G
         {
             SongTrackGoOnOff();
             return 1;
         }
-        if (control && !shift && (vk == VKX_SONGINSERTLINE || vk == VKX_SONGDELETELINE || vk == VKX_SONGPREPARELINE || vk == VKX_SONGDUPLICATELINE || vk == VK_PRIOR || vk == VK_NEXT)) goto TrackKeyOk;
-        if (vk != VK_LEFT && vk != VK_RIGHT && vk != VK_UP && vk != VK_DOWN) return 0;
+        if (control && !shift && (vk == VKX_SONGINSERTLINE || vk == VKX_SONGDELETELINE || vk == VKX_SONGPREPARELINE || vk == VKX_SONGDUPLICATELINE || vk == VK_PRIOR || vk == VK_NEXT))
+        {
+            goto TrackKeyOk;
+        }
+        if (vk != VK_LEFT && vk != VK_RIGHT && vk != VK_UP && vk != VK_DOWN)
+        {
+            return 0;
+        }
     }
 TrackKeyOk:
 
     switch (m_trackactivecur)
     {
     case 0: //note column
-        if (control) break;		//with control, notes are not entered (break continues)
+        if (control)
+        {
+            break; //with control, notes are not entered (break continues)
+        }
         note = NoteKey(vk);
         if (note >= 0)
         {
@@ -1327,7 +1746,10 @@ TrackKeyOk:
                 if (TrackSetNoteActualInstrVol(i))
                 {
                     SetPlayPressedTonesTNIV(m_trackactivecol, i, m_activeinstr, TrackGetVol());
-                    if (!(m_play && m_followplay)) TrackDown(g_SkipLinesAfterNoteInsert);
+                    if (!(m_play && m_followplay))
+                    {
+                        TrackDown(g_SkipLinesAfterNoteInsert);
+                    }
                 }
             }
             return 1;
@@ -1344,10 +1766,15 @@ TrackKeyOk:
                     {
                         int instr = TrackGetInstr(), vol = TrackGetVol();
                         if (TrackSetNoteInstrVol(note, instr, vol))
+                        {
                             SetPlayPressedTonesTNIV(m_trackactivecol, note, instr, vol);
+                        }
                     }
                 }
-                if (!(m_play && m_followplay)) TrackDown(g_SkipLinesAfterNoteInsert);
+                if (!(m_play && m_followplay))
+                {
+                    TrackDown(g_SkipLinesAfterNoteInsert);
+                }
                 return 1;
             }
         break;
@@ -1361,18 +1788,30 @@ TrackKeyOk:
             if (TrackGetNote() >= 0) //the instrument number can only be changed if there is a note
             {
                 j = ((TrackGetInstr() & 0x0f) << 4) | i;
-                if (j >= INSTRSNUM) j &= 0x0f;	//leaves only the lower digit
+                if (j >= INSTRSNUM)
+                {
+                    j &= 0x0f; //leaves only the lower digit
+                }
                 TrackSetInstr(j);
             }
-            else goto testnotevalue;	//attempt to catch a fail by testing the other possible condition anyway
+            else
+            {
+                goto testnotevalue; //attempt to catch a fail by testing the other possible condition anyway
+            }
             return 1;
         }
         else if (note >= 0 && !shift && !control)
         {
         testnotevalue:
             BLOCKDESELECT();
-            if (TrackGetNote() >= 0) break; //do not input a note if there is already a note!
-            else goto insertnotes;	//force a note insertion otherwise
+            if (TrackGetNote() >= 0)
+            {
+                break; //do not input a note if there is already a note!
+            }
+            else
+            {
+                goto insertnotes; //force a note insertion otherwise
+            }
         }
         break;
 
@@ -1381,7 +1820,10 @@ TrackKeyOk:
         if (i >= 0 && !shift && !control)
         {
             BLOCKDESELECT();
-            if (TrackSetVol(i) && !(m_play && m_followplay)) TrackDown(g_SkipLinesAfterNoteInsert);
+            if (TrackSetVol(i) && !(m_play && m_followplay))
+            {
+                TrackDown(g_SkipLinesAfterNoteInsert);
+            }
             return 1;
         }
         break;
@@ -1392,10 +1834,19 @@ TrackKeyOk:
         {
             BLOCKDESELECT();
             j = TrackGetSpeed();
-            if (j < 0) j = 0;
+            if (j < 0)
+            {
+                j = 0;
+            }
             j = ((j & 0x0f) << 4) | i;
-            if (j >= TRACKMAXSPEED) j &= 0x0f;	//leaves only the lower digit
-            if (j <= 0) j = -1;	//zero does not exist
+            if (j >= TRACKMAXSPEED)
+            {
+                j &= 0x0f; //leaves only the lower digit
+            }
+            if (j <= 0)
+            {
+                j = -1; //zero does not exist
+            }
             TrackSetSpeed(j);
             return 1;
         }
@@ -1422,8 +1873,14 @@ TrackKeyOk:
             {
                 //block selection
                 BLOCKSETBEGIN();
-                if (!g_SkipLinesAfterNoteInsert) TrackUp(1);
-                else TrackUp(g_SkipLinesAfterNoteInsert);
+                if (!g_SkipLinesAfterNoteInsert)
+                {
+                    TrackUp(1);
+                }
+                else
+                {
+                    TrackUp(g_SkipLinesAfterNoteInsert);
+                }
                 BLOCKSETEND();
             }
             else
@@ -1434,13 +1891,22 @@ TrackKeyOk:
                         BLOCKDESELECT();
                         break;
                     }
-                    else SongUp();
+                    else
+                    {
+                        SongUp();
+                    }
                 }
                 else
                 {
                     BLOCKDESELECT();
-                    if (!g_SkipLinesAfterNoteInsert) TrackUp(1);
-                    else TrackUp(g_SkipLinesAfterNoteInsert);
+                    if (!g_SkipLinesAfterNoteInsert)
+                    {
+                        TrackUp(1);
+                    }
+                    else
+                    {
+                        TrackUp(g_SkipLinesAfterNoteInsert);
+                    }
                 }
         break;
 
@@ -1461,8 +1927,14 @@ TrackKeyOk:
             {
                 //block selection
                 BLOCKSETBEGIN();
-                if (!g_SkipLinesAfterNoteInsert) TrackDown(1, 0);
-                else TrackDown(g_SkipLinesAfterNoteInsert, 0);	//will not stop on the last line
+                if (!g_SkipLinesAfterNoteInsert)
+                {
+                    TrackDown(1, 0);
+                }
+                else
+                {
+                    TrackDown(g_SkipLinesAfterNoteInsert, 0); //will not stop on the last line
+                }
                 BLOCKSETEND();
             }
             else
@@ -1481,8 +1953,14 @@ TrackKeyOk:
                 else
                 {
                     BLOCKDESELECT();
-                    if (!g_SkipLinesAfterNoteInsert) TrackDown(1, 0);
-                    else TrackDown(g_SkipLinesAfterNoteInsert, 0);	//will not stop on the last line
+                    if (!g_SkipLinesAfterNoteInsert)
+                    {
+                        TrackDown(1, 0);
+                    }
+                    else
+                    {
+                        TrackDown(g_SkipLinesAfterNoteInsert, 0); //will not stop on the last line
+                    }
                 }
         break;
 
@@ -1498,18 +1976,21 @@ TrackKeyOk:
             g_Undo.ChangeTrack(SongGetActiveTrack(), m_trackactiveline, UETYPE_TRACKDATA);
             g_TrackClipboard.BlockInstrumentChange(m_activeinstr, -1);
         }
-        else
-            if (shift && !control)
-                ActiveInstrPrev();
+        else if (shift && !control)
+        {
+            ActiveInstrPrev();
+        }
+        else if (control && !shift)
+        {
+            if (ISBLOCKSELECTED())
+            {
+                BLOCKDESELECT();
+                break;
+            }
             else
-                if (control && !shift)
-                {
-                    if (ISBLOCKSELECTED())
-                    {
-                        BLOCKDESELECT();
-                        break;
-                    }
-                    else SongTrackDec();
+            {
+                SongTrackDec();
+            }
                 }
                 else
                 {
@@ -1530,18 +2011,21 @@ TrackKeyOk:
             g_Undo.ChangeTrack(SongGetActiveTrack(), m_trackactiveline, UETYPE_TRACKDATA);
             g_TrackClipboard.BlockInstrumentChange(m_activeinstr, 1);
         }
-        else
-            if (shift && !control)
-                ActiveInstrNext();
+        else if (shift && !control)
+        {
+            ActiveInstrNext();
+        }
+        else if (control && !shift)
+        {
+            if (ISBLOCKSELECTED())
+            {
+                BLOCKDESELECT();
+                break;
+            }
             else
-                if (control && !shift)
-                {
-                    if (ISBLOCKSELECTED())
-                    {
-                        BLOCKDESELECT();
-                        break;
-                    }
-                    else SongTrackInc();
+            {
+                SongTrackInc();
+            }
                 }
                 else
                 {
@@ -1563,15 +2047,17 @@ TrackKeyOk:
                 BLOCKDESELECT();
                 SongSubsongPrev();
             }
+            else if (m_play && m_followplay)
+            {
+                break; //prevents moving at all during play+follow
+            }
             else
-                if (m_play && m_followplay) break;	//prevents moving at all during play+follow
-                else
+            {
+                BLOCKDESELECT();
+                if (m_trackactiveline > 0)
                 {
-                    BLOCKDESELECT();
-                    if (m_trackactiveline > 0)
-                    {
-                        m_trackactiveline = ((m_trackactiveline - 1) / g_trackLinePrimaryHighlight) * g_trackLinePrimaryHighlight;
-                    }
+                    m_trackactiveline = ((m_trackactiveline - 1) / g_trackLinePrimaryHighlight) * g_trackLinePrimaryHighlight;
+                }
                 }
         break;
 
@@ -1588,14 +2074,18 @@ TrackKeyOk:
                 BLOCKDESELECT();
                 SongSubsongNext();
             }
+            else if (m_play && m_followplay)
+            {
+                break; //prevents moving at all during play+follow
+            }
             else
-                if (m_play && m_followplay) break;	//prevents moving at all during play+follow
-                else
+            {
+                BLOCKDESELECT();
+                m_trackactiveline = ((m_trackactiveline + g_trackLinePrimaryHighlight) / g_trackLinePrimaryHighlight) * g_trackLinePrimaryHighlight;
+                if (m_trackactiveline > GetSmallestMaxtracklen(m_songactiveline) - 1)
                 {
-                    BLOCKDESELECT();
-                    m_trackactiveline = ((m_trackactiveline + g_trackLinePrimaryHighlight) / g_trackLinePrimaryHighlight) * g_trackLinePrimaryHighlight;
-                    if (m_trackactiveline > GetSmallestMaxtracklen(m_songactiveline) - 1)
-                        m_trackactiveline -= g_trackLinePrimaryHighlight;
+                    m_trackactiveline -= g_trackLinePrimaryHighlight;
+                }
                 }
         break;
 
@@ -1618,11 +2108,17 @@ TrackKeyOk:
     case VK_TAB:
         BLOCKDESELECT();
         if (shift)
+        {
             TrackLeft(1); //Shift+TAB
+        }
         else if (control)
+        {
             CursorToSpeedColumn(); //Ctrl+TAB
+        }
         else
+        {
             TrackRight(1);
+        }
         break;
 
     case VK_ESCAPE:
@@ -1672,7 +2168,10 @@ TrackKeyOk:
             if (g_TrackClipboard.IsBlockSelected())
             {
                 g_Undo.ChangeTrack(SongGetActiveTrack(), m_trackactiveline, UETYPE_TRACKDATA, 1);
-                if (!g_TrackClipboard.BlockExchangeClipboard()) g_Undo.DropLast();
+                if (!g_TrackClipboard.BlockExchangeClipboard())
+                {
+                    g_Undo.DropLast();
+                }
             }
         }
         break;
@@ -1711,30 +2210,42 @@ TrackKeyOk:
         if (control && !shift && g_TrackClipboard.IsBlockSelected())
         {
             g_Undo.ChangeTrack(SongGetActiveTrack(), m_trackactiveline, UETYPE_TRACKDATA, 1);
-            if (!g_TrackClipboard.BlockEffect()) g_Undo.DropLast();
+            if (!g_TrackClipboard.BlockEffect())
+            {
+                g_Undo.DropLast();
+            }
         }
         break;
 
     case VK_G:		//song goto on/off
         BLOCKDESELECT();
-        if (control && !shift) SongTrackGoOnOff();	//control+G => goto on/off line in the song
+        if (control && !shift)
+        {
+            SongTrackGoOnOff(); //control+G => goto on/off line in the song
+        }
         break;
 
     case VK_N:
         BLOCKDESELECT();
         if (control && !shift)
+        {
             SongPutnewemptyunusedtrack();
+        }
         break;
 
     case VK_D:
         BLOCKDESELECT();
         if (control && !shift)
+        {
             SongMaketracksduplicate();
+        }
         break;
 
     case VK_HOME:
         if (control)
+        {
             TrackSetGo();
+        }
         else
         {
             if (shift)
@@ -1755,11 +2266,16 @@ TrackKeyOk:
                 else
                 {
                     if (m_trackactiveline != 0)
+                    {
                         m_trackactiveline = 0;		//line 0
+                    }
                     else
                     {
                         i = TrackGetGoLine();
-                        if (i >= 0) m_trackactiveline = i;	//at the beginning of the GO loop
+                        if (i >= 0)
+                        {
+                            m_trackactiveline = i; //at the beginning of the GO loop
+                        }
                     }
                     BLOCKDESELECT();
                 }
@@ -1769,16 +2285,22 @@ TrackKeyOk:
 
     case VK_END:
         if (control)
+        {
             TrackSetEnd();
+        }
         else
         {
             if (shift)
             {
                 BLOCKSETBEGIN();
                 if (TrackGetGoLine() >= 0)
+                {
                     m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1; //last line
+                }
                 else
+                {
                     m_trackactiveline = TrackGetLastLine();	//end line
+                }
                 BLOCKSETEND();
                 if (m_trackactiveline < 0)
                 {
@@ -1801,9 +2323,15 @@ TrackKeyOk:
                     if (i != m_trackactiveline)
                     {
                         m_trackactiveline = i;	//at the end of the GO loop or end line
-                        if (m_trackactiveline < 0) m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1; //failsafe in case the active line is out of bounds
+                        if (m_trackactiveline < 0)
+                        {
+                            m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1; //failsafe in case the active line is out of bounds
+                        }
                     }
-                    else m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1; //last line
+                    else
+                    {
+                        m_trackactiveline = g_Tracks.GetMaxTrackLength() - 1; //last line
+                    }
                     BLOCKDESELECT();
                 }
             }
@@ -1827,11 +2355,14 @@ TrackKeyOk:
                     if (i != m_trackactivecol)
                     {
                         TrackGetLoopingNoteInstrVol(m_song[m_songactiveline][i], note, instr, vol);
-                        if (note >= 0)		//is there a note?
+                        if (note >= 0)
+                        {                                                   //is there a note?
                             SetPlayPressedTonesTNIV(i, note, instr, vol);	//it will lose it as it is there
-                        else
-                            if (vol >= 0) //there is no note, but is there a separate volume?
-                                SetPlayPressedTonesV(i, vol);				//adjust the volume as it is
+                        }
+                        else if (vol >= 0)
+                        {                                 //there is no note, but is there a separate volume?
+                            SetPlayPressedTonesV(i, vol); //adjust the volume as it is
+                        }
                     }
                 }
             }
@@ -1843,34 +2374,50 @@ TrackKeyOk:
                 if (shift && !control)	//with the shift, this instrument and the volume will "pick up" as current (only if it is not 0)
                 {
                     ActiveInstrSet(instr);
-                    if (vol > 0) m_volume = vol;
+                    if (vol > 0)
+                    {
+                        m_volume = vol;
+                    }
                 }
             }
             else
                 if (vol >= 0) //there is no note, but is there a separate volume?
                 {
                     SetPlayPressedTonesV(m_trackactivecol, vol); //adjust the volume
-                    if (shift && !control && vol > 0) m_volume = vol; //"picks up" the volume as current (only if it is not 0)
+                    if (shift && !control && vol > 0)
+                    {
+                        m_volume = vol; //"picks up" the volume as current (only if it is not 0)
+                    }
                 }
         }
         oldline = m_trackactiveline;	//hack, force a line move even if TrackDown prevents it after Enter called it, otherwise the last line would get stuck
-        if (TrackDown(1, 0) && oldline == m_trackactiveline) m_trackactiveline++;
+        if (TrackDown(1, 0) && oldline == m_trackactiveline)
+        {
+            m_trackactiveline++;
+        }
         if (g_TrackClipboard.IsBlockSelected())	//if a block is selected, it moves (and plays) only in it
         {
             int bfro, bto;
             g_TrackClipboard.GetFromTo(bfro, bto);
-            if (m_trackactiveline<bfro || m_trackactiveline>bto) m_trackactiveline = bfro;
+            if (m_trackactiveline < bfro || m_trackactiveline > bto)
+            {
+                m_trackactiveline = bfro;
+            }
         }
         break;
 
     case VK_I:
         if (control && !shift)
+        {
             goto insertline;
+        }
         break;
 
     case VK_U:
         if (control && !shift)
+        {
             goto deleteline;
+        }
         break;
 
     case VK_INSERT:
@@ -1900,11 +2447,17 @@ TrackKeyOk:
         break;
 
     case VK_SPACE:
-        if (control) break; //fixes the "return to EDIT MODE space input" bug, by ignoring SPACE if CTRL is also detected
+        if (control)
+        {
+            break; //fixes the "return to EDIT MODE space input" bug, by ignoring SPACE if CTRL is also detected
+        }
         BLOCKDESELECT();
         if (TrackDelNoteInstrVolSpeed(1 + 2 + 4 + 8)) //all
         {
-            if (!(m_play && m_followplay)) TrackDown(g_SkipLinesAfterNoteInsert);
+            if (!(m_play && m_followplay))
+            {
+                TrackDown(g_SkipLinesAfterNoteInsert);
+            }
         }
         break;
 
@@ -1927,7 +2480,10 @@ TrackKeyOk:
         }
         if (r)
         {
-            if (!(m_play && m_followplay)) TrackDown(g_SkipLinesAfterNoteInsert);
+            if (!(m_play && m_followplay))
+            {
+                TrackDown(g_SkipLinesAfterNoteInsert);
+            }
         }
     }
     break;
@@ -2006,14 +2562,23 @@ BOOL CSong::TrackCursorGoto(CPoint point)
     //if (y >= 0 && y < g_Tracks.m_maxtracklen)
     if (y >= 0 && y < GetSmallestMaxtracklen(m_songactiveline))	//variable pattern size, to prevent clicking "out of bounds" with the new tracks display
     {
-        if (xch >= 0 && xch < GetTracks()) m_trackactivecol = xch;
-        if (m_play && m_followplay)	//prevents moving at all during play+follow
+        if (xch >= 0 && xch < GetTracks())
+        {
+            m_trackactivecol = xch;
+        }
+        if (m_play && m_followplay)
+        { //prevents moving at all during play+follow
             goto notracklinechange;
+        }
         else
+        {
             m_trackactiveline = y;
+        }
     }
     else
+    {
         return 0;
+    }
 notracklinechange:
     switch (x)
     {
@@ -2072,84 +2637,122 @@ BOOL CSong::SongKey(int vk, int shift, int control)
 
     case VK_LEFT:
         if (shift)
+        {
             ActiveInstrPrev();
-        else
-            if (control)
+        }
+        else if (control)
+        {
+            if (isgo)
             {
-                if (isgo)
-                    SongTrackGoDec();
-                else
-                    SongTrackDec();
+                SongTrackGoDec();
             }
             else
+            {
+                SongTrackDec();
+            }
+            }
+            else
+            {
                 TrackLeft(1);
+            }
         break;
 
     case VK_RIGHT:
         if (shift)
+        {
             ActiveInstrNext();
-        else
-            if (control)
+        }
+        else if (control)
+        {
+            if (isgo)
             {
-                if (isgo)
-                    SongTrackGoInc();
-                else
-                    SongTrackInc();
+                SongTrackGoInc();
             }
             else
+            {
+                SongTrackInc();
+            }
+            }
+            else
+            {
                 TrackRight(1);
+            }
         break;
 
     case VK_TAB:
         if (shift)
+        {
             TrackLeft(1); //SHIFT+TAB
+        }
         else
+        {
             TrackRight(1);
+        }
         break;
 
     case VK_U:	//Control+VK_U:
-        if (!control) break;
+        if (!control)
+        {
+            break;
+        }
     case VK_DELETE:
         SongDeleteLine(m_songactiveline);
         break;
 
     case VK_I:	//Control+VK_I:
-        if (!control) break;
+        if (!control)
+        {
+            break;
+        }
     case VK_INSERT:
         SongInsertLine(m_songactiveline);
         break;
 
     case VK_O:	//Control+VK_O
         if (control)
+        {
             SongInsertCopyOrCloneOfSongLines(m_songactiveline);
+        }
         break;
 
     case VK_P:	//Control+VK_P
         if (control)
+        {
             SongPrepareNewLine(m_songactiveline);
+        }
         break;
 
     case VK_N:	//Control+VK_N
         if (control)
+        {
             SongPutnewemptyunusedtrack();
+        }
         break;
 
     case VK_D:	//Control+VK_D
         BLOCKDESELECT();
         if (control)
+        {
             SongMaketracksduplicate();
+        }
         break;
 
     case VK_BACK:
         if (isgo)
+        {
             SongTrackGoOnOff();	//Go off
+        }
         else
+        {
             SongTrackEmpty();
+        }
         break;
 
     case VK_G:
         if (control)
+        {
             SongTrackGoOnOff();	//Go on/off
+        }
         break;
 
     case VK_RETURN:
@@ -2165,8 +2768,18 @@ BOOL CSong::SongKey(int vk, int shift, int control)
         int i, j, la = 0;
         for (j = 0; j < SONGLEN; j++)
         {
-            for (i = 0; i < GetTracks(); i++) if (m_song[j][i] >= 0) { la = j; break; }
-            if (m_songgo[j] >= 0) la = j;
+            for (i = 0; i < GetTracks(); i++)
+            {
+                if (m_song[j][i] >= 0)
+                {
+                    la = j;
+                    break;
+                }
+            }
+            if (m_songgo[j] >= 0)
+            {
+                la = j;
+            }
         }
         m_songactiveline = la;
     }
@@ -2174,7 +2787,9 @@ BOOL CSong::SongKey(int vk, int shift, int control)
 
     case VK_PRIOR:
         if (shift)
+        {
             SongSubsongPrev();
+        }
         else
         {
             SongUp();
@@ -2183,7 +2798,9 @@ BOOL CSong::SongKey(int vk, int shift, int control)
 
     case VK_NEXT:
         if (shift)
+        {
             SongSubsongNext();
+        }
         else
         {
             SongDown();
@@ -2231,7 +2848,10 @@ BOOL CSong::SongCursorGoto(CPoint point)
     y = (point.y + 0) / 16 - 2 + m_songactiveline;
     if (y >= 0 && y < SONGLEN)
     {
-        if (xch >= 0 && xch < GetTracks()) m_trackactivecol = xch;
+        if (xch >= 0 && xch < GetTracks())
+        {
+            m_trackactivecol = xch;
+        }
         if (y != m_songactiveline)
         {
             g_activepart = Part::PART_SONG;
@@ -2244,12 +2864,16 @@ BOOL CSong::SongCursorGoto(CPoint point)
                 Play(mode, m_followplay); // continue playing using the correct parameters
             }
             else
+            {
                 m_songactiveline = y;
+            }
         }
 
     }
     else
+    {
         return 0;
+    }
     m_trackactivecol = xch;
     g_activepart = Part::PART_SONG;
     return 1;

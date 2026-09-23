@@ -36,13 +36,22 @@ int C6502::Init(byte* memory)
     CString wrn = "";
 
     SA_C6502_Initialise = (SA_C6502_Initialise_PROC)GetProcAddress(g_c6502_dll, "C6502_Initialise");
-    if (!SA_C6502_Initialise) wrn += "C6502_Initialise\n";
+    if (!SA_C6502_Initialise)
+    {
+        wrn += "C6502_Initialise\n";
+    }
 
     SA_C6502_JSR = (SA_C6502_JSR_PROC)GetProcAddress(g_c6502_dll, "C6502_JSR");
-    if (!SA_C6502_JSR) wrn += "C6502_JSR\n";
+    if (!SA_C6502_JSR)
+    {
+        wrn += "C6502_JSR\n";
+    }
 
     SA_C6502_About = (SA_C6502_About_PROC)GetProcAddress(g_c6502_dll, "C6502_About");
-    if (!SA_C6502_About) wrn += "C6502_About\n";
+    if (!SA_C6502_About)
+    {
+        wrn += "C6502_About\n";
+    }
 
     if (wrn != "")
     {

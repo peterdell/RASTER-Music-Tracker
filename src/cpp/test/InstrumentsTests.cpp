@@ -158,7 +158,10 @@ TEST_F(InstrumentAtaFormatTest, AtaToInstrRejectsOutOfBoundsEnvelope) {
 TEST_F(InstrumentAtaFormatTest, AtaV0ToInstrDecodesOldFormat) {
     g_tracks4_8 = 4; // mono
     unsigned char ata[32] = { 0 };
-    for (int i = 0; i < 8; i++) ata[i] = i + 1; // note table 1..8
+    for (int i = 0; i < 8; i++)
+    {
+        ata[i] = i + 1; // note table 1..8
+    }
     ata[8] = 0x0A;  // ENV_LENGTH=1, TBL_LENGTH=2
     ata[9] = 0x01;  // ENV_GOTO=0, TBL_GOTO=1
     ata[10] = 0x45; // TBL_TYPE=0, TBL_MODE=1, TBL_SPEED=5
@@ -173,7 +176,10 @@ TEST_F(InstrumentAtaFormatTest, AtaV0ToInstrDecodesOldFormat) {
     ASSERT_TRUE(instruments.AtaV0ToInstr(ata, kInstr));
     TInstrument* ai = instruments.GetInstrument(kInstr);
 
-    for (int i = 0; i < 8; i++) EXPECT_EQ(ai->noteTable[i], i + 1);
+    for (int i = 0; i < 8; i++)
+    {
+        EXPECT_EQ(ai->noteTable[i], i + 1);
+    }
     EXPECT_EQ(ai->parameters[PAR_ENV_LENGTH], 1);
     EXPECT_EQ(ai->parameters[PAR_TBL_LENGTH], 2);
     EXPECT_EQ(ai->parameters[PAR_ENV_GOTO], 0);

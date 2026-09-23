@@ -87,9 +87,15 @@ int CPokeyStream::SwitchIntoStop()
 {
     m_recordState = STREAM_STATE::STOP;
     m_SecondCountPoint = m_FrameCounter - m_FirstCountPoint;
-    if (m_SecondCountPoint < 0) m_SecondCountPoint = 0;
+    if (m_SecondCountPoint < 0)
+    {
+        m_SecondCountPoint = 0;
+    }
     m_ThirdCountPoint = m_FirstCountPoint - m_SecondCountPoint;
-    if (m_ThirdCountPoint < 0) m_ThirdCountPoint = 0;
+    if (m_ThirdCountPoint < 0)
+    {
+        m_ThirdCountPoint = 0;
+    }
     return m_SecondCountPoint;
 }
 
@@ -100,9 +106,13 @@ void CPokeyStream::CallFromPlay(int playerState, int trackLine, int songLine)
     {
         memset(m_PlayCount, 0, sizeof(m_PlayCount));	// Reset lines play counter first
         if (playerState == PLAY_BLOCK)
+        {
             m_PlayCount[trackLine] += 1;				// Increment the track line play count early, so it will be detected as the selection block loop
+        }
         else
+        {
             m_PlayCount[songLine] += 1;					// Increment the line play count early, to ensure that same line will be detected again as the loop point
+        }
         m_recordState = STREAM_STATE::RECORD;			// Set the SAPR dumper with the "is currently recording data" flag 
     }
 }

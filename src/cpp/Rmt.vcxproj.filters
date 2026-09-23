@@ -700,6 +700,30 @@
     <None Include="..\..\doc\rmt_action_infos.md">
       <Filter>Documentation Files</Filter>
     </None>
+    <None Include="..\..\plans\BROADER_SURVEY_PLAN.md">
+      <Filter>Agent Files</Filter>
+    </None>
+    <None Include="..\..\plans\EXPORTV2_PLAN.md">
+      <Filter>Agent Files</Filter>
+    </None>
+    <None Include="..\..\plans\IO_IMPORTER_PLAN.md">
+      <Filter>Agent Files</Filter>
+    </None>
+    <None Include="..\..\plans\MESSAGEBOX_REFACTOR_PLAN.md">
+      <Filter>Agent Files</Filter>
+    </None>
+    <None Include="..\..\plans\NOTES.md">
+      <Filter>Agent Files</Filter>
+    </None>
+    <None Include="..\..\plans\OVERALL_PLAN.md">
+      <Filter>Agent Files</Filter>
+    </None>
+    <None Include="..\..\plans\SAP_LZSS_WAV_XEX_PLAN.md">
+      <Filter>Agent Files</Filter>
+    </None>
+    <None Include="..\..\plans\SONG_IO_SONG_REMAINING_PLAN.md">
+      <Filter>Agent Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\build\build_rmt-daily-excluded-extensions.txt">

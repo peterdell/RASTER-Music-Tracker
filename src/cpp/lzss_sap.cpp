@@ -59,7 +59,9 @@ void CLzss::add_bit(struct bf* x, int bit)
         x->buf[x->bpos] = 0;
     }
     if (bit)
+    {
         x->buf[x->bpos] |= 1 << x->bnum;
+    }
     x->bnum++;
     if (x->bnum == 8)
     {
@@ -101,8 +103,12 @@ int CLzss::maximum(int a, int b)
 int CLzss::get_mlen(const uint8_t* a, const uint8_t* b, int max)
 {
     for (int i = 0; i < max; i++)
+    {
         if (a[i] != b[i])
+        {
             return i;
+        }
+    }
     return max;
 }
 
@@ -146,7 +152,9 @@ void CLzss::lzop_backfill(struct lzop* lz, int last_literal)
 {
     // If no bytes, nothing to do
     if (!lz->size)
+    {
         return;
+    }
 
     if (last_literal)
     {
@@ -154,7 +162,9 @@ void CLzss::lzop_backfill(struct lzop* lz, int last_literal)
         lz->mlen[lz->size - 1] = 0;
         lz->size--;
         if (!lz->size)
+        {
             return;
+        }
     }
 
     // Init last bits
@@ -177,9 +187,13 @@ void CLzss::lzop_backfill(struct lzop* lz, int last_literal)
         {
             int b;
             if (pos + l < lz->size)
+            {
                 b = lz->bits[pos + l] + bits_match();
+            }
             else
+            {
                 b = 0;
+            }
             if (b < best)
             {
                 best = b;
@@ -191,7 +205,9 @@ void CLzss::lzop_backfill(struct lzop* lz, int last_literal)
     }
     // Fixup size again
     if (last_literal)
+    {
         lz->size++;
+    }
 }
 
 // Returns 1 if the coded stream would end in a match
@@ -220,7 +236,9 @@ int CLzss::lzop_last_is_match(const struct lzop* lz)
 int CLzss::lzop_encode(struct bf* b, const struct lzop* lz, int pos, int lpos)
 {
     if (pos <= lpos)
+    {
         return lpos;
+    }
 
     int mlen = lz->mlen[pos];
     int mpos = lz->mpos[pos];
@@ -241,7 +259,9 @@ int CLzss::lzop_encode(struct bf* b, const struct lzop* lz, int pos, int lpos)
 
         add_bit(b, 0);
         if (bits_mlen + bits_moff <= 8)
+        {
             add_byte(b, (code_pos << bits_mlen) + code_len);
+        }
         else if (bits_mlen + bits_moff <= 12)
         {
             add_byte(b, (code_pos << (8 - bits_moff)) + (code_len & ((1 << (8 - bits_moff)) - 1)));
@@ -279,10 +299,13 @@ void CCompressLzss::Optimise_AUDC(uint8_t* buf)
         if (dist < 0xF0)
         {
             if (vol == 0)
+            {
                 buf[audc] = 0; // No volume, ignore distortion bits
-
+            }
             else if (dist & 0x20)
+            {
                 buf[audc] &= 0xBF; // No noise, ignore noise type bit
+            }
         }
     }
 }
@@ -291,22 +314,40 @@ void CCompressLzss::Optimise_AUDC(uint8_t* buf)
 void CCompressLzss::Optimise_AUDCTL(uint8_t* buf)
 {
     // CH1 is mute, disable High Pass Filter in CH1+3
-    if (!(buf[1] & 0x0F)) buf[8] &= 0xFB;
+    if (!(buf[1] & 0x0F))
+    {
+        buf[8] &= 0xFB;
+    }
 
     // CH1 is mute and Join1+2 is not set, disable 1.79mhz clock in CH1
-    if (!(buf[1] & 0x0F) && !(buf[8] & 0x10)) buf[8] &= 0xBF;
+    if (!(buf[1] & 0x0F) && !(buf[8] & 0x10))
+    {
+        buf[8] &= 0xBF;
+    }
 
     // Both CH1 and CH2 are mute, disable 16-bit mode
-    if (!(buf[1] & 0x0F) && !(buf[3] & 0x0F)) buf[8] &= 0xAF;
+    if (!(buf[1] & 0x0F) && !(buf[3] & 0x0F))
+    {
+        buf[8] &= 0xAF;
+    }
 
     // CH2 is mute, disable High Pass Filter in CH2+4
-    if (!(buf[3] & 0x0F)) buf[8] &= 0xFD;
+    if (!(buf[3] & 0x0F))
+    {
+        buf[8] &= 0xFD;
+    }
 
     // CH3 is mute and Join3+4 is not set, disable 1.79mhz clock in CH3, if Filter in CH1+3 is also disabled
-    if (!(buf[5] & 0x0F) && !(buf[8] & 0x08) && !(buf[8] & 0x04)) buf[8] &= 0xDF;
+    if (!(buf[5] & 0x0F) && !(buf[8] & 0x08) && !(buf[8] & 0x04))
+    {
+        buf[8] &= 0xDF;
+    }
 
     // Both CH3 and CH4 are mute, disable 16-bit mode
-    if (!(buf[5] & 0x0F) && !(buf[7] & 0x0F)) buf[8] &= 0xF7;
+    if (!(buf[5] & 0x0F) && !(buf[7] & 0x0F))
+    {
+        buf[8] &= 0xF7;
+    }
 }
 
 // Optimise the AUDF bytes, based on the values of AUDCTL and AUDC
@@ -328,22 +369,30 @@ void CCompressLzss::Optimise_AUDF(uint8_t* buf)
             {
             case 0:
                 if (!(audctl & 0x04 || audctl & 0x10 || audctl & 0x40))
+                {
                     buf[audf] = 0;
+                }
                 break;
 
             case 1:
                 if (!(audctl & 0x02 || audctl & 0x10 || twotone))
+                {
                     buf[audf] = 0;
+                }
                 break;
 
             case 2:
                 if (!(audctl & 0x04 || audctl & 0x08 || audctl & 0x20))
+                {
                     buf[audf] = 0;
+                }
                 break;
 
             case 3:
                 if (!(audctl & 0x02 || audctl & 0x08))
+                {
                     buf[audf] = 0;
+                }
                 break;
             }
         }
@@ -507,7 +556,9 @@ int CCompressLzss::Compress(uint8_t** data, const int sz, unsigned char* dst, co
     for (int i = 0; i < 9; i++)
     {
         if (!chn_skip[i])
+        {
             end_not_ok &= lzss.lzop_last_is_match(&lz[i]);
+        }
     }
 
     // If all streams end in a match, we need to fix at least one to end in
@@ -529,7 +580,9 @@ int CCompressLzss::Compress(uint8_t** data, const int sz, unsigned char* dst, co
         for (int i = REGISTERS - 1; i >= 0; i--)
         {
             if (!chn_skip[i])
+            {
                 lpos[i] = lzss.lzop_encode(&b, &lz[i], pos, lpos[i]);
+            }
         }
     }
     lzss.bflush(&b);

@@ -180,7 +180,10 @@ int CSong::GetSubsongParts(CString& resultstr) const
     for (i = 0; i < SONGLEN; i++)
     {
         songp[i] = -1;
-        if (m_songgo[i] >= 0) lastgo = i;
+        if (m_songgo[i] >= 0)
+        {
+            lastgo = i;
+        }
     }
 
     resultstr = "";
@@ -197,8 +200,10 @@ int CSong::GetSubsongParts(CString& resultstr) const
             {
                 n = m_songgo[apos];
                 songp[apos] = asub;
-                if (n >= 0) //jump to another line
+                if (n >= 0)
+                { //jump to another line
                     apos = n;
+                }
                 else
                 {
                     if (!ok)
@@ -215,10 +220,16 @@ int CSong::GetSubsongParts(CString& resultstr) const
                         }
                     }
                     apos++;
-                    if (apos >= SONGLEN) break;
+                    if (apos >= SONGLEN)
+                    {
+                        break;
+                    }
                 }
             }
-            if (ok) asub++;	//will move to the next if the subsong contains anything at all
+            if (ok)
+            {
+                asub++; //will move to the next if the subsong contains anything at all
+            }
             ok = 0; //initialization for further search
         }
     }
@@ -275,14 +286,20 @@ void CSong::ActiveInstrNext()
 BOOL CSong::TrackLeft(BOOL column)
 {
     g_Undo.Separator();
-    if (column) goto track_leftcolumn;
+    if (column)
+    {
+        goto track_leftcolumn;
+    }
     m_trackactivecur--;
     if (m_trackactivecur < 0)
     {
         m_trackactivecur = 3;	//previous speed column
     track_leftcolumn:
         m_trackactivecol--;
-        if (m_trackactivecol < 0) m_trackactivecol = g_tracks4_8 - 1;
+        if (m_trackactivecol < 0)
+        {
+            m_trackactivecol = g_tracks4_8 - 1;
+        }
     }
     return 1;
 }
@@ -290,14 +307,20 @@ BOOL CSong::TrackLeft(BOOL column)
 BOOL CSong::TrackRight(BOOL column)
 {
     g_Undo.Separator();
-    if (column) goto track_rightcolumn;
+    if (column)
+    {
+        goto track_rightcolumn;
+    }
     m_trackactivecur++;
     if (m_trackactivecur > 3)	//speed column
     {
         m_trackactivecur = 0;
     track_rightcolumn:
         m_trackactivecol++;
-        if (m_trackactivecol >= g_tracks4_8) m_trackactivecol = 0;
+        if (m_trackactivecol >= g_tracks4_8)
+        {
+            m_trackactivecol = 0;
+        }
     }
     return 1;
 }
@@ -306,14 +329,26 @@ void CSong::RespectBoundaries()
 {
     int songline = SongGetActiveLine();
 
-    if (songline > SONGLEN) songline = SONGLEN - 1;
-    if (songline < 0) songline = 0;
+    if (songline > SONGLEN)
+    {
+        songline = SONGLEN - 1;
+    }
+    if (songline < 0)
+    {
+        songline = 0;
+    }
 
     int length = GetSmallestMaxtracklen(songline);
     int line = GetActiveLine();
 
-    if (line > length) line = length - 1;
-    if (line < 0) line = 0;
+    if (line > length)
+    {
+        line = length - 1;
+    }
+    if (line < 0)
+    {
+        line = 0;
+    }
 
     SetActiveLine(line);
     SongSetActiveLine(songline);
@@ -326,7 +361,9 @@ void CSong::TrackGetLoopingNoteInstrVol(int track, int& note, int& instr, int& v
     len = g_Tracks.GetLastLine(track) + 1;
     go = g_Tracks.GetGoLine(track);
     if (m_trackactiveline < len)
+    {
         line = m_trackactiveline;
+    }
     else
     {
         int loop = (go - len) + go;
@@ -407,19 +444,31 @@ BOOL CSong::SongTrackSetByNum(int num)
     if (m_songgo[m_songactiveline] < 0) // GO ?
     {	//changes track
         i = SongGetActiveTrack();
-        if (i < 0) i = 0;
+        if (i < 0)
+        {
+            i = 0;
+        }
         i &= 0x0f;	//just the lower digit
         i = (i << 4) | num;
-        if (i >= TRACKSNUM) i &= 0x0f;
+        if (i >= TRACKSNUM)
+        {
+            i &= 0x0f;
+        }
         return SongTrackSet(i);
     }
     else
     {	//changes GO parameter
         i = m_songgo[m_songactiveline];
-        if (i < 0) i = 0;
+        if (i < 0)
+        {
+            i = 0;
+        }
         i &= 0x0f;	//just the lower digit
         i = (i << 4) | num;
-        if (i >= SONGLEN) i &= 0x0f;
+        if (i >= SONGLEN)
+        {
+            i &= 0x0f;
+        }
         g_Undo.ChangeSong(m_songactiveline, m_trackactivecol, UETYPE_SONGGO);
         m_songgo[m_songactiveline] = i;
         return 1;
@@ -431,14 +480,20 @@ BOOL CSong::SongTrackDec()
     if (m_songgo[m_songactiveline] < 0)
     {
         int t = m_song[m_songactiveline][m_trackactivecol] - 1;
-        if (t < -1) t = TRACKSNUM - 1;
+        if (t < -1)
+        {
+            t = TRACKSNUM - 1;
+        }
         g_Undo.ChangeSong(m_songactiveline, m_trackactivecol, UETYPE_SONGTRACK);
         m_song[m_songactiveline][m_trackactivecol] = t;
     }
     else
     {	//GO is there
         int g = m_songgo[m_songactiveline] - 1;
-        if (g < 0) g = SONGLEN - 1;
+        if (g < 0)
+        {
+            g = SONGLEN - 1;
+        }
         g_Undo.ChangeSong(m_songactiveline, m_trackactivecol, UETYPE_SONGGO);
         m_songgo[m_songactiveline] = g;
     }
@@ -450,14 +505,20 @@ BOOL CSong::SongTrackInc()
     if (m_songgo[m_songactiveline] < 0)
     {
         int t = m_song[m_songactiveline][m_trackactivecol] + 1;
-        if (t >= TRACKSNUM) t = -1;
+        if (t >= TRACKSNUM)
+        {
+            t = -1;
+        }
         g_Undo.ChangeSong(m_songactiveline, m_trackactivecol, UETYPE_SONGTRACK);
         m_song[m_songactiveline][m_trackactivecol] = t;
     }
     else
     {	//GO is there
         int g = m_songgo[m_songactiveline] + 1;
-        if (g >= SONGLEN) g = 0;
+        if (g >= SONGLEN)
+        {
+            g = 0;
+        }
         g_Undo.ChangeSong(m_songactiveline, m_trackactivecol, UETYPE_SONGGO);
         m_songgo[m_songactiveline] = g;
     }
@@ -485,21 +546,36 @@ BOOL CSong::SongInsertLine(int line)
     int j, go;
     for (int i = SONGLEN - 2; i >= line; i--)
     {
-        for (j = 0; j < g_tracks4_8; j++) m_song[i + 1][j] = m_song[i][j];
+        for (j = 0; j < g_tracks4_8; j++)
+        {
+            m_song[i + 1][j] = m_song[i][j];
+        }
         go = m_songgo[i];
-        if (go > 0 && go >= line) go++;
+        if (go > 0 && go >= line)
+        {
+            go++;
+        }
         m_songgo[i + 1] = go;
     }
-    for (j = 0; j < g_tracks4_8; j++) m_song[line][j] = -1;
+    for (j = 0; j < g_tracks4_8; j++)
+    {
+        m_song[line][j] = -1;
+    }
     m_songgo[line] = -1;
     for (int i = 0; i < line; i++)
     {
-        if (m_songgo[i] >= line) m_songgo[i]++;
+        if (m_songgo[i] >= line)
+        {
+            m_songgo[i]++;
+        }
     }
     if (IsBookmark() && m_bookmark.songline >= line)
     {
         m_bookmark.songline++;
-        if (m_bookmark.songline >= SONGLEN) ClearBookmark(); //just pushed the bookmark out of the song => cancel the bookmark
+        if (m_bookmark.songline >= SONGLEN)
+        {
+            ClearBookmark(); //just pushed the bookmark out of the song => cancel the bookmark
+        }
     }
     return 1;
 }
@@ -510,21 +586,36 @@ BOOL CSong::SongDeleteLine(int line)
     int j, go;
     for (int i = line; i < SONGLEN - 1; i++)
     {
-        for (j = 0; j < g_tracks4_8; j++) m_song[i][j] = m_song[i + 1][j];
+        for (j = 0; j < g_tracks4_8; j++)
+        {
+            m_song[i][j] = m_song[i + 1][j];
+        }
         go = m_songgo[i + 1];
-        if (go > 0 && go > line) go--;
+        if (go > 0 && go > line)
+        {
+            go--;
+        }
         m_songgo[i] = go;
     }
     for (int i = 0; i < line; i++)
     {
-        if (m_songgo[i] > line) m_songgo[i]--;
+        if (m_songgo[i] > line)
+        {
+            m_songgo[i]--;
+        }
     }
-    for (j = 0; j < g_tracks4_8; j++) m_song[SONGLEN - 1][j] = -1;
+    for (j = 0; j < g_tracks4_8; j++)
+    {
+        m_song[SONGLEN - 1][j] = -1;
+    }
     m_songgo[SONGLEN - 1] = -1;
     if (IsBookmark() && m_bookmark.songline >= line)
     {
         m_bookmark.songline--;
-        if (m_bookmark.songline < line) ClearBookmark(); //just deleted the songline with the bookmark
+        if (m_bookmark.songline < line)
+        {
+            ClearBookmark(); //just deleted the songline with the bookmark
+        }
     }
     return 1;
 }
@@ -545,7 +636,10 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLinesApply(int& line, int linefrom, int l
     MarkTF_USED(tracks);
     MarkTF_NOEMPTY(tracks);
     int clonedto[TRACKSNUM];
-    for (i = 0; i < TRACKSNUM; i++) clonedto[i] = -1; //init
+    for (i = 0; i < TRACKSNUM; i++)
+    {
+        clonedto[i] = -1; //init
+    }
 
     for (i = linefrom; i <= lineto; i++)
     {
@@ -553,11 +647,20 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLinesApply(int& line, int linefrom, int l
         sou = i;
         des = line + n;
         BOOL diss = (des <= sou);
-        if (diss) sou += n;
+        if (diss)
+        {
+            sou += n;
+        }
         BOOL sngo = 0;
-        if (sou < SONGLEN) sngo = (m_songgo[sou] >= 0);
+        if (sou < SONGLEN)
+        {
+            sngo = (m_songgo[sou] >= 0);
+        }
 
-        if (diss) sou++;
+        if (diss)
+        {
+            sou++;
+        }
         if (sou < 0 || sou >= SONGLEN || des < 0 || des >= SONGLEN)
         {
             CString s;
@@ -580,7 +683,10 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLinesApply(int& line, int linefrom, int l
             {
                 k = m_song[sou][j]; //original track
                 d = -1;				//resulting track (initial initialization)
-                if (k < 0) continue;  //is there --
+                if (k < 0)
+                {
+                    continue; //is there --
+                }
                 if (clonedto[k] >= 0)
                 {
                     d = clonedto[k];	//this one has already been cloned, so it will also use it
@@ -611,7 +717,10 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLinesApply(int& line, int linefrom, int l
         {
             //copies
             m_songgo[des] = m_songgo[sou];
-            for (j = 0; j < g_tracks4_8; j++) m_song[des][j] = m_song[sou][j];
+            for (j = 0; j < g_tracks4_8; j++)
+            {
+                m_song[des][j] = m_song[sou][j];
+            }
         }
     }
 
@@ -641,9 +750,13 @@ void CSong::TracksOrderChangeApply(int fromline, int toline, const int tracksord
         {
             int z = tracksorder[j];
             if (z >= 0)
+            {
                 m_song[i][j] = m_buff[z];
+            }
             else
+            {
                 m_song[i][j] = -1;
+            }
         }
     }
 }
@@ -664,7 +777,10 @@ void CSong::TrackPaste()
 
     if (at && fro)
     {
-        if (g_Tracks.IsValidLength(fro->len)) *at = *fro;
+        if (g_Tracks.IsValidLength(fro->len))
+        {
+            *at = *fro;
+        }
     }
 }
 
@@ -737,22 +853,34 @@ void CSong::InstrDelete()
 
 void CSong::SongCopyLine()
 {
-    for (int i = 0; i < g_tracks4_8; i++) m_songlineclipboard[i] = m_song[m_songactiveline][i];
+    for (int i = 0; i < g_tracks4_8; i++)
+    {
+        m_songlineclipboard[i] = m_song[m_songactiveline][i];
+    }
     m_songgoclipboard = m_songgo[m_songactiveline];
 }
 
 void CSong::SongPasteLine()
 {
-    if (m_songgoclipboard < -1) return;
+    if (m_songgoclipboard < -1)
+    {
+        return;
+    }
     g_Undo.ChangeSong(m_songactiveline, m_trackactivecol, UETYPE_SONGDATA);
-    for (int i = 0; i < g_tracks4_8; i++) m_song[m_songactiveline][i] = m_songlineclipboard[i];
+    for (int i = 0; i < g_tracks4_8; i++)
+    {
+        m_song[m_songactiveline][i] = m_songlineclipboard[i];
+    }
     m_songgo[m_songactiveline] = m_songgoclipboard;
 }
 
 void CSong::SongClearLine()
 {
     g_Undo.ChangeSong(m_songactiveline, m_trackactivecol, UETYPE_SONGDATA);
-    for (int i = 0; i < g_tracks4_8; i++) m_song[m_songactiveline][i] = -1;
+    for (int i = 0; i < g_tracks4_8; i++)
+    {
+        m_song[m_songactiveline][i] = -1;
+    }
     m_songgo[m_songactiveline] = -1;
 }
 
@@ -762,19 +890,31 @@ int CSong::GetEffectiveMaxtracklen()
     int so, i, max = 1;
     for (so = 0; so < SONGLEN; so++)
     {
-        if (m_songgo[so] >= 0) continue; //go to line is ignored
+        if (m_songgo[so] >= 0)
+        {
+            continue; //go to line is ignored
+        }
         int min = g_Tracks.GetMaxTrackLength();
         int p = 0;
         for (i = 0; i < g_tracks4_8; i++)
         {
             int t = m_song[so][i];
             int m = g_Tracks.GetLength(t);
-            if (m < 0) continue;
+            if (m < 0)
+            {
+                continue;
+            }
             p++;
-            if (m < min) min = m;
+            if (m < min)
+            {
+                min = m;
+            }
         }
         //min = the shortest track length on this songline
-        if (p > 0 && min > max) max = min;
+        if (p > 0 && min > max)
+        {
+            max = min;
+        }
     }
     return max;
 }
@@ -787,27 +927,45 @@ int CSong::GetSmallestMaxtracklen(int songline)
     int min = g_Tracks.GetMaxTrackLength();
     int p = 0;
 
-    if (m_songgo[so] >= 0)	return 0; //go to line is ignored
+    if (m_songgo[so] >= 0)
+    {
+        return 0; //go to line is ignored
+    }
 
     for (int i = 0; i < g_tracks4_8; i++)
     {
         int t = m_song[so][i];
         int m = g_Tracks.GetLength(t);
-        if (m < 0) continue;
-        if (m < max) max = m;
+        if (m < 0)
+        {
+            continue;
+        }
+        if (m < max)
+        {
+            max = m;
+        }
         p++;
     }
-    if (!p) return min;	//return 0;	//cannot be from empty tracks
+    if (!p)
+    {
+        return min; //return 0;	//cannot be from empty tracks
+    }
 
     //min = the shortest track length on this songline
-    if (p > 0 && min < max) max = min;
+    if (p > 0 && min < max)
+    {
+        max = min;
+    }
 
     return max;
 }
 
 void CSong::ChangeMaxtracklen(int maxtracklen)
 {
-    if (!g_Tracks.IsValidLength(maxtracklen)) return;
+    if (!g_Tracks.IsValidLength(maxtracklen))
+    {
+        return;
+    }
 
     int i, j;
     TTrack* tt;
@@ -848,7 +1006,10 @@ void CSong::SongClearUnusedTracksAndParts(int& clearedtracks, int& truncatedtrac
 
     for (int sline = 0; sline < SONGLEN; sline++)
     {
-        if (IsSongGo(sline)) continue;	// Goto line is ignored
+        if (IsSongGo(sline))
+        {
+            continue; // Goto line is ignored
+        }
 
         int nejkratsi = g_Tracks.GetMaxTrackLength();
 
@@ -856,14 +1017,23 @@ void CSong::SongClearUnusedTracksAndParts(int& clearedtracks, int& truncatedtrac
         {
             int n = m_song[sline][ch];
 
-            if (!g_Tracks.IsValidTrack(n)) continue;	// Invalid track is ignored
+            if (!g_Tracks.IsValidTrack(n))
+            {
+                continue; // Invalid track is ignored
+            }
 
             trackused[n] = 1;
             tr = g_Tracks.GetTrack(n);
 
-            if (g_Tracks.IsValidGo(tr->go)) continue;	// There is a loop => it has a maximum length
+            if (g_Tracks.IsValidGo(tr->go))
+            {
+                continue; // There is a loop => it has a maximum length
+            }
 
-            if (tr->len < nejkratsi) nejkratsi = tr->len;
+            if (tr->len < nejkratsi)
+            {
+                nejkratsi = tr->len;
+            }
         }
 
         // "nejkratsi" is the shortest track in this song line
@@ -871,9 +1041,15 @@ void CSong::SongClearUnusedTracksAndParts(int& clearedtracks, int& truncatedtrac
         {
             int n = m_song[sline][ch];
 
-            if (!g_Tracks.IsValidTrack(n)) continue;	// Invalid track is ignored
+            if (!g_Tracks.IsValidTrack(n))
+            {
+                continue; // Invalid track is ignored
+            }
 
-            if (tracklen[n] < nejkratsi) tracklen[n] = nejkratsi; // If it needs a longer size, it will expand to the length it needs
+            if (tracklen[n] < nejkratsi)
+            {
+                tracklen[n] = nejkratsi; // If it needs a longer size, it will expand to the length it needs
+            }
         }
     }
 
@@ -882,7 +1058,10 @@ void CSong::SongClearUnusedTracksAndParts(int& clearedtracks, int& truncatedtrac
     {
         int nlen = tracklen[i];
 
-        if (nlen < 1) continue;	// If they don't have the length of at least 1 they are skipped
+        if (nlen < 1)
+        {
+            continue; // If they don't have the length of at least 1 they are skipped
+        }
 
         tr = g_Tracks.GetTrack(i);
 
@@ -940,15 +1119,24 @@ int CSong::SongClearDuplicatedTracks()
     int i, j, ch;
     int trackto[TRACKSNUM];
 
-    for (i = 0; i < TRACKSNUM; i++) trackto[i] = -1;
+    for (i = 0; i < TRACKSNUM; i++)
+    {
+        trackto[i] = -1;
+    }
 
     int clearedtracks = 0;
     for (i = 0; i < TRACKSNUM - 1; i++)
     {
-        if (g_Tracks.IsEmptyTrack(i)) continue;	//does not compare empty
+        if (g_Tracks.IsEmptyTrack(i))
+        {
+            continue; //does not compare empty
+        }
         for (j = i + 1; j < TRACKSNUM; j++)
         {
-            if (g_Tracks.IsEmptyTrack(j)) continue;
+            if (g_Tracks.IsEmptyTrack(j))
+            {
+                continue;
+            }
             if (g_Tracks.CompareTracks(i, j))
             {
                 g_Tracks.ClearTrack(j);	//j is the same as i, so j is deleted.
@@ -964,8 +1152,14 @@ int CSong::SongClearDuplicatedTracks()
         for (ch = 0; ch < g_tracks4_8; ch++)
         {
             int n = m_song[sline][ch];
-            if (n < 0 || n >= TRACKSNUM) continue;	//--
-            if (trackto[n] >= 0) m_song[sline][ch] = trackto[n];
+            if (n < 0 || n >= TRACKSNUM)
+            {
+                continue; //--
+            }
+            if (trackto[n] >= 0)
+            {
+                m_song[sline][ch] = trackto[n];
+            }
         }
     }
 
@@ -977,16 +1171,25 @@ int CSong::SongClearUnusedTracks()
     int i, ch;
     BOOL trackused[TRACKSNUM];
 
-    for (i = 0; i < TRACKSNUM; i++) trackused[i] = 0;
+    for (i = 0; i < TRACKSNUM; i++)
+    {
+        trackused[i] = 0;
+    }
 
     for (int sline = 0; sline < SONGLEN; sline++)
     {
-        if (m_songgo[sline] >= 0) continue;	//goto line is ignored
+        if (m_songgo[sline] >= 0)
+        {
+            continue; //goto line is ignored
+        }
 
         for (ch = 0; ch < g_tracks4_8; ch++)
         {
             int n = m_song[sline][ch];
-            if (n < 0 || n >= TRACKSNUM) continue;	//--
+            if (n < 0 || n >= TRACKSNUM)
+            {
+                continue; //--
+            }
             trackused[n] = 1;
         }
     }
@@ -997,7 +1200,10 @@ int CSong::SongClearUnusedTracks()
     {
         if (!trackused[i])
         {
-            if (!g_Tracks.IsEmptyTrack(i)) clearedtracks++;
+            if (!g_Tracks.IsEmptyTrack(i))
+            {
+                clearedtracks++;
+            }
             g_Tracks.ClearTrack(i);
         }
     }
@@ -1010,7 +1216,10 @@ void CSong::RenumberAllTracks(int type) //1..after columns, 2..after lines
     int i, j, sline;
     int movetrackfrom[TRACKSNUM], movetrackto[TRACKSNUM];
 
-    for (i = 0; i < TRACKSNUM; i++) movetrackfrom[i] = movetrackto[i] = -1;
+    for (i = 0; i < TRACKSNUM; i++)
+    {
+        movetrackfrom[i] = movetrackto[i] = -1;
+    }
 
     int order = 0;
 
@@ -1020,11 +1229,17 @@ void CSong::RenumberAllTracks(int type) //1..after columns, 2..after lines
         //horizontally along the lines
         for (sline = 0; sline < SONGLEN; sline++)
         {
-            if (m_songgo[sline] >= 0) continue;	//goto line is ignored
+            if (m_songgo[sline] >= 0)
+            {
+                continue; //goto line is ignored
+            }
             for (i = 0; i < g_tracks4_8; i++)
             {
                 int n = m_song[sline][i];
-                if (n < 0 || n >= TRACKSNUM) continue;	//--
+                if (n < 0 || n >= TRACKSNUM)
+                {
+                    continue; //--
+                }
                 if (movetrackfrom[n] < 0)
                 {
                     movetrackfrom[n] = order;
@@ -1042,9 +1257,15 @@ void CSong::RenumberAllTracks(int type) //1..after columns, 2..after lines
             {
                 for (sline = 0; sline < SONGLEN; sline++)
                 {
-                    if (m_songgo[sline] >= 0) continue;	//goto line is ignored
+                    if (m_songgo[sline] >= 0)
+                    {
+                        continue; //goto line is ignored
+                    }
                     int n = m_song[sline][i];
-                    if (n < 0 || n >= TRACKSNUM) continue;	//--
+                    if (n < 0 || n >= TRACKSNUM)
+                    {
+                        continue; //--
+                    }
                     if (movetrackfrom[n] < 0)
                     {
                         movetrackfrom[n] = order;
@@ -1055,7 +1276,9 @@ void CSong::RenumberAllTracks(int type) //1..after columns, 2..after lines
             }
         }
         else
+        {
             return;	//unknown type
+        }
 
     //then add empty tracks not used in the song
     for (i = 0; i < TRACKSNUM; i++)
@@ -1075,7 +1298,10 @@ void CSong::RenumberAllTracks(int type) //1..after columns, 2..after lines
         for (i = 0; i < g_tracks4_8; i++)
         {
             int n = m_song[sline][i];
-            if (n < 0 || n >= TRACKSNUM) continue;	//--
+            if (n < 0 || n >= TRACKSNUM)
+            {
+                continue; //--
+            }
             m_song[sline][i] = movetrackfrom[n];
         }
     }
@@ -1084,13 +1310,19 @@ void CSong::RenumberAllTracks(int type) //1..after columns, 2..after lines
     for (i = 0; i < order; i++)
     {
         int n = movetrackto[i];	// swap i <--> n
-        if (n == i) continue;	// they are the same, so they don't have to shuffle anything
+        if (n == i)
+        {
+            continue; // they are the same, so they don't have to shuffle anything
+        }
 
         TrackSwapFromTo(i, n);
 
         for (j = i; j < order; j++)
         {
-            if (movetrackto[j] == i) movetrackto[j] = n;
+            if (movetrackto[j] == i)
+            {
+                movetrackto[j] = n;
+            }
         }
     }
 }
@@ -1103,7 +1335,10 @@ int CSong::ClearAllInstrumentsUnusedInAnyTrack()
     BOOL instrused[INSTRSNUM];
     TTrack* tr;
 
-    for (i = 0; i < INSTRSNUM; i++) instrused[i] = 0;
+    for (i = 0; i < INSTRSNUM; i++)
+    {
+        instrused[i] = 0;
+    }
     for (i = 0; i < TRACKSNUM; i++)
     {
         tr = g_Tracks.GetTrack(i);
@@ -1111,7 +1346,10 @@ int CSong::ClearAllInstrumentsUnusedInAnyTrack()
         for (j = 0; j < nlen; j++)
         {
             t = tr->instr[j];
-            if (t >= 0 && t < INSTRSNUM) instrused[t] = 1;	//instrument "t" is used
+            if (t >= 0 && t < INSTRSNUM)
+            {
+                instrused[t] = 1; //instrument "t" is used
+            }
         }
     }
 
@@ -1122,7 +1360,10 @@ int CSong::ClearAllInstrumentsUnusedInAnyTrack()
         if (!instrused[i])
         {
             //unused
-            if (g_Instruments.CalculateNotEmpty(i)) clearedinstruments++;	//is it empty? yes => it will be deleted
+            if (g_Instruments.CalculateNotEmpty(i))
+            {
+                clearedinstruments++; //is it empty? yes => it will be deleted
+            }
             g_Instruments.ClearInstrument(i);
         }
     }
@@ -1138,7 +1379,10 @@ void CSong::RenumberAllInstruments(int type)
     int moveinstrfrom[INSTRSNUM], moveinstrto[INSTRSNUM];
     TTrack* tr;
 
-    for (i = 0; i < INSTRSNUM; i++) moveinstrfrom[i] = moveinstrto[i] = -1;
+    for (i = 0; i < INSTRSNUM; i++)
+    {
+        moveinstrfrom[i] = moveinstrto[i] = -1;
+    }
 
     int order = 0;
 
@@ -1150,7 +1394,10 @@ void CSong::RenumberAllInstruments(int type)
         for (j = 0; j < tlen; j++)
         {
             ins = tr->instr[j];
-            if (ins < 0 || ins >= INSTRSNUM) continue;
+            if (ins < 0 || ins >= INSTRSNUM)
+            {
+                continue;
+            }
             if (moveinstrfrom[ins] < 0)
             {
                 moveinstrfrom[ins] = order;
@@ -1202,18 +1449,27 @@ void CSong::RenumberAllInstruments(int type)
             for (i = 0; i < order; i++)
             {
                 int n = moveinstrto[i];	//swap i <--> n
-                if (n == i) continue;
+                if (n == i)
+                {
+                    continue;
+                }
                 memcpy(&bufi, g_Instruments.GetInstrument(i), sizeof(TInstrument)); // i -> buffer
                 memcpy(g_Instruments.GetInstrument(i), g_Instruments.GetInstrument(n), sizeof(TInstrument)); // n -> i
                 memcpy(g_Instruments.GetInstrument(n), &bufi, sizeof(TInstrument)); // buffer -> n
                 //
                 for (j = i; j < order; j++)
                 {
-                    if (moveinstrto[j] == i) moveinstrto[j] = n;
+                    if (moveinstrto[j] == i)
+                    {
+                        moveinstrto[j] = n;
+                    }
                 }
             }
             //and now delete the others (due to the corresponding names of unused empty instruments)
-            for (i = order; i < INSTRSNUM; i++) g_Instruments.ClearInstrument(i);
+            for (i = order; i < INSTRSNUM; i++)
+            {
+                g_Instruments.ClearInstrument(i);
+            }
         }
         else
             if (type == 3)
@@ -1237,14 +1493,20 @@ void CSong::RenumberAllInstruments(int type)
                         if (iused[j] != iused[k])
                         {
                             //one is used and one is unused
-                            if (iused[k]) swap = 1; //the second is used (=> the first is the one used), so swap
+                            if (iused[k])
+                            {
+                                swap = 1; //the second is used (=> the first is the one used), so swap
+                            }
                         }
                         else
                         {
                             //both are used or both are not used
                             char* name1 = g_Instruments.GetName(j);
                             char* name2 = g_Instruments.GetName(k);
-                            if (_strcmpi(name1, name2) > 0) swap = 1; //they are the other way around, so they are swapped
+                            if (_strcmpi(name1, name2) > 0)
+                            {
+                                swap = 1; //they are the other way around, so they are swapped
+                            }
                         }
 
                         if (swap)
@@ -1257,9 +1519,14 @@ void CSong::RenumberAllInstruments(int type)
                             int p;
                             for (p = 0; p < INSTRSNUM; p++)
                             {
-                                if (moveinstrfrom[p] == k) moveinstrfrom[p] = j;
-                                else
-                                    if (moveinstrfrom[p] == j) moveinstrfrom[p] = k;
+                                if (moveinstrfrom[p] == k)
+                                {
+                                    moveinstrfrom[p] = j;
+                                }
+                                else if (moveinstrfrom[p] == j)
+                                {
+                                    moveinstrfrom[p] = k;
+                                }
                             }
 
                             BOOL b = iused[j];
@@ -1271,12 +1538,16 @@ void CSong::RenumberAllInstruments(int type)
                 //still used unused empty instruments (due to their shift, so the name of their number 20: Instrument 21 did not match)
                 for (i = 0; i < INSTRSNUM; i++)
                 {
-                    if (!iused[i]) g_Instruments.ClearInstrument(i);
+                    if (!iused[i])
+                    {
+                        g_Instruments.ClearInstrument(i);
+                    }
                 }
             }
             else
+            {
                 return;
-
+            }
 
     //and now it has to be renumbered in all tracks according to the moveinstrfrom [instr] table
     for (i = 0; i < TRACKSNUM; i++)
@@ -1286,13 +1557,19 @@ void CSong::RenumberAllInstruments(int type)
         for (j = 0; j < tlen; j++)
         {
             ins = tr->instr[j];
-            if (ins < 0 || ins >= INSTRSNUM) continue;
+            if (ins < 0 || ins >= INSTRSNUM)
+            {
+                continue;
+            }
             tr->instr[j] = moveinstrfrom[ins];
         }
     }
 
     //and finally write all the instruments in Atari memory
-    for (i = 0; i < INSTRSNUM; i++) g_Instruments.Update(i); //writes to Atari
+    for (i = 0; i < INSTRSNUM; i++)
+    {
+        g_Instruments.Update(i); //writes to Atari
+    }
 
     //Hooray, done
 }
@@ -1420,7 +1697,10 @@ int CSong::MakeModule(unsigned char* mem, int addr, SongIOType iotype, BYTE* ins
             tr = g_Tracks.GetTrack(i);
             for (j = 0; j < tr->len; j++)
             {
-                if (g_Tracks.IsValidInstrument(tr->instr[j])) instrumentSavedFlags[tr->instr[j]] = IF_USED;
+                if (g_Tracks.IsValidInstrument(tr->instr[j]))
+                {
+                    instrumentSavedFlags[tr->instr[j]] = IF_USED;
+                }
             }
         }
     }
@@ -1430,7 +1710,10 @@ int CSong::MakeModule(unsigned char* mem, int addr, SongIOType iotype, BYTE* ins
         // In addition to the instruments used in the tracks that are in the song, all non-empty instruments are stored in the RMT
         for (i = 0; i < INSTRSNUM; i++)
         {
-            if (g_Instruments.CalculateNotEmpty(i)) instrumentSavedFlags[i] |= IF_NOEMPTY;
+            if (g_Instruments.CalculateNotEmpty(i))
+            {
+                instrumentSavedFlags[i] |= IF_NOEMPTY;
+            }
         }
     }
 
@@ -1552,11 +1835,17 @@ int CSong::DecodeModule(unsigned char* mem, int fromAddr, int endAddr, BYTE* ins
     BOOL loadState;
 
     // Check that the header starts with "RMT"
-    if (strncmp((char*)(mem + addr), "RMT", 3) != 0) return 0; //there is no RMT
+    if (strncmp((char *)(mem + addr), "RMT", 3) != 0)
+    {
+        return 0; //there is no RMT
+    }
 
     // 4th byte: # of channels (4 or 8)
     data = mem[addr + 3];
-    if (data != '4' && data != '8') return 0;	//it is not RMT4 or RMT8
+    if (data != '4' && data != '8')
+    {
+        return 0; //it is not RMT4 or RMT8
+    }
     SetTracks(data & 0x0F); // Store how many channels this module uses
 
     // 5th byte: track length
@@ -1566,11 +1855,17 @@ int CSong::DecodeModule(unsigned char* mem, int fromAddr, int endAddr, BYTE* ins
     // 6th byte: song speed
     data = mem[addr + 5];
     m_mainSpeed = data;
-    if (data < 1) return 0;						// there can be no zero speed
+    if (data < 1)
+    {
+        return 0; // there can be no zero speed
+    }
 
     // 7th byte: Instrument speed
     data = mem[addr + 6];
-    if (data < 1 || data > 8) return 0;			// Instrument speed is less than 1 or greater than 8 (note: should be max 4, but allows up to 8 and will only display a warning)
+    if (data < 1 || data > 8)
+    {
+        return 0; // Instrument speed is less than 1 or greater than 8 (note: should be max 4, but allows up to 8 and will only display a warning)
+    }
     m_instrumentSpeed = data;
 
     // 8th byte: RMT format version nr.
@@ -1604,17 +1899,27 @@ int CSong::DecodeModule(unsigned char* mem, int fromAddr, int endAddr, BYTE* ins
         int ptrOneInstrument = mem[ptrInstruments + instrumentNr * 2] + (mem[ptrInstruments + instrumentNr * 2 + 1] << 8);
 
         // Skip over empty instruments
-        if (ptrOneInstrument == 0) continue; // Empty instruments have a NULL ptr
+        if (ptrOneInstrument == 0)
+        {
+            continue; // Empty instruments have a NULL ptr
+        }
 
         // Depending on the file version load the instrument data into g_Instruments
         if (version == 0)
+        {
             loadState = g_Instruments.AtaV0ToInstr(mem + ptrOneInstrument, instrumentNr);
+        }
         else
+        {
             loadState = g_Instruments.AtaToInstr(mem + ptrOneInstrument, instrumentNr);
+        }
 
         g_Instruments.Update(instrumentNr);	//writes to Atari ram
 
-        if (!loadState) return 0; // some problem with the instrument => END
+        if (!loadState)
+        {
+            return 0; // some problem with the instrument => END
+        }
 
         // Mark the instrument as loaded
         instrumentLoadedFlags[instrumentNr] = 1;
@@ -1626,7 +1931,10 @@ int CSong::DecodeModule(unsigned char* mem, int fromAddr, int endAddr, BYTE* ins
     {
         int trackNr = i;
         int ptrTrack = mem[ptrTracksLow + i] + (mem[ptrTracksHigh + i] << 8);
-        if (ptrTrack == 0) continue; // Omitted tracks have pointer of 0
+        if (ptrTrack == 0)
+        {
+            continue; // Omitted tracks have pointer of 0
+        }
 
         // Identify the end of the track by the starting address of the next track,
         // and at the end by the starting address of the song data that follows the data of the last track
@@ -1634,26 +1942,38 @@ int CSong::DecodeModule(unsigned char* mem, int fromAddr, int endAddr, BYTE* ins
         for (j = i; j < numTracks; j++)
         {
             ptrTrackEnd = (j + 1 == numTracks) ? ptrSong : mem[ptrTracksLow + j + 1] + (mem[ptrTracksHigh + j + 1] << 8);
-            if (ptrTrackEnd != 0) break;
+            if (ptrTrackEnd != 0)
+            {
+                break;
+            }
             i++;	//continue from the next and skip the omitted one
         }
 
         int trackLength = ptrTrackEnd - ptrTrack;
-        if (!g_Tracks.AtaToTrack(mem + ptrTrack, trackLength, trackNr)) return 0; //some problem with the track => END
+        if (!g_Tracks.AtaToTrack(mem + ptrTrack, trackLength, trackNr))
+        {
+            return 0; //some problem with the track => END
+        }
 
         // Mark the track as loaded
         trackLoadedFlags[trackNr] = 1;
     }
 
     // Decoded song
-    if (!AtaToSong(mem + ptrSong, lengthSong, ptrSong)) return 0; //some problem with the song => END
+    if (!AtaToSong(mem + ptrSong, lengthSong, ptrSong))
+    {
+        return 0; //some problem with the song => END
+    }
 
     return version;
 }
 
 void CSong::InstrInfo(int instr, TInstrInfo* iinfo, int instrto)
 {
-    if (!g_Instruments.IsValidInstrument(instr)) return;
+    if (!g_Instruments.IsValidInstrument(instr))
+    {
+        return;
+    }
 
     TTrack* at;
     int i, j, ain;
@@ -1662,12 +1982,18 @@ void CSong::InstrInfo(int instr, TInstrInfo* iinfo, int instrto)
     int noftrack = 0;
     int globallytimes = 0;
     int withnote[CNotes::NOTESNUM];
-    for (i = 0; i < CNotes::NOTESNUM; i++) withnote[i] = 0;
+    for (i = 0; i < CNotes::NOTESNUM; i++)
+    {
+        withnote[i] = 0;
+    }
     int minnote = CNotes::NOTESNUM, maxnote = -1;
     int minvol = 16, maxvol = -1;
     int infrom = INSTRSNUM, into = -1;
 
-    if (instrto < instr) instrto = instr;
+    if (instrto < instr)
+    {
+        instrto = instr;
+    }
 
     for (i = 0; i < TRACKSNUM; i++)
     {
@@ -1676,30 +2002,54 @@ void CSong::InstrInfo(int instr, TInstrInfo* iinfo, int instrto)
         ain = -1;
         for (j = 0; j < at->len; j++)
         {
-            if (at->instr[j] >= 0) ain = at->instr[j];
+            if (at->instr[j] >= 0)
+            {
+                ain = at->instr[j];
+            }
             if (ain >= instr && ain <= instrto)
             {
                 inttrack = 1;
-                if (ain > into) into = ain;
-                if (ain < infrom) infrom = ain;
+                if (ain > into)
+                {
+                    into = ain;
+                }
+                if (ain < infrom)
+                {
+                    infrom = ain;
+                }
                 int note = at->note[j];
                 if (note >= 0 && note < CNotes::NOTESNUM)
                 {
                     globallytimes++; //some note with this instrument => started
                     withnote[note]++;
-                    if (note > maxnote) maxnote = note;
-                    if (note < minnote) minnote = note;
+                    if (note > maxnote)
+                    {
+                        maxnote = note;
+                    }
+                    if (note < minnote)
+                    {
+                        minnote = note;
+                    }
                 }
                 int vol = at->volume[j];
                 if (vol >= 0 && vol <= 15)
                 {
-                    if (vol > maxvol) maxvol = vol;
-                    if (vol < minvol) minvol = vol;
+                    if (vol > maxvol)
+                    {
+                        maxvol = vol;
+                    }
+                    if (vol < minvol)
+                    {
+                        minvol = vol;
+                    }
                 }
             }
         }
         intrack[i] = inttrack;
-        if (inttrack) noftrack++;
+        if (inttrack)
+        {
+            noftrack++;
+        }
     }
 
     if (iinfo)
@@ -1734,7 +2084,9 @@ void CSong::InstrInfo(int instr, TInstrInfo* iinfo, int instrto)
                     s += CNotes::GetNote(i);
                     lc++;
                     if (lc < 12)
+                    {
                         s += " ";
+                    }
                     else
                     {
                         s += "\n"; lc = 0;
@@ -1751,7 +2103,9 @@ void CSong::InstrInfo(int instr, TInstrInfo* iinfo, int instrto)
                     s += s2;
                     lc++;
                     if (lc < 16)
+                    {
                         s += " ";
+                    }
                     else
                     {
                         s += "\n"; lc = 0;
@@ -1816,24 +2170,42 @@ void CSong::InstrChangeApply(const TInstrChangeParams& p, CString* resultMsg)
 
     // Initialise memory
     memset(track_yn, 0, TRACKSNUM);
-    for (i = 0; i < TRACKSNUM; i++) track_column[i] = track_line[i] = -1;
+    for (i = 0; i < TRACKSNUM; i++)
+    {
+        track_column[i] = track_line[i] = -1;
+    }
 
     if (onlychannels >= 0 || (onlysonglinefrom >= 0 && onlysonglineto >= 0))
     {
-        if (onlychannels <= 0) onlychannels = 0xff;				// All channels
-        if (onlysonglinefrom < 0) onlysonglinefrom = 0;			// From the beginning
-        if (onlysonglineto < 0) onlysonglineto = SONGLEN - 1;	// To the end
+        if (onlychannels <= 0)
+        {
+            onlychannels = 0xff; // All channels
+        }
+        if (onlysonglinefrom < 0)
+        {
+            onlysonglinefrom = 0; // From the beginning
+        }
+        if (onlysonglineto < 0)
+        {
+            onlysonglineto = SONGLEN - 1; // To the end
+        }
         onlysomething = 1;										// Something specific to change
 
         for (j = 0; j < SONGLEN; j++)
         {
-            if (IsSongGo(j)) continue;
+            if (IsSongGo(j))
+            {
+                continue;
+            }
 
             for (i = 0; i < g_tracks4_8; i++)
             {
                 t = m_song[j][i];
 
-                if (!g_Tracks.IsValidTrack(t)) continue;
+                if (!g_Tracks.IsValidTrack(t))
+                {
+                    continue;
+                }
 
                 r = (onlychannels & (1 << i)) && j >= onlysonglinefrom && j <= onlysonglineto;
                 track_yn[t] |= (r) ? 1 : 2;	// 1 = yes, 2 = no, 3 = yesno (copy)
@@ -1854,9 +2226,18 @@ void CSong::InstrChangeApply(const TInstrChangeParams& p, CString* resultMsg)
         onlysomething = 1;
     }
 
-    if (!g_Tracks.IsValidNote(dnoteto)) dnoteto = dnotefrom + (snoteto - snotefrom);
-    if (!g_Tracks.IsValidVolume(dvolmax)) dvolmax = dvolmin + (svolmax - svolmin);
-    if (!g_Tracks.IsValidInstrument(dinstrto)) dinstrto = dinstrfrom + (sinstrto - sinstrfrom);
+    if (!g_Tracks.IsValidNote(dnoteto))
+    {
+        dnoteto = dnotefrom + (snoteto - snotefrom);
+    }
+    if (!g_Tracks.IsValidVolume(dvolmax))
+    {
+        dvolmax = dvolmin + (svolmax - svolmin);
+    }
+    if (!g_Tracks.IsValidInstrument(dinstrto))
+    {
+        dinstrto = dinstrfrom + (sinstrto - sinstrfrom);
+    }
 
     double notecoef = (snoteto - snotefrom > 0) ? (double)(dnoteto - dnotefrom) / (snoteto - snotefrom) : 0;
     double volcoef = (svolmax - svolmin > 0) ? (double)(dvolmax - dvolmin) / (svolmax - svolmin) : 0;
@@ -1867,7 +2248,10 @@ void CSong::InstrChangeApply(const TInstrChangeParams& p, CString* resultMsg)
         track_changeto[i] = -1; // initialise
 
         // It wants to change only some and this one is not
-        if (onlysomething && ((track_yn[i] & 1) != 1)) continue;
+        if (onlysomething && ((track_yn[i] & 1) != 1))
+        {
+            continue;
+        }
 
         // Copy the original track to temporary track
         st = g_Tracks.GetTrack(i);
@@ -1878,15 +2262,24 @@ void CSong::InstrChangeApply(const TInstrChangeParams& p, CString* resultMsg)
 
         for (j = 0; j < at.len; j++)
         {
-            if (g_Tracks.IsValidInstrument(at.instr[j])) lasti = at.instr[j];
-            if (g_Tracks.IsValidNote(at.note[j])) lastn = at.note[j];
+            if (g_Tracks.IsValidInstrument(at.instr[j]))
+            {
+                lasti = at.instr[j];
+            }
+            if (g_Tracks.IsValidNote(at.note[j]))
+            {
+                lastn = at.note[j];
+            }
 
             if (lasti >= sinstrfrom && lasti <= sinstrto && lastn >= snotefrom && lastn <= snoteto && at.volume[j] >= svolmin && at.volume[j] <= svolmax)
             {
                 if (g_Tracks.IsValidNote(at.note[j]))
                 {
                     note = dnotefrom + (int)((double)(at.note[j] - snotefrom) * notecoef + 0.5);
-                    while (!g_Tracks.IsValidNote(note)) note -= 12;
+                    while (!g_Tracks.IsValidNote(note))
+                    {
+                        note -= 12;
+                    }
                     if (note != at.note[j])
                     {
                         at.note[j] = note;
@@ -1897,7 +2290,10 @@ void CSong::InstrChangeApply(const TInstrChangeParams& p, CString* resultMsg)
                 if (g_Tracks.IsValidInstrument(at.instr[j]))
                 {
                     ins = dinstrfrom + (int)((double)(at.instr[j] - sinstrfrom) * instrcoef + 0.5);
-                    if (!g_Tracks.IsValidInstrument(ins)) ins = INSTRSNUM - 1;
+                    if (!g_Tracks.IsValidInstrument(ins))
+                    {
+                        ins = INSTRSNUM - 1;
+                    }
                     if (ins != at.instr[j])
                     {
                         at.instr[j] = ins;
@@ -1908,7 +2304,10 @@ void CSong::InstrChangeApply(const TInstrChangeParams& p, CString* resultMsg)
                 if (g_Tracks.IsValidVolume(at.volume[j]))
                 {
                     vol = dvolmin + (int)((double)(at.volume[j] - svolmin) * volcoef + 0.5);
-                    if (!g_Tracks.IsValidVolume(vol)) vol = MAXVOLUME;
+                    if (!g_Tracks.IsValidVolume(vol))
+                    {
+                        vol = MAXVOLUME;
+                    }
                     if (vol != at.volume[j])
                     {
                         at.volume[j] = vol;
@@ -1966,13 +2365,19 @@ void CSong::InstrChangeApply(const TInstrChangeParams& p, CString* resultMsg)
     {
         for (j = 0; j < SONGLEN; j++)
         {
-            if (IsSongGo(j)) continue;
+            if (IsSongGo(j))
+            {
+                continue;
+            }
 
             for (i = 0; i < g_tracks4_8; i++)
             {
                 t = m_song[j][i];
 
-                if (!g_Tracks.IsValidTrack(t)) continue;
+                if (!g_Tracks.IsValidTrack(t))
+                {
+                    continue;
+                }
 
                 r = (onlychannels & (1 << i)) && j >= onlysonglinefrom && j <= onlysonglineto;
 
@@ -2008,7 +2413,10 @@ abortchanges:
 
 void CSong::TrackInfo(int track, TTrackInfo* tinfo)
 {
-    if (track < 0 || track >= TRACKSNUM) return;
+    if (track < 0 || track >= TRACKSNUM)
+    {
+        return;
+    }
 
     const char* cnames[] = { "L1","L2","L3","L4","R1","R2","R3","R4" };
 
@@ -2016,11 +2424,17 @@ void CSong::TrackInfo(int track, TTrackInfo* tinfo)
     int trackusedincolumn[SONGTRACKS];
     int lines = 0, total = 0;
 
-    for (ch = 0; ch < SONGTRACKS; ch++) trackusedincolumn[ch] = 0;
+    for (ch = 0; ch < SONGTRACKS; ch++)
+    {
+        trackusedincolumn[ch] = 0;
+    }
 
     for (int sline = 0; sline < SONGLEN; sline++)
     {
-        if (m_songgo[sline] >= 0) continue;	//goto line is ignored
+        if (m_songgo[sline] >= 0)
+        {
+            continue; //goto line is ignored
+        }
 
         BOOL thisline = 0;
         for (ch = 0; ch < g_tracks4_8; ch++)
@@ -2029,14 +2443,20 @@ void CSong::TrackInfo(int track, TTrackInfo* tinfo)
             if (n == track) { trackusedincolumn[ch]++; total++; thisline = 1; }
         }
 
-        if (thisline) lines++;
+        if (thisline)
+        {
+            lines++;
+        }
     }
 
     if (tinfo)
     {	//tinfo != NULL => set values
         tinfo->count = total;
         tinfo->lines = lines;
-        for (ch = 0; ch < SONGTRACKS; ch++) tinfo->usedincolumn[ch] = trackusedincolumn[ch];
+        for (ch = 0; ch < SONGTRACKS; ch++)
+        {
+            tinfo->usedincolumn[ch] = trackusedincolumn[ch];
+        }
     }
     else
     {	//tinfo == NULL => shows dialog
@@ -2100,7 +2520,9 @@ bool CSong::SaveRMW(std::ostream& ou)
     int p = RMWMAINPARAMSCOUNT;			// Number of stored parameters
     ou.write((char*)&p, sizeof(p));		// Write the number of main parameters
     for (int i = 0; i < p; i++)
+    {
         ou.write((char*)mainparams[i], sizeof(mainparams[0]));
+    }
 
     // Write a complete song and songgo
     ou.write((char*)m_song, sizeof(m_song));
@@ -2131,7 +2553,9 @@ bool CSong::LoadRMW(std::istream& in)
     int p = 0;
     in.read((char*)&p, sizeof(p));	//read the number of main parameters
     for (int i = 0; i < p; i++)
+    {
         in.read((char*)mainparams[i], sizeof(mainparams[0]));
+    }
 
     // Read the complete song and songgo
     in.read((char*)m_song, sizeof(m_song));
@@ -2192,9 +2616,13 @@ bool CSong::SaveTxt(std::ostream& ou)
             bf[2] = 0;
             ou << bf;
             if (j + 1 == g_tracks4_8)
+            {
                 ou << "\n";			//for the last end of the line
+            }
             else
+            {
                 ou << " ";			//between them
+            }
         }
     }
 
@@ -2230,7 +2658,10 @@ bool CSong::LoadTxt(std::istream& in)
             {
                 // Check for next segment start '['
                 in.read((char*)&b, 1);
-                if (b == '[') break;
+                if (b == '[')
+                {
+                    break;
+                }
                 // Not a segment start so save the read character and get the rest of the line
                 line[0] = b;
                 in.getline(line + 1, 1024);
@@ -2243,7 +2674,9 @@ bool CSong::LoadTxt(std::istream& in)
                     value += 2;		// move to the first character after the space
                 }
                 else
+                {
                     continue;
+                }
 
                 // Process each of the possible commands in a [MODULE]
                 if (strcmp(line, "RMT:") == 0)
@@ -2251,9 +2684,13 @@ bool CSong::LoadTxt(std::istream& in)
                     // RMT version indicator: 4 or 8
                     int v = Hexstr(value, 2);
                     if (v <= 4)
+                    {
                         v = 4;
+                    }
                     else
+                    {
                         v = 8;
+                    }
                     SetTracks(v);
                 }
                 else
@@ -2263,7 +2700,10 @@ bool CSong::LoadTxt(std::istream& in)
                         Trimstr(value);
                         memset(m_songname, ' ', SONG_NAME_MAX_LEN);
                         int lname = SONG_NAME_MAX_LEN;
-                        if (strlen(value) <= SONG_NAME_MAX_LEN) lname = (int)strlen(value);
+                        if (strlen(value) <= SONG_NAME_MAX_LEN)
+                        {
+                            lname = (int)strlen(value);
+                        }
                         strncpy(m_songname, value, lname);
                     }
                     else
@@ -2271,7 +2711,10 @@ bool CSong::LoadTxt(std::istream& in)
                         {
                             // Set how long a track is: MAXTRACKLEN: 00-FF
                             int v = Hexstr(value, 2);
-                            if (v == 0) v = 256;
+                            if (v == 0)
+                            {
+                                v = 256;
+                            }
                             g_Tracks.SetMaxTrackLength(v);
                             g_Tracks.InitTracks();		// Reinitialise
                         }
@@ -2280,14 +2723,20 @@ bool CSong::LoadTxt(std::istream& in)
                             {
                                 // Set the play speed: MAINSPEED: 01-FF
                                 int v = Hexstr(value, 2);
-                                if (v > 0) m_mainSpeed = v;
+                                if (v > 0)
+                                {
+                                    m_mainSpeed = v;
+                                }
                             }
                             else
                                 if (strcmp(line, "INSTRSPEED:") == 0)
                                 {
                                     // Set the instrument speed: INSTRSPEED: 01-FF
                                     int v = Hexstr(value, 1);
-                                    if (v > 0) m_instrumentSpeed = v;
+                                    if (v > 0)
+                                    {
+                                        m_instrumentSpeed = v;
+                                    }
                                 }
                                 else
                                     if (strcmp(line, "VERSION:") == 0)
@@ -2306,7 +2755,10 @@ bool CSong::LoadTxt(std::istream& in)
                     // Read the song line. Dump out if its the next section
                     memset(line, 0, 32);
                     in.read((char*)&b, 1);
-                    if (b == '[') break;
+                    if (b == '[')
+                    {
+                        break;
+                    }
                     line[0] = b;
                     in.getline(line + 1, 1024);
 
@@ -2316,14 +2768,20 @@ bool CSong::LoadTxt(std::istream& in)
                     if (strncmp(line, "Go to line ", 11) == 0)
                     {
                         int go = Hexstr(line + 11, 2);
-                        if (go >= 0 && go < SONGLEN) m_songgo[idx] = go;
+                        if (go >= 0 && go < SONGLEN)
+                        {
+                            m_songgo[idx] = go;
+                        }
                         continue;
                     }
                     for (i = 0; i < g_tracks4_8; i++)
                     {
                         // Parse the track
                         int track = Hexstr(line + i * 3, 2);
-                        if (track >= 0 && track < TRACKSNUM) m_song[idx][i] = track;
+                        if (track >= 0 && track < TRACKSNUM)
+                        {
+                            m_song[idx][i] = track;
+                        }
                     }
                 }
             }
@@ -2342,7 +2800,9 @@ bool CSong::LoadTxt(std::istream& in)
                         g_Tracks.LoadTrack(-1, in, SongIOType::TXT);	//-1 => retrieve the track number from TXT source
                     }
                     else
+                    {
                         NextSegment(in); // Look for the beginning of the next segment
+                    }
     }
 
     return true;
@@ -2396,9 +2856,14 @@ bool CSong::LoadRMT(std::istream& in)
     char ch;
     // Parse the song name (until we hit the terminating zero)
     for (idx = 0; idx < SONG_NAME_MAX_LEN && (ch = mem[fromAddr + idx]); idx++)
+    {
         m_songname[idx] = ch;
+    }
 
-    for (k = idx; k < SONG_NAME_MAX_LEN; k++) m_songname[k] = ' '; // fill in the gaps
+    for (k = idx; k < SONG_NAME_MAX_LEN; k++)
+    {
+        m_songname[k] = ' '; // fill in the gaps
+    }
 
     int addrInstrumentNames = fromAddr + idx + 1; // +1 that's the zero behind the name
     for (i = 0; i < INSTRSNUM; i++)
@@ -2408,11 +2873,15 @@ bool CSong::LoadRMT(std::istream& in)
         {
             // Yes its loaded, parse its name
             for (idx = 0; idx < INSTRUMENT_NAME_MAX_LEN && (ch = mem[addrInstrumentNames + idx]); idx++)
+            {
                 //g_Instruments.m_instr[i].name[idx] = ch;
                 g_Instruments.GetName(i)[idx] = ch;
+            }
 
-            for (k = idx; k < INSTRUMENT_NAME_MAX_LEN; k++) //g_Instruments.m_instr[i].name[k] = ' '; //fill in the gaps
+            for (k = idx; k < INSTRUMENT_NAME_MAX_LEN; k++)
+            {                                      //g_Instruments.m_instr[i].name[k] = ' '; //fill in the gaps
                 g_Instruments.GetName(i)[k] = ' '; // Fill in the gaps
+            }
 
             // Move to source of the next instrument's name
             addrInstrumentNames += idx + 1; //+1 is zero behind the name
@@ -2463,8 +2932,10 @@ BOOL CSong::PlayPressedTones()
 
 BOOL CSong::TrackUp(int lines)
 {
-    if (m_play && m_followplay)	//prevents moving at all during play+follow
+    if (m_play && m_followplay)
+    { //prevents moving at all during play+follow
         return 0;
+    }
 
     g_Undo.Separator();
     m_trackactiveline -= lines;	//subtract the number of lines from active track line 
@@ -2485,30 +2956,41 @@ BOOL CSong::TrackUp(int lines)
             SongUp();	//go to the next songline with current trackline position
             trlen = GetSmallestMaxtracklen(m_songactiveline);	//fetch the new pattern length as well
         }
-        m_trackactiveline = m_trackactiveline + trlen;	//active line should appear at the bottom line, from the previous pattern movement 
-        if (m_trackactiveline < 0)	//active line is still below 0? assume max track length to be the correct position, so the next movement up will rectify itself
+        m_trackactiveline = m_trackactiveline + trlen;	//active line should appear at the bottom line, from the previous pattern movement
+        if (m_trackactiveline < 0)
+        { //active line is still below 0? assume max track length to be the correct position, so the next movement up will rectify itself
             m_trackactiveline = trlen - lines;
+        }
     }
     if (m_trackactiveline > trlen)
-        m_trackactiveline = trlen - lines;	//above max track length, snap back in-bounds, and take the number of used for movements as well 
+    {
+        m_trackactiveline = trlen - lines;	//above max track length, snap back in-bounds, and take the number of used for movements as well
+    }
 
     return 1;
 }
 
 BOOL CSong::TrackDown(int lines, BOOL stoponlastline)
 {
-    if (m_play && m_followplay)	//prevents moving at all during play+follow
+    if (m_play && m_followplay)
+    { //prevents moving at all during play+follow
         return 0;
+    }
 
-    if (!g_keyboard_updowncontinue && stoponlastline && m_trackactiveline + lines > TrackGetLastLine()) // an invalid combination should be ignored
+    if (!g_keyboard_updowncontinue && stoponlastline && m_trackactiveline + lines > TrackGetLastLine())
+    { // an invalid combination should be ignored
         return 0;
+    }
 
     g_Undo.Separator();
     m_trackactiveline += lines;	//add the number of lines to move down to the current active trackline
 
     //GetSmallestMaxtracklen() seems to do a really good job for the navigation within the "compact" tracks display so far
-    int trlen = GetSmallestMaxtracklen(m_songactiveline);	//identify the true track length in song line 
-    if (!trlen) trlen = g_Tracks.GetMaxTrackLength();	//in case the smallest max track length returned zero (eg from a goto line)
+    int trlen = GetSmallestMaxtracklen(m_songactiveline);	//identify the true track length in song line
+    if (!trlen)
+    {
+        trlen = g_Tracks.GetMaxTrackLength(); //in case the smallest max track length returned zero (eg from a goto line)
+    }
 
     if (m_trackactiveline >= trlen)	//active line is equal or above max track length
     {
@@ -2526,11 +3008,15 @@ BOOL CSong::TrackDown(int lines, BOOL stoponlastline)
             SongDown();	//go to the next songline with current trackline position
             trlen = GetSmallestMaxtracklen(m_songactiveline);	//fetch the new pattern length as well
         }
-        if (m_trackactiveline < 0)	//active line is still below 0? assume max track length to be the correct position, so the next movement up will rectify itself
+        if (m_trackactiveline < 0)
+        { //active line is still below 0? assume max track length to be the correct position, so the next movement up will rectify itself
             m_trackactiveline = 0 + lines;
+        }
     }
     if (m_trackactiveline > trlen)
-        m_trackactiveline = 0 + lines;	//above max track length, snap back in-bounds, and take the number of used for movements as well 
+    {
+        m_trackactiveline = 0 + lines;	//above max track length, snap back in-bounds, and take the number of used for movements as well
+    }
 
     return 1;
 }
@@ -2595,7 +3081,9 @@ BOOL CSong::SongUp()
     m_songactiveline--;
 
     if (!IsValidSongline(m_songactiveline))
+    {
         m_songactiveline = SONGLEN - 1;
+    }
 
     if (m_play && m_followplay)
     {
@@ -2630,7 +3118,9 @@ BOOL CSong::SongDown()
     m_songactiveline++;
 
     if (!IsValidSongline(m_songactiveline))
+    {
         m_songactiveline = 0;
+    }
 
     if (m_play && m_followplay)
     {
@@ -2662,9 +3152,11 @@ BOOL CSong::SongSubsongPrev()
     g_Undo.Separator();
     int i = m_songactiveline - 1;
 
-    //only few lines in track have been played, or active line is 0, search for 1 subsong earlier to avoid being sent back to the same line each time 
+    //only few lines in track have been played, or active line is 0, search for 1 subsong earlier to avoid being sent back to the same line each time
     if ((m_play && m_followplay && m_trackplayline < 16) || m_trackactiveline == 0)
+    {
         i--;
+    }
     for (; i >= 0; i--)
     {
         if (m_songgo[i] >= 0)
@@ -2673,7 +3165,10 @@ BOOL CSong::SongSubsongPrev()
             break;
         }
     }
-    if (i < 0) m_songactiveline = 0;
+    if (i < 0)
+    {
+        m_songactiveline = 0;
+    }
     m_trackactiveline = 0;
     if (m_play && m_followplay)
     {
@@ -2695,9 +3190,13 @@ BOOL CSong::SongSubsongNext()
         if (m_songgo[i] >= 0)
         {
             if (i < (SONGLEN - 1))
+            {
                 m_songactiveline = i + 1;
+            }
             else
+            {
                 m_songactiveline = SONGLEN - 1; //Goto on the last songline (=> it is not possible to set a line below it!)
+            }
             m_trackactiveline = 0;
             break;
         }
@@ -2717,7 +3216,10 @@ BOOL CSong::SongPrepareNewLine(int& line, int sourceline, BOOL alsoemptycolumns)
 {
     int i, k;
 
-    if (sourceline < 0) sourceline = line + sourceline; //for -1 it is line-1
+    if (sourceline < 0)
+    {
+        sourceline = line + sourceline; //for -1 it is line-1
+    }
 
     SongInsertLine(line);	//inserts a blank line
 
@@ -2731,7 +3233,10 @@ BOOL CSong::SongPrepareNewLine(int& line, int sourceline, BOOL alsoemptycolumns)
     int count = 0;
     for (i = 0; i < g_tracks4_8; i++)
     {
-        if (!alsoemptycolumns && sourceline >= 0 && m_song[sourceline][i] < 0) continue;
+        if (!alsoemptycolumns && sourceline >= 0 && m_song[sourceline][i] < 0)
+        {
+            continue;
+        }
 
         k = FindNearTrackBySongLineAndColumn(sourceline, i, tracks);
         if (k >= 0)
@@ -2745,9 +3250,13 @@ BOOL CSong::SongPrepareNewLine(int& line, int sourceline, BOOL alsoemptycolumns)
     if (count < g_tracks4_8)
     {
         if (count == 0)
+        {
             SendErrorMessage("Error", "There isn't any empty unused track in song.");
+        }
         else
+        {
             SendErrorMessage("Error", "Not enough empty unused tracks in song.");
+        }
         return 0;
     }
 
@@ -2757,7 +3266,10 @@ BOOL CSong::SongPrepareNewLine(int& line, int sourceline, BOOL alsoemptycolumns)
 BOOL CSong::SongPutnewemptyunusedtrack()
 {
     int line = SongGetActiveLine();
-    if (m_songgo[line] >= 0) return 0;		//it can't be done on the "GO TO LINE" line
+    if (m_songgo[line] >= 0)
+    {
+        return 0; //it can't be done on the "GO TO LINE" line
+    }
 
     g_Undo.ChangeSong(line, m_trackactivecol, UETYPE_SONGTRACK, 0);
 
@@ -2772,9 +3284,13 @@ BOOL CSong::SongPutnewemptyunusedtrack()
     MarkTF_NOEMPTY(tracks);
 
     if (act >= 0 && !tracks[act])
+    {
         k = act;
+    }
     else
+    {
         k = FindNearTrackBySongLineAndColumn(line, cl, tracks);
+    }
 
     if (k < 0)
     {
@@ -2799,11 +3315,17 @@ BOOL CSong::SongPutnewemptyunusedtrack()
 BOOL CSong::SongMaketracksduplicate()
 {
     int line = SongGetActiveLine();
-    if (m_songgo[line] >= 0) return 0;		//it can't be done on the "GO TO LINE" line
+    if (m_songgo[line] >= 0)
+    {
+        return 0; //it can't be done on the "GO TO LINE" line
+    }
 
     int cl = GetActiveColumn();
     int act = m_song[line][cl];
-    if (act < 0) return 0;			//cannot be duplicated, no track selected
+    if (act < 0)
+    {
+        return 0; //cannot be duplicated, no track selected
+    }
 
     g_Undo.ChangeSong(line, cl, UETYPE_SONGTRACK, -1); //just cast
 
@@ -2821,7 +3343,9 @@ BOOL CSong::SongMaketracksduplicate()
         m_song[line][cl] = act;
         MessageAnswer r = SendQuestionMessage("Make track's duplicate...", "This track is used only once in song.\nAre you sure to make duplicate?", MessageButtons::OkCancel);
         if (r == MessageAnswer::Ok)
+        {
             k = FindNearTrackBySongLineAndColumn(line, cl, tracks);
+        }
         else
         {
             g_Undo.DropLast();
@@ -2829,7 +3353,9 @@ BOOL CSong::SongMaketracksduplicate()
         }
     }
     else
+    {
         k = FindNearTrackBySongLineAndColumn(line, cl, tracks);
+    }
 
     if (k < 0)
     {
@@ -2862,15 +3388,27 @@ void CSong::Songswitch4_8(int tracks4_8)
         int p = 0;
         for (i = 0; i < SONGLEN; i++)
         {
-            for (j = 4; j < 8; j++) if (m_song[i][j] >= 0) p++;
+            for (j = 4; j < 8; j++)
+            {
+                if (m_song[i][j] >= 0)
+                {
+                    p++;
+                }
+            }
         }
 
-        if (p > 0) wrn += "\nWarning: Song switch to mono 4 tracks will erase all the R1,R2,R3,R4 entries in song list.\n";
+        if (p > 0)
+        {
+            wrn += "\nWarning: Song switch to mono 4 tracks will erase all the R1,R2,R3,R4 entries in song list.\n";
+        }
     }
 
     wrn += "\nAre you sure to do it?";
     MessageAnswer res = SendQuestionMessage("Song switch mono/stereo", wrn, MessageButtons::YesNoCancel);
-    if (res != MessageAnswer::Yes) return;
+    if (res != MessageAnswer::Yes)
+    {
+        return;
+    }
 
     g_Undo.Clear();
 
@@ -2880,7 +3418,10 @@ void CSong::Songswitch4_8(int tracks4_8)
         SetTracks(4);
         for (i = 0; i < SONGLEN; i++)
         {
-            for (j = 4; j < 8; j++) m_song[i][j] = -1;
+            for (j = 4; j < 8; j++)
+            {
+                m_song[i][j] = -1;
+            }
         }
     }
     else
@@ -2934,13 +3475,28 @@ void CSong::InstrPaste(int special)
     InstrPaste_Envelopes:
         for (x = 0; x <= m_instrclipboard.parameters[PAR_ENV_LENGTH]; x++)
         {
-            if (br) ai->envelope[x][EnvelopeParameter::VOLUMER] = m_instrclipboard.envelope[x][EnvelopeParameter::VOLUMER];
-            if (bl) ai->envelope[x][EnvelopeParameter::VOLUMEL] = m_instrclipboard.envelope[x][EnvelopeParameter::VOLUMEL];
-            if (bltor) ai->envelope[x][EnvelopeParameter::VOLUMER] = m_instrclipboard.envelope[x][EnvelopeParameter::VOLUMEL];
-            if (brtol) ai->envelope[x][EnvelopeParameter::VOLUMEL] = m_instrclipboard.envelope[x][EnvelopeParameter::VOLUMER];
+            if (br)
+            {
+                ai->envelope[x][EnvelopeParameter::VOLUMER] = m_instrclipboard.envelope[x][EnvelopeParameter::VOLUMER];
+            }
+            if (bl)
+            {
+                ai->envelope[x][EnvelopeParameter::VOLUMEL] = m_instrclipboard.envelope[x][EnvelopeParameter::VOLUMEL];
+            }
+            if (bltor)
+            {
+                ai->envelope[x][EnvelopeParameter::VOLUMER] = m_instrclipboard.envelope[x][EnvelopeParameter::VOLUMEL];
+            }
+            if (brtol)
+            {
+                ai->envelope[x][EnvelopeParameter::VOLUMEL] = m_instrclipboard.envelope[x][EnvelopeParameter::VOLUMER];
+            }
             if (ep)
             {
-                for (y = EnvelopeParameter::DISTORTION; y < ENVROWS; y++) ai->envelope[x][y] = m_instrclipboard.envelope[x][y];
+                for (y = EnvelopeParameter::DISTORTION; y < ENVROWS; y++)
+                {
+                    ai->envelope[x][y] = m_instrclipboard.envelope[x][y];
+                }
             }
         }
         ai->parameters[PAR_ENV_LENGTH] = m_instrclipboard.parameters[PAR_ENV_LENGTH];
@@ -2949,7 +3505,10 @@ void CSong::InstrPaste(int special)
         break;
 
     case 5: //TABLE
-        for (x = 0; x <= m_instrclipboard.parameters[PAR_TBL_LENGTH]; x++) ai->noteTable[x] = m_instrclipboard.noteTable[x];
+        for (x = 0; x <= m_instrclipboard.parameters[PAR_TBL_LENGTH]; x++)
+        {
+            ai->noteTable[x] = m_instrclipboard.noteTable[x];
+        }
         ai->parameters[PAR_TBL_LENGTH] = m_instrclipboard.parameters[PAR_TBL_LENGTH];
         ai->parameters[PAR_TBL_GOTO] = m_instrclipboard.parameters[PAR_TBL_GOTO];
         ai->editNoteTableCursorPos = 0;
@@ -2967,29 +3526,50 @@ void CSong::InstrPaste(int special)
 
     case 7: //vol+env insert to cursor
         int sx = m_instrclipboard.parameters[PAR_ENV_LENGTH] + 1;
-        if (ai->editEnvelopeX + sx > ENVELOPE_MAX_COLUMNS) sx = ENVELOPE_MAX_COLUMNS - ai->editEnvelopeX;
+        if (ai->editEnvelopeX + sx > ENVELOPE_MAX_COLUMNS)
+        {
+            sx = ENVELOPE_MAX_COLUMNS - ai->editEnvelopeX;
+        }
         for (x = ENVELOPE_MAX_COLUMNS - 2; x >= ai->editEnvelopeX; x--) //offset
         {
             int i = x + sx;
-            if (i >= ENVELOPE_MAX_COLUMNS) continue;
-            for (y = 0; y < ENVROWS; y++) ai->envelope[i][y] = ai->envelope[x][y];
+            if (i >= ENVELOPE_MAX_COLUMNS)
+            {
+                continue;
+            }
+            for (y = 0; y < ENVROWS; y++)
+            {
+                ai->envelope[i][y] = ai->envelope[x][y];
+            }
         }
         for (x = 0; x < sx; x++) //insertion
         {
             int i = ai->editEnvelopeX + x;
-            for (y = 0; y < ENVROWS; y++) ai->envelope[i][y] = m_instrclipboard.envelope[x][y];
+            for (y = 0; y < ENVROWS; y++)
+            {
+                ai->envelope[i][y] = m_instrclipboard.envelope[x][y];
+            }
         }
         int i = ai->parameters[PAR_ENV_LENGTH] + sx;
-        if (i >= ENVELOPE_MAX_COLUMNS) i = ENVELOPE_MAX_COLUMNS - 1;
+        if (i >= ENVELOPE_MAX_COLUMNS)
+        {
+            i = ENVELOPE_MAX_COLUMNS - 1;
+        }
         ai->parameters[PAR_ENV_LENGTH] = i;
         if (ai->parameters[PAR_ENV_GOTO] > ai->editEnvelopeX)
         {
             i = ai->parameters[PAR_ENV_GOTO] + sx;
-            if (i >= ENVELOPE_MAX_COLUMNS) i = ENVELOPE_MAX_COLUMNS - 1;
+            if (i >= ENVELOPE_MAX_COLUMNS)
+            {
+                i = ENVELOPE_MAX_COLUMNS - 1;
+            }
             ai->parameters[PAR_ENV_GOTO] = i;
         }
         i = ai->editEnvelopeX + sx;
-        if (i >= ENVELOPE_MAX_COLUMNS) i = ENVELOPE_MAX_COLUMNS - 1;
+        if (i >= ENVELOPE_MAX_COLUMNS)
+        {
+            i = ENVELOPE_MAX_COLUMNS - 1;
+        }
         ai->editEnvelopeX = i;
         break;
 
@@ -3014,12 +3594,21 @@ BOOL CSong::Play(PlayMode mode, BOOL follow, int special)
 {
     g_Undo.Separator();
 
-    if (mode == PLAY_BOOKMARK && !IsBookmark()) return 0; //if there is no bookmark, then nothing.
+    if (mode == PLAY_BOOKMARK && !IsBookmark())
+    {
+        return 0; //if there is no bookmark, then nothing.
+    }
 
     if (m_play)
     {
-        if (mode != PLAY_FROM) Stop(); //already playing and wants something other than play from edited pos.
-        else if (!m_followplay) Stop(); //is playing and wants to play from edited pos. but not followplay
+        if (mode != PLAY_FROM)
+        {
+            Stop(); //already playing and wants something other than play from edited pos.
+        }
+        else if (!m_followplay)
+        {
+            Stop(); //is playing and wants to play from edited pos. but not followplay
+        }
     }
 
     m_quantization_note = m_quantization_instr = m_quantization_vol = -1;
@@ -3070,7 +3659,10 @@ BOOL CSong::Play(PlayMode mode, BOOL follow, int special)
 
     case PLAY_SEEK_NEXT: //from seeking next
         m_songactiveline++;
-        if (m_songactiveline > 255) m_songactiveline = 255;
+        if (m_songactiveline > 255)
+        {
+            m_songactiveline = 255;
+        }
         m_songplayline = m_songactiveline;
         m_trackplayline = m_trackactiveline = 0;
         if (mode == PLAY_SEEK_NEXT) { mode = PLAY_FROM; }
@@ -3078,7 +3670,10 @@ BOOL CSong::Play(PlayMode mode, BOOL follow, int special)
 
     case PLAY_SEEK_PREV: //from seeking prev
         m_songactiveline--;
-        if (m_songactiveline < 0) m_songactiveline = 0;
+        if (m_songactiveline < 0)
+        {
+            m_songactiveline = 0;
+        }
         m_songplayline = m_songactiveline;
         m_trackplayline = m_trackactiveline = 0;
         if (mode == PLAY_SEEK_PREV) { mode = PLAY_FROM; }
@@ -3148,13 +3743,18 @@ TrackLine:
     {
         tt = SongGetTrack(m_songplayline, t);
         tr = g_Tracks.GetTrack(tt);
-        if (!tr) continue;	// Invalid track pointer
+        if (!tr)
+        {
+            continue; // Invalid track pointer
+        }
         len = tr->len;
         go = tr->go;
         if (m_trackplayline >= len)
         {
             if (go >= 0)
+            {
                 xline = ((m_trackplayline - len) % (len - go)) + go;
+            }
             else
             {
                 //if it is the end of the track, but it is a block play or the first PlayBeat call (when m_play = 0)
@@ -3165,12 +3765,23 @@ TrackLine:
             }
         }
         else
+        {
             xline = m_trackplayline;
+        }
 
-        if (tr->note[xline] >= 0)	note[t] = tr->note[xline];
+        if (tr->note[xline] >= 0)
+        {
+            note[t] = tr->note[xline];
+        }
         instr[t] = tr->instr[xline];	//due to the same behavior as in the routine
-        if (tr->volume[xline] >= 0) vol[t] = tr->volume[xline];
-        if (tr->speed[xline] > 0) speed = tr->speed[xline];
+        if (tr->volume[xline] >= 0)
+        {
+            vol[t] = tr->volume[xline];
+        }
+        if (tr->speed[xline] > 0)
+        {
+            speed = tr->speed[xline];
+        }
     }
 
     //only now is the changed speed set

@@ -144,7 +144,10 @@ char NoteKey(int vk) {
     {
         return keynotes_AZERTY[vk];
     }
-    else return -1;
+    else
+    {
+        return -1;
+    }
 };
 
 char NumbKey(int vk) { return keynumbs[vk]; };

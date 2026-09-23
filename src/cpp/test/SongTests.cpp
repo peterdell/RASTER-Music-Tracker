@@ -24,7 +24,10 @@ protected:
         auto* songArr = song.GetSong();
         auto* songGoArr = song.GetSongGo();
         for (int line = 0; line < SONGLEN; line++) {
-            for (int col = 0; col < SONGTRACKS; col++) (*songArr)[line][col] = -1;
+            for (int col = 0; col < SONGTRACKS; col++)
+            {
+                (*songArr)[line][col] = -1;
+            }
             (*songGoArr)[line] = -1;
         }
     }

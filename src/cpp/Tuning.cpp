@@ -51,9 +51,18 @@ CTuning::Pitch CTuning::GetPOKEYPitch(const int audc, const AUDF audf, const int
 
     //TODO: apply Two-Tone timer offset into calculations when channel 1+2 are linked in 1.79mhz mode
     //This would help generating tables using patterns discovered by synthpopalooza
-    if (JOIN_16BIT) cycle = 7;
-    else if (CLOCK_179) cycle = 4;
-    else coarse_divisor = (CLOCK_15) ? 114 : 28;
+    if (JOIN_16BIT)
+    {
+        cycle = 7;
+    }
+    else if (CLOCK_179)
+    {
+        cycle = 4;
+    }
+    else
+    {
+        coarse_divisor = (CLOCK_15) ? 114 : 28;
+    }
 
     //Many combinations depend entirely on the Modulo of POKEY frequencies to generate different tones
     //If a known value provide unstable results, it may be avoided on purpose 
@@ -70,39 +79,75 @@ CTuning::Pitch CTuning::GetPOKEYPitch(const int audc, const AUDF audf, const int
         if (POLY9)
         {
             divisor = 255.5;	//Metallic Buzzy
-            if (MOD7 || (!CLOCK_15 && !CLOCK_179 && !JOIN_16BIT)) divisor = 36.5;	//seems to only sound "uniform" in 64kHz mode for some reason 
-            if (MOD31 || MOD73) return 0;	//MOD31 and MOD73 values are invalid 
+            if (MOD7 || (!CLOCK_15 && !CLOCK_179 && !JOIN_16BIT))
+            {
+                divisor = 36.5; //seems to only sound "uniform" in 64kHz mode for some reason
+            }
+            if (MOD31 || MOD73)
+            {
+                return 0; //MOD31 and MOD73 values are invalid
+            }
         }
         break;
 
     case 0x20:
     case 0x60:	//Duplicate of Distortion 2
         divisor = 31;
-        if (MOD31) return 0;
+        if (MOD31)
+        {
+            return 0;
+        }
         break;
 
     case 0x40:
         divisor = 232.5;		//Buzzy tones, neither MOD3 or MOD5 or MOD31
-        if (MOD3 || CLOCK_15) divisor = 77.5;	//Smooth tones, MOD3 but not MOD5 or MOD31
-        if (MOD5) divisor = 46.5;	//Unstable tones #1, MOD5 but not MOD3 or MOD31
-        if (MOD31) divisor = (MOD3 || MOD5) ? 2.5 : 7.5;	//Unstables Tones #2 and #3, MOD31, with MOD3 or MOD5 
-        if (MOD15 || (MOD5 && CLOCK_15)) return 0;	//Both MOD3 and MOD5 at once are invalid 
+        if (MOD3 || CLOCK_15)
+        {
+            divisor = 77.5; //Smooth tones, MOD3 but not MOD5 or MOD31
+        }
+        if (MOD5)
+        {
+            divisor = 46.5; //Unstable tones #1, MOD5 but not MOD3 or MOD31
+        }
+        if (MOD31)
+        {
+            divisor = (MOD3 || MOD5) ? 2.5 : 7.5; //Unstables Tones #2 and #3, MOD31, with MOD3 or MOD5
+        }
+        if (MOD15 || (MOD5 && CLOCK_15))
+        {
+            return 0; //Both MOD3 and MOD5 at once are invalid
+        }
         break;
 
     case 0x80:
         if (POLY9)
         {
             divisor = 255.5;	//Metallic Buzzy
-            if (MOD7 || (!CLOCK_15 && !CLOCK_179 && !JOIN_16BIT)) divisor = 36.5;	//seems to only sound "uniform" in 64kHz mode for some reason 
-            if (MOD73) return 0;	//MOD73 values are invalid
+            if (MOD7 || (!CLOCK_15 && !CLOCK_179 && !JOIN_16BIT))
+            {
+                divisor = 36.5; //seems to only sound "uniform" in 64kHz mode for some reason
+            }
+            if (MOD73)
+            {
+                return 0; //MOD73 values are invalid
+            }
         }
         break;
 
     case 0xC0:
         divisor = 7.5;	//Gritty tones, neither MOD3 or MOD5
-        if (MOD3 || CLOCK_15) divisor = 2.5;	//Buzzy tones, MOD3 but not MOD5
-        if (MOD5) divisor = 1.5;	//Unstable Buzzy tones, MOD5 but not MOD3
-        if (MOD15 || (MOD5 && CLOCK_15)) return 0;	//Both MOD3 and MOD5 at once are invalid 
+        if (MOD3 || CLOCK_15)
+        {
+            divisor = 2.5; //Buzzy tones, MOD3 but not MOD5
+        }
+        if (MOD5)
+        {
+            divisor = 1.5; //Unstable Buzzy tones, MOD5 but not MOD3
+        }
+        if (MOD15 || (MOD5 && CLOCK_15))
+        {
+            return 0; //Both MOD3 and MOD5 at once are invalid
+        }
         break;
     }
     return GetPitch(audf, coarse_divisor, divisor, cycle);
@@ -157,19 +202,34 @@ CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_div
         {
             for (int o = 0; o < 6; o++)
             {
-                if ((tmp_audf_up + cycle) % 3 != 0 || (tmp_audf_up + cycle) % 5 == 0 || (tmp_audf_up + cycle) % 31 == 0) tmp_audf_up++;
-                if ((tmp_audf_down + cycle) % 3 != 0 || (tmp_audf_down + cycle) % 5 == 0 || (tmp_audf_down + cycle) % 31 == 0) tmp_audf_down--;
+                if ((tmp_audf_up + cycle) % 3 != 0 || (tmp_audf_up + cycle) % 5 == 0 || (tmp_audf_up + cycle) % 31 == 0)
+                {
+                    tmp_audf_up++;
+                }
+                if ((tmp_audf_down + cycle) % 3 != 0 || (tmp_audf_down + cycle) % 5 == 0 || (tmp_audf_down + cycle) % 31 == 0)
+                {
+                    tmp_audf_down--;
+                }
             }
         }
         else if (timbre == Timbre::BUZZY_4)
         {
             for (int o = 0; o < 6; o++)
             {
-                if ((tmp_audf_up + cycle) % 3 == 0 || (tmp_audf_up + cycle) % 5 == 0 || (tmp_audf_up + cycle) % 31 == 0) tmp_audf_up++;
-                if ((tmp_audf_down + cycle) % 3 == 0 || (tmp_audf_down + cycle) % 5 == 0 || (tmp_audf_down + cycle) % 31 == 0) tmp_audf_down--;
+                if ((tmp_audf_up + cycle) % 3 == 0 || (tmp_audf_up + cycle) % 5 == 0 || (tmp_audf_up + cycle) % 31 == 0)
+                {
+                    tmp_audf_up++;
+                }
+                if ((tmp_audf_down + cycle) % 3 == 0 || (tmp_audf_down + cycle) % 5 == 0 || (tmp_audf_down + cycle) % 31 == 0)
+                {
+                    tmp_audf_down--;
+                }
             }
         }
-        else return 0;	//invalid parameter most likely 
+        else
+        {
+            return 0; //invalid parameter most likely
+        }
     }
 
     else if (distortion == 0xC0)
@@ -179,35 +239,62 @@ CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_div
         {
             for (int o = 0; o < 3; o++)	//MOD5 must be avoided!
             {
-                if ((tmp_audf_up + cycle) % 5 == 0) tmp_audf_up++;
-                if ((tmp_audf_down + cycle) % 5 == 0) tmp_audf_down--;
+                if ((tmp_audf_up + cycle) % 5 == 0)
+                {
+                    tmp_audf_up++;
+                }
+                if ((tmp_audf_down + cycle) % 5 == 0)
+                {
+                    tmp_audf_down--;
+                }
             }
         }
         else if (timbre == Timbre::BUZZY_C)	//verify MOD3 integrity
         {
             for (int o = 0; o < 6; o++)
             {
-                if ((tmp_audf_up + cycle) % 3 != 0 || (tmp_audf_up + cycle) % 5 == 0) tmp_audf_up++;
-                if ((tmp_audf_down + cycle) % 3 != 0 || (tmp_audf_down + cycle) % 5 == 0) tmp_audf_down--;
+                if ((tmp_audf_up + cycle) % 3 != 0 || (tmp_audf_up + cycle) % 5 == 0)
+                {
+                    tmp_audf_up++;
+                }
+                if ((tmp_audf_down + cycle) % 3 != 0 || (tmp_audf_down + cycle) % 5 == 0)
+                {
+                    tmp_audf_down--;
+                }
             }
         }
         else if (timbre == Timbre::GRITTY_C)	//verify neither MOD3 or MOD5 is used
         {
             for (int o = 0; o < 6; o++)	//get the closest compromise up and down first
             {
-                if ((tmp_audf_up + cycle) % 3 == 0 || (tmp_audf_up + cycle) % 5 == 0) tmp_audf_up++;
-                if ((tmp_audf_down + cycle) % 3 == 0 || (tmp_audf_down + cycle) % 5 == 0) tmp_audf_down--;
+                if ((tmp_audf_up + cycle) % 3 == 0 || (tmp_audf_up + cycle) % 5 == 0)
+                {
+                    tmp_audf_up++;
+                }
+                if ((tmp_audf_down + cycle) % 3 == 0 || (tmp_audf_down + cycle) % 5 == 0)
+                {
+                    tmp_audf_down--;
+                }
             }
         }
         else if (timbre == Timbre::UNSTABLE_C)	//verify MOD5 integrity
         {
             for (int o = 0; o < 6; o++)	//get the closest compromise up and down first
             {
-                if ((tmp_audf_up + cycle) % 3 == 0 || (tmp_audf_up + cycle) % 5 != 0) tmp_audf_up++;
-                if ((tmp_audf_down + cycle) % 3 == 0 || (tmp_audf_down + cycle) % 5 != 0) tmp_audf_down--;
+                if ((tmp_audf_up + cycle) % 3 == 0 || (tmp_audf_up + cycle) % 5 != 0)
+                {
+                    tmp_audf_up++;
+                }
+                if ((tmp_audf_down + cycle) % 3 == 0 || (tmp_audf_down + cycle) % 5 != 0)
+                {
+                    tmp_audf_down--;
+                }
             }
         }
-        else return 0;	//invalid parameter most likely
+        else
+        {
+            return 0; //invalid parameter most likely
+        }
     }
 
     PITCH = GetPitch(tmp_audf_up, coarse_divisor, divisor, cycle);
@@ -250,7 +337,10 @@ double CTuning::GetTruePitch(double tuning, Temperament temperament, int basenot
     {
         for (int i = 0; i < PRESETS_LENGTH; i++)
         {
-            if (temperament_preset[temperament][i]) continue;
+            if (temperament_preset[temperament][i])
+            {
+                continue;
+            }
             notesnum = i - 1;
             break;
         }

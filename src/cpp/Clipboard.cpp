@@ -57,7 +57,10 @@ BOOL CTrackClipboard::BlockEffect()
     if (td && IsBlockSelected() && IsTrackSelected())
     {
         GetFromTo(bfro, bto);
-        if (bto >= td->len) bto = td->len - 1;
+        if (bto >= td->len)
+        {
+            bto = td->len - 1;
+        }
 
         m_trackorig = *td;
         dlg.m_trackorig = &m_trackorig;

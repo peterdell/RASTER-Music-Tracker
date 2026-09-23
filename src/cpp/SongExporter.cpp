@@ -111,23 +111,29 @@ bool CSongExporter::ExportCompactLZSS(CSongExport& songExport, std::ofstream& ou
         int index1 = pokeyStream.GetOffsetPerSongline(indexToSongline);
         const unsigned char* buff1 = pokeyStream.GetConstStreamBuffer() + (index1 * frameSize);
 
-        // If there is no index already, assume the Index1 to be the first occurence 
+        // If there is no index already, assume the Index1 to be the first occurence
         if (listOfMatches[indexToSongline] == -1)
+        {
             listOfMatches[indexToSongline] = index1;
+        }
 
         // Compare all indexes available and overwrite matching songline streams with index1's offset
         for (int i = 0; i < songlineCount; i++)
         {
             // If the bytes count between 2 songlines isn't matching, don't even bother trying
             if (bytesCount != pokeyStream.GetFramesPerSongline(i) * frameSize)
+            {
                 continue;
+            }
 
             int index2 = pokeyStream.GetOffsetPerSongline(i);
             const unsigned char* buff2 = pokeyStream.GetConstStreamBuffer() + (index2 * frameSize);
 
             // If there is a match, the second index will adopt the offset of the first index
             if (!memcmp(buff1, buff2, bytesCount))
+            {
                 listOfMatches[i] = index1;
+            }
         }
 
         // Process to the next songline index until they are all processed

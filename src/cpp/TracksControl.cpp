@@ -27,7 +27,10 @@ void CTracksControl::DrawTrackHeader(const CTracks& tracks, int x, int y, int tr
     if (tt)
     {
         s.Format(tracks.IsValidTrack(tr) ? "%02X: " : "--  ", tr);
-        if (tracks.IsEmptyTrack(tr)) s.AppendFormat("EMPTY");
+        if (tracks.IsEmptyTrack(tr))
+        {
+            s.AppendFormat("EMPTY");
+        }
         else
         {
             s.AppendFormat(tracks.IsValidLength(tt->len) ? "%02X-" : "---", tt->len);

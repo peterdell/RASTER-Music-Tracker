@@ -24,7 +24,9 @@ END_MESSAGE_MAP()
 BOOL CRmtDoc::OnNewDocument()
 {
 	if (!CDocument::OnNewDocument())
+	{
 		return FALSE;
+	}
 
 	return TRUE;
 }

@@ -242,7 +242,10 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, CXEXFile xexFile, st
     memset(&mem[LZSSP_LINE_0 + 0x0B], 32, 28);
     char framesdisplay[28] = { 0 };
     sprintf(framesdisplay, "(%i frames total)", framescount);
-    for (int i = 0; i < 28; i++) mem[LZSSP_LINE_0 + 0x0B + i] = framesdisplay[i];
+    for (int i = 0; i < 28; i++)
+    {
+        mem[LZSSP_LINE_0 + 0x0B + i] = framesdisplay[i];
+    }
     CSongExporter::StrToAtariVideo((char*)mem + LZSSP_LINE_0 + 0x0B, 28);
 
     // I know the binary I have is currently set to NTSC, so I'll just convert to PAL and keep this going for now...
@@ -268,7 +271,10 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, CXEXFile xexFile, st
     mem[VUPlayer::STEREO_FLAG] = xexFile.isStereo ? 0xFF : 0x00;			// Is the song stereo?
     mem[VUPlayer::SONGTOTAL] = subsongs;									// Total number of subtunes
     if (!xexFile.autoRegion) {												// Automatically adjust speed between regions?
-        for (int i = 0; i < 4; i++) mem[VUPlayer::REGION + 6 + i] = 0xEA;	// set the 4 bytes to NOPs to disable it
+        for (int i = 0; i < 4; i++)
+        {
+            mem[VUPlayer::REGION + 6 + i] = 0xEA; // set the 4 bytes to NOPs to disable it
+        }
     }
 
     // Reconstruct the export binary for the LZSS Driver, VUPlayer, and all the included data

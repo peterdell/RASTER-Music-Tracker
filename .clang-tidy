@@ -1,0 +1,14 @@
+---
+# Enforces plans/RULES.md's "always brace if/else/for/while/do" rule.
+# Scoped narrowly on purpose - this project does not otherwise use
+# clang-tidy for general static analysis.
+#
+# Kept in sync manually with the ClangTidyChecks MSBuild property in
+# src/cpp/Rmt.vcxproj and src/cpp/test/RmtTests.vcxproj: Visual Studio's
+# own Clang-Tidy build integration does not read this file for the check
+# list (it always passes its own -checks= argument, which would otherwise
+# override this file's Checks: key), so both must list the same checks.
+Checks: '-*,readability-braces-around-statements,readability-misleading-indentation'
+WarningsAsErrors: ''
+HeaderFilterRegex: '^$'
+FormatStyle: none

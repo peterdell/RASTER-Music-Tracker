@@ -66,18 +66,24 @@ BOOL RefreshScreen(int frameskip)
 {
     // Bail out of this function if it couldn't be performed
     if (!g_hwnd || !g_viewhwnd || g_closeApplication)
+    {
         return 0;
+    }
 
     // Frameskip of 1 or higher
     if (frameskip > 0)
     {
         // Frame was already processed
         if (lastTick == g_timerGlobalCount)
+        {
             return 0;
+        }
 
         // Skip frame with modulo
         if ((g_timerGlobalCount % frameskip))
+        {
             return 0;
+        }
 
         // Remember the last time a frame was processed
         lastTick = g_timerGlobalCount;
@@ -101,7 +107,10 @@ int EditText(int vk, int shift, int control, char* txt, int& cur, int max)
         if (cur > 0)
         {
             cur--;
-            for (int j = cur; j <= max - 1; j++) txt[j] = txt[j + 1];
+            for (int j = cur; j <= max - 1; j++)
+            {
+                txt[j] = txt[j + 1];
+            }
             txt[max] = ' ';
         }
     }
@@ -111,52 +120,112 @@ int EditText(int vk, int shift, int control, char* txt, int& cur, int max)
     }
     else if (vk == VK_INSERT)
     {
-        for (int j = max - 1; j >= cur; j--) txt[j + 1] = txt[j];
+        for (int j = max - 1; j >= cur; j--)
+        {
+            txt[j + 1] = txt[j];
+        }
         txt[cur] = ' ';
     }
     else if (vk == VK_DELETE)
     {
-        for (int j = cur; j <= max - 1; j++) txt[j] = txt[j + 1];
+        for (int j = cur; j <= max - 1; j++)
+        {
+            txt[j] = txt[j + 1];
+        }
         txt[max] = ' ';
     }
     else
     {
-        if (control) return 0;
+        if (control)
+        {
+            return 0;
+        }
         char a = 0;
         if (vk >= 'A' && vk <= 'Z') { a = (shift) ? vk : vk + 32; }						//letters - uppercase with SHIFT
         else if (vk >= '0' && vk <= '9') { a = (shift) ? *(")!@#$%^&*(" + vk - 48) : vk; }	//numbers - special characters with SHIFT
-        else if (vk == ' ')			a = ' ';	//space
-        else if (vk == 189)	a = (shift) ? '_' : '-';
-        else if (vk == 187)	a = (shift) ? '+' : '=';
-        else if (vk == 219)	a = (shift) ? '{' : '[';
-        else if (vk == 221)	a = (shift) ? '}' : ']';
-        else if (vk == 186)	a = (shift) ? ':' : ';';
-        else if (vk == 222)	a = (shift) ? '"' : '\'';
-        else if (vk == 188)	a = (shift) ? '<' : ',';
-        else if (vk == 190)	a = (shift) ? '>' : '.';
-        else if (vk == 191)	a = (shift) ? '?' : '/';
-        else if (vk == 220)	a = (shift) ? '|' : '\\';
+        else if (vk == ' ')
+        {
+            a = ' '; //space
+        }
+        else if (vk == 189)
+        {
+            a = (shift) ? '_' : '-';
+        }
+        else if (vk == 187)
+        {
+            a = (shift) ? '+' : '=';
+        }
+        else if (vk == 219)
+        {
+            a = (shift) ? '{' : '[';
+        }
+        else if (vk == 221)
+        {
+            a = (shift) ? '}' : ']';
+        }
+        else if (vk == 186)
+        {
+            a = (shift) ? ':' : ';';
+        }
+        else if (vk == 222)
+        {
+            a = (shift) ? '"' : '\'';
+        }
+        else if (vk == 188)
+        {
+            a = (shift) ? '<' : ',';
+        }
+        else if (vk == 190)
+        {
+            a = (shift) ? '>' : '.';
+        }
+        else if (vk == 191)
+        {
+            a = (shift) ? '?' : '/';
+        }
+        else if (vk == 220)
+        {
+            a = (shift) ? '|' : '\\';
+        }
         else if (vk == VK_RIGHT)
         {
-            if (cur < max) cur++;
+            if (cur < max)
+            {
+                cur++;
+            }
         }
         else if (vk == VK_LEFT)
         {
-            if (cur > 0) cur--;
+            if (cur > 0)
+            {
+                cur--;
+            }
         }
-        else if (vk == VK_HOME) cur = 0;
+        else if (vk == VK_HOME)
+        {
+            cur = 0;
+        }
         else if (vk == VK_END)
         {
             int j;
-            for (j = max; j >= 0 && (txt[j] == ' '); j--);
+            for (j = max; j >= 0 && (txt[j] == ' '); j--)
+            {
+                ;
+            }
             cur = (j < max) ? j + 1 : max;
         }
 
         if (a > 0)
         {
-            for (int j = max - 1; j >= cur; j--) txt[j + 1] = txt[j];
+            for (int j = max - 1; j >= cur; j--)
+            {
+                txt[j + 1] = txt[j];
+            }
             txt[cur] = a;
-            if (cur < max) cur++;
+            if (cur < max)
+            {
+                cur++;
+            }
         }
     }
     return 0;

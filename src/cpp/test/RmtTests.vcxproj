@@ -38,6 +38,18 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <!-- Enables Visual Studio's built-in Clang-Tidy analysis (Analyze > Run
+       Code Analysis, and live in-editor squiggles) to enforce
+       plans/RULES.md's "always brace if/else/for/while/do" rule. Only
+       affects on-demand/background analysis, not normal Build/Rebuild.
+       ClangTidyChecks must be kept in sync with the repo-root .clang-tidy
+       file - Visual Studio's integration always passes its own -checks=
+       argument, which would otherwise override that file's Checks: key. -->
+  <PropertyGroup>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
+    <ClangTidyChecks>-*,readability-braces-around-statements,readability-misleading-indentation</ClangTidyChecks>
+    <ClangTidyHeaderFilter>^$</ClangTidyHeaderFilter>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)out\Release\test\</OutDir>

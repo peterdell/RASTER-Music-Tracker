@@ -21,7 +21,10 @@ extern int g_tracks4_8; // TODO Move out
 void CInstruments::ClearInstrument(int instrNr)
 {
     TInstrument* instrument = GetInstrument(instrNr);
-    if (!instrument) return;
+    if (!instrument)
+    {
+        return;
+    }
 
     // Turn off this instrument on all channels
     g_AtariTrackerDriver->InstrumentTurnOff(instrNr);
@@ -59,11 +62,20 @@ void CInstruments::ClearInstrument(int instrNr)
 void CInstruments::SetEnvelopeVolume(int instr, BOOL right, int px, int newVolume)
 {
     TInstrument* ti = GetInstrument(instr);
-    if (!ti) return;
+    if (!ti)
+    {
+        return;
+    }
 
     // Validate
-    if (px < 0 || px >= ti->parameters[PAR_ENV_LENGTH] + 1) return;
-    if (newVolume < 0 || newVolume > 15) return;
+    if (px < 0 || px >= ti->parameters[PAR_ENV_LENGTH] + 1)
+    {
+        return;
+    }
+    if (newVolume < 0 || newVolume > 15)
+    {
+        return;
+    }
 
     int ep = (right && g_tracks4_8 > 4) ? EnvelopeParameter::VOLUMER : EnvelopeParameter::VOLUMEL;
     ti->envelope[px][ep] = newVolume;
@@ -85,12 +97,21 @@ void CInstruments::SetEnvelopeVolume(int instr, BOOL right, int px, int newVolum
 void CInstruments::MemorizeOctaveAndVolume(int instr, int oct, int vol)
 {
     TInstrument* ti = GetInstrument(instr);
-    if (!ti) return;
+    if (!ti)
+    {
+        return;
+    }
 
     if (g_keyboard_RememberOctavesAndVolumes)
     {
-        if (oct >= 0) ti->octave = oct;
-        if (vol >= 0) ti->volume = vol;
+        if (oct >= 0)
+        {
+            ti->octave = oct;
+        }
+        if (vol >= 0)
+        {
+            ti->volume = vol;
+        }
     }
 }
 
@@ -103,7 +124,10 @@ void CInstruments::MemorizeOctaveAndVolume(int instr, int oct, int vol)
 void CInstruments::RememberOctaveAndVolume(int instr, int& oct, int& vol)
 {
     TInstrument* ti = GetInstrument(instr);
-    if (!ti) return;
+    if (!ti)
+    {
+        return;
+    }
 
     if (g_keyboard_RememberOctavesAndVolumes)
     {

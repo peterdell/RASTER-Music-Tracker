@@ -32,7 +32,10 @@ CInstruments::CInstruments() :canvasXY(nullptr)
 /// </summary>
 CInstruments::~CInstruments()
 {
-    if (m_instr) delete[] m_instr;
+    if (m_instr)
+    {
+        delete[] m_instr;
+    }
     m_instr = NULL;
 }
 
@@ -58,19 +61,34 @@ void CInstruments::InitInstruments()
 void CInstruments::CheckInstrumentParameters(int instr)
 {
     TInstrument* ai = GetInstrument(instr);
-    if (!ai) return;
+    if (!ai)
+    {
+        return;
+    }
 
     //ENVELOPE len-go loop control
-    if (ai->parameters[PAR_ENV_GOTO] > ai->parameters[PAR_ENV_LENGTH]) ai->parameters[PAR_ENV_GOTO] = ai->parameters[PAR_ENV_LENGTH];
+    if (ai->parameters[PAR_ENV_GOTO] > ai->parameters[PAR_ENV_LENGTH])
+    {
+        ai->parameters[PAR_ENV_GOTO] = ai->parameters[PAR_ENV_LENGTH];
+    }
 
     //TABLE len-go loop control
-    if (ai->parameters[PAR_TBL_GOTO] > ai->parameters[PAR_TBL_LENGTH]) ai->parameters[PAR_TBL_GOTO] = ai->parameters[PAR_TBL_LENGTH];
+    if (ai->parameters[PAR_TBL_GOTO] > ai->parameters[PAR_TBL_LENGTH])
+    {
+        ai->parameters[PAR_TBL_GOTO] = ai->parameters[PAR_TBL_LENGTH];
+    }
 
     //check the cursor in the envelope
-    if (ai->editEnvelopeX > ai->parameters[PAR_ENV_LENGTH]) ai->editEnvelopeX = ai->parameters[PAR_ENV_LENGTH];
+    if (ai->editEnvelopeX > ai->parameters[PAR_ENV_LENGTH])
+    {
+        ai->editEnvelopeX = ai->parameters[PAR_ENV_LENGTH];
+    }
 
     //check the cursor in the table
-    if (ai->editNoteTableCursorPos > ai->parameters[PAR_TBL_LENGTH]) ai->editNoteTableCursorPos = ai->parameters[PAR_TBL_LENGTH];
+    if (ai->editNoteTableCursorPos > ai->parameters[PAR_TBL_LENGTH])
+    {
+        ai->editNoteTableCursorPos = ai->parameters[PAR_TBL_LENGTH];
+    }
 
     //something changed => Save instrument "to Atari"
     // NOTE: Done from the outside
@@ -95,20 +113,32 @@ void CInstruments::RecalculateFlag(int instr)
     for (int i = 0; i <= ti->parameters[PAR_ENV_LENGTH]; i++)
     {
         // Autofilter?
-        if (ti->envelope[i][EnvelopeParameter::FILTER]) flags |= IF_FILTER;
+        if (ti->envelope[i][EnvelopeParameter::FILTER])
+        {
+            flags |= IF_FILTER;
+        }
 
         // Bass16?
-        if (ti->envelope[i][EnvelopeParameter::DISTORTION] == 6) flags |= IF_BASS16;
+        if (ti->envelope[i][EnvelopeParameter::DISTORTION] == 6)
+        {
+            flags |= IF_BASS16;
+        }
 
         // Portamento?
-        if (ti->envelope[i][EnvelopeParameter::PORTAMENTO]) flags |= IF_PORTAMENTO;
+        if (ti->envelope[i][EnvelopeParameter::PORTAMENTO])
+        {
+            flags |= IF_PORTAMENTO;
+        }
     }
 
     // Analyse the instrument parameters for the AUDCTL flag
     for (int i = PAR_AUDCTL_15KHZ; i <= PAR_AUDCTL_POLY9; i++)
     {
         // AUDCTL?
-        if (ti->parameters[i]) flags |= IF_AUDCTL;
+        if (ti->parameters[i])
+        {
+            flags |= IF_AUDCTL;
+        }
     }
 
     // Autofilter takes priority over Bass16 (RMT 1.28 driver only)
@@ -127,18 +157,27 @@ void CInstruments::RecalculateFlag(int instr)
 BOOL CInstruments::CalculateNotEmpty(int instr)
 {
     TInstrument* ti = GetInstrument(instr);
-    if (!ti) return 0;
+    if (!ti)
+    {
+        return 0;
+    }
 
     for (int i = 0; i <= ti->parameters[PAR_ENV_LENGTH]; i++)
     {
         for (int j = 0; j < ENVROWS; j++)
         {
-            if (ti->envelope[i][j] != 0) return 1;
+            if (ti->envelope[i][j] != 0)
+            {
+                return 1;
+            }
         }
     }
     for (int i = 0; i < PARCOUNT; i++)
     {
-        if (ti->parameters[i] != 0) return 1;
+        if (ti->parameters[i] != 0)
+        {
+            return 1;
+        }
     }
     return 0; // Is empty
 }
@@ -152,7 +191,10 @@ BOOL CInstruments::CalculateNotEmpty(int instr)
 int CInstruments::GetNote(int instr, int note)
 {
     TInstrument* tt = GetInstrument(instr);
-    if (!tt) return -1;
+    if (!tt)
+    {
+        return -1;
+    }
 
     // Only for NOTES table
     if (tt->parameters[PAR_TBL_TYPE] == 0)
@@ -176,7 +218,10 @@ int CInstruments::GetNote(int instr, int note)
 int CInstruments::GetFrequency(int instr, int note)
 {
     TInstrument* tt = GetInstrument(instr);
-    if (!tt) return -1;
+    if (!tt)
+    {
+        return -1;
+    }
 
     // Only for NOTES table
     if (tt->parameters[PAR_TBL_TYPE] == 0)
@@ -186,7 +231,10 @@ int CInstruments::GetFrequency(int instr, int note)
     }
 
     // The note must be within valid boundaries
-    if (note < 0 || note >= CNotes::NOTESNUM) return -1;
+    if (note < 0 || note >= CNotes::NOTESNUM)
+    {
+        return -1;
+    }
 
     // IMPORTANT NOTE: Tables are not set to a constant location!
     // The function technically returns valid data, otherwise

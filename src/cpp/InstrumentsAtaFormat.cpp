@@ -107,7 +107,10 @@ BYTE CInstruments::InstrToAta(int instr, unsigned char* ata, int max)
     ata[11] = 0; //unused, for now
 
     //the entire table length gets the data copied
-    for (i = 0; i <= par[PAR_TBL_LENGTH]; i++) ata[INSTRPAR + i] = ai->noteTable[i];
+    for (i = 0; i <= par[PAR_TBL_LENGTH]; i++)
+    {
+        ata[INSTRPAR + i] = ai->noteTable[i];
+    }
 
     //envelope is behind the table
     BOOL stereo = (g_tracks4_8 > 4);
@@ -136,7 +139,10 @@ BOOL CInstruments::AtaV0ToInstr(unsigned char* ata, int instr)
     TInstrument* ai = GetInstrument(instr);
     int i, j;
     //0-7 table
-    for (i = 0; i <= 7; i++) ai->noteTable[i] = ata[i];
+    for (i = 0; i <= 7; i++)
+    {
+        ai->noteTable[i] = ata[i];
+    }
     //8 ;instr len  0-31 *8, table len  0-7  (iiii ittt)
     int* par = ai->parameters;
     int len = par[PAR_ENV_LENGTH] = ata[8] >> 3;
@@ -229,7 +235,10 @@ BOOL CInstruments::AtaToInstr(unsigned char* mem, int instrumentNr)
     par[PAR_FREQ_SHIFT] = mem[10];
 
     // 0-31 table
-    for (int i = 0; i <= par[PAR_TBL_LENGTH]; i++) ai->noteTable[i] = mem[12 + i];
+    for (int i = 0; i <= par[PAR_TBL_LENGTH]; i++)
+    {
+        ai->noteTable[i] = mem[12 + i];
+    }
 
     // Envelope
     BOOL stereo = (g_tracks4_8 > 4);

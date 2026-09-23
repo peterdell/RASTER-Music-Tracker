@@ -120,7 +120,10 @@ BOOL CXPokey::InitSoundInternal(const bool ntsc, const bool stereo, const WORD c
     if (r == DS_OK)
     {
         memset(Data1, 0x80, dwSize1);
-        if (Data2) memset(Data2, 0x80, dwSize2);
+        if (Data2)
+        {
+            memset(Data2, 0x80, dwSize2);
+        }
         m_SoundBuffer->Unlock(Data1, dwSize1, Data2, dwSize2);
     }
 
@@ -233,7 +236,10 @@ BOOL CXPokey::RenderSound1_50(int instrspeed)
             //we ran too far ahead so we slow down a bit (we will render smaller pieces than CHUNK_SIZE)
             m_LoadSize = chunkSize - (((delta - latencySize) / 16) & (BUFFER_SIZE - 1 - 1));	//-1-1 <=Just the numbers!
             //watched
-            if (m_LoadSize <= 0) return 0; //we are so far ahead that it will not render at all
+            if (m_LoadSize <= 0)
+            {
+                return 0; //we are so far ahead that it will not render at all
+            }
         }
     }
     else // delta <=LATENCY_SIZE

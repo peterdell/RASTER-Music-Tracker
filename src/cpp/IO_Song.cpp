@@ -99,11 +99,18 @@ BOOL CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges)
     {
         fileToLoad = filename;
         CString ext = fileToLoad.Right(4).MakeLower();
-        if (ext == ".rmt") filterIndex = FILE_LOADSAVE::RMT;
-        else
-            if (ext == ".txt") filterIndex = FILE_LOADSAVE::TXT;
-            else
-                if (ext == ".rmw") filterIndex = FILE_LOADSAVE::RMW;
+        if (ext == ".rmt")
+        {
+            filterIndex = FILE_LOADSAVE::RMT;
+        }
+        else if (ext == ".txt")
+        {
+            filterIndex = FILE_LOADSAVE::TXT;
+        }
+        else if (ext == ".rmw")
+        {
+            filterIndex = FILE_LOADSAVE::RMW;
+        }
     }
     else
     {
@@ -228,7 +235,10 @@ void CSong::FileSave()
     }
 
     // Closing only when "out" is open (because with RMT it can be closed earlier)
-    if (out.is_open()) out.close();
+    if (out.is_open())
+    {
+        out.close();
+    }
 
     // TODO: add a method to prevent deleting a valid .rmt by accident when a stripped .rmt export was aborted
     if (!saveResult) //failed to save
@@ -236,8 +246,10 @@ void CSong::FileSave()
         DeleteFile(m_filename);
         SendWarningMessage("Save aborted", "RMT save aborted.\nFile was deleted, beware of data loss!");
     }
-    else	//saved successfully
+    else
+    {                   //saved successfully
         g_changes = 0;	//changes have been saved
+    }
 
     SetRMTTitle();
 }
@@ -269,7 +281,10 @@ void CSong::FileSaveAs()
     if (!m_filename.IsEmpty())
     {
         int pos = m_filename.ReverseFind('\\');
-        if (pos < 0) pos = m_filename.ReverseFind('/');
+        if (pos < 0)
+        {
+            pos = m_filename.ReverseFind('/');
+        }
         if (pos >= 0)
         {
             CString s = m_filename.Mid(pos + 1);
@@ -346,7 +361,10 @@ void CSong::FileNew()
     SetRMTTitle();
 
     // Automatically create 1 songline of empty patterns
-    for (int i = 0; i < g_tracks4_8; i++) m_song[0][i] = i;
+    for (int i = 0; i < g_tracks4_8; i++)
+    {
+        m_song[0][i] = i;
+    }
 
     // Set the goto to the first line 
     m_songgo[1] = 0;
@@ -368,7 +386,10 @@ void CSong::FileImport()
     // Stop the music first
     Stop();
 
-    if (WarnUnsavedChanges()) return;
+    if (WarnUnsavedChanges())
+    {
+        return;
+    }
 
     FILE_IMPORT fileDialogParamerters;
     CFileDialog dlg(TRUE,
@@ -424,8 +445,10 @@ void CSong::FileImport()
     in.close();
     m_filename = "";
 
-    if (importResult == FALSE)				// Import failed?
+    if (importResult == FALSE)
+    {                                   // Import failed?
         ClearSong(g_tracks4_8);			// Delete everything
+    }
     else
     {
         m_speed = m_mainSpeed;			// Init speed
@@ -467,18 +490,46 @@ void CSong::FileExportAs()
     dlg.m_ofn.lpstrTitle = "Export song as...";
 
     if (!g_lastLoadPath_Songs.IsEmpty())
+    {
         dlg.m_ofn.lpstrInitialDir = g_lastLoadPath_Songs;
-    else
-        if (!g_defaultSongsPath.IsEmpty()) dlg.m_ofn.lpstrInitialDir = g_defaultSongsPath;
+    }
+    else if (!g_defaultSongsPath.IsEmpty())
+    {
+        dlg.m_ofn.lpstrInitialDir = g_defaultSongsPath;
+    }
 
-    if (m_lastExportIOType == SongIOType::RMTSTRIPPED) dlg.m_ofn.nFilterIndex = FILE_EXPORT::STRIPPED_RMT;
-    if (m_lastExportIOType == SongIOType::ASM) dlg.m_ofn.nFilterIndex = FILE_EXPORT::SIMPLE_ASM;
-    if (m_lastExportIOType == SongIOType::SAPR) dlg.m_ofn.nFilterIndex = FILE_EXPORT::SAPR;
-    if (m_lastExportIOType == SongIOType::LZSS) dlg.m_ofn.nFilterIndex = FILE_EXPORT::LZSS;
-    if (m_lastExportIOType == SongIOType::LZSS_SAP) dlg.m_ofn.nFilterIndex = FILE_EXPORT::SAP;
-    if (m_lastExportIOType == SongIOType::LZSS_XEX) dlg.m_ofn.nFilterIndex = FILE_EXPORT::XEX;
-    if (m_lastExportIOType == SongIOType::ASM_RMTPLAYER) dlg.m_ofn.nFilterIndex = FILE_EXPORT::RELOC_ASM;
-    if (m_lastExportIOType == SongIOType::WAV) dlg.m_ofn.nFilterIndex = FILE_EXPORT::FILTER_IDX_WAV;
+    if (m_lastExportIOType == SongIOType::RMTSTRIPPED)
+    {
+        dlg.m_ofn.nFilterIndex = FILE_EXPORT::STRIPPED_RMT;
+    }
+    if (m_lastExportIOType == SongIOType::ASM)
+    {
+        dlg.m_ofn.nFilterIndex = FILE_EXPORT::SIMPLE_ASM;
+    }
+    if (m_lastExportIOType == SongIOType::SAPR)
+    {
+        dlg.m_ofn.nFilterIndex = FILE_EXPORT::SAPR;
+    }
+    if (m_lastExportIOType == SongIOType::LZSS)
+    {
+        dlg.m_ofn.nFilterIndex = FILE_EXPORT::LZSS;
+    }
+    if (m_lastExportIOType == SongIOType::LZSS_SAP)
+    {
+        dlg.m_ofn.nFilterIndex = FILE_EXPORT::SAP;
+    }
+    if (m_lastExportIOType == SongIOType::LZSS_XEX)
+    {
+        dlg.m_ofn.nFilterIndex = FILE_EXPORT::XEX;
+    }
+    if (m_lastExportIOType == SongIOType::ASM_RMTPLAYER)
+    {
+        dlg.m_ofn.nFilterIndex = FILE_EXPORT::RELOC_ASM;
+    }
+    if (m_lastExportIOType == SongIOType::WAV)
+    {
+        dlg.m_ofn.nFilterIndex = FILE_EXPORT::FILTER_IDX_WAV;
+    }
 
     // If not ok, nothing will be saved
     if (dlg.DoModal() == IDOK)
@@ -573,16 +624,23 @@ void CSong::FileInstrumentSave()
     dlg.m_ofn.lpstrTitle = "Save RMT instrument file";
 
     if (!g_lastLoadPath_Instruments.IsEmpty())
+    {
         dlg.m_ofn.lpstrInitialDir = g_lastLoadPath_Instruments;
-    else
-        if (!g_defaultInstrumentsPath.IsEmpty()) dlg.m_ofn.lpstrInitialDir = g_defaultInstrumentsPath;
+    }
+    else if (!g_defaultInstrumentsPath.IsEmpty())
+    {
+        dlg.m_ofn.lpstrInitialDir = g_defaultInstrumentsPath;
+    }
 
     // If it's not ok, nothing is saved
     if (dlg.DoModal() == IDOK)
     {
         CString fn = dlg.GetPathName();
         CString ext = fn.Right(4).MakeLower();
-        if (ext != ".rti") fn += ".rti";
+        if (ext != ".rti")
+        {
+            fn += ".rti";
+        }
 
         g_lastLoadPath_Instruments = GetFilePath(fn);
 
@@ -615,9 +673,13 @@ void CSong::FileInstrumentLoad()
     dlg.m_ofn.lpstrTitle = "Load RMT instrument file";
 
     if (!g_lastLoadPath_Instruments.IsEmpty())
+    {
         dlg.m_ofn.lpstrInitialDir = g_lastLoadPath_Instruments;
-    else
-        if (!g_defaultInstrumentsPath.IsEmpty()) dlg.m_ofn.lpstrInitialDir = g_defaultInstrumentsPath;
+    }
+    else if (!g_defaultInstrumentsPath.IsEmpty())
+    {
+        dlg.m_ofn.lpstrInitialDir = g_defaultInstrumentsPath;
+    }
 
     // If it's not ok, nothing will be loaded
     if (dlg.DoModal() == IDOK)
@@ -651,7 +713,10 @@ void CSong::FileInstrumentLoad()
 void CSong::FileTrackSave()
 {
     int track = SongGetActiveTrack();
-    if (track < 0 || track >= TRACKSNUM) return;
+    if (track < 0 || track >= TRACKSNUM)
+    {
+        return;
+    }
 
     // Stop the music first
     Stop();
@@ -664,16 +729,23 @@ void CSong::FileTrackSave()
     dlg.m_ofn.lpstrTitle = "Save TXT track file";
 
     if (!g_lastLoadPath_Tracks.IsEmpty())
+    {
         dlg.m_ofn.lpstrInitialDir = g_lastLoadPath_Tracks;
-    else
-        if (!g_defaultTracksPath.IsEmpty()) dlg.m_ofn.lpstrInitialDir = g_defaultTracksPath;
+    }
+    else if (!g_defaultTracksPath.IsEmpty())
+    {
+        dlg.m_ofn.lpstrInitialDir = g_defaultTracksPath;
+    }
 
     //if not ok, nothing will be saved
     if (dlg.DoModal() == IDOK)
     {
         CString fn = dlg.GetPathName();
         CString ext = fn.Right(4).MakeLower();
-        if (ext != ".txt") fn += ".txt";
+        if (ext != ".txt")
+        {
+            fn += ".txt";
+        }
 
         g_lastLoadPath_Tracks = GetFilePath(fn);
 
@@ -696,7 +768,10 @@ void CSong::FileTrackSave()
 void CSong::FileTrackLoad()
 {
     int track = SongGetActiveTrack();
-    if (track < 0 || track >= TRACKSNUM) return;
+    if (track < 0 || track >= TRACKSNUM)
+    {
+        return;
+    }
 
     // Stop the music first
     Stop();
@@ -709,9 +784,13 @@ void CSong::FileTrackLoad()
     dlg.m_ofn.lpstrTitle = "Load TXT track file";
 
     if (!g_lastLoadPath_Tracks.IsEmpty())
+    {
         dlg.m_ofn.lpstrInitialDir = g_lastLoadPath_Tracks;
-    else
-        if (!g_defaultTracksPath.IsEmpty())	dlg.m_ofn.lpstrInitialDir = g_defaultTracksPath;
+    }
+    else if (!g_defaultTracksPath.IsEmpty())
+    {
+        dlg.m_ofn.lpstrInitialDir = g_defaultTracksPath;
+    }
 
     // If not ok, nothing will be loaded
     if (dlg.DoModal() == IDOK)
@@ -735,7 +814,10 @@ void CSong::FileTrackLoad()
         {
             in.getline(line, 1024);
             Trimstr(line);
-            if (strcmp(line, "TRACK]") == 0) nt++;
+            if (strcmp(line, "TRACK]") == 0)
+            {
+                nt++;
+            }
         }
 
         if (nt == 0)
@@ -748,7 +830,10 @@ void CSong::FileTrackLoad()
             CTracksLoadDlg dlg;
             dlg.m_trackfrom = track;
             dlg.m_tracknum = nt;
-            if (dlg.DoModal() != IDOK) return;
+            if (dlg.DoModal() != IDOK)
+            {
+                return;
+            }
             type = dlg.m_radio;
         }
 
@@ -778,7 +863,9 @@ void CSong::FileTrackLoad()
                 }
             }
             else
+            {
                 NextSegment(in);	//move to the next "["
+            }
         }
         in.close();
 
@@ -834,7 +921,9 @@ bool CSong::TestBeforeFileSave()
     BYTE trackSavedFlags[TRACKSNUM];
 
     if (MakeModule(mem, adr_module, SongIOType::RMT, instrumentSavedFlags, trackSavedFlags) < 0)
+    {
         return false;	// Dump out if the module could not be created
+    }
 
     // and now it will be checked whether the song ends with GOTO line and if there is no GOTO on GOTO line
     CString errmsg, wrnmsg, s;
@@ -896,7 +985,9 @@ bool CSong::TestBeforeFileSave()
         {
             //are there tracks or empty lines?
             if (trx[i] == 0)
+            {
                 empty++;
+            }
             else
             {
             TestTooManyEmptyLines:
@@ -926,7 +1017,10 @@ bool CSong::TestBeforeFileSave()
         {
             wrnmsg += "\nIgnore warnings and save anyway?";
             MessageAnswer answer = SendQuestionMessage("Warnings", wrnmsg, MessageButtons::YesNo);
-            if (answer == MessageAnswer::Yes) return true;
+            if (answer == MessageAnswer::Yes)
+            {
+                return true;
+            }
             return false;
         }
         // Otherwise, if there are any errors, always return failure

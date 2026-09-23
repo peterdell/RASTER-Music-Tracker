@@ -73,7 +73,10 @@ protected:
 
         // g_rmtinstr persists across tests like g_Instruments' data above -
         // reset it too (see PlayPressedTones/InstrPaste tests).
-        for (int i = 0; i < SONGTRACKS; i++) g_rmtinstr[i] = -1;
+        for (int i = 0; i < SONGTRACKS; i++)
+        {
+            g_rmtinstr[i] = -1;
+        }
 
         BlankSong(song);
         BlankSong(g_Song);
@@ -89,7 +92,10 @@ protected:
         auto* songArr = s.GetSong();
         auto* songGoArr = s.GetSongGo();
         for (int line = 0; line < SONGLEN; line++) {
-            for (int col = 0; col < SONGTRACKS; col++) (*songArr)[line][col] = -1;
+            for (int col = 0; col < SONGTRACKS; col++)
+            {
+                (*songArr)[line][col] = -1;
+            }
             (*songGoArr)[line] = -1;
         }
     }
@@ -538,7 +544,10 @@ TEST_F(SongEditingTest, SongClearUnusedTracksDeletesTracksNotReferencedInTheSong
 
 TEST_F(SongEditingTest, TracksAllBuildLoopsFindsARepeatingPatternAndShortensTheTrack) {
     TTrack* tr = g_Tracks.GetTrack(0);
-    for (int i = 0; i < TRACKLEN; i++) tr->note[i] = 5; // a full-length track repeating every line
+    for (int i = 0; i < TRACKLEN; i++)
+    {
+        tr->note[i] = 5; // a full-length track repeating every line
+    }
 
     int tracksmodified = 0, beatsreduced = 0;
     song.TracksAllBuildLoops(tracksmodified, beatsreduced);

@@ -235,15 +235,23 @@ int CTrackClipboard::BlockPasteToTrack(int track, int line, int special)
             linemax = bto + 1;
         }
         else
+        {
             linemax = line + ts->len;
+        }
 
-        if (linemax > smallmax) linemax = smallmax;
+        if (linemax > smallmax)
+        {
+            linemax = smallmax;
+        }
 
         if (line > td->len)
         {
             // If it makes a paste under the --end-- line, empty the gap between --end-- and the end of the place where it pastes
             // Originally i < line, but because for some it merges to the original, the number of lines will be stretched
-            for (i = td->len; i < linemax; i++) td->note[i] = td->instr[i] = td->volume[i] = td->speed[i] = -1;
+            for (i = td->len; i < linemax; i++)
+            {
+                td->note[i] = td->instr[i] = td->volume[i] = td->speed[i] = -1;
+            }
         }
 
         for (i = line, j = 0; i < linemax; i++, j++)
@@ -264,13 +272,25 @@ int CTrackClipboard::BlockPasteToTrack(int track, int line, int special)
                     td->instr[i] = ts->instr[j];
                     td->volume[i] = ts->volume[j];
                 }
-                if (g_Tracks.IsValidVolume(ts->volume[j])) td->volume[i] = ts->volume[j];
-                if (g_Tracks.IsValidSpeed(ts->speed[j])) td->speed[i] = ts->speed[j];
+                if (g_Tracks.IsValidVolume(ts->volume[j]))
+                {
+                    td->volume[i] = ts->volume[j];
+                }
+                if (g_Tracks.IsValidSpeed(ts->speed[j]))
+                {
+                    td->speed[i] = ts->speed[j];
+                }
                 break;
 
             case 2:	// Volumes only
-                if (g_Tracks.IsValidVolume(ts->volume[j])) td->volume[i] = ts->volume[j];	// If the source volume is non-negative, it writes it
-                else if (!g_Tracks.IsValidNote(td->note[i]) && !g_Tracks.IsValidInstrument(td->instr[i])) td->volume[i] = -1; // Delete only on separate volumes
+                if (g_Tracks.IsValidVolume(ts->volume[j]))
+                {
+                    td->volume[i] = ts->volume[j]; // If the source volume is non-negative, it writes it
+                }
+                else if (!g_Tracks.IsValidNote(td->note[i]) && !g_Tracks.IsValidInstrument(td->instr[i]))
+                {
+                    td->volume[i] = -1; // Delete only on separate volumes
+                }
                 break;
 
             case 3:	// Speeds only
@@ -280,7 +300,10 @@ int CTrackClipboard::BlockPasteToTrack(int track, int line, int special)
         }
 
         // If it's beyond the end of the track, extend its length
-        if (linemax > td->len) td->len = linemax;
+        if (linemax > td->len)
+        {
+            td->len = linemax;
+        }
 
         // When it was a paste into a block, it returns 0
         return (bfro >= 0) ? 0 : linemax - line;
@@ -430,15 +453,24 @@ void CTrackClipboard::BlockVolumeChange(int instr, int addvol)
         for (i = bfro; i <= bto && i < td->len; i++)
         {
             // When the volume itself is edited, we know it belongs to the instrument above it
-            if (g_Tracks.IsValidInstrument(td->instr[i])) lasti = td->instr[i];
+            if (g_Tracks.IsValidInstrument(td->instr[i]))
+            {
+                lasti = td->instr[i];
+            }
 
             if (g_Tracks.IsValidVolume(td->volume[i]) && (lasti == instr || m_all))
             {
                 td->volume[i] = ts->volume[i] + m_changevolume;
 
                 // Unlike the Note, Instruments, Effects, etc, we want to actually cap the volume changes
-                if (td->volume[i] > MAXVOLUME) td->volume[i] = MAXVOLUME;
-                if (td->volume[i] < 0) td->volume[i] = 0;
+                if (td->volume[i] > MAXVOLUME)
+                {
+                    td->volume[i] = MAXVOLUME;
+                }
+                if (td->volume[i] < 0)
+                {
+                    td->volume[i] = 0;
+                }
             }
         }
 

@@ -1946,3 +1946,63 @@ build clean and all 123 tests pass.
         cross-test ordering dependency.
       - Full solution rebuild (Release|x64) confirmed 0 errors; 250 tests
         pass (up from 243, +7, 0 regressions).
+- [x] New `plans/RULES.md` (user-requested, style rules going forward) with
+      its first rule: always brace `if`/`else`/`for`/`while`/`do` bodies,
+      even single-statement ones (the classic "goto fail"-style bug class).
+      Also set up and applied real enforcement, not just documentation:
+      - **`.clang-tidy`** at repo root, scoped to exactly two checks
+        (`readability-braces-around-statements`,
+        `readability-misleading-indentation`) - this project doesn't use
+        clang-tidy for anything broader.
+      - **`EnableClangTidyCodeAnalysis`/`ClangTidyChecks`** set in both
+        `Rmt.vcxproj` and `RmtTests.vcxproj`, enabling Visual Studio's
+        native Clang-Tidy integration (live editor squiggles + *Run Code
+        Analysis*). Verified via MSBuild's own `.props`/`.targets` files
+        (not assumed) that this is gated on the separate `RunCppAnalysis`
+        property and does **not** run during a normal Build/Rebuild -
+        confirmed empirically too (unchanged build time after enabling).
+        `ClangTidyChecks` must mirror `.clang-tidy`'s check list by hand,
+        since Visual Studio's integration always passes its own
+        `-checks=` argument, overriding the file.
+      - **One-time bulk `--fix` pass** across the whole codebase (~112 of
+        120 `.cpp` files - 8 pure-MFC-UI files excluded, see below).
+        Non-trivial to get right - two real problems found and fixed along
+        the way:
+        1. First attempt used no `--header-filter`, which - contrary to
+           what the flag's absence suggests - let clang-tidy modify
+           *included headers* too, not just the file passed on the command
+           line. This reached into and modified vendored **GoogleTest
+           headers** (`test/googletest/include/gtest/*.h`) before being
+           caught. Fully reverted (`git checkout` - working tree was clean
+           beforehand, confirmed via `git status` first, so the revert was
+           exact) and redone with `--header-filter='^$'` (matches nothing),
+           confirmed to leave every header untouched on the redo.
+        2. `clang-tidy --fix` inserts braces in a minimal/inline style
+           (`if (cond) { stmt;\n}`), not this codebase's Allman convention
+           - applying it as-is would have left ~1000+ lines inconsistently
+           formatted (218 violations in `SongEditing.cpp` alone). Reverted
+           again and re-applied with `git-clang-format` layered on top
+           (formats only the lines `clang-tidy` had just changed, per the
+           git diff - never a whole-file reformat, which matters here
+           since the codebase mixes tab-indented legacy files and
+           space-indented newer ones; each file's dominant indent
+           character was detected and matched). First `git-clang-format`
+           style attempt also added unwanted spaces before *function-call*
+           parens (`SpaceBeforeParens: Always` applies to calls too, not
+           just control statements) - fixed to
+           `SpaceBeforeParens: ControlStatements`.
+      - **8 files excluded from the automated fix**: `MainFrm.cpp`,
+        `OptionsDialog.cpp`, `Rmt.cpp`, `RmtView.cpp`, `TuningDialog.cpp`,
+        `effectsdlg.cpp`, `exportdlgs.cpp`, `importdlgs.cpp`. All use an
+        old-style MFC message-map macro (bare `ClassName::Method` instead
+        of `&ClassName::Method`) that Clang's parser rejects outright as a
+        hard error (confirmed `-fms-extensions` doesn't help) - unrelated
+        to braces, but blocks clang-tidy from processing these files at
+        all. Flagged in `plans/RULES.md` as a known gap needing manual
+        attention later.
+      - Verified zero remaining `readability-braces-around-statements`
+        violations across every processed file (re-ran clang-tidy
+        read-only after the fix). Full solution rebuild (Release|x64)
+        confirmed 0 errors; 250 tests pass (unchanged - purely syntactic
+        change, 0 regressions), confirming the bulk fix altered no
+        behavior.

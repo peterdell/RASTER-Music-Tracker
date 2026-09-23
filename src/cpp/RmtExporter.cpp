@@ -30,7 +30,10 @@ bool CRmtExporter::ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDe
 
     // Create a variant for SFX (ie. including unused instruments and tracks)
     exportTempDescription.firstByteAfterModule = song.MakeModule(exportTempDescription.mem, exportTempDescription.targetAddrOfModule, SongIOType::RMT, exportTempDescription.instrumentSavedFlags, exportTempDescription.trackSavedFlags);
-    if (exportTempDescription.firstByteAfterModule < 0) return false;	// if the module could not be created
+    if (exportTempDescription.firstByteAfterModule < 0)
+    {
+        return false; // if the module could not be created
+    }
 
     // Show the dialog to control the stripped output parameters
     CExportStrippedRMTDialog dlg;
@@ -54,7 +57,10 @@ bool CRmtExporter::ExportAsStrippedRMT(CSong& song, std::ofstream& ou, TExportDe
     dlg.m_savedTracksFlagsForSFX = exportTempDescription.trackSavedFlags;
 
     // Show the dialog and get the stripped RMT configuration parameters
-    if (dlg.DoModal() != IDOK) return false;
+    if (dlg.DoModal() != IDOK)
+    {
+        return false;
+    }
 
     // Save the configurations for later reuse
     g_rmtstripped_adr_module = dlg.m_exportAddr;

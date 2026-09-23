@@ -78,7 +78,10 @@ int CConvertTracks::Init()
     for (int i = 0; i < TRACKSNUM; i++)
     {
         TSourceTrack* at = &m_strack[i];
-        for (int j = 0; j < 64; j++)	at->note[j] = at->instr[j] = at->volumeL[j] = at->volumeR[j] = at->speed[j] = -1;
+        for (int j = 0; j < 64; j++)
+        {
+            at->note[j] = at->instr[j] = at->volumeL[j] = at->volumeR[j] = at->speed[j] = -1;
+        }
         at->len = -1;
         at->stereo = 0;
 
@@ -107,7 +110,10 @@ int CConvertTracks::MakeOrFindTrackShiftLR(int from, int shift, BYTE lr)
 
     int i;
 
-    if (m_strack[from].len < 0) return -1;	//this source track is empty
+    if (m_strack[from].len < 0)
+    {
+        return -1; //this source track is empty
+    }
 
     //will find the number where it will first create the new one
     int track = -1;
@@ -121,16 +127,28 @@ int CConvertTracks::MakeOrFindTrackShiftLR(int from, int shift, BYTE lr)
         //finds a free place as close as possible to the "from" track
         for (i = from + 1; i != from; i++)
         {
-            if (i >= TRACKSNUM) i = 0;	//when he reaches the end, he starts from the beginning
-            if (m_dmark[i].fromtrack < 0) break; //found a free track
+            if (i >= TRACKSNUM)
+            {
+                i = 0; //when he reaches the end, he starts from the beginning
+            }
+            if (m_dmark[i].fromtrack < 0)
+            {
+                break; //found a free track
+            }
         }
-        if (i == from) return -1;		//did not find one
+        if (i == from)
+        {
+            return -1; //did not find one
+        }
         track = i;	//this is empty, it will create the appropriate modification of the source track
     }
 
     //rewritten from source track to system track
     TSourceTrack* ts = &m_strack[from];
-    if (!ts->stereo) lr = VOLUMES_L | VOLUMES_R; //if it's not a stereo track and it wants the right channel, give it the left channel anyway
+    if (!ts->stereo)
+    {
+        lr = VOLUMES_L | VOLUMES_R; //if it's not a stereo track and it wants the right channel, give it the left channel anyway
+    }
     TTrack* td = m_ctracks->GetTrack(track);
     int activeinstr = -1;
     for (i = 0; i < ts->len; i++)
@@ -149,13 +167,19 @@ int CConvertTracks::MakeOrFindTrackShiftLR(int from, int shift, BYTE lr)
 
         int instr = ts->instr[i];
         td->instr[i] = instr;
-        if (instr >= 0) activeinstr = instr;
+        if (instr >= 0)
+        {
+            activeinstr = instr;
+        }
 
         int volume = (lr & VOLUMES_L) ? ts->volumeL[i] : ts->volumeR[i];
         if (activeinstr >= 0 && volume > 0)
         {
             int maxvol = (lr & VOLUMES_L) ? m_imark[activeinstr].maxvolL : m_imark[activeinstr].maxvolR;
-            if (maxvol - (15 - volume) <= 0) volume = 0;
+            if (maxvol - (15 - volume) <= 0)
+            {
+                volume = 0;
+            }
         }
         td->volume[i] = volume;
 
@@ -166,7 +190,10 @@ int CConvertTracks::MakeOrFindTrackShiftLR(int from, int shift, BYTE lr)
     //search if this one does not match one that already exists
     for (i = 0; i < TRACKSNUM; i++)
     {
-        if (track == i) continue;	//it will not compare itself with itself
+        if (track == i)
+        {
+            continue; //it will not compare itself with itself
+        }
         if (m_ctracks->CompareTracks(track, i))
         {
             //found the same
@@ -210,10 +237,16 @@ bool CSong::ImportTMCParseHeader(std::istream& in, TImportTMCHeader& header)
     char a;
     for (j = 0; j < 30 && (a = header.mem[header.bfrom + j]); j++)
     {
-        if (a < 32 || a >= 127) a = ' ';
+        if (a < 32 || a >= 127)
+        {
+            a = ' ';
+        }
         m_songname[j] = a;
     }
-    for (k = j; k < SONG_NAME_MAX_LEN; k++) m_songname[k] = ' '; //fill in the gaps
+    for (k = j; k < SONG_NAME_MAX_LEN; k++)
+    {
+        m_songname[k] = ' '; //fill in the gaps
+    }
 
     header.ok = true;
     return true;
@@ -242,8 +275,10 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
         speco = m_instrumentSpeed - 4;
         m_instrumentSpeed = 4;		//4x instrspeed maximum
     }
-    else
-        if (m_instrumentSpeed < 1) m_instrumentSpeed = 1;		//1x instrspeed minimum
+    else if (m_instrumentSpeed < 1)
+    {
+        m_instrumentSpeed = 1; //1x instrspeed minimum
+    }
 
     //instrument vectors
     for (i = 0; i < 64; i++)
@@ -252,13 +287,19 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
         instr_used[i] = 0; //find out when the track is used if it is used
     }
     //track vectors
-    for (i = 0; i < 128; i++) track_ptr[i] = mem[bfrom + 32 + 128 + i] + (mem[bfrom + 32 + 128 + 128 + i] << 8);
+    for (i = 0; i < 128; i++)
+    {
+        track_ptr[i] = mem[bfrom + 32 + 128 + i] + (mem[bfrom + 32 + 128 + 128 + i] << 8);
+    }
 
     //tracks
     for (i = 0; i < 128; i++)
     {
         adr = track_ptr[i];
-        if (mem[adr] == 0xff) continue;	//points to FF
+        if (mem[adr] == 0xff)
+        {
+            continue; //points to FF
+        }
         int line = 0;
         TSourceTrack& ts = *(cot.GetSTrack(i));
         int ains = 0, note = -1, volL = 15, volR = 15, speed = 0, space = 0;
@@ -282,7 +323,10 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
                     //note and volume
                     //note
                     note = (c & 0x3f) - 1;
-                    if (note < 0) note = -1;
+                    if (note < 0)
+                    {
+                        note = -1;
+                    }
                     else
                     {
                         ts.note[line] = note;
@@ -292,7 +336,10 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
                     c = mem[adr++];
                     volL = 15 - ((c & 0xf0) >> 4);
                     volR = 15 - (c & 0x0f);
-                    if (volL != volR) ts.stereo = 1;	//there is some different volume for L and R
+                    if (volL != volR)
+                    {
+                        ts.stereo = 1; //there is some different volume for L and R
+                    }
                     if (volL != 0 || volR != 0)			//in TMC there may be no note if vol L and R are both equal to 0
                     {
                         ts.volumeL[line] = volL;
@@ -306,7 +353,10 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
                         //note speed  (+possible volume)
                         //note
                         note = (c & 0x3f) - 1;
-                        if (note < 0) note = -1;
+                        if (note < 0)
+                        {
+                            note = -1;
+                        }
                         else
                         {
                             ts.note[line] = note;
@@ -331,14 +381,20 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
                             c = mem[adr++];
                             volL = 15 - ((c & 0xf0) >> 4);
                             volR = 15 - (c & 0x0f);
-                            if (volL != volR) ts.stereo = 1;	//there is some different volume for L and R
+                            if (volL != volR)
+                            {
+                                ts.stereo = 1; //there is some different volume for L and R
+                            }
                             if (volL != 0 || volR != 0)			//in TMC there may be no note if vol L and R are both equal to 0
                             {
                                 ts.volumeL[line] = volL;
                                 ts.volumeR[line] = volR;
                             }
                         }
-                        if (endt) break;	//end of this track via speed = 0
+                        if (endt)
+                        {
+                            break; //end of this track via speed = 0
+                        }
                         line++;
                     }
                     else
@@ -348,7 +404,10 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
                             space = (c & 0x3f) + 1;
                             if (space > 63 || line + space > 63)
                             {
-                                if (line > 0) ts.len = 64;
+                                if (line > 0)
+                                {
+                                    ts.len = 64;
+                                }
                                 break;	//space = 64 (ff) => end of this track
                             }
                             line += space;
@@ -373,7 +432,10 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
         }
 
         int adr_e = instr_ptr[i];
-        if (adr_e == 0) continue;	//undefined
+        if (adr_e == 0)
+        {
+            continue; //undefined
+        }
 
         //defined
 
@@ -409,21 +471,31 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
 
             int dist08 = (c1 >> 4) & 0x01;		//forced volume bit
             BYTE dist = (c1 >> 4) & 0x0e;		//distortions, in step of 2
-            if (dist == 0x0e) dist = 0x0a;		//pure tones
-            else
-                if (dist == 0x06) dist = 0x02;		//distortion 2 sharp tones
+            if (dist == 0x0e)
+            {
+                dist = 0x0a; //pure tones
+            }
+            else if (dist == 0x06)
+            {
+                dist = 0x02; //distortion 2 sharp tones
+            }
 
             //now dist is 0,2,4,8,A,C (without 0x06 and 0x0e)
 
             int basstable = mem[adr_p + 7] & 0xc0;
-            if (dist == 0x0c && (basstable == 0x80 || basstable == 0xc0)) dist = 0x0e;
+            if (dist == 0x0c && (basstable == 0x80 || basstable == 0xc0))
+            {
+                dist = 0x0e;
+            }
 
             int com08 = (c2 >> 4) & 0x08;		//command 8x
             BYTE audctl = com08 ? audctl2 : audctl1;
 
             //16 bit bass?
             if (((audctl & 0x50) == 0x50 || (audctl & 0x28) == 0x28) && (dist == 0x0c))
+            {
                 dist = 0x06;	//16bit bass
+            }
 
             //filter
             if (((audctl & 0x04) == 0x04 || (audctl & 0x02) == 0x02))
@@ -435,11 +507,20 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
             ai->envelope[j][EnvelopeParameter::DISTORTION] = dist;
             int vol = c1 & 0x0f;			//volumeL 0-F;
             ai->envelope[j][EnvelopeParameter::VOLUMEL] = lastvol = vol;			//lastvol is needed to correct the fading
-            if (vol > maxvolL) maxvolL = vol;	//maximum volumeL of the whole envelope
+            if (vol > maxvolL)
+            {
+                maxvolL = vol; //maximum volumeL of the whole envelope
+            }
             vol = c2 & 0x0f;			//volumeR 0-F
             ai->envelope[j][EnvelopeParameter::VOLUMER] = vol;
-            if (vol > maxvolR) maxvolR = vol;	//maximum volumeR of the whole envelope
-            if (vol > 0) anyrightvolisntzero = 1;	//some volumeR is> 0
+            if (vol > maxvolR)
+            {
+                maxvolR = vol; //maximum volumeR of the whole envelope
+            }
+            if (vol > 0)
+            {
+                anyrightvolisntzero = 1; //some volumeR is> 0
+            }
 
             int tmccmd = (c2 >> 4) & 0x07;		//command
             int tmcpar = c3;
@@ -523,7 +604,10 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
             }
 
             //bass shift
-            if (dist == 0x0c && rmtcmd == 0) rmtpar += 8;
+            if (dist == 0x0c && rmtcmd == 0)
+            {
+                rmtpar += 8;
+            }
 
             //forced volume
             if (dist08) { rmtcmd = 7; rmtpar = 0x80; } //volume only
@@ -534,16 +618,28 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
 
             lasttmccmd = tmccmd;
             lasttmcpar = tmcpar;
-            if (cmd1_2 > 0) cmd1_2--;		//read
-            if (cmd2_2 > 0) cmd2_2--;		//read
-            if (cmd6_6 > 0) cmd6_6--;		//read
+            if (cmd1_2 > 0)
+            {
+                cmd1_2--; //read
+            }
+            if (cmd2_2 > 0)
+            {
+                cmd2_2--; //read
+            }
+            if (cmd6_6 > 0)
+            {
+                cmd6_6--; //read
+            }
 
         } //0-20 column envelope
 
         //is all right volume = 0? => copies left to right
         if (!anyrightvolisntzero)
         {
-            for (j = 0; j <= 21; j++) ai->envelope[j][EnvelopeParameter::VOLUMER] = ai->envelope[j][EnvelopeParameter::VOLUMEL];
+            for (j = 0; j <= 21; j++)
+            {
+                ai->envelope[j][EnvelopeParameter::VOLUMER] = ai->envelope[j][EnvelopeParameter::VOLUMEL];
+            }
             maxvolR = maxvolL;
         }
 
@@ -561,9 +657,18 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
         for (j = 0; j < 8; j++)
         {
             int nut = mem[adr_t + j];
-            if (nut >= 0x80 && nut <= 0xc0) nut += 0x40;
-            if (nut >= 0x40 && nut <= 0x7f) nut -= 0x40;
-            if (nut != 0) tableu = 1; //table is used for something
+            if (nut >= 0x80 && nut <= 0xc0)
+            {
+                nut += 0x40;
+            }
+            if (nut >= 0x40 && nut <= 0x7f)
+            {
+                nut -= 0x40;
+            }
+            if (nut != 0)
+            {
+                tableu = 1; //table is used for something
+            }
             ai->noteTable[j] = nut;
         }
 
@@ -579,9 +684,14 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
         BYTE t1vslide = mem[adr_p + 3];
         //speco is the correction when the instrument decelerates from 5 and more to 4
         BYTE t2vslide = (t1vslide < 1) ? 0 : (BYTE)((double)15 / lastvol * (double)255 / ((double)t1vslide * (1 - ((double)speco) / 4)) + 0.5);
-        if (t2vslide > 255) t2vslide = 255;
-        else
-            if (t2vslide < 0) t2vslide = 0;
+        if (t2vslide > 255)
+        {
+            t2vslide = 255;
+        }
+        else if (t2vslide < 0)
+        {
+            t2vslide = 0;
+        }
         ai->parameters[PAR_VOL_FADEOUT] = t2vslide;
         ai->parameters[PAR_VOL_MIN] = 0;
 
@@ -596,8 +706,14 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
         int posuntable = (int)((double)delay / (vibspe + 1) + 0.5);
 
         BOOL nobytable = 0;	//if it tries to convert to a table
-        if (!usetable) nobytable = 1;	//it shouldn't try
-        if (filteru) nobytable = 1;
+        if (!usetable)
+        {
+            nobytable = 1; //it shouldn't try
+        }
+        if (filteru)
+        {
+            nobytable = 1;
+        }
 
         //what if the table is used, but only to move to the 0th place
         if (!nobytable && tableu && tablen == 0 && (pvib & 0x40))		//(pvib & 0x40) <- only if vibrato uses something, otherwise it doesn't make sense to redo it
@@ -633,17 +749,28 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
             if (vib>3) vib=3;
             */
             vib = 3;
-            if (hn == 1) vib = 1 + vibspe;	//the most similar is this regardless of the magnitude of the oscillation, speed will move it to vib 2 or 3
-            else
-                if (hn == 2 && dn == 1) vib = 2 + vibspe; //for dn == 1 this corresponds exactly, the others are already corresponding to vib3
-            if (vib > 3) vib = 3;	//if it read more than 3 after reading "vibspec"
+            if (hn == 1)
+            {
+                vib = 1 + vibspe; //the most similar is this regardless of the magnitude of the oscillation, speed will move it to vib 2 or 3
+            }
+            else if (hn == 2 && dn == 1)
+            {
+                vib = 2 + vibspe; //for dn == 1 this corresponds exactly, the others are already corresponding to vib3
+            }
+            if (vib > 3)
+            {
+                vib = 3; //if it read more than 3 after reading "vibspec"
+            }
 
             //if you do not use the table, try to use vibrato through the table
             if (!nobytable && !tableu)
             {
                 if (hn == 1 && (dn > 2 || vibspe > 0))							//(dn>=4 || vibspe>0) )
                 {
-                    if (posuntable > NOTE_TABLE_MAX_LEN - 4) posuntable = NOTE_TABLE_MAX_LEN - 4; //did not give what is possible according to the delay
+                    if (posuntable > NOTE_TABLE_MAX_LEN - 4)
+                    {
+                        posuntable = NOTE_TABLE_MAX_LEN - 4; //did not give what is possible according to the delay
+                    }
                     ai->noteTable[posuntable] = 0;
                     ai->noteTable[posuntable + 1] = (pvib8) ? (BYTE)(256 - dn) : dn;
                     ai->noteTable[posuntable + 2] = 0;
@@ -657,7 +784,10 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
                 else
                     if (hn == 2 && (dn > 2 || vibspe > 0))							//(dn>=4 || vibspe>0))
                     {
-                        if (posuntable > NOTE_TABLE_MAX_LEN - 4) posuntable = NOTE_TABLE_MAX_LEN - 4; //did not give what is possible according to the delay
+                        if (posuntable > NOTE_TABLE_MAX_LEN - 4)
+                        {
+                            posuntable = NOTE_TABLE_MAX_LEN - 4; //did not give what is possible according to the delay
+                        }
                         ai->noteTable[posuntable] = (pvib8) ? (BYTE)(256 - dn) : dn;
                         ai->noteTable[posuntable + 1] = 0;
                         ai->noteTable[posuntable + 2] = (pvib8) ? dn : (BYTE)(256 - dn);
@@ -666,14 +796,24 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
                         ai->parameters[PAR_TBL_GOTO] = posuntable;
                         ai->parameters[PAR_TBL_TYPE] = 1;	//frequency table
                         int sp = dn * (vibspe + 1) - 1;
-                        if (sp < 0) sp = 0;	else if (sp > 0x3f) sp = 0x3f;
+                        if (sp < 0)
+                        {
+                            sp = 0;
+                        }
+                        else if (sp > 0x3f)
+                        {
+                            sp = 0x3f;
+                        }
                         ai->parameters[PAR_TBL_SPEED] = sp;
                         vpt = 1; //successful
                     }
                     else
                         if (hn == 3 && (dn > 2 || vibspe > 0))							//(dn>=4 || vibspe>0))
                         {
-                            if (posuntable > NOTE_TABLE_MAX_LEN - 4) posuntable = NOTE_TABLE_MAX_LEN - 4; //did not give what is possible according to the delay
+                            if (posuntable > NOTE_TABLE_MAX_LEN - 4)
+                            {
+                                posuntable = NOTE_TABLE_MAX_LEN - 4; //did not give what is possible according to the delay
+                            }
                             ai->noteTable[posuntable] = (pvib8) ? (BYTE)(dn * 4) : (BYTE)(256 - (dn * 4)); //for notes it is the other way around (add note = read frequency
                             ai->noteTable[posuntable + 1] = 0;
                             ai->noteTable[posuntable + 2] = (pvib8) ? (BYTE)(256 - (dn * 4)) : (BYTE)(dn * 4); //it is the other way around
@@ -682,7 +822,14 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
                             ai->parameters[PAR_TBL_GOTO] = posuntable;
                             ai->parameters[PAR_TBL_TYPE] = 1;	//frequency table
                             int sp = dn * (vibspe + 1) - 1;
-                            if (sp < 0) sp = 0;	else if (sp > 0x3f) sp = 0x3f;
+                            if (sp < 0)
+                            {
+                                sp = 0;
+                            }
+                            else if (sp > 0x3f)
+                            {
+                                sp = 0x3f;
+                            }
                             ai->parameters[PAR_TBL_SPEED] = sp;
                             vpt = 1; //successful
                         }
@@ -693,12 +840,18 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
             {
                 //fshift down (added frq)
                 fshift = pvib - 0x40;
-                if (pvib8) fshift = (BYTE)(256 - fshift);
+                if (pvib8)
+                {
+                    fshift = (BYTE)(256 - fshift);
+                }
 
                 //and now find out if it wouldn't do it through the table
                 if (!nobytable && !tableu && vibspe > 0)
                 {
-                    if (posuntable > NOTE_TABLE_MAX_LEN - 2) posuntable = NOTE_TABLE_MAX_LEN - 2; //he didn't give up
+                    if (posuntable > NOTE_TABLE_MAX_LEN - 2)
+                    {
+                        posuntable = NOTE_TABLE_MAX_LEN - 2; //he didn't give up
+                    }
                     ai->noteTable[posuntable] = fshift;
                     ai->noteTable[posuntable + 1] = fshift;
                     ai->parameters[PAR_TBL_LENGTH] = posuntable + 1;
@@ -714,15 +867,24 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
                 {
                     //shift in notes down (left) => shift in frequency 255/61 * shift_in_notes
                     fshift = (int)(((double)(255 / 61) * (pvib - 0x50)) + 0.5);
-                    if (pvib8) fshift = (BYTE)(256 - fshift);
+                    if (pvib8)
+                    {
+                        fshift = (BYTE)(256 - fshift);
+                    }
 
                     //and now find out if it wouldn't do it through the table
 
                     if (!nobytable && !tableu)				// && vibspe>0)
                     {
-                        if (posuntable > NOTE_TABLE_MAX_LEN - 2) posuntable = NOTE_TABLE_MAX_LEN - 2; //it didn't give up
+                        if (posuntable > NOTE_TABLE_MAX_LEN - 2)
+                        {
+                            posuntable = NOTE_TABLE_MAX_LEN - 2; //it didn't give up
+                        }
                         int nshift = pvib - 0x50;
-                        if (!pvib8) nshift = (BYTE)(256 - nshift);		//for notes it is the opposite (5x is <- down, Dx is up ->)
+                        if (!pvib8)
+                        {
+                            nshift = (BYTE)(256 - nshift); //for notes it is the opposite (5x is <- down, Dx is up ->)
+                        }
                         ai->noteTable[posuntable] = nshift;
                         ai->noteTable[posuntable + 1] = nshift;
                         ai->parameters[PAR_TBL_LENGTH] = posuntable + 1;
@@ -752,9 +914,14 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
 
         ai->parameters[PAR_VIBRATO] = vib;
         ai->parameters[PAR_FREQ_SHIFT] = fshift;
-        if (vib == 0 && fshift == 0) delay = 0;
-        else
-            if ((vib > 0 || fshift > 0) && delay == 0) delay = 1;
+        if (vib == 0 && fshift == 0)
+        {
+            delay = 0;
+        }
+        else if ((vib > 0 || fshift > 0) && delay == 0)
+        {
+            delay = 1;
+        }
         ai->parameters[PAR_DELAY] = delay;
 
         //optimalization
@@ -763,7 +930,10 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
         int lastchangecol = 0;
         for (int k = 0; k <= 20; k++)
         {
-            if (ai->envelope[k][EnvelopeParameter::VOLUMEL] > 0 || ai->envelope[k][EnvelopeParameter::VOLUMER] > 0) lastnonzerovolumecol = k;
+            if (ai->envelope[k][EnvelopeParameter::VOLUMEL] > 0 || ai->envelope[k][EnvelopeParameter::VOLUMER] > 0)
+            {
+                lastnonzerovolumecol = k;
+            }
             if (k > 0)
             {
                 for (int m = 0; m < ENVROWS; m++)
@@ -793,7 +963,10 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
         //table
         for (int v = 0; v <= ai->parameters[PAR_TBL_LENGTH]; v++)	//are there only zeros?
         {
-            if (ai->noteTable[v] != 0) goto NoTableOptimize;
+            if (ai->noteTable[v] != 0)
+            {
+                goto NoTableOptimize;
+            }
         }
         if (ai->parameters[PAR_TBL_LENGTH] >= 1 && ai->parameters[PAR_TBL_GOTO] == 0)
         {
@@ -851,17 +1024,28 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
 
                 m_song[line][i] = vyslednytrack;
 
-                if (vyslednytrack > numoftracks) numoftracks = vyslednytrack;	//total number of tracks
+                if (vyslednytrack > numoftracks)
+                {
+                    numoftracks = vyslednytrack; //total number of tracks
+                }
 
-                if (vyslednytrack >= 0 && i >= 4) stereomodul = 1;
+                if (vyslednytrack >= 0 && i >= 4)
+                {
+                    stereomodul = 1;
+                }
             }
         }
     }
     //is there a goto in the end?
-    if (m_songgo[line - 1] < 0) m_songgo[line + 1] = line;	//no, so it adds an endless loop to the end
+    if (m_songgo[line - 1] < 0)
+    {
+        m_songgo[line + 1] = line; //no, so it adds an endless loop to the end
+    }
 
-    if (!stereomodul) //mono module
+    if (!stereomodul)
+    { //mono module
         SetTracks(4);
+    }
 
     result.numoftracks = numoftracks;
     result.nonemptyinstruments = nonemptyinstruments;
@@ -916,11 +1100,18 @@ struct TMODInstrumentMark
 static int AtariVolume(int volume0_64)
 {
     int	avol = (int)((double)volume0_64 / 4 + 0.5);	//conversion to atari volume
-    if (volume0_64 < 1) avol = 0;
-    else
-        if (volume0_64 == 1) avol = 1;
-        else
-            if (avol > 0x0f) avol = 0x0f;
+    if (volume0_64 < 1)
+    {
+        avol = 0;
+    }
+    else if (volume0_64 == 1)
+    {
+        avol = 1;
+    }
+    else if (avol > 0x0f)
+    {
+        avol = 0x0f;
+    }
     return avol;
 }
 
@@ -950,26 +1141,29 @@ bool CSong::ImportMODParseHeader(std::istream& in, TImportMODHeader& header)
     header.song = 950;		//where the song starts at the 31 sample module
     header.patstart = 1084;	//the beginning of the pattern at the 31 sample module
     header.modsamples = 31;	//31 samples
-    if (strncmp((char*)(header.head + 1080), "M.K.", 4) == 0)
+    if (strncmp((char *)(header.head + 1080), "M.K.", 4) == 0)
+    {
         header.chnls = 4;					//M.K.
+    }
+    else if (strncmp((char *)(header.head + 1081), "CHN", 3) == 0)
+    {
+        header.chnls = header.head[1080] - '0'; //xCHN
+    }
     else
-        if (strncmp((char*)(header.head + 1081), "CHN", 3) == 0)
-            header.chnls = header.head[1080] - '0';	//xCHN
-        else
+    {
+        for (int i = 0; i < 4; i++)
         {
-            for (int i = 0; i < 4; i++)
+            a = header.head[1080 + i];
+            if (a < 32 || a > 90) //it's outside " " and "Z" (ie it's not a letter or a space)
             {
-                a = header.head[1080 + i];
-                if (a < 32 || a>90) //it's outside " " and "Z" (ie it's not a letter or a space)
-                {
-                    //=> 15 samples MOD
-                    header.chnls = 4;
-                    header.modsamples = 15;
-                    header.song = 470;
-                    header.patstart = 600;
-                    break;
-                }
+                //=> 15 samples MOD
+                header.chnls = 4;
+                header.modsamples = 15;
+                header.song = 470;
+                header.patstart = 600;
+                break;
             }
+        }
         }
 
     if (header.chnls < 4 || header.chnls>8)
@@ -981,17 +1175,29 @@ bool CSong::ImportMODParseHeader(std::istream& in, TImportMODHeader& header)
 
     header.songlen = header.head[header.song + 0];
     header.restartpos = header.head[header.song + 1];
-    if (header.restartpos >= header.songlen) header.restartpos = 0;
+    if (header.restartpos >= header.songlen)
+    {
+        header.restartpos = 0;
+    }
 
     header.maxpat = 0;
-    if (header.songlen > SONGLEN - 1) header.songlen = SONGLEN - 1;
+    if (header.songlen > SONGLEN - 1)
+    {
+        header.songlen = SONGLEN - 1;
+    }
     for (int i = 0; i < header.songlen; i++)
     {
         int patnum = header.head[header.song + 2 + i];
-        if (patnum > header.maxpat) header.maxpat = patnum;
+        if (patnum > header.maxpat)
+        {
+            header.maxpat = patnum;
+        }
     }
     int memlen = header.song + 130 + header.patternsize * (header.maxpat + 1);				//130 = 1 length +1 repeat + 128 song
-    if (header.song >= 950) memlen += 4;		//in addition 4 identification letters (eg "M.K.") // song + 130 (1084)
+    if (header.song >= 950)
+    {
+        memlen += 4; //in addition 4 identification letters (eg "M.K.") // song + 130 (1084)
+    }
 
     //now it is allocating memory
     header.mem.resize(memlen); // std::vector rather than the original raw new[] - equivalent lifetime (owned by header), automatically freed
@@ -1029,7 +1235,10 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
     SetTracks(rmttype); //produce RMT4 or RMT8
 
     //song name
-    for (j = 0; j < 20 && (a = mem[j]); j++) m_songname[j] = a;
+    for (j = 0; j < 20 && (a = mem[j]); j++)
+    {
+        m_songname[j] = a;
+    }
 
     //speeds
     m_mainSpeed = m_speed = 6;			//default speed
@@ -1049,15 +1258,25 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
         {
             a = sdata[j];
             if (a >= 32 && a <= 126)
+            {
                 dname[j] = a;
+            }
             else
+            {
                 dname[j] = ' ';
+            }
         }
-        for (; j < INSTRUMENT_NAME_MAX_LEN; j++) dname[j] = ' '; //deletes the rest of the instrument name
+        for (; j < INSTRUMENT_NAME_MAX_LEN; j++)
+        {
+            dname[j] = ' '; //deletes the rest of the instrument name
+        }
         int samplen = (sdata[23] | (sdata[22] << 8)) * 2;
 
         int volume = sdata[25];
-        if (volume > 0x3f) volume = 0x3f;		//00-3f
+        if (volume > 0x3f)
+        {
+            volume = 0x3f; //00-3f
+        }
 
         int reppoint = (sdata[27] | (sdata[26] << 8)) * 2;
 
@@ -1073,7 +1292,10 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
         imark[i].trackvolumeincrease = 1;
         imark[i].trackvolumemax = 0;
 
-        if (samplen > maxsmplen) maxsmplen = samplen;	//maximum sample length
+        if (samplen > maxsmplen)
+        {
+            maxsmplen = samplen; //maximum sample length
+        }
 
         //sending into Atari memory is at the end of adding things to the instrument
     }
@@ -1105,8 +1327,14 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
             n12 = 0;
         }
         BYTE note = (BYTE)i;
-        while (note >= CNotes::NOTESNUM) note -= 12;
-        for (j = lastp; j >= n12; j--) pertonote[j] = note;
+        while (note >= CNotes::NOTESNUM)
+        {
+            note -= 12;
+        }
+        for (j = lastp; j >= n12; j--)
+        {
+            pertonote[j] = note;
+        }
         lastp = n12 - 1;
     }
 
@@ -1169,9 +1397,13 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
                     if (effect == 0x0f)
                     {	//speed
                         if (param <= 0x20)
+                        {
                             ticks = (param > 0) ? param : 1; //speed 0 is not possible
+                        }
                         else
+                        {
                             beats = param;
+                        }
                     }
                     else
                         if (effect == 0x0b || effect == 0x0d)
@@ -1181,9 +1413,14 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
                 }
                 //recalculation of beats and ticks on ss
                 int ss = (int)(((double)(125 * ticks)) / ((double)beats) + 0.5);
-                if (ss < 1) ss = 1;
-                else
-                    if (ss > 255) ss = 255;
+                if (ss < 1)
+                {
+                    ss = 1;
+                }
+                else if (ss > 255)
+                {
+                    ss = 255;
+                }
 
                 tickrow[m] = ticks;
                 speedrow[m] = ss;
@@ -1216,9 +1453,14 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
                     int sampleorig = sample;		//original as in the track
                     int pspeed;
 
-                    if (sample == 0) sample = tins[ch];	//sample number 0 means the same as last used
+                    if (sample == 0)
+                    {
+                        sample = tins[ch]; //sample number 0 means the same as last used
+                    }
                     else
+                    {
                         tins[ch] = sample;	//saves the last used sample in this "column"
+                    }
 
                     int note = -1, vol = -1;
                     if (period < 1 || period >= 4096)
@@ -1254,22 +1496,34 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
                             if (effect == 0x03)
                             {
                                 if (param)
+                                {
                                     pspeed = tporspeed[ch] = param;	//TONE portamento speed only for parameter 3xx
+                                }
                                 else
+                                {
                                     pspeed = tporspeed[ch];	//if 300 => continue portamento is the last used speed
+                                }
                             }
-                            else //effect==0x05
+                            else
+                            {                           //effect==0x05
                                 pspeed = tporspeed[ch];	//effect 0x05 is continued portamento
+                            }
 
                             if (aper < period)
                             {
                                 hfper = aper + pspeed * (ticks - 1) / 2;
-                                if (hfper > period) hfper = period;
+                                if (hfper > period)
+                                {
+                                    hfper = period;
+                                }
                             }
                             else
                             {
                                 hfper = aper - pspeed * (ticks - 1) / 2;
-                                if (hfper < period) hfper = period;
+                                if (hfper < period)
+                                {
+                                    hfper = period;
+                                }
                             }
                             if (pertonote[aper] != pertonote[hfper])
                             {
@@ -1293,8 +1547,14 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
                         int	avol = AtariVolume(vol);		//conversion to atari volume
                         tr->volume[dline] = avol;	//or it will overwrite the Cxx parameter
                         imark[sample].used |= (1 << trackorder[ch]);	//sample is used on channel "ch"
-                        if (note > imark[sample].maxnote) imark[sample].maxnote = note;
-                        if (note < imark[sample].minnote) imark[sample].minnote = note;
+                        if (note > imark[sample].maxnote)
+                        {
+                            imark[sample].maxnote = note;
+                        }
+                        if (note < imark[sample].minnote)
+                        {
+                            imark[sample].minnote = note;
+                        }
                     }
 
                     //effect: PORTAMENTO
@@ -1324,9 +1584,13 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
                                 if (effect == 0x03)	//3xx	TonePortamento
                                 {
                                     if (param)
+                                    {
                                         pspeed = tporspeed[ch] = param;	//TONE portamento speed only for parameter 3xx
+                                    }
                                     else
+                                    {
                                         pspeed = tporspeed[ch];	//if 300 => continue portamento is the last used speed
+                                    }
                                 Effect3:
                                     int cpor = tporperiod[ch]; //target portamento
                                     int aper = tper[ch];	//current period
@@ -1334,14 +1598,20 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
                                     {
                                         //portamento towards smaller values, ie up to higher tones
                                         aper -= pspeed * (ticks - 1);
-                                        if (aper < cpor) aper = cpor;	//if it took place, then compare
+                                        if (aper < cpor)
+                                        {
+                                            aper = cpor; //if it took place, then compare
+                                        }
                                     }
                                     else
                                         if (aper < cpor)
                                         {
                                             //portamento towards higher values, ie down to lower tones
                                             aper += pspeed * (ticks - 1);
-                                            if (aper > cpor) aper = cpor;	//if it took place, then compare
+                                            if (aper > cpor)
+                                            {
+                                                aper = cpor; //if it took place, then compare
+                                            }
                                         }
 
                                     tper[ch] = aper;
@@ -1353,11 +1623,19 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
                     if (effect == 0x0c)	//Cxx   setvolume xx=$00-$40
                     {
                         if (pass == 1)
+                        {
                             param = (int)((double)param * imark[sample].trackvolumeincrease + 0.5);
-                        if (param > 0x40) param = 0x40;	//maximum volume
+                        }
+                        if (param > 0x40)
+                        {
+                            param = 0x40; //maximum volume
+                        }
                         tvol[ch] = param;
                         tvolslidedebt[ch] = 0;		//no debt
-                        if (param > imark[sample].trackvolumemax) imark[sample].trackvolumemax = param;
+                        if (param > imark[sample].trackvolumemax)
+                        {
+                            imark[sample].trackvolumemax = param;
+                        }
 
                         int avol = AtariVolume(param);	//atari volume
                         tr->volume[dline] = avol;
@@ -1385,21 +1663,35 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
                         {
                             int voldec = (int)((double)(param & 0x0f) * (ticks - 1) * imark[sample].trackvolumeincrease / slidedivide + 0.5);
                             vol -= voldec;	//decrease
-                            if (slidedivide == 2)	tvolslidedebt[ch] = -voldec; //debt volume slide
+                            if (slidedivide == 2)
+                            {
+                                tvolslidedebt[ch] = -voldec; //debt volume slide
+                            }
                         }
                         else
                         {
                             int volinc = (int)((double)((param & 0xf0) >> 4) * (ticks - 1) * imark[sample].trackvolumeincrease / slidedivide + 0.5);
                             vol += volinc;	//increase
-                            if (slidedivide == 2)	tvolslidedebt[ch] = volinc; //debt volume slide
+                            if (slidedivide == 2)
+                            {
+                                tvolslidedebt[ch] = volinc; //debt volume slide
+                            }
                         }
 
-                        if (vol < 0) vol = 0;
-                        else
-                            if (vol > 0x40) vol = 0x40;
+                        if (vol < 0)
+                        {
+                            vol = 0;
+                        }
+                        else if (vol > 0x40)
+                        {
+                            vol = 0x40;
+                        }
 
                         tvol[ch] = vol;
-                        if (vol > imark[sample].trackvolumemax) imark[sample].trackvolumemax = vol;
+                        if (vol > imark[sample].trackvolumemax)
+                        {
+                            imark[sample].trackvolumemax = vol;
+                        }
 
                         int avol = AtariVolume(vol);		//atari volume
                         tr->volume[dline] = avol;
@@ -1429,8 +1721,14 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
                             else
                                 if (effect == 0x0b)	//Bxx	song jump
                                 {
-                                    if (tr->len == 64) tr->len = dline + 1;	//track break
-                                    if (songjump < 0) songjump = param;
+                                    if (tr->len == 64)
+                                    {
+                                        tr->len = dline + 1; //track break
+                                    }
+                                    if (songjump < 0)
+                                    {
+                                        songjump = param;
+                                    }
                                 }
 
                     //the debt will increment if there is any and there is a free slot
@@ -1438,11 +1736,19 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
                     {
                         int mvol = tvol[ch];
                         mvol += tvolslidedebt[ch]; //adjust volume by debt
-                        if (mvol < 0) mvol = 0;
-                        else
-                            if (mvol > 0x40) mvol = 0x40;
+                        if (mvol < 0)
+                        {
+                            mvol = 0;
+                        }
+                        else if (mvol > 0x40)
+                        {
+                            mvol = 0x40;
+                        }
                         int avol = AtariVolume(mvol);
-                        if (avol != AtariVolume(tvol[ch])) tr->volume[dline] = avol; //if it comes out differently than it was, it will add it
+                        if (avol != AtariVolume(tvol[ch]))
+                        {
+                            tr->volume[dline] = avol; //if it comes out differently than it was, it will add it
+                        }
                         tvol[ch] = mvol;
                         tvolslidedebt[ch] = 0; //debt volume slide resolved
                     }
@@ -1450,7 +1756,10 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
                 }//line 0-64
 
                 //if the shift (effect Dxx) has started, then it must shorten the length of the respective track
-                if (ThisPatternFromColumn == ch && tr->len == 64 && dline < 64) tr->len = dline;
+                if (ThisPatternFromColumn == ch && tr->len == 64 && dline < 64)
+                {
+                    tr->len = dline;
+                }
 
                 int cit = -1;	//track number for the song
                 if (!g_Tracks.IsEmptyTrack(destnum)) //is empty
@@ -1477,7 +1786,10 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
                 m_song[dsline][trackorder[ch]] = cit;
                 if (destnum >= TRACKSNUM)
                 {
-                    if (pass == 0) SendWarningMessage("Warning", "Out of RMT tracks. Tracks converting terminated.");
+                    if (pass == 0)
+                    {
+                        SendWarningMessage("Warning", "Out of RMT tracks. Tracks converting terminated.");
+                    }
                     goto OutOfTracks;	//the tracks have reached the end
                 }
 
@@ -1485,7 +1797,10 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
             dsline++; //increment the target number of songlines(?)
             if (dsline >= SONGLEN)
             {
-                if (pass == 0) SendWarningMessage("Warning", "Out of song lines. Song converting terminated.");
+                if (pass == 0)
+                {
+                    SendWarningMessage("Warning", "Out of song lines. Song converting terminated.");
+                }
                 goto OutOfSongLines;	//ran out of songlines
             }
 
@@ -1495,7 +1810,10 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
                 dsline++;
                 if (dsline >= SONGLEN)
                 {
-                    if (pass == 0) SendWarningMessage("Warning", "Out of song lines. Song converting terminated.");
+                    if (pass == 0)
+                    {
+                        SendWarningMessage("Warning", "Out of song lines. Song converting terminated.");
+                    }
                     goto OutOfSongLines;
                 }
             }
@@ -1512,7 +1830,10 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
             for (i = 1; i <= modsamples; i++)
             {
                 TMODInstrumentMark* it = &imark[i];
-                if (it->trackvolumemax > 0) it->trackvolumeincrease = (double)0x40 / (it->trackvolumemax);
+                if (it->trackvolumemax > 0)
+                {
+                    it->trackvolumeincrease = (double)0x40 / (it->trackvolumemax);
+                }
             }
         }
 
@@ -1525,10 +1846,16 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
     {
         int k;
         int go = m_songgo[i];
-        if (go < 0) continue;
+        if (go < 0)
+        {
+            continue;
+        }
         for (k = 0; k <= go && k < SONGLEN; k++)	//looking for how much is from the beginning of the jump and for each found moves go by 1 step
         {
-            if (m_songgo[k] >= 0) go++;
+            if (m_songgo[k] >= 0)
+            {
+                go++;
+            }
         }
         m_songgo[i] = go;	//writes that shifted jump
     }
@@ -1540,11 +1867,20 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
     int glonomax = 0;
     for (i = 1; i <= modsamples; i++)
     {
-        if (!imark[i].used) continue;
+        if (!imark[i].used)
+        {
+            continue;
+        }
         int minnote = imark[i].minnote;
         int maxnote = imark[i].maxnote;
-        if (minnote < glonomin) glonomin = minnote;
-        if (maxnote > glonomax) glonomax = maxnote;
+        if (minnote < glonomin)
+        {
+            glonomin = minnote;
+        }
+        if (maxnote > glonomax)
+        {
+            glonomax = maxnote;
+        }
         //maximum volume in tracks
         int avol = AtariVolume(imark[i].trackvolumemax);	//atari volume
         CString s;
@@ -1559,7 +1895,10 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
             int noteshift = 256 - 12;	//1 octave lower
             for (i = 1; i <= modsamples; i++)
             {
-                if (!imark[i].used) continue;
+                if (!imark[i].used)
+                {
+                    continue;
+                }
                 TInstrument* ti = g_Instruments.GetInstrument(i);
                 ti->noteTable[0] = (BYTE)(noteshift);
             }
@@ -1577,11 +1916,17 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
 
         samplen = im->samplen;
 
-        if (samplen <= 2)	continue;		//zero length => empty sample
+        if (samplen <= 2)
+        {
+            continue; //zero length => empty sample
+        }
 
         BYTE* smpdata = new BYTE[samplen];
 
-        if (!smpdata) continue;		//could not be allocated
+        if (!smpdata)
+        {
+            continue; //could not be allocated
+        }
         memset(smpdata, 0, samplen);	//clear
 
         in.clear();		//due to reaching the end when eof is set
@@ -1606,16 +1951,25 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
         int minnote = im->minnote;
         int period = pertable[minnote];
         int parts = samplen / period;
-        if (parts < 1) parts = 1;
+        if (parts < 1)
+        {
+            parts = 1;
+        }
         if (im->replen > 2 || im->reppoint > 0)
         {
             //there is a loop
-            if (parts > 32) parts = 32;
+            if (parts > 32)
+            {
+                parts = 32;
+            }
         }
         else
         {
             //there is no loop
-            if (parts > 31) parts = 31; //32 parts reserved for silence
+            if (parts > 31)
+            {
+                parts = 31; //32 parts reserved for silence
+            }
         }
         int blocksize = samplen / parts;
         int blockp = blocksize - 1;		//-1 to shift the boundaries between partitions by 1 to the left
@@ -1633,20 +1987,32 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
             if (k == blockp)			//borders between divisions
             {
                 sumtab[ix] = sum;
-                if (sum > maxsum) maxsum = sum;	//the highest
+                if (sum > maxsum)
+                {
+                    maxsum = sum; //the highest
+                }
                 sum = 0;
                 blockp += blocksize;	//shifting the boundaries by the length of the section
                 ix++;
-                if (ix >= parts) break;
+                if (ix >= parts)
+                {
+                    break;
+                }
             }
         }
 
         double sampvol = (x_decreaseinstrument) ? ((double)im->volume / 0x3f) : 1;	//decimal number 0 to 1
-        if (x_volumeincrease) sampvol /= im->trackvolumeincrease;		//decreases as you increase the volume in treks
+        if (x_volumeincrease)
+        {
+            sampvol /= im->trackvolumeincrease; //decreases as you increase the volume in treks
+        }
         for (int k = 0; k < ix; k++)
         {
             int avol = (int)((double)16 * ((double)sumtab[k] / maxsum) * sampvol + 0.5);
-            if (avol > 15) avol = 15;
+            if (avol > 15)
+            {
+                avol = 15;
+            }
             rmti->envelope[k][EnvelopeParameter::VOLUMEL] = rmti->envelope[k][EnvelopeParameter::VOLUMER] = avol;
             rmti->envelope[k][EnvelopeParameter::DISTORTION] = 0x0a;	//pure tone
         }
@@ -1656,11 +2022,17 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
         {
             //loop
             int ego = (int)((double)im->reppoint / blocksize + 0.5);
-            if (ego > ix - 1) ego = ix - 1;
+            if (ego > ix - 1)
+            {
+                ego = ix - 1;
+            }
             rmti->parameters[PAR_ENV_GOTO] = ego;
             //and divides the end of the instrument according to the length of the loop
             int lopend = (int)((double)(im->reppoint + im->replen) / blocksize + 0.5);
-            if (lopend > ix - 1) lopend = ix - 1;
+            if (lopend > ix - 1)
+            {
+                lopend = ix - 1;
+            }
             rmti->parameters[PAR_ENV_LENGTH];
         }
         else

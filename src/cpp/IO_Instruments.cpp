@@ -60,17 +60,25 @@ int CInstruments::SaveInstrument(int instr, std::ostream& ou, InstrumentIOType i
 
         char bfpar[PARCOUNT], bfenv[ENVELOPE_MAX_COLUMNS][ENVROWS], bftab[NOTE_TABLE_MAX_LEN];
         //
-        for (j = 0; j < PARCOUNT; j++) bfpar[j] = ai->parameters[j];
+        for (j = 0; j < PARCOUNT; j++)
+        {
+            bfpar[j] = ai->parameters[j];
+        }
         ou.write(bfpar, sizeof(bfpar));
         //
         for (k = 0; k < ENVROWS; k++)
         {
             for (j = 0; j < ENVELOPE_MAX_COLUMNS; j++)
+            {
                 bfenv[j][k] = ai->envelope[j][k];
+            }
         }
         ou.write((char*)bfenv, sizeof(bfenv));
         //
-        for (j = 0; j < NOTE_TABLE_MAX_LEN; j++) bftab[j] = ai->noteTable[j];
+        for (j = 0; j < NOTE_TABLE_MAX_LEN; j++)
+        {
+            bftab[j] = ai->noteTable[j];
+        }
         ou.write(bftab, sizeof(bftab));
         //
         // plus editing options:
@@ -150,11 +158,18 @@ int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType i
             in.read((char*)&ibf, len);
             BOOL r;
             if (version == 0)
+            {
                 r = AtaV0ToInstr(ibf, instr);
+            }
             else
+            {
                 r = AtaToInstr(ibf, instr);
+            }
             Update(instr);	// writes to Atari RAM
-            if (!r) return 0; // if there was some problem with the instrument, return 0
+            if (!r)
+            {
+                return 0; // if there was some problem with the instrument, return 0
+            }
         }
     }
     break;
@@ -172,17 +187,25 @@ int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType i
         int j, k;
         //
         in.read(bfpar, sizeof(bfpar));
-        for (j = 0; j < PARCOUNT; j++) ai->parameters[j] = bfpar[j];
+        for (j = 0; j < PARCOUNT; j++)
+        {
+            ai->parameters[j] = bfpar[j];
+        }
         //
         in.read((char*)bfenv, sizeof(bfenv));
         for (j = 0; j < ENVELOPE_MAX_COLUMNS; j++)
         {
             for (k = 0; k < ENVROWS; k++)
+            {
                 ai->envelope[j][k] = bfenv[j][k];
+            }
         }
         //
         in.read((char*)bftab, sizeof(bftab));
-        for (j = 0; j < NOTE_TABLE_MAX_LEN; j++) ai->noteTable[j] = bftab[j];
+        for (j = 0; j < NOTE_TABLE_MAX_LEN; j++)
+        {
+            ai->noteTable[j] = bftab[j];
+        }
         //
         Update(instr);	//writes to Atari mem
         //
@@ -207,7 +230,10 @@ int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType i
         in.getline(line, 1024); //first row of the instrument
         int iins = Hexstr(line, 2);
 
-        if (instr == -1) instr = iins; //takes over the instrument number
+        if (instr == -1)
+        {
+            instr = iins; //takes over the instrument number
+        }
 
         if (instr < 0 || instr >= INSTRSNUM)
         {
@@ -222,14 +248,20 @@ int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType i
         Trimstr(value);
         memset(ai->name, ' ', INSTRUMENT_NAME_MAX_LEN);
         int lname = INSTRUMENT_NAME_MAX_LEN;
-        if (strlen(value) <= INSTRUMENT_NAME_MAX_LEN) lname = (int)strlen(value);
+        if (strlen(value) <= INSTRUMENT_NAME_MAX_LEN)
+        {
+            lname = (int)strlen(value);
+        }
         strncpy(ai->name, value, lname);
 
         int v, j, k, vlen;
         while (!in.eof())
         {
             in.read((char*)&b, 1);
-            if (b == '[') goto InstrEnd;	//end of instrument (beginning of something else)
+            if (b == '[')
+            {
+                goto InstrEnd; //end of instrument (beginning of something else)
+            }
             line[0] = b;
             in.getline(line + 1, 1024);
 
@@ -240,16 +272,24 @@ int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType i
                 value += 2;	//the first character after the space
             }
             else
+            {
                 continue;
+            }
 
             for (j = 0; j < NUMBER_OF_PARAMS; j++)
             {
                 if (strcmp(line, shpar[j].fieldName) == 0)
                 {
                     v = Hexstr(value, 2) - shpar[j].displayOffset;
-                    if (v < 0) goto NextInstrLine;
+                    if (v < 0)
+                    {
+                        goto NextInstrLine;
+                    }
                     v &= shpar[j].parameterAND;
-                    if (v > shpar[j].maxParameterValue) v = 0;
+                    if (v > shpar[j].maxParameterValue)
+                    {
+                        v = 0;
+                    }
                     ai->parameters[shpar[j].paramIndex] = v;
                     goto NextInstrLine;
                 }
@@ -261,7 +301,10 @@ int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType i
                 for (j = 0; j < vlen; j += 3)
                 {
                     v = Hexstr(value + j, 2);
-                    if (v < 0) goto NextInstrLine;
+                    if (v < 0)
+                    {
+                        goto NextInstrLine;
+                    }
                     ai->noteTable[j / 3] = v;
                 }
                 goto NextInstrLine;
@@ -274,7 +317,10 @@ int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType i
                     for (k = 0; (a = value[k]) && k < ENVELOPE_MAX_COLUMNS; k++)
                     {
                         v = Hexstr(&a, 1);
-                        if (v < 0) goto NextInstrLine;
+                        if (v < 0)
+                        {
+                            goto NextInstrLine;
+                        }
                         v &= shenv[j].pand;
                         ai->envelope[k][j] = v;
                     }

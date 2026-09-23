@@ -44,13 +44,25 @@ void CTuning::GenerateTable(byte* table, int length, int semitone, Timbre timbre
     //the channel number doesn't actually matter for creating tables, so the parameter is omitted
     bool JOIN_16BIT = ((JOIN_12 && CH1_179) || (JOIN_34 && CH3_179)) ? 1 : 0;
     bool CLOCK_179 = (CH1_179 || CH3_179) ? 1 : 0;
-    if (JOIN_16BIT || CLOCK_179) CLOCK_15 = 0;	//override, these 2 take priority over 15khz mode if they are enabled at the same time
+    if (JOIN_16BIT || CLOCK_179)
+    {
+        CLOCK_15 = 0; //override, these 2 take priority over 15khz mode if they are enabled at the same time
+    }
 
     //TODO: apply Two-Tone timer offset into calculations when channel 1+2 are linked in 1.79mhz mode
     //This would help generating tables using patterns discovered by synthpopalooza
-    if (JOIN_16BIT) cycle = 7;
-    else if (CLOCK_179) cycle = 4;
-    else coarse_divisor = (CLOCK_15) ? 114 : 28;
+    if (JOIN_16BIT)
+    {
+        cycle = 7;
+    }
+    else if (CLOCK_179)
+    {
+        cycle = 4;
+    }
+    else
+    {
+        coarse_divisor = (CLOCK_15) ? 114 : 28;
+    }
 
     //Many combinations depend entirely on the Modulo of POKEY frequencies to generate different tones
     //If a known value provide unstable results, it may be avoided on purpose
@@ -142,43 +154,73 @@ void CTuning::GenerateTable(byte* table, int length, int semitone, Timbre timbre
         switch (timbre)
         {
         case Timbre::BELL:
-            if (MOD31) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
+            if (MOD31)
+            {
+                audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
+            }
             break;
 
         case Timbre::BUZZY_4:
-            if (MOD3 || MOD5 || MOD31) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
+            if (MOD3 || MOD5 || MOD31)
+            {
+                audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
+            }
             break;
 
         case Timbre::SMOOTH_4:
-            if (!(MOD3 || CLOCK_15) || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
+            if (!(MOD3 || CLOCK_15) || MOD5)
+            {
+                audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
+            }
             if (!JOIN_16BIT && audf > 0xFF)
             {	//use the buzzy timbre on the lower range instead
                 audf = GetAUDF(pitch, coarse_divisor, 232.5, cycle);
                 MOD3 = ((audf + cycle) % 3 == 0);
                 MOD5 = ((audf + cycle) % 5 == 0);
-                if (MOD3 || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, 232.5, cycle, Timbre::BUZZY_4);
+                if (MOD3 || MOD5)
+                {
+                    audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, 232.5, cycle, Timbre::BUZZY_4);
+                }
             }
             break;
 
         case Timbre::GRITTY_C:
-            if (MOD3 || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
+            if (MOD3 || MOD5)
+            {
+                audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
+            }
             break;
 
         case Timbre::BUZZY_C:
-            if (!(MOD3 || CLOCK_15) || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
+            if (!(MOD3 || CLOCK_15) || MOD5)
+            {
+                audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, divisor, cycle, timbre);
+            }
             if (!JOIN_16BIT && audf > 0xFF)
             {	//use the gritty timbre on the lower range instead
                 audf = GetAUDF(pitch, coarse_divisor, 7.5, cycle);
                 MOD3 = ((audf + cycle) % 3 == 0);
                 MOD5 = ((audf + cycle) % 5 == 0);
-                if (MOD3 || MOD5) audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, 7.5, cycle, Timbre::GRITTY_C);
+                if (MOD3 || MOD5)
+                {
+                    audf = CalculateDeltaAUDF(pitch, audf, coarse_divisor, 7.5, cycle, Timbre::GRITTY_C);
+                }
             }
             break;
         }
 
-        if (audf < 0) audf = 0;
-        if (!JOIN_16BIT && audf > 0xFF) audf = 0xFF;
-        if (JOIN_16BIT && audf > 0xFFFF) audf = 0xFFFF;
+        if (audf < 0)
+        {
+            audf = 0;
+        }
+        if (!JOIN_16BIT && audf > 0xFF)
+        {
+            audf = 0xFF;
+        }
+        if (JOIN_16BIT && audf > 0xFFFF)
+        {
+            audf = 0xFFFF;
+        }
 
         // Write the POKEY frequency to the table
         if (JOIN_16BIT)

@@ -35,9 +35,13 @@ int CASMFileBuilder::BuildInstrumentData(
             l = 0;
         }
         if (l % 16 == 0)
+        {
             strCode += "\n    {{byte}} ";
+        }
         else
+        {
             strCode += ",";
+        }
         str.Format("$%02x", buf[i]);
         strCode += str;
 
@@ -78,9 +82,13 @@ int CASMFileBuilder::BuildTracksData(
             l = 0;
         }
         if (l % 16 == 0)
+        {
             strCode += "\n    {{byte}} ";
+        }
         else
+        {
             strCode += ",";
+        }
         str.Format("$%02x", buf[i]);
         strCode += str;
 
@@ -89,7 +97,9 @@ int CASMFileBuilder::BuildTracksData(
     for (int i = 0; i < 65536; i++)
     {
         if (track_pos[i] != 0)
+        {
             return 0;
+        }
     }
     return sizeTrack;
 }
@@ -143,12 +153,16 @@ int CASMFileBuilder::BuildSongData(
             jmp = 0;
             // Allows terminating song on last JUMP
             if (i + 1 == len && numTracks == 8)
+            {
                 l += 4;
+            }
 
             continue;
         }
         else if (jmp == -1)
+        {
             jmp = -2;
+        }
 
         if (l % numTracks == 0)
         {
@@ -156,16 +170,22 @@ int CASMFileBuilder::BuildSongData(
             strCode += str;
         }
         else
+        {
             strCode += ",";
+        }
         str.Format("$%02x", buf[i]);
         strCode += str;
 
         if (buf[i] == 0xfe)
         {
             if ((l % numTracks) != 0)
+            {
                 return 0;
+            }
             else
+            {
                 jmp = -1;
+            }
         }
 
         ++sizeSongLines;

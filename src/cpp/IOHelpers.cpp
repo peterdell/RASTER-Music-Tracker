@@ -10,11 +10,18 @@ CString GetFilePath(CString pathandfilename)
 	//(just from the beginning to the last slash (/ or \)
 	CString res;
 	int pos = pathandfilename.ReverseFind('/');
-	if (pos < 0) pos = pathandfilename.ReverseFind('\\');
+	if (pos < 0)
+	{
+		pos = pathandfilename.ReverseFind('\\');
+	}
 	if (pos >= 0)
+	{
 		res = pathandfilename.Mid(0, pos); //from 0 to pos
+	}
 	else
+	{
 		res = "";
+	}
 	return res;
 }
 
@@ -24,7 +31,10 @@ BOOL NextSegment(std::istream& in)
 	while (!in.eof())
 	{
 		in.read((char*)&b, 1);
-		if (b == '[') return 1;	//end of segment (beginning of something else)
+		if (b == '[')
+		{
+			return 1; //end of segment (beginning of something else)
+		}
 	}
 	return 0;
 }
@@ -69,15 +79,25 @@ int Hexstr(char* txt, int len)
 	for (i = 0; (a = txt[i]) && i < len; i++)
 	{
 		if (a >= '0' && a <= '9')
+		{
 			r = (r << 4) + (a - '0');
+		}
 		else if (a >= 'A' && a <= 'F')
+		{
 			r = (r << 4) + (a - 'A' + 10);
+		}
 		else
 		{
-			if (i == 0) r = -1; //nothing
+			if (i == 0)
+			{
+				r = -1; //nothing
+			}
 			return r;
 		}
 	}
-	if (i == 0) r = -1; //nothing
+	if (i == 0)
+	{
+		r = -1; //nothing
+	}
 	return r;
 }

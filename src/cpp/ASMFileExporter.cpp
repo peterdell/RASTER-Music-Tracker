@@ -37,7 +37,10 @@ bool CASMFileExporter::ExportAsAsm(const CSong& song, std::ofstream& ou, TExport
     CExportAsmDlg dlg;
     dlg.m_prefixForAllAsmLabels = g_PrefixForAllAsmLabels;
 
-    if (dlg.DoModal() != IDOK) return false;
+    if (dlg.DoModal() != IDOK)
+    {
+        return false;
+    }
 
     // Save for future ASM exports
     g_PrefixForAllAsmLabels = dlg.m_prefixForAllAsmLabels;
@@ -55,7 +58,10 @@ bool CASMFileExporter::ExportAsRelocatableAsmForRmtPlayer(CSong& song, std::ofst
 
     // Create a variant for SFX (ie. including unused instruments and tracks)
     exportDescWithSFX.firstByteAfterModule = song.MakeModule(exportDescWithSFX.mem, exportDescWithSFX.targetAddrOfModule, SongIOType::RMT, exportDescWithSFX.instrumentSavedFlags, exportDescWithSFX.trackSavedFlags);
-    if (exportDescWithSFX.firstByteAfterModule < 0) return false;	// if the module could not be created
+    if (exportDescWithSFX.firstByteAfterModule < 0)
+    {
+        return false; // if the module could not be created
+    }
 
     CExportRelocatableAsmForRmtPlayer dlg;
     dlg.m_exportDescStripped = exportDescStripped;
@@ -76,7 +82,10 @@ bool CASMFileExporter::ExportAsRelocatableAsmForRmtPlayer(CSong& song, std::ofst
     dlg.m_song = &song;
     dlg.m_filename = "";
 
-    if (dlg.DoModal() != IDOK) return false;
+    if (dlg.DoModal() != IDOK)
+    {
+        return false;
+    }
 
     // Save the dialog settings for future exports
     g_AsmLabelForStartOfSong = dlg.m_strAsmLabelForStartOfSong;

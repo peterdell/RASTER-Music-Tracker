@@ -40,11 +40,23 @@ void CUndo::Clear()
 char CUndo::DeleteEvent(int i)
 {
     TUndoEvent* ue = m_uar[i];
-    if (!ue) return 1;
+    if (!ue)
+    {
+        return 1;
+    }
     char sep = ue->separator; //storage for return
-    if (ue->cursor) delete[] ue->cursor;
-    if (ue->pos) delete[] ue->pos;
-    if (ue->data) delete[] ue->data;
+    if (ue->cursor)
+    {
+        delete[] ue->cursor;
+    }
+    if (ue->pos)
+    {
+        delete[] ue->pos;
+    }
+    if (ue->data)
+    {
+        delete[] ue->data;
+    }
     delete ue;
     m_uar[i] = NULL;
     return sep;
@@ -67,7 +79,10 @@ BOOL CUndo::Undo()
     {
         m_head = (m_head + MAXUNDO - 1) % MAXUNDO;
         PerformEvent(m_head);
-        if (m_head == m_tail) break;
+        if (m_head == m_tail)
+        {
+            break;
+        }
         prev = (m_head + MAXUNDO - 1) % MAXUNDO;
         sep = m_uar[prev]->separator;
     } while (sep == -1);
@@ -111,7 +126,10 @@ void CUndo::InsertEvent(TUndoEvent* ue)
     //add cursor
     ue->part = g_activepart;
     ue->cursor = g_Song.GetUECursor(g_activepart);
-    if (m_uar[m_head]) DeleteEvent(m_head);
+    if (m_uar[m_head])
+    {
+        DeleteEvent(m_head);
+    }
     m_uar[m_head] = ue;
     //is there an event already?
     if (m_head != m_tail)
@@ -134,7 +152,10 @@ void CUndo::InsertEvent(TUndoEvent* ue)
         }
     }
     //
-    if (ue->separator != -1) m_undosteps++; //only complete events are included
+    if (ue->separator != -1)
+    {
+        m_undosteps++; //only complete events are included
+    }
     m_head = (m_head + 1) % MAXUNDO;
     if ((m_undosteps > UNDOSTEPS)
         || ((m_head + 1) % MAXUNDO == m_tail))
@@ -163,13 +184,19 @@ void CUndo::Separator(int sep)
 {
     auto le = m_uar[(m_head + MAXUNDO - 1) % MAXUNDO];
     if (!le) { return; }
-    if (sep < 0 && le->separator >= 0) m_undosteps--; //the number of undo counted in InsertEvent
+    if (sep < 0 && le->separator >= 0)
+    {
+        m_undosteps--; //the number of undo counted in InsertEvent
+    }
     le->separator = sep;
 }
 
 void CUndo::ChangeTrack(int tracknum, int trackline, UndoType type, char separator)
 {
-    if (!g_Tracks.IsValidTrack(tracknum) || !g_Tracks.IsValidLine(trackline)) return;
+    if (!g_Tracks.IsValidTrack(tracknum) || !g_Tracks.IsValidLine(trackline))
+    {
+        return;
+    }
 
     auto tr = g_Tracks.GetTrack(tracknum);
 
@@ -231,7 +258,10 @@ void CUndo::ChangeTrack(int tracknum, int trackline, UndoType type, char separat
 
 void CUndo::ChangeSong(int songline, int trackcol, UndoType type, char separator)
 {
-    if (songline < 0 || trackcol < 0) return;
+    if (songline < 0 || trackcol < 0)
+    {
+        return;
+    }
 
     TSong* song;
 
@@ -276,7 +306,10 @@ void CUndo::ChangeInstrument(int instrnum, int paridx, UndoType type, char separ
 {
     TInstrument* instr = g_Instruments.GetInstrument(instrnum);
     TInstrumentsAll* insall = g_Instruments.GetInstrumentsAll();
-    if (!instr || !insall) return;
+    if (!instr || !insall)
+    {
+        return;
+    }
 
     // An event with the original status at a different place
     TUndoEvent* ue = new TUndoEvent;
@@ -365,7 +398,10 @@ void ExchangeInt(int& a, int& b)
 char CUndo::PerformEvent(int i)
 {
     TUndoEvent* ue = m_uar[i];
-    if (!ue) return 1;
+    if (!ue)
+    {
+        return 1;
+    }
 
     TTrack* tr;
     TInstrument* in;
