@@ -263,7 +263,6 @@ TEST_F(InstrumentsCoreTest, SetEnvelopeVolumeSetsLeftChannelInMonoModeRegardless
     g_tracks4_8 = 4; // mono
     TInstrument* ai = instruments.GetInstrument(kInstr);
     ai->parameters[PAR_ENV_LENGTH] = 1;
-    ai->envelope[0][EnvelopeParameter::VOLUMER] = 0; // known baseline - see comment below
 
     instruments.SetEnvelopeVolume(kInstr, TRUE, 0, 9);
 
@@ -275,13 +274,6 @@ TEST_F(InstrumentsCoreTest, SetEnvelopeVolumeSetsRightChannelInStereoModeWhenReq
     g_tracks4_8 = 8; // stereo
     TInstrument* ai = instruments.GetInstrument(kInstr);
     ai->parameters[PAR_ENV_LENGTH] = 1;
-    // CInstruments::CInstruments() allocates m_instr with plain `new[]` (no
-    // zero-initialization - same as CTracks::m_track, never fixed there
-    // either since InitTracks()/ClearInstrument() are always called before
-    // real use) - explicitly set a known baseline rather than relying on
-    // incidental zeroed memory.
-    ai->envelope[0][EnvelopeParameter::VOLUMEL] = 0;
-    ai->envelope[0][EnvelopeParameter::VOLUMER] = 0;
 
     instruments.SetEnvelopeVolume(kInstr, TRUE, 0, 9);
 
@@ -292,7 +284,6 @@ TEST_F(InstrumentsCoreTest, SetEnvelopeVolumeSetsRightChannelInStereoModeWhenReq
 TEST_F(InstrumentsCoreTest, SetEnvelopeVolumeIgnoresOutOfRangePosition) {
     TInstrument* ai = instruments.GetInstrument(kInstr);
     ai->parameters[PAR_ENV_LENGTH] = 1;
-    ai->envelope[0][EnvelopeParameter::VOLUMEL] = 0; // known baseline - see comment above
 
     instruments.SetEnvelopeVolume(kInstr, FALSE, -1, 9);
     instruments.SetEnvelopeVolume(kInstr, FALSE, 2, 9); // > PAR_ENV_LENGTH + 1
@@ -303,7 +294,6 @@ TEST_F(InstrumentsCoreTest, SetEnvelopeVolumeIgnoresOutOfRangePosition) {
 TEST_F(InstrumentsCoreTest, SetEnvelopeVolumeIgnoresOutOfRangeVolume) {
     TInstrument* ai = instruments.GetInstrument(kInstr);
     ai->parameters[PAR_ENV_LENGTH] = 1;
-    ai->envelope[0][EnvelopeParameter::VOLUMEL] = 0; // known baseline - see comment above
 
     instruments.SetEnvelopeVolume(kInstr, FALSE, 0, -1);
     instruments.SetEnvelopeVolume(kInstr, FALSE, 0, 16);

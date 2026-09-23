@@ -86,14 +86,16 @@ deferring" discipline as the rest of this effort.
    predicted here - linked directly (`RmtTests.vcxproj`), the 3 no-op
    stubs in `InstrumentsStub.cpp` removed, 11 new tests added
    (`InstrumentsCoreTest` in `InstrumentsTests.cpp`). One real, unrelated
-   finding along the way: `CInstruments`'s constructor allocates `m_instr`
-   with plain `new[]` (no zero-initialization) - same shape as
-   `CTracks::m_track`, never fixed there either since `InitTracks()`/
-   `InitInstruments()` are always called before real use elsewhere - so
-   tests explicitly set a known baseline before asserting on
-   previously-untouched fields, rather than fixing the allocation itself
-   (consistent with the existing `CTracks` precedent). 291 tests passing
-   (up from 280), 0 regressions.
+   finding along the way, since fixed at the user's explicit request:
+   `CInstruments`'s constructor allocated `m_instr` with plain `new[]` (no
+   zero-initialization) - same shape as `CTracks::m_track`. Initially left
+   alone to match the existing (never-fixed) `CTracks` precedent, with
+   tests explicitly setting a known baseline instead; the user then asked
+   for the constructor itself to be fixed, so it now uses value-initializing
+   `new TInstrument[INSTRSNUM]()`, and the tests' now-redundant explicit
+   baselines were removed again. `CTracks::m_track` itself is unchanged -
+   this fix was scoped to `CInstruments` only, not requested more broadly.
+   291 tests passing (up from 280), 0 regressions.
 4. **`AtariTrackerDriver.cpp` remainder (72 lines, small).** `Init()`,
    `SetPokey()`, `Silence()` all delegate only to the already-stubbed no-op
    `m_atari->JSR()`. `LoadRMTRoutines()` uses the same

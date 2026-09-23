@@ -2251,22 +2251,40 @@ build clean and all 123 tests pass.
       touch the real `g_Instruments` global - `Update()`/
       `InstrumentTurnOff()` both operate via `this`/an unrelated global,
       not `g_Instruments` specifically).
-      - **Found (but did not fix) a real, pre-existing quirk while writing
-        tests**: `CInstruments::CInstruments()` allocates `m_instr` with
-        plain `new TInstrument[INSTRSNUM]` - no zero-initialization, so a
-        freshly-constructed, never-`ClearInstrument()`-ed instrument's
-        fields are indeterminate. First surfaced as 3 flaky-looking test
-        failures (stack/heap memory reuse between successive test
-        fixtures made some runs "accidentally" see zeroed memory and pass,
-        others see a previous test's leftover values). Confirmed this is
-        the exact same shape as `CTracks::m_track`'s allocation (also
-        plain `new[]`, also never fixed) - not a new bug class, and this
-        project already established the precedent of leaving it alone
-        since `InitTracks()`/`InitInstruments()` are always called before
-        real use in both production and every existing test fixture. Kept
-        consistent with that precedent: fixed the *tests* (explicitly set
-        a known baseline before asserting on a field the test itself
-        never previously touched) rather than the allocation.
+      - **Found (initially did not fix) a real, pre-existing quirk while
+        writing tests**: `CInstruments::CInstruments()` allocates `m_instr`
+        with plain `new TInstrument[INSTRSNUM]` - no zero-initialization,
+        so a freshly-constructed, never-`ClearInstrument()`-ed
+        instrument's fields are indeterminate. First surfaced as 3
+        flaky-looking test failures (stack/heap memory reuse between
+        successive test fixtures made some runs "accidentally" see
+        zeroed memory and pass, others see a previous test's leftover
+        values). Confirmed this is the exact same shape as
+        `CTracks::m_track`'s allocation (also plain `new[]`, also never
+        fixed) - not a new bug class, and this project already
+        established the precedent of leaving it alone since
+        `InitTracks()`/`InitInstruments()` are always called before real
+        use in both production and every existing test fixture. Initially
+        kept consistent with that precedent: fixed the *tests* (explicitly
+        set a known baseline before asserting on a field the test itself
+        never previously touched) rather than the allocation - see the
+        follow-up entry below where the user asked for the allocation
+        itself to be fixed after all.
       - Full solution rebuild (`Rmt.exe` + `RmtTests.exe`, Release|x64)
         confirmed 0 errors; 291 tests pass (up from 280, +11, 0
-        regressions). Not yet committed.
+        regressions). Committed (`5fed437`).
+- [x] User explicitly asked to fix `CInstruments`'s constructor after all
+      (overriding the "leave it consistent with the `CTracks` precedent"
+      call made above), so `InstrumentsCore.cpp`'s
+      `m_instr = new TInstrument[INSTRSNUM];` became
+      `m_instr = new TInstrument[INSTRSNUM]();` (value-initialization -
+      zeros every element, valid since `TInstrument` is a plain aggregate
+      with no constructor of its own). Removed the 3 tests' now-redundant
+      explicit "known baseline" lines added in the previous entry, since
+      the constructor now establishes that baseline itself. Scoped to
+      `CInstruments` only, as asked - `CTracks::m_track`'s identical-shape
+      allocation was deliberately left untouched, not fixed opportunistically.
+      Full solution rebuild (`Rmt.exe` + `RmtTests.exe`, Release|x64)
+      confirmed 0 errors; 291 tests pass, 0 regressions (purely an
+      initialization fix - no test needed to change its assertions, only
+      the redundant setup lines were removable). Not yet committed.

@@ -21,7 +21,11 @@ extern CAtari g_Atari;
 /// TODO: Initialise more parameters, set #define values to static constants
 /// </summary>
 CInstruments::CInstruments() : canvasXY(nullptr) {
-    m_instr = new TInstrument[INSTRSNUM];
+    // Value-initialize (zero) every element - plain `new[]` would leave
+    // each TInstrument's fields indeterminate until ClearInstrument()/
+    // InitInstruments() is called (same shape as CTracks::m_track's
+    // allocation).
+    m_instr = new TInstrument[INSTRSNUM]();
 }
 
 /// <summary>
