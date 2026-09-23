@@ -122,6 +122,7 @@
     <ClCompile Include="..\InstrumentsCore.cpp" />
     <ClCompile Include="..\InstrumentsAtaFormat.cpp" />
     <ClCompile Include="..\IO_Instruments.cpp" />
+    <ClCompile Include="..\Instruments.cpp" />
     <ClCompile Include="InstrumentsStub.cpp" />
     <ClCompile Include="..\SAPFile.cpp" />
     <ClCompile Include="..\SAPFileExporterCore.cpp" />

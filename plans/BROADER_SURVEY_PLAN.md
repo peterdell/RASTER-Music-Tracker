@@ -80,14 +80,20 @@ deferring" discipline as the rest of this effort.
    `UndoStub.cpp`'s no-op stub) but its own methods have never been
    characterized directly - real undo/redo behavior is significant
    production functionality.
-3. **`Instruments.cpp` remainder (112 lines, small/low-risk).**
-   `ClearInstrument`, `SetEnvelopeVolume`, `MemorizeOctaveAndVolume`,
-   `RememberOctaveAndVolume` - all call only already-safe globals/methods
-   (`g_AtariTrackerDriver->InstrumentTurnOff()` is already in
-   `AtariTrackerDriverCore.cpp`; `Update()` already has real behavior per
-   Batch 3). Only needs one new trivial global stub
-   (`g_keyboard_RememberOctavesAndVolumes`, a plain bool). Cheapest win
-   here.
+3. **`Instruments.cpp` remainder - DONE.** `ClearInstrument`,
+   `SetEnvelopeVolume`, `MemorizeOctaveAndVolume`, `RememberOctaveAndVolume`
+   all confirmed to call only already-safe globals/methods, exactly as
+   predicted here - linked directly (`RmtTests.vcxproj`), the 3 no-op
+   stubs in `InstrumentsStub.cpp` removed, 11 new tests added
+   (`InstrumentsCoreTest` in `InstrumentsTests.cpp`). One real, unrelated
+   finding along the way: `CInstruments`'s constructor allocates `m_instr`
+   with plain `new[]` (no zero-initialization) - same shape as
+   `CTracks::m_track`, never fixed there either since `InitTracks()`/
+   `InitInstruments()` are always called before real use elsewhere - so
+   tests explicitly set a known baseline before asserting on
+   previously-untouched fields, rather than fixing the allocation itself
+   (consistent with the existing `CTracks` precedent). 291 tests passing
+   (up from 280), 0 regressions.
 4. **`AtariTrackerDriver.cpp` remainder (72 lines, small).** `Init()`,
    `SetPokey()`, `Silence()` all delegate only to the already-stubbed no-op
    `m_atari->JSR()`. `LoadRMTRoutines()` uses the same

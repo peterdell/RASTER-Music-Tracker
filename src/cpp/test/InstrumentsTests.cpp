@@ -215,3 +215,158 @@ TEST_F(InstrumentAtaFormatTest, AtaV0ToInstrDecodesOldFormat) {
     EXPECT_EQ(env1[EnvelopeParameter::X], 8);
     EXPECT_EQ(env1[EnvelopeParameter::Y], 15);
 }
+
+// --- ClearInstrument / SetEnvelopeVolume / MemorizeOctaveAndVolume / RememberOctaveAndVolume ---
+// (Instruments.cpp - see plans/BROADER_SURVEY_PLAN.md's "cheapest win"
+// candidate: every dependency here turned out already real and safe.)
+
+extern BOOL g_keyboard_RememberOctavesAndVolumes;
+
+class InstrumentsCoreTest : public ::testing::Test {
+  protected:
+    CInstruments instruments;
+
+    void TearDown() override {
+        g_tracks4_8 = 4;
+        g_keyboard_RememberOctavesAndVolumes = FALSE;
+    }
+};
+
+TEST_F(InstrumentsCoreTest, ClearInstrumentResetsToStartupDefaults) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_ENV_LENGTH] = 5;
+    ai->octave = 3;
+    ai->volume = 2;
+    ai->activeEditSection = InstrumentSection::NAME;
+
+    instruments.ClearInstrument(kInstr);
+
+    EXPECT_EQ(memcmp(ai->name, "Instrument 00  ", 15), 0);
+    EXPECT_EQ(ai->activeEditSection, InstrumentSection::ENVELOPE);
+    EXPECT_EQ(ai->editNameCursorPos, 0);
+    EXPECT_EQ(ai->editParameterNr, PAR_ENV_LENGTH);
+    EXPECT_EQ(ai->editEnvelopeX, 0);
+    EXPECT_EQ(ai->editEnvelopeY, 1);
+    EXPECT_EQ(ai->editNoteTableCursorPos, 0);
+    EXPECT_EQ(ai->octave, 0);
+    EXPECT_EQ(ai->volume, 15); // MAXVOLUME (SongTypes.h, not otherwise needed by this file)
+    EXPECT_EQ(ai->parameters[PAR_ENV_LENGTH], 0);
+}
+
+TEST_F(InstrumentsCoreTest, ClearInstrumentIgnoresOutOfRangeIndex) {
+    instruments.ClearInstrument(-1);
+    instruments.ClearInstrument(INSTRSNUM);
+    // No crash - nothing further to assert (GetInstrument() guards both).
+}
+
+TEST_F(InstrumentsCoreTest, SetEnvelopeVolumeSetsLeftChannelInMonoModeRegardlessOfRightFlag) {
+    g_tracks4_8 = 4; // mono
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_ENV_LENGTH] = 1;
+    ai->envelope[0][EnvelopeParameter::VOLUMER] = 0; // known baseline - see comment below
+
+    instruments.SetEnvelopeVolume(kInstr, TRUE, 0, 9);
+
+    EXPECT_EQ(ai->envelope[0][EnvelopeParameter::VOLUMEL], 9);
+    EXPECT_EQ(ai->envelope[0][EnvelopeParameter::VOLUMER], 0);
+}
+
+TEST_F(InstrumentsCoreTest, SetEnvelopeVolumeSetsRightChannelInStereoModeWhenRequested) {
+    g_tracks4_8 = 8; // stereo
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_ENV_LENGTH] = 1;
+    // CInstruments::CInstruments() allocates m_instr with plain `new[]` (no
+    // zero-initialization - same as CTracks::m_track, never fixed there
+    // either since InitTracks()/ClearInstrument() are always called before
+    // real use) - explicitly set a known baseline rather than relying on
+    // incidental zeroed memory.
+    ai->envelope[0][EnvelopeParameter::VOLUMEL] = 0;
+    ai->envelope[0][EnvelopeParameter::VOLUMER] = 0;
+
+    instruments.SetEnvelopeVolume(kInstr, TRUE, 0, 9);
+
+    EXPECT_EQ(ai->envelope[0][EnvelopeParameter::VOLUMER], 9);
+    EXPECT_EQ(ai->envelope[0][EnvelopeParameter::VOLUMEL], 0);
+}
+
+TEST_F(InstrumentsCoreTest, SetEnvelopeVolumeIgnoresOutOfRangePosition) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_ENV_LENGTH] = 1;
+    ai->envelope[0][EnvelopeParameter::VOLUMEL] = 0; // known baseline - see comment above
+
+    instruments.SetEnvelopeVolume(kInstr, FALSE, -1, 9);
+    instruments.SetEnvelopeVolume(kInstr, FALSE, 2, 9); // > PAR_ENV_LENGTH + 1
+
+    EXPECT_EQ(ai->envelope[0][EnvelopeParameter::VOLUMEL], 0);
+}
+
+TEST_F(InstrumentsCoreTest, SetEnvelopeVolumeIgnoresOutOfRangeVolume) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_ENV_LENGTH] = 1;
+    ai->envelope[0][EnvelopeParameter::VOLUMEL] = 0; // known baseline - see comment above
+
+    instruments.SetEnvelopeVolume(kInstr, FALSE, 0, -1);
+    instruments.SetEnvelopeVolume(kInstr, FALSE, 0, 16);
+
+    EXPECT_EQ(ai->envelope[0][EnvelopeParameter::VOLUMEL], 0);
+}
+
+TEST_F(InstrumentsCoreTest, MemorizeOctaveAndVolumeStoresBothWhenEnabled) {
+    g_keyboard_RememberOctavesAndVolumes = TRUE;
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+
+    instruments.MemorizeOctaveAndVolume(kInstr, 3, 10);
+
+    EXPECT_EQ(ai->octave, 3);
+    EXPECT_EQ(ai->volume, 10);
+}
+
+TEST_F(InstrumentsCoreTest, MemorizeOctaveAndVolumeIgnoresNegativeValues) {
+    g_keyboard_RememberOctavesAndVolumes = TRUE;
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->octave = 3;
+    ai->volume = 10;
+
+    instruments.MemorizeOctaveAndVolume(kInstr, -1, -1);
+
+    EXPECT_EQ(ai->octave, 3);
+    EXPECT_EQ(ai->volume, 10);
+}
+
+TEST_F(InstrumentsCoreTest, MemorizeOctaveAndVolumeDoesNothingWhenDisabled) {
+    g_keyboard_RememberOctavesAndVolumes = FALSE;
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->octave = 3;
+    ai->volume = 10;
+
+    instruments.MemorizeOctaveAndVolume(kInstr, 5, 12);
+
+    EXPECT_EQ(ai->octave, 3);
+    EXPECT_EQ(ai->volume, 10);
+}
+
+TEST_F(InstrumentsCoreTest, RememberOctaveAndVolumeReadsBothWhenEnabled) {
+    g_keyboard_RememberOctavesAndVolumes = TRUE;
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->octave = 4;
+    ai->volume = 11;
+
+    int oct = -99, vol = -99;
+    instruments.RememberOctaveAndVolume(kInstr, oct, vol);
+
+    EXPECT_EQ(oct, 4);
+    EXPECT_EQ(vol, 11);
+}
+
+TEST_F(InstrumentsCoreTest, RememberOctaveAndVolumeDoesNothingWhenDisabled) {
+    g_keyboard_RememberOctavesAndVolumes = FALSE;
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->octave = 4;
+    ai->volume = 11;
+
+    int oct = -99, vol = -99;
+    instruments.RememberOctaveAndVolume(kInstr, oct, vol);
+
+    EXPECT_EQ(oct, -99);
+    EXPECT_EQ(vol, -99);
+}

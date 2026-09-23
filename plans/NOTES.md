@@ -2232,4 +2232,41 @@ build clean and all 123 tests pass.
       `SongEditingTests.cpp` claiming `g_Undo`'s `ChangeTrack`/
       `ChangeSong` were still stubbed. Full solution rebuild (`Rmt.exe` +
       `RmtTests.exe`, Release|x64) confirmed 0 errors; 280 tests pass (up
-      from 250, +30, 0 regressions). Not yet committed.
+      from 250, +30, 0 regressions). Committed (`9515376`).
+- [x] Implemented `plans/BROADER_SURVEY_PLAN.md`'s `Instruments.cpp`
+      remainder candidate (user: "yes" to opening it, after asking "what
+      pieces are next?" and being given the priority-ordered list of
+      everything still open across every plan doc). Confirmed the survey's
+      predictions by reading `Instruments.cpp` in full: `ClearInstrument`/
+      `SetEnvelopeVolume`/`MemorizeOctaveAndVolume`/
+      `RememberOctaveAndVolume` only need `g_AtariTrackerDriver`
+      (real, `AtariTrackerDriverCore.cpp`), `g_tracks4_8`/
+      `g_keyboard_RememberOctavesAndVolumes` (both already real globals),
+      and `Update()` (real since Batch 3) - nothing hazardous left. Linked
+      `Instruments.cpp` directly into `RmtTests.vcxproj`; trimmed
+      `test/InstrumentsStub.cpp`'s 3 no-op stub bodies (kept only the
+      still-needed `g_tracks4_8` storage). Added `InstrumentsCoreTest` (11
+      tests) to `test/InstrumentsTests.cpp`, testing each method's real
+      behavior directly on a local `CInstruments` instance (no need to
+      touch the real `g_Instruments` global - `Update()`/
+      `InstrumentTurnOff()` both operate via `this`/an unrelated global,
+      not `g_Instruments` specifically).
+      - **Found (but did not fix) a real, pre-existing quirk while writing
+        tests**: `CInstruments::CInstruments()` allocates `m_instr` with
+        plain `new TInstrument[INSTRSNUM]` - no zero-initialization, so a
+        freshly-constructed, never-`ClearInstrument()`-ed instrument's
+        fields are indeterminate. First surfaced as 3 flaky-looking test
+        failures (stack/heap memory reuse between successive test
+        fixtures made some runs "accidentally" see zeroed memory and pass,
+        others see a previous test's leftover values). Confirmed this is
+        the exact same shape as `CTracks::m_track`'s allocation (also
+        plain `new[]`, also never fixed) - not a new bug class, and this
+        project already established the precedent of leaving it alone
+        since `InitTracks()`/`InitInstruments()` are always called before
+        real use in both production and every existing test fixture. Kept
+        consistent with that precedent: fixed the *tests* (explicitly set
+        a known baseline before asserting on a field the test itself
+        never previously touched) rather than the allocation.
+      - Full solution rebuild (`Rmt.exe` + `RmtTests.exe`, Release|x64)
+        confirmed 0 errors; 291 tests pass (up from 280, +11, 0
+        regressions). Not yet committed.
