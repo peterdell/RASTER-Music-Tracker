@@ -2437,5 +2437,41 @@ build clean and all 123 tests pass.
         no hangs. Full solution rebuild (`Rmt.exe` + `RmtTests.exe`,
         Release|x64) confirmed 0 errors; 301 tests pass (up from 299, +2,
         0 regressions). This closes `plans/EXPORTV2_PLAN.md`'s Tier 2
-        family entirely - nothing from that scope remains deferred. Not
-        yet committed.
+        family entirely - nothing from that scope remains deferred.
+        Committed (`9a0f494`).
+- [x] With the characterization-testing phase essentially exhausted (per
+      `plans/BROADER_SURVEY_PLAN.md`'s own "nothing else worth pursuing"
+      conclusion), asked "what's next?" - the user pointed out that the
+      Java port can't be planned without first understanding the current
+      UI, since the ported app needs to match today's Windows UI, not just
+      the model classes. Forked a read-only investigation
+      (`plans/UI_SURVEY_PLAN.md`, ~311 lines): confirmed `CRmtDoc` is
+      explicitly unused (its own comment says so) - the real architecture
+      is global objects (`g_Song` etc.) plus one `CRmtView` controller/
+      view class, not real MVC; rendering is a single off-screen GDI
+      bitmap redrawn every 16ms and `StretchBlt`'d to screen, with all
+      text/graphics as a hand-rolled bitmap font blitted from one sprite
+      sheet (`IDB_GFX`) rather than real GDI text; the keyboard model is a
+      clean `Part` x `EditMode` dispatch; ~25 real dialogs were inventoried
+      and cross-referenced against what characterization testing already
+      established about their `*Apply()`-core splits (confirming
+      `plans/FILE_TIERING_STRATEGY.md`'s composition option has genuine
+      seams to use). Also answered a follow-up factual question (Java's
+      `javax.sound.midi` vs. RMT's raw `mmsystem.h` MIDI code - concluded
+      Java's API is simpler for the I/O plumbing itself, but the real
+      complexity is `Midi_Song.cpp`'s ~600 lines of dispatch logic, which
+      the code's own comments call "very terrible... will eventually be
+      replaced").
+      - Asked the three open questions the survey couldn't resolve on its
+        own initiative, with the user's answers:
+        1. **Visual style**: keep the exact pixelated bitmap-font look
+           (not modernize) - the `IDB_GFX` sheet will need extracting to a
+           plain image file for the Java port.
+        2. **Debug UI** (`Pokey` register-poking submenu,
+           `PokeyView`/`AtariView` overlays): keep from the start, not
+           dropped/deprioritized.
+        3. **MIDI**: deferred entirely for the initial port, matching the
+           recommendation - not part of the first Java port's scope.
+      - Recorded all three answers in `plans/UI_SURVEY_PLAN.md`'s "Open
+        questions" section. No Java port work has actually started yet -
+        this was survey/decision-recording only.
