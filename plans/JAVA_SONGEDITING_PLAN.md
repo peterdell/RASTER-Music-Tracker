@@ -100,12 +100,25 @@ clipboard). **`TrackCopy`/`TrackPaste` are excluded** - they use
 ### 5. Bookmark/settings
 `SetBookmark`, `SetTracks`/`SetNTSC`, `ResetTuningVariables`.
 
-### 6. The three "info/dialog" methods
+### 6. The three "info/dialog" methods - DONE (commit pending)
 `InstrInfo`, `InstrChangeApply`, `TrackInfo` - already refactored on the
-C++ side into the dual-mode (output-parameter vs. `MessageBox`) shape
-`Instruments`'s own methods already follow in Java (see
-`plans/DUAL_MODE_PATTERN_PLAN.md`). Should port cleanly using the same
-idiom already established for `Instruments`.
+C++ side into the dual-mode (output-parameter vs. `MessageBox`) shape (see
+`plans/DUAL_MODE_PATTERN_PLAN.md`).
+
+**Simplification found while implementing**: since the Java port has no
+UI/window to show a `MessageBox` in, and only the non-null-output-parameter
+branch is tested, the `MessageBox`-building branch (and the local arrays
+that exist solely to feed it, e.g. `InstrInfo`'s `withnote[]`/`intrack[]`)
+isn't ported at all - not even as a dead/unreachable code path. This is
+simpler than a literal "dual-mode" port (which would still carry an
+`if (info != null) {...} else {...}` shape); there's no `else` branch to
+carry, since there's nothing to show it. `InstrChangeApply`'s
+`CString* resultMsg` output parameter (non-null in every test) becomes a
+plain returned `String` for the same reason. `InstrInfo`/`TrackInfo`'s
+output structs became mutable classes (not immutable records), matching
+`SongInfo`'s existing precedent, since `TrackInfo`'s own test relies on
+the "leaves the struct untouched for invalid input" contract - a record
+can't represent "untouched," only "returns some value."
 
 ### 7. Module format - buffers
 `MakeModule`, `DecodeModule`. Same shape as the already-ported `SapFile`/

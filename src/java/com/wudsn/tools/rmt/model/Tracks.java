@@ -32,7 +32,7 @@ public final class Tracks {
 	// From SongTypes.h/InstrumentTypes.h (not yet ported) - duplicated here
 	// with the same values pending those classes' own Java ports.
 	private static final int SONGTRACKS = 8;
-	private static final int MAXVOLUME = 15;
+	public static final int MAXVOLUME = 15;
 	private static final int ATARI_MAX_TRACK_LENGTH = 256;
 	private static final int INSTRSNUM = 64;
 

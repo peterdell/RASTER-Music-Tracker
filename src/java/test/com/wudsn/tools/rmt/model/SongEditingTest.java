@@ -1,6 +1,7 @@
 package com.wudsn.tools.rmt.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -214,5 +215,140 @@ class SongEditingTest {
 		assertEquals(0, song.songGetGo());
 		song.songTrackGoOnOff(undo);
 		assertEquals(-1, song.songGetGo());
+	}
+
+	// --- instrInfo ---
+	// Called with a non-null info, per its own info-guarded design - never
+	// builds/shows the (unported) MessageBox("Instrument info") branch.
+
+	@Test
+	void instrInfoPopulatesTheOutputStructWithoutShowingAMessageBox() {
+		Track tr = tracks.getTrack(0);
+		tr.len = 4;
+		tr.instr[0] = 2;
+		tr.note[0] = 10;
+		tr.volume[0] = 8;
+
+		Song.InstrInfo info = new Song.InstrInfo();
+		song.instrInfo(info, 2);
+
+		assertEquals(1, info.count);
+		assertEquals(1, info.usedInTracks);
+		assertEquals(2, info.instrFrom);
+		assertEquals(2, info.instrTo);
+		assertEquals(10, info.minNote);
+		assertEquals(10, info.maxNote);
+		assertEquals(8, info.minVol);
+		assertEquals(8, info.maxVol);
+	}
+
+	// --- instrChangeApply ---
+	// Extracted from InstrChange() - dual-mode like instrInfo/trackInfo,
+	// returning the summary directly instead of showing it in a MessageBox.
+
+	@Test
+	void instrChangeApplyRemapsMatchingNotesInstrumentsAndVolumes() {
+		Track tr = tracks.getTrack(0);
+		tr.len = 1;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+		tr.volume[0] = 8;
+
+		Song.InstrChangeParams p = new Song.InstrChangeParams();
+		p.snotefrom = 10;
+		p.snoteto = 10;
+		p.svolmin = 8;
+		p.svolmax = 8;
+		p.sinstrfrom = 2;
+		p.sinstrto = 2;
+		p.dnotefrom = 15;
+		p.dnoteto = 15;
+		p.dvolmin = 5;
+		p.dvolmax = 5;
+		p.dinstrfrom = 3;
+		p.dinstrto = 3;
+		p.onlytrack = -1;
+		p.onlychannels = -1;
+		p.onlysonglinefrom = -1;
+		p.onlysonglineto = -1;
+
+		String resultMsg = song.instrChangeApply(p, undo, 4);
+
+		assertEquals(15, tr.note[0]);
+		assertEquals(3, tr.instr[0]);
+		assertEquals(5, tr.volume[0]);
+		assertTrue(resultMsg.contains("successfully"));
+	}
+
+	@Test
+	void instrChangeApplyOnlyTrackRestrictsTheChangeToOneTrack() {
+		Track tr0 = tracks.getTrack(0);
+		tr0.len = 1;
+		tr0.note[0] = 10;
+		tr0.instr[0] = 2;
+		tr0.volume[0] = 8;
+
+		Track tr1 = tracks.getTrack(1);
+		tr1.len = 1;
+		tr1.note[0] = 10;
+		tr1.instr[0] = 2;
+		tr1.volume[0] = 8;
+
+		Song.InstrChangeParams p = new Song.InstrChangeParams();
+		p.snotefrom = 10;
+		p.snoteto = 10;
+		p.svolmin = 8;
+		p.svolmax = 8;
+		p.sinstrfrom = 2;
+		p.sinstrto = 2;
+		p.dnotefrom = 15;
+		p.dnoteto = 15;
+		p.dvolmin = 5;
+		p.dvolmax = 5;
+		p.dinstrfrom = 3;
+		p.dinstrto = 3;
+		p.onlytrack = 0; // restrict to track 0 only
+		p.onlychannels = -1;
+		p.onlysonglinefrom = -1;
+		p.onlysonglineto = -1;
+
+		song.instrChangeApply(p, undo, 4);
+
+		assertEquals(15, tr0.note[0]); // changed
+		assertEquals(10, tr1.note[0]); // untouched, restricted to track 0 only
+	}
+
+	// --- trackInfo ---
+	// Called with a non-null info, per its own info-guarded design (mirroring
+	// instrInfo) - never builds/shows the (unported) MessageBox("Track Info") branch.
+
+	@Test
+	void trackInfoPopulatesTheOutputStructWithoutShowingAMessageBox() {
+		song.getSong()[0][0] = 5;
+		song.getSong()[1][2] = 5;
+
+		Song.TrackInfo info = new Song.TrackInfo();
+		song.trackInfo(5, info, 4);
+
+		assertEquals(2, info.count);
+		assertEquals(2, info.lines);
+		assertEquals(1, info.usedInColumn[0]);
+		assertEquals(0, info.usedInColumn[1]);
+		assertEquals(1, info.usedInColumn[2]);
+		assertEquals(0, info.usedInColumn[3]);
+	}
+
+	@Test
+	void trackInfoLeavesTheOutputStructUntouchedForAnOutOfRangeTrack() {
+		Song.TrackInfo info = new Song.TrackInfo();
+		info.count = 99;
+		info.lines = 99;
+		java.util.Arrays.fill(info.usedInColumn, 1);
+
+		song.trackInfo(-1, info, 4);
+		assertEquals(99, info.count);
+
+		song.trackInfo(Tracks.TRACKSNUM, info, 4);
+		assertEquals(99, info.count);
 	}
 }

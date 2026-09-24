@@ -3215,5 +3215,24 @@ build clean and all 123 tests pass.
     - `TrackLeft`/`TrackRight`'s `goto`-based control flow became a
       `wrapColumn` boolean flag - same branches, no `goto` needed.
     - Verified with `mvn -o test`: 270 tests pass (+18), all green on the
-      first build. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
-      committed.
+      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      (`bcf89a5`).
+  - **2026-09-25**: Twenty-third Java-port batch - `Song` grows to cover
+    `SongEditing.cpp` sub-batch 6 (`InstrInfo`/`InstrChangeApply`/
+    `TrackInfo`, the dual-mode info/dialog methods). No C++ changes
+    needed.
+    - Skipped the `MessageBox`-building branch entirely (no Java UI to
+      show it in, and it's untested) rather than literally porting the
+      dual-mode `if/else` shape - simpler than the C++ original.
+    - New `Song.InstrInfo`/`Song.TrackInfo` mutable classes (matching
+      `SongInfo`'s precedent, needed for the "leaves the struct untouched
+      for invalid input" contract a record can't express) and
+      `Song.InstrChangeParams` plus `instrChangeApply` - the big one
+      (~250 lines of instrument-remap logic). C++'s `goto abortchanges`
+      became a plain `break` guarded by an `if (onlysomething && !error)`
+      on the following block.
+    - Made `Tracks.MAXVOLUME` public (was private) - needed as a literal
+      clamp value, not just for validity checking.
+    - Verified with `mvn -o test`: 275 tests pass (+5), all green on the
+      first build, including the intricate remap arithmetic. Details in
+      `plans/JAVA_PORT_PLAN.md`. Not yet committed.

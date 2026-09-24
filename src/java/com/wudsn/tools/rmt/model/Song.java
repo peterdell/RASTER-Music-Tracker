@@ -476,6 +476,395 @@ public final class Song {
 		songGo[songActiveLine] = songGo[songActiveLine] < 0 ? 0 : -1;
 	}
 
+	/**
+	 * C++'s output-parameter struct {@code TInstrInfo}. Mutable and populated
+	 * in place (like {@link SongInfo}) rather than an immutable record,
+	 * matching {@link #instrInfo}'s "leave it untouched for invalid input"
+	 * contract - the same reason {@link TrackInfo} is shaped this way.
+	 */
+	public static final class InstrInfo {
+		public int count;
+		public int usedInTracks;
+		public int instrFrom;
+		public int instrTo;
+		public int minNote;
+		public int maxNote;
+		public int minVol;
+		public int maxVol;
+	}
+
+	public void instrInfo(InstrInfo info, int instr) {
+		instrInfo(info, instr, -1);
+	}
+
+	/**
+	 * Populates {@code info} with usage statistics for {@code instr}. A
+	 * no-op (leaving {@code info} untouched) if {@code instr} isn't a valid
+	 * instrument number.
+	 *
+	 * <p>Only the {@code iinfo != NULL} branch of C++'s dual-mode
+	 * {@code InstrInfo} is ported - the {@code iinfo == NULL} branch builds
+	 * and shows a {@code MessageBox} summary, untested and with no Java UI
+	 * to show it in (see {@code plans/DUAL_MODE_PATTERN_PLAN.md}).
+	 */
+	public void instrInfo(InstrInfo info, int instr, int instrto) {
+		if (!instruments.isValidInstrument(instr)) {
+			return;
+		}
+
+		if (instrto < instr) {
+			instrto = instr;
+		}
+
+		int noftrack = 0;
+		int globallytimes = 0;
+		int minnote = Notes.NOTESNUM;
+		int maxnote = -1;
+		int minvol = 16;
+		int maxvol = -1;
+		int infrom = Instruments.INSTRSNUM;
+		int into = -1;
+
+		for (int i = 0; i < Tracks.TRACKSNUM; i++) {
+			boolean inttrack = false;
+			Track at = tracks.getTrack(i);
+			int ain = -1;
+			for (int j = 0; j < at.len; j++) {
+				if (at.instr[j] >= 0) {
+					ain = at.instr[j];
+				}
+				if (ain >= instr && ain <= instrto) {
+					inttrack = true;
+					if (ain > into) {
+						into = ain;
+					}
+					if (ain < infrom) {
+						infrom = ain;
+					}
+					int note = at.note[j];
+					if (note >= 0 && note < Notes.NOTESNUM) {
+						globallytimes++; // some note with this instrument => started
+						if (note > maxnote) {
+							maxnote = note;
+						}
+						if (note < minnote) {
+							minnote = note;
+						}
+					}
+					int vol = at.volume[j];
+					if (vol >= 0 && vol <= 15) {
+						if (vol > maxvol) {
+							maxvol = vol;
+						}
+						if (vol < minvol) {
+							minvol = vol;
+						}
+					}
+				}
+			}
+			if (inttrack) {
+				noftrack++;
+			}
+		}
+
+		info.count = globallytimes;
+		info.usedInTracks = noftrack;
+		info.instrFrom = infrom;
+		info.instrTo = into;
+		info.minNote = minnote;
+		info.maxNote = maxnote;
+		info.minVol = minvol;
+		info.maxVol = maxvol;
+	}
+
+	/** C++'s input struct {@code TInstrChangeParams} - mirrors {@code CInstrumentChangeDlg}'s fields 1:1. */
+	public static final class InstrChangeParams {
+		public int snotefrom, snoteto, svolmin, svolmax;
+		public int sinstrfrom, sinstrto;
+		public int dnotefrom, dnoteto, dvolmin, dvolmax;
+		public int dinstrfrom, dinstrto;
+		public int onlytrack;
+		public int onlychannels;
+		public int onlysonglinefrom, onlysonglineto;
+	}
+
+	/**
+	 * Extracted from C++'s {@code CSong::InstrChange()} (the real
+	 * {@code CInstrumentChangeDlg} wrapper, not ported): the
+	 * dialog-independent instrument-remap work, once its 16 dialog-derived
+	 * parameters are known. Dual-mode like {@link #instrInfo}/
+	 * {@link #trackInfo}, except C++'s {@code CString* resultMsg} output
+	 * parameter (non-null in every test) simply becomes this method's
+	 * return value, since the {@code resultMsg == NULL} branch (show a
+	 * {@code MessageBox}) isn't ported for the same reason as
+	 * {@link #instrInfo}'s.
+	 *
+	 * @return a human-readable summary of what changed
+	 */
+	public String instrChangeApply(InstrChangeParams p, Undo undo, int tracks4_8) {
+		StringBuilder s = new StringBuilder();
+
+		stop(undo); // Stop playing before processing further
+
+		// Hide all tracks and the whole song
+		undo.changeTrack(0, 0, UndoType.UETYPE_TRACKSALL, -1);
+		undo.changeSong(0, 0, UndoType.UETYPE_SONGDATA, 1);
+
+		int snotefrom = p.snotefrom;
+		int snoteto = p.snoteto;
+		int svolmin = p.svolmin;
+		int svolmax = p.svolmax;
+		int sinstrfrom = p.sinstrfrom;
+		int sinstrto = p.sinstrto;
+		int dnotefrom = p.dnotefrom;
+		int dnoteto = p.dnoteto;
+		int dvolmin = p.dvolmin;
+		int dvolmax = p.dvolmax;
+		int dinstrfrom = p.dinstrfrom;
+		int dinstrto = p.dinstrto;
+		int onlytrack = p.onlytrack;
+		int onlychannels = p.onlychannels;
+		int onlysonglinefrom = p.onlysonglinefrom;
+		int onlysonglineto = p.onlysonglineto;
+
+		byte[] trackYn = new byte[Tracks.TRACKSNUM]; // 1 = yes, 2 = no, 3 = yesno (copy)
+		int[] trackColumn = new int[Tracks.TRACKSNUM]; // The first occurrence in the selected area of the song
+		int[] trackLine = new int[Tracks.TRACKSNUM]; // The first occurrence in the selected area of the song
+		int[] trackChangeTo = new int[Tracks.TRACKSNUM]; // Changed tracks to replace in song
+		java.util.Arrays.fill(trackColumn, -1);
+		java.util.Arrays.fill(trackLine, -1);
+
+		boolean onlysomething = false; // Only apply changes to specific things
+		int trackcreated = 0; // Number of newly created tracks
+		int songchanges = 0; // Number of changes in the song
+		boolean error = false;
+
+		if (onlychannels >= 0 || (onlysonglinefrom >= 0 && onlysonglineto >= 0)) {
+			if (onlychannels <= 0) {
+				onlychannels = 0xff; // All channels
+			}
+			if (onlysonglinefrom < 0) {
+				onlysonglinefrom = 0; // From the beginning
+			}
+			if (onlysonglineto < 0) {
+				onlysonglineto = SONGLEN - 1; // To the end
+			}
+			onlysomething = true; // Something specific to change
+
+			for (int j = 0; j < SONGLEN; j++) {
+				if (isSongGo(j)) {
+					continue;
+				}
+				for (int i = 0; i < tracks4_8; i++) {
+					int t = song[j][i];
+					if (!tracks.isValidTrack(t)) {
+						continue;
+					}
+					boolean r = (onlychannels & (1 << i)) != 0 && j >= onlysonglinefrom && j <= onlysonglineto;
+					trackYn[t] |= (byte) (r ? 1 : 2);
+
+					// The first occurrence in the selected area of the song
+					if (r && trackColumn[t] < 0) {
+						trackColumn[t] = i;
+						trackLine[t] = j;
+					}
+				}
+			}
+		} else if (onlytrack >= 0) {
+			trackYn[onlytrack] = 1; // 1 = yes
+			onlysomething = true;
+		}
+
+		if (!tracks.isValidNote(dnoteto)) {
+			dnoteto = dnotefrom + (snoteto - snotefrom);
+		}
+		if (!tracks.isValidVolume(dvolmax)) {
+			dvolmax = dvolmin + (svolmax - svolmin);
+		}
+		if (!tracks.isValidInstrument(dinstrto)) {
+			dinstrto = dinstrfrom + (sinstrto - sinstrfrom);
+		}
+
+		double notecoef = (snoteto - snotefrom > 0) ? (double) (dnoteto - dnotefrom) / (snoteto - snotefrom) : 0;
+		double volcoef = (svolmax - svolmin > 0) ? (double) (dvolmax - dvolmin) / (svolmax - svolmin) : 0;
+		double instrcoef = (sinstrto - sinstrfrom > 0) ? (double) (dinstrto - dinstrfrom) / (sinstrto - sinstrfrom) : 0;
+
+		for (int i = 0; i < Tracks.TRACKSNUM; i++) {
+			trackChangeTo[i] = -1; // initialise
+
+			// It wants to change only some and this one is not
+			if (onlysomething && (trackYn[i] & 1) != 1) {
+				continue;
+			}
+
+			// Copy the original track to a temporary track
+			Track st = tracks.getTrack(i);
+			Track at = new Track();
+			at.copyFrom(st);
+
+			boolean changes = false;
+			int lasti = -1;
+			int lastn = -1;
+
+			for (int j = 0; j < at.len; j++) {
+				if (tracks.isValidInstrument(at.instr[j])) {
+					lasti = at.instr[j];
+				}
+				if (tracks.isValidNote(at.note[j])) {
+					lastn = at.note[j];
+				}
+
+				if (lasti >= sinstrfrom && lasti <= sinstrto && lastn >= snotefrom && lastn <= snoteto && at.volume[j] >= svolmin && at.volume[j] <= svolmax) {
+					if (tracks.isValidNote(at.note[j])) {
+						int note = dnotefrom + (int) ((double) (at.note[j] - snotefrom) * notecoef + 0.5);
+						while (!tracks.isValidNote(note)) {
+							note -= 12;
+						}
+						if (note != at.note[j]) {
+							at.note[j] = note;
+							changes = true;
+						}
+					}
+
+					if (tracks.isValidInstrument(at.instr[j])) {
+						int ins = dinstrfrom + (int) ((double) (at.instr[j] - sinstrfrom) * instrcoef + 0.5);
+						if (!tracks.isValidInstrument(ins)) {
+							ins = Instruments.INSTRSNUM - 1;
+						}
+						if (ins != at.instr[j]) {
+							at.instr[j] = ins;
+							changes = true;
+						}
+					}
+
+					if (tracks.isValidVolume(at.volume[j])) {
+						int vol = dvolmin + (int) ((double) (at.volume[j] - svolmin) * volcoef + 0.5);
+						if (!tracks.isValidVolume(vol)) {
+							vol = Tracks.MAXVOLUME;
+						}
+						if (vol != at.volume[j]) {
+							at.volume[j] = vol;
+							changes = true;
+						}
+					}
+				}
+			}
+
+			// There was something changed
+			if (changes) {
+				// Create a new track if the track occurs both inside and outside the area
+				if ((trackYn[i] & 2) != 0) {
+					byte[] used = new byte[Tracks.TRACKSNUM];
+					markTfUsed(used, tracks4_8);
+					markTfNoEmpty(used);
+					int k = findNearTrackBySongLineAndColumn(trackLine[i], trackColumn[i], used);
+
+					// The process is aborted if there is no unused track available
+					if (k < 0) {
+						error = true;
+						s.append("There aren't any more empty unused tracks in song, further changes could not be applied!\n\n");
+						s.append(String.format("Process halted in Track %02X, in Channel %d\n\n", trackLine[i], trackColumn[i]));
+						break; // matches C++'s "goto abortchanges" - also skips the "subsequent changes" loop below
+					}
+
+					// Copy the changed track (at) to the new track
+					Track nt = tracks.getTrack(k);
+					nt.copyFrom(at);
+
+					trackcreated++;
+
+					// Put it in the song at least once (due to the search in the song used tracks)
+					song[trackLine[i]][trackColumn[i]] = k;
+					songchanges++;
+
+					// Will change all occurrences
+					trackChangeTo[i] = k;
+				} else {
+					// Copy the changed track (at) back to the original track
+					st.copyFrom(at);
+				}
+			}
+		}
+
+		// Subsequent changes in the song - skipped entirely if the loop above aborted on an error
+		if (onlysomething && !error) {
+			for (int j = 0; j < SONGLEN; j++) {
+				if (isSongGo(j)) {
+					continue;
+				}
+				for (int i = 0; i < tracks4_8; i++) {
+					int t = song[j][i];
+					if (!tracks.isValidTrack(t)) {
+						continue;
+					}
+					boolean r = (onlychannels & (1 << i)) != 0 && j >= onlysonglinefrom && j <= onlysonglineto;
+					if (r && trackChangeTo[t] >= 0) {
+						song[j][i] = trackChangeTo[t];
+						songchanges++;
+					}
+				}
+			}
+		}
+
+		s.append("Instrument changes were applied ");
+		s.append(error ? "with errors, beware of data loss!\n\n" : "successfully!\n\n");
+
+		if (trackcreated > 0 || songchanges > 0) {
+			s.append("Additional actions were also performed to accommodate the chosen parameters:\n\n");
+			s.append(String.format("New tracks created: %d\n", trackcreated));
+			s.append(String.format("Total changes in song: %d\n", songchanges));
+		}
+
+		return s.toString();
+	}
+
+	/** C++'s output-parameter struct {@code TTrackInfo}. See {@link InstrInfo} for why this is a mutable class rather than a record. */
+	public static final class TrackInfo {
+		public int count;
+		public int lines;
+		public final int[] usedInColumn = new int[SONGTRACKS];
+	}
+
+	/**
+	 * Populates {@code info} with usage statistics for {@code track}. A
+	 * no-op (leaving {@code info} untouched) if {@code track} is out of
+	 * range. Only the {@code tinfo != NULL} branch of C++'s dual-mode
+	 * {@code TrackInfo} is ported - see {@link #instrInfo}'s javadoc for why.
+	 */
+	public void trackInfo(int track, TrackInfo info, int tracks4_8) {
+		if (track < 0 || track >= Tracks.TRACKSNUM) {
+			return;
+		}
+
+		int[] trackUsedInColumn = new int[SONGTRACKS];
+		int lines = 0;
+		int total = 0;
+
+		for (int sline = 0; sline < SONGLEN; sline++) {
+			if (songGo[sline] >= 0) {
+				continue; // goto line is ignored
+			}
+
+			boolean thisline = false;
+			for (int ch = 0; ch < tracks4_8; ch++) {
+				int n = song[sline][ch];
+				if (n == track) {
+					trackUsedInColumn[ch]++;
+					total++;
+					thisline = true;
+				}
+			}
+
+			if (thisline) {
+				lines++;
+			}
+		}
+
+		info.count = total;
+		info.lines = lines;
+		System.arraycopy(trackUsedInColumn, 0, info.usedInColumn, 0, SONGTRACKS);
+	}
+
 	/** Finds a free track near the default track for {@code column} at or before {@code songline}, falling back to the first free track overall. */
 	public int findNearTrackBySongLineAndColumn(int songline, int column, byte[] used) {
 		for (int j = songline; j >= 0; j--) {

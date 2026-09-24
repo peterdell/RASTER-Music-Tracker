@@ -1115,8 +1115,43 @@ First sub-batch of the `SongEditing.cpp` port scoped in
   already covered by `SongTest`/`UndoTest`). Verified with `mvn -o test`:
   270 tests pass (+18), all green on the first build. No C++ changes.
 
+## Twenty-third ported batch (2026-09-25): `Song` grows to cover `SongEditing.cpp` sub-batch 6 (`InstrInfo`/`InstrChangeApply`/`TrackInfo`)
+
+Second sub-batch of the `SongEditing.cpp` port, done out of numeric order
+per `plans/JAVA_SONGEDITING_PLAN.md`'s suggested execution order (this is
+its "sub-batch 6", picked second since it reuses the dual-mode pattern).
+No C++ changes needed.
+
+- **Simplification over a literal dual-mode port**: since there's no Java
+  UI to show a `MessageBox` in, and only the non-null-output-parameter
+  branch is tested, the `MessageBox`-building branch isn't ported at all -
+  not even the local arrays that exist solely to feed it (`InstrInfo`'s
+  `withnote[]`/`intrack[]`). `InstrChangeApply`'s `CString* resultMsg`
+  output parameter becomes a plain returned `String`.
+- **New `Song.InstrInfo`/`Song.TrackInfo`** (mutable classes, not
+  records): matches `SongInfo`'s existing precedent, since `TrackInfo`'s
+  own test relies on "leaves the struct untouched for invalid input" - a
+  record can't represent "untouched."
+- **New `Song.InstrChangeParams`** (mutable class mirroring
+  `TInstrChangeParams`/`CInstrumentChangeDlg`'s fields 1:1) and
+  `instrChangeApply` - the big one: ~250 lines of instrument-remap logic
+  extracted from C++'s real `CInstrumentChangeDlg` wrapper (not ported).
+  C++'s `goto abortchanges` (an early exit from the main remap loop that
+  also skips the subsequent "apply changes to the song" loop) becomes a
+  plain `break` out of the (already-unlabeled) enclosing loop, guarded by
+  an `if (onlysomething && !error)` on the block that follows - same
+  effect, no `goto`/label needed.
+- `Tracks.MAXVOLUME` made `public` (was `private`) - `instrChangeApply`
+  needs the literal value as a clamp target, not just for validity
+  checking via the already-public `isValidVolume`.
+- Tests (`SongEditingTest`, extended) mirror `SongEditingTests.cpp`'s
+  `InstrInfo`/`InstrChangeApply`/`TrackInfo` sections exactly (5 tests).
+  Verified with `mvn -o test`: 275 tests pass (+5), all green on the first
+  build, including the intricate `InstrChangeApply` remap arithmetic. No
+  C++ changes.
+
 ## Next steps
 
-Continue with `SongEditing.cpp` sub-batch 2 onward, per
-`plans/JAVA_SONGEDITING_PLAN.md`'s suggested execution order (next up: the
-`InstrInfo`/`InstrChangeApply`/`TrackInfo` dual-mode methods).
+Continue with `SongEditing.cpp` sub-batches 2-5 (song-line editing,
+track-length cleanup, clipboard-free copy-paste, bookmark/settings) per
+`plans/JAVA_SONGEDITING_PLAN.md`'s suggested execution order.
