@@ -2607,4 +2607,33 @@ build clean and all 123 tests pass.
       methods, which now has real golden-master values to port against.
     - Verified via a full Release|x64 solution rebuild: `Rmt.exe` and
       `RmtTests.exe` both build clean (0 errors) and all 325 tests pass.
+      Details in `plans/JAVA_PORT_PLAN.md`. Committed (`73f199e`).
+  - **2026-09-24**: Third Java-port batch - finished `Tuning` with
+    `GenerateTable`/`InitTuning`/`GetTruePitch`/`CalculateDeltaAUDF`/
+    `Timbre`, now unblocked by the C++ test backfill above. Every expected
+    value was reused directly from the C++ golden-master captures and
+    matched on the first `mvn -o test` run - no re-guessing needed, which
+    is exactly why the C++ batch was done first.
+    - `Timbre` ported as a Java enum with each constant carrying its C++
+      byte value (needed since `CalculateDeltaAUDF`/`GenerateTable` extract
+      a high nibble from it).
+    - `generateTable()`/`initTuning()` take `TuningSettings`/
+      `TuningRatios` explicitly instead of reading C++ globals, plus an
+      explicit `offset` parameter on `generateTable()` in place of C++
+      pointer arithmetic. `InitTuning()`'s `MessageBox`+`exit(1)` guard
+      became an `IllegalStateException` (same pattern as `Fraction`'s
+      division-by-zero guard).
+    - Deduplicated one piece of logic the C++ source itself duplicates
+      (`GetTruePitch`/`InitTuning` both scan a `temperament_preset` row
+      for its first zero/padding entry) into one private
+      `computeNotesPerOctave()` helper - doesn't change behavior.
+    - Confirmed and omitted two things already dead in the C++ source:
+      unused `dist_4_buzzy`/`dist_c_unstable` constants, and `GenerateTable`'s
+      never-read `MOD7`/`MOD15`/`MOD73` locals.
+    - One C++ test has no Java equivalent (the "invalid timbre for this
+      distortion" fallback, only reachable via `static_cast` on a
+      synthesized out-of-enum value) - Java's closed enum type has no way
+      to construct that state, noted in a comment rather than
+      characterized.
+    - Verified with `mvn -o test`: 51 tests pass, all green first try.
       Details in `plans/JAVA_PORT_PLAN.md`. Not yet committed.

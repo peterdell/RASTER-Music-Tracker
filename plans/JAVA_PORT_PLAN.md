@@ -219,15 +219,68 @@ been checked at the time:
   original reason they were deferred from the Java `Tuning`/
   `TuningSettings`/`TuningRatios` batch above.
 
+## Third ported batch (2026-09-24): finished `Tuning` - `GenerateTable`/
+## `InitTuning`/`GetTruePitch`/`CalculateDeltaAUDF`/`Timbre`
+
+With the C++ side's own test coverage backfilled (see above), this batch
+had real golden-master values to port against instead of needing to guess
+or hand-derive - and every value matched on the first `mvn -o test` run,
+confirming the transcription was faithful.
+
+- **`Timbre`** (`com.wudsn.tools.rmt.model.Timbre`): a Java enum whose
+  constants each carry their C++ byte value (`public final int value`) via
+  a constructor - needed because `CalculateDeltaAUDF`/`GenerateTable` both
+  extract the high nibble from a `Timbre` value (`timbre.value & 0xF0`) to
+  determine which distortion group it belongs to, a pattern Java enums
+  don't support natively without an explicit backing field.
+- **`generateTable()`/`initTuning()` take `TuningSettings`/`TuningRatios`
+  explicitly** instead of reading C++'s `g_tuning`/`g_tuningRatios`
+  globals - the redesign flagged as needed back when this batch was
+  deferred, now implemented. `generateTable()` also gained an explicit
+  `offset` parameter (Java has no pointer arithmetic to express
+  `table_memory + 0x100` the way C++ does) and a caller-supplied `byte[]`
+  in place of a raw pointer.
+- **`initTuning()`'s `MessageBox`+`exit(1)` guard becomes an
+  `IllegalStateException`** - the same idiomatic substitution already
+  established for `Fraction`'s division-by-zero guard, not a new pattern.
+- **Deduplicated one piece of logic C++ itself duplicates**: `GetTruePitch`
+  and `InitTuning` both scan a `temperament_preset` row for its first
+  zero/padding entry to find how many notes per octave that preset
+  defines - identical loops in the C++ source. Unified into one private
+  `computeNotesPerOctave()` helper in the Java port, since nothing depends
+  on keeping the two copies separate and this doesn't change behavior.
+- **Two private C++ constants silently omitted**: `dist_4_buzzy`/
+  `dist_c_unstable` are declared in `Tuning.h` but never actually
+  referenced by `InitTuning()` there either - confirmed dead code in the
+  C++ source itself before leaving them out of the Java port.
+- **`TuningTable`** (private nested Java `record`, was the C++ struct
+  `TTuning`): kept private since, like its C++ counterpart, it's only ever
+  used internally to hold `CTuning`'s own 5 (of 7 declared, 2 dead) `dist_*`
+  constants - never part of any public API surface in either language.
+- One minor, deliberate divergence from C++'s exact structure: `GenerateTable`
+  computes `MOD7`/`MOD15`/`MOD73` locals that are never actually read by any
+  of its branches (confirmed by re-reading `TuningTables.cpp`'s switch
+  statement before omitting them) - dropped as dead computation in the
+  Java port, noted inline.
+- Tests (`TuningTest`, using `@Nested` classes for the `GenerateTable`/
+  `InitTuning` fixtures, mirroring `TuningGenerateTableTest`/
+  `TuningInitTuningTest` in the C++ file) reuse the exact same
+  golden-master values already captured on the C++ side - deliberately,
+  since the whole point of doing the C++ batch first was to get real
+  expected values instead of re-guessing them for Java. One C++ test
+  (the "invalid timbre for this distortion" fallback, only reachable via
+  `static_cast<Timbre>(...)` on an out-of-enum byte value) has no Java
+  equivalent - Java's `Timbre` is a closed, type-safe enum with no way to
+  synthesize a non-existent constant, and this fallback is unreachable via
+  any real `Timbre` value in either language - noted in a comment rather
+  than characterized.
+- Verified with `mvn -o test`: 51 tests pass (13 `Fraction` + 3
+  `TuningRatios` + 2 `TuningSettings` + 21 `Tuning` (flat) + 3
+  `GenerateTableTest` + 9 `InitTuningTest`), all green on the first run.
+
 ## Next steps
 
-A Java follow-up batch for `GenerateTable`/`InitTuning`/`GetTruePitch`/
-`CalculateDeltaAUDF`/`Timbre`/`TTuning` is now unblocked (see above) - would
-still need redesigning to take explicit parameters instead of reading C++
-globals, since no Java global-state architecture exists yet, but now has
-real golden-master values from the C++ side to verify against.
-
-Beyond that, continue porting small, already-tested, UI-free model classes
-one at a time (matching this batch's scope and verification rigor),
-building up `com.wudsn.tools.rmt.model` before attempting `CSong` or
-anything in `com.wudsn.tools.rmt.ui`.
+Continue porting small, already-tested, UI-free model classes one at a
+time (matching this batch's scope and verification rigor), building up
+`com.wudsn.tools.rmt.model` before attempting `CSong` or anything in
+`com.wudsn.tools.rmt.ui`. No specific next class has been chosen yet.
