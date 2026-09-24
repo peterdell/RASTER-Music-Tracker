@@ -2675,5 +2675,46 @@ build clean and all 123 tests pass.
     - `std::vector<bool>` became a plain `boolean[]` (channel count is
       fixed after construction in both languages).
     - Verified with `mvn -o test`: 66 tests pass (+7), all green first
+      try. No C++ changes. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      (`28861b0`).
+  - **2026-09-24**: Asked the user what's next once the small, unambiguous
+    "model" candidates were exhausted (`CStringUtility` trivial-but-not-
+    model, `RmtCommandLineInfo` MFC-infra, `Keyboard2NoteMapping`
+    Windows-virtual-key-code-coupled). User chose to start `CTracks`, the
+    next genuinely core domain class, a real step up in size (~1100 lines
+    across `Tracks.h/.cpp`/`IO_Tracks.cpp`).
+    - Sixth Java-port batch: `Track`/`Tracks`, scoped to exactly what
+      `TracksTests.cpp` already characterizes (mirrors the `Tuning`
+      precedent, not re-asked since the pattern is now established):
+      `IsEmptyTrack`/`ClearTrack`/`InsertLine`/`DeleteLine`/
+      `CalculateNotEmpty`/`CompareTracks`/`TrackOptimizeVol0`/
+      `GetModifiedNote`/`GetModifiedInstr`/`GetModifiedVolumeP`/
+      `TrackToAta`/`AtaToTrack` (the last two are pure despite living in
+      `IO_Tracks.cpp`). Deferred, untested in C++ either:
+      `TrackBuildLoop`/`TrackExpandLoop`/`ModifyTrack`/`GetTracksAll`/
+      `SetTracksAll`. Also deferred (matching the C++ split): `TracksEdit.cpp`'s
+      `g_Undo`-coupled editing methods and `IO_Tracks.cpp`'s untested
+      stream I/O (`SaveTrack`/`LoadTrack`/`SaveAll`/`LoadAll`).
+    - `TTrack` became a plain mutable `Track` class (public fields,
+      matching `TuningSettings`'s treatment, not `Fraction`'s
+      immutability).
+    - Careful unsigned-byte handling in `trackToAta`/`ataToTrack`: every
+      read of the `byte[]` buffer masks with `& 0xFF` before use (Java
+      `byte` is signed; C++'s was `unsigned char`), via a small
+      `unsignedByte()` helper. Writes need no equivalent care.
+    - C++'s `WRITEATIDX`/`WRITEPAUSE` macros (which `return -1` directly
+      from the enclosing function on overflow) became private
+      `writeAt`/`writePause` methods taking a single-element `int[]` as a
+      mutable cursor - Java has no macros/multi-return, so callers check
+      a boolean and propagate `-1` explicitly.
+    - **Found and characterized (not fixed) a latent hazard**:
+      `AtaToTrack`'s decode loop has no branch for `data == 63` with
+      `count == 0x40` - would infinite-loop without advancing `src` if
+      ever hit. Confirmed `TrackToAta`'s own encoder never produces this
+      byte pattern (only reachable via a malformed/corrupted byte
+      stream), so preserved as-is with a comment rather than hardened
+      against - "how to handle corrupted input" is a different kind of
+      decision than a same-input-different-output bug.
+    - Verified with `mvn -o test`: 81 tests pass (+15), all green first
       try. No C++ changes. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
       committed.

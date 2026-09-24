@@ -327,9 +327,65 @@ on/off/toggle/solo state, no globals, no known bugs, fully tested
   Verified with `mvn -o test`: 66 tests pass (+7). No C++ changes, no bugs
   found.
 
+## Sixth ported batch (2026-09-24): `Track`/`Tracks` (`com.wudsn.tools.rmt.model`)
+
+Ported from `CTracks`/`TTrack` (`src/cpp/Tracks.h/.cpp`, `TrackTypes.h`,
+`src/cpp/IO_Tracks.cpp`) - the first meaningfully larger class since
+`Fraction`, and the first genuinely-sized scope decision since `Tuning`.
+
+- **Scope, decided by matching existing test coverage** (same default
+  established for `Tuning`, not re-asked since the pattern is now well
+  established): ported everything `TracksTests.cpp` already characterizes
+  - `IsEmptyTrack`/`ClearTrack`/`InsertLine`/`DeleteLine`/
+  `CalculateNotEmpty`/`CompareTracks`/`TrackOptimizeVol0`/
+  `GetModifiedNote`/`GetModifiedInstr`/`GetModifiedVolumeP`/`TrackToAta`/
+  `AtaToTrack` (the last two are pure - no globals - despite living in
+  `IO_Tracks.cpp`) - plus the trivial inline validity checks/getters they
+  depend on. **Deferred, untested in C++ either**: `TrackBuildLoop`/
+  `TrackExpandLoop`/`ModifyTrack`/`GetTracksAll`/`SetTracksAll` (declared
+  in `Tracks.h` but with no existing characterization tests - same
+  reasoning as `GenerateTable`/`InitTuning`'s original deferral). Also
+  deferred, matching the C++ source's own split: `TracksEdit.cpp`'s
+  `g_Undo`-coupled editing methods, and `IO_Tracks.cpp`'s untested
+  `SaveTrack`/`LoadTrack`/`SaveAll`/`LoadAll` stream I/O (two on-disk
+  formats, `CString`-heavy).
+- **`Track`** (was the C++ struct `TTrack`): a plain mutable class with
+  public fields, matching `TuningSettings`'s "settings struct" treatment
+  rather than `Fraction`'s immutability - callers mutate its fields
+  directly by index throughout, in both languages.
+- **Unsigned-byte care in `trackToAta`/`ataToTrack`**: C++'s
+  `unsigned char*` becomes a Java `byte[]`, so every read masks with
+  `& 0xFF` (via a small `unsignedByte()` helper) before using the value in
+  arithmetic or comparisons - Java `byte` is signed, and an unmasked read
+  of a byte `>= 0x80` would sign-extend to a negative `int` and corrupt
+  the decode. Writes need no equivalent care: a narrowing `(byte) value`
+  cast on an already-correctly-computed 0-255 `int` produces the exact
+  same bit pattern either way.
+- **C++'s `WRITEATIDX`/`WRITEPAUSE` macros** (which `return -1` directly
+  from `TrackToAta` on buffer overflow) become a private `writeAt`/
+  `writePause` pair taking a single-element `int[]` as a mutable output
+  parameter for the write cursor, since Java has no macros and no
+  multiple-return - callers check the boolean result and propagate `-1`
+  explicitly. Faithful, if more verbose than the C++ macro.
+- **A latent hazard characterized, not fixed**: `AtaToTrack`'s decode loop
+  has no branch for `data == 63` with `count == 0x40` - if ever
+  encountered, the loop wouldn't advance `src` (infinite loop). Confirmed
+  this combination is never produced by `TrackToAta`'s own encoder (only
+  reachable from a malformed/corrupted byte stream), so it's preserved
+  as-is with a comment rather than hardened against - a "how to handle
+  corrupted input" question is a different kind of decision than a
+  same-input-different-output bug, and out of scope for this port.
+- Tests (`TracksTest`, with `@Nested` classes mirroring `TracksTests.cpp`'s
+  own `TracksModifiedValueTest`/`TrackAtaFormatTest` fixtures) mirror the
+  C++ file exactly. Verified with `mvn -o test`: 81 tests pass (+15), all
+  green on the first run. No C++ changes, no new bugs found.
+
 ## Next steps
 
-Continue porting small, already-tested, UI-free model classes one at a
-time (matching this batch's scope and verification rigor), building up
-`com.wudsn.tools.rmt.model` before attempting `CSong` or anything in
-`com.wudsn.tools.rmt.ui`. No specific next class has been chosen yet.
+A follow-up batch for `TrackBuildLoop`/`TrackExpandLoop`/`ModifyTrack`/
+`GetTracksAll`/`SetTracksAll` would need C++ characterization tests
+backfilled first (same playbook as `Tuning`'s `GenerateTable`/`InitTuning`).
+Otherwise, continue porting small, already-tested, UI-free model classes
+one at a time, building up `com.wudsn.tools.rmt.model` before attempting
+`CSong` or anything in `com.wudsn.tools.rmt.ui`. No specific next class has
+been chosen yet.
