@@ -25,8 +25,6 @@ TEST(SAPFileTest, ExportTypeBWithInitAndPlayer) {
     std::ostringstream out;
     sap.Export(out);
 
-    // Characterization: DEFSONG prints m_songs, not m_defsong - an existing
-    // bug in CSAPFile::Export(), not something introduced by this test.
     EXPECT_EQ(out.str(),
               "SAP\x0d\x0a"
               "AUTHOR \" AtariGuy\"\x0d\x0a"
@@ -34,7 +32,7 @@ TEST(SAPFileTest, ExportTypeBWithInitAndPlayer) {
               "DATE \"21/09/2026\"\x0d\x0a"
               "TYPE B\x0d\x0a"
               "SONGS 2\x0d\x0a"
-              "DEFSONG 2\x0d\x0a"
+              "DEFSONG 1\x0d\x0a"
               "INIT 4000\x0d\x0a"
               "PLAYER 4700\x0d\x0a"
               "\x0d\x0a");
