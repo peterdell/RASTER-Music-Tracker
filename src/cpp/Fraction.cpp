@@ -96,7 +96,7 @@ bool CFraction::operator==(const CFraction& f) {
     int d = denominator * f.denominator;
 
     CFraction ff(n, d);
-    return ff.denominator == 0;
+    return ff.numerator == 0;
 }
 
 CFraction::operator double() {

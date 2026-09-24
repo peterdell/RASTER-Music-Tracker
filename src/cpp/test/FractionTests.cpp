@@ -84,22 +84,22 @@ TEST(FractionTest, GreaterThanComparesValue) {
     EXPECT_FALSE(CFraction(1, 3) > CFraction(1, 2));
 }
 
-// Characterization test for existing (surprising) behavior: operator== checks
-// whether the reduced difference's *denominator* is zero, but CFraction's own
-// constructor/simplify() always leaves a non-zero denominator (see gcd()), so
-// this operator currently evaluates to false for every pair of operands,
-// including two fractions that represent the same value. No production code
-// relies on this operator today (verified by repo-wide search), but a future
-// cleanup/port should decide deliberately whether to fix or intentionally
-// preserve this before anyone starts using it.
-TEST(FractionTest, EqualityOperatorIsCurrentlyAlwaysFalse) {
+// Fixed a real bug found while characterizing this operator: it checked
+// whether the reduced difference's *denominator* was zero, but CFraction's
+// own constructor/simplify() always leaves a non-zero denominator (see
+// gcd()), so it evaluated to false for every pair of operands, including two
+// fractions that represent the same value. No production code relied on this
+// operator (verified by repo-wide search) - fixed to check the *numerator*
+// instead, at the same time as the Java port (com.wudsn.tools.rmt.model.Fraction),
+// per the user's explicit decision to fix this bug in both languages.
+TEST(FractionTest, EqualityOperatorComparesValue) {
     // Calling operator== explicitly (rather than via "a == b") sidesteps a
     // C++20 overload-resolution ambiguity: CFraction's implicit
     // operator double() makes "a == b" ambiguous between the member
     // operator== and the built-in double comparison once the compiler
     // synthesizes the reversed "b == a" candidate.
-    EXPECT_FALSE(CFraction(1, 2).operator==(CFraction(1, 2)));
-    EXPECT_FALSE(CFraction(1, 2).operator==(CFraction(2, 4)));
+    EXPECT_TRUE(CFraction(1, 2).operator==(CFraction(1, 2)));
+    EXPECT_TRUE(CFraction(1, 2).operator==(CFraction(2, 4)));
     EXPECT_FALSE(CFraction(1, 2).operator==(CFraction(1, 3)));
 }
 
