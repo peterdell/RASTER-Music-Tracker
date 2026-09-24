@@ -303,12 +303,33 @@ with all-static methods, rather than an object.
   33 `Tuning`/nested). No C++ changes - no new bugs found, and the known
   one was deliberately preserved, not fixed.
 
+## Fifth ported batch (2026-09-24): `ChannelControl` (`com.wudsn.tools.rmt.model.ChannelControl`)
+
+Ported from `CChannelControl` (`src/cpp/ChannelControl.h/.cpp`) - per-channel
+on/off/toggle/solo state, no globals, no known bugs, fully tested
+(`ChannelControlTests.cpp`, 7 tests).
+
+- **Idiomatic simplification, no behavior change**: C++'s private
+  `SetChannelOnOff(ch, onoff)` multiplexes "one channel or all channels"
+  (`ch == -1`) and "set or toggle" (`onoff == -1`) behind two sentinel
+  parameters, and `SetChannelSolo()` uses a `goto` to share its "turn
+  everything off, then turn on just the target" tail between two branches.
+  Ported as direct, single-purpose methods instead (`setAllChannelsOn`/
+  `Off`, `toggleAllChannelsOnOff`, an inlined solo check) - Java has no
+  `goto`, and tracing `SetChannelSolo()`'s two branches confirmed the
+  simplification preserves the exact same behavior (the "turn everything
+  on" case triggers only when the target is on *and* no other channel is
+  on; every other case turns everything off then turns on just the
+  target).
+- `std::vector<bool>` becomes a plain `boolean[]` (fixed size after
+  construction in both languages - nothing ever adds/removes channels).
+- Tests (`ChannelControlTest`) mirror `ChannelControlTests.cpp` exactly.
+  Verified with `mvn -o test`: 66 tests pass (+7). No C++ changes, no bugs
+  found.
+
 ## Next steps
 
 Continue porting small, already-tested, UI-free model classes one at a
 time (matching this batch's scope and verification rigor), building up
 `com.wudsn.tools.rmt.model` before attempting `CSong` or anything in
-`com.wudsn.tools.rmt.ui`. `CChannelControl` (per-channel on/off/toggle/solo
-state, `ChannelControl.h/.cpp`, no globals, no known bugs) is a
-reasonable next candidate, similar size/shape to this batch. No specific
-next class has been chosen yet.
+`com.wudsn.tools.rmt.ui`. No specific next class has been chosen yet.

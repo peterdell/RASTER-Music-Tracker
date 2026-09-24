@@ -2659,5 +2659,21 @@ build clean and all 123 tests pass.
       port; fixing it would need its own investigation of every call site
       first. Noted in `Notes`'s javadoc and its test's comment.
     - Verified with `mvn -o test`: 59 tests pass (+8), all green first
+      try. No C++ changes. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      (`67d8cb7`).
+  - **2026-09-24**: Fifth Java-port batch - `ChannelControl` (from
+    `CChannelControl`, `ChannelControl.h/.cpp`), per-channel on/off/toggle/
+    solo state, no globals, no known bugs.
+    - Simplified C++'s private `SetChannelOnOff(ch, onoff)` (a two-sentinel
+      multiplexed helper: `ch == -1` for all channels, `onoff == -1` for
+      toggle) and `SetChannelSolo()`'s `goto`-based shared tail into
+      direct, single-purpose Java methods - Java has no `goto`, and the
+      sentinel multiplexing added no value once each call site can just
+      call the specific method it means. Traced both of
+      `SetChannelSolo()`'s branches against the original before
+      simplifying to confirm zero behavior change.
+    - `std::vector<bool>` became a plain `boolean[]` (channel count is
+      fixed after construction in both languages).
+    - Verified with `mvn -o test`: 66 tests pass (+7), all green first
       try. No C++ changes. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
       committed.
