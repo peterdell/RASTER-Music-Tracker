@@ -3074,5 +3074,39 @@ build clean and all 123 tests pass.
       throw for a negative starting index when the suffix is longer than
       the string.
     - Verified with `mvn -o test`: 210 tests pass (+5), all green on the
-      first build. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
-      committed.
+      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      (`d9fb6cf`).
+  - **2026-09-25**: Seventeenth Java-port batch - `CompressLzss` (from
+    `CCompressLzss`/`CLzss`, `lzss_sap.h/.cpp`), an optimal LZSS compressor
+    for SAP-R register-dump music files. Explicitly requested despite this
+    project's usual "small class" scope - the largest, most intricate
+    class ported so far (~600 lines of bit-packing). No C++ changes
+    needed; `lzssp.h` (532 lines) turned out to be unrelated Atari
+    player-address constants, not part of the compressor.
+    - New `SapROptimization` enum (plain, no synthetic out-of-range value
+      needed here).
+    - Redesigned the public API around a `compress(byte[], SapROptimization)
+      -> byte[]` returning exactly the compressed bytes, instead of C++'s
+      caller-pre-sized-buffer-plus-separate-length-return shape.
+    - Eliminated dead code: two switch statements in C++'s `LZSS_SAP`
+      choose bit-width parameters from local variables hardcoded to one
+      value with no way to reach any other branch - hardcoded that one
+      outcome directly. Dropped the unused `registers` parameter and its
+      untested 5-argument overload.
+    - Omitted all diagnostic `fprintf`/stats-histogram code - it only ever
+      wrote to a log stream, never affecting the returned buffer or size.
+    - **Caught a real unsigned/signed pitfall before running any test**:
+      `Optimise_AUDF`'s two-tone check does a raw magnitude comparison
+      (`buf[1] < 0xF0`), unlike every other comparison in the file (which
+      mask first, safe regardless of Java's signed-byte sign extension). A
+      literal port would have silently inverted this comparison for any
+      byte >= 0x80. Fixed with the established `unsignedByte()` helper,
+      applied consistently to every register-buffer read.
+    - The fixed 128KB scratch buffer became a small growable `BitBuffer`
+      (needs positional bit-mutation, so a plain append-only structure
+      wouldn't work); the pure-append output buffer became a
+      `ByteArrayOutputStream`.
+    - Verified with `mvn -o test`: 221 tests pass (+11), all green on the
+      first build - the 3 golden-master compression tests matched exactly
+      with no debugging needed. Details in `plans/JAVA_PORT_PLAN.md`. Not
+      yet committed.

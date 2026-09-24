@@ -835,6 +835,73 @@ changes needed.
   exactly. Verified with `mvn -o test`: 210 tests pass (+5), all green on
   the first build. No C++ changes.
 
+## Seventeenth ported batch (2026-09-25): `CompressLzss` (`com.wudsn.tools.rmt.model.CompressLzss`)
+
+Ported from `CCompressLzss`/`CLzss` (`src/cpp/lzss_sap.h/.cpp`) - an
+optimal LZSS compressor for SAP-R register-dump music files (by DMSC,
+C++-ported for RMT by VinsCool). Explicitly requested despite this
+project's usual "small class" scope: a genuine ~600-line bit-packing
+algorithm, the largest and most algorithmically intricate class ported so
+far. No C++ changes needed; `lzssp.h` (532 lines of unrelated Atari player
+memory-address constants, not used by the compressor at all) turned out to
+be a red herring when first scoping this batch.
+
+- Covers exactly what `LzssTests.cpp` exercises: the three `Optimise_*`
+  passes (`optimiseAudc`/`optimiseAudctl`/`optimiseAudf`) and the
+  compressor's one real call shape - C++'s `LZSS_SAP(src, srclen, dst,
+  optimisation)` four-argument overload, always run with `opt='6'`/
+  `format_version=0`.
+- **New `SapROptimization`** (was `SAPROptimization`): a plain Java enum -
+  unlike some other ported enums, no test needs a synthetic out-of-range
+  value here.
+- **Public API redesigned around Java arrays**: C++'s `LZSS_SAP` writes
+  into a caller-supplied, generously oversized `dst` buffer and returns
+  the compressed byte count separately - the existing C++ test itself
+  immediately resizes its output vector to that count. `compress(byte[]
+  src, SapROptimization)` does that trimming internally and returns the
+  exact compressed bytes directly.
+- **Dead code eliminated, not behavior changed**: C++'s `LZSS_SAP` chooses
+  its bit-width/format parameters via two switch statements over local
+  variables hardcoded to a single value (`opt='6'`, `format_version=0`)
+  with no public API to reach any other branch - hardcoded the one
+  reachable outcome directly instead of reproducing unreachable branches.
+  Likewise dropped the `registers` parameter (declared, never read in
+  `Optimize()`'s body) and the untested 5-argument `LZSS_SAP` overload.
+- **Diagnostics omitted, no effect on tested output**: every
+  `fprintf(log, ...)` call in `Compress()` - channel-skip notices,
+  empty/constant-stream warnings, and the `show_stats`/`stat_len`/
+  `stat_off` verbose dump - writes only to a log stream (hardcoded to
+  `stderr`), never to the returned buffer or size, so none of it is
+  reproduced; the `stat_len`/`stat_off` histograms that exist solely to
+  feed that dump are dropped along with it.
+- **A real unsigned-vs-signed pitfall caught before running any test**:
+  `Optimise_AUDF`'s "two-tone" check compares a raw register byte's
+  *magnitude* (`buf[1] < 0xF0`), unlike every other comparison in this
+  file (which mask with `&` first, safe under Java's signed-byte
+  sign-extension regardless). A literal port would silently invert the
+  comparison for any byte `>= 0x80`. Fixed by reusing this project's
+  established `unsignedByte(byte[], int)` helper (as in `Instruments`) for
+  every register-buffer read in all three `Optimise_*` methods, not just
+  this one, for consistency.
+- **A fragile contract preserved as-is, manifesting differently**: neither
+  version requires `src`'s length to be an exact multiple of the 9-byte
+  SAP-R frame size - already an unhandled case in C++ (silently reads past
+  `src`'s end for a partial trailing frame, undefined behavior). Java
+  throws `ArrayIndexOutOfBoundsException` instead. Not exercised by any
+  test or real call site.
+- `struct bf`'s fixed `uint8_t buf[128*1024]` scratch array became a
+  small growable `BitBuffer` (doubling capacity as needed) instead of a
+  literal 128KB allocation, since positional bit/half-byte mutation (`buf[
+  bpos] |= ...`) needs random-access writes that a plain append-only
+  structure like `ByteArrayOutputStream` can't provide; `struct bf`'s
+  separate `out`/`total` output fields, which are purely append-only,
+  became a `ByteArrayOutputStream` directly.
+- Tests (`CompressLzssTest`) mirror `LzssTests.cpp`'s 11 tests exactly,
+  including the 3 golden-master compression tests. Verified with
+  `mvn -o test`: 221 tests pass (+11), all green on the first build - the
+  golden-master byte arrays matched exactly with no debugging needed. No
+  C++ changes.
+
 ## Next steps
 
 Continue porting small, already-tested, UI-free model classes one at a
