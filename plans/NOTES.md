@@ -2918,4 +2918,33 @@ build clean and all 123 tests pass.
       try. This completes `CInstruments`'s port to the extent the C++
       source itself allows - the I/O methods (need unported infrastructure)
       and all GUI methods remain deferred. Details in
-      `plans/JAVA_PORT_PLAN.md`. Not yet committed.
+      `plans/JAVA_PORT_PLAN.md`. Committed (`3820359`).
+  - **2026-09-24**: Tenth Java-port batch - `Atari` (from `CAtari`,
+    `Atari.h/.cpp`). Before porting, re-verified `Init(bool)` instead of
+    trusting the old "hazardous, calls CTuning::InitTuning()" scoping
+    note - same "re-verify assumptions" finding as `CSong`'s constructor
+    and `CInstruments::GetFrequency` earlier in this project. It's safe as
+    long as `g_tuning.basetuning` is set first (already characterized in
+    `TuningTests.cpp`), so backfilled 2 C++ tests
+    (`InitPal/NtscPopulatesOwnMemoryWithTuningTables`) reusing
+    `TuningTests.cpp`'s own golden-master bytes directly, then ported.
+    Interestingly, PAL and NTSC produced the *same* byte value at this
+    particular low semitone - confirmed as a real, independently-verified
+    result, not a copy-paste artifact. `Init()`/`DeInit()`/`JSR()` stay
+    deferred - genuine 6502 DLL/hardware interop, not a scoping question.
+    - `GetMemoryAt`/`GetConstMemoryAt` (C++ pointer-into-buffer accessors)
+      became a single `getMemory()` - Java array indexing already gives
+      write-through access to the same buffer.
+    - `init()` takes `TuningSettings`/`TuningRatios` explicitly (matching
+      `Tuning`'s pattern) and builds a short-lived `Tuning` instance
+      internally - C++'s global `g_Tuning` has no Java equivalent yet and
+      none was needed here. Writes into a scratch buffer sized to just the
+      table region first, then copies it into this instance's own memory
+      at `RMT_FRQTABLES` - the Java equivalent of C++'s already-offset
+      `GetMemoryAt(RMT_FRQTABLES)` pointer.
+    - Cleanup: `Instruments.java`'s private `RMT_FRQTABLES` duplicate (from
+      the previous batch, pending this class) now references
+      `Atari.RMT_FRQTABLES`.
+    - Verified via a full Release|x64 solution rebuild (370 C++ tests) and
+      `mvn -o test` (149 Java tests, +9): all green, 0 regressions.
+      Details in `plans/JAVA_PORT_PLAN.md`. Not yet committed.

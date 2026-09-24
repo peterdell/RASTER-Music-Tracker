@@ -254,9 +254,6 @@ public final class Instruments {
 		return note;
 	}
 
-	// Matches RMT_FRQTABLES (Atari.h): RMTPLAYR_PAGE_DISTORTION_2 (tracker_obx.h).
-	private static final int RMT_FRQTABLES = 0xB000;
-
 	/**
 	 * Convert the note to a frequency according to distortion in first envelope column or first entry in the note table.
 	 *
@@ -286,12 +283,12 @@ public final class Instruments {
 		// The function technically returns valid data, otherwise
 		switch (tt.envelope[0][EnvelopeParameter.DISTORTION]) {
 		case 0x0C:
-			return unsignedByte(atariMemory, RMT_FRQTABLES + 64 + note);
+			return unsignedByte(atariMemory, Atari.RMT_FRQTABLES + 64 + note);
 		case 0x06:
 		case 0x0E:
-			return unsignedByte(atariMemory, RMT_FRQTABLES + 128 + note);
+			return unsignedByte(atariMemory, Atari.RMT_FRQTABLES + 128 + note);
 		default:
-			return unsignedByte(atariMemory, RMT_FRQTABLES + 192 + note);
+			return unsignedByte(atariMemory, Atari.RMT_FRQTABLES + 192 + note);
 		}
 	}
 

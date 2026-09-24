@@ -589,6 +589,50 @@ matched on the first `mvn -o test` run.
   `LoadInstrument` (need I/O infrastructure not yet ported) and all GUI
   methods stay deferred for the reasons already on record above.
 
+## Tenth ported batch (2026-09-24): `Atari` (`com.wudsn.tools.rmt.model.Atari`)
+
+Ported from `CAtari` (`src/cpp/Atari.h/.cpp`) - the already-tested subset,
+plus `Init(bool)`, which turned out not to need its original deferral
+either.
+
+- **`Init(bool)` re-verified, not just trusted from the old scoping
+  note**: it calls `g_Tuning.InitTuning()`, which is safe as long as
+  `g_tuning.basetuning` is set first - already characterized in
+  `TuningTests.cpp`. Same "re-verify instead of trusting an old scoping
+  note" finding as `CSong`'s constructor and `CInstruments::GetFrequency`
+  earlier in this project. Backfilled 2 C++ tests
+  (`AtariTest.InitPal/NtscPopulatesOwnMemoryWithTuningTables`) reusing
+  `TuningTests.cpp`'s own golden-master byte values directly, since the
+  point is to characterize `Init(bool)`'s own wiring (right clock, right
+  instance, right memory offset), not `InitTuning()`'s arithmetic (already
+  covered). Interestingly, the PAL and NTSC runs produced the *same* byte
+  values at this particular low semitone - a real, verified result (both
+  configurations genuinely exercised and checked independently), not a
+  copy-paste artifact.
+- **Deferred, unchanged**: `Init()`/`DeInit()`/`JSR()` - genuine 6502
+  DLL/hardware interop, not a scoping question like the others.
+- **`GetMemoryAt`/`GetConstMemoryAt` (C++ pointer-into-buffer accessors)
+  become a single `getMemory()`** returning the backing array directly -
+  Java array indexing already gives write-through access to the same
+  buffer, so there's no need for an offset-pointer equivalent or a
+  separate const/non-const pair.
+- **`init()` takes `TuningSettings`/`TuningRatios` as explicit
+  parameters**, matching `Tuning`'s own pattern, and constructs a
+  short-lived `Tuning` instance internally to compute the tables - C++'s
+  global `g_Tuning` has no Java equivalent yet, and none is needed here
+  since nothing outside this call uses the instance afterward.
+  `Tuning.initTuning()` writes at offsets relative to the start of
+  whatever buffer it's given, so a small scratch buffer sized to just the
+  table region is filled first, then copied into this instance's own
+  memory at `RMT_FRQTABLES` - the Java equivalent of C++ passing
+  `GetMemoryAt(RMT_FRQTABLES)` (a pointer already offset into the full 64K
+  buffer).
+- **Cleanup**: `Instruments.java`'s private duplicate of `RMT_FRQTABLES`
+  (added in the previous batch, pending `CAtari`'s own port) now
+  references `Atari.RMT_FRQTABLES` instead, since that class exists now.
+- Verified via a full Release|x64 solution rebuild (370 C++ tests) and
+  `mvn -o test` (149 Java tests, +9): all green, 0 regressions.
+
 ## Next steps
 
 Continue porting small, already-tested, UI-free model classes one at a
