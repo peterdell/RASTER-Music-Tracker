@@ -122,12 +122,12 @@
       <Culture>0x0405</Culture>
     </ResourceCompile>
     <PreBuildEvent>
-      <Command>%COMSPEC% /C $(SolutionDir)build\build_rmt_pre.bat $(OutDir)</Command>
-      <Message>Clear output folder completely before build</Message>
+      <Command>%COMSPEC% /C $(SolutionDir)build\build_rmt_pre.bat</Command>
+      <Message>Prepare doc files for the output directory</Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy  /e/y $(SolutionDir)rmt\*.*  $(OutDir)</Command>
-      <Message>Copy resources and examples to output directory</Message>
+      <Command>xcopy  /e/y/d $(SolutionDir)rmt\*.*  $(OutDir)</Command>
+      <Message>Copy changed resources and examples to output directory</Message>
     </PostBuildEvent>
     <Bscmake>
       <OutputFile>$(IntDir)$(TargetName).bsc</OutputFile>
@@ -173,14 +173,14 @@
       <Culture>0x0405</Culture>
     </ResourceCompile>
     <PostBuildEvent>
-      <Command>xcopy  /e/y $(SolutionDir)rmt\*.*  $(OutDir)</Command>
-      <Message>Copy resources and examples to output directory</Message>
+      <Command>xcopy  /e/y/d $(SolutionDir)rmt\*.*  $(OutDir)</Command>
+      <Message>Copy changed resources and examples to output directory</Message>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>%COMSPEC% /C $(SolutionDir)build\build_rmt_pre.bat $(OutDir)</Command>
+      <Command>%COMSPEC% /C $(SolutionDir)build\build_rmt_pre.bat</Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Message>Clear output folder completely before build</Message>
+      <Message>Prepare doc files for the output directory</Message>
     </PreBuildEvent>
     <Bscmake>
       <OutputFile>$(IntDir)$(TargetName).bsc</OutputFile>

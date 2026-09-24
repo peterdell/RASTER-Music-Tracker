@@ -47,7 +47,11 @@ set CONFIGURATION_DIR=%CONFIGURATION%
 set OUTPUT_DIR=%BASE_DIR%\out\%CONFIGURATION_DIR%\output
 set RESULT_EXE=%OUTPUT_DIR%\%RELEASE%.exe
 echo INFO: Buidling %RESULT_EXE% for configuration %CONFIGURATION%.
-if exist %RESULT_EXE% del %RESULT_EXE%
+rem Wipe the output directory completely before building, so the release
+rem zip below never picks up a file that was since removed from rmt/ (the
+rem normal dev-loop build no longer does this - see build_rmt_pre.bat -
+rem so this is the only place that still guarantees a clean copy).
+if exist %OUTPUT_DIR% del /Q /S %OUTPUT_DIR% >nul
 %MSBUILD% %SLN% /property:Configuration=%CONFIGURATION% -fl -flp:logfile=%OUTPUT_DIR%\msbuild.log
 if not exist %RESULT_EXE% goto :build_failed_error
 

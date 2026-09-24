@@ -2784,3 +2784,38 @@ build clean and all 123 tests pass.
       theory decisively. All 340 tests still pass. The AV-exclusion
       hypothesis from earlier in this entry is now a confirmed fact, not
       a guess.
+  - **2026-09-24**: User asked which files `Rmt.vcxproj`'s `PostBuildEvent`
+    xcopy step was copying, then whether it could be made to only copy
+    changed files. Investigation found the real reason it always did a
+    full copy: `build_rmt_pre.bat`'s `PreBuildEvent` ran
+    `del /Q /S %1` (`%1` = `$(OutDir)`) before *every* build, wiping out
+    the destination's file timestamps that `xcopy /d` would otherwise need
+    to compare against - so adding `/d` alone would have done nothing.
+    - Also found this touches `build_rmt-daily.bat` (the actual release-
+      packaging script, which ships `rmt135-daily.zip` to wudsn.com): its
+      `copy_output` step just copies whatever's currently in
+      `out/<Config>/output/` into the release, with no staleness check of
+      its own - so simply dropping the wipe (to let `xcopy /d` work) would
+      let a deleted `rmt/` file linger in `output/` and ship in the next
+      release, undetected.
+    - **User's chosen fix**: keep `xcopy` (smaller diff than switching to
+      `robocopy /MIR`, which was also offered), but relocate the wipe
+      rather than dropping it - move it from `build_rmt_pre.bat` (runs on
+      every dev-loop build) into `build_rmt-daily.bat`'s
+      `:build_configuration` (runs only when actually cutting a release),
+      and add `/d` to `Rmt.vcxproj`'s `xcopy` (both Debug/Release
+      `PostBuildEvent`s) now that the destination's timestamps survive
+      between dev builds. Also dropped the now-unused `$(OutDir)` argument
+      from the `PreBuildEvent`'s `Command` and corrected both scripts'
+      stale "clears the output folder" comments/messages.
+    - Verified all three cases directly (not just trusted the logic): a
+      missing `output/` still triggers a full 438-file copy; an unchanged
+      `output/` copies 0 files; touching one `rmt/` file (`tuning.ini`)
+      copies exactly that one file. Full solution build + `RmtTests.exe`
+      re-run: 340 tests still pass, 0 regressions.
+    - **Did not run `build_rmt-daily.bat` itself** to verify its half of
+      the change - it uploads to the live wudsn.com production site via
+      WinRAR/an upload script, which is not something to trigger from an
+      automated session. The wipe placement there was verified by reading
+      the script, not by executing it; worth a real run next time a daily
+      build is actually cut.
