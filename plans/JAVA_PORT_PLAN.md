@@ -278,9 +278,37 @@ confirming the transcription was faithful.
   `TuningRatios` + 2 `TuningSettings` + 21 `Tuning` (flat) + 3
   `GenerateTableTest` + 9 `InitTuningTest`), all green on the first run.
 
+## Fourth ported batch (2026-09-24): `Notes` (`com.wudsn.tools.rmt.model.Notes`)
+
+Ported from `CNotes` (`src/cpp/Notes.h/.cpp`) - chosen as the next
+smallest, dependency-free, already-tested class (`NotesTests.cpp`, 8
+tests). `CNotes` has no instance state at all (every method is `static` in
+C++), so the Java port is a non-instantiable class (private constructor)
+with all-static methods, rather than an object.
+
+- **Genuine scope fork, asked explicitly**: `IsValidNote()` has a known,
+  already-characterized off-by-one bug (accepts `note == 61` past its
+  documented "0-60 inclusive" range). Unlike `Fraction::operator==`, this
+  is **not** dead code - it's called from `Tracks.cpp`/`InstrumentsCore.cpp`/
+  `IO_Tracks.cpp`/`SongEditing.cpp` (via `CTracks::IsValidNote`'s
+  delegation to it), so fixing it would be a real production behavior
+  change needing its own investigation of every call site. User chose to
+  preserve it faithfully in the Java port rather than fix it as a
+  side-effect of this small class's port - noted in `Notes`'s own javadoc
+  and its test's comment, matching the C++ characterization test's own
+  wording.
+- Tests (`NotesTest`) mirror `NotesTests.cpp` exactly, including the
+  off-by-one characterization test. Verified with `mvn -o test`: 59 tests
+  pass (13 `Fraction` + 8 `Notes` + 3 `TuningRatios` + 2 `TuningSettings` +
+  33 `Tuning`/nested). No C++ changes - no new bugs found, and the known
+  one was deliberately preserved, not fixed.
+
 ## Next steps
 
 Continue porting small, already-tested, UI-free model classes one at a
 time (matching this batch's scope and verification rigor), building up
 `com.wudsn.tools.rmt.model` before attempting `CSong` or anything in
-`com.wudsn.tools.rmt.ui`. No specific next class has been chosen yet.
+`com.wudsn.tools.rmt.ui`. `CChannelControl` (per-channel on/off/toggle/solo
+state, `ChannelControl.h/.cpp`, no globals, no known bugs) is a
+reasonable next candidate, similar size/shape to this batch. No specific
+next class has been chosen yet.

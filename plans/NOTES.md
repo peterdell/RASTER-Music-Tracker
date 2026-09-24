@@ -2636,4 +2636,28 @@ build clean and all 123 tests pass.
       to construct that state, noted in a comment rather than
       characterized.
     - Verified with `mvn -o test`: 51 tests pass, all green first try.
-      Details in `plans/JAVA_PORT_PLAN.md`. Not yet committed.
+      Details in `plans/JAVA_PORT_PLAN.md`. Committed (`0d3bbbb`).
+  - **2026-09-24**: Added an Eclipse project (`.project`/`.classpath`/
+    `.settings/`, m2e-managed) at the repository root, per the user's
+    request, so the Java port can be compiled/edited in Eclipse without
+    needing a separate Maven-import wizard step. Mirrors `pom.xml`'s
+    custom `src/java`(excluding `test/`)/`src/java/test` source layout;
+    dependencies resolve from the same `pom.xml` via m2e's Maven
+    Dependencies classpath container. `CLAUDE.md` updated with an import
+    note. Committed (`1ee3ae8`).
+  - **2026-09-24**: Fourth Java-port batch - `Notes` (from `CNotes`,
+    `Notes.h/.cpp`), the next smallest already-tested, dependency-free
+    class. Ported as a non-instantiable all-static-methods class (`CNotes`
+    has no instance state in C++ either).
+    - **Genuine scope fork, asked explicitly**: `IsValidNote()`'s known
+      off-by-one bug (accepts `note == 61` past its documented "0-60
+      inclusive" range) turned out to be live production logic - called
+      from `Tracks.cpp`/`InstrumentsCore.cpp`/`IO_Tracks.cpp`/
+      `SongEditing.cpp` via `CTracks::IsValidNote`'s delegation - unlike
+      `Fraction::operator==`'s dead code. User chose to preserve it
+      faithfully rather than fix it as a side-effect of a small class's
+      port; fixing it would need its own investigation of every call site
+      first. Noted in `Notes`'s javadoc and its test's comment.
+    - Verified with `mvn -o test`: 59 tests pass (+8), all green first
+      try. No C++ changes. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
+      committed.
