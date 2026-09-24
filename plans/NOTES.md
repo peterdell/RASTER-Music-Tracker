@@ -2475,3 +2475,66 @@ build clean and all 123 tests pass.
       - Recorded all three answers in `plans/UI_SURVEY_PLAN.md`'s "Open
         questions" section. No Java port work has actually started yet -
         this was survey/decision-recording only.
+- [x] Kicked off the actual Java port (user: "Continue"). Read
+      `dis6502`/`jdis6502`'s own `CLAUDE.md`/`plans/PORTING_GUIDE.md`
+      (the same author's prior, now-complete C++-to-Java port) for
+      transferable conventions before proposing anything. Initially
+      proposed a separate repo (matching `dis6502`'s own layout) - the
+      user instead proposed doing it in-repo (`src/java` parallel to
+      `src/cpp`, `lib/java` parallel to `lib/x64`), which turned out to
+      fit this repo's own history better: `plans/OVERALL_PLAN.md`'s very
+      first instruction (move C++ into `src/cpp`) already anticipated a
+      sibling, whereas `dis6502`'s own C++ repo was never restructured
+      that way. User also clarified `lib/java` is for vendored non-Maven
+      jars (e.g. a future official ASAP Java library, mirroring
+      `src/cpp/asap/`'s vendored C code), not Maven-managed dependencies.
+      - Confirmed via direct investigation (not assumed): WUDSN Base
+        jars already installed locally; Java 21 + Maven 3.9.9 available;
+        this repo's own README links wudsn.com downloads, confirming the
+        same author/umbrella as `dis6502`/WUDSN Base - grounding the
+        `com.wudsn.tools`/`com.wudsn.tools.rmt` groupId/artifactId choice
+        and the `model`/`ui` package split (read `dis6502`'s actual
+        source layout to confirm, not just its `CLAUDE.md` prose).
+      - User decisions: depend on WUDSN Base (yes); start with the
+        smallest already-tested model classes, not `CSong` (matching
+        `dis6502`'s own "model before UI, completely, with tests" rule).
+      - Created `pom.xml` (repo root), `src/java/` + `src/java/test/`
+        (nested, mirroring `src/cpp/test`'s own nesting inside `src/cpp`),
+        `lib/java/README.md`. Hit and fixed a real Maven pitfall: nesting
+        `test/` inside the main `sourceDirectory` means the main compile
+        picks up test sources too, missing the test-scoped JUnit
+        dependency - confusing "cannot find symbol: assertEquals" errors
+        that look like a missing-dependency problem but aren't. Fixed
+        with an explicit `maven-compiler-plugin`
+        `<excludes>test/**</excludes>` on the main compile. Also needed
+        one online `mvn test` (not `-o`) to fetch the
+        `surefire-junit-platform` provider, uncached locally since
+        `dis6502` only ever needed the JUnit-3 provider - offline builds
+        work normally after that one-time fetch.
+      - Ported the first class, `CFraction` → `Fraction` (chosen as the
+        smallest, dependency-free class - a "prove the conventions" pick,
+        not a critical-path one). Made it immutable rather than mirroring
+        C++'s in-place mutation (idiomatic-substitution judgment call per
+        `dis6502`'s own guidance), collapsing pre-/post-increment into one
+        `increment()` method - noted in the class's own javadoc since the
+        not-yet-ported `RmtView.cpp`/`TuningTypes.h` call sites will need
+        to account for this later.
+      - **Fixed a real, pre-existing `operator==` bug in both languages**,
+        per the user's explicit choice (matching `dis6502`'s bug-handling
+        policy for provable bugs during active porting): it checked the
+        reduced difference's *denominator* for zero, but the constructor's
+        own reduction always leaves a non-zero denominator, so it
+        evaluated to false for every pair of operands including equal
+        fractions - already flagged in `FractionTests.cpp`'s own
+        characterization test (from an earlier session) as "a future
+        cleanup/port should decide deliberately." Fixed `Fraction.cpp`
+        (checks `numerator == 0` now) and the Java `equals()`; renamed and
+        updated the C++ test (`EqualityOperatorComparesValue`). C++ side
+        verified with a full `Rmt.exe`/`RmtTests.exe` rebuild (301 tests,
+        0 regressions); Java side verified with `mvn -o test` (13 tests
+        pass).
+      - Wrote `plans/JAVA_PORT_PLAN.md` documenting every decision above;
+        updated `CLAUDE.md` to describe both source trees/build systems;
+        updated `.gitignore` for `target/`. Not yet committed (both the
+        C++ fix and the Java port should be separate commits, per
+        `dis6502`'s own established policy).
