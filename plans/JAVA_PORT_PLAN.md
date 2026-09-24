@@ -380,12 +380,56 @@ Ported from `CTracks`/`TTrack` (`src/cpp/Tracks.h/.cpp`, `TrackTypes.h`,
   C++ file exactly. Verified with `mvn -o test`: 81 tests pass (+15), all
   green on the first run. No C++ changes, no new bugs found.
 
+## C++ follow-up (2026-09-24): backfilled the deferred `CTracks` methods'
+## test coverage
+
+Added 15 characterization tests to `TracksTests.cpp` for
+`TrackBuildLoop`/`TrackExpandLoop` (both overloads)/`ModifyTrack`/
+`GetTracksAll`/`SetTracksAll` - the five methods deferred from the `Tracks`
+Java-port batch above for having no existing test coverage, following the
+exact playbook already established for `CTuning`'s `GenerateTable`/
+`InitTuning` (write tests with placeholder assertions where the logic is
+too intricate to hand-derive safely, run once, read the real values from
+the failure diagnostics, fill them in).
+
+- **`TrackBuildLoop`**: searches for the shortest repeating suffix (>= 2
+  lines, matching an earlier segment, with more than 1 non-empty line
+  inside the matched region) and, if found, truncates the track into a
+  loop. Golden-master captured (the triple-nested search is too easy to
+  mis-trace by hand) - 6 tests, including one that specifically
+  characterizes the "more than 1 non-empty line" guard by constructing a
+  suffix that matches exactly but is entirely empty, confirming it's
+  correctly rejected.
+- **`TrackExpandLoop`** (both the track-number and `TTrack*` overloads):
+  the inverse - cyclically expands a looped track back to full length,
+  including reading back its own just-written expansion mid-loop. 4 tests.
+- **`GetTracksAll`/`SetTracksAll`**: a plain deep-copy round trip (no
+  branching, hand-derived directly, no golden-master capture needed) - 1
+  test.
+  - **Found and fixed a test-authoring bug while writing it, not a
+    `CTracks` bug**: the first version stack-allocated a local
+    `TTracksAll` (`TTracksAll saved;`), which is ~1MB (254 `TTrack`
+    entries at ~4KB each) and crashed with a stack overflow. Fixed by
+    heap-allocating it (`std::make_unique<TTracksAll>()`), matching how
+    `CTracks` itself always heap-allocates `m_track`.
+- **`ModifyTrack`**: applies a transposition/instrument-shift/volume-
+  percentage change across a line range, optionally filtered by the
+  *active* instrument (the most recently seen `instr[]` value at or after
+  `from`, not necessarily set on the exact line being modified). 4 tests,
+  including the `to >= TRACKLEN` clamping guard and the active-instrument
+  filter's exact semantics.
+- Verified via a full Release|x64 solution rebuild: `Rmt.exe`/`RmtTests.exe`
+  both build clean and all 340 tests pass (325 -> 340, +15, 0 regressions).
+  No new C++ bugs found. This unblocks a future Java follow-up batch for
+  these same five methods, which now has real golden-master values to
+  port against - same benefit the earlier `CTuning` backfill gave the
+  `Tuning` batch's own follow-up.
+
 ## Next steps
 
-A follow-up batch for `TrackBuildLoop`/`TrackExpandLoop`/`ModifyTrack`/
-`GetTracksAll`/`SetTracksAll` would need C++ characterization tests
-backfilled first (same playbook as `Tuning`'s `GenerateTable`/`InitTuning`).
-Otherwise, continue porting small, already-tested, UI-free model classes
-one at a time, building up `com.wudsn.tools.rmt.model` before attempting
+A Java follow-up batch for `TrackBuildLoop`/`TrackExpandLoop`/`ModifyTrack`/
+`GetTracksAll`/`SetTracksAll` is now unblocked (see above). Otherwise,
+continue porting small, already-tested, UI-free model classes one at a
+time, building up `com.wudsn.tools.rmt.model` before attempting
 `CSong` or anything in `com.wudsn.tools.rmt.ui`. No specific next class has
 been chosen yet.
