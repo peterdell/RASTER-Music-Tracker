@@ -3108,5 +3108,26 @@ build clean and all 123 tests pass.
       `ByteArrayOutputStream`.
     - Verified with `mvn -o test`: 221 tests pass (+11), all green on the
       first build - the 3 golden-master compression tests matched exactly
-      with no debugging needed. Details in `plans/JAVA_PORT_PLAN.md`. Not
-      yet committed.
+      with no debugging needed. Details in `plans/JAVA_PORT_PLAN.md`.
+      Committed (`201cd1a`).
+  - **2026-09-25**: Eighteenth Java-port batch - grew `Song` (previously
+    minimal, just what `Undo` needed) to cover all of `CSong`'s
+    `SongCore.cpp` methods, the already-tested "safe cluster" split out of
+    `Song.cpp`/`IO_Song.cpp`. First direct `SongTest`; no C++ changes
+    needed.
+    - New methods: `getName`, `getTracks`/`isStereo` (now taking an
+      explicit `tracks4_8` parameter), `isNTSC`, `getInstrumentSpeed`,
+      `playPressedTonesInit`, `getActiveInstr`, `getActiveColumn`, the
+      *track* `getPlayLine`/`setPlayLine` and the *song*
+      `songGetPlayLine`/`songSetPlayLine` (two separate new fields),
+      `songTrackGoDec`/`songTrackGoInc`,
+      `findNearTrackBySongLineAndColumn`, `songPlayNextLine`, `songToAta`,
+      `ataToSong`. New `TrackFlag` constants class.
+    - Dropped `PlayPressedTonesInit`'s always-true C++ `BOOL` return (made
+      `void`), for symmetry with its sibling `setPlayPressedTonesSilence`
+      (already `void` from an earlier batch); kept `songPlayNextLine`/
+      `ataToSong` as `boolean`-returning since no existing sibling forces
+      otherwise and their tests assert on the return directly.
+    - Verified with `mvn -o test`: 236 tests pass (+15), all green on the
+      first build. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
+      committed.

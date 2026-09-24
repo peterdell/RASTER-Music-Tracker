@@ -1,12 +1,27 @@
 package com.wudsn.tools.rmt.model;
 
 /**
- * Ported from CSong (src/cpp/Song.h, SongCore.cpp, SongEditing.cpp) - a
- * deliberately minimal slice, just what {@link Undo} needs (see
- * {@code plans/JAVA_PORT_PLAN.md} for the full scoping rationale). CSong
+ * Ported from CSong (src/cpp/Song.h, SongCore.cpp, SongEditing.cpp). Started
+ * as a deliberately minimal slice, just what {@link Undo} needs (see
+ * {@code plans/JAVA_PORT_PLAN.md} for the full scoping rationale), then
+ * grew to cover all of {@code SongCore.cpp} - the already-tested,
+ * globals-free "safe cluster" C++ split out from the rest of
+ * {@code Song.cpp}/{@code IO_Song.cpp} for the same reason
+ * {@code Tuning.cpp}/{@code TuningTables.cpp} and
+ * {@code Instruments.cpp}/{@code InstrumentsCore.cpp} were split. CSong
  * itself is a much larger class ("the God Object" per this project's own
  * characterization-testing notes); everything else - playback, file I/O,
- * the GUI-adjacent editing surface - stays deferred.
+ * the GUI-adjacent editing surface in {@code SongEditing.cpp} - stays
+ * deferred.
+ *
+ * <p><b>{@code g_tracks4_8} becomes an explicit parameter</b> on every
+ * method that reads it in C++ ({@link #getTracks}, {@link #isStereo},
+ * {@link #songToAta}, {@link #ataToSong}), matching this project's
+ * established idiom for globals a ported method actually needs.
+ *
+ * <p><b>No {@code CPokeyStream} yet</b>: {@link #songPlayNextLine} omits
+ * C++'s {@code m_pokeyStream}-consulting "song is done" check - it's always
+ * null in every existing CSong test, and {@code PokeyStream} isn't ported.
  *
  * <p><b>No {@code CTrackClipboard} yet</b>: {@link #blockDeselect} is a
  * documented no-op - C++'s version delegates to {@code g_TrackClipboard},
@@ -45,12 +60,15 @@ public final class Song {
 	private int songNameCursor;
 
 	private int songActiveLine;
+	private int songPlayLine; // which song line is currently being played
 	private int trackActiveLine;
+	private int trackPlayLine; // which line of a track is currently being played
 	private int trackActiveCol;
 	private int trackActiveCur;
 
 	private int activeInstr;
 	private EditArea infoAct = EditArea.NAME;
+	private boolean ntsc;
 
 	private PlayMode playMode = PlayMode.PLAY_STOP;
 	private int quantizationNote = -1;
@@ -63,6 +81,220 @@ public final class Song {
 
 	public Song(Instruments instruments) {
 		this.instruments = instruments;
+	}
+
+	/** The song name, trimmed of trailing whitespace - matches C++'s null-terminated-CString-then-TrimRight() semantics. */
+	public String getName() {
+		int end = 0;
+		while (end < songName.length && songName[end] != '\0') {
+			end++;
+		}
+		return new String(songName, 0, end).stripTrailing();
+	}
+
+	public int getTracks(int tracks4_8) {
+		return tracks4_8;
+	}
+
+	public boolean isStereo(int tracks4_8) {
+		return getTracks(tracks4_8) > 4;
+	}
+
+	public boolean isNTSC() {
+		return ntsc;
+	}
+
+	public int getInstrumentSpeed() {
+		return instrumentSpeed;
+	}
+
+	/**
+	 * Mirrors {@link #setPlayPressedTonesSilence} except the volume slot is
+	 * reset to -1 instead of 0 - matches C++'s always-true BOOL return being
+	 * dropped for the same reason as that sibling method.
+	 */
+	public void playPressedTonesInit() {
+		for (int t = 0; t < SONGTRACKS; t++) {
+			playPtNote[t] = -1;
+			playPtInstr[t] = -1;
+			playPtVolume[t] = -1;
+		}
+	}
+
+	public int getActiveInstr() {
+		return activeInstr;
+	}
+
+	public int getActiveColumn() {
+		return trackActiveCol;
+	}
+
+	public int getPlayLine() {
+		return trackPlayLine;
+	}
+
+	public void setPlayLine(int line) {
+		trackPlayLine = line;
+	}
+
+	public int songGetPlayLine() {
+		return songPlayLine;
+	}
+
+	public void songSetPlayLine(int line) {
+		songPlayLine = line;
+	}
+
+	public void songTrackGoDec() {
+		songGo[songActiveLine] = (songGo[songActiveLine] - 1) & 0xff;
+	}
+
+	public void songTrackGoInc() {
+		songGo[songActiveLine] = (songGo[songActiveLine] + 1) & 0xff;
+	}
+
+	/** Finds a free track near the default track for {@code column} at or before {@code songline}, falling back to the first free track overall. */
+	public int findNearTrackBySongLineAndColumn(int songline, int column, byte[] used) {
+		for (int j = songline; j >= 0; j--) {
+			if (songGo[j] >= 0) {
+				continue;
+			}
+			int t = song[j][column];
+			if (t >= 0) {
+				for (int k = t + 1; k < Tracks.TRACKSNUM; k++) {
+					if (used[k] == 0) {
+						return k;
+					}
+				}
+				// Because it did not find any behind it, try looking in front of it instead
+				for (int k = t - 1; k >= 0; k--) {
+					if (used[k] == 0) {
+						return k;
+					}
+				}
+			}
+		}
+		// Search for the first one usable from the beginning
+		for (int k = 0; k < Tracks.TRACKSNUM; k++) {
+			if (used[k] == 0) {
+				return k;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Advances the song's play line, following a goto line if one is set.
+	 * Always returns {@code true} (C++'s {@code BOOL} return is unconditional
+	 * in every branch of the original).
+	 *
+	 * <p>Omits C++'s {@code m_pokeyStream}-consulting "song is done" check -
+	 * {@link PokeyStream} isn't ported, and {@code m_pokeyStream} is always
+	 * null in every existing CSong test.
+	 */
+	public boolean songPlayNextLine() {
+		trackPlayLine = 0; // first track pattern line
+
+		// Normal play, play from current position, or play from bookmark => shift to the next line
+		if (playMode == PlayMode.PLAY_SONG || playMode == PlayMode.PLAY_FROM || playMode == PlayMode.PLAY_BOOKMARK) {
+			songPlayLine++;
+			if (songPlayLine > 255) {
+				songPlayLine = 0;
+			}
+		}
+
+		// When a goto line is encountered, jump right to the defined line and continue playback from that position
+		if (songGo[songPlayLine] >= 0) {
+			songPlayLine = songGo[songPlayLine];
+		}
+
+		return true;
+	}
+
+	/** Encodes {@code song}/{@code songGo} into the Atari module's song-data byte format, returning the number of bytes actually used. */
+	public int songToAta(byte[] dest, int max, int adr, int tracks4_8) {
+		int len = 0;
+		for (int sline = 0; sline < SONGLEN; sline++) {
+			int apos = sline * tracks4_8;
+			if (apos + tracks4_8 > max) {
+				return len; // buffer overflow
+			}
+
+			int go = songGo[sline];
+			if (go >= 0) {
+				// There is a goto line
+				dest[apos] = (byte) 254; // go command
+				dest[apos + 1] = (byte) go; // number where to jump
+				int goadr = (adr + go * tracks4_8) & 0xFFFF;
+				dest[apos + 2] = (byte) (goadr & 0xff); // low byte
+				dest[apos + 3] = (byte) (goadr >> 8); // high byte
+				if (tracks4_8 > 4) {
+					for (int j = 4; j < tracks4_8; j++) {
+						dest[apos + j] = (byte) 255; // to make sure this is the correct line
+					}
+				}
+				len = sline * tracks4_8 + 4; // this is the end for now (goto has 4 bytes for 8 tracks)
+			} else {
+				// There are track numbers
+				for (int i = 0; i < tracks4_8; i++) {
+					int j = song[sline][i];
+					if (j >= 0 && j < Tracks.TRACKSNUM) {
+						dest[apos + i] = (byte) j;
+						len = (sline + 1) * tracks4_8; // this is the end for now
+					} else {
+						dest[apos + i] = (byte) 255;
+					}
+				}
+			}
+		}
+		return len;
+	}
+
+	/**
+	 * Decodes the Atari module's song-data byte format (the {@link #songToAta} counterpart) into {@code song}/{@code songGo}.
+	 * Always returns {@code true} (C++'s {@code BOOL} return is unconditional in every branch of the original).
+	 */
+	public boolean ataToSong(byte[] sour, int len, int adr, int tracks4_8) {
+		int i = 0;
+		int col = 0;
+		int line = 0;
+		while (i < len) {
+			int b = unsignedByte(sour, i);
+			// C++ also checks "b >= 0", tautological for its unsigned char b.
+			if (b < Tracks.TRACKSNUM) {
+				song[line][col] = b;
+			} else if (b == 254 && col == 0) {
+				int ptr = unsignedByte(sour, i + 2) | (unsignedByte(sour, i + 3) << 8); // goto vector
+				int go = (ptr - adr) / tracks4_8;
+				if (go >= 0 && go < (len / tracks4_8) && go < SONGLEN) {
+					songGo[line] = go;
+				} else {
+					songGo[line] = 0; // place of invalid jump and jump to line 0
+				}
+				i += tracks4_8;
+				if (i >= len) {
+					return true; // this is the end of goto
+				}
+				line++;
+				if (line >= SONGLEN) {
+					return true;
+				}
+				continue;
+			} else {
+				song[line][col] = -1;
+			}
+
+			col++;
+			if (col >= tracks4_8) {
+				line++;
+				if (line >= SONGLEN) {
+					return true; // so that it does not overflow
+				}
+				col = 0;
+			}
+			i++;
+		}
+		return true;
 	}
 
 	public int[][] getSong() {
@@ -244,5 +476,9 @@ public final class Song {
 			quantizationNote = quantizationInstr = quantizationVol = -1;
 			setPlayPressedTonesSilence();
 		}
+	}
+
+	private static int unsignedByte(byte[] buf, int index) {
+		return buf[index] & 0xFF;
 	}
 }

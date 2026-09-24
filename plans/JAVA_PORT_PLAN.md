@@ -902,6 +902,51 @@ be a red herring when first scoping this batch.
   golden-master byte arrays matched exactly with no debugging needed. No
   C++ changes.
 
+## Eighteenth ported batch (2026-09-25): `Song` grows to cover `SongCore.cpp`
+
+Grew `Song` (previously a deliberately minimal slice, just what `Undo`
+needed) to cover all of `CSong`'s `SongCore.cpp` methods - the
+already-tested, globals-free "safe cluster" split out from
+`Song.cpp`/`IO_Song.cpp` for the same reason `Tuning.cpp`/
+`TuningTables.cpp` and `Instruments.cpp`/`InstrumentsCore.cpp` were split.
+No C++ changes needed. This is the first direct `SongTest`; previously
+`Song` was only exercised indirectly through `UndoTest`.
+
+- **New methods**: `getName`, `getTracks(int tracks4_8)`,
+  `isStereo(int tracks4_8)`, `isNTSC`, `getInstrumentSpeed`,
+  `playPressedTonesInit`, `getActiveInstr`, `getActiveColumn`,
+  `getPlayLine`/`setPlayLine` (the *track* play line - new
+  `trackPlayLine` field, distinct from the already-existing
+  `getActiveLine`/`setActiveLine`), `songGetPlayLine`/`songSetPlayLine`
+  (the *song* play line - new `songPlayLine` field), `songTrackGoDec`/
+  `songTrackGoInc`, `findNearTrackBySongLineAndColumn`,
+  `songPlayNextLine`, `songToAta`, `ataToSong`. New `TrackFlag` (plain
+  `byte` constants `TF_NOEMPTY`/`TF_USED`, for the track-usage byte arrays
+  these last two methods take/build).
+- **`g_tracks4_8` becomes an explicit parameter** on every method that
+  reads it in C++ (`getTracks`, `isStereo`, `songToAta`, `ataToSong`),
+  matching the established idiom.
+- **One always-true C++ `BOOL` return dropped, for consistency with an
+  existing sibling**: `PlayPressedTonesInit()`'s C++ return is
+  unconditionally `TRUE`, exactly like `SetPlayPressedTonesSilence()`
+  (already ported as `void` in an earlier batch, before any direct
+  `SongTest` existed to assert on it) - `playPressedTonesInit()` follows
+  suit as `void` too, for symmetry with its already-committed sibling.
+  `songPlayNextLine`/`ataToSong` keep their `boolean` returns (matching
+  their tests' direct `assertTrue(...)` usage) despite also never
+  returning `false` in the current C++ source - no existing Java sibling
+  forces a different call here, so their real declared return type is
+  preserved instead of guessed at.
+- `AtaToSong`'s `unsigned char b >= 0` check is tautological in C++ (an
+  unsigned type can't be negative) - dropped in `ataToSong`, which reads
+  `b` as an already-correctly-unsigned `int` via the established
+  `unsignedByte(byte[], int)` helper.
+- Tests (`SongTest`, plus a new `UecursorIsEqualTest` nested class)
+  mirror `SongTests.cpp`'s `SongCoreTest` fixture's 14 tests exactly (15
+  Java `@Test` methods once the nested class is counted). Verified with
+  `mvn -o test`: 236 tests pass (+15), all green on the first build. No
+  C++ changes.
+
 ## Next steps
 
 Continue porting small, already-tested, UI-free model classes one at a
