@@ -1,8 +1,11 @@
 #include "gtest/gtest.h"
 
+#include "Atari.h"
 #include "Instruments.h"
+#include "Notes.h"
 
 extern int g_tracks4_8; // TODO Move out (see Instruments.cpp/IO_Instruments.cpp)
+extern CAtari g_Atari; // real, linked, cheap global (see AtariStub.cpp) - needed by GetFrequency()
 
 namespace {
 constexpr int kInstr = 0;
@@ -359,4 +362,278 @@ TEST_F(InstrumentsCoreTest, RememberOctaveAndVolumeDoesNothingWhenDisabled) {
 
     EXPECT_EQ(oct, -99);
     EXPECT_EQ(vol, -99);
+}
+
+// --- CheckInstrumentParameters ---
+// Clamps 4 cursor/loop-goto fields so they never exceed their corresponding
+// length field, after e.g. shortening a table or envelope.
+
+TEST_F(InstrumentsCoreTest, CheckInstrumentParametersIgnoresOutOfRangeIndex) {
+    instruments.CheckInstrumentParameters(-1);
+    instruments.CheckInstrumentParameters(INSTRSNUM);
+    // No crash - nothing further to assert (GetInstrument() guards both).
+}
+
+TEST_F(InstrumentsCoreTest, CheckInstrumentParametersClampsEnvGotoToEnvLength) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_ENV_LENGTH] = 3;
+    ai->parameters[PAR_ENV_GOTO] = 10;
+
+    instruments.CheckInstrumentParameters(kInstr);
+
+    EXPECT_EQ(ai->parameters[PAR_ENV_GOTO], 3);
+}
+
+TEST_F(InstrumentsCoreTest, CheckInstrumentParametersClampsTblGotoToTblLength) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_TBL_LENGTH] = 2;
+    ai->parameters[PAR_TBL_GOTO] = 10;
+
+    instruments.CheckInstrumentParameters(kInstr);
+
+    EXPECT_EQ(ai->parameters[PAR_TBL_GOTO], 2);
+}
+
+TEST_F(InstrumentsCoreTest, CheckInstrumentParametersClampsEditEnvelopeXToEnvLength) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_ENV_LENGTH] = 3;
+    ai->editEnvelopeX = 10;
+
+    instruments.CheckInstrumentParameters(kInstr);
+
+    EXPECT_EQ(ai->editEnvelopeX, 3);
+}
+
+TEST_F(InstrumentsCoreTest, CheckInstrumentParametersClampsEditNoteTableCursorPosToTblLength) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_TBL_LENGTH] = 2;
+    ai->editNoteTableCursorPos = 10;
+
+    instruments.CheckInstrumentParameters(kInstr);
+
+    EXPECT_EQ(ai->editNoteTableCursorPos, 2);
+}
+
+TEST_F(InstrumentsCoreTest, CheckInstrumentParametersLeavesValuesUnchangedWhenWithinBounds) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_ENV_LENGTH] = 5;
+    ai->parameters[PAR_ENV_GOTO] = 2;
+    ai->parameters[PAR_TBL_LENGTH] = 5;
+    ai->parameters[PAR_TBL_GOTO] = 2;
+    ai->editEnvelopeX = 2;
+    ai->editNoteTableCursorPos = 2;
+
+    instruments.CheckInstrumentParameters(kInstr);
+
+    EXPECT_EQ(ai->parameters[PAR_ENV_GOTO], 2);
+    EXPECT_EQ(ai->parameters[PAR_TBL_GOTO], 2);
+    EXPECT_EQ(ai->editEnvelopeX, 2);
+    EXPECT_EQ(ai->editNoteTableCursorPos, 2);
+}
+
+// --- RecalculateFlag ---
+// Computes displayHintFlags from the envelope (rows 0..PAR_ENV_LENGTH) and
+// the AUDCTL parameter range.
+
+TEST_F(InstrumentsCoreTest, RecalculateFlagIgnoresOutOfRangeIndex) {
+    instruments.RecalculateFlag(-1);
+    instruments.RecalculateFlag(INSTRSNUM);
+    // No crash - nothing further to assert (GetInstrument() guards both).
+}
+
+TEST_F(InstrumentsCoreTest, RecalculateFlagSetsFilterFlagWhenEnvelopeHasFilter) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->envelope[0][EnvelopeParameter::FILTER] = 1;
+
+    instruments.RecalculateFlag(kInstr);
+
+    EXPECT_TRUE(ai->displayHintFlags & IF_FILTER);
+    EXPECT_FALSE(ai->displayHintFlags & IF_BASS16);
+    EXPECT_FALSE(ai->displayHintFlags & IF_PORTAMENTO);
+}
+
+TEST_F(InstrumentsCoreTest, RecalculateFlagSetsBass16FlagWhenDistortionIsSix) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 6;
+
+    instruments.RecalculateFlag(kInstr);
+
+    EXPECT_TRUE(ai->displayHintFlags & IF_BASS16);
+}
+
+TEST_F(InstrumentsCoreTest, RecalculateFlagSetsPortamentoFlagWhenEnvelopeHasPortamento) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->envelope[0][EnvelopeParameter::PORTAMENTO] = 1;
+
+    instruments.RecalculateFlag(kInstr);
+
+    EXPECT_TRUE(ai->displayHintFlags & IF_PORTAMENTO);
+}
+
+TEST_F(InstrumentsCoreTest, RecalculateFlagSetsAudctlFlagWhenAnyAudctlParameterIsSet) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_AUDCTL_JOIN_1_2] = 1;
+
+    instruments.RecalculateFlag(kInstr);
+
+    EXPECT_TRUE(ai->displayHintFlags & IF_AUDCTL);
+}
+
+// Autofilter takes priority over Bass16 (RMT 1.28 driver only) - both would
+// independently set their own flag, but the Bass16 bit gets cleared again
+// when Filter is also set.
+TEST_F(InstrumentsCoreTest, RecalculateFlagFilterTakesPriorityOverBass16WhenBothSet) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->envelope[0][EnvelopeParameter::FILTER] = 1;
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 6;
+
+    instruments.RecalculateFlag(kInstr);
+
+    EXPECT_TRUE(ai->displayHintFlags & IF_FILTER);
+    EXPECT_FALSE(ai->displayHintFlags & IF_BASS16);
+}
+
+TEST_F(InstrumentsCoreTest, RecalculateFlagChecksEnvelopeRowsUpToEnvLengthInclusive) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_ENV_LENGTH] = 2;
+    ai->envelope[2][EnvelopeParameter::FILTER] = 1; // last row still in range
+
+    instruments.RecalculateFlag(kInstr);
+
+    EXPECT_TRUE(ai->displayHintFlags & IF_FILTER);
+}
+
+// --- CalculateNotEmpty ---
+
+TEST_F(InstrumentsCoreTest, CalculateNotEmptyReturnsFalseForOutOfRangeIndex) {
+    EXPECT_FALSE(instruments.CalculateNotEmpty(-1));
+    EXPECT_FALSE(instruments.CalculateNotEmpty(INSTRSNUM));
+}
+
+TEST_F(InstrumentsCoreTest, CalculateNotEmptyReturnsFalseForFreshlyConstructedInstrument) {
+    EXPECT_FALSE(instruments.CalculateNotEmpty(kInstr));
+}
+
+TEST_F(InstrumentsCoreTest, CalculateNotEmptyReturnsTrueWhenEnvelopeHasNonZeroValue) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->envelope[0][EnvelopeParameter::X] = 5;
+
+    EXPECT_TRUE(instruments.CalculateNotEmpty(kInstr));
+}
+
+TEST_F(InstrumentsCoreTest, CalculateNotEmptyReturnsTrueWhenAnyParameterIsNonZero) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_DELAY] = 3;
+
+    EXPECT_TRUE(instruments.CalculateNotEmpty(kInstr));
+}
+
+TEST_F(InstrumentsCoreTest, CalculateNotEmptyIgnoresEnvelopeRowsBeyondEnvLength) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_ENV_LENGTH] = 0; // only row 0 is checked
+    ai->envelope[5][EnvelopeParameter::X] = 9; // out of the checked range
+
+    EXPECT_FALSE(instruments.CalculateNotEmpty(kInstr));
+}
+
+// --- GetNote ---
+
+TEST_F(InstrumentsCoreTest, GetNoteReturnsMinusOneForOutOfRangeIndex) {
+    EXPECT_EQ(instruments.GetNote(-1, 10), -1);
+    EXPECT_EQ(instruments.GetNote(INSTRSNUM, 10), -1);
+}
+
+TEST_F(InstrumentsCoreTest, GetNoteReturnsNoteUnshiftedWhenTableTypeIsNotZero) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_TBL_TYPE] = 1; // frequencies, not notes - no shift applied
+    ai->noteTable[0] = 5;
+
+    EXPECT_EQ(instruments.GetNote(kInstr, 10), 10);
+}
+
+TEST_F(InstrumentsCoreTest, GetNoteShiftsByNoteTableZeroWhenTableTypeIsZero) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_TBL_TYPE] = 0;
+    ai->noteTable[0] = 5;
+
+    EXPECT_EQ(instruments.GetNote(kInstr, 10), 15);
+}
+
+TEST_F(InstrumentsCoreTest, GetNoteReturnsMinusOneForInvalidShiftedNote) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_TBL_TYPE] = 0;
+    ai->noteTable[0] = 100; // shifts note 0 -> 100, well past CNotes::NOTESNUM (61)
+
+    EXPECT_EQ(instruments.GetNote(kInstr, 0), -1);
+}
+
+// --- GetFrequency ---
+// Reads a byte from g_Atari's memory at an offset selected by the
+// instrument's envelope[0] distortion value. g_Atari is a real, cheap,
+// already-linked global (see AtariStub.cpp) - GetByteAt()/SetByteAt() are
+// plain array accessors with no hazard of their own, so this needed no
+// special test-only seam, unlike CTuning::InitTuning()'s guarded globals.
+
+class InstrumentFrequencyTest : public InstrumentsCoreTest {
+  protected:
+    void TearDown() override {
+        InstrumentsCoreTest::TearDown();
+        // Leave g_Atari's memory clean for any other test that might run
+        // after this one in the same process.
+        g_Atari.SetByteAt(RMT_FRQTABLES + 64, 0);
+        g_Atari.SetByteAt(RMT_FRQTABLES + 128, 0);
+        g_Atari.SetByteAt(RMT_FRQTABLES + 192, 0);
+    }
+};
+
+TEST_F(InstrumentFrequencyTest, ReturnsMinusOneForOutOfRangeIndex) {
+    EXPECT_EQ(instruments.GetFrequency(-1, 0), -1);
+    EXPECT_EQ(instruments.GetFrequency(INSTRSNUM, 0), -1);
+}
+
+TEST_F(InstrumentFrequencyTest, ReturnsMinusOneForOutOfRangeNote) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_TBL_TYPE] = 1; // no shift
+
+    EXPECT_EQ(instruments.GetFrequency(kInstr, -1), -1);
+    EXPECT_EQ(instruments.GetFrequency(kInstr, CNotes::NOTESNUM), -1);
+}
+
+TEST_F(InstrumentFrequencyTest, ReadsFromOffsetSixtyFourForDistortion0x0C) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_TBL_TYPE] = 1; // no shift
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x0C;
+    g_Atari.SetByteAt(RMT_FRQTABLES + 64 + 5, 77);
+
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 77);
+}
+
+TEST_F(InstrumentFrequencyTest, ReadsFromOffsetOneTwentyEightForDistortionSixOrE) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_TBL_TYPE] = 1;
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x06;
+    g_Atari.SetByteAt(RMT_FRQTABLES + 128 + 5, 88);
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 88);
+
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x0E;
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 88); // same offset for 0x0E
+}
+
+TEST_F(InstrumentFrequencyTest, ReadsFromOffsetOneNinetyTwoForAnyOtherDistortion) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_TBL_TYPE] = 1;
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x00;
+    g_Atari.SetByteAt(RMT_FRQTABLES + 192 + 5, 99);
+
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 99);
+}
+
+TEST_F(InstrumentFrequencyTest, ShiftsNoteByNoteTableZeroWhenTableTypeIsZero) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_TBL_TYPE] = 0;
+    ai->noteTable[0] = 5;
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x00; // default -> offset 192
+    g_Atari.SetByteAt(RMT_FRQTABLES + 192 + 10, 42); // note 5 shifted by 5 -> 10
+
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 42);
 }

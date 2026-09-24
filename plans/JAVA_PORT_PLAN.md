@@ -517,9 +517,56 @@ only, matching the scoping discipline established for `Tuning`/`Tracks`.
   explicit boolean arguments. Verified with `mvn -o test`: 112 tests pass
   (+16). No C++ changes, no new bugs found.
 
+## C++ follow-up (2026-09-24): backfilled the deferred `CInstruments`
+## methods' test coverage
+
+Added 28 characterization tests to `InstrumentsTests.cpp` for
+`CheckInstrumentParameters`/`RecalculateFlag`/`CalculateNotEmpty`/
+`GetNote`/`GetFrequency` - the five methods deferred from the
+`Instruments` Java-port batch above for having no existing test coverage,
+following the same playbook as `CTuning`'s and `CTracks`'s earlier
+backfills. All values were hand-derived directly (none of this logic
+needed golden-master capture - simple conditionals/loops, not intricate
+branching arithmetic like `TrackBuildLoop`'s), and all passed on the first
+run.
+
+- **`GetFrequency` turned out not to need the deferral either** - the
+  same "re-verify assumptions instead of trusting old scoping notes"
+  lesson as `CSong`'s constructor earlier in this project.
+  `CAtari::GetByteAt`/`SetByteAt` are plain array accessors with no
+  hazard of their own, and `g_Atari` is already a real, cheap, linked
+  global (`AtariStub.cpp`) - so testing it needed no new test-only seam,
+  just setting bytes into `g_Atari`'s memory before calling it (and
+  clearing them again in `TearDown()`, since it's a shared global other
+  tests could run after). 6 tests, covering all three distortion-based
+  offset branches (0x0C/0x06/0x0E/default) plus the note-table shift.
+- **`CheckInstrumentParameters`**: 6 tests, one per clamped field
+  (`PAR_ENV_GOTO`/`PAR_TBL_GOTO`/`editEnvelopeX`/
+  `editNoteTableCursorPos`) plus the out-of-range-index guard and an
+  unchanged-when-within-bounds sanity check.
+- **`RecalculateFlag`**: 7 tests, one per flag
+  (`IF_FILTER`/`IF_BASS16`/`IF_PORTAMENTO`/`IF_AUDCTL`), the
+  "autofilter takes priority over Bass16" rule, and the inclusive
+  `0..PAR_ENV_LENGTH` envelope-row scan boundary.
+- **`CalculateNotEmpty`**: 5 tests, including one confirming envelope
+  rows beyond `PAR_ENV_LENGTH` are correctly ignored.
+- **`GetNote`**: 4 tests, covering the note-table-zero shift and the
+  invalid-shifted-note rejection (reusing `CNotes::IsValidNote`,
+  including its own known off-by-one).
+- Verified via a full Release|x64 solution rebuild: `Rmt.exe`/
+  `RmtTests.exe` both build clean and all 368 tests pass (340 -> 368,
+  +28, 0 regressions). No new C++ bugs found. This unblocks a future Java
+  follow-up batch for these five methods, which now has real
+  characterization values to port against.
+
 ## Next steps
 
-Continue porting small, already-tested, UI-free model classes one at a
-time, building up `com.wudsn.tools.rmt.model` before attempting
-`CSong` or anything in `com.wudsn.tools.rmt.ui`. No specific next class has
-been chosen yet.
+A Java follow-up batch for `CheckInstrumentParameters`/`RecalculateFlag`/
+`CalculateNotEmpty`/`GetNote`/`GetFrequency` is now unblocked (see above) -
+`GetFrequency` will still need a design decision for how to supply "the
+emulated Atari memory" in Java (a `byte[]` parameter, matching `Tuning`'s
+`generateTable`, is the natural choice, but `CAtari` itself isn't ported
+yet either). Otherwise, continue porting small, already-tested, UI-free
+model classes one at a time, building up `com.wudsn.tools.rmt.model`
+before attempting `CSong` or anything in `com.wudsn.tools.rmt.ui`. No
+specific next class has been chosen yet.

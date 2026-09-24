@@ -2875,4 +2875,30 @@ build clean and all 123 tests pass.
       (`stereo = g_tracks4_8 > 4`) against each test's own global setup,
       not by a test failure (the fix was made before the first build).
     - Verified with `mvn -o test`: 112 tests pass (+16), all green after
-      that fix. Details in `plans/JAVA_PORT_PLAN.md`. Not yet committed.
+      that fix. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      (`e6a324b`).
+  - **2026-09-24**: Backfilled C++ test coverage for the five deferred
+    `CInstruments` methods (`CheckInstrumentParameters`/`RecalculateFlag`/
+    `CalculateNotEmpty`/`GetNote`/`GetFrequency`), same playbook as
+    `CTuning`'s and `CTracks`'s earlier backfills. All 28 values were
+    hand-derived directly (simple conditionals/loops, no golden-master
+    capture needed) and passed on the first run.
+    - **`GetFrequency` didn't actually need its deferral either** - same
+      "re-verify assumptions instead of trusting the old scoping note"
+      lesson as `CSong`'s constructor earlier in this project.
+      `CAtari::GetByteAt`/`SetByteAt` are plain array accessors, and
+      `g_Atari` is already a real, cheap, linked global (`AtariStub.cpp`)
+      - no new test-only seam needed, just setting/clearing bytes in
+      `g_Atari`'s memory around each test.
+    - `CheckInstrumentParameters` (6 tests, one per clamped field),
+      `RecalculateFlag` (7 tests, one per flag plus the
+      filter-over-Bass16 priority rule and the inclusive envelope-row
+      scan boundary), `CalculateNotEmpty` (5 tests, including the
+      beyond-`PAR_ENV_LENGTH` boundary), `GetNote` (4 tests), and
+      `GetFrequency` (6 tests, all three distortion-offset branches plus
+      the note-table shift).
+    - Verified via a full Release|x64 solution rebuild: `Rmt.exe`/
+      `RmtTests.exe` both build clean and all 368 tests pass (340 -> 368,
+      +28, 0 regressions). No new C++ bugs found. Unblocks a future Java
+      follow-up batch for these five methods. Details in
+      `plans/JAVA_PORT_PLAN.md`. Not yet committed.
