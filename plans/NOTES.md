@@ -3129,5 +3129,23 @@ build clean and all 123 tests pass.
       `ataToSong` as `boolean`-returning since no existing sibling forces
       otherwise and their tests assert on the return directly.
     - Verified with `mvn -o test`: 236 tests pass (+15), all green on the
+      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      (`b5a78f1`).
+  - **2026-09-25**: Nineteenth Java-port batch - `Messages` (from
+    Messages.h/.cpp), the subset `MessagesTests.cpp` exercises, ported in
+    full, no C++ changes needed. New `MessageButtons`/`MessageAnswer`
+    enums (Java `SCREAMING_SNAKE_CASE`, unlike the C++ originals' camelCase
+    spellings).
+    - Log-fallback-only by design: `g_statusBar` always stays null in
+      every C++ test, so the real Win32 `MessageBox()` path is never
+      reached and isn't ported - there's no Java UI/window to show a
+      dialog in anyway.
+    - Omitted `SendInfoMessage` - unconditionally calls
+      `SetStatusBarText()` (no log-fallback branch at all) and isn't
+      tested.
+    - The module-level `g_testQuestionAnswer` global became an instance
+      field (default `CANCEL`, the safe choice); `OutputDebugString`
+      became `System.err`.
+    - Verified with `mvn -o test`: 240 tests pass (+4), all green on the
       first build. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
       committed.

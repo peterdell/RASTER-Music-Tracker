@@ -947,6 +947,36 @@ No C++ changes needed. This is the first direct `SongTest`; previously
   `mvn -o test`: 236 tests pass (+15), all green on the first build. No
   C++ changes.
 
+## Nineteenth ported batch (2026-09-25): `Messages` (`com.wudsn.tools.rmt.model.Messages`)
+
+Ported from Messages.h/.cpp - the subset `MessagesTests.cpp` exercises. No
+C++ changes needed.
+
+- **New `MessageButtons`/`MessageAnswer`** (were the C++ enums of the same
+  names): plain Java enums, using Java's conventional
+  `SCREAMING_SNAKE_CASE` naming rather than the C++ originals' camelCase
+  member spellings (`YesNo`→`YES_NO`, etc.) - unlike every other enum
+  ported so far, whose C++ spellings already used that convention.
+- **Log-fallback-only, by design**: C++'s `g_statusBar` always stays
+  `nullptr` in every test (no real status bar/UI is ever constructed
+  there), so every `Send<Type>Message()` always takes the log-fallback
+  path in `MessagesTests.cpp`, never the real Win32 `MessageBox()` one.
+  This port only implements that log-fallback path - there's no Java
+  UI/window to show a dialog in, and no test reaches the other branch.
+  `sendQuestionMessage`'s `MessageButtons` parameter is kept purely for
+  signature parity, since it fed only the now-omitted `MessageBox()`
+  branch.
+- **`SendInfoMessage` omitted**: unlike the other four functions, it
+  unconditionally calls `SetStatusBarText()` (no log-fallback branch at
+  all - it's not exercised by any test either).
+- C++'s `g_testQuestionAnswer` (a module-level global test hook) becomes
+  an instance field, defaulting to `MessageAnswer.CANCEL` for the same
+  "safe/non-destructive choice" reason as the original; `OutputDebugString`
+  becomes `System.err` output.
+- Tests (`MessagesTest`) mirror `MessagesTests.cpp`'s 4 tests exactly.
+  Verified with `mvn -o test`: 240 tests pass (+4), all green on the first
+  build. No C++ changes.
+
 ## Next steps
 
 Continue porting small, already-tested, UI-free model classes one at a
