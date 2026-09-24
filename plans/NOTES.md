@@ -2947,4 +2947,49 @@ build clean and all 123 tests pass.
       `Atari.RMT_FRQTABLES`.
     - Verified via a full Release|x64 solution rebuild (370 C++ tests) and
       `mvn -o test` (149 Java tests, +9): all green, 0 regressions.
-      Details in `plans/JAVA_PORT_PLAN.md`. Not yet committed.
+      Details in `plans/JAVA_PORT_PLAN.md`. Committed (`626ca5c`, `031fbbe`).
+  - **2026-09-24**: User asked to continue with `CUndo` next. Investigation
+    found it fully tested (30 tests) and not hazardous, but deeply wired
+    into `CSong` (cursor/song-data/song-info methods, `TInfo`/`TSong`,
+    `Part`) and needing `CInstruments::GetInstrumentsAll()` (skipped
+    earlier as an untested C++ zero-copy view with no clean Java
+    equivalent). Asked the user how to proceed, since this was effectively
+    "start porting `CSong`" - the class this whole project has
+    deliberately deferred as its own "God Object." User chose to start a
+    minimal `CSong` slice now, scoped to exactly what `CUndo` needs.
+    - Eleventh Java-port batch: `Part`/`PlayMode`/`EditArea` (enums),
+      `Bookmark`/`SongInfo`/`SongData` (were `TBookmark`/`TInfo`/`TSong`),
+      `Song` (a deliberately minimal `CSong` slice), `UndoType` (plain
+      `int` constants, not an enum - `posIsEqual`/etc. need to accept the
+      same out-of-range synthetic values C++'s tests exercise via
+      `static_cast`, which a closed enum can't represent), `UndoEvent`
+      (drops the `dataIsArray` C++ memory-management bookkeeping entirely
+      - Java's GC makes it moot), `Undo` (ported in full).
+    - New `InstrumentsAll` (real deep-copy snapshot, analogous to
+      `TracksAll`): an additive capability for `Undo`'s genuine
+      snapshot/restore need, not a reintroduction of the skipped
+      `GetInstrumentsAll()`. Added `copyFrom` deep-copy helpers to
+      `Instrument`/`Track`/`TracksAll`/`InstrumentsAll` along the way.
+    - C++'s circular `CSong`↔`CUndo` global coupling (`Song::Stop()` calls
+      `g_Undo.Separator()`; `Undo::Undo()`/`Redo()` call `g_Song.Stop()`)
+      became a one-directional field (`Undo` stores `Song`) plus one
+      explicit parameter (`Song.stop(Undo)`), avoiding a circular
+      constructor dependency.
+    - Omitted, no Java equivalent yet (documented in both classes'
+      javadoc): `BLOCKDESELECT` (needs `CTrackClipboard`), the timer-wait
+      in `Stop()`, `g_changes`/`SetRMTTitle()` window-title bookkeeping (no
+      UI exists), and `Instruments.Update()` calls in `PerformEvent`
+      (matches `Instruments`'s own prior omission of the same call).
+    - **Found and flagged a latent C++ bug in both languages, not fixed**:
+      `ChangeSong`'s `UETYPE_SONGDATA` case never copies the current
+      bookmark into its snapshot, so the first undo of a whole-song-data
+      change restores an indeterminate bookmark. Not currently
+      characterized by any test. Flagged with a comment in `Undo.cpp`;
+      preserved with the same omission in `Undo.java` for parity (Java's
+      zero-init changes the *symptom* to a zeroed `Bookmark` rather than
+      garbage, but the same missing-copy oversight is there either way).
+    - Verified with `mvn -o test`: 179 tests pass (+30), all green on the
+      **first** build - despite being the most structurally complex port
+      this project has done (5 new collaborating classes, 2 new snapshot
+      types). Full Release|x64 C++ rebuild also verified (comment-only
+      change). Details in `plans/JAVA_PORT_PLAN.md`. Not yet committed.

@@ -78,4 +78,23 @@ public final class Instrument {
 	public int volume;
 
 	public int displayHintFlags; // Some flags that give hints to what is happening with this instrument
+
+	/** Deep-copies another instrument's data into this one (matches C++'s memcpy(this, other, sizeof(TInstrument))). */
+	public void copyFrom(Instrument other) {
+		activeEditSection = other.activeEditSection;
+		System.arraycopy(other.name, 0, name, 0, INSTRUMENT_NAME_MAX_LEN);
+		editNameCursorPos = other.editNameCursorPos;
+		System.arraycopy(other.parameters, 0, parameters, 0, PARCOUNT);
+		editParameterNr = other.editParameterNr;
+		for (int i = 0; i < ENVELOPE_MAX_COLUMNS; i++) {
+			System.arraycopy(other.envelope[i], 0, envelope[i], 0, ENVROWS);
+		}
+		editEnvelopeX = other.editEnvelopeX;
+		editEnvelopeY = other.editEnvelopeY;
+		System.arraycopy(other.noteTable, 0, noteTable, 0, NOTE_TABLE_MAX_LEN);
+		editNoteTableCursorPos = other.editNoteTableCursorPos;
+		octave = other.octave;
+		volume = other.volume;
+		displayHintFlags = other.displayHintFlags;
+	}
 }

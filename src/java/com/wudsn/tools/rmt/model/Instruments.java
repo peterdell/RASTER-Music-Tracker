@@ -571,4 +571,19 @@ public final class Instruments {
 	public Instrument getInstrument(int instr) {
 		return isValidInstrument(instr) ? instrument[instr] : null;
 	}
+
+	/**
+	 * A real deep-copy snapshot of every instrument - see {@link InstrumentsAll}'s own javadoc for why this exists alongside (not instead of) the skipped C++ {@code GetInstrumentsAll()}/{@code SetInstrumentsAll()}.
+	 */
+	public void getInstrumentsAll(InstrumentsAll toInstruments) {
+		for (int i = 0; i < INSTRSNUM; i++) {
+			toInstruments.instruments[i].copyFrom(instrument[i]);
+		}
+	}
+
+	public void setInstrumentsAll(InstrumentsAll fromInstruments) {
+		for (int i = 0; i < INSTRSNUM; i++) {
+			instrument[i].copyFrom(fromInstruments.instruments[i]);
+		}
+	}
 }

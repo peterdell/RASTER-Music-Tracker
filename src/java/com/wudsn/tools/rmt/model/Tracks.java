@@ -335,29 +335,20 @@ public final class Tracks {
 	}
 
 	/**
-	 * A plain deep-copy snapshot of every track plus the current max track length - used by CUndo (not yet ported) to save/restore all track state at once.
+	 * A plain deep-copy snapshot of every track plus the current max track length - used by {@link Undo} to save/restore all track state at once.
 	 */
 	public void getTracksAll(TracksAll toTracks) {
 		toTracks.maxTrackLength = maxTrackLength;
 		for (int i = 0; i < TRACKSNUM; i++) {
-			copyTrack(track[i], toTracks.tracks[i]);
+			toTracks.tracks[i].copyFrom(track[i]);
 		}
 	}
 
 	public void setTracksAll(TracksAll fromTracks) {
 		maxTrackLength = fromTracks.maxTrackLength;
 		for (int i = 0; i < TRACKSNUM; i++) {
-			copyTrack(fromTracks.tracks[i], track[i]);
+			track[i].copyFrom(fromTracks.tracks[i]);
 		}
-	}
-
-	private static void copyTrack(Track from, Track to) {
-		to.len = from.len;
-		to.go = from.go;
-		System.arraycopy(from.note, 0, to.note, 0, Track.TRACKLEN);
-		System.arraycopy(from.instr, 0, to.instr, 0, Track.TRACKLEN);
-		System.arraycopy(from.volume, 0, to.volume, 0, Track.TRACKLEN);
-		System.arraycopy(from.speed, 0, to.speed, 0, Track.TRACKLEN);
 	}
 
 	/**

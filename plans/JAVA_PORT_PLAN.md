@@ -633,9 +633,79 @@ either.
 - Verified via a full Release|x64 solution rebuild (370 C++ tests) and
   `mvn -o test` (149 Java tests, +9): all green, 0 regressions.
 
+## Eleventh ported batch (2026-09-24): `Undo` - and the first slice of `CSong`
+
+The user asked to continue with `CUndo` next. Investigation found it fully
+tested in C++ (34 tests, later found to actually be 30) and not
+hazardous - but it's deeply wired into `CSong` (`GetUECursor`/
+`SetUECursor`/`UECursorIsEqual`/`BLOCKDESELECT`/`GetSong`/`GetSongGo`/
+`GetBookmark`/`GetSongInfoPars`/`SetSongInfoPars`/`SongGetTrack`/
+`SongGetGo`/`SetRMTTitle`/`Stop`, plus the `TInfo`/`TSong` types and the
+`Part` enum) and needs `CInstruments::GetInstrumentsAll()`, which had been
+deliberately skipped when `Instruments` was first ported (a zero-copy C++
+view, untested, no clean Java equivalent). Asked the user how to proceed
+given this was effectively "start porting `CSong`," the class every plan
+doc in this project has deliberately deferred - they chose to start a
+minimal slice now, scoped to exactly what `Undo` touches.
+
+- **New classes**: `Part`/`PlayMode`/`EditArea` (enums), `Bookmark` (was
+  `TBookmark`), `SongInfo` (was `TInfo`), `SongData` (was `TSong`, the
+  whole-song undo snapshot), `Song` (a deliberately minimal `CSong` slice -
+  see its own javadoc for exactly what's included/omitted), `UndoType`
+  (plain `int` constants, not an enum - `posIsEqual`/`changeTrack`/etc.
+  need to accept the same out-of-range synthetic values C++'s own tests
+  exercise via `static_cast`, which a closed Java enum can't represent),
+  `UndoEvent` (was `TUndoEvent` - drops the `dataIsArray` bookkeeping
+  entirely, since Java's GC makes the `delete`/`delete[]` distinction
+  moot), `Undo` (was `CUndo`, ported in full).
+- **New `InstrumentsAll`** (real deep-copy snapshot, analogous to
+  `TracksAll`): C++'s `GetInstrumentsAll()` is a zero-copy view (already
+  skipped), but `Undo` genuinely needs snapshot/restore semantics for
+  `UETYPE_INSTRSALL` - this is an additive capability built for that real
+  need, not a reintroduction of the skipped method. Added
+  `Instrument.copyFrom`/`Track.copyFrom`/`TracksAll.copyFrom`/
+  `InstrumentsAll.copyFrom` deep-copy helpers along the way (refactoring
+  `Tracks`'s existing private `copyTrack` to use the new
+  `Track.copyFrom`).
+- **Circular C++ global coupling resolved as a one-directional
+  reference + one parameter**: C++'s `CSong::Stop()` calls the global
+  `g_Undo.Separator()`, while `CUndo::Undo()`/`Redo()` call the global
+  `g_Song.Stop()` - two free-standing globals referencing each other.
+  `Song.stop(Undo)` takes `Undo` as an explicit parameter instead of a
+  stored field, avoiding a circular constructor dependency; `Undo`'s
+  constructor stores `Tracks`/`Instruments`/`Song` (it genuinely
+  coordinates all three for its whole lifetime, unlike `Song`'s one-off
+  need for `Undo`).
+- **Omitted, no Java equivalent yet** (all documented in `Undo`/`Song`'s
+  javadoc): `BLOCKDESELECT` (needs `CTrackClipboard`), `Stop()`'s
+  timer-wait call and `InsertEvent()`'s `g_changes`/`SetRMTTitle()`
+  window-title bookkeeping (no UI/window exists), and
+  `Instruments.Update()` calls in `PerformEvent` for
+  `UETYPE_INSTRDATA`/`UETYPE_INSTRSALL` ("must save to Atari" - matches
+  `Instruments`'s own prior omission of the same call).
+- **Found and flagged a latent C++ bug, not fixed, in both languages**:
+  `ChangeSong`'s `UETYPE_SONGDATA` case never copies the current bookmark
+  into its snapshot (only `song`/`songgo`), so the first undo of a
+  whole-song-data change restores whatever indeterminate bookmark `new
+  TSong` happened to leave there. Not currently characterized by any test
+  (the existing test doesn't check the bookmark after undo). Flagged with
+  a comment in `Undo.cpp` and preserved with the same omission (for
+  parity) in `Undo.java`'s `changeSong`, even though Java's mandatory
+  zero-initialization means the *symptom* there is a zeroed `Bookmark`,
+  not garbage - the underlying missing-copy oversight is the same in both
+  languages.
+- Tests (`UndoTest`) mirror `UndoTests.cpp` in full (30 tests). Verified
+  with `mvn -o test`: 179 tests pass (+30), all green on the **first**
+  build - despite this being the most structurally complex port this
+  project has done (5 new collaborating classes plus 2 new snapshot
+  types). Full Release|x64 C++ solution rebuild also verified (comment-only
+  change).
+
 ## Next steps
 
 Continue porting small, already-tested, UI-free model classes one at a
-time, building up `com.wudsn.tools.rmt.model` before attempting
-`CSong` or anything in `com.wudsn.tools.rmt.ui`. No
-specific next class has been chosen yet.
+time, building up `com.wudsn.tools.rmt.model`. The `Song` slice ported
+here is deliberately minimal (just what `Undo` needed) - a real `CSong`
+port (playback, file I/O, the full editing surface) remains a much larger,
+separate undertaking, matching this project's long-standing "God Object"
+deferral. No specific next class has been chosen yet.
