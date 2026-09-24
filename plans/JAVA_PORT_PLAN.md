@@ -767,6 +767,34 @@ free of any hazard, and no C++ source changes were needed either.
   exactly. Verified with `mvn -o test`: 191 tests pass (+8), all green on
   the first build. No C++ changes.
 
+## Fourteenth ported batch (2026-09-24): `Keyboard2NoteMapping` (`com.wudsn.tools.rmt.model.Keyboard2NoteMapping`)
+
+Ported from the free functions `NoteKey`/`NumbKey`/`Numblock09Key`
+(`src/cpp/Keyboard2NoteMapping.h/.cpp`) - fully, matching
+`Keyboard2NoteMappingTests.cpp`'s own complete coverage. No C++ changes
+needed.
+
+- **New `KeyboardLayout`**: plain `int` constants (`QWERTY`/`AZERTY`), not a
+  Java `enum` - `NoteKeyReturnsMinusOneForUnknownLayout` exercises a
+  synthetic out-of-range value (`static_cast<KeyboardLayout>(2)` in C++),
+  the same reason `UndoType` isn't a Java enum either.
+- C++'s global `g_keyboard_layout` becomes an explicit `keyboardLayout`
+  parameter to `noteKey`, matching the established idiom for globals a
+  ported method actually needs.
+- C++'s lookup tables are `unsigned char[256]` holding `0xFF` for
+  "unmapped", read back through a `char`-returning function - a signed
+  narrowing conversion on this project's platform, turning `0xFF` into
+  `-1`. The Java tables are `byte[]` with `-1` written directly in place of
+  every `0xFF` (the same bit pattern a Java `byte` holds either way), so no
+  runtime conversion is needed.
+- **A fragile contract preserved as-is**: neither the C++ nor the Java
+  version bounds-checks `vk` against the tables' `0..255` range - already
+  characterized this way in `Keyboard2NoteMappingTests.cpp`, which only
+  ever exercises in-range values.
+- Tests (`Keyboard2NoteMappingTest`) mirror `Keyboard2NoteMappingTests.cpp`'s
+  7 tests exactly. Verified with `mvn -o test`: 198 tests pass (+7), all
+  green on the first build. No C++ changes.
+
 ## Next steps
 
 Continue porting small, already-tested, UI-free model classes one at a

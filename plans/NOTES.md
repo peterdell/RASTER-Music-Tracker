@@ -3034,5 +3034,22 @@ build clean and all 123 tests pass.
       Reproduced the exact same visible output by hand via string
       concatenation instead.
     - Verified with `mvn -o test`: 191 tests pass (+8), all green on the
+      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      (`434f8a3`).
+  - **2026-09-24**: Fourteenth Java-port batch - `Keyboard2NoteMapping`
+    (from the free functions `NoteKey`/`NumbKey`/`Numblock09Key`,
+    `Keyboard2NoteMapping.h/.cpp`), ported in full, no C++ changes needed.
+    New `KeyboardLayout` (plain `int` constants, not a Java enum, since a
+    test needs a synthetic out-of-range layout value the same way
+    `UndoType` does).
+    - The C++ global `g_keyboard_layout` became an explicit
+      `keyboardLayout` parameter to `noteKey`.
+    - C++'s `unsigned char[256]` tables holding `0xFF` for "unmapped",
+      read through a `char`-returning function (a signed narrowing
+      conversion turning `0xFF` into `-1`), became `byte[]` tables with
+      `-1` written directly in place of every `0xFF`.
+    - Neither language bounds-checks `vk` against `0..255` - preserved as
+      a characterized, not hardened, fragile contract.
+    - Verified with `mvn -o test`: 198 tests pass (+7), all green on the
       first build. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
       committed.
