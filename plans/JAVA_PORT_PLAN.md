@@ -733,6 +733,40 @@ linking) and needs `Song` methods this project's deliberately minimal
 - Tests (`SapFileTest`) mirror `SAPFileTests.cpp` exactly. Verified with
   `mvn -o test`: 183 tests pass (+4). No C++ changes.
 
+## Thirteenth ported batch (2026-09-24): `AsmFileBuilder` (`com.wudsn.tools.rmt.model.AsmFileBuilder`)
+
+Ported from `CASMFileBuilder` (`src/cpp/ASMFileBuilder.h/.cpp`) - fully,
+matching `ASMFileBuilderTests.cpp`'s own complete coverage. No globals, no
+dependency on any not-yet-ported class, and no deferrals: this is the first
+batch this session where the entire C++ class was already both tested and
+free of any hazard, and no C++ source changes were needed either.
+
+- **New `AssemblerFormat`** (was the C++ enum of the same name):
+  `ATASM`/`XASM`.
+- C++'s `CString& strCode` output parameter (overwritten as the method's
+  first statement, then appended to) becomes a returned `Result(String
+  code, int size)` record pairing the built text with the method's own
+  `int` return value - simpler than threading a mutable buffer through as
+  a parameter, and Java strings are immutable anyway.
+- **A fragile contract preserved as-is, not hardened**: `buildTracksData`'s
+  trailing validity check scans `trackPos[0..65535]` unconditionally, not
+  just the `[from, to)` range actually processed - the caller's array must
+  always have at least 65536 entries regardless of how small a range is
+  being built. Already characterized this way in `ASMFileBuilderTests.cpp`;
+  the Java test reproduces it with the same oversized array rather than
+  changing the contract.
+- **Found a real Java `Formatter` incompatibility**, not a C++ bug: C++'s
+  error-comment format string in `buildSongData` uses a `"% 04x"`/`"% x"`
+  space flag, which C++'s `CString::Format` silently drops for a hex
+  conversion (producing one literal space from the string, not the flag).
+  Java's `Formatter` throws `FormatFlagsConversionMismatchException` for a
+  space flag combined with an `x` conversion - there's no direct
+  equivalent. Reproduced the exact same visible output by hand (manual
+  string concatenation without the flag) instead.
+- Tests (`AsmFileBuilderTest`) mirror `ASMFileBuilderTests.cpp`'s 8 tests
+  exactly. Verified with `mvn -o test`: 191 tests pass (+8), all green on
+  the first build. No C++ changes.
+
 ## Next steps
 
 Continue porting small, already-tested, UI-free model classes one at a

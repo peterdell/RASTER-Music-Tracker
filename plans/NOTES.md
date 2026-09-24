@@ -3015,4 +3015,24 @@ build clean and all 123 tests pass.
       became a thrown `IllegalStateException`, matching the established
       idiom.
     - Verified with `mvn -o test`: 183 tests pass (+4). No C++ changes.
-      Details in `plans/JAVA_PORT_PLAN.md`. Not yet committed.
+      Details in `plans/JAVA_PORT_PLAN.md`. Committed (`cf32e86`,
+      `8830804`).
+  - **2026-09-24**: Thirteenth Java-port batch - `AsmFileBuilder` (from
+    `CASMFileBuilder`, `ASMFileBuilder.h/.cpp`), ported in full - no
+    globals, no not-yet-ported dependencies, no deferrals, no C++ changes
+    needed. New `AssemblerFormat` enum (`ATASM`/`XASM`).
+    - C++'s `CString&` output parameter became a returned `Result(String
+      code, int size)` record instead of a threaded mutable buffer.
+    - `buildTracksData`'s trailing validity check scans
+      `trackPos[0..65535]` unconditionally, not just the processed range -
+      a fragile contract preserved as-is (already characterized this way
+      in `ASMFileBuilderTests.cpp`), not hardened.
+    - Found a real Java `Formatter` incompatibility (not a C++ bug): C++'s
+      `"% 04x"`/`"% x"` space-flag-on-hex format string is silently
+      dropped by `CString::Format` but throws
+      `FormatFlagsConversionMismatchException` in Java's `Formatter`.
+      Reproduced the exact same visible output by hand via string
+      concatenation instead.
+    - Verified with `mvn -o test`: 191 tests pass (+8), all green on the
+      first build. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
+      committed.
