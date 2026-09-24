@@ -3235,4 +3235,28 @@ build clean and all 123 tests pass.
       clamp value, not just for validity checking.
     - Verified with `mvn -o test`: 275 tests pass (+5), all green on the
       first build, including the intricate remap arithmetic. Details in
+      `plans/JAVA_PORT_PLAN.md`. Committed (`5f27af5`).
+  - **2026-09-25**: Twenty-fourth Java-port batch - `Song` grows to cover
+    `SongEditing.cpp` sub-batches 2-5 (song-line editing, track-length
+    cleanup, track/instrument copy-paste, bookmark/settings), all done
+    together per the user's request. No C++ changes needed.
+    - Scope correction: `TrackCopy`/`TrackPaste`/`TrackCut` only needed
+      `CTrackClipboard`'s single-track `m_trackcopy` slot, not the whole
+      class - modeled as a `trackCopyClipboard` field directly on `Song`.
+    - `setTracks`/`setNTSC` drop C++'s conditional `ReInitSound()` call;
+      `setTracks` becomes a trivial identity transform once that's
+      removed.
+    - `RenumberAllInstruments`'s `type=3` has no direct C++ test coverage
+      - ported as a faithful mechanical translation anyway, not
+      independently verified against a golden master. Its final
+      `g_Instruments.Update(i)` loop is omitted, matching `Instruments`'s
+      own prior omission.
+    - Found a real test-fixture gap (not a production bug): Java's
+      `Instruments.clearInstrument()` has real behavior (sets a default
+      "Instrument XX" name) unlike the C++ test binary's no-op stub there,
+      so the Java fixture needed to explicitly blank instrument names
+      after `initInstruments()` for the name-comparison tests to start
+      from the same clean slate the C++ fixture's manual memset provides.
+    - Verified with `mvn -o test`: 307 tests pass (+32), all green on the
+      first build once that fixture gap was found and fixed. Details in
       `plans/JAVA_PORT_PLAN.md`. Not yet committed.

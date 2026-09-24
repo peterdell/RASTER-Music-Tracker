@@ -66,39 +66,61 @@ existing `Instruments`), needed by `markTfNoEmpty`/
 dependencies beyond `Tracks`/`Instruments`/`Song`'s own state - lowest-risk
 batch, as expected.
 
-### 2. Song-line editing
+### 2. Song-line editing - DONE (commit pending)
 `SongInsertLine`, `SongDeleteLine`, `SongInsertCopyOrCloneOfSongLinesApply`,
 `SongCopyLine`/`SongPasteLine`/`SongClearLine`. Confirmed self-contained:
 `SongCopyLine`/`SongPasteLine` use `Song`'s own `m_songlineclipboard`/
 `m_songgoclipboard` fields (plain per-instance state, not
 `CTrackClipboard`), plus `Undo.changeSong` (already ported) for the
-paste/clear undo events.
+paste/clear undo events. Also added `clearBookmark`/`isBookmark` (small
+`Song.h` inline methods, needed by `songInsertLine`/`songDeleteLine`'s
+bookmark-adjustment logic, not previously ported).
 
-### 3. Track-length analysis/cleanup
-`GetEffectiveMaxtracklen`, `GetSmallestMaxtracklen`, `ChangeMaxtracklen`,
-`SongClearUnusedTracksAndParts`, `SongClearDuplicatedTracks`,
-`SongClearUnusedTracks`, `TracksAllBuildLoops`/`TracksAllExpandLoops`
-(thin loops over `Tracks`' already-ported primitives, plus a `Stop()` call
-that's a no-op as long as nothing has called `Play()` first - same
-documented precondition the C++ side used), `RenumberAllTracks`,
-`ClearAllInstrumentsUnusedInAnyTrack`, `RenumberAllInstruments`,
-`TracksOrderChangeApply`.
+### 3. Track-length analysis/cleanup - DONE (commit pending)
+`GetEffectiveMaxtracklen`, `GetSmallestMaxtracklen` (already done),
+`ChangeMaxtracklen`, `SongClearUnusedTracksAndParts`,
+`SongClearDuplicatedTracks`, `SongClearUnusedTracks`,
+`TracksAllBuildLoops`/`TracksAllExpandLoops` (thin loops over `Tracks`'
+already-ported primitives, plus a `Stop()` call that's a no-op as long as
+nothing has called `Play()` first - same documented precondition the C++
+side used), `RenumberAllTracks`, `ClearAllInstrumentsUnusedInAnyTrack`,
+`RenumberAllInstruments`, `TracksOrderChangeApply`.
 
-Largest of the "no new dependency" batches - consider splitting further
-once actually scoped in detail (e.g. the three `SongClear*` methods as
-their own slice).
+**`RenumberAllInstruments`'s `type=3` (order by instrument name) has no
+direct C++ test coverage** (`SongEditingTests.cpp` only exercises
+`type=1`/`type=2`) - ported anyway as a faithful, mechanical translation
+(the method's `type` selector makes all three branches equally reachable
+production code, not a speculative addition), but not independently
+verified against a golden master the way the other two types were.
+Also omits C++'s final `g_Instruments.Update(i)` loop ("writes to Atari")
+- matches `Instruments`'s own prior omission of the same call; no test
+observes Atari memory here and `Song` holds no `Atari` reference.
 
-### 4. Track/instrument copy-paste (the clipboard-free subset)
-`InstrCopy`/`InstrCut`/`InstrDelete` (use `Song`'s own `m_instrclipboard`
-field - a plain `TInstrument`, not `CTrackClipboard` - confirmed via
-`Song.h`, no clipboard class needed), `TrackDelete`, `TrackCopyFromTo`,
-`TrackSwapFromTo` (all three operate directly on two `Tracks` slots, no
-clipboard). **`TrackCopy`/`TrackPaste` are excluded** - they use
-`g_TrackClipboard.m_trackcopy`, a real `CTrackClipboard` field - see the
-"Needs `CTrackClipboard`" section below.
+### 4. Track/instrument copy-paste - DONE (commit pending)
+**Correction to this sub-batch's original scope**: `TrackCopy`/`TrackPaste`
+turned out *not* to need the full `CTrackClipboard` class after all - they
+only ever touch its single-`TTrack` `m_trackcopy` slot (confirmed via a
+`SongEditingTests.cpp` comment explicitly distinguishing it from
+`BlockPaste`'s separate block-selection clipboard). Modeled directly as a
+`trackCopyClipboard` field on `Song` instead of waiting on a full
+`CTrackClipboard` port - a deliberately minimal slice, not a reintroduction
+of the deferred class. Final scope: `InstrCopy`/`InstrCut`/`InstrDelete`
+(use `Song`'s own `m_instrclipboard` field), `TrackDelete`,
+`TrackCopyFromTo`, `TrackSwapFromTo`, and now also `TrackCopy`/`TrackPaste`/
+`TrackCut` per the correction above. `BLOCKSETBEGIN`/`BLOCKSETEND`/
+`ISBLOCKSELECTED`/`BlockPaste` remain excluded - they still need real
+block-selection state, not just a single-track slot - see the "Needs
+`CTrackClipboard`" section below (updated to reflect this narrower
+remaining scope).
 
-### 5. Bookmark/settings
-`SetBookmark`, `SetTracks`/`SetNTSC`, `ResetTuningVariables`.
+### 5. Bookmark/settings - DONE (commit pending)
+`SetBookmark`, `SetTracks`/`SetNTSC`, `ResetTuningVariables`. C++'s
+conditional `ReInitSound()` call in `SetTracks`/`SetNTSC` (real
+`g_AtariTrackerDriver`/`g_Pokey` hardware reinit, no-op-stubbed in every
+C++ test) is dropped entirely - `setTracks` becomes a trivial identity
+transform once that's removed (its entire non-trivial behavior *was* the
+dropped call), returning the new value for the caller to store, matching
+this port's "no stored global" treatment of `tracks4_8` everywhere else.
 
 ### 6. The three "info/dialog" methods - DONE (commit pending)
 `InstrInfo`, `InstrChangeApply`, `TrackInfo` - already refactored on the
@@ -164,9 +186,11 @@ extraction of it into its own no-op-stubbed method.
 
 ## Needs `CTrackClipboard` ported first (its own sub-effort)
 
-`TrackCopy`/`TrackPaste` (need `g_TrackClipboard.m_trackcopy`),
-`BLOCKSETBEGIN`/`BLOCKSETEND`/`ISBLOCKSELECTED`/`BlockPaste` (need
-block-selection state plus `BlockPasteToTrack`). `BLOCKDESELECT` is already
+`BLOCKSETBEGIN`/`BLOCKSETEND`/`ISBLOCKSELECTED`/`BlockPaste` (need real
+block-selection state plus `BlockPasteToTrack`) - narrower than originally
+scoped, now that `TrackCopy`/`TrackPaste`/`TrackCut` turned out to need only
+a trivial single-track slot (ported in sub-batch 4, modeled directly on
+`Song` rather than needing this class at all). `BLOCKDESELECT` is already
 a documented Java no-op for the same reason.
 
 `Clipboard.h`/`.cpp` (130 lines total) is a real, separate `CTrackClipboard`
@@ -233,22 +257,19 @@ editing surface exist to support them.
 
 ## Suggested execution order
 
-1. Sub-batch 1 (cursor/navigation helpers) - lowest risk, no new
-   dependencies, good warm-up given how much bigger this file is than
-   anything ported so far.
-2. Sub-batch 6 (`InstrInfo`/`InstrChangeApply`/`TrackInfo`) - reuses the
-   dual-mode pattern already proven for `Instruments`.
+1. Sub-batch 1 (cursor/navigation helpers) - DONE.
+2. Sub-batch 6 (`InstrInfo`/`InstrChangeApply`/`TrackInfo`) - DONE.
 3. Sub-batches 2-5 (song-line editing, track-length cleanup, clipboard-free
-   copy-paste, bookmark/settings) - roughly independent of each other,
-   order flexible.
+   copy-paste, bookmark/settings) - DONE.
 4. Sub-batches 7-8 (module format buffers/streams) - same shape as prior
    `SapFile`/`AsmFileBuilder` work; surface the `LoadTxt` bug decision
    explicitly before implementing sub-batch 8.
 5. Sub-batch 9 (navigation/playback).
 6. Sub-batch 10 (`ClearSong`) once its dependencies land.
-7. `CTrackClipboard` as its own dedicated scoping pass, once its
-   `g_Song`-reads-a-global wrinkle is worked out - unlocks `TrackCopy`/
-   `TrackPaste`/the `BLOCKSETBEGIN` family.
+7. `CTrackClipboard` as its own dedicated scoping pass (now narrowed to
+   just `BLOCKSETBEGIN`/`BLOCKSETEND`/`ISBLOCKSELECTED`/`BlockPaste`, since
+   sub-batch 4 already resolved `TrackCopy`/`TrackPaste`), once its
+   `g_Song`-reads-a-global wrinkle is worked out.
 8. Exporters (`CRmtExporter`/`CASMFileExporter` first, since they don't
    need `PokeyStream`; the SAP-R/LZSS/WAV/XEX family only once
    `PokeyStream`'s real recording path is unblocked).

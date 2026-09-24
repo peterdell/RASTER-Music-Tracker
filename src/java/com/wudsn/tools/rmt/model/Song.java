@@ -35,10 +35,16 @@ package com.wudsn.tools.rmt.model;
  * C++'s {@code m_pokeyStream}-consulting "song is done" check - it's always
  * null in every existing CSong test, and {@code PokeyStream} isn't ported.
  *
- * <p><b>No {@code CTrackClipboard} yet</b>: {@link #blockDeselect} is a
+ * <p><b>No full {@code CTrackClipboard} yet</b>: {@link #blockDeselect} is a
  * documented no-op - C++'s version delegates to {@code g_TrackClipboard},
- * which isn't ported. This only affects cosmetic block-selection state
- * after an undo/redo cursor jump, not the actual data being restored.
+ * whose block-selection surface isn't ported. This only affects cosmetic
+ * block-selection state after an undo/redo cursor jump, not the actual
+ * data being restored. {@link #trackCopy}/{@link #trackPaste}/
+ * {@link #trackCut} are the one exception - they only ever needed
+ * {@code CTrackClipboard}'s single-track {@code m_trackcopy} slot, which
+ * this class models directly as its own {@code trackCopyClipboard} field
+ * rather than waiting on a full clipboard port (see that field's own
+ * comment, and {@code plans/JAVA_SONGEDITING_PLAN.md}).
  *
  * <p><b>No UI/window-title tracking</b>: C++'s {@code InsertEvent()}-side
  * {@code g_changes}/{@code SetRMTTitle()} bookkeeping has no Java
@@ -93,6 +99,17 @@ public final class Song {
 	private final int[] playPtNote = new int[SONGTRACKS];
 	private final int[] playPtInstr = new int[SONGTRACKS];
 	private final int[] playPtVolume = new int[SONGTRACKS];
+
+	private final int[] songLineClipboard = new int[SONGTRACKS];
+	private int songGoClipboard; // matches Song.h's default member initializer (0)
+
+	private final Instrument instrClipboard = new Instrument();
+
+	// A deliberately minimal slice of C++'s CTrackClipboard - just its
+	// single-track m_trackcopy slot, needed by trackCopy/trackPaste/trackCut.
+	// The rest of CTrackClipboard (block selection, BlockPaste, etc.) is a
+	// separate, not-yet-ported class - see plans/JAVA_SONGEDITING_PLAN.md.
+	private final Track trackCopyClipboard = new Track();
 
 	public Song(Instruments instruments, Tracks tracks) {
 		this.instruments = instruments;
@@ -1188,6 +1205,821 @@ public final class Song {
 			quantizationNote = quantizationInstr = quantizationVol = -1;
 			setPlayPressedTonesSilence();
 		}
+	}
+
+	public void clearBookmark() {
+		bookmark.songline = bookmark.trackline = bookmark.speed = -1;
+	}
+
+	public boolean isBookmark() {
+		return bookmark.speed > 0 && bookmark.trackline < tracks.getMaxTrackLength();
+	}
+
+	/** Inserts a blank songline at {@code line}, shifting {@code line} and everything after it down by one (the last line falls off the end). */
+	public void songInsertLine(int line, Undo undo, int tracks4_8) {
+		undo.changeSong(line, trackActiveCol, UndoType.UETYPE_SONGDATA, 0);
+
+		for (int i = SONGLEN - 2; i >= line; i--) {
+			for (int j = 0; j < tracks4_8; j++) {
+				song[i + 1][j] = song[i][j];
+			}
+			int go = songGo[i];
+			if (go > 0 && go >= line) {
+				go++;
+			}
+			songGo[i + 1] = go;
+		}
+		for (int j = 0; j < tracks4_8; j++) {
+			song[line][j] = -1;
+		}
+		songGo[line] = -1;
+		for (int i = 0; i < line; i++) {
+			if (songGo[i] >= line) {
+				songGo[i]++;
+			}
+		}
+		if (isBookmark() && bookmark.songline >= line) {
+			bookmark.songline++;
+			if (bookmark.songline >= SONGLEN) {
+				clearBookmark(); // just pushed the bookmark out of the song => cancel the bookmark
+			}
+		}
+	}
+
+	/** Removes songline {@code line}, shifting everything after it up by one (a fresh blank line appears at the end). */
+	public void songDeleteLine(int line, Undo undo, int tracks4_8) {
+		undo.changeSong(line, trackActiveCol, UndoType.UETYPE_SONGDATA, 0);
+
+		for (int i = line; i < SONGLEN - 1; i++) {
+			for (int j = 0; j < tracks4_8; j++) {
+				song[i][j] = song[i + 1][j];
+			}
+			int go = songGo[i + 1];
+			if (go > 0 && go > line) {
+				go--;
+			}
+			songGo[i] = go;
+		}
+		for (int i = 0; i < line; i++) {
+			if (songGo[i] > line) {
+				songGo[i]--;
+			}
+		}
+		for (int j = 0; j < tracks4_8; j++) {
+			song[SONGLEN - 1][j] = -1;
+		}
+		songGo[SONGLEN - 1] = -1;
+		if (isBookmark() && bookmark.songline >= line) {
+			bookmark.songline--;
+			if (bookmark.songline < line) {
+				clearBookmark(); // just deleted the songline with the bookmark
+			}
+		}
+	}
+
+	public void songCopyLine(int tracks4_8) {
+		for (int i = 0; i < tracks4_8; i++) {
+			songLineClipboard[i] = song[songActiveLine][i];
+		}
+		songGoClipboard = songGo[songActiveLine];
+	}
+
+	public void songPasteLine(Undo undo, int tracks4_8) {
+		if (songGoClipboard < -1) {
+			return;
+		}
+		undo.changeSong(songActiveLine, trackActiveCol, UndoType.UETYPE_SONGDATA);
+		for (int i = 0; i < tracks4_8; i++) {
+			song[songActiveLine][i] = songLineClipboard[i];
+		}
+		songGo[songActiveLine] = songGoClipboard;
+	}
+
+	public void songClearLine(Undo undo, int tracks4_8) {
+		undo.changeSong(songActiveLine, trackActiveCol, UndoType.UETYPE_SONGDATA);
+		for (int i = 0; i < tracks4_8; i++) {
+			song[songActiveLine][i] = -1;
+		}
+		songGo[songActiveLine] = -1;
+	}
+
+	/**
+	 * Extracted from C++'s {@code CSong::SongInsertCopyOrCloneOfSongLines()}
+	 * (the real dialog wrapper, not ported): inserts copies (or, if
+	 * {@code clone} is set, cloned tracks) of songlines {@code [linefrom,
+	 * lineto]} starting at {@code line}.
+	 *
+	 * <p>C++'s two guard-only error paths (song-range overrun; ran out of
+	 * unused tracks to clone into) return {@code false} here too, but the
+	 * {@code SendErrorMessage} call itself isn't reproduced - {@link Song}
+	 * holds no {@link Messages} reference, and no test reaches either path.
+	 * C++'s {@code int& line} parameter is never actually reassigned in the
+	 * method body, so it's a plain {@code int} here.
+	 */
+	public boolean songInsertCopyOrCloneOfSongLinesApply(int line, int linefrom, int lineto, boolean clone, int tuning, int volumep, Undo undo, int tracks4_8) {
+		blockDeselect(); // the block is deselected only if it is OK
+
+		byte[] used = new byte[Tracks.TRACKSNUM];
+		markTfUsed(used, tracks4_8);
+		markTfNoEmpty(used);
+		int[] clonedTo = new int[Tracks.TRACKSNUM];
+		java.util.Arrays.fill(clonedTo, -1);
+
+		for (int i = linefrom; i <= lineto; i++) {
+			int n = i - linefrom;
+			int sou = i;
+			int des = line + n;
+			boolean diss = des <= sou;
+			if (diss) {
+				sou += n;
+			}
+			boolean sngo = false;
+			if (sou < SONGLEN) {
+				sngo = songGo[sou] >= 0;
+			}
+
+			if (diss) {
+				sou++;
+			}
+			if (sou < 0 || sou >= SONGLEN || des < 0 || des >= SONGLEN) {
+				return false; // guard-only: song-range overrun
+			}
+
+			songInsertLine(des, undo, tracks4_8); // inserted blank line
+
+			if (clone && !sngo) {
+				undo.separator(-1); // associates the previous insert lines to the next change
+				undo.changeTrack(0, 0, UndoType.UETYPE_TRACKSALL, 1); // with separator
+
+				for (int j = 0; j < tracks4_8; j++) {
+					int k = song[sou][j]; // original track
+					int d;
+					if (k < 0) {
+						continue; // is there --
+					}
+					if (clonedTo[k] >= 0) {
+						d = clonedTo[k]; // this one has already been cloned, so it will also use it
+					} else {
+						d = findNearTrackBySongLineAndColumn(sou, j, used);
+						if (d >= 0) {
+							used[d] = TrackFlag.TF_USED;
+							clonedTo[k] = d;
+							trackCopyFromTo(k, d);
+							// Edit cloned track according to tuning and volumep
+							tracks.modifyTrack(tracks.getTrack(d), 0, Track.TRACKLEN - 1, -1, tuning, 0, volumep);
+						} else {
+							return false; // guard-only: out of unused empty tracks
+						}
+					}
+					song[des][j] = d;
+				}
+			} else {
+				// Copies
+				songGo[des] = songGo[sou];
+				for (int j = 0; j < tracks4_8; j++) {
+					song[des][j] = song[sou][j];
+				}
+			}
+		}
+
+		return true;
+	}
+
+	public void trackCopy() {
+		Track at = tracks.getTrack(songGetActiveTrack());
+		if (at != null) {
+			trackCopyClipboard.copyFrom(at);
+		}
+	}
+
+	/**
+	 * Reads from the deliberately minimal {@code trackCopyClipboard} slot
+	 * (see the field's own comment) - a separate mechanism from
+	 * {@code BlockPaste}'s block-selection clipboard, which isn't ported.
+	 */
+	public void trackPaste() {
+		Track at = tracks.getTrack(songGetActiveTrack());
+		if (at != null && tracks.isValidLength(trackCopyClipboard.len)) {
+			at.copyFrom(trackCopyClipboard);
+		}
+	}
+
+	public void trackDelete() {
+		tracks.clearTrack(songGetActiveTrack());
+	}
+
+	public void trackCut() {
+		trackCopy();
+		trackDelete();
+	}
+
+	public void trackCopyFromTo(int fromtrack, int totrack) {
+		Track at = tracks.getTrack(fromtrack);
+		Track tot = tracks.getTrack(totrack);
+		if (at != null && tot != null) {
+			tot.copyFrom(at);
+		}
+	}
+
+	public void trackSwapFromTo(int fromtrack, int totrack) {
+		Track at = tracks.getTrack(fromtrack);
+		Track tot = tracks.getTrack(totrack);
+		if (at != null && tot != null) {
+			Track buf = new Track();
+			buf.copyFrom(tot);
+			tot.copyFrom(at);
+			at.copyFrom(buf);
+		}
+	}
+
+	public void instrCopy() {
+		instrClipboard.copyFrom(instruments.getInstrument(getActiveInstr()));
+	}
+
+	public void instrCut() {
+		instrCopy();
+		instrDelete();
+	}
+
+	public void instrDelete() {
+		instruments.clearInstrument(getActiveInstr());
+	}
+
+	/** The largest "shortest track length on a songline" across the whole song (ignoring goto lines and songlines with no valid tracks). */
+	public int getEffectiveMaxtracklen(int tracks4_8) {
+		int max = 1;
+		for (int so = 0; so < SONGLEN; so++) {
+			if (songGo[so] >= 0) {
+				continue; // goto line is ignored
+			}
+			int min = tracks.getMaxTrackLength();
+			int p = 0;
+			for (int i = 0; i < tracks4_8; i++) {
+				int t = song[so][i];
+				int m = tracks.getLength(t);
+				if (m < 0) {
+					continue;
+				}
+				p++;
+				if (m < min) {
+					min = m;
+				}
+			}
+			// min = the shortest track length on this songline
+			if (p > 0 && min > max) {
+				max = min;
+			}
+		}
+		return max;
+	}
+
+	/** Shortens every track at or beyond {@code maxtracklen}, cancelling its loop if it had one, then lowers the shared max track length. A no-op if {@code maxtracklen} isn't a valid track length. */
+	public void changeMaxtracklen(int maxtracklen) {
+		if (!tracks.isValidLength(maxtracklen)) {
+			return;
+		}
+
+		for (int i = 0; i < Tracks.TRACKSNUM; i++) {
+			Track tt = tracks.getTrack(i);
+			// Clear
+			for (int j = tt.len; j < Track.TRACKLEN; j++) {
+				tt.note[j] = tt.instr[j] = tt.volume[j] = tt.speed[j] = -1;
+			}
+			if (tt.len >= maxtracklen) {
+				tt.go = -1; // cancel GO
+				tt.len = maxtracklen; // adjust length
+			}
+		}
+
+		tracks.setMaxTrackLength(maxtracklen);
+	}
+
+	/** C++'s {@code int& clearedtracks, int& truncatedtracks, int& truncatedbeats} output parameters. */
+	public record ClearUnusedResult(int clearedTracks, int truncatedTracks, int truncatedBeats) {
+	}
+
+	/** Truncates every track down to the length it's actually used at across the song, then deletes any track not referenced by the song at all. */
+	public ClearUnusedResult songClearUnusedTracksAndParts(int tracks4_8) {
+		int ttracks = 0;
+		int tbeats = 0;
+		int ctracks = 0;
+		int[] tracklen = new int[Tracks.TRACKSNUM];
+		boolean[] trackused = new boolean[Tracks.TRACKSNUM];
+		java.util.Arrays.fill(tracklen, -1);
+
+		for (int sline = 0; sline < SONGLEN; sline++) {
+			if (isSongGo(sline)) {
+				continue; // goto line is ignored
+			}
+
+			int nejkratsi = tracks.getMaxTrackLength();
+
+			for (int ch = 0; ch < tracks4_8; ch++) {
+				int n = song[sline][ch];
+				if (!tracks.isValidTrack(n)) {
+					continue; // invalid track is ignored
+				}
+				trackused[n] = true;
+				Track tr = tracks.getTrack(n);
+				if (tracks.isValidGo(tr.go)) {
+					continue; // there is a loop => it has a maximum length
+				}
+				if (tr.len < nejkratsi) {
+					nejkratsi = tr.len;
+				}
+			}
+
+			// "nejkratsi" is the shortest track in this song line
+			for (int ch = 0; ch < tracks4_8; ch++) {
+				int n = song[sline][ch];
+				if (!tracks.isValidTrack(n)) {
+					continue;
+				}
+				if (tracklen[n] < nejkratsi) {
+					tracklen[n] = nejkratsi; // if it needs a longer size, it will expand to the length it needs
+				}
+			}
+		}
+
+		// And now it cuts those tracks
+		for (int i = 0; i < Tracks.TRACKSNUM; i++) {
+			int nlen = tracklen[i];
+			if (nlen < 1) {
+				continue; // if they don't have the length of at least 1 they are skipped
+			}
+
+			Track tr = tracks.getTrack(i);
+
+			if (!tracks.isValidGo(tr.go)) {
+				// There is no loop
+				if (nlen < tr.len) {
+					for (int j = nlen; j < tr.len; j++) {
+						if (tracks.isValidNote(tr.note[j]) || tracks.isValidInstrument(tr.instr[j]) || tracks.isValidVolume(tr.volume[j]) || tracks.isValidSpeed(tr.speed[j])) {
+							ttracks++;
+							tbeats += tr.len - nlen;
+							tr.len = nlen; // cut what is not needed
+							break;
+						}
+					}
+				}
+			} else {
+				// There is a loop; the beginning of the loop is further than the required track length
+				if (tr.len >= nlen) {
+					ttracks++;
+					tbeats += tr.len - nlen;
+					tr.len = nlen; // cut the track
+					tr.go = -1; // disable loop
+				}
+			}
+		}
+
+		// Delete empty tracks not used in the song
+		for (int i = 0; i < Tracks.TRACKSNUM; i++) {
+			if (!trackused[i] && !tracks.isEmptyTrack(i)) {
+				tracks.clearTrack(i);
+				ctracks++;
+			}
+		}
+
+		return new ClearUnusedResult(ctracks, ttracks, tbeats);
+	}
+
+	/** Merges every pair of byte-identical tracks (keeping the lower-numbered one), remapping the song to point at the survivor. Returns the number of tracks merged away. */
+	public int songClearDuplicatedTracks(int tracks4_8) {
+		int[] trackto = new int[Tracks.TRACKSNUM];
+		java.util.Arrays.fill(trackto, -1);
+
+		int clearedtracks = 0;
+		for (int i = 0; i < Tracks.TRACKSNUM - 1; i++) {
+			if (tracks.isEmptyTrack(i)) {
+				continue; // does not compare empty
+			}
+			for (int j = i + 1; j < Tracks.TRACKSNUM; j++) {
+				if (tracks.isEmptyTrack(j)) {
+					continue;
+				}
+				if (tracks.compareTracks(i, j)) {
+					tracks.clearTrack(j); // j is the same as i, so j is deleted
+					trackto[j] = i; // these tracks have to be replaced by track i
+					clearedtracks++;
+				}
+			}
+		}
+
+		// Analyse the song and make changes to the deleted tracks
+		for (int sline = 0; sline < SONGLEN; sline++) {
+			for (int ch = 0; ch < tracks4_8; ch++) {
+				int n = song[sline][ch];
+				if (n < 0 || n >= Tracks.TRACKSNUM) {
+					continue;
+				}
+				if (trackto[n] >= 0) {
+					song[sline][ch] = trackto[n];
+				}
+			}
+		}
+
+		return clearedtracks;
+	}
+
+	/** Deletes every track not referenced anywhere in the song (goto lines excluded). Returns the number of tracks deleted. */
+	public int songClearUnusedTracks(int tracks4_8) {
+		boolean[] trackused = new boolean[Tracks.TRACKSNUM];
+
+		for (int sline = 0; sline < SONGLEN; sline++) {
+			if (songGo[sline] >= 0) {
+				continue; // goto line is ignored
+			}
+			for (int ch = 0; ch < tracks4_8; ch++) {
+				int n = song[sline][ch];
+				if (n < 0 || n >= Tracks.TRACKSNUM) {
+					continue;
+				}
+				trackused[n] = true;
+			}
+		}
+
+		int clearedtracks = 0;
+		for (int i = 0; i < Tracks.TRACKSNUM; i++) {
+			if (!trackused[i]) {
+				if (!tracks.isEmptyTrack(i)) {
+					clearedtracks++;
+				}
+				tracks.clearTrack(i);
+			}
+		}
+
+		return clearedtracks;
+	}
+
+	/** C++'s {@code int& tracksmodified, int& beatsreduced}/{@code int& loopsexpanded} output parameters, shared by {@link #tracksAllBuildLoops}/{@link #tracksAllExpandLoops}. */
+	public record TracksAllLoopResult(int tracksModified, int beatsOrLoops) {
+	}
+
+	/**
+	 * Runs {@link Tracks#trackBuildLoop} over every track. Calls
+	 * {@link #stop} first - a no-op as long as {@code Play()} was never
+	 * called on this instance first, the only way this is exercised in
+	 * tests (see {@code plans/SONG_IO_SONG_REMAINING_PLAN.md}).
+	 */
+	public TracksAllLoopResult tracksAllBuildLoops(Undo undo) {
+		stop(undo);
+		int p = 0;
+		int u = 0;
+		for (int i = 0; i < Tracks.TRACKSNUM; i++) {
+			int r = tracks.trackBuildLoop(i);
+			if (r > 0) {
+				p++;
+				u += r;
+			}
+		}
+		return new TracksAllLoopResult(p, u);
+	}
+
+	/** Runs {@link Tracks#trackExpandLoop} over every track. See {@link #tracksAllBuildLoops} for the {@link #stop} precondition. */
+	public TracksAllLoopResult tracksAllExpandLoops(Undo undo) {
+		stop(undo);
+		int p = 0;
+		int u = 0;
+		for (int i = 0; i < Tracks.TRACKSNUM; i++) {
+			int r = tracks.trackExpandLoop(i);
+			if (r > 0) {
+				p++;
+				u += r;
+			}
+		}
+		return new TracksAllLoopResult(p, u);
+	}
+
+	/** Renumbers every track referenced by the song into a compact range starting at 0 - {@code type=1} orders by column-then-line, {@code type=2} by line-then-column. A no-op for any other {@code type}. */
+	public void renumberAllTracks(int type, int tracks4_8) {
+		int[] movetrackfrom = new int[Tracks.TRACKSNUM];
+		int[] movetrackto = new int[Tracks.TRACKSNUM];
+		java.util.Arrays.fill(movetrackfrom, -1);
+		java.util.Arrays.fill(movetrackto, -1);
+
+		int order = 0;
+
+		if (type == 2) {
+			// Horizontally along the lines
+			for (int sline = 0; sline < SONGLEN; sline++) {
+				if (songGo[sline] >= 0) {
+					continue;
+				}
+				for (int i = 0; i < tracks4_8; i++) {
+					int n = song[sline][i];
+					if (n < 0 || n >= Tracks.TRACKSNUM) {
+						continue;
+					}
+					if (movetrackfrom[n] < 0) {
+						movetrackfrom[n] = order;
+						movetrackto[order] = n;
+						order++;
+					}
+				}
+			}
+		} else if (type == 1) {
+			// Vertically in columns
+			for (int i = 0; i < tracks4_8; i++) {
+				for (int sline = 0; sline < SONGLEN; sline++) {
+					if (songGo[sline] >= 0) {
+						continue;
+					}
+					int n = song[sline][i];
+					if (n < 0 || n >= Tracks.TRACKSNUM) {
+						continue;
+					}
+					if (movetrackfrom[n] < 0) {
+						movetrackfrom[n] = order;
+						movetrackto[order] = n;
+						order++;
+					}
+				}
+			}
+		} else {
+			return; // unknown type
+		}
+
+		// Then add empty tracks not used in the song
+		for (int i = 0; i < Tracks.TRACKSNUM; i++) {
+			if (movetrackfrom[i] < 0 && !tracks.isEmptyTrack(i)) {
+				movetrackfrom[i] = order;
+				movetrackto[order] = i;
+				order++;
+			}
+		}
+
+		// Precisely numbered in the song
+		for (int sline = 0; sline < SONGLEN; sline++) {
+			for (int i = 0; i < tracks4_8; i++) {
+				int n = song[sline][i];
+				if (n < 0 || n >= Tracks.TRACKSNUM) {
+					continue;
+				}
+				song[sline][i] = movetrackfrom[n];
+			}
+		}
+
+		// Physical data transfer in tracks
+		for (int i = 0; i < order; i++) {
+			int n = movetrackto[i]; // swap i <--> n
+			if (n == i) {
+				continue;
+			}
+			trackSwapFromTo(i, n);
+			for (int j = i; j < order; j++) {
+				if (movetrackto[j] == i) {
+					movetrackto[j] = n;
+				}
+			}
+		}
+	}
+
+	/** Deletes every instrument not referenced by any track's data, returning how many were actually deleted (i.e. weren't already empty). */
+	public int clearAllInstrumentsUnusedInAnyTrack() {
+		boolean[] instrused = new boolean[Instruments.INSTRSNUM];
+
+		for (int i = 0; i < Tracks.TRACKSNUM; i++) {
+			Track tr = tracks.getTrack(i);
+			for (int j = 0; j < tr.len; j++) {
+				int t = tr.instr[j];
+				if (t >= 0 && t < Instruments.INSTRSNUM) {
+					instrused[t] = true;
+				}
+			}
+		}
+
+		int clearedinstruments = 0;
+		for (int i = 0; i < Instruments.INSTRSNUM; i++) {
+			if (!instrused[i]) {
+				if (instruments.calculateNotEmpty(i)) {
+					clearedinstruments++;
+				}
+				instruments.clearInstrument(i);
+			}
+		}
+
+		return clearedinstruments;
+	}
+
+	/**
+	 * Renumbers every instrument: {@code type=1} removes gaps (keeps
+	 * relative order), {@code type=2} orders by first use in tracks
+	 * (deleting anything left over), {@code type=3} orders alphabetically
+	 * by name (bubblesort, used-before-unused). A no-op for any other
+	 * {@code type}.
+	 *
+	 * <p>Omits C++'s final {@code g_Instruments.Update(i)} loop ("writes to
+	 * Atari") - matches {@link Instruments}'s own prior omission of the
+	 * same call (no Java {@code Atari} dependency exists on {@link Song}
+	 * yet, and no test observes Atari memory here).
+	 *
+	 * <p><b>{@code type=3} has no direct test coverage</b> in
+	 * {@code SongEditingTests.cpp} either (only {@code type=1}/{@code 2}
+	 * are exercised) - ported as a faithful, mechanical translation, not
+	 * independently verified against a golden master.
+	 */
+	public void renumberAllInstruments(int type) {
+		int[] moveinstrfrom = new int[Instruments.INSTRSNUM];
+		int[] moveinstrto = new int[Instruments.INSTRSNUM];
+		java.util.Arrays.fill(moveinstrfrom, -1);
+		java.util.Arrays.fill(moveinstrto, -1);
+
+		int order = 0;
+
+		// Analyse all tracks
+		for (int i = 0; i < Tracks.TRACKSNUM; i++) {
+			Track tr = tracks.getTrack(i);
+			for (int j = 0; j < tr.len; j++) {
+				int ins = tr.instr[j];
+				if (ins < 0 || ins >= Instruments.INSTRSNUM) {
+					continue;
+				}
+				if (moveinstrfrom[ins] < 0) {
+					moveinstrfrom[ins] = order;
+					moveinstrto[order] = ins;
+					order++;
+				}
+			}
+		}
+
+		// And now it adds even those that are not used in any track
+		for (int i = 0; i < Instruments.INSTRSNUM; i++) {
+			if (moveinstrfrom[i] < 0 && instruments.calculateNotEmpty(i)) {
+				moveinstrfrom[i] = order;
+				moveinstrto[order] = i;
+				order++;
+			}
+		}
+
+		if (type == 1) {
+			// Remove gaps
+			int di = 0;
+			for (int i = 0; i < Instruments.INSTRSNUM; i++) {
+				if (moveinstrfrom[i] >= 0) { // this instrument is used somewhere or is empty
+					if (i != di) {
+						instruments.getInstrument(di).copyFrom(instruments.getInstrument(i));
+						instruments.clearInstrument(i);
+					}
+					moveinstrfrom[i] = di;
+					moveinstrto[di] = i;
+					di++;
+				}
+			}
+		} else if (type == 2) {
+			// Order by using in tracks - moveinstrfrom[instr]/moveinstrto[order] are ready, so it can physically switch straight away
+			for (int i = 0; i < order; i++) {
+				int n = moveinstrto[i]; // swap i <--> n
+				if (n == i) {
+					continue;
+				}
+				Instrument bufi = new Instrument();
+				bufi.copyFrom(instruments.getInstrument(i));
+				instruments.getInstrument(i).copyFrom(instruments.getInstrument(n));
+				instruments.getInstrument(n).copyFrom(bufi);
+				for (int j = i; j < order; j++) {
+					if (moveinstrto[j] == i) {
+						moveinstrto[j] = n;
+					}
+				}
+			}
+			// And now delete the others (due to the corresponding names of unused empty instruments)
+			for (int i = order; i < Instruments.INSTRSNUM; i++) {
+				instruments.clearInstrument(i);
+			}
+		} else if (type == 3) {
+			// Order by instrument name
+			boolean[] iused = new boolean[Instruments.INSTRSNUM];
+			for (int i = 0; i < Instruments.INSTRSNUM; i++) {
+				iused[i] = moveinstrfrom[i] >= 0;
+				moveinstrfrom[i] = i; // the default is to keep the same order
+			}
+			// Bubblesort arrange those that are iused[i]
+			for (int i = Instruments.INSTRSNUM - 1; i > 0; i--) {
+				for (int j = 0; j < i; j++) {
+					int k = j + 1;
+					boolean swap = false;
+
+					if (iused[j] != iused[k]) {
+						// one is used and one is unused
+						if (iused[k]) {
+							swap = true; // the second is used (=> the first is the one used), so swap
+						}
+					} else {
+						// both are used or both are not used
+						if (compareInstrumentNamesIgnoreCase(instruments.getInstrument(j).name, instruments.getInstrument(k).name) > 0) {
+							swap = true; // they are the other way around, so they are swapped
+						}
+					}
+
+					if (swap) {
+						Instrument bufi = new Instrument();
+						bufi.copyFrom(instruments.getInstrument(j));
+						instruments.getInstrument(j).copyFrom(instruments.getInstrument(k));
+						instruments.getInstrument(k).copyFrom(bufi);
+
+						for (int p = 0; p < Instruments.INSTRSNUM; p++) {
+							if (moveinstrfrom[p] == k) {
+								moveinstrfrom[p] = j;
+							} else if (moveinstrfrom[p] == j) {
+								moveinstrfrom[p] = k;
+							}
+						}
+
+						boolean b = iused[j];
+						iused[j] = iused[k];
+						iused[k] = b;
+					}
+				}
+			}
+			// Still-unused empty instruments (due to their shift, so their number-based name didn't match)
+			for (int i = 0; i < Instruments.INSTRSNUM; i++) {
+				if (!iused[i]) {
+					instruments.clearInstrument(i);
+				}
+			}
+		} else {
+			return;
+		}
+
+		// And now it has to be renumbered in all tracks according to the moveinstrfrom[instr] table
+		for (int i = 0; i < Tracks.TRACKSNUM; i++) {
+			Track tr = tracks.getTrack(i);
+			for (int j = 0; j < tr.len; j++) {
+				int ins = tr.instr[j];
+				if (ins < 0 || ins >= Instruments.INSTRSNUM) {
+					continue;
+				}
+				tr.instr[j] = moveinstrfrom[ins];
+			}
+		}
+	}
+
+	private static int compareInstrumentNamesIgnoreCase(char[] name1, char[] name2) {
+		return nameToString(name1).compareToIgnoreCase(nameToString(name2));
+	}
+
+	private static String nameToString(char[] name) {
+		int end = 0;
+		while (end < name.length && name[end] != '\0') {
+			end++;
+		}
+		return new String(name, 0, end);
+	}
+
+	/**
+	 * Extracted from C++'s {@code CSong::TracksOrderChange()} (the real
+	 * dialog wrapper, not ported): reorders/clears song columns
+	 * {@code [fromline, toline]} per {@code tracksorder} (a negative entry
+	 * clears that column).
+	 */
+	public void tracksOrderChangeApply(int fromline, int toline, int[] tracksorder, int tracks4_8) {
+		int[] buff = new int[SONGTRACKS];
+
+		for (int i = fromline; i <= toline; i++) {
+			for (int j = 0; j < tracks4_8; j++) {
+				buff[j] = song[i][j];
+				song[i][j] = -1;
+			}
+			for (int j = 0; j < tracks4_8; j++) {
+				int z = tracksorder[j];
+				song[i][j] = z >= 0 ? buff[z] : -1;
+			}
+		}
+	}
+
+	public boolean setBookmark() {
+		if (songActiveLine >= 0 && songActiveLine < SONGLEN && trackActiveLine >= 0 && trackActiveLine < tracks.getMaxTrackLength() && speed >= 0) {
+			bookmark.songline = songActiveLine;
+			bookmark.trackline = trackActiveLine;
+			bookmark.speed = speed;
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Returns the new {@code tracks4_8} value (the caller is responsible for
+	 * storing it, matching every other {@code tracks4_8}-touching method's
+	 * explicit-parameter treatment). C++'s conditional {@code ReInitSound()}
+	 * call (real {@code g_AtariTrackerDriver}/{@code g_Pokey} hardware
+	 * reinit, no-op-stubbed in every test) is dropped entirely, leaving this
+	 * an identity transform.
+	 */
+	public int setTracks(int tracksNum) {
+		return tracksNum;
+	}
+
+	/** Drops C++'s conditional {@code ReInitSound()} call - see {@link #setTracks}'s javadoc for why. */
+	public void setNTSC(boolean ntsc) {
+		if (ntsc != this.ntsc) {
+			this.ntsc = ntsc;
+		}
+	}
+
+	public void resetTuningVariables(TuningSettings tuning, TuningRatios tuningRatios) {
+		tuning.initialize(isNTSC());
+		tuningRatios.initialize();
 	}
 
 	private static int unsignedByte(byte[] buf, int index) {

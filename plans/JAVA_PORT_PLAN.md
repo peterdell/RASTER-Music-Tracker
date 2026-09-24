@@ -1150,8 +1150,61 @@ No C++ changes needed.
   build, including the intricate `InstrChangeApply` remap arithmetic. No
   C++ changes.
 
+## Twenty-fourth ported batch (2026-09-25): `Song` grows to cover `SongEditing.cpp` sub-batches 2-5
+
+Covers song-line editing, track-length analysis/cleanup, track/instrument
+copy-paste, and bookmark/settings - see `plans/JAVA_SONGEDITING_PLAN.md`
+for the full per-sub-batch breakdown. No C++ changes needed.
+
+- **Scope correction**: `TrackCopy`/`TrackPaste`/`TrackCut` turned out to
+  need only `CTrackClipboard`'s single-`TTrack` `m_trackcopy` slot, not the
+  whole class - modeled as a `trackCopyClipboard` field directly on `Song`
+  instead of waiting on a full `CTrackClipboard` port. The remaining
+  `BLOCKSETBEGIN`/`BlockPaste`/block-selection family still needs the real
+  class and stays deferred.
+- New `Song` fields: `songLineClipboard`/`songGoClipboard` (song-line
+  clipboard), `instrClipboard` (instrument clipboard), `trackCopyClipboard`
+  (see above).
+- New methods: `clearBookmark`/`isBookmark` (small `Song.h` inline
+  methods), `songInsertLine`/`songDeleteLine`, `songCopyLine`/
+  `songPasteLine`/`songClearLine`, `songInsertCopyOrCloneOfSongLinesApply`,
+  `trackCopy`/`trackPaste`/`trackCut`/`trackDelete`/`trackCopyFromTo`/
+  `trackSwapFromTo`, `instrCopy`/`instrCut`/`instrDelete`,
+  `getEffectiveMaxtracklen`/`changeMaxtracklen`,
+  `songClearUnusedTracksAndParts`/`songClearDuplicatedTracks`/
+  `songClearUnusedTracks`, `tracksAllBuildLoops`/`tracksAllExpandLoops`,
+  `renumberAllTracks`, `clearAllInstrumentsUnusedInAnyTrack`,
+  `renumberAllInstruments`, `tracksOrderChangeApply`, `setBookmark`,
+  `setTracks`, `setNTSC`, `resetTuningVariables`.
+- `setTracks`/`setNTSC` drop C++'s conditional `ReInitSound()` call
+  (hardware reinit, no-op-stubbed in every C++ test); `setTracks` becomes a
+  trivial identity transform once that's removed, returning the new value
+  for the caller to store (matching this port's "no stored global"
+  treatment of `tracks4_8`).
+- `RenumberAllInstruments`'s `type=3` (order by name) has no direct C++
+  test coverage - ported as a faithful mechanical translation anyway (all
+  three `type` branches are equally reachable production code), but not
+  independently verified against a golden master.
+- Omits C++'s final `g_Instruments.Update(i)` loop in
+  `RenumberAllInstruments` - matches `Instruments`'s own prior omission of
+  the same call.
+- **Found a real test-fixture gap while implementing, not a production
+  bug**: the Java `SongEditingTest` fixture needed to explicitly blank
+  every instrument's name after `initInstruments()`, since Java's
+  `Instruments.clearInstrument()` has real behavior (sets a default
+  "Instrument XX" display name), unlike the C++ test binary where it's a
+  no-op stub - there, the fixture's own manual
+  `memset(..., 0, sizeof(TInstrument))` loop is what actually blanks names
+  for the `RenumberAllInstruments` name-comparison tests to work from a
+  clean slate.
+- Tests (`SongEditingTest`, extended) mirror `SongEditingTests.cpp`'s
+  corresponding sections exactly (32 tests). Verified with `mvn -o test`:
+  307 tests pass (+32), all green on the first build (once the fixture gap
+  above was found and fixed). No C++ changes.
+
 ## Next steps
 
-Continue with `SongEditing.cpp` sub-batches 2-5 (song-line editing,
-track-length cleanup, clipboard-free copy-paste, bookmark/settings) per
-`plans/JAVA_SONGEDITING_PLAN.md`'s suggested execution order.
+Continue with `SongEditing.cpp` sub-batches 7-8 (module format
+buffers/streams) per `plans/JAVA_SONGEDITING_PLAN.md`'s suggested execution
+order - surface the `LoadTxt` bug decision explicitly before implementing
+sub-batch 8.
