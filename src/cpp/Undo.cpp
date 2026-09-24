@@ -273,6 +273,14 @@ void CUndo::ChangeSong(int songline, int trackcol, UndoType type, char separator
         song = new TSong;
         memcpy((void*)song->song, (void*)g_Song.GetSong(), sizeof(song->song));
         memcpy((void*)song->songgo, (void*)g_Song.GetSongGo(), sizeof(song->songgo));
+        // KNOWN BUG, deliberately not fixed: song->bookmark is never set here
+        // (new TSong doesn't zero-initialize it), so the first Undo() of a
+        // whole-song-data change restores whatever indeterminate bookmark
+        // happened to be left in this snapshot - see PerformEvent()'s
+        // UETYPE_SONGDATA case below, which does read/write ->bookmark. Not
+        // currently characterized by any test (UndoTests.cpp doesn't check
+        // the bookmark after undo here) - see the Java port's
+        // com.wudsn.tools.rmt.model.Undo for the same note.
         data = (int*)song;
         break;
 
