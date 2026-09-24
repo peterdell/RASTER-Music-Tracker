@@ -2838,4 +2838,41 @@ build clean and all 123 tests pass.
       try. This completes `CTracks`'s port to the extent the C++ source
       itself allows - `TracksEdit.cpp`'s `g_Undo`-coupled methods and
       `IO_Tracks.cpp`'s untested stream I/O remain deferred. Details in
-      `plans/JAVA_PORT_PLAN.md`. Not yet committed.
+      `plans/JAVA_PORT_PLAN.md`. Committed (`c4a11d3`).
+  - **2026-09-24**: Eighth Java-port batch - `CInstruments` (from
+    `Instruments.h`, `InstrumentsCore.cpp`, `Instruments.cpp`,
+    `InstrumentsAtaFormat.cpp`), scoped to exactly what
+    `InstrumentsTests.cpp` already characterizes, same discipline as
+    `Tuning`/`Tracks`: `ClearInstrument`/`InitInstruments`,
+    `SetEnvelopeVolume`, `MemorizeOctaveAndVolume`/
+    `RememberOctaveAndVolume`, `InstrToAta`/`AtaToInstr`/`AtaV0ToInstr`.
+    Deferred: `CheckInstrumentParameters`/`RecalculateFlag`/
+    `CalculateNotEmpty`/`GetNote` (untested), `GetFrequency`/`Update`/
+    `SaveAll`/`LoadAll`/`SaveInstrument`/`LoadInstrument` (need the
+    not-yet-ported `CAtari`), and all GUI methods. `GetInstrumentsAll()`
+    skipped outright - it's a zero-copy reinterpret-cast view in C++
+    (unlike `GetTracksAll`'s real deep copy), untested, with no clean Java
+    equivalent to design without inventing new behavior.
+    - `g_tracks4_8`/`g_keyboard_RememberOctavesAndVolumes` become explicit
+      `stereo`/`rememberOctavesAndVolumes` parameters, same pattern as
+      `Tuning`'s globals-to-parameters redesign.
+    - `RememberOctaveAndVolume`'s C++ `int&`/`int&` output parameters
+      became a small `Instruments.OctaveAndVolume` record return value.
+    - No hardware/Atari-memory side effects ported (`InstrumentTurnOff()`/
+      `Update()`) - no Java equivalent exists yet since no live-playback
+      subsystem has been ported; not a behavior difference since the
+      concept these calls act on doesn't exist here yet either.
+    - New small supporting types: `EnvelopeParameter` (plain int constants,
+      matching their use as raw array indices, not an enum) and
+      `InstrumentSection` (a plain enum, dropping C++'s explicit `NONE=-1`
+      backing value since nothing reads the underlying int anywhere).
+      `shpar`/`shenv` (GUI display-metadata tables) weren't ported - only
+      needed by the deferred TXT-format save/load.
+    - Found one thing worth double-checking mid-port: I initially wrote
+      one test (`ataV0ToInstrDecodesOldFormat`) passing `stereo=true` where
+      the C++ original used `g_tracks4_8 = 4` (mono) - caught before
+      running by re-checking the boolean's derivation
+      (`stereo = g_tracks4_8 > 4`) against each test's own global setup,
+      not by a test failure (the fix was made before the first build).
+    - Verified with `mvn -o test`: 112 tests pass (+16), all green after
+      that fix. Details in `plans/JAVA_PORT_PLAN.md`. Not yet committed.

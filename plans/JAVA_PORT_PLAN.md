@@ -456,6 +456,67 @@ same payoff as `Tuning`'s own C++-first/Java-second sequencing.
   editing methods, `IO_Tracks.cpp`'s untested stream I/O) stay deferred
   for the reasons already on record above.
 
+## Eighth ported batch (2026-09-24): `Instrument`/`Instruments`/
+## `EnvelopeParameter`/`InstrumentSection`
+
+Ported from `CInstruments` (`src/cpp/Instruments.h`, `InstrumentsCore.cpp`,
+`Instruments.cpp`, `InstrumentsAtaFormat.cpp`) - the already-tested subset
+only, matching the scoping discipline established for `Tuning`/`Tracks`.
+
+- **In scope** (everything `InstrumentsTests.cpp` already characterizes):
+  the constructor, `ClearInstrument`/`InitInstruments`, `SetEnvelopeVolume`,
+  `MemorizeOctaveAndVolume`/`RememberOctaveAndVolume`, `InstrToAta`/
+  `AtaToInstr`/`AtaV0ToInstr`, plus the trivial inline validity/getter
+  methods they depend on.
+- **Deferred, untested in C++**: `CheckInstrumentParameters`/
+  `RecalculateFlag`/`CalculateNotEmpty`/`GetNote` (simple, but no existing
+  test coverage - same reasoning as every other untested-method deferral
+  this session) and `GetFrequency` (also needs the not-yet-ported
+  `CAtari`'s memory buffer). **Deferred, needs unported I/O
+  infrastructure**: `Update`/`SaveAll`/`LoadAll`/`SaveInstrument`/
+  `LoadInstrument` (untested stream I/O; `Update()` needs `CAtari`).
+  **Deferred, GUI**: `SetCanvas`/`DrawInstrument`/`DrawName`/
+  `DrawParameter`/`DrawEnv`/`DrawNoteTableValue`/`GetGUIArea`/
+  `CursorGoto` - not part of the model layer. **Skipped outright**:
+  `GetInstrumentsAll()` - in C++ this is a zero-copy reinterpret-cast view
+  (unlike `GetTracksAll`/`SetTracksAll`'s real deep copy), untested, and
+  Java has no equivalent aliasing mechanism to design around without
+  inventing new, uncharacterized behavior.
+- **Explicit parameters instead of C++ globals**, matching `Tuning`'s
+  pattern: `g_tracks4_8` (mono/stereo envelope-volume packing) becomes an
+  explicit `stereo` parameter on `setEnvelopeVolume`/`instrToAta`/
+  `ataToInstr`/`ataV0ToInstr`; `g_keyboard_RememberOctavesAndVolumes`
+  becomes an explicit parameter on `memorizeOctaveAndVolume`/
+  `rememberOctaveAndVolume`.
+- **No hardware/Atari-memory side effects**: C++'s `ClearInstrument()`
+  calls `g_AtariTrackerDriver->InstrumentTurnOff()` and both it and
+  `SetEnvelopeVolume()` call `Update()` (writes into "the emulated Atari
+  memory"). Neither has a Java equivalent yet since no live-playback
+  subsystem has been ported - not a behavior difference to characterize,
+  since the concept these calls act on doesn't exist here yet either.
+- **`RememberOctaveAndVolume`'s C++ `int& oct, int& vol` output
+  parameters** become a small `Instruments.OctaveAndVolume` record return
+  value; when disabled, it returns the caller's given `octave`/`volume`
+  unchanged (matching C++ leaving the caller's variables untouched).
+- `TInstrument`'s `name` field (a fixed-size, cursor-edited `char[]`)
+  became a plain `char[32]` on the new `Instrument` class - kept as a
+  character array rather than converted to `String`, since the
+  not-yet-ported UI edits it character-by-character via a cursor position.
+- `EnvelopeParameter` (row indices into the envelope) ported as plain
+  `public static final int` constants, not an enum, matching how they're
+  actually used as raw array indices throughout. `InstrumentSection`
+  ported as a plain Java enum (C++'s explicit `NONE = -1` backing value
+  isn't preserved - nothing reads the underlying numeric value anywhere).
+  `shpar`/`shenv` (GUI display-metadata tables) were not ported - they're
+  only needed by the deferred TXT-format `SaveInstrument`/`LoadInstrument`,
+  not by anything in this batch's scope.
+- Tests (`InstrumentsTest`, with `@Nested` classes mirroring
+  `InstrumentAtaFormatTest`/`InstrumentsCoreTest`) mirror
+  `InstrumentsTests.cpp` exactly, translating the global-based test setup
+  (`g_tracks4_8 = 4`/`8`, `g_keyboard_RememberOctavesAndVolumes`) into
+  explicit boolean arguments. Verified with `mvn -o test`: 112 tests pass
+  (+16). No C++ changes, no new bugs found.
+
 ## Next steps
 
 Continue porting small, already-tested, UI-free model classes one at a
