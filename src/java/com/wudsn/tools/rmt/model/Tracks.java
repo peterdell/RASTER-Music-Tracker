@@ -1,15 +1,16 @@
 package com.wudsn.tools.rmt.model;
 
 /**
- * Ported from CTracks (src/cpp/Tracks.h/.cpp, src/cpp/IO_Tracks.cpp) - the
- * already-tested subset only. Scoped the same way as {@link Tuning}: pure,
- * already-characterized logic now; deferred to follow-up batches are (1)
+ * Ported from CTracks (src/cpp/Tracks.h/.cpp, src/cpp/IO_Tracks.cpp).
  * {@code TrackBuildLoop}/{@code TrackExpandLoop}/{@code ModifyTrack}/
- * {@code GetTracksAll}/{@code SetTracksAll}, all declared in the C++ header
- * but with no existing test coverage to port against (same reasoning as
- * {@code GenerateTable}/{@code InitTuning}'s original deferral - would need
- * C++ characterization tests backfilled first), and (2) the C++ source's
- * own genuinely globals-coupled split: {@code TracksEdit.cpp}'s
+ * {@code GetTracksAll}/{@code SetTracksAll} were originally deferred for
+ * having no C++ test coverage to port against (same reasoning as
+ * {@code GenerateTable}/{@code InitTuning}'s original deferral); backfilled
+ * in {@code TracksTests.cpp} and ported here once that gave real
+ * golden-master values to verify against.
+ *
+ * <p>Still deferred, matching the C++ source's own genuinely
+ * globals-coupled split: {@code TracksEdit.cpp}'s
  * {@code DelNoteInstrVolSpeed}/{@code SetNoteInstrVol}/{@code SetInstr}/
  * {@code SetVol}/{@code SetSpeed}/{@code SetEnd}/{@code SetGo} (need
  * {@code g_Undo}, not yet ported) and {@code IO_Tracks.cpp}'s
@@ -228,6 +229,170 @@ public final class Tracks {
 			} else if (tr.volume[i] > 0) {
 				lastzline = kline = -1;
 			}
+		}
+		return true;
+	}
+
+	/**
+	 * Searches for the earliest/shortest repeating suffix (at least 2 lines, matching an earlier segment, with more than 1 non-empty line inside the matched region) and, if found, truncates the track into a loop instead.
+	 *
+	 * @param trackNumber which track to search
+	 * @return the length of the loop found, or 0 if none was found (or the track isn't eligible - empty, already looped, or not full length)
+	 */
+	public int trackBuildLoop(int trackNumber) {
+		if (isEmptyTrack(trackNumber)) {
+			return 0; // Empty track
+		}
+
+		Track tr = getTrack(trackNumber);
+		if (tr == null) {
+			return 0;
+		}
+
+		if (tr.go >= 0) {
+			return 0; // There is a loop
+		}
+		if (tr.len != maxTrackLength) {
+			return 0; // It is not full length => it cannot make a loop there
+		}
+
+		for (int i = 1; i < tr.len; i++) {
+			for (int j = 0; j < i; j++) {
+				int k;
+				for (k = 0; i + k < tr.len; k++) {
+					if (tr.note[i + k] == tr.note[j + k] && tr.instr[i + k] == tr.instr[j + k] && tr.volume[i + k] == tr.volume[j + k] && tr.speed[i + k] == tr.speed[j + k]) {
+						continue;
+					}
+					break;
+				}
+				if (k > 1 && i + k == tr.len) {
+					// It managed to find a loop at least 2 bars long lasting until the end
+					// Check to see if it's not empty in that loop
+					int p = 0;
+					for (int m = 0; i + m < tr.len; m++) {
+						if (tr.note[j + m] >= 0 || tr.instr[j + m] >= 0 || tr.volume[j + m] >= 0 || tr.speed[j + m] >= 0) {
+							p++;
+							if (p > 1) { // Yes, it found at least two nonzero lines inside the loop
+								tr.len = i;
+								tr.go = j;
+								return k; // Returns the length of the loop found
+							}
+						}
+					}
+				}
+			}
+		}
+		return 0;
+	}
+
+	/**
+	 * The inverse of {@link #trackBuildLoop}: expands a track with a go-loop back out to full length by cyclically repeating the [go, len) segment.
+	 *
+	 * @param trackNumber which track to expand
+	 * @return the number of lines the loop was expanded by, or 0 if the track is empty or invalid
+	 */
+	public int trackExpandLoop(int trackNumber) {
+		if (isEmptyTrack(trackNumber)) {
+			return 0; // Empty track
+		}
+
+		Track tr = getTrack(trackNumber);
+		if (tr == null) {
+			return 0;
+		}
+
+		// Length of the expanded loop
+		return trackExpandLoop(tr);
+	}
+
+	/**
+	 * Overload taking a {@link Track} directly (matches C++'s {@code TrackExpandLoop(TTrack*)}).
+	 *
+	 * @param track the track to expand
+	 * @return the number of lines the loop was expanded by, or 0 if track is null or has no loop
+	 */
+	public int trackExpandLoop(Track track) {
+		if (track == null) {
+			return 0;
+		}
+		if (track.go < 0) {
+			return 0; // There is no loop
+		}
+
+		int i;
+		for (i = 0; track.len + i < maxTrackLength; i++) {
+			int j = track.len + i;
+			int k = track.go + i;
+			track.note[j] = track.note[k];
+			track.instr[j] = track.instr[k];
+			track.volume[j] = track.volume[k];
+			track.speed[j] = track.speed[k];
+		}
+		track.len = maxTrackLength; // Full length
+		track.go = -1; // No loop
+
+		return i; // Length of the expanded loop
+	}
+
+	/**
+	 * A plain deep-copy snapshot of every track plus the current max track length - used by CUndo (not yet ported) to save/restore all track state at once.
+	 */
+	public void getTracksAll(TracksAll toTracks) {
+		toTracks.maxTrackLength = maxTrackLength;
+		for (int i = 0; i < TRACKSNUM; i++) {
+			copyTrack(track[i], toTracks.tracks[i]);
+		}
+	}
+
+	public void setTracksAll(TracksAll fromTracks) {
+		maxTrackLength = fromTracks.maxTrackLength;
+		for (int i = 0; i < TRACKSNUM; i++) {
+			copyTrack(fromTracks.tracks[i], track[i]);
+		}
+	}
+
+	private static void copyTrack(Track from, Track to) {
+		to.len = from.len;
+		to.go = from.go;
+		System.arraycopy(from.note, 0, to.note, 0, Track.TRACKLEN);
+		System.arraycopy(from.instr, 0, to.instr, 0, Track.TRACKLEN);
+		System.arraycopy(from.volume, 0, to.volume, 0, Track.TRACKLEN);
+		System.arraycopy(from.speed, 0, to.speed, 0, Track.TRACKLEN);
+	}
+
+	/**
+	 * Applies a transposition/instrument-shift/volume-percentage change across a line range, optionally filtered to only lines carrying a specific instrument.
+	 *
+	 * @param track the track to modify directly (not looked up by number - matches C++'s TTrack* parameter)
+	 * @param from first line, inclusive
+	 * @param to last line, inclusive (clamped to Track.TRACKLEN - 1 if past it)
+	 * @param instrnumonly filters by the *active* instrument at each line (the most recent instr[] value seen at or after {@code from}, not necessarily set on the exact line being modified) - a negative value applies to all instruments
+	 * @param tuning semitones to transpose by (see {@link #getModifiedNote})
+	 * @param instradd instrument number to shift by, wrapping (see {@link #getModifiedInstr})
+	 * @param volumep volume percentage to scale by, clamped (see {@link #getModifiedVolumeP})
+	 * @return false only if track is null
+	 */
+	public boolean modifyTrack(Track track, int from, int to, int instrnumonly, int tuning, int instradd, int volumep) {
+		// instruments < 0 => all instruments
+		//              >= 0 => only that one instrument
+		if (track == null) {
+			return false;
+		}
+		if (to >= Track.TRACKLEN) {
+			to = Track.TRACKLEN - 1;
+		}
+		int ainstr = -1;
+		for (int i = from; i <= to; i++) {
+			int instr = track.instr[i];
+			if (instr >= 0) {
+				ainstr = instr;
+			}
+			if (instrnumonly >= 0 && instrnumonly != ainstr) {
+				continue;
+			}
+			track.note[i] = getModifiedNote(track.note[i], tuning);
+			track.instr[i] = getModifiedInstr(instr, instradd);
+			track.volume[i] = getModifiedVolumeP(track.volume[i], volumep);
 		}
 		return true;
 	}

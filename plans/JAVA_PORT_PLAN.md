@@ -425,11 +425,40 @@ the failure diagnostics, fill them in).
   port against - same benefit the earlier `CTuning` backfill gave the
   `Tuning` batch's own follow-up.
 
+## Seventh ported batch (2026-09-24): finished `Tracks` - `TrackBuildLoop`/
+## `TrackExpandLoop`/`ModifyTrack`/`GetTracksAll`/`SetTracksAll`
+
+The Java follow-up unblocked by the C++ backfill above. Every expected
+value was reused directly from the C++ golden-master captures (not
+re-derived or re-guessed) and matched on the first `mvn -o test` run -
+same payoff as `Tuning`'s own C++-first/Java-second sequencing.
+
+- `trackBuildLoop`/`trackExpandLoop` (both overloads, the second taking a
+  `Track` directly matching C++'s `TrackExpandLoop(TTrack*)`) ported with
+  no structural changes - the triple-nested search and the cyclic-copy
+  loop translate directly, no idiomatic-substitution opportunities worth
+  taking here (unlike `ChannelControl`'s goto/sentinel cleanup).
+- **`TracksAll`** (was the C++ struct `TTracksAll`): a new small class -
+  `int maxTrackLength` plus a `Track[TRACKSNUM]` array, matching
+  `TuningSettings`/`Track`'s "plain mutable struct" treatment.
+  `getTracksAll`/`setTracksAll` do a straightforward deep copy via a
+  private `copyTrack` helper (`System.arraycopy` per field array).
+- `modifyTrack` takes a `Track` directly (not a track number), matching
+  C++'s `TTrack*` parameter - callers already have the `Track` reference
+  in hand via `getTrack()`.
+- Tests (added to `TracksTest` as more `@Nested` classes, mirroring
+  `TracksTests.cpp`'s own `TrackBuildLoopTest`/`TrackExpandLoopTest`/
+  `ModifyTrackTest` fixtures) reuse the exact golden-master values already
+  captured on the C++ side. Verified with `mvn -o test`: 96 tests pass
+  (+15), all green on the first run.
+- This completes `CTracks`'s port to the extent the C++ source itself
+  allows - the two remaining pieces (`TracksEdit.cpp`'s `g_Undo`-coupled
+  editing methods, `IO_Tracks.cpp`'s untested stream I/O) stay deferred
+  for the reasons already on record above.
+
 ## Next steps
 
-A Java follow-up batch for `TrackBuildLoop`/`TrackExpandLoop`/`ModifyTrack`/
-`GetTracksAll`/`SetTracksAll` is now unblocked (see above). Otherwise,
-continue porting small, already-tested, UI-free model classes one at a
+Continue porting small, already-tested, UI-free model classes one at a
 time, building up `com.wudsn.tools.rmt.model` before attempting
 `CSong` or anything in `com.wudsn.tools.rmt.ui`. No specific next class has
 been chosen yet.

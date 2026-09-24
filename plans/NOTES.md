@@ -2819,3 +2819,23 @@ build clean and all 123 tests pass.
       automated session. The wipe placement there was verified by reading
       the script, not by executing it; worth a real run next time a daily
       build is actually cut.
+  - **2026-09-24**: Seventh Java-port batch - finished `Tracks` with
+    `TrackBuildLoop`/`TrackExpandLoop`(x2)/`ModifyTrack`/`GetTracksAll`/
+    `SetTracksAll`, now unblocked by the C++ backfill above. Every expected
+    value was reused directly from the C++ golden-master captures and
+    matched on the first `mvn -o test` run - same payoff `Tuning`'s own
+    follow-up got from doing the C++ side first.
+    - `trackBuildLoop`/`trackExpandLoop` (both overloads) ported with no
+      structural changes - nothing here needed an idiomatic-substitution
+      cleanup the way `ChannelControl`'s goto/sentinel logic did.
+    - New `TracksAll` class (was the C++ struct `TTracksAll`): a plain
+      mutable `int maxTrackLength` + `Track[TRACKSNUM]`, matching
+      `TuningSettings`/`Track`'s "plain struct" treatment. `getTracksAll`/
+      `setTracksAll` deep-copy via a private `copyTrack` helper.
+    - `modifyTrack` takes a `Track` directly (not a track number),
+      matching C++'s `TTrack*` parameter.
+    - Verified with `mvn -o test`: 96 tests pass (+15), all green first
+      try. This completes `CTracks`'s port to the extent the C++ source
+      itself allows - `TracksEdit.cpp`'s `g_Undo`-coupled methods and
+      `IO_Tracks.cpp`'s untested stream I/O remain deferred. Details in
+      `plans/JAVA_PORT_PLAN.md`. Not yet committed.
