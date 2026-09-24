@@ -2716,5 +2716,63 @@ build clean and all 123 tests pass.
       against - "how to handle corrupted input" is a different kind of
       decision than a same-input-different-output bug.
     - Verified with `mvn -o test`: 81 tests pass (+15), all green first
-      try. No C++ changes. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
-      committed.
+      try. No C++ changes. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      (`94ab12c`).
+  - **2026-09-24**: User asked to flag the two issues found-but-not-fixed
+    during the Java-porting effort (`Notes`'s `isValidNote` off-by-one,
+    `Tracks`'s `ataToTrack` `count==0x40` hazard) directly in the C++
+    source, not just in the Java port's javadoc and in these plan docs.
+    Added a comment above `CNotes::IsValidNote`'s declaration (`Notes.h`)
+    and inside `AtaToTrack`'s `data==63` branch (`IO_Tracks.cpp`), both
+    cross-referencing the Java port. Comment-only; verified with a full
+    Release|x64 rebuild (0 errors, 325 tests pass). Committed (`d60274b`).
+  - **2026-09-24**: Backfilled C++ test coverage for the five `CTracks`
+    methods deferred from the `Tracks` Java-port batch (`TrackBuildLoop`/
+    `TrackExpandLoop`(x2)/`ModifyTrack`/`GetTracksAll`/`SetTracksAll`),
+    following the same playbook as `CTuning`'s earlier backfill: golden-
+    master capture for the intricate branching logic, hand-derivation for
+    the simple deep-copy.
+    - `TrackBuildLoop` (6 tests) and `TrackExpandLoop` (4 tests, both
+      overloads) golden-mastered - the triple-nested repeating-suffix
+      search is too easy to mis-trace by hand. One test specifically
+      characterizes the "more than 1 non-empty line in the loop region"
+      guard by constructing an all-empty matching suffix and confirming
+      it's correctly rejected.
+    - `GetTracksAll`/`SetTracksAll` (1 round-trip test): **found and fixed
+      a test-authoring bug, not a `CTracks` bug** - the first version
+      stack-allocated a local `TTracksAll saved;`, which is ~1MB (254
+      `TTrack` entries at ~4KB each) and crashed with a stack overflow.
+      Fixed by heap-allocating via `std::make_unique<TTracksAll>()`,
+      matching how `CTracks` itself always heap-allocates `m_track`.
+    - `ModifyTrack` (4 tests): covers the `to >= TRACKLEN` clamp and the
+      "filters by the *active* instrument, not necessarily the exact
+      line's own instrument" semantics.
+    - Verified via a full Release|x64 solution rebuild: `Rmt.exe`/
+      `RmtTests.exe` both build clean and all 340 tests pass (325 -> 340,
+      +15, 0 regressions). No new C++ bugs found - unblocks a future Java
+      follow-up batch for these five methods. Details in
+      `plans/JAVA_PORT_PLAN.md`. Not yet committed.
+  - **2026-09-24**: User asked whether the C++ build uses available cores
+    (14 logical, this machine). Found `Rmt.vcxproj` already had
+    `MultiProcessorCompilation=true` but `RmtTests.vcxproj` (the slower
+    project to rebuild - ~90 files including a large slice of production
+    code plus GoogleTest) had no such setting at all, compiling
+    single-threaded regardless of core count. Added it, matching
+    `Rmt.vcxproj`'s own setting - solution has no inter-project
+    dependencies either, so `-m` also lets the two projects build
+    concurrently.
+    - **Measured result was a 2.5x regression**, not an improvement:
+      `RmtTests.vcxproj`'s rebuild alone went from ~2m26s (before, no
+      `/MP`) to ~6m18s (after, `/MP` + `-m`). Checked
+      `Get-MpComputerStatus`: Windows Defender real-time protection is
+      active on this machine, and exclusions couldn't be checked/added
+      (needs admin rights this session doesn't have) - AV scanning
+      contention on many parallel `.obj` file writes is the standard,
+      well-documented cause of this exact symptom, though unconfirmed
+      without either an exclusion or a controlled A/B test with real-time
+      protection paused (both need admin).
+    - User's decision: keep the `/MP` change (correct in principle,
+      matches `Rmt.vcxproj`'s existing setting) and add a Defender
+      exclusion for `out/` and `src/cpp/test/out/` themselves, then
+      re-time. **Follow-up needed next session if not already resolved**:
+      confirm the exclusion was added and re-run the timing comparison.
