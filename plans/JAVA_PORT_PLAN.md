@@ -126,9 +126,62 @@ choice, not because it's on any critical path.
   tests pass, 0 regressions); Java side verified with `mvn -o test` (13
   tests pass).
 
+## Second ported batch: `Tuning`/`TuningSettings`/`TuningRatios`
+
+Ported from `CTuning`/`TTuningSettings`/`TTuningRatios`
+(`src/cpp/Tuning.h/.cpp`, `src/cpp/TuningTypes.h/.cpp`).
+
+- **Scope decision (asked explicitly - genuine fork)**: `CTuning`'s own C++
+  source is already split across `Tuning.cpp` (pure pitch math, fully
+  covered by `TuningTests.cpp`'s golden-master values) and
+  `TuningTables.cpp` (`GenerateTable`/`InitTuning`, which read C++ global
+  tuning state and have **zero** existing test coverage - never
+  characterized, since that split was made specifically so tests could
+  link the pure math without pulling in `Global.h`). The user chose to
+  port only the pure-math half now (matching `Tuning.cpp`'s own scope) and
+  defer `GenerateTable`/`InitTuning`/`GetTruePitch`/`CalculateDeltaAUDF`/
+  `Timbre`/`TTuning` to a follow-up batch, rather than porting untested
+  logic with no golden master to verify against.
+- **`Tuning`** (`com.wudsn.tools.rmt.model.Tuning`): `getPitch`/`getAUDF`/
+  `getPOKEYPitch` only, using the C++ test-only constructor
+  (`Tuning(int clockFrequency)`) as the *only* constructor, since without
+  the table-generation half there's no need for C++'s two-argument
+  `InitTuning(clockFrequency, table_memory)` entry point. `Pitch`/`AUDF`
+  (C++ `typedef double`/`typedef int`) become plain `double`/`int`, same
+  as `Fraction`'s treatment of its own fields.
+- **`TuningSettings`**: a plain mutable field-holder (`basetuning`,
+  `basenote`, `temperament`) plus `initialize(boolean ntsc)`, matching
+  `TTuningSettings`'s own struct-plus-`Initialize()` shape (unlike
+  `Fraction`, immutability doesn't fit here - this is a settings struct
+  meant to be mutated by not-yet-ported UI code). C++ leaves
+  `basetuning`/`basenote` genuinely uninitialized until `Initialize()`
+  runs; Java's mandatory field zero-initialization means that hazard
+  simply doesn't exist on this side.
+- **`TuningRatios`**: 13 `Fraction` fields plus `initialize()`, directly
+  reusing the already-ported `Fraction` - the reason this class was worth
+  including in the same batch. Field names are idiomatic Java camelCase
+  (`min2nd`, `perf5th`, etc.) rather than the C++ struct's
+  `SCREAMING_SNAKE_CASE`, mapped 1:1 to the same intervals in the same
+  order.
+- **Tests**: `TuningTest`/`TuningSettingsTest`/`TuningRatiosTest` mirror
+  `TuningTests.cpp`/`TuningTypesTests.cpp` exactly, including the
+  `minorSecondIsStoredReduced` characterization test (documents that the
+  40/38 literal is stored reduced to 20/19). No C++ changes were needed
+  for this batch - no bugs found. Verified with `mvn -o test`: 28 tests
+  pass (13 `Fraction` + 15 new).
+
 ## Next steps
 
-Continue porting small, already-tested, UI-free model classes one at a
-time (matching this batch's scope and verification rigor), building up
-`com.wudsn.tools.rmt.model` before attempting `CSong` or anything in
-`com.wudsn.tools.rmt.ui`. No specific next class has been chosen yet.
+Follow-up batch (deferred by the scope decision above): `GenerateTable`/
+`InitTuning`/`GetTruePitch`/`CalculateDeltaAUDF`/`Timbre`/`TTuning`, none
+of which have existing C++ test coverage. These would need to be
+redesigned to take explicit parameters (`TuningSettings`/`TuningRatios`/a
+`byte[]` table buffer) instead of reading C++ globals, since no Java
+global-state architecture exists yet - and, having no golden master, would
+need new test coverage written from scratch (not just mirrored) with extra
+care taken transcribing the 29-row `temperament_preset` table.
+
+Beyond that, continue porting small, already-tested, UI-free model classes
+one at a time (matching this batch's scope and verification rigor),
+building up `com.wudsn.tools.rmt.model` before attempting `CSong` or
+anything in `com.wudsn.tools.rmt.ui`.

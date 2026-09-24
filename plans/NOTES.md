@@ -2538,3 +2538,35 @@ build clean and all 123 tests pass.
         updated `.gitignore` for `target/`. Not yet committed (both the
         C++ fix and the Java port should be separate commits, per
         `dis6502`'s own established policy).
+  - **2026-09-24**: Second Java-port batch, `CTuning`/`TTuningSettings`/
+    `TTuningRatios` → `Tuning`/`TuningSettings`/`TuningRatios`.
+    - **Genuine scope fork, asked explicitly**: `CTuning`'s own C++ source
+      is already split across `Tuning.cpp` (pure pitch math, fully covered
+      by `TuningTests.cpp`'s golden-master values) and `TuningTables.cpp`
+      (`GenerateTable`/`InitTuning`, reading C++ global tuning state, with
+      **zero** existing test coverage). User chose the pure-math-only
+      scope, deferring `GenerateTable`/`InitTuning`/`GetTruePitch`/
+      `CalculateDeltaAUDF`/`Timbre`/`TTuning` to a follow-up batch rather
+      than porting untested logic (including a 29-row temperament-ratio
+      table) with no golden master to verify against.
+    - `Tuning` keeps only `getPitch`/`getAUDF`/`getPOKEYPitch`, using the
+      C++ test-only constructor (`Tuning(int clockFrequency)`) as the sole
+      constructor - no need for C++'s two-argument `InitTuning()` entry
+      point without the table-generation half.
+    - `TuningSettings` stayed a plain mutable field-holder (not immutable
+      like `Fraction`), matching `TTuningSettings`'s own struct-plus-
+      `Initialize()` shape - it's a settings struct meant to be mutated by
+      not-yet-ported UI code, so immutability doesn't fit. C++ leaves
+      `basetuning`/`basenote` genuinely uninitialized until `Initialize()`
+      runs; Java's mandatory field zero-initialization means that hazard
+      doesn't carry over.
+    - `TuningRatios` directly reuses the already-ported `Fraction` for its
+      13 interval fields - the reason it was worth porting in the same
+      batch. Field names became idiomatic camelCase (`min2nd`, `perf5th`,
+      etc.) instead of the C++ struct's `SCREAMING_SNAKE_CASE`.
+    - Tests (`TuningTest`/`TuningSettingsTest`/`TuningRatiosTest`) mirror
+      `TuningTests.cpp`/`TuningTypesTests.cpp` exactly, including the
+      `minorSecondIsStoredReduced` characterization test. No C++ changes
+      needed - no bugs found this batch. Verified with `mvn -o test`: 28
+      tests pass (13 `Fraction` + 15 new). Details in
+      `plans/JAVA_PORT_PLAN.md`. Not yet committed.
