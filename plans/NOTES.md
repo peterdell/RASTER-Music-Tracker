@@ -3171,4 +3171,21 @@ build clean and all 123 tests pass.
     - Verified with `mvn -o test`: 243 tests pass (+3), all green on the
       first build, including the real resource-loading/binary-parsing
       test matching its exact expected byte. Details in
-      `plans/JAVA_PORT_PLAN.md`. Not yet committed.
+      `plans/JAVA_PORT_PLAN.md`. Committed (`a2ef5aa`).
+  - **2026-09-25**: Twenty-first Java-port batch - `PokeyStream` (from
+    `CPokeyStream`), the pure state-machine methods
+    `PokeyStreamTests.cpp` exercises, plus the two early-return guard
+    clauses of `Record`/`WriteToFile`. No C++ changes needed. New
+    `StreamState` enum (plain, no synthetic value needed).
+    - `StartRecording`/`FinishedRecording`, and `record`/`writeToFile`'s
+      real bodies, are all deferred entirely - none are touched beyond
+      the tested guards; the real recording pipeline is exercised for
+      real in `SongEditingTests.cpp` instead, which isn't ported. No
+      stream-buffer/driver fields are modeled at all in the Java class.
+    - `CallFromPlay`'s raw `int playerState` parameter becomes a real
+      `PlayMode` parameter - C++ only uses `int` there because
+      `PokeyStream.h` doesn't include `PlayMode`'s header, not because
+      any non-`PlayMode` value is needed.
+    - Verified with `mvn -o test`: 252 tests pass (+9), all green on the
+      first build, including the hand-traced multi-step loop-detection
+      tests. Details in `plans/JAVA_PORT_PLAN.md`. Not yet committed.

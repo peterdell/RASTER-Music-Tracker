@@ -1034,6 +1034,37 @@ C++ changes needed.
   including the real resource-file-loading/binary-parsing test matching
   its exact expected byte. No C++ changes.
 
+## Twenty-first ported batch (2026-09-25): `PokeyStream` (`com.wudsn.tools.rmt.model.PokeyStream`)
+
+Ported from `CPokeyStream` (`src/cpp/PokeyStream.h/.cpp`) - the pure
+state-machine methods `PokeyStreamTests.cpp` exercises
+(`SwitchIntoRecording`/`SwitchIntoStop`/`CallFromPlay`/`TrackSongLine`/
+`CallFromPlayBeat`, plus `Clear` and the getters), plus the two
+early-return guard clauses of `Record`/`WriteToFile` that don't touch a
+real driver/stream buffer. No C++ changes needed.
+
+- **New `StreamState`** (was the nested C++ enum `STREAM_STATE`): a plain
+  Java enum - nothing needs a synthetic out-of-range value here.
+- **`StartRecording`/`FinishedRecording` deferred entirely, and
+  `record`/`writeToFile`'s real bodies deferred too**: none of these are
+  touched beyond the tested guard clauses in `PokeyStreamTests.cpp` - the
+  actual Pokey-register recording pipeline (needs a real
+  `AtariTrackerDriver`, a growable byte buffer, and
+  `CSong::DumpSongToPokeyStream()`'s wider machinery) is exercised for
+  real in `SongEditingTests.cpp` instead, which isn't ported. Consequently
+  `m_StreamBuffer`/`m_BufferSize`/`m_FrameSize`/`m_AtariTrackerDriver`
+  aren't modeled at all in the Java class - nothing observable in this
+  batch depends on them.
+- `CallFromPlay`'s `int playerState` parameter (compared only against
+  `PLAY_BLOCK`) becomes a real `PlayMode callFromPlay(PlayMode, ...)`
+  parameter instead of a raw `int` - C++ declares it as plain `int` only
+  because `PokeyStream.h` doesn't include the header `PlayMode` lives in,
+  not because anything needs a non-`PlayMode` value.
+- Tests (`PokeyStreamTest`) mirror `PokeyStreamTests.cpp`'s 9 tests
+  exactly, including the hand-traced multi-step loop-detection tests.
+  Verified with `mvn -o test`: 252 tests pass (+9), all green on the first
+  build. No C++ changes.
+
 ## Next steps
 
 Continue porting small, already-tested, UI-free model classes one at a
