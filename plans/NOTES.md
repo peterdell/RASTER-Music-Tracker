@@ -3051,5 +3051,18 @@ build clean and all 123 tests pass.
     - Neither language bounds-checks `vk` against `0..255` - preserved as
       a characterized, not hardened, fragile contract.
     - Verified with `mvn -o test`: 198 tests pass (+7), all green on the
+      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      (`b8ab6d9`).
+  - **2026-09-25**: Fifteenth Java-port batch - `RmtCommandLineInfo` (from
+    `CRmtCommandLineInfo`, `RmtCommandLineInfo.h/.cpp`), the `SCRIPT:`/
+    `TEST:` switch-parsing logic, all `RmtCommandLineInfoTests.cpp`
+    exercises. No C++ changes needed.
+    - Omitted C++'s fallback to `CCommandLineInfo::ParseParam()` (MFC's own
+      default handling) - no Java equivalent, and no test depends on it.
+    - Simplified a harmless redundant double call to `GetSwitchName()` down
+      to one call - not a behavior change, just removing duplicate work.
+    - Drops the `CCommandLineInfo` MFC base class entirely; the Java class
+      is a plain data holder.
+    - Verified with `mvn -o test`: 205 tests pass (+7), all green on the
       first build. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
       committed.

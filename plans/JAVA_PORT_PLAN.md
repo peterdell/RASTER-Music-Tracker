@@ -795,6 +795,30 @@ needed.
   7 tests exactly. Verified with `mvn -o test`: 198 tests pass (+7), all
   green on the first build. No C++ changes.
 
+## Fifteenth ported batch (2026-09-25): `RmtCommandLineInfo` (`com.wudsn.tools.rmt.model.RmtCommandLineInfo`)
+
+Ported from `CRmtCommandLineInfo` (`src/cpp/RmtCommandLineInfo.h/.cpp`) -
+the `SCRIPT:`/`TEST:` switch parsing, which is all
+`RmtCommandLineInfoTests.cpp` exercises. No C++ changes needed.
+
+- **Omitted, no Java equivalent, no test depends on it**: C++'s fallback to
+  `CCommandLineInfo::ParseParam()` (MFC's own default handling of plain
+  filenames and unrecognized flags) for the `bFlag=false` case and the
+  "neither switch matched" case - has no observable effect in any existing
+  test, so it's simply left out rather than reintroducing an MFC
+  dependency for untested behavior.
+- **Minor simplification, not a behavior change**: C++ calls
+  `GetSwitchName(switchString)` twice in a row (once for the `SCRIPT`
+  check, then redundantly again, identically, for the `TEST` check) -
+  `parseParam` computes it once, since the two calls are provably
+  equivalent and neither call has any side effect.
+- Drops the `CCommandLineInfo` base class entirely - the ported class is a
+  plain data holder with a `parseParam` method, not an MFC command-line
+  parser subclass.
+- Tests (`RmtCommandLineInfoTest`) mirror `RmtCommandLineInfoTests.cpp`'s 7
+  tests exactly. Verified with `mvn -o test`: 205 tests pass (+7), all
+  green on the first build. No C++ changes.
+
 ## Next steps
 
 Continue porting small, already-tested, UI-free model classes one at a
