@@ -11,8 +11,13 @@ Java port, side by side:
 - **C++** (the original, currently-shipping app): source in `src/cpp/`
   (tests in `src/cpp/test/`), build scripts in `build/`, assembler player
   routines in `asm/`, native runtime DLLs in `lib/x64/`. Build via
-  `Rmt.sln`/`RmtTests.vcxproj` (MSBuild). See `plans/RULES.md` for C++
-  coding-style rules.
+  `Rmt.sln`/`RmtTests.vcxproj` (MSBuild, both projects use `/MP`). See
+  `plans/RULES.md` for C++ coding-style rules. If Windows Defender's
+  real-time protection is on and unexcluded, `/MP`'s parallel `.obj` writes
+  can make builds *slower*, not faster (measured 2m26s -> 6m18s on one
+  machine) - run `build/setup_defender_exclusions.ps1` (needs admin, self-
+  elevates via UAC) to exclude `out/`/`src/cpp/test/out/` if rebuilds feel
+  unusually slow.
 - **Java** (the in-progress port, see `plans/JAVA_PORT_PLAN.md`): source in
   `src/java/` (tests in `src/java/test/`, nested inside it - the main
   compile explicitly excludes `test/**`, see `pom.xml`), vendored
