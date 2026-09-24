@@ -1,11 +1,15 @@
 #include "gtest/gtest.h"
 
 #include "Atari.h"
+#include "TuningTypes.h"
 
 // CAtari::Init()/DeInit()/JSR() (real 6502 DLL interop, see AtariStub.cpp)
-// and Init(bool ntsc) (calls CTuning::InitTuning(), hazardous - see
-// TuningTests.cpp) are all avoided here. Everything else is a plain memory
-// buffer, safe and cheap to construct and exercise directly.
+// are avoided here - genuinely hazardous, real native DLL/hardware access.
+// Everything else, including Init(bool) (see below), is safe and cheap to
+// exercise directly.
+
+extern TTuningSettings g_tuning;
+extern TTuningRatios g_tuningRatios;
 
 TEST(AtariTest, NewInstanceHasZeroedMemoryAndIsNotNtsc) {
     CAtari atari;
@@ -54,4 +58,39 @@ TEST(AtariTest, InstanceClockAndCycleCountFollowIsNtscDefaultingToPal) {
     CAtari atari; // IsNTSC() is FALSE by default (see the m_ntsc fix in Atari.h)
     EXPECT_EQ(atari.GetClockFrequency(), CAtari::FREQ_17_PAL);
     EXPECT_EQ(atari.GetFrameCycleCount(), 114 * 312);
+}
+
+// CAtari::Init(bool) calls g_Tuning.InitTuning() to populate *this
+// instance's own* memory (via GetMemoryAt(), not the shared g_Atari global)
+// with pitch tables - safe as long as g_tuning.basetuning is set first (the
+// same guard already characterized in TuningTests.cpp). These reuse the
+// exact golden-master byte values already captured there for the
+// Distortion-2 (Bell) table at RMT_FRQTABLES+0x000/0x001, since the point
+// here is to characterize Init(bool)'s own wiring (right clock, right
+// instance, right memory offset) - InitTuning()'s arithmetic itself is
+// already covered.
+TEST(AtariTest, InitPalPopulatesOwnMemoryWithTuningTables) {
+    g_tuning.Initialize(false); // PAL
+    g_tuningRatios.Initialize();
+
+    CAtari atari;
+    atari.Init(false);
+
+    EXPECT_FALSE(atari.IsNTSC());
+    EXPECT_EQ(atari.GetClockFrequency(), CAtari::FREQ_17_PAL);
+    EXPECT_EQ(atari.GetByteAt(RMT_FRQTABLES + 0x000), 62);
+    EXPECT_EQ(atari.GetByteAt(RMT_FRQTABLES + 0x001), 58);
+}
+
+TEST(AtariTest, InitNtscPopulatesOwnMemoryWithTuningTables) {
+    g_tuning.Initialize(true); // NTSC
+    g_tuningRatios.Initialize();
+
+    CAtari atari;
+    atari.Init(true);
+
+    EXPECT_TRUE(atari.IsNTSC());
+    EXPECT_EQ(atari.GetClockFrequency(), CAtari::FREQ_17_NTSC);
+    EXPECT_EQ(atari.GetByteAt(RMT_FRQTABLES + 0x000), 62);
+    EXPECT_EQ(atari.GetByteAt(RMT_FRQTABLES + 0x001), 58);
 }
