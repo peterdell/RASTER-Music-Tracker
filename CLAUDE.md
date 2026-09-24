@@ -19,6 +19,11 @@ Java port, side by side:
   non-Maven third-party jars in `lib/java/`. Build via `pom.xml` (Maven):
   `mvn -o test` from the repository root. Depends on `com.wudsn.tools.base`/
   `.base.atari` (installed locally, not built from this repo) and JUnit 5.
+  An Eclipse project (`.project`/`.classpath` at the repository root)
+  is also checked in, for compiling/editing in Eclipse via m2e (Maven
+  Integration for Eclipse) - "File > Import > Existing Projects into
+  Workspace", select the repository root. m2e resolves the same
+  dependencies from `pom.xml`.
 
 Documentation in `doc/`.
 
