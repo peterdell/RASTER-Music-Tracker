@@ -3064,5 +3064,15 @@ build clean and all 123 tests pass.
     - Drops the `CCommandLineInfo` MFC base class entirely; the Java class
       is a plain data holder.
     - Verified with `mvn -o test`: 205 tests pass (+7), all green on the
+      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      (`474e1ae`).
+  - **2026-09-25**: Sixteenth Java-port batch - `StringUtility` (from
+    `CStringUtility`, `StringUtility.h/.cpp`), a single one-line static
+    method, ported in full, no C++ changes needed.
+    - Reproduced `CString::Right(n)`'s clamp-to-string-length behavior
+      explicitly, since `String.substring` has no equivalent and would
+      throw for a negative starting index when the suffix is longer than
+      the string.
+    - Verified with `mvn -o test`: 210 tests pass (+5), all green on the
       first build. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
       committed.

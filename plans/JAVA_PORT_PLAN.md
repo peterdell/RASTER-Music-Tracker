@@ -819,6 +819,22 @@ the `SCRIPT:`/`TEST:` switch parsing, which is all
   tests exactly. Verified with `mvn -o test`: 205 tests pass (+7), all
   green on the first build. No C++ changes.
 
+## Sixteenth ported batch (2026-09-25): `StringUtility` (`com.wudsn.tools.rmt.model.StringUtility`)
+
+Ported from `CStringUtility` (`src/cpp/StringUtility.h/.cpp`) - fully; the
+smallest class ported so far, a single one-line static method. No C++
+changes needed.
+
+- C++'s `CString::Right(n)` clamps `n` to the string's own length rather
+  than throwing or reading out of bounds when the suffix is longer than the
+  string - `endsWithNoCase` reproduces that clamp explicitly (`string`
+  itself, unsliced, when `suffix` is longer), since Java's
+  `String.substring` has no equivalent clamping behavior and would throw
+  `StringIndexOutOfBoundsException` for a negative starting index otherwise.
+- Tests (`StringUtilityTest`) mirror `StringUtilityTests.cpp`'s 5 tests
+  exactly. Verified with `mvn -o test`: 210 tests pass (+5), all green on
+  the first build. No C++ changes.
+
 ## Next steps
 
 Continue porting small, already-tested, UI-free model classes one at a
