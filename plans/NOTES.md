@@ -2992,4 +2992,27 @@ build clean and all 123 tests pass.
       **first** build - despite being the most structurally complex port
       this project has done (5 new collaborating classes, 2 new snapshot
       types). Full Release|x64 C++ rebuild also verified (comment-only
-      change). Details in `plans/JAVA_PORT_PLAN.md`. Not yet committed.
+      change). Details in `plans/JAVA_PORT_PLAN.md`. Committed (`ce9ab71`,
+      `c96206f`).
+  - **2026-09-24**: Twelfth Java-port batch - `SapFile` (from `CSAPFile`,
+    `SAPFile.h/.cpp`), the already-tested subset (getters/setters,
+    `clear`/`normalize`/`export`). `Init(const CSong&)` deferred - untested
+    in C++, and needs `Song` methods the deliberately minimal `Song` slice
+    doesn't have, plus a real system-clock read.
+    - `Export(std::ostream&)` became `export()` returning a `String`
+      directly, matching the existing C++ test's own in-memory-stream
+      usage and avoiding Java's checked-`IOException` ceremony for what's
+      just building text.
+    - Ported the already-known `DEFSONG` bug (prints `songs` instead of
+      `defaultSong` - characterized, not fixed, in an earlier session)
+      faithfully at first; user then asked to fix it on both sides before
+      committing. Fixed in `SAPFile.cpp`/`SAPFileTests.cpp` and
+      `SapFile.java`/`SapFileTest.java` together - no other production
+      code depended on the buggy value (repo-wide search). Re-verified:
+      370 C++ tests (full Release|x64 rebuild) and 183 Java tests, both
+      green.
+    - C++'s `ThrowRuntimeException` (blocking `MessageBox` + `exit(2)`)
+      became a thrown `IllegalStateException`, matching the established
+      idiom.
+    - Verified with `mvn -o test`: 183 tests pass (+4). No C++ changes.
+      Details in `plans/JAVA_PORT_PLAN.md`. Not yet committed.

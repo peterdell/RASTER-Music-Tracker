@@ -701,11 +701,43 @@ minimal slice now, scoped to exactly what `Undo` touches.
   types). Full Release|x64 C++ solution rebuild also verified (comment-only
   change).
 
+## Twelfth ported batch (2026-09-24): `SapFile` (`com.wudsn.tools.rmt.model.SapFile`)
+
+Ported from `CSAPFile` (`src/cpp/SAPFile.h/.cpp`) - the already-tested
+subset: field getters/setters, `clear`/`normalize`, and `export`.
+`Init(const CSong&)` is deferred - untested in C++ (only stubbed there for
+linking) and needs `Song` methods this project's deliberately minimal
+`Song` slice doesn't have (`GetName`/`IsStereo`/`IsNTSC`/
+`GetInstrumentSpeed`), plus a real system-clock read for the export date.
+
+- C++'s `Export(std::ostream&)` becomes `export()` returning a `String`
+  directly - simpler than threading a `Writer`/`Appendable` (and its
+  checked `IOException`) through for what's fundamentally just building
+  text; also matches the existing C++ test's own use of an in-memory
+  `std::ostringstream` sink.
+- **Known bug fixed in both languages, per the user's explicit decision**:
+  the `DEFSONG` line printed `songs` instead of `defaultSong` - already
+  characterized (not fixed) in an earlier session's `SAPFileTests.cpp`.
+  Ported faithfully at first (matching the earlier "characterize, don't
+  fix" call), then the user asked for it to be fixed on both sides before
+  committing this batch. Fixed in `SAPFile.cpp`/`SAPFileTests.cpp` and
+  `SapFile.java`/`SapFileTest.java` in the same commit; no other
+  production code depended on the buggy value (verified by a repo-wide
+  search). C++ verified with a full Release|x64 solution rebuild (370
+  tests); Java with `mvn -o test` (183 tests).
+- C++'s `ThrowRuntimeException` (blocking `MessageBox` + `exit(2)`, not a
+  catchable exception - the reason the empty/invalid-type paths are
+  untested in C++ too) becomes a thrown `IllegalStateException`, matching
+  the established idiom (e.g. `Tuning.initTuning`'s `basetuning == 0`
+  guard).
+- Tests (`SapFileTest`) mirror `SAPFileTests.cpp` exactly. Verified with
+  `mvn -o test`: 183 tests pass (+4). No C++ changes.
+
 ## Next steps
 
 Continue porting small, already-tested, UI-free model classes one at a
 time, building up `com.wudsn.tools.rmt.model`. The `Song` slice ported
-here is deliberately minimal (just what `Undo` needed) - a real `CSong`
+earlier is deliberately minimal (just what `Undo` needed) - a real `CSong`
 port (playback, file I/O, the full editing surface) remains a much larger,
 separate undertaking, matching this project's long-standing "God Object"
 deferral. No specific next class has been chosen yet.
