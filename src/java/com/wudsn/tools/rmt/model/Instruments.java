@@ -6,14 +6,20 @@ import java.util.Arrays;
  * Ported from CInstruments (src/cpp/Instruments.h, InstrumentsCore.cpp,
  * Instruments.cpp, InstrumentsAtaFormat.cpp) - the already-tested subset
  * only, matching the scoping discipline already established for
- * {@link Tuning} and {@link Tracks}: port what {@code InstrumentsTests.cpp}
- * already characterizes, defer the rest.
+ * {@link Tuning} and {@link Tracks}. {@code CheckInstrumentParameters}/
+ * {@code RecalculateFlag}/{@code CalculateNotEmpty}/{@code GetNote}/
+ * {@code GetFrequency} were originally deferred for having no C++ test
+ * coverage to port against; backfilled in {@code InstrumentsTests.cpp} and
+ * ported here once that gave real characterization values to verify
+ * against.
  *
- * <p><b>Deferred, untested in C++</b>: {@code CheckInstrumentParameters}/
- * {@code RecalculateFlag}/{@code CalculateNotEmpty}/{@code GetNote}
- * (InstrumentsCore.cpp - simple, but no existing test coverage to port
- * against) and {@code GetFrequency} (also needs the not-yet-ported
- * {@code CAtari}'s memory buffer). <b>Deferred, needs I/O infrastructure not
+ * <p>{@link #getFrequency} takes the emulated Atari memory as an explicit
+ * {@code byte[]} parameter instead of reading it from a {@code CAtari}
+ * instance - {@code CAtari} itself isn't ported yet, and (matching
+ * {@link Tuning#generateTable}'s own precedent) a raw buffer is all this
+ * method actually needs.
+ *
+ * <p><b>Deferred, needs I/O infrastructure not
  * yet ported</b>: {@code Update}/{@code SaveAll}/{@code LoadAll}/
  * {@code SaveInstrument}/{@code LoadInstrument} (IO_Instruments.cpp -
  * untested stream I/O; {@code Update()} needs {@code CAtari}). <b>Deferred,
@@ -111,6 +117,182 @@ public final class Instruments {
 		ai.volume = MAXVOLUME;
 
 		// No hardware side effect / Atari-memory update here - see class javadoc.
+	}
+
+	/**
+	 * Check the instrument parameters and adjust them to fit boundaries if needed.
+	 *
+	 * @param instr instrument number
+	 */
+	public void checkInstrumentParameters(int instr) {
+		Instrument ai = getInstrument(instr);
+		if (ai == null) {
+			return;
+		}
+
+		// ENVELOPE len-go loop control
+		if (ai.parameters[Instrument.PAR_ENV_GOTO] > ai.parameters[Instrument.PAR_ENV_LENGTH]) {
+			ai.parameters[Instrument.PAR_ENV_GOTO] = ai.parameters[Instrument.PAR_ENV_LENGTH];
+		}
+
+		// TABLE len-go loop control
+		if (ai.parameters[Instrument.PAR_TBL_GOTO] > ai.parameters[Instrument.PAR_TBL_LENGTH]) {
+			ai.parameters[Instrument.PAR_TBL_GOTO] = ai.parameters[Instrument.PAR_TBL_LENGTH];
+		}
+
+		// check the cursor in the envelope
+		if (ai.editEnvelopeX > ai.parameters[Instrument.PAR_ENV_LENGTH]) {
+			ai.editEnvelopeX = ai.parameters[Instrument.PAR_ENV_LENGTH];
+		}
+
+		// check the cursor in the table
+		if (ai.editNoteTableCursorPos > ai.parameters[Instrument.PAR_TBL_LENGTH]) {
+			ai.editNoteTableCursorPos = ai.parameters[Instrument.PAR_TBL_LENGTH];
+		}
+
+		// something changed => Save instrument "to Atari" - NOTE: done from the outside
+	}
+
+	/**
+	 * Calculate some text hints for this instrument. When the instrument name is rendered there will be some hints below it.
+	 *
+	 * @param instr instrument number
+	 */
+	public void recalculateFlag(int instr) {
+		Instrument ti = getInstrument(instr);
+		if (ti == null) {
+			return;
+		}
+
+		int flags = 0;
+
+		// Analyse the instrument envelope for the Autofilter, Bass16 and Portamento flags
+		for (int i = 0; i <= ti.parameters[Instrument.PAR_ENV_LENGTH]; i++) {
+			// Autofilter?
+			if (ti.envelope[i][EnvelopeParameter.FILTER] != 0) {
+				flags |= Instrument.IF_FILTER;
+			}
+
+			// Bass16?
+			if (ti.envelope[i][EnvelopeParameter.DISTORTION] == 6) {
+				flags |= Instrument.IF_BASS16;
+			}
+
+			// Portamento?
+			if (ti.envelope[i][EnvelopeParameter.PORTAMENTO] != 0) {
+				flags |= Instrument.IF_PORTAMENTO;
+			}
+		}
+
+		// Analyse the instrument parameters for the AUDCTL flag
+		for (int i = Instrument.PAR_AUDCTL_15KHZ; i <= Instrument.PAR_AUDCTL_POLY9; i++) {
+			// AUDCTL?
+			if (ti.parameters[i] != 0) {
+				flags |= Instrument.IF_AUDCTL;
+			}
+		}
+
+		// Autofilter takes priority over Bass16 (RMT 1.28 driver only)
+		if ((flags & Instrument.IF_FILTER) != 0 && (flags & Instrument.IF_BASS16) != 0) {
+			flags ^= Instrument.IF_BASS16;
+		}
+
+		// Update the instrument hint flag to the new value
+		ti.displayHintFlags = flags;
+	}
+
+	/**
+	 * Check if an instrument is empty. Empty is defined as NO volume and all parameters are 0.
+	 *
+	 * @param instr instrument number
+	 * @return true if the instrument has values, false if it is in default state
+	 */
+	public boolean calculateNotEmpty(int instr) {
+		Instrument ti = getInstrument(instr);
+		if (ti == null) {
+			return false;
+		}
+
+		for (int i = 0; i <= ti.parameters[Instrument.PAR_ENV_LENGTH]; i++) {
+			for (int j = 0; j < Instrument.ENVROWS; j++) {
+				if (ti.envelope[i][j] != 0) {
+					return true;
+				}
+			}
+		}
+		for (int i = 0; i < Instrument.PARCOUNT; i++) {
+			if (ti.parameters[i] != 0) {
+				return true;
+			}
+		}
+		return false; // Is empty
+	}
+
+	/**
+	 * Calculate the note according to distortion in the first entry in the note table.
+	 *
+	 * @param instr instrument number
+	 * @param note which note
+	 * @return the note, or -1 if instr/the resulting note is invalid
+	 */
+	public int getNote(int instr, int note) {
+		Instrument tt = getInstrument(instr);
+		if (tt == null) {
+			return -1;
+		}
+
+		// Only for NOTES table
+		if (tt.parameters[Instrument.PAR_TBL_TYPE] == 0) {
+			// Shift notes according to table 0
+			note = (note + tt.noteTable[0]) & 0xff;
+		}
+
+		// The note must be within valid boundaries
+		if (!Notes.isValidNote(note)) {
+			return -1;
+		}
+		return note;
+	}
+
+	// Matches RMT_FRQTABLES (Atari.h): RMTPLAYR_PAGE_DISTORTION_2 (tracker_obx.h).
+	private static final int RMT_FRQTABLES = 0xB000;
+
+	/**
+	 * Convert the note to a frequency according to distortion in first envelope column or first entry in the note table.
+	 *
+	 * @param instr instrument number
+	 * @param note which note
+	 * @param atariMemory the emulated Atari memory to read the frequency table from (C++ reads this from the g_Atari global instead)
+	 * @return the frequency, or -1 if instr/the resulting note is invalid
+	 */
+	public int getFrequency(int instr, int note, byte[] atariMemory) {
+		Instrument tt = getInstrument(instr);
+		if (tt == null) {
+			return -1;
+		}
+
+		// Only for NOTES table
+		if (tt.parameters[Instrument.PAR_TBL_TYPE] == 0) {
+			// Shift notes according to table 0
+			note = (note + tt.noteTable[0]) & 0xff;
+		}
+
+		// The note must be within valid boundaries
+		if (note < 0 || note >= Notes.NOTESNUM) {
+			return -1;
+		}
+
+		// IMPORTANT NOTE: Tables are not set to a constant location!
+		// The function technically returns valid data, otherwise
+		switch (tt.envelope[0][EnvelopeParameter.DISTORTION]) {
+		case 0x0C:
+			return unsignedByte(atariMemory, RMT_FRQTABLES + 64 + note);
+		case 0x06:
+		case 0x0E:
+			return unsignedByte(atariMemory, RMT_FRQTABLES + 128 + note);
+		default:
+			return unsignedByte(atariMemory, RMT_FRQTABLES + 192 + note);
+		}
 	}
 
 	/**

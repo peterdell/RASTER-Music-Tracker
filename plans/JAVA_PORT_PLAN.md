@@ -559,14 +559,39 @@ run.
   follow-up batch for these five methods, which now has real
   characterization values to port against.
 
+## Ninth ported batch (2026-09-24): finished `Instruments` -
+## `checkInstrumentParameters`/`recalculateFlag`/`calculateNotEmpty`/
+## `getNote`/`getFrequency`
+
+The Java follow-up unblocked by the C++ backfill above - same payoff as
+`Tuning`'s and `Tracks`'s own C++-first/Java-second sequencing: every
+expected value was reused directly from the C++ characterization tests and
+matched on the first `mvn -o test` run.
+
+- `checkInstrumentParameters`/`recalculateFlag`/`calculateNotEmpty`/
+  `getNote` ported with no structural changes - straightforward
+  conditionals/loops, no idiomatic-substitution opportunities.
+- **`getFrequency` takes the emulated Atari memory as an explicit
+  `byte[]` parameter** instead of a `CAtari` instance, resolving the
+  design question flagged in the prior "Next steps" - matches
+  `Tuning.generateTable`'s own precedent (explicit buffer parameter
+  instead of a not-yet-ported hardware/global dependency). The
+  `RMT_FRQTABLES`/`RMTPLAYR_PAGE_DISTORTION_2` address constant (0xB000,
+  from `Atari.h`/`tracker_obx.h`) is duplicated locally as a private
+  constant, matching how other cross-cutting C++ constants have been
+  handled pending their own classes' ports.
+- Tests (added to `InstrumentsTest` as more `@Nested` classes, mirroring
+  `InstrumentsTests.cpp`'s own new fixtures) reuse the exact hand-derived
+  values already captured on the C++ side. Verified with `mvn -o test`:
+  140 tests pass (+28), all green on the first run.
+- This completes `CInstruments`'s port to the extent the C++ source
+  itself allows - `Update`/`SaveAll`/`LoadAll`/`SaveInstrument`/
+  `LoadInstrument` (need I/O infrastructure not yet ported) and all GUI
+  methods stay deferred for the reasons already on record above.
+
 ## Next steps
 
-A Java follow-up batch for `CheckInstrumentParameters`/`RecalculateFlag`/
-`CalculateNotEmpty`/`GetNote`/`GetFrequency` is now unblocked (see above) -
-`GetFrequency` will still need a design decision for how to supply "the
-emulated Atari memory" in Java (a `byte[]` parameter, matching `Tuning`'s
-`generateTable`, is the natural choice, but `CAtari` itself isn't ported
-yet either). Otherwise, continue porting small, already-tested, UI-free
-model classes one at a time, building up `com.wudsn.tools.rmt.model`
-before attempting `CSong` or anything in `com.wudsn.tools.rmt.ui`. No
+Continue porting small, already-tested, UI-free model classes one at a
+time, building up `com.wudsn.tools.rmt.model` before attempting
+`CSong` or anything in `com.wudsn.tools.rmt.ui`. No
 specific next class has been chosen yet.

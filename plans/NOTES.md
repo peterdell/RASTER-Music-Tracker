@@ -2901,4 +2901,21 @@ build clean and all 123 tests pass.
       `RmtTests.exe` both build clean and all 368 tests pass (340 -> 368,
       +28, 0 regressions). No new C++ bugs found. Unblocks a future Java
       follow-up batch for these five methods. Details in
+      `plans/JAVA_PORT_PLAN.md`. Committed (`ac664a9`).
+  - **2026-09-24**: Ninth Java-port batch - finished `Instruments` with
+    `checkInstrumentParameters`/`recalculateFlag`/`calculateNotEmpty`/
+    `getNote`/`getFrequency`, now unblocked by the C++ backfill above.
+    Every expected value was reused directly from the C++
+    characterization tests and matched on the first `mvn -o test` run.
+    - `getFrequency` takes the emulated Atari memory as an explicit
+      `byte[]` parameter instead of a `CAtari` instance - resolves the
+      design question flagged in the prior "Next steps" entry, matching
+      `Tuning.generateTable`'s own precedent. `RMT_FRQTABLES` (0xB000)
+      duplicated locally as a private constant pending `CAtari`'s own
+      port.
+    - The other four methods ported with no structural changes.
+    - Verified with `mvn -o test`: 140 tests pass (+28), all green first
+      try. This completes `CInstruments`'s port to the extent the C++
+      source itself allows - the I/O methods (need unported infrastructure)
+      and all GUI methods remain deferred. Details in
       `plans/JAVA_PORT_PLAN.md`. Not yet committed.

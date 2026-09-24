@@ -368,4 +368,313 @@ class InstrumentsTest {
 			assertEquals(-99, result.volume());
 		}
 	}
+
+	// --- checkInstrumentParameters ---
+	// Clamps 4 cursor/loop-goto fields so they never exceed their
+	// corresponding length field, after e.g. shortening a table or envelope.
+	@Nested
+	class CheckInstrumentParametersTest {
+
+		@Test
+		void ignoresOutOfRangeIndex() {
+			instruments.checkInstrumentParameters(-1);
+			instruments.checkInstrumentParameters(Instruments.INSTRSNUM);
+			// No crash - nothing further to assert (getInstrument() guards both).
+		}
+
+		@Test
+		void clampsEnvGotoToEnvLength() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_ENV_LENGTH] = 3;
+			ai.parameters[Instrument.PAR_ENV_GOTO] = 10;
+
+			instruments.checkInstrumentParameters(INSTR);
+
+			assertEquals(3, ai.parameters[Instrument.PAR_ENV_GOTO]);
+		}
+
+		@Test
+		void clampsTblGotoToTblLength() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_TBL_LENGTH] = 2;
+			ai.parameters[Instrument.PAR_TBL_GOTO] = 10;
+
+			instruments.checkInstrumentParameters(INSTR);
+
+			assertEquals(2, ai.parameters[Instrument.PAR_TBL_GOTO]);
+		}
+
+		@Test
+		void clampsEditEnvelopeXToEnvLength() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_ENV_LENGTH] = 3;
+			ai.editEnvelopeX = 10;
+
+			instruments.checkInstrumentParameters(INSTR);
+
+			assertEquals(3, ai.editEnvelopeX);
+		}
+
+		@Test
+		void clampsEditNoteTableCursorPosToTblLength() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_TBL_LENGTH] = 2;
+			ai.editNoteTableCursorPos = 10;
+
+			instruments.checkInstrumentParameters(INSTR);
+
+			assertEquals(2, ai.editNoteTableCursorPos);
+		}
+
+		@Test
+		void leavesValuesUnchangedWhenWithinBounds() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_ENV_LENGTH] = 5;
+			ai.parameters[Instrument.PAR_ENV_GOTO] = 2;
+			ai.parameters[Instrument.PAR_TBL_LENGTH] = 5;
+			ai.parameters[Instrument.PAR_TBL_GOTO] = 2;
+			ai.editEnvelopeX = 2;
+			ai.editNoteTableCursorPos = 2;
+
+			instruments.checkInstrumentParameters(INSTR);
+
+			assertEquals(2, ai.parameters[Instrument.PAR_ENV_GOTO]);
+			assertEquals(2, ai.parameters[Instrument.PAR_TBL_GOTO]);
+			assertEquals(2, ai.editEnvelopeX);
+			assertEquals(2, ai.editNoteTableCursorPos);
+		}
+	}
+
+	// --- recalculateFlag ---
+	// Computes displayHintFlags from the envelope (rows 0..PAR_ENV_LENGTH)
+	// and the AUDCTL parameter range.
+	@Nested
+	class RecalculateFlagTest {
+
+		@Test
+		void ignoresOutOfRangeIndex() {
+			instruments.recalculateFlag(-1);
+			instruments.recalculateFlag(Instruments.INSTRSNUM);
+			// No crash - nothing further to assert (getInstrument() guards both).
+		}
+
+		@Test
+		void setsFilterFlagWhenEnvelopeHasFilter() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.envelope[0][EnvelopeParameter.FILTER] = 1;
+
+			instruments.recalculateFlag(INSTR);
+
+			assertEquals(Instrument.IF_FILTER, ai.displayHintFlags & Instrument.IF_FILTER);
+			assertEquals(0, ai.displayHintFlags & Instrument.IF_BASS16);
+			assertEquals(0, ai.displayHintFlags & Instrument.IF_PORTAMENTO);
+		}
+
+		@Test
+		void setsBass16FlagWhenDistortionIsSix() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.envelope[0][EnvelopeParameter.DISTORTION] = 6;
+
+			instruments.recalculateFlag(INSTR);
+
+			assertEquals(Instrument.IF_BASS16, ai.displayHintFlags & Instrument.IF_BASS16);
+		}
+
+		@Test
+		void setsPortamentoFlagWhenEnvelopeHasPortamento() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.envelope[0][EnvelopeParameter.PORTAMENTO] = 1;
+
+			instruments.recalculateFlag(INSTR);
+
+			assertEquals(Instrument.IF_PORTAMENTO, ai.displayHintFlags & Instrument.IF_PORTAMENTO);
+		}
+
+		@Test
+		void setsAudctlFlagWhenAnyAudctlParameterIsSet() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_AUDCTL_JOIN_1_2] = 1;
+
+			instruments.recalculateFlag(INSTR);
+
+			assertEquals(Instrument.IF_AUDCTL, ai.displayHintFlags & Instrument.IF_AUDCTL);
+		}
+
+		// Autofilter takes priority over Bass16 (RMT 1.28 driver only) - both
+		// would independently set their own flag, but the Bass16 bit gets
+		// cleared again when Filter is also set.
+		@Test
+		void filterTakesPriorityOverBass16WhenBothSet() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.envelope[0][EnvelopeParameter.FILTER] = 1;
+			ai.envelope[0][EnvelopeParameter.DISTORTION] = 6;
+
+			instruments.recalculateFlag(INSTR);
+
+			assertEquals(Instrument.IF_FILTER, ai.displayHintFlags & Instrument.IF_FILTER);
+			assertEquals(0, ai.displayHintFlags & Instrument.IF_BASS16);
+		}
+
+		@Test
+		void checksEnvelopeRowsUpToEnvLengthInclusive() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_ENV_LENGTH] = 2;
+			ai.envelope[2][EnvelopeParameter.FILTER] = 1; // last row still in range
+
+			instruments.recalculateFlag(INSTR);
+
+			assertEquals(Instrument.IF_FILTER, ai.displayHintFlags & Instrument.IF_FILTER);
+		}
+	}
+
+	@Nested
+	class CalculateNotEmptyTest {
+
+		@Test
+		void returnsFalseForOutOfRangeIndex() {
+			assertFalse(instruments.calculateNotEmpty(-1));
+			assertFalse(instruments.calculateNotEmpty(Instruments.INSTRSNUM));
+		}
+
+		@Test
+		void returnsFalseForFreshlyConstructedInstrument() {
+			assertFalse(instruments.calculateNotEmpty(INSTR));
+		}
+
+		@Test
+		void returnsTrueWhenEnvelopeHasNonZeroValue() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.envelope[0][EnvelopeParameter.X] = 5;
+
+			assertTrue(instruments.calculateNotEmpty(INSTR));
+		}
+
+		@Test
+		void returnsTrueWhenAnyParameterIsNonZero() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_DELAY] = 3;
+
+			assertTrue(instruments.calculateNotEmpty(INSTR));
+		}
+
+		@Test
+		void ignoresEnvelopeRowsBeyondEnvLength() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_ENV_LENGTH] = 0; // only row 0 is checked
+			ai.envelope[5][EnvelopeParameter.X] = 9; // out of the checked range
+
+			assertFalse(instruments.calculateNotEmpty(INSTR));
+		}
+	}
+
+	@Nested
+	class GetNoteTest {
+
+		@Test
+		void returnsMinusOneForOutOfRangeIndex() {
+			assertEquals(-1, instruments.getNote(-1, 10));
+			assertEquals(-1, instruments.getNote(Instruments.INSTRSNUM, 10));
+		}
+
+		@Test
+		void returnsNoteUnshiftedWhenTableTypeIsNotZero() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_TBL_TYPE] = 1; // frequencies, not notes - no shift applied
+			ai.noteTable[0] = 5;
+
+			assertEquals(10, instruments.getNote(INSTR, 10));
+		}
+
+		@Test
+		void shiftsByNoteTableZeroWhenTableTypeIsZero() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_TBL_TYPE] = 0;
+			ai.noteTable[0] = 5;
+
+			assertEquals(15, instruments.getNote(INSTR, 10));
+		}
+
+		@Test
+		void returnsMinusOneForInvalidShiftedNote() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_TBL_TYPE] = 0;
+			ai.noteTable[0] = 100; // shifts note 0 -> 100, well past Notes.NOTESNUM (61)
+
+			assertEquals(-1, instruments.getNote(INSTR, 0));
+		}
+	}
+
+	// --- getFrequency ---
+	// Reads a byte from the given emulated-Atari-memory buffer at an offset
+	// selected by the instrument's envelope[0] distortion value.
+	@Nested
+	class GetFrequencyTest {
+
+		private static final int RMT_FRQTABLES = 0xB000;
+
+		private byte[] atariMemory;
+
+		@BeforeEach
+		void setUpMemory() {
+			atariMemory = new byte[0x10000];
+		}
+
+		@Test
+		void returnsMinusOneForOutOfRangeIndex() {
+			assertEquals(-1, instruments.getFrequency(-1, 0, atariMemory));
+			assertEquals(-1, instruments.getFrequency(Instruments.INSTRSNUM, 0, atariMemory));
+		}
+
+		@Test
+		void returnsMinusOneForOutOfRangeNote() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_TBL_TYPE] = 1; // no shift
+
+			assertEquals(-1, instruments.getFrequency(INSTR, -1, atariMemory));
+			assertEquals(-1, instruments.getFrequency(INSTR, Notes.NOTESNUM, atariMemory));
+		}
+
+		@Test
+		void readsFromOffsetSixtyFourForDistortion0x0C() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_TBL_TYPE] = 1; // no shift
+			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x0C;
+			atariMemory[RMT_FRQTABLES + 64 + 5] = 77;
+
+			assertEquals(77, instruments.getFrequency(INSTR, 5, atariMemory));
+		}
+
+		@Test
+		void readsFromOffsetOneTwentyEightForDistortionSixOrE() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_TBL_TYPE] = 1;
+			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x06;
+			atariMemory[RMT_FRQTABLES + 128 + 5] = 88;
+			assertEquals(88, instruments.getFrequency(INSTR, 5, atariMemory));
+
+			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x0E;
+			assertEquals(88, instruments.getFrequency(INSTR, 5, atariMemory)); // same offset for 0x0E
+		}
+
+		@Test
+		void readsFromOffsetOneNinetyTwoForAnyOtherDistortion() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_TBL_TYPE] = 1;
+			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x00;
+			atariMemory[RMT_FRQTABLES + 192 + 5] = 99;
+
+			assertEquals(99, instruments.getFrequency(INSTR, 5, atariMemory));
+		}
+
+		@Test
+		void shiftsNoteByNoteTableZeroWhenTableTypeIsZero() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_TBL_TYPE] = 0;
+			ai.noteTable[0] = 5;
+			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x00; // default -> offset 192
+			atariMemory[RMT_FRQTABLES + 192 + 10] = 42; // note 5 shifted by 5 -> 10
+
+			assertEquals(42, instruments.getFrequency(INSTR, 5, atariMemory));
+		}
+	}
 }
