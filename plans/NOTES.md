@@ -3147,5 +3147,28 @@ build clean and all 123 tests pass.
       field (default `CANCEL`, the safe choice); `OutputDebugString`
       became `System.err`.
     - Verified with `mvn -o test`: 240 tests pass (+4), all green on the
-      first build. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
-      committed.
+      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      (`83bffaf`).
+  - **2026-09-25**: Twentieth Java-port batch - `AtariTrackerDriver` (from
+    `CAtariTrackerDriver`), the subset `AtariTrackerDriverTests.cpp`
+    exercises. First Java port needing real file I/O against a bundled
+    resource. No C++ changes needed.
+    - New `TrackerDriverVersion` enum, `AtariIO` (just
+      `loadDataAsBinaryFile`), `RmtAtariBinaries` (just
+      `getTrackerDriverBinary`, reading `rmt/resources/drivers/*.obx`
+      relative to the working directory instead of C++'s
+      executable-relative `g_prgpath`).
+    - Key finding: C++'s `C6502::JSR`/`CAtari::JSR` are already a
+      link-only no-op stub even in the C++ test build - not merely
+      "stubbed for tests" but genuinely inert. Since every JSR-calling
+      method has no other observable effect, this port omits the calls
+      entirely; `Play`/`SetPokey`/`Silence` become plain no-ops, and
+      `Play`'s prove-mode branch (dead either way) isn't ported.
+    - Added a `getRmtInstrument(int)` accessor (no C++ equivalent) so
+      `init`'s reset behavior stays testable without porting its untested
+      real-world writers (`SetTrackNoteInstrumentVolume`/
+      `InstrumentTurnOff`).
+    - Verified with `mvn -o test`: 243 tests pass (+3), all green on the
+      first build, including the real resource-loading/binary-parsing
+      test matching its exact expected byte. Details in
+      `plans/JAVA_PORT_PLAN.md`. Not yet committed.

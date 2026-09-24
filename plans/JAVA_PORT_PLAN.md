@@ -977,6 +977,63 @@ C++ changes needed.
   Verified with `mvn -o test`: 240 tests pass (+4), all green on the first
   build. No C++ changes.
 
+## Twentieth ported batch (2026-09-25): `AtariTrackerDriver` (`com.wudsn.tools.rmt.model.AtariTrackerDriver`)
+
+Ported from `CAtariTrackerDriver` (`src/cpp/AtariTrackerDriver.h`,
+`AtariTrackerDriver.cpp`, `AtariTrackerDriverCore.cpp`) - only the subset
+`AtariTrackerDriverTests.cpp` exercises: the constructor, `GetByteAt`,
+`LoadRMTRoutines`, `Init`, `Play`, `SetPokey`, `Silence`. `GetAtari`/
+`SetTrackNoteInstrumentVolume`/`SetTrackVolume`/`InstrumentTurnOff` (all in
+`AtariTrackerDriverCore.cpp`) have no dedicated test coverage - deferred.
+The first Java port needing real file I/O against a bundled resource. No
+C++ changes needed.
+
+- **New `TrackerDriverVersion`** (was the C++ enum of the same name): a
+  plain Java enum - its declared order already matches C++'s explicit
+  backing values (0-7), so `ordinal()` doubles as the value needed for
+  driver filenames without a separate backing field.
+- **New `AtariIO`**: only `loadDataAsBinaryFile` (the Atari "binary load"
+  block-format parser) - the only `CAtariIO` method exercised by any test
+  (indirectly, through `loadRMTRoutines`). `LoadWord`/`LoadBinaryBlock`/
+  `LoadBinaryFile` all operate on a `std::istream` rather than an
+  in-memory buffer and have no dedicated coverage - deferred. C++'s output
+  parameters (`minadr`/`maxadr`) become fields on a returned `Result`
+  record.
+- **New `RmtAtariBinaries`**: only `getTrackerDriverBinary` (`GetVUPlayerBinary`
+  isn't tested - deferred). Resolves `rmt/resources/drivers/rmt_driver_v<N>.obx`
+  relative to the current working directory rather than C++'s
+  `g_prgpath` (the running executable's own directory) - matches this
+  whole Java project's own documented convention of running tests as
+  `mvn -o test` from the repository root, where that folder already
+  exists unmodified. Doesn't reproduce C++'s per-version in-memory cache -
+  no test depends on single-load behavior, and re-reading a small file
+  per call is simple and safe.
+- **C++'s `C6502::JSR`/`CAtari::JSR` are entirely unimplemented, not
+  merely stubbed**: even in the C++ test build, `C6502::JSR` is already a
+  link-only no-op that leaves every register/cycle argument unchanged (see
+  `AtariStub.cpp`). Since `Init`/`Play`/`SetPokey`/`Silence` have no other
+  observable effect once that (already-inert) call is removed, this port
+  omits the call entirely rather than modeling a no-op 6502 calling
+  convention with nothing left to do - `Play`/`SetPokey`/`Silence` are
+  plain no-op methods. This also makes `Play`'s `IsSpecialProveMode()`
+  branch dead (both branches would call only no-op JSRs either way), so
+  it isn't ported either - matching `AtariTrackerDriverTests.cpp`'s own
+  characterization of `Play` as "doesn't crash in either mode."
+- Added a `getRmtInstrument(int)` accessor (not present in C++, which only
+  exposes this via the global `g_rmtinstr` array directly) so `init`'s
+  reset behavior stays testable without porting the untested
+  `SetTrackNoteInstrumentVolume`/`InstrumentTurnOff` methods that are
+  `g_rmtinstr`'s only other real-world writers.
+- Tests (`AtariTrackerDriverTest`) cover the 3 tests that remain
+  meaningful once `Play`/`SetPokey`/`Silence` are no-ops (their C++
+  "doesn't crash" tests are trivially satisfied and not reproduced as
+  dedicated tests); `initResetsEveryChannelsInstrumentAndReturnsZero`
+  adapted to not depend on the unported pre-set-to-5 step (Java's `int[]`
+  default of 0 already demonstrates a real reset to -1). Verified with
+  `mvn -o test`: 243 tests pass (+3), all green on the first build,
+  including the real resource-file-loading/binary-parsing test matching
+  its exact expected byte. No C++ changes.
+
 ## Next steps
 
 Continue porting small, already-tested, UI-free model classes one at a
