@@ -440,6 +440,15 @@ BOOL CTracks::AtaToTrack(unsigned char* mem, int trackLength, TrackNumber trackN
                 tr->len = line; // That's the end of the track, no more data after this
                 break;
             }
+
+            // KNOWN HAZARD, deliberately not fixed: count == 0x40 (01xxxxxx)
+            // matches none of the three branches above, so neither src nor
+            // line advances - an infinite loop if ever encountered. Confirmed
+            // TrackToAta() (above) never produces this byte pattern itself,
+            // so it's only reachable from a malformed/corrupted byte stream,
+            // not from any legitimate encode/decode round trip. Preserved
+            // as-is rather than hardened against - see the Java port's
+            // com.wudsn.tools.rmt.model.Tracks::ataToTrack for the same note.
         }
     }
     return 1;
