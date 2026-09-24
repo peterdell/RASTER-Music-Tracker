@@ -16,8 +16,20 @@ package com.wudsn.tools.rmt.model;
  *
  * <p><b>{@code g_tracks4_8} becomes an explicit parameter</b> on every
  * method that reads it in C++ ({@link #getTracks}, {@link #isStereo},
- * {@link #songToAta}, {@link #ataToSong}), matching this project's
- * established idiom for globals a ported method actually needs.
+ * {@link #songToAta}, {@link #ataToSong}, {@link #getSubsongParts},
+ * {@link #markTfUsed}, {@link #trackLeft}, {@link #trackRight},
+ * {@link #respectBoundaries}, {@link #getSmallestMaxtracklen}), matching
+ * this project's established idiom for globals a ported method actually
+ * needs. Likewise {@code g_keyboard_RememberOctavesAndVolumes} becomes an
+ * explicit parameter on {@link #activeInstrSet}/{@link #activeInstrPrev}/
+ * {@link #activeInstrNext}, matching {@link Instruments}'s own treatment
+ * of the same setting.
+ *
+ * <p><b>{@code Tracks} joins {@code Instruments} as a stored
+ * collaborator</b> (constructor parameter), needed by the first
+ * {@code SongEditing.cpp} methods ported here
+ * ({@link #markTfNoEmpty}/{@link #trackGetLoopingNoteInstrVol}/
+ * {@link #getSmallestMaxtracklen}).
  *
  * <p><b>No {@code CPokeyStream} yet</b>: {@link #songPlayNextLine} omits
  * C++'s {@code m_pokeyStream}-consulting "song is done" check - it's always
@@ -47,6 +59,7 @@ public final class Song {
 	public static final int SONGTRACKS = 8;
 
 	private final Instruments instruments;
+	private final Tracks tracks;
 
 	private final int[][] song = new int[SONGLEN][SONGTRACKS];
 	private final int[] songGo = new int[SONGLEN]; // if >= 0, then GO applies
@@ -69,6 +82,8 @@ public final class Song {
 	private int activeInstr;
 	private EditArea infoAct = EditArea.NAME;
 	private boolean ntsc;
+	private int octave;
+	private int volume;
 
 	private PlayMode playMode = PlayMode.PLAY_STOP;
 	private int quantizationNote = -1;
@@ -79,8 +94,9 @@ public final class Song {
 	private final int[] playPtInstr = new int[SONGTRACKS];
 	private final int[] playPtVolume = new int[SONGTRACKS];
 
-	public Song(Instruments instruments) {
+	public Song(Instruments instruments, Tracks tracks) {
 		this.instruments = instruments;
+		this.tracks = tracks;
 	}
 
 	/** The song name, trimmed of trailing whitespace - matches C++'s null-terminated-CString-then-TrimRight() semantics. */
@@ -151,6 +167,313 @@ public final class Song {
 
 	public void songTrackGoInc() {
 		songGo[songActiveLine] = (songGo[songActiveLine] + 1) & 0xff;
+	}
+
+	public int songGetActiveTrack() {
+		return songGo[songActiveLine] >= 0 ? -1 : song[songActiveLine][trackActiveCol];
+	}
+
+	/** {@code count} is the method's own {@code int} return value; {@code parts} was C++'s {@code CString&} output parameter. {@code count} always equals the number of space-separated tokens in {@code parts}. */
+	public record SubsongParts(int count, String parts) {
+	}
+
+	/** Finds each subsong (a run of songlines reachable via goto chains) that contains at least one used track, returning the songline each one starts at. */
+	public SubsongParts getSubsongParts(int tracks4_8) {
+		int[] songp = new int[SONGLEN];
+		int lastgo = -1;
+		for (int i = 0; i < SONGLEN; i++) {
+			songp[i] = -1;
+			if (songGo[i] >= 0) {
+				lastgo = i;
+			}
+		}
+
+		StringBuilder result = new StringBuilder();
+		int asub = 0;
+		boolean ok = false;
+
+		for (int i = 0; i <= lastgo; i++) {
+			if (songp[i] < 0) {
+				int apos = i;
+				while (songp[apos] < 0) {
+					int n = songGo[apos];
+					songp[apos] = asub;
+					if (n >= 0) {
+						apos = n;
+					} else {
+						if (!ok) {
+							for (int j = 0; j < tracks4_8; j++) {
+								if (song[apos][j] >= 0) {
+									result.append(String.format("%02X ", apos));
+									ok = true;
+									break;
+								}
+							}
+						}
+						apos++;
+						if (apos >= SONGLEN) {
+							break;
+						}
+					}
+				}
+				if (ok) {
+					asub++;
+				}
+				ok = false;
+			}
+		}
+		return new SubsongParts(asub, result.toString());
+	}
+
+	/** Marks every track referenced by a non-goto songline as {@link TrackFlag#TF_USED}. */
+	public void markTfUsed(byte[] used, int tracks4_8) {
+		for (int i = 0; i < SONGLEN; i++) {
+			if (songGo[i] < 0) {
+				for (int channelNr = 0; channelNr < tracks4_8; channelNr++) {
+					int tr = song[i][channelNr];
+					if (tr >= 0 && tr < Tracks.TRACKSNUM) {
+						used[tr] = TrackFlag.TF_USED;
+					}
+				}
+			}
+		}
+	}
+
+	/** ORs {@link TrackFlag#TF_NOEMPTY} onto every track with real data, regardless of whether it's referenced by the song. */
+	public void markTfNoEmpty(byte[] used) {
+		for (int i = 0; i < Tracks.TRACKSNUM; i++) {
+			if (tracks.calculateNotEmpty(i)) {
+				used[i] |= TrackFlag.TF_NOEMPTY;
+			}
+		}
+	}
+
+	public void activeInstrSet(int instr, boolean rememberOctavesAndVolumes) {
+		instruments.memorizeOctaveAndVolume(activeInstr, octave, volume, rememberOctavesAndVolumes);
+		activeInstr = instr;
+		Instruments.OctaveAndVolume ov = instruments.rememberOctaveAndVolume(activeInstr, octave, volume, rememberOctavesAndVolumes);
+		octave = ov.octave();
+		volume = ov.volume();
+	}
+
+	public void activeInstrPrev(Undo undo, boolean rememberOctavesAndVolumes) {
+		undo.separator();
+		activeInstrSet((activeInstr - 1) & 0x3f, rememberOctavesAndVolumes);
+	}
+
+	public void activeInstrNext(Undo undo, boolean rememberOctavesAndVolumes) {
+		undo.separator();
+		activeInstrSet((activeInstr + 1) & 0x3f, rememberOctavesAndVolumes);
+	}
+
+	/**
+	 * Moves the track cursor left, wrapping the column at 0. C++'s always-true
+	 * {@code BOOL} return is dropped - no test depends on it.
+	 *
+	 * @param column when true, skip the sub-column cursor and move the column directly (matching C++'s goto-driven fallthrough)
+	 */
+	public void trackLeft(boolean column, int tracks4_8, Undo undo) {
+		undo.separator();
+		boolean wrapColumn;
+		if (column) {
+			wrapColumn = true;
+		} else {
+			trackActiveCur--;
+			if (trackActiveCur < 0) {
+				trackActiveCur = 3; // previous speed column
+				wrapColumn = true;
+			} else {
+				wrapColumn = false;
+			}
+		}
+		if (wrapColumn) {
+			trackActiveCol--;
+			if (trackActiveCol < 0) {
+				trackActiveCol = tracks4_8 - 1;
+			}
+		}
+	}
+
+	/** Moves the track cursor right, wrapping the column at {@code tracks4_8}. See {@link #trackLeft} for the {@code column} parameter and the dropped return value. */
+	public void trackRight(boolean column, int tracks4_8, Undo undo) {
+		undo.separator();
+		boolean wrapColumn;
+		if (column) {
+			wrapColumn = true;
+		} else {
+			trackActiveCur++;
+			if (trackActiveCur > 3) { // speed column
+				trackActiveCur = 0;
+				wrapColumn = true;
+			} else {
+				wrapColumn = false;
+			}
+		}
+		if (wrapColumn) {
+			trackActiveCol++;
+			if (trackActiveCol >= tracks4_8) {
+				trackActiveCol = 0;
+			}
+		}
+	}
+
+	/** Clamps the active song/track line back into bounds - e.g. after {@code tracks4_8} shrinks a track's effective length. */
+	public void respectBoundaries(int tracks4_8) {
+		int songline = songGetActiveLine();
+		if (songline > SONGLEN) {
+			songline = SONGLEN - 1;
+		}
+		if (songline < 0) {
+			songline = 0;
+		}
+
+		int length = getSmallestMaxtracklen(songline, tracks4_8);
+		int line = getActiveLine();
+		if (line > length) {
+			line = length - 1;
+		}
+		if (line < 0) {
+			line = 0;
+		}
+
+		setActiveLine(line);
+		songSetActiveLine(songline);
+	}
+
+	/** The shortest length among the tracks used on {@code songline} (0 for a goto line). Pulled forward from the not-yet-ported {@code GetEffectiveMaxtracklen}/{@code ChangeMaxtracklen} batch since {@link #respectBoundaries} needs it. */
+	public int getSmallestMaxtracklen(int songline, int tracks4_8) {
+		int max = 256;
+		int min = tracks.getMaxTrackLength();
+		int p = 0;
+
+		if (songGo[songline] >= 0) {
+			return 0; // goto line is ignored
+		}
+
+		for (int i = 0; i < tracks4_8; i++) {
+			int t = song[songline][i];
+			int m = tracks.getLength(t);
+			if (m < 0) {
+				continue;
+			}
+			if (m < max) {
+				max = m;
+			}
+			p++;
+		}
+		if (p == 0) {
+			return min; // cannot be from empty tracks
+		}
+
+		if (min < max) {
+			max = min;
+		}
+
+		return max;
+	}
+
+	/** C++'s {@code int& note, int& instr, int& vol} output parameters. */
+	public record NoteInstrVol(int note, int instr, int vol) {
+	}
+
+	/** The note/instrument/volume the track cursor would see at {@code track}'s current playback position, following a loop point if the cursor is past the track's own length. */
+	public NoteInstrVol trackGetLoopingNoteInstrVol(int track) {
+		int len = tracks.getLastLine(track) + 1;
+		int go = tracks.getGoLine(track);
+		int line;
+		if (trackActiveLine < len) {
+			line = trackActiveLine;
+		} else {
+			int loop = (go - len) + go;
+			if (go >= 0 && loop != 0) {
+				line = (trackActiveLine - len) % loop;
+			} else {
+				return new NoteInstrVol(-1, -1, -1);
+			}
+		}
+		return new NoteInstrVol(tracks.getNote(track, line), tracks.getInstr(track, line), tracks.getVol(track, line));
+	}
+
+	public void songTrackSet(int t, Undo undo) {
+		if (t >= -1 && t < Tracks.TRACKSNUM) {
+			undo.changeSong(songActiveLine, trackActiveCol, UndoType.UETYPE_SONGTRACK);
+			song[songActiveLine][trackActiveCol] = t;
+		}
+	}
+
+	public void songTrackSetByNum(int num, Undo undo) {
+		if (songGo[songActiveLine] < 0) {
+			// Changes track
+			int i = songGetActiveTrack();
+			if (i < 0) {
+				i = 0;
+			}
+			i &= 0x0f; // just the lower digit
+			i = (i << 4) | num;
+			if (i >= Tracks.TRACKSNUM) {
+				i &= 0x0f;
+			}
+			songTrackSet(i, undo);
+		} else {
+			// Changes GO parameter
+			int i = songGo[songActiveLine];
+			if (i < 0) {
+				i = 0;
+			}
+			i &= 0x0f; // just the lower digit
+			i = (i << 4) | num;
+			if (i >= SONGLEN) {
+				i &= 0x0f;
+			}
+			undo.changeSong(songActiveLine, trackActiveCol, UndoType.UETYPE_SONGGO);
+			songGo[songActiveLine] = i;
+		}
+	}
+
+	public void songTrackDec(Undo undo) {
+		if (songGo[songActiveLine] < 0) {
+			int t = song[songActiveLine][trackActiveCol] - 1;
+			if (t < -1) {
+				t = Tracks.TRACKSNUM - 1;
+			}
+			undo.changeSong(songActiveLine, trackActiveCol, UndoType.UETYPE_SONGTRACK);
+			song[songActiveLine][trackActiveCol] = t;
+		} else {
+			int g = songGo[songActiveLine] - 1;
+			if (g < 0) {
+				g = SONGLEN - 1;
+			}
+			undo.changeSong(songActiveLine, trackActiveCol, UndoType.UETYPE_SONGGO);
+			songGo[songActiveLine] = g;
+		}
+	}
+
+	public void songTrackInc(Undo undo) {
+		if (songGo[songActiveLine] < 0) {
+			int t = song[songActiveLine][trackActiveCol] + 1;
+			if (t >= Tracks.TRACKSNUM) {
+				t = -1;
+			}
+			undo.changeSong(songActiveLine, trackActiveCol, UndoType.UETYPE_SONGTRACK);
+			song[songActiveLine][trackActiveCol] = t;
+		} else {
+			int g = songGo[songActiveLine] + 1;
+			if (g >= SONGLEN) {
+				g = 0;
+			}
+			undo.changeSong(songActiveLine, trackActiveCol, UndoType.UETYPE_SONGGO);
+			songGo[songActiveLine] = g;
+		}
+	}
+
+	public void songTrackEmpty(Undo undo) {
+		undo.changeSong(songActiveLine, trackActiveCol, UndoType.UETYPE_SONGTRACK);
+		song[songActiveLine][trackActiveCol] = -1;
+	}
+
+	public void songTrackGoOnOff(Undo undo) {
+		undo.changeSong(songActiveLine, trackActiveCol, UndoType.UETYPE_SONGGO);
+		songGo[songActiveLine] = songGo[songActiveLine] < 0 ? 0 : -1;
 	}
 
 	/** Finds a free track near the default track for {@code column} at or before {@code songline}, falling back to the first free track overall. */

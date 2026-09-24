@@ -20,7 +20,7 @@ class SongTest {
 
 	@BeforeEach
 	void setUp() {
-		song = new Song(new Instruments());
+		song = new Song(new Instruments(), new Tracks());
 		// Song's constructor doesn't fully reset song data - blank song
 		// lines/goto slots to "empty" (-1), matching SongCoreTest's own SetUp.
 		for (int line = 0; line < Song.SONGLEN; line++) {
@@ -208,7 +208,7 @@ class SongTest {
 		byte[] dest = new byte[Song.SONGLEN * 4];
 		int size = song.songToAta(dest, dest.length, 0x4000, 4);
 
-		Song decoded = new Song(new Instruments());
+		Song decoded = new Song(new Instruments(), new Tracks());
 		assertTrue(decoded.ataToSong(dest, size, 0x4000, 4));
 		assertEquals(5, decoded.getSong()[0][0]);
 		assertEquals(10, decoded.getSong()[0][1]);
@@ -231,7 +231,7 @@ class SongTest {
 		// "len" parameter represents how much of the module's song section
 		// is being decoded, not songToAta()'s own (smaller) "bytes actually
 		// used" return value.
-		Song decoded = new Song(new Instruments());
+		Song decoded = new Song(new Instruments(), new Tracks());
 		assertTrue(decoded.ataToSong(dest, 8, 0x4000, 4));
 		assertEquals(1, decoded.songGetGo(0));
 	}

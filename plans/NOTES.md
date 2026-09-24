@@ -3188,4 +3188,32 @@ build clean and all 123 tests pass.
       any non-`PlayMode` value is needed.
     - Verified with `mvn -o test`: 252 tests pass (+9), all green on the
       first build, including the hand-traced multi-step loop-detection
-      tests. Details in `plans/JAVA_PORT_PLAN.md`. Not yet committed.
+      tests. Details in `plans/JAVA_PORT_PLAN.md`. Committed (`c5233c1`).
+  - **2026-09-25**: Wrote `plans/JAVA_SONGEDITING_PLAN.md`, scoping the
+    much larger `SongEditing.cpp` port (plus its neighboring exporters/
+    importers) into sub-batches, per the user's request. No implementation
+    yet at that point.
+  - **2026-09-25**: Twenty-second Java-port batch - `Song` grows to cover
+    `SongEditing.cpp` sub-batch 1 (cursor/navigation helpers):
+    `GetSubsongParts`, `MarkTF_USED`/`MarkTF_NOEMPTY`, `ActiveInstrSet`/
+    `Prev`/`Next`, `TrackLeft`/`TrackRight`, `RespectBoundaries`,
+    `TrackGetLoopingNoteInstrVol`, `SongTrackSet`/`SetByNum`/`Dec`/`Inc`/
+    `Empty`/`GoOnOff`. No C++ changes needed.
+    - Found `GetUECursor`/`SetUECursor` were already fully ported (all 4
+      `Part` cases) from the earlier CUndo/Song batch - removed from this
+      sub-batch's scope.
+    - `Song`'s constructor now also takes a `Tracks` collaborator
+      (alongside `Instruments`) - updated all 4 existing call sites.
+    - Pulled `getSmallestMaxtracklen` and `songGetActiveTrack` forward
+      from later sub-batches/`Song.h`, since `respectBoundaries`/
+      `songTrackSetByNum` needed them.
+    - `g_keyboard_RememberOctavesAndVolumes` becomes an explicit parameter
+      on the `activeInstr*` methods; unlike the C++ test binary (which
+      link-time-stubs the octave/volume methods as no-ops for this one
+      test file only), the Java port always runs their real bodies, since
+      nothing here asserts on octave/volume anyway.
+    - `TrackLeft`/`TrackRight`'s `goto`-based control flow became a
+      `wrapColumn` boolean flag - same branches, no `goto` needed.
+    - Verified with `mvn -o test`: 270 tests pass (+18), all green on the
+      first build. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
+      committed.

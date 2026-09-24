@@ -28,7 +28,7 @@ class UndoTest {
 		instruments = new Instruments();
 		instruments.initInstruments();
 
-		song = new Song(instruments);
+		song = new Song(instruments, tracks);
 		blankSong(song);
 		song.songSetActiveLine(0);
 		song.setActiveLine(0);

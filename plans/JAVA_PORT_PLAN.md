@@ -1065,11 +1065,58 @@ real driver/stream buffer. No C++ changes needed.
   Verified with `mvn -o test`: 252 tests pass (+9), all green on the first
   build. No C++ changes.
 
+## Twenty-second ported batch (2026-09-25): `Song` grows to cover `SongEditing.cpp` sub-batch 1 (cursor/navigation helpers)
+
+First sub-batch of the `SongEditing.cpp` port scoped in
+`plans/JAVA_SONGEDITING_PLAN.md`: `GetSubsongParts`, `MarkTF_USED`/
+`MarkTF_NOEMPTY`, `ActiveInstrSet`/`Prev`/`Next`, `TrackLeft`/`TrackRight`,
+`RespectBoundaries`, `TrackGetLoopingNoteInstrVol`, `SongTrackSet`/
+`SetByNum`/`Dec`/`Inc`/`Empty`/`GoOnOff`. No C++ changes needed.
+
+- **Correction found while implementing**: `GetUECursor`/`SetUECursor`
+  turned out to already be fully ported (all 4 `Part` cases) from the
+  earlier CUndo/Song batch - removed from this sub-batch's scope.
+- **`Song`'s constructor now also takes a `Tracks` collaborator**
+  (alongside the existing `Instruments`), matching how `Instruments` is
+  already stored - needed by `markTfNoEmpty`/`trackGetLoopingNoteInstrVol`/
+  `getSmallestMaxtracklen`. Updated all 4 existing call sites
+  (`SongTest`×3, `UndoTest`×1).
+- **Two dependencies pulled forward from later sub-batches**:
+  `getSmallestMaxtracklen` (needed by `respectBoundaries`; its siblings
+  `GetEffectiveMaxtracklen`/`ChangeMaxtracklen` stay deferred to their own
+  sub-batch) and `songGetActiveTrack` (a small `Song.h` inline getter
+  needed by `songTrackSetByNum`).
+- New `octave`/`volume` fields (C++'s `m_octave`/`m_volume`, needed by
+  `activeInstrSet`).
+- C++'s `int& note, int& instr, int& vol` output parameters on
+  `TrackGetLoopingNoteInstrVol` become a returned `NoteInstrVol` record;
+  `GetSubsongParts`'s `int` return plus `CString&` output parameter become
+  a returned `SubsongParts(count, parts)` record.
+- `g_tracks4_8` becomes an explicit parameter throughout (matching the
+  established idiom); `g_keyboard_RememberOctavesAndVolumes` likewise
+  becomes an explicit parameter on `activeInstrSet`/`activeInstrPrev`/
+  `activeInstrNext`, matching `Instruments`'s own treatment of the same
+  setting - unlike the C++ test binary (which link-time-stubs
+  `MemorizeOctaveAndVolume`/`RememberOctaveAndVolume` as no-ops for this
+  specific test file only), this Java port always runs their real bodies,
+  since Java has no equivalent per-translation-unit stub-swapping and no
+  test here asserts on octave/volume anyway.
+- `TrackLeft`/`TrackRight`'s C++ `goto`-based control flow (jumping into
+  the middle of an `if` block to share the column-wrap logic) is
+  reproduced with a `wrapColumn` boolean flag instead - same branches,
+  same order, no `goto` needed in Java.
+- Several always-true C++ `BOOL` returns dropped to `void`
+  (`trackLeft`/`trackRight`/`songTrackSet`/`songTrackSetByNum`/
+  `songTrackDec`/`songTrackInc`/`songTrackEmpty`/`songTrackGoOnOff`) - none
+  of their tests check the return value.
+- Tests (`SongEditingTest`, new) mirror `SongEditingTests.cpp`'s
+  `SongEditingTest` fixture's sub-batch-1 tests exactly (18 tests -
+  `getUECursor`/`setUECursor`/`songGetGo`'s own tests aren't repeated here,
+  already covered by `SongTest`/`UndoTest`). Verified with `mvn -o test`:
+  270 tests pass (+18), all green on the first build. No C++ changes.
+
 ## Next steps
 
-Continue porting small, already-tested, UI-free model classes one at a
-time, building up `com.wudsn.tools.rmt.model`. The `Song` slice ported
-earlier is deliberately minimal (just what `Undo` needed) - a real `CSong`
-port (playback, file I/O, the full editing surface) remains a much larger,
-separate undertaking, matching this project's long-standing "God Object"
-deferral. No specific next class has been chosen yet.
+Continue with `SongEditing.cpp` sub-batch 2 onward, per
+`plans/JAVA_SONGEDITING_PLAN.md`'s suggested execution order (next up: the
+`InstrInfo`/`InstrChangeApply`/`TrackInfo` dual-mode methods).
