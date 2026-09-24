@@ -2774,5 +2774,13 @@ build clean and all 123 tests pass.
     - User's decision: keep the `/MP` change (correct in principle,
       matches `Rmt.vcxproj`'s existing setting) and add a Defender
       exclusion for `out/` and `src/cpp/test/out/` themselves, then
-      re-time. **Follow-up needed next session if not already resolved**:
-      confirm the exclusion was added and re-run the timing comparison.
+      re-time.
+    - **Resolved, confirmed by re-timing**: added
+      `build/setup_defender_exclusions.ps1` (self-elevating via UAC,
+      excludes both folders); user ran it. Re-ran the identical
+      `RmtTests.vcxproj` rebuild: **~1m01s**, down from ~6m18s
+      (`/MP` + no exclusion) and better than 2x faster than the original
+      ~2m26s single-threaded baseline - confirms the antivirus-contention
+      theory decisively. All 340 tests still pass. The AV-exclusion
+      hypothesis from earlier in this entry is now a confirmed fact, not
+      a guess.
