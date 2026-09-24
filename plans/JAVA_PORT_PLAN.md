@@ -170,16 +170,62 @@ Ported from `CTuning`/`TTuningSettings`/`TTuningRatios`
   for this batch - no bugs found. Verified with `mvn -o test`: 28 tests
   pass (13 `Fraction` + 15 new).
 
+## C++ follow-up (2026-09-24): filled in the deferred `GenerateTable`/
+## `InitTuning`/`GetTruePitch`/`CalculateDeltaAUDF` test coverage
+
+The scope decision above assumed porting those four methods to Java would
+need brand-new test coverage "written from scratch, not just mirrored" -
+that's still true for the *Java* side, but the *C++* side turned out to
+already have everything needed to characterize them safely, which hadn't
+been checked at the time:
+
+- `g_tuning`/`g_tuningRatios` are already real, linked globals in
+  `test/SongEditingStub.cpp` (added for the `CSong`/`SongEditing.cpp` work,
+  after the original `CTuning` split). `InitTuning()`'s `MessageBox`+
+  `exit(1)` guard only fires while `g_tuning.basetuning == 0`, so calling
+  `g_tuning.Initialize(false)` first (already itself tested, in
+  `TuningTypesTests.cpp`) avoids it entirely - the exact same technique
+  `SongEditingTests.cpp` already uses. This was missed when the Java-port
+  scope question was asked; the C++ side was never actually this
+  hazardous once the rest of the test project had grown around it.
+- `GetTruePitch`/`CalculateDeltaAUDF`/`GenerateTable` moved from `private`
+  to `public` in `Tuning.h` (one-line comment, matching the established
+  `CCompressLzss::Optimise_*` visibility-only precedent) - `GetTruePitch`/
+  `CalculateDeltaAUDF` are pure regardless; `GenerateTable` still reads
+  `g_tuning` directly (unchanged), but that's fine once it's initialized.
+- `test/TuningInitStub.cpp` (the old link-only empty-body `InitTuning()`)
+  is now obsolete and was deleted; `test/RmtTests.vcxproj` links the real
+  `TuningTables.cpp` directly instead. New `test/TuningTablesStub.cpp`
+  supplies `g_notesperoctave` (defined for real in `Global.cpp`, which
+  still isn't linked here - same treatment as `g_tuning`/`g_tuningRatios`
+  in `SongEditingStub.cpp`).
+- Added 24 tests to `TuningTests.cpp` (301 -> 325, all passing, verified
+  with a full Release|x64 solution rebuild): `GetTruePitch` (equal
+  temperament including the octave-doubling identity, a full 12-note
+  preset row, and a *ragged* 6-note preset row - characterizes the
+  notesnum-detection scan, not just the common case), `CalculateDeltaAUDF`
+  (one test per distortion/timbre branch, including both "invalid
+  timbre for this distortion" fallbacks via a synthesized out-of-enum
+  `Timbre` value), `GenerateTable` (8-bit and 16-bit-joined table
+  generation), and `InitTuning` (byte-level checks across all 13 real
+  lookup-table offsets it writes, plus confirming it populates the
+  private `CUSTOM[]` array `GetTruePitch`'s `TUNING_CUSTOM` branch reads).
+  All expected values are golden-master captures (placeholder assertion,
+  run, read the real value from the failure diagnostic), not hand-derived
+  - this arithmetic (modulo-driven branching, ragged-array scans) is not
+  safe to hand-verify. No further C++ bugs found this batch.
+- **This unblocks a future Java follow-up batch** for these same four
+  methods with actual golden-master values to port against, resolving the
+  original reason they were deferred from the Java `Tuning`/
+  `TuningSettings`/`TuningRatios` batch above.
+
 ## Next steps
 
-Follow-up batch (deferred by the scope decision above): `GenerateTable`/
-`InitTuning`/`GetTruePitch`/`CalculateDeltaAUDF`/`Timbre`/`TTuning`, none
-of which have existing C++ test coverage. These would need to be
-redesigned to take explicit parameters (`TuningSettings`/`TuningRatios`/a
-`byte[]` table buffer) instead of reading C++ globals, since no Java
-global-state architecture exists yet - and, having no golden master, would
-need new test coverage written from scratch (not just mirrored) with extra
-care taken transcribing the 29-row `temperament_preset` table.
+A Java follow-up batch for `GenerateTable`/`InitTuning`/`GetTruePitch`/
+`CalculateDeltaAUDF`/`Timbre`/`TTuning` is now unblocked (see above) - would
+still need redesigning to take explicit parameters instead of reading C++
+globals, since no Java global-state architecture exists yet, but now has
+real golden-master values from the C++ side to verify against.
 
 Beyond that, continue porting small, already-tested, UI-free model classes
 one at a time (matching this batch's scope and verification rigor),

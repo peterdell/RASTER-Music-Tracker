@@ -2569,4 +2569,42 @@ build clean and all 123 tests pass.
       `minorSecondIsStoredReduced` characterization test. No C++ changes
       needed - no bugs found this batch. Verified with `mvn -o test`: 28
       tests pass (13 `Fraction` + 15 new). Details in
-      `plans/JAVA_PORT_PLAN.md`. Not yet committed.
+      `plans/JAVA_PORT_PLAN.md`. Committed (`8b01038`).
+  - **2026-09-24**: Backfilled the C++ test coverage the scope decision
+    above deferred - `CTuning::GetTruePitch`/`CalculateDeltaAUDF`/
+    `GenerateTable`/`InitTuning`, none of which had ever been unit-tested.
+    Turned out to be much less hazardous than the earlier scope question
+    assumed: `g_tuning`/`g_tuningRatios` were already real, linked globals
+    (added to `test/SongEditingStub.cpp` by the later `SongEditing.cpp`
+    work, after `CTuning`'s original split), so `InitTuning()`'s
+    `MessageBox`+`exit(1)` guard is trivially avoidable by calling
+    `g_tuning.Initialize(false)` first - the same technique
+    `SongEditingTests.cpp` already used, just not one I'd checked for
+    before recommending the Java-side deferral.
+    - Moved `GetTruePitch`/`CalculateDeltaAUDF`/`GenerateTable` from
+      `private` to `public` in `Tuning.h` (matching the
+      `CCompressLzss::Optimise_*` visibility-only precedent).
+    - Deleted the now-obsolete `test/TuningInitStub.cpp` (empty-body link
+      stub for `InitTuning()`); `test/RmtTests.vcxproj` now links the real
+      `TuningTables.cpp`. Added `test/TuningTablesStub.cpp` for
+      `g_notesperoctave` (defined for real in the still-unlinked
+      `Global.cpp`, same treatment as `g_tuning`/`g_tuningRatios`).
+    - Added 24 tests (301 -> 325, all passing): `GetTruePitch` (equal
+      temperament + octave-doubling identity, a full 12-note preset row,
+      and a ragged 6-note preset row exercising the notesnum-detection
+      scan), `CalculateDeltaAUDF` (one test per distortion/timbre branch,
+      including both "invalid timbre" fallbacks via synthesized
+      out-of-enum `Timbre` values), `GenerateTable` (8-bit and
+      16-bit-joined generation), and `InitTuning` (byte-level checks
+      across all 13 real lookup-table offsets, plus confirming it
+      populates the private `CUSTOM[]` array that `GetTruePitch`'s
+      `TUNING_CUSTOM` branch reads). All values are golden-master captures
+      (placeholder assertion, run, read the real value from the failure
+      diagnostic) - this branching/modulo arithmetic isn't safe to
+      hand-derive, confirmed by several of my own hand-guessed placeholder
+      values coming back wrong on the first run. No new C++ bugs found.
+    - This unblocks a future Java follow-up batch for these same four
+      methods, which now has real golden-master values to port against.
+    - Verified via a full Release|x64 solution rebuild: `Rmt.exe` and
+      `RmtTests.exe` both build clean (0 errors) and all 325 tests pass.
+      Details in `plans/JAVA_PORT_PLAN.md`. Not yet committed.

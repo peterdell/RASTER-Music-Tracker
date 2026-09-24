@@ -66,6 +66,16 @@ public:
     Pitch GetPitch(AUDF audf, int coarse_divisor, double divisor, int cycle) const;
     Pitch GetPOKEYPitch(const int audc, const AUDF audf, const int audctl, const int channel) const;
 
+    // GetTruePitch()/CalculateDeltaAUDF()/GenerateTable() were private but
+    // otherwise pure (or, for GenerateTable(), coupled only via the global
+    // tuning state it already reads directly) - made public so tests can
+    // exercise them individually, matching the pattern already used for
+    // CCompressLzss::Optimise_AUDC/AUDCTL/AUDF (lzss_sap.h). No behavior
+    // change, just visibility.
+    Pitch GetTruePitch(double tuning, Temperament temperament, int basenote, int semitone);
+    void GenerateTable(byte* table, int length, int semitone, Timbre timbre, int audctl);
+    AUDF CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_divisor, double divisor, int cycle, Timbre timbre) const;
+
 private:
     // Multiply by notes per octave to transpose the table
     const TTuning dist_2_bell{1, 0, 4, 2};
@@ -170,11 +180,6 @@ private:
 
     //Custom tuning ratio is generated in this array, so this is not a constant
     double CUSTOM[13] = {0};
-
-    Pitch GetTruePitch(double tuning, Temperament temperament, int basenote, int semitone);
-
-    void GenerateTable(byte* table, int length, int semitone, Timbre timbre, int audctl);
-    AUDF CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_divisor, double divisor, int cycle, Timbre timbre) const;
 
     /*
         const TTuning dist_2_bell{ 12, 0, 48, 24 };

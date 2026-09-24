@@ -115,7 +115,8 @@
          orchestration (see TuningTables.cpp's header comment) - only the pure pitch-math
          methods below are compiled here, with no dependency on Global.h. -->
     <ClCompile Include="..\Tuning.cpp" />
-    <ClCompile Include="TuningInitStub.cpp" />
+    <ClCompile Include="..\TuningTables.cpp" />
+    <ClCompile Include="TuningTablesStub.cpp" />
     <ClCompile Include="..\lzss_sap.cpp" />
     <ClCompile Include="..\Tracks.cpp" />
     <ClCompile Include="..\TracksEdit.cpp" />
