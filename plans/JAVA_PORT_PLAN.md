@@ -1202,9 +1202,36 @@ for the full per-sub-batch breakdown. No C++ changes needed.
   307 tests pass (+32), all green on the first build (once the fixture gap
   above was found and fixed). No C++ changes.
 
+## Twenty-fifth ported batch (2026-09-25): `Song` grows to cover `SongEditing.cpp` sub-batch 7 (`MakeModule`/`DecodeModule`)
+
+Ports the RMT module byte-format encoder/decoder - see
+`plans/JAVA_SONGEDITING_PLAN.md` for the full breakdown. No C++ changes
+needed (the `LoadTxt` fix from earlier today is unrelated to this
+sub-batch).
+
+- New `SongIOType` (plain enum, all 15 C++ values, since sub-batch 8 will
+  need `RMW`/`TXT`) and `RmtFormatVersion` (plain `int` constants -
+  `DecodeModule` compares a raw byte value against it with `>`).
+- C++ writes/reads `InstrToAta`/`TrackToAta`/`songToAta`/`ataToSong`'s
+  data directly at a pointer offset into a shared buffer; Java can't slice
+  arrays without copying, so `makeModule` uses a reusable scratch buffer
+  plus `arraycopy`, and `decodeModule` uses `Arrays.copyOfRange`.
+- `decodeModule` returns a `DecodeModuleResult(version, tracks4_8)` record
+  instead of a plain `int` - C++'s own `int` return is ambiguous (0 means
+  both "failed" and "successfully decoded a version-0 file", a real
+  pre-existing C++ design wart), and `SetTracks`'s `g_tracks4_8` side
+  effect needed some way to reach the caller given this port's "no stored
+  global" treatment of `tracks4_8`.
+- `makeModule`'s one guard-only failure (a track too event-dense to
+  encode) and `decodeModule`'s omitted `g_Instruments.Update()` call both
+  match established precedent from earlier batches.
+- Tests (`SongEditingTest`, extended) mirror `SongEditingTests.cpp`'s
+  `MakeModuleAndDecodeModuleRoundTripASimpleSong` test exactly (1 test).
+  Verified with `mvn -o test`: 308 tests pass (+1), all green on the first
+  build. No C++ changes.
+
 ## Next steps
 
-Continue with `SongEditing.cpp` sub-batches 7-8 (module format
-buffers/streams) per `plans/JAVA_SONGEDITING_PLAN.md`'s suggested execution
-order - surface the `LoadTxt` bug decision explicitly before implementing
-sub-batch 8.
+Continue with `SongEditing.cpp` sub-batch 8 (module format streams:
+`SaveTxt`/`LoadTxt`/`SaveRMW`/`LoadRMW`/`LoadRMT`) per
+`plans/JAVA_SONGEDITING_PLAN.md`'s suggested execution order.

@@ -796,4 +796,55 @@ class SongEditingTest {
 		song.resetTuningVariables(tuning, tuningRatios);
 		assertEquals(440.83751645933, tuning.basetuning, 0.0);
 	}
+
+	// --- makeModule / decodeModule ---
+	// Round-trip test, mirroring songToAta/ataToSong's approach in SongTest:
+	// lets the real encode/decode logic prove itself internally consistent
+	// rather than hand-deriving the RMT header's byte layout.
+
+	@Test
+	void makeModuleAndDecodeModuleRoundTripASimpleSong() {
+		// mainSpeed/instrumentSpeed default to 0, but decodeModule() rejects
+		// a decoded speed byte of 0 as invalid (there can be no zero speed) -
+		// give them valid values first.
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 2;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5; // song line 0, column 0 references track 5
+
+		Track tr = tracks.getTrack(5);
+		tr.len = 4;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+		tr.volume[0] = 8;
+
+		setName(instruments.getInstrument(2).name, "Lead");
+		instruments.getInstrument(2).parameters[0] = 5;
+
+		byte[] mem = new byte[8192];
+		byte[] instrSavedFlags = new byte[Instruments.INSTRSNUM];
+		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
+
+		int endAddr = song.makeModule(mem, 0, SongIOType.RMT, instrSavedFlags, trackSavedFlags, 4);
+		assertTrue(endAddr > 0);
+		assertTrue(endAddr <= mem.length);
+
+		Song decoded = new Song(instruments, tracks);
+		byte[] instrLoadedFlags = new byte[Instruments.INSTRSNUM];
+		byte[] trackLoadedFlags = new byte[Tracks.TRACKSNUM];
+		Song.DecodeModuleResult result = decoded.decodeModule(mem, 0, endAddr, instrLoadedFlags, trackLoadedFlags);
+
+		assertEquals(RmtFormatVersion.V1, result.version());
+		assertEquals(5, decoded.getSong()[0][0]);
+		// decodeModule() decodes back into the same shared tracks/instruments
+		// it was encoded from (there's only one in production too).
+		assertEquals(10, tracks.getTrack(5).note[0]);
+		assertEquals(2, tracks.getTrack(5).instr[0]);
+		assertEquals(8, tracks.getTrack(5).volume[0]);
+		assertEquals("Lead", nameToString(instruments.getInstrument(2).name));
+		assertEquals(5, instruments.getInstrument(2).parameters[0]);
+	}
 }

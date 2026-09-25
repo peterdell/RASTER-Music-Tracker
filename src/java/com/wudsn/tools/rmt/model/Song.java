@@ -2022,6 +2022,294 @@ public final class Song {
 		tuningRatios.initialize();
 	}
 
+	private static final int ATARI_MAX_INSTR_OR_TRACK_LENGTH = 256; // matches C++'s ATARI_MAX_INSTR_LENGTH/ATARI_MAX_TRACK_LENGTH (SongTypes.h) - both happen to be 256
+
+	/**
+	 * Encodes the song/tracks/instruments (per {@code iotype}'s save-all-vs-
+	 * save-used-only rule) into the Atari RMT module byte format at
+	 * {@code mem[addr...]}, returning the address of the first byte past the
+	 * last one used (or {@code -1} on the one guard-only failure: a track too
+	 * event-dense to encode - C++'s {@code SendErrorMessage} isn't reproduced,
+	 * matching {@link #instrChangeApply}'s established reasoning).
+	 *
+	 * <p>C++ writes {@code InstrToAta}/{@code TrackToAta}/{@link #songToAta}'s
+	 * output directly into {@code mem} at a pointer offset; since Java arrays
+	 * can't be sliced without copying, this writes each into a reusable
+	 * scratch buffer first, then {@code arraycopy}s the actual encoded length
+	 * into {@code mem} at the right offset.
+	 */
+	public int makeModule(byte[] mem, int addr, SongIOType iotype, byte[] instrumentSavedFlags, byte[] trackSavedFlags, int tracks4_8) {
+		java.util.Arrays.fill(instrumentSavedFlags, (byte) 0);
+		java.util.Arrays.fill(trackSavedFlags, (byte) 0);
+
+		// Write out the RMT header (part 1)
+		// 0: RMT4 or RMT8
+		// 4: Track length
+		// 5: Song speed
+		// 6: Instrument speed
+		// 7: RMT version (1 for now)
+		mem[addr] = 'R';
+		mem[addr + 1] = 'M';
+		mem[addr + 2] = 'T';
+		mem[addr + 3] = (byte) (tracks4_8 + '0'); // 4 or 8
+		mem[addr + 4] = (byte) (tracks.getMaxTrackLength() & 0xff);
+		mem[addr + 5] = (byte) (mainSpeed & 0xff);
+		mem[addr + 6] = (byte) instrumentSpeed; // 1-4 player calls per frame
+		mem[addr + 7] = (byte) RmtFormatVersion.V1;
+
+		// Note: when saving in RMT format ALL non-empty tracks and non-empty
+		// instruments will be stored; in other formats only the USED ones will be.
+		markTfUsed(trackSavedFlags, tracks4_8); // mark all tracks as used
+		if (iotype == SongIOType.RMT) {
+			markTfNoEmpty(trackSavedFlags); // in addition to the used ones, all non-empty tracks
+		}
+
+		// Mark all used instruments in the tracks that will be saved
+		for (int i = 0; i < Tracks.TRACKSNUM; i++) {
+			if (trackSavedFlags[i] > 0) {
+				Track tr = tracks.getTrack(i);
+				for (int j = 0; j < tr.len; j++) {
+					if (tracks.isValidInstrument(tr.instr[j])) {
+						instrumentSavedFlags[tr.instr[j]] = Instrument.IF_USED;
+					}
+				}
+			}
+		}
+
+		if (iotype == SongIOType.RMT) {
+			// In addition to the instruments used in the tracks in the song, all non-empty instruments are stored in the RMT
+			for (int i = 0; i < Instruments.INSTRSNUM; i++) {
+				if (instruments.calculateNotEmpty(i)) {
+					instrumentSavedFlags[i] |= Instrument.IF_NOEMPTY;
+				}
+			}
+		}
+
+		// Find how many tracks and instruments to save
+		int numTracks = 0;
+		for (int i = Tracks.TRACKSNUM - 1; i >= 0; i--) {
+			if (trackSavedFlags[i] > 0) {
+				numTracks = i + 1;
+				break;
+			}
+		}
+
+		int numInstruments = 0;
+		for (int i = Instruments.INSTRSNUM - 1; i >= 0; i--) {
+			if (instrumentSavedFlags[i] > 0) {
+				numInstruments = i + 1;
+				break;
+			}
+		}
+
+		// Calculate the offsets for instruments, tracks (lo & hi) and song lines.
+		// RMT header is 16 bytes, so instrument ptrs start there; each
+		// instrument ptr is 2 bytes, and the track pointers are 2 bytes but
+		// split into low and high storage areas.
+		int ptrInstruments = addr + 16;
+		int ptrTracksLoBytes = ptrInstruments + numInstruments * 2;
+		int ptrTracksHiBytes = ptrTracksLoBytes + numTracks;
+		int ptrInstrumentData = ptrTracksHiBytes + numTracks; // behind the track byte table
+
+		byte[] scratch = new byte[ATARI_MAX_INSTR_OR_TRACK_LENGTH];
+
+		// Saves instrument data and writes their beginnings to the table
+		for (int i = 0; i < numInstruments; i++) {
+			if (instrumentSavedFlags[i] != 0) {
+				int thisInstrumentLength = instruments.instrToAta(i, scratch, isStereo(tracks4_8));
+				System.arraycopy(scratch, 0, mem, ptrInstrumentData, thisInstrumentLength);
+
+				mem[ptrInstruments + i * 2] = (byte) (ptrInstrumentData & 0xff); // lo byte
+				mem[ptrInstruments + i * 2 + 1] = (byte) (ptrInstrumentData >> 8); // hi byte
+
+				ptrInstrumentData += thisInstrumentLength;
+			} else {
+				// Nothing to save here, just emit 0 - happens if there are
+				// unused instruments between the used ones.
+				mem[ptrInstruments + i * 2] = mem[ptrInstruments + i * 2 + 1] = 0;
+			}
+		}
+
+		// Just after the instrument data we start with the track data
+		int ptrTrackData = ptrInstrumentData;
+
+		// Saves track data and writes their beginnings to the table
+		for (int i = 0; i < numTracks; i++) {
+			if (trackSavedFlags[i] != 0) {
+				int thisTrackLength = tracks.trackToAta(i, scratch);
+
+				if (thisTrackLength < 1) {
+					// Guard-only: track has too many events (notes/speed
+					// commands) to encode - see this method's own javadoc.
+					return -1;
+				}
+
+				System.arraycopy(scratch, 0, mem, ptrTrackData, thisTrackLength);
+
+				mem[ptrTracksLoBytes + i] = (byte) (ptrTrackData & 0xff); // lo byte
+				mem[ptrTracksHiBytes + i] = (byte) (ptrTrackData >> 8); // hi byte
+
+				ptrTrackData += thisTrackLength;
+			} else {
+				mem[ptrTracksLoBytes + i] = mem[ptrTracksHiBytes + i] = 0;
+			}
+		}
+
+		// Just after the track data we store the song lines
+		int ptrSongData = ptrTrackData;
+		byte[] songScratch = new byte[mem.length - ptrSongData];
+		int thisSongLength = songToAta(songScratch, songScratch.length, ptrSongData, tracks4_8);
+		System.arraycopy(songScratch, 0, mem, ptrSongData, thisSongLength);
+
+		int endOfModule = ptrSongData + thisSongLength;
+
+		// Writes computed pointers to the header
+		mem[addr + 8] = (byte) (ptrInstruments & 0xff); // lo byte pointer to instrument table
+		mem[addr + 9] = (byte) (ptrInstruments >> 8); // hi byte
+		mem[addr + 10] = (byte) (ptrTracksLoBytes & 0xff); // lo byte pointer to low bytes of track data table
+		mem[addr + 11] = (byte) (ptrTracksLoBytes >> 8); // hi byte
+		mem[addr + 12] = (byte) (ptrTracksHiBytes & 0xff); // lo byte pointer to high bytes of track data table
+		mem[addr + 13] = (byte) (ptrTracksHiBytes >> 8); // hi byte
+		mem[addr + 14] = (byte) (ptrSongData & 0xff); // lo byte pointer to song data (arrangements of tracks)
+		mem[addr + 15] = (byte) (ptrSongData >> 8); // hi byte
+
+		return endOfModule; // address of the first byte past the last one used
+	}
+
+	/** {@code version} is the method's own {@code int} return value (0 on failure - ambiguous with a genuinely-decoded version-0 file, an existing C++ design wart, not introduced here); {@code tracks4_8} is C++'s {@code g_tracks4_8} global, mutated as a side effect of a successful header parse. */
+	public record DecodeModuleResult(int version, int tracks4_8) {
+	}
+
+	/**
+	 * Decodes an Atari RMT module byte format at {@code mem[fromAddr..endAddr)}
+	 * back into this {@link Song} (plus the shared {@code Tracks}/
+	 * {@code Instruments} collaborators). Omits C++'s
+	 * {@code g_Instruments.Update(instrumentNr)} call ("writes to Atari ram")
+	 * for each decoded instrument - matches {@code Instruments}'s own prior
+	 * omission of the same call; no {@code Atari} dependency is modeled on
+	 * {@link Song}, and no test observes it.
+	 *
+	 * <p>C++ reads {@code InstrToAta}/{@code TrackToAta}/{@link #ataToSong}'s
+	 * input directly from {@code mem} at a pointer offset; since Java arrays
+	 * can't be sliced without copying, each gets a
+	 * {@code Arrays.copyOfRange} view instead.
+	 */
+	public DecodeModuleResult decodeModule(byte[] mem, int fromAddr, int endAddr, byte[] instrumentLoadedFlags, byte[] trackLoadedFlags) {
+		int addr = fromAddr;
+
+		java.util.Arrays.fill(instrumentLoadedFlags, (byte) 0);
+		java.util.Arrays.fill(trackLoadedFlags, (byte) 0);
+
+		// Check that the header starts with "RMT"
+		if (mem[addr] != 'R' || mem[addr + 1] != 'M' || mem[addr + 2] != 'T') {
+			return new DecodeModuleResult(0, -1); // there is no RMT
+		}
+
+		// 4th byte: # of channels (4 or 8)
+		int channelByte = unsignedByte(mem, addr + 3);
+		if (channelByte != '4' && channelByte != '8') {
+			return new DecodeModuleResult(0, -1); // it is not RMT4 or RMT8
+		}
+		int tracks4_8 = setTracks(channelByte & 0x0F); // store how many channels this module uses
+
+		// 5th byte: track length
+		int trackLenByte = unsignedByte(mem, addr + 4);
+		tracks.setMaxTrackLength(trackLenByte > 0 ? trackLenByte : 256); // 0 => 256
+
+		// 6th byte: song speed
+		int mainSpeedByte = unsignedByte(mem, addr + 5);
+		mainSpeed = mainSpeedByte;
+		if (mainSpeedByte < 1) {
+			return new DecodeModuleResult(0, tracks4_8); // there can be no zero speed
+		}
+
+		// 7th byte: instrument speed
+		int instrSpeedByte = unsignedByte(mem, addr + 6);
+		if (instrSpeedByte < 1 || instrSpeedByte > 8) {
+			return new DecodeModuleResult(0, tracks4_8); // less than 1 or greater than 8
+		}
+		instrumentSpeed = instrSpeedByte;
+
+		// 8th byte: RMT format version nr.
+		int version = unsignedByte(mem, addr + 7);
+		if (version > RmtFormatVersion.V1) {
+			return new DecodeModuleResult(0, tracks4_8); // above the currently supported one
+		}
+
+		// Now tracks.getMaxTrackLength() is set to the value in the RMT
+		// header, so re-initialize the tracks to set all tracks to this new length
+		tracks.initTracks();
+
+		// Get various pointers
+		int ptrInstruments = unsignedByte(mem, addr + 8) + (unsignedByte(mem, addr + 9) << 8);
+		int ptrTracksLow = unsignedByte(mem, addr + 10) + (unsignedByte(mem, addr + 11) << 8);
+		int ptrTracksHigh = unsignedByte(mem, addr + 12) + (unsignedByte(mem, addr + 13) << 8);
+		int ptrSong = unsignedByte(mem, addr + 14) + (unsignedByte(mem, addr + 15) << 8);
+
+		// Calculate how long each of the sections are
+		int numInstruments = (ptrTracksLow - ptrInstruments) / 2;
+		int numTracks = ptrTracksHigh - ptrTracksLow;
+		int lengthSong = endAddr - ptrSong;
+
+		boolean stereo = isStereo(tracks4_8);
+
+		// Decoding of individual instruments
+		for (int instrumentNr = 0; instrumentNr < numInstruments; instrumentNr++) {
+			int ptrOneInstrument = unsignedByte(mem, ptrInstruments + instrumentNr * 2) + (unsignedByte(mem, ptrInstruments + instrumentNr * 2 + 1) << 8);
+			if (ptrOneInstrument == 0) {
+				continue; // empty instruments have a NULL ptr
+			}
+
+			byte[] instrumentData = java.util.Arrays.copyOfRange(mem, ptrOneInstrument, mem.length);
+			boolean loadState = version == 0
+					? instruments.ataV0ToInstr(instrumentData, instrumentNr, stereo)
+					: instruments.ataToInstr(instrumentData, instrumentNr, stereo);
+
+			if (!loadState) {
+				return new DecodeModuleResult(0, tracks4_8); // some problem with the instrument => END
+			}
+
+			instrumentLoadedFlags[instrumentNr] = 1;
+		}
+
+		// Track data ptrs are split over two tables (low and high bytes, each indexed by track number)
+		for (int i = 0; i < numTracks; i++) {
+			int trackNr = i;
+			int ptrTrack = unsignedByte(mem, ptrTracksLow + i) + (unsignedByte(mem, ptrTracksHigh + i) << 8);
+			if (ptrTrack == 0) {
+				continue; // omitted tracks have pointer of 0
+			}
+
+			// Identify the end of the track by the starting address of the
+			// next track, and at the end by the starting address of the song
+			// data that follows the data of the last track
+			int ptrTrackEnd = 0;
+			for (int j = i; j < numTracks; j++) {
+				ptrTrackEnd = (j + 1 == numTracks) ? ptrSong : unsignedByte(mem, ptrTracksLow + j + 1) + (unsignedByte(mem, ptrTracksHigh + j + 1) << 8);
+				if (ptrTrackEnd != 0) {
+					break;
+				}
+				i++; // continue from the next and skip the omitted one
+			}
+
+			int trackLength = ptrTrackEnd - ptrTrack;
+			byte[] trackData = java.util.Arrays.copyOfRange(mem, ptrTrack, mem.length);
+			if (!tracks.ataToTrack(trackData, trackLength, trackNr)) {
+				return new DecodeModuleResult(0, tracks4_8); // some problem with the track => END
+			}
+
+			trackLoadedFlags[trackNr] = 1;
+		}
+
+		// Decode song
+		byte[] songData = java.util.Arrays.copyOfRange(mem, ptrSong, mem.length);
+		if (!ataToSong(songData, lengthSong, ptrSong, tracks4_8)) {
+			return new DecodeModuleResult(0, tracks4_8); // some problem with the song => END
+		}
+
+		return new DecodeModuleResult(version, tracks4_8);
+	}
+
 	private static int unsignedByte(byte[] buf, int index) {
 		return buf[index] & 0xFF;
 	}

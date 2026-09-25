@@ -3282,3 +3282,19 @@ build clean and all 123 tests pass.
       depend on global state only valid once an earlier test has run
       first. Doesn't affect the full suite (370/370 pass). Flagged for
       awareness, not investigated further.
+  - **2026-09-25**: Twenty-fifth Java-port batch - `Song` grows to cover
+    `SongEditing.cpp` sub-batch 7 (`MakeModule`/`DecodeModule`, the RMT
+    module byte-format encoder/decoder). No C++ changes needed.
+    - New `SongIOType` (all 15 C++ values) and `RmtFormatVersion` (plain
+      `int` constants) enums.
+    - Java can't slice arrays without copying, unlike C++'s pointer
+      offsets into a shared buffer - `makeModule` uses a scratch buffer
+      plus `arraycopy`, `decodeModule` uses `Arrays.copyOfRange`.
+    - `decodeModule` returns a `DecodeModuleResult(version, tracks4_8)`
+      record instead of a plain `int` - C++'s own return is ambiguous (0
+      means both "failed" and "decoded a real version-0 file") and
+      `SetTracks`'s `g_tracks4_8` side effect needed a way to reach the
+      caller.
+    - Verified with `mvn -o test`: 308 tests pass (+1), all green on the
+      first build. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
+      committed.

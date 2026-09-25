@@ -142,13 +142,31 @@ output structs became mutable classes (not immutable records), matching
 the "leaves the struct untouched for invalid input" contract - a record
 can't represent "untouched," only "returns some value."
 
-### 7. Module format - buffers
-`MakeModule`, `DecodeModule`. Same shape as the already-ported `SapFile`/
-`AsmFileBuilder` buffer-building work. `MakeModule` has one guard-only
-`MessageBox` on malformed input (avoidable, matching the C++ test's own
-approach - don't feed it malformed input, or convert to an
-`IllegalStateException` per the established idiom if a test needs to
-exercise that path).
+### 7. Module format - buffers - DONE (commit pending)
+`MakeModule`, `DecodeModule`. New `SongIOType` (plain enum, all 15 C++
+values ported for the sub-batch-8 methods that'll need `RMW`/`TXT`) and
+`RmtFormatVersion` (plain `int` constants - `DecodeModule` compares a raw
+byte value against it with `>`, not just equality).
+
+- `MakeModule`'s one guard-only failure path (a track too event-dense to
+  encode) returns `-1` without reproducing C++'s `SendErrorMessage` call -
+  matches `instrChangeApply`'s established reasoning (`Song` holds no
+  `Messages` reference, no test reaches this path).
+- C++ writes `InstrToAta`/`TrackToAta`/`songToAta`'s output directly into
+  `mem` at a pointer offset; since Java arrays can't be sliced without
+  copying, `makeModule` writes each into a reusable scratch buffer first,
+  then `arraycopy`s the actual encoded length into `mem` at the right
+  offset. `decodeModule` does the mirror-image `Arrays.copyOfRange` on the
+  way in.
+- `DecodeModule` returns a `DecodeModuleResult(version, tracks4_8)` record
+  instead of just an `int` - C++'s own `int` return is 0 for failure,
+  which is ambiguous with a genuinely-decoded version-0 file (a real,
+  pre-existing C++ design wart, not introduced here), and `SetTracks`'s
+  side effect on `g_tracks4_8` needed *some* way to reach the caller given
+  this port's "no stored global" treatment of `tracks4_8` everywhere else.
+- Omits C++'s `g_Instruments.Update(instrumentNr)` call per decoded
+  instrument ("writes to Atari ram") - matches `Instruments`'s own prior
+  omission of the same call.
 
 ### 8. Module format - streams
 `SaveTxt`/`LoadTxt`, `SaveRMW`/`LoadRMW`, `LoadRMT`. `LoadRMT` needs
@@ -276,9 +294,9 @@ editing surface exist to support them.
 2. Sub-batch 6 (`InstrInfo`/`InstrChangeApply`/`TrackInfo`) - DONE.
 3. Sub-batches 2-5 (song-line editing, track-length cleanup, clipboard-free
    copy-paste, bookmark/settings) - DONE.
-4. Sub-batches 7-8 (module format buffers/streams) - same shape as prior
-   `SapFile`/`AsmFileBuilder` work; surface the `LoadTxt` bug decision
-   explicitly before implementing sub-batch 8.
+4. Sub-batch 7 (module format buffers) - DONE. Sub-batch 8 (module format
+   streams) next - the `LoadTxt` bug is now fixed on the C++ side, so
+   Java's port will use the corrected behavior directly.
 5. Sub-batch 9 (navigation/playback).
 6. Sub-batch 10 (`ClearSong`) once its dependencies land.
 7. `CTrackClipboard` as its own dedicated scoping pass (now narrowed to
