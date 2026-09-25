@@ -289,14 +289,97 @@ Tests (`SongEditingTest`, extended) mirror `SongEditingTests.cpp`'s
 corresponding sections exactly (6 tests, plus the new C++-mirroring
 `saveRMWWritesEachMainParameterAsExactlyFourBytes`).
 
-### 9. Navigation/playback
+### 9. Navigation/playback - DONE
 `SongJump`/`SongUp`/`SongDown`/`SongSubsongPrev`/`SongSubsongNext`,
 `TrackUp`/`TrackDown`, `SongPrepareNewLine`/`SongPutnewemptyunusedtrack`,
-`SongMaketracksduplicate`/`Songswitch4_8` (need `Messages.sendQuestionMessage`
-- already ported), `PlayPressedTones`, `InstrPaste`, `Play`/`PlayBeat`/
-`PlayVBI` (need `AtariTrackerDriver`/`Atari` - already ported, JSR is
-already a no-op per `AtariTrackerDriver`'s own javadoc). `Stop` is already
-done.
+`SongMaketracksduplicate`/`Songswitch4_8`, `PlayPressedTones`, `InstrPaste`,
+`Play`/`PlayBeat`/`PlayVBI` (`Stop` was already done).
+
+**All always-true/never-observed `BOOL` returns dropped to `void`**:
+`songJump`/`songUp`/`songDown`/`songSubsongPrev`/`songSubsongNext`/
+`trackUp`/`trackDown` - no caller or test in this batch ever reads their
+return value, matching the established pattern. `songPrepareNewLine`/
+`songPutnewemptyunusedtrack`/`songMaketracksduplicate`/`playPressedTones`/
+`play`/`playBeat`/`playVBI` keep `boolean`, since tests do assert on it.
+
+**`songUp`/`songDown`/`songSubsongPrev`/`songSubsongNext` omit C++'s
+`if (m_play && m_followplay) { Stop(); ...; Play(); }` tail** - untested in
+every case (`playMode` defaults to `PLAY_STOP` and no sub-batch-9 test
+changes that first), matching the omission already used for
+`TracksAllBuildLoops`/`TracksAllExpandLoops`'s untested branches.
+
+**`g_keyboard_updowncontinue` becomes an explicit parameter** on
+`trackUp`/`trackDown` (matches this class's established idiom for globals
+a method needs). The C++ test binary's stub defaults it to `FALSE`
+(`SongEditingStub.cpp`), unlike the real app's `TRUE` default set in
+`RmtView.cpp` - not modeled, since no settings dialog exists yet. New
+trivial delegator `trackGetLastLine()` (from `Song.h`'s inline family) was
+added for `trackDown`'s guard - the only member of that family this batch
+actually needs (`TrackGetNote`/`Instr`/`Vol`/`Speed`/`SetXxx` etc. stay
+unported, see the `PlayVBI` note below).
+
+**`songMaketracksduplicate`/`songswitch4_8` take a `Messages` parameter**:
+unlike the guard-only `SendErrorMessage`/`SendInformationMessage` calls
+dropped throughout this port, `SendQuestionMessage`'s *return value*
+drives branching here, so it can't just be omitted. Fully testable on
+every branch since `MessageBox` calls route through `Messages` (see
+`plans/MESSAGEBOX_REFACTOR_PLAN.md`) - these two were previously deferred
+solely because of that prompt. `songswitch4_8(int currentTracks4_8, int
+newTracks4_8, Undo, Messages)` needed a genuinely new shape versus C++'s
+single-parameter `Songswitch4_8(int tracks4_8)`: C++'s parameter serves
+double duty (the requested target *and*, via the untouched global, the
+value that survives a cancel), which Java's stored-nowhere `tracks4_8`
+(see `setTracks`'s established reasoning) can't do with one parameter -
+so it takes the current value explicitly and returns it unchanged on
+cancel, or `setTracks`'s result on confirm.
+
+**`AtariTrackerDriver` grew three real methods** pulled forward from their
+prior "no dedicated test coverage - deferred" status now that
+`SongEditingTests.cpp`'s `PlayPressedTones`/`PlayBeat` exercise them:
+`setTrackNoteInstrumentVolume`/`setTrackVolume`/`instrumentTurnOff`. Their
+C++ bodies are JSR calls (still omitted, per that class's established
+no-op reasoning) plus real, observable side effects that aren't
+JSR-dependent - `g_rmtinstr` bookkeeping and, for `instrumentTurnOff`, one
+POKEY-register memory reset via `Atari.setByteAt` - which this port keeps.
+
+**`instrPaste`'s C++ `goto InstrPaste_Envelopes`** (shared by `special`
+values 1/2/3/4/6/8/9) becomes a small `switch` that only sets four boolean
+flags, followed by one shared copy loop - Java has no `goto`. All of
+`Instrument`'s envelope/note-table/parameter fields needed here already
+existed from the earlier `InstrCopy`/`InstrCut`/`InstrDelete` batch.
+
+**`play`'s C++ `goto Play3`** (shared by `PLAY_TRACK` and a block-play
+request that falls back to it) becomes a local `playTrack` boolean flag
+for the same reason. **`PLAY_BLOCK`'s real block-selection branch is
+unreachable in this port**: it only runs when `isBlockSelected()` is true,
+which - since no `CTrackClipboard` block-selection surface is ported (see
+below) - is never the case, so requesting `PLAY_BLOCK` always falls back
+to `PLAY_TRACK` behavior, exactly as C++ does whenever nothing is actually
+selected. The new fields `trackPlayBlockStart`/`trackPlayBlockEnd`
+(mirroring `m_trackplayblockstart`/`m_trackplayblockend`) are kept as real
+fields anyway, purely so `playBeat`/`playVBI`'s own `PLAY_BLOCK` checks
+stay faithful and need no further changes once block selection is ported.
+
+**`playBeat`'s C++ `goto TrackLine`** (a full retry of the per-track scan
+after advancing to the next songline) becomes a labeled
+`while(true)`/`continue` loop for the same "no `goto`" reason.
+
+**`playVBI` omits its quantization branches** (triggered when
+`speeda == speed && followplay` and `quantizationNote` is a real note or
+`-2`): they need `Tracks`'s `SetInstr`/`SetVol`/`SetSpeed`/`SetNoteInstrVol`
+family and the `g_respectvolume` global, none of which are ported.
+`quantizationNote` defaults to `-1` and no ported caller ever sets it to a
+note or `-2`, so both branches are unreachable in every existing test -
+the reset to `-1` at the end is kept since it's a real, cheap,
+always-correct effect either way. This is the reason the `TrackGetVol`/
+`TrackSetNoteInstrVol`/`TrackSetNoteActualInstrVol`/`TrackSetVol`/
+`SetPlayPressedTonesTNIV` family from `Song.h` mostly stays unported -
+`SetPlayPressedTonesTNIV` itself *is* ported (used directly by
+`PlayPressedTones` and its own test), but the four `Track*`
+get/set-via-active-cursor delegators aren't.
+
+Tests (`SongEditingTest`, extended) mirror `SongEditingTests.cpp`'s
+corresponding section exactly (23 tests; 64 -> 87, 0 regressions).
 
 ### 10. `ClearSong` - DONE (commit pending; done as part of sub-batch 8, not last)
 Turned out not to be a capstone after all - `LoadTxt`/`LoadRMW` (sub-batch
@@ -387,7 +470,7 @@ editing surface exist to support them.
    10 (`ClearSong`) forward as a genuine blocking dependency rather than a
    capstone. Both C++ bugs it surfaced (`LoadTxt`'s segment-boundary bug,
    `SaveRMW`/`LoadRMW`'s `sizeof` bug) are fixed.
-6. Sub-batch 9 (navigation/playback) - next up.
+6. Sub-batch 9 (navigation/playback) - DONE.
 7. `CTrackClipboard` as its own dedicated scoping pass (now narrowed to
    just `BLOCKSETBEGIN`/`BLOCKSETEND`/`ISBLOCKSELECTED`/`BlockPaste`, since
    sub-batch 4 already resolved `TrackCopy`/`TrackPaste`), once its

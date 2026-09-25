@@ -103,6 +103,11 @@ public final class Song {
 	private int quantizationInstr = -1;
 	private int quantizationVol = -1;
 
+	// Only ever written/read from PLAY_BLOCK's real block-selection branch,
+	// which is currently unreachable - see play()'s javadoc.
+	private int trackPlayBlockStart;
+	private int trackPlayBlockEnd;
+
 	private final int[] playPtNote = new int[SONGTRACKS];
 	private final int[] playPtInstr = new int[SONGTRACKS];
 	private final int[] playPtVolume = new int[SONGTRACKS];
@@ -161,6 +166,13 @@ public final class Song {
 		}
 	}
 
+	public boolean setPlayPressedTonesTNIV(int t, int n, int i, int v) {
+		playPtNote[t] = n;
+		playPtInstr[t] = i;
+		playPtVolume[t] = v;
+		return true;
+	}
+
 	public int getActiveInstr() {
 		return activeInstr;
 	}
@@ -195,6 +207,11 @@ public final class Song {
 
 	public int songGetActiveTrack() {
 		return songGo[songActiveLine] >= 0 ? -1 : song[songActiveLine][trackActiveCol];
+	}
+
+	/** Ported from {@code Song.h}'s inline {@code TrackGetLastLine()} delegator - the only one of that family {@link #trackDown}'s guard needs. */
+	public int trackGetLastLine() {
+		return tracks.getLastLine(songGetActiveTrack());
 	}
 
 	/** {@code count} is the method's own {@code int} return value; {@code parts} was C++'s {@code CString&} output parameter. {@code count} always equals the number of space-separated tokens in {@code parts}. */
@@ -1184,6 +1201,11 @@ public final class Song {
 
 	/** No-op here - see class javadoc (no CTrackClipboard ported yet). */
 	public void blockDeselect() {
+	}
+
+	/** Always {@code false} here - see class javadoc (no CTrackClipboard block-selection surface ported yet, so a block can never actually be selected). */
+	public boolean isBlockSelected() {
+		return false;
 	}
 
 	public PlayMode getPlayMode() {
@@ -2918,6 +2940,741 @@ public final class Song {
 		}
 
 		return new DecodeModuleResult(version, tracks4_8);
+	}
+
+	// --- SongEditing.cpp sub-batch 9 (navigation/playback) ---
+	//
+	// SongJump/SongUp/SongDown/SongSubsongPrev/SongSubsongNext/TrackUp/
+	// TrackDown all drop their always-true/never-observed BOOL return to
+	// void (no caller or test ever reads it - matches this class's
+	// established pattern). SongUp/SongDown/SongSubsongPrev/SongSubsongNext
+	// each omit C++'s "if (m_play && m_followplay) { Stop(); ...; Play(); }"
+	// tail - untested in every case (m_play defaults to PLAY_STOP, and no
+	// sub-batch-9 test changes that before calling these), matching the
+	// omission already used for TracksAllBuildLoops/ExpandLoops's untested
+	// branches. g_keyboard_updowncontinue becomes an explicit parameter on
+	// TrackUp/TrackDown (matches this class's established idiom for globals
+	// a method needs); the C++ test binary defaults it to FALSE (see
+	// SongEditingStub.cpp), unlike the real app's TRUE default set in
+	// RmtView.cpp - not modeled, since no settings dialog exists yet.
+
+	/** Advances/rewinds the active songline by {@code lines}, via {@link #songDown}/{@link #songUp}. */
+	public void songJump(int lines, Undo undo) {
+		int songline = songGetActiveLine();
+		int toline = songline + lines;
+		if (toline > songline) {
+			songSetActiveLine(toline - 1);
+			songDown(undo);
+		} else {
+			songSetActiveLine(toline + 1);
+			songUp(undo);
+		}
+	}
+
+	public void songUp(Undo undo) {
+		blockDeselect();
+		undo.separator();
+		songActiveLine--;
+		if (!isValidSongline(songActiveLine)) {
+			songActiveLine = SONGLEN - 1;
+		}
+	}
+
+	public void songDown(Undo undo) {
+		blockDeselect();
+		undo.separator();
+		songActiveLine++;
+		if (!isValidSongline(songActiveLine)) {
+			songActiveLine = 0;
+		}
+	}
+
+	public void songSubsongPrev(Undo undo) {
+		undo.separator();
+		int i = songActiveLine - 1;
+		// Only a few lines in the track have been played, or the active line
+		// is 0 - search for one subsong earlier to avoid landing back on the
+		// same line each time.
+		if ((playMode != PlayMode.PLAY_STOP && followplay && trackPlayLine < 16) || trackActiveLine == 0) {
+			i--;
+		}
+		for (; i >= 0; i--) {
+			if (songGo[i] >= 0) {
+				songActiveLine = i + 1;
+				break;
+			}
+		}
+		if (i < 0) {
+			songActiveLine = 0;
+		}
+		trackActiveLine = 0;
+	}
+
+	public void songSubsongNext(Undo undo) {
+		undo.separator();
+		for (int i = songActiveLine; i < SONGLEN; i++) {
+			if (songGo[i] >= 0) {
+				songActiveLine = (i < SONGLEN - 1) ? i + 1 : SONGLEN - 1;
+				trackActiveLine = 0;
+				break;
+			}
+		}
+	}
+
+	/** Moves the active track line up by {@code lines}, wrapping to the bottom of the pattern once it goes below zero. */
+	public void trackUp(int lines, int tracks4_8, boolean keyboardUpDownContinue, Undo undo) {
+		if (playMode != PlayMode.PLAY_STOP && followplay) {
+			return; // prevents moving at all during play+follow
+		}
+
+		undo.separator();
+		trackActiveLine -= lines;
+		int trlen = getSmallestMaxtracklen(songActiveLine, tracks4_8);
+
+		if (trackActiveLine < 0) {
+			if (isBlockSelected()) {
+				trackActiveLine = 0;
+				return;
+			}
+			if (keyboardUpDownContinue) {
+				blockDeselect();
+				songUp(undo);
+				trlen = getSmallestMaxtracklen(songActiveLine, tracks4_8);
+			}
+			trackActiveLine = trackActiveLine + trlen;
+			if (trackActiveLine < 0) {
+				trackActiveLine = trlen - lines;
+			}
+		}
+		if (trackActiveLine > trlen) {
+			trackActiveLine = trlen - lines;
+		}
+	}
+
+	/** Moves the active track line down by {@code lines}, wrapping to the top of the pattern once it reaches the end. */
+	public void trackDown(int lines, boolean stoponlastline, int tracks4_8, boolean keyboardUpDownContinue, Undo undo) {
+		if (playMode != PlayMode.PLAY_STOP && followplay) {
+			return; // prevents moving at all during play+follow
+		}
+
+		if (!keyboardUpDownContinue && stoponlastline && trackActiveLine + lines > trackGetLastLine()) {
+			return; // an invalid combination should be ignored
+		}
+
+		undo.separator();
+		trackActiveLine += lines;
+		int trlen = getSmallestMaxtracklen(songActiveLine, tracks4_8);
+		if (trlen == 0) {
+			trlen = tracks.getMaxTrackLength(); // in case the smallest max track length returned zero (e.g. from a goto line)
+		}
+
+		if (trackActiveLine >= trlen) {
+			if (isBlockSelected()) {
+				trackActiveLine = trlen - 1;
+				return;
+			}
+			trackActiveLine = trackActiveLine % trlen;
+			if (keyboardUpDownContinue) {
+				blockDeselect();
+				songDown(undo);
+				trlen = getSmallestMaxtracklen(songActiveLine, tracks4_8);
+			}
+			if (trackActiveLine < 0) {
+				trackActiveLine = lines;
+			}
+		}
+		if (trackActiveLine > trlen) {
+			trackActiveLine = lines;
+		}
+	}
+
+	/**
+	 * Inserts a blank songline at {@code line} and fills each column with the
+	 * next available unused-and-empty track. Drops C++'s {@code SendErrorMessage}
+	 * calls on the failure path - guard-only, the boolean return alone conveys
+	 * success/failure (matches this class's established pattern).
+	 */
+	public boolean songPrepareNewLine(int line, int sourceline, boolean alsoemptycolumns, Undo undo, int tracks4_8) {
+		if (sourceline < 0) {
+			sourceline = line + sourceline; // for -1 it is line-1
+		}
+
+		songInsertLine(line, undo, tracks4_8);
+
+		byte[] used = new byte[Tracks.TRACKSNUM];
+		markTfUsed(used, tracks4_8);
+		markTfNoEmpty(used);
+
+		int count = 0;
+		for (int i = 0; i < tracks4_8; i++) {
+			if (!alsoemptycolumns && sourceline >= 0 && song[sourceline][i] < 0) {
+				continue;
+			}
+			int k = findNearTrackBySongLineAndColumn(sourceline, i, used);
+			if (k >= 0) {
+				song[line][i] = k;
+				used[k] = TrackFlag.TF_USED;
+				count++;
+			}
+		}
+
+		return count >= tracks4_8;
+	}
+
+	/**
+	 * Replaces the track at the active song position with a fresh, unused,
+	 * empty track. Drops C++'s guard-only {@code SendErrorMessage} call on
+	 * the failure path (matches this class's established pattern).
+	 */
+	public boolean songPutnewemptyunusedtrack(Undo undo, int tracks4_8) {
+		int line = songGetActiveLine();
+		if (songGo[line] >= 0) {
+			return false; // it can't be done on the "GO TO LINE" line
+		}
+
+		undo.changeSong(line, trackActiveCol, UndoType.UETYPE_SONGTRACK, 0);
+
+		int cl = getActiveColumn();
+		int act = song[line][cl];
+		song[line][cl] = -1; // at current position in song --
+
+		byte[] used = new byte[Tracks.TRACKSNUM];
+		markTfUsed(used, tracks4_8);
+		markTfNoEmpty(used);
+
+		int k;
+		if (act >= 0 && used[act] == 0) {
+			k = act;
+		} else {
+			k = findNearTrackBySongLineAndColumn(line, cl, used);
+		}
+
+		if (k < 0) {
+			song[line][cl] = act;
+			return false;
+		}
+
+		song[line][cl] = k;
+		return true;
+	}
+
+	/**
+	 * Replaces the track at the active song position with a duplicate of
+	 * itself (so it can be edited independently), confirming first via
+	 * {@link Messages#sendQuestionMessage} if the track is otherwise unused
+	 * elsewhere in the song. Now fully testable on every branch since
+	 * {@code MessageBox} calls route through {@code Messages} (see
+	 * {@code plans/MESSAGEBOX_REFACTOR_PLAN.md}) - previously deferred
+	 * solely because of that prompt.
+	 */
+	public boolean songMaketracksduplicate(Undo undo, int tracks4_8, Messages messages) {
+		int line = songGetActiveLine();
+		if (songGo[line] >= 0) {
+			return false; // it can't be done on the "GO TO LINE" line
+		}
+
+		int cl = getActiveColumn();
+		int act = song[line][cl];
+		if (act < 0) {
+			return false; // cannot be duplicated, no track selected
+		}
+
+		undo.changeSong(line, cl, UndoType.UETYPE_SONGTRACK, -1); // just cast
+		song[line][cl] = -1; // at current position in song --
+
+		byte[] used = new byte[Tracks.TRACKSNUM];
+		markTfUsed(used, tracks4_8);
+		markTfNoEmpty(used);
+
+		int k;
+		if ((used[act] & TrackFlag.TF_USED) == 0) {
+			// not used anywhere else
+			song[line][cl] = act;
+			MessageAnswer r = messages.sendQuestionMessage("Make track's duplicate...",
+					"This track is used only once in song.\nAre you sure to make duplicate?", MessageButtons.OK_CANCEL);
+			if (r == MessageAnswer.OK) {
+				k = findNearTrackBySongLineAndColumn(line, cl, used);
+			} else {
+				undo.dropLast();
+				return false;
+			}
+		} else {
+			k = findNearTrackBySongLineAndColumn(line, cl, used);
+		}
+
+		if (k < 0) {
+			song[line][cl] = act;
+			undo.dropLast();
+			return false;
+		}
+
+		undo.changeTrack(k, trackActiveLine, UndoType.UETYPE_TRACKDATA, 1);
+		trackCopyFromTo(act, k); // copies source track act to k
+		song[line][cl] = k;
+		return true;
+	}
+
+	/**
+	 * Switches between 4-track mono and 8-track stereo mode, after a
+	 * user-confirmed {@link Messages#sendQuestionMessage} prompt. Returns
+	 * the resulting {@code tracks4_8} - {@code currentTracks4_8} unchanged
+	 * if the user doesn't confirm, or {@link #setTracks}'s result otherwise
+	 * (see that method's javadoc for why {@code tracks4_8} is a return
+	 * value here rather than a stored field). Omits C++'s trailing
+	 * {@code g_Atari.Init()} call - no {@code Atari} collaborator is held
+	 * by {@link Song}, matching this class's established omission of the
+	 * same call elsewhere (e.g. {@link #clearSong}).
+	 */
+	public int songswitch4_8(int currentTracks4_8, int newTracks4_8, Undo undo, Messages messages) {
+		stop(undo);
+
+		StringBuilder wrn = new StringBuilder("Warning: Undo operation won't be possible!!!\n");
+		if (newTracks4_8 == 4) {
+			int p = 0;
+			for (int i = 0; i < SONGLEN; i++) {
+				for (int j = 4; j < 8; j++) {
+					if (song[i][j] >= 0) {
+						p++;
+					}
+				}
+			}
+			if (p > 0) {
+				wrn.append("\nWarning: Song switch to mono 4 tracks will erase all the R1,R2,R3,R4 entries in song list.\n");
+			}
+		}
+		wrn.append("\nAre you sure to do it?");
+
+		MessageAnswer res = messages.sendQuestionMessage("Song switch mono/stereo", wrn.toString(), MessageButtons.YES_NO_CANCEL);
+		if (res != MessageAnswer.YES) {
+			return currentTracks4_8;
+		}
+
+		undo.clear();
+
+		int tracks4_8 = currentTracks4_8;
+		if (newTracks4_8 == 4) {
+			if (trackActiveCol >= 4) {
+				trackActiveCol = 3;
+				trackActiveCur = 0;
+			}
+			tracks4_8 = setTracks(4);
+			for (int i = 0; i < SONGLEN; i++) {
+				for (int j = 4; j < 8; j++) {
+					song[i][j] = -1;
+				}
+			}
+		} else if (newTracks4_8 == 8) {
+			tracks4_8 = setTracks(8);
+		}
+
+		return tracks4_8;
+	}
+
+	/**
+	 * Sends each track's pending "pressed tone" (set via
+	 * {@link #setPlayPressedTonesTNIV}/{@code SetPlayPressedTonesV}) to the
+	 * tracker driver, then consumes it. Always returns {@code true} (C++'s
+	 * BOOL return is unconditional).
+	 */
+	public boolean playPressedTones(AtariTrackerDriver atariTrackerDriver) {
+		for (int t = 0; t < SONGTRACKS; t++) {
+			int v = playPtVolume[t]; // volume is set last
+			if (v >= 0) {
+				int n = playPtNote[t];
+				int i = playPtInstr[t];
+				if (n >= 0 && i >= 0) {
+					atariTrackerDriver.setTrackNoteInstrumentVolume(t, n, i, v);
+				} else {
+					atariTrackerDriver.setTrackVolume(t, v);
+				}
+				setPlayPressedTonesTNIV(t, -1, -1, -1);
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Pastes {@code instrClipboard} into the active instrument, in one of
+	 * several "paste modes" ({@code special}: 0 = whole instrument, 1/2/3/6/8/9
+	 * = various envelope volume-column combinations, 4 = the rest of the
+	 * envelope, 5 = the note table, 7 = insert the clipboard's envelope at
+	 * the cursor). A no-op if {@link #instrCopy} was never called first
+	 * (matches C++'s {@code activeEditSection == NONE} guard). C++'s shared
+	 * {@code goto InstrPaste_Envelopes} target (cases 1/2/3/4/6/8/9) becomes
+	 * a small {@code switch} that only sets the four boolean flags, followed
+	 * by one shared copy loop, since Java has no {@code goto}. Drops the
+	 * trailing {@code g_Instruments.Update(i)} call ("write to Atari RAM") -
+	 * matches this class's established omission of the same call elsewhere
+	 * (no {@code Atari} dependency is modeled on {@link Song}).
+	 */
+	public void instrPaste(int special, Undo undo, AtariTrackerDriver atariTrackerDriver) {
+		if (instrClipboard.activeEditSection == InstrumentSection.NONE) {
+			return; // it has never been filled with anything
+		}
+
+		int i = getActiveInstr();
+		undo.changeInstrument(i, 0, UndoType.UETYPE_INSTRDATA, 1);
+		Instrument ai = instruments.getInstrument(i);
+		atariTrackerDriver.instrumentTurnOff(i); // turns off this instrument on all channels
+
+		if (special == 0) { // normal paste
+			ai.copyFrom(instrClipboard);
+			ai.activeEditSection = InstrumentSection.NAME;
+			ai.editNameCursorPos = 0; // so that the cursor is at the beginning of the instrument name
+			return;
+		}
+
+		if (special == 5) { // TABLE
+			for (int x = 0; x <= instrClipboard.parameters[Instrument.PAR_TBL_LENGTH]; x++) {
+				ai.noteTable[x] = instrClipboard.noteTable[x];
+			}
+			ai.parameters[Instrument.PAR_TBL_LENGTH] = instrClipboard.parameters[Instrument.PAR_TBL_LENGTH];
+			ai.parameters[Instrument.PAR_TBL_GOTO] = instrClipboard.parameters[Instrument.PAR_TBL_GOTO];
+			ai.editNoteTableCursorPos = 0;
+			return;
+		}
+
+		if (special == 7) { // vol+env insert to cursor
+			int sx = instrClipboard.parameters[Instrument.PAR_ENV_LENGTH] + 1;
+			if (ai.editEnvelopeX + sx > Instrument.ENVELOPE_MAX_COLUMNS) {
+				sx = Instrument.ENVELOPE_MAX_COLUMNS - ai.editEnvelopeX;
+			}
+			for (int x = Instrument.ENVELOPE_MAX_COLUMNS - 2; x >= ai.editEnvelopeX; x--) { // offset
+				int idx = x + sx;
+				if (idx >= Instrument.ENVELOPE_MAX_COLUMNS) {
+					continue;
+				}
+				for (int y = 0; y < Instrument.ENVROWS; y++) {
+					ai.envelope[idx][y] = ai.envelope[x][y];
+				}
+			}
+			for (int x = 0; x < sx; x++) { // insertion
+				int idx = ai.editEnvelopeX + x;
+				for (int y = 0; y < Instrument.ENVROWS; y++) {
+					ai.envelope[idx][y] = instrClipboard.envelope[x][y];
+				}
+			}
+			int newLen = ai.parameters[Instrument.PAR_ENV_LENGTH] + sx;
+			if (newLen >= Instrument.ENVELOPE_MAX_COLUMNS) {
+				newLen = Instrument.ENVELOPE_MAX_COLUMNS - 1;
+			}
+			ai.parameters[Instrument.PAR_ENV_LENGTH] = newLen;
+			if (ai.parameters[Instrument.PAR_ENV_GOTO] > ai.editEnvelopeX) {
+				int newGoto = ai.parameters[Instrument.PAR_ENV_GOTO] + sx;
+				if (newGoto >= Instrument.ENVELOPE_MAX_COLUMNS) {
+					newGoto = Instrument.ENVELOPE_MAX_COLUMNS - 1;
+				}
+				ai.parameters[Instrument.PAR_ENV_GOTO] = newGoto;
+			}
+			int newEditX = ai.editEnvelopeX + sx;
+			if (newEditX >= Instrument.ENVELOPE_MAX_COLUMNS) {
+				newEditX = Instrument.ENVELOPE_MAX_COLUMNS - 1;
+			}
+			ai.editEnvelopeX = newEditX;
+			return;
+		}
+
+		// InstrPaste_Envelopes: shared by special == 1/2/3/4/6/8/9.
+		boolean bl = false, br = false, ep = false, bltor = false, brtol = false;
+		switch (special) {
+		case 1 -> bl = br = true; // volume L/R
+		case 2 -> br = true; // volume R
+		case 3 -> bl = true; // volume L
+		case 4 -> ep = true; // envelope parameters
+		case 6 -> br = bl = ep = true; // vol+env
+		case 8 -> bltor = true; // volume L to R
+		case 9 -> brtol = true; // volume R to L
+		default -> {
+			return; // unrecognized special value - matches C++ falling through the switch doing nothing
+		}
+		}
+
+		for (int x = 0; x <= instrClipboard.parameters[Instrument.PAR_ENV_LENGTH]; x++) {
+			if (br) {
+				ai.envelope[x][EnvelopeParameter.VOLUMER] = instrClipboard.envelope[x][EnvelopeParameter.VOLUMER];
+			}
+			if (bl) {
+				ai.envelope[x][EnvelopeParameter.VOLUMEL] = instrClipboard.envelope[x][EnvelopeParameter.VOLUMEL];
+			}
+			if (bltor) {
+				ai.envelope[x][EnvelopeParameter.VOLUMER] = instrClipboard.envelope[x][EnvelopeParameter.VOLUMEL];
+			}
+			if (brtol) {
+				ai.envelope[x][EnvelopeParameter.VOLUMEL] = instrClipboard.envelope[x][EnvelopeParameter.VOLUMER];
+			}
+			if (ep) {
+				for (int y = EnvelopeParameter.DISTORTION; y < Instrument.ENVROWS; y++) {
+					ai.envelope[x][y] = instrClipboard.envelope[x][y];
+				}
+			}
+		}
+		ai.parameters[Instrument.PAR_ENV_LENGTH] = instrClipboard.parameters[Instrument.PAR_ENV_LENGTH];
+		ai.parameters[Instrument.PAR_ENV_GOTO] = instrClipboard.parameters[Instrument.PAR_ENV_GOTO];
+		ai.editEnvelopeX = 0;
+	}
+
+	/**
+	 * Starts (or updates) playback in the given {@code mode}, computing the
+	 * songline/trackline playback resumes from and kicking off the first
+	 * {@link #playBeat}. Mirrors C++'s {@code goto Play3} (shared by
+	 * {@code PLAY_TRACK} and a block-play request that falls back to it)
+	 * with a local {@code playTrack} flag instead, since Java has no
+	 * {@code goto}.
+	 *
+	 * <p>Omits C++'s {@code g_Atari.Init()} ({@code PLAY_SONG} only - no
+	 * {@code Atari} collaborator is held by {@link Song}, matching this
+	 * class's established omission of the same call elsewhere) and
+	 * {@code g_SongTimer.WaitForTimerRoutineProcessed()} (no live-playback
+	 * timer subsystem exists yet - already a no-op in the C++ test
+	 * environment for the same reason {@link #stop} omits it). Also omits
+	 * {@code g_playtime = 0} (a UI-only global with no Java equivalent) and
+	 * the {@code m_pokeyStream} "notify" call (always null in every test -
+	 * matches {@link #songPlayNextLine}'s established omission).
+	 *
+	 * <p><b>{@code PLAY_BLOCK}'s real block-selection branch is unreachable
+	 * here</b>: it only runs when {@link #isBlockSelected} is true, which -
+	 * since no {@code CTrackClipboard} block-selection surface is ported
+	 * yet (see class javadoc) - is never the case, so {@code PLAY_BLOCK}
+	 * always falls back to {@code PLAY_TRACK} behavior here, exactly as
+	 * C++ does whenever nothing is actually selected. {@link #trackPlayBlockStart}/
+	 * {@code trackPlayBlockEnd} exist purely so {@link #playBeat}/
+	 * {@link #playVBI}'s own {@code PLAY_BLOCK} checks stay faithful and
+	 * need no further changes once block selection is ported.
+	 */
+	public boolean play(PlayMode mode, boolean follow, int special, Undo undo, int tracks4_8, AtariTrackerDriver atariTrackerDriver) {
+		undo.separator();
+
+		if (mode == PlayMode.PLAY_BOOKMARK && !isBookmark()) {
+			return false; // if there is no bookmark, then nothing.
+		}
+
+		if (playMode != PlayMode.PLAY_STOP) {
+			if (mode != PlayMode.PLAY_FROM) {
+				stop(undo); // already playing and wants something other than play from edited pos.
+			} else if (!followplay) {
+				stop(undo); // is playing and wants to play from edited pos. but not followplay
+			}
+		}
+
+		quantizationNote = quantizationInstr = quantizationVol = -1;
+
+		boolean playTrack = false;
+		switch (mode) {
+		case PLAY_SONG -> { // whole song from the beginning including initialization (due to portamento etc.)
+			songPlayLine = 0;
+			trackPlayLine = 0;
+			speed = mainSpeed;
+		}
+		case PLAY_FROM -> { // song from the current position
+			if (playMode != PlayMode.PLAY_STOP && followplay) { // is playing with follow play
+				playMode = PlayMode.PLAY_FROM;
+				followplay = follow;
+				return true;
+			}
+			songPlayLine = songActiveLine;
+			trackPlayLine = trackActiveLine;
+		}
+		case PLAY_TRACK -> playTrack = true; // just the current tracks around
+		case PLAY_BLOCK -> { // only in the block
+			if (!isBlockSelected()) { // no block is selected, so the track plays
+				mode = PlayMode.PLAY_TRACK;
+				playTrack = true;
+			}
+			// else: unreachable here - see method javadoc.
+		}
+		case PLAY_BOOKMARK -> { // from the bookmark
+			songPlayLine = bookmark.songline;
+			trackPlayLine = bookmark.trackline;
+		}
+		case PLAY_SEEK_NEXT -> { // from seeking next
+			songActiveLine++;
+			if (songActiveLine > 255) {
+				songActiveLine = 255;
+			}
+			songPlayLine = songActiveLine;
+			trackPlayLine = trackActiveLine = 0;
+			mode = PlayMode.PLAY_FROM;
+		}
+		case PLAY_SEEK_PREV -> { // from seeking prev
+			songActiveLine--;
+			if (songActiveLine < 0) {
+				songActiveLine = 0;
+			}
+			songPlayLine = songActiveLine;
+			trackPlayLine = trackActiveLine = 0;
+			mode = PlayMode.PLAY_FROM;
+		}
+		default -> {
+		}
+		}
+		if (playTrack) { // Play3:
+			songPlayLine = songActiveLine;
+			trackPlayLine = (special == 0) ? 0 : trackActiveLine;
+		}
+
+		if (songGo[songPlayLine] >= 0) { // there is a goto
+			songPlayLine = songGo[songPlayLine]; // goto where
+			trackPlayLine = 0; // from the beginning of that track
+			if (songGo[songPlayLine] >= 0) {
+				return false; // goto into another goto - recursive "Go to line"
+			}
+		}
+
+		followplay = follow;
+		playBeat(tracks4_8, atariTrackerDriver); // sets m_speeda
+		speeda++; // (Original comment by Raster, April 27, 2003) adds 1 to m_speed, for what the real thing will take place in Init
+		if (followplay) { // cursor following the player
+			trackActiveLine = trackPlayLine;
+			songActiveLine = songPlayLine;
+		}
+		playMode = mode;
+
+		return true;
+	}
+
+	/** {@code special} defaults to 0, matching C++'s default argument. */
+	public boolean play(PlayMode mode, boolean follow, Undo undo, int tracks4_8, AtariTrackerDriver atariTrackerDriver) {
+		return play(mode, follow, 0, undo, tracks4_8, atariTrackerDriver);
+	}
+
+	/**
+	 * Advances playback by one track line: for each track column, finds the
+	 * current line's note/instrument/volume/speed (looping the track if it
+	 * has a {@code go} line, or advancing to the next songline via
+	 * {@link #songPlayNextLine} otherwise), then sends the result to the
+	 * tracker driver. Mirrors C++'s {@code goto TrackLine} (a full retry of
+	 * the per-track scan after advancing to the next songline) with a
+	 * labeled {@code while(true)}/{@code continue}, since Java has no
+	 * {@code goto}. Omits the trailing {@code m_pokeyStream} "song is done"
+	 * check - always null in every test, matches {@link #songPlayNextLine}'s
+	 * established omission.
+	 */
+	public boolean playBeat(int tracks4_8, AtariTrackerDriver atariTrackerDriver) {
+		int[] note = new int[SONGTRACKS];
+		int[] instr = new int[SONGTRACKS];
+		int[] vol = new int[SONGTRACKS];
+		for (int t = 0; t < tracks4_8; t++) {
+			note[t] = -1;
+			instr[t] = -1;
+			vol[t] = -1;
+		}
+
+		int lineSpeed;
+		trackLine: while (true) {
+			lineSpeed = speed;
+			for (int t = 0; t < tracks4_8; t++) {
+				int tt = songGetTrack(songPlayLine, t);
+				Track tr = tracks.getTrack(tt);
+				if (tr == null) {
+					continue; // invalid track pointer
+				}
+				int len = tr.len;
+				int go = tr.go;
+				int xline;
+				if (trackPlayLine >= len) {
+					if (go >= 0) {
+						xline = ((trackPlayLine - len) % (len - go)) + go;
+					} else {
+						// End of the track, but it's a block play or the first PlayBeat call (when m_play = PLAY_STOP)
+						if (playMode == PlayMode.PLAY_BLOCK || playMode == PlayMode.PLAY_STOP) {
+							note[t] = -1;
+							instr[t] = -1;
+							vol[t] = -1;
+							continue;
+						}
+						// Otherwise, a normal progression to the next line in the song
+						songPlayNextLine();
+						continue trackLine;
+					}
+				} else {
+					xline = trackPlayLine;
+				}
+
+				if (tr.note[xline] >= 0) {
+					note[t] = tr.note[xline];
+				}
+				instr[t] = tr.instr[xline]; // due to the same behavior as in the routine
+				if (tr.volume[xline] >= 0) {
+					vol[t] = tr.volume[xline];
+				}
+				if (tr.speed[xline] > 0) {
+					lineSpeed = tr.speed[xline];
+				}
+			}
+			break;
+		}
+
+		// Only now is the changed speed set
+		speeda = speed = lineSpeed;
+
+		// Active note, instrument and volume settings
+		for (int t = 0; t < tracks4_8; t++) {
+			int n = note[t];
+			int i = instr[t];
+			int v = vol[t];
+			if (v >= 0 && v < 16) {
+				if (n >= 0 && n < Notes.NOTESNUM) { // adjustment for routine compatibility
+					if (i < 0 || i >= Instruments.INSTRSNUM) {
+						i = 255; // adjustment for routine compatibility
+					}
+					atariTrackerDriver.setTrackNoteInstrumentVolume(t, n, i, v);
+				} else {
+					atariTrackerDriver.setTrackVolume(t, v);
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Advances the track playback line by one "tick", looping within a
+	 * selected block, advancing to the next songline once the pattern ends,
+	 * and syncing the edit cursor to the player when following.
+	 *
+	 * <p><b>Omits C++'s quantization branches</b> (triggered when
+	 * {@code speeda == speed && followplay} and {@code quantizationNote} is
+	 * set to a real note or -2): they need {@code Tracks}'s
+	 * {@code SetInstr}/{@code SetVol}/{@code SetSpeed}/{@code SetNoteInstrVol}
+	 * family and the {@code g_respectvolume} global, none of which are
+	 * ported yet. {@code quantizationNote} defaults to -1 and no ported
+	 * caller ever sets it to a note or -2, so both branches are unreachable
+	 * in every existing test - the reset to -1 at the end is kept since
+	 * it's a real, cheap, always-correct effect either way.
+	 */
+	public boolean playVBI(int tracks4_8, AtariTrackerDriver atariTrackerDriver) {
+		if (playMode == PlayMode.PLAY_STOP) {
+			return false; // not playing
+		}
+
+		speeda--;
+		if (speeda > 0) {
+			return false; // too soon to update
+		}
+
+		trackPlayLine++;
+
+		// m_play mode PLAY_BLOCK => only plays the range in the block
+		if (playMode == PlayMode.PLAY_BLOCK && trackPlayLine > trackPlayBlockEnd) {
+			trackPlayLine = trackPlayBlockStart;
+		}
+
+		// If none of the tracks end with "end", then it will end when reaching the max track length
+		if (trackPlayLine >= tracks.getMaxTrackLength()) {
+			songPlayNextLine();
+		}
+
+		playBeat(tracks4_8, atariTrackerDriver); // 1 pattern track line play
+
+		if (speeda == speed && followplay) { // playing and following the player
+			trackActiveLine = trackPlayLine;
+			songActiveLine = songPlayLine;
+
+			// Quantization - see method javadoc for why it's omitted.
+			quantizationNote = -1; // cancel the quantized note
+		}
+
+		return true;
 	}
 
 	private static int unsignedByte(byte[] buf, int index) {

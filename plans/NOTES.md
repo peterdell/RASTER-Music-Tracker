@@ -3336,5 +3336,44 @@ build clean and all 123 tests pass.
       compatibility, writing 0 for the unmapped ones.
     - New `RmtVersion.RMT_VERSION_STRING` and `AtariIO.loadBinaryBlock`.
     - Verified with `mvn -o test`: 316 tests pass (+8), all green on the
-      first build. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
-      committed.
+      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed as
+      `39347e2`.
+  - **2026-09-25**: Twenty-seventh Java-port batch - `Song` grows to cover
+    `SongEditing.cpp` sub-batch 9 (navigation/playback: `SongJump`/`SongUp`/
+    `SongDown`/`SongSubsongPrev`/`SongSubsongNext`, `TrackUp`/`TrackDown`,
+    `SongPrepareNewLine`/`SongPutnewemptyunusedtrack`,
+    `SongMaketracksduplicate`/`Songswitch4_8`, `PlayPressedTones`,
+    `InstrPaste`, `Play`/`PlayBeat`/`PlayVBI`).
+    - All always-true/never-observed `BOOL` returns dropped to `void`;
+      the rest keep `boolean` since tests assert on it.
+    - `songUp`/`songDown`/`songSubsongPrev`/`songSubsongNext` omit C++'s
+      untested `if (m_play && m_followplay) { Stop(); ...; Play(); }` tail
+      (`playMode` defaults to `PLAY_STOP` in every test).
+    - `g_keyboard_updowncontinue` becomes an explicit parameter on
+      `trackUp`/`trackDown`; new trivial delegator `trackGetLastLine()`.
+    - `songMaketracksduplicate`/`songswitch4_8` take a `Messages`
+      parameter, since `SendQuestionMessage`'s return value drives
+      branching (unlike the guard-only `SendErrorMessage` calls dropped
+      elsewhere). `songswitch4_8` needed a two-`tracks4_8`-parameter shape
+      (current in, possibly-updated out) since C++'s one parameter does
+      double duty that Java's stored-nowhere `tracks4_8` can't replicate
+      with one.
+    - `AtariTrackerDriver` grew `setTrackNoteInstrumentVolume`/
+      `setTrackVolume`/`instrumentTurnOff`, pulled forward from "no
+      dedicated test coverage - deferred" now that `PlayPressedTones`/
+      `PlayBeat` exercise them; JSR calls stay omitted, but their other
+      real effects (`g_rmtinstr` bookkeeping, one POKEY-register memory
+      reset) are kept.
+    - `instrPaste`'s and `play`'s/`playBeat`'s C++ `goto`s become boolean
+      flags and a labeled `while(true)`/`continue` loop - Java has no
+      `goto`.
+    - `PLAY_BLOCK`'s real block-selection branch is unreachable here (no
+      `CTrackClipboard` block-selection surface exists) - always falls
+      back to `PLAY_TRACK`; `trackPlayBlockStart`/`trackPlayBlockEnd` kept
+      as real fields for when that changes.
+    - `playVBI`'s quantization branches are omitted (need `Tracks`'s
+      setter family and `g_respectvolume`, none ported; unreachable in
+      every existing test).
+    - Verified with `mvn -o test`: 339 tests pass (+23), all green on the
+      first build. No C++ changes in this batch. Details in
+      `plans/JAVA_PORT_PLAN.md`. Not yet committed.

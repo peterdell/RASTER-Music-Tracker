@@ -1274,7 +1274,54 @@ for the full per-method breakdown.
   changes in this batch (the two bug fixes were committed separately,
   ahead of this port).
 
+## Twenty-seventh ported batch (2026-09-25): `Song` grows to cover `SongEditing.cpp` sub-batch 9 (navigation/playback)
+
+Ports `SongJump`/`SongUp`/`SongDown`/`SongSubsongPrev`/`SongSubsongNext`,
+`TrackUp`/`TrackDown`, `SongPrepareNewLine`/`SongPutnewemptyunusedtrack`,
+`SongMaketracksduplicate`/`Songswitch4_8`, `PlayPressedTones`, `InstrPaste`,
+and `Play`/`PlayBeat`/`PlayVBI`. See `plans/JAVA_SONGEDITING_PLAN.md`'s
+sub-batch 9 entry for the full per-method breakdown; highlights:
+
+- All always-true/never-observed `BOOL` returns dropped to `void`
+  (`songUp`/`songDown`/`songSubsongPrev`/`songSubsongNext`/`trackUp`/
+  `trackDown`); the rest keep `boolean` since tests assert on it.
+- `songUp`/`songDown`/`songSubsongPrev`/`songSubsongNext` omit C++'s
+  untested `if (m_play && m_followplay) { Stop(); ...; Play(); }` tail.
+- `g_keyboard_updowncontinue` becomes an explicit parameter on
+  `trackUp`/`trackDown` (matches this port's established idiom for globals
+  a method needs); new trivial delegator `trackGetLastLine()`.
+- `songMaketracksduplicate`/`songswitch4_8` take a `Messages` parameter -
+  `SendQuestionMessage`'s return value drives branching, unlike the
+  guard-only `SendErrorMessage` calls dropped elsewhere. `songswitch4_8`
+  needed a genuinely new two-`tracks4_8`-parameter shape (current value in,
+  possibly-updated value out) since C++'s single parameter does double
+  duty in a way Java's stored-nowhere `tracks4_8` can't replicate with one.
+- `AtariTrackerDriver` grew `setTrackNoteInstrumentVolume`/`setTrackVolume`/
+  `instrumentTurnOff`, pulled forward from "no dedicated test coverage -
+  deferred" now that `PlayPressedTones`/`PlayBeat` exercise them; their
+  JSR calls stay omitted (established no-op reasoning) but their other
+  real, observable effects (`g_rmtinstr` bookkeeping, one POKEY-register
+  memory reset) are kept.
+- `instrPaste`'s and `play`'s/`playBeat`'s C++ `goto`s become boolean flags
+  and a labeled `while(true)`/`continue` loop respectively - Java has no
+  `goto`.
+- `PLAY_BLOCK`'s real block-selection branch is unreachable in this port
+  (no `CTrackClipboard` block-selection surface exists), so it always
+  falls back to `PLAY_TRACK` behavior; `trackPlayBlockStart`/
+  `trackPlayBlockEnd` are kept as real fields for when that changes.
+- `playVBI`'s quantization branches are omitted (need `Tracks`'s
+  `SetInstr`/`SetVol`/`SetSpeed`/`SetNoteInstrVol` family and
+  `g_respectvolume`, none ported; unreachable in every existing test).
+- Tests (`SongEditingTest`, extended) mirror `SongEditingTests.cpp`'s
+  corresponding section exactly (23 tests). Verified with `mvn -o test`:
+  339 tests pass (+23), all green on the first build. No C++ changes in
+  this batch.
+
 ## Next steps
 
-Continue with `SongEditing.cpp` sub-batch 9 (navigation/playback) per
-`plans/JAVA_SONGEDITING_PLAN.md`'s suggested execution order.
+`plans/JAVA_SONGEDITING_PLAN.md`'s suggested execution order is now past
+every `SongEditing.cpp` sub-batch. Next up per that order: `CTrackClipboard`
+as its own dedicated scoping pass (narrowed to `BLOCKSETBEGIN`/
+`BLOCKSETEND`/`ISBLOCKSELECTED`/`BlockPaste`), then exporters
+(`CRmtExporter`/`CASMFileExporter` first, since they don't need the
+`PokeyStream` recording path).

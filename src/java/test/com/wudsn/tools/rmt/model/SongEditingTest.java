@@ -20,6 +20,8 @@ class SongEditingTest {
 	private Instruments instruments;
 	private Song song;
 	private Undo undo;
+	private Messages messages;
+	private AtariTrackerDriver atariTrackerDriver;
 
 	@BeforeEach
 	void setUp() {
@@ -41,6 +43,8 @@ class SongEditingTest {
 
 		song = new Song(instruments, tracks);
 		undo = new Undo(tracks, instruments, song);
+		messages = new Messages();
+		atariTrackerDriver = new AtariTrackerDriver(new Atari());
 
 		for (int line = 0; line < Song.SONGLEN; line++) {
 			for (int col = 0; col < Song.SONGTRACKS; col++) {
@@ -1102,5 +1106,265 @@ class SongEditingTest {
 		// Unlike getName(), the raw instrument name field isn't trimmed -
 		// loadRMT() fills the remainder with spaces up to the name's own length.
 		assertEquals("Lead", new String(instruments.getInstrument(2).name).stripTrailing());
+	}
+
+	// --- songJump / songUp / songDown / songSubsongPrev / songSubsongNext ---
+	// All conditionally call stop()/play() only inside "playMode != PLAY_STOP
+	// && followplay", never taken here (playMode defaults to PLAY_STOP).
+
+	@Test
+	void songJumpMovesForwardViaSongDown() {
+		song.songSetActiveLine(5);
+		song.songJump(3, undo); // toline=8>5 -> songSetActiveLine(7) then songDown() -> 8
+		assertEquals(8, song.songGetActiveLine());
+	}
+
+	@Test
+	void songJumpMovesBackwardViaSongUp() {
+		song.songSetActiveLine(5);
+		song.songJump(-3, undo); // toline=2<5 -> songSetActiveLine(3) then songUp() -> 2
+		assertEquals(2, song.songGetActiveLine());
+	}
+
+	@Test
+	void songUpWrapsToTheLastLineFromLineZero() {
+		song.songSetActiveLine(0);
+		song.songUp(undo);
+		assertEquals(Song.SONGLEN - 1, song.songGetActiveLine());
+	}
+
+	@Test
+	void songDownWrapsToLineZeroFromTheLastLine() {
+		song.songSetActiveLine(Song.SONGLEN - 1);
+		song.songDown(undo);
+		assertEquals(0, song.songGetActiveLine());
+	}
+
+	@Test
+	void songSubsongNextJumpsToTheLineAfterTheNextGotoMarker() {
+		song.songSetActiveLine(5);
+		song.getSongGo()[7] = 2;
+		song.songSubsongNext(undo);
+		assertEquals(8, song.songGetActiveLine());
+	}
+
+	@Test
+	void songSubsongPrevJumpsToTheLineAfterThePreviousGotoMarker() {
+		song.songSetActiveLine(10);
+		song.setActiveLine(5); // nonzero trackactiveline avoids the extra "i--" that only applies when it's exactly 0
+		song.getSongGo()[7] = 3;
+		song.songSubsongPrev(undo);
+		assertEquals(8, song.songGetActiveLine());
+		assertEquals(0, song.getActiveLine()); // trackactiveline always resets
+	}
+
+	// --- trackUp / trackDown ---
+	// keyboardUpDownContinue defaults to false here, matching the C++ test
+	// binary's stub default (SongEditingStub.cpp), not the real app's true
+	// default (set in RmtView.cpp, not modeled - no settings dialog exists yet).
+
+	@Test
+	void trackUpMovesActiveLineUpWithinBounds() {
+		song.setActiveLine(5);
+		song.trackUp(2, 4, false, undo);
+		assertEquals(3, song.getActiveLine());
+	}
+
+	@Test
+	void trackUpWrapsToTheBottomWhenGoingBelowZero() {
+		song.setActiveLine(1);
+		song.trackUp(3, 4, false, undo); // 1-3=-2, keyboardUpDownContinue is off, so -2 + trlen(64) = 62
+		assertEquals(62, song.getActiveLine());
+	}
+
+	@Test
+	void trackDownMovesActiveLineDownWithinBounds() {
+		song.setActiveLine(3);
+		song.trackDown(2, false, 4, false, undo); // stoponlastline=false avoids trackGetLastLine()'s -1-for-no-track edge case
+		assertEquals(5, song.getActiveLine());
+	}
+
+	// --- songPrepareNewLine / songPutnewemptyunusedtrack ---
+
+	@Test
+	void songPrepareNewLineFillsTheNewLineWithUnusedTracks() {
+		assertTrue(song.songPrepareNewLine(2, -1, true, undo, 4));
+
+		// With nothing else in the song, each column gets the next free track.
+		assertEquals(0, song.getSong()[2][0]);
+		assertEquals(1, song.getSong()[2][1]);
+		assertEquals(2, song.getSong()[2][2]);
+		assertEquals(3, song.getSong()[2][3]);
+	}
+
+	@Test
+	void songPutnewemptyunusedtrackAssignsAFreeTrackToTheActivePosition() {
+		song.songSetActiveLine(0); // getActiveColumn() defaults to column 0
+
+		assertTrue(song.songPutnewemptyunusedtrack(undo, 4));
+
+		assertEquals(0, song.getSong()[0][0]); // first free track assigned
+	}
+
+	// --- songMaketracksduplicate / songswitch4_8 ---
+
+	@Test
+	void songMaketracksduplicateReturnsZeroOnAGotoLine() {
+		song.songSetActiveLine(0);
+		song.getSongGo()[0] = 1; // songline 0 is a goto line
+
+		assertFalse(song.songMaketracksduplicate(undo, 4, messages));
+	}
+
+	@Test
+	void songMaketracksduplicateReturnsZeroWhenNoTrackSelected() {
+		song.songSetActiveLine(0); // getActiveColumn() defaults to column 0
+		song.getSong()[0][0] = -1; // no track at the active position
+
+		assertFalse(song.songMaketracksduplicate(undo, 4, messages));
+	}
+
+	@Test
+	void songMaketracksduplicateDuplicatesTheTrackWhenConfirmed() {
+		song.songSetActiveLine(0); // getActiveColumn() defaults to column 0
+		song.getSong()[0][0] = 5; // used only here -> triggers the confirm prompt
+		tracks.getTrack(5).len = 2;
+		tracks.getTrack(5).note[0] = 10;
+		tracks.getTrack(5).instr[0] = 2;
+
+		messages.setTestQuestionAnswer(MessageAnswer.OK);
+		assertTrue(song.songMaketracksduplicate(undo, 4, messages));
+
+		int newTrack = song.getSong()[0][0];
+		assertTrue(newTrack != 5); // moved to a different, free track
+		assertEquals(10, tracks.getTrack(newTrack).note[0]); // content duplicated
+		assertEquals(2, tracks.getTrack(newTrack).instr[0]);
+	}
+
+	@Test
+	void songMaketracksduplicateLeavesTheTrackUnchangedWhenCancelled() {
+		song.songSetActiveLine(0);
+		song.getSong()[0][0] = 5;
+		tracks.getTrack(5).len = 2;
+		tracks.getTrack(5).note[0] = 10;
+
+		messages.setTestQuestionAnswer(MessageAnswer.CANCEL);
+		assertFalse(song.songMaketracksduplicate(undo, 4, messages));
+
+		assertEquals(5, song.getSong()[0][0]); // unchanged
+	}
+
+	@Test
+	void songswitch4_8LeavesStateUnchangedWhenCancelled() {
+		int tracks4_8 = song.setTracks(8);
+		song.getSong()[0][4] = 5; // an R1 column entry that would be erased if confirmed
+
+		messages.setTestQuestionAnswer(MessageAnswer.CANCEL);
+		tracks4_8 = song.songswitch4_8(tracks4_8, 4, undo, messages);
+
+		assertEquals(8, tracks4_8); // unchanged
+		assertEquals(5, song.getSong()[0][4]); // unchanged
+	}
+
+	@Test
+	void songswitch4_8ClearsStereoColumnsWhenConfirmed() {
+		int tracks4_8 = song.setTracks(8);
+		song.getSong()[0][4] = 5; // R1 column entry
+
+		messages.setTestQuestionAnswer(MessageAnswer.YES);
+		tracks4_8 = song.songswitch4_8(tracks4_8, 4, undo, messages);
+
+		assertEquals(4, tracks4_8);
+		assertEquals(-1, song.getSong()[0][4]); // R1-R4 columns cleared
+	}
+
+	@Test
+	void songswitch4_8SwitchesToStereoWhenConfirmed() {
+		int tracks4_8 = 4;
+		messages.setTestQuestionAnswer(MessageAnswer.YES);
+		tracks4_8 = song.songswitch4_8(tracks4_8, 8, undo, messages);
+
+		assertEquals(8, tracks4_8);
+	}
+
+	// --- playPressedTones ---
+	// Confirmed safe: AtariTrackerDriver's methods only need the rmtInstr
+	// bookkeeping and the already-stubbed no-op JSR call (see
+	// AtariTrackerDriver's class javadoc).
+
+	@Test
+	void playPressedTonesRecordsTheInstrumentAndConsumesThePendingState() {
+		song.setPlayPressedTonesTNIV(0, 5, 2, 10); // track 0: note 5, instr 2, volume 10
+
+		assertTrue(song.playPressedTones(atariTrackerDriver));
+		assertEquals(2, atariTrackerDriver.getRmtInstrument(0));
+
+		// The pending state was consumed (volume reset to -1) - a second call
+		// has nothing left to play.
+		assertTrue(song.playPressedTones(atariTrackerDriver));
+		assertEquals(2, atariTrackerDriver.getRmtInstrument(0)); // unchanged - nothing pending
+	}
+
+	// --- instrPaste ---
+
+	@Test
+	void instrPasteNormalPasteCopiesTheClipboardIntoTheActiveInstrument() {
+		song.activeInstrSet(3, false);
+		setName(instruments.getInstrument(3).name, "Lead");
+		song.instrCopy(); // populates instrClipboard for real
+
+		song.activeInstrSet(5, false); // switch to a different, empty instrument
+		song.instrPaste(0, undo, atariTrackerDriver); // 0 = normal paste
+
+		assertEquals("Lead", nameToString(instruments.getInstrument(5).name));
+		assertEquals(InstrumentSection.NAME, instruments.getInstrument(5).activeEditSection);
+	}
+
+	// --- play ---
+	// Also exercises the real playBeat()/g_SongTimer-equivalent no-op path
+	// (see play()'s/playBeat()'s class javadoc).
+
+	@Test
+	void playSetsPlayModeAndInitializesPlayLines() {
+		song.songSetActiveLine(3);
+		song.setActiveLine(4);
+
+		assertTrue(song.play(PlayMode.PLAY_TRACK, false, undo, 4, atariTrackerDriver));
+
+		assertEquals(PlayMode.PLAY_TRACK, song.getPlayMode());
+		assertEquals(3, song.songGetPlayLine()); // songPlayLine = songActiveLine
+		assertEquals(0, song.getPlayLine()); // special=0 (default) -> trackPlayLine = 0
+	}
+
+	// --- playBeat ---
+
+	@Test
+	void playBeatSendsTheNoteAndInstrumentFromTheCurrentTrackLine() {
+		song.getSong()[0][0] = 5; // song line 0, column 0 -> track 5
+		song.songSetActiveLine(0);
+		song.setPlayMode(PlayMode.PLAY_TRACK);
+		song.songSetPlayLine(0);
+		song.setPlayLine(0);
+
+		Track tr = tracks.getTrack(5);
+		tr.len = 4;
+		tr.note[0] = 20;
+		tr.instr[0] = 3;
+		tr.volume[0] = 10;
+
+		assertTrue(song.playBeat(4, atariTrackerDriver));
+		assertEquals(3, atariTrackerDriver.getRmtInstrument(0));
+	}
+
+	// --- playVBI ---
+
+	@Test
+	void playVBIAdvancesTheTrackPlayLineOnceSpeedElapses() {
+		song.setPlayMode(PlayMode.PLAY_TRACK);
+		song.songSetPlayLine(0);
+		song.setPlayLine(5); // speeda defaults to 0, so "speeda--" makes the "too soon" check fail and it proceeds
+
+		assertTrue(song.playVBI(4, atariTrackerDriver));
+		assertEquals(6, song.getPlayLine());
 	}
 }
