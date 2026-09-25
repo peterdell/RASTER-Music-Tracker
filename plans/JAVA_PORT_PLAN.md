@@ -1230,8 +1230,51 @@ sub-batch).
   Verified with `mvn -o test`: 308 tests pass (+1), all green on the first
   build. No C++ changes.
 
+## Twenty-sixth ported batch (2026-09-25): `Song` grows to cover `SongEditing.cpp` sub-batches 8 and 10 (module format streams, plus `ClearSong`)
+
+Ports `SaveTxt`/`LoadTxt`, `SaveRMW`/`LoadRMW`, `LoadRMT`, and - pulled
+forward as a genuine blocking dependency rather than the originally-planned
+capstone - `ClearSong`. Two real C++ bugs were found and fixed along the
+way (`LoadTxt`'s segment-boundary bug, `SaveRMW`/`LoadRMW`'s `sizeof` bug -
+both already committed separately). See `plans/JAVA_SONGEDITING_PLAN.md`
+for the full per-method breakdown.
+
+- **`ClearSong` pulled forward**: `LoadTxt`/`LoadRMW` both call it
+  unconditionally. Re-checking its full body found every real dependency
+  already existed except a few small new `Song` fields
+  (`followplay`/`speeda`/`filename`/`ioType`/`lastExportIOType`/
+  `tracksOrderChangeSonglinefrom`/`to`) and one genuine hazard (a real MFC
+  UI-sync call), which - like several other globals it touches - has no
+  Java equivalent and is simply omitted, matching this port's established
+  pattern. `clearSong(int, Undo)` returns the new `tracks4_8` value,
+  matching `setTracks`'s "no stored global" reasoning.
+- **Deliberately deferred, its own separate undertaking**:
+  `IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track
+  serialization (the `[INSTRUMENT]`/`[TRACK]` sections, and RMW's
+  unconditional-for-every-instrument-and-track equivalent) - not exercised
+  by any C++ or Java test, since every existing test's song has no
+  non-empty instruments/tracks.
+- **Streams become `String`/`byte[]`**: `saveTxt`/`loadTxt` take/return a
+  `String` (matching `SapFile.export()`'s idiom); `saveRMW`/`loadRMW`/
+  `loadRMT` take/return a `byte[]` (the format is binary) - sidesteps
+  Java's checked `IOException` entirely.
+- **`SaveRMW`/`LoadRMW`'s ~15 unmapped "main parameters"** (UI/keyboard-
+  setting globals with no Java equivalent): per the user's explicit
+  decision, the file keeps all 31 four-byte slots in the same order as
+  C++ for byte-compatibility, writing `0` for the unmapped ones rather
+  than shrinking the block.
+- New `RmtVersion.RMT_VERSION_STRING` and `AtariIO.loadBinaryBlock` (byte-
+  array-based, additionally reporting input bytes consumed so `LoadRMT`
+  can find its second block).
+- Tests (`SongEditingTest`, extended) mirror `SongEditingTests.cpp`'s
+  corresponding sections exactly, plus a new
+  `saveRMWWritesEachMainParameterAsExactlyFourBytes` mirroring the C++
+  regression test added alongside that fix (8 tests total). Verified with
+  `mvn -o test`: 316 tests pass (+8), all green on the first build. No C++
+  changes in this batch (the two bug fixes were committed separately,
+  ahead of this port).
+
 ## Next steps
 
-Continue with `SongEditing.cpp` sub-batch 8 (module format streams:
-`SaveTxt`/`LoadTxt`/`SaveRMW`/`LoadRMW`/`LoadRMT`) per
+Continue with `SongEditing.cpp` sub-batch 9 (navigation/playback) per
 `plans/JAVA_SONGEDITING_PLAN.md`'s suggested execution order.

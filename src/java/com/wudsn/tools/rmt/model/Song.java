@@ -90,6 +90,13 @@ public final class Song {
 	private boolean ntsc;
 	private int octave;
 	private int volume;
+	private boolean followplay;
+	private int speeda;
+	private String filename = "";
+	private SongIOType ioType = SongIOType.NONE;
+	private SongIOType lastExportIOType = SongIOType.NONE;
+	private int tracksOrderChangeSonglinefrom;
+	private int tracksOrderChangeSonglineto;
 
 	private PlayMode playMode = PlayMode.PLAY_STOP;
 	private int quantizationNote = -1;
@@ -2017,9 +2024,612 @@ public final class Song {
 		}
 	}
 
+	public boolean getFollowPlayMode() {
+		return followplay;
+	}
+
+	public void setFollowPlayMode(boolean follow) {
+		followplay = follow;
+	}
+
+	public String getFilename() {
+		return filename;
+	}
+
+	public SongIOType getIOType() {
+		return ioType;
+	}
+
+	/**
+	 * Resets the song to empty and RMT into a default state. Returns the new
+	 * {@code tracks4_8} value (see {@link #setTracks}'s javadoc for why).
+	 *
+	 * <p>Omits several globals/a real MFC call C++'s version touches, with
+	 * no Java equivalent and nothing observing them here:
+	 * {@code g_rmtroutine}/{@code SetEditMode()}/{@code g_respectvolume}/
+	 * {@code g_rmtstripped_*}/{@code g_rmtmsxtext}/
+	 * {@code g_PrefixForAllAsmLabels}/{@code g_playtime}/
+	 * {@code g_activepart}/{@code g_active_ti}/
+	 * {@code g_SkipLinesAfterNoteInsert}/
+	 * {@code SyncSkipLinesAfterNoteInsertComboBox()} (the real
+	 * {@code AfxGetMainWnd()}/{@code CMainFrame} UI-sync call - the one
+	 * genuine hazard in C++'s version, extracted into its own method there
+	 * for the same reason)/{@code g_changes}. Also omits
+	 * {@code g_TrackClipboard.Clear()} (no {@code CTrackClipboard} block-
+	 * selection state exists yet - see {@link #trackCopy}'s javadoc) and
+	 * {@code g_Atari.Init()}/{@code g_AtariTrackerDriver->Init()} (no
+	 * {@code Atari}/{@code AtariTrackerDriver} collaborator is held by
+	 * {@link Song} - matches {@code Instruments.Update()}'s established
+	 * omission for the same reason).
+	 */
+	public int clearSong(int numOfTracks, Undo undo) {
+		stop(undo);
+		int tracks4_8 = setTracks(numOfTracks);
+
+		playPressedTonesInit();
+
+		followplay = true;
+		mainSpeed = speed = speeda = 16;
+		instrumentSpeed = 1;
+
+		songPlayLine = songActiveLine = 0;
+		trackActiveLine = trackPlayLine = 0;
+		trackActiveCol = trackActiveCur = 0;
+		activeInstr = 0;
+		octave = 0;
+		volume = Tracks.MAXVOLUME;
+
+		clearBookmark();
+
+		infoAct = EditArea.NAME;
+
+		// Fills the whole name with spaces, then overwrites the first 11
+		// with "Noname song" - deliberately not null-terminated within the
+		// array (matches C++'s memset-then-strncpy, minus the extra
+		// null-terminator byte C++ needs and this port's songName array
+		// doesn't - see the field's own sizing note in getName()'s javadoc).
+		java.util.Arrays.fill(songName, ' ');
+		String defaultName = "Noname song";
+		for (int i = 0; i < defaultName.length(); i++) {
+			songName[i] = defaultName.charAt(i);
+		}
+
+		songNameCursor = 0;
+
+		filename = "";
+		ioType = SongIOType.NONE;
+		lastExportIOType = SongIOType.NONE;
+
+		tracksOrderChangeSonglinefrom = 0;
+		tracksOrderChangeSonglineto = SONGLEN - 1;
+
+		for (int i = 0; i < SONGLEN; i++) {
+			for (int j = 0; j < SONGTRACKS; j++) {
+				song[i][j] = -1;
+			}
+			songGo[i] = -1;
+		}
+
+		instrClipboard.activeEditSection = InstrumentSection.NONE;
+		songGoClipboard = -2;
+
+		tracks.initTracks();
+		instruments.initInstruments();
+
+		undo.init();
+
+		return tracks4_8;
+	}
+
 	public void resetTuningVariables(TuningSettings tuning, TuningRatios tuningRatios) {
 		tuning.initialize(isNTSC());
 		tuningRatios.initialize();
+	}
+
+	private static final char[] HEX_UPPER = "0123456789ABCDEF".toCharArray();
+
+	private static char charH4(int b) {
+		return HEX_UPPER[(b >> 4) & 0xF];
+	}
+
+	private static char charL4(int b) {
+		return HEX_UPPER[b & 0xF];
+	}
+
+	/** Ported from IOHelpers.cpp's {@code Hexstr(char*, int)} - parses up to {@code len} leading uppercase-hex characters starting at {@code start}, returning -1 if there wasn't even one. */
+	private static int hexstr(String s, int start, int len) {
+		int r = 0;
+		int i = 0;
+		for (; i < len && start + i < s.length(); i++) {
+			char a = s.charAt(start + i);
+			if (a >= '0' && a <= '9') {
+				r = (r << 4) + (a - '0');
+			} else if (a >= 'A' && a <= 'F') {
+				r = (r << 4) + (a - 'A' + 10);
+			} else {
+				return i == 0 ? -1 : r;
+			}
+		}
+		return i == 0 ? -1 : r;
+	}
+
+	/** Ported from IOHelpers.cpp's {@code Trimstr(char*)} - truncates at the first {@code \r} or {@code \n} found (a line already split on {@code \n} can still carry a trailing {@code \r}). */
+	private static String trimstr(String s) {
+		int cr = s.indexOf('\r');
+		if (cr >= 0) {
+			return s.substring(0, cr);
+		}
+		int nl = s.indexOf('\n');
+		return nl >= 0 ? s.substring(0, nl) : s;
+	}
+
+	/** One line read from a larger text, mirroring C++'s {@code istream::getline} - {@code content} excludes the {@code \n} delimiter; {@code nextPos} is the index right after it (or the text's end). */
+	private record Line(String content, int nextPos) {
+	}
+
+	private static Line readLine(String text, int pos) {
+		int nl = text.indexOf('\n', pos);
+		if (nl < 0) {
+			return new Line(text.substring(pos), text.length());
+		}
+		return new Line(text.substring(pos, nl), nl + 1);
+	}
+
+	/** Ported from IOHelpers.cpp's {@code NextSegment(istream&)} - returns the index right after the next {@code '['}, or the text's length if there isn't one. */
+	private static int nextSegment(String text, int pos) {
+		int idx = text.indexOf('[', pos);
+		return idx < 0 ? text.length() : idx + 1;
+	}
+
+	/**
+	 * Encodes the song into RMT's plain-text {@code .txt} format, returning
+	 * the built text directly instead of C++'s {@code std::ostream&} output
+	 * parameter (matching {@code SapFile.export()}'s established idiom).
+	 *
+	 * <p>Omits C++'s {@code g_Instruments.SaveAll}/{@code g_Tracks.SaveAll}
+	 * calls (the {@code [INSTRUMENT]}/{@code [TRACK]} sections): neither is
+	 * exercised by any C++ or Java test (a song with no non-empty
+	 * instruments/tracks, as in every existing test, makes {@code SaveAll}
+	 * write nothing for TXT format anyway), and porting the underlying
+	 * per-instrument/per-track TXT serialization
+	 * ({@code IO_Instruments.cpp}/{@code IO_Tracks.cpp}) is its own
+	 * separate, substantial undertaking - see
+	 * {@code plans/JAVA_SONGEDITING_PLAN.md}.
+	 */
+	public String saveTxt(int tracks4_8) {
+		StringBuilder s = new StringBuilder();
+
+		s.append("[MODULE]\n");
+		s.append(String.format("RMT: %X\n", tracks4_8));
+		s.append("NAME: ").append(getName()).append("\n");
+		s.append(String.format("MAXTRACKLEN: %02X\n", tracks.getMaxTrackLength()));
+		s.append(String.format("MAINSPEED: %02X\n", mainSpeed));
+		s.append(String.format("INSTRSPEED: %X\n", instrumentSpeed));
+		s.append(String.format("VERSION: %02X\n", RmtFormatVersion.V1));
+		s.append("\n"); // gap
+		s.append("[SONG]\n");
+
+		// Looking for the length of the song
+		int songLength = -1;
+		for (int i = 0; i < SONGLEN; i++) {
+			if (songGo[i] >= 0) {
+				songLength = i;
+				continue;
+			}
+			for (int j = 0; j < tracks4_8; j++) {
+				if (song[i][j] >= 0 && song[i][j] < Tracks.TRACKSNUM) {
+					songLength = i;
+					break;
+				}
+			}
+		}
+
+		// Write the song
+		for (int i = 0; i <= songLength; i++) {
+			if (songGo[i] >= 0) {
+				s.append(String.format("Go to line %02X\n", songGo[i]));
+				continue;
+			}
+			for (int j = 0; j < tracks4_8; j++) {
+				int t = song[i][j];
+				if (t >= 0 && t < Tracks.TRACKSNUM) {
+					s.append(charH4(t)).append(charL4(t));
+				} else {
+					s.append("--");
+				}
+				if (j + 1 == tracks4_8) {
+					s.append("\n"); // for the last end of the line
+				} else {
+					s.append(" "); // between them
+				}
+			}
+		}
+
+		s.append("\n"); // gap
+
+		return s.toString();
+	}
+
+	/** C++'s output parameter {@code g_tracks4_8} (mutated via {@code SetTracks()} if a {@code "RMT:"} line is found). Always succeeds - C++'s {@code LoadTxt} has no failure return, matching {@link #playPressedTonesInit}'s established "drop the always-true return" reasoning. */
+	public record LoadTxtResult(int tracks4_8) {
+	}
+
+	/**
+	 * Decodes RMT's plain-text {@code .txt} format (the {@link #saveTxt}
+	 * counterpart) from {@code text}, taking the whole file content
+	 * directly instead of C++'s {@code std::istream&} (matching
+	 * {@code SapFile}'s established idiom - the C++ test itself already
+	 * builds the whole string upfront via a {@code std::istringstream}).
+	 *
+	 * <p>The {@code [INSTRUMENT]}/{@code [TRACK]} segment branches skip to
+	 * the next segment instead of decoding - same reason as
+	 * {@link #saveTxt}'s omission of the encoding side.
+	 */
+	public LoadTxtResult loadTxt(String text, Undo undo) {
+		int tracks4_8 = clearSong(8, undo); // always clear 8 tracks
+
+		tracks.initTracks();
+
+		// Read until the first "[" is found. This indicates a segment [.....]
+		int pos = nextSegment(text, 0);
+
+		while (pos < text.length()) {
+			Line header = readLine(text, pos);
+			String line = trimstr(header.content());
+			pos = header.nextPos();
+
+			if (line.equals("MODULE]")) {
+				while (pos < text.length()) {
+					// Check for next segment start '['
+					char b = text.charAt(pos);
+					pos++;
+					if (b == '[') {
+						break;
+					}
+					if (b == '\n') {
+						// A blank line (saveTxt() writes one as a "gap"
+						// before the next segment) - not real content, so
+						// it must not be handed to readLine() below (see
+						// AtariTrackerDriver... no, see this method's C++
+						// counterpart's own fix comment in SongEditing.cpp).
+						continue;
+					}
+					// Not a segment start so save the read character and get the rest of the line
+					Line rest = readLine(text, pos);
+					String kvLine = trimstr(b + rest.content());
+					pos = rest.nextPos();
+
+					// Split on the ": " (COLON + SPACE) point
+					int colonSpace = kvLine.indexOf(": ");
+					if (colonSpace < 0) {
+						continue;
+					}
+					String key = kvLine.substring(0, colonSpace + 1);
+					String value = kvLine.substring(colonSpace + 2);
+
+					// Process each of the possible commands in a [MODULE]
+					switch (key) {
+					case "RMT:" -> {
+						// RMT version indicator: 4 or 8
+						int v = hexstr(value, 0, 2);
+						tracks4_8 = setTracks(v <= 4 ? 4 : 8);
+					}
+					case "NAME:" -> {
+						// Set the name of the song.
+						java.util.Arrays.fill(songName, ' ');
+						int lname = Math.min(value.length(), SongInfo.SONG_NAME_MAX_LEN);
+						for (int i = 0; i < lname; i++) {
+							songName[i] = value.charAt(i);
+						}
+					}
+					case "MAXTRACKLEN:" -> {
+						// Set how long a track is: MAXTRACKLEN: 00-FF
+						int v = hexstr(value, 0, 2);
+						tracks.setMaxTrackLength(v == 0 ? 256 : v);
+						tracks.initTracks(); // reinitialise
+					}
+					case "MAINSPEED:" -> {
+						// Set the play speed: MAINSPEED: 01-FF
+						int v = hexstr(value, 0, 2);
+						if (v > 0) {
+							mainSpeed = v;
+						}
+					}
+					case "INSTRSPEED:" -> {
+						// Set the instrument speed: INSTRSPEED: 01-FF
+						int v = hexstr(value, 0, 1);
+						if (v > 0) {
+							instrumentSpeed = v;
+						}
+					}
+					default -> {
+						// VERSION: not needed for TXT yet, and anything unrecognized
+					}
+					}
+				}
+			} else if (line.equals("SONG]")) {
+				int idx;
+				for (idx = 0; pos < text.length() && idx < SONGLEN; idx++) {
+					// Read the song line. Dump out if its the next section
+					char b = text.charAt(pos);
+					pos++;
+					if (b == '[') {
+						break;
+					}
+					if (b == '\n') {
+						idx--; // this iteration didn't consume a real song line
+						continue;
+					}
+					Line rest = readLine(text, pos);
+					pos = rest.nextPos();
+					String content = b + rest.content();
+
+					// The line is one of two types: "Go to line XX" or "-- -- -- --"
+					if (content.startsWith("Go to line ")) {
+						int go = hexstr(content, 11, 2);
+						if (go >= 0 && go < SONGLEN) {
+							songGo[idx] = go;
+						}
+						continue;
+					}
+					for (int i = 0; i < tracks4_8; i++) {
+						int track = hexstr(content, i * 3, 2);
+						if (track >= 0 && track < Tracks.TRACKSNUM) {
+							song[idx][i] = track;
+						}
+					}
+				}
+			} else if (line.equals("INSTRUMENT]") || line.equals("TRACK]")) {
+				// Would pass instrument/track loading to Instruments/Tracks -
+				// not ported (see this method's own javadoc); skip to the
+				// next segment instead.
+				pos = nextSegment(text, pos);
+			} else {
+				pos = nextSegment(text, pos); // look for the beginning of the next segment
+			}
+		}
+
+		return new LoadTxtResult(tracks4_8);
+	}
+
+	private static final int RMW_MAIN_PARAMS_COUNT = 31;
+
+	private static void writeIntLE(java.io.ByteArrayOutputStream out, int value) {
+		out.write(value & 0xFF);
+		out.write((value >> 8) & 0xFF);
+		out.write((value >> 16) & 0xFF);
+		out.write((value >> 24) & 0xFF);
+	}
+
+	private static int readIntLE(byte[] data, int pos) {
+		return unsignedByte(data, pos) | (unsignedByte(data, pos + 1) << 8) | (unsignedByte(data, pos + 2) << 16) | (unsignedByte(data, pos + 3) << 24);
+	}
+
+	private static int indexOf(byte[] data, byte value, int from) {
+		for (int i = from; i < data.length; i++) {
+			if (data[i] == value) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Encodes the song into RMT's binary {@code .rmw} project-save format,
+	 * returning the built bytes directly instead of C++'s
+	 * {@code std::ostream&} output parameter (matching {@link #saveTxt}'s
+	 * reasoning). Each of the 31 "main parameters" is written as a 4-byte
+	 * little-endian int (matching this project's native x86/x64 byte order
+	 * and the just-fixed {@code sizeof(int)} - see
+	 * {@code plans/JAVA_SONGEDITING_PLAN.md}'s sub-batch 8 entry for that
+	 * fix's own history).
+	 *
+	 * <p><b>~15 of the 31 "main parameters" aren't modeled by this port at
+	 * all</b> (UI/keyboard-setting globals like {@code g_prove}/
+	 * {@code g_keyboard_layout}/{@code g_displayflatnotes} - none exist
+	 * anywhere in this Java port). Per the user's explicit decision, this
+	 * keeps the file's byte layout exactly as many 4-byte slots in the same
+	 * order as C++ (so the fields that *are* modeled stay in the right
+	 * position and the file size matches), writing {@code 0} for the
+	 * unmapped ones - rather than shrinking the block, which would no
+	 * longer be binary-compatible with real C++-saved {@code .rmw} files
+	 * for the fields this port does model.
+	 *
+	 * <p>Omits C++'s {@code g_Instruments.SaveAll}/{@code g_Tracks.SaveAll}
+	 * calls, same reasoning as {@link #saveTxt} - RMW format saves every
+	 * instrument/track unconditionally (not just non-empty ones, unlike
+	 * TXT), an even larger undertaking to port, and no test observes
+	 * instrument/track content through this format either.
+	 */
+	public byte[] saveRMW(int tracks4_8) {
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+
+		byte[] versionBytes = RmtVersion.RMT_VERSION_STRING.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+		out.write(versionBytes, 0, versionBytes.length);
+		out.write('\n'); // std::endl
+
+		for (int i = 0; i < SongInfo.SONG_NAME_MAX_LEN; i++) {
+			out.write(songName[i]);
+		}
+		out.write(0); // the extra byte C++'s m_songname[SONG_NAME_MAX_LEN + 1] has, beyond this port's own (SONG_NAME_MAX_LEN)-sized array
+
+		writeIntLE(out, RMW_MAIN_PARAMS_COUNT);
+		int[] mainParams = {
+				tracks4_8, speed, mainSpeed, instrumentSpeed,
+				songActiveLine, songPlayLine, trackActiveLine, trackPlayLine,
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 16 unmapped globals - see this method's own javadoc
+				trackActiveCol, trackActiveCur, activeInstr, volume, octave, infoAct.ordinal(), songNameCursor
+		};
+		for (int param : mainParams) {
+			writeIntLE(out, param);
+		}
+
+		// Write a complete song and songgo
+		for (int i = 0; i < SONGLEN; i++) {
+			for (int j = 0; j < SONGTRACKS; j++) {
+				writeIntLE(out, song[i][j]);
+			}
+		}
+		for (int i = 0; i < SONGLEN; i++) {
+			writeIntLE(out, songGo[i]);
+		}
+
+		return out.toByteArray();
+	}
+
+	/** {@code success} is C++'s own {@code bool} return; {@code tracks4_8} is C++'s output parameter {@code g_tracks4_8} (only meaningful when {@code success}). */
+	public record LoadRmwResult(boolean success, int tracks4_8) {
+	}
+
+	/**
+	 * Decodes RMT's binary {@code .rmw} project-save format (the
+	 * {@link #saveRMW} counterpart) from {@code data}, taking the whole
+	 * file content directly instead of C++'s {@code std::istream&}
+	 * (matching {@link #loadTxt}'s reasoning). See {@link #saveRMW}'s
+	 * javadoc for the unmapped-parameters/omitted-instrument-track-data
+	 * design notes, which apply here identically.
+	 */
+	public LoadRmwResult loadRMW(byte[] data, Undo undo) {
+		int tracks4_8 = clearSong(8, undo); // always clear 8 tracks
+
+		int nl = indexOf(data, (byte) '\n', 0);
+		if (nl < 0) {
+			return new LoadRmwResult(false, tracks4_8);
+		}
+		String fileVersion = new String(data, 0, nl, java.nio.charset.StandardCharsets.US_ASCII);
+		int pos = nl + 1;
+		if (!fileVersion.equals(RmtVersion.RMT_VERSION_STRING)) {
+			// Guard-only: version mismatch. C++'s SendErrorMessage isn't
+			// reproduced - Song holds no Messages reference (matches
+			// instrChangeApply's established reasoning).
+			return new LoadRmwResult(false, tracks4_8);
+		}
+
+		for (int i = 0; i < SongInfo.SONG_NAME_MAX_LEN; i++) {
+			songName[i] = (char) unsignedByte(data, pos + i);
+		}
+		pos += SongInfo.SONG_NAME_MAX_LEN + 1; // + the extra byte C++'s m_songname has
+
+		int p = readIntLE(data, pos); // number of main parameters
+		pos += 4;
+
+		// Mirrors C++'s mainparams[] order exactly - a parameter the file
+		// doesn't actually include (p < 31) keeps its current value, the
+		// same as C++ leaving a not-yet-overwritten local variable at its
+		// pre-existing (clearSong()-defaulted) value.
+		int[] mainParams = {
+				tracks4_8, speed, mainSpeed, instrumentSpeed,
+				songActiveLine, songPlayLine, trackActiveLine, trackPlayLine,
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				trackActiveCol, trackActiveCur, activeInstr, volume, octave, infoAct.ordinal(), songNameCursor
+		};
+		for (int i = 0; i < p && i < mainParams.length; i++) {
+			mainParams[i] = readIntLE(data, pos);
+			pos += 4;
+		}
+
+		tracks4_8 = setTracks(mainParams[0]);
+		speed = mainParams[1];
+		mainSpeed = mainParams[2];
+		instrumentSpeed = mainParams[3];
+		songActiveLine = mainParams[4];
+		songPlayLine = mainParams[5];
+		trackActiveLine = mainParams[6];
+		trackPlayLine = mainParams[7];
+		// mainParams[8..23]: unmapped globals, discarded
+		trackActiveCol = mainParams[24];
+		trackActiveCur = mainParams[25];
+		activeInstr = mainParams[26];
+		volume = mainParams[27];
+		octave = mainParams[28];
+		infoAct = EditArea.values()[mainParams[29]];
+		songNameCursor = mainParams[30];
+
+		// Read the complete song and songgo
+		for (int i = 0; i < SONGLEN; i++) {
+			for (int j = 0; j < SONGTRACKS; j++) {
+				song[i][j] = readIntLE(data, pos);
+				pos += 4;
+			}
+		}
+		for (int i = 0; i < SONGLEN; i++) {
+			songGo[i] = readIntLE(data, pos);
+			pos += 4;
+		}
+
+		return new LoadRmwResult(true, tracks4_8);
+	}
+
+	/**
+	 * Decodes an RMT {@code .rmt} module file (two concatenated
+	 * {@link AtariIO#loadBinaryBlock} blocks: the module data, then an
+	 * optional song/instrument names block) from {@code data}. Always
+	 * returns {@code true} on the one path any test reaches - the "missing
+	 * names block" branch is characterized as a real, non-failure outcome
+	 * in C++ too (an unconditional {@code SendInformationMessage} "stripped
+	 * RMT" dialog, not reproduced here per {@link #loadTxt}'s established
+	 * reasoning, followed by {@code return true}). The two guard-only
+	 * failure paths (corrupted first block; {@link #decodeModule} rejecting
+	 * it) return {@code false} without reproducing their
+	 * {@code SendErrorMessage} calls either.
+	 */
+	public boolean loadRMT(byte[] data) {
+		byte[] mem = new byte[Atari.MEMORY_SIZE];
+
+		AtariIO.BinaryBlockResult mainBlock = AtariIO.loadBinaryBlock(data, 0, mem);
+		if (mainBlock.length() <= 0) {
+			return false; // did not retrieve any data in the first block
+		}
+
+		byte[] instrumentLoadedFlags = new byte[Instruments.INSTRSNUM];
+		byte[] trackLoadedFlags = new byte[Tracks.TRACKSNUM];
+		DecodeModuleResult decodeResult = decodeModule(mem, mainBlock.fromAddr(), mainBlock.toAddr() + 1, instrumentLoadedFlags, trackLoadedFlags);
+		if (decodeResult.version() == 0) {
+			return false; // bad RMT data format or old tracker version
+		}
+
+		// RMT - now read the second block with names
+		AtariIO.BinaryBlockResult namesBlock = AtariIO.loadBinaryBlock(data, mainBlock.inputBytesConsumed(), mem);
+		if (namesBlock.length() < 1) {
+			return true; // stripped RMT module - song/instrument names are missing, not a failure
+		}
+
+		// Parse the song name (until we hit the terminating zero)
+		int idx = 0;
+		while (idx < SongInfo.SONG_NAME_MAX_LEN) {
+			int ch = unsignedByte(mem, namesBlock.fromAddr() + idx);
+			if (ch == 0) {
+				break;
+			}
+			songName[idx] = (char) ch;
+			idx++;
+		}
+		for (int k = idx; k < SongInfo.SONG_NAME_MAX_LEN; k++) {
+			songName[k] = ' '; // fill in the gaps
+		}
+
+		int addrInstrumentNames = namesBlock.fromAddr() + idx + 1; // +1 that's the zero behind the name
+		for (int i = 0; i < Instruments.INSTRSNUM; i++) {
+			if (instrumentLoadedFlags[i] == 0) {
+				continue; // this instrument wasn't loaded
+			}
+			char[] name = instruments.getName(i);
+			int nameIdx = 0;
+			while (nameIdx < name.length) {
+				int ch = unsignedByte(mem, addrInstrumentNames + nameIdx);
+				if (ch == 0) {
+					break;
+				}
+				name[nameIdx] = (char) ch;
+				nameIdx++;
+			}
+			for (int k = nameIdx; k < name.length; k++) {
+				name[k] = ' '; // fill in the gaps
+			}
+			addrInstrumentNames += nameIdx + 1; // +1 is zero behind the name
+		}
+
+		return true;
 	}
 
 	private static final int ATARI_MAX_INSTR_OR_TRACK_LENGTH = 256; // matches C++'s ATARI_MAX_INSTR_LENGTH/ATARI_MAX_TRACK_LENGTH (SongTypes.h) - both happen to be 256

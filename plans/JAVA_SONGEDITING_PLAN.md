@@ -168,11 +168,8 @@ byte value against it with `>`, not just equality).
   instrument ("writes to Atari ram") - matches `Instruments`'s own prior
   omission of the same call.
 
-### 8. Module format - streams
-`SaveTxt`/`LoadTxt`, `SaveRMW`/`LoadRMW`, `LoadRMT`. `LoadRMT` needs
-`AtariIO.LoadBinaryBlock` (a *stream*-based method - not yet ported;
-`AtariIO.java` currently only has `loadDataAsBinaryFile`, the buffer-based
-one `AtariTrackerDriver` needed).
+### 8. Module format - streams - DONE (commit pending)
+`SaveTxt`/`LoadTxt`, `SaveRMW`/`LoadRMW`, `LoadRMT`.
 
 **`SaveRMW`/`LoadRMW`'s "main parameters" `sizeof` bug - FIXED on the C++
 side**: the 31-parameter binary block was written/read via
@@ -226,6 +223,72 @@ global state that's only valid once an earlier test has run first. Does
 not affect the full suite (370/370 pass either way) - flagged for
 awareness, not investigated further or fixed here.
 
+**Genuine blocking dependency found while implementing: `ClearSong` (sub-
+batch 10) had to be pulled forward.** `LoadTxt`/`LoadRMW` both
+unconditionally call `ClearSong(8)` at their very start. Re-checking its
+full body (rather than trusting the "capstone, do last" scoping) found
+every real dependency already existed except a handful of small `Song`
+fields it also touches (`m_followplay`/`m_speeda`/`m_filename`/
+`m_ioType`/`m_lastExportIOType`/`m_TracksOrderChange_songline{from,to}` -
+none previously needed) and its one genuine hazard
+(`SyncSkipLinesAfterNoteInsertComboBox()`, a real `AfxGetMainWnd()`/
+`CMainFrame` UI-sync call), which - like `g_Atari.Init()`/
+`g_AtariTrackerDriver->Init()`, `g_TrackClipboard.Clear()`, and a dozen
+trivial globals it also touches - has no Java equivalent and isn't
+observed by any test, so it's simply omitted (matching the same pattern
+used throughout this port). Added the new fields plus
+`getFollowPlayMode`/`setFollowPlayMode`/`getFilename`/`getIOType`
+accessors and `clearSong(int, Undo)`, returning the new `tracks4_8` value
+(matching `setTracks`'s established "no stored global" reasoning). Tests
+(`clearSongResetsSongDataAndPositionBackToDefaults`,
+`clearSongSetsTheTrackCount`) mirror `SongEditingTests.cpp`'s `ClearSong`
+section exactly.
+
+**Deliberately deferred, its own separate undertaking: `IO_Instruments.cpp`/
+`IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track serialization.**
+`SaveTxt`/`LoadTxt` call `g_Instruments.SaveAll`/`LoadAll`/
+`g_Tracks.SaveAll`/`LoadAll` for the `[INSTRUMENT]`/`[TRACK]` sections;
+`SaveRMW`/`LoadRMW` call the RMW-format equivalents (which, unlike TXT,
+serialize *every* instrument/track unconditionally, not just non-empty
+ones - an even larger surface). None of this is exercised by any C++ or
+Java test (every existing test's song has no non-empty instruments/tracks,
+so TXT's `SaveAll` writes nothing for them anyway), so these calls are
+omitted entirely from the Java port rather than attempting a large,
+untested new serialization layer. `LoadTxt`'s `[INSTRUMENT]`/`[TRACK]`
+segment branches skip to the next segment instead of decoding, matching
+the encoding side's omission.
+
+**Design choices carried through all five methods**:
+- **Streams become `String`/`byte[]`**: `SaveTxt`/`LoadTxt` take/return a
+  `String` (matching `SapFile.export()`'s established idiom - the C++
+  test itself already builds the whole string upfront via a
+  `std::istringstream`); `SaveRMW`/`LoadRMW`/`LoadRMT` take/return a
+  `byte[]`, since the format is binary. This sidesteps Java's checked
+  `IOException` entirely - no stream abstraction is introduced anywhere in
+  this port.
+- **`SaveRMW`/`LoadRMW`'s ~15 unmapped "main parameters"**: per the user's
+  explicit decision, the file keeps all 31 four-byte slots in the same
+  order as C++ (byte-compatible with real C++-saved `.rmw` files for the
+  16 fields this port *does* model), writing `0` for the UI/keyboard-
+  setting globals ({@code g_prove}, {@code g_keyboard_layout}, etc.) that
+  don't exist anywhere in this Java port, rather than shrinking the block.
+- **New `RmtVersion.RMT_VERSION_STRING`** (was the C++ compile-time
+  constant of the same name).
+- **New `AtariIO.loadBinaryBlock`** (was `CAtariIO::LoadBinaryBlock`,
+  needed by `LoadRMT`): byte-array-based like `loadDataAsBinaryFile`,
+  additionally reporting how many *input* bytes were consumed (header
+  plus data) - a stream-based caller gets this for free from the stream's
+  own advanced position, but `LoadRMT` needs it explicitly to find where
+  its second block starts in a byte array.
+- `LoadRMW`'s version-mismatch guard and `LoadRMT`'s two guard-only
+  failure paths return `false`/`LoadRmwResult(false, ...)` without
+  reproducing their `SendErrorMessage` calls, matching
+  `instrChangeApply`'s established reasoning.
+
+Tests (`SongEditingTest`, extended) mirror `SongEditingTests.cpp`'s
+corresponding sections exactly (6 tests, plus the new C++-mirroring
+`saveRMWWritesEachMainParameterAsExactlyFourBytes`).
+
 ### 9. Navigation/playback
 `SongJump`/`SongUp`/`SongDown`/`SongSubsongPrev`/`SongSubsongNext`,
 `TrackUp`/`TrackDown`, `SongPrepareNewLine`/`SongPutnewemptyunusedtrack`,
@@ -235,13 +298,12 @@ awareness, not investigated further or fixed here.
 already a no-op per `AtariTrackerDriver`'s own javadoc). `Stop` is already
 done.
 
-### 10. `ClearSong` - capstone
-Touches most of the above (`Stop`, `SetTracks`, `PlayPressedTonesInit`,
-`ClearBookmark`, `Tracks.initTracks`, `Instruments.initInstruments`,
-`Undo.init`, plus `g_TrackClipboard.Clear()`) - do this last, once its
-dependencies exist. One piece (`SyncSkipLinesAfterNoteInsertComboBox`, a
-real MFC-main-window sync call) stays deferred, matching the C++ side's own
-extraction of it into its own no-op-stubbed method.
+### 10. `ClearSong` - DONE (commit pending; done as part of sub-batch 8, not last)
+Turned out not to be a capstone after all - `LoadTxt`/`LoadRMW` (sub-batch
+8) both call it unconditionally, making it a genuine blocking dependency
+rather than something to save for last. See sub-batch 8's entry above for
+the full writeup (new fields, omitted globals/UI call, and why it turned
+out fully portable once actually re-checked).
 
 ## Needs `CTrackClipboard` ported first (its own sub-effort)
 
@@ -320,11 +382,12 @@ editing surface exist to support them.
 2. Sub-batch 6 (`InstrInfo`/`InstrChangeApply`/`TrackInfo`) - DONE.
 3. Sub-batches 2-5 (song-line editing, track-length cleanup, clipboard-free
    copy-paste, bookmark/settings) - DONE.
-4. Sub-batch 7 (module format buffers) - DONE. Sub-batch 8 (module format
-   streams) next - the `LoadTxt` bug is now fixed on the C++ side, so
-   Java's port will use the corrected behavior directly.
-5. Sub-batch 9 (navigation/playback).
-6. Sub-batch 10 (`ClearSong`) once its dependencies land.
+4. Sub-batch 7 (module format buffers) - DONE.
+5. Sub-batch 8 (module format streams) - DONE, including pulling sub-batch
+   10 (`ClearSong`) forward as a genuine blocking dependency rather than a
+   capstone. Both C++ bugs it surfaced (`LoadTxt`'s segment-boundary bug,
+   `SaveRMW`/`LoadRMW`'s `sizeof` bug) are fixed.
+6. Sub-batch 9 (navigation/playback) - next up.
 7. `CTrackClipboard` as its own dedicated scoping pass (now narrowed to
    just `BLOCKSETBEGIN`/`BLOCKSETEND`/`ISBLOCKSELECTED`/`BlockPaste`, since
    sub-batch 4 already resolved `TrackCopy`/`TrackPaste`), once its
@@ -333,6 +396,10 @@ editing surface exist to support them.
    need `PokeyStream`; the SAP-R/LZSS/WAV/XEX family only once
    `PokeyStream`'s real recording path is unblocked).
 9. TMC/MOD importers - separate, dedicated plan, not part of this one.
+10. `IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track
+    serialization - deferred out of sub-batch 8 (see its entry above),
+    needed for a fully faithful `SaveTxt`/`LoadTxt`/`SaveRMW`/`LoadRMW`
+    round trip of real song data, not just the module-level fields.
 
 Each numbered sub-batch above is intended to be confirmed with the user
 individually before implementation, per this project's established cadence

@@ -3317,3 +3317,24 @@ build clean and all 123 tests pass.
     (+1). Java's own `SaveRMW`/`LoadRMW` port (sub-batch 8) hasn't started
     yet, so there's nothing to port the fix into yet - it'll use the
     corrected 4-byte-per-parameter format directly.
+  - **2026-09-25**: Twenty-sixth Java-port batch - `Song` grows to cover
+    `SongEditing.cpp` sub-batches 8 and 10 (`SaveTxt`/`LoadTxt`/`SaveRMW`/
+    `LoadRMW`/`LoadRMT`, plus `ClearSong`, pulled forward as a genuine
+    blocking dependency rather than the originally-planned capstone).
+    - `ClearSong` turned out fully portable once re-checked in full - only
+      a handful of small new `Song` fields and one omitted MFC UI-sync
+      call (no Java equivalent, unobserved by any test) were needed.
+    - Deliberately deferred `IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW
+      per-instrument/per-track serialization as its own separate
+      undertaking - untested by any existing C++ or Java test.
+    - `saveTxt`/`loadTxt` take/return `String`; `saveRMW`/`loadRMW`/
+      `loadRMT` take/return `byte[]` - sidesteps Java's checked
+      `IOException` entirely, no stream abstraction introduced.
+    - `SaveRMW`/`LoadRMW`'s ~15 unmapped "main parameters" (UI/keyboard
+      globals with no Java equivalent): per the user's decision, the file
+      keeps all 31 four-byte slots in the same order as C++ for byte-
+      compatibility, writing 0 for the unmapped ones.
+    - New `RmtVersion.RMT_VERSION_STRING` and `AtariIO.loadBinaryBlock`.
+    - Verified with `mvn -o test`: 316 tests pass (+8), all green on the
+      first build. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
+      committed.

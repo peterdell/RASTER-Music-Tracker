@@ -847,4 +847,260 @@ class SongEditingTest {
 		assertEquals("Lead", nameToString(instruments.getInstrument(2).name));
 		assertEquals(5, instruments.getInstrument(2).parameters[0]);
 	}
+
+	// --- clearSong ---
+	// clearSong()'s only real hazard in C++ (a real MFC AfxGetMainWnd()/
+	// CMainFrame call to sync a UI combo box) has no Java equivalent and
+	// isn't reproduced (see Song.clearSong()'s own javadoc for the full list
+	// of omitted globals/calls - none of them are observed by any test).
+
+	@Test
+	void clearSongResetsSongDataAndPositionBackToDefaults() {
+		song.getSong()[0][0] = 5;
+		song.getSongGo()[2] = 7;
+
+		song.songSetActiveLine(3);
+		song.setActiveLine(4);
+		song.songSetPlayLine(3);
+		song.setPlayLine(4);
+		song.activeInstrSet(5, false);
+		song.setFollowPlayMode(false);
+
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.speed = 6;
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 3;
+		setName(info.songName, "Custom");
+		song.setSongInfoPars(info);
+
+		assertTrue(song.setBookmark());
+
+		song.clearSong(4, undo);
+
+		assertEquals(-1, song.getSong()[0][0]);
+		assertEquals(-1, song.getSongGo()[2]);
+		assertEquals(0, song.songGetActiveLine());
+		assertEquals(0, song.getActiveLine());
+		assertEquals(0, song.songGetPlayLine());
+		assertEquals(0, song.getPlayLine());
+		assertEquals(0, song.getActiveInstr());
+		assertTrue(song.getFollowPlayMode());
+
+		SongInfo cleared = new SongInfo();
+		song.getSongInfoPars(cleared);
+		assertEquals(16, cleared.speed);
+		assertEquals(16, cleared.mainSpeed);
+		assertEquals(1, cleared.instrumentSpeed);
+		assertEquals("Noname song", song.getName()); // getName() trims trailing padding; nameToString() doesn't
+
+		assertEquals(-1, song.getBookmark().songline);
+		assertEquals(-1, song.getBookmark().trackline);
+		assertEquals(-1, song.getBookmark().speed);
+
+		assertEquals("", song.getFilename());
+		assertEquals(SongIOType.NONE, song.getIOType());
+	}
+
+	@Test
+	void clearSongSetsTheTrackCount() {
+		assertEquals(8, song.clearSong(8, undo));
+		assertEquals(4, song.clearSong(4, undo));
+	}
+
+	// --- saveTxt ---
+
+	@Test
+	void saveTxtWritesModuleHeaderAndSongLineData() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 2;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5; // only line 0 has data - the rest stay "--"
+
+		String text = song.saveTxt(4);
+
+		assertTrue(text.contains("[MODULE]"));
+		assertTrue(text.contains("[SONG]"));
+		assertTrue(text.contains("05 -- -- --\n")); // track 05 in column 0, columns 1-3 empty
+	}
+
+	// --- loadTxt ---
+	// Round-trips through saveTxt, same philosophy as loadRMT's round trip
+	// below. loadTxt() has no unconditional-success dialog to avoid (unlike
+	// loadRMW's version-mismatch MessageBox) - it only ever fails silently by
+	// leaving fields at their clearSong() defaults for a segment it doesn't
+	// recognize.
+
+	@Test
+	void loadTxtRoundTripsTheModuleHeaderAndTheSongData() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 2;
+		setName(info.songName, "TestSong");
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+
+		String text = song.saveTxt(4);
+
+		Song loaded = new Song(instruments, tracks);
+		Undo loadedUndo = new Undo(tracks, instruments, loaded);
+		Song.LoadTxtResult result = loaded.loadTxt(text, loadedUndo);
+
+		// The [MODULE] header block parses correctly...
+		assertEquals(4, result.tracks4_8()); // RMT: 04 round-trips tracks4_8 via setTracks()
+		SongInfo loadedInfo = new SongInfo();
+		loaded.getSongInfoPars(loadedInfo);
+		assertEquals(6, loadedInfo.mainSpeed);
+		assertEquals(2, loadedInfo.instrumentSpeed);
+		assertEquals("TestSong", loaded.getName());
+
+		// ...and so does "[SONG]", restoring the saved track 5.
+		assertEquals(5, loaded.getSong()[0][0]);
+	}
+
+	// --- saveRMW ---
+
+	@Test
+	void saveRMWWritesTheVersionStringFirst() {
+		byte[] out = song.saveRMW(4);
+
+		String prefix = new String(out, 0, RmtVersion.RMT_VERSION_STRING.length(), java.nio.charset.StandardCharsets.US_ASCII);
+		assertEquals(RmtVersion.RMT_VERSION_STRING, prefix);
+	}
+
+	// FIXED BUG (was pre-existing, from when this project was 32-bit - see
+	// plans/JAVA_SONGEDITING_PLAN.md's sub-batch 8 entry): SaveRMW/LoadRMW's
+	// main-parameters loop used to write/read 8 bytes per parameter instead
+	// of 4 on this 64-bit C++ build. This Java port always writes exactly 4
+	// bytes per parameter (no pointer-array sizeof to get wrong in the first
+	// place), but this test proves the exact byte layout directly anyway,
+	// mirroring the C++ regression test added alongside that fix.
+	@Test
+	void saveRMWWritesEachMainParameterAsExactlyFourBytes() {
+		song.getSong()[0][0] = 5; // the first value after the main-parameters block
+
+		byte[] out = song.saveRMW(4);
+
+		int offset = RmtVersion.RMT_VERSION_STRING.length() + 1; // version line + '\n'
+		offset += SongInfo.SONG_NAME_MAX_LEN + 1; // songName plus the extra C++ byte
+
+		int paramCount = readIntLE(out, offset);
+		offset += 4;
+		assertEquals(31, paramCount);
+
+		int firstParam = readIntLE(out, offset); // tracks4_8, passed as 4
+		assertEquals(4, firstParam);
+
+		// If each parameter were (incorrectly) 8 bytes, this offset would land
+		// in the middle of the main-parameters block instead of at song[0][0].
+		offset += paramCount * 4;
+		int firstSongValue = readIntLE(out, offset);
+		assertEquals(5, firstSongValue);
+	}
+
+	private static int readIntLE(byte[] data, int pos) {
+		return (data[pos] & 0xFF) | ((data[pos + 1] & 0xFF) << 8) | ((data[pos + 2] & 0xFF) << 16) | ((data[pos + 3] & 0xFF) << 24);
+	}
+
+	// --- loadRMW ---
+	// Round-trips through saveRMW. loadRMW's version-mismatch branch (a real
+	// MessageBox, unconditional on the error path) is deliberately never
+	// exercised - only ever fed a byte array that starts with a matching
+	// version string, same "avoidable with valid test data" treatment as
+	// loadRMT's guard-only error branches.
+
+	@Test
+	void loadRMWRoundTripsSongDataThroughSaveRMW() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 2;
+		setName(info.songName, "TestSong");
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+		song.getSongGo()[2] = 7;
+
+		byte[] out = song.saveRMW(4);
+
+		Song loaded = new Song(instruments, tracks);
+		Undo loadedUndo = new Undo(tracks, instruments, loaded);
+		Song.LoadRmwResult result = loaded.loadRMW(out, loadedUndo);
+
+		assertTrue(result.success());
+		assertEquals(5, loaded.getSong()[0][0]);
+		assertEquals(7, loaded.getSongGo()[2]);
+
+		SongInfo loadedInfo = new SongInfo();
+		loaded.getSongInfoPars(loadedInfo);
+		assertEquals(6, loadedInfo.mainSpeed);
+		assertEquals(2, loadedInfo.instrumentSpeed);
+		assertEquals("TestSong", loaded.getName());
+	}
+
+	// --- loadRMT ---
+	// Builds a valid two-block RMT file in memory (module block via
+	// makeModule, names block by hand) rather than hand-deriving the RMT
+	// header's byte layout - same round-trip philosophy as
+	// makeModule/decodeModule above.
+
+	private static void writeBinaryBlock(java.io.ByteArrayOutputStream out, byte[] mem, int fromAddr, int toAddr) {
+		out.write(fromAddr & 0xFF);
+		out.write((fromAddr >> 8) & 0xFF);
+		out.write(toAddr & 0xFF);
+		out.write((toAddr >> 8) & 0xFF);
+		out.write(mem, fromAddr, toAddr - fromAddr + 1);
+	}
+
+	@Test
+	void loadRMTDecodesTheModuleAndNamesBlocks() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 2;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+		tracks.getTrack(5).len = 4;
+		tracks.getTrack(5).note[0] = 10;
+		tracks.getTrack(5).instr[0] = 2;
+		setName(instruments.getInstrument(2).name, "Lead");
+
+		byte[] mem = new byte[8192];
+		byte[] instrSavedFlags = new byte[Instruments.INSTRSNUM];
+		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
+		int fromAddr = 0x100;
+		int endAddr = song.makeModule(mem, fromAddr, SongIOType.RMT, instrSavedFlags, trackSavedFlags, 4);
+		assertTrue(endAddr > 0);
+
+		java.io.ByteArrayOutputStream blocks = new java.io.ByteArrayOutputStream();
+		writeBinaryBlock(blocks, mem, fromAddr, endAddr - 1);
+
+		// Names block: song name, then the name of each *loaded* instrument
+		// (in index order) - here just instrument 2, since it's the only one used.
+		byte[] namesMem = new byte[64];
+		int p = 0;
+		for (char c : "TestSong".toCharArray()) {
+			namesMem[p++] = (byte) c;
+		}
+		namesMem[p++] = 0;
+		for (char c : "Lead".toCharArray()) {
+			namesMem[p++] = (byte) c;
+		}
+		namesMem[p++] = 0;
+		writeBinaryBlock(blocks, namesMem, 0, p - 1);
+
+		Song decoded = new Song(instruments, tracks);
+		assertTrue(decoded.loadRMT(blocks.toByteArray()));
+
+		assertEquals("TestSong", decoded.getName());
+		// Unlike getName(), the raw instrument name field isn't trimmed -
+		// loadRMT() fills the remainder with spaces up to the name's own length.
+		assertEquals("Lead", new String(instruments.getInstrument(2).name).stripTrailing());
+	}
 }
