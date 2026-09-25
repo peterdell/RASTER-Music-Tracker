@@ -3259,4 +3259,26 @@ build clean and all 123 tests pass.
       from the same clean slate the C++ fixture's manual memset provides.
     - Verified with `mvn -o test`: 307 tests pass (+32), all green on the
       first build once that fixture gap was found and fixed. Details in
-      `plans/JAVA_PORT_PLAN.md`. Not yet committed.
+      `plans/JAVA_PORT_PLAN.md`. Committed (`bd826a9`).
+  - **2026-09-25**: Fixed the `LoadTxt` bug on the C++ side (user's
+    explicit "fix on both" decision - see
+    `plans/JAVA_SONGEDITING_PLAN.md`'s sub-batch 8 entry for the full
+    mechanism). `LoadTxt()`'s `[MODULE]`/`[SONG]` segment loops now skip a
+    lone `'\n'` byte (the blank "gap" line `SaveTxt()` writes before each
+    segment) instead of handing it to `getline()` as content, which used
+    to silently swallow the next segment's `'['` boundary marker. Updated
+    `SongEditingTests.cpp`'s round-trip test to assert the song data now
+    survives the round trip (previously it documented that it didn't).
+    Verified via full Release|x64 rebuild: 370 tests pass (same count -
+    no new test, an existing one now asserts the fixed behavior). Java's
+    own `LoadTxt` port (sub-batch 8) hasn't started yet, so there's
+    nothing to port the fix into yet - it'll use the corrected behavior
+    directly when that sub-batch happens.
+    - **Unrelated finding, not fixed here**: `ClearSong()` (and anything
+      that calls it) crashes when run as the only test in an isolated
+      `--gtest_filter` invocation - confirmed on an existing, untouched
+      test too (`ClearSongSetsTheTrackCount`), so not something this fix
+      introduced. `g_Atari.Init()`'s tuning-initialization path seems to
+      depend on global state only valid once an earlier test has run
+      first. Doesn't affect the full suite (370/370 pass). Flagged for
+      awareness, not investigated further.

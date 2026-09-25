@@ -893,21 +893,21 @@ TEST_F(SongEditingTest, SaveTxtWritesModuleHeaderAndSongLineData) {
 // leaving fields at their ClearSong() defaults for a segment it doesn't
 // recognize.
 //
-// BUG (pre-existing, not introduced by this move - confirmed by reading
-// SaveTxt's exact byte output against LoadTxt's parser): SaveTxt() writes a
-// blank "gap" line between the [MODULE] header block and "[SONG]" (and
-// likely before "[INSTRUMENT]"/"[TRACK]" too, via CInstruments::SaveAll()/
-// CTracks::SaveAll()'s TXT format). LoadTxt()'s inner [MODULE]-segment loop
-// detects the next segment by reading one byte at a time and checking for
-// '[' - but that gap's '\n' is read as that byte first, not '[', so the
-// '[' that starts "[SONG]" is never recognized as a segment boundary and
-// the whole segment is silently skipped. Net effect: loading a .txt file
-// that RMT itself just saved does not restore any song data. This is
-// characterized as-is (the header fields it does parse correctly, and the
-// song data it doesn't) rather than fixed, per this effort's "lock in
-// current behavior first" scope - see plans/NOTES.md.
+// FIXED BUG (was pre-existing, not introduced by this move - confirmed by
+// reading SaveTxt's exact byte output against LoadTxt's parser):
+// SaveTxt() writes a blank "gap" line between the [MODULE] header block and
+// "[SONG]". LoadTxt()'s inner [MODULE]-segment loop used to detect the next
+// segment by reading one byte at a time and checking for '[' - but that
+// gap's '\n' was read as that byte first, not '[', and was then handed to
+// getline() as if it were real content, silently swallowing the whole
+// following "[SONG]" line (including its '[') instead of recognizing it as
+// a segment boundary. Fixed by skipping a lone '\n' byte instead of
+// treating it as content, in both the [MODULE] and [SONG] segment loops
+// (the [SONG] loop has the identical gap-then-bracket shape before
+// whatever follows it). Tracked upstream as
+// https://github.com/raster-atari-org/RASTER-Music-Tracker/issues/21.
 
-TEST_F(SongEditingTest, LoadTxtParsesTheModuleHeaderButNotTheSongDataDueToAPreExistingBug) {
+TEST_F(SongEditingTest, LoadTxtRoundTripsTheModuleHeaderAndTheSongData) {
     TInfo info = {};
     song.GetSongInfoPars(&info);
     info.mainspeed = 6;
@@ -934,10 +934,9 @@ TEST_F(SongEditingTest, LoadTxtParsesTheModuleHeaderButNotTheSongDataDueToAPreEx
     name.TrimRight();
     EXPECT_STREQ(name, "TestSong");
 
-    // ...but "[SONG]" itself is never recognized as a segment boundary (see
-    // the BUG comment above), so the song grid stays at ClearSong()'s -1
-    // default instead of the saved track 5.
-    EXPECT_EQ((*loaded.GetSong())[0][0], -1);
+    // ...and now so does "[SONG]", correctly recognized as a segment
+    // boundary, restoring the saved track 5.
+    EXPECT_EQ((*loaded.GetSong())[0][0], 5);
 }
 
 // --- SaveRMW ---

@@ -154,18 +154,33 @@ exercise that path).
 `SaveTxt`/`LoadTxt`, `SaveRMW`/`LoadRMW`, `LoadRMT`. `LoadRMT` needs
 `AtariIO.LoadBinaryBlock` (a *stream*-based method - not yet ported;
 `AtariIO.java` currently only has `loadDataAsBinaryFile`, the buffer-based
-one `AtariTrackerDriver` needed). **Known pre-existing bug, characterized
-not fixed on the C++ side**: `LoadTxt()` silently fails to recognize a
-`[SEGMENT]` marker immediately following `SaveTxt()`'s blank "gap" line,
-so round-tripping a `.txt`-saved RMT file through `LoadTxt()` doesn't
-actually restore song data (tracked upstream as
-[raster-atari-org/RASTER-Music-Tracker#21](https://github.com/raster-atari-org/RASTER-Music-Tracker/issues/21)).
-Per this project's standing preference (see the
-`fix-provable-bugs-in-both-languages-during-porting` memory), this is
-**not** obviously "small and provably safe to fix" - it's a real behavior
-change to production file-loading logic - so default to porting it
-faithfully (bug and all) and flag it for an explicit decision, the same
-way the DEFSONG bug was flagged before being fixed on both sides.
+one `AtariTrackerDriver` needed).
+
+**`LoadTxt` bug - FIXED on the C++ side** (see
+[raster-atari-org/RASTER-Music-Tracker#21](https://github.com/raster-atari-org/RASTER-Music-Tracker/issues/21)):
+`LoadTxt()`'s `[MODULE]`/`[SONG]` segment loops used to detect the next
+segment by reading one byte at a time and checking for `'['` - but the
+blank "gap" line `SaveTxt()` writes before each segment meant that byte
+was `'\n'` first, which got handed to `getline()` as if it were real
+content, silently swallowing the whole following segment-header line
+(`[SONG]`, etc.) instead of recognizing its `'['` as a boundary. Fixed by
+skipping a lone `'\n'` byte in both loops instead of treating it as
+content (verified via a full Release|x64 rebuild + full suite - 370 tests
+pass, including the updated round-trip test, which now asserts the song
+data actually survives the round trip instead of documenting that it
+doesn't). The Java port of `LoadTxt` (this sub-batch, not yet started)
+will port the corrected behavior directly - there is no longer a "port the
+bug or fix it" decision to make.
+
+**Unrelated finding, not part of this fix**: while isolating the above,
+found that `ClearSong()` (and anything that calls it, including
+`LoadTxt`) crashes when run as the *only* test in a filtered
+`--gtest_filter` invocation (confirmed on an existing, untouched test too,
+`ClearSongSetsTheTrackCount` - not something this fix introduced).
+`g_Atari.Init()`'s tuning-initialization path appears to depend on some
+global state that's only valid once an earlier test has run first. Does
+not affect the full suite (370/370 pass either way) - flagged for
+awareness, not investigated further or fixed here.
 
 ### 9. Navigation/playback
 `SongJump`/`SongUp`/`SongDown`/`SongSubsongPrev`/`SongSubsongNext`,

@@ -2245,6 +2245,15 @@ bool CSong::LoadTxt(std::istream& in) {
                 if (b == '[') {
                     break;
                 }
+                if (b == '\n') {
+                    // A blank line (SaveTxt() writes one as a "gap" before
+                    // the next segment) - not real content, so it must not
+                    // be handed to getline() below: doing so would swallow
+                    // the following line whole, silently absorbing the '['
+                    // that starts the next segment instead of recognizing
+                    // it as a boundary (see GitHub issue #21).
+                    continue;
+                }
                 // Not a segment start so save the read character and get the rest of the line
                 line[0] = b;
                 in.getline(line + 1, 1024);
@@ -2310,6 +2319,15 @@ bool CSong::LoadTxt(std::istream& in) {
                 in.read((char*)&b, 1);
                 if (b == '[') {
                     break;
+                }
+                if (b == '\n') {
+                    // A blank line (SaveTxt() writes one as a "gap" before
+                    // the next segment) - see the [MODULE] loop above for
+                    // why this must not be handed to getline(). idx-- so
+                    // the for loop's own idx++ leaves it unchanged, since
+                    // this iteration didn't consume a real song line.
+                    idx--;
+                    continue;
                 }
                 line[0] = b;
                 in.getline(line + 1, 1024);
