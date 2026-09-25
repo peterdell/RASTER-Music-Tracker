@@ -3437,4 +3437,23 @@ build clean and all 123 tests pass.
       `TrackClipboard` constructor field too.
     - Verified with `mvn -o test`: 347 tests pass (+2), no regressions
       across every existing call site the new parameter touched. Details
-      in `plans/JAVA_PORT_PLAN.md`. Not yet committed.
+      in `plans/JAVA_PORT_PLAN.md`. Committed as `59c1c62`.
+  - **2026-09-25**: Scoping-only pass (no implementation) for the Java port
+    of `IO_ImporterCore.cpp`'s TMC/MOD import, per the user's "perform
+    required scoping" request. Read `IO_Importer.cpp`/`IO_ImporterCore.cpp`
+    in full (1938 lines combined). Found this surface is already fully
+    C++-tested (a prior phase's `plans/IO_IMPORTER_PLAN.md` already split
+    each format into a real-dialog wrapper plus a dialog-independent
+    `ParseHeader`/`Apply` pair, both tested in `SongEditingTests.cpp`) and
+    every Java dependency both `Apply()`s need already exists - no gaps.
+    Wrote `plans/JAVA_IMPORTER_PLAN.md`: new free-standing
+    `TmcImporter`/`ModImporter` classes proposed (matching
+    `RmtExporter`/`AsmFileExporter`'s precedent); struct-to-record
+    mappings for `TImportTMCHeader`/`Result`/`TImportMODHeader`/`Result`;
+    noted that Java's byte-array-everywhere idiom actually *removes* one
+    of C++'s wrinkles (MOD's "needs continued stream access" problem
+    disappears once the whole file is a `byte[]`); flagged
+    `ImportMODApply`'s `goto`-driven tone-portamento state machine as the
+    one part needing real design attention at implementation time, unlike
+    every `goto` restructured so far in this port. Suggested batching: TMC
+    first (smaller, no `goto`s), MOD second. Not yet implemented.

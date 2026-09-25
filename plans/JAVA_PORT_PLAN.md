@@ -1386,12 +1386,42 @@ plus `Song`'s own wrapper methods.
   347 tests pass (+2), no regressions across every existing call site the
   new `TrackClipboard` parameter touched.
 
+## TMC/MOD importer scoping pass (2026-09-25)
+
+Scoped (not implemented) the Java port of `IO_ImporterCore.cpp`'s TMC/MOD
+import - full write-up in the new `plans/JAVA_IMPORTER_PLAN.md`. Unlike
+`CTrackClipboard`'s remaining 7 methods, this surface is *already fully
+C++-tested* (a prior phase's `plans/IO_IMPORTER_PLAN.md` already split each
+format into a thin real-dialog wrapper plus a dialog-independent
+`ParseHeader()`/`Apply()` pair, both with real tests in
+`SongEditingTests.cpp`) - a clean "port already-tested C++" candidate, just
+a large one (~1650 combined C++ lines across both formats).
+
+- Every Java dependency both `Apply()`s need already exists - no gaps
+  found.
+- New free-standing `TmcImporter`/`ModImporter` classes proposed (matching
+  `RmtExporter`/`AsmFileExporter`'s precedent), not `Song` methods.
+- C++'s "`ImportMODApply` needs continued stream access beyond the parsed
+  header" wrinkle disappears in Java - once the whole file is a `byte[]`
+  (this port's established idiom), there's no stream to seek in; the
+  sample data is just indexed directly.
+- The real complexity flagged for implementation time: `ImportMODApply`'s
+  `goto`-driven tone-portamento state machine (three converging labels)
+  plus two loop-breaking labels - needs real design work, unlike every
+  `goto` restructured so far in this port.
+- Suggested batching: TMC first (smaller, no `goto`s), MOD second (larger,
+  needs the state-machine design work).
+
 ## Next steps
 
-`plans/JAVA_SONGEDITING_PLAN.md`'s suggested execution order has one item
-left (partially addressed above): the remaining 7 untested
-`CTrackClipboard` methods need new C++ characterization tests before they
-can be ported. Deferred pending the user's decision on whether to take
-that on now or continue elsewhere (e.g. TMC/MOD importers, or the deferred
-`IO_Instruments.cpp`/`IO_Tracks.cpp` TXT/RMW per-instrument/per-track
-serialization - also confirmed to have no existing test coverage).
+Two scoped-but-not-implemented paths are now available, plus the
+un-scoped `CTrackClipboard` remainder:
+1. **TMC/MOD import** (`plans/JAVA_IMPORTER_PLAN.md`) - Batch A (TMC) is
+   ready to implement, already fully C++-tested.
+2. The remaining 7 untested `CTrackClipboard` methods need new C++
+   characterization tests before they can be ported.
+3. The deferred `IO_Instruments.cpp`/`IO_Tracks.cpp` TXT/RMW
+   per-instrument/per-track serialization - also confirmed to have no
+   existing test coverage.
+
+Deferred pending the user's decision on which to take on next.

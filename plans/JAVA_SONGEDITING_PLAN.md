@@ -502,10 +502,10 @@ tests pass (+1, the new regression test), 0 regressions on either side.
 
 - **TMC/MOD importers** (`CSong::ImportTMC`/`ImportTMCParseHeader`/
   `ImportTMCApply`, `ImportMOD`/`ImportMODParseHeader`/`ImportMODApply`,
-  `IO_Importer.cpp`/`IO_ImporterCore.cpp`) - `IO_ImporterCore.cpp` alone is
-  over 1000 lines just for these two format importers. This is its own
-  large undertaking on the scale of `SongEditing.cpp` itself, not a
-  sub-batch of it - needs its own dedicated scoping plan if/when tackled.
+  `IO_Importer.cpp`/`IO_ImporterCore.cpp`) - its own large undertaking on
+  the scale of `SongEditing.cpp` itself, not a sub-batch of it. Now scoped
+  in its own dedicated plan, `plans/JAVA_IMPORTER_PLAN.md` - not yet
+  implemented.
 - **`BlockEffect`** - confirmed on the C++ side to have no extractable
   logic at all (unlike `InstrChangeApply`/`TrackInfo`'s dialog-wrapper
   split) - stays deferred indefinitely, matching the C++ decision.
@@ -547,7 +547,8 @@ tests pass (+1, the new regression test), 0 regressions on either side.
    done ahead of item 7 above for that reason. The SAP-R/LZSS/WAV/XEX
    family stays deferred until `PokeyStream`'s real recording path is
    unblocked.
-9. TMC/MOD importers - separate, dedicated plan, not part of this one.
+9. TMC/MOD importers - separate, dedicated plan, not part of this one -
+   now scoped in `plans/JAVA_IMPORTER_PLAN.md` (not yet implemented).
 10. `IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track
     serialization - deferred out of sub-batch 8 (see its entry above),
     needed for a fully faithful `SaveTxt`/`LoadTxt`/`SaveRMW`/`LoadRMW`
