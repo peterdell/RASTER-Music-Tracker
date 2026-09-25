@@ -33,7 +33,7 @@ class UndoTest {
 		song.songSetActiveLine(0);
 		song.setActiveLine(0);
 
-		undo = new Undo(tracks, instruments, song);
+		undo = new Undo(tracks, instruments, song, new TrackClipboard());
 		undo.clear();
 		undo.setActivePart(Part.PART_TRACKS);
 	}

@@ -35,16 +35,22 @@ package com.wudsn.tools.rmt.model;
  * C++'s {@code m_pokeyStream}-consulting "song is done" check - it's always
  * null in every existing CSong test, and {@code PokeyStream} isn't ported.
  *
- * <p><b>No full {@code CTrackClipboard} yet</b>: {@link #blockDeselect} is a
- * documented no-op - C++'s version delegates to {@code g_TrackClipboard},
- * whose block-selection surface isn't ported. This only affects cosmetic
- * block-selection state after an undo/redo cursor jump, not the actual
- * data being restored. {@link #trackCopy}/{@link #trackPaste}/
- * {@link #trackCut} are the one exception - they only ever needed
- * {@code CTrackClipboard}'s single-track {@code m_trackcopy} slot, which
- * this class models directly as its own {@code trackCopyClipboard} field
- * rather than waiting on a full clipboard port (see that field's own
- * comment, and {@code plans/JAVA_SONGEDITING_PLAN.md}).
+ * <p><b>{@code TrackClipboard} joins {@code Undo}/{@code Messages}/
+ * {@code AtariTrackerDriver} as an explicit-parameter collaborator</b>
+ * ({@link #blockDeselect}/{@link #isBlockSelected}/
+ * {@link #songBlockSetBegin}/{@link #songBlockSetEnd}/{@link #blockPaste}/
+ * {@link #trackUp}/{@link #trackDown}/{@link #songUp}/{@link #songDown}/
+ * {@link #songInsertCopyOrCloneOfSongLinesApply}/{@link #play}), matching
+ * C++'s own {@code g_TrackClipboard} global - only the block-selection
+ * subset {@code TrackClipboard} itself ports is reachable here (see that
+ * class's javadoc for exactly which methods, and which seven still need
+ * new C++ tests before they can be ported). {@link #trackCopy}/
+ * {@link #trackPaste}/{@link #trackCut} are a separate case - they only
+ * ever needed {@code CTrackClipboard}'s single-track {@code m_trackcopy}
+ * slot, which this class models directly as its own
+ * {@code trackCopyClipboard} field rather than going through
+ * {@code TrackClipboard} at all (see that field's own comment, and
+ * {@code plans/JAVA_SONGEDITING_PLAN.md}).
  *
  * <p><b>No UI/window-title tracking</b>: C++'s {@code InsertEvent()}-side
  * {@code g_changes}/{@code SetRMTTitle()} bookkeeping has no Java
@@ -103,8 +109,8 @@ public final class Song {
 	private int quantizationInstr = -1;
 	private int quantizationVol = -1;
 
-	// Only ever written/read from PLAY_BLOCK's real block-selection branch,
-	// which is currently unreachable - see play()'s javadoc.
+	// Only ever written/read from PLAY_BLOCK's real block-selection branch
+	// (set from TrackClipboard.getFromTo() in play() - see its javadoc).
 	private int trackPlayBlockStart;
 	private int trackPlayBlockEnd;
 
@@ -1203,13 +1209,44 @@ public final class Song {
 		return true;
 	}
 
-	/** No-op here - see class javadoc (no CTrackClipboard ported yet). */
-	public void blockDeselect() {
+	/** Thin delegator matching C++'s {@code CSong::BLOCKDESELECT()} - {@link TrackClipboard} becomes an explicit parameter (this class's established idiom for globals a method needs). */
+	public void blockDeselect(TrackClipboard clipboard) {
+		clipboard.blockDeselect();
 	}
 
-	/** Always {@code false} here - see class javadoc (no CTrackClipboard block-selection surface ported yet, so a block can never actually be selected). */
-	public boolean isBlockSelected() {
-		return false;
+	/** Thin delegator matching C++'s {@code CSong::ISBLOCKSELECTED()}. */
+	public boolean isBlockSelected(TrackClipboard clipboard) {
+		return clipboard.isBlockSelected();
+	}
+
+	/** Thin delegator matching C++'s {@code CSong::BLOCKSETBEGIN()}. */
+	public boolean songBlockSetBegin(TrackClipboard clipboard, Tracks tracks) {
+		return clipboard.blockSetBegin(trackActiveCol, songGetActiveTrack(), trackActiveLine, tracks, this);
+	}
+
+	/** Thin delegator matching C++'s {@code CSong::BLOCKSETEND()}. */
+	public boolean songBlockSetEnd(TrackClipboard clipboard, Tracks tracks) {
+		return clipboard.blockSetEnd(trackActiveLine, tracks);
+	}
+
+	/**
+	 * Pastes {@link TrackClipboard}'s block-selection clipboard onto the
+	 * active track (a separate mechanism from {@link #trackCopy}'s
+	 * whole-track clipboard). After a successful paste, resets the block
+	 * selection to the pasted range.
+	 */
+	public void blockPaste(int special, TrackClipboard clipboard, Tracks tracks, Undo undo, int tracks4_8) {
+		undo.changeTrack(songGetActiveTrack(), trackActiveLine, UndoType.UETYPE_TRACKDATA, 1);
+		int lines = clipboard.blockPasteToTrack(songGetActiveTrack(), trackActiveLine, special, tracks, this, tracks4_8);
+		if (lines > 0) {
+			int lastLine = trackActiveLine + lines - 1;
+			// resets the beginning of the block to this location
+			clipboard.blockDeselect();
+			clipboard.blockSetBegin(trackActiveCol, songGetActiveTrack(), trackActiveLine, tracks, this);
+			clipboard.blockSetEnd(lastLine, tracks);
+			// moves the current line to the last bottom row of the pasted block
+			trackActiveLine = lastLine;
+		}
 	}
 
 	public PlayMode getPlayMode() {
@@ -1349,8 +1386,8 @@ public final class Song {
 	 * C++'s {@code int& line} parameter is never actually reassigned in the
 	 * method body, so it's a plain {@code int} here.
 	 */
-	public boolean songInsertCopyOrCloneOfSongLinesApply(int line, int linefrom, int lineto, boolean clone, int tuning, int volumep, Undo undo, int tracks4_8) {
-		blockDeselect(); // the block is deselected only if it is OK
+	public boolean songInsertCopyOrCloneOfSongLinesApply(int line, int linefrom, int lineto, boolean clone, int tuning, int volumep, Undo undo, int tracks4_8, TrackClipboard clipboard) {
+		blockDeselect(clipboard); // the block is deselected only if it is OK
 
 		byte[] used = new byte[Tracks.TRACKSNUM];
 		markTfUsed(used, tracks4_8);
@@ -2964,20 +3001,20 @@ public final class Song {
 	// RmtView.cpp - not modeled, since no settings dialog exists yet.
 
 	/** Advances/rewinds the active songline by {@code lines}, via {@link #songDown}/{@link #songUp}. */
-	public void songJump(int lines, Undo undo) {
+	public void songJump(int lines, Undo undo, TrackClipboard clipboard) {
 		int songline = songGetActiveLine();
 		int toline = songline + lines;
 		if (toline > songline) {
 			songSetActiveLine(toline - 1);
-			songDown(undo);
+			songDown(undo, clipboard);
 		} else {
 			songSetActiveLine(toline + 1);
-			songUp(undo);
+			songUp(undo, clipboard);
 		}
 	}
 
-	public void songUp(Undo undo) {
-		blockDeselect();
+	public void songUp(Undo undo, TrackClipboard clipboard) {
+		blockDeselect(clipboard);
 		undo.separator();
 		songActiveLine--;
 		if (!isValidSongline(songActiveLine)) {
@@ -2985,8 +3022,8 @@ public final class Song {
 		}
 	}
 
-	public void songDown(Undo undo) {
-		blockDeselect();
+	public void songDown(Undo undo, TrackClipboard clipboard) {
+		blockDeselect(clipboard);
 		undo.separator();
 		songActiveLine++;
 		if (!isValidSongline(songActiveLine)) {
@@ -3027,7 +3064,7 @@ public final class Song {
 	}
 
 	/** Moves the active track line up by {@code lines}, wrapping to the bottom of the pattern once it goes below zero. */
-	public void trackUp(int lines, int tracks4_8, boolean keyboardUpDownContinue, Undo undo) {
+	public void trackUp(int lines, int tracks4_8, boolean keyboardUpDownContinue, Undo undo, TrackClipboard clipboard) {
 		if (playMode != PlayMode.PLAY_STOP && followplay) {
 			return; // prevents moving at all during play+follow
 		}
@@ -3037,13 +3074,13 @@ public final class Song {
 		int trlen = getSmallestMaxtracklen(songActiveLine, tracks4_8);
 
 		if (trackActiveLine < 0) {
-			if (isBlockSelected()) {
+			if (isBlockSelected(clipboard)) {
 				trackActiveLine = 0;
 				return;
 			}
 			if (keyboardUpDownContinue) {
-				blockDeselect();
-				songUp(undo);
+				blockDeselect(clipboard);
+				songUp(undo, clipboard);
 				trlen = getSmallestMaxtracklen(songActiveLine, tracks4_8);
 			}
 			trackActiveLine = trackActiveLine + trlen;
@@ -3057,7 +3094,7 @@ public final class Song {
 	}
 
 	/** Moves the active track line down by {@code lines}, wrapping to the top of the pattern once it reaches the end. */
-	public void trackDown(int lines, boolean stoponlastline, int tracks4_8, boolean keyboardUpDownContinue, Undo undo) {
+	public void trackDown(int lines, boolean stoponlastline, int tracks4_8, boolean keyboardUpDownContinue, Undo undo, TrackClipboard clipboard) {
 		if (playMode != PlayMode.PLAY_STOP && followplay) {
 			return; // prevents moving at all during play+follow
 		}
@@ -3074,14 +3111,14 @@ public final class Song {
 		}
 
 		if (trackActiveLine >= trlen) {
-			if (isBlockSelected()) {
+			if (isBlockSelected(clipboard)) {
 				trackActiveLine = trlen - 1;
 				return;
 			}
 			trackActiveLine = trackActiveLine % trlen;
 			if (keyboardUpDownContinue) {
-				blockDeselect();
-				songDown(undo);
+				blockDeselect(clipboard);
+				songDown(undo, clipboard);
 				trlen = getSmallestMaxtracklen(songActiveLine, tracks4_8);
 			}
 			if (trackActiveLine < 0) {
@@ -3436,17 +3473,12 @@ public final class Song {
 	 * the {@code m_pokeyStream} "notify" call (always null in every test -
 	 * matches {@link #songPlayNextLine}'s established omission).
 	 *
-	 * <p><b>{@code PLAY_BLOCK}'s real block-selection branch is unreachable
-	 * here</b>: it only runs when {@link #isBlockSelected} is true, which -
-	 * since no {@code CTrackClipboard} block-selection surface is ported
-	 * yet (see class javadoc) - is never the case, so {@code PLAY_BLOCK}
-	 * always falls back to {@code PLAY_TRACK} behavior here, exactly as
-	 * C++ does whenever nothing is actually selected. {@link #trackPlayBlockStart}/
-	 * {@code trackPlayBlockEnd} exist purely so {@link #playBeat}/
-	 * {@link #playVBI}'s own {@code PLAY_BLOCK} checks stay faithful and
-	 * need no further changes once block selection is ported.
+	 * <p>{@code PLAY_BLOCK} reads {@code clipboard}'s block selection
+	 * directly (matching C++'s own read of the global {@code g_TrackClipboard}) -
+	 * falling back to {@code PLAY_TRACK} behavior when nothing is selected,
+	 * exactly as C++ does.
 	 */
-	public boolean play(PlayMode mode, boolean follow, int special, Undo undo, int tracks4_8, AtariTrackerDriver atariTrackerDriver) {
+	public boolean play(PlayMode mode, boolean follow, int special, Undo undo, int tracks4_8, AtariTrackerDriver atariTrackerDriver, TrackClipboard clipboard) {
 		undo.separator();
 
 		if (mode == PlayMode.PLAY_BOOKMARK && !isBookmark()) {
@@ -3481,11 +3513,15 @@ public final class Song {
 		}
 		case PLAY_TRACK -> playTrack = true; // just the current tracks around
 		case PLAY_BLOCK -> { // only in the block
-			if (!isBlockSelected()) { // no block is selected, so the track plays
+			if (!clipboard.isBlockSelected()) { // no block is selected, so the track plays
 				mode = PlayMode.PLAY_TRACK;
 				playTrack = true;
+			} else {
+				TrackClipboard.FromTo fromTo = clipboard.getFromTo();
+				songPlayLine = clipboard.getSelSongLine();
+				trackPlayLine = trackPlayBlockStart = fromTo.from();
+				trackPlayBlockEnd = fromTo.to();
 			}
-			// else: unreachable here - see method javadoc.
 		}
 		case PLAY_BOOKMARK -> { // from the bookmark
 			songPlayLine = bookmark.songline;
@@ -3538,8 +3574,8 @@ public final class Song {
 	}
 
 	/** {@code special} defaults to 0, matching C++'s default argument. */
-	public boolean play(PlayMode mode, boolean follow, Undo undo, int tracks4_8, AtariTrackerDriver atariTrackerDriver) {
-		return play(mode, follow, 0, undo, tracks4_8, atariTrackerDriver);
+	public boolean play(PlayMode mode, boolean follow, Undo undo, int tracks4_8, AtariTrackerDriver atariTrackerDriver, TrackClipboard clipboard) {
+		return play(mode, follow, 0, undo, tracks4_8, atariTrackerDriver, clipboard);
 	}
 
 	/**

@@ -388,32 +388,52 @@ rather than something to save for last. See sub-batch 8's entry above for
 the full writeup (new fields, omitted globals/UI call, and why it turned
 out fully portable once actually re-checked).
 
-## Needs `CTrackClipboard` ported first (its own sub-effort)
+## `CTrackClipboard` (new `TrackClipboard` class) - partially DONE
 
-`BLOCKSETBEGIN`/`BLOCKSETEND`/`ISBLOCKSELECTED`/`BlockPaste` (need real
-block-selection state plus `BlockPasteToTrack`) - narrower than originally
-scoped, now that `TrackCopy`/`TrackPaste`/`TrackCut` turned out to need only
-a trivial single-track slot (ported in sub-batch 4, modeled directly on
-`Song` rather than needing this class at all). `BLOCKDESELECT` is already
-a documented Java no-op for the same reason.
+**Corrected finding**: this class is *not* actually untested, as first
+assessed - `SongEditingTests.cpp` already exercises a real subset of it
+indirectly, via `CSong`'s own `BLOCKSETBEGIN`/`BLOCKSETEND`/`BLOCKDESELECT`/
+`ISBLOCKSELECTED`/`BlockPaste` delegate wrappers (which operate on the
+global `g_TrackClipboard`/`g_Song`). Ported that subset: the constructor,
+`isBlockSelected`/`isTrackSelected` (the latter only ever exercised as an
+internal guard, never directly asserted on), `clear`, `blockSetBegin`,
+`blockSetEnd`, `blockDeselect`, `blockInitBase` (internal, called by
+`blockSetBegin`), `blockCopyToClipboard`, `blockPasteToTrack`, `getFromTo`,
+plus `Song`'s own wrappers (`songBlockSetBegin`/`songBlockSetEnd`/
+`blockDeselect`/`isBlockSelected`/`blockPaste`).
 
-`Clipboard.h`/`.cpp` (130 lines total) is a real, separate `CTrackClipboard`
-class - constructor, `Clear`, `IsBlockSelected`/`IsTrackSelected`,
-`BlockSetBegin`/`End`/`Deselect`, `BlockCopyToClipboard`/
-`BlockExchangeClipboard`/`BlockPasteToTrack`/`BlockClear`/
-`BlockRestoreFromBackup`, `BlockNoteTransposition`/`BlockInstrumentChange`/
-`BlockVolumeChange`, `BlockEffect` (**confirmed on the C++ side to have no
-extractable logic - stays deferred even once the rest of the class is
-ported**), `BlockAllOnOff`, `BlockInitBase`. **A real wrinkle already
-flagged in `SongEditing.cpp`'s own header comment**: `BlockSetBegin`/
-`BlockPasteToTrack` internally read the *global* `g_Song`, not necessarily
-the `CSong` instance they're logically operating on - a pre-existing C++
-coupling quirk, not introduced by this port. In Java this likely means
-`TrackClipboard` needs an explicit `Song` parameter on those specific
-methods (matching the established "explicit parameter instead of global"
-idiom) rather than assuming a single owning `Song`. Needs its own
-dedicated scoping pass before porting - don't fold it into a `SongEditing`
-batch casually.
+**Still NOT ported - confirmed no test coverage anywhere (direct or
+indirect)**: `BlockAllOnOff`, `BlockExchangeClipboard`, `BlockClear`,
+`BlockRestoreFromBackup`, `BlockNoteTransposition`, `BlockInstrumentChange`,
+`BlockVolumeChange`. Porting these needs new C++ characterization tests
+first - deferred pending a future decision. `BlockEffect` stays deferred
+indefinitely (confirmed on the C++ side to have no extractable logic).
+
+**The `g_Song`-reads-a-global wrinkle, resolved**: `blockSetBegin`/
+`blockPasteToTrack` take an explicit `Song` parameter (plus `Tracks`/
+`tracks4_8`), matching this project's established "explicit parameter
+instead of global" idiom - not a new wrinkle, just C++'s own pre-existing
+coupling (`CTrackClipboard` reading `g_Song` rather than any particular
+`CSong` instance) made visible in the port.
+
+**A real ripple into sub-batch 9's `play()`**: `Song.isBlockSelected`/
+`blockDeselect` were previously hardcoded stubs (always-false/no-op,
+documented as "no `CTrackClipboard` ported yet"), which is why `play()`'s
+`PLAY_BLOCK` branch was characterized as unreachable. Now that real
+block-selection state exists, `isBlockSelected`/`blockDeselect`/
+`trackUp`/`trackDown`/`songUp`/`songDown`/
+`songInsertCopyOrCloneOfSongLinesApply`/`play` all take an explicit
+`TrackClipboard` parameter, and `play()`'s `PLAY_BLOCK` branch reads
+`clipboard.getFromTo()`/`getSelSongLine()` for real - see `plans/JAVA_PORT_PLAN.md`
+for the full ripple's write-up. `Undo` also gained a `TrackClipboard`
+constructor field (matching its own established "store collaborators"
+pattern, unlike `Song`'s per-call explicit-parameter style), since
+`CUndo::PerformEvent()` calls `g_Song.BLOCKDESELECT()`.
+
+Tests (`SongEditingTest`, extended) mirror `SongEditingTests.cpp`'s two
+existing indirect tests exactly (2 tests). Verified with `mvn -o test`: 347
+tests pass (+2), no regressions (including all of sub-batch 9's existing
+tests, now threading a real `TrackClipboard` through unchanged call sites).
 
 ## Needs a deferred `PokeyStream`/`AtariTrackerDriver` surface
 
@@ -511,16 +531,16 @@ tests pass (+1, the new regression test), 0 regressions on either side.
    capstone. Both C++ bugs it surfaced (`LoadTxt`'s segment-boundary bug,
    `SaveRMW`/`LoadRMW`'s `sizeof` bug) are fixed.
 6. Sub-batch 9 (navigation/playback) - DONE.
-7. `CTrackClipboard` as its own dedicated scoping pass - **reordered after
-   the exporters below**: re-checking it at this point found it has *no*
-   existing C++ test coverage at all (unlike every other class ported this
-   whole effort), unlike the exporters, which already did. Porting it would
-   mean writing a new `ClipboardTests.cpp` characterization suite first - a
-   different, bigger kind of task than pure porting - so it's deferred
-   until the user decides to take that on; still narrowed to just
-   `BLOCKSETBEGIN`/`BLOCKSETEND`/`ISBLOCKSELECTED`/`BlockPaste`, since
-   sub-batch 4 already resolved `TrackCopy`/`TrackPaste`, and its
-   `g_Song`-reads-a-global wrinkle is still unresolved.
+7. `CTrackClipboard` (new `TrackClipboard` class) - **partially DONE**,
+   after the exporters below (see that entry's own write-up for why).
+   Correction to the earlier "no test coverage" assessment: a real subset
+   (`BlockSetBegin`/`BlockSetEnd`/`BlockDeselect`/`IsBlockSelected`/
+   `BlockCopyToClipboard`/`BlockPasteToTrack`/`GetFromTo`/`Clear`/
+   `BlockInitBase`, plus `Song`'s wrappers) was already tested indirectly
+   via `SongEditingTests.cpp` and is now ported. Still needs new C++ tests
+   before porting: `BlockAllOnOff`/`BlockExchangeClipboard`/`BlockClear`/
+   `BlockRestoreFromBackup`/`BlockNoteTransposition`/
+   `BlockInstrumentChange`/`BlockVolumeChange`.
 8. Exporters (`CRmtExporter::ExportAsRMT`/`ExportAsStrippedRMTApply`,
    `CASMFileExporter::ExportAsAsmApply`/`BuildRelocatableAsm`/
    `ExportAsRelocatableAsmForRmtPlayerApply`/`ComposeRMTFEATstring`) - DONE,

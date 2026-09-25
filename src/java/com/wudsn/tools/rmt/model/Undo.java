@@ -47,6 +47,7 @@ public final class Undo {
 	private final Tracks tracks;
 	private final Instruments instruments;
 	private final Song song;
+	private final TrackClipboard trackClipboard;
 
 	private final UndoEvent[] uar = new UndoEvent[MAXUNDO];
 	private int head, tail, headmax;
@@ -54,10 +55,11 @@ public final class Undo {
 
 	private Part activePart = Part.PART_TRACKS; // matches g_activepart's own default
 
-	public Undo(Tracks tracks, Instruments instruments, Song song) {
+	public Undo(Tracks tracks, Instruments instruments, Song song, TrackClipboard trackClipboard) {
 		this.tracks = tracks;
 		this.instruments = instruments;
 		this.song = song;
+		this.trackClipboard = trackClipboard;
 	}
 
 	public void init() {
@@ -412,7 +414,7 @@ public final class Undo {
 		// Set cursor there (change and the active part)
 		song.setUECursor(ue.part, ue.cursor, this);
 
-		song.blockDeselect();
+		song.blockDeselect(trackClipboard);
 
 		switch (ue.type) {
 		case UndoType.UETYPE_NOTEINSTRVOL: {

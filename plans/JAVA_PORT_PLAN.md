@@ -1355,14 +1355,43 @@ already-tested C++" pattern exactly.
   345 tests pass (+6); full C++ Release|x64 rebuild + `RmtTests.exe`: 372
   tests pass (+1, the regression test), 0 regressions on either side.
 
+## Twenty-ninth ported batch (2026-09-25): `TrackClipboard` (block selection, the already-tested `CTrackClipboard` subset)
+
+Corrected an earlier assessment: `CTrackClipboard` isn't actually untested
+- `SongEditingTests.cpp` already exercises a real subset of it indirectly,
+via `CSong`'s own `BLOCKSETBEGIN`/`BLOCKSETEND`/`BLOCKDESELECT`/
+`ISBLOCKSELECTED`/`BlockPaste` delegate wrappers. Ported that subset as a
+new `TrackClipboard` class: the constructor, `isBlockSelected`/
+`isTrackSelected`, `clear`, `blockSetBegin`, `blockSetEnd`, `blockDeselect`,
+`blockInitBase`, `blockCopyToClipboard`, `blockPasteToTrack`, `getFromTo`,
+plus `Song`'s own wrapper methods.
+
+- **Still not ported** (confirmed no test coverage anywhere): `BlockAllOnOff`/
+  `BlockExchangeClipboard`/`BlockClear`/`BlockRestoreFromBackup`/
+  `BlockNoteTransposition`/`BlockInstrumentChange`/`BlockVolumeChange` - need
+  new C++ tests first, deferred.
+- **A real ripple into sub-batch 9's `play()`**: `Song.isBlockSelected`/
+  `blockDeselect` were previously hardcoded stubs (documented as "no
+  `CTrackClipboard` ported yet"), which is why `PLAY_BLOCK` was
+  characterized as unreachable. Now real, so `isBlockSelected`/
+  `blockDeselect`/`trackUp`/`trackDown`/`songUp`/`songDown`/
+  `songInsertCopyOrCloneOfSongLinesApply`/`play` all take an explicit
+  `TrackClipboard` parameter (matching this port's established
+  explicit-parameter-over-global idiom), and `PLAY_BLOCK` reads
+  `clipboard.getFromTo()`/`getSelSongLine()` for real. `Undo` gained a
+  `TrackClipboard` constructor field too (`CUndo::PerformEvent()` calls
+  `g_Song.BLOCKDESELECT()`).
+- Tests (`SongEditingTest`, extended) mirror `SongEditingTests.cpp`'s two
+  existing indirect tests exactly (2 tests). Verified with `mvn -o test`:
+  347 tests pass (+2), no regressions across every existing call site the
+  new `TrackClipboard` parameter touched.
+
 ## Next steps
 
 `plans/JAVA_SONGEDITING_PLAN.md`'s suggested execution order has one item
-left: `CTrackClipboard` as its own dedicated scoping pass (narrowed to
-`BLOCKSETBEGIN`/`BLOCKSETEND`/`ISBLOCKSELECTED`/`BlockPaste`). Unlike every
-class ported so far, it has no existing C++ test coverage - porting it
-means first writing a new `ClipboardTests.cpp` characterization suite, a
-different kind of task than pure porting. Deferred pending the user's
-decision on whether to take that on now or continue elsewhere (e.g. TMC/MOD
-importers, or the deferred `IO_Instruments.cpp`/`IO_Tracks.cpp` TXT/RMW
-per-instrument/per-track serialization).
+left (partially addressed above): the remaining 7 untested
+`CTrackClipboard` methods need new C++ characterization tests before they
+can be ported. Deferred pending the user's decision on whether to take
+that on now or continue elsewhere (e.g. TMC/MOD importers, or the deferred
+`IO_Instruments.cpp`/`IO_Tracks.cpp` TXT/RMW per-instrument/per-track
+serialization - also confirmed to have no existing test coverage).

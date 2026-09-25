@@ -22,6 +22,7 @@ class SongEditingTest {
 	private Undo undo;
 	private Messages messages;
 	private AtariTrackerDriver atariTrackerDriver;
+	private TrackClipboard clipboard;
 
 	@BeforeEach
 	void setUp() {
@@ -42,7 +43,8 @@ class SongEditingTest {
 		}
 
 		song = new Song(instruments, tracks);
-		undo = new Undo(tracks, instruments, song);
+		clipboard = new TrackClipboard();
+		undo = new Undo(tracks, instruments, song, clipboard);
 		messages = new Messages();
 		atariTrackerDriver = new AtariTrackerDriver(new Atari());
 
@@ -398,7 +400,7 @@ class SongEditingTest {
 	void songInsertCopyOrCloneOfSongLinesApplyCopiesTheSourceLineWhenNotCloning() {
 		song.getSong()[0][0] = 5;
 
-		assertTrue(song.songInsertCopyOrCloneOfSongLinesApply(1, 0, 0, false, 0, 100, undo, 4));
+		assertTrue(song.songInsertCopyOrCloneOfSongLinesApply(1, 0, 0, false, 0, 100, undo, 4, clipboard));
 
 		assertEquals(5, song.getSong()[0][0]); // source untouched
 		assertEquals(5, song.getSong()[1][0]); // copy landed at the insert point, same track number
@@ -415,7 +417,7 @@ class SongEditingTest {
 
 		// tuning=0, volumep=100 - no actual edit, just characterizes that
 		// cloning creates a distinct track rather than reusing track 5.
-		assertTrue(song.songInsertCopyOrCloneOfSongLinesApply(1, 0, 0, true, 0, 100, undo, 4));
+		assertTrue(song.songInsertCopyOrCloneOfSongLinesApply(1, 0, 0, true, 0, 100, undo, 4, clipboard));
 
 		assertEquals(5, song.getSong()[0][0]); // source untouched
 		int clonedTrack = song.getSong()[1][0];
@@ -482,6 +484,44 @@ class SongEditingTest {
 
 		assertEquals(7, tracks.getTrack(3).note[0]);
 		assertEquals(4, tracks.getTrack(9).note[0]);
+	}
+
+	// --- TrackClipboard block selection (songBlockSetBegin / songBlockSetEnd /
+	// blockDeselect / isBlockSelected / blockCopyToClipboard / blockPaste) ---
+
+	@Test
+	void blockSetBeginEndDeselectAndIsBlockSelectedRoundTrip() {
+		song.getSong()[0][0] = 5; // a valid track at the active song position
+		assertFalse(song.isBlockSelected(clipboard));
+
+		song.songBlockSetBegin(clipboard, tracks);
+		assertTrue(song.isBlockSelected(clipboard));
+
+		song.songBlockSetEnd(clipboard, tracks);
+		assertTrue(song.isBlockSelected(clipboard));
+
+		song.blockDeselect(clipboard);
+		assertFalse(song.isBlockSelected(clipboard));
+	}
+
+	@Test
+	void blockPastePastesTheCopiedTrackOntoTheActiveTrack() {
+		// blockPaste() reads from TrackClipboard's block-selection clipboard
+		// (populated by blockCopyToClipboard() after a songBlockSetBegin/
+		// songBlockSetEnd selection) - a separate mechanism from trackCopy()'s
+		// whole-track clipboard, which blockPaste() does not use.
+		song.getSong()[0][0] = 5;
+		tracks.getTrack(5).note[0] = 3;
+		song.songBlockSetBegin(clipboard, tracks);
+		song.songBlockSetEnd(clipboard, tracks);
+		clipboard.blockCopyToClipboard(tracks);
+		clipboard.blockDeselect();
+
+		song.getSong()[0][0] = 6; // switch the active track to an empty one
+
+		song.blockPaste(0, clipboard, tracks, undo, 4);
+
+		assertEquals(3, tracks.getTrack(6).note[0]);
 	}
 
 	// --- instrCopy / instrCut / instrDelete ---
@@ -952,7 +992,7 @@ class SongEditingTest {
 		String text = song.saveTxt(4);
 
 		Song loaded = new Song(instruments, tracks);
-		Undo loadedUndo = new Undo(tracks, instruments, loaded);
+		Undo loadedUndo = new Undo(tracks, instruments, loaded, new TrackClipboard());
 		Song.LoadTxtResult result = loaded.loadTxt(text, loadedUndo);
 
 		// The [MODULE] header block parses correctly...
@@ -1033,7 +1073,7 @@ class SongEditingTest {
 		byte[] out = song.saveRMW(4);
 
 		Song loaded = new Song(instruments, tracks);
-		Undo loadedUndo = new Undo(tracks, instruments, loaded);
+		Undo loadedUndo = new Undo(tracks, instruments, loaded, new TrackClipboard());
 		Song.LoadRmwResult result = loaded.loadRMW(out, loadedUndo);
 
 		assertTrue(result.success());
@@ -1298,28 +1338,28 @@ class SongEditingTest {
 	@Test
 	void songJumpMovesForwardViaSongDown() {
 		song.songSetActiveLine(5);
-		song.songJump(3, undo); // toline=8>5 -> songSetActiveLine(7) then songDown() -> 8
+		song.songJump(3, undo, clipboard); // toline=8>5 -> songSetActiveLine(7) then songDown() -> 8
 		assertEquals(8, song.songGetActiveLine());
 	}
 
 	@Test
 	void songJumpMovesBackwardViaSongUp() {
 		song.songSetActiveLine(5);
-		song.songJump(-3, undo); // toline=2<5 -> songSetActiveLine(3) then songUp() -> 2
+		song.songJump(-3, undo, clipboard); // toline=2<5 -> songSetActiveLine(3) then songUp() -> 2
 		assertEquals(2, song.songGetActiveLine());
 	}
 
 	@Test
 	void songUpWrapsToTheLastLineFromLineZero() {
 		song.songSetActiveLine(0);
-		song.songUp(undo);
+		song.songUp(undo, clipboard);
 		assertEquals(Song.SONGLEN - 1, song.songGetActiveLine());
 	}
 
 	@Test
 	void songDownWrapsToLineZeroFromTheLastLine() {
 		song.songSetActiveLine(Song.SONGLEN - 1);
-		song.songDown(undo);
+		song.songDown(undo, clipboard);
 		assertEquals(0, song.songGetActiveLine());
 	}
 
@@ -1349,21 +1389,21 @@ class SongEditingTest {
 	@Test
 	void trackUpMovesActiveLineUpWithinBounds() {
 		song.setActiveLine(5);
-		song.trackUp(2, 4, false, undo);
+		song.trackUp(2, 4, false, undo, clipboard);
 		assertEquals(3, song.getActiveLine());
 	}
 
 	@Test
 	void trackUpWrapsToTheBottomWhenGoingBelowZero() {
 		song.setActiveLine(1);
-		song.trackUp(3, 4, false, undo); // 1-3=-2, keyboardUpDownContinue is off, so -2 + trlen(64) = 62
+		song.trackUp(3, 4, false, undo, clipboard); // 1-3=-2, keyboardUpDownContinue is off, so -2 + trlen(64) = 62
 		assertEquals(62, song.getActiveLine());
 	}
 
 	@Test
 	void trackDownMovesActiveLineDownWithinBounds() {
 		song.setActiveLine(3);
-		song.trackDown(2, false, 4, false, undo); // stoponlastline=false avoids trackGetLastLine()'s -1-for-no-track edge case
+		song.trackDown(2, false, 4, false, undo, clipboard); // stoponlastline=false avoids trackGetLastLine()'s -1-for-no-track edge case
 		assertEquals(5, song.getActiveLine());
 	}
 
@@ -1512,7 +1552,7 @@ class SongEditingTest {
 		song.songSetActiveLine(3);
 		song.setActiveLine(4);
 
-		assertTrue(song.play(PlayMode.PLAY_TRACK, false, undo, 4, atariTrackerDriver));
+		assertTrue(song.play(PlayMode.PLAY_TRACK, false, undo, 4, atariTrackerDriver, clipboard));
 
 		assertEquals(PlayMode.PLAY_TRACK, song.getPlayMode());
 		assertEquals(3, song.songGetPlayLine()); // songPlayLine = songActiveLine

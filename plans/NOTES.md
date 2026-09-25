@@ -3411,4 +3411,30 @@ build clean and all 123 tests pass.
     - Verified with `mvn -o test`: 345 tests pass (+6); full C++
       Release|x64 rebuild + `RmtTests.exe`: 372 tests pass (+1), 0
       regressions on either side. Details in `plans/JAVA_PORT_PLAN.md`.
-      Not yet committed.
+      Committed as `f411e21` (the C++ fix) and `0e29082` (the Java port).
+  - **2026-09-25**: Corrected an earlier assessment - `CTrackClipboard`
+    isn't actually untested. `SongEditingTests.cpp` already exercises a
+    real subset of it indirectly, via `CSong`'s own `BLOCKSETBEGIN`/
+    `BLOCKSETEND`/`BLOCKDESELECT`/`ISBLOCKSELECTED`/`BlockPaste` delegate
+    wrappers. Ported that subset as a new `TrackClipboard` class: the
+    constructor, `isBlockSelected`/`isTrackSelected`, `clear`,
+    `blockSetBegin`, `blockSetEnd`, `blockDeselect`, `blockInitBase`,
+    `blockCopyToClipboard`, `blockPasteToTrack`, `getFromTo`, plus `Song`'s
+    own wrapper methods (`songBlockSetBegin`/`songBlockSetEnd`/
+    `blockDeselect`/`isBlockSelected`/`blockPaste`).
+    - Still not ported (confirmed no test coverage anywhere):
+      `BlockAllOnOff`/`BlockExchangeClipboard`/`BlockClear`/
+      `BlockRestoreFromBackup`/`BlockNoteTransposition`/
+      `BlockInstrumentChange`/`BlockVolumeChange` - need new C++
+      characterization tests first, deferred.
+    - A real ripple into sub-batch 9's `play()`: `Song.isBlockSelected`/
+      `blockDeselect` were previously hardcoded stubs, which is why
+      `PLAY_BLOCK` was characterized as unreachable - now real, so
+      `isBlockSelected`/`blockDeselect`/`trackUp`/`trackDown`/`songUp`/
+      `songDown`/`songInsertCopyOrCloneOfSongLinesApply`/`play` all take an
+      explicit `TrackClipboard` parameter, and `PLAY_BLOCK` reads
+      `clipboard.getFromTo()`/`getSelSongLine()` for real. `Undo` gained a
+      `TrackClipboard` constructor field too.
+    - Verified with `mvn -o test`: 347 tests pass (+2), no regressions
+      across every existing call site the new parameter touched. Details
+      in `plans/JAVA_PORT_PLAN.md`. Not yet committed.
