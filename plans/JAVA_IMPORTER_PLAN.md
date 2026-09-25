@@ -123,11 +123,11 @@ Same order as the C++-side plan, for the same reason (TMC is smaller and
 structurally simpler - no continued-stream wrinkle, no `goto` state
 machine):
 
-1. **Batch A: TMC** (`TmcImporter.parseHeader`/`apply`, `ConvertTracks`
+1. **Batch A: TMC - DONE** (`TmcImporter.parseHeader`/`apply`, `ConvertTracks`
    helper). ~715 C++ lines; single guard-only failure mode; no `goto`s to
    restructure (`ImportTMCApply`'s per-track parsing loop is straight-line
    with early `break`s, which Java's `break`/`continue` already handle
-   natively - no special design needed there).
+   natively - no special design needed there). See its own write-up below.
 2. **Batch B: MOD** (`ModImporter.parseHeader`/`apply`, `TMODInstrumentMark`/
    `AtariVolume` helpers). ~940 C++ lines; three-code header-validation
    guard; the `goto`-driven portamento state machine and dual loop-break
@@ -140,6 +140,50 @@ per batch, 6 total) into a new `ImporterTest.java` (or added to
 consolidate-everything-into-one-fixture convention - to be decided at
 implementation time based on which reads more naturally, since neither
 importer needs the rest of that fixture's setup).
+
+## Batch A - DONE: TMC import
+
+Implemented as planned above: `TmcImporter.parseHeader`/`apply`, with
+`ConvertTracks`/`SourceTrack`/`DestinationMark`/`InstrumentMark` as private
+nested classes. Went into its own new `TmcImporterTest.java` (read more
+naturally than folding into `SongEditingTest`'s much bigger fixture, since
+neither test needs anything from it beyond `Tracks`/`Instruments`/`Song`/
+`Undo`).
+
+- **`ImportTMCParseHeader`/`ImportTMCApply` transcribed almost line-for-line**
+  once every `mem[...]` byte read got the established `ub()`
+  (unsigned-byte) treatment - confirmed correct by all 3 tests passing on
+  the first run, including the full `ApplyConvertsANoteIntoTheDestinationTrack`
+  conversion test (hand-derived byte layout copied directly from the C++
+  test).
+- **One genuinely signed byte read**: `preladeni` (the per-column
+  transposition amount) comes from C++'s `(char)mem[...]` cast, not the
+  usual unsigned read - Java's raw `byte[]` indexing already sign-extends
+  by default, so `int preladeni = mem[i];` (no masking) reproduces this
+  exactly, unlike every other byte read in this method.
+- **The TMC envelope command 5 (`rand()`) call** uses
+  `ThreadLocalRandom.current().nextInt(256)` instead - confirmed
+  unreachable in the one existing test (its buffer defines no
+  instruments), and a byte-exact match to C++'s `rand()` sequence isn't
+  meaningful to preserve (different PRNG/seeding) - see `TmcImporter`'s
+  own class javadoc.
+- **`g_Instruments.Update(i)`** ("write to Atari RAM") omitted throughout,
+  matching `Instruments`'s own established omission of the same call.
+- A handful of `(BYTE)(...)` truncating casts in genuinely untested
+  branches (the volume-fadeout/vibrato-table math, reached only when a
+  saved instrument exists - not the case in the one existing test) are
+  translated as `(int) (...) & 0xff`, a best-effort match given the
+  original C++ itself relies on implementation-defined/UB double-to-BYTE
+  conversion behavior in those same untested paths.
+- One added safety guard (`line >= 1` before writing `songGo[line - 1]`):
+  C++'s equivalent (`if (m_songgo[line - 1] < 0)`) would read
+  `m_songgo[-1]` (out-of-bounds) if a TMC file decoded to zero songlines -
+  not reachable by any current test, but Java would throw
+  `ArrayIndexOutOfBoundsException` where C++ silently corrupts adjacent
+  memory, so this one spot got a defensive bounds check rather than a
+  faithful reproduction of the C++ UB.
+- Verified with `mvn -o test`: 350 tests pass (+3, all in the new
+  `TmcImporterTest`), 0 regressions. No C++ changes in this batch.
 
 ## Explicitly out of scope for this plan
 

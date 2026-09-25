@@ -1412,12 +1412,39 @@ a large one (~1650 combined C++ lines across both formats).
 - Suggested batching: TMC first (smaller, no `goto`s), MOD second (larger,
   needs the state-machine design work).
 
+## Thirtieth ported batch (2026-09-25): `TmcImporter` (TMC import, Batch A of `plans/JAVA_IMPORTER_PLAN.md`)
+
+Ports `CSong::ImportTMCParseHeader`/`ImportTMCApply` (and their `CConvertTracks`
+helper) as a new free-standing `TmcImporter` class, matching
+`RmtExporter`/`AsmFileExporter`'s precedent. `ImportTMC()` itself
+(`IO_Importer.cpp`) stays unported - a real, still-dialog-showing thin
+wrapper, matching this project's established pattern.
+
+- Transcribed almost line-for-line from the already-C++-tested
+  `ImportTMCApply`, once every byte read got the established `ub()`
+  treatment - all 3 mirrored tests passed on the first run.
+- One genuinely signed byte read (`preladeni`, a transposition amount)
+  needed Java's raw (unmasked) byte-to-int widening instead of the usual
+  unsigned mask, matching C++'s `(char)` cast there.
+- The TMC envelope command 5's `rand()` call becomes
+  `ThreadLocalRandom.current().nextInt(256)` - confirmed unreachable by
+  the one existing test, and not meaningfully preservable byte-for-byte
+  anyway (different PRNG).
+- One added defensive bounds check (`line >= 1`) where C++'s equivalent
+  would read an out-of-bounds array index if a TMC file decoded to zero
+  songlines - not reachable by any current test, but Java throws where
+  C++ silently corrupts memory.
+- Verified with `mvn -o test`: 350 tests pass (+3), no regressions. No C++
+  changes in this batch. Full write-up in `plans/JAVA_IMPORTER_PLAN.md`'s
+  "Batch A - DONE" section.
+
 ## Next steps
 
-Two scoped-but-not-implemented paths are now available, plus the
-un-scoped `CTrackClipboard` remainder:
-1. **TMC/MOD import** (`plans/JAVA_IMPORTER_PLAN.md`) - Batch A (TMC) is
-   ready to implement, already fully C++-tested.
+Two scoped-but-not-implemented paths remain, plus the un-scoped
+`CTrackClipboard` remainder:
+1. **MOD import** (Batch B of `plans/JAVA_IMPORTER_PLAN.md`) - already
+   fully C++-tested; needs real design attention for
+   `ImportMODApply`'s `goto`-driven tone-portamento state machine.
 2. The remaining 7 untested `CTrackClipboard` methods need new C++
    characterization tests before they can be ported.
 3. The deferred `IO_Instruments.cpp`/`IO_Tracks.cpp` TXT/RMW

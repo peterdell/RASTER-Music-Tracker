@@ -3457,3 +3457,24 @@ build clean and all 123 tests pass.
     one part needing real design attention at implementation time, unlike
     every `goto` restructured so far in this port. Suggested batching: TMC
     first (smaller, no `goto`s), MOD second. Not yet implemented.
+  - **2026-09-25**: Thirtieth Java-port batch - `TmcImporter` (Batch A of
+    `plans/JAVA_IMPORTER_PLAN.md`), porting `CSong::ImportTMCParseHeader`/
+    `ImportTMCApply` and their `CConvertTracks` helper as a new
+    free-standing class (matching `RmtExporter`/`AsmFileExporter`'s
+    precedent).
+    - Transcribed almost line-for-line from the already-C++-tested
+      `ImportTMCApply` once every byte read got the established `ub()`
+      treatment - all 3 mirrored tests passed on the first run.
+    - `preladeni` (a transposition amount) needed Java's raw signed byte
+      widening instead of the usual unsigned mask, matching C++'s
+      `(char)` cast.
+    - TMC envelope command 5's `rand()` call becomes
+      `ThreadLocalRandom.current().nextInt(256)` - confirmed unreachable
+      by the one existing test.
+    - One added defensive bounds check (`line >= 1`) where C++'s
+      equivalent would read an out-of-bounds array index on a
+      zero-songline TMC file - not reachable by any current test, but
+      Java throws where C++ silently corrupts memory.
+    - Verified with `mvn -o test`: 350 tests pass (+3), no regressions. No
+      C++ changes in this batch. Details in `plans/JAVA_PORT_PLAN.md`/
+      `plans/JAVA_IMPORTER_PLAN.md`. Not yet committed.
