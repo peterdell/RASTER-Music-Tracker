@@ -950,6 +950,41 @@ TEST_F(SongEditingTest, SaveRMWWritesTheVersionStringFirst) {
     EXPECT_EQ(content.substr(0, strlen(RMT_VERSION_STRING)), RMT_VERSION_STRING);
 }
 
+// FIXED BUG (was pre-existing, from when this project was 32-bit, where
+// sizeof(int*) and sizeof(int) happened to both be 4 - on this 64-bit
+// build sizeof(int*) is 8, so SaveRMW/LoadRMW's main-parameters loop used
+// to write/read 8 bytes per parameter instead of 4. The round-trip test
+// below doesn't catch this on its own (the extra 4 bytes per slot happen
+// to line up with the next parameter's own value, a self-canceling
+// coincidence of this build's exact memory layout - not something to rely
+// on), so this test checks the byte layout directly instead.
+TEST_F(SongEditingTest, SaveRMWWritesEachMainParameterAsExactlyFourBytes) {
+    (*song.GetSong())[0][0] = 5; // the first byte after the main-parameters block
+
+    std::ostringstream out;
+    ASSERT_TRUE(song.SaveRMW(out));
+    std::string content = out.str();
+
+    size_t offset = strlen(RMT_VERSION_STRING) + 1; // version line + std::endl's '\n'
+    offset += SONG_NAME_MAX_LEN + 1; // sizeof(m_songname)
+
+    int paramCount;
+    memcpy(&paramCount, content.data() + offset, sizeof(paramCount));
+    offset += sizeof(paramCount);
+    ASSERT_EQ(paramCount, 31);
+
+    int firstParam; // g_tracks4_8, 4 from this fixture's SetUp()
+    memcpy(&firstParam, content.data() + offset, sizeof(firstParam));
+    EXPECT_EQ(firstParam, 4);
+
+    // If each parameter were (incorrectly) 8 bytes, this offset would land
+    // in the middle of the main-parameters block instead of at m_song[0][0].
+    offset += (size_t)paramCount * sizeof(int);
+    int firstSongValue;
+    memcpy(&firstSongValue, content.data() + offset, sizeof(firstSongValue));
+    EXPECT_EQ(firstSongValue, 5);
+}
+
 // --- LoadRMW ---
 // Round-trips through SaveRMW. LoadRMW's version-mismatch branch (a real
 // MessageBox, unconditional on the error path) is deliberately never

@@ -3296,5 +3296,24 @@ build clean and all 123 tests pass.
       `SetTracks`'s `g_tracks4_8` side effect needed a way to reach the
       caller.
     - Verified with `mvn -o test`: 308 tests pass (+1), all green on the
-      first build. Details in `plans/JAVA_PORT_PLAN.md`. Not yet
-      committed.
+      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      (`23b5170`).
+  - **2026-09-25**: Fixed `SaveRMW`/`LoadRMW`'s "main parameters"
+    `sizeof(mainparams[0])` bug on the C++ side (user's explicit direction,
+    after being shown the finding - see
+    `plans/JAVA_SONGEDITING_PLAN.md`'s sub-batch 8 entry for the full
+    mechanism). `mainparams` is `int* mainparams[31]`, so
+    `sizeof(mainparams[0])` is `sizeof(int*)` - 4 bytes on the 32-bit
+    builds this project originally shipped as (masking the bug), 8 bytes
+    on this 64-bit build (silently over-reading/writing 4 bytes of
+    adjacent memory per parameter). User identified the 32-bit history as
+    the cause and asked for the size-independent, originally-correct
+    behavior to be restored. Fixed with an explicit `sizeof(int)` in both
+    `SaveRMW`/`LoadRMW`. Added a new test
+    (`SaveRMWWritesEachMainParameterAsExactlyFourBytes`) that parses exact
+    byte offsets to catch this - the existing round-trip test didn't, since
+    the extra bytes happened to self-cancel on this build's specific
+    memory layout. Verified via full Release|x64 rebuild: 371 tests pass
+    (+1). Java's own `SaveRMW`/`LoadRMW` port (sub-batch 8) hasn't started
+    yet, so there's nothing to port the fix into yet - it'll use the
+    corrected 4-byte-per-parameter format directly.

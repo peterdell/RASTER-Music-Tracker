@@ -2122,7 +2122,14 @@ bool CSong::SaveRMW(std::ostream& ou) {
     int p = RMWMAINPARAMSCOUNT; // Number of stored parameters
     ou.write((char*)&p, sizeof(p)); // Write the number of main parameters
     for (int i = 0; i < p; i++) {
-        ou.write((char*)mainparams[i], sizeof(mainparams[0]));
+        // Each parameter is a 4-byte int (or an int-backed enum/BOOL of the
+        // same size) - sizeof(mainparams[0]) is wrong here, since
+        // mainparams[i]'s own type is int*, not int: on the 32-bit builds
+        // this project originally shipped as, sizeof(int*) and sizeof(int)
+        // were both 4, masking the bug; on this 64-bit build sizeof(int*)
+        // is 8, silently writing (and, in LoadRMW, reading) 4 bytes of
+        // adjacent memory past each parameter.
+        ou.write((char*)mainparams[i], sizeof(int));
     }
 
     // Write a complete song and songgo
@@ -2152,7 +2159,9 @@ bool CSong::LoadRMW(std::istream& in) {
     int p = 0;
     in.read((char*)&p, sizeof(p)); //read the number of main parameters
     for (int i = 0; i < p; i++) {
-        in.read((char*)mainparams[i], sizeof(mainparams[0]));
+        // See the matching comment in SaveRMW() for why this is sizeof(int),
+        // not sizeof(mainparams[0]).
+        in.read((char*)mainparams[i], sizeof(int));
     }
 
     // Read the complete song and songgo

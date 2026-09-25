@@ -174,6 +174,32 @@ byte value against it with `>`, not just equality).
 `AtariIO.java` currently only has `loadDataAsBinaryFile`, the buffer-based
 one `AtariTrackerDriver` needed).
 
+**`SaveRMW`/`LoadRMW`'s "main parameters" `sizeof` bug - FIXED on the C++
+side**: the 31-parameter binary block was written/read via
+`int* mainparams[31]` and `sizeof(mainparams[0])` - which is
+`sizeof(int*)`, not `sizeof(int)`. On the 32-bit builds this project
+originally shipped as, those two happened to be the same size (4 bytes),
+masking the bug entirely; on this 64-bit build `sizeof(int*)` is 8, so
+every parameter was silently written/read as 8 bytes instead of 4 (4 bytes
+of adjacent memory past each variable). The user identified the 32-bit
+history as the likely cause and asked for the C++ side to be restored to
+that originally-correct, size-independent behavior. Fixed by using
+`sizeof(int)` explicitly in both `SaveRMW`/`LoadRMW`. The existing
+round-trip test didn't catch this - on this build's specific memory
+layout, the extra 4 bytes each slot wrote turned out to capture the *next*
+parameter's own value, which then got redundantly (but correctly)
+restored when that next slot was read back - a self-canceling coincidence,
+not something to rely on. Added
+`SaveRMWWritesEachMainParameterAsExactlyFourBytes`, which parses the
+output's exact byte offsets to catch a regression back to the 8-byte
+layout directly. Verified via full Release|x64 rebuild: 371 tests pass.
+Changes the on-disk byte layout of newly-saved `.rmw` files (existing
+files saved by any 64-bit build had the buggy 8-byte layout already,
+so this doesn't newly break anything that was working - it's a fix, not a
+behavior change to a format that was reliably interoperable before). The
+Java port of `SaveRMW`/`LoadRMW` (this sub-batch, not yet started) will
+use the corrected 4-byte-per-parameter format directly.
+
 **`LoadTxt` bug - FIXED on the C++ side** (see
 [raster-atari-org/RASTER-Music-Tracker#21](https://github.com/raster-atari-org/RASTER-Music-Tracker/issues/21)):
 `LoadTxt()`'s `[MODULE]`/`[SONG]` segment loops used to detect the next
