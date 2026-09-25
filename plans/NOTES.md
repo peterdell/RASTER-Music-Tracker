@@ -3376,4 +3376,39 @@ build clean and all 123 tests pass.
       every existing test).
     - Verified with `mvn -o test`: 339 tests pass (+23), all green on the
       first build. No C++ changes in this batch. Details in
-      `plans/JAVA_PORT_PLAN.md`. Not yet committed.
+      `plans/JAVA_PORT_PLAN.md`. Committed as `2141688`.
+  - **2026-09-25**: Started scoping `CTrackClipboard` as its own dedicated
+    porting pass (per `plans/JAVA_SONGEDITING_PLAN.md`'s execution order)
+    and found it has *no* existing C++ test coverage at all - unlike every
+    other class ported this whole effort. Every method except `BlockEffect`
+    (a real MFC dialog, confirmed unextractable) is otherwise hazard-free
+    (`ClipboardCore.cpp`'s own header comment already says so), but porting
+    it faithfully means first writing a new `ClipboardTests.cpp`
+    characterization suite - a different, bigger kind of task than pure
+    porting. Flagged to the user, who chose to do the exporters batch
+    (which already has C++ tests) instead and leave `CTrackClipboard` for
+    a later decision.
+  - **2026-09-25**: Twenty-eighth Java-port batch - two new free-standing
+    classes, `RmtExporter` (`exportAsRMT`/`exportAsStrippedRMTApply`) and
+    `AsmFileExporter` (`exportAsAsmApply`/`buildRelocatableAsm`/
+    `exportAsRelocatableAsmForRmtPlayerApply`/`composeRMTFEATstring`),
+    mirroring C++'s own `CRmtExporter`/`CASMFileExporter` split rather than
+    folding onto `Song`.
+    - Found and fixed a genuine C++ off-by-one on both sides:
+      `ExportAsStrippedRMTApply` wrote one extra, always-zero trailing byte
+      per export (used `MakeModule`'s exclusive-upper-bound
+      `firstByteAfterModule` directly as `SaveBinaryBlock`'s inclusive
+      `toAddr`, inconsistent with `ExportAsRMT`'s own correct
+      `firstByteAfterModule - 1` a few lines above). Fixed in
+      `RmtExporterCore.cpp` plus a new byte-exact regression test
+      (`ExportAsStrippedRMTApplyWritesExactlyTheModuleSizeWithNoExtraByte`).
+    - New `AtariIO.saveBinaryBlock`; `Song.nameToString` widened to
+      `public static` for reuse by the new exporter classes;
+      `ComposeRMTFEATstring`'s dead `trackSavedFlags` parameter dropped;
+      `BuildRelocatableAsm`'s pointer-offset buffer becomes a copied
+      scratch array, matching this port's established treatment of that
+      pattern.
+    - Verified with `mvn -o test`: 345 tests pass (+6); full C++
+      Release|x64 rebuild + `RmtTests.exe`: 372 tests pass (+1), 0
+      regressions on either side. Details in `plans/JAVA_PORT_PLAN.md`.
+      Not yet committed.

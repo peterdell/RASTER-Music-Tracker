@@ -1317,11 +1317,52 @@ sub-batch 9 entry for the full per-method breakdown; highlights:
   339 tests pass (+23), all green on the first build. No C++ changes in
   this batch.
 
+## Twenty-eighth ported batch (2026-09-25): `RmtExporter`/`AsmFileExporter` (RMT/ASM export, no PokeyStream needed)
+
+Two new free-standing classes, ported from `CRmtExporter`/`CASMFileExporter`
+(matching C++'s own split rather than folding onto `Song`):
+`RmtExporter.exportAsRMT`/`exportAsStrippedRMTApply` and
+`AsmFileExporter.exportAsAsmApply`/`buildRelocatableAsm`/
+`exportAsRelocatableAsmForRmtPlayerApply`/`composeRMTFEATstring`. Chosen
+ahead of the originally-next-up `CTrackClipboard` scoping pass because,
+while starting that one, it turned out to have *no* existing C++ test
+coverage at all (unlike everything ported so far) - these exporters
+already did, in `SongEditingTests.cpp`, fitting the established "port
+already-tested C++" pattern exactly.
+
+- **A genuine C++ off-by-one found and fixed on both sides**:
+  `ExportAsStrippedRMTApply` wrote one extra, always-zero trailing byte per
+  export (passed `MakeModule`'s exclusive-upper-bound `firstByteAfterModule`
+  directly as `SaveBinaryBlock`'s inclusive `toAddr`, unlike `ExportAsRMT`'s
+  own correct `firstByteAfterModule - 1` a few lines above). Fixed in
+  `RmtExporterCore.cpp` with a new byte-exact regression test; ported with
+  the corrected convention in Java from the start.
+- New `AtariIO.saveBinaryBlock` (`SaveBinaryBlock`'s counterpart to the
+  already-ported `loadBinaryBlock`) - returns `byte[]` instead of writing
+  to a stream.
+- `Song.nameToString` widened `private` -> `public static` - both new
+  exporter classes need the same raw-`char[]`-to-`String` conversion
+  `Song` already had internally.
+- `ComposeRMTFEATstring` drops C++'s `trackSavedFlags` parameter - confirmed
+  dead in the C++ body (only `instrumentSavedFlags` is ever read).
+- `BuildRelocatableAsm`'s C++ `unsigned char* buf = &mem[targetAddrOfModule];`
+  becomes a copied scratch buffer (`Arrays.copyOfRange`), matching this
+  port's established treatment of the same pointer-offset pattern
+  elsewhere - lets the rest of the ~300-line method read almost
+  line-for-line off the C++ source.
+- Tests (`SongEditingTest`, extended) mirror `SongEditingTests.cpp`'s
+  corresponding sections exactly (6 tests). Verified with `mvn -o test`:
+  345 tests pass (+6); full C++ Release|x64 rebuild + `RmtTests.exe`: 372
+  tests pass (+1, the regression test), 0 regressions on either side.
+
 ## Next steps
 
-`plans/JAVA_SONGEDITING_PLAN.md`'s suggested execution order is now past
-every `SongEditing.cpp` sub-batch. Next up per that order: `CTrackClipboard`
-as its own dedicated scoping pass (narrowed to `BLOCKSETBEGIN`/
-`BLOCKSETEND`/`ISBLOCKSELECTED`/`BlockPaste`), then exporters
-(`CRmtExporter`/`CASMFileExporter` first, since they don't need the
-`PokeyStream` recording path).
+`plans/JAVA_SONGEDITING_PLAN.md`'s suggested execution order has one item
+left: `CTrackClipboard` as its own dedicated scoping pass (narrowed to
+`BLOCKSETBEGIN`/`BLOCKSETEND`/`ISBLOCKSELECTED`/`BlockPaste`). Unlike every
+class ported so far, it has no existing C++ test coverage - porting it
+means first writing a new `ClipboardTests.cpp` characterization suite, a
+different kind of task than pure porting. Deferred pending the user's
+decision on whether to take that on now or continue elsewhere (e.g. TMC/MOD
+importers, or the deferred `IO_Instruments.cpp`/`IO_Tracks.cpp` TXT/RMW
+per-instrument/per-track serialization).

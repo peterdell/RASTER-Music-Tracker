@@ -428,15 +428,55 @@ growable buffer, neither modeled yet. Revisit once `PokeyStream`'s real
 recording path is unblocked - likely its own dedicated sub-effort, not a
 quick add-on.
 
-## Exporters that don't need the PokeyStream path
+## Exporters that don't need the PokeyStream path - DONE
 
-`CRmtExporter::ExportAsRMT`/`ExportAsStrippedRMTApply` (69 lines total -
-likely just re-serializes via `SaveRMW`-like logic once that's ported),
+`CRmtExporter::ExportAsRMT`/`ExportAsStrippedRMTApply` and
 `CASMFileExporter::ExportAsAsmApply`/`BuildRelocatableAsm`/
-`ExportAsRelocatableAsmForRmtPlayerApply` (112 lines - probably builds on
-top of the already-ported `AsmFileBuilder`). Worth scoping in detail once
-`SaveRMW`/`MakeModule` (sub-batches 7-8 above) and enough of the cursor/
-editing surface exist to support them.
+`ExportAsRelocatableAsmForRmtPlayerApply`/`ComposeRMTFEATstring` are all
+ported, as two new free-standing classes (`RmtExporter`/`AsmFileExporter`,
+matching C++'s own split - static methods taking `Song`/`Instruments`/
+`Tracks` explicitly rather than being folded onto `Song`).
+
+**A genuine C++ off-by-one found and fixed on both sides**:
+`ExportAsStrippedRMTApply` passed `firstByteAfterModule` (`MakeModule`'s
+documented *exclusive* upper bound) directly as `SaveBinaryBlock`'s
+*inclusive* `toAddr`, writing one extra, always-zero trailing byte per
+export - inconsistent with `ExportAsRMT`'s own correct
+`firstByteAfterModule - 1` usage a few lines above it in the same file.
+Fixed in C++ (`RmtExporterCore.cpp`) with a new regression test
+(`ExportAsStrippedRMTApplyWritesExactlyTheModuleSizeWithNoExtraByte`,
+comparing the exported block's exact byte length against an independently-
+computed `MakeModule` call), and ported with the corrected convention from
+the start in Java's `RmtExporter.exportAsStrippedRMTApply`.
+
+**New `AtariIO.saveBinaryBlock`** (`CAtariIO::SaveBinaryBlock`'s
+counterpart to the already-ported `loadBinaryBlock`) - returns the encoded
+`byte[]` rather than writing to a stream, matching this port's established
+byte-array-over-stream idiom.
+
+**`Song.nameToString` widened from `private` to `public static`**: both
+new exporter classes need the same "raw `char[]` name buffer to a
+null-terminated `String`" conversion C++ gets implicitly from
+`CString name = someCharPtr;` - reusing the existing helper (already used
+internally by `Song`) avoided duplicating it.
+
+**`ComposeRMTFEATstring` drops C++'s `trackSavedFlags` parameter**:
+confirmed by inspection to be genuinely dead in the C++ body (only
+`instrumentSavedFlags` is ever read) - carries no behavior to preserve.
+
+**Pointer-offset-into-shared-buffer pattern** in `BuildRelocatableAsm`
+(C++'s `unsigned char* buf = &exportDesc->mem[exportDesc->targetAddrOfModule];`)
+becomes a copied scratch buffer (`Arrays.copyOfRange`), matching this
+port's established treatment of the same pattern elsewhere (e.g.
+`Song#decodeModule`) - every offset C++ computes relative to `buf` stays
+numerically identical against the copy, letting the rest of the ~300-line
+method (including its calls into the already-ported `AsmFileBuilder`) read
+almost line-for-line off the C++ source.
+
+Tests (`SongEditingTest`, extended) mirror `SongEditingTests.cpp`'s
+corresponding sections exactly (6 tests). Verified with `mvn -o test`: 345
+tests pass (+6), and a full C++ Release|x64 rebuild + `RmtTests.exe`: 372
+tests pass (+1, the new regression test), 0 regressions on either side.
 
 ## Explicitly out of scope for this plan
 
@@ -471,13 +511,22 @@ editing surface exist to support them.
    capstone. Both C++ bugs it surfaced (`LoadTxt`'s segment-boundary bug,
    `SaveRMW`/`LoadRMW`'s `sizeof` bug) are fixed.
 6. Sub-batch 9 (navigation/playback) - DONE.
-7. `CTrackClipboard` as its own dedicated scoping pass (now narrowed to
-   just `BLOCKSETBEGIN`/`BLOCKSETEND`/`ISBLOCKSELECTED`/`BlockPaste`, since
-   sub-batch 4 already resolved `TrackCopy`/`TrackPaste`), once its
-   `g_Song`-reads-a-global wrinkle is worked out.
-8. Exporters (`CRmtExporter`/`CASMFileExporter` first, since they don't
-   need `PokeyStream`; the SAP-R/LZSS/WAV/XEX family only once
-   `PokeyStream`'s real recording path is unblocked).
+7. `CTrackClipboard` as its own dedicated scoping pass - **reordered after
+   the exporters below**: re-checking it at this point found it has *no*
+   existing C++ test coverage at all (unlike every other class ported this
+   whole effort), unlike the exporters, which already did. Porting it would
+   mean writing a new `ClipboardTests.cpp` characterization suite first - a
+   different, bigger kind of task than pure porting - so it's deferred
+   until the user decides to take that on; still narrowed to just
+   `BLOCKSETBEGIN`/`BLOCKSETEND`/`ISBLOCKSELECTED`/`BlockPaste`, since
+   sub-batch 4 already resolved `TrackCopy`/`TrackPaste`, and its
+   `g_Song`-reads-a-global wrinkle is still unresolved.
+8. Exporters (`CRmtExporter::ExportAsRMT`/`ExportAsStrippedRMTApply`,
+   `CASMFileExporter::ExportAsAsmApply`/`BuildRelocatableAsm`/
+   `ExportAsRelocatableAsmForRmtPlayerApply`/`ComposeRMTFEATstring`) - DONE,
+   done ahead of item 7 above for that reason. The SAP-R/LZSS/WAV/XEX
+   family stays deferred until `PokeyStream`'s real recording path is
+   unblocked.
 9. TMC/MOD importers - separate, dedicated plan, not part of this one.
 10. `IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track
     serialization - deferred out of sub-batch 8 (see its entry above),

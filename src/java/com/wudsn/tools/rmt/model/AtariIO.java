@@ -83,6 +83,32 @@ public final class AtariIO {
 		return new BinaryBlockResult(pos - offset, fromAddr, toAddr);
 	}
 
+	/**
+	 * Encodes one "binary block" ({@link #loadBinaryBlock}'s counterpart):
+	 * {@code fromAddr}/{@code toAddr} words (optionally preceded by a
+	 * {@code 0xFFFF} marker), then {@code memory[fromAddr..toAddr]}
+	 * inclusive. Returns the encoded bytes directly rather than writing to
+	 * C++'s {@code std::ostream&} - matches this class's established
+	 * byte-array-over-stream idiom. Empty (zero-length) if {@code fromAddr > toAddr},
+	 * matching C++'s own no-op guard.
+	 */
+	public static byte[] saveBinaryBlock(byte[] memory, int fromAddr, int toAddr, boolean withBinaryBlockHeader) {
+		if (fromAddr > toAddr) {
+			return new byte[0];
+		}
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+		if (withBinaryBlockHeader) {
+			out.write(0xff);
+			out.write(0xff);
+		}
+		out.write(fromAddr & 0xff);
+		out.write((fromAddr >> 8) & 0xff);
+		out.write(toAddr & 0xff);
+		out.write((toAddr >> 8) & 0xff);
+		out.writeBytes(java.util.Arrays.copyOfRange(memory, fromAddr, toAddr + 1));
+		return out.toByteArray();
+	}
+
 	public static Result loadDataAsBinaryFile(byte[] data, byte[] memory) {
 		int minAddr = 0xFFFF;
 		int maxAddr = 0;

@@ -153,6 +153,10 @@ public final class Song {
 		return instrumentSpeed;
 	}
 
+	public int getMainSpeed() {
+		return mainSpeed;
+	}
+
 	/**
 	 * Mirrors {@link #setPlayPressedTonesSilence} except the volume slot is
 	 * reset to -1 instead of 0 - matches C++'s always-true BOOL return being
@@ -1988,7 +1992,8 @@ public final class Song {
 		return nameToString(name1).compareToIgnoreCase(nameToString(name2));
 	}
 
-	private static String nameToString(char[] name) {
+	/** Ported ad hoc from C++'s implicit {@code CString name = someCharArray;} conversion (scans to the first {@code '\0'}) - reused wherever a raw name buffer needs the same treatment ({@link RmtExporter}/{@link AsmFileExporter}). */
+	public static String nameToString(char[] name) {
 		int end = 0;
 		while (end < name.length && name[end] != '\0') {
 			end++;

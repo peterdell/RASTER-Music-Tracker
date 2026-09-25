@@ -1108,6 +1108,189 @@ class SongEditingTest {
 		assertEquals("Lead", new String(instruments.getInstrument(2).name).stripTrailing());
 	}
 
+	// --- RmtExporter.exportAsRMT ---
+	// Round-trips through loadRMT - the two blocks it writes are exactly what
+	// loadRMT expects, so this exercises exportAsRMT for real rather than
+	// hand-deriving the RMT header's byte layout, same philosophy as loadRMT's
+	// own test above (which instead builds those blocks by hand).
+
+	@Test
+	void exportAsRMTRoundTripsThroughLoadRMT() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6; // decodeModule rejects a zero speed byte as invalid
+		info.instrumentSpeed = 2;
+		setName(info.songName, "TestSong");
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+		tracks.getTrack(5).len = 4;
+		tracks.getTrack(5).note[0] = 10;
+		tracks.getTrack(5).instr[0] = 2;
+		setName(instruments.getInstrument(2).name, "Lead");
+
+		byte[] mem = new byte[Atari.MEMORY_SIZE];
+		byte[] instrSavedFlags = new byte[Instruments.INSTRSNUM];
+		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
+		int targetAddrOfModule = 0x4000;
+		int firstByteAfterModule = song.makeModule(mem, targetAddrOfModule, SongIOType.RMT, instrSavedFlags, trackSavedFlags, 4);
+		assertTrue(firstByteAfterModule > 0);
+
+		byte[] out = RmtExporter.exportAsRMT(song, instruments, mem, targetAddrOfModule, firstByteAfterModule, instrSavedFlags);
+
+		Song decoded = new Song(instruments, tracks);
+		assertTrue(decoded.loadRMT(out));
+
+		assertEquals("TestSong", decoded.getName());
+		assertEquals("Lead", new String(instruments.getInstrument(2).name).stripTrailing());
+	}
+
+	// --- RmtExporter.exportAsStrippedRMTApply ---
+	// Decoded directly via AtariIO.loadBinaryBlock()/Song.decodeModule() rather
+	// than loadRMT(): exportAsStrippedRMTApply() only ever writes a single
+	// block (no names block), and loadRMT() shows a real, blocking "Info"
+	// MessageBox when it doesn't find a second block (confirmed firsthand on
+	// the C++ side - see plans/NOTES.md), so it's never fed a single-block input.
+
+	@Test
+	void exportAsStrippedRMTApplyWritesADecodableModuleBlock() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6; // decodeModule rejects a zero speed byte as invalid
+		info.instrumentSpeed = 2;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+		tracks.getTrack(5).len = 4;
+		tracks.getTrack(5).note[0] = 10;
+		tracks.getTrack(5).instr[0] = 2;
+
+		byte[] out = RmtExporter.exportAsStrippedRMTApply(song, 0x4000, false, 4);
+		assertTrue(out != null);
+
+		byte[] mem = new byte[Atari.MEMORY_SIZE];
+		AtariIO.BinaryBlockResult block = AtariIO.loadBinaryBlock(out, 0, mem);
+		assertTrue(block.length() > 0);
+		assertEquals(0x4000, block.fromAddr());
+
+		byte[] instrLoadedFlags = new byte[Instruments.INSTRSNUM];
+		byte[] trackLoadedFlags = new byte[Tracks.TRACKSNUM];
+		Song decoded = new Song(instruments, tracks);
+		Song.DecodeModuleResult result = decoded.decodeModule(mem, block.fromAddr(), block.toAddr() + 1, instrLoadedFlags, trackLoadedFlags);
+		assertTrue(result.version() > 0);
+	}
+
+	@Test
+	void exportAsStrippedRMTApplyWritesADecodableModuleBlockWhenSfxSupportIsOn() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 2;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+		tracks.getTrack(5).len = 4;
+		tracks.getTrack(5).note[0] = 10;
+		tracks.getTrack(5).instr[0] = 2;
+
+		byte[] out = RmtExporter.exportAsStrippedRMTApply(song, 0x5000, true, 4);
+		assertTrue(out != null);
+
+		byte[] mem = new byte[Atari.MEMORY_SIZE];
+		AtariIO.BinaryBlockResult block = AtariIO.loadBinaryBlock(out, 0, mem);
+		assertTrue(block.length() > 0);
+		assertEquals(0x5000, block.fromAddr()); // sfxSupport doesn't affect the target address
+
+		byte[] instrLoadedFlags = new byte[Instruments.INSTRSNUM];
+		byte[] trackLoadedFlags = new byte[Tracks.TRACKSNUM];
+		Song decoded = new Song(instruments, tracks);
+		Song.DecodeModuleResult result = decoded.decodeModule(mem, block.fromAddr(), block.toAddr() + 1, instrLoadedFlags, trackLoadedFlags);
+		assertTrue(result.version() > 0);
+	}
+
+	// --- AsmFileExporter.exportAsAsmApply ---
+	// g_PrefixForAllAsmLabels/atariMemory are left empty here - not exercised
+	// by this test (durationsType/notesIndexOrFreq are both "notes").
+
+	@Test
+	void exportAsAsmApplyWritesTracksOnlyOutput() {
+		song.getSong()[0][0] = 5; // marks track 5 as "used" via markTfUsed
+		Track tr = tracks.getTrack(5);
+		tr.len = 2;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+
+		String out = AsmFileExporter.exportAsAsmApply(song, instruments, tracks, new byte[Atari.MEMORY_SIZE], "", 4, 1 /* Tracks only */, 1 /* notes */, 1 /* notes only */);
+
+		assertTrue(out.contains(";ASM notation source"));
+		assertTrue(out.contains(";Track $05"));
+	}
+
+	// --- AsmFileExporter.buildRelocatableAsm ---
+	// Already a pure, dialog-independent function - no split needed.
+
+	@Test
+	void buildRelocatableAsmProducesAssemblerSourceForAValidModule() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 2;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+		tracks.getTrack(5).len = 4;
+		tracks.getTrack(5).note[0] = 10;
+		tracks.getTrack(5).instr[0] = 2;
+
+		byte[] mem = new byte[Atari.MEMORY_SIZE];
+		byte[] instrSavedFlags = new byte[Instruments.INSTRSNUM];
+		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
+		int targetAddrOfModule = 0x4000;
+		int firstByteAfterModule = song.makeModule(mem, targetAddrOfModule, SongIOType.RMT, instrSavedFlags, trackSavedFlags, 4);
+		assertTrue(firstByteAfterModule > 0);
+
+		AsmFileExporter.Result result = AsmFileExporter.buildRelocatableAsm(song, instruments, tracks, 4, mem, targetAddrOfModule, firstByteAfterModule, instrSavedFlags, "MY_SONG", "", "", "",
+				AssemblerFormat.XASM, false, false, false, false);
+		assertTrue(result.success());
+
+		assertTrue(result.code().contains("MY_SONG"));
+		assertTrue(result.code().contains("RMT4")); // matches the module header's "RMTx" marker (4 tracks)
+	}
+
+	// --- AsmFileExporter.exportAsRelocatableAsmForRmtPlayerApply ---
+	// Extracted from ExportAsRelocatableAsmForRmtPlayer() - mostly a thin
+	// wrapper around the already-tested buildRelocatableAsm() above.
+
+	@Test
+	void exportAsRelocatableAsmForRmtPlayerApplyWritesToStream() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 2;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+		tracks.getTrack(5).len = 4;
+		tracks.getTrack(5).note[0] = 10;
+		tracks.getTrack(5).instr[0] = 2;
+
+		byte[] memStripped = new byte[Atari.MEMORY_SIZE];
+		byte[] instrSavedFlagsStripped = new byte[Instruments.INSTRSNUM];
+		byte[] trackSavedFlagsStripped = new byte[Tracks.TRACKSNUM];
+		int targetAddrOfModule = 0x4000;
+		int firstByteAfterModule = song.makeModule(memStripped, targetAddrOfModule, SongIOType.RMT, instrSavedFlagsStripped, trackSavedFlagsStripped, 4);
+		assertTrue(firstByteAfterModule > 0);
+
+		// exportDescWithSFX's content doesn't matter here - sfxSupport is false below
+		AsmFileExporter.RelocatableAsmExportParams params = new AsmFileExporter.RelocatableAsmExportParams("MY_SONG", false, false, false, "", "", "", AssemblerFormat.XASM, false, false, false);
+
+		AsmFileExporter.Result result = AsmFileExporter.exportAsRelocatableAsmForRmtPlayerApply(song, instruments, tracks, 4, memStripped, targetAddrOfModule, firstByteAfterModule,
+				instrSavedFlagsStripped, memStripped, targetAddrOfModule, firstByteAfterModule, instrSavedFlagsStripped, params);
+
+		assertTrue(result.success());
+		assertTrue(result.code().contains("MY_SONG"));
+	}
+
 	// --- songJump / songUp / songDown / songSubsongPrev / songSubsongNext ---
 	// All conditionally call stop()/play() only inside "playMode != PLAY_STOP
 	// && followplay", never taken here (playMode defaults to PLAY_STOP).
