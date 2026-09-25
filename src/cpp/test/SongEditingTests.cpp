@@ -1147,6 +1147,43 @@ TEST_F(SongEditingTest, ExportAsStrippedRMTApplyWritesADecodableModuleBlock) {
     EXPECT_GT(decoded.DecodeModule(mem, fromAddr, toAddr + 1, instrLoadedFlags, trackLoadedFlags), 0);
 }
 
+// Regression test for a fixed off-by-one: ExportAsStrippedRMTApply() used to
+// pass firstByteAfterModule (MakeModule()'s documented *exclusive* upper
+// bound) directly as SaveBinaryBlock()'s *inclusive* toAddr, writing one
+// extra (harmless, always-zero) trailing byte - inconsistent with
+// ExportAsRMT()'s own correct firstByteAfterModule-1 usage just above.
+TEST_F(SongEditingTest, ExportAsStrippedRMTApplyWritesExactlyTheModuleSizeWithNoExtraByte) {
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 2;
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->len = 4;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 2;
+
+    // Independently compute the module's real size the same way
+    // ExportAsStrippedRMTApply() does internally, to compare against.
+    static unsigned char expectedMem[65536] = {};
+    BYTE expectedInstrFlags[INSTRSNUM] = {};
+    BYTE expectedTrackFlags[TRACKSNUM] = {};
+    int expectedEnd = song.MakeModule(expectedMem, 0x4000, SongIOType::RMT, expectedInstrFlags, expectedTrackFlags);
+    ASSERT_GT(expectedEnd, 0);
+
+    std::ostringstream out;
+    ASSERT_TRUE(CRmtExporter::ExportAsStrippedRMTApply(song, out, 0x4000, FALSE));
+
+    std::istringstream in(out.str());
+    static unsigned char mem[65536] = {};
+    WORD fromAddr, toAddr;
+    int len = CAtariIO::LoadBinaryBlock(in, mem, fromAddr, toAddr);
+    ASSERT_GT(len, 0);
+
+    EXPECT_EQ(len, expectedEnd - 0x4000); // no extra trailing byte beyond the module's real size
+}
+
 TEST_F(SongEditingTest, ExportAsStrippedRMTApplyWritesADecodableModuleBlockWhenSfxSupportIsOn) {
     TInfo info = {};
     song.GetSongInfoPars(&info);

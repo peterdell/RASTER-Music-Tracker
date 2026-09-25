@@ -68,8 +68,11 @@ bool CRmtExporter::ExportAsStrippedRMTApply(CSong& song, std::ostream& ou, int t
         return false; // if the module could not be created
     }
 
-    // And save the RMT module block
-    CAtariIO::SaveBinaryBlock(ou, exportTempDescription.mem, exportTempDescription.targetAddrOfModule, exportTempDescription.firstByteAfterModule, TRUE);
+    // And save the RMT module block. firstByteAfterModule is CSong::MakeModule()'s
+    // documented exclusive upper bound (the first byte NOT used by the module),
+    // so the inclusive toAddr SaveBinaryBlock() wants is one less - matching
+    // ExportAsRMT()'s own (correct) use of the same convention above.
+    CAtariIO::SaveBinaryBlock(ou, exportTempDescription.mem, exportTempDescription.targetAddrOfModule, exportTempDescription.firstByteAfterModule - 1, TRUE);
 
     return true; // Indicate that data was saved
 }
