@@ -44,6 +44,11 @@ public final class AtariTrackerDriver {
 		return atari.getByteAt(address);
 	}
 
+	/** C++'s {@code GetAtari()} - the UI's volume analyzer and POKEY view read the register shadow from its memory. */
+	public Atari getAtari() {
+		return atari;
+	}
+
 	public int getRmtInstrument(int track) {
 		return rmtInstr[track];
 	}

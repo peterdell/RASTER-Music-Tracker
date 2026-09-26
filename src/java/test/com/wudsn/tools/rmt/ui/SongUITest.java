@@ -16,6 +16,9 @@ import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import com.wudsn.tools.rmt.model.Part;
+import com.wudsn.tools.rmt.model.PlayMode;
+
 /**
  * Full-frame tests of {@link SongUI#drawAll} - the first frame of the
  * tracks screen, rendered headless at the logical size the reference
@@ -67,15 +70,11 @@ class SongUITest {
 		return session;
 	}
 
-	/** The info area (6 lines) without the FPS read-out (B2). */
-	private static final Rectangle INFO_AREA = new Rectangle(0, 0, 560, 104);
+	/** The whole client area. */
+	private static final Rectangle FULL_FRAME = new Rectangle(0, 0, WIDTH, HEIGHT);
+	/** The "%1.2f FPS" read-out - the one genuinely volatile thing in a non-playing capture (a frame-rate measurement). */
 	private static final Rectangle FPS_READOUT = new Rectangle(560 - 9 * 8, RmtScreenLayout.INFO_Y_LINE_1, 80, 16);
-	/** The volume analyzer strip above the track headers (B2), which in stereo reaches under the SONG block. */
-	private static final Rectangle ANALYZER_STRIP = new Rectangle(0, RmtScreenLayout.TRACKS_Y - 16, WIDTH, 16);
-	private static final List<Rectangle> B2_EXCLUSIONS = List.of(FPS_READOUT, ANALYZER_STRIP);
-	/** The tracks screen from the "TRACK Lx" headers down to and including the debug line; the analyzer strip above (y 120-135) is B2. */
-	private static final Rectangle TRACKS_MONO = new Rectangle(0, RmtScreenLayout.TRACKS_Y, 551, HEIGHT - 16 - RmtScreenLayout.TRACKS_Y);
-	private static final Rectangle TRACKS_STEREO = new Rectangle(0, RmtScreenLayout.TRACKS_Y, 1064, HEIGHT - 16 - RmtScreenLayout.TRACKS_Y);
+	private static final List<Rectangle> VOLATILE = List.of(FPS_READOUT);
 
 	@Test
 	void song1MonoTracksScreenMatchesRmtExe() throws IOException {
@@ -88,8 +87,7 @@ class SongUITest {
 		ReferenceScreenshot reference = ReferenceScreenshot.load("song1-mono", "tracks-scale200", 2);
 		assertEquals(WIDTH, reference.getLogicalWidth());
 
-		Rectangle songBlock = new Rectangle(568, 0, 8 * 18, 180); // SONG_OFFSET_X for a mono song = SONG_X - 200; the tuning/POKEY panel (B2) starts at y 186
-		reference.assertMatches(frame, "song1-mono-tracks", List.of(INFO_AREA, songBlock, TRACKS_MONO), B2_EXCLUSIONS);
+		reference.assertMatches(frame, "song1-mono-tracks", List.of(FULL_FRAME), VOLATILE);
 	}
 
 	@Test
@@ -102,8 +100,73 @@ class SongUITest {
 		ReferenceScreenshot reference = ReferenceScreenshot.load("song0-empty", "tracks-scale200", 2);
 		assertEquals(WIDTH, reference.getLogicalWidth());
 
-		Rectangle songBlock = new Rectangle(828, 0, 8 * 30, 144); // stereo, narrower than 1320: SONG_X - 250 + 310, compact 5-line block
-		reference.assertMatches(frame, "song0-empty-tracks", List.of(INFO_AREA, songBlock, TRACKS_STEREO), B2_EXCLUSIONS);
+		reference.assertMatches(frame, "song0-empty-tracks", List.of(FULL_FRAME), VOLATILE);
+	}
+
+	/**
+	 * The GOTO capture was taken while playing with follow-play on: song line
+	 * 05 is both active and playing, the cursor/play line is $3C (its own
+	 * debug line says {@code TA=60}), and the frame is smooth-scrolled - the
+	 * track rows sit 8 pixels lower than at rest ({@code speeda * 16 / speed -
+	 * 8 = 8} at speed $0A, i.e. speeda 10) and the song rows 7 pixels higher
+	 * ({@code trackplayline * 16 / 64 - 8 = 7}). Everything that depends on
+	 * the audio state (TIME/BPM, analyzer bars, POKEY values) is excluded;
+	 * the GOTO line in the song block, the "GO TO LINE 00" row that ends the
+	 * pattern in the tracks, the smooth-scrolled rows and the debug line
+	 * are compared.
+	 */
+	@Test
+	void song1MonoGotoLineWhilePlayingMatchesRmtExe() throws IOException {
+		RmtSession session = openReference("song1-mono", "Delta.rmt");
+		session.song.songSetActiveLine(5);
+		session.song.songSetPlayLine(5);
+		session.song.setActiveLine(0x3C);
+		session.song.setPlayLine(0x3C);
+		session.song.setPlayMode(PlayMode.PLAY_SONG);
+		session.song.setFollowPlayMode(true);
+		session.song.setSpeeda(10);
+		session.uiState.mouseX = 171;
+		session.uiState.mouseY = 178;
+
+		BufferedImage frame = renderFrame(session);
+		ReferenceScreenshot reference = ReferenceScreenshot.load("song1-mono", "tracks-goto-scale200", 2);
+
+		Rectangle infoLines2To6 = new Rectangle(0, RmtScreenLayout.INFO_Y_LINE_2, 560, 5 * 16);
+		Rectangle songBlock = new Rectangle(568, 0, 8 * 18, 180);
+		Rectangle tracks = new Rectangle(0, RmtScreenLayout.TRACKS_Y, 551, HEIGHT - RmtScreenLayout.TRACKS_Y);
+		reference.assertMatches(frame, "song1-mono-tracks-goto", List.of(infoLines2To6, songBlock, tracks), VOLATILE);
+	}
+
+	@Test
+	void song0EmptyStereoInstrumentScreenMatchesRmtExe() throws IOException {
+		RmtSession session = new RmtSession();
+		// The capture shows the instrument screen with the instrument part focused (the envelope's first volume digit is highlighted)
+		session.uiState.activeTi = Part.PART_INSTRUMENTS;
+		session.uiState.activePart = Part.PART_INSTRUMENTS;
+
+		BufferedImage frame = renderFrame(session);
+		ReferenceScreenshot reference = ReferenceScreenshot.load("song0-empty", "instruments-scale200", 2);
+		assertEquals(WIDTH, reference.getLogicalWidth());
+
+		reference.assertMatches(frame, "song0-empty-instruments", List.of(FULL_FRAME), VOLATILE);
+	}
+
+	@Test
+	void song1MonoInstrumentScreenMatchesRmtExe() throws IOException {
+		RmtSession session = openReference("song1-mono", "Delta.rmt");
+		session.uiState.activeTi = Part.PART_INSTRUMENTS;
+		session.uiState.activePart = Part.PART_INSTRUMENTS;
+
+		BufferedImage frame = renderFrame(session);
+		ReferenceScreenshot reference = ReferenceScreenshot.load("song1-mono", "instruments-scale200", 2);
+		assertEquals(WIDTH, reference.getLogicalWidth());
+
+		// This capture was taken after playing part of the song (TIME 0:08.12, BPM, song line 03, a
+		// yellow play line), so only the parts that don't depend on the play position are compared:
+		// the info area below the TIME line and the whole instrument editor.
+		Rectangle infoLines2To6 = new Rectangle(0, RmtScreenLayout.INFO_Y_LINE_2, 560, 6 * 16);
+		Rectangle instrumentEditor = new Rectangle(0, InstrumentsUI.Y - 8, 8 * 96, HEIGHT - (InstrumentsUI.Y - 8));
+		reference.assertMatches(frame, "song1-mono-instruments", List.of(infoLines2To6, instrumentEditor), VOLATILE);
 	}
 
 	@Test
@@ -115,6 +178,14 @@ class SongUITest {
 	@Test
 	void song0EmptyFirstFrameMatchesGolden() throws IOException {
 		assertGolden(renderFrame(new RmtSession()), "song0-empty-tracks");
+	}
+
+	@Test
+	void song1MonoInstrumentFrameMatchesGolden() throws IOException {
+		RmtSession session = openReference("song1-mono", "Delta.rmt");
+		session.uiState.activeTi = Part.PART_INSTRUMENTS;
+		session.uiState.activePart = Part.PART_INSTRUMENTS;
+		assertGolden(renderFrame(session), "song1-mono-instruments");
 	}
 
 	private static void assertGolden(BufferedImage frame, String name) throws IOException {

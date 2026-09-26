@@ -23,13 +23,10 @@ import com.wudsn.tools.rmt.model.Tracks;
  * {@code g_TrackClipboard}, ...) come from the {@link RmtSession} - its
  * model objects, {@link UiState} and {@link RmtOptions}.
  *
- * <p>Scope so far (batch B1): {@link #drawInfo}, {@link #drawSong},
- * {@link #drawTracks} and {@link #drawPlayTimeCounter} in full, except the
- * FPS read-out inside {@code drawInfo} (needs the {@code GetFPS()}
- * measurement) - {@link #drawVolumeAnalyzer} (POKEY register display,
- * needs the emulated Atari's memory), {@link #drawInstrument} (the whole
- * instrument editor screen) and the FPS counter come with B2 and are
- * no-ops until then.
+ * <p>All six drawing methods are ported ({@link #drawInstrument} delegates
+ * to {@link InstrumentsUI}, {@link #drawVolumeAnalyzer} embeds
+ * {@link PokeyView}); the one piece still missing is the Pokey Explorer
+ * rows of the POKEY view - see {@link PokeyView}.
  *
  * <p>Deviation: C++ keeps the BPM averaging window ({@code m_avgspeed[8]})
  * on {@code CSong}, although only {@code DrawPlayTimeCounter()} ever reads
@@ -44,6 +41,7 @@ public final class SongUI {
 	private final RmtSession session;
 	private CanvasXY canvasXY;
 	private TracksControl tracksControl;
+	private InstrumentsUI instrumentsUI;
 
 	/** {@code CSong::m_avgspeed} - see the class javadoc. */
 	private final int[] avgSpeed = new int[8];
@@ -55,6 +53,7 @@ public final class SongUI {
 	public void setCanvas(CanvasXY canvasXY) {
 		this.canvasXY = canvasXY;
 		this.tracksControl = new TracksControl(canvasXY, session.uiState, session.options);
+		this.instrumentsUI = new InstrumentsUI(session, canvasXY);
 	}
 
 	private boolean isProveMode() {
@@ -125,14 +124,212 @@ public final class SongUI {
 		}
 	}
 
-	/** Draw a volume analyser above each track - B2 (needs the emulated Atari's POKEY registers). */
-	public void drawVolumeAnalyzer() {
-		// B2
+	private static final int ANALYZER_S = 6;
+	private static final int ANALYZER_H = 5;
+	private static final int ANALYZER_HP = 8;
+
+	/** Draw a bridge between two columns (on the tracks view) */
+	private void drawTracksHook(int ANALYZER_X, int ANALYZER_Y, int g1, int g2, int yUp) {
+		canvasXY.moveTo(ANALYZER_X + 2 + ANALYZER_S * 15 / 2 + 16 * 8 * (g1), ANALYZER_Y - 1);
+		canvasXY.lineTo(ANALYZER_X + 2 + ANALYZER_S * 15 / 2 + 16 * 8 * (g1), ANALYZER_Y - yUp);
+		canvasXY.lineTo(ANALYZER_X + 2 + ANALYZER_S * 15 / 2 + 16 * 8 * (g2), ANALYZER_Y - yUp);
+		canvasXY.lineTo(ANALYZER_X + 2 + ANALYZER_S * 15 / 2 + 16 * 8 * (g2), ANALYZER_Y);
 	}
 
-	/** The instrument editor screen - B2 ({@code InstrumentsUI}). */
+	/**
+	 * Draw a volume analyser above each track, and the tuning/POKEY register
+	 * panel ({@link PokeyView}) to the right of the tracks.
+	 *
+	 * <p>C++ also contains an "instrument edit mode" variant (smaller boxes
+	 * above the SONG block, {@code ANALYZER2_*}, plus {@code DrawInstrumentHook})
+	 * - but as an {@code else if (g_active_ti == PART_INSTRUMENTS)} nested
+	 * <em>inside</em> the {@code if (g_active_ti == PART_TRACKS)} block, so it
+	 * can never execute; the reference screenshots of the instrument screen
+	 * confirm nothing is drawn there. Not ported. Likewise the
+	 * {@code DEBUG_MEMORY} ({@link AtariView}) branch is a compile-time
+	 * {@code FALSE} in C++ and is kept as such.
+	 */
+	public void drawVolumeAnalyzer() {
+		if (!session.options.view.volumeAnalyzer) {
+			return;
+		} // the analyser won't be displayed without the setting enabled first
+
+		Song song = session.song;
+		UiState ui = session.uiState;
+		int tracks4_8 = session.tracks4_8;
+		final boolean stereo = isStereo();
+		final int MINIMAL_WIDTH_TRACKS = (stereo && ui.activeTi == Part.PART_TRACKS) ? 1420 : 960;
+		final int MINIMAL_WIDTH_INSTRUMENTS = 1220;
+		final int SONG_OFFSET_X = getSongOffsetX();
+
+		boolean viewPokeyRegisters = session.options.view.pokeyRegisters;
+		boolean DEBUG_POKEY = viewPokeyRegisters; // registers debug display
+		boolean DEBUG_MEMORY = false; // memory debug display
+
+		// Hide if not enough space is available.
+		if ((ui.width < MINIMAL_WIDTH_TRACKS && ui.activeTi == Part.PART_TRACKS) || (ui.width < MINIMAL_WIDTH_INSTRUMENTS && ui.activeTi == Part.PART_INSTRUMENTS)) {
+			DEBUG_POKEY = DEBUG_MEMORY = false;
+		}
+
+		final int ANALYZER_X = RmtScreenLayout.TRACKS_X + 6 * 8 + 4; // 68
+		final int ANALYZER_Y = RmtScreenLayout.TRACKS_Y - 8; // Line 8 = 128
+
+		final int POKEY_VIEW_X = SONG_OFFSET_X + 6 * 8 - 32;
+		final int POKEY_VIEW_Y = RmtScreenLayout.TRACKS_Y + 50;
+
+		int audf;
+		int audc;
+		int vol;
+		final int[] idx = { 0xd200, 0xd202, 0xd204, 0xd206, 0xd210, 0xd212, 0xd214, 0xd216 }; // AUDF and AUDC for mono and stereo
+		int[] col = new int[8];
+		int[] R = new int[8];
+		int[] G = new int[8];
+		int yUp = 7;
+		for (int i = 0; i < song.getTracks(tracks4_8); i++) {
+			col[i] = 102;
+			R[i] = 44;
+			G[i] = 60;
+		}
+		int a;
+		int b;
+		Color acol;
+
+		if (ui.activeTi == Part.PART_TRACKS) { // bigger look for track edit mode
+			// In tracks drawing mode
+			// Draw bridge connections between channels. For each connection we move 2 pixels up.
+			// Max rise is 10 pixels
+			final byte[] memory = session.atari.getMemory();
+
+			// Clear the area where the analyser is to be drawn
+			canvasXY.fillSolidRect(ANALYZER_X, ANALYZER_Y - ANALYZER_HP, tracks4_8 * 16 * 8 - 34, ANALYZER_H + ANALYZER_HP, RgbColor.BACKGROUND);
+
+			// Left/Mono Channel
+			// Draw which channels are joined by highpass filters or normal channel join
+			a = memory[0xd208] & 0xFF; // AUDCTL @ $D208
+			if ((a & 0x04) != 0) {
+				col[2] = RgbColor.COL_BLOCK;
+				drawTracksHook(ANALYZER_X, ANALYZER_Y, 0, 2, yUp);
+				yUp -= 2;
+			} // High pass filter on channel 1, clocked by channel 3
+			if ((a & 0x02) != 0) {
+				col[3] = RgbColor.COL_BLOCK;
+				drawTracksHook(ANALYZER_X, ANALYZER_Y, 1, 3, yUp);
+				yUp -= 2;
+			} // High pass filter on channel 3, clocked by channel 4
+			if ((a & 0x10) != 0) {
+				col[0] = RgbColor.COL_BLOCK;
+				drawTracksHook(ANALYZER_X, ANALYZER_Y, 0, 1, yUp);
+				yUp -= 2;
+			} // Join channels 1 + 2 (16 bit)
+			if ((a & 0x08) != 0) {
+				col[2] = RgbColor.COL_BLOCK;
+				drawTracksHook(ANALYZER_X, ANALYZER_Y, 2, 3, yUp);
+				yUp -= 2;
+			} // Join channels 3 + 4 (16 bit)
+
+			b = memory[0xd20f] & 0xFF; // SKCTL @ $D20F
+			if (b == 0x8b) {
+				col[1] = RgbColor.COL_BLOCK;
+				drawTracksHook(ANALYZER_X, ANALYZER_Y, 0, 1, yUp);
+				yUp -= 2;
+			} // Two tone mode (join channel 1 + 2)
+			yUp = 7;
+
+			// Stereo Channel
+			a = memory[0xd218] & 0xFF; // AUDCTL2 @ $D218
+			if ((a & 0x04) != 0) {
+				col[2 + 4] = RgbColor.COL_BLOCK;
+				drawTracksHook(ANALYZER_X, ANALYZER_Y, 0 + 4, 2 + 4, yUp);
+				yUp -= 2;
+			} // High pass filter on channel 5 clocked by channel 7
+			if ((a & 0x02) != 0) {
+				col[3 + 4] = RgbColor.COL_BLOCK;
+				drawTracksHook(ANALYZER_X, ANALYZER_Y, 1 + 4, 3 + 4, yUp);
+				yUp -= 2;
+			} // High pass filter on channel 7, clocked by channel 8
+			if ((a & 0x10) != 0) {
+				col[0 + 4] = RgbColor.COL_BLOCK;
+				drawTracksHook(ANALYZER_X, ANALYZER_Y, 0 + 4, 1 + 4, yUp);
+				yUp -= 2;
+			} // Join channels 5 + 6 (16 bit)
+			if ((a & 0x08) != 0) {
+				col[2 + 4] = RgbColor.COL_BLOCK;
+				drawTracksHook(ANALYZER_X, ANALYZER_Y, 2 + 4, 3 + 4, yUp);
+				yUp -= 2;
+			} // Join channels 7 + 8 (16 bit)
+
+			b = memory[0xd21f] & 0xFF; // SKCTL2 @ $D21F
+			if (b == 0x8b) {
+				col[1 + 4] = RgbColor.COL_BLOCK;
+				drawTracksHook(ANALYZER_X, ANALYZER_Y, 0 + 4, 1 + 4, yUp);
+				yUp -= 2;
+			} // Two tone mode (join channel 5 + 6)
+
+			for (int channelNr = 0; channelNr < song.getTracks(tracks4_8); channelNr++) {
+				audf = memory[idx[channelNr]] & 0xFF; // Get the frequency
+				audc = memory[idx[channelNr] + 1] & 0xFF; // Get audio control, Bits: 0-3 = volume, 4 = Volume only, 5-7 = Distortion
+				int skctl1 = memory[0xd20f] & 0xFF; // Two tone mode Mono
+				int skctl2 = memory[0xd21f] & 0xFF; // Two tone mode Stereo
+
+				vol = audc & 0x0f; // Volume in lower nibble
+				a = channelNr * 16 * 8; // X offset
+
+				// Draw the background box of the volume analyser for this channel
+				// 15 unit wide, each unit is 6 pixels (ANALYZER_S)
+				// Default color is RGB(44, 60, 102) - Dark blue
+				canvasXY.fillSolidRect(ANALYZER_X + a + 2, ANALYZER_Y, 15 * ANALYZER_S, ANALYZER_H, new Color(R[channelNr], G[channelNr], col[channelNr]));
+
+				// Determine the color of the channels volume bar: Normal, mute or Volume only
+				acol = session.channelControl.isChannelOn(channelNr) ? (((audc & 0x10) != 0) ? RgbColor.VOLUME_ONLY : RgbColor.NORMAL) : RgbColor.MUTE;
+
+				// Check if its a two tone channel (1 or 5)
+				if (session.channelControl.isChannelOn(channelNr) && ((skctl1 == 0x8b && channelNr == 0) || (skctl2 == 0x8b && channelNr == 4))) {
+					acol = RgbColor.TWO_TONE;
+				}
+
+				// Draw the volume bar in the selected color
+				if (vol != 0) {
+					canvasXY.fillSolidRect(ANALYZER_X + a + 3 + (15 - vol) * ANALYZER_S / 2, ANALYZER_Y, vol * ANALYZER_S, ANALYZER_H, acol);
+				}
+
+				// Draw the frequency and audio control numbers for this channel
+				if (viewPokeyRegisters) {
+					canvasXY.numberMiniXY(audf, ANALYZER_X + 10 + a + 17, ANALYZER_Y - 8, TextMiniColor.GRAY);
+					canvasXY.numberMiniXY(audc, ANALYZER_X + 36 + a + 17, ANALYZER_Y - 8, TextMiniColor.GRAY);
+				}
+			}
+			if (viewPokeyRegisters) {
+				// Draw the AUDCTL (audio control) register value
+				canvasXY.numberMiniXY(memory[0xd208] & 0xFF, ANALYZER_X + 23 + 1 * 8 * 16 + 80, ANALYZER_Y - 8, TextMiniColor.GRAY); // Mono
+				if (stereo) {
+					canvasXY.numberMiniXY(memory[0xd218] & 0xFF, ANALYZER_X + 23 + 5 * 8 * 16 + 80, ANALYZER_Y - 8, TextMiniColor.GRAY);
+				} // Stereo
+
+				// Draw the SKCTL (Two tone control/Serial port control) register value
+				canvasXY.numberMiniXY(memory[0xd20f] & 0xFF, ANALYZER_X + 23 + 1 * 8 * 16 + 80, ANALYZER_Y - 0, TextMiniColor.GRAY); // Mono
+				if (stereo) {
+					canvasXY.numberMiniXY(memory[0xd21f] & 0xFF, ANALYZER_X + 23 + 5 * 8 * 16 + 80, ANALYZER_Y - 0, TextMiniColor.GRAY); // Stereo
+				}
+			}
+			// (C++'s unreachable "else if (g_active_ti == PART_INSTRUMENTS)" branch would sit here - see the javadoc)
+
+			if (DEBUG_POKEY) {
+				Canvas pokeyCanvas = new Canvas(canvasXY, POKEY_VIEW_X, POKEY_VIEW_Y);
+				PokeyView pokeyView = new PokeyView(pokeyCanvas);
+				pokeyView.draw(stereo, session.tuning, session.tuningSettings, session.options.notesPerOctave, session.atari);
+			}
+
+			if (DEBUG_MEMORY) {
+				Canvas atariCanvas = new Canvas(canvasXY, POKEY_VIEW_X, POKEY_VIEW_Y + 192);
+				AtariView atariView = new AtariView(atariCanvas);
+				atariView.draw(session.atari);
+			}
+		}
+	}
+
+	/** The instrument editor screen ({@code CInstruments::DrawInstrument} of the active instrument). */
 	public void drawInstrument() {
-		// B2
+		instrumentsUI.drawInstrument(session.song.getActiveInstr());
 	}
 
 	/**
@@ -653,7 +850,14 @@ public final class SongUI {
 		selected = ui.activePart == Part.PART_INFO && song.getInfoAct() == EditArea.SECOND_HIGHLIGHT;
 		canvasXY.textXY(hex2(options.trackLineSecondaryHighlight), 344 + 14 * 8, RmtScreenLayout.INFO_Y_LINE_1, selected ? color : TextColor.TURQUOISE);
 
-		// B2: if (options.view.debugDisplay) the "%1.2f FPS" read-out at (560 - 9 * 8, INFO_Y_LINE_1)
+		if (options.view.debugDisplay) {
+			// A poor attempt at an FPS counter
+			String fps = String.format(Locale.ROOT, "%1.2f FPS", ui.lastFps);
+			if (fps.length() > 15) {
+				fps = fps.substring(0, 15); // snprintf(szBuffer, 16, ...)
+			}
+			canvasXY.textXY(fps, 560 - 9 * 8, RmtScreenLayout.INFO_Y_LINE_1, TextColor.TURQUOISE);
+		}
 
 		// Line 2: Name
 		if (ui.activePart == Part.PART_INFO && song.getInfoAct() == EditArea.NAME) { // info? && edit name?

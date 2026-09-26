@@ -182,6 +182,37 @@ public final class TrackerPanel extends JPanel {
 		canvasXY.setLineColor(RgbColor.LINES); // m_pen1
 	}
 
+	// CRmtView's FPS measurement state (Global.h's real_fps/last_fps and the view's avg_fps/last_ms/last_sec)
+	private int realFps;
+	private final double[] avgFps = new double[120];
+	private long lastMs;
+	private long lastSec;
+
+	/** {@code CRmtView::GetFPS()}: "Debug function, poor attempt at a FPS counter" - ported as is, including its division by the frame count within the current second. */
+	private void getFPS() {
+		long ms = System.currentTimeMillis();
+		long sec = ms / 1000;
+
+		realFps++;
+		long delta = ms - lastMs;
+		avgFps[realFps % 120] = 1000.0 / delta;
+		lastMs = ms;
+
+		if (realFps != 0) {
+			double lastFps = 0;
+			for (int i = 0; i < realFps % 120; i++) {
+				lastFps += avgFps[i];
+			}
+			lastFps /= realFps % 120;
+			session.uiState.lastFps = lastFps;
+		}
+
+		if (lastSec != sec) {
+			realFps = -1;
+			lastSec = sec;
+		}
+	}
+
 	/** {@code CRmtView::OnDraw()}. */
 	@Override
 	protected void paintComponent(Graphics g) {
@@ -193,6 +224,9 @@ public final class TrackerPanel extends JPanel {
 
 		UiState ui = session.uiState;
 		if (ui.screenUpdate || canvas == null) {
+			if (session.options.view.debugDisplay) {
+				getFPS();
+			}
 			resizeCanvas(deviceWidth, deviceHeight);
 			session.song.respectBoundaries(session.tracks4_8);
 			songUI.drawAll();

@@ -227,9 +227,23 @@ class CanvasXYTest {
 		assertEquals(BACKGROUND, rgb(10, 10));
 		assertEquals(BACKGROUND, rgb(13, 11));
 		assertEquals(SENTINEL, rgb(14, 10));
-		for (int x = 0; x <= 3; x++) {
+		// GDI's LineTo excludes the end point: pixels 0..2 are drawn, 3 is not
+		for (int x = 0; x <= 2; x++) {
 			assertEquals(0xFFFFFF, rgb(x, 50));
 		}
+		assertTrue(rgb(3, 50) == SENTINEL);
 		assertTrue(rgb(4, 50) == SENTINEL);
+	}
+
+	@Test
+	void lineToExcludesTheEndPointVerticallyTooAndAZeroLengthLineDrawsNothing() {
+		canvas.setLineColor(RgbColor.NORMAL);
+		canvas.moveTo(20, 60);
+		canvas.lineTo(20, 63);
+		canvas.lineTo(20, 63);
+
+		assertEquals(0xFFFFFF, rgb(20, 60));
+		assertEquals(0xFFFFFF, rgb(20, 62));
+		assertTrue(rgb(20, 63) == SENTINEL);
 	}
 }

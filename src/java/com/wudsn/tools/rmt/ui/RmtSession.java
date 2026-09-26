@@ -12,7 +12,11 @@ import com.wudsn.tools.rmt.model.Messages;
 import com.wudsn.tools.rmt.model.Song;
 import com.wudsn.tools.rmt.model.SongIOType;
 import com.wudsn.tools.rmt.model.TrackClipboard;
+import com.wudsn.tools.rmt.model.TrackerDriverVersion;
 import com.wudsn.tools.rmt.model.Tracks;
+import com.wudsn.tools.rmt.model.Tuning;
+import com.wudsn.tools.rmt.model.TuningRatios;
+import com.wudsn.tools.rmt.model.TuningSettings;
 import com.wudsn.tools.rmt.model.Undo;
 
 /**
@@ -37,8 +41,14 @@ public final class RmtSession {
 	public final TrackClipboard clipboard;
 	public final Undo undo;
 	public final Messages messages;
+	/** {@code g_Atari} - the emulated Atari's memory, holding the POKEY register shadow the analyzer and POKEY view display. */
+	public final Atari atari;
 	public final AtariTrackerDriver atariTrackerDriver;
 	public final ChannelControl channelControl;
+	/** {@code g_tuning}/{@code g_tuningRatios}/{@code g_Tuning}. */
+	public final TuningSettings tuningSettings = new TuningSettings();
+	public final TuningRatios tuningRatios = new TuningRatios();
+	public final Tuning tuning;
 
 	public final UiState uiState = new UiState();
 	public final RmtOptions options = new RmtOptions();
@@ -46,7 +56,12 @@ public final class RmtSession {
 	/** {@code g_tracks4_8}: 4 (mono) or 8 (stereo). */
 	public int tracks4_8;
 
-	/** Builds the empty stereo song {@code Rmt.exe} starts with ({@code g_Song.ClearSong(8)} in {@code InitInstance()}, all channels on in {@code OnInitialUpdate()}). */
+	/**
+	 * Builds the empty stereo song {@code Rmt.exe} starts with, in
+	 * {@code CRmtApp::InitInstance()}'s order: tuning, Atari, tracker driver
+	 * routines, {@code ClearSong(8)}; then {@code OnInitialUpdate()}'s "all
+	 * channels on".
+	 */
 	public RmtSession() {
 		tracks = new Tracks();
 		tracks.setMaxTrackLength(64);
@@ -59,8 +74,23 @@ public final class RmtSession {
 		clipboard = new TrackClipboard();
 		undo = new Undo(tracks, instruments, song, clipboard);
 		messages = new Messages();
-		atariTrackerDriver = new AtariTrackerDriver(new Atari());
 		channelControl = new ChannelControl(Song.SONGTRACKS);
+
+		tuningSettings.initialize(song.isNTSC());
+		tuningRatios.initialize();
+		atari = new Atari();
+		atari.init(song.isNTSC(), tuningSettings, tuningRatios);
+		tuning = new Tuning(atari.getClockFrequency());
+		atariTrackerDriver = new AtariTrackerDriver(atari);
+		atariTrackerDriver.loadRMTRoutines(TrackerDriverVersion.PATCH16); // g_trackerDriverVersion's default
+		atariTrackerDriver.init();
+		// What the driver's initialization leaves in the POKEY register
+		// shadow at $D200-$D21F (the 6502 code C++ runs through its
+		// emulator, which this port doesn't execute until the audio batch
+		// B8): every AUDF/AUDC/AUDCTL byte 0 and SKCTL = 3 - the values the
+		// reference screenshots show in the analyzer and POKEY view.
+		atari.setByteAt(0xD20F, 0x03);
+		atari.setByteAt(0xD21F, 0x03);
 
 		tracks4_8 = song.clearSong(8, undo);
 		channelControl.setAllChannelsOn();

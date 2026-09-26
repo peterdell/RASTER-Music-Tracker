@@ -179,6 +179,11 @@ public final class Song {
 		return speeda;
 	}
 
+	/** The per-line speed countdown, which the timer routine decrements each frame; settable so a captured playback instant can be reproduced (the smooth-scroll offset is {@code speeda * 16 / speed - 8}). */
+	public void setSpeeda(int speeda) {
+		this.speeda = speeda;
+	}
+
 	public int getOctave() {
 		return octave;
 	}

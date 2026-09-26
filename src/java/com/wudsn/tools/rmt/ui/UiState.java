@@ -64,6 +64,8 @@ public final class UiState {
 
 	/** {@code g_playtime} - frames played since Play started; drives the TIME/BPM counter. */
 	public int playTime;
+	/** {@code last_fps} - the debug FPS read-out, measured by the view's {@code GetFPS()}. */
+	public double lastFps;
 	/** {@code g_respectvolume} - the F11 "respect volume" toggle (transient: {@code CSong::ClearSong()} resets it, {@code rmt.ini} never stores it). */
 	public boolean respectVolume;
 

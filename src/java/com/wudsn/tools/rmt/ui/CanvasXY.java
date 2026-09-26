@@ -103,9 +103,23 @@ public final class CanvasXY {
 		return previous;
 	}
 
+	/**
+	 * C++'s {@code CDC::LineTo}: draws from the pen position up to but
+	 * <em>excluding</em> the end point (GDI's rule - the reference
+	 * screenshots confirm it: the track and envelope lines stop one pixel
+	 * short of their {@code LineTo} coordinate), then moves the pen there.
+	 * Java's {@code drawLine} includes both ends, so the last pixel is
+	 * stepped off. RMT only draws horizontal and vertical lines; the general
+	 * (diagonal) case would also need GDI's exact Bresenham, which is not
+	 * reproduced.
+	 */
 	public void lineTo(int x, int y) {
-		graphics.setColor(lineColor);
-		graphics.drawLine(penX, penY, x, y);
+		int endX = x - Integer.signum(x - penX);
+		int endY = y - Integer.signum(y - penY);
+		if (x != penX || y != penY) {
+			graphics.setColor(lineColor);
+			graphics.drawLine(penX, penY, endX, endY);
+		}
 		penX = x;
 		penY = y;
 	}

@@ -77,9 +77,9 @@ public final class Canvas {
 		return this;
 	}
 
-	/** Formats then truncates to {@code size} characters - see class javadoc. */
+	/** Formats (in the C locale, like {@code vsnprintf} - a decimal point, never a comma) then truncates to {@code size} characters - see class javadoc. */
 	public Canvas printfMini(int size, String format, Object... args) {
-		String text = String.format(format, args);
+		String text = String.format(java.util.Locale.ROOT, format, args);
 		if (text.length() > size) {
 			text = text.substring(0, size);
 		}

@@ -205,10 +205,15 @@ shows anything, `plans/NOTES.md` entry, ask before committing.
     the FPS read-out in `drawInfo`, `PokeyView`/`AtariView`,
     `drawInstrument`, and the mouse hit-testing that `TrackerPanel`'s
     mouse-move tracking (logical coordinates into `UiState`) is ready for.
-- **B2 - complete drawing.** `drawVolumeAnalyzer` (283 lines),
-  `drawPlayTimeCounter`, `drawInstrument` + `InstrumentsUI` drawing,
-  `PokeyView`, `AtariView`, smooth scrolling, hover recoloring, GOTO-line
-  rendering, debug FPS overlay, title bar (`SetRMTTitle`).
+- **B2 - complete drawing - DONE (2026-09-26).** `drawVolumeAnalyzer`,
+  `PokeyView` (minus the Pokey Explorer rows - `CPokeyController` is
+  unported, B3), `AtariView` (unreachable, as in C++), `InstrumentsUI`
+  (drawing half of `GUI_Instruments.cpp`), FPS counter; smooth
+  scrolling/GOTO rendering/hover/title were already in B1's ports and are
+  now verified. **All reproducible captures match the full client area**
+  (tracks x2, instruments x2, the mid-playback GOTO capture incl. its
+  smooth-scroll offsets). Fixed on the way: GDI `LineTo` end-pixel
+  exclusion, C-locale `printf`. Details in `NOTES.md`.
 - **B3 - full keyboard input.** `SongInput`: `InfoKey`/`TrackKey`/
   `InstrKey`/`SongKey`/`ProveKey`, `TextFieldEditor`, modifier tracking,
   `Part` switching, `EditMode` (jam/prove) handling, `g_SkipLinesAfterNoteInsert`,

@@ -3978,4 +3978,42 @@ build clean and all 123 tests pass.
     - 446 tests (+21: `SongUITest` 4, `SongInputTest` 10,
       `RmtSessionTest` 4, `TrackerPanelTest` 3), no regressions.
       `loadRMT`'s two existing tests adapted to the new result record.
+      Committed as `e240703` together with the reference screenshots.
+  - **2026-09-26**: Phase B, batch B2 (complete drawing). `SongUI.
+    drawVolumeAnalyzer` (analyzer boxes/bars, channel-join hooks, the
+    mini register read-outs, and the tuning/POKEY panel), `PokeyView`
+    (full `CPokeyView::Draw` except the Pokey Explorer rows, which need
+    the unported `CPokeyController` - B3), `AtariView` (kept exactly as
+    unreachable as C++'s compile-time-`FALSE` `DEBUG_MEMORY`),
+    `InstrumentsUI` (the drawing half of `GUI_Instruments.cpp`: the whole
+    instrument editor incl. the edit-help line; `CursorGoto`/`GetGUIArea`
+    are B4), the FPS counter (`TrackerPanel.getFPS()` ported as is,
+    `UiState.lastFps`), `RmtSession` now builds `Atari`/`Tuning*`/the
+    driver routines as `InitInstance()` does. `Instruments.SHPAR`'s
+    display columns (name, x, y) live in `InstrumentsUI.SHPAR`/`SHENV`;
+    the value/TXT columns stay in the model.
+    - **Every `Rmt.exe` capture that can be reproduced now matches the
+      whole client area** (only the FPS text excluded): both tracks
+      screens, both instrument screens (`song1-mono/instruments` only in
+      its play-independent regions - it was captured mid-song), and the
+      GOTO capture, which was taken *during playback with follow-play*:
+      its row offsets identified the exact smooth-scroll state (track
+      rows +8 = `speeda 10` of speed $0A, song rows -7 = play line $3C,
+      which is also the cursor line), so it verifies GOTO rendering in
+      both blocks *and* smooth scrolling. `Song.setSpeeda` added for that.
+    - Two real differences found by the full-frame comparison and fixed
+      in `CanvasXY`/`Canvas`: **GDI's `LineTo` excludes its end pixel**
+      (Java's `drawLine` includes it - every track/envelope line was one
+      pixel too long) and **`printf` must use the C locale**
+      (`Locale.ROOT`, else "440,84HZ" on a German machine). Plus C's
+      `%0hX` has no Java spelling (`%X`).
+    - A C++ dead branch documented rather than ported: `DrawVolumeAnalyzer`'s
+      instrument-mode variant is nested inside `if (g_active_ti ==
+      PART_TRACKS)`, so it never runs - the instrument captures confirm
+      nothing is drawn there.
+    - The POKEY register shadow: `RmtSession` sets `SKCTL = 3` at
+      `$D20F`/`$D21F`, what the driver's init routine leaves there in
+      C++ (no 6502 runs here until B8); everything else is 0, as in the
+      captures.
+    - 451 tests (+5: `SongUITest` 4, `CanvasXYTest` 1), no regressions.
       Not yet committed.
