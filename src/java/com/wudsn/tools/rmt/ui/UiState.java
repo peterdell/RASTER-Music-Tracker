@@ -31,6 +31,8 @@ public final class UiState {
 	public boolean shiftKey;
 	public boolean controlKey;
 	public boolean altKey;
+	/** The Caps Lock toggle state ({@code GetKeyState(VK_CAPITAL)}), read per key event by the key handlers. */
+	public boolean capsLock;
 
 	/** {@code g_mouse.pointX/pointY/button/wheelDelta} - in logical (unscaled) canvas coordinates. */
 	public int mouseX;
@@ -68,6 +70,30 @@ public final class UiState {
 	public double lastFps;
 	/** {@code g_respectvolume} - the F11 "respect volume" toggle (transient: {@code CSong::ClearSong()} resets it, {@code rmt.ini} never stores it). */
 	public boolean respectVolume;
+
+	/**
+	 * Ported from {@code SwitchEditMode()} (Global.cpp): the Edit/Jam toggle.
+	 * Edit -> mono jam; mono jam -> stereo jam on a stereo song, else back to
+	 * {@code targetEditMode}; a special (explorer) mode always drops back to
+	 * edit mode.
+	 */
+	public void switchEditMode(EditMode targetEditMode, boolean stereo) {
+		EditMode mode = editMode;
+		if (mode == EditMode.EDIT_MODE) {
+			mode = EditMode.JAM_MONO_MODE;
+		} else if (mode.isSpecialProveMode()) {
+			mode = EditMode.EDIT_MODE;
+		} // Disable the special test modes immediately
+		else {
+			// Mono Jam or stereo jam?
+			if (mode == EditMode.JAM_MONO_MODE && stereo) {
+				mode = EditMode.JAM_STEREO_MODE;
+			} else {
+				mode = targetEditMode;
+			}
+		}
+		editMode = mode;
+	}
 
 	/** Mirrors C++'s {@code IsHoveredXY()} (GuiHelpers.cpp): is the mouse inside the given logical rectangle? */
 	public boolean isHovered(int x, int y, int width, int height) {

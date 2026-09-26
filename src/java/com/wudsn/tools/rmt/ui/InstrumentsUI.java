@@ -46,51 +46,58 @@ public final class InstrumentsUI {
 	private static final int INSTRUMENT_TABLE_MODE_SET = 3;
 	private static final int INSTRUMENT_TABLE_MODE_ADD = 4;
 
-	/** The display columns of C++'s {@code Tshpar}: parameter index, screen position, name, and the two range values {@code DrawParameter} needs for its 1- or 2-digit format. */
-	record ShPar(int paramIndex, int x, int y, String name, int maxParameterValue, int displayOffset) {
+	/**
+	 * The UI columns of C++'s {@code Tshpar}: parameter index, screen
+	 * position, name, the value range ({@code maxParameterValue}/
+	 * {@code displayOffset}, which {@code DrawParameter} and {@code InstrKey}
+	 * both need) and the four "next parameter on cursor movement" links
+	 * ({@code InstrKey}'s Up/Down/Left/Right). The TXT-file columns
+	 * ({@code parameterAND}, {@code fieldName}) live in {@link Instruments}.
+	 */
+	record ShPar(int paramIndex, int x, int y, String name, int maxParameterValue, int displayOffset, int gotoUp, int gotoDown, int gotoLeft, int gotoRight) {
 	}
 
 	/** Same order as C++'s {@code shpar[]} - indexed by parameter number. */
 	static final ShPar[] SHPAR = { //
 			// TABLE: LEN GO SPD TYPE MODE
-			new ShPar(Instrument.PAR_TBL_LENGTH, PARAM_X + 16 * 8, PARAM_Y + 9 * 16, "LENGTH:", 0x1f, 1), //
-			new ShPar(Instrument.PAR_TBL_GOTO, PARAM_X + 18 * 8, PARAM_Y + 10 * 16, "GOTO:", 0x1f, 0), //
-			new ShPar(Instrument.PAR_TBL_SPEED, PARAM_X + 17 * 8, PARAM_Y + 11 * 16, "SPEED:", 0x3f, 1), //
-			new ShPar(Instrument.PAR_TBL_TYPE, PARAM_X + 18 * 8, PARAM_Y + 12 * 16, "TYPE:", 0x01, 0), //
-			new ShPar(Instrument.PAR_TBL_MODE, PARAM_X + 18 * 8, PARAM_Y + 13 * 16, "MODE:", 0x01, 0), //
+			new ShPar(Instrument.PAR_TBL_LENGTH, PARAM_X + 16 * 8, PARAM_Y + 9 * 16, "LENGTH:", 0x1f, 1, 8, 1, 15, 15), //
+			new ShPar(Instrument.PAR_TBL_GOTO, PARAM_X + 18 * 8, PARAM_Y + 10 * 16, "GOTO:", 0x1f, 0, 0, 2, 16, 16), //
+			new ShPar(Instrument.PAR_TBL_SPEED, PARAM_X + 17 * 8, PARAM_Y + 11 * 16, "SPEED:", 0x3f, 1, 1, 3, 17, 17), //
+			new ShPar(Instrument.PAR_TBL_TYPE, PARAM_X + 18 * 8, PARAM_Y + 12 * 16, "TYPE:", 0x01, 0, 2, 4, 18, 18), //
+			new ShPar(Instrument.PAR_TBL_MODE, PARAM_X + 18 * 8, PARAM_Y + 13 * 16, "MODE:", 0x01, 0, 3, 5, 19, 19), //
 			// ENVELOPE: LEN GO VSLIDE VMIN
-			new ShPar(Instrument.PAR_ENV_LENGTH, PARAM_X + 16 * 8, PARAM_Y + 2 * 16, "LENGTH:", 0x2f, 1), //
-			new ShPar(Instrument.PAR_ENV_GOTO, PARAM_X + 18 * 8, PARAM_Y + 3 * 16, "GOTO:", 0x2f, 0), //
-			new ShPar(Instrument.PAR_VOL_FADEOUT, PARAM_X + 15 * 8, PARAM_Y + 4 * 16, "FADEOUT:", 0xff, 0), //
-			new ShPar(Instrument.PAR_VOL_MIN, PARAM_X + 15 * 8, PARAM_Y + 5 * 16, "VOL MIN:", 0x0f, 0), //
+			new ShPar(Instrument.PAR_ENV_LENGTH, PARAM_X + 16 * 8, PARAM_Y + 2 * 16, "LENGTH:", 0x2f, 1, 4, 6, 9, 9), //
+			new ShPar(Instrument.PAR_ENV_GOTO, PARAM_X + 18 * 8, PARAM_Y + 3 * 16, "GOTO:", 0x2f, 0, 5, 7, 10, 10), //
+			new ShPar(Instrument.PAR_VOL_FADEOUT, PARAM_X + 15 * 8, PARAM_Y + 4 * 16, "FADEOUT:", 0xff, 0, 6, 8, 11, 11), //
+			new ShPar(Instrument.PAR_VOL_MIN, PARAM_X + 15 * 8, PARAM_Y + 5 * 16, "VOL MIN:", 0x0f, 0, 7, 0, 11, 11), //
 			// EFFECT: DELAY VIBRATO FSHIFT
-			new ShPar(Instrument.PAR_DELAY, PARAM_X + 3 * 8, PARAM_Y + 2 * 16, "DELAY:", 0xff, 0), //
-			new ShPar(Instrument.PAR_VIBRATO, PARAM_X + 1 * 8, PARAM_Y + 3 * 16, "VIBRATO:", 0x03, 0), //
-			new ShPar(Instrument.PAR_FREQ_SHIFT, PARAM_X + -1 * 8, PARAM_Y + 4 * 16, "FREQSHIFT:", 0xff, 0), //
+			new ShPar(Instrument.PAR_DELAY, PARAM_X + 3 * 8, PARAM_Y + 2 * 16, "DELAY:", 0xff, 0, 19, 10, 5, 5), //
+			new ShPar(Instrument.PAR_VIBRATO, PARAM_X + 1 * 8, PARAM_Y + 3 * 16, "VIBRATO:", 0x03, 0, 9, 11, 6, 6), //
+			new ShPar(Instrument.PAR_FREQ_SHIFT, PARAM_X + -1 * 8, PARAM_Y + 4 * 16, "FREQSHIFT:", 0xff, 0, 10, 12, 7, 7), //
 			// AUDCTL: 00-07
-			new ShPar(Instrument.PAR_AUDCTL_15KHZ, PARAM_X + 3 * 8, PARAM_Y + 6 * 16, "15KHZ:", 0x01, 0), //
-			new ShPar(Instrument.PAR_AUDCTL_HPF_CH2, PARAM_X + 1 * 8, PARAM_Y + 7 * 16, "HPF 2+4:", 0x01, 0), //
-			new ShPar(Instrument.PAR_AUDCTL_HPF_CH1, PARAM_X + 1 * 8, PARAM_Y + 8 * 16, "HPF 1+3:", 0x01, 0), //
-			new ShPar(Instrument.PAR_AUDCTL_JOIN_3_4, PARAM_X + 0 * 8, PARAM_Y + 9 * 16, "JOIN 3+4:", 0x01, 0), //
-			new ShPar(Instrument.PAR_AUDCTL_JOIN_1_2, PARAM_X + 0 * 8, PARAM_Y + 10 * 16, "JOIN 1+2:", 0x01, 0), //
-			new ShPar(Instrument.PAR_AUDCTL_179_CH3, PARAM_X + 0 * 8, PARAM_Y + 11 * 16, "1.79 CH3:", 0x01, 0), //
-			new ShPar(Instrument.PAR_AUDCTL_179_CH1, PARAM_X + 0 * 8, PARAM_Y + 12 * 16, "1.79 CH1:", 0x01, 0), //
-			new ShPar(Instrument.PAR_AUDCTL_POLY9, PARAM_X + 3 * 8, PARAM_Y + 13 * 16, "POLY9:", 0x01, 0) };
+			new ShPar(Instrument.PAR_AUDCTL_15KHZ, PARAM_X + 3 * 8, PARAM_Y + 6 * 16, "15KHZ:", 0x01, 0, 11, 13, 0, 0), //
+			new ShPar(Instrument.PAR_AUDCTL_HPF_CH2, PARAM_X + 1 * 8, PARAM_Y + 7 * 16, "HPF 2+4:", 0x01, 0, 12, 14, 0, 0), //
+			new ShPar(Instrument.PAR_AUDCTL_HPF_CH1, PARAM_X + 1 * 8, PARAM_Y + 8 * 16, "HPF 1+3:", 0x01, 0, 13, 15, 0, 0), //
+			new ShPar(Instrument.PAR_AUDCTL_JOIN_3_4, PARAM_X + 0 * 8, PARAM_Y + 9 * 16, "JOIN 3+4:", 0x01, 0, 14, 16, 0, 0), //
+			new ShPar(Instrument.PAR_AUDCTL_JOIN_1_2, PARAM_X + 0 * 8, PARAM_Y + 10 * 16, "JOIN 1+2:", 0x01, 0, 15, 17, 1, 1), //
+			new ShPar(Instrument.PAR_AUDCTL_179_CH3, PARAM_X + 0 * 8, PARAM_Y + 11 * 16, "1.79 CH3:", 0x01, 0, 16, 18, 2, 2), //
+			new ShPar(Instrument.PAR_AUDCTL_179_CH1, PARAM_X + 0 * 8, PARAM_Y + 12 * 16, "1.79 CH1:", 0x01, 0, 17, 19, 3, 3), //
+			new ShPar(Instrument.PAR_AUDCTL_POLY9, PARAM_X + 3 * 8, PARAM_Y + 13 * 16, "POLY9:", 0x01, 0, 18, 9, 4, 4) };
 
-	/** The display columns of C++'s {@code Tshenv}: the marker character ({@code 0} = show the hex digit instead), name and position. */
-	record ShEnv(char ch, String name, int xpos, int ypos) {
+	/** The UI columns of C++'s {@code Tshenv}: the marker character ({@code 0} = show the hex digit instead), the value mask and the +/- steps ({@code InstrKey}), name and position. */
+	record ShEnv(char ch, int pand, int padd, int psub, String name, int xpos, int ypos) {
 	}
 
 	/** Same order as C++'s {@code shenv[]} - indexed by {@link EnvelopeParameter}. */
 	static final ShEnv[] SHENV = { //
-			new ShEnv((char) 0, "VOLUME R:", ENV_X + 2 * 8, ENV_Y + 2 * 16), // volume right
-			new ShEnv((char) 0, "VOLUME L:", ENV_X + 2 * 8, ENV_Y + 8 * 16), // volume left
-			new ShEnv((char) 0, "DISTORTION:", ENV_X + 0 * 8, ENV_Y + 9 * 16), // distortion 0,2,4,6,...
-			new ShEnv((char) 0, "COMMAND:", ENV_X + 3 * 8, ENV_Y + 10 * 16), // command 0-7
-			new ShEnv((char) 0, "X/:", ENV_X + 8 * 8, ENV_Y + 11 * 16), // X
-			new ShEnv((char) 0, "Y\\:", ENV_X + 8 * 8, ENV_Y + 12 * 16), // Y
-			new ShEnv((char) 9, "AUTOFILTER:", ENV_X + 0 * 8, ENV_Y + 13 * 16), // filter *
-			new ShEnv((char) 9, "PORTAMENTO:", ENV_X + 0 * 8, ENV_Y + 14 * 16) // portamento *
+			new ShEnv((char) 0, 0x0f, 1, -1, "VOLUME R:", ENV_X + 2 * 8, ENV_Y + 2 * 16), // volume right
+			new ShEnv((char) 0, 0x0f, 1, -1, "VOLUME L:", ENV_X + 2 * 8, ENV_Y + 8 * 16), // volume left
+			new ShEnv((char) 0, 0x0e, 2, -2, "DISTORTION:", ENV_X + 0 * 8, ENV_Y + 9 * 16), // distortion 0,2,4,6,...
+			new ShEnv((char) 0, 0x07, 1, -1, "COMMAND:", ENV_X + 3 * 8, ENV_Y + 10 * 16), // command 0-7
+			new ShEnv((char) 0, 0x0f, 1, -1, "X/:", ENV_X + 8 * 8, ENV_Y + 11 * 16), // X
+			new ShEnv((char) 0, 0x0f, 1, -1, "Y\\:", ENV_X + 8 * 8, ENV_Y + 12 * 16), // Y
+			new ShEnv((char) 9, 0x01, 1, -1, "AUTOFILTER:", ENV_X + 0 * 8, ENV_Y + 13 * 16), // filter *
+			new ShEnv((char) 9, 0x01, 1, -1, "PORTAMENTO:", ENV_X + 0 * 8, ENV_Y + 14 * 16) // portamento *
 	};
 
 	private final RmtSession session;

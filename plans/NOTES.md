@@ -4016,4 +4016,36 @@ build clean and all 123 tests pass.
       C++ (no 6502 runs here until B8); everything else is 0, as in the
       captures.
     - 451 tests (+5: `SongUITest` 4, `CanvasXYTest` 1), no regressions.
-      Not yet committed.
+      Committed as `1ae8501`.
+  - **2026-09-26**: Phase B, batch B3 (full keyboard input). `SongInput`
+    now ports `CRmtView::OnKeyDown()`/`OnKeyUp()` and all five
+    `GUI_Song.cpp` handlers (`InfoKey`/`InstrKey`/`ProveKey`/`TrackKey`/
+    `SongKey`) plus `CursorToSpeedColumn`/`IsNotAMovementVKey` one to one;
+    `TextFieldEditor` ports `EditText()` (GuiHelpers.cpp);
+    `UiState.switchEditMode` ports `SwitchEditMode()` (Global.cpp).
+    `VirtualKey` holds the Windows VK codes: the C++ switches and the
+    `Keyboard2NoteMapping` tables are all in Windows codes, and Swing's
+    differ for Enter/Insert/Delete/Alt and the punctuation keys, so
+    `TrackerPanel` translates once and everything behind it stays
+    literal (tests feed VK codes too). Caps Lock is read per key event
+    into `UiState.capsLock`. `InstrumentsUI.SHPAR`/`SHENV` gained the
+    key-navigation and +/- step columns of C++'s tables.
+    - Model hooks added for the handlers: `Song`'s `Song.h` inline
+      delegators (`trackSet*/trackGet*/trackDel*`, `octaveUp/Down`,
+      `volumeUp/Down`, `setPlayPressedTonesV`) with Undo/respect-volume as
+      parameters, setters for the info-area values, `setQuantization`,
+      `setTrackActiveCur`, `getSongNameChars`; `RmtOptions` gained the
+      four `g_keyboard_*` options (defaults per `ResetRMTConfig()`).
+    - Deliberately not ported: the media keys (B8), the `FlaToCha`
+      Shift+numpad scan-code workaround (Swing reports numpad keys by
+      code), `ProveKey`'s Pokey Explorer branch (`CPokeyController`
+      unported), and the two dialogs behind Ctrl+O/Ctrl+F (B7). Two C++
+      quirks kept as is and commented: `InfoKey`'s TAB post-increment
+      (`(EditArea)(value++)` assigns the unchanged value, so TAB only
+      wraps from the last field) and `TrackDown()`'s BOOL result being
+      re-derived for Enter's "force a line move" hack.
+    - One expectation of mine corrected by the port itself: two-digit
+      instrument parameters shift hex digits in (`"01"` + `3` = `"13"`),
+      they don't replace the value.
+    - 72 ui tests (`SongInputTest` 20, `TextFieldEditorTest` 6,
+      `VirtualKeyTest` 3 new); full suite below. Not yet committed.

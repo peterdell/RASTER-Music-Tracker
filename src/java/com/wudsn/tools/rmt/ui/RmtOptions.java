@@ -36,6 +36,14 @@ public final class RmtOptions {
 	public int notesPerOctave = 12;
 	/** {@code g_keyboard_updowncontinue} - Up/Down past a pattern's end continue into the previous/next songline. */
 	public boolean keyboardUpDownContinue = true;
+	/** {@code g_keyboard_layout} - which key-to-note table {@code NoteKey()} uses ({@link com.wudsn.tools.rmt.model.KeyboardLayout}). */
+	public int keyboardLayout = com.wudsn.tools.rmt.model.KeyboardLayout.QWERTY;
+	/** {@code g_keyboard_swapenter} - swap the roles of Enter and Ctrl+Enter in the tracks ("probably not needed anymore but will be kept for now"). */
+	public boolean keyboardSwapEnter;
+	/** {@code g_keyboard_RememberOctavesAndVolumes} - the last used octave and volume are stored per instrument. */
+	public boolean keyboardRememberOctavesAndVolumes = true;
+	/** {@code g_keyboard_escresetatarisound} - Esc resets the Atari sound routines. */
+	public boolean keyboardEscResetAtariSound = true;
 
 	/** {@code TViewState g_view}. */
 	public final ViewState view = new ViewState();

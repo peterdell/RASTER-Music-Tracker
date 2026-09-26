@@ -84,13 +84,22 @@ public final class TrackerPanel extends JPanel {
 		addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				songInput.keyDown(e.getKeyCode());
+				int vk = VirtualKey.fromKeyEvent(e.getKeyCode());
+				if (vk < 0) {
+					return;
+				}
+				session.uiState.capsLock = isCapsLockOn();
+				songInput.keyDown(vk);
+				e.consume();
 				refreshScreen();
 			}
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				songInput.keyUp(e.getKeyCode());
+				int vk = VirtualKey.fromKeyEvent(e.getKeyCode());
+				if (vk >= 0) {
+					songInput.keyUp(vk);
+				}
 			}
 		});
 		addMouseMotionListener(new MouseMotionAdapter() {
@@ -112,6 +121,15 @@ public final class TrackerPanel extends JPanel {
 			refreshScreen();
 		});
 		timer.setRepeats(true);
+	}
+
+	/** {@code GetKeyState(VK_CAPITAL)}; false where the toolkit can't tell (headless/some platforms). */
+	private static boolean isCapsLockOn() {
+		try {
+			return java.awt.Toolkit.getDefaultToolkit().getLockingKeyState(KeyEvent.VK_CAPS_LOCK);
+		} catch (UnsupportedOperationException e) { // HeadlessException is a subclass
+			return false;
+		}
 	}
 
 	/** {@code CRmtView::OnInitialUpdate()}'s {@code SetTimer(1, 16, NULL)}. */

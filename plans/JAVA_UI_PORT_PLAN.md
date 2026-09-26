@@ -214,10 +214,15 @@ shows anything, `plans/NOTES.md` entry, ask before committing.
   (tracks x2, instruments x2, the mid-playback GOTO capture incl. its
   smooth-scroll offsets). Fixed on the way: GDI `LineTo` end-pixel
   exclusion, C-locale `printf`. Details in `NOTES.md`.
-- **B3 - full keyboard input.** `SongInput`: `InfoKey`/`TrackKey`/
-  `InstrKey`/`SongKey`/`ProveKey`, `TextFieldEditor`, modifier tracking,
-  `Part` switching, `EditMode` (jam/prove) handling, `g_SkipLinesAfterNoteInsert`,
-  respect-volume toggle. Logic-level tests per key group.
+- **B3 - full keyboard input - DONE (2026-09-26).** `SongInput` ports
+  `OnKeyDown`/`OnKeyUp` and `InfoKey`/`InstrKey`/`ProveKey`/`TrackKey`/
+  `SongKey` in full, `TextFieldEditor` ports `EditText`,
+  `UiState.switchEditMode` ports `SwitchEditMode`; `VirtualKey` keeps
+  everything in Windows VK codes (translated once from Swing). Left for
+  later batches: media keys (B8), Pokey Explorer keys (needs
+  `CPokeyController`), Ctrl+O/Ctrl+F dialogs (B7), and the accelerators
+  that *enter* jam mode / reset sound on Esc (B5 - they are menu
+  commands, not `OnKeyDown` keys). Details in `NOTES.md`.
 - **B4 - mouse.** `MouseAction` hit-testing, `TrackCursorGoto`/
   `SongCursorGoto`/`InfoCursorGoto*`/`InstrumentsUI.cursorGoto`, wheel,
   the 5 custom cursors, the three click-positioned popup selectors.

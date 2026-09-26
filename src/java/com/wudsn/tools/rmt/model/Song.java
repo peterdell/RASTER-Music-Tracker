@@ -219,6 +219,144 @@ public final class Song {
 		return new String(songName, 0, end);
 	}
 
+	/** The song name buffer itself, for in-place editing ({@code EditText(..., m_songname, m_songnamecur, ...)}). */
+	public char[] getSongNameChars() {
+		return songName;
+	}
+
+	public void setSongNameCursor(int cursor) {
+		songNameCursor = cursor;
+	}
+
+	public void setInfoAct(EditArea infoAct) {
+		this.infoAct = infoAct;
+	}
+
+	// The info area's editable values (C++'s InfoKey() writes them through an int* table).
+
+	public void setSpeed(int speed) {
+		this.speed = speed;
+	}
+
+	public void setMainSpeed(int mainSpeed) {
+		this.mainSpeed = mainSpeed;
+	}
+
+	public void setInstrumentSpeed(int instrumentSpeed) {
+		this.instrumentSpeed = instrumentSpeed;
+	}
+
+	public void setVolume(int volume) {
+		this.volume = volume;
+	}
+
+	/** C++'s {@code m_trackactivecur = 3} in {@code CursorToSpeedColumn()}. */
+	public void setTrackActiveCur(int trackActiveCur) {
+		this.trackActiveCur = trackActiveCur;
+	}
+
+	/** {@code TrackKey()}'s quantization: a note typed during follow-play in the first half of a line is held back for the timer routine to enter on the next line. */
+	public void setQuantization(int note, int instr, int vol) {
+		quantizationNote = note;
+		quantizationInstr = instr;
+		quantizationVol = vol;
+	}
+
+	// Song.h's inline octave/volume steppers (0-4 octaves, 0-MAXVOLUME).
+
+	public boolean octaveUp() {
+		if (octave < 4) {
+			octave++;
+			return true;
+		}
+		return false;
+	}
+
+	public boolean octaveDown() {
+		if (octave > 0) {
+			octave--;
+			return true;
+		}
+		return false;
+	}
+
+	public boolean volumeUp() {
+		if (volume < Tracks.MAXVOLUME) {
+			volume++;
+			return true;
+		}
+		return false;
+	}
+
+	public boolean volumeDown() {
+		if (volume > 0) {
+			volume--;
+			return true;
+		}
+		return false;
+	}
+
+	public boolean setPlayPressedTonesV(int t, int v) {
+		playPtVolume[t] = v;
+		return true;
+	}
+
+	// Song.h's inline "active track at the active line" delegators to Tracks.
+	// The Undo/respect-volume globals those Tracks methods read in C++ are
+	// explicit parameters here, as everywhere in this port.
+
+	public boolean trackDelNoteInstrVolSpeed(int noteInstrVolSpeed, Undo undo) {
+		return tracks.delNoteInstrVolSpeed(noteInstrVolSpeed, songGetActiveTrack(), trackActiveLine, undo);
+	}
+
+	public boolean trackSetNoteActualInstrVol(int note, boolean respectVolume, Undo undo) {
+		return tracks.setNoteInstrVol(note, activeInstr, volume, songGetActiveTrack(), trackActiveLine, respectVolume, undo);
+	}
+
+	public boolean trackSetNoteInstrVol(int note, int instr, int vol, boolean respectVolume, Undo undo) {
+		return tracks.setNoteInstrVol(note, instr, vol, songGetActiveTrack(), trackActiveLine, respectVolume, undo);
+	}
+
+	public boolean trackSetInstr(int instr, Undo undo) {
+		return tracks.setInstr(instr, songGetActiveTrack(), trackActiveLine, undo);
+	}
+
+	public boolean trackSetVol(int vol, Undo undo) {
+		return tracks.setVol(vol, songGetActiveTrack(), trackActiveLine, undo);
+	}
+
+	public boolean trackSetSpeed(int speed, Undo undo) {
+		return tracks.setSpeed(speed, songGetActiveTrack(), trackActiveLine, undo);
+	}
+
+	public int trackGetNote() {
+		return tracks.getNote(songGetActiveTrack(), trackActiveLine);
+	}
+
+	public int trackGetInstr() {
+		return tracks.getInstr(songGetActiveTrack(), trackActiveLine);
+	}
+
+	public int trackGetVol() {
+		return tracks.getVol(songGetActiveTrack(), trackActiveLine);
+	}
+
+	public int trackGetSpeed() {
+		return tracks.getSpeed(songGetActiveTrack(), trackActiveLine);
+	}
+
+	public boolean trackSetEnd(Undo undo) {
+		return tracks.setEnd(songGetActiveTrack(), trackActiveLine + 1, undo);
+	}
+
+	public boolean trackSetGo(Undo undo) {
+		return tracks.setGo(songGetActiveTrack(), trackActiveLine, undo);
+	}
+
+	public int trackGetGoLine() {
+		return tracks.getGoLine(songGetActiveTrack());
+	}
+
 	/**
 	 * Mirrors {@link #setPlayPressedTonesSilence} except the volume slot is
 	 * reset to -1 instead of 0 - matches C++'s always-true BOOL return being
