@@ -1548,12 +1548,24 @@ regressions.
 
 ## Next steps
 
-No further Java-porting areas are currently identified: `CTrackClipboard`
-is feature-complete except `BlockEffect` (no extractable logic on the C++
-side either); the TMC/MOD importers and the `IO_Instruments.cpp`/
-`IO_Tracks.cpp` serialization surface are both done. Remaining deferred
-work (the SAP-R/LZSS/WAV/XEX exporter family needing a real
-`PokeyStream`/`AtariTrackerDriver` recording path, `BlockEffect`, the
-`FileXxx` dialog family, `TimerRoutine`/hardware-timer methods) all stay
-deferred per their own already-documented hazard reasoning - see
-`plans/JAVA_SONGEDITING_PLAN.md`'s "Explicitly out of scope" section.
+**Correction to this section's own earlier claim** ("no further
+Java-porting areas are currently identified"): that was scoped only to
+`plans/JAVA_SONGEDITING_PLAN.md`'s tracked list, not the whole port. A
+fresh audit found real remaining work in two phases - full roadmap now in
+`plans/JAVA_PORT_NEXT_STEPS_PLAN.md`:
+- **Phase A** (small, model-layer): `TracksEdit.cpp`'s 7 never-
+  characterized methods (unblocked now that `Undo` is fully ported),
+  `PokeyStream`'s real recording path + `AtariTrackerDriver`'s remaining
+  register-poking methods, `CSong::DumpSongToPokeyStream`, and the five
+  dependent SAP-R/LZSS/WAV/XEX export methods (all already C++-
+  characterized, not yet ported).
+- **Phase B** (large, not started): the entire Java UI layer
+  (`com.wudsn.tools.rmt.ui` doesn't exist yet) - see
+  `plans/JAVA_PORT_NEXT_STEPS_PLAN.md` for what `plans/UI_SURVEY_PLAN.md`
+  already resolved versus what's still open (rendering/repaint model, UI
+  toolkit choice, click-positioned popups/custom cursors).
+
+`BlockEffect`, the `FileXxx` dialog family, and `TimerRoutine`/hardware-
+timer methods stay permanently deferred per their own already-documented
+hazard reasoning - see `plans/JAVA_SONGEDITING_PLAN.md`'s "Explicitly out
+of scope" section.
