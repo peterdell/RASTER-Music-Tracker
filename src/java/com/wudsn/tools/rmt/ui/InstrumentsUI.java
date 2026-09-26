@@ -17,8 +17,8 @@ import com.wudsn.tools.rmt.model.Song;
  * implements these as methods of the model class {@code CInstruments};
  * this port keeps {@link Instruments} UI-free and puts them here, taking
  * the model (the deviation recorded in {@code plans/JAVA_UI_PORT_PLAN.md}).
- * The hit-testing half ({@code CursorGoto}/{@code GetGUIArea}) comes with
- * the mouse batch (B4).
+ * The hit-testing half ({@link #getGUIArea}/{@link #cursorGoto}) is here
+ * too, used by {@link MouseInput}.
  *
  * <p>{@link #SHPAR}/{@link #SHENV} are the display columns of C++'s
  * {@code shpar[]}/{@code shenv[]} tables (InstrumentsAtaFormat.cpp) -
@@ -100,12 +100,254 @@ public final class InstrumentsUI {
 			new ShEnv((char) 9, 0x01, 1, -1, "PORTAMENTO:", ENV_X + 0 * 8, ENV_Y + 14 * 16) // portamento *
 	};
 
+	/** Ported from the C++ enum class {@code InstrumentGUIZone} (General.h) - the mouse-sensitive areas of the instrument screen. */
+	public enum Zone {
+		ENVELOPE_LEFT_ENVELOPE, ENVELOPE_RIGHT_ENVELOPE, ENVELOPE_PARAM_TABLE, ENVELOPE_RIGHT_VOL_NUMS, NOTE_TABLE, INSTRUMENT_NAME, PARAMETERS, INSTRUMENT_NUMBER_DLG, LEN_AND_GOTO_ARROWS, NOTE_TBL_LEN_AND_GOTO
+	}
+
 	private final RmtSession session;
 	private final CanvasXY canvasXY;
 
+	/** The drawing constructor. */
 	public InstrumentsUI(RmtSession session, CanvasXY canvasXY) {
 		this.session = session;
 		this.canvasXY = canvasXY;
+	}
+
+	/** For hit-testing only ({@link #getGUIArea}/{@link #cursorGoto} never draw). */
+	public InstrumentsUI(RmtSession session) {
+		this(session, null);
+	}
+
+	/**
+	 * {@code CInstruments::GetGUIArea()}: "Query the bounding rectangle of the
+	 * requested GUI element", or {@code null} where C++ returns FALSE (the
+	 * right-channel zones of a mono song). C++'s {@code CRect(l, t, r, b)}
+	 * becomes an {@link java.awt.Rectangle}; {@code PtInRect} semantics
+	 * (right/bottom exclusive) are what {@link java.awt.Rectangle#contains}
+	 * implements too.
+	 */
+	public java.awt.Rectangle getGUIArea(int instrNr, Zone zone) {
+		Instruments instruments = session.instruments;
+		boolean stereo = session.tracks4_8 > 4;
+		final int len = (instruments.getParameter(instrNr, Instrument.PAR_ENV_LENGTH) & 0xFF) + 1;
+		final int tabl = (instruments.getParameter(instrNr, Instrument.PAR_TBL_LENGTH) & 0xFF) + 1;
+
+		switch (zone) {
+		case ENVELOPE_LEFT_ENVELOPE:
+			// left channel volume curve (lower)
+			return rect(ENV_X + 12 * 8, ENV_Y + 3 * 16 + 4, ENV_X + 12 * 8 + len * 8, ENV_Y + 3 * 16 + 4 + 4 * 16);
+
+		case ENVELOPE_RIGHT_ENVELOPE:
+			// right channel volume curve (upper)
+			if (!stereo) {
+				return null;
+			}
+			return rect(ENV_X + 12 * 8, ENV_Y - 2 * 16 + 4, ENV_X + 12 * 8 + len * 8, ENV_Y - 2 * 16 + 4 + 4 * 16);
+
+		case ENVELOPE_PARAM_TABLE:
+			// envelope area large table
+			return rect(ENV_X + 12 * 8, ENV_Y + 3 * 16 + 0 + 5 * 16, ENV_X + 12 * 8 + len * 8, ENV_Y + 3 * 16 + 0 + 5 * 16 + 7 * 16);
+
+		case ENVELOPE_RIGHT_VOL_NUMS:
+			// envelope area of volume numbers for right channel
+			if (!stereo) {
+				return null;
+			}
+			return rect(ENV_X + 12 * 8, ENV_Y - 2 * 16 + 0 + 4 * 16, ENV_X + 12 * 8 + len * 8, ENV_Y - 2 * 16 + 0 + 4 * 16 + 16);
+
+		case NOTE_TABLE:
+			// instrument table line
+			return rect(TABLE_X, TABLE_Y + 8, TABLE_X + tabl * 24 - 8, TABLE_Y + 8 + 16);
+
+		case INSTRUMENT_NAME:
+			// instrument name
+			return rect(PARAM_X, PARAM_Y - 16, PARAM_X + 6 * 8 + Instrument.INSTRUMENT_NAME_MAX_LEN * 8, PARAM_Y + 0);
+
+		case PARAMETERS:
+			// instrument parameters
+			return rect(PARAM_X, PARAM_Y + 32, PARAM_X + 26 * 8, PARAM_Y + 32 + 12 * 16);
+
+		case INSTRUMENT_NUMBER_DLG:
+			// instrument number
+			return rect(X, Y, X + 13 * 8, Y + 16);
+
+		case LEN_AND_GOTO_ARROWS:
+			// envelope area under the left (lower) volume curve
+			return rect(ENV_X + 12 * 8, ENV_Y + 3 * 16 + 0 + 4 * 16, ENV_X + 12 * 8 + Instrument.ENVELOPE_MAX_COLUMNS * 8, ENV_Y + 3 * 16 + 0 + 4 * 16 + 16);
+
+		case NOTE_TBL_LEN_AND_GOTO:
+			// instrument table + 1 line below parameter table
+			return rect(TABLE_X, TABLE_Y + 8 + 1 * 16, TABLE_X + Instrument.NOTE_TABLE_MAX_LEN * 24 - 8, TABLE_Y + 8 + 2 * 16);
+		}
+		return null;
+	}
+
+	private static java.awt.Rectangle rect(int left, int top, int right, int bottom) {
+		return new java.awt.Rectangle(left, top, right - left, bottom - top);
+	}
+
+	/**
+	 * {@code CInstruments::CursorGoto()}: a click at {@code (x, y)} relative
+	 * to zone {@code pzone}'s rectangle moves the instrument editor's cursor
+	 * (zones 0-4) or sets the envelope/table length and loop point (zones
+	 * 5-8, left/right button). Returns whether something was hit.
+	 */
+	public boolean cursorGoto(int instrNr, int x, int y, int pzone) {
+		Instruments instruments = session.instruments;
+		UiState ui = session.uiState;
+		if (instrNr < 0 || instrNr >= Instruments.INSTRSNUM) {
+			return false;
+		}
+		Instrument tt = instruments.getInstrument(instrNr);
+		int px;
+		int py;
+
+		ui.isEditingInstrumentName = false; // when it is not edited, it shouldn't allow playing notes
+
+		switch (pzone) {
+		case 0:
+			// envelope large table
+			ui.activePart = Part.PART_INSTRUMENTS;
+			tt.activeEditSection = InstrumentSection.ENVELOPE; // the envelope is active
+			px = x / 8;
+			if (px >= 0 && px <= tt.parameters[Instrument.PAR_ENV_LENGTH]) {
+				tt.editEnvelopeX = px;
+			}
+			py = y / 16 + 1;
+			if (py >= 1 && py < Instrument.ENVROWS) {
+				tt.editEnvelopeY = py;
+			}
+			return true;
+		case 1:
+			// envelope line volume number of the right channel
+			ui.activePart = Part.PART_INSTRUMENTS;
+			tt.activeEditSection = InstrumentSection.ENVELOPE; // the envelope is active
+			px = x / 8;
+			if (px >= 0 && px <= tt.parameters[Instrument.PAR_ENV_LENGTH]) {
+				tt.editEnvelopeX = px;
+			}
+			tt.editEnvelopeY = 0;
+			return true;
+		case 2:
+			// TABLE
+			ui.activePart = Part.PART_INSTRUMENTS;
+			tt.activeEditSection = InstrumentSection.NOTETABLE; // the table is active
+			px = (x + 4) / (3 * 8);
+			if (px >= 0 && px <= tt.parameters[Instrument.PAR_TBL_LENGTH]) {
+				tt.editNoteTableCursorPos = px;
+			}
+			return true;
+		case 3:
+			// INSTRUMENT NAME
+			ui.activePart = Part.PART_INSTRUMENTS;
+			tt.activeEditSection = InstrumentSection.NAME; // the name is active
+			ui.isEditingInstrumentName = true; // instrument name is being edited
+			px = x / 8 - 6;
+			if (px >= 0 && px <= Instrument.INSTRUMENT_NAME_MAX_LEN) {
+				tt.editNameCursorPos = px;
+			}
+			if (px < 0) {
+				tt.editNameCursorPos = 0;
+			}
+			return true;
+		case 4: {
+			// INSTRUMENT PARAMETERS
+			px = x / 8;
+			py = y / 16;
+			if (px > 11 && px < 15) {
+				return false; // middle empty part
+			}
+			if (py < 0 || py > 12) {
+				return false; // just in case
+			}
+			final int[][] xytopar = { //
+					{ Instrument.PAR_DELAY, Instrument.PAR_VIBRATO, Instrument.PAR_FREQ_SHIFT, -1, Instrument.PAR_AUDCTL_15KHZ, Instrument.PAR_AUDCTL_HPF_CH2, Instrument.PAR_AUDCTL_HPF_CH1, Instrument.PAR_AUDCTL_JOIN_3_4, Instrument.PAR_AUDCTL_JOIN_1_2, Instrument.PAR_AUDCTL_179_CH3, Instrument.PAR_AUDCTL_179_CH1, Instrument.PAR_AUDCTL_POLY9 }, //
+					{ Instrument.PAR_ENV_LENGTH, Instrument.PAR_ENV_GOTO, Instrument.PAR_VOL_FADEOUT, Instrument.PAR_VOL_MIN, -1, -1, -1, Instrument.PAR_TBL_LENGTH, Instrument.PAR_TBL_GOTO, Instrument.PAR_TBL_SPEED, Instrument.PAR_TBL_TYPE, Instrument.PAR_TBL_MODE } };
+			int p = xytopar[px > 11 ? 1 : 0][py];
+			if (p >= 0 && p < Instrument.NUMBER_OF_PARAMS) {
+				tt.editParameterNr = p;
+				ui.activePart = Part.PART_INSTRUMENTS;
+				tt.activeEditSection = InstrumentSection.PARAMETERS; // parameters are active
+				return true;
+			}
+			return false;
+		}
+
+		case 5:
+			// INSTRUMENT SET ENVELOPE LEN/GO PARAMETER by MOUSE
+			// left mouse button
+			// changes GO and moves LEN if necessary
+			px = x / 8;
+			if (px < 0) {
+				px = 0;
+			} else if (px >= Instrument.ENVELOPE_MAX_COLUMNS) {
+				px = Instrument.ENVELOPE_MAX_COLUMNS - 1;
+			}
+			tt.parameters[Instrument.PAR_ENV_GOTO] = px;
+			if (tt.parameters[Instrument.PAR_ENV_LENGTH] < px) {
+				tt.parameters[Instrument.PAR_ENV_LENGTH] = px;
+			}
+			return instrumentParametersChanged(instrNr);
+
+		case 6:
+			// INSTRUMENT SET ENVELOPE LEN/GO PARAMETER by MOUSE
+			// right mouse button
+			// changes LEN and moves GO if necessary
+			px = x / 8;
+			if (px < 0) {
+				px = 0;
+			} else if (px >= Instrument.ENVELOPE_MAX_COLUMNS) {
+				px = Instrument.ENVELOPE_MAX_COLUMNS - 1;
+			}
+			tt.parameters[Instrument.PAR_ENV_LENGTH] = px;
+			if (tt.parameters[Instrument.PAR_ENV_GOTO] > px) {
+				tt.parameters[Instrument.PAR_ENV_GOTO] = px;
+			}
+			return instrumentParametersChanged(instrNr);
+		case 7:
+			// TABLE SET LEN/GO PARAMETER by MOUSE
+			// left mouse button
+			// changes GO and moves LEN if necessary
+			px = (x + 4) / (3 * 8);
+			if (px < 0) {
+				px = 0;
+			} else if (px >= Instrument.NOTE_TABLE_MAX_LEN) {
+				px = Instrument.NOTE_TABLE_MAX_LEN - 1;
+			}
+			tt.parameters[Instrument.PAR_TBL_GOTO] = px;
+			if (tt.parameters[Instrument.PAR_TBL_LENGTH] < px) {
+				tt.parameters[Instrument.PAR_TBL_LENGTH] = px;
+			}
+			return instrumentParametersChanged(instrNr);
+		case 8:
+			// TABLE SET LEN/GO PARAMETER by MOUSE
+			// right mouse button
+			// changes LEN and moves GO if necessary
+			px = (x + 4) / (3 * 8);
+			if (px < 0) {
+				px = 0;
+			} else if (px >= Instrument.NOTE_TABLE_MAX_LEN) {
+				px = Instrument.NOTE_TABLE_MAX_LEN - 1;
+			}
+			tt.parameters[Instrument.PAR_TBL_LENGTH] = px;
+			if (tt.parameters[Instrument.PAR_TBL_GOTO] > px) {
+				tt.parameters[Instrument.PAR_TBL_GOTO] = px;
+			}
+			return instrumentParametersChanged(instrNr);
+		default:
+			break;
+		}
+		return false;
+	}
+
+	/** C++'s {@code CG_InstrumentParametersChanged:} label: "because there has been some change in the instrument parameter => this instrument will stop on all channels". */
+	private boolean instrumentParametersChanged(int instrNr) {
+		session.atariTrackerDriver.instrumentTurnOff(instrNr);
+		session.instruments.checkInstrumentParameters(instrNr);
+		// something changed => Save instrument "to Atari"
+		session.instruments.update(instrNr);
+		return true;
 	}
 
 	private boolean isProveMode() {

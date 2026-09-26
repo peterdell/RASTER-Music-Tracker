@@ -255,6 +255,16 @@ public final class Song {
 		this.trackActiveCur = trackActiveCur;
 	}
 
+	/** The mouse hit-testing's direct {@code m_trackactivecol = xch} writes ({@code TrackCursorGoto}/{@code SongCursorGoto}). */
+	public void setActiveColumn(int trackActiveCol) {
+		this.trackActiveCol = trackActiveCol;
+	}
+
+	/** The octave select popup's result ({@code InfoCursorGotoOctaveSelect}). */
+	public void setOctave(int octave) {
+		this.octave = octave;
+	}
+
 	/** {@code TrackKey()}'s quantization: a note typed during follow-play in the first half of a line is held back for the timer routine to enter on the next line. */
 	public void setQuantization(int note, int instr, int vol) {
 		quantizationNote = note;

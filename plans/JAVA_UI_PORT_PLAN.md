@@ -223,9 +223,12 @@ shows anything, `plans/NOTES.md` entry, ask before committing.
   `CPokeyController`), Ctrl+O/Ctrl+F dialogs (B7), and the accelerators
   that *enter* jam mode / reset sound on Esc (B5 - they are menu
   commands, not `OnKeyDown` keys). Details in `NOTES.md`.
-- **B4 - mouse.** `MouseAction` hit-testing, `TrackCursorGoto`/
-  `SongCursorGoto`/`InfoCursorGoto*`/`InstrumentsUI.cursorGoto`, wheel,
-  the 5 custom cursors, the three click-positioned popup selectors.
+- **B4 - mouse - DONE (2026-09-26).** `MouseInput` (`MouseAction` +
+  handlers + `*CursorGoto`), `InstrumentsUI.getGUIArea/cursorGoto`,
+  `PopupSelectors` (octave/volume/instrument popups), `RmtCursor` + the
+  five `.cur` cursors, wheel. Popups/commands behind
+  `MouseInput.Callbacks`; `changeMaxTrackLength`/`switchMonoStereo` wait
+  for B7's dialogs/message boxes. Details in `NOTES.md`.
 - **B5 - menus, toolbars, accelerators, status bar.** `RmtActions`
   (+`Actions.properties`), `RmtMainMenu` (12 menus incl. the `Pokey`
   tree), 2 toolbars + skip-lines combo, 76 accelerators, the 203 handlers

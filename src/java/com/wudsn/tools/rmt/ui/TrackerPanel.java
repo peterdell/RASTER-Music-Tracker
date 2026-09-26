@@ -1,17 +1,21 @@
 package com.wudsn.tools.rmt.ui;
 
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 /**
@@ -58,7 +62,10 @@ public final class TrackerPanel extends JPanel {
 	private final CanvasXY canvasXY;
 	private final SongUI songUI;
 	private final SongInput songInput;
+	private final MouseInput mouseInput;
 	private final Timer timer;
+	private final java.util.Map<RmtCursor, Cursor> cursors = new java.util.EnumMap<>(RmtCursor.class);
+	private RmtCursor shownCursor;
 
 	/** {@code CRmtView::m_width/m_height} - the client area in device pixels. */
 	private int width;
@@ -102,16 +109,50 @@ public final class TrackerPanel extends JPanel {
 				}
 			}
 		});
+		mouseInput = new MouseInput(session, songInput, new PanelCallbacks());
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				requestFocusInWindow();
+				int button = toMkButton(e);
+				if (button != 0) {
+					Point p = toLogical(e);
+					mouseInput.buttonDown(p.x, p.y, button);
+					applyCursor();
+					refreshScreen();
+				}
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				int button = toMkButton(e);
+				if (button != 0) {
+					mouseInput.buttonUp(button);
+				}
+			}
+		});
 		addMouseMotionListener(new MouseMotionAdapter() {
 			@Override
 			public void mouseMoved(MouseEvent e) {
-				storeMousePosition(e);
+				Point p = toLogical(e);
+				mouseInput.mouseMove(p.x, p.y);
+				applyCursor();
 			}
 
 			@Override
 			public void mouseDragged(MouseEvent e) {
-				storeMousePosition(e);
+				Point p = toLogical(e);
+				mouseInput.mouseMove(p.x, p.y);
+				applyCursor();
+				refreshScreen();
 			}
+		});
+		addMouseWheelListener(e -> {
+			Point p = toLogical(e);
+			// Windows' WHEEL_DELTA units, positive = wheel up (Swing's rotation is positive for down)
+			mouseInput.mouseWheel(p.x, p.y, -e.getWheelRotation() * 120);
+			applyCursor();
+			refreshScreen();
 		});
 
 		timer = new Timer(TIMER_DISPLAY_TICK[0], null);
@@ -157,12 +198,71 @@ public final class TrackerPanel extends JPanel {
 		return canvas;
 	}
 
-	/** {@code CRmtView::MouseAction()}'s first lines: the mouse position in logical canvas coordinates ({@code INVERSE_SCALE} of the device position). The hit-testing itself comes with B4. */
-	private void storeMousePosition(MouseEvent e) {
-		UiState ui = session.uiState;
+	/** {@code CRmtView::MouseAction()}'s first lines: a Swing mouse position as logical canvas coordinates ({@code INVERSE_SCALE} of the device position). */
+	private Point toLogical(MouseEvent e) {
 		int scaling = session.options.scalingPercentage;
-		ui.mouseX = (int) Math.round(e.getX() * deviceScale) * 100 / scaling;
-		ui.mouseY = (int) Math.round(e.getY() * deviceScale) * 100 / scaling;
+		return new Point((int) Math.round(e.getX() * deviceScale) * 100 / scaling, (int) Math.round(e.getY() * deviceScale) * 100 / scaling);
+	}
+
+	/** The reverse of {@link #toLogical}, for positioning a popup: logical canvas coordinates as a screen point. */
+	private Point toScreen(int x, int y) {
+		int scaling = session.options.scalingPercentage;
+		Point p = new Point((int) Math.round(x * scaling / 100.0 / deviceScale), (int) Math.round(y * scaling / 100.0 / deviceScale));
+		SwingUtilities.convertPointToScreen(p, this);
+		return p;
+	}
+
+	private static int toMkButton(MouseEvent e) {
+		if (SwingUtilities.isLeftMouseButton(e)) {
+			return MouseInput.MK_LBUTTON;
+		}
+		if (SwingUtilities.isRightMouseButton(e)) {
+			return MouseInput.MK_RBUTTON;
+		}
+		return 0;
+	}
+
+	/** {@code SetCursor(m_cursor...)}: shows the shape the last {@code MouseAction} chose. */
+	private void applyCursor() {
+		RmtCursor wanted = session.uiState.cursor;
+		if (wanted != shownCursor) {
+			shownCursor = wanted;
+			setCursor(cursors.computeIfAbsent(wanted, c -> c.resourceName == null ? Cursor.getDefaultCursor() : CursorLoader.load(c.resourceName).toCursor(c.name())));
+		}
+	}
+
+	/** The Swing side of {@link MouseInput.Callbacks}: the three popups at the click position and the info-area commands. */
+	private final class PanelCallbacks implements MouseInput.Callbacks {
+		@Override
+		public int selectOctave(int x, int y, int octave) {
+			return PopupSelectors.selectOctave(TrackerPanel.this, toScreen(x, y), octave);
+		}
+
+		@Override
+		public MouseInput.VolumeSelection selectVolume(int x, int y, int volume, boolean respectVolume) {
+			return PopupSelectors.selectVolume(TrackerPanel.this, toScreen(x, y), volume, respectVolume);
+		}
+
+		@Override
+		public int selectInstrument(int x, int y, int instrument) {
+			return PopupSelectors.selectInstrument(TrackerPanel.this, toScreen(x, y), session.instruments, instrument);
+		}
+
+		@Override
+		public void changeMaxTrackLength() {
+			// B7: the "Change maximal length of tracks" dialog (CChangeMaxtracklenDlg)
+		}
+
+		@Override
+		public void switchMonoStereo() {
+			// B7: CSong::Songswitch4_8 asks a question first; needs the real message boxes
+		}
+
+		@Override
+		public void toggleNTSC() {
+			session.song.stop(session.undo);
+			session.setNTSC(!session.song.isNTSC());
+		}
 	}
 
 	/**

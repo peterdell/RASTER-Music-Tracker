@@ -39,6 +39,10 @@ public final class UiState {
 	public int mouseY;
 	public int mouseButton;
 	public int mouseWheelDelta;
+	/** {@code g_mousebutt} - the buttons currently held ({@link MouseInput#MK_LBUTTON}/{@link MouseInput#MK_RBUTTON}), so dragging over the envelope keeps drawing. */
+	public int mouseButtonsHeld;
+	/** The cursor shape the last {@code MouseAction()} chose ({@code SetCursor(m_cursor...)}). */
+	public RmtCursor cursor = RmtCursor.ARROW;
 
 	/** {@code g_width}/{@code g_height} - the logical (unscaled) canvas size, set by the view's resize handling. */
 	public int width;

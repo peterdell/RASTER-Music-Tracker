@@ -96,6 +96,12 @@ public final class RmtSession {
 		channelControl.setAllChannelsOn();
 	}
 
+	/** {@code CRmtView::SetNTSC()}: rescales the base tuning between the two clocks and switches the song ("TODO code... well 3 times.." in C++). */
+	public void setNTSC(boolean ntsc) {
+		tuningSettings.basetuning = ntsc ? (tuningSettings.basetuning * Atari.FREQ_17_NTSC) / Atari.FREQ_17_PAL : (tuningSettings.basetuning * Atari.FREQ_17_PAL) / Atari.FREQ_17_NTSC;
+		song.setNTSC(ntsc);
+	}
+
 	/**
 	 * {@code CSong::FileOpen(filename, FALSE)} for an {@code .rmt} file: clears
 	 * the song, decodes the module, and on success remembers the file and

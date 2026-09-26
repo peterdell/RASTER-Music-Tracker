@@ -4048,4 +4048,32 @@ build clean and all 123 tests pass.
       instrument parameters shift hex digits in (`"01"` + `3` = `"13"`),
       they don't replace the value.
     - 72 ui tests (`SongInputTest` 20, `TextFieldEditorTest` 6,
-      `VirtualKeyTest` 3 new); full suite below. Not yet committed.
+      `VirtualKeyTest` 3 new); 470 total. Committed as `b3ee4fa`.
+  - **2026-09-26**: Phase B, batch B4 (mouse). `MouseInput` ports
+    `CRmtView::MouseAction()` (every hit rectangle, in C++'s
+    `CRect(l,t,r,b)`/`PtInRect` semantics) with its button/move/wheel
+    handlers and the `CSong::*CursorGoto` helpers (`TrackCursorGoto`,
+    `SongCursorGoto` incl. the play+follow restart, the three
+    `InfoCursorGoto*` field selectors and the three popup openers);
+    `InstrumentsUI` gained `getGUIArea`/`cursorGoto` (the hit-testing half
+    of GUI_Instruments.cpp, zones 0-8); `PopupSelectors` ports the three
+    click-positioned popups (`COctaveSelectDlg`/`CVolumeSelectDlg`/
+    `CInstrumentSelectDlg`) as small modal `JDialog`s; `RmtCursor` +
+    `UiState.cursor` carry the `SetCursor` choice, `TrackerPanel` maps
+    them to the five original `.cur` files via `CursorLoader`.
+    `UiState.mouseButtonsHeld` is `g_mousebutt` (dragging over the
+    envelope keeps drawing). `RmtSession.setNTSC` ports
+    `CRmtView::SetNTSC`.
+    - Windows and popups stay behind `MouseInput.Callbacks`, implemented
+      by the panel, so the hit-testing is tested headless
+      (`MouseInputTest`, 11 tests, with a recording stub). Two info-field
+      commands are callbacks left for B7 (`changeMaxTrackLength` needs
+      its dialog; `switchMonoStereo` needs the real question box behind
+      `Songswitch4_8`); NTSC toggling works.
+    - Mouse coordinates: Swing point -> device pixels (the paint's
+      transform scale) -> `INVERSE_SCALE` logical, the exact reverse for
+      positioning a popup at the click (C++ offsets the popup by
+      `(-73, -7)`/`(-146, -7)` in *logical* units used as screen pixels -
+      an RMT quirk kept, but applied to real screen coordinates). Wheel:
+      Swing rotation x -120 = Windows `zDelta`.
+    - 481 tests (+11), no regressions. Not yet committed.
