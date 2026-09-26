@@ -3927,4 +3927,55 @@ build clean and all 123 tests pass.
       and renamed to a scenario/view scheme; its `README.md` records the
       capture conditions (150% Windows scaling - so RMT-200% captures are
       the lossless ones) and proposes names for the missing captures.
+      B0 committed as `68f58b3`, the placeholder PNGs as `17d8804`.
+  - **2026-09-26**: Phase B, batch B1 (the vertical slice) - the first
+    Java window. `RmtSession` (the model composition root, wired as
+    `CRmtApp::InitInstance()` does, plus `UiState`/`RmtOptions` and the
+    one mutable `tracks4_8`), `RmtOptions` (the persisted `Global.h`
+    options the drawing reads, defaults = `ResetRMTConfig()`; `rmt.ini`
+    itself stays B6), `SongUI` (`DrawInfo`/`DrawSong`/`DrawTracks`/
+    `DrawPlayTimeCounter` ported in full, `DrawVolumeAnalyzer`/
+    `DrawInstrument`/the FPS read-out left as B2 no-ops), `TracksControl`,
+    `SongInput` (navigation arms of `OnKeyDown`/`TrackKey`/`SongKey`
+    only, every data-changing arm marked `// B3`), `TrackerPanel`
+    (off-screen canvas, `Resize()` math, 16/16/15 ms `javax.swing.Timer`,
+    dirty flag, nearest-neighbor blit), `RmtMainWindow` (WUDSN Base
+    `MainWindow` + `StatusBar`, min size, `SetRMTTitle`), `RmtApplication`
+    (`main`, `.rmt` from the command line, `-Drmt.scaling` stopgap).
+    Model additions: `Song` read accessors, `Song.loadRMT` now returns
+    `LoadRmtResult(success, tracks4_8)` like `loadRMW`, `setLoadedFile`
+    (`FileOpen()`'s tail), `TrackClipboard` selection getters.
+    - **Verified against the user's `Rmt.exe` screenshots, pixel for
+      pixel.** `SongUITest` locates the client area in the whole-desktop
+      captures and compares the Java frame (rendered headless at the
+      captures' own `GW=1278 GH=0654`) in the info area, SONG block and
+      tracks screen, excluding only B2's analyzer strip and FPS text.
+      Both `song1-mono/tracks-scale200` and `song0-empty/tracks-scale200`
+      match exactly after one fix (below). Plus Java-only golden PNGs of
+      the whole frame under `src/java/test/.../ui/golden/`.
+    - **Screenshot geometry corrected**: the captures show `Rmt.exe`
+      renders 1:1 in device pixels even at 150% Windows scaling (`GW=1278`
+      for a 2556-pixel client area at RMT 200%), i.e. it *is* DPI-aware
+      in effect. So a `-scale200` capture is an exact 2x2-block image and
+      a plain one is 1:1 - both lossless; the earlier "3 device pixels,
+      100% is lossy" reasoning in the README was wrong and is replaced.
+    - **Real bug found by the comparison and fixed model-wide**: every
+      Java port of a C++ `CInstruments::Update()` call site had dropped
+      the call as "writes to Atari RAM", but `Update()` also runs
+      `RecalculateFlag()`, so the info area's instrument hints
+      (`AUTOFILTER(1+3)` etc.) never appeared after loading. Added
+      `Instruments.update()` (the flag half; the memory write stays B8)
+      and call it where C++ does: `decodeModule`,
+      `renumberAllInstruments`, `instrPaste`, `setEnvelopeVolume`,
+      `loadInstrumentTxt`/`loadInstrumentRmw`, both `Undo` instrument
+      cases, `ModImporter`, `TmcImporter`.
+    - **HiDPI gate passed on the user's 150% display**: `TrackerPanel`
+      reads the device scale from the paint transform, sizes the canvas
+      from the panel's *device* size and blits through an integer
+      translation only (never through the 1.5x), exactly as `Rmt.exe`
+      does. Checked live with `Delta.rmt` at RMT 100% (crisp 1:1) and 200%
+      (4x-magnified crop shows uniform 2x2 blocks, no irregular rows).
+    - 446 tests (+21: `SongUITest` 4, `SongInputTest` 10,
+      `RmtSessionTest` 4, `TrackerPanelTest` 3), no regressions.
+      `loadRMT`'s two existing tests adapted to the new result record.
       Not yet committed.

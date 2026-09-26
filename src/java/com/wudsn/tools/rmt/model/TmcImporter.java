@@ -21,10 +21,10 @@ package com.wudsn.tools.rmt.model;
  * import) become the private nested classes {@link ConvertTracks}/
  * {@link SourceTrack}/{@link DestinationMark}/{@link InstrumentMark} below.
  *
- * <p><b>{@code g_Instruments.Update(i)}</b> ("write to Atari RAM") is
- * omitted throughout, matching {@link Instruments}'s own established
- * omission of the same call - no {@code Atari} dependency is modeled on
- * either {@link Song} or here.
+ * <p><b>{@code g_Instruments.Update(i)}</b> is called where C++ calls it,
+ * for the half of it that exists ({@link Instruments#update}: the
+ * display-hint flags; the Atari-memory write is still deferred - no
+ * {@code Atari} dependency is modeled on either {@link Song} or here).
  *
  * <p><b>The TMC command-5 {@code rand()} call is genuinely non-deterministic
  * in C++ too</b>: reached only when a saved instrument uses TMC envelope
@@ -650,7 +650,10 @@ public final class TmcImporter {
 				ai.parameters[Instrument.PAR_TBL_LENGTH] = 0;
 				ai.parameters[Instrument.PAR_TBL_SPEED] = 0;
 			}
-		}
+
+			// projected instrument into Atari's RAM (the display-hint half of it - see Instruments.update)
+			instruments.update(i);
+		} // and another instrument
 
 		// song
 		int line = 0;

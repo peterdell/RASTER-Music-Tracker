@@ -184,16 +184,27 @@ shows anything, `plans/NOTES.md` entry, ask before committing.
   `main` with nothing to show would be a half-finished placeholder) and
   `RmtOptions` to B6 (nothing in B0 reads a persisted option). 425 tests
   (+27), no regressions.
-- **B1 - the vertical slice (DECISIONS 1-2 must be settled first).**
-  `TrackerPanel` (offscreen canvas, scaled paint, timer, dirty flag,
-  `Resize()` math incl. `g_tracklines`/`g_line_y`), minimal
-  `RmtMainWindow` (frame + status bar, no menus), `SongUI.drawInfo`/
-  `drawSong`/`drawTracks` read-only + `TracksControl`, keyboard *navigation
-  only* (arrows/page/home/end via the already-ported `trackUp`/`trackDown`/
-  `trackLeft`/`trackRight`/`songUp`/`songDown`), loading a real `.rmt` from
-  the command line so there is something to look at. **Verify on the
-  user's real display scaling** (the dis6502 HiDPI lesson) and at 100%/
-  200% RMT scaling. Golden-image test of the full first frame.
+- **B1 - the vertical slice - DONE (2026-09-26).** `TrackerPanel`
+  (offscreen canvas, device-pixel-exact paint, 16/16/15 ms timer, dirty
+  flag, `Resize()` math), `RmtMainWindow` (WUDSN Base `MainWindow` +
+  `StatusBar`, min size, title; no menus), `RmtSession` (composition
+  root), `RmtOptions` (drawing subset, defaults only), `SongUI.drawInfo`/
+  `drawSong`/`drawTracks`/`drawPlayTimeCounter` + `TracksControl`,
+  `SongInput` navigation arms only, `RmtApplication` with the `.rmt`
+  command-line argument (and a `-Drmt.scaling` stopgap until B6).
+  **Verified pixel-for-pixel against the user's `Rmt.exe` captures**
+  (`SongUITest` + `ReferenceScreenshot`, B2's regions excluded) and live
+  at 150% Windows scaling at RMT 100%/200%. Found and fixed a model-wide
+  omission on the way (`Instruments.update()`, the display-hint half of
+  C++'s `Update()`). Details in `NOTES.md`. Correction to "Facts" above:
+  the captures prove `Rmt.exe` renders 1:1 in device pixels at 150%
+  scaling, so RMT-200% captures are exact 2x2 blocks and RMT-100% ones
+  are 1:1 - both lossless.
+  - B2 inherits from here: `drawVolumeAnalyzer` (needs the emulated
+    Atari's POKEY registers - `AtariTrackerDriver.getAtari()` memory),
+    the FPS read-out in `drawInfo`, `PokeyView`/`AtariView`,
+    `drawInstrument`, and the mouse hit-testing that `TrackerPanel`'s
+    mouse-move tracking (logical coordinates into `UiState`) is ready for.
 - **B2 - complete drawing.** `drawVolumeAnalyzer` (283 lines),
   `drawPlayTimeCounter`, `drawInstrument` + `InstrumentsUI` drawing,
   `PokeyView`, `AtariView`, smooth scrolling, hover recoloring, GOTO-line

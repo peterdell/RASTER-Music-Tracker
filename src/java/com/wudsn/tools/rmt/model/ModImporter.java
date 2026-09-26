@@ -62,8 +62,9 @@ package com.wudsn.tools.rmt.model;
  * user rather than silently "fixed"; this port computes {@code lopEnd} and
  * likewise leaves it unused, faithfully matching the observed behavior.
  *
- * <p><b>{@code g_Instruments.Update(i)}</b> is omitted throughout, matching
- * {@link Instruments}'s own established omission.
+ * <p><b>{@code g_Instruments.Update(i)}</b> is called where C++ calls it,
+ * for the half of it that exists ({@link Instruments#update}: the
+ * display-hint flags; the Atari-memory write is still deferred).
  */
 public final class ModImporter {
 
@@ -791,6 +792,12 @@ public final class ModImporter {
 
 		// checking the end of the module with the end of the last sample:
 		// SendWarningMessage("Warning", "Bad length of module...") omitted (guard-only)
+
+		// and only at the end
+		for (int i = 1; i <= modSamples; i++) {
+			// send to Atari (the display-hint half of it - see Instruments.update)
+			instruments.update(i);
+		}
 
 		int optiTracks = 0;
 		int optiBeats = 0;

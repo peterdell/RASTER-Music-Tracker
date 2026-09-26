@@ -1631,7 +1631,9 @@ class SongEditingTest {
 		writeBinaryBlock(blocks, namesMem, 0, p - 1);
 
 		Song decoded = new Song(instruments, tracks);
-		assertTrue(decoded.loadRMT(blocks.toByteArray()));
+		Song.LoadRmtResult loaded = decoded.loadRMT(blocks.toByteArray());
+		assertTrue(loaded.success());
+		assertEquals(4, loaded.tracks4_8());
 
 		assertEquals("TestSong", decoded.getName());
 		// Unlike getName(), the raw instrument name field isn't trimmed -
@@ -1670,7 +1672,7 @@ class SongEditingTest {
 		byte[] out = RmtExporter.exportAsRMT(song, instruments, mem, targetAddrOfModule, firstByteAfterModule, instrSavedFlags);
 
 		Song decoded = new Song(instruments, tracks);
-		assertTrue(decoded.loadRMT(out));
+		assertTrue(decoded.loadRMT(out).success());
 
 		assertEquals("TestSong", decoded.getName());
 		assertEquals("Lead", new String(instruments.getInstrument(2).name).stripTrailing());

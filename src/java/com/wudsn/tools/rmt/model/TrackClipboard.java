@@ -290,6 +290,22 @@ public final class TrackClipboard {
 		return selSongLine;
 	}
 
+	// Read accessors for the UI's selected-block frame drawing (C++'s
+	// CSongUI::DrawTracks() reads m_selcol/m_seltrack/m_all directly).
+
+	public int getSelCol() {
+		return selCol;
+	}
+
+	public int getSelTrack() {
+		return selTrack;
+	}
+
+	/** Whether block-change commands affect all instruments (true) or only the current one - see {@link #blockAllOnOff}. */
+	public boolean isAll() {
+		return all;
+	}
+
 	/** Toggles whether block-change commands ({@link #blockNoteTransposition}/{@link #blockInstrumentChange}/{@link #blockVolumeChange}) affect all instruments or only the one matching their filter. */
 	public void blockAllOnOff(Tracks tracks) {
 		if (isBlockSelected()) {

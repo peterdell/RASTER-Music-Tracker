@@ -168,6 +168,52 @@ public final class Song {
 		return mainSpeed;
 	}
 
+	// Plain read accessors for the UI's drawing code (C++'s CSongUI reads the
+	// corresponding m_* members of its CSong directly).
+
+	public int getSpeed() {
+		return speed;
+	}
+
+	public int getSpeeda() {
+		return speeda;
+	}
+
+	public int getOctave() {
+		return octave;
+	}
+
+	public int getVolume() {
+		return volume;
+	}
+
+	public EditArea getInfoAct() {
+		return infoAct;
+	}
+
+	public int getSongNameCursor() {
+		return songNameCursor;
+	}
+
+	public int getTrackActiveCur() {
+		return trackActiveCur;
+	}
+
+	/**
+	 * The song name field exactly as the info area draws it - every character
+	 * up to the first NUL (or the whole field), trailing spaces included -
+	 * unlike {@link #getName}, which trims them. C++ hands the raw
+	 * {@code m_songname} array to {@code TextXYSelN}, which draws spaces too
+	 * (a hovered or selected space shows as a highlighted cell).
+	 */
+	public String getSongNameField() {
+		int end = 0;
+		while (end < songName.length && songName[end] != '\0') {
+			end++;
+		}
+		return new String(songName, 0, end);
+	}
+
 	/**
 	 * Mirrors {@link #setPlayPressedTonesSilence} except the volume slot is
 	 * reset to -1 instead of 0 - matches C++'s always-true BOOL return being
@@ -2037,6 +2083,11 @@ public final class Song {
 				tr.instr[j] = moveinstrfrom[ins];
 			}
 		}
+
+		// and finally write all the instruments in Atari memory (the display-hint half of it - see Instruments.update)
+		for (int i = 0; i < Instruments.INSTRSNUM; i++) {
+			instruments.update(i);
+		}
 	}
 
 	private static int compareInstrumentNamesIgnoreCase(char[] name1, char[] name2) {
@@ -2116,6 +2167,20 @@ public final class Song {
 
 	public SongIOType getIOType() {
 		return ioType;
+	}
+
+	/**
+	 * The tail of C++'s {@code CSong::FileOpen()} after a successful load:
+	 * remembers the file name and format and resets the current speed to the
+	 * main speed ({@code m_filename = ...; m_ioType = ...; m_speed =
+	 * m_mainSpeed}). The file dialog, the reading itself and the
+	 * {@code SetRMTTitle()}/{@code SetAllChannelsOn()} calls around it are
+	 * the caller's (the UI's) business.
+	 */
+	public void setLoadedFile(String filename, SongIOType ioType) {
+		this.filename = filename;
+		this.ioType = ioType;
+		speed = mainSpeed;
 	}
 
 	/**
@@ -2206,11 +2271,13 @@ public final class Song {
 
 	private static final char[] HEX_UPPER = "0123456789ABCDEF".toCharArray();
 
-	static char charH4(int b) {
+	/** IOHelpers.h's {@code CharH4}: the upper hex digit of a byte. Public because the UI's drawing code uses it exactly as C++'s does. */
+	public static char charH4(int b) {
 		return HEX_UPPER[(b >> 4) & 0xF];
 	}
 
-	static char charL4(int b) {
+	/** IOHelpers.h's {@code CharL4}: the lower hex digit of a byte. */
+	public static char charL4(int b) {
 		return HEX_UPPER[b & 0xF];
 	}
 
@@ -2656,28 +2723,39 @@ public final class Song {
 	 * RMT" dialog, not reproduced here per {@link #loadTxt}'s established
 	 * reasoning, followed by {@code return true}). The two guard-only
 	 * failure paths (corrupted first block; {@link #decodeModule} rejecting
-	 * it) return {@code false} without reproducing their
+	 * it) return {@code success == false} without reproducing their
 	 * {@code SendErrorMessage} calls either.
+	 *
+	 * <p>Returns the module's own {@code tracks4_8} (4 or 8, from the
+	 * {@code RMT4}/{@code RMT8} header) alongside the success flag, the way
+	 * {@link #loadRMW} does - C++ stores it into {@code g_tracks4_8} inside
+	 * {@link #decodeModule}, and the caller here is responsible for keeping
+	 * it. On failure it is whatever {@link #decodeModule} got to (-1 if it
+	 * never read a header).
 	 */
-	public boolean loadRMT(byte[] data) {
+	public record LoadRmtResult(boolean success, int tracks4_8) {
+	}
+
+	public LoadRmtResult loadRMT(byte[] data) {
 		byte[] mem = new byte[Atari.MEMORY_SIZE];
 
 		AtariIO.BinaryBlockResult mainBlock = AtariIO.loadBinaryBlock(data, 0, mem);
 		if (mainBlock.length() <= 0) {
-			return false; // did not retrieve any data in the first block
+			return new LoadRmtResult(false, -1); // did not retrieve any data in the first block
 		}
 
 		byte[] instrumentLoadedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackLoadedFlags = new byte[Tracks.TRACKSNUM];
 		DecodeModuleResult decodeResult = decodeModule(mem, mainBlock.fromAddr(), mainBlock.toAddr() + 1, instrumentLoadedFlags, trackLoadedFlags);
+		int tracks4_8 = decodeResult.tracks4_8();
 		if (decodeResult.version() == 0) {
-			return false; // bad RMT data format or old tracker version
+			return new LoadRmtResult(false, tracks4_8); // bad RMT data format or old tracker version
 		}
 
 		// RMT - now read the second block with names
 		AtariIO.BinaryBlockResult namesBlock = AtariIO.loadBinaryBlock(data, mainBlock.inputBytesConsumed(), mem);
 		if (namesBlock.length() < 1) {
-			return true; // stripped RMT module - song/instrument names are missing, not a failure
+			return new LoadRmtResult(true, tracks4_8); // stripped RMT module - song/instrument names are missing, not a failure
 		}
 
 		// Parse the song name (until we hit the terminating zero)
@@ -2715,7 +2793,7 @@ public final class Song {
 			addrInstrumentNames += nameIdx + 1; // +1 is zero behind the name
 		}
 
-		return true;
+		return new LoadRmtResult(true, tracks4_8);
 	}
 
 	private static final int ATARI_MAX_INSTR_OR_TRACK_LENGTH = 256; // matches C++'s ATARI_MAX_INSTR_LENGTH/ATARI_MAX_TRACK_LENGTH (SongTypes.h) - both happen to be 256
@@ -2880,9 +2958,9 @@ public final class Song {
 	 * Decodes an Atari RMT module byte format at {@code mem[fromAddr..endAddr)}
 	 * back into this {@link Song} (plus the shared {@code Tracks}/
 	 * {@code Instruments} collaborators). Omits C++'s
-	 * {@code g_Instruments.Update(instrumentNr)} call ("writes to Atari ram")
-	 * for each decoded instrument - matches {@code Instruments}'s own prior
-	 * omission of the same call; no {@code Atari} dependency is modeled on
+	 * {@code g_Instruments.Update(instrumentNr)} call's Atari-memory write for
+	 * each decoded instrument (see {@link Instruments#update} - its
+	 * display-hint half is done); no {@code Atari} dependency is modeled on
 	 * {@link Song}, and no test observes it.
 	 *
 	 * <p>C++ reads {@code InstrToAta}/{@code TrackToAta}/{@link #ataToSong}'s
@@ -2960,6 +3038,8 @@ public final class Song {
 			boolean loadState = version == 0
 					? instruments.ataV0ToInstr(instrumentData, instrumentNr, stereo)
 					: instruments.ataToInstr(instrumentData, instrumentNr, stereo);
+
+			instruments.update(instrumentNr); // writes to Atari ram (the display-hint half of it - see Instruments.update)
 
 			if (!loadState) {
 				return new DecodeModuleResult(0, tracks4_8); // some problem with the instrument => END
@@ -3367,15 +3447,20 @@ public final class Song {
 	 * {@code goto InstrPaste_Envelopes} target (cases 1/2/3/4/6/8/9) becomes
 	 * a small {@code switch} that only sets the four boolean flags, followed
 	 * by one shared copy loop, since Java has no {@code goto}. Drops the
-	 * trailing {@code g_Instruments.Update(i)} call ("write to Atari RAM") -
-	 * matches this class's established omission of the same call elsewhere
-	 * (no {@code Atari} dependency is modeled on {@link Song}).
+	 * trailing {@code g_Instruments.Update(i)} call's Atari-memory write (see
+	 * {@link Instruments#update} - its display-hint half is done, after every
+	 * paste variant, the way C++'s single trailing call runs after its
+	 * {@code switch}).
 	 */
 	public void instrPaste(int special, Undo undo, AtariTrackerDriver atariTrackerDriver) {
 		if (instrClipboard.activeEditSection == InstrumentSection.NONE) {
 			return; // it has never been filled with anything
 		}
+		instrPasteBody(special, undo, atariTrackerDriver);
+		instruments.update(getActiveInstr()); // write to Atari RAM
+	}
 
+	private void instrPasteBody(int special, Undo undo, AtariTrackerDriver atariTrackerDriver) {
 		int i = getActiveInstr();
 		undo.changeInstrument(i, 0, UndoType.UETYPE_INSTRDATA, 1);
 		Instrument ai = instruments.getInstrument(i);

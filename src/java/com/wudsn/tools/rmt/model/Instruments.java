@@ -44,10 +44,12 @@ import java.util.Arrays;
  * {@code ClearInstrument()} calls {@code g_AtariTrackerDriver->
  * InstrumentTurnOff()} (silences any channel currently playing this
  * instrument) and both it and {@code SetEnvelopeVolume()} call
- * {@code Update()} (writes the instrument into "the emulated Atari
- * memory"). Neither has a Java equivalent yet, since no live-playback
- * subsystem has been ported - not a behavior difference to characterize,
- * since the concept these calls act on doesn't exist here yet either.
+ * {@code Update()}. {@code InstrumentTurnOff()} has no Java equivalent
+ * yet, since no live-playback subsystem has been ported - not a behavior
+ * difference to characterize, since the concept it acts on doesn't exist
+ * here yet either. {@link #update} exists, but only for the half of
+ * {@code Update()} the UI can observe (the display-hint flags) - see its
+ * javadoc.
  */
 public final class Instruments {
 
@@ -151,6 +153,22 @@ public final class Instruments {
 		}
 
 		// something changed => Save instrument "to Atari" - NOTE: done from the outside
+	}
+
+	/**
+	 * Ported from {@code CInstruments::Update()} (IO_Instruments.cpp): "the
+	 * instrument was modified in some way" - C++ pushes the instrument's
+	 * Atari-format bytes into the emulated Atari's memory
+	 * ({@code InstrToAta} at {@code $4000 + instr * 256}) <em>and</em>
+	 * {@link #recalculateFlag recalculates its display-hint flags}. Only the
+	 * second half exists here: the memory write belongs to the real-time
+	 * playback path, which the UI port's audio batch (B8) adds; until then
+	 * the UI's info area only needs the flags, and the many callers
+	 * ({@code decodeModule}, the importers, undo, paste, ...) call this
+	 * exactly where C++ calls {@code Update()}.
+	 */
+	public void update(int instr) {
+		recalculateFlag(instr);
 	}
 
 	/**
@@ -318,7 +336,8 @@ public final class Instruments {
 		int ep = (right && stereo) ? EnvelopeParameter.VOLUMER : EnvelopeParameter.VOLUMEL;
 		ti.envelope[px][ep] = newVolume;
 
-		// No Atari-memory update here - see class javadoc.
+		// Recalc some info about the updated instrument
+		update(instr);
 	}
 
 	/**
@@ -593,8 +612,8 @@ public final class Instruments {
 	// the TXT and RMW iotypes only (RTI - single-instrument file import/export -
 	// is a separate, out-of-scope feature; see plans/JAVA_SONGEDITING_PLAN.md's
 	// "IO_Instruments.cpp/IO_Tracks.cpp" write-up). {@code Update(instr)}
-	// ("write to Atari RAM") is omitted throughout, matching this class's own
-	// established omission of the same call elsewhere.
+	// is called where C++ calls it - see update()'s javadoc for the half of
+	// it that exists here.
 	//
 	// RMW's per-instrument fields (parameters/envelope/noteTable) are C++
 	// `char` (signed byte) truncations of this port's `int` fields - writing
@@ -737,6 +756,7 @@ public final class Instruments {
 			char b = text.charAt(pos);
 			pos++;
 			if (b == '[') {
+				update(instr); // C++'s InstrEnd: label
 				return pos; // end of instrument (beginning of something else)
 			}
 			if (b == '\n') {
@@ -803,6 +823,7 @@ public final class Instruments {
 			}
 		}
 
+		update(instr); // C++'s InstrEnd: label
 		return text.length();
 	}
 
@@ -868,6 +889,8 @@ public final class Instruments {
 			ai.noteTable[j] = data[pos];
 			pos++;
 		}
+
+		update(instr);
 
 		ai.activeEditSection = instrumentSectionFromRmw(readIntLE(data, pos));
 		pos += 4;

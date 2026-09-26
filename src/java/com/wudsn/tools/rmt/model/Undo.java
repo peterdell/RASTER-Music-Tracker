@@ -16,11 +16,10 @@ package com.wudsn.tools.rmt.model;
  * <p><b>Omitted, no Java equivalent yet</b>: C++'s
  * {@code InsertEvent()}-side {@code g_changes}/{@code SetRMTTitle()}
  * window-title bookkeeping (no window exists), and
- * {@code PerformEvent()}'s {@code g_Instruments.Update(instrnum)} calls for
- * {@code UETYPE_INSTRDATA}/{@code UETYPE_INSTRSALL} ("must save to Atari" -
- * no Atari-memory-writing subsystem wired here yet, matching
- * {@code Instruments}'s own omission of the same call in
- * {@code clearInstrument}/{@code setEnvelopeVolume}).
+ * {@code PerformEvent()}'s {@code g_Instruments.Update(instrnum)} calls'
+ * Atari-memory write for {@code UETYPE_INSTRDATA}/{@code UETYPE_INSTRSALL}
+ * ("must save to Atari" - no Atari-memory-writing subsystem wired here
+ * yet); their display-hint half is done via {@link Instruments#update}.
  *
  * <p><b>A latent C++ bug found, not fixed (also flagged in Undo.cpp)</b>:
  * {@code ChangeSong}'s {@code UETYPE_SONGDATA} case never copies the
@@ -529,7 +528,7 @@ public final class Undo {
 			temp.copyFrom(in);
 			in.copyFrom(data);
 			data.copyFrom(temp);
-			// Omits g_Instruments.Update(instrnum) - see class javadoc.
+			instruments.update(instrnum); // must save to Atari (the display-hint half of it - see Instruments.update)
 			break;
 		}
 
@@ -539,7 +538,9 @@ public final class Undo {
 			instruments.getInstrumentsAll(temp);
 			instruments.setInstrumentsAll(data);
 			data.copyFrom(temp);
-			// Omits g_Instruments.Update(i) for every instrument - see class javadoc.
+			for (int instr = 0; instr < Instruments.INSTRSNUM; instr++) {
+				instruments.update(instr); // must save to Atari (the display-hint half of it - see Instruments.update)
+			}
 			break;
 		}
 

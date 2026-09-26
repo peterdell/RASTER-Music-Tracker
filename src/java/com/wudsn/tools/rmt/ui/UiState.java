@@ -62,6 +62,11 @@ public final class UiState {
 	/** {@code g_lastKeyPressed} - for debugging key input. */
 	public int lastKeyPressed;
 
+	/** {@code g_playtime} - frames played since Play started; drives the TIME/BPM counter. */
+	public int playTime;
+	/** {@code g_respectvolume} - the F11 "respect volume" toggle (transient: {@code CSong::ClearSong()} resets it, {@code rmt.ini} never stores it). */
+	public boolean respectVolume;
+
 	/** Mirrors C++'s {@code IsHoveredXY()} (GuiHelpers.cpp): is the mouse inside the given logical rectangle? */
 	public boolean isHovered(int x, int y, int width, int height) {
 		return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
