@@ -45,6 +45,13 @@ and its screenshots.
 
 ## Missing - proposed files, most valuable first
 
+**Every file listed below already exists as a 1x1 placeholder PNG** - just
+overwrite the placeholder with the real capture (same name). Tests skip
+any reference image smaller than a real screen capture, so an unreplaced
+placeholder is harmless. The two `.rmt` files (`song2-stereo/`,
+`song3-goto/`) have no placeholder - drop the real module next to its
+screenshots under whatever name it has.
+
 Only the first two groups are needed for the pixel tests; the rest are
 optional layout references.
 
