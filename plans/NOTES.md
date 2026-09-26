@@ -3659,4 +3659,25 @@ build clean and all 123 tests pass.
     existing extension-point pattern for this same upstream library. Full
     write-up in `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 2.
     Analysis only - no code changes yet, since this item hasn't started.
+    Committed as `2971772`.
+  - **2026-09-26**: Phase A item 5 (closing sanity sweep) - done, clean, no
+    code changes. Extracted every method defined across all 44 non-stub
+    `.cpp` files linked into `RmtTests.vcxproj` (387 names), checked each
+    for a direct-call match in `src/cpp/test/*.cpp`, then hand-traced every
+    one of the 133 "misses" instead of trusting the raw heuristic. All
+    resolved to either indirect coverage (a differently-named public
+    wrapper, e.g. `ClipboardCore.cpp`'s methods only reached via `Song`'s
+    `BLOCKSETBEGIN`-style wrappers, or `lzss_sap.cpp`'s whole internal
+    LZSS engine only reached via `LZSS_SAP()`; or an unqualified same-class
+    internal call invisible to the heuristic, e.g. `PokeyCore.cpp`/
+    `WaveFile.cpp`'s methods, confirmed genuinely exercised for real via
+    `ExportWAV`'s test, which writes and validates an actual temp `.wav`
+    file) or deliberate, already-documented exclusion (`PokeyController.cpp`,
+    the Pokey-explorer debug submenu's real MFC command handlers - per
+    `plans/UI_SURVEY_PLAN.md`, "developer/diagnostic UI, not core
+    end-user functionality"). The only genuine gap found was
+    `PokeyStream.cpp`'s `StartRecording`/`FinishedRecording` - already
+    tracked as Phase A item 2, not new. Full write-up in
+    `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s item 5. This closes out
+    Phase A's model-layer scope except for the ASAP-dependent items.
     Not yet committed.

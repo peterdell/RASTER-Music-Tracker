@@ -112,14 +112,53 @@ verify with `mvn -o clean test` and/or the full C++ suite, update
    (the lower-level format helpers these methods call) are already ported
    (`plans/JAVA_PORT_PLAN.md`'s twelfth/seventeenth batches), so this is
    mostly wiring once the `PokeyStream` blocker clears.
-5. **Closing sanity sweep.** Once items 1-4 land, re-run a
-   `BROADER_SURVEY_PLAN.md`-style pass, but checking "linked into
-   `RmtTests.vcxproj` yet still missing method-level tests" rather than
-   "not linked at all" - the `TracksEdit.cpp` gap above shows the original
-   survey's "is the file linked" question wasn't sufficient by itself to
-   catch everything. If this sweep comes back clean, the C++
-   characterization-testing phase and the model-layer Java port are both
-   genuinely complete.
+5. **Closing sanity sweep - DONE (2026-09-26), clean.** Ran the
+   `BROADER_SURVEY_PLAN.md`-style pass described above: extracted every
+   `ClassName::MethodName` defined across all 44 non-stub `.cpp` files
+   linked into `RmtTests.vcxproj` (387 unique names), then checked each for
+   a direct-call-by-name match anywhere in `src/cpp/test/*.cpp`. 133 came
+   back with no direct match - each was then traced by hand (its own
+   header for `private`/`static`, and a repo-wide grep for its real
+   callers) rather than taken at face value, since the raw heuristic has
+   two known blind spots that make most "misses" false positives:
+   - **Differently-named public wrappers**: e.g. `ClipboardCore.cpp`'s
+     `BlockSetBegin`/`BlockSetEnd`/etc. are only ever reached through
+     `Song`'s differently-cased `BLOCKSETBEGIN`/`BLOCKSETEND` wrappers
+     (already tested); `lzss_sap.cpp`'s `Compress`/`Optimize` and all of
+     its internal `add_bit`/`lzop_*`/`match` free functions are only
+     reached through `CCompressLzss::LZSS_SAP()` (the one call
+     `LzssTests.cpp` actually makes); `RmtCommandLineInfo.cpp`'s
+     `GetSwitchName`/`GetSwitchValue` are private, called only from the
+     tested `ParseParam()`.
+   - **Unqualified same-class internal calls**, invisible to a
+     cross-file/`this->`-style grep: e.g. `AtariIO.cpp`'s `LoadWord` is
+     called bare (`LoadWord(in, fromAddr)`, no `this->`) from the already-
+     tested `LoadBinaryBlock`; every method in `PokeyCore.cpp` (7/7
+     flagged) is called from `PokeyRendererCore.cpp`'s `RenderSoundV2()` -
+     confirmed genuinely exercised for real via `ExportWAV`'s test, which
+     writes and validates an actual temp `.wav` file (`WaveFile.cpp`'s
+     3/3 flagged methods are the same story - real file I/O, exercised for
+     real, just not by literal name in the test file itself).
+   - **`PokeyController.cpp` (55/55 flagged, the only whole-file 100% miss
+     besides `WaveFile.cpp`) is genuine, deliberate Category A**: its
+     constructor runs as part of every `CSong` construction (so it's
+     "linked and instantiated," unlike `TracksEdit.cpp` before this
+     session), but its 40+ `OnIncrease*`/`OnDecrease*`/`OnToggle*` methods
+     are the Pokey-explorer debug submenu's real MFC command handlers -
+     confirmed only ever called from `PokeyView.cpp`/menu routing, matching
+     `plans/UI_SURVEY_PLAN.md`'s own explicit note that this submenu is
+     "developer/diagnostic UI, not core end-user functionality." Not a
+     testing gap; a UI file that happens to get linked for its harmless
+     constructor.
+   - The **one exception, already tracked, not new**: `PokeyStream.cpp`'s
+     `StartRecording`/`FinishedRecording` are genuinely untested - this is
+     item 2 above, not a new finding.
+
+   **Conclusion: no new gaps.** `TracksEdit.cpp` was the one genuinely
+   overlooked file; every other flagged name resolves to indirect coverage
+   or deliberate, already-documented exclusion. The C++
+   characterization-testing phase's model-layer scope is complete except
+   for the ASAP-dependent items above.
 
 **Confirmed permanently out of scope on the C++ side, not revisited by
 this phase**: `BlockEffect` (no extractable logic), the `FileXxx` dialog
