@@ -1438,17 +1438,45 @@ wrapper, matching this project's established pattern.
   changes in this batch. Full write-up in `plans/JAVA_IMPORTER_PLAN.md`'s
   "Batch A - DONE" section.
 
+## Thirty-first ported batch (2026-09-26): `ModImporter` (MOD import, Batch B of `plans/JAVA_IMPORTER_PLAN.md`)
+
+Ports `CSong::ImportMODParseHeader`/`ImportMODApply` (and their
+`TMODInstrumentMark`/`AtariVolume` helpers) as a new free-standing
+`ModImporter` class, completing both batches of the importer plan.
+`ImportMOD()` itself stays unported (real dialog wrapper).
+
+- C++'s "continued stream access" wrinkle disappeared exactly as predicted
+  during scoping: `ParseHeaderResult` carries the whole file as one
+  `byte[]`, and `apply()` indexes into it directly at the sample offset -
+  no stream, no seek.
+- The `goto`-driven tone-portamento state machine (three converging
+  labels) was restructured into a small `tonePortamento()` helper called
+  from its two entry points, plus a shared `if (noteWritten)` block where
+  they converge - safe since C++ itself never re-enters this logic more
+  than once per line/channel. This exact state machine isn't dynamically
+  exercised by either language's test (both pass `portamento=false`);
+  verified correct by structural comparison instead, documented as a known
+  test gap in `ModImporter`'s class javadoc. The `Effect3:` shared-tail
+  label needed no helper - just a single `if` covering all four effect
+  codes. The two loop-breaking labels became one labelled `break songLoop;`.
+- Found a second discovered-but-ambiguous dead statement (`lopend` computed
+  then never assigned anywhere in the C++ source) - flagged to the user,
+  who chose to leave it characterized as-is on both sides rather than
+  guess at the missing assignment's target.
+- Verified with `mvn -o test`: 353 tests pass (+3), no regressions. No C++
+  changes in this batch. Full write-up in `plans/JAVA_IMPORTER_PLAN.md`'s
+  "Batch B - DONE" section, which now completes that plan.
+
 ## Next steps
 
-Two scoped-but-not-implemented paths remain, plus the un-scoped
-`CTrackClipboard` remainder:
-1. **MOD import** (Batch B of `plans/JAVA_IMPORTER_PLAN.md`) - already
-   fully C++-tested; needs real design attention for
-   `ImportMODApply`'s `goto`-driven tone-portamento state machine.
-2. The remaining 7 untested `CTrackClipboard` methods need new C++
+Two paths remain:
+1. The remaining 7 untested `CTrackClipboard` methods need new C++
    characterization tests before they can be ported.
-3. The deferred `IO_Instruments.cpp`/`IO_Tracks.cpp` TXT/RMW
+2. The deferred `IO_Instruments.cpp`/`IO_Tracks.cpp` TXT/RMW
    per-instrument/per-track serialization - also confirmed to have no
    existing test coverage.
 
-Deferred pending the user's decision on which to take on next.
+Both need new C++ test-writing before any Java porting - deferred pending
+the user's decision on which to take on next, or whether to start a fresh
+scoping pass elsewhere (e.g. the SAP-R/LZSS/WAV/XEX exporter family, still
+blocked on `PokeyStream`'s real recording path).

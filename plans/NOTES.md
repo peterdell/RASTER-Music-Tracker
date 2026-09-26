@@ -3477,4 +3477,25 @@ build clean and all 123 tests pass.
       Java throws where C++ silently corrupts memory.
     - Verified with `mvn -o test`: 350 tests pass (+3), no regressions. No
       C++ changes in this batch. Details in `plans/JAVA_PORT_PLAN.md`/
+      `plans/JAVA_IMPORTER_PLAN.md`. Committed as `e93e323`.
+  - **2026-09-26**: Thirty-first Java-port batch - `ModImporter` (Batch B
+    of `plans/JAVA_IMPORTER_PLAN.md`), porting `CSong::ImportMODParseHeader`/
+    `ImportMODApply` and their `TMODInstrumentMark`/`AtariVolume` helpers -
+    completes both batches of the importer plan.
+    - C++'s "continued stream access" wrinkle disappeared exactly as
+      predicted during scoping - `ParseHeaderResult` carries the whole
+      file, `apply()` indexes into it directly.
+    - The `goto`-driven tone-portamento state machine restructured into a
+      small `tonePortamento()` helper called from its two entry points
+      plus a shared `if (noteWritten)` convergence block; the `Effect3:`
+      shared-tail label needed only a single `if`, no helper; the two
+      loop-breaking labels became one labelled `break songLoop;`. Not
+      dynamically exercised by either language's test (both pass
+      `portamento=false`) - verified correct by structural comparison,
+      documented as a known test gap.
+    - Found a second ambiguous dead statement (`lopend` computed, never
+      assigned anywhere in C++) - flagged to the user, who chose to leave
+      it characterized as-is on both sides.
+    - Verified with `mvn -o test`: 353 tests pass (+3), no regressions. No
+      C++ changes in this batch. Details in `plans/JAVA_PORT_PLAN.md`/
       `plans/JAVA_IMPORTER_PLAN.md`. Not yet committed.

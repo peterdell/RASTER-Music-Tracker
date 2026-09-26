@@ -128,11 +128,11 @@ machine):
    restructure (`ImportTMCApply`'s per-track parsing loop is straight-line
    with early `break`s, which Java's `break`/`continue` already handle
    natively - no special design needed there). See its own write-up below.
-2. **Batch B: MOD** (`ModImporter.parseHeader`/`apply`, `TMODInstrumentMark`/
-   `AtariVolume` helpers). ~940 C++ lines; three-code header-validation
+2. **Batch B: MOD - DONE** (`ModImporter.parseHeader`/`apply`, `InstrumentMark`/
+   `atariVolume` helpers). ~940 C++ lines; three-code header-validation
    guard; the `goto`-driven portamento state machine and dual loop-break
-   labels described above need dedicated design attention, not a
-   mechanical transcription.
+   labels described above needed dedicated design attention, not a
+   mechanical transcription. See its own write-up below.
 
 Each batch mirrors its corresponding pair of existing C++ tests (3 tests
 per batch, 6 total) into a new `ImporterTest.java` (or added to
@@ -184,6 +184,53 @@ neither test needs anything from it beyond `Tracks`/`Instruments`/`Song`/
   faithful reproduction of the C++ UB.
 - Verified with `mvn -o test`: 350 tests pass (+3, all in the new
   `TmcImporterTest`), 0 regressions. No C++ changes in this batch.
+
+## Batch B - DONE: MOD import
+
+Implemented as planned: `ModImporter.parseHeader`/`apply`, with
+`InstrumentMark` (matching C++'s `TMODInstrumentMark`) as a private nested
+class and `atariVolume` as a private static helper. Went into its own new
+`ModImporterTest.java`, matching Batch A's file organization.
+
+- **C++'s "continued stream access" wrinkle really did disappear**, exactly
+  as predicted during scoping: `ParseHeaderResult` just carries the whole
+  file (`byte[] data`), and `apply()` indexes directly into it at the
+  computed sample offset (`smpfrom`) with a plain bounds check, replacing
+  C++'s `seekg`/read-and-check-`gcount()` dance entirely.
+- **The `goto`-driven tone-portamento state machine restructured as
+  planned**: the `TonePortamento:` label's body became the private
+  `tonePortamento()` helper (called once directly for an empty cell, once
+  from the tone-portamento-effect branch when the pitch class hasn't
+  changed yet - C++ itself never re-enters this logic more than once per
+  line/channel, so extracting it to a plain method call is safe); the
+  `NoteByPortamento:` label became a shared `if (noteWritten) {...}` block
+  after both call sites converge. The `Effect3:` label (shared
+  portamento-speed math for effects 1/2/3/5) needed no helper at all - just
+  one `if` covering all four effect codes, since it's a linear "compute
+  inputs once, then run the shared tail" shape, not a multi-entry state
+  machine. **This exact state machine isn't dynamically exercised by
+  either language's test** (both pass `portamento=false`) - verified
+  correct by careful structural comparison against the C++ source instead,
+  documented explicitly in `ModImporter`'s class javadoc as a known test
+  gap.
+- The `OutOfTracks:`/`OutOfSongLines:` labels (adjacent, both meaning "stop
+  this pass's song/pattern processing entirely") became a single labelled
+  `break songLoop;`, matching `playBeat`'s established loop-labelling
+  idiom from sub-batch 9.
+- **A discovered, likely-pre-existing dead statement in the C++ source**:
+  the sample-envelope loop branch computes `lopend` (where a sample's loop
+  should end, in envelope columns) but the C++ body's next statement is a
+  bare `rmti->parameters[PAR_ENV_LENGTH];` - reads and discards, never
+  assigning `lopend` anywhere. Looks like a forgotten assignment, but the
+  *intended* target wasn't obvious enough to guess safely (unlike the
+  earlier `sizeof`/off-by-one fixes this session, which had one unambiguous
+  correct value) - flagged to the user, who chose to leave it characterized
+  as-is on both sides rather than guess. Not reachable by the existing
+  test (its sample has no loop).
+- Verified with `mvn -o test`: 353 tests pass (+3, all in the new
+  `ModImporterTest`), 0 regressions. No C++ changes in this batch.
+
+This completes both batches of `plans/JAVA_IMPORTER_PLAN.md`.
 
 ## Explicitly out of scope for this plan
 
