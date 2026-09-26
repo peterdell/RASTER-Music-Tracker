@@ -3634,4 +3634,29 @@ build clean and all 123 tests pass.
       extended) mirror the 30 new C++ tests exactly. Verified with
       `mvn -o clean test`: 392 tests pass (+30), all green on the first
       run, no regressions. Details in `plans/JAVA_PORT_PLAN.md`/
-      `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`. Not yet committed.
+      `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`. Committed as `caf07aa`.
+  - **2026-09-26**: Vendored `asap.jar`/`asap-8.0.0-java-src.zip` into
+    `lib/java/` (copied from `C:\jac\system\WWW\Sites\asma.atari.org\java\lib`,
+    per the user's explicit direction: Phase A items 2-4's real CPU/POKEY
+    emulation "shall later be done using the 'asap' library"). Analyzed
+    the vendored Java source (package `net.sf.asap`) to find the
+    integration path: `Cpu6502.java`/`Pokey`/`PokeyChannel`/
+    `PokeyPair.java` are a complete, portable, pure-software 6502+POKEY
+    emulator with no native/DLL dependency (unlike C++'s own `C6502`,
+    which wraps `sa_c6502.dll` - the exact reason
+    `AtariTrackerDriver.play()`/`setPokey()`/`silence()` are permanently
+    no-ops in the Java port today). ASAP's public API alone
+    (`load`/`playSong`/`generate`) already suffices, unmodified, to
+    replace `ExportWAV` entirely (export module bytes via the
+    already-ported `RmtExporter`, let ASAP render real PCM). For the
+    SAP-R-style raw register dump the other four exports need, confirmed
+    the needed shadow values (`PokeyChannel.audf`/`.audc`, `Pokey.audctl`)
+    are package-private (not `private`) and reachable from `ASAP.java`
+    itself, which is the only class keeping its own `cpu`/`pokeys` fields
+    `private` - planned fix is one small added method on the vendored
+    `ASAP.java`, then vendoring a custom-compiled `asap.jar` from that
+    patched source, mirroring `src/cpp/asap/asap-patch.h`/`.cpp`'s
+    existing extension-point pattern for this same upstream library. Full
+    write-up in `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 2.
+    Analysis only - no code changes yet, since this item hasn't started.
+    Not yet committed.
