@@ -402,12 +402,20 @@ internal guard, never directly asserted on), `clear`, `blockSetBegin`,
 plus `Song`'s own wrappers (`songBlockSetBegin`/`songBlockSetEnd`/
 `blockDeselect`/`isBlockSelected`/`blockPaste`).
 
-**Still NOT ported - confirmed no test coverage anywhere (direct or
-indirect)**: `BlockAllOnOff`, `BlockExchangeClipboard`, `BlockClear`,
+**C++ characterization tests added (2026-09-26)** for the remaining 7
+methods - `BlockAllOnOff`, `BlockExchangeClipboard`, `BlockClear`,
 `BlockRestoreFromBackup`, `BlockNoteTransposition`, `BlockInstrumentChange`,
-`BlockVolumeChange`. Porting these needs new C++ characterization tests
-first - deferred pending a future decision. `BlockEffect` stays deferred
-indefinitely (confirmed on the C++ side to have no extractable logic).
+`BlockVolumeChange` - one test each in `SongEditingTests.cpp`, all passing
+on the first run (hand-traced against the source before running, same
+discipline as every hand-derived test in this project). Every track
+defaults to `len == g_Tracks.GetMaxTrackLength()` (64 in the fixture) via
+`CTracks::ClearTrack()`, so none needed to set it explicitly. Full C++
+Release|x64 rebuild + `RmtTests.exe`: 379 tests pass (+7), 0 regressions.
+`CTrackClipboard` is now **fully C++-tested except `BlockEffect`**
+(confirmed on the C++ side to have no extractable logic - a real MFC
+dialog, stays deferred indefinitely). **The Java port of these 7 methods
+has not been started yet** - that's the next step whenever this class is
+revisited.
 
 **The `g_Song`-reads-a-global wrinkle, resolved**: `blockSetBegin`/
 `blockPasteToTrack` take an explicit `Song` parameter (plus `Tracks`/

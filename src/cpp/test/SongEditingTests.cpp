@@ -430,6 +430,121 @@ TEST_F(SongEditingTest, BlockPastePastesTheCopiedTrackOntoTheActiveTrack) {
     EXPECT_EQ(g_Tracks.GetTrack(6)->note[0], 3);
 }
 
+// --- CTrackClipboard::BlockAllOnOff / BlockExchangeClipboard / BlockClear /
+// BlockRestoreFromBackup / BlockNoteTransposition / BlockInstrumentChange /
+// BlockVolumeChange ---
+// The remaining CTrackClipboard methods with no prior test coverage,
+// direct or indirect (see plans/JAVA_SONGEDITING_PLAN.md/
+// plans/JAVA_IMPORTER_PLAN.md's "CTrackClipboard" write-up) - confirmed
+// hazard-free by ClipboardCore.cpp's own header comment (only g_Tracks
+// plus the guard-only SetStatusBarText). Every track defaults to
+// len == g_Tracks.GetMaxTrackLength() (64 here) via CTracks::ClearTrack(),
+// so none of these tests need to set it explicitly.
+
+TEST_F(SongEditingTest, BlockAllOnOffTogglesWhetherChangesApplyToAllInstruments) {
+    (*g_Song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 3;
+
+    g_Song.BLOCKSETBEGIN();
+    g_Song.BLOCKSETEND();
+
+    g_TrackClipboard.BlockAllOnOff(); // m_all: 1 -> 0 (now only affects the matching instrument)
+
+    g_TrackClipboard.BlockNoteTransposition(7 /* a different instrument */, 1);
+
+    // Unchanged: the track's instrument (3) doesn't match the filter (7),
+    // and "all instruments" is now off.
+    EXPECT_EQ(g_Tracks.GetTrack(5)->note[0], 10);
+}
+
+TEST_F(SongEditingTest, BlockExchangeClipboardSwapsTrackAndClipboardData) {
+    (*g_Song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->note[0] = 3;
+    g_Song.BLOCKSETBEGIN();
+    g_Song.BLOCKSETEND();
+    g_TrackClipboard.BlockCopyToClipboard(); // clipboard now holds note=3 at position 0
+
+    g_Tracks.GetTrack(5)->note[0] = 9; // change the live track's note
+
+    int len = g_TrackClipboard.BlockExchangeClipboard();
+
+    EXPECT_EQ(len, 1); // one line in the block
+    EXPECT_EQ(g_Tracks.GetTrack(5)->note[0], 3); // the clipboard's old data is swapped back in
+}
+
+TEST_F(SongEditingTest, BlockClearErasesDataWithinTheSelectedRange) {
+    (*g_Song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->note[0] = 3;
+    g_Tracks.GetTrack(5)->note[1] = 7;
+    g_Tracks.GetTrack(5)->note[2] = 9;
+
+    g_Song.SetActiveLine(0);
+    g_Song.BLOCKSETBEGIN();
+    g_Song.SetActiveLine(1);
+    g_Song.BLOCKSETEND(); // selects lines 0-1
+
+    int cleared = g_TrackClipboard.BlockClear();
+
+    EXPECT_EQ(cleared, 2);
+    EXPECT_EQ(g_Tracks.GetTrack(5)->note[0], -1);
+    EXPECT_EQ(g_Tracks.GetTrack(5)->note[1], -1);
+    EXPECT_EQ(g_Tracks.GetTrack(5)->note[2], 9); // outside the block, untouched
+}
+
+TEST_F(SongEditingTest, BlockRestoreFromBackupRestoresTheTrackAsItWasWhenSelected) {
+    (*g_Song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->note[0] = 3;
+
+    g_Song.BLOCKSETBEGIN(); // backs up track 5's current state (note[0] = 3)
+    g_Song.BLOCKSETEND();
+
+    g_Tracks.GetTrack(5)->note[0] = 99; // modify the track after selection
+
+    BOOL ok = g_TrackClipboard.BlockRestoreFromBackup();
+
+    EXPECT_TRUE(ok);
+    EXPECT_EQ(g_Tracks.GetTrack(5)->note[0], 3); // restored to the backed-up state
+}
+
+TEST_F(SongEditingTest, BlockNoteTranspositionShiftsNotesMatchingTheInstrumentFilter) {
+    (*g_Song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 3;
+
+    g_Song.BLOCKSETBEGIN();
+    g_Song.BLOCKSETEND();
+
+    g_TrackClipboard.BlockNoteTransposition(3 /* instrument filter, matches */, 2 /* +2 semitones */);
+
+    EXPECT_EQ(g_Tracks.GetTrack(5)->note[0], 12);
+}
+
+TEST_F(SongEditingTest, BlockInstrumentChangeShiftsInstrumentsMatchingTheFilter) {
+    (*g_Song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->instr[0] = 3;
+
+    g_Song.BLOCKSETBEGIN();
+    g_Song.BLOCKSETEND();
+
+    g_TrackClipboard.BlockInstrumentChange(3 /* instrument filter, matches */, 1);
+
+    EXPECT_EQ(g_Tracks.GetTrack(5)->instr[0], 4);
+}
+
+TEST_F(SongEditingTest, BlockVolumeChangeShiftsVolumeForTheLastSeenInstrument) {
+    (*g_Song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->instr[0] = 3;
+    g_Tracks.GetTrack(5)->volume[0] = 5;
+
+    g_Song.BLOCKSETBEGIN();
+    g_Song.BLOCKSETEND();
+
+    g_TrackClipboard.BlockVolumeChange(3 /* instrument filter, matches */, 4);
+
+    EXPECT_EQ(g_Tracks.GetTrack(5)->volume[0], 9);
+}
+
 // --- InstrCopy / InstrCut / InstrDelete ---
 // CInstruments::ClearInstrument() is a no-op stub in this test binary (see
 // InstrumentsStub.cpp), so these only characterize what's still observable:

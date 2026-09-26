@@ -3498,4 +3498,17 @@ build clean and all 123 tests pass.
       it characterized as-is on both sides.
     - Verified with `mvn -o test`: 353 tests pass (+3), no regressions. No
       C++ changes in this batch. Details in `plans/JAVA_PORT_PLAN.md`/
-      `plans/JAVA_IMPORTER_PLAN.md`. Not yet committed.
+      `plans/JAVA_IMPORTER_PLAN.md`. Committed as `53900a2`.
+  - **2026-09-26**: C++-only characterization batch (no Java changes),
+    per the user's explicit request to characterize both remaining
+    un-ported areas before continuing the Java port. Added one hand-traced
+    test each for `CTrackClipboard`'s remaining 7 methods
+    (`BlockAllOnOff`/`BlockExchangeClipboard`/`BlockClear`/
+    `BlockRestoreFromBackup`/`BlockNoteTransposition`/`BlockInstrumentChange`/
+    `BlockVolumeChange`) to `SongEditingTests.cpp` - all 7 passed on the
+    first run. Full C++ Release|x64 rebuild + `RmtTests.exe`: 379 tests
+    pass (+7), 0 regressions. `CTrackClipboard` is now fully C++-tested
+    except `BlockEffect` (real MFC dialog, stays deferred). The Java port
+    of these 7 methods is still not started. Details in
+    `plans/JAVA_PORT_PLAN.md`/`plans/JAVA_SONGEDITING_PLAN.md`. Not yet
+    committed.

@@ -1467,16 +1467,25 @@ Ports `CSong::ImportMODParseHeader`/`ImportMODApply` (and their
   changes in this batch. Full write-up in `plans/JAVA_IMPORTER_PLAN.md`'s
   "Batch B - DONE" section, which now completes that plan.
 
+## C++ characterization batch (2026-09-26): `CTrackClipboard`'s remaining 7 methods
+
+Not a Java-port batch - pure C++ test-writing, per the user's explicit
+request to characterize both of the remaining un-ported areas before
+continuing the Java port. Added one hand-traced test each for
+`BlockAllOnOff`/`BlockExchangeClipboard`/`BlockClear`/
+`BlockRestoreFromBackup`/`BlockNoteTransposition`/`BlockInstrumentChange`/
+`BlockVolumeChange` to `SongEditingTests.cpp` - all 7 passed on the first
+run. Full write-up in `plans/JAVA_SONGEDITING_PLAN.md`'s `CTrackClipboard`
+section. Full C++ Release|x64 rebuild + `RmtTests.exe`: 379 tests pass
+(+7), 0 regressions. `CTrackClipboard` is now fully C++-tested except
+`BlockEffect` (a real MFC dialog, stays deferred). **The Java port of
+these 7 methods is still not started** - only the C++ characterization
+step is done.
+
 ## Next steps
 
-Two paths remain:
-1. The remaining 7 untested `CTrackClipboard` methods need new C++
-   characterization tests before they can be ported.
-2. The deferred `IO_Instruments.cpp`/`IO_Tracks.cpp` TXT/RMW
-   per-instrument/per-track serialization - also confirmed to have no
-   existing test coverage.
-
-Both need new C++ test-writing before any Java porting - deferred pending
-the user's decision on which to take on next, or whether to start a fresh
-scoping pass elsewhere (e.g. the SAP-R/LZSS/WAV/XEX exporter family, still
-blocked on `PokeyStream`'s real recording path).
+After this session's C++ characterization work:
+1. **Port `CTrackClipboard`'s newly-tested 7 methods to Java** - ready to
+   implement, now fully C++-tested.
+2. Characterize, then port, `IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW
+   per-instrument/per-track serialization - next up (see below).
