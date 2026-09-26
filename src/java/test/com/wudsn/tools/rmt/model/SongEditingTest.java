@@ -1125,6 +1125,54 @@ class SongEditingTest {
 		assertEquals(5, loaded.getSong()[0][0]);
 	}
 
+	// Mirrors src/cpp/test/SongEditingTests.cpp's
+	// SaveTxtAndLoadTxtRoundTripNonEmptyInstrumentAndTrack - exercises
+	// Instruments/Tracks' saveAllTxt/loadInstrumentTxt/loadTrackTxt for
+	// real (every other TXT round-trip test above has no non-empty
+	// instruments/tracks, so saveAllTxt's non-empty-only rule never
+	// actually emits an "[INSTRUMENT]"/"[TRACK]" segment). instruments/
+	// tracks are the same objects both `song` and `loaded` share
+	// (loadInstrumentTxt/loadTrackTxt write through them directly, not
+	// through any per-Song state) - matching loadRMTDecodesTheModuleAndNamesBlocks's
+	// own established pattern.
+	@Test
+	void saveTxtAndLoadTxtRoundTripNonEmptyInstrumentAndTrack() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 2;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+
+		Instrument instr = instruments.getInstrument(2);
+		setName(instr.name, "Lead");
+		instr.parameters[Instrument.PAR_ENV_LENGTH] = 2;
+		instr.envelope[0][EnvelopeParameter.VOLUMEL] = 10;
+
+		Track tr = tracks.getTrack(5);
+		tr.len = 2;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+		tr.volume[0] = 8;
+
+		String text = song.saveTxt(4);
+		assertTrue(text.contains("[INSTRUMENT]"));
+		assertTrue(text.contains("[TRACK]"));
+
+		Song loaded = new Song(instruments, tracks);
+		Undo loadedUndo = new Undo(tracks, instruments, loaded, new TrackClipboard());
+		assertTrue(loaded.loadTxt(text, loadedUndo).tracks4_8() > 0);
+
+		assertEquals("Lead", new String(instruments.getInstrument(2).name).stripTrailing());
+		assertEquals(10, instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL]);
+
+		assertEquals(2, tracks.getTrack(5).len);
+		assertEquals(10, tracks.getTrack(5).note[0]);
+		assertEquals(2, tracks.getTrack(5).instr[0]);
+		assertEquals(8, tracks.getTrack(5).volume[0]);
+	}
+
 	// --- saveRMW ---
 
 	@Test
@@ -1203,6 +1251,47 @@ class SongEditingTest {
 		assertEquals(6, loadedInfo.mainSpeed);
 		assertEquals(2, loadedInfo.instrumentSpeed);
 		assertEquals("TestSong", loaded.getName());
+	}
+
+	// Mirrors src/cpp/test/SongEditingTests.cpp's
+	// SaveRMWAndLoadRMWRoundTripNonEmptyInstrumentAndTrack. Unlike TXT's
+	// saveAllTxt, RMW's always writes every instrument/track
+	// unconditionally, so this is really about proving non-trivial data
+	// (not just all-default/empty content) survives the round trip.
+	@Test
+	void saveRMWAndLoadRMWRoundTripNonEmptyInstrumentAndTrack() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 2;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+
+		Instrument instr = instruments.getInstrument(2);
+		setName(instr.name, "Lead");
+		instr.parameters[Instrument.PAR_ENV_LENGTH] = 2;
+		instr.envelope[0][EnvelopeParameter.VOLUMEL] = 10;
+
+		Track tr = tracks.getTrack(5);
+		tr.len = 2;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+		tr.volume[0] = 8;
+
+		byte[] out = song.saveRMW(4);
+
+		Song loaded = new Song(instruments, tracks);
+		Undo loadedUndo = new Undo(tracks, instruments, loaded, new TrackClipboard());
+		assertTrue(loaded.loadRMW(out, loadedUndo).success());
+
+		assertEquals("Lead", nameToString(instruments.getInstrument(2).name));
+		assertEquals(10, instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL]);
+
+		assertEquals(2, tracks.getTrack(5).len);
+		assertEquals(10, tracks.getTrack(5).note[0]);
+		assertEquals(2, tracks.getTrack(5).instr[0]);
+		assertEquals(8, tracks.getTrack(5).volume[0]);
 	}
 
 	// --- loadRMT ---

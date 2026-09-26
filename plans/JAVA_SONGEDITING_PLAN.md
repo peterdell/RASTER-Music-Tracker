@@ -244,20 +244,17 @@ accessors and `clearSong(int, Undo)`, returning the new `tracks4_8` value
 `clearSongSetsTheTrackCount`) mirror `SongEditingTests.cpp`'s `ClearSong`
 section exactly.
 
-**Deliberately deferred (Java port), C++-characterized (2026-09-26):
-`IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track
-serialization.** `SaveTxt`/`LoadTxt` call `g_Instruments.SaveAll`/`LoadAll`/
-`g_Tracks.SaveAll`/`LoadAll` for the `[INSTRUMENT]`/`[TRACK]` sections;
-`SaveRMW`/`LoadRMW` call the RMW-format equivalents (which, unlike TXT,
-serialize *every* instrument/track unconditionally, not just non-empty
-ones - an even larger surface). This was previously untested by any C++ or
-Java test (every existing test's song had no non-empty instruments/tracks)
-- now C++-tested (see this section's own write-up further down, including
-a real bug found and fixed along the way), but the Java port itself is
-still deferred - these calls remain omitted entirely from the Java port
-for now, and `LoadTxt`'s `[INSTRUMENT]`/`[TRACK]` segment branches still
-skip to the next segment instead of decoding, matching the encoding side's
-omission.
+**`IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track
+serialization - now ported (2026-09-26).** `SaveTxt`/`LoadTxt` call
+`g_Instruments.SaveAll`/`LoadAll`/`g_Tracks.SaveAll`/`LoadAll` for the
+`[INSTRUMENT]`/`[TRACK]` sections; `SaveRMW`/`LoadRMW` call the RMW-format
+equivalents (which, unlike TXT, serialize *every* instrument/track
+unconditionally, not just non-empty ones - an even larger surface). This
+was previously untested by any C++ or Java test (every existing test's
+song had no non-empty instruments/tracks), then C++-characterized (see
+this section's own write-up further down, including a real bug found and
+fixed along the way), and is now fully ported to Java - see its own
+write-up further down for the Java-side design details.
 
 **Design choices carried through all five methods**:
 - **Streams become `String`/`byte[]`**: `SaveTxt`/`LoadTxt` take/return a
@@ -455,7 +452,7 @@ existing indirect tests exactly (2 tests). Verified with `mvn -o test`: 347
 tests pass (+2), no regressions (including all of sub-batch 9's existing
 tests, now threading a real `TrackClipboard` through unchanged call sites).
 
-## `IO_Instruments.cpp`/`IO_Tracks.cpp` TXT/RMW serialization - C++ characterized (2026-09-26), Java port not started
+## `IO_Instruments.cpp`/`IO_Tracks.cpp` TXT/RMW serialization - DONE
 
 C++ characterization tests added: `SaveTxtAndLoadTxtRoundTripNonEmptyInstrumentAndTrack`/
 `SaveRMWAndLoadRMWRoundTripNonEmptyInstrumentAndTrack` in `SongEditingTests.cpp`,
@@ -484,14 +481,51 @@ already guards against bare `'\n'`/`'\r'` bytes by calling `NextSegment()`
 and returning, a different (and already-correct) code shape.
 
 Verified with a full C++ Release|x64 rebuild + `RmtTests.exe`: 381 tests
-pass (+2 new tests, 379 -> 381), 0 regressions. **The Java port of
-`SaveAll`/`LoadAll`/`SaveInstrument`/`LoadInstrument`/`SaveTrack`/`LoadTrack`
-has not been started** - this is C++ characterization only, per the user's
-explicit request to characterize this area before continuing the Java
-port. The RMW-format serialization (which writes every instrument/track
-unconditionally, a larger surface than TXT's non-empty-only one) still has
-no dedicated per-field test beyond this one round trip - worth expanding
-if the Java port surfaces edge cases.
+pass (+2 new tests, 379 -> 381), 0 regressions.
+
+**Java port** (`Instruments.java`/`Tracks.java`/`Song.java`): added
+`saveAllTxt`/`loadInstrumentTxt`/`saveAllRmw`/`loadAllRmw` to `Instruments`
+and the equivalent `saveAllTxt`/`loadTrackTxt`/`saveAllRmw`/`loadAllRmw` to
+`Tracks`, then wired all four into `Song`'s `saveTxt`/`loadTxt`/`saveRMW`/
+`loadRMW` (previously these skipped the `[INSTRUMENT]`/`[TRACK]` segments
+entirely). Carried the same C++ fix forward (`loadInstrumentTxt`'s
+byte-scanning loop skips a lone `'\n'` "gap" byte instead of swallowing the
+next segment's `'['`); `loadTrackTxt` needed no such fix, matching
+`CTracks::LoadTrack()`'s already-correct shape.
+
+Notable design points:
+- **`shpar`/`shenv` data tables ported as-is**: `Instruments.java` gained a
+  private `ShPar` record + `SHPAR[]` array (20 entries) and
+  `SHENV_FIELD_NAME[]`/`SHENV_PAND[]` arrays (8 entries each), mirroring
+  `InstrumentsAtaFormat.cpp`'s own tables, holding only the TXT-relevant
+  fields (not GUI cursor-navigation state).
+- **New `instrumentSectionToRmw`/`instrumentSectionFromRmw` helpers**:
+  `InstrumentSection`'s Java enum ordinals (0-4) don't preserve C++'s
+  explicit backing values (`NONE=-1, NAME=0, PARAMETERS=1, ENVELOPE=2,
+  NOTETABLE=3`, per the enum's own javadoc), so RMW's byte-exact encoding
+  needed explicit mapping helpers rather than relying on `ordinal()`.
+- **Envelope byte layout in RMW**: confirmed via C++ memory-layout analysis
+  that `char bfenv[ENVELOPE_MAX_COLUMNS][ENVROWS]` requires the Java write/
+  read order to be outer-loop-over-column, inner-loop-over-row, regardless
+  of the C++ fill loop's own (irrelevant) iteration order.
+- **Name-field byte semantics**: `Instrument.name`/`Track` name-adjacent
+  fields use unsigned `& 0xFF` masking on RMW read (matching
+  `TmcImporter`/`ModImporter`'s convention for name bytes), while all other
+  `parameters[]`/`envelope[][]`/`noteTable[]` fields rely on Java's
+  automatic `byte`->`int` sign extension, matching C++'s `char`->`int`
+  widening exactly.
+- **`Song.charH4`/`charL4`/`hexstr`/`trimstr`/`readLine`/`nextSegment`/
+  `Line` widened from `private` to package-private**, so `Instruments`/
+  `Tracks` (same package) could reuse them for their own TXT (de)serialization -
+  deliberately different from the trivial byte-level `writeIntLE`/
+  `readIntLE`/`unsignedByte` helpers, which stay duplicated per class,
+  matching this port's established "reuse substantial logic, duplicate
+  trivial helpers" split.
+
+Tests (`SongEditingTest`, extended): `saveTxtAndLoadTxtRoundTripNonEmptyInstrumentAndTrack`/
+`saveRMWAndLoadRMWRoundTripNonEmptyInstrumentAndTrack`, mirroring the C++
+tests above exactly. Verified with `mvn -o clean test`: 362 tests pass
+(+2), 0 regressions.
 
 ## Needs a deferred `PokeyStream`/`AtariTrackerDriver` surface
 
@@ -608,12 +642,9 @@ tests pass (+1, the new regression test), 0 regressions on either side.
 9. TMC/MOD importers - separate, dedicated plan, not part of this one -
    now scoped in `plans/JAVA_IMPORTER_PLAN.md` (not yet implemented).
 10. `IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track
-    serialization - deferred out of sub-batch 8 (see its entry above),
-    needed for a fully faithful `SaveTxt`/`LoadTxt`/`SaveRMW`/`LoadRMW`
-    round trip of real song data, not just the module-level fields. C++
-    characterization tests added (2026-09-26, see its own section above,
-    including a real bug found and fixed) - the Java port itself is ready
-    to start whenever this is picked up next.
+    serialization - DONE (2026-09-26, see its own section above), including
+    both the C++ characterization (a real bug found and fixed) and the Java
+    port itself.
 
 Each numbered sub-batch above is intended to be confirmed with the user
 individually before implementation, per this project's established cadence

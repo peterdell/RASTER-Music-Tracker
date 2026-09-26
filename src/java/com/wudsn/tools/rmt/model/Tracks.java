@@ -686,4 +686,214 @@ public final class Tracks {
 			maxTrackLength = length;
 		}
 	}
+
+	// --- SaveAll/LoadAll/SaveTrack/LoadTrack (IO_Tracks.cpp) ---
+	//
+	// Ported from CTracks::SaveAll/LoadAll/SaveTrack/LoadTrack - the TXT and
+	// RMW iotypes (matching Instruments' own equivalent addition). RMW's
+	// per-line note/instr/volume/speed fields are C++ `char` (signed byte)
+	// truncations of this port's `int` fields - see Instruments' own
+	// write-up for why writing/reading needs no explicit mask/cast beyond
+	// what Java already does automatically. `len`/`go` are full 4-byte ints
+	// (`writeIntLE`/`readIntLE`), unlike the per-line data.
+
+	/** Encodes one track's TXT representation - the {@link #saveAllTxt} counterpart's per-track step. */
+	private String saveTrackTxt(int trackNumber) {
+		Track at = getTrack(trackNumber);
+		StringBuilder s = new StringBuilder();
+
+		s.append("[TRACK]\n");
+		s.append(isValidTrack(trackNumber) ? String.format("%02X  ", trackNumber) : "--  ");
+		s.append(isValidLength(at.len) ? String.format("%02X", at.len) : "--");
+		s.append(isValidGo(at.go) ? String.format("%02X", at.go) : "--");
+		s.append("\n");
+
+		for (int i = 0; i < at.len; i++) {
+			s.append(isValidNote(at.note[i]) ? Notes.getNote(at.note[i]) : "---");
+			s.append(isValidInstrument(at.instr[i]) ? String.format(" %02X", at.instr[i]) : " --");
+			s.append(isValidVolume(at.volume[i]) ? String.format(" %01X", at.volume[i]) : " -");
+			s.append(isValidSpeed(at.speed[i]) ? String.format("%02X", at.speed[i]) : "");
+			s.append("\n");
+		}
+		s.append("\n"); // std::endl, on top of the content's own trailing newline
+
+		return s.toString();
+	}
+
+	/** Encodes every non-empty track as TXT, concatenated (the {@code [TRACK]} sections {@link Song#saveTxt} appends). */
+	public String saveAllTxt() {
+		StringBuilder s = new StringBuilder();
+		for (int i = 0; i < TRACKSNUM; i++) {
+			if (calculateNotEmpty(i)) {
+				s.append(saveTrackTxt(i));
+			}
+		}
+		return s.toString();
+	}
+
+	/**
+	 * Decodes one {@code [TRACK]} segment's TXT content (the track number is
+	 * parsed from the segment's own first line, matching C++'s
+	 * {@code LoadTrack(-1, ...)} convention - the only way {@link Song#loadTxt}
+	 * calls this), returning the position right after the next {@code '['}
+	 * (matching {@link Song#nextSegment}'s convention).
+	 *
+	 * <p>Unlike {@link Instruments#loadInstrumentTxt}, this one never had
+	 * the "gap line before a segment bracket" bug - it already treats a
+	 * bare {@code '\n'}/{@code '\r'} as "end of this track, look for the
+	 * next segment" (a different, already-correct shape), matching the
+	 * C++ source exactly.
+	 */
+	public int loadTrackTxt(String text, int pos) {
+		Song.Line firstLine = Song.readLine(text, pos);
+		pos = firstLine.nextPos();
+		String line = firstLine.content();
+
+		int trackNumber = Song.hexstr(line, 0, 2); // -1 sentinel always requested by the one caller (Song.loadTxt) - take it from the text
+		if (!isValidTrack(trackNumber)) {
+			return Song.nextSegment(text, pos);
+		}
+
+		Track at = getTrack(trackNumber);
+		clearTrack(trackNumber);
+
+		int a = Song.hexstr(line, 4, 2);
+		at.len = (!isValidLength(a) || a > maxTrackLength) ? maxTrackLength : a;
+		a = Song.hexstr(line, 6, 2);
+		at.go = (a > at.len) ? -1 : a;
+
+		int idx = 0;
+		while (pos < text.length()) {
+			char b = text.charAt(pos);
+			pos++;
+			if (b == '[') {
+				return pos; // end of track (beginning of something else)
+			}
+			if (b == '\n' || b == '\r' || idx >= Track.TRACKLEN) {
+				return Song.nextSegment(text, pos);
+			}
+
+			Song.Line rest = Song.readLine(text, pos);
+			pos = rest.nextPos();
+			String content = b + rest.content();
+
+			int noteBase = (content.length() > 1 && content.charAt(1) == '#') ? 1 : 0;
+			switch (b) {
+			case 'C' -> noteBase += 0;
+			case 'D' -> noteBase += 2;
+			case 'E' -> noteBase += 4;
+			case 'F' -> noteBase += 5;
+			case 'G' -> noteBase += 7;
+			case 'A' -> noteBase += 9;
+			case 'B' -> noteBase += 11;
+			default -> noteBase = -1;
+			}
+			char octaveChar = content.length() > 2 ? content.charAt(2) : '\0';
+			int note = (noteBase >= 0 && octaveChar >= '1' && octaveChar <= '6') ? noteBase + (octaveChar - '1') * 12 : noteBase;
+
+			at.note[idx] = isValidNote(note) ? note : -1;
+			int instrVal = Song.hexstr(content, 4, 2);
+			at.instr[idx] = isValidInstrument(instrVal) ? instrVal : -1;
+			int volVal = Song.hexstr(content, 7, 1);
+			at.volume[idx] = isValidVolume(volVal) ? volVal : -1;
+			int speedVal = Song.hexstr(content, 8, 2);
+			at.speed[idx] = isValidSpeed(speedVal) ? speedVal : -1;
+
+			if (at.note[idx] >= 0 && at.instr[idx] < 0) {
+				at.instr[idx] = 0; // if the note is without an instrument, instrument 0 applies
+			}
+			if (at.instr[idx] >= 0 && at.note[idx] < 0) {
+				at.instr[idx] = -1; // if the instrument is without a note, it's cancelled
+			}
+			if (at.note[idx] >= 0 && at.volume[idx] < 0) {
+				at.volume[idx] = MAXVOLUME; // a non-volume note adds the maximum volume
+			}
+
+			idx++;
+		}
+
+		return text.length();
+	}
+
+	private byte[] saveTrackRmw(int trackNumber) {
+		Track at = getTrack(trackNumber);
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+
+		writeIntLE(out, at.len);
+		writeIntLE(out, at.go);
+		for (int i = 0; i < maxTrackLength; i++) {
+			out.write(at.note[i]);
+		}
+		for (int i = 0; i < maxTrackLength; i++) {
+			out.write(at.instr[i]);
+		}
+		for (int i = 0; i < maxTrackLength; i++) {
+			out.write(at.volume[i]);
+		}
+		for (int i = 0; i < maxTrackLength; i++) {
+			out.write(at.speed[i]);
+		}
+
+		return out.toByteArray();
+	}
+
+	/** Encodes {@link #maxTrackLength} followed by every track (unconditionally, unlike {@link #saveAllTxt}) in RMW's binary format. */
+	public byte[] saveAllRmw() {
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+		writeIntLE(out, maxTrackLength);
+		for (int i = 0; i < TRACKSNUM; i++) {
+			out.writeBytes(saveTrackRmw(i));
+		}
+		return out.toByteArray();
+	}
+
+	private int loadTrackRmw(int trackNumber, byte[] data, int pos) {
+		Track at = getTrack(trackNumber);
+		clearTrack(trackNumber);
+
+		at.len = readIntLE(data, pos);
+		pos += 4;
+		at.go = readIntLE(data, pos);
+		pos += 4;
+		for (int i = 0; i < maxTrackLength; i++) {
+			at.note[i] = data[pos];
+			pos++;
+		}
+		for (int i = 0; i < maxTrackLength; i++) {
+			at.instr[i] = data[pos];
+			pos++;
+		}
+		for (int i = 0; i < maxTrackLength; i++) {
+			at.volume[i] = data[pos];
+			pos++;
+		}
+		for (int i = 0; i < maxTrackLength; i++) {
+			at.speed[i] = data[pos];
+			pos++;
+		}
+
+		return pos;
+	}
+
+	/** Decodes {@link #maxTrackLength} followed by every track's RMW binary representation ({@link #saveAllRmw}'s counterpart), returning the position right after the last one. */
+	public int loadAllRmw(byte[] data, int pos) {
+		initTracks();
+		maxTrackLength = readIntLE(data, pos);
+		pos += 4;
+		for (int i = 0; i < TRACKSNUM; i++) {
+			pos = loadTrackRmw(i, data, pos);
+		}
+		return pos;
+	}
+
+	private static void writeIntLE(java.io.ByteArrayOutputStream out, int value) {
+		out.write(value & 0xFF);
+		out.write((value >> 8) & 0xFF);
+		out.write((value >> 16) & 0xFF);
+		out.write((value >> 24) & 0xFF);
+	}
+
+	private static int readIntLE(byte[] data, int pos) {
+		return (data[pos] & 0xFF) | ((data[pos + 1] & 0xFF) << 8) | ((data[pos + 2] & 0xFF) << 16) | ((data[pos + 3] & 0xFF) << 24);
+	}
 }

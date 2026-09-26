@@ -586,4 +586,325 @@ public final class Instruments {
 			instrument[i].copyFrom(fromInstruments.instruments[i]);
 		}
 	}
+
+	// --- SaveAll/LoadAll/SaveInstrument/LoadInstrument (IO_Instruments.cpp) ---
+	//
+	// Ported from CInstruments::SaveAll/LoadAll/SaveInstrument/LoadInstrument -
+	// the TXT and RMW iotypes only (RTI - single-instrument file import/export -
+	// is a separate, out-of-scope feature; see plans/JAVA_SONGEDITING_PLAN.md's
+	// "IO_Instruments.cpp/IO_Tracks.cpp" write-up). {@code Update(instr)}
+	// ("write to Atari RAM") is omitted throughout, matching this class's own
+	// established omission of the same call elsewhere.
+	//
+	// RMW's per-instrument fields (parameters/envelope/noteTable) are C++
+	// `char` (signed byte) truncations of this port's `int` fields - writing
+	// just takes the low 8 bits (ByteArrayOutputStream.write(int) already
+	// does this), and reading sign-extends a raw Java `byte` back to `int`
+	// (assigning a byte to an int variable does this automatically) -
+	// together reproducing C++'s int<->char narrowing/widening exactly,
+	// including for values >= 128 that come back negative after a round
+	// trip (a real, pre-existing property of this file format, not
+	// something to "fix"). The name field is the one exception - it's
+	// stored as an *unsigned* 0-255 value per this port's own char[]
+	// convention (matching TmcImporter/ModImporter's established treatment
+	// of raw name bytes), so it's explicitly masked with `& 0xFF` on read.
+
+	/** Mirrors C++'s explicit {@code enum class InstrumentSection : int} backing values (NONE=-1, NAME=0, PARAMETERS=1, ENVELOPE=2, NOTETABLE=3) for RMW's byte-exact serialization - {@link InstrumentSection} itself doesn't preserve them (see its own javadoc), so this mapping exists solely for this file format. */
+	private static int instrumentSectionToRmw(InstrumentSection s) {
+		return switch (s) {
+		case NONE -> -1;
+		case NAME -> 0;
+		case PARAMETERS -> 1;
+		case ENVELOPE -> 2;
+		case NOTETABLE -> 3;
+		};
+	}
+
+	private static InstrumentSection instrumentSectionFromRmw(int v) {
+		return switch (v) {
+		case 0 -> InstrumentSection.NAME;
+		case 1 -> InstrumentSection.PARAMETERS;
+		case 2 -> InstrumentSection.ENVELOPE;
+		case 3 -> InstrumentSection.NOTETABLE;
+		default -> InstrumentSection.NONE;
+		};
+	}
+
+	/** Mirrors C++'s {@code Tshpar} (InstrumentTypes.h) - just the fields {@link #loadInstrumentTxt}/{@code saveInstrumentTxt} actually need (not the GUI display position/cursor-navigation fields, irrelevant to serialization). */
+	private record ShPar(int paramIndex, String fieldName, int parameterAND, int maxParameterValue, int displayOffset) {
+	}
+
+	/** Mirrors C++'s {@code shpar[]} (InstrumentsAtaFormat.cpp) - order and values copied directly. */
+	private static final ShPar[] SHPAR = { //
+			new ShPar(Instrument.PAR_TBL_LENGTH, "LENGTH:", 0x1f, 0x1f, 1), //
+			new ShPar(Instrument.PAR_TBL_GOTO, "GOTO:", 0x1f, 0x1f, 0), //
+			new ShPar(Instrument.PAR_TBL_SPEED, "SPEED:", 0x3f, 0x3f, 1), //
+			new ShPar(Instrument.PAR_TBL_TYPE, "TYPE:", 0x01, 0x01, 0), //
+			new ShPar(Instrument.PAR_TBL_MODE, "MODE:", 0x01, 0x01, 0), //
+			new ShPar(Instrument.PAR_ENV_LENGTH, "ENV_LENGTH:", 0x3f, 0x2f, 1), //
+			new ShPar(Instrument.PAR_ENV_GOTO, "ENV_GOTO:", 0x3f, 0x2f, 0), //
+			new ShPar(Instrument.PAR_VOL_FADEOUT, "FADEOUT:", 0xff, 0xff, 0), //
+			new ShPar(Instrument.PAR_VOL_MIN, "VOL_MIN:", 0x0f, 0x0f, 0), //
+			new ShPar(Instrument.PAR_DELAY, "EFF_DELAY:", 0xff, 0xff, 0), //
+			new ShPar(Instrument.PAR_VIBRATO, "EFF_VIBRATO:", 0x03, 0x03, 0), //
+			new ShPar(Instrument.PAR_FREQ_SHIFT, "EFF_FREQSHIFT:", 0xff, 0xff, 0), //
+			new ShPar(Instrument.PAR_AUDCTL_15KHZ, "AUD_15KHZ:", 0x01, 0x01, 0), //
+			new ShPar(Instrument.PAR_AUDCTL_HPF_CH2, "AUD_HPF_CH2:", 0x01, 0x01, 0), //
+			new ShPar(Instrument.PAR_AUDCTL_HPF_CH1, "AUD_HPF_CH1:", 0x01, 0x01, 0), //
+			new ShPar(Instrument.PAR_AUDCTL_JOIN_3_4, "AUD_JOIN34:", 0x01, 0x01, 0), //
+			new ShPar(Instrument.PAR_AUDCTL_JOIN_1_2, "AUD_JOIN12:", 0x01, 0x01, 0), //
+			new ShPar(Instrument.PAR_AUDCTL_179_CH3, "AUD_179_CH3:", 0x01, 0x01, 0), //
+			new ShPar(Instrument.PAR_AUDCTL_179_CH1, "AUD_179_CH1:", 0x01, 0x01, 0), //
+			new ShPar(Instrument.PAR_AUDCTL_POLY9, "AUD_POLY9:", 0x01, 0x01, 0), //
+	};
+
+	/** Mirrors C++'s {@code shenv[]} field names (InstrumentsAtaFormat.cpp) - index matches {@link EnvelopeParameter}'s row constants (0=VOLUMER..7=PORTAMENTO). */
+	private static final String[] SHENV_FIELD_NAME = { "ENV_VOLUME_R:", "ENV_VOLUME_L:", "ENV_DISTORTION:", "ENV_COMMNAND:", "ENV_X:", "ENV_Y:", "ENV_AUTOFILTER:", "ENV_PORTAMENTO:" };
+
+	/** Mirrors C++'s {@code shenv[].pand} (the mask applied to a parsed envelope hex digit). */
+	private static final int[] SHENV_PAND = { 0x0f, 0x0f, 0x0e, 0x07, 0x0f, 0x0f, 0x01, 0x01 };
+
+	/** Encodes every non-empty instrument's TXT representation, concatenated - the {@link #saveAllTxt} counterpart's per-instrument step. */
+	private String saveInstrumentTxt(int instr) {
+		Instrument ai = getInstrument(instr);
+		StringBuilder s = new StringBuilder();
+
+		String name = Song.nameToString(ai.name).stripTrailing();
+		s.append(String.format("[INSTRUMENT]\n%02X: %s\n", instr, name));
+
+		for (ShPar p : SHPAR) {
+			s.append(String.format("%s %X\n", p.fieldName(), ai.parameters[p.paramIndex()] + p.displayOffset()));
+		}
+
+		s.append("TABLE: ");
+		for (int j = 0; j <= ai.parameters[Instrument.PAR_TBL_LENGTH]; j++) {
+			s.append(String.format("%02X ", ai.noteTable[j]));
+		}
+		s.append("\n"); // std::endl
+
+		for (int k = 0; k < Instrument.ENVROWS; k++) {
+			StringBuilder bf = new StringBuilder();
+			for (int j = 0; j <= ai.parameters[Instrument.PAR_ENV_LENGTH]; j++) {
+				bf.append(Song.charL4(ai.envelope[j][k]));
+			}
+			s.append(String.format("%s %s\n", SHENV_FIELD_NAME[k], bf));
+		}
+		s.append("\n"); // gap
+
+		return s.toString();
+	}
+
+	/** Encodes every non-empty instrument as TXT, concatenated (the {@code [INSTRUMENT]} sections {@link Song#saveTxt} appends). */
+	public String saveAllTxt() {
+		StringBuilder s = new StringBuilder();
+		for (int i = 0; i < INSTRSNUM; i++) {
+			if (calculateNotEmpty(i)) {
+				s.append(saveInstrumentTxt(i));
+			}
+		}
+		return s.toString();
+	}
+
+	/**
+	 * Decodes one {@code [INSTRUMENT]} segment's TXT content (the instrument
+	 * number is parsed from the segment's own first line, matching C++'s
+	 * {@code LoadInstrument(-1, ...)} convention - the only way
+	 * {@link Song#loadTxt} calls this), returning the position right after
+	 * the next {@code '['} (matching {@link Song#nextSegment}'s convention,
+	 * ready for the caller's own segment-name read).
+	 */
+	public int loadInstrumentTxt(String text, int pos) {
+		Song.Line firstLine = Song.readLine(text, pos);
+		pos = firstLine.nextPos();
+		int instr = Song.hexstr(firstLine.content(), 0, 2);
+
+		if (instr < 0 || instr >= INSTRSNUM) {
+			return Song.nextSegment(text, pos);
+		}
+
+		clearInstrument(instr);
+		Instrument ai = getInstrument(instr);
+
+		String value = firstLine.content().length() > 4 ? firstLine.content().substring(4) : "";
+		value = Song.trimstr(value);
+		java.util.Arrays.fill(ai.name, ' ');
+		int lname = Math.min(value.length(), Instrument.INSTRUMENT_NAME_MAX_LEN);
+		for (int c = 0; c < lname; c++) {
+			ai.name[c] = value.charAt(c);
+		}
+
+		while (pos < text.length()) {
+			char b = text.charAt(pos);
+			pos++;
+			if (b == '[') {
+				return pos; // end of instrument (beginning of something else)
+			}
+			if (b == '\n') {
+				// A blank line (saveInstrumentTxt() writes one as a "gap"
+				// before the next segment) - matches the fix already
+				// applied on the C++ side (see IO_Instruments.cpp).
+				continue;
+			}
+
+			Song.Line rest = Song.readLine(text, pos);
+			pos = rest.nextPos();
+			String kvLine = b + rest.content();
+
+			int colonSpace = kvLine.indexOf(": ");
+			if (colonSpace < 0) {
+				continue;
+			}
+			String key = kvLine.substring(0, colonSpace + 1);
+			String kvValue = kvLine.substring(colonSpace + 2);
+
+			boolean matchedParam = false;
+			for (ShPar p : SHPAR) {
+				if (key.equals(p.fieldName())) {
+					int v = Song.hexstr(kvValue, 0, 2) - p.displayOffset();
+					if (v >= 0) {
+						v &= p.parameterAND();
+						if (v > p.maxParameterValue()) {
+							v = 0;
+						}
+						ai.parameters[p.paramIndex()] = v;
+					}
+					matchedParam = true;
+					break;
+				}
+			}
+			if (matchedParam) {
+				continue;
+			}
+
+			if (key.equals("TABLE:")) {
+				String tableValue = Song.trimstr(kvValue);
+				for (int j = 0; j < tableValue.length(); j += 3) {
+					int v = Song.hexstr(tableValue, j, 2);
+					if (v < 0) {
+						break;
+					}
+					ai.noteTable[j / 3] = v;
+				}
+				continue;
+			}
+
+			for (int j = 0; j < Instrument.ENVROWS; j++) {
+				if (key.equals(SHENV_FIELD_NAME[j])) {
+					for (int k = 0; k < kvValue.length() && k < Instrument.ENVELOPE_MAX_COLUMNS; k++) {
+						int v = Song.hexstr(kvValue, k, 1);
+						if (v < 0) {
+							break;
+						}
+						v &= SHENV_PAND[j];
+						ai.envelope[k][j] = v;
+					}
+					break;
+				}
+			}
+		}
+
+		return text.length();
+	}
+
+	private byte[] saveInstrumentRmw(int instr) {
+		Instrument ai = getInstrument(instr);
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+
+		for (int c = 0; c < Instrument.INSTRUMENT_NAME_MAX_LEN; c++) {
+			out.write(ai.name[c]);
+		}
+		for (int j = 0; j < Instrument.PARCOUNT; j++) {
+			out.write(ai.parameters[j]);
+		}
+		for (int j = 0; j < Instrument.ENVELOPE_MAX_COLUMNS; j++) {
+			for (int k = 0; k < Instrument.ENVROWS; k++) {
+				out.write(ai.envelope[j][k]);
+			}
+		}
+		for (int j = 0; j < Instrument.NOTE_TABLE_MAX_LEN; j++) {
+			out.write(ai.noteTable[j]);
+		}
+
+		writeIntLE(out, instrumentSectionToRmw(ai.activeEditSection));
+		writeIntLE(out, ai.editNameCursorPos);
+		writeIntLE(out, ai.editParameterNr);
+		writeIntLE(out, ai.editEnvelopeX);
+		writeIntLE(out, ai.editEnvelopeY);
+		writeIntLE(out, ai.editNoteTableCursorPos);
+		writeIntLE(out, ai.octave);
+		writeIntLE(out, ai.volume);
+
+		return out.toByteArray();
+	}
+
+	/** Encodes every instrument (unconditionally, unlike {@link #saveAllTxt}) in RMW's binary format, concatenated. */
+	public byte[] saveAllRmw() {
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+		for (int i = 0; i < INSTRSNUM; i++) {
+			out.writeBytes(saveInstrumentRmw(i));
+		}
+		return out.toByteArray();
+	}
+
+	private int loadInstrumentRmw(int instr, byte[] data, int pos) {
+		clearInstrument(instr);
+		Instrument ai = getInstrument(instr);
+
+		for (int c = 0; c < Instrument.INSTRUMENT_NAME_MAX_LEN; c++) {
+			ai.name[c] = (char) (data[pos] & 0xFF);
+			pos++;
+		}
+		for (int j = 0; j < Instrument.PARCOUNT; j++) {
+			ai.parameters[j] = data[pos];
+			pos++;
+		}
+		for (int j = 0; j < Instrument.ENVELOPE_MAX_COLUMNS; j++) {
+			for (int k = 0; k < Instrument.ENVROWS; k++) {
+				ai.envelope[j][k] = data[pos];
+				pos++;
+			}
+		}
+		for (int j = 0; j < Instrument.NOTE_TABLE_MAX_LEN; j++) {
+			ai.noteTable[j] = data[pos];
+			pos++;
+		}
+
+		ai.activeEditSection = instrumentSectionFromRmw(readIntLE(data, pos));
+		pos += 4;
+		ai.editNameCursorPos = readIntLE(data, pos);
+		pos += 4;
+		ai.editParameterNr = readIntLE(data, pos);
+		pos += 4;
+		ai.editEnvelopeX = readIntLE(data, pos);
+		pos += 4;
+		ai.editEnvelopeY = readIntLE(data, pos);
+		pos += 4;
+		ai.editNoteTableCursorPos = readIntLE(data, pos);
+		pos += 4;
+		ai.octave = readIntLE(data, pos);
+		pos += 4;
+		ai.volume = readIntLE(data, pos);
+		pos += 4;
+
+		return pos;
+	}
+
+	/** Decodes every instrument's RMW binary representation ({@link #saveAllRmw}'s counterpart), returning the position right after the last one. */
+	public int loadAllRmw(byte[] data, int pos) {
+		for (int i = 0; i < INSTRSNUM; i++) {
+			pos = loadInstrumentRmw(i, data, pos);
+		}
+		return pos;
+	}
+
+	private static void writeIntLE(java.io.ByteArrayOutputStream out, int value) {
+		out.write(value & 0xFF);
+		out.write((value >> 8) & 0xFF);
+		out.write((value >> 16) & 0xFF);
+		out.write((value >> 24) & 0xFF);
+	}
+
+	private static int readIntLE(byte[] data, int pos) {
+		return (data[pos] & 0xFF) | ((data[pos + 1] & 0xFF) << 8) | ((data[pos + 2] & 0xFF) << 16) | ((data[pos + 3] & 0xFF) << 24);
+	}
 }

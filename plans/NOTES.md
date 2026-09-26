@@ -3556,5 +3556,41 @@ build clean and all 123 tests pass.
     Verified with `mvn -o test`: 360 tests pass (+7), all passing on the
     first run, no regressions. `TrackClipboard` is now feature-complete
     except `BlockEffect` (not ported on the C++ side either). Details in
-    `plans/JAVA_PORT_PLAN.md`/`plans/JAVA_SONGEDITING_PLAN.md`. Not yet
-    committed.
+    `plans/JAVA_PORT_PLAN.md`/`plans/JAVA_SONGEDITING_PLAN.md`. Committed
+    as `c5f9f58`.
+  - **2026-09-26**: Thirty-third Java-port batch - `IO_Instruments.cpp`/
+    `IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track serialization,
+    transcribed directly from the C++ characterization tests added in the
+    previous batch. Added `saveAllTxt`/`loadInstrumentTxt`/`saveAllRmw`/
+    `loadAllRmw` to `Instruments`, the equivalent four methods to `Tracks`,
+    and wired all of them into `Song`'s `saveTxt`/`loadTxt`/`saveRMW`/
+    `loadRMW` (previously these skipped the `[INSTRUMENT]`/`[TRACK]`
+    segments entirely).
+    - Carried the C++ `'\n'`-gap-line fix forward into `loadInstrumentTxt`;
+      `loadTrackTxt` needed no such fix, matching `CTracks::LoadTrack()`'s
+      already-correct C++ shape.
+    - New `instrumentSectionToRmw`/`instrumentSectionFromRmw` private
+      mapping helpers handle `InstrumentSection`'s enum-ordinal-vs-C++-
+      backing-value mismatch (`NONE=-1, NAME=0, PARAMETERS=1, ENVELOPE=2,
+      NOTETABLE=3`), needed only for RMW's byte-exact encoding.
+    - Confirmed via C++ memory-layout analysis that RMW's envelope bytes
+      need an outer-loop-over-column, inner-loop-over-row write/read order,
+      independent of the C++ fill loop's own iteration order.
+    - `Song`'s `charH4`/`charL4`/`hexstr`/`trimstr`/`readLine`/
+      `nextSegment`/`Line` widened from `private` to package-private so
+      `Instruments`/`Tracks` could reuse them, following the existing
+      `nameToString` precedent - the trivial byte-level `writeIntLE`/
+      `readIntLE`/`unsignedByte` helpers stay duplicated per class instead,
+      matching this port's established split.
+    - One test-only bug caught before commit: the new
+      `saveTxtAndLoadTxtRoundTripNonEmptyInstrumentAndTrack` test initially
+      asserted the loaded instrument name via the test file's
+      `nameToString()` helper (which expects a NULL terminator); TXT
+      loading correctly space-pads the name field with no NULL byte
+      (matching C++'s `memset`+`strncpy`), so the assertion was fixed to
+      use `new String(...).stripTrailing()`, the pattern already
+      established by earlier tests for this exact space-padded-not-null-
+      terminated scenario. No production code was at fault.
+    - Verified with `mvn -o clean test`: 362 tests pass (+2), no
+      regressions. Details in `plans/JAVA_PORT_PLAN.md`/
+      `plans/JAVA_SONGEDITING_PLAN.md`. Not yet committed.

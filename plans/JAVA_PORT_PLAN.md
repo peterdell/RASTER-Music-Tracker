@@ -1525,9 +1525,35 @@ passing on the first run. Verified with `mvn -o test`: 360 tests pass
 `BlockEffect` (not ported on the C++ side either). Full write-up in
 `plans/JAVA_SONGEDITING_PLAN.md`'s `CTrackClipboard` section.
 
+## Thirty-third ported batch (2026-09-26): `IO_Instruments.cpp`/`IO_Tracks.cpp` TXT/RMW serialization
+
+Ports `CInstruments::SaveAll`/`LoadAll`/`SaveInstrument`/`LoadInstrument`
+and `CTracks::SaveAll`/`LoadAll`/`SaveTrack`/`LoadTrack`, transcribed
+directly from the C++ characterization tests added in the previous batch.
+Added `saveAllTxt`/`loadInstrumentTxt`/`saveAllRmw`/`loadAllRmw` to
+`Instruments`, the equivalent four methods to `Tracks`, and wired all of
+them into `Song`'s `saveTxt`/`loadTxt`/`saveRMW`/`loadRMW` (previously
+these skipped the `[INSTRUMENT]`/`[TRACK]` segments entirely). Carried the
+C++ `'\n'`-gap-line fix forward into `loadInstrumentTxt`; `loadTrackTxt`
+needed no such fix. New `instrumentSectionToRmw`/`instrumentSectionFromRmw`
+mapping helpers handle `InstrumentSection`'s enum-ordinal-vs-C++-backing-value
+mismatch for RMW's byte-exact encoding. `Song`'s `charH4`/`charL4`/`hexstr`/
+`trimstr`/`readLine`/`nextSegment`/`Line` were widened from `private` to
+package-private so `Instruments`/`Tracks` could reuse them. Full write-up
+in `plans/JAVA_SONGEDITING_PLAN.md`'s dedicated section. Tests
+(`SongEditingTest`, extended): `saveTxtAndLoadTxtRoundTripNonEmptyInstrumentAndTrack`/
+`saveRMWAndLoadRMWRoundTripNonEmptyInstrumentAndTrack`, mirroring the C++
+tests exactly. Verified with `mvn -o clean test`: 362 tests pass (+2), no
+regressions.
+
 ## Next steps
 
-One area remains, already fully C++-tested and ready for its Java port:
-1. **`IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track
-   serialization** (`SaveAll`/`LoadAll`/`SaveInstrument`/`LoadInstrument`/
-   `SaveTrack`/`LoadTrack`).
+No further Java-porting areas are currently identified: `CTrackClipboard`
+is feature-complete except `BlockEffect` (no extractable logic on the C++
+side either); the TMC/MOD importers and the `IO_Instruments.cpp`/
+`IO_Tracks.cpp` serialization surface are both done. Remaining deferred
+work (the SAP-R/LZSS/WAV/XEX exporter family needing a real
+`PokeyStream`/`AtariTrackerDriver` recording path, `BlockEffect`, the
+`FileXxx` dialog family, `TimerRoutine`/hardware-timer methods) all stay
+deferred per their own already-documented hazard reasoning - see
+`plans/JAVA_SONGEDITING_PLAN.md`'s "Explicitly out of scope" section.

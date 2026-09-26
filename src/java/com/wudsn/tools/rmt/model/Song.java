@@ -2192,16 +2192,16 @@ public final class Song {
 
 	private static final char[] HEX_UPPER = "0123456789ABCDEF".toCharArray();
 
-	private static char charH4(int b) {
+	static char charH4(int b) {
 		return HEX_UPPER[(b >> 4) & 0xF];
 	}
 
-	private static char charL4(int b) {
+	static char charL4(int b) {
 		return HEX_UPPER[b & 0xF];
 	}
 
-	/** Ported from IOHelpers.cpp's {@code Hexstr(char*, int)} - parses up to {@code len} leading uppercase-hex characters starting at {@code start}, returning -1 if there wasn't even one. */
-	private static int hexstr(String s, int start, int len) {
+	/** Ported from IOHelpers.cpp's {@code Hexstr(char*, int)} - parses up to {@code len} leading uppercase-hex characters starting at {@code start}, returning -1 if there wasn't even one. Package-visible for reuse by {@link Instruments}/{@link Tracks}'s own TXT (de)serialization, matching {@link #nameToString}'s established widening. */
+	static int hexstr(String s, int start, int len) {
 		int r = 0;
 		int i = 0;
 		for (; i < len && start + i < s.length(); i++) {
@@ -2218,7 +2218,7 @@ public final class Song {
 	}
 
 	/** Ported from IOHelpers.cpp's {@code Trimstr(char*)} - truncates at the first {@code \r} or {@code \n} found (a line already split on {@code \n} can still carry a trailing {@code \r}). */
-	private static String trimstr(String s) {
+	static String trimstr(String s) {
 		int cr = s.indexOf('\r');
 		if (cr >= 0) {
 			return s.substring(0, cr);
@@ -2228,10 +2228,10 @@ public final class Song {
 	}
 
 	/** One line read from a larger text, mirroring C++'s {@code istream::getline} - {@code content} excludes the {@code \n} delimiter; {@code nextPos} is the index right after it (or the text's end). */
-	private record Line(String content, int nextPos) {
+	record Line(String content, int nextPos) {
 	}
 
-	private static Line readLine(String text, int pos) {
+	static Line readLine(String text, int pos) {
 		int nl = text.indexOf('\n', pos);
 		if (nl < 0) {
 			return new Line(text.substring(pos), text.length());
@@ -2240,7 +2240,7 @@ public final class Song {
 	}
 
 	/** Ported from IOHelpers.cpp's {@code NextSegment(istream&)} - returns the index right after the next {@code '['}, or the text's length if there isn't one. */
-	private static int nextSegment(String text, int pos) {
+	static int nextSegment(String text, int pos) {
 		int idx = text.indexOf('[', pos);
 		return idx < 0 ? text.length() : idx + 1;
 	}
@@ -2250,15 +2250,11 @@ public final class Song {
 	 * the built text directly instead of C++'s {@code std::ostream&} output
 	 * parameter (matching {@code SapFile.export()}'s established idiom).
 	 *
-	 * <p>Omits C++'s {@code g_Instruments.SaveAll}/{@code g_Tracks.SaveAll}
-	 * calls (the {@code [INSTRUMENT]}/{@code [TRACK]} sections): neither is
-	 * exercised by any C++ or Java test (a song with no non-empty
-	 * instruments/tracks, as in every existing test, makes {@code SaveAll}
-	 * write nothing for TXT format anyway), and porting the underlying
-	 * per-instrument/per-track TXT serialization
-	 * ({@code IO_Instruments.cpp}/{@code IO_Tracks.cpp}) is its own
-	 * separate, substantial undertaking - see
-	 * {@code plans/JAVA_SONGEDITING_PLAN.md}.
+	 * <p>{@code g_Instruments.SaveAll}/{@code g_Tracks.SaveAll}'s
+	 * {@code [INSTRUMENT]}/{@code [TRACK]} sections (previously omitted -
+	 * see {@code plans/JAVA_SONGEDITING_PLAN.md}'s
+	 * "IO_Instruments.cpp/IO_Tracks.cpp" write-up) are now ported as
+	 * {@link Instruments#saveAllTxt}/{@link Tracks#saveAllTxt}.
 	 */
 	public String saveTxt(int tracks4_8) {
 		StringBuilder s = new StringBuilder();
@@ -2311,6 +2307,10 @@ public final class Song {
 
 		s.append("\n"); // gap
 
+		// Now save the instruments and tracks to the output
+		s.append(instruments.saveAllTxt());
+		s.append(tracks.saveAllTxt());
+
 		return s.toString();
 	}
 
@@ -2325,9 +2325,9 @@ public final class Song {
 	 * {@code SapFile}'s established idiom - the C++ test itself already
 	 * builds the whole string upfront via a {@code std::istringstream}).
 	 *
-	 * <p>The {@code [INSTRUMENT]}/{@code [TRACK]} segment branches skip to
-	 * the next segment instead of decoding - same reason as
-	 * {@link #saveTxt}'s omission of the encoding side.
+	 * <p>The {@code [INSTRUMENT]}/{@code [TRACK]} segments now decode via
+	 * {@link Instruments#loadInstrumentTxt}/{@link Tracks#loadTrackTxt}
+	 * (previously skipped - see {@link #saveTxt}'s javadoc).
 	 */
 	public LoadTxtResult loadTxt(String text, Undo undo) {
 		int tracks4_8 = clearSong(8, undo); // always clear 8 tracks
@@ -2443,11 +2443,12 @@ public final class Song {
 						}
 					}
 				}
-			} else if (line.equals("INSTRUMENT]") || line.equals("TRACK]")) {
-				// Would pass instrument/track loading to Instruments/Tracks -
-				// not ported (see this method's own javadoc); skip to the
-				// next segment instead.
-				pos = nextSegment(text, pos);
+			} else if (line.equals("INSTRUMENT]")) {
+				// Pass the instrument loading to the Instruments class
+				pos = instruments.loadInstrumentTxt(text, pos);
+			} else if (line.equals("TRACK]")) {
+				// Pass the track loading to the Tracks class
+				pos = tracks.loadTrackTxt(text, pos);
 			} else {
 				pos = nextSegment(text, pos); // look for the beginning of the next segment
 			}
@@ -2499,11 +2500,11 @@ public final class Song {
 	 * longer be binary-compatible with real C++-saved {@code .rmw} files
 	 * for the fields this port does model.
 	 *
-	 * <p>Omits C++'s {@code g_Instruments.SaveAll}/{@code g_Tracks.SaveAll}
-	 * calls, same reasoning as {@link #saveTxt} - RMW format saves every
-	 * instrument/track unconditionally (not just non-empty ones, unlike
-	 * TXT), an even larger undertaking to port, and no test observes
-	 * instrument/track content through this format either.
+	 * <p>{@code g_Instruments.SaveAll}/{@code g_Tracks.SaveAll} (previously
+	 * omitted - see {@link #saveTxt}'s javadoc) are now ported as
+	 * {@link Instruments#saveAllRmw}/{@link Tracks#saveAllRmw} - RMW saves
+	 * every instrument/track unconditionally, unlike TXT's non-empty-only
+	 * rule.
 	 */
 	public byte[] saveRMW(int tracks4_8) {
 		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
@@ -2538,6 +2539,9 @@ public final class Song {
 			writeIntLE(out, songGo[i]);
 		}
 
+		out.writeBytes(instruments.saveAllRmw());
+		out.writeBytes(tracks.saveAllRmw());
+
 		return out.toByteArray();
 	}
 
@@ -2550,8 +2554,9 @@ public final class Song {
 	 * {@link #saveRMW} counterpart) from {@code data}, taking the whole
 	 * file content directly instead of C++'s {@code std::istream&}
 	 * (matching {@link #loadTxt}'s reasoning). See {@link #saveRMW}'s
-	 * javadoc for the unmapped-parameters/omitted-instrument-track-data
-	 * design notes, which apply here identically.
+	 * javadoc for the unmapped-main-parameters design note, which applies
+	 * here identically; instrument/track data now decodes via
+	 * {@link Instruments#loadAllRmw}/{@link Tracks#loadAllRmw}.
 	 */
 	public LoadRmwResult loadRMW(byte[] data, Undo undo) {
 		int tracks4_8 = clearSong(8, undo); // always clear 8 tracks
@@ -2620,6 +2625,9 @@ public final class Song {
 			songGo[i] = readIntLE(data, pos);
 			pos += 4;
 		}
+
+		pos = instruments.loadAllRmw(data, pos);
+		tracks.loadAllRmw(data, pos);
 
 		return new LoadRmwResult(true, tracks4_8);
 	}
