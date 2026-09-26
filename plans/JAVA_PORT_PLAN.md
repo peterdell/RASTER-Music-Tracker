@@ -1546,6 +1546,42 @@ in `plans/JAVA_SONGEDITING_PLAN.md`'s dedicated section. Tests
 tests exactly. Verified with `mvn -o clean test`: 362 tests pass (+2), no
 regressions.
 
+## C++ characterization + Thirty-fourth ported batch (2026-09-26): `TracksEdit.cpp`'s 7 methods
+
+Phase A item 1 of `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`. `CTracks::
+DelNoteInstrVolSpeed`/`SetNoteInstrVol`/`SetInstr`/`SetVol`/`SetSpeed`/
+`SetEnd`/`SetGo` (`src/cpp/TracksEdit.cpp`) touch only `g_Undo`/
+`g_respectvolume` - no dialogs, no hardware - but had never had a dedicated
+test despite the file already being linked into `RmtTests.vcxproj` (needed
+by `PlayVBI`'s quantization branch). Deferred twice in this plan's Sixth
+and Seventh ported batches back when `Undo` was still a no-op test stub;
+unblocked now that `Undo` is fully characterized and ported
+(`plans/UNDO_PLAN.md`).
+
+**C++ characterization**: added 30 tests to `SongEditingTests.cpp` (its
+`g_Tracks`/`g_Undo` globals are already real and wired together by the
+fixture, unlike `TracksTests.cpp`'s local, `g_Undo`-independent `CTracks`
+fixture), hand-traced and all passing on the first run, including full
+branch coverage of `SetNoteInstrVol`'s `g_respectvolume` logic (off vs. on
+with both volumes non-negative vs. on with either volume negative) and
+`SetEnd`'s "toggle back to `m_maxTrackLength` when the given line already
+equals the current length" behavior. `g_respectvolume` (already stubbed as
+`FALSE` in `SongEditingStub.cpp`) is now also reset to `FALSE` in
+`SongEditingTest::SetUp()` for determinism, since a test now depends on
+its value. Full C++ Release|x64 rebuild + `RmtTests.exe`: 411 tests pass
+(+30, 381 -> 411), 0 regressions.
+
+**Java port**: added `delNoteInstrVolSpeed`/`setNoteInstrVol`/`setInstr`/
+`setVol`/`setSpeed`/`setEnd`/`setGo` to `Tracks.java`, transcribed directly
+from the new C++ tests. `g_Undo` becomes an explicit `Undo undo` parameter
+and `g_respectvolume` an explicit `respectVolume` boolean parameter on
+`setNoteInstrVol`, matching this port's established "C++ global a method
+needs -> explicit parameter" idiom (already used for `tracks4_8` and
+`Undo` itself elsewhere). Tests (`SongEditingTest`, extended) mirror the 30
+new C++ tests exactly, using the fixture's existing real `tracks`/`undo`
+objects. Verified with `mvn -o clean test`: 392 tests pass (+30), all green
+on the first run, no regressions.
+
 ## Next steps
 
 **Correction to this section's own earlier claim** ("no further
@@ -1553,12 +1589,12 @@ Java-porting areas are currently identified"): that was scoped only to
 `plans/JAVA_SONGEDITING_PLAN.md`'s tracked list, not the whole port. A
 fresh audit found real remaining work in two phases - full roadmap now in
 `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`:
-- **Phase A** (small, model-layer): `TracksEdit.cpp`'s 7 never-
-  characterized methods (unblocked now that `Undo` is fully ported),
-  `PokeyStream`'s real recording path + `AtariTrackerDriver`'s remaining
-  register-poking methods, `CSong::DumpSongToPokeyStream`, and the five
-  dependent SAP-R/LZSS/WAV/XEX export methods (all already C++-
-  characterized, not yet ported).
+- **Phase A** (small, model-layer): `TracksEdit.cpp`'s 7 methods are now
+  DONE (see the ported batch just above). Remaining: `PokeyStream`'s real
+  recording path + `AtariTrackerDriver`'s remaining register-poking
+  methods, `CSong::DumpSongToPokeyStream`, and the five dependent
+  SAP-R/LZSS/WAV/XEX export methods (all already C++-characterized, not
+  yet ported).
 - **Phase B** (large, not started): the entire Java UI layer
   (`com.wudsn.tools.rmt.ui` doesn't exist yet) - see
   `plans/JAVA_PORT_NEXT_STEPS_PLAN.md` for what `plans/UI_SURVEY_PLAN.md`

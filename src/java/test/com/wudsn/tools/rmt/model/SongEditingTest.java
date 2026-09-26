@@ -430,6 +430,290 @@ class SongEditingTest {
 		assertEquals(8, dst.volume[0]);
 	}
 
+	// --- Tracks.delNoteInstrVolSpeed / setNoteInstrVol / setInstr / setVol /
+	// setSpeed / setEnd / setGo (TracksEdit.cpp) ---
+	// Mirrors SongEditingTests.cpp's own section exactly - only the visible
+	// track-data effect is asserted, not the undo recording (UndoTest
+	// covers Undo itself).
+
+	@Test
+	void delNoteInstrVolSpeedReturnsFalseForAnInvalidTrack() {
+		assertFalse(tracks.delNoteInstrVolSpeed(0xF, -1, 0, undo));
+		assertFalse(tracks.delNoteInstrVolSpeed(0xF, Tracks.TRACKSNUM, 0, undo));
+	}
+
+	@Test
+	void delNoteInstrVolSpeedReturnsFalseAndChangesNothingWhenLineIsOutOfBounds() {
+		Track tr = tracks.getTrack(0);
+		tr.note[0] = 5;
+
+		assertFalse(tracks.delNoteInstrVolSpeed(0xF, 0, tr.len, undo));
+
+		assertEquals(5, tr.note[0]);
+	}
+
+	@Test
+	void delNoteInstrVolSpeedClearsOnlyTheMaskedFields() {
+		Track tr = tracks.getTrack(0);
+		tr.note[0] = 5;
+		tr.instr[0] = 3;
+		tr.volume[0] = 8;
+		tr.speed[0] = 2;
+
+		assertTrue(tracks.delNoteInstrVolSpeed(1 /* note only */, 0, 0, undo));
+
+		assertEquals(-1, tr.note[0]);
+		assertEquals(3, tr.instr[0]);
+		assertEquals(8, tr.volume[0]);
+		assertEquals(2, tr.speed[0]);
+	}
+
+	@Test
+	void delNoteInstrVolSpeedClearsAllFourFieldsWhenAllBitsAreSet() {
+		Track tr = tracks.getTrack(0);
+		tr.note[0] = 5;
+		tr.instr[0] = 3;
+		tr.volume[0] = 8;
+		tr.speed[0] = 2;
+
+		assertTrue(tracks.delNoteInstrVolSpeed(0xF, 0, 0, undo));
+
+		assertEquals(-1, tr.note[0]);
+		assertEquals(-1, tr.instr[0]);
+		assertEquals(-1, tr.volume[0]);
+		assertEquals(-1, tr.speed[0]);
+	}
+
+	@Test
+	void setNoteInstrVolReturnsFalseForAnInvalidTrack() {
+		assertFalse(tracks.setNoteInstrVol(10, 2, 5, -1, 0, false, undo));
+	}
+
+	@Test
+	void setNoteInstrVolReturnsFalseAndChangesNothingWhenLineIsOutOfBounds() {
+		Track tr = tracks.getTrack(0);
+		tr.note[0] = 1;
+
+		assertFalse(tracks.setNoteInstrVol(10, 2, 5, 0, tr.len, false, undo));
+
+		assertEquals(1, tr.note[0]);
+	}
+
+	@Test
+	void setNoteInstrVolForcesInstrAndVolumeToMinusOneWhenNoteIsNegative() {
+		Track tr = tracks.getTrack(0);
+
+		assertTrue(tracks.setNoteInstrVol(-1, 2, 5, 0, 0, false, undo));
+
+		assertEquals(-1, tr.note[0]);
+		assertEquals(-1, tr.instr[0]);
+		assertEquals(-1, tr.volume[0]);
+	}
+
+	@Test
+	void setNoteInstrVolAlwaysOverwritesVolumeWhenRespectVolumeIsOff() {
+		Track tr = tracks.getTrack(0);
+		tr.volume[0] = 9;
+
+		assertTrue(tracks.setNoteInstrVol(10, 2, 5, 0, 0, false, undo));
+
+		assertEquals(10, tr.note[0]);
+		assertEquals(2, tr.instr[0]);
+		assertEquals(5, tr.volume[0]);
+	}
+
+	@Test
+	void setNoteInstrVolPreservesExistingVolumeWhenRespectVolumeIsOnAndBothVolumesAreNonNegative() {
+		Track tr = tracks.getTrack(0);
+		tr.volume[0] = 9;
+
+		assertTrue(tracks.setNoteInstrVol(10, 2, 5, 0, 0, true, undo));
+
+		assertEquals(10, tr.note[0]); // note/instr are set unconditionally
+		assertEquals(2, tr.instr[0]);
+		assertEquals(9, tr.volume[0]); // volume preserved
+	}
+
+	@Test
+	void setNoteInstrVolOverwritesVolumeWhenRespectVolumeIsOnButTheNewVolumeIsNegative() {
+		Track tr = tracks.getTrack(0);
+		tr.volume[0] = 9;
+
+		assertTrue(tracks.setNoteInstrVol(10, 2, -1, 0, 0, true, undo));
+
+		assertEquals(-1, tr.volume[0]);
+	}
+
+	@Test
+	void setNoteInstrVolOverwritesVolumeWhenRespectVolumeIsOnButTheExistingVolumeIsNegative() {
+		Track tr = tracks.getTrack(0);
+		tr.volume[0] = -1;
+
+		assertTrue(tracks.setNoteInstrVol(10, 2, 5, 0, 0, true, undo));
+
+		assertEquals(5, tr.volume[0]);
+	}
+
+	@Test
+	void setInstrReturnsFalseForAnInvalidTrack() {
+		assertFalse(tracks.setInstr(2, -1, 0, undo));
+	}
+
+	@Test
+	void setInstrReturnsFalseAndChangesNothingWhenLineIsOutOfBounds() {
+		Track tr = tracks.getTrack(0);
+		tr.instr[0] = 1;
+
+		assertFalse(tracks.setInstr(2, 0, tr.len, undo));
+
+		assertEquals(1, tr.instr[0]);
+	}
+
+	@Test
+	void setInstrSetsTheInstrumentAtTheGivenLine() {
+		Track tr = tracks.getTrack(0);
+
+		assertTrue(tracks.setInstr(2, 0, 0, undo));
+
+		assertEquals(2, tr.instr[0]);
+	}
+
+	@Test
+	void setVolReturnsFalseForAnInvalidTrack() {
+		assertFalse(tracks.setVol(8, -1, 0, undo));
+	}
+
+	@Test
+	void setVolReturnsFalseAndChangesNothingWhenLineIsOutOfBounds() {
+		Track tr = tracks.getTrack(0);
+		tr.volume[0] = 1;
+
+		assertFalse(tracks.setVol(8, 0, tr.len, undo));
+
+		assertEquals(1, tr.volume[0]);
+	}
+
+	@Test
+	void setVolSetsTheVolumeAtTheGivenLine() {
+		Track tr = tracks.getTrack(0);
+
+		assertTrue(tracks.setVol(8, 0, 0, undo));
+
+		assertEquals(8, tr.volume[0]);
+	}
+
+	@Test
+	void setSpeedReturnsFalseForAnInvalidTrack() {
+		assertFalse(tracks.setSpeed(3, -1, 0, undo));
+	}
+
+	@Test
+	void setSpeedReturnsFalseAndChangesNothingWhenLineIsOutOfBounds() {
+		Track tr = tracks.getTrack(0);
+		tr.speed[0] = 1;
+
+		assertFalse(tracks.setSpeed(3, 0, tr.len, undo));
+
+		assertEquals(1, tr.speed[0]);
+	}
+
+	@Test
+	void setSpeedSetsTheSpeedAtTheGivenLine() {
+		Track tr = tracks.getTrack(0);
+
+		assertTrue(tracks.setSpeed(3, 0, 0, undo));
+
+		assertEquals(3, tr.speed[0]);
+	}
+
+	@Test
+	void setEndReturnsFalseForAnInvalidTrack() {
+		assertFalse(tracks.setEnd(-1, 5, undo));
+	}
+
+	@Test
+	void setEndSetsLengthToMaxTrackLengthWhenLineIsZero() {
+		Track tr = tracks.getTrack(0);
+		tr.len = 10;
+
+		assertTrue(tracks.setEnd(0, 0, undo));
+
+		assertEquals(64, tr.len);
+	}
+
+	@Test
+	void setEndSetsLengthToTheGivenLineWhenDifferentFromTheCurrentLength() {
+		Track tr = tracks.getTrack(0); // tr.len starts at 64 (setUp's maxTrackLength)
+
+		assertTrue(tracks.setEnd(0, 10, undo));
+
+		assertEquals(10, tr.len);
+	}
+
+	@Test
+	void setEndTogglesBackToMaxTrackLengthWhenLineEqualsTheCurrentLength() {
+		Track tr = tracks.getTrack(0);
+		tr.len = 10;
+
+		assertTrue(tracks.setEnd(0, 10, undo));
+
+		assertEquals(64, tr.len);
+	}
+
+	@Test
+	void setEndResetsGoWhenItFallsOutsideTheNewLength() {
+		Track tr = tracks.getTrack(0);
+		tr.go = 20;
+
+		tracks.setEnd(0, 10, undo); // len becomes 10, go (20) no longer fits
+
+		assertEquals(-1, tr.go);
+	}
+
+	@Test
+	void setEndPreservesGoWhenItStillFitsWithinTheNewLength() {
+		Track tr = tracks.getTrack(0);
+		tr.go = 5;
+
+		tracks.setEnd(0, 10, undo);
+
+		assertEquals(5, tr.go);
+	}
+
+	@Test
+	void setGoReturnsFalseForAnInvalidTrack() {
+		assertFalse(tracks.setGo(-1, 5, undo));
+	}
+
+	@Test
+	void setGoReturnsFalseAndChangesNothingWhenLineIsNotBeforeTheTrackEnd() {
+		Track tr = tracks.getTrack(0);
+		tr.go = 3;
+
+		assertFalse(tracks.setGo(0, tr.len, undo));
+
+		assertEquals(3, tr.go);
+	}
+
+	@Test
+	void setGoSetsTheGoLine() {
+		Track tr = tracks.getTrack(0);
+
+		assertTrue(tracks.setGo(0, 5, undo));
+
+		assertEquals(5, tr.go);
+	}
+
+	@Test
+	void setGoTogglesOffWhenCalledAgainWithTheSameLine() {
+		Track tr = tracks.getTrack(0);
+		tr.go = 5;
+
+		assertTrue(tracks.setGo(0, 5, undo));
+
+		assertEquals(-1, tr.go);
+	}
+
 	// --- trackCopy / trackPaste / trackDelete / trackCut / trackCopyFromTo / trackSwapFromTo ---
 
 	@Test

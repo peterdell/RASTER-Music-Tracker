@@ -25,6 +25,7 @@ extern CSong g_Song;
 extern TTuningSettings g_tuning;
 extern TTuningRatios g_tuningRatios;
 extern int g_rmtinstr[SONGTRACKS];
+extern BOOL volatile g_respectvolume;
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
 namespace {
@@ -79,6 +80,7 @@ class SongEditingTest : public ::testing::Test {
             memset(g_Instruments.GetInstrument(i), 0, sizeof(TInstrument));
         }
         g_TrackClipboard.Clear();
+        g_respectvolume = FALSE;
 
         // g_rmtinstr persists across tests like g_Instruments' data above -
         // reset it too (see PlayPressedTones/InstrPaste tests).
@@ -338,6 +340,265 @@ TEST_F(SongEditingTest, SongInsertCopyOrCloneOfSongLinesApplyClonesIntoANewTrack
     EXPECT_EQ(dst->note[0], 10);
     EXPECT_EQ(dst->instr[0], 1);
     EXPECT_EQ(dst->volume[0], 8);
+}
+
+// --- CTracks::DelNoteInstrVolSpeed / SetNoteInstrVol / SetInstr / SetVol /
+// SetSpeed / SetEnd / SetGo (TracksEdit.cpp) ---
+// These are the only CTracks methods that touch g_Undo/g_respectvolume, kept
+// separate from Tracks.cpp for that reason (see TracksEdit.cpp's own header
+// comment). Like the rest of this file, only the visible track-data effect
+// is asserted, not the undo recording (UndoTests.cpp covers CUndo itself).
+
+TEST_F(SongEditingTest, DelNoteInstrVolSpeedReturnsFalseForAnInvalidTrack) {
+    EXPECT_FALSE(g_Tracks.DelNoteInstrVolSpeed(0xF, -1, 0));
+    EXPECT_FALSE(g_Tracks.DelNoteInstrVolSpeed(0xF, TRACKSNUM, 0));
+}
+
+TEST_F(SongEditingTest, DelNoteInstrVolSpeedReturnsFalseAndChangesNothingWhenLineIsOutOfBounds) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->note[0] = 5;
+
+    EXPECT_FALSE(g_Tracks.DelNoteInstrVolSpeed(0xF, 0, tr->len));
+
+    EXPECT_EQ(tr->note[0], 5);
+}
+
+TEST_F(SongEditingTest, DelNoteInstrVolSpeedClearsOnlyTheMaskedFields) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->note[0] = 5;
+    tr->instr[0] = 3;
+    tr->volume[0] = 8;
+    tr->speed[0] = 2;
+
+    EXPECT_TRUE(g_Tracks.DelNoteInstrVolSpeed(1 /* note only */, 0, 0));
+
+    EXPECT_EQ(tr->note[0], -1);
+    EXPECT_EQ(tr->instr[0], 3);
+    EXPECT_EQ(tr->volume[0], 8);
+    EXPECT_EQ(tr->speed[0], 2);
+}
+
+TEST_F(SongEditingTest, DelNoteInstrVolSpeedClearsAllFourFieldsWhenAllBitsAreSet) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->note[0] = 5;
+    tr->instr[0] = 3;
+    tr->volume[0] = 8;
+    tr->speed[0] = 2;
+
+    EXPECT_TRUE(g_Tracks.DelNoteInstrVolSpeed(0xF, 0, 0));
+
+    EXPECT_EQ(tr->note[0], -1);
+    EXPECT_EQ(tr->instr[0], -1);
+    EXPECT_EQ(tr->volume[0], -1);
+    EXPECT_EQ(tr->speed[0], -1);
+}
+
+TEST_F(SongEditingTest, SetNoteInstrVolReturnsFalseForAnInvalidTrack) {
+    EXPECT_FALSE(g_Tracks.SetNoteInstrVol(10, 2, 5, -1, 0));
+}
+
+TEST_F(SongEditingTest, SetNoteInstrVolReturnsFalseAndChangesNothingWhenLineIsOutOfBounds) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->note[0] = 1;
+
+    EXPECT_FALSE(g_Tracks.SetNoteInstrVol(10, 2, 5, 0, tr->len));
+
+    EXPECT_EQ(tr->note[0], 1);
+}
+
+TEST_F(SongEditingTest, SetNoteInstrVolForcesInstrAndVolumeToMinusOneWhenNoteIsNegative) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+
+    EXPECT_TRUE(g_Tracks.SetNoteInstrVol(-1, 2, 5, 0, 0));
+
+    EXPECT_EQ(tr->note[0], -1);
+    EXPECT_EQ(tr->instr[0], -1);
+    EXPECT_EQ(tr->volume[0], -1);
+}
+
+TEST_F(SongEditingTest, SetNoteInstrVolAlwaysOverwritesVolumeWhenRespectVolumeIsOff) {
+    g_respectvolume = FALSE;
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->volume[0] = 9;
+
+    EXPECT_TRUE(g_Tracks.SetNoteInstrVol(10, 2, 5, 0, 0));
+
+    EXPECT_EQ(tr->note[0], 10);
+    EXPECT_EQ(tr->instr[0], 2);
+    EXPECT_EQ(tr->volume[0], 5);
+}
+
+TEST_F(SongEditingTest, SetNoteInstrVolPreservesExistingVolumeWhenRespectVolumeIsOnAndBothVolumesAreNonNegative) {
+    g_respectvolume = TRUE;
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->volume[0] = 9;
+
+    EXPECT_TRUE(g_Tracks.SetNoteInstrVol(10, 2, 5, 0, 0));
+
+    EXPECT_EQ(tr->note[0], 10); // note/instr are set unconditionally
+    EXPECT_EQ(tr->instr[0], 2);
+    EXPECT_EQ(tr->volume[0], 9); // volume preserved
+}
+
+TEST_F(SongEditingTest, SetNoteInstrVolOverwritesVolumeWhenRespectVolumeIsOnButTheNewVolumeIsNegative) {
+    g_respectvolume = TRUE;
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->volume[0] = 9;
+
+    EXPECT_TRUE(g_Tracks.SetNoteInstrVol(10, 2, -1, 0, 0));
+
+    EXPECT_EQ(tr->volume[0], -1);
+}
+
+TEST_F(SongEditingTest, SetNoteInstrVolOverwritesVolumeWhenRespectVolumeIsOnButTheExistingVolumeIsNegative) {
+    g_respectvolume = TRUE;
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->volume[0] = -1;
+
+    EXPECT_TRUE(g_Tracks.SetNoteInstrVol(10, 2, 5, 0, 0));
+
+    EXPECT_EQ(tr->volume[0], 5);
+}
+
+TEST_F(SongEditingTest, SetInstrReturnsFalseForAnInvalidTrack) {
+    EXPECT_FALSE(g_Tracks.SetInstr(2, -1, 0));
+}
+
+TEST_F(SongEditingTest, SetInstrReturnsFalseAndChangesNothingWhenLineIsOutOfBounds) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->instr[0] = 1;
+
+    EXPECT_FALSE(g_Tracks.SetInstr(2, 0, tr->len));
+
+    EXPECT_EQ(tr->instr[0], 1);
+}
+
+TEST_F(SongEditingTest, SetInstrSetsTheInstrumentAtTheGivenLine) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+
+    EXPECT_TRUE(g_Tracks.SetInstr(2, 0, 0));
+
+    EXPECT_EQ(tr->instr[0], 2);
+}
+
+TEST_F(SongEditingTest, SetVolReturnsFalseForAnInvalidTrack) {
+    EXPECT_FALSE(g_Tracks.SetVol(8, -1, 0));
+}
+
+TEST_F(SongEditingTest, SetVolReturnsFalseAndChangesNothingWhenLineIsOutOfBounds) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->volume[0] = 1;
+
+    EXPECT_FALSE(g_Tracks.SetVol(8, 0, tr->len));
+
+    EXPECT_EQ(tr->volume[0], 1);
+}
+
+TEST_F(SongEditingTest, SetVolSetsTheVolumeAtTheGivenLine) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+
+    EXPECT_TRUE(g_Tracks.SetVol(8, 0, 0));
+
+    EXPECT_EQ(tr->volume[0], 8);
+}
+
+TEST_F(SongEditingTest, SetSpeedReturnsFalseForAnInvalidTrack) {
+    EXPECT_FALSE(g_Tracks.SetSpeed(3, -1, 0));
+}
+
+TEST_F(SongEditingTest, SetSpeedReturnsFalseAndChangesNothingWhenLineIsOutOfBounds) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->speed[0] = 1;
+
+    EXPECT_FALSE(g_Tracks.SetSpeed(3, 0, tr->len));
+
+    EXPECT_EQ(tr->speed[0], 1);
+}
+
+TEST_F(SongEditingTest, SetSpeedSetsTheSpeedAtTheGivenLine) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+
+    EXPECT_TRUE(g_Tracks.SetSpeed(3, 0, 0));
+
+    EXPECT_EQ(tr->speed[0], 3);
+}
+
+TEST_F(SongEditingTest, SetEndReturnsFalseForAnInvalidTrack) {
+    EXPECT_FALSE(g_Tracks.SetEnd(-1, 5));
+}
+
+TEST_F(SongEditingTest, SetEndSetsLengthToMaxTrackLengthWhenLineIsZero) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->len = 10;
+
+    EXPECT_TRUE(g_Tracks.SetEnd(0, 0));
+
+    EXPECT_EQ(tr->len, 64);
+}
+
+TEST_F(SongEditingTest, SetEndSetsLengthToTheGivenLineWhenDifferentFromTheCurrentLength) {
+    TTrack* tr = g_Tracks.GetTrack(0); // tr->len starts at 64 (SetUp's maxTrackLength)
+
+    EXPECT_TRUE(g_Tracks.SetEnd(0, 10));
+
+    EXPECT_EQ(tr->len, 10);
+}
+
+TEST_F(SongEditingTest, SetEndTogglesBackToMaxTrackLengthWhenLineEqualsTheCurrentLength) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->len = 10;
+
+    EXPECT_TRUE(g_Tracks.SetEnd(0, 10));
+
+    EXPECT_EQ(tr->len, 64);
+}
+
+TEST_F(SongEditingTest, SetEndResetsGoWhenItFallsOutsideTheNewLength) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->go = 20;
+
+    g_Tracks.SetEnd(0, 10); // len becomes 10, go (20) no longer fits
+
+    EXPECT_EQ(tr->go, -1);
+}
+
+TEST_F(SongEditingTest, SetEndPreservesGoWhenItStillFitsWithinTheNewLength) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->go = 5;
+
+    g_Tracks.SetEnd(0, 10);
+
+    EXPECT_EQ(tr->go, 5);
+}
+
+TEST_F(SongEditingTest, SetGoReturnsFalseForAnInvalidTrack) {
+    EXPECT_FALSE(g_Tracks.SetGo(-1, 5));
+}
+
+TEST_F(SongEditingTest, SetGoReturnsFalseAndChangesNothingWhenLineIsNotBeforeTheTrackEnd) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->go = 3;
+
+    EXPECT_FALSE(g_Tracks.SetGo(0, tr->len));
+
+    EXPECT_EQ(tr->go, 3);
+}
+
+TEST_F(SongEditingTest, SetGoSetsTheGoLine) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+
+    EXPECT_TRUE(g_Tracks.SetGo(0, 5));
+
+    EXPECT_EQ(tr->go, 5);
+}
+
+TEST_F(SongEditingTest, SetGoTogglesOffWhenCalledAgainWithTheSameLine) {
+    TTrack* tr = g_Tracks.GetTrack(0);
+    tr->go = 5;
+
+    EXPECT_TRUE(g_Tracks.SetGo(0, 5));
+
+    EXPECT_EQ(tr->go, -1);
 }
 
 // --- TrackCopy / TrackPaste / TrackDelete / TrackCut / TrackCopyFromTo / TrackSwapFromTo ---

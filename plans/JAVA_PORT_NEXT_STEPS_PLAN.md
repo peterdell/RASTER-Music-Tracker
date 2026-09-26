@@ -18,19 +18,22 @@ per-item workflow (C++ characterize first if untested, then port to Java,
 verify with `mvn -o clean test` and/or the full C++ suite, update
 `plans/NOTES.md`, ask before committing).
 
-1. **`TracksEdit.cpp`'s 7 methods - never characterized on either side.**
-   `CTracks::DelNoteInstrVolSpeed`/`SetNoteInstrVol`/`SetInstr`/`SetVol`/
-   `SetSpeed`/`SetEnd`/`SetGo` (`src/cpp/TracksEdit.cpp`, 158 lines) touch
-   only `g_Undo`/`g_respectvolume` - no dialogs, no hardware. The file is
-   already linked into `RmtTests.vcxproj` (needed by `PlayVBI`'s
-   quantization branch, per `plans/SONG_IO_SONG_REMAINING_PLAN.md`'s Batch
-   5 write-up), but grepping `src/cpp/test/*.cpp` for all 7 method names
-   turns up zero call sites - none of them has ever had a dedicated test.
-   This was deferred twice in `plans/JAVA_PORT_PLAN.md` (Sixth and Seventh
-   ported batches) back when `CUndo` was still a no-op test stub; `Undo` is
-   now fully characterized and ported on both sides
-   (`plans/UNDO_PLAN.md`), so the original blocker is gone. Write C++
-   characterization tests for all 7 first, then port to `Tracks.java`.
+1. **`TracksEdit.cpp`'s 7 methods - DONE (2026-09-26).** `CTracks::
+   DelNoteInstrVolSpeed`/`SetNoteInstrVol`/`SetInstr`/`SetVol`/`SetSpeed`/
+   `SetEnd`/`SetGo` (`src/cpp/TracksEdit.cpp`, 158 lines) touched only
+   `g_Undo`/`g_respectvolume` - no dialogs, no hardware - but had never had
+   a dedicated test despite the file already being linked into
+   `RmtTests.vcxproj`. Deferred twice in `plans/JAVA_PORT_PLAN.md` (Sixth
+   and Seventh ported batches) back when `CUndo` was still a no-op test
+   stub; unblocked once `Undo` was fully characterized and ported
+   (`plans/UNDO_PLAN.md`). C++-characterized (30 new tests in
+   `SongEditingTests.cpp`, all passing on the first run) then ported to
+   `Tracks.java` (`delNoteInstrVolSpeed`/`setNoteInstrVol`/`setInstr`/
+   `setVol`/`setSpeed`/`setEnd`/`setGo`, each taking an explicit `Undo`
+   parameter, `setNoteInstrVol` also taking an explicit `respectVolume`
+   boolean - matching this port's "C++ global -> explicit parameter"
+   idiom). Full write-up in `plans/JAVA_PORT_PLAN.md`'s next ported batch
+   entry.
 2. **`PokeyStream`'s real recording path + `AtariTrackerDriver`'s
    remaining register-poking methods.** `plans/JAVA_PORT_PLAN.md`'s
    twentieth/twenty-first ported batches deliberately ported only the

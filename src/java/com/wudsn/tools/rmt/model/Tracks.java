@@ -9,13 +9,11 @@ package com.wudsn.tools.rmt.model;
  * in {@code TracksTests.cpp} and ported here once that gave real
  * golden-master values to verify against.
  *
- * <p>Still deferred, matching the C++ source's own genuinely
- * globals-coupled split: {@code TracksEdit.cpp}'s
- * {@code DelNoteInstrVolSpeed}/{@code SetNoteInstrVol}/{@code SetInstr}/
- * {@code SetVol}/{@code SetSpeed}/{@code SetEnd}/{@code SetGo} (need
- * {@code g_Undo}, not yet ported) and {@code IO_Tracks.cpp}'s
- * {@code SaveTrack}/{@code LoadTrack}/{@code SaveAll}/{@code LoadAll}
- * (untested stream I/O in two on-disk formats).
+ * <p>{@code TracksEdit.cpp}'s {@code DelNoteInstrVolSpeed}/
+ * {@code SetNoteInstrVol}/{@code SetInstr}/{@code SetVol}/{@code SetSpeed}/
+ * {@code SetEnd}/{@code SetGo} and {@code IO_Tracks.cpp}'s
+ * {@code SaveTrack}/{@code LoadTrack}/{@code SaveAll}/{@code LoadAll} are
+ * now ported too (see each section's own comment below).
  *
  * <p>C++'s {@code new TTrack[TRACKSNUM]} leaves every track's fields
  * genuinely uninitialized until {@code InitTracks()} runs (a known,
@@ -685,6 +683,162 @@ public final class Tracks {
 		if (isValidLength(length)) {
 			maxTrackLength = length;
 		}
+	}
+
+	// --- DelNoteInstrVolSpeed/SetNoteInstrVol/SetInstr/SetVol/SetSpeed/
+	// SetEnd/SetGo (TracksEdit.cpp) ---
+	//
+	// Ported from CTracks::DelNoteInstrVolSpeed/SetNoteInstrVol/SetInstr/
+	// SetVol/SetSpeed/SetEnd/SetGo - the only CTracks methods that touch
+	// g_Undo/g_respectvolume in C++, kept in their own source file there for
+	// that reason (see TracksEdit.cpp's own header comment). g_Undo becomes
+	// an explicit Undo parameter and g_respectvolume an explicit
+	// respectVolume parameter, matching this port's established "C++ global
+	// a method needs -> explicit parameter" idiom.
+
+	public boolean delNoteInstrVolSpeed(int noteInstrVolSpeed, int trackNumber, int line, Undo undo) {
+		Track tr = getTrack(trackNumber);
+		if (tr == null) {
+			return false;
+		}
+
+		undo.changeTrack(trackNumber, line, UndoType.UETYPE_NOTEINSTRVOLSPEED);
+		undo.separator();
+
+		// If the line on track is within boundaries, continue
+		if (line >= 0 && line < tr.len) {
+			if ((noteInstrVolSpeed & 1) != 0) {
+				tr.note[line] = -1;
+			}
+			if ((noteInstrVolSpeed & 2) != 0) {
+				tr.instr[line] = -1;
+			}
+			if ((noteInstrVolSpeed & 4) != 0) {
+				tr.volume[line] = -1;
+			}
+			if ((noteInstrVolSpeed & 8) != 0) {
+				tr.speed[line] = -1;
+			}
+			return true;
+		}
+
+		// Else, nothing will be deleted
+		return false;
+	}
+
+	public boolean setNoteInstrVol(int note, int instr, int vol, int trackNumber, int line, boolean respectVolume, Undo undo) {
+		Track tr = getTrack(trackNumber);
+		if (tr == null) {
+			return false;
+		}
+
+		undo.changeTrack(trackNumber, line, UndoType.UETYPE_NOTEINSTRVOL);
+		undo.separator();
+
+		// If the line on track is within boundaries, continue
+		if (line >= 0 && line < tr.len) {
+			if (note < 0) {
+				instr = -1;
+				vol = -1;
+			}
+
+			if (!respectVolume || (vol < 0 || tr.volume[line] < 0)) {
+				tr.volume[line] = vol;
+			}
+
+			tr.note[line] = note;
+			tr.instr[line] = instr;
+			return true;
+		}
+
+		// Else, nothing will be set
+		return false;
+	}
+
+	public boolean setInstr(int instr, int trackNumber, int line, Undo undo) {
+		Track tr = getTrack(trackNumber);
+		if (tr == null) {
+			return false;
+		}
+
+		undo.changeTrack(trackNumber, line, UndoType.UETYPE_NOTEINSTRVOL);
+		// undo.separator();	// Why no undo separator?
+
+		// If the line on track is within boundaries, continue
+		if (line >= 0 && line < tr.len) {
+			tr.instr[line] = instr;
+			return true;
+		}
+
+		// Else, nothing will be set
+		return false;
+	}
+
+	public boolean setVol(int vol, int trackNumber, int line, Undo undo) {
+		Track tr = getTrack(trackNumber);
+		if (tr == null) {
+			return false;
+		}
+
+		undo.changeTrack(trackNumber, line, UndoType.UETYPE_NOTEINSTRVOL);
+		// undo.separator();	// Why no undo separator?
+
+		// If the line on track is within boundaries, continue
+		if (line >= 0 && line < tr.len) {
+			tr.volume[line] = vol;
+			return true;
+		}
+
+		// Else, nothing will be set
+		return false;
+	}
+
+	public boolean setSpeed(int speed, int trackNumber, int line, Undo undo) {
+		Track tr = getTrack(trackNumber);
+		if (tr == null) {
+			return false;
+		}
+
+		undo.changeTrack(trackNumber, line, UndoType.UETYPE_SPEED);
+		// undo.separator();	// Why no undo separator?
+
+		// If the line on track is within boundaries, continue
+		if (line >= 0 && line < tr.len) {
+			tr.speed[line] = speed;
+			return true;
+		}
+
+		// Else, nothing will be set
+		return false;
+	}
+
+	public boolean setEnd(int trackNumber, int line, Undo undo) {
+		Track tr = getTrack(trackNumber);
+		if (tr == null) {
+			return false;
+		}
+
+		undo.changeTrack(trackNumber, line, UndoType.UETYPE_LENGO, 1);
+
+		// Set the track length to
+		tr.len = (line > 0 && tr.len != line) ? line : maxTrackLength;
+		if (tr.go >= tr.len) {
+			tr.go = -1;
+		}
+		return true;
+	}
+
+	public boolean setGo(int trackNumber, int line, Undo undo) {
+		Track tr = getTrack(trackNumber);
+		if (tr == null) {
+			return false;
+		}
+		if (line >= tr.len) {
+			return false;
+		}
+		undo.changeTrack(trackNumber, line, UndoType.UETYPE_LENGO, 1);
+		tr.go = tr.go == line ? -1 : line;
+		return true;
 	}
 
 	// --- SaveAll/LoadAll/SaveTrack/LoadTrack (IO_Tracks.cpp) ---
