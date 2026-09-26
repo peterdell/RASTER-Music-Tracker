@@ -3745,4 +3745,48 @@ build clean and all 123 tests pass.
       `mvn -o clean test`: 393 tests pass (+1), no regressions.
     - Full write-up in `plans/JAVA_PORT_PLAN.md`'s thirty-fifth ported
       batch and `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A items 2-3.
-      Not yet committed.
+      Committed as `9d96136`.
+  - **2026-09-26**: Thirty-sixth Java-port batch, continuing "do the asap
+    part" - three of the five dependent export methods: new
+    `SapFileExporter.exportSapR`, `SongExporter.exportLzss`, and
+    `WaveFileExporter.exportWav`.
+    - `exportSapR`/`exportLzss` are direct ports (SAP-R header +
+      `PokeyStream#getFrameBytes`; full/intro/loop sections through the
+      already-ported `CompressLzss`). `ExportCompactLZSS` deliberately not
+      ported - its own C++ source calls itself "TODO: What is this?
+      Currently unused?" and its body has dead logic and writes a
+      diagnostic dump, not a real export.
+    - `exportWav` is a deliberate idiomatic substitution: C++'s `ExportWAV`
+      replays the recorded `PokeyStream` into a *separate* software POKEY
+      audio synthesizer (`CXPokey`/`PokeyRenderer.h/.cpp`/`PokeyCore.cpp`)
+      that was never ported to Java. Rather than porting a second,
+      redundant synthesizer from scratch, this exports the song to a real
+      RMT module and lets `AsapEmulator`'s underlying ASAP render the WAV
+      directly (`load`/`playSong`/`generate`/`getWavHeader`) - same
+      observable result, no duplicated engineering effort.
+    - Found and worked around a real, previously-unexercised edge case in
+      the already-shipped `CompressLzss`: a zero-length section (a short
+      loop's `thirdCountPoint` can legitimately be 0) throws
+      `ArrayIndexOutOfBoundsException` there. Already a documented,
+      deliberately-kept "fragile contract" (C++ has silent UB for
+      malformed lengths instead, per `CompressLzss`'s own class javadoc
+      from an earlier session) - guarded at the new caller
+      (`SongExporter#compressSection`) rather than reopening that
+      decision.
+    - Tests (`SongEditingTest`, extended) confirm real, non-zero captured
+      data for SAP-R and a valid RIFF/WAVE file for WAV - both stronger
+      checks than the C++ characterization tests can make, for the same
+      reason as `dumpSongToPokeyStream`'s own test (the C++ test binary's
+      CPU is also a no-op stub). The LZSS test mirrors
+      `SongEditingTests.cpp`'s own honest "never crosses the compression
+      threshold in this test environment" finding, for a different
+      underlying reason (real audio, but a minimal 2-line loop still
+      lacks enough content to compress past 16 bytes).
+    - Verified with `mvn -o clean test`: 396 tests pass (+3), no
+      regressions. `ExportSAP_B_LZSS`/`ExportXEX_LZSS` remain unported -
+      both need a new `VUPlayer` class and real on-disk resource-file
+      loading, a distinctly bigger chunk of work, flagged for a decision
+      on whether to continue now. Full write-up in
+      `plans/JAVA_PORT_PLAN.md`'s thirty-sixth ported batch and
+      `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4. Not yet
+      committed.

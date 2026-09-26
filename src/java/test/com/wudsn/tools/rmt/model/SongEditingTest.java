@@ -2135,4 +2135,130 @@ class SongEditingTest {
 		}
 		assertTrue(anyNonZero, "expected at least one non-zero POKEY register byte");
 	}
+
+	// --- SapFileExporter.exportSapR ---
+	// Extracted implicitly: CSongExporter::ExportSAP_R() (SongExporter.cpp)
+	// shows a real dialog then delegates to this dialog-independent method
+	// with an already-populated CSAPFile - same "dialog gathers params, real
+	// work happens independently" shape as the RMT/ASM exporters. Takes an
+	// already-recorded PokeyStream directly (see SapFileExporter's own class
+	// javadoc for why CSongContainer/CSongExport weren't ported).
+
+	@Test
+	void exportSapRWritesTheHeaderAndRealPokeyStreamData() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 1;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+		Track tr = tracks.getTrack(5);
+		tr.len = 2;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+		tr.volume[0] = 10;
+		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10;
+		song.getSongGo()[1] = 0; // guarantees a fast loop
+
+		ChannelControl channelControl = new ChannelControl(4);
+		PokeyStream pokeyStream = new PokeyStream();
+		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
+
+		SapFile sapFile = new SapFile();
+		sapFile.setAuthor("RCoder");
+		sapFile.setName("RSong");
+		sapFile.setDate("01/01/2000");
+
+		byte[] out = SapFileExporter.exportSapR(sapFile, pokeyStream);
+
+		String text = new String(out, java.nio.charset.StandardCharsets.US_ASCII);
+		assertTrue(text.contains("TYPE R"));
+		assertTrue(out.length > 64);
+
+		int headerLen = text.indexOf("TYPE R") + "TYPE R".length() + 4; // + the double EOL SapFile.export() always ends with
+		boolean anyNonZero = false;
+		for (int i = headerLen; i < out.length; i++) {
+			if (out[i] != 0) {
+				anyNonZero = true;
+				break;
+			}
+		}
+		assertTrue(anyNonZero, "expected at least one non-zero POKEY register byte after the header");
+	}
+
+	// --- WaveFileExporter.exportWav ---
+	// See WaveFileExporter's own class javadoc for why this uses ASAP's own
+	// audio synthesis directly instead of porting CXPokey/PokeyRenderer.
+
+	@Test
+	void exportWavRendersAValidRiffWaveFile() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 1;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+		Track tr = tracks.getTrack(5);
+		tr.len = 2;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+		tr.volume[0] = 10;
+		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10;
+		song.getSongGo()[1] = 0; // guarantees a fast loop
+
+		ChannelControl channelControl = new ChannelControl(4);
+		PokeyStream pokeyStream = new PokeyStream();
+		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
+
+		int durationMs = (int) Math.round(pokeyStream.getFirstCountPoint() * 1000.0 / WaveFileExporter.getFrameRate(song.isNTSC()));
+
+		byte[] out = WaveFileExporter.exportWav(song, instruments, 4, durationMs);
+
+		assertEquals("RIFF", new String(out, 0, 4, java.nio.charset.StandardCharsets.US_ASCII));
+		assertEquals("WAVE", new String(out, 8, 4, java.nio.charset.StandardCharsets.US_ASCII));
+		assertTrue(out.length > 64);
+	}
+
+	// --- SongExporter.exportLzss ---
+	// Mirrors SongEditingTests.cpp's own honest finding for this method: a
+	// minimal test song's recorded PokeyStream data is small/repetitive
+	// enough that none of the three sections ever cross ExportLZSS's own
+	// "> 16 compressed bytes" threshold - for a different reason than the
+	// C++ test's own (there, the no-op JSR stub means the data is
+	// permanently near-silent; here, ASAP produces real audio, but this
+	// particular 2-line loop still doesn't have enough distinct content to
+	// compress past 16 bytes). This also exercises thirdCountPoint's
+	// legitimate zero-frames case, which surfaced (and is now guarded
+	// against, see SongExporter#compressSection) a pre-existing,
+	// previously-unexercised CompressLzss edge case.
+
+	@Test
+	void exportLzssStaysBelowTheCompressedSizeThresholdForAMinimalSong() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 1;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+		Track tr = tracks.getTrack(5);
+		tr.len = 2;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+		tr.volume[0] = 10;
+		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10;
+		song.getSongGo()[1] = 0; // guarantees a fast loop
+
+		ChannelControl channelControl = new ChannelControl(4);
+		PokeyStream pokeyStream = new PokeyStream();
+		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
+
+		SongExporter.LzssExportResult result = SongExporter.exportLzss(pokeyStream);
+
+		assertEquals(0, result.full().length);
+		assertEquals(0, result.intro().length);
+		assertEquals(0, result.loop().length);
+	}
 }

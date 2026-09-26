@@ -1643,15 +1643,55 @@ regressions. Full write-up in `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s
 Phase A items 2-3.
 
 `SapFileExporter`/`SongContainer`/`SongExport` and the five export methods
-themselves (item 4) are not part of this batch - see Next steps.
+themselves (item 4) are not part of this batch - see the next one.
+
+## Thirty-sixth ported batch (2026-09-26): three of the five dependent export methods
+
+Phase A item 4 of `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`, continued from the
+batch above. Ports `CSAPFileExporter::ExportSAP_R` (new `SapFileExporter`
+class), `CSongExporter::ExportLZSS` (new `SongExporter` class, using the
+already-ported `CompressLzss`), and `CWaveFileExporter::ExportWAV` (new
+`WaveFileExporter` class). `ExportCompactLZSS` deliberately not ported
+(its own C++ source self-describes as unused/dead debug code, not a real
+export). `ExportWAV` is a deliberate idiomatic substitution rather than a
+line-for-line port: instead of porting C++'s separate `CXPokey`/
+`PokeyRenderer`/`PokeyCore` software POKEY audio synthesizer (never
+ported to Java), it exports the song to a real RMT module and lets
+`AsapEmulator`'s underlying ASAP render the WAV directly via its own
+`load`/`playSong`/`generate`/`getWavHeader` - same observable result
+(a valid WAV that sounds like the song), no redundant second synthesizer.
+
+Surfaced and worked around a real, previously-unexercised edge case in the
+already-shipped `CompressLzss`: a zero-length input (a short loop's
+`thirdCountPoint` can legitimately be 0) throws
+`ArrayIndexOutOfBoundsException` - already a documented, deliberately-kept
+"fragile contract" difference from C++'s own silent-UB behavior for
+malformed lengths (per `CompressLzss`'s own class javadoc), so guarded at
+the new caller (`SongExporter#compressSection`) instead of reopening that
+earlier decision.
+
+Tests (`SongEditingTest`, extended): `exportSapRWritesTheHeaderAndRealPokeyStreamData`
+(confirms real, non-zero POKEY bytes past the header),
+`exportWavRendersAValidRiffWaveFile`,
+`exportLzssStaysBelowTheCompressedSizeThresholdForAMinimalSong` (mirrors
+`SongEditingTests.cpp`'s own honest "never crosses the threshold in this
+test environment" finding, for a different underlying reason). Verified
+with `mvn -o clean test`: 396 tests pass (+3), no regressions. Full
+write-up in `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4.
+
+`ExportSAP_B_LZSS`/`ExportXEX_LZSS` remain unported - both need a new
+`VUPlayer` class plus real on-disk resource-file loading, a distinctly
+bigger chunk of work than what's done here.
 
 ## Next steps
 
 - **Phase A** (small, model-layer): `TracksEdit.cpp`'s 7 methods and real
   CPU/POKEY emulation (`PokeyStream`/`dumpSongToPokeyStream`, via ASAP) are
-  now DONE (see the two ported batches just above). Remaining: the five
-  dependent SAP-R/LZSS/WAV/XEX export methods (all already
-  C++-characterized, not yet ported - unblocked now, mostly wiring).
+  now DONE, and three of the five dependent export methods
+  (`ExportSAP_R`/`ExportLZSS`/`ExportWAV`) are DONE too (see the three
+  ported batches just above). Remaining: `ExportSAP_B_LZSS`/
+  `ExportXEX_LZSS` (need a new `VUPlayer` class and real on-disk
+  resource-file loading - not yet started).
 - **Phase B** (large, not started): the entire Java UI layer
   (`com.wudsn.tools.rmt.ui` doesn't exist yet) - see
   `plans/JAVA_PORT_NEXT_STEPS_PLAN.md` for what `plans/UI_SURVEY_PLAN.md`

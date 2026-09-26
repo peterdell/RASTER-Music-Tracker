@@ -126,22 +126,61 @@ verify with `mvn -o clean test` and/or the full C++ suite, update
    parser correctly reject the module as "no songs found" - matching real
    playback semantics, not a bug). Verified with `mvn -o clean test`: 393
    tests pass (+1), no regressions.
-4. **The five dependent export methods - not yet ported, now unblocked.**
-   `CSongExporter::ExportSAP_R`/`ExportSAP_B_LZSS`/`ExportLZSS`/
-   `ExportCompactLZSS`/`ExportXEX_LZSS` and `CWaveFileExporter::ExportWAV`
-   are all already C++-characterized ("Implementation - DONE" in
-   `plans/SAP_LZSS_WAV_XEX_PLAN.md`/`plans/EXPORTLZSS_PLAN.md`/
-   `plans/EXPORTWAV_PLAN.md`) and items 2-3's blockers are now cleared -
-   this is mostly wiring. `SapFile`/`CompressLzss` (the lower-level format
-   helpers these methods call) are already ported
-   (`plans/JAVA_PORT_PLAN.md`'s twelfth/seventeenth batches); a new
-   `SapFileExporter` class (matching `CSAPFileExporter`, not yet ported)
-   is needed for `ExportSAP_R`/`ExportSAP_B_LZSS`. `SongContainer`/
-   `SongExport` (the lazy-caching wrapper pair `CSongContainer`/
-   `CSongExport`) were deliberately **not** ported - pure caching
-   optimizations, not needed for correctness; each export can call
-   `dumpSongToPokeyStream` directly instead, achieving the same observable
-   result without the cross-export caching.
+4. **Three of the five dependent export methods - DONE (2026-09-26).**
+   `CSongExporter::ExportSAP_R`/`ExportLZSS` and `CWaveFileExporter::ExportWAV`
+   are ported. `SongContainer`/`SongExport` (the lazy-caching wrapper pair)
+   were deliberately **not** ported - pure caching optimizations, not
+   needed for correctness; each export calls
+   `Song#dumpSongToPokeyStream` directly instead, achieving the same
+   observable result without the cross-export caching.
+   - **New `SapFileExporter.exportSapR`**: writes `SapFile.export()`'s
+     header (type `"R"`) followed by `PokeyStream#getFrameBytes`'s raw
+     register bytes up to the loop point - a direct, one-to-one port.
+   - **New `SongExporter.exportLzss`**: compresses the full/intro/loop
+     sections via the already-ported `CompressLzss`. `ExportCompactLZSS`
+     was deliberately **not** ported - its own C++ source self-describes
+     as "TODO: What is this? Currently unused?" and its body has genuinely
+     dead logic and writes a diagnostic text dump, not a real export
+     (matches `plans/EXPORTLZSS_PLAN.md`'s own "low priority, hacked up"
+     characterization). Surfaced and worked around a real,
+     previously-unexercised `CompressLzss` edge case: a zero-length
+     section (e.g. a short loop's `thirdCountPoint`) throws
+     `ArrayIndexOutOfBoundsException` there - already a known,
+     deliberately-preserved "fragile contract" per `CompressLzss`'s own
+     class javadoc (C++ has silent UB for malformed lengths instead), so
+     guarded at the new caller instead of reopening that decision.
+   - **New `WaveFileExporter.exportWav` - a deliberate idiomatic
+     substitution, not a line-for-line port**: C++'s `ExportWAV` replays
+     the already-recorded `PokeyStream` bytes into a *separate* software
+     POKEY audio-synthesis engine (`CXPokey`/`PokeyRenderer.h/.cpp`/
+     `PokeyCore.cpp` - confirmed C++-tested via `ExportWAV`'s own test
+     during the Phase A item 5 sanity sweep, but never ported to Java).
+     Porting that second, redundant synthesizer from scratch would
+     duplicate real engineering effort for no behavioral gain, since
+     `AsapEmulator`'s underlying ASAP already contains one: this port
+     instead exports the song to a real RMT module (same step as
+     `dumpSongToPokeyStream`) and lets `ASAP.load`/`playSong`/`generate`/
+     `getWavHeader` independently render it. The observable result (a
+     valid WAV file that sounds like the song) is the same; only which
+     software POKEY emulator computes the samples differs.
+   - Tests (`SongEditingTest`, extended): `exportSapRWritesTheHeaderAndRealPokeyStreamData`
+     (confirms real, non-zero POKEY bytes past the header - stronger than
+     the C++ test can check, same reason as `dumpSongToPokeyStream`'s own
+     test), `exportWavRendersAValidRiffWaveFile`,
+     `exportLzssStaysBelowTheCompressedSizeThresholdForAMinimalSong`
+     (mirrors `SongEditingTests.cpp`'s own honest "never crosses the
+     threshold in this test environment" finding, for a different reason -
+     real ASAP audio, but a minimal 2-line loop still doesn't have enough
+     distinct content to compress past 16 bytes). Verified with
+     `mvn -o clean test`: 396 tests pass (+3), no regressions.
+   - **Still not ported: `ExportSAP_B_LZSS`/`ExportXEX_LZSS`.** Both need a
+     new `VUPlayer` class (many memory-address constants plus
+     `PatchMemoryForSAP_B`'s real memory-patching logic) and real
+     on-disk resource-file loading (`resources/players/vu_player_v2.obx`,
+     via a `CAtariIO::LoadBinaryFile`-equivalent not yet ported - a
+     different loading path than `RmtAtariBinaries`'s embedded-resource
+     one already used for tracker driver binaries). A distinctly bigger,
+     more novel chunk of work than the three done above - not started.
 5. **Closing sanity sweep - DONE (2026-09-26), clean.** Ran the
    `BROADER_SURVEY_PLAN.md`-style pass described above: extracted every
    `ClassName::MethodName` defined across all 44 non-stub `.cpp` files
