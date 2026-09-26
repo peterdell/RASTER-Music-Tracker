@@ -229,10 +229,14 @@ shows anything, `plans/NOTES.md` entry, ask before committing.
   five `.cur` cursors, wheel. Popups/commands behind
   `MouseInput.Callbacks`; `changeMaxTrackLength`/`switchMonoStereo` wait
   for B7's dialogs/message boxes. Details in `NOTES.md`.
-- **B5 - menus, toolbars, accelerators, status bar.** `RmtActions`
-  (+`Actions.properties`), `RmtMainMenu` (12 menus incl. the `Pokey`
-  tree), 2 toolbars + skip-lines combo, 76 accelerators, the 203 handlers
-  as thin delegations, enable/check-state updates.
+- **B5 - menus, toolbars, accelerators, status bar - DONE (2026-09-26).**
+  `Actions` (+`Actions.properties`), `RmtCommandId`, `RmtMainMenu` (12
+  menus incl. the `Pokey` tree), `RmtToolBars` (2 toolbars from the
+  original strips + skip-lines combo), `RmtCommands` (all handlers +
+  enable/check/text updates), `SwingMessages` behind the new
+  `Messages.Handler`. Accelerators dispatch before the key handlers as
+  in MFC. Dialog/file commands report "not available" until B6/B7.
+  Details in `NOTES.md`.
 - **B6 - options & persistence (DECISION 3).** `rmt.ini` read/write/reset,
   tuning config, frame position via `MainWindowPreferences`, Options +
   Paths dialogs, Tuning dialog.

@@ -4076,4 +4076,35 @@ build clean and all 123 tests pass.
       `(-73, -7)`/`(-146, -7)` in *logical* units used as screen pixels -
       an RMT quirk kept, but applied to real screen coordinates). Wheel:
       Swing rotation x -120 = Windows `zDelta`.
-    - 481 tests (+11), no regressions. Not yet committed.
+    - 481 tests (+11), no regressions. Committed as `2ed49dd`.
+  - **2026-09-26**: Phase B, batch B5 (menus, toolbars, accelerators,
+    status line). `Actions` (+ `Actions.properties`, WUDSN `NLS`
+    convention as in dis6502) holds every menu/command of Rmt.rc's
+    `IDR_MAIN_WINDOW` MENU/TOOLBAR/ACCELERATORS with the STRINGTABLE
+    prompts as tool tips; `RmtCommandId` is the command-ID enum (with
+    "checkable" and "accelerator is only a hint" flags); `RmtMainMenu`
+    builds the 12 menus item for item (incl. the Pokey tree, whose 8
+    register submenus share 4 commands); `RmtToolBars` the two toolbars
+    from the original 32x30 strips (RGB 192,192,192 transparent) plus
+    the skip-lines combo; `RmtCommands` ports the ~200 `CRmtView::On*`
+    handlers and their `OnUpdate*` enable/check/text logic;
+    `SwingMessages` implements the new `Messages.Handler` (the model's
+    `Send*Message` now has the `MessageBox` branch C++ has when a window
+    exists). `RmtMainWindow` wires it all; states refresh on every
+    display tick (MFC's idle `ON_UPDATE_COMMAND_UI`).
+    - **Accelerators dispatch before the tracker's key handlers**, as
+      MFC's `TranslateAccelerator` does - which is why numpad +/- adjust
+      the step size rather than the volume in RMT 1.35 (they are in the
+      accelerator table without a modifier), reproduced as is. Menu
+      labels that show a key the tracker handles itself (Song's
+      Ctrl+U/I/P/O/N/D, Block's Ctrl+B/C/V/M/X/E/F/A/Del, Shift+Ctrl+S)
+      are displayed but never dispatched (`acceleratorIsHint`); C++'s
+      stale label keys ("Edit Tracks\tF1" while F2 is the accelerator)
+      give way to the real table.
+    - Not wired yet, each reporting itself in the status line: the
+      file/dialog commands (B7), Options (B6), About/local help (B7/B9);
+      MIDI and the Pokey Explorer register commands are disabled
+      (unported). Playback commands set the play state exactly as C++
+      does; the timer routine that advances/sounds it is B8.
+    - 497 tests (+16: `RmtCommandsTest` 13, `RmtMainMenuTest` 3), no
+      regressions. Not yet committed.

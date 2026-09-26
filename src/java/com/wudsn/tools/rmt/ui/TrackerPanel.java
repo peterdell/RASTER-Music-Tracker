@@ -91,6 +91,12 @@ public final class TrackerPanel extends JPanel {
 		addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
+				// MFC's TranslateAccelerator runs before WM_KEYDOWN reaches the view: an accelerator wins over the tracker's own key handling
+				if (acceleratorDispatcher != null && acceleratorDispatcher.test(javax.swing.KeyStroke.getKeyStrokeForEvent(e))) {
+					e.consume();
+					refreshScreen();
+					return;
+				}
 				int vk = VirtualKey.fromKeyEvent(e.getKeyCode());
 				if (vk < 0) {
 					return;
@@ -159,9 +165,25 @@ public final class TrackerPanel extends JPanel {
 		timer.addActionListener(e -> {
 			tickCount++;
 			timer.setDelay(TIMER_DISPLAY_TICK[tickCount % 3]);
+			if (idleAction != null) {
+				idleAction.run();
+			}
 			refreshScreen();
 		});
 		timer.setRepeats(true);
+	}
+
+	private java.util.function.Predicate<javax.swing.KeyStroke> acceleratorDispatcher;
+	private Runnable idleAction;
+
+	/** Installs the accelerator table ({@code TranslateAccelerator}): returns true when the keystroke was a command and has been executed. */
+	public void setAcceleratorDispatcher(java.util.function.Predicate<javax.swing.KeyStroke> acceleratorDispatcher) {
+		this.acceleratorDispatcher = acceleratorDispatcher;
+	}
+
+	/** Runs on every display tick before the frame is redrawn - MFC's idle-time {@code ON_UPDATE_COMMAND_UI} pass. */
+	public void setIdleAction(Runnable idleAction) {
+		this.idleAction = idleAction;
 	}
 
 	/** {@code GetKeyState(VK_CAPITAL)}; false where the toolkit can't tell (headless/some platforms). */
