@@ -1706,23 +1706,48 @@ first real run. Verified with `mvn -o clean test`: 397 tests pass (+1), no
 regressions. Full write-up in `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase
 A item 4.
 
-`ExportXEX_LZSS` is the only remaining unported export method - a
-distinctly bigger, more novel undertaking (needs `BruteforceOptimalLZSS`,
-a new `CXEXFile`-equivalent class, `CSong::GetSubsongParts`, a *different*
-embedded-resource loading path for the VU player binary, and per-subsong
-`dumpSongToPokeyStream` looping) - not started, flagged for a decision.
+## Thirty-eighth ported batch (2026-09-26): `ExportXEX_LZSS` - completes Phase A item 4
+
+The fifth and last dependent export method. New `XexFile` class (a plain
+mutable settings struct matching `CXEXFile`, minus its two dead fields -
+`songname`/`currentTime` are set by `InitFromSong` but never read anywhere
+in the export path). New `SongExporter.exportXexLzss`: parses the
+already-ported `Song#getSubsongParts`'s hex-token-string result into
+subtune songline numbers, calls `dumpSongToPokeyStream` once per subsong
+(`PLAY_FROM` mode - unlike every other export method, which uses
+`PLAY_SONG` once for the whole song), bruteforces the best
+`SapROptimization` per section (new `bruteforceOptimalLzss`, trying all 8
+variants and keeping the shortest), and reconstructs the VUPlayer XEX
+binary byte-for-byte, including the Atari-screen-code text conversion
+(new `strToAtariVideo`) and the NTSC/PAL region patch. Confirmed C++'s two
+different loading mechanisms for `vu_player_v2.obx`
+(`CRmtAtariBinaries::GetVUPlayerBinary`'s embedded-resource load here vs.
+`ExportSAP_B_LZSS`'s real on-disk `std::ifstream` load) read the exact
+same real file with no observable difference, so this reuses
+`SapFileExporter`'s existing `VU_PLAYER_PATH`/loading logic rather than
+porting a second, redundant resource-loading mechanism.
+
+Test (`SongEditingTest`, extended):
+`exportXexLzssLoadsTheRealResourceAndWritesReconstructedBinary` - passed
+on the first real run despite the method's size. Verified with
+`mvn -o clean test`: 398 tests pass (+1), no regressions. Full write-up in
+`plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4.
+
+**Phase A is now fully DONE**: all five items closed (`TracksEdit.cpp`,
+real CPU/POKEY emulation via ASAP, all five export methods, and the
+closing sanity sweep). The Java port's model layer has no further
+known-unported, real, meaningful C++ behavior left.
 
 ## Next steps
 
-- **Phase A** (small, model-layer): `TracksEdit.cpp`'s 7 methods and real
-  CPU/POKEY emulation (`PokeyStream`/`dumpSongToPokeyStream`, via ASAP) are
-  now DONE, and four of the five dependent export methods
-  (`ExportSAP_R`/`ExportLZSS`/`ExportWAV`/`ExportSAP_B_LZSS`) are DONE too
-  (see the four ported batches just above). Remaining: `ExportXEX_LZSS`
-  (needs `BruteforceOptimalLZSS`, a new `CXEXFile`-equivalent class, and a
-  different embedded-resource loading path - not yet started).
-- **Phase B** (large, not started): the entire Java UI layer
-  (`com.wudsn.tools.rmt.ui` doesn't exist yet) - see
+- **Phase A - fully DONE.** `TracksEdit.cpp`'s 7 methods, real CPU/POKEY
+  emulation (`PokeyStream`/`dumpSongToPokeyStream`, via ASAP), and all five
+  dependent export methods (`ExportSAP_R`/`ExportLZSS`/`ExportWAV`/
+  `ExportSAP_B_LZSS`/`ExportXEX_LZSS`) are all ported and tested (see the
+  ported batches above). No further known-unported, real, meaningful
+  model-layer C++ behavior remains.
+- **Phase B** (large, not started - the only remaining work): the entire
+  Java UI layer (`com.wudsn.tools.rmt.ui` doesn't exist yet) - see
   `plans/JAVA_PORT_NEXT_STEPS_PLAN.md` for what `plans/UI_SURVEY_PLAN.md`
   already resolved versus what's still open (rendering/repaint model, UI
   toolkit choice, click-positioned popups/custom cursors).

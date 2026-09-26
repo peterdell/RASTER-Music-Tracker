@@ -2303,4 +2303,44 @@ class SongEditingTest {
 		assertEquals(0, result.intro().length);
 		assertEquals(0, result.loop().length);
 	}
+
+	// --- SongExporter.exportXexLzss ---
+	// Needs the same real on-disk resource file as exportSapBLzss
+	// (rmt/resources/players/vu_player_v2.obx). Calls
+	// Song#dumpSongToPokeyStream directly (once per subsong, PLAY_FROM
+	// mode) rather than through the unported CSongContainer/CSongExport
+	// caching pair - see SapFileExporter's own class javadoc for why.
+
+	@Test
+	void exportXexLzssLoadsTheRealResourceAndWritesReconstructedBinary() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 1;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+		Track tr = tracks.getTrack(5);
+		tr.len = 2;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+		tr.volume[0] = 10;
+		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10;
+		song.getSongGo()[1] = 0; // guarantees a fast loop
+
+		XexFile xexFile = XexFile.fromSong(song, 4);
+		xexFile.autoRegion = true; // skips the NOP-patching branch, simplifying the test
+		xexFile.displayRasterbar = false;
+		xexFile.rasterbarColor = 0;
+		java.util.Arrays.fill(xexFile.atariText, (byte) ' ');
+
+		ChannelControl channelControl = new ChannelControl(4);
+		byte[] out = SongExporter.exportXexLzss(song, 4, xexFile, atariTrackerDriver, channelControl, clipboard, undo);
+
+		// The output is a reconstructed Atari binary (headers + raw data, not
+		// text) - just confirm a substantial amount of it actually landed,
+		// i.e. the real resource file loaded and the LZSS/dumpSongToPokeyStream
+		// pipeline produced real data rather than silently failing.
+		assertTrue(out.length > 3500, "expected a substantial reconstructed binary, was " + out.length + " bytes");
+	}
 }

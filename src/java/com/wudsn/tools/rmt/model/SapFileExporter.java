@@ -50,7 +50,13 @@ public final class SapFileExporter {
 	// C++ test convention (AtariBinariesStub.cpp's g_prgpath, resolved to
 	// this same rmt/ folder). Maven always runs with the repository root as
 	// the working directory, so no further path resolution is needed here.
-	private static final Path VU_PLAYER_PATH = Path.of("rmt", "resources", "players", "vu_player_v2.obx");
+	// Package-private (not private): CSAPFileExporter's own on-disk
+	// std::ifstream load and CSongExporter::ExportXEX_LZSS's
+	// CRmtAtariBinaries::GetVUPlayerBinary() (a real MFC CFile-based load)
+	// read the exact same real file in C++ too - two different C++ loading
+	// mechanisms with no observable difference, so SongExporter reuses this
+	// same constant/loading logic rather than duplicating a second one.
+	static final Path VU_PLAYER_PATH = Path.of("rmt", "resources", "players", "vu_player_v2.obx");
 
 	/**
 	 * Compresses the recorded PokeyStream's intro/loop sections, patches

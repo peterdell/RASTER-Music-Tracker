@@ -194,17 +194,35 @@ verify with `mvn -o clean test` and/or the full C++ suite, update
      `exportSapBLzssLoadsTheRealResourceAndWritesPatchedMemory` - passed on
      the first real run. Verified with `mvn -o clean test`: 397 tests pass
      (+1), no regressions.
-   - **Still not ported: `ExportXEX_LZSS`.** A distinctly bigger, more
-     novel undertaking than everything else in this item: needs
-     `BruteforceOptimalLZSS` (tries all 8 `SapROptimization` variants, keeps
-     the smallest), a new `CXEXFile`-equivalent class, `CSong::GetSubsongParts`
-     (not yet checked for a Java equivalent), `CRmtAtariBinaries::GetVUPlayerBinary`
-     (a *different* resource-loading path than `exportSapBLzss`'s real
-     on-disk file - an embedded resource, matching `GetTrackerDriverBinary`'s
-     existing pattern, not yet ported), and loops `dumpSongToPokeyStream`
-     once per subsong (`PLAY_FROM` mode, not `PLAY_SONG`) rather than once
-     for the whole song. Not started - flagged for a decision on whether to
-     continue.
+   - **`ExportXEX_LZSS` - DONE (2026-09-26) too, completing this item.**
+     New `XexFile` class (a plain mutable settings struct, matching
+     `CXEXFile` minus its two dead fields - `songname`/`currentTime` are
+     set by `InitFromSong` but never read anywhere in the export path
+     itself). New `SongExporter.exportXexLzss`: parses
+     `Song#getSubsongParts`'s existing hex-token-string result into
+     subtune songline numbers, calls `dumpSongToPokeyStream` once per
+     subsong (`PLAY_FROM` mode, each starting at its own songline - unlike
+     every other export, which uses `PLAY_SONG` once for the whole song),
+     bruteforces the best `SapROptimization` per section (new
+     `bruteforceOptimalLzss`, trying all 8 variants and keeping the
+     shortest - C++'s own recompute-the-winner-a-second-time step is
+     unneeded here since `CompressLzss#compress` already returns a fresh
+     array per call), and reconstructs the VUPlayer XEX binary
+     byte-for-byte, including the Atari-screen-code text conversion (new
+     `strToAtariVideo`) and the NTSC/PAL region patch. Confirmed
+     `CRmtAtariBinaries::GetVUPlayerBinary`'s embedded-resource load and
+     `exportSapBLzss`'s real on-disk `std::ifstream` load read the exact
+     same real file in C++ (`resources/players/vu_player_v2.obx`) with no
+     observable difference - so this reuses `SapFileExporter`'s existing
+     `VU_PLAYER_PATH`/loading logic rather than porting a second,
+     redundant resource-loading mechanism. Test (`SongEditingTest`,
+     extended): `exportXexLzssLoadsTheRealResourceAndWritesReconstructedBinary` -
+     passed on the first real run despite the method's size. Verified with
+     `mvn -o clean test`: 398 tests pass (+1), no regressions.
+
+   **Phase A item 4 (the five dependent export methods) is now fully
+   complete**: all five real, meaningful export methods are ported
+   (`ExportCompactLZSS` correctly excluded as self-described dead code).
 5. **Closing sanity sweep - DONE (2026-09-26), clean.** Ran the
    `BROADER_SURVEY_PLAN.md`-style pass described above: extracted every
    `ClassName::MethodName` defined across all 44 non-stub `.cpp` files
@@ -252,6 +270,15 @@ verify with `mvn -o clean test` and/or the full C++ suite, update
    or deliberate, already-documented exclusion. The C++
    characterization-testing phase's model-layer scope is complete except
    for the ASAP-dependent items above.
+
+**Phase A is now fully DONE (2026-09-26)**: all five items closed -
+`TracksEdit.cpp`'s 7 methods, real CPU/POKEY emulation via ASAP
+(`PokeyStream`/`dumpSongToPokeyStream`), all five dependent export methods
+(`ExportSAP_R`/`ExportLZSS`/`ExportWAV`/`ExportSAP_B_LZSS`/`ExportXEX_LZSS`),
+and the closing sanity sweep. The Java port's model layer has no further
+known-unported, real, meaningful C++ behavior left - see
+`plans/JAVA_PORT_PLAN.md`'s "Next steps" section for what's left overall
+(Phase B, the entire UI layer).
 
 **Confirmed permanently out of scope on the C++ side, not revisited by
 this phase**: `BlockEffect` (no extractable logic), the `FileXxx` dialog

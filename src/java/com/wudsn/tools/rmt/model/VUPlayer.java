@@ -2,10 +2,13 @@ package com.wudsn.tools.rmt.model;
 
 /**
  * Ported from VUPlayer (src/cpp/VUPlayer.h/.cpp) - {@link #patchMemoryForSapB}
- * plus only the memory-address constants it actually uses (a small subset
- * of {@code src/cpp/lzssp.h}'s several hundred addresses - the rest are
- * for VUPlayer's own UI/debug-overlay/keyboard-handling code, entirely
- * unrelated to the SAP-B export path this class exists for).
+ * plus only the memory-address constants it (and {@code SongExporter}'s
+ * {@code exportXexLzss}, which reads several more {@code lzssp.h}
+ * addresses directly, matching the C++ original) actually use - a small
+ * subset of {@code src/cpp/lzssp.h}'s several hundred addresses, the rest
+ * being for VUPlayer's own UI/debug-overlay/keyboard-handling code,
+ * entirely unrelated to the SAP-B/XEX export paths these classes exist
+ * for.
  *
  * <p><b>A pre-existing C++ oddity preserved as-is, not fixed</b>:
  * {@link #patchMemoryForSapB} writes to {@code memory[LZSS_POINTER]} eight
@@ -35,6 +38,20 @@ public final class VUPlayer {
 	public static final int SONGDATA = 0x2040; // LZSSP_LZ_DTA
 
 	public static final int SOUNGTIMER = 0x1FC0; // LZSSP_SONGTIMERCOUNT
+
+	public static final int REGION = 0x1841; // LZSSP_PLAYER_REGION_INIT
+	public static final int RASTER_BAR = 0x1936; // LZSSP_RASTERBAR_TOGGLER
+	public static final int COLOR = 0x1900; // LZSSP_RASTERBAR_COLOUR
+	public static final int SONGTOTAL = 0x1B0D; // LZSSP_SONGTOTAL
+
+	public static final int LINE_0 = 0x1400; // LZSSP_LINE_0
+	public static final int LINE_1 = 0x1428; // LZSSP_LINE_1
+	public static final int PLAYLZ16BEGIN = 0x0C1B; // LZSSP_PLAYLZ16BEGIN
+	public static final int VUPLAYER_START = 0x1810; // LZSSP_VUPLAYER
+	public static final int TABPPPAL = 0x17A0; // LZSSP_TABPPPAL
+	public static final int TABPPPALFIX = 0x17B1; // LZSSP_TABPPPALFIX
+	public static final int TABPPNTSCFIX = 0x17D3; // LZSSP_TABPPNTSCFIX
+	public static final int ACPAPX2 = 0x1924; // LZSSP_ACPAPX2
 
 	private static final int IS_FADEING_OUT = 0x0D69; // LZSSP_IS_FADEING_OUT
 	private static final int STOP_ON_FADE_END = 0x197A; // LZSSP_STOP_ON_FADE_END

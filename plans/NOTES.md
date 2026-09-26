@@ -3825,5 +3825,42 @@ build clean and all 123 tests pass.
       `dumpSongToPokeyStream` looping) - flagged for a decision on whether
       to continue. Full write-up in `plans/JAVA_PORT_PLAN.md`'s
       thirty-seventh ported batch and
-      `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4. Not yet
-      committed.
+      `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4. Committed as
+      `fd7c063`.
+  - **2026-09-26**: Thirty-eighth Java-port batch, completing "do the asap
+    part" - the fifth and last dependent export method: `ExportXEX_LZSS`,
+    finishing Phase A item 4 entirely.
+    - New `XexFile` class (a plain mutable settings struct matching
+      `CXEXFile`, minus its two dead fields - `songname`/`currentTime` are
+      set by `InitFromSong` but never read anywhere in the export path).
+    - New `SongExporter.exportXexLzss`: parses the already-ported
+      `Song#getSubsongParts`'s hex-token-string result into subtune
+      songline numbers, calls `dumpSongToPokeyStream` once per subsong
+      (`PLAY_FROM` mode this time, not `PLAY_SONG` - the only export
+      method that plays from a specific point rather than the whole song
+      from the start), bruteforces the best `SapROptimization` per section
+      (new `bruteforceOptimalLzss` - tries all 8 variants, keeps the
+      shortest), and reconstructs the VUPlayer XEX binary byte-for-byte,
+      including a new `strToAtariVideo` (ASCII to Atari screen-code
+      conversion) and the NTSC/PAL region patch.
+    - Confirmed C++'s two different loading mechanisms for
+      `vu_player_v2.obx` (`CRmtAtariBinaries::GetVUPlayerBinary`'s
+      embedded-resource load here vs. `ExportSAP_B_LZSS`'s real on-disk
+      `std::ifstream` load) read the exact same real file with no
+      observable difference - reused `SapFileExporter`'s existing
+      `VU_PLAYER_PATH`/loading logic rather than porting a second,
+      redundant resource-loading mechanism for the same file.
+    - Test (`SongEditingTest`, extended):
+      `exportXexLzssLoadsTheRealResourceAndWritesReconstructedBinary` -
+      passed on the first real run despite being the largest, most
+      involved method ported this session. Verified with
+      `mvn -o clean test`: 398 tests pass (+1), no regressions.
+    - **Phase A of `plans/JAVA_PORT_NEXT_STEPS_PLAN.md` is now fully
+      DONE**: all five items closed (`TracksEdit.cpp`, real CPU/POKEY
+      emulation via ASAP, all five export methods, and the closing sanity
+      sweep). The Java port's model layer has no further known-unported,
+      real, meaningful C++ behavior left - the only remaining work is
+      Phase B, the entire not-yet-started Java UI layer. Full write-up in
+      `plans/JAVA_PORT_PLAN.md`'s thirty-eighth ported batch and
+      `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4/closing
+      summary. Not yet committed.
