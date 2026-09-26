@@ -3897,5 +3897,34 @@ build clean and all 123 tests pass.
     - Design deviations recorded in the plan: `GUI_Song.cpp`'s key
       handlers and `GUI_Instruments.cpp`'s editor drawing move from the
       model classes (`CSong`/`CInstruments` in C++) into `ui` classes that
-      take the model, keeping `Song`/`Instruments` UI-free. Not yet
-      committed.
+      take the model, keeping `Song`/`Instruments` UI-free. Committed as
+      `f193d1b`.
+  - **2026-09-26**: Phase B, batch B0 (foundation, no window yet) - the
+    first Java UI code. New `com.wudsn.tools.rmt.ui` package with
+    `CanvasXY`/`Canvas` (the bitmap-font renderer, ported from
+    `CanvasXY.cpp`/`Canvas.cpp` with identical blit arithmetic against
+    the checked-in `gfx-8x16.bmp`), `TextColor`/`TextMiniColor`/`RgbColor`/
+    `RmtScreenLayout`, `UiState` (C++'s transient `Global.h` UI globals as
+    one explicitly-passed holder), and `CursorLoader` (a small runtime
+    parser for the five original `.cur` files, chosen over a lossy PNG
+    conversion). `EditMode` added to `model` next to its `General.h`
+    siblings. Verified the glyph-sheet geometry from the file itself
+    (1024x240 8-bit, background = `RgbColor.BACKGROUND`) before relying
+    on it.
+    - Tests are analytic rather than golden images: every drawn cell is
+      compared pixel-for-pixel against the exact sheet cell C++'s
+      `BitBlt` would have copied, across all color bands, both mini-font
+      bands, the icon strip, each method's own space-skipping rule
+      (`TextXY`/`TextXYCol`/`TextMiniXY`/`TextXYFull` skip, `TextXYSelN`/
+      `TextDownXY` draw), and prove-mode/hover recoloring. 27 new tests,
+      all passing on the first run; 425 total, no regressions.
+    - Two B0 items moved on purpose: the `RmtApplication` stub to B1 and
+      `RmtOptions` to B6 - neither had anything real to do yet, and this
+      port avoids placeholder code.
+    - The user's first `Rmt.exe` reference screenshots (dropped into
+      `plans/B1/`) moved to `test-resources/ui-reference/` (repo-root
+      `test-resources/`, as dis6502 has; plans/ stays for plan documents)
+      and renamed to a scenario/view scheme; its `README.md` records the
+      capture conditions (150% Windows scaling - so RMT-200% captures are
+      the lossless ones) and proposes names for the missing captures.
+      Not yet committed.

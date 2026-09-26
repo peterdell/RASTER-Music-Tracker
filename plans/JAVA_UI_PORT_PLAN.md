@@ -159,14 +159,31 @@ Each batch: read the C++ in full first, implement, `mvn -o clean test`,
 golden-image tests where the batch draws anything, manual run where it
 shows anything, `plans/NOTES.md` entry, ask before committing.
 
-- **B0 - foundation (no window yet).** Package skeleton, `RmtApplication`
-  stub, `RmtScreenLayout`, `TextColor`/`TextMiniColor`/`RgbColor`,
-  `UiState`/`RmtOptions` skeletons, copy `gfx-8x16.bmp` into
-  `src/java/com/wudsn/tools/rmt/ui/` (the existing `pom.xml` resource
-  rule already ships non-`.java` files under `src/java`), port `CanvasXY`
-  + `Canvas` with golden-image tests proving the blit arithmetic (each
-  color band, mini font, icons, space transparency). Decide the `.cur`
-  conversion route and add the converted cursor/toolbar/icon PNGs.
+- **B0 - foundation (no window yet) - DONE (2026-09-26).** New
+  `com.wudsn.tools.rmt.ui` package: `RmtScreenLayout`, `TextColor`
+  (explicit band values, since 7/8 are the mini-font bands),
+  `TextMiniColor`, `RgbColor`, `UiState` (the transient `Global.h` state -
+  see its javadoc for the exact `g_*` mapping), `CanvasXY` + `Canvas`,
+  `CursorLoader`; `EditMode` went into `model` beside its `General.h`
+  siblings `Part`/`PlayMode`/`EditArea`/`KeyboardLayout`, with
+  `isProveMode()`/`isSpecialProveMode()` as enum methods replacing C++'s
+  free functions. Resources copied unchanged next to the classes:
+  `gfx-8x16.bmp` (`ImageIO` reads the 8-bit BMP fine; converted to RGB
+  once at load), the five `.cur` files, both `*-32x30.bmp` toolbar strips;
+  `application.ico` converted once to `application.png` (System.Drawing).
+  **`.cur` route decided: parse at runtime** (`CursorLoader`, ~60 lines:
+  ICO container + 1-bpp XOR/AND masks + the hotspot the file itself
+  declares) rather than a lossy PNG conversion - keeps the original assets
+  authoritative. **Tests are analytic, not golden images**: each drawn
+  canvas cell is compared against the exact glyph-sheet cell C++'s
+  `BitBlt` would copy (per color band, mini bands, icon strip, the
+  per-method space-skipping rules, prove-mode/hover recoloring), which
+  tests the *mapping* rather than a snapshot - golden PNGs (and the
+  user's `Rmt.exe` screenshots) start with B1's full-frame renders. Two
+  listed items deliberately moved: the `RmtApplication` stub to B1 (a
+  `main` with nothing to show would be a half-finished placeholder) and
+  `RmtOptions` to B6 (nothing in B0 reads a persisted option). 425 tests
+  (+27), no regressions.
 - **B1 - the vertical slice (DECISIONS 1-2 must be settled first).**
   `TrackerPanel` (offscreen canvas, scaled paint, timer, dirty flag,
   `Resize()` math incl. `g_tracklines`/`g_line_y`), minimal
@@ -212,10 +229,19 @@ shows anything, `plans/NOTES.md` entry, ask before committing.
 recommendation** - Swing + WUDSN Base gui; timer-driven full redraw;
 `rmt.ini` kept as the options format (Preferences only for window
 geometry); UI first, real-time audio deferred to B8. Decision 5 stands as
-recommended. Decision 6: **the user will capture reference `Rmt.exe`
-screenshots** (location/song to be told when available) - B1/B2's
-golden-image tests should compare against those, not only against
-Java-generated goldens. The reasoning is kept below for the record.
+recommended. Decision 6: **the user captured reference `Rmt.exe`
+screenshots**, now kept in `test-resources/ui-reference/` (a repo-root
+`test-resources/` folder, as dis6502 has; one self-contained sub-folder
+per scenario with its `.rmt` - `song0-empty/`, `song1-mono/`, ...; that
+folder's own `README.md` lists what is present, the capture conditions,
+and the proposed names of the still-missing captures, most valuable
+first: the same views at RMT scaling 200%, a stereo module, a playback
+state, a GOTO line, jam mode) - B1/B2's golden-image tests
+should compare against those, not only against Java-generated goldens.
+Because they are whole-desktop captures at 150% device scaling, B1 must
+first locate the RMT client area within them and account for the
+150% scale (and RMT's own `g_scaling_percentage`) before any pixel
+comparison. The reasoning is kept below for the record.
 
 **The user's display runs at 150% Windows scaling** - the exact setting
 where dis6502's `ComputerFont` HiDPI bug reproduced. B1's on-screen
