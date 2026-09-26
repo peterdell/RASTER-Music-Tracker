@@ -14,17 +14,21 @@ package com.wudsn.tools.rmt.model;
  * inside the tested methods, never itself directly asserted on), {@link #clear},
  * {@link #blockSetBegin}, {@link #blockSetEnd}, {@link #blockDeselect},
  * {@link #blockInitBase} (an internal helper called by {@link #blockSetBegin}),
- * {@link #blockCopyToClipboard}, {@link #blockPasteToTrack}, {@link #getFromTo}.
+ * {@link #blockCopyToClipboard}, {@link #blockPasteToTrack}, {@link #getFromTo},
+ * plus (added once C++ characterization tests existed for them - see
+ * {@code plans/JAVA_SONGEDITING_PLAN.md}'s {@code CTrackClipboard} section)
+ * {@link #blockAllOnOff}, {@link #blockExchangeClipboard}, {@link #blockClear},
+ * {@link #blockRestoreFromBackup}, {@link #blockNoteTransposition},
+ * {@link #blockInstrumentChange}, {@link #blockVolumeChange}.
  *
- * <p><b>{@code BlockAllOnOff}/{@code BlockExchangeClipboard}/{@code BlockClear}/
- * {@code BlockRestoreFromBackup}/{@code BlockNoteTransposition}/
- * {@code BlockInstrumentChange}/{@code BlockVolumeChange} are NOT ported</b> -
- * confirmed to have no test coverage anywhere (direct or indirect) at the
- * time of this port; porting them would need new C++ characterization
- * tests first, a decision deferred to a future session (see
- * {@code plans/JAVA_SONGEDITING_PLAN.md}). {@code BlockEffect} stays
- * deferred indefinitely (a real MFC dialog, confirmed on the C++ side to
- * have no extractable logic).
+ * <p><b>{@code BlockEffect} is NOT ported</b> and stays deferred
+ * indefinitely (a real MFC dialog, confirmed on the C++ side to have no
+ * extractable logic).
+ *
+ * <p><b>{@code BlockNoteTransposition}/{@code BlockInstrumentChange}/
+ * {@code BlockVolumeChange} drop C++'s guard-only {@code SetStatusBarText}
+ * call</b> - GUI-only, no Java equivalent, matching {@link #blockDeselect}'s
+ * own established omission of {@code ClearStatusBar()} below.
  *
  * <p><b>The "{@code g_Song}-reads-a-global" wrinkle</b>: {@link #blockSetBegin}/
  * {@link #blockPasteToTrack} take an explicit {@link Song} parameter for
@@ -42,10 +46,8 @@ package com.wudsn.tools.rmt.model;
  * slot directly as {@link Song}'s own {@code trackCopyClipboard} field,
  * needing nothing from this class.
  *
- * <p><b>{@link #blockDeselect} omits C++'s {@code ClearStatusBar()} call</b> -
- * GUI-only, no Java equivalent (matches this project's established
- * omission of status-bar calls elsewhere, e.g. {@code BlockNoteTransposition}'s
- * {@code SetStatusBarText}).
+ * <p>{@link #blockDeselect} similarly omits C++'s {@code ClearStatusBar()}
+ * call, for the same reason.
  */
 public final class TrackClipboard {
 
@@ -286,5 +288,202 @@ public final class TrackClipboard {
 	/** Needed by {@link Song#play}'s {@code PLAY_BLOCK} branch, matching C++'s direct read of {@code m_selsongline}. */
 	public int getSelSongLine() {
 		return selSongLine;
+	}
+
+	/** Toggles whether block-change commands ({@link #blockNoteTransposition}/{@link #blockInstrumentChange}/{@link #blockVolumeChange}) affect all instruments or only the one matching their filter. */
+	public void blockAllOnOff(Tracks tracks) {
+		if (isBlockSelected()) {
+			// Reset the state of the selected base track upon toggle
+			blockInitBase(selTrack, tracks);
+			all = !all;
+		}
+	}
+
+	/** Swaps the selected block's data with the clipboard's, expanding both tracks' loops first. */
+	public int blockExchangeClipboard(Tracks tracks) {
+		Track ts = tracks.getTrack(selTrack);
+		Track td = track;
+
+		// Process further only if these conditions are respected
+		if (ts != null && isBlockSelected() && isTrackSelected()) {
+			FromTo fromTo = getFromTo();
+
+			// To exchange data in the optimal way, wise loops must be expanded first
+			tracks.trackExpandLoop(ts);
+			tracks.trackExpandLoop(td);
+
+			int i = 0;
+			for (int line = fromTo.from(); line <= fromTo.to(); line++, i++) {
+				int tmp;
+				tmp = td.note[i];
+				td.note[i] = ts.note[line];
+				ts.note[line] = tmp;
+				tmp = td.instr[i];
+				td.instr[i] = ts.instr[line];
+				ts.instr[line] = tmp;
+				tmp = td.volume[i];
+				td.volume[i] = ts.volume[line];
+				ts.volume[line] = tmp;
+				tmp = td.speed[i];
+				td.speed[i] = ts.speed[line];
+				ts.speed[line] = tmp;
+
+				// If the block is longer than the length of the data in the clipboard, fill with empty lines
+				if (i >= td.len) {
+					ts.note[line] = -1;
+					ts.instr[line] = -1;
+					ts.volume[line] = -1;
+					ts.speed[line] = -1;
+				}
+
+				// Likewise, if the block is shorter than the data in the track, fill with empty lines
+				if (line >= ts.len) {
+					td.note[i] = -1;
+					td.instr[i] = -1;
+					td.volume[i] = -1;
+					td.speed[i] = -1;
+				}
+			}
+
+			// Return the length of copied track data
+			track.len = i;
+			return i;
+		}
+
+		return 0;
+	}
+
+	/** Erases the selected block's data (expanding its loop first). */
+	public int blockClear(Tracks tracks) {
+		Track td = tracks.getTrack(selTrack);
+
+		if (td != null && isBlockSelected() && isTrackSelected()) {
+			FromTo fromTo = getFromTo();
+			tracks.trackExpandLoop(td);
+
+			int i;
+			for (i = fromTo.from(); i <= fromTo.to(); i++) {
+				td.note[i] = -1;
+				td.instr[i] = -1;
+				td.volume[i] = -1;
+				td.speed[i] = -1;
+			}
+
+			return i;
+		}
+
+		return 0;
+	}
+
+	/** Restores the selected track to the state it was in when the block was first selected (see {@link #blockSetBegin}'s backup). */
+	public boolean blockRestoreFromBackup(Tracks tracks) {
+		Track tt = tracks.getTrack(selTrack);
+
+		if (tt != null && isBlockSelected() && isTrackSelected()) {
+			tt.copyFrom(trackBackup);
+			blockInitBase(selTrack, tracks);
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Shifts the selected block's notes by a cumulative number of semitones,
+	 * restricted to lines whose instrument matches {@code instr} (unless
+	 * {@link #blockAllOnOff} has turned that filter off), recomputed each
+	 * time from the block's original, unmodified snapshot (see
+	 * {@link #blockInitBase}) rather than applied incrementally.
+	 */
+	public void blockNoteTransposition(int instr, int addnote, Tracks tracks) {
+		Track ts = trackBase;
+		Track td = tracks.getTrack(selTrack);
+
+		if (td != null && isBlockSelected() && isTrackSelected()) {
+			FromTo fromTo = getFromTo();
+
+			// Reset the state of the selected base track to the chosen instrument
+			if (instr != instrBase) {
+				blockInitBase(selTrack, tracks);
+				instrBase = instr;
+			}
+
+			changeNote += addnote;
+			changeNote %= Notes.NOTESNUM;
+
+			for (int i = fromTo.from(); i <= fromTo.to() && i < td.len; i++) {
+				if (tracks.isValidNote(td.note[i]) && (td.instr[i] == instr || all)) {
+					td.note[i] = (ts.note[i] + changeNote + Notes.NOTESNUM) % Notes.NOTESNUM;
+				}
+			}
+		}
+	}
+
+	/** Shifts the selected block's instrument numbers - see {@link #blockNoteTransposition}'s javadoc for the shared shape. */
+	public void blockInstrumentChange(int instr, int addinstr, Tracks tracks) {
+		Track ts = trackBase;
+		Track td = tracks.getTrack(selTrack);
+
+		if (td != null && isBlockSelected() && isTrackSelected()) {
+			FromTo fromTo = getFromTo();
+
+			if (instr != instrBase) {
+				blockInitBase(selTrack, tracks);
+				instrBase = instr;
+			}
+
+			changeInstr += addinstr;
+			changeInstr %= Instruments.INSTRSNUM;
+
+			for (int i = fromTo.from(); i <= fromTo.to() && i < td.len; i++) {
+				if (tracks.isValidInstrument(td.instr[i]) && (td.instr[i] == instr || all)) {
+					td.instr[i] = (ts.instr[i] + changeInstr + Instruments.INSTRSNUM) % Instruments.INSTRSNUM;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Shifts the selected block's volumes (clamped to
+	 * {@code [0, Tracks.MAXVOLUME]}, unlike note/instrument transposition's
+	 * wraparound) - restricted to lines whose *most recently seen*
+	 * instrument (scanning forward through the block) matches {@code instr},
+	 * unless {@link #blockAllOnOff} has turned that filter off.
+	 */
+	public void blockVolumeChange(int instr, int addvol, Tracks tracks) {
+		Track ts = trackBase;
+		Track td = tracks.getTrack(selTrack);
+
+		if (td != null && isBlockSelected() && isTrackSelected()) {
+			FromTo fromTo = getFromTo();
+
+			if (instr != instrBase) {
+				blockInitBase(selTrack, tracks);
+				instrBase = instr;
+			}
+
+			changeVolume += addvol;
+			changeVolume %= Tracks.MAXVOLUME + 1;
+
+			int lasti = -1;
+			for (int i = fromTo.from(); i <= fromTo.to() && i < td.len; i++) {
+				// When the volume itself is edited, we know it belongs to the instrument above it
+				if (tracks.isValidInstrument(td.instr[i])) {
+					lasti = td.instr[i];
+				}
+
+				if (tracks.isValidVolume(td.volume[i]) && (lasti == instr || all)) {
+					td.volume[i] = ts.volume[i] + changeVolume;
+
+					// Unlike note/instrument transposition, we want to actually cap the volume changes
+					if (td.volume[i] > Tracks.MAXVOLUME) {
+						td.volume[i] = Tracks.MAXVOLUME;
+					}
+					if (td.volume[i] < 0) {
+						td.volume[i] = 0;
+					}
+				}
+			}
+		}
 	}
 }

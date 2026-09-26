@@ -3545,4 +3545,16 @@ build clean and all 123 tests pass.
     - Verified with a full C++ Release|x64 rebuild + `RmtTests.exe`: 381
       tests pass (+2), 0 regressions. The Java port of this serialization
       surface is still not started. Details in `plans/JAVA_PORT_PLAN.md`/
-      `plans/JAVA_SONGEDITING_PLAN.md`. Not yet committed.
+      `plans/JAVA_SONGEDITING_PLAN.md`. Committed as `654a140`.
+  - **2026-09-26**: Thirty-second Java-port batch - `TrackClipboard` grows
+    `blockAllOnOff`/`blockExchangeClipboard`/`blockClear`/
+    `blockRestoreFromBackup`/`blockNoteTransposition`/
+    `blockInstrumentChange`/`blockVolumeChange`, transcribed directly from
+    the C++ characterization tests added earlier this session. All take
+    `Tracks` explicitly; the guard-only `SetStatusBarText` call in the last
+    three is dropped, matching `blockDeselect`'s own established omission.
+    Verified with `mvn -o test`: 360 tests pass (+7), all passing on the
+    first run, no regressions. `TrackClipboard` is now feature-complete
+    except `BlockEffect` (not ported on the C++ side either). Details in
+    `plans/JAVA_PORT_PLAN.md`/`plans/JAVA_SONGEDITING_PLAN.md`. Not yet
+    committed.

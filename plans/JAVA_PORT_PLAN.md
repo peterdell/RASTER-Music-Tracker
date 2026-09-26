@@ -1510,15 +1510,24 @@ pass (+2), 0 regressions. **The Java port of this serialization surface is
 still not started** - only the C++ characterization (and the bug fix it
 surfaced) is done.
 
+## Thirty-second ported batch (2026-09-26): `TrackClipboard` grows its 7 newly-C++-tested methods
+
+Ports `blockAllOnOff`/`blockExchangeClipboard`/`blockClear`/
+`blockRestoreFromBackup`/`blockNoteTransposition`/`blockInstrumentChange`/
+`blockVolumeChange` to `TrackClipboard`, transcribed directly from the C++
+characterization tests added earlier this session. All take `Tracks`
+explicitly, matching this class's established idiom; the guard-only
+`SetStatusBarText` call in the last three is dropped, matching
+`blockDeselect`'s own established omission of `ClearStatusBar()`. Tests
+(`SongEditingTest`, extended) mirror the 7 new C++ tests exactly, all
+passing on the first run. Verified with `mvn -o test`: 360 tests pass
+(+7), no regressions. `TrackClipboard` is now feature-complete except
+`BlockEffect` (not ported on the C++ side either). Full write-up in
+`plans/JAVA_SONGEDITING_PLAN.md`'s `CTrackClipboard` section.
+
 ## Next steps
 
-After this session's C++ characterization work, both remaining un-ported
-areas are now fully C++-tested and ready for a Java port whenever picked
-up next:
-1. **`CTrackClipboard`'s 7 newly-tested methods**
-   (`BlockAllOnOff`/`BlockExchangeClipboard`/`BlockClear`/
-   `BlockRestoreFromBackup`/`BlockNoteTransposition`/`BlockInstrumentChange`/
-   `BlockVolumeChange`).
-2. **`IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track
+One area remains, already fully C++-tested and ready for its Java port:
+1. **`IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track
    serialization** (`SaveAll`/`LoadAll`/`SaveInstrument`/`LoadInstrument`/
    `SaveTrack`/`LoadTrack`).

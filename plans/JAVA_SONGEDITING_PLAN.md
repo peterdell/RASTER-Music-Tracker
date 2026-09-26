@@ -389,7 +389,7 @@ rather than something to save for last. See sub-batch 8's entry above for
 the full writeup (new fields, omitted globals/UI call, and why it turned
 out fully portable once actually re-checked).
 
-## `CTrackClipboard` (new `TrackClipboard` class) - partially DONE
+## `CTrackClipboard` (new `TrackClipboard` class) - DONE except `BlockEffect`
 
 **Corrected finding**: this class is *not* actually untested, as first
 assessed - `SongEditingTests.cpp` already exercises a real subset of it
@@ -414,9 +414,20 @@ defaults to `len == g_Tracks.GetMaxTrackLength()` (64 in the fixture) via
 Release|x64 rebuild + `RmtTests.exe`: 379 tests pass (+7), 0 regressions.
 `CTrackClipboard` is now **fully C++-tested except `BlockEffect`**
 (confirmed on the C++ side to have no extractable logic - a real MFC
-dialog, stays deferred indefinitely). **The Java port of these 7 methods
-has not been started yet** - that's the next step whenever this class is
-revisited.
+dialog, stays deferred indefinitely).
+
+**Java port of the 7 methods - DONE (2026-09-26)**: `blockAllOnOff`,
+`blockExchangeClipboard`, `blockClear`, `blockRestoreFromBackup`,
+`blockNoteTransposition`, `blockInstrumentChange`, `blockVolumeChange`
+added to `TrackClipboard`, transcribed directly from the now-C++-tested
+source (all taking `Tracks` explicitly, matching this class's established
+idiom). `BlockNoteTransposition`/`BlockInstrumentChange`/
+`BlockVolumeChange`'s guard-only `SetStatusBarText` call is dropped,
+matching `blockDeselect`'s own established omission of `ClearStatusBar()`.
+Tests (`SongEditingTest`, extended) mirror `SongEditingTests.cpp`'s 7 new
+tests exactly, all passing on the first run. Verified with `mvn -o test`:
+360 tests pass (+7), no regressions. `TrackClipboard` is now feature-complete
+except `BlockEffect` (not ported, matching the C++ side).
 
 **The `g_Song`-reads-a-global wrinkle, resolved**: `blockSetBegin`/
 `blockPasteToTrack` take an explicit `Song` parameter (plus `Tracks`/

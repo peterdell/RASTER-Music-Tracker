@@ -524,6 +524,124 @@ class SongEditingTest {
 		assertEquals(3, tracks.getTrack(6).note[0]);
 	}
 
+	// --- TrackClipboard.blockAllOnOff / blockExchangeClipboard / blockClear /
+	// blockRestoreFromBackup / blockNoteTransposition / blockInstrumentChange /
+	// blockVolumeChange ---
+	// Every track defaults to len == tracks.getMaxTrackLength() (64 here)
+	// via Tracks.initTracks(), so none of these tests need to set it
+	// explicitly.
+
+	@Test
+	void blockAllOnOffTogglesWhetherChangesApplyToAllInstruments() {
+		song.getSong()[0][0] = 5;
+		tracks.getTrack(5).note[0] = 10;
+		tracks.getTrack(5).instr[0] = 3;
+
+		song.songBlockSetBegin(clipboard, tracks);
+		song.songBlockSetEnd(clipboard, tracks);
+
+		clipboard.blockAllOnOff(tracks); // all: true -> false (now only affects the matching instrument)
+
+		clipboard.blockNoteTransposition(7 /* a different instrument */, 1, tracks);
+
+		// Unchanged: the track's instrument (3) doesn't match the filter (7),
+		// and "all instruments" is now off.
+		assertEquals(10, tracks.getTrack(5).note[0]);
+	}
+
+	@Test
+	void blockExchangeClipboardSwapsTrackAndClipboardData() {
+		song.getSong()[0][0] = 5;
+		tracks.getTrack(5).note[0] = 3;
+		song.songBlockSetBegin(clipboard, tracks);
+		song.songBlockSetEnd(clipboard, tracks);
+		clipboard.blockCopyToClipboard(tracks); // clipboard now holds note=3 at position 0
+
+		tracks.getTrack(5).note[0] = 9; // change the live track's note
+
+		int len = clipboard.blockExchangeClipboard(tracks);
+
+		assertEquals(1, len); // one line in the block
+		assertEquals(3, tracks.getTrack(5).note[0]); // the clipboard's old data is swapped back in
+	}
+
+	@Test
+	void blockClearErasesDataWithinTheSelectedRange() {
+		song.getSong()[0][0] = 5;
+		tracks.getTrack(5).note[0] = 3;
+		tracks.getTrack(5).note[1] = 7;
+		tracks.getTrack(5).note[2] = 9;
+
+		song.setActiveLine(0);
+		song.songBlockSetBegin(clipboard, tracks);
+		song.setActiveLine(1);
+		song.songBlockSetEnd(clipboard, tracks); // selects lines 0-1
+
+		int cleared = clipboard.blockClear(tracks);
+
+		assertEquals(2, cleared);
+		assertEquals(-1, tracks.getTrack(5).note[0]);
+		assertEquals(-1, tracks.getTrack(5).note[1]);
+		assertEquals(9, tracks.getTrack(5).note[2]); // outside the block, untouched
+	}
+
+	@Test
+	void blockRestoreFromBackupRestoresTheTrackAsItWasWhenSelected() {
+		song.getSong()[0][0] = 5;
+		tracks.getTrack(5).note[0] = 3;
+
+		song.songBlockSetBegin(clipboard, tracks); // backs up track 5's current state (note[0] = 3)
+		song.songBlockSetEnd(clipboard, tracks);
+
+		tracks.getTrack(5).note[0] = 99; // modify the track after selection
+
+		boolean ok = clipboard.blockRestoreFromBackup(tracks);
+
+		assertTrue(ok);
+		assertEquals(3, tracks.getTrack(5).note[0]); // restored to the backed-up state
+	}
+
+	@Test
+	void blockNoteTranspositionShiftsNotesMatchingTheInstrumentFilter() {
+		song.getSong()[0][0] = 5;
+		tracks.getTrack(5).note[0] = 10;
+		tracks.getTrack(5).instr[0] = 3;
+
+		song.songBlockSetBegin(clipboard, tracks);
+		song.songBlockSetEnd(clipboard, tracks);
+
+		clipboard.blockNoteTransposition(3 /* instrument filter, matches */, 2 /* +2 semitones */, tracks);
+
+		assertEquals(12, tracks.getTrack(5).note[0]);
+	}
+
+	@Test
+	void blockInstrumentChangeShiftsInstrumentsMatchingTheFilter() {
+		song.getSong()[0][0] = 5;
+		tracks.getTrack(5).instr[0] = 3;
+
+		song.songBlockSetBegin(clipboard, tracks);
+		song.songBlockSetEnd(clipboard, tracks);
+
+		clipboard.blockInstrumentChange(3 /* instrument filter, matches */, 1, tracks);
+
+		assertEquals(4, tracks.getTrack(5).instr[0]);
+	}
+
+	@Test
+	void blockVolumeChangeShiftsVolumeForTheLastSeenInstrument() {
+		song.getSong()[0][0] = 5;
+		tracks.getTrack(5).instr[0] = 3;
+		tracks.getTrack(5).volume[0] = 5;
+
+		song.songBlockSetBegin(clipboard, tracks);
+		song.songBlockSetEnd(clipboard, tracks);
+
+		clipboard.blockVolumeChange(3 /* instrument filter, matches */, 4, tracks);
+
+		assertEquals(9, tracks.getTrack(5).volume[0]);
+	}
+
 	// --- instrCopy / instrCut / instrDelete ---
 	// Instruments.clearInstrument() has real behavior here (unlike the C++
 	// test binary, which link-time-stubs it as a no-op for this one test
