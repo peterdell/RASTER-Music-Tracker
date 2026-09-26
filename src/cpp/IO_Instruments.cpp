@@ -235,6 +235,18 @@ int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType i
             if (b == '[') {
                 goto InstrEnd; //end of instrument (beginning of something else)
             }
+            if (b == '\n') {
+                // A blank line (SaveInstrument() writes one as a "gap"
+                // before the next segment) - not real content, so it must
+                // not be handed to getline() below: doing so would swallow
+                // the following line whole, silently absorbing the '[' that
+                // starts the next segment instead of recognizing it as a
+                // boundary - same bug class as CSong::LoadTxt()'s
+                // [MODULE]/[SONG] segment loops (see GitHub issue #21),
+                // just never fixed here since no test exercised a non-empty
+                // instrument followed by another segment until now.
+                continue;
+            }
             line[0] = b;
             in.getline(line + 1, 1024);
 

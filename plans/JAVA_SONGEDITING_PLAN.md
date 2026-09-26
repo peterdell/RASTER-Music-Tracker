@@ -244,19 +244,20 @@ accessors and `clearSong(int, Undo)`, returning the new `tracks4_8` value
 `clearSongSetsTheTrackCount`) mirror `SongEditingTests.cpp`'s `ClearSong`
 section exactly.
 
-**Deliberately deferred, its own separate undertaking: `IO_Instruments.cpp`/
-`IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track serialization.**
-`SaveTxt`/`LoadTxt` call `g_Instruments.SaveAll`/`LoadAll`/
+**Deliberately deferred (Java port), C++-characterized (2026-09-26):
+`IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track
+serialization.** `SaveTxt`/`LoadTxt` call `g_Instruments.SaveAll`/`LoadAll`/
 `g_Tracks.SaveAll`/`LoadAll` for the `[INSTRUMENT]`/`[TRACK]` sections;
 `SaveRMW`/`LoadRMW` call the RMW-format equivalents (which, unlike TXT,
 serialize *every* instrument/track unconditionally, not just non-empty
-ones - an even larger surface). None of this is exercised by any C++ or
-Java test (every existing test's song has no non-empty instruments/tracks,
-so TXT's `SaveAll` writes nothing for them anyway), so these calls are
-omitted entirely from the Java port rather than attempting a large,
-untested new serialization layer. `LoadTxt`'s `[INSTRUMENT]`/`[TRACK]`
-segment branches skip to the next segment instead of decoding, matching
-the encoding side's omission.
+ones - an even larger surface). This was previously untested by any C++ or
+Java test (every existing test's song had no non-empty instruments/tracks)
+- now C++-tested (see this section's own write-up further down, including
+a real bug found and fixed along the way), but the Java port itself is
+still deferred - these calls remain omitted entirely from the Java port
+for now, and `LoadTxt`'s `[INSTRUMENT]`/`[TRACK]` segment branches still
+skip to the next segment instead of decoding, matching the encoding side's
+omission.
 
 **Design choices carried through all five methods**:
 - **Streams become `String`/`byte[]`**: `SaveTxt`/`LoadTxt` take/return a
@@ -443,6 +444,44 @@ existing indirect tests exactly (2 tests). Verified with `mvn -o test`: 347
 tests pass (+2), no regressions (including all of sub-batch 9's existing
 tests, now threading a real `TrackClipboard` through unchanged call sites).
 
+## `IO_Instruments.cpp`/`IO_Tracks.cpp` TXT/RMW serialization - C++ characterized (2026-09-26), Java port not started
+
+C++ characterization tests added: `SaveTxtAndLoadTxtRoundTripNonEmptyInstrumentAndTrack`/
+`SaveRMWAndLoadRMWRoundTripNonEmptyInstrumentAndTrack` in `SongEditingTests.cpp`,
+each populating a non-empty instrument (name, an envelope value) and a
+non-empty track (note/instrument/volume) before round-tripping through
+`SaveTxt`/`LoadTxt` and `SaveRMW`/`LoadRMW` respectively - exercising
+`CInstruments::SaveAll`/`LoadAll`/`SaveInstrument`/`LoadInstrument` and
+`CTracks::SaveAll`/`LoadAll`/`SaveTrack`/`LoadTrack` for real, non-default
+data for the first time (every prior test's song had no non-empty
+instruments/tracks, so `SaveAll`'s TXT branch - which only writes non-empty
+ones - never even emitted an `[INSTRUMENT]`/`[TRACK]` segment).
+
+**FIXED BUG, found by the new TXT test**: `CInstruments::LoadInstrument()`'s
+TXT case had the identical "gap line before a segment bracket" defect as
+`CSong::LoadTxt()`'s own `[MODULE]`/`[SONG]` bug fixed earlier this session
+(GitHub issue #21) - just in a different function that fix never touched.
+Its byte-scanning loop handed a lone `'\n'` (`SaveInstrument()`'s trailing
+"gap" line) to `getline()`, silently swallowing the following `[TRACK]`
+line whole instead of recognizing `'['` as a segment boundary, so
+`LoadTrack()` was never even called - confirmed via the new test failing
+with the track left at its blank default (`len == 64`, everything `-1`)
+before the fix, and passing after. Fixed the same way as the original:
+skip a lone `'\n'` byte instead of treating it as content.
+`CTracks::LoadTrack()`'s own TXT case does **not** have this bug - it
+already guards against bare `'\n'`/`'\r'` bytes by calling `NextSegment()`
+and returning, a different (and already-correct) code shape.
+
+Verified with a full C++ Release|x64 rebuild + `RmtTests.exe`: 381 tests
+pass (+2 new tests, 379 -> 381), 0 regressions. **The Java port of
+`SaveAll`/`LoadAll`/`SaveInstrument`/`LoadInstrument`/`SaveTrack`/`LoadTrack`
+has not been started** - this is C++ characterization only, per the user's
+explicit request to characterize this area before continuing the Java
+port. The RMW-format serialization (which writes every instrument/track
+unconditionally, a larger surface than TXT's non-empty-only one) still has
+no dedicated per-field test beyond this one round trip - worth expanding
+if the Java port surfaces edge cases.
+
 ## Needs a deferred `PokeyStream`/`AtariTrackerDriver` surface
 
 `CSong::DumpSongToPokeyStream`/`CSongContainer::GetPokeyStream`,
@@ -560,7 +599,10 @@ tests pass (+1, the new regression test), 0 regressions on either side.
 10. `IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track
     serialization - deferred out of sub-batch 8 (see its entry above),
     needed for a fully faithful `SaveTxt`/`LoadTxt`/`SaveRMW`/`LoadRMW`
-    round trip of real song data, not just the module-level fields.
+    round trip of real song data, not just the module-level fields. C++
+    characterization tests added (2026-09-26, see its own section above,
+    including a real bug found and fixed) - the Java port itself is ready
+    to start whenever this is picked up next.
 
 Each numbered sub-batch above is intended to be confirmed with the user
 individually before implementation, per this project's established cadence

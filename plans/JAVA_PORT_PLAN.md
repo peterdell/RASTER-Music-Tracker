@@ -1482,10 +1482,43 @@ section. Full C++ Release|x64 rebuild + `RmtTests.exe`: 379 tests pass
 these 7 methods is still not started** - only the C++ characterization
 step is done.
 
+## C++ characterization batch (2026-09-26): `IO_Instruments.cpp`/`IO_Tracks.cpp` TXT/RMW serialization
+
+Also not a Java-port batch - pure C++ test-writing, completing the user's
+"characterize both remaining areas" request. Added
+`SaveTxtAndLoadTxtRoundTripNonEmptyInstrumentAndTrack`/
+`SaveRMWAndLoadRMWRoundTripNonEmptyInstrumentAndTrack` to
+`SongEditingTests.cpp`, each round-tripping a non-empty instrument and
+track through `SaveTxt`/`LoadTxt` and `SaveRMW`/`LoadRMW` respectively -
+the first tests to exercise `CInstruments`/`CTracks`'s `SaveAll`/`LoadAll`/
+`SaveInstrument`/`LoadInstrument`/`SaveTrack`/`LoadTrack` with real,
+non-default data.
+
+**Found and fixed a real bug** while writing the TXT test: `CInstruments::
+LoadInstrument()`'s TXT case had the identical "gap line before a segment
+bracket" defect as `CSong::LoadTxt()`'s own `[MODULE]`/`[SONG]` bug fixed
+earlier this session (GitHub issue #21) - a different function the
+original fix never touched. It silently swallowed the following
+`[TRACK]` segment marker, so `LoadTrack()` was never called at all. Fixed
+the same way: skip a lone `'\n'` byte instead of handing it to `getline()`.
+`CTracks::LoadTrack()`'s own TXT case does not have this bug (different,
+already-correct code shape). Full write-up in
+`plans/JAVA_SONGEDITING_PLAN.md`'s dedicated section.
+
+Verified with a full C++ Release|x64 rebuild + `RmtTests.exe`: 381 tests
+pass (+2), 0 regressions. **The Java port of this serialization surface is
+still not started** - only the C++ characterization (and the bug fix it
+surfaced) is done.
+
 ## Next steps
 
-After this session's C++ characterization work:
-1. **Port `CTrackClipboard`'s newly-tested 7 methods to Java** - ready to
-   implement, now fully C++-tested.
-2. Characterize, then port, `IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW
-   per-instrument/per-track serialization - next up (see below).
+After this session's C++ characterization work, both remaining un-ported
+areas are now fully C++-tested and ready for a Java port whenever picked
+up next:
+1. **`CTrackClipboard`'s 7 newly-tested methods**
+   (`BlockAllOnOff`/`BlockExchangeClipboard`/`BlockClear`/
+   `BlockRestoreFromBackup`/`BlockNoteTransposition`/`BlockInstrumentChange`/
+   `BlockVolumeChange`).
+2. **`IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track
+   serialization** (`SaveAll`/`LoadAll`/`SaveInstrument`/`LoadInstrument`/
+   `SaveTrack`/`LoadTrack`).

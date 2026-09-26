@@ -3510,5 +3510,39 @@ build clean and all 123 tests pass.
     pass (+7), 0 regressions. `CTrackClipboard` is now fully C++-tested
     except `BlockEffect` (real MFC dialog, stays deferred). The Java port
     of these 7 methods is still not started. Details in
-    `plans/JAVA_PORT_PLAN.md`/`plans/JAVA_SONGEDITING_PLAN.md`. Not yet
-    committed.
+    `plans/JAVA_PORT_PLAN.md`/`plans/JAVA_SONGEDITING_PLAN.md`. Committed
+    as `a9c31a9`.
+  - **2026-09-26**: Second C++-only characterization batch, completing the
+    user's "characterize both remaining areas" request:
+    `IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW per-instrument/
+    per-track serialization. Added
+    `SaveTxtAndLoadTxtRoundTripNonEmptyInstrumentAndTrack`/
+    `SaveRMWAndLoadRMWRoundTripNonEmptyInstrumentAndTrack` to
+    `SongEditingTests.cpp`, the first tests to exercise `SaveAll`/`LoadAll`/
+    `SaveInstrument`/`LoadInstrument`/`SaveTrack`/`LoadTrack` with real,
+    non-default instrument/track data.
+    - **Found and fixed a real bug** while writing the TXT test:
+      `CInstruments::LoadInstrument()`'s TXT case had the identical
+      "gap line before a segment bracket" defect as `CSong::LoadTxt()`'s
+      own `[MODULE]`/`[SONG]` bug fixed earlier this session (GitHub issue
+      #21) - a different function that fix never touched. It silently
+      swallowed the following `[TRACK]` segment marker, so `LoadTrack()`
+      was never called at all - confirmed by the new test failing (track
+      left at its blank default) before the fix and passing after. Fixed
+      the same way: skip a lone `'\n'` byte instead of handing it to
+      `getline()`. `CTracks::LoadTrack()`'s own TXT case does not have
+      this bug.
+    - Diagnosed a crash-in-isolation red herring along the way: running
+      the new TXT test alone via `--gtest_filter` hit the *already-known,
+      already-documented* "crashes only in isolation" issue from earlier
+      this session (`g_Atari.Init()`'s tuning-state dependency inside
+      `ClearSong()`) - confirmed via targeted `fprintf`/`fflush`
+      instrumentation (all removed afterward, verified via `grep -n DEBUG`
+      returning nothing), then re-verified against the full suite where it
+      doesn't occur. Not a new bug, not investigated further, matching
+      this issue's established "known, unrelated, doesn't affect the real
+      verification method" treatment.
+    - Verified with a full C++ Release|x64 rebuild + `RmtTests.exe`: 381
+      tests pass (+2), 0 regressions. The Java port of this serialization
+      surface is still not started. Details in `plans/JAVA_PORT_PLAN.md`/
+      `plans/JAVA_SONGEDITING_PLAN.md`. Not yet committed.

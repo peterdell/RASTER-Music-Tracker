@@ -1054,6 +1054,69 @@ TEST_F(SongEditingTest, LoadTxtRoundTripsTheModuleHeaderAndTheSongData) {
     EXPECT_EQ((*loaded.GetSong())[0][0], 5);
 }
 
+// Closes a previously-deferred gap (see plans/JAVA_SONGEDITING_PLAN.md/
+// plans/JAVA_IMPORTER_PLAN.md's "IO_Instruments.cpp/IO_Tracks.cpp"
+// write-up): every prior SaveTxt/LoadTxt test's song had no non-empty
+// instruments/tracks, so SaveAll's TXT branch (which only writes non-empty
+// ones) never actually emitted an "[INSTRUMENT]"/"[TRACK]" segment, and
+// LoadTxt's corresponding LoadInstrument(-1,...)/LoadTrack(-1,...) calls
+// were never reached. g_Instruments/g_Tracks are the same global objects
+// both `song` and `loaded` share (LoadInstrument/LoadTrack write through
+// them directly, not through any per-CSong state) - matching how
+// LoadRMTDecodesTheModuleAndNamesBlocks already checks g_Instruments after
+// a LoadRMT() call on a separate CSong instance.
+//
+// FIXED BUG (found by this test, same class as LoadTxt's own [MODULE]/
+// [SONG] fix earlier in this file, GitHub issue #21): CInstruments::
+// LoadInstrument()'s TXT case had the identical gap-line-before-bracket
+// vulnerability, just in a different function that fix never touched -
+// its byte-scanning loop handed a lone '\n' (SaveInstrument()'s trailing
+// "gap" line) to getline(), silently swallowing the following "[TRACK]"
+// line whole instead of recognizing '[' as a segment boundary, so
+// LoadTrack() was never even called. Fixed the same way: skip a lone '\n'
+// byte instead of treating it as content.
+TEST_F(SongEditingTest, SaveTxtAndLoadTxtRoundTripNonEmptyInstrumentAndTrack) {
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 2;
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+
+    TInstrument* instr = g_Instruments.GetInstrument(2);
+    strncpy(instr->name, "Lead", 4);
+    instr->parameters[PAR_ENV_LENGTH] = 2;
+    instr->envelope[0][EnvelopeParameter::VOLUMEL] = 10;
+
+    TTrack* tr = g_Tracks.GetTrack(5);
+    tr->len = 2;
+    tr->note[0] = 10;
+    tr->instr[0] = 2;
+    tr->volume[0] = 8;
+
+    std::ostringstream out;
+    ASSERT_TRUE(song.SaveTxt(out));
+
+    std::string text = out.str();
+    ASSERT_NE(text.find("[INSTRUMENT]"), std::string::npos);
+    ASSERT_NE(text.find("[TRACK]"), std::string::npos);
+
+    std::istringstream in(text);
+    CSong loaded;
+    ASSERT_TRUE(loaded.LoadTxt(in));
+
+    CString name = g_Instruments.GetInstrument(2)->name;
+    name.TrimRight();
+    EXPECT_STREQ(name, "Lead");
+    EXPECT_EQ(g_Instruments.GetInstrument(2)->envelope[0][EnvelopeParameter::VOLUMEL], 10);
+
+    EXPECT_EQ(g_Tracks.GetTrack(5)->len, 2);
+    EXPECT_EQ(g_Tracks.GetTrack(5)->note[0], 10);
+    EXPECT_EQ(g_Tracks.GetTrack(5)->instr[0], 2);
+    EXPECT_EQ(g_Tracks.GetTrack(5)->volume[0], 8);
+}
+
 // --- SaveRMW ---
 
 TEST_F(SongEditingTest, SaveRMWWritesTheVersionStringFirst) {
@@ -1136,6 +1199,50 @@ TEST_F(SongEditingTest, LoadRMWRoundTripsSongDataThroughSaveRMW) {
     CString name(loadedInfo.songname, SONG_NAME_MAX_LEN);
     name.TrimRight();
     EXPECT_STREQ(name, "TestSong");
+}
+
+// Unlike TXT's SaveAll, RMW's always writes every instrument/track
+// unconditionally, so SaveInstrument/LoadInstrument/SaveTrack/LoadTrack's
+// RMW branches are already exercised by the test above - just with
+// all-default (empty) content, which doesn't prove non-trivial data
+// actually survives the round trip. This test closes that gap - see the
+// SaveTxt/LoadTxt version above for the full rationale.
+TEST_F(SongEditingTest, SaveRMWAndLoadRMWRoundTripNonEmptyInstrumentAndTrack) {
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 2;
+    song.SetSongInfoPars(&info);
+
+    (*song.GetSong())[0][0] = 5;
+
+    TInstrument* instr = g_Instruments.GetInstrument(2);
+    strncpy(instr->name, "Lead", 4);
+    instr->parameters[PAR_ENV_LENGTH] = 2;
+    instr->envelope[0][EnvelopeParameter::VOLUMEL] = 10;
+
+    TTrack* tr = g_Tracks.GetTrack(5);
+    tr->len = 2;
+    tr->note[0] = 10;
+    tr->instr[0] = 2;
+    tr->volume[0] = 8;
+
+    std::ostringstream out;
+    ASSERT_TRUE(song.SaveRMW(out));
+
+    std::istringstream in(out.str());
+    CSong loaded;
+    ASSERT_TRUE(loaded.LoadRMW(in));
+
+    CString name = g_Instruments.GetInstrument(2)->name;
+    name.TrimRight();
+    EXPECT_STREQ(name, "Lead");
+    EXPECT_EQ(g_Instruments.GetInstrument(2)->envelope[0][EnvelopeParameter::VOLUMEL], 10);
+
+    EXPECT_EQ(g_Tracks.GetTrack(5)->len, 2);
+    EXPECT_EQ(g_Tracks.GetTrack(5)->note[0], 10);
+    EXPECT_EQ(g_Tracks.GetTrack(5)->instr[0], 2);
+    EXPECT_EQ(g_Tracks.GetTrack(5)->volume[0], 8);
 }
 
 // --- LoadRMT ---
