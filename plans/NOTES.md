@@ -3863,4 +3863,39 @@ build clean and all 123 tests pass.
       Phase B, the entire not-yet-started Java UI layer. Full write-up in
       `plans/JAVA_PORT_PLAN.md`'s thirty-eighth ported batch and
       `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4/closing
-      summary. Not yet committed.
+      summary. Committed as `08d9465`.
+  - **2026-09-26**: Wrote `plans/JAVA_UI_PORT_HANDOVER.md` at the user's
+    request - a short entry point for a fresh session picking up Phase B
+    (the Java UI port), written for the switch to the Fable model: current
+    state, the hard "must match today's Windows UI" requirement, the
+    architecture decisions already resolved, what was still open, a
+    recommended first slice, and the working conventions from the model
+    port. Committed as `70681d1`.
+  - **2026-09-26** (Fable 5.1 from here on): Phase B kicked off. Read the
+    handover and `plans/UI_SURVEY_PLAN.md` in full, then the C++ paint/
+    input/config code they describe, the resource files, and the `dis6502`
+    precedent. Wrote `plans/JAVA_UI_PORT_PLAN.md` - the dedicated Phase B
+    plan (batches B0-B9) - and put the open decisions to the user.
+    - Key findings that shaped it: `dis6502` is pure Swing on
+      `com.wudsn.tools.base.gui` (already a dependency of this project),
+      and its `GraphicPanel` uses RMT's exact rendering model (fixed
+      off-screen `BufferedImage`, nearest-neighbor scaled blit); the glyph
+      sheet already exists as a plain `src/cpp/res/gfx-8x16.bmp`
+      (1024x240, decoded: 128 glyphs x 15 color bands, mini font in the
+      two skipped bands 7-8, icons at y=122), so the "export IDB_GFX" item
+      is moot; options persist to a plain `rmt.ini`, not the registry;
+      and the Java model has *no* real-time audio path at all - the
+      biggest question the handover did not list.
+    - Decisions taken by the user, all per recommendation: Swing + WUDSN
+      Base gui; timer-driven full redraw (~16 ms `javax.swing.Timer`);
+      keep the `rmt.ini` format (Preferences only for window geometry);
+      UI first, real-time audio deferred to B8. The user will provide
+      reference `Rmt.exe` screenshots for pixel-level golden-image tests,
+      and runs Windows at **150% display scaling** - the exact setting of
+      dis6502's known HiDPI bug, so B1's on-screen check at 150% is a hard
+      gate.
+    - Design deviations recorded in the plan: `GUI_Song.cpp`'s key
+      handlers and `GUI_Instruments.cpp`'s editor drawing move from the
+      model classes (`CSong`/`CInstruments` in C++) into `ui` classes that
+      take the model, keeping `Song`/`Instruments` UI-free. Not yet
+      committed.
