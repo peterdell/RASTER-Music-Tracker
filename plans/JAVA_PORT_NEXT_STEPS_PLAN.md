@@ -173,14 +173,38 @@ verify with `mvn -o clean test` and/or the full C++ suite, update
      real ASAP audio, but a minimal 2-line loop still doesn't have enough
      distinct content to compress past 16 bytes). Verified with
      `mvn -o clean test`: 396 tests pass (+3), no regressions.
-   - **Still not ported: `ExportSAP_B_LZSS`/`ExportXEX_LZSS`.** Both need a
-     new `VUPlayer` class (many memory-address constants plus
-     `PatchMemoryForSAP_B`'s real memory-patching logic) and real
-     on-disk resource-file loading (`resources/players/vu_player_v2.obx`,
-     via a `CAtariIO::LoadBinaryFile`-equivalent not yet ported - a
-     different loading path than `RmtAtariBinaries`'s embedded-resource
-     one already used for tracker driver binaries). A distinctly bigger,
-     more novel chunk of work than the three done above - not started.
+   - **`ExportSAP_B_LZSS` - DONE (2026-09-26) too**, alongside the
+     `AtariIO.loadBinaryFile`/`VUPlayer` machinery it needed. New
+     `AtariIO.loadBinaryFile(byte[] data, byte[] memory)` (reuses the
+     already-tested `loadBinaryBlock` in a loop, matching C++'s own
+     `LoadBinaryFile` structure exactly, minus the file-open step itself -
+     the caller reads the file via `Files.readAllBytes`, matching this
+     class's byte-array idiom). New `VUPlayer` class ports only the dozen
+     memory-address constants `PatchMemoryForSAP_B` actually needs (not
+     all of `lzssp.h`'s several hundred), plus `patchMemoryForSapB` itself -
+     including a pre-existing C++ oddity (`memory[LZSS_POINTER]` written
+     eight times to the *same* address, only the last write survives)
+     preserved as-is, already self-flagged by the original author's own
+     `// TODO: Why same address?` comments, not something to unilaterally
+     fix during a port. `SapFileExporter.exportSapBLzss` reads the real,
+     checked-in `rmt/resources/players/vu_player_v2.obx` from disk
+     (relative to Maven's working directory, which is always the repo
+     root) - the first real on-disk file dependency in this Java test
+     suite. Test (`SongEditingTest`, extended):
+     `exportSapBLzssLoadsTheRealResourceAndWritesPatchedMemory` - passed on
+     the first real run. Verified with `mvn -o clean test`: 397 tests pass
+     (+1), no regressions.
+   - **Still not ported: `ExportXEX_LZSS`.** A distinctly bigger, more
+     novel undertaking than everything else in this item: needs
+     `BruteforceOptimalLZSS` (tries all 8 `SapROptimization` variants, keeps
+     the smallest), a new `CXEXFile`-equivalent class, `CSong::GetSubsongParts`
+     (not yet checked for a Java equivalent), `CRmtAtariBinaries::GetVUPlayerBinary`
+     (a *different* resource-loading path than `exportSapBLzss`'s real
+     on-disk file - an embedded resource, matching `GetTrackerDriverBinary`'s
+     existing pattern, not yet ported), and loops `dumpSongToPokeyStream`
+     once per subsong (`PLAY_FROM` mode, not `PLAY_SONG`) rather than once
+     for the whole song. Not started - flagged for a decision on whether to
+     continue.
 5. **Closing sanity sweep - DONE (2026-09-26), clean.** Ran the
    `BROADER_SURVEY_PLAN.md`-style pass described above: extracted every
    `ClassName::MethodName` defined across all 44 non-stub `.cpp` files

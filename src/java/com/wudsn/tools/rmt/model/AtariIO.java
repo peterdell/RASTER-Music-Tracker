@@ -2,11 +2,13 @@ package com.wudsn.tools.rmt.model;
 
 /**
  * Ported from CAtariIO (src/cpp/AtariIO.h/.cpp) - {@code LoadDataAsBinaryFile}
- * (exercised indirectly via {@link AtariTrackerDriver#loadRMTRoutines}) and
- * {@code LoadBinaryBlock} (exercised indirectly via {@link Song#loadRMT}).
- * {@code LoadWord}/{@code LoadBinaryFile} operate on a {@code std::istream}
- * rather than an in-memory buffer/byte array and have no dedicated test
- * coverage - deferred.
+ * (exercised indirectly via {@link AtariTrackerDriver#loadRMTRoutines}),
+ * {@code LoadBinaryBlock} (exercised indirectly via {@link Song#loadRMT}),
+ * and {@link #loadBinaryFile} (exercised indirectly via
+ * {@code SapFileExporter#exportSapBLzss}'s real on-disk
+ * {@code vu_player_v2.obx} load). {@code LoadWord} has no direct Java
+ * equivalent - {@link #loadBinaryBlock} inlines its two-byte little-endian
+ * reads directly, matching this class's byte-array idiom.
  *
  * <p>C++'s separate {@code MemorySize size} parameter is dropped - Java
  * arrays already carry their own length, unlike C's raw pointers.
@@ -81,6 +83,38 @@ public final class AtariIO {
 		pos += length;
 
 		return new BinaryBlockResult(pos - offset, fromAddr, toAddr);
+	}
+
+	/**
+	 * Loads every "binary block" (see {@link #loadBinaryBlock}) found in
+	 * {@code data} back to back - mirrors C++'s {@code LoadBinaryFile}
+	 * exactly, minus the actual file open/read (C++ takes a filename and
+	 * opens an {@code ifstream} itself; this port takes the already-read
+	 * file bytes directly, matching this class's own established
+	 * byte-array-over-stream idiom - the caller reads the file, e.g. via
+	 * {@code Files.readAllBytes}).
+	 */
+	public static Result loadBinaryFile(byte[] data, byte[] memory) {
+		int minAddr = 0xFFFF;
+		int maxAddr = 0;
+		int fsize = 0;
+		int pos = 0;
+		while (pos < data.length) {
+			BinaryBlockResult result = loadBinaryBlock(data, pos, memory);
+			int blen = result.length();
+			if (blen <= 0) {
+				break;
+			}
+			if (result.fromAddr() < minAddr) {
+				minAddr = result.fromAddr();
+			}
+			if (result.toAddr() > maxAddr) {
+				maxAddr = result.toAddr();
+			}
+			fsize += blen;
+			pos += result.inputBytesConsumed();
+		}
+		return new Result(fsize, minAddr, maxAddr);
 	}
 
 	/**

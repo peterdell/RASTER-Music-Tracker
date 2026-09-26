@@ -2187,6 +2187,48 @@ class SongEditingTest {
 		assertTrue(anyNonZero, "expected at least one non-zero POKEY register byte after the header");
 	}
 
+	// --- SapFileExporter.exportSapBLzss ---
+	// Needs a real on-disk resource file (rmt/resources/players/vu_player_v2.obx,
+	// checked into the repo - see SapFileExporter's own VU_PLAYER_PATH), the
+	// first real file-system dependency in this Java test suite. Caller
+	// (matching the real dialog) sets the SapFile's type to "B" itself.
+
+	@Test
+	void exportSapBLzssLoadsTheRealResourceAndWritesPatchedMemory() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 1;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+		Track tr = tracks.getTrack(5);
+		tr.len = 2;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+		tr.volume[0] = 10;
+		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10;
+		song.getSongGo()[1] = 0; // guarantees a fast loop
+
+		ChannelControl channelControl = new ChannelControl(4);
+		PokeyStream pokeyStream = new PokeyStream();
+		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
+
+		SapFile sapFile = new SapFile();
+		sapFile.setType("B");
+		sapFile.setAuthor("RCoder");
+		sapFile.setName("RSong");
+		sapFile.setDate("01/01/2000");
+
+		byte[] out = SapFileExporter.exportSapBLzss(sapFile, song, 4, pokeyStream);
+
+		String header = new String(out, 0, Math.min(out.length, 200), java.nio.charset.StandardCharsets.US_ASCII);
+		assertTrue(header.contains("TYPE B"));
+		assertTrue(header.contains("INIT "));
+		assertTrue(header.contains("PLAYER "));
+		assertTrue(out.length > 200);
+	}
+
 	// --- WaveFileExporter.exportWav ---
 	// See WaveFileExporter's own class javadoc for why this uses ASAP's own
 	// audio synthesis directly instead of porting CXPokey/PokeyRenderer.

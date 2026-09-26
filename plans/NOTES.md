@@ -3788,5 +3788,42 @@ build clean and all 123 tests pass.
       loading, a distinctly bigger chunk of work, flagged for a decision
       on whether to continue now. Full write-up in
       `plans/JAVA_PORT_PLAN.md`'s thirty-sixth ported batch and
+      `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4. Committed as
+      `f209496`.
+  - **2026-09-26**: Thirty-seventh Java-port batch, continuing "do the asap
+    part" - the fourth of the five export methods: `ExportSAP_B_LZSS`.
+    - New `AtariIO.loadBinaryFile(byte[] data, byte[] memory)` reuses the
+      already-tested `loadBinaryBlock` in a loop, mirroring C++'s own
+      `LoadBinaryFile` minus the file-open step itself (the caller reads
+      the file via `Files.readAllBytes`, matching this class's byte-array
+      idiom).
+    - New `VUPlayer` class ports only the dozen memory-address constants
+      `PatchMemoryForSAP_B` actually needs (not all of `lzssp.h`'s several
+      hundred - the rest are for VUPlayer's own UI/keyboard-handling code,
+      unrelated to this export path) plus `patchMemoryForSapB` itself -
+      including a pre-existing C++ oddity preserved as-is:
+      `memory[LZSS_POINTER]` gets written eight times in a row to the
+      *same* address (only the last write survives), already self-flagged
+      by the original author's own two `// TODO: Why same address?`
+      comments - a known, already-acknowledged oddity in low-priority
+      ("hacked up") code, not a provable bug to unilaterally fix mid-port.
+    - `SapFileExporter.exportSapBLzss` reads the real, checked-in
+      `rmt/resources/players/vu_player_v2.obx` from disk - the first real
+      on-disk file dependency in this Java test suite, working because
+      Maven always runs with the repository root as the working
+      directory (same convention the C++ test suite's own
+      `AtariBinariesStub.cpp` uses, just resolved differently).
+    - Test (`SongEditingTest`, extended):
+      `exportSapBLzssLoadsTheRealResourceAndWritesPatchedMemory` - passed
+      on the first real run. Verified with `mvn -o clean test`: 397 tests
+      pass (+1), no regressions.
+    - `ExportXEX_LZSS` is the only export method still unported - a
+      distinctly bigger, more novel undertaking (needs
+      `BruteforceOptimalLZSS`, a new `CXEXFile`-equivalent class,
+      `CSong::GetSubsongParts`, a *different* embedded-resource loading
+      path for the VU player binary, and per-subsong
+      `dumpSongToPokeyStream` looping) - flagged for a decision on whether
+      to continue. Full write-up in `plans/JAVA_PORT_PLAN.md`'s
+      thirty-seventh ported batch and
       `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4. Not yet
       committed.

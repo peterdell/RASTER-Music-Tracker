@@ -1679,19 +1679,48 @@ test environment" finding, for a different underlying reason). Verified
 with `mvn -o clean test`: 396 tests pass (+3), no regressions. Full
 write-up in `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4.
 
-`ExportSAP_B_LZSS`/`ExportXEX_LZSS` remain unported - both need a new
-`VUPlayer` class plus real on-disk resource-file loading, a distinctly
-bigger chunk of work than what's done here.
+`ExportSAP_B_LZSS`/`ExportXEX_LZSS` remain unported at the end of this
+batch - both need a new `VUPlayer` class plus real on-disk resource-file
+loading, a distinctly bigger chunk of work than what's done here.
+
+## Thirty-seventh ported batch (2026-09-26): `ExportSAP_B_LZSS`
+
+Phase A item 4, continued. New `AtariIO.loadBinaryFile(byte[], byte[])`
+(reuses the already-tested `loadBinaryBlock` in a loop, mirroring C++'s
+own `LoadBinaryFile` minus the file-open step, which the caller now does
+itself via `Files.readAllBytes`). New `VUPlayer` class ports only the
+memory-address constants `PatchMemoryForSAP_B` actually needs (not all of
+`lzssp.h`'s several hundred) plus `patchMemoryForSapB` itself, including a
+pre-existing C++ oddity (`memory[LZSS_POINTER]` written eight times to the
+same address - only the last write survives) preserved as-is, already
+self-flagged by the original author's own `// TODO: Why same address?`
+comments rather than something to unilaterally fix mid-port.
+`SapFileExporter.exportSapBLzss` reads the real, checked-in
+`rmt/resources/players/vu_player_v2.obx` from disk - the first real
+on-disk file dependency in this Java test suite (works because Maven
+always runs with the repository root as the working directory).
+
+Test (`SongEditingTest`, extended):
+`exportSapBLzssLoadsTheRealResourceAndWritesPatchedMemory` - passed on the
+first real run. Verified with `mvn -o clean test`: 397 tests pass (+1), no
+regressions. Full write-up in `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase
+A item 4.
+
+`ExportXEX_LZSS` is the only remaining unported export method - a
+distinctly bigger, more novel undertaking (needs `BruteforceOptimalLZSS`,
+a new `CXEXFile`-equivalent class, `CSong::GetSubsongParts`, a *different*
+embedded-resource loading path for the VU player binary, and per-subsong
+`dumpSongToPokeyStream` looping) - not started, flagged for a decision.
 
 ## Next steps
 
 - **Phase A** (small, model-layer): `TracksEdit.cpp`'s 7 methods and real
   CPU/POKEY emulation (`PokeyStream`/`dumpSongToPokeyStream`, via ASAP) are
-  now DONE, and three of the five dependent export methods
-  (`ExportSAP_R`/`ExportLZSS`/`ExportWAV`) are DONE too (see the three
-  ported batches just above). Remaining: `ExportSAP_B_LZSS`/
-  `ExportXEX_LZSS` (need a new `VUPlayer` class and real on-disk
-  resource-file loading - not yet started).
+  now DONE, and four of the five dependent export methods
+  (`ExportSAP_R`/`ExportLZSS`/`ExportWAV`/`ExportSAP_B_LZSS`) are DONE too
+  (see the four ported batches just above). Remaining: `ExportXEX_LZSS`
+  (needs `BruteforceOptimalLZSS`, a new `CXEXFile`-equivalent class, and a
+  different embedded-resource loading path - not yet started).
 - **Phase B** (large, not started): the entire Java UI layer
   (`com.wudsn.tools.rmt.ui` doesn't exist yet) - see
   `plans/JAVA_PORT_NEXT_STEPS_PLAN.md` for what `plans/UI_SURVEY_PLAN.md`
