@@ -31,9 +31,14 @@ package com.wudsn.tools.rmt.model;
  * ({@link #markTfNoEmpty}/{@link #trackGetLoopingNoteInstrVol}/
  * {@link #getSmallestMaxtracklen}).
  *
- * <p><b>No {@code CPokeyStream} yet</b>: {@link #songPlayNextLine} omits
- * C++'s {@code m_pokeyStream}-consulting "song is done" check - it's always
- * null in every existing CSong test, and {@code PokeyStream} isn't ported.
+ * <p><b>{@code CPokeyStream} now wired in</b>: {@link #songPlayNextLine}/
+ * {@link #playVBI}/{@link #play} each gained a {@link PokeyStream}-taking
+ * overload (the pre-existing overloads delegate with {@code null},
+ * unchanged for every other caller) so {@link #dumpSongToPokeyStream} can
+ * consult it - {@code CallFromPlayBeat}'s hook in {@code PlayBeat()} is the
+ * one exception, still omitted, since it only ever fires in
+ * {@code PLAY_BLOCK} mode, which {@link #dumpSongToPokeyStream}'s own
+ * {@code PLAY_SONG}-only export use never reaches.
  *
  * <p><b>{@code TrackClipboard} joins {@code Undo}/{@code Messages}/
  * {@code AtariTrackerDriver} as an explicit-parameter collaborator</b>
@@ -946,16 +951,20 @@ public final class Song {
 		return -1;
 	}
 
+	/** {@code pokeyStream} defaults to {@code null} (never consulted), matching every pre-existing call site. */
+	public boolean songPlayNextLine() {
+		return songPlayNextLine(null);
+	}
+
 	/**
 	 * Advances the song's play line, following a goto line if one is set.
 	 * Always returns {@code true} (C++'s {@code BOOL} return is unconditional
-	 * in every branch of the original).
-	 *
-	 * <p>Omits C++'s {@code m_pokeyStream}-consulting "song is done" check -
-	 * {@link PokeyStream} isn't ported, and {@code m_pokeyStream} is always
-	 * null in every existing CSong test.
+	 * in every branch of the original) - {@code pokeyStream}'s "song is
+	 * done" check (used only by {@link #dumpSongToPokeyStream}) instead sets
+	 * {@link #playMode} to {@link PlayMode#PLAY_STOP} as a side effect,
+	 * exactly mirroring C++'s {@code m_play = PLAY_STOP}.
 	 */
-	public boolean songPlayNextLine() {
+	public boolean songPlayNextLine(PokeyStream pokeyStream) {
 		trackPlayLine = 0; // first track pattern line
 
 		// Normal play, play from current position, or play from bookmark => shift to the next line
@@ -969,6 +978,11 @@ public final class Song {
 		// When a goto line is encountered, jump right to the defined line and continue playback from that position
 		if (songGo[songPlayLine] >= 0) {
 			songPlayLine = songGo[songPlayLine];
+		}
+
+		if (pokeyStream != null && pokeyStream.trackSongLine(songPlayLine)) {
+			// Song is done, so stop the play back
+			playMode = PlayMode.PLAY_STOP;
 		}
 
 		return true;
@@ -3487,6 +3501,11 @@ public final class Song {
 	 * exactly as C++ does.
 	 */
 	public boolean play(PlayMode mode, boolean follow, int special, Undo undo, int tracks4_8, AtariTrackerDriver atariTrackerDriver, TrackClipboard clipboard) {
+		return play(mode, follow, special, undo, tracks4_8, atariTrackerDriver, clipboard, null);
+	}
+
+	/** {@code pokeyStream} defaults to {@code null} on the other overload, matching every pre-existing call site; only {@link #dumpSongToPokeyStream} passes a real one. */
+	public boolean play(PlayMode mode, boolean follow, int special, Undo undo, int tracks4_8, AtariTrackerDriver atariTrackerDriver, TrackClipboard clipboard, PokeyStream pokeyStream) {
 		undo.separator();
 
 		if (mode == PlayMode.PLAY_BOOKMARK && !isBookmark()) {
@@ -3570,7 +3589,7 @@ public final class Song {
 		}
 
 		followplay = follow;
-		playBeat(tracks4_8, atariTrackerDriver); // sets m_speeda
+		playBeat(tracks4_8, atariTrackerDriver, pokeyStream); // sets m_speeda
 		speeda++; // (Original comment by Raster, April 27, 2003) adds 1 to m_speed, for what the real thing will take place in Init
 		if (followplay) { // cursor following the player
 			trackActiveLine = trackPlayLine;
@@ -3578,12 +3597,96 @@ public final class Song {
 		}
 		playMode = mode;
 
+		if (pokeyStream != null) {
+			pokeyStream.callFromPlay(playMode, trackPlayLine, songPlayLine);
+		}
+
 		return true;
 	}
 
 	/** {@code special} defaults to 0, matching C++'s default argument. */
 	public boolean play(PlayMode mode, boolean follow, Undo undo, int tracks4_8, AtariTrackerDriver atariTrackerDriver, TrackClipboard clipboard) {
 		return play(mode, follow, 0, undo, tracks4_8, atariTrackerDriver, clipboard);
+	}
+
+	// --- DumpSongToPokeyStream (Song_DumpSong.cpp) ---
+	//
+	// Ported from CSong::DumpSongToPokeyStream() - runs the same tight
+	// PlayVBI()-driven loop as C++, but replaces every
+	// g_AtariTrackerDriver->Play() call with AsapEmulator#stepFrame() (see
+	// its own class javadoc for why): C++'s JSR call runs the RMT player
+	// routine that's already loaded into g_AtariTrackerDriver's own Atari
+	// memory by some earlier, separate step; this port has no equivalent
+	// loaded-driver memory, so it instead exports the *current* song to a
+	// real RMT module byte array (via makeModule/RmtExporter.exportAsRMT,
+	// a new step C++ doesn't need) and hands that to a fresh AsapEmulator,
+	// which independently decodes and plays it back - a full re-derivation
+	// of "what's sounding now" that produces the same observable POKEY
+	// register writes, entirely within ASAP's own emulated CPU.
+	//
+	// Omits C++'s g_playtime++ (a UI-only progress-display global) and the
+	// periodic RefreshScreen()/SetStatusBarText() progress notices (real
+	// UI, no Java equivalent yet) - neither has any effect on the recorded
+	// PokeyStream data itself.
+
+	/**
+	 * Exports the current song and plays it back through a real, freshly-loaded
+	 * {@link AsapEmulator}, recording every frame's POKEY register writes into
+	 * {@code pokeyStream} until a full playback loop is detected (see
+	 * {@link PokeyStream#trackSongLine}). {@code channelControl} is silenced
+	 * for the duration - mirroring C++'s own {@code SetAllChannelsOff()} -
+	 * but deliberately never switched back on here: matches C++, where that's
+	 * {@code CPokeyStream::FinishedRecording()}'s job, and
+	 * {@code DumpSongToPokeyStream()} never calls it (see this method's own
+	 * closing comment).
+	 */
+	public void dumpSongToPokeyStream(PokeyStream pokeyStream, PlayMode initialPlayMode, int songLine, int trackLine, int tracks4_8, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
+		stop(undo);
+		atariTrackerDriver.init();
+		channelControl.setAllChannelsOff();
+
+		byte[] mem = new byte[Atari.MEMORY_SIZE];
+		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
+		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
+		int targetAddrOfModule = 0x4000;
+		int firstByteAfterModule = makeModule(mem, targetAddrOfModule, SongIOType.RMT, instrumentSavedFlags, trackSavedFlags, tracks4_8);
+		byte[] moduleBytes = RmtExporter.exportAsRMT(this, instruments, mem, targetAddrOfModule, firstByteAfterModule, instrumentSavedFlags);
+
+		AsapEmulator asapEmulator = new AsapEmulator();
+		asapEmulator.startRecording(moduleBytes);
+		pokeyStream.startRecording(this, tracks4_8, asapEmulator);
+
+		songPlayLine = songLine;
+		trackPlayLine = trackLine;
+		play(initialPlayMode, followplay, 0, undo, tracks4_8, atariTrackerDriver, clipboard, pokeyStream);
+
+		while (playMode != PlayMode.PLAY_STOP) {
+			// 1 VBI of module playback
+			playVBI(tracks4_8, atariTrackerDriver, pokeyStream);
+
+			// Multiple RMT routine calls will be processed if needed
+			for (int i = 0; i < instrumentSpeed; i++) {
+				// 1 VBI of RMT routine (for instruments) - see this section's
+				// own header comment for why this is AsapEmulator#stepFrame(),
+				// not AtariTrackerDriver#play().
+				asapEmulator.stepFrame();
+				// Transfer from memory to POKEY buffer
+				pokeyStream.record();
+			}
+		}
+		atariTrackerDriver.init();
+
+		// End playback now, the SAP-R data should have been dumped successfully!
+		stop(undo);
+
+		// Deliberately NOT calling pokeyStream.finishedRecording() here, matching
+		// C++ exactly: CSong::DumpSongToPokeyStream() never calls
+		// CPokeyStream::FinishedRecording() itself (which is what frees the
+		// stream buffer and turns channels back on) - callers read the
+		// recorded data out of pokeyStream afterward (e.g. via
+		// getFrameBytes()), then release it themselves whenever they're done
+		// with it (a plain Java object with no manual memory management
+		// needed, unlike C++'s malloc'd buffer).
 	}
 
 	/**
@@ -3595,10 +3698,23 @@ public final class Song {
 	 * the per-track scan after advancing to the next songline) with a
 	 * labeled {@code while(true)}/{@code continue}, since Java has no
 	 * {@code goto}. Omits the trailing {@code m_pokeyStream} "song is done"
-	 * check - always null in every test, matches {@link #songPlayNextLine}'s
-	 * established omission.
+	 * check ({@code CallFromPlayBeat}) - unlike {@link #songPlayNextLine}/
+	 * {@link #play}, deliberately still omitted even now that
+	 * {@link PokeyStream} is wired into those two: the check only takes
+	 * effect in {@code PLAY_BLOCK} mode, which {@link #dumpSongToPokeyStream}
+	 * (the only real caller of a non-null {@link PokeyStream}) never uses -
+	 * it always exports the whole song via {@code PLAY_SONG}. The internal
+	 * {@code SongPlayNextLine()} call this method makes itself (when a
+	 * track's own {@code len}/{@code go} - not {@link #playVBI}'s
+	 * {@code tracks.getMaxTrackLength()} fallback - ends a track early) does
+	 * get a {@link PokeyStream}, via the overload below.
 	 */
 	public boolean playBeat(int tracks4_8, AtariTrackerDriver atariTrackerDriver) {
+		return playBeat(tracks4_8, atariTrackerDriver, null);
+	}
+
+	/** {@code pokeyStream} defaults to {@code null} on the other overload, matching every pre-existing call site; only {@link #dumpSongToPokeyStream} passes a real one. */
+	public boolean playBeat(int tracks4_8, AtariTrackerDriver atariTrackerDriver, PokeyStream pokeyStream) {
 		int[] note = new int[SONGTRACKS];
 		int[] instr = new int[SONGTRACKS];
 		int[] vol = new int[SONGTRACKS];
@@ -3632,7 +3748,7 @@ public final class Song {
 							continue;
 						}
 						// Otherwise, a normal progression to the next line in the song
-						songPlayNextLine();
+						songPlayNextLine(pokeyStream);
 						continue trackLine;
 					}
 				} else {
@@ -3692,6 +3808,11 @@ public final class Song {
 	 * it's a real, cheap, always-correct effect either way.
 	 */
 	public boolean playVBI(int tracks4_8, AtariTrackerDriver atariTrackerDriver) {
+		return playVBI(tracks4_8, atariTrackerDriver, null);
+	}
+
+	/** {@code pokeyStream} defaults to {@code null} on the other overload, matching every pre-existing call site; only {@link #dumpSongToPokeyStream} passes a real one. */
+	public boolean playVBI(int tracks4_8, AtariTrackerDriver atariTrackerDriver, PokeyStream pokeyStream) {
 		if (playMode == PlayMode.PLAY_STOP) {
 			return false; // not playing
 		}
@@ -3710,10 +3831,10 @@ public final class Song {
 
 		// If none of the tracks end with "end", then it will end when reaching the max track length
 		if (trackPlayLine >= tracks.getMaxTrackLength()) {
-			songPlayNextLine();
+			songPlayNextLine(pokeyStream);
 		}
 
-		playBeat(tracks4_8, atariTrackerDriver); // 1 pattern track line play
+		playBeat(tracks4_8, atariTrackerDriver, pokeyStream); // 1 pattern track line play
 
 		if (speeda == speed && followplay) { // playing and following the player
 			trackActiveLine = trackPlayLine;

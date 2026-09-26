@@ -1,6 +1,5 @@
 package com.wudsn.tools.rmt.model;
 
-import java.io.OutputStream;
 import java.util.Arrays;
 
 /**
@@ -8,21 +7,16 @@ import java.util.Arrays;
  * state-machine methods {@code PokeyStreamTests.cpp} exercises
  * ({@link #switchIntoRecording}/{@link #switchIntoStop}/
  * {@link #callFromPlay}/{@link #trackSongLine}/{@link #callFromPlayBeat},
- * plus {@link #clear} and the getters), plus the two early-return guard
- * clauses of {@link #record}/{@link #writeToFile} that don't touch a real
- * driver/stream buffer.
+ * plus {@link #clear} and the getters), plus {@link #startRecording}/
+ * {@link #record}/{@link #finishedRecording}'s real bodies, now backed by
+ * {@link AsapEmulator} instead of the permanently no-op
+ * {@link AtariTrackerDriver} (see {@link AsapEmulator}'s own class javadoc
+ * for why).
  *
- * <p><b>{@code StartRecording}/{@code FinishedRecording} deferred
- * entirely, and {@link #record}/{@link #writeToFile}'s real bodies
- * deferred too</b>: none of these touch anything beyond the tested guard
- * clauses in {@code PokeyStreamTests.cpp} - the actual Pokey-register
- * recording pipeline (needs a real {@link AtariTrackerDriver}, a growable
- * byte buffer, and {@code CSong::DumpSongToPokeyStream()}'s wider
- * machinery) is exercised for real in {@code SongEditingTests.cpp}
- * instead, which isn't ported yet. Consequently {@code m_StreamBuffer}/
- * {@code m_BufferSize}/{@code m_FrameSize}/{@code m_AtariTrackerDriver}
- * aren't modeled here at all - nothing observable in this port depends on
- * them.
+ * <p><b>{@code WriteToFile} redesigned as {@link #getFrameBytes}</b>:
+ * C++'s {@code std::ostream&}-writing method becomes a returned {@code byte[]}
+ * slice, matching this port's established byte-array-over-stream idiom used
+ * everywhere else ({@code saveRMW}/{@code loadRMW}/{@code exportAsRMT}, ...).
  */
 public final class PokeyStream {
 
@@ -36,6 +30,10 @@ public final class PokeyStream {
 	private int firstCountPoint;
 	private int secondCountPoint;
 	private int thirdCountPoint;
+
+	private byte[] streamBuffer;
+	private int frameSize;
+	private AsapEmulator driver;
 
 	/** Resets frame/line counters but not {@code recordState} - see {@code PokeyStreamTests.cpp}'s own characterization of this quirk. */
 	public void clear() {
@@ -177,18 +175,129 @@ public final class PokeyStream {
 		return false;
 	}
 
-	/** Only the two tested early-return guards - the real register-dumping/buffer-growing body is deferred (see class javadoc). */
+	/**
+	 * Prepares recording: allocates the stream buffer and resets every
+	 * counter, matching C++'s {@code StartRecording()} exactly except that
+	 * the growable {@code m_StreamBuffer}/{@code realloc} pair becomes a
+	 * plain {@code byte[]}, doubled in place by {@link #record} when it
+	 * fills up (via {@code Arrays.copyOf}), and {@code CAtariTrackerDriver*}
+	 * becomes {@code driver} (see {@link AsapEmulator}'s own class javadoc
+	 * for why).
+	 */
+	public void startRecording(Song song, int tracks4_8, AsapEmulator driver) {
+		this.driver = driver;
+
+		recordState = StreamState.START;
+
+		streamBuffer = new byte[0xFFFFF];
+
+		frameSize = song.isStereo(tracks4_8) ? 18 : 9;
+		frameCounter = 0;
+		songlineCounter = 0;
+		Arrays.fill(playCount, 0);
+		Arrays.fill(framesPerSongline, 0);
+		Arrays.fill(offsetPerSongline, 0);
+		songLoopedCounter = 0;
+
+		firstCountPoint = 0;
+		secondCountPoint = 0;
+		thirdCountPoint = 0;
+	}
+
+	/**
+	 * Dumps the current POKEY register values to the stream buffer at the
+	 * position defined by the frame counter - mirrors C++'s {@code Record()}
+	 * exactly, including the "1st POKEY is 2nd in the stream" byte-layout
+	 * quirk and the Two-Tone-mode AUDC1 bit-10 patch (driven by SKCTL, offset
+	 * 15 on {@link AsapEmulator#getRegisterShadow}, matching C++'s
+	 * {@code GetByteAt(0xd20F)}/{@code GetByteAt(0xd21F)}).
+	 */
 	public void record() {
 		if (recordState == StreamState.STOP) {
 			return;
 		}
 		if (recordState == StreamState.START) {
-			return; // Too soon, must first be initialised to get a constant rate every time
+			return; // Too soon, must first be initialised to get a constant rate every time, this prevents writing garbage in memory for the first few frames
 		}
-		// The real data-writing path is deferred - see class javadoc.
+
+		int offsetIntoBuffer = frameCounter * frameSize; // 4 AUDC, 4 AUDF, 1 AUDCTL + Second POKEY if used
+
+		if (offsetIntoBuffer > streamBuffer.length - frameSize + 1) {
+			// Buffer is too small, grow it
+			streamBuffer = Arrays.copyOf(streamBuffer, streamBuffer.length * 2);
+		}
+
+		// Dump Pokey sound registers to position defined by the frames counter
+		// AUDF1, AUDC1, AUDF2, AUDC2, AUDF3, AUDC3, AUDF4, AUDC4, AUDCTL
+		for (int i = 0; i < 9; i++) {
+			int j = (frameSize == 18) ? 9 : 0; // Slight offset for i count, memory can then be aligned as it is expected
+
+			// Copy data from the 1st Pokey
+			// 0 offset in mono
+			// 9 offset in stereo
+			streamBuffer[offsetIntoBuffer + i + j] = (byte) driver.getRegisterShadow(0, i);
+			if (i == 1) { // AUDC1
+				// Test SKCTL ($D20F), if Two-Tone is expected, set the Volume Only bit in the current AUDC1 offset
+				streamBuffer[offsetIntoBuffer + i + j] |= (driver.getRegisterShadow(0, 15) == 0x8B) ? 0x10 : 0x00;
+			}
+
+			if (frameSize == 9) {
+				continue; // No second POKEY
+			}
+
+			// Copy data from the 2nd Pokey
+			streamBuffer[offsetIntoBuffer + i] = (byte) driver.getRegisterShadow(1, i);
+			if (i == 1) { // AUDC1
+				// Test SKCTL ($D21F), if Two-Tone is expected, set the Volume Only bit in the current AUDC1 offset
+				streamBuffer[offsetIntoBuffer + i] |= (driver.getRegisterShadow(1, 15) == 0x8B) ? 0x10 : 0x00;
+			}
+		}
+
+		// If the end was reached, do nothing, simply ignore the last frame
+		if (songLoopedCounter == 2) {
+			return;
+		}
+
+		// Count the frames played in each Songline, until the first loop point is found
+		if (songLoopedCounter < 1) {
+			// Increment the frames counter for the current songline
+			framesPerSongline[songlineCounter]++;
+		}
+
+		// Increment the frames counter for the next iteration
+		frameCounter++;
 	}
 
-	/** Only the tested no-stream-buffer guard - the real write is deferred (see class javadoc), so this is always a no-op here. */
-	public void writeToFile(OutputStream out, int frames, int offset) {
+	/**
+	 * Returns {@code frames} frames' worth of recorded register bytes
+	 * starting at frame {@code offset} - mirrors C++'s
+	 * {@code WriteToFile(std::ostream&, frames, offset)}, redesigned to
+	 * return the bytes directly instead of writing to a stream (see class
+	 * javadoc). Empty before {@link #startRecording} has ever run, matching
+	 * C++'s {@code m_StreamBuffer == NULL} guard.
+	 */
+	public byte[] getFrameBytes(int frames, int offset) {
+		if (streamBuffer == null) {
+			return new byte[0];
+		}
+		int off = offset * frameSize;
+		int len = frames * frameSize;
+		return Arrays.copyOfRange(streamBuffer, off, off + len);
+	}
+
+	/**
+	 * Resets recording state and releases the stream buffer - mirrors C++'s
+	 * {@code FinishedRecording()} minus its {@code g_AtariTrackerDriver->Init()}/
+	 * {@code g_ChannelControl.SetAllChannelsOn()} calls, which are the
+	 * caller's own collaborators (see {@link Song#dumpSongToPokeyStream},
+	 * which calls both explicitly itself, matching this port's established
+	 * "no stored globals" idiom).
+	 */
+	public void finishedRecording() {
+		recordState = StreamState.STOP; // Reset the SAPR dump flag now it is done
+		frameCounter = 0; // Also reset the framecount once finished
+		songLoopedCounter = 0; // Reset the playback counter
+		streamBuffer = null;
+		driver = null;
 	}
 }

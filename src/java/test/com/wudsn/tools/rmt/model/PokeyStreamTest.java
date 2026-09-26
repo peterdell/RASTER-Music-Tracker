@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.ByteArrayOutputStream;
-
 import org.junit.jupiter.api.Test;
 
 /** Mirrors src/cpp/test/PokeyStreamTests.cpp. */
@@ -136,13 +134,11 @@ class PokeyStreamTest {
 	}
 
 	@Test
-	void writeToFileIsANoOpWithoutAStreamBuffer() {
-		PokeyStream stream = new PokeyStream(); // startRecording() was never called (and isn't ported), so there's no buffer
-		ByteArrayOutputStream neverWrittenTo = new ByteArrayOutputStream();
+	void getFrameBytesReturnsEmptyWithoutAStreamBuffer() {
+		PokeyStream stream = new PokeyStream(); // startRecording() was never called, so there's no buffer
 
-		stream.writeToFile(neverWrittenTo, 10, 0);
+		byte[] bytes = stream.getFrameBytes(10, 0);
 
-		// This just confirms the call completes safely without touching the stream.
-		assertEquals(0, neverWrittenTo.size());
+		assertEquals(0, bytes.length);
 	}
 }

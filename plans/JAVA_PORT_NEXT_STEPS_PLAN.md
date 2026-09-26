@@ -34,84 +34,114 @@ verify with `mvn -o clean test` and/or the full C++ suite, update
    boolean - matching this port's "C++ global -> explicit parameter"
    idiom). Full write-up in `plans/JAVA_PORT_PLAN.md`'s next ported batch
    entry.
-2. **`PokeyStream`'s real recording path + `AtariTrackerDriver`'s
-   remaining register-poking methods - real CPU/POKEY emulation needed,
-   now solved via ASAP (2026-09-26 analysis).** `plans/JAVA_PORT_PLAN.md`'s
-   twentieth/twenty-first ported batches deliberately ported only the pure
-   state-machine subset of each class. The real blocker isn't a buffer-size
-   decision (a manually-doubled `byte[]` or a `ByteArrayOutputStream`
-   handles that trivially) - it's that `PokeyStream.Record()` needs real
-   POKEY register *values*, which only exist because C++'s `Play()`/
-   `SetPokey()`/`Silence()` run the RMT player routine through a real 6502
-   CPU (`C6502.h`/`.cpp`, wrapping an external native DLL,
-   `sa_c6502.dll`). The Java port's `AtariTrackerDriver.play()`/
-   `setPokey()`/`silence()` are permanently no-ops for exactly this reason
-   (no Java equivalent of that DLL) - so even a fully-ported `Record()`
-   would just capture zeroed/garbage frames today.
+2. **`PokeyStream`'s real recording path + a real CPU/POKEY emulator -
+   DONE (2026-09-26), via ASAP.** `plans/JAVA_PORT_PLAN.md`'s twentieth/
+   twenty-first ported batches deliberately ported only the pure
+   state-machine subset of `AtariTrackerDriver`/`PokeyStream`. The real
+   blocker wasn't a buffer-size decision - it was that `PokeyStream.Record()`
+   needs real POKEY register *values*, which only exist because C++'s
+   `Play()`/`SetPokey()`/`Silence()` run the RMT player routine through a
+   real 6502 CPU (`C6502.h`/`.cpp`, wrapping an external native DLL,
+   `sa_c6502.dll`) that has no Java equivalent.
 
-   **Resolved by the user's own design decision**: use ASAP (Another
-   Slight Atari Player, `asap.sourceforge.net`) as the real CPU/POKEY
-   backing instead. `lib/java/asap.jar` and its full generated source
-   (`lib/java/asap-8.0.0-java-src.zip`) are now vendored (see
-   `lib/java/README.md`) - the same multi-language-codegen library this
-   repo already vendors a C build of (`src/cpp/asap/`), used today only by
-   `RmtTest.cpp`'s `/TEST` utility. Analysis of the vendored Java source
-   (package `net.sf.asap`):
-   - `Cpu6502.java` is a **complete, portable, pure-software 6502 CPU
-     emulator** with its own 64KB `memory[]` - unlike C++'s `C6502`, it has
-     no native/DLL dependency at all. `Pokey`/`PokeyChannel`/
-     `PokeyPair.java` are a matching dual-POKEY chip emulator. This is
-     exactly the missing piece.
-   - The **public API** (`ASAP.load`/`playSong`/`generate`, etc.) is
-     built around "load a module, produce PCM audio" - sufficient, as-is
-     and unmodified, to replace `CWaveFileExporter::ExportWAV` entirely:
-     export the song to RMT module bytes (already implemented via
-     `RmtExporter`), hand them to `ASAP.load()`/`playSong()`/`generate()`,
-     and let ASAP's own real emulation render the WAV samples. No CPU/POKEY
-     porting needed for this export specifically.
-   - The public API has **no way to read a raw POKEY register's last-
-     written value** (needed for `Record()`'s SAP-R-style per-frame dump,
-     i.e. `ExportSAP_R`/`ExportSAP_B_LZSS`/`ExportLZSS`/
-     `ExportCompactLZSS`/`ExportXEX_LZSS`). Confirmed this value exists
-     internally: `PokeyChannel.audf`/`.audc` and `Pokey.audctl` are
-     package-private fields (not `private`) storing the exact raw byte
-     last poked (verified in `PokeyChannel.setAudc()` - the stored
-     `this.audc = data` is unmasked), and `PokeyPair.basePokey`/
-     `.extraPokey` are package-private too. Only `ASAP.java` itself keeps
-     its own `cpu`/`pokeys` fields `private`, blocking a same-package
-     "sibling" accessor class from reaching them from outside `ASAP`.
-   - **Planned fix**: add one new method directly to the vendored
-     `ASAP.java` source (small, localized, mirrors the existing
-     `src/cpp/asap/asap-patch.h`/`.cpp` extension-point pattern already
-     used for this same upstream library on the C++ side), e.g.
-     `public int getPokeyRegisterShadow(int chip, int offset)` (`chip`
-     0/1 selects `pokeys.basePokey`/`.extraPokey`; `offset` 0-8 selects
-     AUDF1/AUDC1/.../AUDF4/AUDC4/AUDCTL, matching `CPokeyStream::Record()`'s
-     own `0xd200+i`/`0xd210+i` addressing exactly) - then compile and
-     vendor a custom-patched `asap.jar` build from that modified source in
-     place of the unmodified one. Not yet applied - this item hasn't
-     started.
-   - **Frame-stepping**: `ASAP.java` has no public "run one frame" method
-     (`doFrame`/`do6502Frame`/`call6502Player` are all `private`, called
-     only from `generate()`). Driving `Record()`-equivalent per-frame
-     capture will mean calling `generate()` for exactly one video frame's
-     worth of samples at a time (sample count = sample rate / NTSC-or-PAL
-     frame rate) and reading the new register-shadow accessor after each
-     call - the exact sample-per-frame arithmetic is an implementation
-     detail for when this item is actually picked up, not resolved here.
-3. **`CSong::DumpSongToPokeyStream` - Java port.** Already C++-
-   characterized and confirmed provably-bounded/safe
-   (`plans/SAP_LZSS_WAV_XEX_PLAN.md`, "DONE, safe" section) but never
-   ported to `Song.java`. Blocked only on item 2 above.
-4. **The five dependent export methods.** `CSongExporter::ExportSAP_R`/
-   `ExportSAP_B_LZSS`/`ExportLZSS`/`ExportCompactLZSS`/`ExportXEX_LZSS`
-   and `CWaveFileExporter::ExportWAV` are all already C++-characterized
-   ("Implementation - DONE" in `plans/SAP_LZSS_WAV_XEX_PLAN.md`/
-   `plans/EXPORTLZSS_PLAN.md`/`plans/EXPORTWAV_PLAN.md`) but not yet
-   ported - each needs items 2-3 above first. `SapFile`/`CompressLzss`
-   (the lower-level format helpers these methods call) are already ported
-   (`plans/JAVA_PORT_PLAN.md`'s twelfth/seventeenth batches), so this is
-   mostly wiring once the `PokeyStream` blocker clears.
+   **Resolved via ASAP** (Another Slight Atari Player,
+   `asap.sourceforge.net`), per the user's own design decision. Its
+   official Java build/source (`lib/java/asap.jar`/
+   `asap-8.0.0-java-src.zip`, see `lib/java/README.md`) is now vendored
+   **as source** directly into `src/java/net/sf/asap/` (compiled as
+   ordinary project sources via `pom.xml`'s existing `src/java` resource
+   rule, which also picks up the vendored `.obx` player-routine resources
+   automatically) - not as a rebuilt jar, since Maven already compiles
+   `src/java` and this keeps the vendored+patched diff auditable via
+   plain `git diff`. Two small, clearly-marked RMT additions on top of the
+   otherwise-unmodified generated source (mirroring
+   `src/cpp/asap/asap-patch.h`/`.cpp`'s same extension-point pattern for
+   this same upstream library):
+   - `ASAP.stepFrame()` - exposes the otherwise-private `doFrame()` for
+     exact single-frame stepping (the public `generate()` API's own frame
+     stepping is an internal buffering detail, not reliably 1:1 with
+     video frames).
+   - `ASAP.getPokeyRegisterShadow(chip, offset)` - returns the raw last-
+     poked byte of a POKEY register (`PokeyChannel.audf`/`.audc`,
+     `Pokey.audctl`/`.skctl`), which the public API has no way to read
+     (real POKEY audio registers are hardware write-only). `Pokey.skctl`
+     needed widening from `private` to package-private for this (matching
+     its sibling fields' existing visibility).
+
+   New `AsapEmulator` (`com.wudsn.tools.rmt.model`) wraps `net.sf.asap.ASAP`
+   for RMT's specific need: `startRecording(byte[] moduleBytes)` loads and
+   plays the module from the start, `stepFrame()`/`getRegisterShadow(chip,
+   offset)` drive per-frame capture. Deliberately a separate class from
+   `AtariTrackerDriver` (still permanently no-op, for live keyboard
+   preview - a different operation with no whole module involved), not a
+   replacement for it - see `AsapEmulator`'s own class javadoc.
+
+   `PokeyStream.startRecording`/`record`/`finishedRecording` now have real
+   bodies (transcribed directly from `PokeyStream.cpp`, with
+   `driver.getRegisterShadow(chip, i)` replacing `GetByteAt(0xd200+i)`);
+   `writeToFile(OutputStream, ...)` redesigned as `getFrameBytes(int
+   frames, int offset)` returning `byte[]`, matching this port's
+   established byte-array-over-stream idiom. `ASAP.load()`/`playSong()`/
+   `generate()` alone (no patch needed) already suffice for
+   `ExportWAV`-style real PCM audio generation, once that item is ported.
+3. **`CSong::DumpSongToPokeyStream` - DONE (2026-09-26).** Ported to
+   `Song.dumpSongToPokeyStream`, running the same `PlayVBI()`-driven loop
+   as C++ but replacing every `g_AtariTrackerDriver->Play()` call with
+   `AsapEmulator#stepFrame()`: since the Java port has no loaded-driver
+   memory for a real JSR to execute, it instead exports the *current* song
+   to a real RMT module byte array (via the already-ported `makeModule`/
+   `RmtExporter.exportAsRMT` - a new step C++ doesn't need) and hands that
+   to a fresh `AsapEmulator`, which independently decodes and plays it
+   back, producing the same observable POKEY register writes entirely
+   within ASAP's own emulated CPU.
+
+   **`PokeyStream` threaded through `songPlayNextLine`/`playVBI`/`play`/
+   `playBeat`**: each gained a `PokeyStream`-taking overload (pre-existing
+   overloads delegate with `null`, unchanged for every other caller) so
+   `dumpSongToPokeyStream` can consult `CallFromPlay`/`TrackSongLine`'s
+   loop-detection hooks, exactly matching C++'s `m_pokeyStream`-consulting
+   call sites. `CallFromPlayBeat`'s hook (inside `PlayBeat()`) is the one
+   exception, still omitted: it only fires in `PLAY_BLOCK` mode, which
+   `dumpSongToPokeyStream` never uses (always `PLAY_SONG`, the whole song).
+
+   **A real bug found and fixed while debugging the first working test**:
+   `dumpSongToPokeyStream` initially called `pokeyStream.finishedRecording()`/
+   `channelControl.setAllChannelsOn()` at the end, matching an incorrect
+   assumption about C++'s behavior - re-reading `Song_DumpSong.cpp` closely
+   showed `DumpSongToPokeyStream()` never calls `FinishedRecording()` at
+   all (that's a separate cleanup step, apparently never actually invoked
+   anywhere in the production C++ call chain either - `CSongContainer`'s
+   destructor is empty). Fixed by removing both calls, matching C++ exactly;
+   documented the omission in the method's own closing comment.
+
+   Test (`SongEditingTest`, extended):
+   `dumpSongToPokeyStreamRecordsPokeyRegisterDataUntilTheLoopPoint` -
+   builds a real 2-line looping song, runs it through the whole pipeline,
+   and confirms not just plumbing (frame count, exact byte-length math)
+   but **real, non-zero POKEY register content** - a stronger check than
+   `SongEditingTests.cpp`'s own C++ test can make (that test's
+   `AtariTrackerDriver::Play()` is *also* a no-op there, via the C++ test
+   binary's own no-op JSR stub, so it only verifies plumbing). Needed a
+   real, non-silent instrument envelope (a blank one makes ASAP's own RMT
+   parser correctly reject the module as "no songs found" - matching real
+   playback semantics, not a bug). Verified with `mvn -o clean test`: 393
+   tests pass (+1), no regressions.
+4. **The five dependent export methods - not yet ported, now unblocked.**
+   `CSongExporter::ExportSAP_R`/`ExportSAP_B_LZSS`/`ExportLZSS`/
+   `ExportCompactLZSS`/`ExportXEX_LZSS` and `CWaveFileExporter::ExportWAV`
+   are all already C++-characterized ("Implementation - DONE" in
+   `plans/SAP_LZSS_WAV_XEX_PLAN.md`/`plans/EXPORTLZSS_PLAN.md`/
+   `plans/EXPORTWAV_PLAN.md`) and items 2-3's blockers are now cleared -
+   this is mostly wiring. `SapFile`/`CompressLzss` (the lower-level format
+   helpers these methods call) are already ported
+   (`plans/JAVA_PORT_PLAN.md`'s twelfth/seventeenth batches); a new
+   `SapFileExporter` class (matching `CSAPFileExporter`, not yet ported)
+   is needed for `ExportSAP_R`/`ExportSAP_B_LZSS`. `SongContainer`/
+   `SongExport` (the lazy-caching wrapper pair `CSongContainer`/
+   `CSongExport`) were deliberately **not** ported - pure caching
+   optimizations, not needed for correctness; each export can call
+   `dumpSongToPokeyStream` directly instead, achieving the same observable
+   result without the cross-export caching.
 5. **Closing sanity sweep - DONE (2026-09-26), clean.** Ran the
    `BROADER_SURVEY_PLAN.md`-style pass described above: extracted every
    `ClassName::MethodName` defined across all 44 non-stub `.cpp` files

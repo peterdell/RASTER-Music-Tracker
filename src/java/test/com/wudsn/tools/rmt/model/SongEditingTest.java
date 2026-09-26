@@ -2081,4 +2081,58 @@ class SongEditingTest {
 		assertTrue(song.playVBI(4, atariTrackerDriver));
 		assertEquals(6, song.getPlayLine());
 	}
+
+	// --- dumpSongToPokeyStream ---
+	// Ported from CSong::DumpSongToPokeyStream() (Song_DumpSong.cpp) - see
+	// that method's own section header comment in Song.java for why
+	// AtariTrackerDriver's permanently no-op play() is replaced here by a
+	// real AsapEmulator. songGo[1]=0 guarantees an immediate 2-line loop, so
+	// recording finishes in a handful of frames instead of running the
+	// song's full 256 lines.
+
+	@Test
+	void dumpSongToPokeyStreamRecordsPokeyRegisterDataUntilTheLoopPoint() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 1;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+		Track tr = tracks.getTrack(5);
+		tr.len = 2;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+		tr.volume[0] = 10;
+		// A real (non-silent) envelope is needed for ASAP's own RMT parser to
+		// recognize the song as having any actual duration - see
+		// AsapEmulator's class javadoc; a silent/blank instrument makes ASAP
+		// correctly treat the song as producing no real audio at all.
+		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10;
+		song.getSongGo()[1] = 0; // guarantees a fast loop
+
+		ChannelControl channelControl = new ChannelControl(4);
+		PokeyStream pokeyStream = new PokeyStream();
+
+		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
+
+		assertEquals(PlayMode.PLAY_STOP, song.getPlayMode());
+		assertTrue(pokeyStream.getFirstCountPoint() > 0, "expected at least one frame before the loop point");
+
+		byte[] frames = pokeyStream.getFrameBytes(pokeyStream.getFirstCountPoint(), 0);
+		assertEquals(pokeyStream.getFirstCountPoint() * 9, frames.length); // mono song -> 9 bytes/frame
+
+		// Real ASAP emulation, unlike the C++ characterization test's own
+		// no-op-JSR test binary (see plans/JAVA_PORT_NEXT_STEPS_PLAN.md's
+		// Phase A item 2 write-up) - confirm at least one byte of real,
+		// non-zero POKEY register data was actually captured.
+		boolean anyNonZero = false;
+		for (byte b : frames) {
+			if (b != 0) {
+				anyNonZero = true;
+				break;
+			}
+		}
+		assertTrue(anyNonZero, "expected at least one non-zero POKEY register byte");
+	}
 }

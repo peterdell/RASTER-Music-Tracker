@@ -1582,19 +1582,76 @@ new C++ tests exactly, using the fixture's existing real `tracks`/`undo`
 objects. Verified with `mvn -o clean test`: 392 tests pass (+30), all green
 on the first run, no regressions.
 
+## Thirty-fifth ported batch (2026-09-26): real CPU/POKEY emulation via ASAP, `PokeyStream`'s real body, `dumpSongToPokeyStream`
+
+Phase A items 2-3 of `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`. Vendored ASAP's
+official Java source (`net.sf.asap`, see `lib/java/README.md`) directly
+into `src/java/net/sf/asap/` - a complete, portable, pure-software 6502
+CPU + dual-POKEY emulator, unlike C++'s own `C6502` (an external native
+DLL wrapper with no Java equivalent, the reason `AtariTrackerDriver.play()`/
+`setPokey()`/`silence()` stay permanently no-op). Applied two small,
+clearly-marked additions on top of the otherwise-unmodified generated
+source (mirroring `src/cpp/asap/asap-patch.h`/`.cpp`'s own extension-point
+pattern for this same library): `ASAP.stepFrame()` (exposes the private
+`doFrame()` for exact single-frame stepping) and
+`ASAP.getPokeyRegisterShadow(chip, offset)` (the raw last-poked register
+byte - real POKEY audio registers are hardware write-only, so the public
+API has no way to read this; needed widening `Pokey.skctl` from `private`
+to package-private too).
+
+New `AsapEmulator` wraps `net.sf.asap.ASAP` for this need
+(`startRecording`/`stepFrame`/`getRegisterShadow`) - deliberately separate
+from `AtariTrackerDriver` (live keyboard preview, no whole module
+involved) rather than a replacement for it.
+
+`PokeyStream.startRecording`/`record`/`finishedRecording` now have real
+bodies, transcribed from `PokeyStream.cpp` with `driver.getRegisterShadow`
+replacing `GetByteAt`; `writeToFile(OutputStream, ...)` redesigned as
+`getFrameBytes(int, int)` returning `byte[]`, matching this port's
+byte-array-over-stream idiom.
+
+`Song.dumpSongToPokeyStream` ported: runs the same `PlayVBI()`-driven loop
+as C++, replacing every `g_AtariTrackerDriver->Play()` with
+`AsapEmulator#stepFrame()` - since Java has no loaded-driver memory for a
+real JSR, it instead exports the current song to a real RMT module byte
+array (`makeModule`/`RmtExporter.exportAsRMT`, a new step C++ doesn't
+need) and hands that to a fresh `AsapEmulator`, which independently
+decodes and plays it back. `songPlayNextLine`/`playVBI`/`play`/`playBeat`
+each gained a `PokeyStream`-taking overload (pre-existing overloads
+delegate `null`, unchanged for every other caller) so the loop-detection
+hooks (`CallFromPlay`/`TrackSongLine`) fire correctly; `CallFromPlayBeat`
+stays omitted (only fires in `PLAY_BLOCK` mode, never used here).
+
+**A real bug found and fixed while debugging the first working test**:
+`dumpSongToPokeyStream` initially called `pokeyStream.finishedRecording()`/
+`channelControl.setAllChannelsOn()` at the end - re-reading
+`Song_DumpSong.cpp` showed `DumpSongToPokeyStream()` never calls
+`FinishedRecording()` at all in practice (`CSongContainer`'s destructor,
+the only plausible caller, is empty). Fixed by removing both calls to
+match C++ exactly.
+
+Test (`SongEditingTest`, extended):
+`dumpSongToPokeyStreamRecordsPokeyRegisterDataUntilTheLoopPoint` - builds
+a real looping song and confirms actual non-zero POKEY register content
+was captured, a stronger check than `SongEditingTests.cpp`'s own C++ test
+can make (its `AtariTrackerDriver::Play()` is *also* a no-op there, via
+the C++ test binary's no-op JSR stub). Needed a real, non-silent
+instrument envelope - a blank one makes ASAP's own RMT parser correctly
+reject the module as "no songs found" (real playback semantics, not a
+bug). Verified with `mvn -o clean test`: 393 tests pass (+1), no
+regressions. Full write-up in `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s
+Phase A items 2-3.
+
+`SapFileExporter`/`SongContainer`/`SongExport` and the five export methods
+themselves (item 4) are not part of this batch - see Next steps.
+
 ## Next steps
 
-**Correction to this section's own earlier claim** ("no further
-Java-porting areas are currently identified"): that was scoped only to
-`plans/JAVA_SONGEDITING_PLAN.md`'s tracked list, not the whole port. A
-fresh audit found real remaining work in two phases - full roadmap now in
-`plans/JAVA_PORT_NEXT_STEPS_PLAN.md`:
-- **Phase A** (small, model-layer): `TracksEdit.cpp`'s 7 methods are now
-  DONE (see the ported batch just above). Remaining: `PokeyStream`'s real
-  recording path + `AtariTrackerDriver`'s remaining register-poking
-  methods, `CSong::DumpSongToPokeyStream`, and the five dependent
-  SAP-R/LZSS/WAV/XEX export methods (all already C++-characterized, not
-  yet ported).
+- **Phase A** (small, model-layer): `TracksEdit.cpp`'s 7 methods and real
+  CPU/POKEY emulation (`PokeyStream`/`dumpSongToPokeyStream`, via ASAP) are
+  now DONE (see the two ported batches just above). Remaining: the five
+  dependent SAP-R/LZSS/WAV/XEX export methods (all already
+  C++-characterized, not yet ported - unblocked now, mostly wiring).
 - **Phase B** (large, not started): the entire Java UI layer
   (`com.wudsn.tools.rmt.ui` doesn't exist yet) - see
   `plans/JAVA_PORT_NEXT_STEPS_PLAN.md` for what `plans/UI_SURVEY_PLAN.md`

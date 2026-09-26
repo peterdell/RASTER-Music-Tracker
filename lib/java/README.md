@@ -19,17 +19,28 @@ approach that produces `src/cpp/asap/asap.c`/`.h`, this repo's own
 already-vendored C build of the same library, used today only by
 `RmtTest.cpp`'s developer-only `/TEST` verification utility).
 
-**Planned use in the Java port** (`plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s
-Phase A, items 2-4): ASAP's `net.sf.asap` package contains a complete,
-portable, pure-software 6502 CPU emulator (`Cpu6502.java`) plus a
-dual-POKEY sound chip emulator (`Pokey`/`PokeyChannel`/`PokeyPair.java`) -
+**Used in the Java port** (`plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A,
+items 2-3 - DONE 2026-09-26): ASAP's `net.sf.asap` package contains a
+complete, portable, pure-software 6502 CPU emulator (`Cpu6502.java`) plus
+a dual-POKEY sound chip emulator (`Pokey`/`PokeyChannel`/`PokeyPair.java`) -
 unlike this port's own `AtariTrackerDriver`, whose `play()`/`setPokey()`/
 `silence()` are permanently no-ops because the C++ original's `C6502`
 wraps an external native DLL (`sa_c6502.dll`) that has no Java equivalent.
-ASAP's emulator has no such dependency and is the intended real
-CPU/POKEY backing for the Java port's own SAP-R/LZSS/WAV/XEX export family
-once that work starts. See `plans/JAVA_PORT_NEXT_STEPS_PLAN.md` for the
-full integration analysis, including a small planned patch to the vendored
-`ASAP.java` source (adding one accessor method) needed for the raw
-per-frame POKEY register dump that `CPokeyStream::Record()`'s SAP-R-style
-export needs - not yet applied, since this item hasn't been started.
+ASAP's emulator has no such dependency, and is now the real CPU/POKEY
+backing for `Song.dumpSongToPokeyStream`/`PokeyStream` (via the new
+`AsapEmulator` class), with the SAP-R/LZSS/XEX/WAV export family (item 4)
+still to come.
+
+**Vendored as source, not as this pre-built jar**: the actual, patched
+integration lives in `src/java/net/sf/asap/` (copied from this folder's
+`asap-8.0.0-java-src.zip`, plus its `.obx` player-routine resources
+extracted from `asap.jar`), compiled as ordinary project sources via
+`pom.xml`'s existing `src/java` resource rule - not this jar, which stays
+here only as the untouched reference copy. Two small, clearly-marked RMT
+additions on top of the otherwise-unmodified generated source (mirroring
+`src/cpp/asap/asap-patch.h`/`.cpp`'s same extension-point pattern for this
+same upstream library, see that source's own header comments for the
+exact diff): `ASAP.stepFrame()` (exact single-frame stepping) and
+`ASAP.getPokeyRegisterShadow(chip, offset)` (the raw last-poked register
+byte, which the public API has no way to read since real POKEY audio
+registers are hardware write-only).

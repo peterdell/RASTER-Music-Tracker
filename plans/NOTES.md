@@ -3680,4 +3680,69 @@ build clean and all 123 tests pass.
     tracked as Phase A item 2, not new. Full write-up in
     `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s item 5. This closes out
     Phase A's model-layer scope except for the ASAP-dependent items.
-    Not yet committed.
+    Committed as `40c7007`.
+  - **2026-09-26**: Thirty-fifth Java-port batch, per the user's explicit
+    "do the asap part" request - Phase A items 2-3: real CPU/POKEY
+    emulation via ASAP, `PokeyStream`'s real body, and
+    `Song.dumpSongToPokeyStream`.
+    - Vendored ASAP's official Java source as actual project source
+      (`src/java/net/sf/asap/`, copied from the already-vendored
+      `asap-8.0.0-java-src.zip`, plus its `.obx` resources from
+      `asap.jar`) rather than rebuilding a custom jar - `pom.xml`'s
+      existing `src/java` resource rule already handles non-`.java`
+      resources, so this needed no build changes at all.
+    - Patched two small, clearly-marked methods onto the vendored
+      `ASAP.java` (mirroring `asap-patch.h`/`.cpp`'s own extension-point
+      pattern for this same library): `stepFrame()` (exposes the private
+      `doFrame()`) and `getPokeyRegisterShadow(chip, offset)` (the raw
+      last-poked register byte - real POKEY registers are write-only, so
+      the public API can't read this). Also widened `Pokey.skctl` from
+      `private` to package-private (matching its sibling fields) since
+      the Two-Tone-mode check needs it.
+    - New `AsapEmulator` class wraps `net.sf.asap.ASAP` for this need,
+      deliberately kept separate from `AtariTrackerDriver` (which models
+      live keyboard preview with no whole module involved, not "the
+      real CPU" in general - two different operations that only share
+      one CPU in C++ because C++ has a single universal one either way).
+    - `PokeyStream.startRecording`/`record`/`finishedRecording` now have
+      real bodies; `writeToFile` redesigned as `getFrameBytes` (returns
+      `byte[]`, matching this port's stream-avoidance idiom).
+    - `Song.dumpSongToPokeyStream` ported, replacing every
+      `g_AtariTrackerDriver->Play()` call with `AsapEmulator#stepFrame()`
+      since Java has no loaded-driver memory for a real JSR - instead
+      exports the current song to a real RMT module byte array each time
+      and hands it to a fresh `AsapEmulator`, which independently decodes
+      and plays it back (a full re-derivation of "what's sounding now",
+      not a replay of the model's own note-selection logic). Needed
+      threading a new `PokeyStream`-taking overload through
+      `songPlayNextLine`/`playVBI`/`play`/`playBeat` (pre-existing
+      overloads delegate `null`, unchanged for everyone else) so
+      `CallFromPlay`/`TrackSongLine`'s loop-detection hooks fire.
+    - **Debugging story, three real findings along the way**: (1) a test
+      track that set note+instrument but no volume silently encoded as a
+      blank/paused row instead of a real note event (needs all three
+      `>=0`) - not a bug, just an under-specified first test. (2) ASAP's
+      own RMT parser correctly rejects a module as "no songs found" when
+      every instrument used has a silent (all-zero) envelope, since the
+      song then has no real audible duration - again correct behavior,
+      fixed by giving the test instrument a real envelope volume,
+      matching the established `saveTxtAndLoadTxtRoundTripNonEmptyInstrumentAndTrack`
+      test's own pattern for "non-empty instrument." (3) A genuine bug in
+      the new Java code itself: `dumpSongToPokeyStream` initially called
+      `pokeyStream.finishedRecording()`/`channelControl.setAllChannelsOn()`
+      at the end, based on a wrong assumption - re-reading
+      `Song_DumpSong.cpp` showed `DumpSongToPokeyStream()` never calls
+      `FinishedRecording()` in the real C++ call chain either
+      (`CSongContainer`'s destructor, the only plausible caller, is
+      empty) - fixed by removing both calls to match C++ exactly.
+    - Test (`SongEditingTest`, extended):
+      `dumpSongToPokeyStreamRecordsPokeyRegisterDataUntilTheLoopPoint` -
+      builds a real looping song and confirms actual non-zero POKEY
+      register bytes were captured, a stronger check than
+      `SongEditingTests.cpp`'s own C++ test can make (its own
+      `AtariTrackerDriver::Play()` is also a no-op there, via the C++
+      test binary's no-op JSR stub - see `AtariStub.cpp`). Verified with
+      `mvn -o clean test`: 393 tests pass (+1), no regressions.
+    - Full write-up in `plans/JAVA_PORT_PLAN.md`'s thirty-fifth ported
+      batch and `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A items 2-3.
+      Not yet committed.
