@@ -55,6 +55,15 @@ public final class Texts extends NLS {
 	public static String ExportRelocatableAsmDialog_Title;
 	public static String ExportXexDialog_Title;
 
+	// Editing dialogs
+	public static String InsertCopyOrCloneDialog_Title;
+	public static String InstrumentChangeDialog_Title;
+	public static String ChannelsSelectionDialog_Title;
+	public static String TracksOrderDialog_Title;
+	public static String ChangeMaxTrackLengthDialog_Title;
+	public static String RenumberTracksDialog_Title;
+	public static String RenumberInstrumentsDialog_Title;
+
 	// MFC's DDV_MinMaxInt/DDV_MinMaxDouble/DDX_Text messages (AFX_IDP_PARSE_*)
 	/** "Please enter an integer between {0} and {1}." */
 	public static String Validation_IntegerRange;

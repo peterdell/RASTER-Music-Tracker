@@ -4258,4 +4258,38 @@ build clean and all 123 tests pass.
       cancel path's "Export aborted" box, Import Song File's filters; the
       other seven dialogs opened on Delta.rmt through a scratch preview
       class and compared with the reference captures.
-    - 532 tests (+10: `ImportExportTest`), no regressions.
+    - 532 tests (+10: `ImportExportTest`), no regressions. Committed as
+      `c7ac02a`.
+  - **2026-09-27**: Phase B, batch B7c (editing dialogs). `SongDialogs`
+    ports the dialog-opening editing commands behind a `Host` (headless
+    `SongDialogsTest` with a stub): `SongInsertCopyOrCloneOfSongLines`
+    (+ the view's active-line restore; also Ctrl+O through
+    `SongInput.setInsertCopyOrCloneAction`), `InstrInfo`'s message branch
+    (the note/track listings recomputed in the UI - the model's
+    `InstrInfo` keeps only the ranges), `InstrChange` (+ the "Instrument
+    changes" summary box), `TracksOrderChange` (range validation, the
+    "columns will be cleared" question, the remembered range via new
+    `Song` accessors), the mono/stereo switch (the model's own question,
+    then `g_Atari.Init` = `initTuning()` and the window's minimum size -
+    also from the info-area click, as is "Change maximal length of
+    tracks"), `ChangeMaxtracklen`, `RenumberAllTracks`/`Instruments` with
+    their undo bookkeeping. Dialogs on WUDSN `ModalDialog`:
+    `InsertCopyOrCloneDialog` (`ValuesTest()`'s clamping and the "n lines
+    will be inserted" info), `InstrumentChangeDialog` (the 12 coupled
+    combos with `SelChangeComboX()`'s rules, Default ranges / All
+    instruments, the mutually exclusive scope boxes, the channel
+    selection sub-dialog), `ChannelsSelectionDialog`, `TracksOrderDialog`
+    (the From/To button rows with the assignment lines painted between
+    them, the six presets, the right-side controls disabled for mono),
+    `ChangeMaxTrackLengthDialog`, `RenumberDialogs` (one class for both
+    radio dialogs).
+    - Deviation: the two guard failures of
+      `songInsertCopyOrCloneOfSongLinesApply` (song-range overrun, no
+      empty track to clone into) show one combined "Warning" box - the
+      model's boolean can't tell them apart (C++ names each).
+    - Live-checked: all seven dialogs opened on Delta.rmt through a
+      scratch preview class and compared with the reference captures
+      (`insert-copy-clone`, `tracks-order`, `instrument-change`,
+      `renumber-instruments`, `renumber-tracks`,
+      `change-max-track-length`).
+    - 539 tests (+7: `SongDialogsTest`), no regressions.

@@ -85,7 +85,7 @@ class RmtCommandsTest {
 		host = new RecordingHost();
 		input = new SongInput(session);
 		filesHost = new StubSongFilesHost();
-		commands = new RmtCommands(session, input, host, new SongFiles(session, filesHost));
+		commands = new RmtCommands(session, input, host, new SongFiles(session, filesHost), new SongDialogs(session, new StubSongDialogsHost()));
 	}
 
 	@Test
@@ -236,8 +236,8 @@ class RmtCommandsTest {
 
 	@Test
 	void unportedDialogsReportThemselvesInsteadOfDoingNothingSilently() {
-		commands.execute(RmtCommandId.SONG_TRACKSORDERCHANGE);
-		assertEquals(List.of("notAvailable:Song columns' order change (B7)"), host.calls);
+		commands.execute(RmtCommandId.TOOLS_OPEN_ASAP_FILE);
+		assertEquals(List.of("notAvailable:Open ASAP file (B7)"), host.calls);
 		commands.execute(RmtCommandId.FILE_EXIT);
 		assertEquals("exit", host.calls.get(1));
 	}

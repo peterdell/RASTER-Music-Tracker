@@ -254,10 +254,11 @@ shows anything, `plans/NOTES.md` entry, ask before committing.
     RMT, ASM, SAP-R, LZSS, SAP, XEX, relocatable ASM, WAV dialogs) -> the
     already-ported importers/`*Apply()`/exporters; `ExportSettings` for
     the remembered choices. Details in `NOTES.md`.
-  - **B7c - editing dialogs.** Instrument change, tracks order,
-    insert/clone song lines, renumber tracks/instruments, channels
-    selection, change max track length, mono/stereo switch, instrument
-    info box.
+  - **B7c - editing dialogs. DONE 2026-09-27.** `SongDialogs` (instrument
+    change, tracks order, insert/clone song lines, renumber
+    tracks/instruments, channels selection, change max track length,
+    mono/stereo switch, instrument info box) and their seven dialogs.
+    Details in `NOTES.md`.
   - **B7d - block effects.** `BlockEffect` (dialog + its logic together,
     since C++ has no separable core).
 - **B8 - audio (DECISION 4).** Scope depends on the decision; see below.

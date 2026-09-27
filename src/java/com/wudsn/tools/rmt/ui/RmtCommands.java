@@ -69,16 +69,22 @@ public final class RmtCommands {
 	private final SongInput songInput;
 	private final Host host;
 	private final SongFiles songFiles;
+	private final SongDialogs songDialogs;
 
-	public RmtCommands(RmtSession session, SongInput songInput, Host host, SongFiles songFiles) {
+	public RmtCommands(RmtSession session, SongInput songInput, Host host, SongFiles songFiles, SongDialogs songDialogs) {
 		this.session = session;
 		this.songInput = songInput;
 		this.host = host;
 		this.songFiles = songFiles;
+		this.songDialogs = songDialogs;
 	}
 
 	public SongFiles getSongFiles() {
 		return songFiles;
+	}
+
+	public SongDialogs getSongDialogs() {
+		return songDialogs;
 	}
 
 	private boolean askYes(String title, String message) {
@@ -296,16 +302,12 @@ public final class RmtCommands {
 			song.songPrepareNewLine(line, -1, true, session.undo, tracks4_8);
 			song.songSetActiveLine(line);
 		}
-		case SONG_INSERTCOPYORCLONEOFSONGLINES -> host.notAvailable("Insert copy or clone of song line(s) (B7)");
+		case SONG_INSERTCOPYORCLONEOFSONGLINES -> songDialogs.insertCopyOrCloneOfSongLines();
 		case SONG_PUTNEWEMPTYUNUSEDTRACK -> song.songPutnewemptyunusedtrack(session.undo, tracks4_8);
 		case SONG_MAKETRACKSDUPLICATE -> song.songMaketracksduplicate(session.undo, tracks4_8, session.messages);
-		case SONG_SONG_TOGGLE_TRACK_NUMBER -> {
-			stop();
-			session.tracks4_8 = song.songswitch4_8(tracks4_8, (tracks4_8 <= 4) ? 8 : 4, session.undo, session.messages);
-			host.updateMinimumSize();
-		}
-		case SONG_TRACKSORDERCHANGE -> host.notAvailable("Song columns' order change (B7)");
-		case SONG_SONGCHANGEMAXIMALLENGTHOFTRACKS -> host.notAvailable("Change maximal length of tracks (B7)");
+		case SONG_SONG_TOGGLE_TRACK_NUMBER -> songDialogs.songswitch4_8();
+		case SONG_TRACKSORDERCHANGE -> songDialogs.tracksOrderChange();
+		case SONG_SONGCHANGEMAXIMALLENGTHOFTRACKS -> songDialogs.changeMaxTrackLength();
 		case SONG_SIZEOPTIMIZATION -> sizeOptimization();
 
 		// --- Instrument ---
@@ -328,9 +330,9 @@ public final class RmtCommands {
 		case INSTRUMENT_PASTESPECIAL_INSERTVOLUMEENVSANDENVELOPEPARSTOCURSORPOSITION -> song.instrPaste(7, session.undo, session.atariTrackerDriver); // VOL+ENV TO CURPOS
 		case INSTRUMENT_PASTESPECIAL_VOLUMELTORENVELOPEONLY -> song.instrPaste(8, session.undo, session.atariTrackerDriver); // volume L to R
 		case INSTRUMENT_PASTESPECIAL_VOLUMERTOLENVELOPEONLY -> song.instrPaste(9, session.undo, session.atariTrackerDriver); // volume R to L
-		case INSTRUMENT_INFO -> host.notAvailable("Info about current instrument (B7)");
-		case INSTRUMENT_CHANGE -> host.notAvailable("Change all the instrument occurences (B7)");
-		case INSTRUMENT_RENUMBERALLINSTRUMENTS -> host.notAvailable("Renumber all instruments (B7)");
+		case INSTRUMENT_INFO -> songDialogs.instrInfo();
+		case INSTRUMENT_CHANGE -> songDialogs.instrChange();
+		case INSTRUMENT_RENUMBERALLINSTRUMENTS -> songDialogs.renumberAllInstruments();
 		case INSTR_LOAD -> songFiles.fileInstrumentLoad();
 		case INSTR_SAVE -> songFiles.fileInstrumentSave();
 		case INSTRUMENT_CLEARALLUNUSEDINSTRUMENTS -> {
@@ -419,7 +421,7 @@ public final class RmtCommands {
 			Song.TracksAllLoopResult r = song.tracksAllExpandLoops(session.undo);
 			info("Expand loops", "Found and expanded loops in " + r.tracksModified() + " tracks (" + r.beatsOrLoops() + " beats/lines).");
 		}
-		case TRACK_RENUMBERALLTRACKS -> host.notAvailable("Renumber all tracks (B7)");
+		case TRACK_RENUMBERALLTRACKS -> songDialogs.renumberAllTracks();
 		case TRACK_LOAD -> songFiles.fileTrackLoad();
 		case TRACK_SAVE -> songFiles.fileTrackSave();
 		case TRACK_CLEARALLDUPLICATEDTRACKS -> {

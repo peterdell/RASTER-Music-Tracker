@@ -53,6 +53,13 @@ public final class SongInput {
 		this.session = session;
 	}
 
+	/** Ctrl+O's {@code SongInsertCopyOrCloneOfSongLines()} dialog, installed by the window ({@link SongDialogs#insertCopyOrCloneOfSongLines}); nothing happens without one. */
+	private Runnable insertCopyOrCloneAction;
+
+	public void setInsertCopyOrCloneAction(Runnable insertCopyOrCloneAction) {
+		this.insertCopyOrCloneAction = insertCopyOrCloneAction;
+	}
+
 	// --- key tables (Keyboard2NoteMapping is indexed by the raw 0..255 VK byte) ---
 
 	private int noteKey(int vk) {
@@ -2154,8 +2161,8 @@ public final class SongInput {
 			break;
 
 		case VK_O: // Control+VK_O
-			if (control) {
-				// B7: SongInsertCopyOrCloneOfSongLines(m_songactiveline) - the "Insert copy or clone of song line(s)" dialog
+			if (control && insertCopyOrCloneAction != null) {
+				insertCopyOrCloneAction.run(); // SongInsertCopyOrCloneOfSongLines(m_songactiveline) - the "Insert copy or clone of song line(s)" dialog
 			}
 			break;
 

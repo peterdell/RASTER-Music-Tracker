@@ -96,7 +96,7 @@ class RmtMainMenuTest {
 			@Override
 			public void showAbout() {
 			}
-		}, new SongFiles(session, new StubSongFilesHost()));
+		}, new SongFiles(session, new StubSongFilesHost()), new SongDialogs(session, new StubSongDialogsHost()));
 
 		menu.updateStates(commands);
 		JMenuItem undo = (JMenuItem) menu.getButtons(RmtCommandId.EDIT_UNDO).get(0);

@@ -186,6 +186,13 @@ public final class TrackerPanel extends JPanel {
 		this.acceleratorDispatcher = acceleratorDispatcher;
 	}
 
+	private SongDialogs songDialogs;
+
+	/** The dialog-opening commands two info-area clicks need ({@code CChangeMaxtracklenDlg}, {@code Songswitch4_8}); nothing happens without one. */
+	public void setSongDialogs(SongDialogs songDialogs) {
+		this.songDialogs = songDialogs;
+	}
+
 	/** Runs on every display tick before the frame is redrawn - MFC's idle-time {@code ON_UPDATE_COMMAND_UI} pass. */
 	public void setIdleAction(Runnable idleAction) {
 		this.idleAction = idleAction;
@@ -284,12 +291,16 @@ public final class TrackerPanel extends JPanel {
 
 		@Override
 		public void changeMaxTrackLength() {
-			// B7: the "Change maximal length of tracks" dialog (CChangeMaxtracklenDlg)
+			if (songDialogs != null) {
+				songDialogs.changeMaxTrackLength();
+			}
 		}
 
 		@Override
 		public void switchMonoStereo() {
-			// B7: CSong::Songswitch4_8 asks a question first; needs the real message boxes
+			if (songDialogs != null) {
+				songDialogs.songswitch4_8();
+			}
 		}
 
 		@Override

@@ -239,6 +239,8 @@ public final class Actions extends NLS {
 	public static Action TuningDialog_Test;
 	public static Action TuningDialog_Reset;
 	public static Action ExportDialog_CopyToClipboard;
+	public static Action InstrumentChangeDialog_DefaultRanges;
+	public static Action InstrumentChangeDialog_AllInstruments;
 
 	static {
 		initializeClass(Actions.class, null);

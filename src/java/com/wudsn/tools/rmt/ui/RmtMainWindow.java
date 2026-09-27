@@ -42,7 +42,7 @@ import com.wudsn.tools.base.gui.MainWindow;
  * configuration files and the geometry are written. Still to come: the
  * unsaved-changes prompt on close ({@code WarnUnsavedChanges}, B9).
  */
-public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host {
+public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, SongDialogs.Host {
 
 	/** What {@code CRmtApp::GetVersionAndBuild()} produces for the C++ build ("RASTER Music Tracker 1.35 (Sep 25 2026 01:30:01)"); the Java port carries no build stamp yet. */
 	public static final String VERSION_AND_BUILD = "RASTER Music Tracker 1.35 (Java)";
@@ -64,7 +64,10 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host {
 		this.config = config;
 		this.preferences = preferences;
 		this.trackerPanel = new TrackerPanel(session);
-		this.commands = new RmtCommands(session, trackerPanel.getSongInput(), this, new SongFiles(session, this));
+		SongDialogs songDialogs = new SongDialogs(session, this);
+		this.commands = new RmtCommands(session, trackerPanel.getSongInput(), this, new SongFiles(session, this), songDialogs);
+		trackerPanel.setSongDialogs(songDialogs);
+		trackerPanel.getSongInput().setInsertCopyOrCloneAction(songDialogs::insertCopyOrCloneOfSongLines);
 		this.mainMenu = new RmtMainMenu(this::executeCommand);
 		this.toolBars = new RmtToolBars(mainMenu, this::executeCommand, this::skipLinesSelected);
 
@@ -386,6 +389,43 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host {
 	@Override
 	public SongFiles.XexChoice showExportXex(String text, String speedInfo) {
 		return new ExportXexDialog(getFrame(), session.exportSettings, text, speedInfo).showDialog();
+	}
+
+	// ---- SongDialogs.Host: the editing dialogs ----
+
+	@Override
+	public SongDialogs.InsertCopyChoice showInsertCopyOrClone(int lineFrom, int lineTo, int lineInto) {
+		return new InsertCopyOrCloneDialog(getFrame(), lineFrom, lineTo, lineInto).showDialog();
+	}
+
+	@Override
+	public com.wudsn.tools.rmt.model.Song.InstrChangeParams showInstrumentChange(int instr, int onlyTrack, int onlySongLine) {
+		return new InstrumentChangeDialog(getFrame(), session, instr, onlyTrack, onlySongLine).showDialog();
+	}
+
+	@Override
+	public SongDialogs.TracksOrderChoice showTracksOrder(String songLineFrom, String songLineTo) {
+		return new TracksOrderDialog(getFrame(), session.tracks4_8, songLineFrom, songLineTo).showDialog();
+	}
+
+	@Override
+	public int showChangeMaxTrackLength(String info, int maxTrackLength) {
+		return new ChangeMaxTrackLengthDialog(getFrame(), info, maxTrackLength).showDialog();
+	}
+
+	@Override
+	public int showRenumberTracks() {
+		return RenumberDialogs.tracks(getFrame()).showDialog();
+	}
+
+	@Override
+	public int showRenumberInstruments() {
+		return RenumberDialogs.instruments(getFrame()).showDialog();
+	}
+
+	@Override
+	public void songLayoutChanged() {
+		updateMinimumSize();
 	}
 
 	/** Shows the window and starts the display timer ({@code CRmtApp::InitInstance()}'s {@code ShowWindow} plus {@code CRmtView::OnInitialUpdate()}'s {@code SetTimer}). */

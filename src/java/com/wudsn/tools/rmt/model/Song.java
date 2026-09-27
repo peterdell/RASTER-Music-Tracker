@@ -1281,6 +1281,22 @@ public final class Song {
 		return songGo;
 	}
 
+	/** {@code m_TracksOrderChange_songlinefrom}: the "Song columns' order change" dialog's remembered range start. */
+	public int getTracksOrderChangeSonglinefrom() {
+		return tracksOrderChangeSonglinefrom;
+	}
+
+	/** {@code m_TracksOrderChange_songlineto}. */
+	public int getTracksOrderChangeSonglineto() {
+		return tracksOrderChangeSonglineto;
+	}
+
+	/** {@code CSong::TracksOrderChange()} remembers the validated range for the next time. */
+	public void setTracksOrderChangeSonglineRange(int from, int to) {
+		tracksOrderChangeSonglinefrom = from;
+		tracksOrderChangeSonglineto = to;
+	}
+
 	public Bookmark getBookmark() {
 		return bookmark;
 	}
@@ -2559,7 +2575,7 @@ public final class Song {
 	}
 
 	/** Ported from IOHelpers.cpp's {@code Hexstr(char*, int)} - parses up to {@code len} leading uppercase-hex characters starting at {@code start}, returning -1 if there wasn't even one. Package-visible for reuse by {@link Instruments}/{@link Tracks}'s own TXT (de)serialization, matching {@link #nameToString}'s established widening. */
-	static int hexstr(String s, int start, int len) {
+	public static int hexstr(String s, int start, int len) {
 		int r = 0;
 		int i = 0;
 		for (; i < len && start + i < s.length(); i++) {
