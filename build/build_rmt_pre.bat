@@ -1,5 +1,5 @@
 @echo off
-
+rem Visual Studio Project - Pre-Compiler Step
 rem This is called in the "src\cpp" folder.
 
 rem Prepare template folder with the most recent contents: the HTML
