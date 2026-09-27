@@ -232,6 +232,13 @@ public final class Actions extends NLS {
 	public static Action Toolbar_MidiOnOff;
 	public static Action Toolbar_SkipLinesAfterNoteInsert;
 
+	// Dialog buttons (IDD_OPTIONS, IDD_OPTIONS_FILE_PATHS, IDD_TUNING)
+	public static Action OptionsDialog_Paths;
+	public static Action OptionsDialog_Tuning;
+	public static Action OptionsPathsDialog_Browse;
+	public static Action TuningDialog_Test;
+	public static Action TuningDialog_Reset;
+
 	static {
 		initializeClass(Actions.class, null);
 	}

@@ -5,3 +5,5 @@ out/
 others/
 rmt/docs/*.*
 target/
+/rmt.ini
+/tuning.ini

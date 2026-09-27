@@ -237,9 +237,12 @@ shows anything, `plans/NOTES.md` entry, ask before committing.
   `Messages.Handler`. Accelerators dispatch before the key handlers as
   in MFC. Dialog/file commands report "not available" until B6/B7.
   Details in `NOTES.md`.
-- **B6 - options & persistence (DECISION 3).** `rmt.ini` read/write/reset,
-  tuning config, frame position via `MainWindowPreferences`, Options +
-  Paths dialogs, Tuning dialog.
+- **B6 - options & persistence (DECISION 3). DONE 2026-09-27.**
+  `RmtConfig` (`rmt.ini`/`tuning.ini` read/write/reset, C++'s format and
+  parser), `RmtOptions` complete, `RmtWindowPreferences` for the frame
+  geometry, `OptionsDialog` + `OptionsPathsDialog` + `TuningDialog` on
+  WUDSN `ModalDialog`, `RmtCommands.applyOptions`. C++ `MAJ_7TH` read
+  omission fixed in both languages. Details in `NOTES.md`.
 - **B7 - dialogs.** File new/open/save/import/export via WUDSN
   `FileChooser` -> the already-ported loaders/`*Apply()`/exporters; SAP
   and XEX export dialogs; instrument change, tracks order, insert/clone,

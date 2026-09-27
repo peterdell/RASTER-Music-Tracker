@@ -82,7 +82,7 @@ public final class RmtSession {
 		atari.init(song.isNTSC(), tuningSettings, tuningRatios);
 		tuning = new Tuning(atari.getClockFrequency());
 		atariTrackerDriver = new AtariTrackerDriver(atari);
-		atariTrackerDriver.loadRMTRoutines(TrackerDriverVersion.PATCH16); // g_trackerDriverVersion's default
+		atariTrackerDriver.loadRMTRoutines(options.trackerDriverVersion); // g_trackerDriverVersion's default; InitInstance runs before rmt.ini is read
 		atariTrackerDriver.init();
 		// What the driver's initialization leaves in the POKEY register
 		// shadow at $D200-$D21F (the 6502 code C++ runs through its
@@ -100,6 +100,22 @@ public final class RmtSession {
 	public void setNTSC(boolean ntsc) {
 		tuningSettings.basetuning = ntsc ? (tuningSettings.basetuning * Atari.FREQ_17_NTSC) / Atari.FREQ_17_PAL : (tuningSettings.basetuning * Atari.FREQ_17_PAL) / Atari.FREQ_17_NTSC;
 		song.setNTSC(ntsc);
+	}
+
+	/** {@code g_Tuning.InitTuning()}: regenerates the POKEY frequency tables in the Atari's memory from the current {@link #tuningSettings}/{@link #tuningRatios}. */
+	public void initTuning() {
+		atari.init(song.isNTSC(), tuningSettings, tuningRatios);
+	}
+
+	/**
+	 * {@code CRmtView::OnToolsOptions()}'s driver-version branch: stores the
+	 * new version, re-initializes the Atari ("TODO: This is done several
+	 * times") and loads that version's player routines.
+	 */
+	public void setTrackerDriverVersion(TrackerDriverVersion version) {
+		options.trackerDriverVersion = version;
+		atari.init(song.isNTSC(), tuningSettings, tuningRatios);
+		atariTrackerDriver.loadRMTRoutines(version);
 	}
 
 	/**

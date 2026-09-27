@@ -28,9 +28,13 @@ import com.wudsn.tools.base.gui.MainWindow;
  * consulted for every key before the tracker's own key handling
  * ({@code TranslateAccelerator}).
  *
- * <p>Still to come: saving the geometry through {@code MainWindowPreferences}
- * (B6) and the unsaved-changes prompt on close ({@code WarnUnsavedChanges},
- * B9) - until then closing the window simply exits.
+ * <p>Start-up follows {@code CRmtView::OnInitialUpdate()}: the two
+ * configuration files are read ({@link RmtConfig}) and the view elements
+ * applied without writing; the window geometry is restored from
+ * {@link RmtWindowPreferences} ({@code CMainFrame::PreCreateWindow}). Exit
+ * follows {@code OnFileExit}/{@code CMainFrame::OnClose}: both
+ * configuration files and the geometry are written. Still to come: the
+ * unsaved-changes prompt on close ({@code WarnUnsavedChanges}, B9).
  */
 public final class RmtMainWindow implements RmtCommands.Host {
 
@@ -38,6 +42,8 @@ public final class RmtMainWindow implements RmtCommands.Host {
 	public static final String VERSION_AND_BUILD = "RASTER Music Tracker 1.35 (Java)";
 
 	private final RmtSession session;
+	private final RmtConfig config;
+	private final RmtWindowPreferences preferences;
 	private final MainWindow mainWindow = new MainWindow();
 	private final TrackerPanel trackerPanel;
 	private final RmtCommands commands;
@@ -47,8 +53,10 @@ public final class RmtMainWindow implements RmtCommands.Host {
 	/** C++'s status bar shows the command prompts and {@code SetStatusBarText()} messages; a plain label until B9 decides on WUDSN's {@code StatusBar}. */
 	private final JLabel statusLine = new JLabel(" ");
 
-	public RmtMainWindow(RmtSession session) {
+	public RmtMainWindow(RmtSession session, RmtConfig config, RmtWindowPreferences preferences) {
 		this.session = session;
+		this.config = config;
+		this.preferences = preferences;
 		this.trackerPanel = new TrackerPanel(session);
 		this.commands = new RmtCommands(session, trackerPanel.getSongInput(), this);
 		this.mainMenu = new RmtMainMenu(this::executeCommand);
@@ -56,12 +64,18 @@ public final class RmtMainWindow implements RmtCommands.Host {
 
 		JFrame frame = mainWindow.getFrame();
 		session.messages.setHandler(new SwingMessages(frame));
-		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		// CMainFrame::OnClose: the close box goes through ID_FILE_EXIT (which saves everything), the frame only closes once that decided to
+		frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		frame.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				executeCommand(RmtCommandId.FILE_EXIT);
+			}
+
 			@Override
 			public void windowClosed(WindowEvent e) {
 				trackerPanel.stopDisplayTimer();
-				System.exit(0); // B9: WarnUnsavedChanges first
+				System.exit(0);
 			}
 		});
 		try (InputStream in = RmtMainWindow.class.getResourceAsStream("application.png")) {
@@ -84,6 +98,10 @@ public final class RmtMainWindow implements RmtCommands.Host {
 		frame.add(statusLine, BorderLayout.SOUTH);
 		frame.pack();
 		frame.setLocationRelativeTo(null);
+		// CMainFrame::PreCreateWindow: "only restore if there is a previously saved position"
+		if (preferences.isStored()) {
+			mainWindow.setWindowFromPreferences(preferences);
+		}
 
 		trackerPanel.setAcceleratorDispatcher(keyStroke -> {
 			RmtCommandId id = mainMenu.lookupAccelerator(keyStroke);
@@ -95,7 +113,10 @@ public final class RmtMainWindow implements RmtCommands.Host {
 		});
 		trackerPanel.setIdleAction(this::updateCommandStates);
 
-		applyViewElements();
+		// CRmtView::OnInitialUpdate: CONFIGURATION, tuning, view elements (without write!)
+		config.readRMTConfig(session);
+		config.readTuningConfig(session);
+		showViewElements();
 		updateMinimumSize();
 		updateTitle();
 		updateCommandStates();
@@ -154,9 +175,8 @@ public final class RmtMainWindow implements RmtCommands.Host {
 		}
 	}
 
-	/** {@code CRmtView::ChangeViewElements()}. */
-	@Override
-	public void applyViewElements() {
+	/** {@code CRmtView::ChangeViewElements(0)}: show/hide the bars without writing the configuration. */
+	private void showViewElements() {
 		RmtOptions.ViewState view = session.options.view;
 		toolBars.mainToolBar.setVisible(view.mainToolbar);
 		toolBars.blockToolBar.setVisible(view.blockToolbar);
@@ -165,9 +185,23 @@ public final class RmtMainWindow implements RmtCommands.Host {
 		getFrame().revalidate();
 	}
 
+	/** {@code CRmtView::ChangeViewElements(1)} - the View menu's toggles also write {@code rmt.ini} at once. */
+	@Override
+	public void applyViewElements() {
+		showViewElements();
+		config.writeRMTConfig(session);
+	}
+
+	/** {@code OnFileExit} + {@code CMainFrame::OnClose}: configuration, tuning and window geometry saved, then the frame closed. */
 	@Override
 	public void exit() {
-		getFrame().dispose(); // B9: WarnUnsavedChanges, WriteRMTConfig, WriteTuningConfig first
+		// B9: WarnUnsavedChanges first
+		session.song.stop(session.undo);
+		config.writeRMTConfig(session); // Save the current configuration
+		config.writeTuningConfig(session); // Save the current tuning parameters
+		mainWindow.setPreferencesFromWindow(preferences); // Save main window position
+		preferences.flush();
+		getFrame().dispose();
 	}
 
 	@Override
@@ -180,6 +214,17 @@ public final class RmtMainWindow implements RmtCommands.Host {
 		if (toolBars.skipLinesCombo.getSelectedIndex() != session.options.skipLinesAfterNoteInsert) {
 			toolBars.skipLinesCombo.setSelectedIndex(session.options.skipLinesAfterNoteInsert);
 		}
+	}
+
+	/** {@code COptionsDialog dlg; ... dlg.DoModal() == IDOK}. */
+	@Override
+	public boolean editOptions(OptionsValues values) {
+		return new OptionsDialog(getFrame(), session, values).showDialog();
+	}
+
+	@Override
+	public void rescale() {
+		trackerPanel.rescale();
 	}
 
 	/** Shows the window and starts the display timer ({@code CRmtApp::InitInstance()}'s {@code ShowWindow} plus {@code CRmtView::OnInitialUpdate()}'s {@code SetTimer}). */

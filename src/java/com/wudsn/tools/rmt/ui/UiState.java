@@ -10,8 +10,8 @@ import com.wudsn.tools.rmt.model.Part;
  * per this port's "C++ global -> explicit parameter" idiom (no static
  * singleton). Persisted options ({@code g_scaling_percentage},
  * {@code TViewState g_view}, {@code g_keyboard_*}, ...) are deliberately
- * not here - they belong to the options object introduced with the
- * {@code rmt.ini} port (see {@code plans/JAVA_UI_PORT_PLAN.md}, B6).
+ * not here - they belong to {@link RmtOptions}, which {@link RmtConfig}
+ * persists as {@code rmt.ini}.
  *
  * <p>Field names follow the C++ globals minus their {@code g_} prefix so
  * the drawing/input code ports read side by side. Defaults match

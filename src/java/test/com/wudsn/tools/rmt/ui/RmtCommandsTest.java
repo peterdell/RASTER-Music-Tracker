@@ -12,9 +12,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.wudsn.tools.rmt.model.EditMode;
+import com.wudsn.tools.rmt.model.KeyboardLayout;
 import com.wudsn.tools.rmt.model.MessageAnswer;
 import com.wudsn.tools.rmt.model.Part;
 import com.wudsn.tools.rmt.model.PlayMode;
+import com.wudsn.tools.rmt.model.TrackerDriverVersion;
 
 /** The command handlers and their enable/check logic, headless: the host is a recorder, the message boxes answer through Messages' test hook. */
 class RmtCommandsTest {
@@ -45,6 +47,21 @@ class RmtCommandsTest {
 		@Override
 		public void skipLinesChanged() {
 			calls.add("skipLinesChanged");
+		}
+
+		OptionsValues editedValues;
+		boolean okPressed;
+
+		@Override
+		public boolean editOptions(OptionsValues values) {
+			calls.add("editOptions");
+			editedValues = values;
+			return okPressed;
+		}
+
+		@Override
+		public void rescale() {
+			calls.add("rescale");
 		}
 	}
 
@@ -216,6 +233,55 @@ class RmtCommandsTest {
 		assertEquals(List.of("notAvailable:Open (B7)"), host.calls);
 		commands.execute(RmtCommandId.FILE_EXIT);
 		assertEquals("exit", host.calls.get(1));
+	}
+
+	@Test
+	void optionsCommandEditsACopyAndAppliesItOnlyOnOK() {
+		session.options.scalingPercentage = 150;
+		host.okPressed = false;
+		commands.execute(RmtCommandId.TOOLS_OPTIONS);
+		assertEquals(List.of("editOptions"), host.calls);
+		assertEquals(150, host.editedValues.scalingPercentage);
+		host.editedValues.scalingPercentage = 200; // a cancelled dialog leaves the options alone
+		assertEquals(150, session.options.scalingPercentage);
+
+		host.calls.clear();
+		host.okPressed = true;
+		commands.execute(RmtCommandId.TOOLS_OPTIONS);
+		assertEquals(List.of("editOptions"), host.calls); // unchanged values: no rescale
+		assertEquals(150, session.options.scalingPercentage);
+	}
+
+	@Test
+	void applyOptionsHasTheCppSideEffectsOnlyForChangedValues() {
+		OptionsValues v = OptionsValues.from(session);
+		v.scalingPercentage = 200;
+		v.ntsc = true;
+		v.trackerDriverVersion = TrackerDriverVersion.PATCH8;
+		v.trackLinePrimaryHighlight = 16;
+		v.useGermanNotation = true;
+		v.keyboardLayout = KeyboardLayout.AZERTY;
+		v.midiDevice = "Some device";
+		v.midiVolumeOffset = 7;
+		double basetuning = session.tuningSettings.basetuning;
+
+		commands.applyOptions(v);
+
+		assertEquals(List.of("rescale"), host.calls);
+		assertEquals(200, session.options.scalingPercentage);
+		assertTrue(session.song.isNTSC());
+		assertEquals(basetuning * com.wudsn.tools.rmt.model.Atari.FREQ_17_NTSC / com.wudsn.tools.rmt.model.Atari.FREQ_17_PAL, session.tuningSettings.basetuning, 1e-9); // SetNTSC rescaled the tuning
+		assertEquals(TrackerDriverVersion.PATCH8, session.options.trackerDriverVersion);
+		assertEquals(16, session.options.trackLinePrimaryHighlight);
+		assertTrue(session.options.useGermanNotation);
+		assertEquals(KeyboardLayout.AZERTY, session.options.keyboardLayout);
+		assertEquals("Some device", session.options.midiDevice);
+		assertEquals(7, session.options.midiVolumeOffset);
+
+		host.calls.clear();
+		commands.applyOptions(v); // applying the same values again changes nothing
+		assertTrue(host.calls.isEmpty());
+		assertTrue(session.song.isNTSC());
 	}
 
 	@Test

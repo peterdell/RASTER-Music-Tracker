@@ -101,6 +101,11 @@ public final class TrackerPanel extends JPanel {
 				if (vk < 0) {
 					return;
 				}
+				// Alt+key is WM_SYSKEYDOWN in Windows - the menu's (C++: "it seems to behave like the F10 key and take priority over
+				// everything else"), never the view's OnKeyDown. Leave it unconsumed so Swing's menu mnemonics get it.
+				if (e.isAltDown() && !e.isAltGraphDown() && vk != VirtualKey.VK_MENU) {
+					return;
+				}
 				session.uiState.capsLock = isCapsLockOn();
 				songInput.keyDown(vk);
 				e.consume();
@@ -203,6 +208,13 @@ public final class TrackerPanel extends JPanel {
 	/** {@code CRmtView::OnDestroy()}'s {@code KillTimer}. */
 	public void stopDisplayTimer() {
 		timer.stop();
+	}
+
+	/** {@code OnToolsOptions()}'s {@code m_width = m_height = 0; Resize()} after a scaling change: forget the current size so the next paint rebuilds the canvas. */
+	public void rescale() {
+		width = 0;
+		height = 0;
+		refreshScreen();
 	}
 
 	/** {@code RefreshScreen()} (GuiHelpers.cpp): mark the frame dirty and ask for a paint. */

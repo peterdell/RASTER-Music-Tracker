@@ -742,6 +742,7 @@ void CRmtView::ReadTuningConfig()
         if (ReadFraction(name, value, value2, "MIN_6TH", g_tuningRatios.MIN_6TH)) { continue; }
         if (ReadFraction(name, value, value2, "MAJ_6TH", g_tuningRatios.MAJ_6TH)) { continue; }
         if (ReadFraction(name, value, value2, "MIN_7TH", g_tuningRatios.MIN_7TH)) { continue; }
+        if (ReadFraction(name, value, value2, "MAJ_7TH", g_tuningRatios.MAJ_7TH)) { continue; }
         if (ReadFraction(name, value, value2, "OCTAVE", g_tuningRatios.OCTAVE)) { continue; }
 
     }

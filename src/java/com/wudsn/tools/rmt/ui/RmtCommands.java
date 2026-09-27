@@ -26,7 +26,7 @@ import com.wudsn.tools.rmt.model.UndoType;
  * <p>What a handler needs from the window goes through {@link Host}. The
  * handlers that open a dialog or a file chooser ({@code FileOpen}, the
  * export/import/renumber/change/order dialogs, About, Options) report
- * {@link Host#notAvailable} until their batches (B6/B7); the printing
+ * {@link Host#notAvailable} until their batch (B7); the printing
  * commands are MFC's own and stay unavailable; MIDI and the Pokey Explorer
  * commands are disabled (no MIDI, {@code CPokeyController} unported).
  * Playback commands change the play state exactly as C++ does - what makes
@@ -50,6 +50,12 @@ public final class RmtCommands {
 
 		/** {@code g_SkipLinesAfterNoteInsert} changed by a command - sync the toolbar combo. */
 		void skipLinesChanged();
+
+		/** {@code OnToolsOptions()}'s dialog part: edit the values (Options dialog), returning whether OK was pressed. */
+		boolean editOptions(OptionsValues values);
+
+		/** {@code m_width = m_height = 0; Resize()}: the scaling option changed, redo the canvas without waiting for a window resize. */
+		void rescale();
 	}
 
 	static final String ONLINE_HELP_URL = "https://html-preview.github.io/?url=https://github.com/raster-atari-org/RASTER-Music-Tracker/blob/1.35/doc//rmt_en.html";
@@ -102,6 +108,48 @@ public final class RmtCommands {
 		} catch (Exception e) {
 			// Nothing sensible to do - C++'s ShellExecute failure is silent too
 		}
+	}
+
+	/**
+	 * {@code CRmtView::OnToolsOptions()}'s {@code if (dlg.DoModal() == IDOK)}
+	 * block: the dialog's values into the options and the session, with the
+	 * side effects C++ has on a change - the canvas rescaled, NTSC switched
+	 * through {@link RmtSession#setNTSC}, the driver reloaded. The
+	 * {@code ReInitSound()} on a sound-buffer change is the audio batch's
+	 * (B8); {@code g_Midi.MidiInit()} has no counterpart (MIDI not ported).
+	 */
+	public void applyOptions(OptionsValues dlg) {
+		RmtOptions o = session.options;
+		// GENERAL
+		if (o.scalingPercentage != dlg.scalingPercentage) {
+			o.scalingPercentage = dlg.scalingPercentage;
+			host.rescale(); // Necessary to scale everything without manually resizing the window first
+		}
+		o.noHwSoundBuffer = dlg.noHwSoundBuffer;
+		if (session.song.isNTSC() != dlg.ntsc) {
+			session.setNTSC(dlg.ntsc);
+		}
+		if (o.trackerDriverVersion != dlg.trackerDriverVersion) {
+			session.setTrackerDriverVersion(dlg.trackerDriverVersion);
+		}
+		o.view.smoothScrolling = dlg.doSmoothScrolling;
+		o.view.debugDisplay = dlg.viewDebugDisplay;
+		o.trackLinePrimaryHighlight = dlg.trackLinePrimaryHighlight;
+		o.trackLineSecondaryHighlight = dlg.trackLineSecondaryHighlight;
+		o.trackLineAltNumbering = dlg.trackLineAltNumbering;
+		o.displayFlatNotes = dlg.displayFlatNotes;
+		o.useGermanNotation = dlg.useGermanNotation;
+		// KEYBOARD
+		o.keyboardLayout = dlg.keyboardLayout;
+		o.keyboardEscResetAtariSound = dlg.keyboardEscResetAtariSound;
+		o.keyboardUpDownContinue = dlg.keyboardUpDownContinue;
+		o.keyboardRememberOctavesAndVolumes = dlg.keyboardRememberOctavesAndVolumes;
+		o.keyboardAskWhenControlS = dlg.keyboardAskWhenControlS;
+		// MIDI
+		o.midiDevice = dlg.midiDevice;
+		o.midiTouchResponse = dlg.midiTouchResponse;
+		o.midiVolumeOffset = dlg.midiVolumeOffset;
+		o.midiNoteOff = dlg.midiNoteOff;
 	}
 
 	/** Executes a command exactly as its {@code CRmtView::On...()} handler does; a disabled command does nothing (MFC never routes those). */
@@ -402,7 +450,12 @@ public final class RmtCommands {
 		// --- Tools ---
 		case TOOLS_OPEN_ASMA -> browse(ASMA_URL);
 		case TOOLS_OPEN_ASAP_FILE -> host.notAvailable("Open ASAP file (B7)");
-		case TOOLS_OPTIONS -> host.notAvailable("Options (B6)");
+		case TOOLS_OPTIONS -> {
+			OptionsValues values = OptionsValues.from(session);
+			if (host.editOptions(values)) {
+				applyOptions(values);
+			}
+		}
 
 		// --- Help ---
 		case HELP -> host.notAvailable("Local help (B9)");

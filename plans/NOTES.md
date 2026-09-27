@@ -4107,4 +4107,62 @@ build clean and all 123 tests pass.
       (unported). Playback commands set the play state exactly as C++
       does; the timer routine that advances/sounds it is B8.
     - 497 tests (+16: `RmtCommandsTest` 13, `RmtMainMenuTest` 3), no
-      regressions. Not yet committed.
+      regressions. Committed as `58aff2b`.
+  - **2026-09-27**: The last five dialog captures arrived
+    (`insert-copy-clone`, `tracks-order`, `instrument-change`,
+    `renumber-instruments`, `renumber-tracks`); `test-resources/ui-reference/`
+    is complete, its README's "Missing" section is gone.
+  - **2026-09-27**: Phase B, batch B6 (options & persistence). `RmtConfig`
+    ports `ReadRMTConfig`/`WriteRMTConfig`/`ResetRMTConfig` and
+    `ReadTuningConfig`/`WriteTuningConfig` byte for byte (header, section
+    comments, `NAME = value`, `NAME = num / den`; the parser's
+    `tmp[-1] = 0`/`tmp + 2` splitting and C's `atoi`/`atof` reproduced,
+    `RmtConfigTest` pins the default files' exact text). `RmtOptions` now
+    holds every `rmt.ini` value (`reset()` = `ResetRMTConfig`'s
+    assignments). The folder is C++'s program folder: the jar's folder, or
+    the working directory when run from `target/classes` (`-Drmt.config.dir`
+    overrides; `/rmt.ini`, `/tuning.ini` are git-ignored). `RmtMainWindow`
+    reads both files in its constructor (`OnInitialUpdate`'s order:
+    config, tuning, `ChangeViewElements(0)`), the View toggles write
+    `rmt.ini` at once (`ChangeViewElements(1)`), exit writes both files
+    and the window geometry (`RmtWindowPreferences` = `CMainFrame`'s
+    registry `Frame` values on `java.util.prefs`, restored only when
+    complete and clamped onto the screen as `PreCreateWindow` does); the
+    close box now goes through `FILE_EXIT` like `CMainFrame::OnClose`.
+    Dialogs on WUDSN `ModalDialog`: `OptionsDialog` (four group boxes as
+    `IDD_OPTIONS`, `DDV` ranges 100-300/2-256/0-15 with MFC's prompts,
+    Touch-response enabling the offset field, driver/keyboard combos with
+    C++'s entries, "None" + Java Sound's MIDI inputs), `OptionsPathsDialog`
+    (three folders + Browse, OK clears the last-used paths),
+    `TuningDialog` (base tuning 6.875-7040, the 12 base notes and 30
+    temperaments decoded from Rmt.rc's `DLGINIT`, 13 ratio pairs;
+    Test/Reset/OK/Cancel semantics as `TuningDlg`, incl. Reset leaving the
+    fields alone). `OptionsValues` is `COptionsDialog`'s `m_*` set as a
+    plain holder so `RmtCommands.applyOptions` (`OnToolsOptions`'s
+    epilogue: rescale on a scaling change, `SetNTSC`, driver reload) is
+    headless-testable; `Host.editOptions`/`rescale` are the two new window
+    services. New NLS repositories `DataTypes`/`Texts` (dis6502
+    convention) hold the field labels and titles.
+    - **Bug fixed in both languages**: `ReadTuningConfig()` never read
+      `MAJ_7TH` although `WriteTuningConfig()` wrote it, so a custom major
+      seventh was lost on every restart. One line added in `RmtView.cpp`
+      (Release|x64 rebuild, `RmtTests.exe` 411 pass) and read in Java.
+    - Documented deviations: a ratio is stored reduced by `Fraction`
+      (`20 / 19` where C++ 1.35 writes `40 / 38` - same value, C++ reads
+      either); a zero denominator is refused in the dialog (C++ accepted
+      it and divided by zero later); a `TRACKERDRIVERVERSION` outside the
+      enum is ignored (C++ casts it). `ReInitSound` on a sound-buffer
+      change is B8's, `g_Midi.MidiInit()` has no counterpart.
+    - Also fixed from B5: `TrackerPanel` consumed every Alt combination,
+      so the menu mnemonics (Alt+T for Tools, ...) never fired and Alt+F4
+      did not close the window (a consumed key event suppresses AWT's
+      system close; Alt+F4 is not in Rmt.rc's accelerator table, Windows
+      handles it). Alt combinations are now left unconsumed, as Windows
+      gives them to the menu (`WM_SYSKEYDOWN`, C++'s own comment: "it
+      seems to behave like the F10 key"). Live-checked both.
+    - Live-checked: the two start-up boxes for missing files (C++ texts),
+      both files written, Options/Paths/Tuning laid out as the reference
+      captures, Interface Size 200 rescaling the canvas at once, the value
+      persisted on exit.
+    - 509 tests (+12: `RmtConfigTest` 6, `OptionsDialogsTest` 4,
+      `RmtCommandsTest` 2), no regressions.
