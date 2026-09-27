@@ -53,9 +53,8 @@ is always the current state of the program.
 | `SHIFT+PAGE UP`, `SHIFT+PAGE DOWN` | Go to next/previous subsong. |
 | `numblock /` | Decrease octave for newly entered notes. |
 | `numblock *` | Increase octave for newly entered notes. |
-| `numblock -` | Decrease volume for newly entered notes. |
-| `numblock +` | Increase volume for newly entered notes. |
-| `CONTROL+numblock +`, `CONTROL+numblock -` | Change pattern step size up/down. |
+| `numblock +`, `numblock -` | Change pattern step size up/down. |
+| `CONTROL+numblock +`, `CONTROL+numblock -`, `SHIFT+numblock +`, `SHIFT+numblock -` | Increase/decrease volume for newly entered notes. The mouse wheel over the VOLUME field of the song info does the same, the wheel over the OCTAVE field changes the octave. |
 | `SHIFT+tonekeys` | Play note with current instrument and volume on currently active channel. |
 | `SHIFT+CONTROL+tonekeys` | Play note with current instrument and volume on currently active channel in both stereo channels at once. |
 | `CONTROL+SPACE` | Toggle between EDIT MODE and PROVE (JAM) MODE. |

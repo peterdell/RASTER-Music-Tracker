@@ -4798,8 +4798,8 @@ build clean and all 123 tests pass.
     - Verified: `mvn -o clean package` 595 tests (+1); RmtTests 415;
       `compare_exports.ps1` 3 scripts identical; Tools > Run Script in
       `Rmt.exe`: the command opens the "Run script file" dialog (checked
-      through a posted WM_COMMAND); the run through to the result box was
-      not captured by automation - to be tried by hand.
+      through a posted WM_COMMAND); the run through to the result box
+      confirmed by the user by hand ("Script works OK").
   - **2026-09-27**: Documentation generation, batch D3 - the manual to
     Markdown (`plans/DOC_GENERATION_PLAN.md` section 2.4).
     - `doc/rmt_en.md`: `rmt_en.html` converted by a one-time script (the
@@ -4822,7 +4822,15 @@ build clean and all 123 tests pass.
       and Ctrl+numblock +/- the step size, while `Rmt.rc`'s accelerator
       table binds plain `VK_ADD`/`VK_SUBTRACT` to the step size (and the
       view has no `PreTranslateMessage`, so the accelerator wins); the menu
-      labels now follow the table. To be checked by hand in `Rmt.exe`.
+      labels now follow the table. Checked by the user in `Rmt.exe`: the
+      keypad's + and - without a modifier change the step size, as the
+      table says; the manual's two rows corrected (the "volume for newly
+      entered notes" rows had it the other way round). The volume keys are
+      the keypad's + and - with Ctrl or Shift (the accelerator entries have
+      no modifier flags, so a modified key reaches the tracker's handlers,
+      which all map VK_ADD/VK_SUBTRACT to VolumeUp/VolumeDown) - confirmed
+      by the user; the manual now says so, and names the mouse wheel over
+      the VOLUME/OCTAVE fields.
     - Verified: `mvn -o clean package` 595 tests (`DocGeneratorTest` checks
       the generated manual's heading and included table); the staging
       produces 12 files with the generated manual (383 table rows); the C++
