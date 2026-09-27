@@ -251,8 +251,9 @@ class ScriptRunnerTest {
 
 		assertEquals(ScriptRunner.EXIT_OK, run("dump notekeys k.md"), err());
 		String keys = Files.readString(dir.resolve("k.md"), StandardCharsets.UTF_8);
-		assertTrue(keys.startsWith("### QWERTY\n\n| Note | Keys |\n|---|---|\n| C-1 | `Z` |\n"), keys);
-		assertTrue(keys.contains("| C-2 | `Q`, `,` |\n") && keys.contains("\n### AZERTY\n\n| Note | Keys |\n|---|---|\n| C-1 | `W` |\n"), keys);
+		assertTrue(keys.startsWith("### QWERTY\n\n```\n 1    2    3    4    5    6    7    8    9    0    -    =\n     C#2  D#2       F#2  G#2  A#2       C#3  D#3       F#3\n   Q    W    E"), keys);
+		assertTrue(keys.contains("       Z    X    C    V    B    N    M    ,    .    /\n      C-1  D-1  E-1  F-1  G-1  A-1  B-1  C-2  D-2  E-2\n```\n\n| Note | Keys |\n|---|---|\n| C-1 | `Z` |\n"), keys);
+		assertTrue(keys.contains("| C-2 | `Q`, `,` |\n") && keys.contains("\n### AZERTY\n\n```\n &    é    \"    '    (    -    è    _    ç    à    )    =\n"), keys);
 
 		assertEquals(ScriptRunner.EXIT_COMMAND_FAILED, run("dump songs b.md"));
 		assertTrue(err().contains("Unknown dump 'songs'"), err());

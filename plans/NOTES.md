@@ -4898,3 +4898,13 @@ build clean and all 123 tests pass.
     Visual Studio solution item (`Rmt.vcxproj` and its filters, entries
     dropped). Its one row the manual lacked - HOME in the instrument
     parameters moves to ENVELOPE LENGTH - added to the manual first.
+  - **2026-09-27**: the note key document as a keyboard (the user's wish:
+    "a more structured output that has the form of a keyboard"). Per
+    layout, before the table by note: a fenced block with the four key
+    rows of the keyboard - the legends as the keyboard prints them, the
+    note each key plays underneath, the rows staggered. The row order is
+    data in both programs (`KeyboardRows()` in `Keyboard2NoteMapping.cpp`,
+    `QWERTY_ROWS`/`AZERTY_ROWS` in `NoteKeys`); the AZERTY number row shows
+    its French legends (& é " ' ( - è _ ç à). Both programs' documents
+    byte-identical; RmtTests 416, Java 595; the manual's "Note Keys"
+    chapter text adjusted.

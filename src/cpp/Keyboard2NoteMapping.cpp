@@ -150,18 +150,23 @@ char Numblock09Key(int vk) {
 
 #include "Notes.h"
 #include <cstdio>
+#include <vector>
 
 namespace {
 
 // The legend of a virtual key as the keyboard of the layout prints it: the
-// letters and digits are the same physical keys in both layouts (the
-// AZERTY number row is Shift-ed for the digits, its unshifted legends are
-// & é " ' ( - è _ ç à), the OEM keys differ.
+// letters are the same physical keys in both layouts; the number row of the
+// French AZERTY keyboard prints & é " ' ( - è _ ç à (the digits are its
+// Shift level), and the OEM keys differ.
 std::string KeyLegend(int vk, KeyboardLayout layout) {
-    if ((vk >= '0' && vk <= '9') || (vk >= 'A' && vk <= 'Z')) {
+    bool azerty = layout == KeyboardLayout::AZERTY;
+    if (vk >= '0' && vk <= '9') {
+        static const char* azertyDigits[10] = { "\xC3\xA0", "&", "\xC3\xA9", "\"", "'", "(", "-", "\xC3\xA8", "_", "\xC3\xA7" }; // à & é " ' ( - è _ ç
+        return azerty ? azertyDigits[vk - '0'] : std::string(1, (char)vk);
+    }
+    if (vk >= 'A' && vk <= 'Z') {
         return std::string(1, (char)vk);
     }
-    bool azerty = layout == KeyboardLayout::AZERTY;
     switch (vk) {
     case 0xBA: return azerty ? "$" : ";"; // VK_OEM_1
     case 0xBB: return "="; // VK_OEM_PLUS
@@ -184,10 +189,64 @@ std::string KeyLegend(int vk, KeyboardLayout layout) {
     return buffer;
 }
 
+// The four key rows of the layout's keyboard, from the number row to the
+// bottom row, as virtual keys (0 = the ISO "<" key position when absent).
+const std::vector<std::vector<int>>& KeyboardRows(KeyboardLayout layout) {
+    static const std::vector<std::vector<int>> qwerty = {
+        { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 0xBD, 0xBB },
+        { 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', 0xDB, 0xDD },
+        { 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 0xBA, 0xDE },
+        { 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 0xBC, 0xBE, 0xBF },
+    };
+    static const std::vector<std::vector<int>> azerty = {
+        { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 0xDB, 0xBB },
+        { 'A', 'Z', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', 0xDD, 0xBA },
+        { 'Q', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 0xC0, 0xDC },
+        { 0xE2, 'W', 'X', 'C', 'V', 'B', 'N', 0xBC, 0xBE, 0xBF, 0xDF },
+    };
+    return layout == KeyboardLayout::AZERTY ? azerty : qwerty;
+}
+
+// A UTF-8 string padded with blanks to width columns (one column per code point).
+std::string Pad(const std::string& s, size_t width) {
+    size_t columns = 0;
+    for (unsigned char c : s) {
+        if ((c & 0xC0) != 0x80) {
+            columns++;
+        }
+    }
+    return columns < width ? s + std::string(width - columns, ' ') : s;
+}
+
+// The keyboard as a picture: per row a line of key legends and a line with
+// the note each key plays, the rows staggered as on a keyboard.
+void AppendKeyboard(std::string& out, const unsigned char* table, KeyboardLayout layout) {
+    const auto& rows = KeyboardRows(layout);
+    out += "```\n";
+    for (size_t r = 0; r < rows.size(); r++) {
+        std::string keys(r * 2, ' ');
+        std::string notes(r * 2, ' ');
+        for (int vk : rows[r]) {
+            keys += Pad(" " + KeyLegend(vk, layout), 5);
+            notes += Pad(table[vk] != 0xFF ? CNotes::GetNote(table[vk]) : "", 5);
+        }
+        while (!keys.empty() && keys.back() == ' ') {
+            keys.pop_back();
+        }
+        while (!notes.empty() && notes.back() == ' ') {
+            notes.pop_back();
+        }
+        out += keys + "\n" + notes + "\n";
+    }
+    out += "```\n\n";
+}
+
 void AppendLayout(std::string& out, const char* name, const unsigned char* table, KeyboardLayout layout) {
     out += "### ";
     out += name;
-    out += "\n\n| Note | Keys |\n|---|---|\n";
+    out += "\n\n";
+    AppendKeyboard(out, table, layout);
+    out += "| Note | Keys |\n|---|---|\n";
     for (int note = 0; note < CNotes::NOTESNUM; note++) {
         std::string keys;
         for (int vk = 0; vk < 256; vk++) {

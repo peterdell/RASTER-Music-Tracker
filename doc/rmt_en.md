@@ -29,9 +29,10 @@ is always the current state of the program.
 The "tonekeys" of the hotkey tables below: two rows of the keyboard form a
 piano, the lower row from C-1 and the upper row from C-2, with the row above
 each as the black keys. The layout follows the "Keyboard layout" option
-(QWERTY or AZERTY). These tables are generated from the program (the `dump
-notekeys` script command); on an AZERTY keyboard the digits are the number
-row's keys, whose unshifted legends are & é " ' ( - è _ ç à.
+(QWERTY or AZERTY). The pictures and tables are generated from the program
+(the `dump notekeys` script command): each keyboard row as its keys print
+them, with the note every key plays underneath, then the same as a table by
+note.
 
 <!-- include: rmt_note_keys.md -->
 
