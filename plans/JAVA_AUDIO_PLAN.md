@@ -1,7 +1,7 @@
 # Java port, Phase B batch B8: real-time audio
 
-Status: **B8a and B8b DONE 2026-09-27** (section 4 has the findings); B8c
-open. Plan reviewed and its four decisions accepted by the user on
+Status: **B8 DONE 2026-09-27** - B8a, B8b and B8c (section 4 has the
+findings). Plan reviewed and its four decisions accepted by the user on
 2026-09-27. Companion to `plans/JAVA_UI_PORT_PLAN.md` (DECISION 4 there:
 "UI first, real-time audio deferred to B8"). Batches B1-B7 are committed;
 every menu command is wired except printing, "Open ASAP file", local help,
@@ -215,7 +215,31 @@ timer, so pressed-tone preview works with playback stopped).
   `WaitForTimerRoutineProcessed` busy-wait (the engine applies `Stop()`'s
   silence on its next frame; a wait under the lock would deadlock); the
   NTSC "17-17-16 groove" is not needed (the sample clock paces).
-- **B8c - the rest of 3.4** and the NOTES/plan entries.
+- **B8c - the rest of 3.4. DONE 2026-09-27.**
+  - Esc's "reset Atari sound" needed nothing: Esc is the Stop
+    accelerator and `SONG_STOP` already runs `driver.init()` on the option.
+  - Media keys (`VK_MEDIA_PLAY_PAUSE/NEXT_TRACK/PREV_TRACK`) in
+    `SongInput.keyDown` as in `CRmtView::OnKeyDown`; AWT has no key codes
+    for them (they arrive as `VK_UNDEFINED` on Windows), so
+    `VirtualKey.fromKeyEvent` cannot produce them - the handler is in place
+    and tested through `keyDown(vk)`.
+  - "Open ASAP file" disabled (`isEnabled` false, the handler a no-op).
+  - `WaveFileExporter.exportWav(PokeyStream, ntsc, stereo, instrumentSpeed)`
+    replays the recorded stream through `AtariCpu`'s POKEY pair up to the
+    loop point, as `CWaveFileExporter::ExportWAV` + `RenderSoundV2` do,
+    with a hand-written 44-byte RIFF header (16-bit/44.1 kHz/2 ch). The
+    `SongFiles` WAV case adds C++'s `driver.Init()`/all channels on before
+    and all channels off after.
+  - **C++ bug found and fixed in both**: for a stereo song `ExportWAV` read
+    the stream frame's bytes 0-8 as the first POKEY's registers, but
+    `CPokeyStream::Record()` stores the second POKEY's 9 bytes first; the
+    second POKEY's registers (`trackn_audf+4..7`, `v_audctl2`) were never
+    written. A stereo WAV therefore carried only the right-hand POKEY,
+    played on the left. Java test
+    `exportWavOfAStereoSongPutsTheSecondPokeyOnTheRightChannel`; the C++
+    fix (`WaveFileExporter.cpp`, a `frameSize == 18` branch) is verified by
+    the Release build and the unchanged C++ suite (`ExportWAV` itself is
+    DirectSound-bound and untested there).
 
 ## 5. Decisions requested
 

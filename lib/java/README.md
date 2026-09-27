@@ -35,10 +35,12 @@ port's CPU and POKEY in two roles:
   fed and rendered directly. This is live playback, the keyboard preview
   and `Song.dumpSongToPokeyStream`'s SAP-R dump (through
   `AtariTrackerDriver.play()`), exactly as in C++.
-- **The module player** (unmodified upstream API: `load`/`playSong`/
-  `generate`): `WaveFileExporter` renders the exported module to WAV, and
-  the `LivePlaybackTest` cross-check plays the exported module as an
-  independent reference for the tracker driver's register output.
+- **The module player** (unmodified upstream API: `load`/`playSong`, plus
+  the `stepFrame`/`getPokeyRegisterShadow` extensions): the
+  `LivePlaybackTest` cross-check plays the exported module as an
+  independent reference for the tracker driver's register output. (The
+  WAV export used it until B8c; it now replays the recorded register
+  stream through the POKEY pair, as C++ does.)
 
 **Vendored as source, not as this pre-built jar**: the actual, patched
 integration lives in `src/java/net/sf/asap/` (copied from this folder's

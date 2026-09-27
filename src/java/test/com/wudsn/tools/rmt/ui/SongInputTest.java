@@ -48,6 +48,23 @@ class SongInputTest {
 		input.keyUp(modifier);
 	}
 
+	// --- media keys (CRmtView::OnKeyDown, B8c) ---
+
+	@Test
+	void mediaPlayPauseTogglesPlaybackAndNextPrevSeekBySongline() {
+		press(VK_MEDIA_PLAY_PAUSE);
+		assertEquals(com.wudsn.tools.rmt.model.PlayMode.PLAY_SONG, session.song.getPlayMode());
+		press(VK_MEDIA_PLAY_PAUSE);
+		assertEquals(com.wudsn.tools.rmt.model.PlayMode.PLAY_STOP, session.song.getPlayMode());
+
+		press(VK_MEDIA_NEXT_TRACK);
+		assertEquals(com.wudsn.tools.rmt.model.PlayMode.PLAY_FROM, session.song.getPlayMode()); // PLAY_SEEK_NEXT plays from the next songline
+		assertEquals(1, session.song.songGetPlayLine());
+		press(VK_MEDIA_PREV_TRACK);
+		assertEquals(0, session.song.songGetPlayLine());
+		session.song.stop(session.undo);
+	}
+
 	// --- navigation (B1) ---
 
 	@Test

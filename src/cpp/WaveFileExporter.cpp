@@ -54,15 +54,28 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
         //	memory[0xd200 + i] = streambuffer[i];
         //}
 
-        memory[RMTPLAYR_TRACKN_AUDF + 0] = streambuffer[0x00];
-        memory[RMTPLAYR_TRACKN_AUDF + 1] = streambuffer[0x02];
-        memory[RMTPLAYR_TRACKN_AUDF + 2] = streambuffer[0x04];
-        memory[RMTPLAYR_TRACKN_AUDF + 3] = streambuffer[0x06];
-        memory[RMTPLAYR_TRACKN_AUDC + 0] = streambuffer[0x01];
-        memory[RMTPLAYR_TRACKN_AUDC + 1] = streambuffer[0x03];
-        memory[RMTPLAYR_TRACKN_AUDC + 2] = streambuffer[0x05];
-        memory[RMTPLAYR_TRACKN_AUDC + 3] = streambuffer[0x07];
-        memory[RMTPLAYR_V_AUDCTL] = streambuffer[0x08];
+        if (frameSize == 18) {
+            // Stereo: CPokeyStream::Record() stores the second POKEY's 9 bytes first, then the first POKEY's
+            // ("1st POKEY is 2nd in the stream"). Tracks 4-7 / v_audctl2 are what SetPokey writes to $D210-$D218.
+            for (int i = 0; i < 4; i++) {
+                memory[RMTPLAYR_TRACKN_AUDF + i] = streambuffer[0x09 + i * 2];
+                memory[RMTPLAYR_TRACKN_AUDC + i] = streambuffer[0x0A + i * 2];
+                memory[RMTPLAYR_TRACKN_AUDF + 4 + i] = streambuffer[0x00 + i * 2];
+                memory[RMTPLAYR_TRACKN_AUDC + 4 + i] = streambuffer[0x01 + i * 2];
+            }
+            memory[RMTPLAYR_V_AUDCTL] = streambuffer[0x11];
+            memory[RMTPLAYR_V_AUDCTL2] = streambuffer[0x08];
+        } else {
+            memory[RMTPLAYR_TRACKN_AUDF + 0] = streambuffer[0x00];
+            memory[RMTPLAYR_TRACKN_AUDF + 1] = streambuffer[0x02];
+            memory[RMTPLAYR_TRACKN_AUDF + 2] = streambuffer[0x04];
+            memory[RMTPLAYR_TRACKN_AUDF + 3] = streambuffer[0x06];
+            memory[RMTPLAYR_TRACKN_AUDC + 0] = streambuffer[0x01];
+            memory[RMTPLAYR_TRACKN_AUDC + 1] = streambuffer[0x03];
+            memory[RMTPLAYR_TRACKN_AUDC + 2] = streambuffer[0x05];
+            memory[RMTPLAYR_TRACKN_AUDC + 3] = streambuffer[0x07];
+            memory[RMTPLAYR_V_AUDCTL] = streambuffer[0x08];
+        }
 
         // Fill the POKEY buffer with 1 rendered chunk
         pokey.RenderSoundV2(songExport.GetSong().GetInstrumentSpeed(), buffer, length);

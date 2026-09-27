@@ -1,40 +1,30 @@
 package com.wudsn.tools.rmt.model;
 
-import net.sf.asap.ASAP;
-import net.sf.asap.ASAPArgumentException;
-import net.sf.asap.ASAPFormatException;
-import net.sf.asap.ASAPSampleFormat;
+import java.io.ByteArrayOutputStream;
 
 /**
  * Ported from CWaveFileExporter (src/cpp/WaveFileExporter.h/.cpp) -
- * {@code ExportWAV} only, redesigned around {@code net.sf.asap.ASAP}'s
- * module player directly rather than porting C++'s own separate
- * software POKEY audio-synthesis engine ({@code CXPokey}/
- * {@code PokeyRenderer.h/.cpp}/{@code PokeyCore.cpp}, confirmed
- * C++-tested but never ported to Java - see
- * {@code plans/JAVA_PORT_NEXT_STEPS_PLAN.md}'s Phase A item 4).
+ * {@code ExportWAV}: replays the recorded {@link PokeyStream}, frame by
+ * frame up to its loop point, through the POKEY pair and returns the
+ * samples as a WAV file. C++ writes each frame's register bytes into the
+ * tracker driver's variables and lets {@code RMT_SETPOKEY} +
+ * {@code CopyAtariMemoryToPokey} carry them to the POKEY once per
+ * instrument-speed sub-frame ({@code RenderSoundV2}); here the bytes are
+ * poked into the POKEY pair directly (all channels on, as C++ sets them
+ * for the export) - the same registers by a shorter route - and the
+ * sub-frame's share of the frame's cycles is rendered.
  *
- * <p><b>Deliberate idiomatic substitution, not a faithful line-for-line
- * port</b>: C++'s {@code ExportWAV} replays an already-recorded
- * {@code PokeyStream}'s raw register bytes into {@code CXPokey}'s own
- * synthesis engine to produce PCM samples. This port instead exports the
- * song to a real RMT module (same as {@link Song#dumpSongToPokeyStream})
- * and lets ASAP's own {@code load}/{@code playSong}/{@code generate}
- * independently decode and render it - ASAP already contains a complete,
- * tested POKEY audio synthesizer for exactly this purpose, so porting a
- * second, redundant one from scratch would duplicate real engineering
- * effort for no behavioral gain (matches this port's established
- * "idiomatic substitution when it produces identical behavior" precedent,
- * e.g. {@code Fraction}'s collapsed increment operators). The observable
- * result - a valid WAV file that sounds like the song - is the same; only
- * which software POKEY emulator computes the samples differs.
+ * <p>Output is 16-bit signed PCM, 44.1 kHz, 2 channels (C++: 8-bit); a mono
+ * song's single POKEY is on both channels, as C++'s 2-channel output. Until
+ * the audio batch (B8) this class played an exported module through ASAP's
+ * own RMT player instead, which uses the classic frequency tables rather
+ * than the tracker driver's (see {@code LivePlaybackTest}).
  *
- * <p><b>Known difference since the audio batch (B8)</b>: ASAP's RMT player
- * uses the classic frequency tables, while the tracker driver C++ replays
- * uses the patched drivers' tables / the generated tuning tables, so a few
- * AUDF values differ by 1-2 (see {@code LivePlaybackTest}). Replaying the
- * recorded {@link PokeyStream} through {@link AtariCpu}'s POKEY pair, as
- * C++ does, is planned as a B8 follow-up ({@code plans/JAVA_AUDIO_PLAN.md}).
+ * <p>Stereo: a stream frame is the second POKEY's 9 bytes followed by the
+ * first POKEY's ({@link PokeyStream#record}'s layout). C++'s
+ * {@code ExportWAV} read bytes 0-8 as the first POKEY's registers and never
+ * set the second's, so a stereo WAV carried only the right-hand POKEY,
+ * played on the left one - fixed in both languages on 2026-09-27.
  *
  * <p>Returns a complete WAV file as a {@code byte[]} (header + samples),
  * matching this port's established byte-array-over-stream idiom, rather
@@ -42,53 +32,96 @@ import net.sf.asap.ASAPSampleFormat;
  */
 public final class WaveFileExporter {
 
+	private static final int CHANNELS = 2;
+	private static final int BITS_PER_SAMPLE = 16;
+	private static final int HEADER_SIZE = 44;
+
 	private WaveFileExporter() {
 	}
 
 	/**
-	 * Renders {@code durationMs} milliseconds of the current song as a WAV
-	 * file (16-bit signed PCM, ASAP's default 44100 Hz sample rate). Callers
-	 * typically derive {@code durationMs} from a prior
-	 * {@link Song#dumpSongToPokeyStream} call's
-	 * {@link PokeyStream#getFirstCountPoint} (one full, non-repeating
-	 * playthrough) and {@link Song#isNTSC} (for the frames-per-second
-	 * conversion) - matching the loop point C++'s {@code ExportWAV} itself
-	 * replays.
+	 * Renders the frames up to {@code pokeyStream}'s loop point
+	 * ({@link PokeyStream#getFirstCountPoint}) - one full, non-repeating
+	 * playthrough, exactly what C++'s {@code ExportWAV} replays - for a song
+	 * with the given video standard, channel count and instrument speed.
 	 */
-	public static byte[] exportWav(Song song, Instruments instruments, int tracks4_8, int durationMs) {
-		byte[] mem = new byte[Atari.MEMORY_SIZE];
-		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
-		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
-		int targetAddrOfModule = 0x4000;
-		int firstByteAfterModule = song.makeModule(mem, targetAddrOfModule, SongIOType.RMT, instrumentSavedFlags, trackSavedFlags, tracks4_8);
-		byte[] moduleBytes = RmtExporter.exportAsRMT(song, instruments, mem, targetAddrOfModule, firstByteAfterModule, instrumentSavedFlags);
+	public static byte[] exportWav(PokeyStream pokeyStream, boolean ntsc, boolean stereo, int instrumentSpeed) {
+		AtariCpu cpu = new AtariCpu(ntsc, stereo);
+		int frames = pokeyStream.getFirstCountPoint();
+		int frameSize = stereo ? 18 : 9;
+		byte[] stream = pokeyStream.getFrameBytes(frames, 0);
+		int frameCycles = Atari.getFrameCycleCount(ntsc);
+		int subFrames = Math.max(1, instrumentSpeed);
 
-		ASAP asap = new ASAP();
-		try {
-			asap.load("song.rmt", moduleBytes, moduleBytes.length);
-			asap.playSong(0, durationMs);
-		} catch (ASAPFormatException | ASAPArgumentException e) {
-			throw new IllegalArgumentException("Not a valid RMT module", e);
+		ByteArrayOutputStream samples = new ByteArrayOutputStream(frames * 900 * CHANNELS * 2);
+		byte[] rendered = new byte[8192];
+		byte[] output = new byte[8192];
+		for (int frame = 0; frame < frames; frame++) {
+			int offset = frame * frameSize;
+			int remainingCycles = frameCycles;
+			for (int i = subFrames; i > 0; i--) {
+				// RenderSoundV2: SetPokey + CopyAtariMemoryToPokey per sub-frame, then the sub-frame's share of the chunk
+				int first = stereo ? offset + 9 : offset;
+				for (int r = 0; r < 9; r++) {
+					cpu.pokeRegister(r, stream[first + r] & 0xFF);
+				}
+				if (stereo) {
+					for (int r = 0; r < 9; r++) {
+						cpu.pokeRegister(16 + r, stream[offset + r] & 0xFF);
+					}
+				}
+				int cycles = remainingCycles / i;
+				remainingCycles -= cycles;
+				int blocks = cpu.render(cycles, rendered, 0);
+				int n = AtariCpu.toTwoChannels(rendered, blocks, cpu.getBlockSize(), output, 0);
+				samples.write(output, 0, n);
+			}
 		}
 
-		ASAPSampleFormat format = ASAPSampleFormat.S16_L_E;
-		int channels = asap.getInfo().getChannels();
-		int blockSize = channels * 2; // 16-bit samples
-		int blocks = (int) Math.round(durationMs / 1000.0 * asap.getSampleRate());
-
-		byte[] header = new byte[128];
-		int headerLen = asap.getWavHeader(header, format, false);
-
-		byte[] samples = new byte[blocks * blockSize];
-		int samplesLen = asap.generate(samples, samples.length, format);
-
-		byte[] out = new byte[headerLen + samplesLen];
-		System.arraycopy(header, 0, out, 0, headerLen);
-		System.arraycopy(samples, 0, out, headerLen, samplesLen);
-		return out;
+		byte[] data = samples.toByteArray();
+		byte[] wav = new byte[HEADER_SIZE + data.length];
+		writeHeader(wav, data.length);
+		System.arraycopy(data, 0, wav, HEADER_SIZE, data.length);
+		return wav;
 	}
 
-	/** Frames per second for {@code CLZSSFile::GetFrameSize}'s NTSC/PAL video frame rate, matching ASAP's own internal per-frame cycle counts. */
+	/** The canonical 44-byte RIFF/WAVE PCM header ({@code CWaveFile::OpenFile}'s format: 44.1 kHz, 16-bit, 2 channels). */
+	private static void writeHeader(byte[] wav, int dataLength) {
+		int blockAlign = CHANNELS * BITS_PER_SAMPLE / 8;
+		putAscii(wav, 0, "RIFF");
+		putInt(wav, 4, 36 + dataLength);
+		putAscii(wav, 8, "WAVE");
+		putAscii(wav, 12, "fmt ");
+		putInt(wav, 16, 16); // PCM format chunk size
+		putShort(wav, 20, 1); // PCM
+		putShort(wav, 22, CHANNELS);
+		putInt(wav, 24, AtariCpu.SAMPLE_RATE);
+		putInt(wav, 28, AtariCpu.SAMPLE_RATE * blockAlign);
+		putShort(wav, 32, blockAlign);
+		putShort(wav, 34, BITS_PER_SAMPLE);
+		putAscii(wav, 36, "data");
+		putInt(wav, 40, dataLength);
+	}
+
+	private static void putAscii(byte[] b, int off, String s) {
+		for (int i = 0; i < s.length(); i++) {
+			b[off + i] = (byte) s.charAt(i);
+		}
+	}
+
+	private static void putInt(byte[] b, int off, int v) {
+		b[off] = (byte) v;
+		b[off + 1] = (byte) (v >> 8);
+		b[off + 2] = (byte) (v >> 16);
+		b[off + 3] = (byte) (v >> 24);
+	}
+
+	private static void putShort(byte[] b, int off, int v) {
+		b[off] = (byte) v;
+		b[off + 1] = (byte) (v >> 8);
+	}
+
+	/** Frames per second for {@code CLZSSFile::GetFrameSize}'s NTSC/PAL video frame rate (the exact frame-cycle counts over the POKEY clock). */
 	public static double getFrameRate(boolean ntsc) {
 		return ntsc ? 1789772.0 / 29868 : 1773447.0 / 35568;
 	}

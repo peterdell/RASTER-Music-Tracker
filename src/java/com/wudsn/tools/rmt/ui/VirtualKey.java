@@ -71,6 +71,11 @@ public final class VirtualKey {
 	public static final int VK_F3 = 0x72;
 	public static final int VK_F4 = 0x73;
 	public static final int VK_F11 = 0x7A;
+	// The media keys CRmtView::OnKeyDown handles. AWT has no key codes for them (they arrive as VK_UNDEFINED on Windows), so
+	// fromKeyEvent never produces them; SongInput handles them for a caller that can.
+	public static final int VK_MEDIA_NEXT_TRACK = 0xB0;
+	public static final int VK_MEDIA_PREV_TRACK = 0xB1;
+	public static final int VK_MEDIA_PLAY_PAUSE = 0xB3;
 	public static final int VK_F12 = 0x7B;
 	public static final int VK_OEM_1 = 0xBA; // ;:
 	public static final int VK_OEM_PLUS = 0xBB; // =+

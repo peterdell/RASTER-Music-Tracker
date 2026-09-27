@@ -939,10 +939,12 @@ public final class SongFiles {
 			return true;
 		}
 		case WAV -> {
-			// CWaveFileExporter::ExportWAV renders exactly the frames up to the stream's loop point
+			// CWaveFileExporter::ExportWAV: the recorded stream up to its loop point, replayed through the POKEY
 			PokeyStream pokeyStream = generatePokeyStream();
-			int durationMs = (int) Math.round(pokeyStream.getFirstCountPoint() * 1000.0 / WaveFileExporter.getFrameRate(song.isNTSC()));
-			Files.write(fn, WaveFileExporter.exportWav(song, session.instruments, session.tracks4_8, durationMs));
+			session.atariTrackerDriver.init(); // Reset the Atari memory
+			session.channelControl.setAllChannelsOn();
+			Files.write(fn, WaveFileExporter.exportWav(pokeyStream, song.isNTSC(), song.isStereo(session.tracks4_8), song.getInstrumentSpeed()));
+			session.channelControl.setAllChannelsOff(); // as C++ ("TODO: Set channels on again?")
 			return true;
 		}
 		default -> {

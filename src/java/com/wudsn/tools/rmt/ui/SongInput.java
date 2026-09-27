@@ -36,7 +36,7 @@ import com.wudsn.tools.rmt.model.UndoType;
  * private methods ({@link #changeInstrumentPar}, {@link #changeInstrumentEnv},
  * ...) or booleans; every other line follows the original.
  *
- * <p>Not ported here: the media keys (play/stop - B8, needs playback), the
+ * <p>Not ported here: the
  * {@code /SCRIPT}-style {@code FlaToCha} numpad remap of
  * {@code OnKeyDown}'s first lines (a scan-code workaround for
  * Shift+numpad on Windows; Swing already reports numpad keys by their own
@@ -186,7 +186,21 @@ public final class SongInput {
 			ui.respectVolume = !ui.respectVolume;
 			break;
 
-		// VK_MEDIA_PLAY_PAUSE / VK_MEDIA_NEXT_TRACK / VK_MEDIA_PREV_TRACK: B8 (playback)
+		case VK_MEDIA_PLAY_PAUSE:
+			if (session.song.getPlayMode() == PlayMode.PLAY_STOP) {
+				session.song.play(PlayMode.PLAY_SONG, session.song.getFollowPlayMode(), session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard); // play song from start
+			} else {
+				session.song.stop(session.undo); // if playing, stop
+			}
+			break;
+
+		case VK_MEDIA_NEXT_TRACK:
+			session.song.play(PlayMode.PLAY_SEEK_NEXT, session.song.getFollowPlayMode(), session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard); // seek next and play from track
+			break;
+
+		case VK_MEDIA_PREV_TRACK:
+			session.song.play(PlayMode.PLAY_SEEK_PREV, session.song.getFollowPlayMode(), session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard); // seek prev and play from track
+			break;
 
 		case VK_SHIFT:
 			ui.shiftKey = true;

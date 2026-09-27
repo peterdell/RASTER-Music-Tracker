@@ -2099,7 +2099,11 @@ class SongEditingTest {
 	 * its instruments, as RmtSession does through Instruments.update().
 	 */
 	private void useRealAtari() {
-		Atari atari = new Atari(new AtariCpu(false, false));
+		useRealAtari(false);
+	}
+
+	private void useRealAtari(boolean stereo) {
+		Atari atari = new Atari(new AtariCpu(false, stereo));
 		TuningSettings tuningSettings = new TuningSettings();
 		tuningSettings.initialize(false);
 		TuningRatios tuningRatios = new TuningRatios();
@@ -2107,7 +2111,7 @@ class SongEditingTest {
 		atari.init(false, tuningSettings, tuningRatios);
 		atariTrackerDriver = new AtariTrackerDriver(atari);
 		assertTrue(atariTrackerDriver.loadRMTRoutines(TrackerDriverVersion.PATCH16) > 0);
-		instruments.attachAtari(atari, () -> false);
+		instruments.attachAtari(atari, () -> stereo);
 	}
 
 	@Test
@@ -2288,11 +2292,12 @@ class SongEditingTest {
 	}
 
 	// --- WaveFileExporter.exportWav ---
-	// See WaveFileExporter's own class javadoc for why this uses ASAP's own
-	// audio synthesis directly instead of porting CXPokey/PokeyRenderer.
+	// CWaveFileExporter::ExportWAV replays the recorded PokeyStream through
+	// the POKEY (C++: CXPokey; here AtariCpu's pair), frame by frame up to
+	// the loop point.
 
 	@Test
-	void exportWavRendersAValidRiffWaveFile() {
+	void exportWavRendersTheStreamUpToTheLoopPointAsAValidRiffWaveFile() {
 		SongInfo info = new SongInfo();
 		song.getSongInfoPars(info);
 		info.mainSpeed = 6;
@@ -2313,13 +2318,61 @@ class SongEditingTest {
 		PokeyStream pokeyStream = new PokeyStream();
 		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
 
-		int durationMs = (int) Math.round(pokeyStream.getFirstCountPoint() * 1000.0 / WaveFileExporter.getFrameRate(song.isNTSC()));
-
-		byte[] out = WaveFileExporter.exportWav(song, instruments, 4, durationMs);
+		byte[] out = WaveFileExporter.exportWav(pokeyStream, false, false, song.getInstrumentSpeed());
 
 		assertEquals("RIFF", new String(out, 0, 4, java.nio.charset.StandardCharsets.US_ASCII));
 		assertEquals("WAVE", new String(out, 8, 4, java.nio.charset.StandardCharsets.US_ASCII));
-		assertTrue(out.length > 64);
+		assertEquals(2, out[22], "channels");
+		assertEquals(44100, (out[24] & 0xFF) | (out[25] & 0xFF) << 8 | (out[26] & 0xFF) << 16, "sample rate");
+		assertEquals(16, out[34], "bits per sample");
+		int dataLength = (out[40] & 0xFF) | (out[41] & 0xFF) << 8 | (out[42] & 0xFF) << 16 | (out[43] & 0xFF) << 24;
+		assertEquals(out.length - 44, dataLength);
+		// one PAL frame is ~884 blocks of 4 bytes
+		int frames = pokeyStream.getFirstCountPoint();
+		assertTrue(dataLength >= frames * 880 * 4 && dataLength <= frames * 888 * 4, "data bytes for " + frames + " frames: " + dataLength);
+		boolean anyNonZero = false;
+		for (int i = 44; i < out.length; i++) {
+			anyNonZero |= out[i] != 0;
+		}
+		assertTrue(anyNonZero, "audible samples");
+	}
+
+	@Test
+	void exportWavOfAStereoSongPutsTheSecondPokeyOnTheRightChannel() {
+		// a note on track 4 only (the right-hand POKEY): the left channel must stay silent - C++'s ExportWAV read the
+		// stream's second-POKEY bytes as the first POKEY's (fixed in both languages)
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 1;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][4] = 5;
+		Track tr = tracks.getTrack(5);
+		tr.len = 2;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+		tr.volume[0] = 10;
+		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10;
+		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMER] = 10;
+		song.getSongGo()[1] = 0; // guarantees a fast loop
+
+		useRealAtari(true);
+		ChannelControl channelControl = new ChannelControl(8);
+		PokeyStream pokeyStream = new PokeyStream();
+		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 8, atariTrackerDriver, channelControl, clipboard, undo);
+		assertEquals(pokeyStream.getFirstCountPoint() * 18, pokeyStream.getFrameBytes(pokeyStream.getFirstCountPoint(), 0).length); // stereo: 18 bytes/frame
+
+		byte[] out = WaveFileExporter.exportWav(pokeyStream, false, true, 1);
+
+		boolean leftNonZero = false;
+		boolean rightNonZero = false;
+		for (int i = 44; i + 3 < out.length; i += 4) {
+			leftNonZero |= out[i] != 0 || out[i + 1] != 0;
+			rightNonZero |= out[i + 2] != 0 || out[i + 3] != 0;
+		}
+		assertFalse(leftNonZero, "the first POKEY (left) is silent");
+		assertTrue(rightNonZero, "the second POKEY (right) sounds");
 	}
 
 	// --- SongExporter.exportLzss ---

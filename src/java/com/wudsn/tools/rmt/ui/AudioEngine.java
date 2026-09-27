@@ -174,9 +174,9 @@ public final class AudioEngine implements Runnable {
 			copyAtariMemoryToPokey(cpu, stereo);
 			int cycles = remainingCycles / i;
 			remainingCycles -= cycles;
-			rendered += cpu.render(cycles, renderBuffer, rendered * cpu.getBlockSize()) ;
+			rendered += cpu.render(cycles, renderBuffer, rendered * cpu.getBlockSize());
 		}
-		frameBytes = toOutput(cpu.getBlockSize(), rendered);
+		frameBytes = AtariCpu.toTwoChannels(renderBuffer, rendered, cpu.getBlockSize(), frameBuffer, 0);
 
 		if (song.getPlayMode() != PlayMode.PLAY_STOP) {
 			session.uiState.playTime++; // If the song is currently playing, increment the timer
@@ -200,24 +200,6 @@ public final class AudioEngine implements Runnable {
 		if (stereo) {
 			cpu.pokeRegister(8 + 16, atari.getByteAt(0xD218));
 		}
-	}
-
-	/** The rendered blocks (one 16-bit sample per POKEY) into the 2-channel output; returns the byte count. */
-	private int toOutput(int blockSize, int blocks) {
-		if (blockSize == OUTPUT_BLOCK_SIZE) {
-			System.arraycopy(renderBuffer, 0, frameBuffer, 0, blocks * OUTPUT_BLOCK_SIZE);
-		} else {
-			for (int b = 0; b < blocks; b++) {
-				byte lo = renderBuffer[b * 2];
-				byte hi = renderBuffer[b * 2 + 1];
-				int o = b * OUTPUT_BLOCK_SIZE;
-				frameBuffer[o] = lo;
-				frameBuffer[o + 1] = hi;
-				frameBuffer[o + 2] = lo;
-				frameBuffer[o + 3] = hi;
-			}
-		}
-		return blocks * OUTPUT_BLOCK_SIZE;
 	}
 
 	/** The last rendered frame's samples (16-bit LE, 2 channels); {@link #renderFrame} says how many bytes are valid. */

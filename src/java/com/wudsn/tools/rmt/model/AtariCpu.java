@@ -8,9 +8,9 @@ import net.sf.asap.ASAP;
  * CPU and POKEY emulation in its "RMT mode" (see the additions at the end
  * of {@code net.sf.asap.ASAP}). Its 64K is the {@link Atari}'s memory; the
  * RMT tracker driver loaded there is run through {@link #jsr}; the POKEY
- * pair is fed by {@link #pokeRegister} and rendered by {@link #render}.
- * (The WAV export is the one path that still plays a whole exported module
- * through ASAP's own player instead - see {@link WaveFileExporter}.)
+ * pair is fed by {@link #pokeRegister} and rendered by {@link #render}
+ * (live playback through the UI's audio engine, the WAV export through
+ * {@link WaveFileExporter}).
  */
 public final class AtariCpu {
 
@@ -72,5 +72,28 @@ public final class AtariCpu {
 	/** Renders {@code cycles} CPU cycles of POKEY output into {@code buffer} at {@code offset} (16-bit little-endian, {@link #getBlockSize()} bytes per block); returns the number of blocks. */
 	public int render(int cycles, byte[] buffer, int offset) {
 		return asap.rmtRender(cycles, buffer, offset);
+	}
+
+	/**
+	 * {@code blocks} rendered blocks of {@code blockSize} bytes (2 = one
+	 * POKEY, 4 = two) into 2-channel 16-bit output at {@code out[outOffset]}:
+	 * a single POKEY goes to both channels, as C++'s 2-channel output does.
+	 * Returns the number of bytes written.
+	 */
+	public static int toTwoChannels(byte[] rendered, int blocks, int blockSize, byte[] out, int outOffset) {
+		if (blockSize == 4) {
+			System.arraycopy(rendered, 0, out, outOffset, blocks * 4);
+		} else {
+			for (int b = 0; b < blocks; b++) {
+				byte lo = rendered[b * 2];
+				byte hi = rendered[b * 2 + 1];
+				int o = outOffset + b * 4;
+				out[o] = lo;
+				out[o + 1] = hi;
+				out[o + 2] = lo;
+				out[o + 3] = hi;
+			}
+		}
+		return blocks * 4;
 	}
 }

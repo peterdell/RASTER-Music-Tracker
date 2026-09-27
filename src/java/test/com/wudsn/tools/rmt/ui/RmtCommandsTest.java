@@ -235,11 +235,11 @@ class RmtCommandsTest {
 	}
 
 	@Test
-	void unportedDialogsReportThemselvesInsteadOfDoingNothingSilently() {
-		commands.execute(RmtCommandId.TOOLS_OPEN_ASAP_FILE);
-		assertEquals(List.of("notAvailable:Open ASAP file (B7)"), host.calls);
+	void openAsapFileIsDisabledLikeItsHandlerlessMenuItemInMfc() {
+		assertFalse(commands.isEnabled(RmtCommandId.TOOLS_OPEN_ASAP_FILE));
+		commands.execute(RmtCommandId.TOOLS_OPEN_ASAP_FILE); // does nothing, reports nothing
 		commands.execute(RmtCommandId.FILE_EXIT);
-		assertEquals("exit", host.calls.get(1));
+		assertEquals(List.of("exit"), host.calls);
 	}
 
 	@Test

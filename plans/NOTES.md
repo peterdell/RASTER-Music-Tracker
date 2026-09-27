@@ -4417,3 +4417,43 @@ build clean and all 123 tests pass.
       two screenshots 5 s apart show TIME 0:02.82 -> 0:08.00, the
       follow-play cursor moving and the POKEY register view changing.
     - 559 tests (+5: `AudioEngineTest`), no regressions. No C++ change.
+  - **2026-09-27**: Phase B, batch B8c - the rest of the audio batch; B8
+    is complete.
+    - Esc's "reset the Atari sound routines" option needed no code: Esc is
+      the Stop accelerator and `SONG_STOP` already runs `driver.init()`
+      when `keyboardEscResetAtariSound` is set (B6).
+    - Media keys: `VK_MEDIA_PLAY_PAUSE` (play from start / stop),
+      `VK_MEDIA_NEXT_TRACK`/`VK_MEDIA_PREV_TRACK` (`PLAY_SEEK_NEXT`/`_PREV`)
+      in `SongInput.keyDown` as in `CRmtView::OnKeyDown`. AWT has no key
+      codes for them (Windows delivers them as `VK_UNDEFINED`), so
+      `VirtualKey.fromKeyEvent` cannot map them; the handler is there and
+      tested through `keyDown(vk)` (`SongInputTest`).
+    - "Open ASAP file": `ID_TOOLS_OPEN_ASAP_FILE` has no handler in the C++
+      sources, so MFC shows the item disabled; `isEnabled` now says false
+      and the handler does nothing (was a "not available (B7)" notice).
+    - WAV export back to C++'s design: `WaveFileExporter.exportWav(
+      PokeyStream, ntsc, stereo, instrumentSpeed)` replays the recorded
+      stream frame by frame up to the loop point through `AtariCpu`'s
+      POKEY pair (the frame's registers poked per instrument-speed
+      sub-frame, the sub-frame's share of the frame's cycles rendered - what
+      `ExportWAV` + `RenderSoundV2` do through the driver's variables and
+      `SetPokey`), 16-bit/44.1 kHz/2 channels with a hand-written RIFF
+      header. The 2026-09-26 "idiomatic substitution" (the exported module
+      through ASAP's player) is gone: B8a showed it was not observably
+      identical (frequency tables). `SongFiles`' WAV case adds C++'s
+      `driver.Init()` / all channels on before and all channels off after
+      ("TODO: Set channels on again?" - kept as is). `AtariCpu.toTwoChannels`
+      is the shared mono-to-2-channel expansion (engine + export).
+    - **C++ bug, fixed in both**: for a stereo song `ExportWAV` copied the
+      stream frame's bytes 0-8 into the first POKEY's track variables, but
+      `CPokeyStream::Record()` stores the *second* POKEY's 9 bytes first
+      ("1st POKEY is 2nd in the stream"), and the second POKEY's variables
+      (`trackn_audf/audc+4..7`, `v_audctl2`, confirmed against
+      `asm/Patch-16/rmtplayr.a65`'s SetPokey) were never written - a
+      stereo WAV carried only the right-hand POKEY, played on the left.
+      `WaveFileExporter.cpp` gets a `frameSize == 18` branch; Java maps
+      both POKEYs. Test `exportWavOfAStereoSongPutsTheSecondPokeyOnTheRightChannel`
+      (a note on track 4 only: left channel silent, right sounding). C++
+      `ExportWAV` is DirectSound-bound and has no test; verified by the
+      Release build and the unchanged 411-test suite.
+    - 561 tests (+2), no regressions. C++: 1 file.
