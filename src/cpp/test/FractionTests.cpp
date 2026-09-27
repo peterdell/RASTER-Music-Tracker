@@ -90,7 +90,7 @@ TEST(FractionTest, GreaterThanComparesValue) {
 // gcd()), so it evaluated to false for every pair of operands, including two
 // fractions that represent the same value. No production code relied on this
 // operator (verified by repo-wide search) - fixed to check the *numerator*
-// instead, at the same time as the Java port (com.wudsn.tools.rmt.model.Fraction),
+// instead, at the same time as the Java port (org.atari.raster.rmt.model.Fraction),
 // per the user's explicit decision to fix this bug in both languages.
 TEST(FractionTest, EqualityOperatorComparesValue) {
     // Calling operator== explicitly (rather than via "a == b") sidesteps a

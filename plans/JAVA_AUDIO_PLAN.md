@@ -64,7 +64,7 @@ already produces every driver call; before B8a the JSRs were no-ops
 
 ## 3. Design
 
-### 3.1 Emulation core (model, package `net.sf.asap` + `com.wudsn.tools.rmt.model`)
+### 3.1 Emulation core (model, package `net.sf.asap` + `org.atari.raster.rmt.model`)
 
 An "RMT mode" section appended to `ASAP.java` (the same way the two
 existing extensions are, keeping the upstream code untouched):

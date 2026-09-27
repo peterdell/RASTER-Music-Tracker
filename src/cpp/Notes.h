@@ -16,7 +16,7 @@ public:
     // CTracks::IsValidNote's delegation), so fixing it needs its own
     // investigation of every call site first - see
     // test/NotesTests.cpp::IsValidNoteAcceptsOneOffTheEndOfItsDocumentedRange
-    // and the Java port's com.wudsn.tools.rmt.model.Notes, which preserves
+    // and the Java port's org.atari.raster.rmt.model.Notes, which preserves
     // this exact behavior deliberately, not by omission.
     static bool IsValidNote(Note note);
 

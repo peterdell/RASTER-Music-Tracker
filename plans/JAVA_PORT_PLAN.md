@@ -44,13 +44,13 @@ as precedent wherever it applies.
    layer completely, with unit tests, before starting on `ui/`") and
    deferring `plans/FILE_TIERING_STRATEGY.md`'s bigger composition-vs-
    mechanical question until `CSong` itself is reached.
-5. **Maven groupId/artifactId**: `com.wudsn.tools`/`com.wudsn.tools.rmt`,
+5. **Maven groupId/artifactId**: `com.wudsn.tools`/`org.atari.raster.rmt`,
    matching `dis6502`'s own `com.wudsn.tools`/`com.wudsn.tools.dis6502` -
    this repository (`github.com/peterdell/RASTER-Music-Tracker`,
    upstream `raster-atari-org/RASTER-Music-Tracker`) is downloadable from
    wudsn.com per its own README, the same umbrella as `dis6502`/WUDSN
    Base (same author).
-6. **Package split**: `com.wudsn.tools.rmt.model` / `.ui`, mirroring
+6. **Package split**: `org.atari.raster.rmt.model` / `.ui`, mirroring
    `dis6502`'s exact `model`/`ui` split (confirmed by reading its actual
    `src/com/wudsn/tools/dis6502/` layout, not assumed from its `CLAUDE.md`
    prose alone).
@@ -64,10 +64,10 @@ as precedent wherever it applies.
 ```
 pom.xml                          # Maven module root, at the repo root
 src/java/                        # sourceDirectory - production code
-  com/wudsn/tools/rmt/model/     # ported model classes (no UI coupling)
-  com/wudsn/tools/rmt/ui/        # not started yet
+  org/atari/raster/rmt/model/     # ported model classes (no UI coupling)
+  org/atari/raster/rmt/ui/        # not started yet
   test/                          # testSourceDirectory - nested *inside* src/java
-    com/wudsn/tools/rmt/model/
+    org/atari/raster/rmt/model/
 lib/java/                        # vendored non-Maven jars (empty for now)
   README.md
 ```
@@ -93,7 +93,7 @@ on the main `compile` execution.
   (offline) works normally. If a future machine hits the same "provider
   not found" error, this is why - just run once without `-o`.
 
-## First ported class: `Fraction` (`com.wudsn.tools.rmt.model.Fraction`)
+## First ported class: `Fraction` (`org.atari.raster.rmt.model.Fraction`)
 
 Ported from `CFraction` (`src/cpp/Fraction.h`/`.cpp`) as the first,
 smallest, dependency-free class - a deliberate "establish conventions"
@@ -142,7 +142,7 @@ Ported from `CTuning`/`TTuningSettings`/`TTuningRatios`
   defer `GenerateTable`/`InitTuning`/`GetTruePitch`/`CalculateDeltaAUDF`/
   `Timbre`/`TTuning` to a follow-up batch, rather than porting untested
   logic with no golden master to verify against.
-- **`Tuning`** (`com.wudsn.tools.rmt.model.Tuning`): `getPitch`/`getAUDF`/
+- **`Tuning`** (`org.atari.raster.rmt.model.Tuning`): `getPitch`/`getAUDF`/
   `getPOKEYPitch` only, using the C++ test-only constructor
   (`Tuning(int clockFrequency)`) as the *only* constructor, since without
   the table-generation half there's no need for C++'s two-argument
@@ -227,7 +227,7 @@ had real golden-master values to port against instead of needing to guess
 or hand-derive - and every value matched on the first `mvn -o test` run,
 confirming the transcription was faithful.
 
-- **`Timbre`** (`com.wudsn.tools.rmt.model.Timbre`): a Java enum whose
+- **`Timbre`** (`org.atari.raster.rmt.model.Timbre`): a Java enum whose
   constants each carry their C++ byte value (`public final int value`) via
   a constructor - needed because `CalculateDeltaAUDF`/`GenerateTable` both
   extract the high nibble from a `Timbre` value (`timbre.value & 0xF0`) to
@@ -278,7 +278,7 @@ confirming the transcription was faithful.
   `TuningRatios` + 2 `TuningSettings` + 21 `Tuning` (flat) + 3
   `GenerateTableTest` + 9 `InitTuningTest`), all green on the first run.
 
-## Fourth ported batch (2026-09-24): `Notes` (`com.wudsn.tools.rmt.model.Notes`)
+## Fourth ported batch (2026-09-24): `Notes` (`org.atari.raster.rmt.model.Notes`)
 
 Ported from `CNotes` (`src/cpp/Notes.h/.cpp`) - chosen as the next
 smallest, dependency-free, already-tested class (`NotesTests.cpp`, 8
@@ -303,7 +303,7 @@ with all-static methods, rather than an object.
   33 `Tuning`/nested). No C++ changes - no new bugs found, and the known
   one was deliberately preserved, not fixed.
 
-## Fifth ported batch (2026-09-24): `ChannelControl` (`com.wudsn.tools.rmt.model.ChannelControl`)
+## Fifth ported batch (2026-09-24): `ChannelControl` (`org.atari.raster.rmt.model.ChannelControl`)
 
 Ported from `CChannelControl` (`src/cpp/ChannelControl.h/.cpp`) - per-channel
 on/off/toggle/solo state, no globals, no known bugs, fully tested
@@ -327,7 +327,7 @@ on/off/toggle/solo state, no globals, no known bugs, fully tested
   Verified with `mvn -o test`: 66 tests pass (+7). No C++ changes, no bugs
   found.
 
-## Sixth ported batch (2026-09-24): `Track`/`Tracks` (`com.wudsn.tools.rmt.model`)
+## Sixth ported batch (2026-09-24): `Track`/`Tracks` (`org.atari.raster.rmt.model`)
 
 Ported from `CTracks`/`TTrack` (`src/cpp/Tracks.h/.cpp`, `TrackTypes.h`,
 `src/cpp/IO_Tracks.cpp`) - the first meaningfully larger class since
@@ -589,7 +589,7 @@ matched on the first `mvn -o test` run.
   `LoadInstrument` (need I/O infrastructure not yet ported) and all GUI
   methods stay deferred for the reasons already on record above.
 
-## Tenth ported batch (2026-09-24): `Atari` (`com.wudsn.tools.rmt.model.Atari`)
+## Tenth ported batch (2026-09-24): `Atari` (`org.atari.raster.rmt.model.Atari`)
 
 Ported from `CAtari` (`src/cpp/Atari.h/.cpp`) - the already-tested subset,
 plus `Init(bool)`, which turned out not to need its original deferral
@@ -701,7 +701,7 @@ minimal slice now, scoped to exactly what `Undo` touches.
   types). Full Release|x64 C++ solution rebuild also verified (comment-only
   change).
 
-## Twelfth ported batch (2026-09-24): `SapFile` (`com.wudsn.tools.rmt.model.SapFile`)
+## Twelfth ported batch (2026-09-24): `SapFile` (`org.atari.raster.rmt.model.SapFile`)
 
 Ported from `CSAPFile` (`src/cpp/SAPFile.h/.cpp`) - the already-tested
 subset: field getters/setters, `clear`/`normalize`, and `export`.
@@ -733,7 +733,7 @@ linking) and needs `Song` methods this project's deliberately minimal
 - Tests (`SapFileTest`) mirror `SAPFileTests.cpp` exactly. Verified with
   `mvn -o test`: 183 tests pass (+4). No C++ changes.
 
-## Thirteenth ported batch (2026-09-24): `AsmFileBuilder` (`com.wudsn.tools.rmt.model.AsmFileBuilder`)
+## Thirteenth ported batch (2026-09-24): `AsmFileBuilder` (`org.atari.raster.rmt.model.AsmFileBuilder`)
 
 Ported from `CASMFileBuilder` (`src/cpp/ASMFileBuilder.h/.cpp`) - fully,
 matching `ASMFileBuilderTests.cpp`'s own complete coverage. No globals, no
@@ -767,7 +767,7 @@ free of any hazard, and no C++ source changes were needed either.
   exactly. Verified with `mvn -o test`: 191 tests pass (+8), all green on
   the first build. No C++ changes.
 
-## Fourteenth ported batch (2026-09-24): `Keyboard2NoteMapping` (`com.wudsn.tools.rmt.model.Keyboard2NoteMapping`)
+## Fourteenth ported batch (2026-09-24): `Keyboard2NoteMapping` (`org.atari.raster.rmt.model.Keyboard2NoteMapping`)
 
 Ported from the free functions `NoteKey`/`NumbKey`/`Numblock09Key`
 (`src/cpp/Keyboard2NoteMapping.h/.cpp`) - fully, matching
@@ -795,7 +795,7 @@ needed.
   7 tests exactly. Verified with `mvn -o test`: 198 tests pass (+7), all
   green on the first build. No C++ changes.
 
-## Fifteenth ported batch (2026-09-25): `RmtCommandLineInfo` (`com.wudsn.tools.rmt.model.RmtCommandLineInfo`)
+## Fifteenth ported batch (2026-09-25): `RmtCommandLineInfo` (`org.atari.raster.rmt.model.RmtCommandLineInfo`)
 
 Ported from `CRmtCommandLineInfo` (`src/cpp/RmtCommandLineInfo.h/.cpp`) -
 the `SCRIPT:`/`TEST:` switch parsing, which is all
@@ -819,7 +819,7 @@ the `SCRIPT:`/`TEST:` switch parsing, which is all
   tests exactly. Verified with `mvn -o test`: 205 tests pass (+7), all
   green on the first build. No C++ changes.
 
-## Sixteenth ported batch (2026-09-25): `StringUtility` (`com.wudsn.tools.rmt.model.StringUtility`)
+## Sixteenth ported batch (2026-09-25): `StringUtility` (`org.atari.raster.rmt.model.StringUtility`)
 
 Ported from `CStringUtility` (`src/cpp/StringUtility.h/.cpp`) - fully; the
 smallest class ported so far, a single one-line static method. No C++
@@ -835,7 +835,7 @@ changes needed.
   exactly. Verified with `mvn -o test`: 210 tests pass (+5), all green on
   the first build. No C++ changes.
 
-## Seventeenth ported batch (2026-09-25): `CompressLzss` (`com.wudsn.tools.rmt.model.CompressLzss`)
+## Seventeenth ported batch (2026-09-25): `CompressLzss` (`org.atari.raster.rmt.model.CompressLzss`)
 
 Ported from `CCompressLzss`/`CLzss` (`src/cpp/lzss_sap.h/.cpp`) - an
 optimal LZSS compressor for SAP-R register-dump music files (by DMSC,
@@ -947,7 +947,7 @@ No C++ changes needed. This is the first direct `SongTest`; previously
   `mvn -o test`: 236 tests pass (+15), all green on the first build. No
   C++ changes.
 
-## Nineteenth ported batch (2026-09-25): `Messages` (`com.wudsn.tools.rmt.model.Messages`)
+## Nineteenth ported batch (2026-09-25): `Messages` (`org.atari.raster.rmt.model.Messages`)
 
 Ported from Messages.h/.cpp - the subset `MessagesTests.cpp` exercises. No
 C++ changes needed.
@@ -977,7 +977,7 @@ C++ changes needed.
   Verified with `mvn -o test`: 240 tests pass (+4), all green on the first
   build. No C++ changes.
 
-## Twentieth ported batch (2026-09-25): `AtariTrackerDriver` (`com.wudsn.tools.rmt.model.AtariTrackerDriver`)
+## Twentieth ported batch (2026-09-25): `AtariTrackerDriver` (`org.atari.raster.rmt.model.AtariTrackerDriver`)
 
 Ported from `CAtariTrackerDriver` (`src/cpp/AtariTrackerDriver.h`,
 `AtariTrackerDriver.cpp`, `AtariTrackerDriverCore.cpp`) - only the subset
@@ -1034,7 +1034,7 @@ C++ changes needed.
   including the real resource-file-loading/binary-parsing test matching
   its exact expected byte. No C++ changes.
 
-## Twenty-first ported batch (2026-09-25): `PokeyStream` (`com.wudsn.tools.rmt.model.PokeyStream`)
+## Twenty-first ported batch (2026-09-25): `PokeyStream` (`org.atari.raster.rmt.model.PokeyStream`)
 
 Ported from `CPokeyStream` (`src/cpp/PokeyStream.h/.cpp`) - the pure
 state-machine methods `PokeyStreamTests.cpp` exercises
@@ -1747,7 +1747,7 @@ known-unported, real, meaningful C++ behavior left.
   ported batches above). No further known-unported, real, meaningful
   model-layer C++ behavior remains.
 - **Phase B - DONE 2026-09-27.** The Java UI layer
-  (`com.wudsn.tools.rmt.ui`, Swing + WUDSN Base), batches B1-B9 of
+  (`org.atari.raster.rmt.ui`, Swing + WUDSN Base), batches B1-B9 of
   `plans/JAVA_UI_PORT_PLAN.md`: the canvas, keyboard/mouse input, menus and
   toolbars, options and configuration, every dialog, real-time audio on
   ASAP's emulation (`plans/JAVA_AUDIO_PLAN.md`) and packaging

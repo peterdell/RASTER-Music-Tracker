@@ -21,7 +21,10 @@ Java port, side by side:
 - **Java** (the in-progress port, see `plans/JAVA_PORT_PLAN.md`): source in
   `src/java/` (tests in `src/java/test/`, nested inside it - the main
   compile explicitly excludes `test/**`, see `pom.xml`), vendored
-  non-Maven third-party jars in `lib/java/`. Build via `pom.xml` (Maven):
+  non-Maven third-party jars in `lib/java/`. RMT's own code is in the
+  package `org.atari.raster.rmt` (Maven group `org.atari.raster`) - RMT
+  has its own organization, separate from wudsn.com; only the WUDSN Base
+  library dependencies keep the `com.wudsn.tools` prefix. Build via `pom.xml` (Maven):
   `mvn -o test` from the repository root. Depends on `com.wudsn.tools.base`/
   `.base.atari` (installed locally, not built from this repo) and JUnit 5.
   An Eclipse project (`.project`/`.classpath` at the repository root)

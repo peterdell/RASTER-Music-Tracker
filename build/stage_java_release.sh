@@ -7,7 +7,7 @@
 # target/stage). That folder is jpackage's --input, so the jar ends up next
 # to resources/ and docs/ and ProgramFolder resolves them as g_prgpath does.
 # Used by .github/workflows/release.yml and for local dry runs:
-#   mvn -o package && bash build/stage_java_release.sh && jpackage --type app-image --name rmt --input target/stage --main-jar rmt.jar --main-class com.wudsn.tools.rmt.ui.RmtApplication --app-version 1.35.0 --dest target/dist
+#   mvn -o package && bash build/stage_java_release.sh && jpackage --type app-image --name rmt --input target/stage --main-jar rmt.jar --main-class org.atari.raster.rmt.ui.RmtApplication --app-version 1.35.0 --dest target/dist
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -26,5 +26,5 @@ for folder in exports instruments resources songs; do
 done
 cp "$ROOT/rmt/rmt.ini" "$ROOT/rmt/tuning.ini" "$STAGE/"
 # The HTML documentation from doc/*.md (plus the manuals and images as they are)
-java -cp "$ROOT/target/rmt.jar" com.wudsn.tools.rmt.doc.DocGenerator "$ROOT/doc" "$STAGE/docs"
+java -cp "$ROOT/target/rmt.jar" org.atari.raster.rmt.doc.DocGenerator "$ROOT/doc" "$STAGE/docs"
 echo "Staged the Java port's distribution layout in $STAGE"

@@ -8,11 +8,11 @@ repeating it. Don't duplicate the docs it links to; read them.
 ## Current state (2026-09-26)
 
 The Java model-layer port is done. 59 classes under
-`src/java/com/wudsn/tools/rmt/model/`, 398 passing tests
+`src/java/org/atari/raster/rmt/model/`, 398 passing tests
 (`mvn -o clean test` from the repo root), latest commit `08d9465`. Every
 real, meaningful C++ model-layer method has either been ported or is
 confirmed permanently out of scope (see "Confirmed out of scope" below).
-`com.wudsn.tools.rmt.ui` **does not exist yet - zero UI code has been
+`org.atari.raster.rmt.ui` **does not exist yet - zero UI code has been
 written.** That's this phase's job.
 
 ## The one hard requirement

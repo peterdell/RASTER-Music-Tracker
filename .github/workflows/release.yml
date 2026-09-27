@@ -43,7 +43,7 @@ jobs:
             icon: ""
           - os: ubuntu-latest
             platform: linux
-            icon: RASTER-Music-Tracker/src/java/com/wudsn/tools/rmt/ui/application.png
+            icon: RASTER-Music-Tracker/src/java/org/atari/raster/rmt/ui/application.png
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout RASTER Music Tracker
@@ -108,7 +108,7 @@ jobs:
             --name rmt \
             --input stage \
             --main-jar rmt.jar \
-            --main-class com.wudsn.tools.rmt.ui.RmtApplication \
+            --main-class org.atari.raster.rmt.ui.RmtApplication \
             --app-version "${{ steps.version.outputs.version }}" \
             --description "RASTER Music Tracker (Java port)" \
             --vendor "wudsn.com" \

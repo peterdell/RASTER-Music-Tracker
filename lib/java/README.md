@@ -29,7 +29,7 @@ have no Java equivalent; ASAP's emulator has no such dependency and is the
 port's CPU and POKEY in two roles:
 
 - **"RMT mode"** (`ASAP.rmt*` methods, wrapped by
-  `com.wudsn.tools.rmt.model.AtariCpu`): RMT's own tracker driver binary
+  `org.atari.raster.rmt.model.AtariCpu`): RMT's own tracker driver binary
   runs on the 6502 with the hardware pages as plain RAM (the POKEY register
   shadow at $D200/$D210, as the C++ emulator has it), and the POKEY pair is
   fed and rendered directly. This is live playback, the keyboard preview

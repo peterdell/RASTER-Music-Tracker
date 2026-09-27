@@ -280,7 +280,7 @@ void CUndo::ChangeSong(int songline, int trackcol, UndoType type, char separator
         // UETYPE_SONGDATA case below, which does read/write ->bookmark. Not
         // currently characterized by any test (UndoTests.cpp doesn't check
         // the bookmark after undo here) - see the Java port's
-        // com.wudsn.tools.rmt.model.Undo for the same note.
+        // org.atari.raster.rmt.model.Undo for the same note.
         data = (int*)song;
         break;
 

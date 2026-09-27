@@ -68,7 +68,7 @@ verify with `mvn -o clean test` and/or the full C++ suite, update
      needed widening from `private` to package-private for this (matching
      its sibling fields' existing visibility).
 
-   New `AsapEmulator` (`com.wudsn.tools.rmt.model`) wraps `net.sf.asap.ASAP`
+   New `AsapEmulator` (`org.atari.raster.rmt.model`) wraps `net.sf.asap.ASAP`
    for RMT's specific need: `startRecording(byte[] moduleBytes)` loads and
    plays the module from the start, `stepFrame()`/`getRegisterShadow(chip,
    offset)` drive per-frame capture. Deliberately a separate class from
@@ -290,7 +290,7 @@ Phase A's.
 
 ## Phase B: the Java UI port
 
-Not started at all - `com.wudsn.tools.rmt.ui` doesn't exist yet as a
+Not started at all - `org.atari.raster.rmt.ui` doesn't exist yet as a
 package. By far the largest remaining phase: `plans/UI_SURVEY_PLAN.md`'s
 own inventory covers dozens of dialogs/views/commands versus the ~45
 already-ported model classes.

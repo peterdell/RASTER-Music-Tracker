@@ -2492,7 +2492,7 @@ build clean and all 123 tests pass.
         jars already installed locally; Java 21 + Maven 3.9.9 available;
         this repo's own README links wudsn.com downloads, confirming the
         same author/umbrella as `dis6502`/WUDSN Base - grounding the
-        `com.wudsn.tools`/`com.wudsn.tools.rmt` groupId/artifactId choice
+        `com.wudsn.tools`/`org.atari.raster.rmt` groupId/artifactId choice
         and the `model`/`ui` package split (read `dis6502`'s actual
         source layout to confirm, not just its `CLAUDE.md` prose).
       - User decisions: depend on WUDSN Base (yes); start with the
@@ -3900,7 +3900,7 @@ build clean and all 123 tests pass.
       take the model, keeping `Song`/`Instruments` UI-free. Committed as
       `f193d1b`.
   - **2026-09-26**: Phase B, batch B0 (foundation, no window yet) - the
-    first Java UI code. New `com.wudsn.tools.rmt.ui` package with
+    first Java UI code. New `org.atari.raster.rmt.ui` package with
     `CanvasXY`/`Canvas` (the bitmap-font renderer, ported from
     `CanvasXY.cpp`/`Canvas.cpp` with identical blit arithmetic against
     the checked-in `gfx-8x16.bmp`), `TextColor`/`TextMiniColor`/`RgbColor`/
@@ -4550,7 +4550,7 @@ build clean and all 123 tests pass.
       the next feature is scripting (`JAVA_B9_PLAN.md` section 5).
   - **2026-09-27**: Scripting, batch S1 (`plans/JAVA_SCRIPTING_PLAN.md`) -
     the user's "proper scripts instead of /TEST".
-    - `com.wudsn.tools.rmt.script`: `ScriptParser` (one command per line,
+    - `org.atari.raster.rmt.script`: `ScriptParser` (one command per line,
       `#` comments, quoted tokens with `\"`/`\`, `name=value` options,
       case-insensitive names; `ScriptCommand`, `ScriptException` with the
       line number) and `ScriptRunner` (`open <file>`, `save <file>` by
@@ -4741,7 +4741,7 @@ build clean and all 123 tests pass.
     (`plans/DOC_GENERATION_PLAN.md`; the user's decisions: Markdown stays
     the source on GitHub, the distributions ship HTML, the menus are to be
     extracted by the build).
-    - `com.wudsn.tools.rmt.doc.DocGenerator` (in the jar): every `doc/*.md`
+    - `org.atari.raster.rmt.doc.DocGenerator` (in the jar): every `doc/*.md`
       to `<name>.html` through CommonMark 0.29.0 with the GFM tables
       extension (Maven dependencies, shaded), one page template with a small
       stylesheet, the title from the first heading, links to `.md` pages
@@ -4876,3 +4876,18 @@ build clean and all 123 tests pass.
       note key table); `compare_exports.ps1` 3 scripts, the command table
       and the note key table byte-identical in both programs; the staged
       manual carries both layouts.
+  - **2026-09-27**: Java package renamed `com.wudsn.tools.rmt` ->
+    `org.atari.raster.rmt` (the user: RMT has its own organization,
+    separate from wudsn.com). `git mv` of `src/java/com/wudsn/tools/rmt`
+    and `src/java/test/com/wudsn/tools/rmt` to `.../org/atari/raster/rmt`;
+    every reference replaced (205 files: `package`/`import` lines,
+    qualified names, javadoc, `pom.xml` - Maven group `org.atari.raster`,
+    artifact `org.atari.raster.rmt`, the shade `mainClass` -, `.project`,
+    `launch/Rmt.launch`, `release.yml` - icon path and `--main-class` -,
+    `stage_java_release.sh`, `build_rmt_pre.bat`, `lib/java/README.md`,
+    the C++ comments naming Java classes, the plans). The WUDSN Base
+    dependencies (`com.wudsn.tools.base`, `.base.atari`) and the vendored
+    `net.sf.asap` are unchanged. `RmtWindowPreferences` uses
+    `Preferences.userNodeForPackage`, so the stored window position moves
+    to a new node (one-time loss of the remembered position). CLAUDE.md
+    notes the package.

@@ -37,7 +37,7 @@ see `plans/JAVA_B9_PLAN.md` section 5. `/TEST:<file>` stays rejected by
 the Java port with the C++ "Invalid Command Line Parameter" box; the C++
 program still runs its developer routines behind both switches.
 
-S1 as built: package `com.wudsn.tools.rmt.script` - `ScriptParser`
+S1 as built: package `org.atari.raster.rmt.script` - `ScriptParser`
 (`ScriptCommand` records, `ScriptException` with the line), `ScriptRunner`
 (`open`, `save`, `export` for the eight formats with the options of 3.4,
 `set overwrite`, `echo`, `quit`; a `SongFiles.Host` answering the file
@@ -163,7 +163,7 @@ runs before exporting) are script errors with the model's message text.
 
 ### 3.5 Architecture
 
-Package `com.wudsn.tools.rmt.script` (UI-free, so it can also serve a
+Package `org.atari.raster.rmt.script` (UI-free, so it can also serve a
 future C++-style console build):
 
 - `ScriptParser`: lines -> `ScriptCommand(lineNumber, name, arguments,

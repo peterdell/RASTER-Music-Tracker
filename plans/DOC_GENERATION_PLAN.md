@@ -101,7 +101,7 @@ puts them into `rmt.jar`. The `exec-maven-plugin` is not available offline;
 
 ### 2.1 Markdown -> HTML generator (Java, in `rmt.jar`)
 
-`com.wudsn.tools.rmt.doc.DocGenerator` with a `main(sourceFolder,
+`org.atari.raster.rmt.doc.DocGenerator` with a `main(sourceFolder,
 targetFolder)`: converts every `doc/*.md` to `<name>.html` (CommonMark +
 GFM tables), wraps it in one HTML template (title = the first heading, a
 small embedded stylesheet in `rmt_en.html`'s spirit, `<meta charset>`),
@@ -118,7 +118,7 @@ Invocation: from the build scripts, not from a Maven phase - the C++ build
 needs it too and the scripts already own the `docs/` step:
 
 - `build/stage_java_release.sh`: `java -cp target/rmt.jar
-  com.wudsn.tools.rmt.doc.DocGenerator doc "$STAGE/docs"` in place of the
+  org.atari.raster.rmt.doc.DocGenerator doc "$STAGE/docs"` in place of the
   `cp` lines.
 - `build/build_rmt_pre.bat`: the same into `rmt\docs` when
   `target\rmt.jar` exists; otherwise the `xcopy` of `*.html`/`*.gif` as

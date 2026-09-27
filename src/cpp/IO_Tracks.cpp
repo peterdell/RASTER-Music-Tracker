@@ -448,7 +448,7 @@ BOOL CTracks::AtaToTrack(unsigned char* mem, int trackLength, TrackNumber trackN
             // so it's only reachable from a malformed/corrupted byte stream,
             // not from any legitimate encode/decode round trip. Preserved
             // as-is rather than hardened against - see the Java port's
-            // com.wudsn.tools.rmt.model.Tracks::ataToTrack for the same note.
+            // org.atari.raster.rmt.model.Tracks::ataToTrack for the same note.
         }
     }
     return 1;

@@ -8,7 +8,7 @@ rem (plans/DOC_GENERATION_PLAN.md) when target\rmt.jar is built - the daily
 rem build requires that - else the hand-written HTML files as they are, so
 rem the C++ dev loop works without a Java build.
 if exist ..\..\target\rmt.jar (
-  java -cp ..\..\target\rmt.jar com.wudsn.tools.rmt.doc.DocGenerator ..\..\doc ..\..\rmt\docs
+  java -cp ..\..\target\rmt.jar org.atari.raster.rmt.doc.DocGenerator ..\..\doc ..\..\rmt\docs
   if ERRORLEVEL 1 exit /b 1
 ) else (
   echo INFO: target\rmt.jar not built, copying the HTML documentation as it is.

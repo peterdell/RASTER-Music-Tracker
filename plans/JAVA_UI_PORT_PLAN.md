@@ -128,7 +128,7 @@ list - see DECISION 4.
 
 ## Design (Java)
 
-Package `com.wudsn.tools.rmt.ui` (decided in `plans/JAVA_PORT_PLAN.md`
+Package `org.atari.raster.rmt.ui` (decided in `plans/JAVA_PORT_PLAN.md`
 decision 6). Mapping from the C++ classes:
 
 | C++ | Java | Notes |
@@ -160,7 +160,7 @@ golden-image tests where the batch draws anything, manual run where it
 shows anything, `plans/NOTES.md` entry, ask before committing.
 
 - **B0 - foundation (no window yet) - DONE (2026-09-26).** New
-  `com.wudsn.tools.rmt.ui` package: `RmtScreenLayout`, `TextColor`
+  `org.atari.raster.rmt.ui` package: `RmtScreenLayout`, `TextColor`
   (explicit band values, since 7/8 are the mini-font bands),
   `TextMiniColor`, `RgbColor`, `UiState` (the transient `Global.h` state -
   see its javadoc for the exact `g_*` mapping), `CanvasXY` + `Canvas`,

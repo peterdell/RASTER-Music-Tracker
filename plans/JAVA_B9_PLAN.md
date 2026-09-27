@@ -76,7 +76,7 @@ not find rmt.ini" box, as C++, then plays), `/SCRIPT:x` rejected.
 ### B9a - runnable jar and program folder (the substance)
 
 1. `pom.xml`: `maven-shade-plugin` (as dis6502, main class
-   `com.wudsn.tools.rmt.ui.RmtApplication`) -> `target/rmt.jar`, runnable
+   `org.atari.raster.rmt.ui.RmtApplication`) -> `target/rmt.jar`, runnable
    with `java -jar`. `launch/Rmt.launch` for Eclipse.
 2. **Program folder = the `rmt/` layout.** `RmtAtariBinaries` and
    `SapFileExporter` resolve `resources/...` relative to a program folder
