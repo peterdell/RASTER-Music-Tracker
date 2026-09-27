@@ -4501,3 +4501,26 @@ build clean and all 123 tests pass.
       rmt.ini" box (a fresh `target/` folder) and then plays;
       `java -jar target/rmt.jar /SCRIPT:x` shows the rejection box and
       exits with 1.
+  - **2026-09-27**: Phase B, batch B9b (release workflow).
+    - `.github/workflows/release.yml`, dis6502's workflow adapted: checks
+      out this repository and `wudsn/wudsn-base`, installs WUDSN Base into
+      the runner's Maven repository, builds the shaded jar with the tests
+      (the one display-bound test skips itself headless), stages the
+      distribution layout, builds a jpackage app image per OS (Windows,
+      Linux, macOS; `--add-modules ALL-MODULE-PATH`, the C++ `.ico` on
+      Windows, `application.png` on Linux), uploads the archives and, on a
+      `v*` tag or a manual republish, attaches them to a GitHub Release.
+      Version = the tag without `v` (`v1.35.0` -> `1.35.0`, the C++ 1.35
+      line; the version string is a file-format marker, so it stays).
+    - `build/stage_java_release.sh`: the one place that knows the layout -
+      `target/rmt.jar` + `rmt/{resources,instruments,songs,exports,rmt.ini,
+      tuning.ini}` + `docs/` from `doc/` (as the C++ post-build copy and the
+      daily build do) into jpackage's `--input`, so the image's `app/`
+      folder is the program folder `ProgramFolder` resolves.
+    - Local dry run on Windows (CI itself cannot run here): the staging
+      script + `jpackage --type app-image` -> a 157 MB `rmt/` image with
+      `rmt.exe`, `runtime/` and `app/`; `rmt.exe` started from a foreign
+      folder plays Delta.rmt (POKEY registers live), About shows "1.35 (Java
+      2026-09-27 09:52 UTC)", `app/rmt.ini`/`tuning.ini` are written on
+      exit.
+    - No Java or C++ source change; no new tests.

@@ -1,6 +1,6 @@
 # Java port, Phase B batch B9: packaging & polish
 
-Status: **B9a DONE 2026-09-27**; B9b/B9c open. Decisions 1-4 accepted by
+Status: **B9a and B9b DONE 2026-09-27**; B9c open. Decisions 1-4 accepted by
 the user on 2026-09-27 (decision 5 replaced by "proper scripts", section 5).
 Companion to `plans/JAVA_UI_PORT_PLAN.md` (B9 is its last batch; B1-B8 are
 committed).
@@ -115,17 +115,23 @@ not find rmt.ini" box, as C++, then plays), `/SCRIPT:x` rejected.
    the repository root and from another working directory with
    `-Drmt.config.dir`, F1 opens the local help, F5 plays.
 
-### B9b - release workflow
+### B9b - release workflow. DONE 2026-09-27.
 
-`.github/workflows/release.yml` as dis6502's (shaded jar, jpackage
-app-image per OS, assets on a `v*` tag), plus the RMT specifics: the
-`rmt/` folder (with `docs/` filled from `doc/`) copied into the app image
-next to the jar (jpackage `--input` takes a folder: stage
-`target/rmt.jar` + `rmt/` into one input folder; `getProgramFolder()` then
-finds `resources/`, `docs/`, `rmt.ini` beside the jar). Tag line: the Java
-port continues 1.35 -> the first Java tag would be `v1.35.0-java`? -
-**decision 2 below**. Cannot be run here (no CI); verified by a local
-`jpackage --type app-image` dry run on Windows.
+`.github/workflows/release.yml` as dis6502's (WUDSN Base built first, the
+shaded jar with the tests, jpackage app-image per OS with
+`--add-modules ALL-MODULE-PATH`, artifacts, a GitHub Release on a `v*`
+tag or a manual republish), plus the RMT specifics:
+`build/stage_java_release.sh` stages `target/rmt.jar` with the `rmt/`
+layout and `docs/` filled from `doc/` into jpackage's `--input` folder, so
+the image's `app/` holds the jar next to `resources/`, `docs/`, `rmt.ini`
+(the program folder). Windows icon `src/cpp/res/application.ico`, Linux
+`application.png`, none on macOS (no `.icns` yet). Assets
+`rmt-java-windows-x64.zip`, `rmt-java-linux-x64.tar.gz`,
+`rmt-java-macos.tar.gz`; version = the tag without `v`, default `1.35.0`
+(decision 2). Local dry run on Windows: the staged layout + `jpackage`
+(157 MB image) - `rmt.exe` run from a foreign folder plays Delta.rmt, About
+shows the build date, `app/rmt.ini` is written on exit. CI itself not run
+here.
 
 ### B9c - polish
 
