@@ -1292,9 +1292,10 @@ BOOL CSong::TrackKey(int vk, int shift, int control) {
     //
     static constexpr int VKX_SONGINSERTLINE = VK_I;
     static constexpr int VKX_SONGDELETELINE = VK_U;
-    static constexpr int VKX_SONGDUPLICATELINE = VK_O;
-    static constexpr int VKX_SONGPREPARELINE = VK_P;
-    static constexpr int VKX_SONGPUTNEWTRACK = VK_N;
+    // Ctrl+K / Ctrl+J / Ctrl+T since 2026-09-28: Ctrl+O, Ctrl+P and Ctrl+N went to the Windows standard commands Open, Print and New
+    static constexpr int VKX_SONGDUPLICATELINE = VK_K;
+    static constexpr int VKX_SONGPREPARELINE = VK_J;
+    static constexpr int VKX_SONGPUTNEWTRACK = VK_T;
     static constexpr int VKX_SONGMAKETRACKSDUPLICATE = VK_D;
 
     //
@@ -1710,7 +1711,7 @@ TrackKeyOk:
         }
         break;
 
-    case VK_N:
+    case VKX_SONGPUTNEWTRACK:
         BLOCKDESELECT();
         if (control && !shift) {
             SongPutnewemptyunusedtrack();
@@ -2085,19 +2086,19 @@ BOOL CSong::SongKey(int vk, int shift, int control) {
         SongInsertLine(m_songactiveline);
         break;
 
-    case VK_O: //Control+VK_O
+    case VK_K: //Control+K (Ctrl+O is Open since 2026-09-28)
         if (control) {
             SongInsertCopyOrCloneOfSongLines(m_songactiveline);
         }
         break;
 
-    case VK_P: //Control+VK_P
+    case VK_J: //Control+J (Ctrl+P is Print since 2026-09-28)
         if (control) {
             SongPrepareNewLine(m_songactiveline);
         }
         break;
 
-    case VK_N: //Control+VK_N
+    case VK_T: //Control+T (Ctrl+N is New since 2026-09-28)
         if (control) {
             SongPutnewemptyunusedtrack();
         }

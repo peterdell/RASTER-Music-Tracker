@@ -1478,8 +1478,8 @@ public final class SongInput {
 	boolean trackKey(int vk, boolean shift, boolean control) {
 		final int VKX_SONGINSERTLINE = VK_I;
 		final int VKX_SONGDELETELINE = VK_U;
-		final int VKX_SONGDUPLICATELINE = VK_O;
-		final int VKX_SONGPREPARELINE = VK_P;
+		final int VKX_SONGDUPLICATELINE = VK_K; // Ctrl+K / Ctrl+J / Ctrl+T since 2026-09-28 (Ctrl+O, Ctrl+P and Ctrl+N are Open, Print and New)
+		final int VKX_SONGPREPARELINE = VK_J;
 
 		Song song = session.song;
 		Tracks tracks = session.tracks;
@@ -1835,7 +1835,7 @@ public final class SongInput {
 			}
 			break;
 
-		case VK_N:
+		case VK_T: // was Ctrl+N (now New) until 2026-09-28
 			blockDeselect();
 			if (control && !shift) {
 				song.songPutnewemptyunusedtrack(session.undo, tracks4_8);
@@ -2181,19 +2181,19 @@ public final class SongInput {
 			song.songInsertLine(song.songGetActiveLine(), session.undo, tracks4_8);
 			break;
 
-		case VK_O: // Control+VK_O
+		case VK_K: // Control+K (was Ctrl+O, now Open)
 			if (control && insertCopyOrCloneAction != null) {
 				insertCopyOrCloneAction.run(); // SongInsertCopyOrCloneOfSongLines(m_songactiveline) - the "Insert copy or clone of song line(s)" dialog
 			}
 			break;
 
-		case VK_P: // Control+VK_P
+		case VK_J: // Control+J (was Ctrl+P, now Print)
 			if (control) {
 				song.songPrepareNewLine(song.songGetActiveLine(), -1, true, session.undo, tracks4_8);
 			}
 			break;
 
-		case VK_N: // Control+VK_N
+		case VK_T: // Control+T (was Ctrl+N, now New)
 			if (control) {
 				song.songPutnewemptyunusedtrack(session.undo, tracks4_8);
 			}

@@ -56,6 +56,7 @@ class RmtMainMenuTest {
 		// Alt+Enter and Ctrl+Shift+S are real accelerators since 2026-09-27 (the labels had promised them without a table entry)
 		assertEquals(RmtCommandId.FILE_PROPERTIES, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.ALT_DOWN_MASK)));
 		assertEquals(RmtCommandId.FILE_SAVE_AS, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)));
+		assertEquals(RmtCommandId.HELP, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0))); // F1 opens the help (a label hint only, without a binding, until 2026-09-28)
 		// Ctrl+U is TrackKey's/SongKey's own key, shown in the Song menu only as a hint
 		assertNull(menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK)));
 		assertNull(menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK)));

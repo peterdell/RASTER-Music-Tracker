@@ -22,13 +22,24 @@ Changes in RMT 1.35 (Planned)
 -----------------------------
 
 - Have an additional ".ini" file as an intermediate step to the RMT file format version 2. There, the module-specific settings from the "RMT.ini" and "Tuning.ini" could be preserved. Also, the file's existence indicates it is an RMT in 1.34 format.
-- Map the official Windows standard key combinations to the correct Windows standard function. Find alterative for their current binding.
-  - Help Topics (n/a) => Help Topics (F1)
-  - New (Ctrl-W) => New (Ctrl-N)
-  - Load (Ctrl-L) => Open (Ctrl-O)
-  - Print =>Print (Ctrl-P)
 
-Technical:
+
+Changes in RMT 1.35 since the start of the Java port (September 2026)
+---------------------------------------------------------------------
+
+- A Java port of RMT is developed side by side with the Windows program, so RMT can run on Windows, Linux and macOS (see the README). The changes below are changes of the Windows program Rmt.exe that came out of that work; the Java port has them as well (printing, MIDI input and the Pokey Explorer are not ported, so Print has no function there).
+- Scripting: `Rmt.exe /SCRIPT:<file>` runs a script file that opens a song, sets what the export dialogs would ask, exports in any format and saves - for batch files, build scripts and repeated export sets. The messages go to the console (or to `<script>.log`), the exit code reports success. See the [scripting documentation](rmt_scripting.md). (Build 2026-09-27)
+- Tools > Run Script... runs a script file on the current session from the window (the same as "Rmt.exe /SCRIPT", with message boxes). (Build 2026-09-27)
+- Exports no longer redraw the screen while the song is recorded in quick mode (the display raced through the song up to 60 times a second); the status bar reports the progress instead, and the cursor position and the play time are unchanged after an export. The song timer is paused for the whole export, which also makes the exports faster. (Build 2026-09-28)
+- Fixed: the WAV export could crash before the end of the file, at a different position each time - the playback timer kept rendering through the same POKEY emulation during the export. (Build 2026-09-27)
+- Fixed: the LZSS and SAP exports of a stereo song could crash when the compressed data exceeded 64 KB. (Build 2026-09-27)
+- Menu labels corrected to the keys that actually work: Edit Tracks is F2, Edit Instruments F3, Edit Info Shift+F4 (the labels still said F1/F2/F3); Increase/Decrease Step Size are the numeric keypad's + and - (the labels said Ctrl++ and Ctrl+-); Pokey Explorer "Decrease By 0x11" is 0x10. The Help menu's entries now have their own descriptions in the status bar. (Build 2026-09-27)
+- Ctrl+Shift+S (Save As) and Alt+Enter (Properties) work as keys now; the menu had shown them without a key binding. (Build 2026-09-27)
+- The Windows standard keys: New is Ctrl+N (was Ctrl+W), Open is Ctrl+O (was Ctrl+L), Print is Ctrl+P, Help is F1 (the menu had shown F1 without a binding). The three editor functions that used those keys moved: "Insert new empty unused track" to Ctrl+T, "Insert copy or clone of song lines" to Ctrl+K, "Insert new line with unused empty tracks" to Ctrl+J. (Build 2026-09-28)
+- Fixed: the toolbar's About button did nothing (it had no command handler). (Build 2026-09-27)
+- The "docs" folder of the download now contains HTML versions of all documentation pages (the manual, the change and version history, the scripting, tracker and module format documentation), generated during the build from the Markdown sources in the repository. (Build 2026-09-27)
+- The manual is maintained as Markdown (doc/rmt_en.md) and contains the generated table of all menu commands, toolbar buttons and keys; the HTML manual in the download is generated from it. The Help menu's online help opens the Markdown page on GitHub. (Build 2026-09-27)
+- The manual's hotkey tables were checked against the program and corrected (Page Up/Down, subsongs, the keypad keys, Esc); the note keys of the QWERTY and AZERTY layouts are listed in the manual, generated from the program. (Build 2026-09-27)
 
 
 Changes in RMT 1.35
@@ -54,20 +65,11 @@ Changes in RMT 1.35
 - Menu and dialog captions, mnemonics for (ALT+\<key>) added or/reworked
 
 
-- Scripting: `Rmt.exe /SCRIPT:<file>` runs a script file that opens a song, sets what the export dialogs would ask, exports in any format and saves - for batch files, build scripts and repeated export sets. The messages go to the console (or to `<script>.log`), the exit code reports success. See the [scripting documentation](rmt_scripting.md). (Build 2026-09-27)
-- Exports no longer redraw the screen while the song is recorded in quick mode (the display raced through the song up to 60 times a second); the status bar reports the progress instead, and the cursor position and the play time are unchanged after an export. The song timer is paused for the whole export, which also makes the exports faster. (Build 2026-09-28)
-- The manual is maintained as Markdown (doc/rmt_en.md) and contains the generated table of all menu commands, toolbar buttons and keys; the HTML manual in the download is generated from it. The Help menu's online help opens the Markdown page on GitHub. (Build 2026-09-27)
-- Tools > Run Script... runs a script file on the current session from the window (the same as "Rmt.exe /SCRIPT", with message boxes). (Build 2026-09-27)
-- Menu labels corrected to the keys that actually work: Edit Tracks is F2, Edit Instruments F3, Edit Info Shift+F4 (the labels still said F1/F2/F3); Increase/Decrease Step Size are the numeric keypad's + and - (the labels said Ctrl++ and Ctrl+-); Pokey Explorer "Decrease By 0x11" is 0x10. The Help menu's entries now have their own descriptions in the status bar. (Build 2026-09-27)
-- The manual's hotkey tables were checked against the program and corrected (Page Up/Down, subsongs, the keypad keys, Esc); the note keys of the QWERTY and AZERTY layouts are listed in the manual, generated from the program. (Build 2026-09-27)
-- Ctrl+Shift+S (Save As) and Alt+Enter (Properties) work as keys now; the menu had shown them without a key binding. (Build 2026-09-27)
-- Fixed: the toolbar's About button did nothing (it had no command handler). (Build 2026-09-27)
-- The "docs" folder of the download now contains HTML versions of all documentation pages (the manual, the change and version history, the scripting, tracker and module format documentation), generated during the build from the Markdown sources in the repository. (Build 2026-09-27)
-- Fixed: the WAV export could crash before the end of the file, at a different position each time - the playback timer kept rendering through the same POKEY emulation during the export. (Build 2026-09-27)
-- Fixed: the LZSS and SAP exports of a stereo song could crash when the compressed data exceeded 64 KB. (Build 2026-09-27)
 - Included the instruments and samples in the download again. (Build 2026-01-14)
-- https://github.com/raster-atari-org/RASTER-Music-Tracker/pull/16
-- https://github.com/raster-atari-org/RASTER-Music-Tracker/pull/15
+- Restructure Download Structure / Folder Structure, Extend Help menu, Fix Issue #4 (Mono Replay)- #16
+(https://github.com/raster-atari-org/RASTER-Music-Tracker/pull/16)
+- Restructure Download Structure / Folder Structure, Extend Help menu, Reduce About Dialog- #15
+(https://github.com/raster-atari-org/RASTER-Music-Tracker/pull/15)
 - A complete version history was added (doc/rmt_version.md), including external download links and (where possible) branches. (2026-01-12)
 - The GitHub repository for RMT 1.34 at "https://github.com/VinsCool/RASTER-Music-Tracker" was archived by VinsCool. It will be kept as a reference and still includes several features (e.g., keyboard layout handling) that might find their way into RMT 2.0. (2026-01-08))
 - Technical documentation for the RMT tracker and the RMT current and future module file format versions was created. (Build 2026-01-06)

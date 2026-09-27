@@ -72,12 +72,13 @@ note.
 | `SHIFT` | SHIFT is used during text input for either the SONG NAME or INSTRUMENT NAME, for uppercase and special characters. |
 | `CAPSLOCK` | Toggle CAPSLOCK (indicated by "CAP" in the statusbar). CAPSLOCK also inverts the SHIFT key if it is held at the same time. |
 | `CONTROL+1-8` | Turn on/off the channel 1 to 8. |
-| `CONTROL+L` | Load RMT module. |
+| `CONTROL+O` | Open RMT module. |
 | `CONTROL+R` | Reload RMT module. |
 | `CONTROL+S` | Save RMT module. |
 | `CONTROL+SHIFT+S` | Save RMT module under a new name. |
 | `ALT+ENTER` | Open the song properties. |
-| `CONTROL+W` | Create new RMT module. |
+| `CONTROL+N` | Create new RMT module. |
+| `CONTROL+P` | Print. |
 | `CONTROL+Y` | Redo last change. |
 | `CONTROL+Z` | Undo last change. |
 | `SHIFT+LEFT`, `SHIFT+RIGHT` | Change active instrument. |
@@ -120,7 +121,7 @@ NNN TT vV FSS
 | `CONTROL+I`, `CONTROL+U` | Insert/delete lines in the current pattern track. |
 | `INSERT`, `DELETE` | Insert/delete lines in the current pattern track (the same as `CONTROL+I`, `CONTROL+U`). If a selection block exists, `DELETE` deletes its data instead. |
 | `CONTROL+G` | Set "go to line" command in the song at current position. |
-| `CONTROL+N` | Put new empty unused track to current song position and active channel. |
+| `CONTROL+T` | Put new empty unused track to current song position and active channel. |
 | `SPACE` | Delete note, instrument, volume and speed values in the track at the cursor position. |
 
 ### Note Column
@@ -354,9 +355,9 @@ MUSIC SPEED: AA/MM/S
 | `INSERT`, `CONTROL+I`, `DELETE`, `CONTROL+U` | Insert/delete lines in the song (with auto-change of all relevant "go to line" values). |
 | `CONTROL+D` | Duplicate the current pattern track, and put it at the same place. (Note: If the pattern track is only used once in song, a messagebox asking for confirmation will appear.) |
 | `CONTROL+G` | Set "go to line" command in the song at current position. |
-| `CONTROL+N` | Put new empty unused track to current song position and active channel. |
-| `CONTROL+O` | Insert copy or clone of song line(s). |
-| `CONTROL+P` | Prepare song line with unused empty tracks. |
+| `CONTROL+T` | Put new empty unused track to current song position and active channel. |
+| `CONTROL+K` | Insert copy or clone of song line(s). |
+| `CONTROL+J` | Prepare song line with unused empty tracks. |
 | `ENTER` | Return from SONG EDIT to the currently active screen (Tracks or Instruments edit). |
 
 ## PROVE (JAM) MODE

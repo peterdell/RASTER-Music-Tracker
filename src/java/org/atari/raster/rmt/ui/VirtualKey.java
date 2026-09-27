@@ -50,11 +50,14 @@ public final class VirtualKey {
 	public static final int VK_F = 0x46;
 	public static final int VK_G = 0x47;
 	public static final int VK_I = 0x49;
+	public static final int VK_J = 0x4A;
+	public static final int VK_K = 0x4B;
 	public static final int VK_M = 0x4D;
 	public static final int VK_N = 0x4E;
 	public static final int VK_O = 0x4F;
 	public static final int VK_P = 0x50;
 	public static final int VK_Q = 0x51;
+	public static final int VK_T = 0x54;
 	public static final int VK_U = 0x55;
 	public static final int VK_V = 0x56;
 	public static final int VK_X = 0x58;

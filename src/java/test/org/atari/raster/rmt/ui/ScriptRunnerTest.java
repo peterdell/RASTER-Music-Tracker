@@ -243,7 +243,7 @@ class ScriptRunnerTest {
 		assertEquals(ScriptRunner.EXIT_OK, run("dump actions a.md"), err());
 		String text = Files.readString(dir.resolve("a.md"), StandardCharsets.UTF_8);
 		assertTrue(text.startsWith(ActionInfos.HEADER), text);
-		assertTrue(text.contains("| Menu File<br>Tool Bar Main | New | `Ctrl+W` | Create a new module |\n"), text);
+		assertTrue(text.contains("| Menu File<br>Tool Bar Main | New | `Ctrl+N` | Create a new module |\n"), text);
 		assertTrue(text.contains("| Menu Edit<br>Tool Bar Main | Edit Info | `Shift+F4` | "), text);
 		assertTrue(text.contains("| Menu Edit | Clear Undo & Redo History |  |"), "mnemonic markers stripped, && kept as &: " + text);
 		assertTrue(text.contains("| Tool Bar Main | Toggle MIDI on/off |  | Toggle MIDI on/off |\n"), "a toolbar-only command: " + text);

@@ -4951,3 +4951,21 @@ build clean and all 123 tests pass.
     Swing's blurry fractional scaling), `iconScale()`/`scaled()` removed,
     the combo box height follows. Checked on the 150 % display: the Java
     toolbar matches `Rmt.exe`'s. 594 Java tests (-1, the removed helpers' test).
+  - **2026-09-28**: the Windows standard keys (the user's decision, the
+    planned 1.35 item): F1 opens the help in both programs (a label hint
+    without a binding in `Rmt.rc`, hint-only in the Java port), New is
+    Ctrl+N (was Ctrl+W), Open Ctrl+O (was Ctrl+L), Print Ctrl+P. The three
+    editor functions on those keys moved to free letters: "Insert new
+    empty unused track" Ctrl+T, "Insert copy or clone of song lines"
+    Ctrl+K, "Insert new line with unused empty tracks" Ctrl+J - in
+    `Rmt.rc` (accelerators, labels, prompts), `TrackKey`/`SongKey`
+    (`GUI_Song.cpp`), `Actions.java`, `SongInput.java` (`VK_J`/`VK_K`/`VK_T`
+    added to `VirtualKey`), the manual, the change history (the planned
+    item removed, done). Printing is not ported in Java: Ctrl+P there
+    reports "not available", as the menu entry does. The user asked
+    whether Print works in Java at all - it does not (deliberately
+    unported, with MIDI and the Pokey Explorer).
+    `doc/rmt_action_infos.md` regenerated; both programs' tables identical.
+    The user-facing entries since the port started moved to their own
+    section of `doc/rmt_changes.md` ("Changes in RMT 1.35 since the start
+    of the Java port"), the file's mixed line endings normalised.

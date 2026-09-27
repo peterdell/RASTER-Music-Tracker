@@ -45,14 +45,14 @@ public final class Actions extends NLS {
 	public static Action MainMenu_Help;
 
 	// File
-	public static Action MainMenu_File_New = new Action(KeyEvent.VK_W, KeyStroke.M1);
-	public static Action MainMenu_File_Open = new Action(KeyEvent.VK_L, KeyStroke.M1);
+	public static Action MainMenu_File_New = new Action(KeyEvent.VK_N, KeyStroke.M1); // the Windows standard keys since 2026-09-28 (were Ctrl+W, Ctrl+L, none)
+	public static Action MainMenu_File_Open = new Action(KeyEvent.VK_O, KeyStroke.M1);
 	public static Action MainMenu_File_Reopen = new Action(KeyEvent.VK_R, KeyStroke.M1);
 	public static Action MainMenu_File_Save = new Action(KeyEvent.VK_S, KeyStroke.M1);
 	public static Action MainMenu_File_SaveAs = new Action(KeyEvent.VK_S, KeyStroke.M1 | KeyStroke.M2);
 	public static Action MainMenu_File_Import;
 	public static Action MainMenu_File_Export;
-	public static Action MainMenu_File_Print;
+	public static Action MainMenu_File_Print = new Action(KeyEvent.VK_P, KeyStroke.M1);
 	public static Action MainMenu_File_PrintPreview;
 	public static Action MainMenu_File_PrintSetup;
 	public static Action MainMenu_File_Properties = new Action(KeyEvent.VK_ENTER, KeyStroke.M3);
@@ -105,9 +105,9 @@ public final class Actions extends NLS {
 	public static Action MainMenu_Song_ClearBookmark = new Action(KeyEvent.VK_F8, KeyStroke.M1);
 	public static Action MainMenu_Song_DeleteCurrentLine = new Action(KeyEvent.VK_U, KeyStroke.M1);
 	public static Action MainMenu_Song_InsertNewEmptyLine = new Action(KeyEvent.VK_I, KeyStroke.M1);
-	public static Action MainMenu_Song_InsertNewLineWithUnusedTracks = new Action(KeyEvent.VK_P, KeyStroke.M1);
-	public static Action MainMenu_Song_InsertCopyOrCloneOfSongLines = new Action(KeyEvent.VK_O, KeyStroke.M1);
-	public static Action MainMenu_Song_PutNewEmptyUnusedTrack = new Action(KeyEvent.VK_N, KeyStroke.M1);
+	public static Action MainMenu_Song_InsertNewLineWithUnusedTracks = new Action(KeyEvent.VK_J, KeyStroke.M1); // Ctrl+J / Ctrl+K / Ctrl+T since 2026-09-28, their old keys went to Print, Open and New
+	public static Action MainMenu_Song_InsertCopyOrCloneOfSongLines = new Action(KeyEvent.VK_K, KeyStroke.M1);
+	public static Action MainMenu_Song_PutNewEmptyUnusedTrack = new Action(KeyEvent.VK_T, KeyStroke.M1);
 	public static Action MainMenu_Song_MakeTracksDuplicate = new Action(KeyEvent.VK_D, KeyStroke.M1);
 	public static Action MainMenu_Song_ToggleTrackNumber;
 	public static Action MainMenu_Song_TracksOrderChange;
@@ -227,7 +227,7 @@ public final class Actions extends NLS {
 	public static Action MainMenu_Tools_Options;
 
 	// Help
-	public static Action MainMenu_Help_Help = new Action(KeyEvent.VK_F1, 0); // Rmt.rc's label shows F1, the accelerator table has none: hint-only (RmtCommandId)
+	public static Action MainMenu_Help_Help = new Action(KeyEvent.VK_F1, 0); // a real accelerator in both programs since 2026-09-28 (the label had promised it)
 	public static Action MainMenu_Help_OnlineHelp = new Action(KeyEvent.VK_F1, KeyStroke.M2);
 	public static Action MainMenu_Help_About;
 

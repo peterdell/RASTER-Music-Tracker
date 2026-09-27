@@ -38,7 +38,7 @@ public enum RmtCommandId {
 	// Tools
 	TOOLS_OPEN_ASMA(Actions.MainMenu_Tools_OpenASMA), TOOLS_OPEN_ASAP_FILE(Actions.MainMenu_Tools_OpenASAPFile), TOOLS_RUN_SCRIPT(Actions.MainMenu_Tools_RunScript), TOOLS_OPTIONS(Actions.MainMenu_Tools_Options),
 	// Help
-	HELP(Actions.MainMenu_Help_Help, false, true), CONTEXT_HELP(Actions.MainMenu_Help_OnlineHelp), HELP_ABOUT_APP(Actions.MainMenu_Help_About),
+	HELP(Actions.MainMenu_Help_Help), CONTEXT_HELP(Actions.MainMenu_Help_OnlineHelp), HELP_ABOUT_APP(Actions.MainMenu_Help_About),
 	// Toolbar-only
 	TOOLBAR_SWITCH_EDIT_MODE(Actions.MainMenu_Edit_SwitchEditMode, true), MIDIONOFF(Actions.Toolbar_MidiOnOff, true),
 	// Accelerator-only: Ctrl+F12 in IDR_MAIN_WINDOW ACCELERATORS, no menu item or button (RmtMainMenu registers the key)

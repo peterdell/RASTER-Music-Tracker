@@ -1,13 +1,13 @@
 | Access Path | Entry | Accelerator Key | Action |
 |---|---|---|---|
-| Menu File<br>Tool Bar Main | New | `Ctrl+W` | Create a new module |
-| Menu File<br>Tool Bar Main | Open... | `Ctrl+L` | Open a module file |
+| Menu File<br>Tool Bar Main | New | `Ctrl+N` | Create a new module |
+| Menu File<br>Tool Bar Main | Open... | `Ctrl+O` | Open a module file |
 | Menu File | Reopen | `Ctrl+R` | Discard current module file changes and reopen the last saved version |
 | Menu File<br>Tool Bar Main | Save | `Ctrl+S` | Save the module file |
 | Menu File | Save As... | `Ctrl+Shift+S` | Save the module file with a new filename |
 | Menu File | Import... |  | Import a module from a file |
 | Menu File<br>Tool Bar Main | Export |  | Export the module file in different formats |
-| Menu File | Print... |  | Print the active view |
+| Menu File | Print... | `Ctrl+P` | Print the active view |
 | Menu File | Print Preview |  | Preview the print version of the view |
 | Menu File | Print Setup... |  | Change the printer and printing options |
 | Menu File | Properties | `Alt+Enter` |  |
@@ -50,9 +50,9 @@
 | Menu Song | Clear Bookmark | `Ctrl+F8` | Clear the bookmark in the current song line |
 | Menu Song | Delete current line | `Ctrl+U` |  |
 | Menu Song | Insert new empty line | `Ctrl+I` |  |
-| Menu Song | Insert new line with unused empty tracks | `Ctrl+P` |  |
-| Menu Song | Insert copy or clone of song line(s)... | `Ctrl+O` |  |
-| Menu Song | Insert new empty unused track to current song position | `Ctrl+N` |  |
+| Menu Song | Insert new line with unused empty tracks | `Ctrl+J` |  |
+| Menu Song | Insert copy or clone of song line(s)... | `Ctrl+K` |  |
+| Menu Song | Insert new empty unused track to current song position | `Ctrl+T` |  |
 | Menu Song | Make a track duplicate to current song position | `Ctrl+D` |  |
 | Menu Song | Switch song between 4 or 8 channels... |  |  |
 | Menu Song | Song columns' order change/copy/clear... |  |  |
