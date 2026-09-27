@@ -160,15 +160,40 @@ public final class Instruments {
 	 * instrument was modified in some way" - C++ pushes the instrument's
 	 * Atari-format bytes into the emulated Atari's memory
 	 * ({@code InstrToAta} at {@code $4000 + instr * 256}) <em>and</em>
-	 * {@link #recalculateFlag recalculates its display-hint flags}. Only the
-	 * second half exists here: the memory write belongs to the real-time
-	 * playback path, which the UI port's audio batch (B8) adds; until then
-	 * the UI's info area only needs the flags, and the many callers
-	 * ({@code decodeModule}, the importers, undo, paste, ...) call this
-	 * exactly where C++ calls {@code Update()}.
+	 * {@link #recalculateFlag recalculates its display-hint flags}. The
+	 * memory write happens once an Atari is {@link #attachAtari attached}
+	 * (the session does that; the model tests and the export path work
+	 * without one), and the many callers ({@code decodeModule}, the
+	 * importers, undo, paste, ...) call this exactly where C++ calls
+	 * {@code Update()}.
 	 */
 	public void update(int instr) {
+		if (atari != null) {
+			byte[] ata = new byte[256]; // ATARI_MAX_INSTR_LENGTH
+			instrToAta(instr, ata, stereo.getAsBoolean());
+			System.arraycopy(ata, 0, atari.getMemory(), 0x4000 + instr * 256, ata.length);
+		}
 		recalculateFlag(instr);
+	}
+
+	private Atari atari;
+	private java.util.function.BooleanSupplier stereo;
+
+	/**
+	 * The other half of {@code CInstruments::Update()}: with an Atari
+	 * attached, every {@link #update} also writes the instrument's Atari
+	 * bytes to {@code $4000 + instr * 256} for the tracker driver
+	 * ({@code stereo} is C++'s {@code g_tracks4_8} read, needed by
+	 * {@link #instrToAta}); all instruments are written at once here.
+	 */
+	public void attachAtari(Atari atari, java.util.function.BooleanSupplier stereo) {
+		this.atari = atari;
+		this.stereo = stereo;
+		if (atari != null) {
+			for (int i = 0; i < INSTRSNUM; i++) {
+				update(i);
+			}
+		}
 	}
 
 	/**

@@ -3989,53 +3989,49 @@ public final class Song {
 
 	// --- DumpSongToPokeyStream (Song_DumpSong.cpp) ---
 	//
-	// Ported from CSong::DumpSongToPokeyStream() - runs the same tight
-	// PlayVBI()-driven loop as C++, but replaces every
-	// g_AtariTrackerDriver->Play() call with AsapEmulator#stepFrame() (see
-	// its own class javadoc for why): C++'s JSR call runs the RMT player
-	// routine that's already loaded into g_AtariTrackerDriver's own Atari
-	// memory by some earlier, separate step; this port has no equivalent
-	// loaded-driver memory, so it instead exports the *current* song to a
-	// real RMT module byte array (via makeModule/RmtExporter.exportAsRMT,
-	// a new step C++ doesn't need) and hands that to a fresh AsapEmulator,
-	// which independently decodes and plays it back - a full re-derivation
-	// of "what's sounding now" that produces the same observable POKEY
-	// register writes, entirely within ASAP's own emulated CPU.
+	// Ported from CSong::DumpSongToPokeyStream(): the same tight
+	// PlayVBI()-driven loop as C++, running the tracker driver loaded into
+	// the Atari's memory (atariTrackerDriver.play() = JSR RMT_P3 +
+	// RMT_SETPOKEY on the AtariCpu) and recording the POKEY register shadow
+	// at $D200/$D210 after every call - exactly what the C++ program does.
+	// Until the audio batch (B8) made the JSR real, this method exported the
+	// song as a module and played it through ASAP's own RMT player instead;
+	// that produced different AUDF bytes than C++ (the player's built-in
+	// frequency tables are not the patched tracker drivers' / the generated
+	// tuning tables) - see plans/NOTES.md, 2026-09-27.
 	//
 	// Omits C++'s g_playtime++ (a UI-only progress-display global) and the
-	// periodic RefreshScreen()/SetStatusBarText() progress notices (real
-	// UI, no Java equivalent yet) - neither has any effect on the recorded
-	// PokeyStream data itself.
+	// periodic RefreshScreen()/SetStatusBarText() progress notices - neither
+	// has any effect on the recorded PokeyStream data itself. C++'s
+	// g_rmtroutine guard around Play() is always true here (the port has no
+	// "RMT routines off" switch).
 
 	/**
-	 * Exports the current song and plays it back through a real, freshly-loaded
-	 * {@link AsapEmulator}, recording every frame's POKEY register writes into
+	 * Plays the song from {@code songLine}/{@code trackLine} in
+	 * {@code initialPlayMode} through the tracker driver on the Atari,
+	 * recording the POKEY registers after every driver tick into
 	 * {@code pokeyStream} until a full playback loop is detected (see
 	 * {@link PokeyStream#trackSongLine}). {@code channelControl} is silenced
 	 * for the duration - mirroring C++'s own {@code SetAllChannelsOff()} -
 	 * but deliberately never switched back on here: matches C++, where that's
 	 * {@code CPokeyStream::FinishedRecording()}'s job, and
 	 * {@code DumpSongToPokeyStream()} never calls it (see this method's own
-	 * closing comment).
+	 * closing comment). On a memory-only {@link Atari} (no CPU) the recorded
+	 * registers stay zero, as in the C++ test build.
 	 */
 	public void dumpSongToPokeyStream(PokeyStream pokeyStream, PlayMode initialPlayMode, int songLine, int trackLine, int tracks4_8, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
-		stop(undo);
-		atariTrackerDriver.init();
+		stop(undo); // Make sure RMT is stopped
+		atariTrackerDriver.init(); // Reset the RMT routines
 		channelControl.setAllChannelsOff();
 
-		byte[] mem = new byte[Atari.MEMORY_SIZE];
-		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
-		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
-		int targetAddrOfModule = 0x4000;
-		int firstByteAfterModule = makeModule(mem, targetAddrOfModule, SongIOType.RMT, instrumentSavedFlags, trackSavedFlags, tracks4_8);
-		byte[] moduleBytes = RmtExporter.exportAsRMT(this, instruments, mem, targetAddrOfModule, firstByteAfterModule, instrumentSavedFlags);
+		// Activate stream recording mode.
+		pokeyStream.startRecording(this, tracks4_8, atariTrackerDriver);
 
-		AsapEmulator asapEmulator = new AsapEmulator();
-		asapEmulator.startRecording(moduleBytes);
-		pokeyStream.startRecording(this, tracks4_8, asapEmulator);
-
-		songPlayLine = songLine;
-		trackPlayLine = trackLine;
+		// Play song using the chosen playback parameters. C++ sets the
+		// *active* lines, which PLAY_FROM (the XEX exporter's per-subsong
+		// mode) then starts from; PLAY_SONG starts at 0 regardless.
+		songActiveLine = songLine;
+		trackActiveLine = trackLine;
 		play(initialPlayMode, followplay, 0, undo, tracks4_8, atariTrackerDriver, clipboard, pokeyStream);
 
 		while (playMode != PlayMode.PLAY_STOP) {
@@ -4044,15 +4040,13 @@ public final class Song {
 
 			// Multiple RMT routine calls will be processed if needed
 			for (int i = 0; i < instrumentSpeed; i++) {
-				// 1 VBI of RMT routine (for instruments) - see this section's
-				// own header comment for why this is AsapEmulator#stepFrame(),
-				// not AtariTrackerDriver#play().
-				asapEmulator.stepFrame();
+				// 1 VBI of RMT routine (for instruments)
+				atariTrackerDriver.play();
 				// Transfer from memory to POKEY buffer
 				pokeyStream.record();
 			}
 		}
-		atariTrackerDriver.init();
+		atariTrackerDriver.init(); // Reset the RMT routines
 
 		// End playback now, the SAP-R data should have been dumped successfully!
 		stop(undo);

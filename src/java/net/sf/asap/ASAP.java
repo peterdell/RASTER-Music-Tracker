@@ -1,8 +1,12 @@
 // Generated automatically with "fut". Do not edit,
-// EXCEPT for the two RMT-specific methods appended at the end of this class
-// (stepFrame/getPokeyRegisterShadow) - see their own javadoc. Everything
-// else in this file (and every other file in this package) is vendored,
-// unmodified, from asap-8.0.0-java-src.zip (see lib/java/README.md).
+// EXCEPT for the RMT-specific additions - the two methods appended after
+// the upstream code (stepFrame/getPokeyRegisterShadow), the "RMT mode"
+// section after them (rmt* methods: RMT's own tracker driver run on this
+// CPU with plain-RAM hardware pages and a directly fed POKEY pair), and
+// the two rmtMode checks at the top of peekHardware/pokeHardware that
+// section needs - see their own javadoc. Everything else in this file
+// (and every other file in this package) is vendored, unmodified, from
+// asap-8.0.0-java-src.zip (see lib/java/README.md).
 package net.sf.asap;
 import java.util.Arrays;
 
@@ -72,6 +76,8 @@ public class ASAP
 
 	final int peekHardware(int addr)
 	{
+		if (this.rmtMode)
+			return this.cpu.memory[addr] & 0xff; // RMT mode: $D000-$D7FF is plain RAM (see rmtInitialize)
 		switch (addr & 65311) {
 		case 53268:
 			return this.moduleInfo.isNtsc() ? 15 : 1;
@@ -110,6 +116,10 @@ public class ASAP
 
 	final void pokeHardware(int addr, int data)
 	{
+		if (this.rmtMode) {
+			this.cpu.memory[addr] = (byte) data; // RMT mode: $D000-$D7FF is plain RAM (see rmtInitialize)
+			return;
+		}
 		if (addr >> 8 == 210) {
 			int t = this.pokeys.poke(addr, data, this.cpu.cycle);
 			if (this.nextEventCycle > t)
@@ -746,5 +756,102 @@ public class ASAP
 		default:
 			throw new IllegalArgumentException("offset");
 		}
+	}
+
+	// ---- RMT mode (RMT extension, not part of upstream ASAP - see this file's header comment) ----
+	//
+	// RASTER Music Tracker's own live playback does not play a module: the
+	// Java model hands notes to RMT's tracker driver binary (rmt_driver_v*.obx,
+	// loaded into this CPU's memory) through JSRs, and the driver stores the
+	// POKEY registers into plain RAM at $D200/$D210 - exactly what the C++
+	// original does with sa_c6502.dll. The renderer then feeds those bytes
+	// (channel-masked) into the POKEY pair itself. So in RMT mode the CPU's
+	// hardware pages are RAM, no ASAP player is scheduled, and the POKEY pair
+	// is driven directly by rmtPokeRegister/rmtRender.
+
+	private boolean rmtMode;
+
+	/** Where {@link #rmtJsr} plants the halt opcode the routine's final RTS returns to ($FFF0 - unused by every RMT driver, unlike ASAP's own $D200, which is the POKEY shadow in RMT mode). */
+	private static final int RMT_HALT_ADDRESS = 65520;
+
+	/**
+	 * RMT mode on: resets the CPU, makes $D000-$D7FF plain RAM, disables the
+	 * ASAP player schedule, and initializes the POKEY pair for direct
+	 * feeding. Call again to change the video standard or the second POKEY.
+	 */
+	public final void rmtInitialize(boolean ntsc, boolean stereo, int sampleRate)
+	{
+		this.rmtMode = true;
+		this.cpu.reset();
+		this.nextEventCycle = 1 << 30;
+		this.nextPlayerCycle = 8388608;
+		this.nextScanlineCycle = 1 << 30;
+		this.pokeys.initialize(ntsc, stereo, sampleRate);
+		// initialize() leaves every channel muted with MUTE_SONG_INIT, which
+		// ASAP clears once a SAP's INIT routine has run; RMT has no such phase.
+		this.pokeys.basePokey.endSongInit();
+		this.pokeys.extraPokey.endSongInit();
+		this.pokeys.startFrame();
+	}
+
+	/** RMT mode: the CPU's 64K, which RMT uses as the emulated Atari's memory (the driver, the instruments, the frequency tables and the register shadow all live here). */
+	public final byte[] rmtMemory()
+	{
+		return this.cpu.memory;
+	}
+
+	/**
+	 * RMT mode: {@code C6502::JSR(adr, a, x, y, cycles)} - runs the routine at
+	 * {@code addr} with the given registers until its final RTS (or until
+	 * {@code cycleLimit} cycles have passed). Returns A | X << 8 | Y << 16,
+	 * with bit 24 set if the routine did not return within the limit.
+	 */
+	public final int rmtJsr(int addr, int a, int x, int y, int cycleLimit)
+	{
+		this.cpu.pc = addr;
+		this.cpu.a = a & 255;
+		this.cpu.x = x & 255;
+		this.cpu.y = y & 255;
+		this.cpu.memory[RMT_HALT_ADDRESS] = (byte) 210;
+		this.cpu.s = 253;
+		this.cpu.memory[510] = (byte) ((RMT_HALT_ADDRESS - 1) & 255);
+		this.cpu.memory[511] = (byte) ((RMT_HALT_ADDRESS - 1) >> 8);
+		this.cpu.cycle = 0;
+		this.nextEventCycle = 1 << 30;
+		this.cpu.doFrame(cycleLimit);
+		int result = this.cpu.a | this.cpu.x << 8 | this.cpu.y << 16;
+		if (this.cpu.pc != RMT_HALT_ADDRESS)
+			result |= 1 << 24;
+		return result;
+	}
+
+	/**
+	 * RMT mode: one POKEY register write at the start of the current
+	 * sub-frame ({@code CXPokey::CopyAtariMemoryToPokey}'s {@code PutByte}).
+	 * @param offset 0-8 for the base POKEY's AUDF1..AUDCTL, 16-24 for the second POKEY's.
+	 */
+	public final void rmtPokeRegister(int offset, int data)
+	{
+		this.pokeys.poke(53760 + offset, data, 0);
+	}
+
+	/**
+	 * RMT mode: advances the POKEY pair by {@code cycles} CPU cycles and
+	 * stores the samples that became ready, 16-bit little-endian, one sample
+	 * per POKEY per block (so 2 or 4 bytes per block). Returns the number of
+	 * blocks written.
+	 */
+	public final int rmtRender(int cycles, byte[] buffer, int bufferOffset)
+	{
+		for (int i = 3;; i >>= 1) {
+			this.pokeys.basePokey.channels[i].endFrame(cycles);
+			this.pokeys.extraPokey.channels[i].endFrame(cycles);
+			if (i == 0)
+				break;
+		}
+		int blocks = this.pokeys.endFrame(cycles);
+		int written = this.pokeys.generate(buffer, bufferOffset, blocks, ASAPSampleFormat.S16_L_E);
+		this.pokeys.startFrame();
+		return written;
 	}
 }

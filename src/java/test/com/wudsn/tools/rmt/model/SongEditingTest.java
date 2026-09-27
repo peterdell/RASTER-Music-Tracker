@@ -2085,12 +2085,30 @@ class SongEditingTest {
 	}
 
 	// --- dumpSongToPokeyStream ---
-	// Ported from CSong::DumpSongToPokeyStream() (Song_DumpSong.cpp) - see
-	// that method's own section header comment in Song.java for why
-	// AtariTrackerDriver's permanently no-op play() is replaced here by a
-	// real AsapEmulator. songGo[1]=0 guarantees an immediate 2-line loop, so
-	// recording finishes in a handful of frames instead of running the
-	// song's full 256 lines.
+	// Ported from CSong::DumpSongToPokeyStream() (Song_DumpSong.cpp). The
+	// C++ test binary stubs the JSR, so its dump tests record silence; here
+	// useRealAtari() gives the fixture's driver a CPU-backed Atari, so the
+	// real tracker driver records real register data. songGo[1]=0
+	// guarantees an immediate 2-line loop, so recording finishes in a
+	// handful of frames instead of running the song's full 256 lines.
+
+	/**
+	 * Replaces the fixture's memory-only Atari with a CPU-backed one holding
+	 * the generated tuning tables, the default (PATCH16) tracker driver and
+	 * the fixture's instruments at $4000 - call it after the test has edited
+	 * its instruments, as RmtSession does through Instruments.update().
+	 */
+	private void useRealAtari() {
+		Atari atari = new Atari(new AtariCpu(false, false));
+		TuningSettings tuningSettings = new TuningSettings();
+		tuningSettings.initialize(false);
+		TuningRatios tuningRatios = new TuningRatios();
+		tuningRatios.initialize();
+		atari.init(false, tuningSettings, tuningRatios);
+		atariTrackerDriver = new AtariTrackerDriver(atari);
+		assertTrue(atariTrackerDriver.loadRMTRoutines(TrackerDriverVersion.PATCH16) > 0);
+		instruments.attachAtari(atari, () -> false);
+	}
 
 	@Test
 	void dumpSongToPokeyStreamRecordsPokeyRegisterDataUntilTheLoopPoint() {
@@ -2106,13 +2124,10 @@ class SongEditingTest {
 		tr.note[0] = 10;
 		tr.instr[0] = 2;
 		tr.volume[0] = 10;
-		// A real (non-silent) envelope is needed for ASAP's own RMT parser to
-		// recognize the song as having any actual duration - see
-		// AsapEmulator's class javadoc; a silent/blank instrument makes ASAP
-		// correctly treat the song as producing no real audio at all.
-		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10;
+		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10; // a real (non-silent) envelope, so the driver has something to play
 		song.getSongGo()[1] = 0; // guarantees a fast loop
 
+		useRealAtari();
 		ChannelControl channelControl = new ChannelControl(4);
 		PokeyStream pokeyStream = new PokeyStream();
 
@@ -2124,9 +2139,8 @@ class SongEditingTest {
 		byte[] frames = pokeyStream.getFrameBytes(pokeyStream.getFirstCountPoint(), 0);
 		assertEquals(pokeyStream.getFirstCountPoint() * 9, frames.length); // mono song -> 9 bytes/frame
 
-		// Real ASAP emulation, unlike the C++ characterization test's own
-		// no-op-JSR test binary (see plans/JAVA_PORT_NEXT_STEPS_PLAN.md's
-		// Phase A item 2 write-up) - confirm at least one byte of real,
+		// The real tracker driver ran, unlike in the C++ characterization
+		// test's no-op-JSR test binary - confirm at least one byte of real,
 		// non-zero POKEY register data was actually captured.
 		boolean anyNonZero = false;
 		for (byte b : frames) {
@@ -2136,6 +2150,46 @@ class SongEditingTest {
 			}
 		}
 		assertTrue(anyNonZero, "expected at least one non-zero POKEY register byte");
+	}
+
+	@Test
+	void dumpSongToPokeyStreamPlayFromStartsAtTheGivenSongline() {
+		// C++ sets the *active* lines before Play(), which PLAY_FROM (the XEX
+		// exporter's per-subsong mode) starts from; the port used to set the
+		// play lines instead, which PLAY_FROM then overwrote from the active
+		// lines - every subsong was dumped from the cursor line.
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 1;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+		Track tr = tracks.getTrack(5);
+		tr.len = 2;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+		tr.volume[0] = 10;
+		song.getSong()[1][0] = 6;
+		tr = tracks.getTrack(6);
+		tr.len = 2;
+		tr.note[0] = 30;
+		tr.instr[0] = 2;
+		tr.volume[0] = 10;
+		song.getSongGo()[2] = 1; // line 1 loops onto itself
+		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10;
+		useRealAtari();
+		ChannelControl channelControl = new ChannelControl(4);
+
+		PokeyStream fromLineOne = new PokeyStream();
+		song.dumpSongToPokeyStream(fromLineOne, PlayMode.PLAY_FROM, 1, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
+		PokeyStream fromTheStart = new PokeyStream();
+		song.dumpSongToPokeyStream(fromTheStart, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
+
+		int audf1FromLineOne = fromLineOne.getFrameBytes(1, 0)[0] & 0xFF;
+		int audf1FromTheStart = fromTheStart.getFrameBytes(1, 0)[0] & 0xFF;
+		assertTrue(audf1FromLineOne != 0 && audf1FromTheStart != 0, "both dumps start with a sounding note");
+		assertTrue(audf1FromLineOne != audf1FromTheStart, "PLAY_FROM 1 starts with note 30 (track 6), PLAY_SONG with note 10 (track 5): AUDF1 " + audf1FromLineOne + " vs " + audf1FromTheStart);
 	}
 
 	// --- SapFileExporter.exportSapR ---
@@ -2163,6 +2217,7 @@ class SongEditingTest {
 		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10;
 		song.getSongGo()[1] = 0; // guarantees a fast loop
 
+		useRealAtari();
 		ChannelControl channelControl = new ChannelControl(4);
 		PokeyStream pokeyStream = new PokeyStream();
 		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
@@ -2212,6 +2267,7 @@ class SongEditingTest {
 		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10;
 		song.getSongGo()[1] = 0; // guarantees a fast loop
 
+		useRealAtari();
 		ChannelControl channelControl = new ChannelControl(4);
 		PokeyStream pokeyStream = new PokeyStream();
 		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
@@ -2252,6 +2308,7 @@ class SongEditingTest {
 		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10;
 		song.getSongGo()[1] = 0; // guarantees a fast loop
 
+		useRealAtari();
 		ChannelControl channelControl = new ChannelControl(4);
 		PokeyStream pokeyStream = new PokeyStream();
 		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
@@ -2271,11 +2328,11 @@ class SongEditingTest {
 	// enough that none of the three sections ever cross ExportLZSS's own
 	// "> 16 compressed bytes" threshold - for a different reason than the
 	// C++ test's own (there, the no-op JSR stub means the data is
-	// permanently near-silent; here, ASAP produces real audio, but this
-	// particular 2-line loop still doesn't have enough distinct content to
-	// compress past 16 bytes). This also exercises thirdCountPoint's
-	// legitimate zero-frames case, which surfaced (and is now guarded
-	// against, see SongExporter#compressSection) a pre-existing,
+	// permanently near-silent; here, the real driver produces real register
+	// data, but this particular 2-line loop still doesn't have enough
+	// distinct content to compress past 16 bytes). This also exercises
+	// thirdCountPoint's legitimate zero-frames case, which surfaced (and is
+	// now guarded against, see SongExporter#compressSection) a pre-existing,
 	// previously-unexercised CompressLzss edge case.
 
 	@Test
@@ -2295,6 +2352,7 @@ class SongEditingTest {
 		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10;
 		song.getSongGo()[1] = 0; // guarantees a fast loop
 
+		useRealAtari();
 		ChannelControl channelControl = new ChannelControl(4);
 		PokeyStream pokeyStream = new PokeyStream();
 		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
@@ -2336,6 +2394,7 @@ class SongEditingTest {
 		xexFile.rasterbarColor = 0;
 		java.util.Arrays.fill(xexFile.atariText, (byte) ' ');
 
+		useRealAtari();
 		ChannelControl channelControl = new ChannelControl(4);
 		byte[] out = SongExporter.exportXexLzss(song, 4, xexFile, atariTrackerDriver, channelControl, clipboard, undo);
 

@@ -8,11 +8,11 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Mirrors src/cpp/test/AtariTrackerDriverTests.cpp's AtariTrackerDriverTest
- * fixture - only what's still meaningful once C++'s JSR() calls are
- * entirely unimplemented rather than merely stubbed (see
- * AtariTrackerDriver's class javadoc): Play/SetPokey/Silence are
- * characterized elsewhere in C++ purely as "doesn't crash", which a
- * no-op Java method trivially satisfies without a dedicated test here.
+ * fixture on a memory-only Atari - the C++ test build's situation, whose
+ * JSR is a link-only stub (so init() returns 0 there and here). The driver
+ * running for real is covered by AtariCpuTest (a note through the PATCH16
+ * binary) and the ui package's LivePlaybackTest (Delta.rmt against ASAP's
+ * independent emulation).
  */
 class AtariTrackerDriverTest {
 
@@ -44,12 +44,14 @@ class AtariTrackerDriverTest {
 
 	@Test
 	void initResetsEveryChannelsInstrumentAndReturnsZero() {
-		// Unlike the C++ test, this doesn't pre-set g_rmtinstr[i]=5 first -
-		// SetTrackNoteInstrumentVolume() (the only real-world writer besides
-		// init() itself) isn't ported here (no dedicated test coverage - see
-		// AtariTrackerDriver's class javadoc). A freshly-constructed
-		// AtariTrackerDriver's rmtInstr defaults to 0 (Java's int[] default),
-		// so asserting -1 after init() still demonstrates a real reset.
+		// The C++ test pre-sets g_rmtinstr[i]=5; setTrackNoteInstrumentVolume
+		// does the same here (its JSRs are no-ops on this memory-only Atari).
+		// init() returns the routine's A - 0 when no CPU runs it (the C++
+		// test build), 1 from every real driver version (AtariCpuTest).
+		for (int i = 0; i < 8; i++) {
+			driver.setTrackNoteInstrumentVolume(i, 10, 5, 8);
+			assertEquals(5, driver.getRmtInstrument(i));
+		}
 		assertEquals(0, driver.init());
 
 		for (int i = 0; i < 8; i++) {

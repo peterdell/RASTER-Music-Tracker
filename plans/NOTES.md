@@ -4321,3 +4321,53 @@ build clean and all 123 tests pass.
       except the printing commands (MFC's own), "Open ASAP file" (B8's
       player), local help (B9) and the MIDI/Pokey-explorer ones (not
       ported).
+  - **2026-09-27**: Phase B, batch B8a (emulation core) - the first audio
+    sub-batch of `plans/JAVA_AUDIO_PLAN.md`. The 6502 and the POKEY pair
+    behind live playback are ASAP's, in an "RMT mode" appended to the
+    vendored `ASAP.java` (decision 1): `rmtInitialize` (hardware pages
+    $D000-$D7FF as plain RAM, so the driver's POKEY stores land in the
+    register shadow as in C++; the ASAP player schedule disabled),
+    `rmtJsr` (`C6502::JSR`: registers in, a halt opcode at $FFF0 as the
+    return address, registers out, bit 24 if the frame's cycle limit hit),
+    `rmtMemory`, `rmtPokeRegister`, `rmtRender` (16-bit LE, decision 3).
+    Model: `AtariCpu` wraps it; `Atari(AtariCpu)` shares the CPU's 64K
+    (the memory-only `Atari()` stays for the model tests, where `jsr`
+    returns its inputs, as the C++ test build's JSR stub); the
+    `AtariTrackerDriver` methods are the real JSR sequences of
+    `AtariTrackerDriver.cpp`/`Core.cpp` (`init` returns the routine's A,
+    `play(boolean specialProveMode)`, `RMT_ATA_INSTROFF` before the AUDC
+    reset); `Instruments.update` also writes `instrToAta` to
+    `$4000 + instr * 256` after `attachAtari(Atari, stereo supplier)`.
+    `RmtSession` builds `new Atari(new AtariCpu(ntsc, true))`, attaches
+    the instruments and drops its manual SKCTL pokes (the real `RMT_INIT`
+    writes them).
+    - Findings: `RMT_INIT` returns A=1 from every driver binary (decision
+      4, asserted); ASAP's `PokeyPair.initialize` leaves the channels
+      muted with `MUTE_SONG_INIT` until a SAP INIT has run, so
+      `rmtInitialize` calls `endSongInit` (the first render was silent).
+    - **Cross-check** (`LivePlaybackTest`, Delta.rmt): the SAP-R dump
+      through the tracker driver equals ASAP's independent emulation of
+      the exported module frame for frame over all 3840 frames with the
+      UNPATCHED driver. With the default PATCH16 driver all AUDC/AUDCTL
+      bytes agree but AUDF bytes differ by 1-2: the patched drivers carry
+      their own frequency tables at $B000 (C++ loads the binary *after*
+      `g_Atari.Init()` at startup, so its tables win until the next
+      `g_Atari.Init()` - every song load), ASAP's player has the classic
+      ones. So the port's SAP-R dump (exported module through ASAP's
+      player, the 2026-09-26 substitute for the then-impossible JSR) was
+      not observably identical to C++'s live-driver dump. Reverted to the
+      C++ way: `dumpSongToPokeyStream` calls `atariTrackerDriver.play()`,
+      `PokeyStream.record()` reads $D200/$D210 through the driver
+      (`startRecording(Song, tracks4_8, AtariTrackerDriver)`), and
+      `AsapEmulator` is deleted (ASAP's module player stays for the WAV
+      export - itself now a known non-identical substitution, B8c - and
+      as the test reference). `lib/java/README.md` updated.
+    - Java-only bug fixed on the way: the dump set the *play* lines
+      before `play()`, which PLAY_FROM overwrites from the *active* lines
+      (C++ sets those), so every XEX subsong was dumped from the cursor
+      line. Test `dumpSongToPokeyStreamPlayFromStartsAtTheGivenSongline`.
+    - The `SongEditingTest` dump tests now run the real driver on a
+      CPU-backed Atari (`useRealAtari()`), like the port's other tests
+      that go beyond the C++ test build's stubs.
+    - 554 tests (+7: `AtariCpuTest` 3, `LivePlaybackTest` 3,
+      `SongEditingTest` 1), no regressions. No C++ change.

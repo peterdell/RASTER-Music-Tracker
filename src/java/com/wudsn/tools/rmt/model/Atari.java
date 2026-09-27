@@ -65,8 +65,34 @@ public final class Atari {
 		return ntsc ? MAXSCREENCYCLES_NTSC : MAXSCREENCYCLES_PAL;
 	}
 
-	private final byte[] memory = new byte[MEMORY_SIZE];
+	private final byte[] memory;
+	/** The CPU running RMT's driver in {@link #memory}, or {@code null} for a memory-only Atari (the model tests, the export path), where {@link #jsr} is a no-op as it was in C++'s test build. */
+	private final AtariCpu cpu;
 	private boolean ntsc;
+
+	/** A memory-only Atari: 64K of RAM, no CPU - {@link #jsr} returns its inputs unchanged. */
+	public Atari() {
+		this.memory = new byte[MEMORY_SIZE];
+		this.cpu = null;
+	}
+
+	/** An Atari whose memory is the given CPU's 64K, so the driver the CPU runs and the model's writes (instruments, tuning tables, the register shadow) share one array. */
+	public Atari(AtariCpu cpu) {
+		this.memory = cpu.getMemory();
+		this.cpu = cpu;
+	}
+
+	public AtariCpu getCpu() {
+		return cpu;
+	}
+
+	/** {@code CAtari::JSR(adr, a, x, y, cycles)}: runs the routine on the CPU; without one (memory-only Atari) the registers come back unchanged, as C++'s test stub does. */
+	public AtariCpu.Registers jsr(int addr, int a, int x, int y) {
+		if (cpu == null) {
+			return new AtariCpu.Registers(a & 0xFF, x & 0xFF, y & 0xFF, true);
+		}
+		return cpu.jsr(addr, a, x, y);
+	}
 
 	public void clearMemory() {
 		Arrays.fill(memory, (byte) 0);
@@ -106,6 +132,9 @@ public final class Atari {
 	 */
 	public void init(boolean ntsc, TuningSettings tuningSettings, TuningRatios tuningRatios) {
 		this.ntsc = ntsc;
+		if (cpu != null && cpu.isNTSC() != ntsc) {
+			cpu.initialize(ntsc, cpu.isStereo()); // the POKEY pair's clock follows the video standard
+		}
 		Tuning tuning = new Tuning(getClockFrequency());
 		byte[] tableBuffer = new byte[0x600]; // exactly the table region InitTuning() writes
 		tuning.initTuning(tableBuffer, tuningSettings, tuningRatios);

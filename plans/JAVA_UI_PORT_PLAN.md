@@ -263,7 +263,15 @@ shows anything, `plans/NOTES.md` entry, ask before committing.
     all: model `BlockEffects.perform()` (tested) + UI `BlockEffectDialog`;
     `SongDialogs.blockEffect()`/`blockEffectFromKey()` for Ctrl+F and the
     Block menu. Details in `NOTES.md`.
-- **B8 - audio (DECISION 4).** Scope depends on the decision; see below.
+- **B8 - audio (DECISION 4).** Designed in `plans/JAVA_AUDIO_PLAN.md`
+  (three sub-batches).
+  - **B8a - emulation core. DONE 2026-09-27.** ASAP "RMT mode" +
+    `AtariCpu`; the tracker driver's JSRs are real; the SAP-R dump runs the
+    driver as C++ does. Findings and details in `JAVA_AUDIO_PLAN.md` §4 and
+    `NOTES.md`.
+  - **B8b - audio engine** (`AudioEngine` thread, session lock).
+  - **B8c - the rest**: Esc's sound reset, media keys, "Open ASAP file"
+    disabled, WAV export replaying the stream through the POKEY.
 - **B9 - packaging & polish.** `maven-shade-plugin` fat jar + launcher
   (as dis6502), `/SCRIPT`-style command line, unsaved-changes prompts on
   close (`WarnUnsavedChanges`), min-size rules, final HiDPI pass.

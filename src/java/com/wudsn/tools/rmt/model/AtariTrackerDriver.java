@@ -10,24 +10,13 @@ package com.wudsn.tools.rmt.model;
  * {@code SongEditingTests.cpp}'s sub-batch 9 ({@code PlayPressedTones}/
  * {@code PlayBeat}). {@code GetAtari} still has no call site here - deferred.
  *
- * <p><b>C++'s {@code C6502::JSR}/{@code CAtari::JSR} are entirely
- * unimplemented</b>, not merely stubbed: they wrap a real 6502 CPU
- * emulator loaded from an external DLL ({@code sa_c6502.dll}), and even in
- * the C++ test build, {@code C6502::JSR} is a link-only no-op stub (see
- * {@code AtariStub.cpp}) that leaves every register/cycle-count argument
- * unchanged. Since every method that would call it - {@link #init},
- * {@link #play}, {@link #setPokey}, {@link #silence}, and now
- * {@link #setTrackNoteInstrumentVolume}/{@link #setTrackVolume}/
- * {@link #instrumentTurnOff} - has no *other* observable effect from the
- * JSR call itself once it's removed, this port omits every JSR call rather
- * than modeling a no-op 6502 register calling convention that has nothing
- * left to do; each of the three new methods keeps every *other* real,
- * observable effect its C++ body has (the {@code g_rmtinstr} bookkeeping,
- * and {@link #instrumentTurnOff}'s POKEY-register memory reset). This also
- * makes {@link #play}'s {@code IsSpecialProveMode()} branch dead (both
- * branches would call only no-op JSRs regardless), so it isn't ported
- * either - {@code AtariTrackerDriverTests.cpp} itself only characterizes
- * {@link #play} as not crashing in either mode, matching this.
+ * <p>The JSR calls are real since the audio batch (B8): {@link Atari#jsr}
+ * runs the loaded tracker driver on {@link AtariCpu} (ASAP's 6502). On a
+ * memory-only {@link Atari} (the model tests, matching the C++ test build's
+ * link-only {@code C6502::JSR} stub) they return their registers unchanged,
+ * so every method keeps its other observable effects - the
+ * {@code g_rmtinstr} bookkeeping and {@link #instrumentTurnOff}'s
+ * POKEY-register memory reset - and {@link #init} returns 0 there.
  */
 public final class AtariTrackerDriver {
 
@@ -62,40 +51,66 @@ public final class AtariTrackerDriver {
 		return AtariIO.loadDataAsBinaryFile(bin, atari.getMemory()).bytesRead();
 	}
 
-	/** Resets every channel's tracked RMT instrument. Always returns 0 - C++'s 'a' register never changes from its initial 0 once the no-op JSR call is removed (see class javadoc). */
+	// The RMT tracker driver's entry points (Atari.h / tracker_obx.h)
+	public static final int RMT_INIT = 0x3400;
+	public static final int RMT_PLAY = RMT_INIT + 3;
+	public static final int RMT_P3 = RMT_INIT + 6;
+	public static final int RMT_SILENCE = RMT_INIT + 9;
+	public static final int RMT_SETPOKEY = RMT_INIT + 12;
+	public static final int RMT_ATA_SETNOTEINSTR = 0x3D00;
+	public static final int RMT_ATA_SETVOLUME = 0x3E00;
+	public static final int RMT_ATA_INSTROFF = 0x3E80;
+
+	/** {@code Init()}: JSR {@code RMT_INIT} with A=0, X=0, Y=$3F and every channel's tracked instrument reset; returns the routine's A (0 on a memory-only Atari, whose JSR is a no-op). */
 	public int init() {
+		AtariCpu.Registers r = atari.jsr(RMT_INIT, 0, 0x00, 0x3f);
 		for (int i = 0; i < SONGTRACKS; i++) {
 			rmtInstr[i] = -1;
 		}
-		return 0;
+		return r.a();
 	}
 
-	/** No-op - see class javadoc for why C++'s JSR calls (and the branch selecting between them) have nothing left to port. */
+	/** {@code Play()} outside the special prove mode: one run of the RMT routine from {@code RMT_P3} (wrap processing), then {@code RMT_SETPOKEY}. */
 	public void play() {
+		play(false);
 	}
 
-	/** No-op - see class javadoc. */
+	/** {@code Play()}: in the special prove mode only {@code RMT_SETPOKEY} runs (the notes are set directly), otherwise {@code RMT_P3} first. */
+	public void play(boolean specialProveMode) {
+		if (!specialProveMode) {
+			atari.jsr(RMT_P3, 0, 0, 0);
+		}
+		atari.jsr(RMT_SETPOKEY, 0, 0, 0);
+	}
+
+	/** {@code SetPokey()}: the driver stores its POKEY registers into the shadow at $D200/$D210. */
 	public void setPokey() {
+		atari.jsr(RMT_SETPOKEY, 0, 0, 0);
 	}
 
-	/** No-op - see class javadoc. */
+	/** {@code Silence()}. */
 	public void silence() {
+		atari.jsr(RMT_SILENCE, 0, 0, 0);
 	}
 
-	/** Records which instrument is now sounding on track {@code t} - the only observable effect once the JSR calls that would set the actual POKEY registers are omitted (see class javadoc). */
+	/** {@code SetTrackNoteInstrumentVolume(t, n, i, v)}: {@code RMT_ATA_SETNOTEINSTR} (A=note, X=track, Y=instrument) then {@code RMT_ATA_SETVOLUME} (A=volume, X=track). */
 	public void setTrackNoteInstrumentVolume(int t, int n, int i, int v) {
+		atari.jsr(RMT_ATA_SETNOTEINSTR, n, t, i);
+		atari.jsr(RMT_ATA_SETVOLUME, v, t, 0);
 		rmtInstr[t] = i;
 	}
 
-	/** No-op - C++'s body only issues a JSR call (see class javadoc), with no other observable effect. */
+	/** {@code SetTrackVolume(t, v)}. */
 	public void setTrackVolume(int t, int v) {
+		atari.jsr(RMT_ATA_SETVOLUME, v, t, 0);
 	}
 
-	/** Clears track {@code instr} was sounding on and resets its POKEY AUDCx register - matches C++'s body minus the omitted JSR call (see class javadoc). */
+	/** {@code InstrumentTurnOff(instr)}: every channel sounding {@code instr} is stopped ({@code RMT_ATA_INSTROFF}, X=channel) and its AUDCx shadow byte cleared. */
 	public void instrumentTurnOff(int instr) {
 		for (int i = 0; i < SONGTRACKS; i++) {
 			if (rmtInstr[i] == instr) {
-				atari.setByteAt(0xd200 + i * 2 + 1 + (i >= 4 ? 16 : 0), 0);
+				atari.jsr(RMT_ATA_INSTROFF, 0, i, 0);
+				atari.setByteAt(0xd200 + i * 2 + 1 + (i >= 4 ? 16 : 0), 0); // Reset POKEY AUDCx memory
 				rmtInstr[i] = -1;
 			}
 		}

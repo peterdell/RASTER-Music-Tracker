@@ -1,6 +1,7 @@
 package com.wudsn.tools.rmt.ui;
 
 import com.wudsn.tools.rmt.model.Atari;
+import com.wudsn.tools.rmt.model.AtariCpu;
 import com.wudsn.tools.rmt.model.AtariTrackerDriver;
 import com.wudsn.tools.rmt.model.ChannelControl;
 import com.wudsn.tools.rmt.model.Instruments;
@@ -77,19 +78,19 @@ public final class RmtSession {
 
 		tuningSettings.initialize(song.isNTSC());
 		tuningRatios.initialize();
-		atari = new Atari();
+		// The emulated 6502 + POKEY pair the tracker driver runs on (C++'s
+		// C6502/CAtari + the POKEY DLL); the Atari's 64K is the CPU's memory.
+		// ClearSong(8) below makes the song stereo, so the POKEY pair starts
+		// stereo and follows g_tracks4_8 from then on (AudioEngine, B8b).
+		atari = new Atari(new AtariCpu(song.isNTSC(), true));
 		atari.init(song.isNTSC(), tuningSettings, tuningRatios);
 		tuning = new Tuning(atari.getClockFrequency());
 		atariTrackerDriver = new AtariTrackerDriver(atari);
 		atariTrackerDriver.loadRMTRoutines(options.trackerDriverVersion); // g_trackerDriverVersion's default; InitInstance runs before rmt.ini is read
 		atariTrackerDriver.init();
-		// What the driver's initialization leaves in the POKEY register
-		// shadow at $D200-$D21F (the 6502 code C++ runs through its
-		// emulator, which this port doesn't execute until the audio batch
-		// B8): every AUDF/AUDC/AUDCTL byte 0 and SKCTL = 3 - the values the
-		// reference screenshots show in the analyzer and POKEY view.
-		atari.setByteAt(0xD20F, 0x03);
-		atari.setByteAt(0xD21F, 0x03);
+		// CInstruments::Update() also writes each instrument's Atari bytes
+		// to $4000 + instr * 256 for the driver (stereo = g_tracks4_8 == 8).
+		instruments.attachAtari(atari, () -> tracks4_8 == 8);
 
 		tracks4_8 = song.clearSong(8, undo);
 		channelControl.setAllChannelsOn();

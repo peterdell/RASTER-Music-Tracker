@@ -7,8 +7,8 @@ import net.sf.asap.ASAPSampleFormat;
 
 /**
  * Ported from CWaveFileExporter (src/cpp/WaveFileExporter.h/.cpp) -
- * {@code ExportWAV} only, redesigned around {@link AsapEmulator}'s
- * underlying {@code ASAP} directly rather than porting C++'s own separate
+ * {@code ExportWAV} only, redesigned around {@code net.sf.asap.ASAP}'s
+ * module player directly rather than porting C++'s own separate
  * software POKEY audio-synthesis engine ({@code CXPokey}/
  * {@code PokeyRenderer.h/.cpp}/{@code PokeyCore.cpp}, confirmed
  * C++-tested but never ported to Java - see
@@ -28,6 +28,13 @@ import net.sf.asap.ASAPSampleFormat;
  * e.g. {@code Fraction}'s collapsed increment operators). The observable
  * result - a valid WAV file that sounds like the song - is the same; only
  * which software POKEY emulator computes the samples differs.
+ *
+ * <p><b>Known difference since the audio batch (B8)</b>: ASAP's RMT player
+ * uses the classic frequency tables, while the tracker driver C++ replays
+ * uses the patched drivers' tables / the generated tuning tables, so a few
+ * AUDF values differ by 1-2 (see {@code LivePlaybackTest}). Replaying the
+ * recorded {@link PokeyStream} through {@link AtariCpu}'s POKEY pair, as
+ * C++ does, is planned as a B8 follow-up ({@code plans/JAVA_AUDIO_PLAN.md}).
  *
  * <p>Returns a complete WAV file as a {@code byte[]} (header + samples),
  * matching this port's established byte-array-over-stream idiom, rather
