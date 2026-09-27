@@ -4,6 +4,7 @@ others/
 out/
 others/
 rmt/docs/*.*
+rmt/docs/img/
 target/
 dependency-reduced-pom.xml
 /rmt.ini

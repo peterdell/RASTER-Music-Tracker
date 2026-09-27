@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Stages the Java port's distribution layout - the checked-in rmt/ folder as
 # Rmt.exe ships it (resources, instruments, songs, exports, rmt.ini,
-# tuning.ini), docs/ filled from doc/ (as the C++ daily build does; rmt/docs
-# is gitignored), and target/rmt.jar - into the given folder (default:
+# tuning.ini), docs/ generated from doc/*.md by the jar's DocGenerator (as the
+# C++ pre-build does into the gitignored rmt/docs; plans/DOC_GENERATION_PLAN.md),
+# and target/rmt.jar - into the given folder (default:
 # target/stage). That folder is jpackage's --input, so the jar ends up next
 # to resources/ and docs/ and ProgramFolder resolves them as g_prgpath does.
 # Used by .github/workflows/release.yml and for local dry runs:
@@ -18,12 +19,12 @@ if [ ! -f "$ROOT/target/rmt.jar" ]; then
 fi
 
 rm -rf "$STAGE"
-mkdir -p "$STAGE/docs"
+mkdir -p "$STAGE"
 cp "$ROOT/target/rmt.jar" "$STAGE/"
 for folder in exports instruments resources songs; do
 	cp -r "$ROOT/rmt/$folder" "$STAGE/"
 done
 cp "$ROOT/rmt/rmt.ini" "$ROOT/rmt/tuning.ini" "$STAGE/"
-cp "$ROOT/doc/rmt_en.html" "$ROOT/doc/rmt_en_128.html" "$ROOT/doc/rmt.gif" "$ROOT/doc/rmt_scripting.md" "$STAGE/docs/"
-cp -r "$ROOT/doc/img" "$STAGE/docs/"
+# The HTML documentation from doc/*.md (plus the manuals and images as they are)
+java -cp "$ROOT/target/rmt.jar" com.wudsn.tools.rmt.doc.DocGenerator "$ROOT/doc" "$STAGE/docs"
 echo "Staged the Java port's distribution layout in $STAGE"

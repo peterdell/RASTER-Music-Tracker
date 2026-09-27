@@ -54,7 +54,8 @@ Changes in RMT 1.35
 - Menu and dialog captions, mnemonics for (ALT+\<key>) added or/reworked
 
 
-- Scripting: "Rmt.exe /SCRIPT:<file>" runs a script file that opens a song, sets what the export dialogs would ask, exports in any format and saves - for batch files, build scripts and repeated export sets. The messages go to the console (or to "<script>.log"), the exit code reports success. See https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_scripting.md. (Build 2026-09-27)
+- Scripting: `Rmt.exe /SCRIPT:<file>` runs a script file that opens a song, sets what the export dialogs would ask, exports in any format and saves - for batch files, build scripts and repeated export sets. The messages go to the console (or to `<script>.log`), the exit code reports success. See the [scripting documentation](rmt_scripting.md). (Build 2026-09-27)
+- The "docs" folder of the download now contains HTML versions of all documentation pages (the manual, the change and version history, the scripting, tracker and module format documentation), generated during the build from the Markdown sources in the repository. (Build 2026-09-27)
 - Fixed: the WAV export could crash before the end of the file, at a different position each time - the playback timer kept rendering through the same POKEY emulation during the export. (Build 2026-09-27)
 - Fixed: the LZSS and SAP exports of a stereo song could crash when the compressed data exceeded 64 KB. (Build 2026-09-27)
 - Included the instruments and samples in the download again. (Build 2026-01-14)

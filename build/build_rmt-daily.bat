@@ -24,7 +24,10 @@ mkdir %RELEASE_BASE_DIR%
 
 if not [%CONFIGURATION%]==[] goto :build_specified_configuration
 
-REM Build both configurations and upload the result.
+REM Build both configurations and upload the result. The release needs the
+REM Java port's jar: the pre-build generates the HTML documentation with it
+REM and the export comparison below runs against it.
+if not exist %BASE_DIR%\target\rmt.jar goto :jar_missing_error
 set CONFIGURATION=Debug
 call :build_configuration
 
@@ -75,14 +78,10 @@ call %UPLOAD% productions
 goto :eof
 
 rem The cross-program export comparison (compare_exports.ps1): the release
-rem build's Rmt.exe against the Java port's target\rmt.jar, when that is
-rem built. A difference is a port bug in one of the two programs, so it
-rem stops the daily build before the upload.
+rem build's Rmt.exe against the Java port's target\rmt.jar. A difference is
+rem a port bug in one of the two programs, so it stops the daily build
+rem before the upload.
 :compare_exports
-if not exist %BASE_DIR%\target\rmt.jar (
-  echo INFO: %BASE_DIR%\target\rmt.jar not built, export comparison skipped.
-  goto :eof
-)
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0compare_exports.ps1"
 if ERRORLEVEL 1 goto :compare_failed_error
 goto :eof
@@ -107,6 +106,10 @@ goto :error
 
 :compare_failed_error
 echo ERROR: The exports of Rmt.exe and the Java port differ, see above.
+goto :error
+
+:jar_missing_error
+echo ERROR: %BASE_DIR%\target\rmt.jar not built - run "mvn -o package" first.
 
 :error
 echo ERROR: See error messages above.

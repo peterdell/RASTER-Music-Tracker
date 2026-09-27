@@ -4737,3 +4737,30 @@ build clean and all 123 tests pass.
       `plans/JAVA_SCRIPTING_PLAN.md`: decision 6 closed as (b), C1-C3 done.
       `plans/JAVA_PORT_PLAN.md`: the "Next" item (scripting) marked DONE, no
       open port batch remains.
+  - **2026-09-27**: Documentation generation, batch D1
+    (`plans/DOC_GENERATION_PLAN.md`; the user's decisions: Markdown stays
+    the source on GitHub, the distributions ship HTML, the menus are to be
+    extracted by the build).
+    - `com.wudsn.tools.rmt.doc.DocGenerator` (in the jar): every `doc/*.md`
+      to `<name>.html` through CommonMark 0.29.0 with the GFM tables
+      extension (Maven dependencies, shaded), one page template with a small
+      stylesheet, the title from the first heading, links to `.md` pages
+      rewritten to `.html` (links with a scheme untouched), byte order marks
+      stripped, `<!-- include: file.md -->` inlined (a missing file fails
+      the run), `img/`, `*.gif`/`*.png` and `.html` files without a `.md`
+      source copied (the manuals), `.txt` and `.md` not shipped.
+      `DocGeneratorTest`: the real `doc/` folder (every page generated,
+      tables/fences/link rewriting, the `<file>` placeholder as text), the
+      include marker and its failure, Markdown winning over a page of the
+      same name, the title fallback.
+    - `build/stage_java_release.sh` and `build/build_rmt_pre.bat` run the
+      generator into `docs/` (the pre-build falls back to copying the HTML
+      files when `target\rmt.jar` is not built, so the C++ dev loop needs no
+      Java build; `build_rmt-daily.bat` requires the jar). `.gitignore`
+      covers `rmt/docs/img/`. `doc/rmt_changes.md`: the `<file>` placeholder
+      in code spans (CommonMark took it for a tag), a relative link to the
+      scripting page, an entry for the HTML documentation in the download.
+      README: the documentation paragraph.
+    - Verified: `mvn -o clean package` 594 tests (+4); the staging and the
+      pre-build both produce the 12 files; the scripting page rendered in a
+      browser (tables, code, title).

@@ -1,7 +1,11 @@
 # Documentation generation: Markdown source, HTML in the distributions, menus extracted by the build (proposal)
 
 Status: **approved 2026-09-27** with every recommendation (decisions 1-6;
-decision 4: the tables compared, normalized); D1 in progress. Origin: the user's two
+decision 4: the tables compared, normalized). **D1 DONE 2026-09-27**: `DocGenerator`
+(commonmark 0.29.0 + GFM tables as Maven dependencies, shaded into the jar),
+`DocGeneratorTest`, `stage_java_release.sh` and `build_rmt_pre.bat` generate
+`docs/` (12 files: 8 pages from `.md`, the two manuals, `rmt.gif`, `img/`);
+`build_rmt-daily.bat` requires the jar. D2 next. Origin: the user's two
 points after the C++ scripting batch C3 - (1) the documentation is
 maintained as Markdown on GitHub, because that is easier to maintain, and
 must stay so; (2) normal users have no Markdown reader, so what ships in the
