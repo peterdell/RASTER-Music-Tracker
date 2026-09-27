@@ -859,6 +859,7 @@ public final class Instruments {
 		for (int c = 0; c < Instrument.INSTRUMENT_NAME_MAX_LEN; c++) {
 			out.write(ai.name[c]);
 		}
+		out.write(0); // C++ writes sizeof(ai->name) = 33 bytes: the name's terminating zero (found by the cross-program comparison, 2026-09-27; the port wrote 32)
 		for (int j = 0; j < Instrument.PARCOUNT; j++) {
 			out.write(ai.parameters[j]);
 		}
@@ -965,6 +966,7 @@ public final class Instruments {
 			ai.name[c] = (char) (data[pos] & 0xFF);
 			pos++;
 		}
+		pos++; // the name's terminating zero (see saveInstrumentRmw)
 		for (int j = 0; j < Instrument.PARCOUNT; j++) {
 			ai.parameters[j] = data[pos];
 			pos++;

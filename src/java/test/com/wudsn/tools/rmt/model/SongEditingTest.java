@@ -1,5 +1,6 @@
 package com.wudsn.tools.rmt.model;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -1576,6 +1577,32 @@ class SongEditingTest {
 		assertEquals(10, tracks.getTrack(5).note[0]);
 		assertEquals(2, tracks.getTrack(5).instr[0]);
 		assertEquals(8, tracks.getTrack(5).volume[0]);
+	}
+
+	// The 16 UI settings (C++'s g_activepart..g_keyboard_escresetatarisound
+	// globals among the main parameters) are the caller's: passed in to
+	// saveRMW, handed back by loadRMW. Found by the cross-program comparison
+	// (CrossProgramExportTest) on 2026-09-27 - the port wrote zeros.
+	@Test
+	void saveRMWAndLoadRMWRoundTripTheCallersUiSettings() {
+		int[] uiParams = new int[Song.RMW_UI_PARAMS_COUNT];
+		for (int i = 0; i < uiParams.length; i++) {
+			uiParams[i] = 100 + i;
+		}
+
+		byte[] out = song.saveRMW(4, uiParams);
+
+		int offset = RmtVersion.RMT_VERSION_STRING.length() + 1 + SongInfo.SONG_NAME_MAX_LEN + 1 + 4;
+		assertEquals(100, readIntLE(out, offset + Song.RMW_UI_PARAMS_INDEX * 4));
+		assertEquals(115, readIntLE(out, offset + (Song.RMW_UI_PARAMS_INDEX + 15) * 4));
+
+		Song loaded = new Song(instruments, tracks);
+		Undo loadedUndo = new Undo(tracks, instruments, loaded, new TrackClipboard());
+		Song.LoadRmwResult result = loaded.loadRMW(out, loadedUndo);
+		assertTrue(result.success());
+		assertArrayEquals(uiParams, result.uiParams());
+
+		assertArrayEquals(new int[Song.RMW_UI_PARAMS_COUNT], loaded.loadRMW(song.saveRMW(4), loadedUndo).uiParams()); // the overload without them writes zeros
 	}
 
 	// --- loadRMT ---

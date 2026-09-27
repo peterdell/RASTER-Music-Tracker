@@ -32,10 +32,12 @@ import com.wudsn.tools.rmt.ui.SongFiles;
  *
  * <p>Commands: {@code open <file>}, {@code save <file>},
  * {@code export <format> <file> [name=value ...]}, {@code set overwrite
- * yes|no}, {@code set ntsc yes|no}, {@code set driver <version>},
- * {@code echo <text>}, {@code quit}. Paths are relative to the script's
- * folder. Exit codes: 0 = all commands succeeded, 1 = a command failed (the
- * script stops there), 2 = the script could not be read or parsed.
+ * yes|no}, {@code set output <folder>}, {@code set ntsc yes|no},
+ * {@code set driver <version>}, {@code echo <text>}, {@code quit}. Paths
+ * are relative to the script's folder; output files to the output folder
+ * once one is set. Exit codes: 0 = all commands succeeded, 1 = a command
+ * failed (the script stops there), 2 = the script could not be read or
+ * parsed.
  *
  * <p>Two message policies: headless (the command line), where the message
  * boxes are printed to the console; and interactive (Tools > Run script...
@@ -69,6 +71,10 @@ public final class ScriptRunner {
 	private final SongFiles files;
 
 	private Path baseFolder = Path.of(".");
+	/** {@code set output <folder>}: where {@code save}/{@code export} write; null = the script's folder. */
+	private Path outputFolder;
+	/** {@link #setOutputFolder}: wins over the script's own {@code set output} (the cross-program comparison runs one script into two folders). */
+	private Path outputOverride;
 	private boolean overwrite;
 	/** The current command, for the host's option lookups and error texts. */
 	private ScriptCommand current;
@@ -89,6 +95,11 @@ public final class ScriptRunner {
 		this.err = err;
 		this.messageBoxes = messageBoxes;
 		this.files = new SongFiles(session, host);
+	}
+
+	/** The output folder for every {@code save}/{@code export}, overriding the script's {@code set output} - the {@code RMT_SCRIPT_OUTPUT} environment variable on the command line. */
+	public void setOutputFolder(Path outputFolder) {
+		this.outputOverride = outputFolder;
 	}
 
 	/** Reads, parses and runs the script file; returns the exit code. */
@@ -176,7 +187,7 @@ public final class ScriptRunner {
 	private void save(ScriptCommand command) throws ScriptException {
 		requireArguments(command, 1, "save <file>");
 		requireNoOptions(command);
-		Path file = resolve(command.argument(0));
+		Path file = resolveOutput(command.argument(0));
 		int filterIndex = filterIndexOfExtension(file, SongFiles.SONG_FILTERS);
 		if (filterIndex == 0) {
 			throw new ScriptException(command.line(), "The file name must end in .rmt, .txt or .rmw.");
@@ -203,7 +214,7 @@ public final class ScriptRunner {
 				throw new ScriptException(command.line(), "Unknown option '" + option + "' for the format '" + format + "'" + (allowed.isEmpty() ? " (it has none)." : "; one of " + String.join(", ", allowed.stream().sorted().toList()) + "."));
 			}
 		}
-		Path file = SongFiles.ensureFileExtension(resolve(command.argument(1)), SongFiles.EXPORT_FILTERS, filterIndex);
+		Path file = SongFiles.ensureFileExtension(resolveOutput(command.argument(1)), SongFiles.EXPORT_FILTERS, filterIndex);
 		checkOverwrite(command, file);
 		host.answer(file, filterIndex);
 		files.fileExportAs();
@@ -220,6 +231,7 @@ public final class ScriptRunner {
 		String value = command.argument(1);
 		switch (name) {
 		case "overwrite" -> overwrite = parseBoolean(command, "overwrite", value);
+		case "output" -> outputFolder = resolve(value);
 		case "ntsc" -> { // the Options dialog's NTSC box (OnToolsOptions -> SetNTSC)
 			boolean ntsc = parseBoolean(command, "ntsc", value);
 			if (session.song.isNTSC() != ntsc) {
@@ -232,8 +244,22 @@ public final class ScriptRunner {
 				session.setTrackerDriverVersion(version);
 			}
 		}
-		default -> throw new ScriptException(command.line(), "Unknown setting '" + command.argument(0) + "'; one of overwrite, ntsc, driver.");
+		default -> throw new ScriptException(command.line(), "Unknown setting '" + command.argument(0) + "'; one of overwrite, output, ntsc, driver.");
 		}
+	}
+
+	/** An output file: relative to the output folder (created on demand), else the script's folder. */
+	private Path resolveOutput(String path) throws ScriptException {
+		Path base = outputOverride != null ? outputOverride : outputFolder != null ? outputFolder : baseFolder;
+		Path file = base.resolve(path).normalize();
+		try {
+			if (file.getParent() != null) {
+				Files.createDirectories(file.getParent());
+			}
+		} catch (IOException e) {
+			throw new ScriptException(current != null ? current.line() : 0, "Cannot create the folder '" + file.getParent() + "': " + e.getMessage());
+		}
+		return file;
 	}
 
 	/** {@code unpatched}, {@code unpatched-with-tuning}, {@code patch3}, {@code patch6}, {@code patch8}, {@code patch16}, {@code patch-prince-of-persia} (the enum names, case-insensitive, {@code -} or {@code _}). */

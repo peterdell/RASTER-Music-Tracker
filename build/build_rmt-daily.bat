@@ -31,6 +31,7 @@ call :build_configuration
 set CONFIGURATION=Release
 call :build_configuration
 
+call :compare_exports
 call :upload
 echo Done.
 pause
@@ -73,6 +74,19 @@ cd %TARGET_DIR%
 call %UPLOAD% productions
 goto :eof
 
+rem The cross-program export comparison (compare_exports.ps1): the release
+rem build's Rmt.exe against the Java port's target\rmt.jar, when that is
+rem built. A difference is a port bug in one of the two programs, so it
+rem stops the daily build before the upload.
+:compare_exports
+if not exist %BASE_DIR%\target\rmt.jar (
+  echo INFO: %BASE_DIR%\target\rmt.jar not built, export comparison skipped.
+  goto :eof
+)
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0compare_exports.ps1"
+if ERRORLEVEL 1 goto :compare_failed_error
+goto :eof
+
 :copy_output
 set RELEASE_DIR=%RELEASE_BASE_DIR%\%CONFIGURATION%
 mkdir %RELEASE_DIR%
@@ -89,6 +103,10 @@ goto :error
 
 :build_failed_error
 echo ERROR: %RESULT_EXE% was not created.
+goto :error
+
+:compare_failed_error
+echo ERROR: The exports of Rmt.exe and the Java port differ, see above.
 
 :error
 echo ERROR: See error messages above.

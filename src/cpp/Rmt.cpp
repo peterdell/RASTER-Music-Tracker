@@ -175,6 +175,14 @@ BOOL CRmtApp::InitInstance()
     if (cmdInfo.IsScriptFileSpecified()) {
         AttachScriptConsole(cmdInfo.GetScriptFilePath());
         CScriptRunner runner(g_Song);
+        char* outputOverride = nullptr;
+        size_t outputOverrideLength = 0;
+        if (_dupenv_s(&outputOverride, &outputOverrideLength, "RMT_SCRIPT_OUTPUT") == 0 && outputOverride != nullptr) {
+            if (*outputOverride) {
+                runner.SetOutputFolder(std::filesystem::path(outputOverride)); // the cross-program comparison runs one script into two folders
+            }
+            free(outputOverride);
+        }
         m_scriptExitCode = runner.RunFile(cmdInfo.GetScriptFilePath());
         return FALSE; // MFC's normal shutdown (the window destroyed, the timer stopped, the sound released); ExitInstance() returns the script's code
     }

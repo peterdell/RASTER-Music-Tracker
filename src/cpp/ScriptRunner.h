@@ -29,6 +29,11 @@ public:
 
     explicit CScriptRunner(CSong& song);
 
+    // The output folder for every save/export, overriding the script's
+    // "set output" - the RMT_SCRIPT_OUTPUT environment variable, which the
+    // cross-program comparison sets to run one script into two folders.
+    void SetOutputFolder(const std::filesystem::path& outputFolder);
+
     // Attaches the parent console, or redirects stdout/stderr to <script>.log;
     // reads, parses and runs the script; returns the exit code.
     int RunFile(const CString& scriptFilePath);
@@ -39,6 +44,8 @@ public:
 private:
     CSong& m_song;
     std::filesystem::path m_baseFolder;
+    std::filesystem::path m_outputFolder; // "set output", empty = the script's folder
+    std::filesystem::path m_outputOverride; // SetOutputFolder(), empty = none
     bool m_overwrite = false;
 
     // false for quit; throws CScriptError on a failure
@@ -49,11 +56,16 @@ private:
     void Set(const TScriptCommand& command);
 
     std::filesystem::path Resolve(const std::string& path) const;
+    // An output file: relative to the output folder (created on demand), else the script's folder.
+    std::filesystem::path ResolveOutput(const TScriptCommand& command, const std::string& path) const;
     void CheckOverwrite(const TScriptCommand& command, const std::filesystem::path& file) const;
     // The problem text of the message boxes shown during the command, "" for none.
     static std::string Problems();
 };
 
-// The console setup for a script run: AttachConsole(ATTACH_PARENT_PROCESS)
-// when started from a console, else <scriptFile>.log. Public for InitInstance.
+// The console setup for a script run: RMT_SCRIPT_LOG=<file> when set, else
+// AttachConsole(ATTACH_PARENT_PROCESS) when started from a console, else
+// <scriptFile>.log. Public for InitInstance.
 void AttachScriptConsole(const CString& scriptFilePath);
+// stdout and stderr into one file, sharing one file offset.
+void RedirectScriptOutputToFile(const CString& logPath);

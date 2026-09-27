@@ -10,10 +10,12 @@ import java.util.Locale;
 
 import com.wudsn.tools.rmt.model.AsmFileExporter;
 import com.wudsn.tools.rmt.model.AssemblerFormat;
+import com.wudsn.tools.rmt.model.EditMode;
 import com.wudsn.tools.rmt.model.Instruments;
 import com.wudsn.tools.rmt.model.MessageAnswer;
 import com.wudsn.tools.rmt.model.MessageButtons;
 import com.wudsn.tools.rmt.model.ModImporter;
+import com.wudsn.tools.rmt.model.Part;
 import com.wudsn.tools.rmt.model.PlayMode;
 import com.wudsn.tools.rmt.model.PokeyStream;
 import com.wudsn.tools.rmt.model.RmtExporter;
@@ -342,6 +344,7 @@ public final class SongFiles {
 			loadedOk = r.success();
 			if (loadedOk) {
 				session.setTracks4_8(r.tracks4_8());
+				applyRmwUiParams(r.uiParams());
 			}
 			ioType = SongIOType.RMW;
 		}
@@ -383,7 +386,7 @@ public final class SongFiles {
 		case RMW -> {
 			// Remembers the current octave and volume for the active instrument (for saving to RMW)
 			session.instruments.memorizeOctaveAndVolume(song.getActiveInstr(), song.getOctave(), song.getVolume(), session.options.keyboardRememberOctavesAndVolumes);
-			yield song.saveRMW(session.tracks4_8);
+			yield song.saveRMW(session.tracks4_8, rmwUiParams());
 		}
 		default -> null;
 		};
@@ -412,6 +415,47 @@ public final class SongFiles {
 		host.songChanged();
 	}
 
+	/**
+	 * The 16 UI settings C++'s {@code DEFINE_MAINPARAMS} stores in an RMW
+	 * file (see {@link Song#saveRMW(int, int[])} for the list): the session's
+	 * values in that order. {@code g_keyboard_playautofollow} has no Java
+	 * counterpart (the C++ global is never read) - written as its C++ default 1.
+	 */
+	int[] rmwUiParams() {
+		UiState ui = session.uiState;
+		RmtOptions o = session.options;
+		return new int[] { ui.activePart.ordinal(), ui.activeTi.ordinal(), ui.editMode.ordinal(), ui.respectVolume ? 1 : 0, o.trackLinePrimaryHighlight, o.trackLineAltNumbering ? 1 : 0, o.displayFlatNotes ? 1 : 0, o.useGermanNotation ? 1 : 0, ui.cursorActView,
+				o.keyboardLayout, o.keyboardEscResetAtariSound ? 1 : 0, o.keyboardSwapEnter ? 1 : 0, 1, o.keyboardUpDownContinue ? 1 : 0, o.keyboardRememberOctavesAndVolumes ? 1 : 0, o.keyboardEscResetAtariSound ? 1 : 0 };
+	}
+
+	/** {@code LoadRMW}'s side of the same 16 settings: C++ reads them straight into its globals. Out-of-range enum values are left alone. */
+	void applyRmwUiParams(int[] p) {
+		UiState ui = session.uiState;
+		RmtOptions o = session.options;
+		if (p[0] >= 0 && p[0] < Part.values().length) {
+			ui.activePart = Part.values()[p[0]];
+		}
+		if (p[1] >= 0 && p[1] < Part.values().length) {
+			ui.activeTi = Part.values()[p[1]];
+		}
+		if (p[2] >= 0 && p[2] < EditMode.values().length) {
+			ui.editMode = EditMode.values()[p[2]];
+		}
+		ui.respectVolume = p[3] != 0;
+		o.trackLinePrimaryHighlight = p[4];
+		o.trackLineAltNumbering = p[5] != 0;
+		o.displayFlatNotes = p[6] != 0;
+		o.useGermanNotation = p[7] != 0;
+		ui.cursorActView = p[8];
+		o.keyboardLayout = p[9];
+		o.keyboardEscResetAtariSound = p[10] != 0;
+		o.keyboardSwapEnter = p[11] != 0;
+		// p[12]: g_keyboard_playautofollow, no Java counterpart
+		o.keyboardUpDownContinue = p[13] != 0;
+		o.keyboardRememberOctavesAndVolumes = p[14] != 0;
+		o.keyboardEscResetAtariSound = p[15] != 0; // the macro's second copy wins, as in C++
+	}
+
 	/** {@code ExportV2(*this, out, SongIOType::RMT)}: the module built at $4000, then {@code ExportAsRMT}; {@code null} if the module can't be built. */
 	private byte[] saveRmtBytes() {
 		byte[] mem = new byte[65536];
@@ -425,9 +469,14 @@ public final class SongFiles {
 		return RmtExporter.exportAsRMT(session.song, session.instruments, mem, targetAddrOfModule, maxAddr, instrumentSavedFlags);
 	}
 
-	/** A text file as C++'s text-mode {@code ofstream} writes it: the platform's line ends, bytes 1:1. */
+	/** A text file as C++'s text-mode {@code ofstream} writes it (the TXT song and track saves): the platform's line ends, bytes 1:1. */
 	static byte[] textBytes(String text) {
 		return text.replace("\n", System.lineSeparator()).getBytes(TEXT_CHARSET);
+	}
+
+	/** An ASM export as C++ writes it: {@code FileExportAs()} opens every export in binary mode and {@code CASMFile::EOL} is {@code "\n"}, so LF only (the port wrote CRLF until the cross-program comparison of 2026-09-27). */
+	static byte[] asmBytes(String code) {
+		return code.getBytes(TEXT_CHARSET);
 	}
 
 	/** {@code CSong::FileSaveAs()}. */
@@ -854,7 +903,7 @@ public final class SongFiles {
 			}
 			es.prefixForAllAsmLabels = dlg.prefixForAllAsmLabels();
 			String code = AsmFileExporter.exportAsAsmApply(song, session.instruments, session.tracks, session.atari.getMemory(), es.prefixForAllAsmLabels, session.tracks4_8, dlg.exportType(), dlg.notesIndexOrFreq(), dlg.durationsType());
-			Files.write(fn, textBytes(code));
+			Files.write(fn, asmBytes(code));
 			return true;
 		}
 		case ASM_RMTPLAYER -> {
@@ -883,7 +932,7 @@ public final class SongFiles {
 			if (!r.success()) {
 				return false;
 			}
-			Files.write(fn, textBytes(r.code()));
+			Files.write(fn, asmBytes(r.code()));
 			return true;
 		}
 		case SAPR -> {

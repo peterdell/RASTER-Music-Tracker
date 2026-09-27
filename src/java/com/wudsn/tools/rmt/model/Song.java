@@ -2879,16 +2879,24 @@ public final class Song {
 	 * {@code plans/JAVA_SONGEDITING_PLAN.md}'s sub-batch 8 entry for that
 	 * fix's own history).
 	 *
-	 * <p><b>~15 of the 31 "main parameters" aren't modeled by this port at
-	 * all</b> (UI/keyboard-setting globals like {@code g_prove}/
-	 * {@code g_keyboard_layout}/{@code g_displayflatnotes} - none exist
-	 * anywhere in this Java port). Per the user's explicit decision, this
-	 * keeps the file's byte layout exactly as many 4-byte slots in the same
-	 * order as C++ (so the fields that *are* modeled stay in the right
-	 * position and the file size matches), writing {@code 0} for the
-	 * unmapped ones - rather than shrinking the block, which would no
-	 * longer be binary-compatible with real C++-saved {@code .rmw} files
-	 * for the fields this port does model.
+	 * <p><b>16 of the 31 "main parameters" are UI settings</b>, C++'s
+	 * globals {@code g_activepart}, {@code g_active_ti}, {@code g_prove},
+	 * {@code g_respectvolume}, {@code g_trackLinePrimaryHighlight},
+	 * {@code g_tracklinealtnumbering}, {@code g_displayflatnotes},
+	 * {@code g_usegermannotation}, {@code g_cursoractview},
+	 * {@code g_keyboard_layout}, {@code g_keyboard_escresetatarisound},
+	 * {@code g_keyboard_swapenter}, {@code g_keyboard_playautofollow},
+	 * {@code g_keyboard_updowncontinue},
+	 * {@code g_keyboard_RememberOctavesAndVolumes} and (a second time, as the
+	 * C++ macro lists it) {@code g_keyboard_escresetatarisound} - in that
+	 * order, {@link #RMW_UI_PARAMS_COUNT} of them at index
+	 * {@link #RMW_UI_PARAMS_INDEX}. The model does not own them, so the
+	 * caller passes them ({@code uiParams}; the UI's session state) and gets
+	 * them back from {@link #loadRMW} to apply, as C++'s load writes the
+	 * globals. The overload without them writes zeros (the model tests); the
+	 * cross-program comparison ({@code CrossProgramExportTest}) checks the
+	 * real values against {@code Rmt.exe}. Before 2026-09-27 the port always
+	 * wrote zeros there.
 	 *
 	 * <p>{@code g_Instruments.SaveAll}/{@code g_Tracks.SaveAll} (previously
 	 * omitted - see {@link #saveTxt}'s javadoc) are now ported as
@@ -2896,7 +2904,19 @@ public final class Song {
 	 * every instrument/track unconditionally, unlike TXT's non-empty-only
 	 * rule.
 	 */
+	/** Where the 16 UI settings sit among the 31 main parameters, and how many there are. */
+	public static final int RMW_UI_PARAMS_INDEX = 8;
+	public static final int RMW_UI_PARAMS_COUNT = 16;
+
 	public byte[] saveRMW(int tracks4_8) {
+		return saveRMW(tracks4_8, new int[RMW_UI_PARAMS_COUNT]);
+	}
+
+	/** {@code uiParams}: the 16 UI settings in the order the class javadoc lists. */
+	public byte[] saveRMW(int tracks4_8, int[] uiParams) {
+		if (uiParams.length != RMW_UI_PARAMS_COUNT) {
+			throw new IllegalArgumentException("uiParams must have " + RMW_UI_PARAMS_COUNT + " entries, not " + uiParams.length);
+		}
 		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
 
 		byte[] versionBytes = RmtVersion.RMT_VERSION_STRING.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
@@ -2909,12 +2929,12 @@ public final class Song {
 		out.write(0); // the extra byte C++'s m_songname[SONG_NAME_MAX_LEN + 1] has, beyond this port's own (SONG_NAME_MAX_LEN)-sized array
 
 		writeIntLE(out, RMW_MAIN_PARAMS_COUNT);
-		int[] mainParams = {
-				tracks4_8, speed, mainSpeed, instrumentSpeed,
-				songActiveLine, songPlayLine, trackActiveLine, trackPlayLine,
-				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 16 unmapped globals - see this method's own javadoc
-				trackActiveCol, trackActiveCur, activeInstr, volume, octave, infoAct.ordinal(), songNameCursor
-		};
+		int[] mainParams = new int[RMW_MAIN_PARAMS_COUNT];
+		int[] own = { tracks4_8, speed, mainSpeed, instrumentSpeed, songActiveLine, songPlayLine, trackActiveLine, trackPlayLine };
+		System.arraycopy(own, 0, mainParams, 0, own.length);
+		System.arraycopy(uiParams, 0, mainParams, RMW_UI_PARAMS_INDEX, RMW_UI_PARAMS_COUNT); // the 16 UI settings - see the javadoc
+		int[] rest = { trackActiveCol, trackActiveCur, activeInstr, volume, octave, infoAct.ordinal(), songNameCursor };
+		System.arraycopy(rest, 0, mainParams, RMW_UI_PARAMS_INDEX + RMW_UI_PARAMS_COUNT, rest.length);
 		for (int param : mainParams) {
 			writeIntLE(out, param);
 		}
@@ -2935,8 +2955,8 @@ public final class Song {
 		return out.toByteArray();
 	}
 
-	/** {@code success} is C++'s own {@code bool} return; {@code tracks4_8} is C++'s output parameter {@code g_tracks4_8} (only meaningful when {@code success}). */
-	public record LoadRmwResult(boolean success, int tracks4_8) {
+	/** {@code success} is C++'s own {@code bool} return; {@code tracks4_8} is C++'s output parameter {@code g_tracks4_8}, {@code uiParams} the 16 UI settings the file carries (see {@link #saveRMW(int, int[])}) - both only meaningful when {@code success}. */
+	public record LoadRmwResult(boolean success, int tracks4_8, int[] uiParams) {
 	}
 
 	/**
@@ -2944,16 +2964,17 @@ public final class Song {
 	 * {@link #saveRMW} counterpart) from {@code data}, taking the whole
 	 * file content directly instead of C++'s {@code std::istream&}
 	 * (matching {@link #loadTxt}'s reasoning). See {@link #saveRMW}'s
-	 * javadoc for the unmapped-main-parameters design note, which applies
-	 * here identically; instrument/track data now decodes via
+	 * javadoc for the 16 UI settings, which come back in the result for the
+	 * caller to apply; instrument/track data now decodes via
 	 * {@link Instruments#loadAllRmw}/{@link Tracks#loadAllRmw}.
 	 */
 	public LoadRmwResult loadRMW(byte[] data, Undo undo) {
 		int tracks4_8 = clearSong(8, undo); // always clear 8 tracks
 
+		int[] uiParams = new int[RMW_UI_PARAMS_COUNT];
 		int nl = indexOf(data, (byte) '\n', 0);
 		if (nl < 0) {
-			return new LoadRmwResult(false, tracks4_8);
+			return new LoadRmwResult(false, tracks4_8, uiParams);
 		}
 		String fileVersion = new String(data, 0, nl, java.nio.charset.StandardCharsets.US_ASCII);
 		int pos = nl + 1;
@@ -2961,7 +2982,7 @@ public final class Song {
 			// Guard-only: version mismatch. C++'s SendErrorMessage isn't
 			// reproduced - Song holds no Messages reference (matches
 			// instrChangeApply's established reasoning).
-			return new LoadRmwResult(false, tracks4_8);
+			return new LoadRmwResult(false, tracks4_8, uiParams);
 		}
 
 		for (int i = 0; i < SongInfo.SONG_NAME_MAX_LEN; i++) {
@@ -2995,7 +3016,7 @@ public final class Song {
 		songPlayLine = mainParams[5];
 		trackActiveLine = mainParams[6];
 		trackPlayLine = mainParams[7];
-		// mainParams[8..23]: unmapped globals, discarded
+		System.arraycopy(mainParams, RMW_UI_PARAMS_INDEX, uiParams, 0, RMW_UI_PARAMS_COUNT); // the 16 UI settings, for the caller to apply
 		trackActiveCol = mainParams[24];
 		trackActiveCur = mainParams[25];
 		activeInstr = mainParams[26];
@@ -3019,7 +3040,7 @@ public final class Song {
 		pos = instruments.loadAllRmw(data, pos);
 		tracks.loadAllRmw(data, pos);
 
-		return new LoadRmwResult(true, tracks4_8);
+		return new LoadRmwResult(true, tracks4_8, uiParams);
 	}
 
 	/**

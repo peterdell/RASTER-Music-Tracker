@@ -1,0 +1,45 @@
+# Cross-program comparison script (see plans/CPP_SCRIPTING_PLAN.md): the mono
+# reference song through every save and export, first with the dialogs'
+# defaults, then with every option set. Run through Rmt.exe and rmt.jar; the
+# two output folders must match byte for byte (except the WAV, whose sample
+# format differs by design). Dates and texts are fixed so today's date never
+# enters the files.
+set output out/delta
+set overwrite yes
+open ../ui-reference/song1-mono/Delta.rmt
+
+# saves
+save delta.rmt
+save delta.txt
+save delta.rmw
+
+# the eight formats with the dialogs' defaults
+export stripped-rmt d1.rmt
+export asm d1.asm
+export sapr d1.sapr date="01/01/2026"
+export lzss d1.lzss
+export sap d1.sap date="01/01/2026"
+export xex d1.xex text="DELTA\nBY RASTER\n01/01/2026\nLINE FOUR\nLINE FIVE"
+export rmtplayer-asm d1_player.asm
+export wav d1.wav
+
+# every option set
+export stripped-rmt d2.rmt address=$5000 sfx=yes gvf=yes nos=yes asmformat=atasm
+export asm d2.asm type=song notes=freq durations=note-duration prefix=TUNE
+export asm d3.asm type=tracks notes=index durations=duration-note prefix=""
+export sapr d2.sapr author="Author Two" name="Name Two" date="02/02/2026" subsongs="0"
+export sap d2.sap author="Author Two" name="Name Two" date="02/02/2026" subsongs="0"
+export xex d2.xex text="ONE\nTWO" rasterbar=no shuffle=no region-auto=no color=20
+export rmtplayer-asm d2_player.asm startlabel=SONG relocate=instruments,tracks,songlines instruments-label=INS tracks-label=TRK songlines-label=LIN asmformat=atasm sfx=yes gvf=yes nos=yes
+export rmtplayer-asm d3_player.asm relocate=none asmformat=xasm sfx=no gvf=no nos=no
+
+# the settings
+set ntsc yes
+export sapr d3.sapr date="01/01/2026"
+export xex d3.xex text="NTSC"
+export wav d2.wav
+set ntsc no
+set driver unpatched
+export sapr d4.sapr date="01/01/2026"
+set driver patch16
+echo delta done

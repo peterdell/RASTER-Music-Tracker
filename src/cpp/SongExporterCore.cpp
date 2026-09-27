@@ -1,3 +1,4 @@
+#include <vector>
 #include "SongExporter.h"
 #include "StdAfx.h"
 #include <iomanip>
@@ -294,8 +295,13 @@ bool CSongExporter::ExportLZSS(CSongExport& songExport, std::ofstream& ou) {
 
     const int frameSize = CLZSSFile::GetFrameSize(songExport.GetSong());
 
-    // Now, create LZSS files using the SAP-R dump created earlier
-    byte compressedData[RAM_SIZE]{};
+    // Now, create LZSS files using the SAP-R dump created earlier. The buffer
+    // is large and on the heap, as in ExportXEX_LZSS: LZSS_SAP() writes as
+    // much as the compression yields, and a stereo song's full stream
+    // compressed into a 64K stack buffer overran it (a fail-fast crash, found
+    // by the cross-program script comparison, 2026-09-27).
+    const size_t LZSS_BUFFER_SIZE = 0xFFFFF;
+    std::vector<byte> compressedData(LZSS_BUFFER_SIZE);
 
     CCompressLzss lzssData;
 
@@ -306,26 +312,26 @@ bool CSongExporter::ExportLZSS(CSongExport& songExport, std::ofstream& ou) {
     fn = fn.Left(fn.GetLength() - 5); // In order to keep the filename without the extention
 
     // Full tune playback up to its loop point
-    int full = lzssData.LZSS_SAP(pokeyStream.GetConstStreamBuffer(), pokeyStream.GetFirstCountPoint() * frameSize, compressedData);
+    int full = lzssData.LZSS_SAP(pokeyStream.GetConstStreamBuffer(), pokeyStream.GetFirstCountPoint() * frameSize, compressedData.data());
     if (full > 16) {
         //ou.open(fn + "_FULL.lzss", ios::binary);	// Create a new file for the Full section
-        ou.write((char*)compressedData, full); // Write the buffer contents to the export file
+        ou.write((char*)compressedData.data(), full); // Write the buffer contents to the export file
     }
     ou.close(); // Close the file, if successful, it should not be empty
 
     // Intro section playback, up to the start of the detected loop point
-    int intro = lzssData.LZSS_SAP(pokeyStream.GetConstStreamBuffer(), pokeyStream.GetThirdCountPoint() * frameSize, compressedData);
+    int intro = lzssData.LZSS_SAP(pokeyStream.GetConstStreamBuffer(), pokeyStream.GetThirdCountPoint() * frameSize, compressedData.data());
     if (intro > 16) { // TODO: Why 16?
         ou.open(fn + "_INTRO.lzss", std::ios::binary); // Create a new file for the Intro section
-        ou.write((char*)compressedData, intro); // Write the buffer contents to the export file
+        ou.write((char*)compressedData.data(), intro); // Write the buffer contents to the export file
     }
     ou.close(); // Close the file, if successful, it should not be empty
 
     // Looped section playback, this part is virtually seamless to itself
-    int loop = lzssData.LZSS_SAP(pokeyStream.GetConstStreamBuffer() + (pokeyStream.GetFirstCountPoint() * frameSize), pokeyStream.GetSecondCountPoint() * frameSize, compressedData);
+    int loop = lzssData.LZSS_SAP(pokeyStream.GetConstStreamBuffer() + (pokeyStream.GetFirstCountPoint() * frameSize), pokeyStream.GetSecondCountPoint() * frameSize, compressedData.data());
     if (loop > 16) {
         ou.open(fn + "_LOOP.lzss", std::ios::binary); // Create a new file for the Loop section
-        ou.write((char*)compressedData, loop); // Write the buffer contents to the export file
+        ou.write((char*)compressedData.data(), loop); // Write the buffer contents to the export file
     }
     ou.close(); // Close the file, if successful, it should not be empty
 

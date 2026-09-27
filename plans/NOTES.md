@@ -4685,3 +4685,43 @@ build clean and all 123 tests pass.
       1); a broken quote gives exit 2.
     - `doc/rmt_scripting.md` now covers both programs (the Windows
       paragraph: `start /wait`, the `.log` fallback); README updated.
+  - **2026-09-27**: C++ scripting, batch C2 (`plans/CPP_SCRIPTING_PLAN.md`)
+    - the cross-program export comparison, and the port bugs its first run
+    found.
+    - `test-resources/scripts/delta.rmtscript`, `stereo.rmtscript`: the
+      saves in the three formats, the eight exports with defaults, a round
+      with every option, `set ntsc`/`set driver` rounds. The stereo script
+      has no `sap`/`xex`: both programs refuse the song ("LZSS data is too
+      big to fit in memory").
+    - `set output <folder>` in both programs (decision 3), the
+      `RMT_SCRIPT_OUTPUT` environment variable overriding it (one script,
+      two output trees), `RMT_SCRIPT_LOG` in `Rmt.exe` (its console output
+      into a file whatever console the caller has; stdout and stderr share
+      one offset via `_dup2` - two `freopen` lost lines).
+    - `build/compare_exports.ps1`: both programs over every script with the
+      C++ program folder's `rmt.ini`/`tuning.ini`, the output trees byte for
+      byte, WAV reported only (decision 5); exit 1 on a difference, 2 when a
+      program is not built. `build_rmt-daily.bat` calls it after the release
+      build when `target\rmt.jar` exists and stops before the upload on a
+      difference. `CrossProgramExportTest` (decision 4): the same comparison
+      with every `mvn test`, skipped without `Rmt.exe`.
+    - **Four port bugs found by the first run, all fixed** (see the plan's
+      C2 paragraph): Java ASM exports CRLF instead of C++'s LF (binary-mode
+      export, `CASMFile::EOL`; `SongFiles.asmBytes`); Java `.rmw`
+      instrument names 32 bytes instead of C++'s 33 (`sizeof(ai->name)`,
+      save and load - the files were not interchangeable); Java `.rmw` main
+      parameters 8..23 (the 16 UI-setting globals) written as zeros and
+      discarded on load - `Song.saveRMW(tracks4_8, uiParams)`,
+      `LoadRmwResult.uiParams`, supplied/applied by `SongFiles` from the
+      session in the `DEFINE_MAINPARAMS` order (`g_keyboard_playautofollow`
+      has no Java field, its C++ default 1 is written); C++ `ExportLZSS`
+      and `ExportSAP_B_LZSS` fail-fast crashes (0xC0000409) on the stereo
+      song from 64 KB stack buffers, now 1 MB heap vectors as the sibling
+      exporters. After the fixes every non-WAV file of both scripts is
+      byte-identical (RMT/TXT/RMW saves, stripped RMT, ASM, SAP-R, LZSS with
+      its INTRO/LOOP siblings, SAP, XEX, RMT player ASM, in both languages'
+      option and NTSC/driver rounds).
+    - Tests: `SongEditingTest.saveRMWAndLoadRMWRoundTripTheCallersUiSettings`,
+      `ScriptRunnerTest.setOutputRedirectsSavesAndExportsAndTheOverrideWins`,
+      `CrossProgramExportTest`. 590 Java tests (+3, one conditional); 415
+      C++ tests. Release build clean.

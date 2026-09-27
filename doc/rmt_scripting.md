@@ -63,7 +63,9 @@ Exit codes of the command line:
   values (texts, labels, file names) keep their case.
 - Yes/no options accept `yes`, `no`, `true`, `false`, `on`, `off`, `1`, `0`.
 - Relative file names are relative to the script file's folder, so a
-  script travels with its songs.
+  script travels with its songs. Output files (`save`, `export`) go to the
+  folder of `set output` instead when the script gave one; the folder is
+  created when it is missing.
 - An output file that exists already is an error, unless the script says
   `set overwrite yes` first.
 
@@ -75,6 +77,7 @@ Exit codes of the command line:
 | `save <file>` | Saves the song as `.rmt`, `.txt` or `.rmw` by extension (as File > Save as). The RMT format's integrity check applies. |
 | `export <format> <file> [name=value ...]` | Exports the song (as File > Export as). Formats and options below. |
 | `set overwrite yes\|no` | Whether later `save`/`export` commands may replace existing files. Default `no`. |
+| `set output <folder>` | Where later `save`/`export` commands write (relative to the script's folder; created when missing). Default: the script's folder. |
 | `set ntsc yes\|no` | The Options dialog's NTSC setting (the video standard: 60 or 50 frames per second, and the POKEY clock). |
 | `set driver <version>` | The Options dialog's tracker driver: `unpatched`, `unpatched-with-tuning`, `patch3`, `patch6`, `patch8`, `patch16` (the default), `patch-prince-of-persia`. |
 | `echo <text ...>` | Prints the text. |
@@ -118,6 +121,28 @@ echo finished
 ```
 java -jar rmt.jar /SCRIPT:Delta\build.rmtscript
 ```
+
+## Environment variables
+
+Two variables let a build script run one and the same script file with
+different outputs, without editing it:
+
+| Variable | Programs | Meaning |
+|---|---|---|
+| `RMT_SCRIPT_OUTPUT=<folder>` | both | The output folder for every `save`/`export`; overrides the script's `set output`. |
+| `RMT_SCRIPT_LOG=<file>` | Windows | Writes the messages to this file instead of the console or `<script>.log`. |
+
+## Comparing the two programs
+
+The scripts in `test-resources/scripts` export the reference songs in every
+format, once with the defaults and once with every option set.
+`build/compare_exports.ps1` runs each of them through `Rmt.exe` and through
+`rmt.jar` with the same `rmt.ini`/`tuning.ini` and compares the output
+folders byte for byte (WAV files excepted: 8-bit in `Rmt.exe`, 16-bit in
+the Java port). `build/build_rmt-daily.bat` runs it after the release build
+when `target/rmt.jar` exists; the JUnit test `CrossProgramExportTest` runs
+the same comparison with every `mvn test` when `Rmt.exe` is built. A
+difference is a port bug in one of the two programs.
 
 ## Not available as script commands
 

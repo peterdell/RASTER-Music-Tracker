@@ -1,7 +1,9 @@
 # C++ scripting and the cross-program export comparison (proposal)
 
 Status: **C1 DONE 2026-09-27** (decisions 1, 2 and 6 as recommended);
-C2 (the comparison) and C3 (documentation) open. Origin: the user's
+**C2 DONE 2026-09-27** (decisions 3, 4 and 5 as recommended: `set output`
+plus the `RMT_SCRIPT_OUTPUT` override, the JUnit `CrossProgramExportTest`,
+WAV reported but not compared); C3 (documentation) open. Origin: the user's
 question after the Java scripting feature - would `/SCRIPT` support in the
 Windows program simplify testing? Answer: yes, twice - it enables an
 end-to-end comparison of both programs' export pipelines, which no test
@@ -38,6 +40,40 @@ song's `m_pokeyStream` is already null after the dump. The source's own
 stops the song timer for its duration and re-arms it at the end. The Java
 port is not affected (the audio engine and the export share the session
 lock).
+
+C2 as built: `test-resources/scripts/delta.rmtscript` and
+`stereo.rmtscript` (saves in the three formats, the eight exports with
+defaults, a round with every option, `set ntsc`/`set driver` rounds; the
+stereo song without `sap`/`xex`, which both programs refuse - "LZSS data is
+too big to fit in memory"); `set output <folder>` and the
+`RMT_SCRIPT_OUTPUT` environment variable in both programs, `RMT_SCRIPT_LOG`
+in the C++ one (its console output into a file whatever console the caller
+has); `build/compare_exports.ps1` (exit 1 on a difference, 2 when a program
+is not built) called from `build_rmt-daily.bat` after the release build
+when `target\rmt.jar` exists; `CrossProgramExportTest` (skips without
+`Rmt.exe`). **The first run found four port bugs**, all fixed:
+
+- Java: ASM exports (`asm`, `rmtplayer-asm`) were written with CRLF; C++
+  opens every export in binary mode with `CASMFile::EOL = "\n"`, so LF.
+  The TXT saves stay CRLF (C++ text mode) - `SongFiles.asmBytes` vs
+  `textBytes`.
+- Java: `.rmw` instrument records were 32 bytes of name; C++ writes
+  `sizeof(ai->name)` = 33 (the terminating zero). Save and load fixed - a
+  Java-written `.rmw` was not loadable by `Rmt.exe` and vice versa.
+- Java: the 16 UI settings among the `.rmw` main parameters
+  (`g_activepart` .. `g_keyboard_escresetatarisound`) were written as zeros
+  and discarded on load. `Song.saveRMW(tracks4_8, uiParams)` /
+  `LoadRmwResult.uiParams` now carry them, `SongFiles` supplies and applies
+  them from the session (`g_keyboard_playautofollow` has no Java field -
+  its C++ default 1 is written).
+- C++: `export lzss` and `export sap` crashed (0xC0000409, fail-fast) on the
+  stereo song - `ExportLZSS`, `ExportSAP_B_LZSS` kept 64 KB buffers on the
+  stack for compressed data that can exceed them. Heap vectors of 1 MB now
+  (`std::vector<byte>`), as the other exporters already used.
+
+Also from the run: `RedirectScriptOutputToFile` uses `_dup2` for stderr
+(two `freopen` of the same file gave two file offsets and lost lines).
+After the fixes, every non-WAV file of both scripts is byte-identical.
 
 ## 1. Goal
 

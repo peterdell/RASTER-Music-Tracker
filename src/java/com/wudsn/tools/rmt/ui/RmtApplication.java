@@ -36,6 +36,9 @@ public final class RmtApplication {
 	/** System property naming the program folder ({@code rmt.ini}/{@code tuning.ini}, {@code resources/}, {@code docs/}); default: see {@link #getProgramFolder()}. */
 	public static final String CONFIG_DIR_PROPERTY = "rmt.config.dir";
 
+	/** Environment variable naming the output folder of a {@code /SCRIPT} run (both programs honour it; it overrides the script's {@code set output}). */
+	public static final String SCRIPT_OUTPUT_VARIABLE = "RMT_SCRIPT_OUTPUT";
+
 	private RmtApplication() {
 	}
 
@@ -113,6 +116,10 @@ public final class RmtApplication {
 		RmtConfig config = new RmtConfig(programFolder);
 		config.readRMTConfig(session);
 		config.readTuningConfig(session);
+		String outputOverride = System.getenv(SCRIPT_OUTPUT_VARIABLE);
+		if (outputOverride != null && !outputOverride.isEmpty()) {
+			runner.setOutputFolder(Path.of(outputOverride)); // the cross-program comparison runs one script into two folders
+		}
 		return runner.run(scriptFile);
 	}
 

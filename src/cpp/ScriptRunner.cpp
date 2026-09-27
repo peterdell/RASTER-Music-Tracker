@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <fstream>
+#include <io.h>
 #include <sstream>
 
 extern CXPokey g_Pokey;
@@ -216,18 +217,37 @@ void RequireNoOptions(const TScriptCommand& c) {
 } // namespace
 
 void AttachScriptConsole(const CString& scriptFilePath) {
+    // RMT_SCRIPT_LOG=<file>: everything into that file, console or not (the
+    // cross-program comparison reads it when a run fails)
+    char* logOverride = nullptr;
+    size_t logOverrideLength = 0;
+    if (_dupenv_s(&logOverride, &logOverrideLength, "RMT_SCRIPT_LOG") == 0 && logOverride != nullptr) {
+        if (*logOverride) {
+            RedirectScriptOutputToFile(logOverride);
+            free(logOverride);
+            return;
+        }
+        free(logOverride);
+    }
     if (AttachConsole(ATTACH_PARENT_PROCESS)) {
         FILE* stream = nullptr;
         freopen_s(&stream, "CONOUT$", "w", stdout);
         freopen_s(&stream, "CONOUT$", "w", stderr);
+        setvbuf(stdout, nullptr, _IONBF, 0);
+        setvbuf(stderr, nullptr, _IONBF, 0);
         printf("\n"); // the prompt of the parent console is on the current line
     } else {
-        CString logPath = scriptFilePath + ".log";
-        FILE* stream = nullptr;
-        freopen_s(&stream, logPath, "w", stdout);
-        freopen_s(&stream, logPath, "a", stderr);
+        RedirectScriptOutputToFile(scriptFilePath + ".log");
     }
+}
+
+void RedirectScriptOutputToFile(const CString& logPath) {
+    // One file, one offset for both streams (a second freopen would keep its
+    // own position and the two would overwrite each other's lines).
+    FILE* stream = nullptr;
+    freopen_s(&stream, logPath, "w", stdout);
     setvbuf(stdout, nullptr, _IONBF, 0);
+    _dup2(_fileno(stdout), _fileno(stderr));
     setvbuf(stderr, nullptr, _IONBF, 0);
 }
 
@@ -299,8 +319,25 @@ bool CScriptRunner::Execute(const TScriptCommand& command) {
     return true;
 }
 
+void CScriptRunner::SetOutputFolder(const std::filesystem::path& outputFolder) {
+    m_outputOverride = outputFolder;
+}
+
 std::filesystem::path CScriptRunner::Resolve(const std::string& path) const {
     return (m_baseFolder / std::filesystem::path(path)).lexically_normal();
+}
+
+std::filesystem::path CScriptRunner::ResolveOutput(const TScriptCommand& command, const std::string& path) const {
+    const std::filesystem::path& base = !m_outputOverride.empty() ? m_outputOverride : !m_outputFolder.empty() ? m_outputFolder : m_baseFolder;
+    std::filesystem::path file = (base / std::filesystem::path(path)).lexically_normal();
+    std::error_code error;
+    if (file.has_parent_path()) {
+        std::filesystem::create_directories(file.parent_path(), error);
+    }
+    if (error) {
+        throw CScriptError(command.line, "Cannot create the folder '" + file.parent_path().string() + "': " + error.message());
+    }
+    return file;
 }
 
 void CScriptRunner::CheckOverwrite(const TScriptCommand& command, const std::filesystem::path& file) const {
@@ -327,7 +364,7 @@ void CScriptRunner::Open(const TScriptCommand& command) {
 void CScriptRunner::Save(const TScriptCommand& command) {
     RequireArguments(command, 1, "save <file>");
     RequireNoOptions(command);
-    std::filesystem::path file = Resolve(command.GetArgument(0));
+    std::filesystem::path file = ResolveOutput(command, command.GetArgument(0));
     std::string name = file.string();
     SongIOType ioType;
     if (EndsWithNoCase(name, ".rmt")) {
@@ -375,7 +412,7 @@ void CScriptRunner::Export(const TScriptCommand& command) {
             throw CScriptError(command.line, "Unknown option '" + option.first + "' for the format '" + formatName + "'" + (sorted.empty() ? std::string(" (it has none).") : "; one of " + Join(sorted, ", ") + "."));
         }
     }
-    std::filesystem::path file = Resolve(command.GetArgument(1));
+    std::filesystem::path file = ResolveOutput(command, command.GetArgument(1));
     if (!EndsWithNoCase(file.string(), format->extension)) {
         file += format->extension;
     }
@@ -545,6 +582,8 @@ void CScriptRunner::Set(const TScriptCommand& command) {
     std::string value = command.GetArgument(1);
     if (name == "overwrite") {
         m_overwrite = ParseBoolean(command, "overwrite", value);
+    } else if (name == "output") {
+        m_outputFolder = Resolve(value);
     } else if (name == "ntsc") {
         // CRmtView::SetNTSC (the Options dialog's NTSC box)
         bool ntsc = ParseBoolean(command, "ntsc", value);
@@ -561,6 +600,6 @@ void CScriptRunner::Set(const TScriptCommand& command) {
             g_AtariTrackerDriver->LoadRMTRoutines(g_trackerDriverVersion);
         }
     } else {
-        throw CScriptError(command.line, "Unknown setting '" + command.GetArgument(0) + "'; one of overwrite, ntsc, driver.");
+        throw CScriptError(command.line, "Unknown setting '" + command.GetArgument(0) + "'; one of overwrite, output, ntsc, driver.");
     }
 }

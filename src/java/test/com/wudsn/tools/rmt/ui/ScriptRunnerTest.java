@@ -222,6 +222,23 @@ class ScriptRunnerTest {
 	}
 
 	@Test
+	void setOutputRedirectsSavesAndExportsAndTheOverrideWins() throws IOException {
+		assertEquals(ScriptRunner.EXIT_OK, run("set output sub/folder", "open Delta.rmt", "save copy.rmt", "export sapr o.sapr", "set output sub/../elsewhere", "export lzss o.lzss"), err());
+		assertTrue(Files.isRegularFile(dir.resolve("sub").resolve("folder").resolve("copy.rmt")));
+		assertTrue(Files.isRegularFile(dir.resolve("sub").resolve("folder").resolve("o.sapr")));
+		assertTrue(Files.isRegularFile(dir.resolve("elsewhere").resolve("o.lzss"))); // stays inside the temp folder (an earlier "../elsewhere" left files behind between runs)
+
+		RmtSession session = new RmtSession();
+		Path script = dir.resolve("override.rmtscript");
+		Files.write(script, List.of("set output ignored", "open Delta.rmt", "export sapr p.sapr"), StandardCharsets.UTF_8);
+		ScriptRunner runner = new ScriptRunner(session, new PrintStream(out), new PrintStream(err));
+		runner.setOutputFolder(dir.resolve("forced"));
+		assertEquals(ScriptRunner.EXIT_OK, runner.run(script), err());
+		assertTrue(Files.isRegularFile(dir.resolve("forced").resolve("p.sapr")));
+		assertFalse(Files.exists(dir.resolve("ignored")));
+	}
+
+	@Test
 	void quitEndsTheScriptSuccessfully() throws IOException {
 		assertEquals(ScriptRunner.EXIT_OK, run("open Delta.rmt", "quit", "export mp3 nonsense"));
 	}
