@@ -4835,3 +4835,44 @@ build clean and all 123 tests pass.
       the generated manual's heading and included table); the staging
       produces 12 files with the generated manual (383 table rows); the C++
       Release build clean; the manual rendered in a browser.
+  - **2026-09-27**: Documentation, D4 (first part) - the manual's hotkey
+    tables verified against the code (`CRmtView::OnKeyDown`, the
+    accelerator table, `InfoKey`/`InstrKey`/`ProveKey`/`TrackKey`/`SongKey`
+    in `GUI_Song.cpp`). Corrected in `doc/rmt_en.md`:
+    - "SHIFT+ESC reinitialises the sound output": there is no Shift+Esc;
+      Esc stops, and the option "ESC resets Atari sound" (default on)
+      reinitialises the routines - one row now says so.
+    - "PAGE UP/DOWN: next/previous song line": true in SONG, INFO and
+      INSTRUMENT EDIT; in TRACK EDIT they move by the highlight step within
+      the track and CONTROL+PAGE UP/DOWN change the song line - the row
+      says so, the empty TRACK EDIT row for CONTROL+PAGE UP/DOWN filled.
+    - The two other empty TRACK EDIT rows filled: SHIFT+CONTROL+ENTER sets
+      the track's end line (as CONTROL+END); INSERT/DELETE insert/delete a
+      line (DELETE deletes the selection block when one exists).
+    - CONTROL+ENTER: the "Swap ENTER and CONTROL+ENTER" option noted.
+    - SONG EDIT: "CONTROL+PAGE UP/DOWN to the previous/next subsong" is
+      SHIFT+PAGE UP/DOWN in `SongKey` (Control is not handled there; Shift
+      selects the subsong in every mode).
+    - Everything else in the hotkey tables matches the code.
+    - Not in the code: a handler for the menu hints Ctrl+Shift+S (Save As)
+      and Alt+Enter (Properties) - neither an accelerator nor a key handler
+      case (`VK_S`, Alt+Return); the Java port follows the same table. To
+      be tried by hand; if dead, the hints in `Rmt.rc` should go or real
+      accelerators be added.
+    - Decisions of the user after the check: Ctrl+Shift+S (Save As) and
+      Alt+Enter (Properties) become real accelerators in `Rmt.rc` and in
+      `RmtCommandId` (both were menu hints without a binding); the note keys
+      ("tonekeys") are generated - `dump notekeys <file>`
+      (`NoteKeysTable()` in `Keyboard2NoteMapping.cpp`, `NoteKeys` in the
+      Java model, the same text: "### QWERTY"/"### AZERTY", a Note/Keys
+      table each, the OEM keys by their US or French legends), written by
+      `actions.rmtscript` as `doc/rmt_note_keys.md`, compared across the
+      programs and included in the manual's new "Note Keys" chapter. The
+      French legends of the OEM keys ($ = , ; : ù ) * ^ ² ! <) are from the
+      standard French layout and not verified on a French keyboard.
+    - Verified: `mvn -o clean package` 595 tests (`dump notekeys` in
+      `ScriptRunnerTest`, the included tables in `DocGeneratorTest`, the
+      two new accelerators in `RmtMainMenuTest`); RmtTests 416 (+1, the
+      note key table); `compare_exports.ps1` 3 scripts, the command table
+      and the note key table byte-identical in both programs; the staged
+      manual carries both layouts.

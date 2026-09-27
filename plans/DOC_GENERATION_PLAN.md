@@ -16,7 +16,15 @@ Script added to the C++ program, Ctrl+F12 (NTSC) to the Java port. **D3 DONE 202
 Keys" chapter that includes the generated table; the three F-key rows the
 table proves stale corrected), `doc/rmt_en.html` deleted (generated from now
 on), the online help of both programs and README point at the Markdown page
-on GitHub. D4 (the revision of the outdated chapters) is the user's.
+on GitHub. **D4 in progress 2026-09-27**: the manual's hotkey tables
+checked row by row against `CRmtView::OnKeyDown`, the accelerator table
+and the five key handlers of `GUI_Song.cpp` (`InfoKey`, `InstrKey`,
+`ProveKey`, `TrackKey`, `SongKey`); the rows the code contradicts corrected
+(see NOTES); the note keys of both layouts as a generated table
+(`dump notekeys`, `doc/rmt_note_keys.md`, included in the manual - the
+user's decision: one command, a section per layout); Ctrl+Shift+S and
+Alt+Enter as real accelerators in both programs (the user's decision: add
+them, the menu had promised them without a binding).
 Origin: the user's two
 points after the C++ scripting batch C3 - (1) the documentation is
 maintained as Markdown on GitHub, because that is easier to maintain, and

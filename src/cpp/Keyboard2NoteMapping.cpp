@@ -147,3 +147,71 @@ char NumbKey(int vk) {
 char Numblock09Key(int vk) {
     return keynumblock09[vk];
 };
+
+#include "Notes.h"
+#include <cstdio>
+
+namespace {
+
+// The legend of a virtual key as the keyboard of the layout prints it: the
+// letters and digits are the same physical keys in both layouts (the
+// AZERTY number row is Shift-ed for the digits, its unshifted legends are
+// & é " ' ( - è _ ç à), the OEM keys differ.
+std::string KeyLegend(int vk, KeyboardLayout layout) {
+    if ((vk >= '0' && vk <= '9') || (vk >= 'A' && vk <= 'Z')) {
+        return std::string(1, (char)vk);
+    }
+    bool azerty = layout == KeyboardLayout::AZERTY;
+    switch (vk) {
+    case 0xBA: return azerty ? "$" : ";"; // VK_OEM_1
+    case 0xBB: return "="; // VK_OEM_PLUS
+    case 0xBC: return ","; // VK_OEM_COMMA
+    case 0xBD: return "-"; // VK_OEM_MINUS
+    case 0xBE: return azerty ? ";" : "."; // VK_OEM_PERIOD
+    case 0xBF: return azerty ? ":" : "/"; // VK_OEM_2
+    case 0xC0: return azerty ? "\xC3\xB9" : "`"; // VK_OEM_3 (u with grave accent, UTF-8)
+    case 0xDB: return azerty ? ")" : "["; // VK_OEM_4
+    case 0xDC: return azerty ? "*" : "\\"; // VK_OEM_5
+    case 0xDD: return azerty ? "^" : "]"; // VK_OEM_6
+    case 0xDE: return azerty ? "\xC2\xB2" : "'"; // VK_OEM_7 (superscript two, UTF-8)
+    case 0xDF: return "!"; // VK_OEM_8
+    case 0xE2: return "<"; // VK_OEM_102
+    default:
+        break;
+    }
+    char buffer[16];
+    snprintf(buffer, sizeof(buffer), "VK_%02X", vk);
+    return buffer;
+}
+
+void AppendLayout(std::string& out, const char* name, const unsigned char* table, KeyboardLayout layout) {
+    out += "### ";
+    out += name;
+    out += "\n\n| Note | Keys |\n|---|---|\n";
+    for (int note = 0; note < CNotes::NOTESNUM; note++) {
+        std::string keys;
+        for (int vk = 0; vk < 256; vk++) {
+            if (table[vk] == note) {
+                if (!keys.empty()) {
+                    keys += ", ";
+                }
+                keys += "`" + KeyLegend(vk, layout) + "`";
+            }
+        }
+        if (!keys.empty()) {
+            out += "| ";
+            out += CNotes::GetNote(note);
+            out += " | " + keys + " |\n";
+        }
+    }
+}
+
+} // namespace
+
+std::string NoteKeysTable() {
+    std::string out;
+    AppendLayout(out, "QWERTY", keynotes_QWERTY, KeyboardLayout::QWERTY);
+    out += "\n";
+    AppendLayout(out, "AZERTY", keynotes_AZERTY, KeyboardLayout::AZERTY);
+    return out;
+}

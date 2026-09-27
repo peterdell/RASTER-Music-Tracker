@@ -6,6 +6,7 @@
 #include "AtariTrackerDriver.h"
 #include "Commands.h"
 #include "Global.h"
+#include "Keyboard2NoteMapping.h"
 #include "Messages.h"
 #include "RmtExporter.h"
 #include "SAPFile.h"
@@ -647,14 +648,23 @@ void CScriptRunner::Set(const TScriptCommand& command) {
 }
 
 void CScriptRunner::Dump(const TScriptCommand& command) {
-    RequireArguments(command, 2, "dump actions <file>");
+    RequireArguments(command, 2, "dump actions|notekeys <file>");
     RequireNoOptions(command);
     std::string what = Lower(command.GetArgument(0));
-    if (what != "actions") {
-        throw CScriptError(command.line, "Unknown dump '" + command.GetArgument(0) + "'; one of actions.");
+    if (what != "actions" && what != "notekeys") {
+        throw CScriptError(command.line, "Unknown dump '" + command.GetArgument(0) + "'; one of actions, notekeys.");
     }
     std::filesystem::path file = ResolveOutput(command, command.GetArgument(1));
     CheckOverwrite(command, file);
+    if (what == "notekeys") {
+        // The note keys ("tonekeys") of both keyboard layouts (doc/rmt_note_keys.md)
+        std::string text = NoteKeysTable();
+        std::ofstream out(file, std::ios::binary);
+        out.write(text.data(), text.size());
+        out.close();
+        Out("Dumped the note keys to " + file.string());
+        return;
+    }
     // The command table of the program's resources (doc/rmt_action_infos.md);
     // an ERROR marker in it is an inconsistency in Rmt.rc and fails the command.
     CCommands commands;

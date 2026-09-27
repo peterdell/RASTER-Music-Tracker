@@ -55,3 +55,12 @@ TEST(Numblock09KeyTest, MapsNumpadDigitsOnly) {
     EXPECT_EQ(Numblock09Key(0x69), (char)9); // VK_NUMPAD9
     EXPECT_EQ(Numblock09Key(0x30), (char)-1); // top-row digits are NOT mapped here
 }
+
+TEST_F(Keyboard2NoteMappingTest, NoteKeysTableListsBothLayoutsWithTheirLegends) {
+    std::string table = NoteKeysTable();
+    EXPECT_EQ(table.rfind("### QWERTY\n\n| Note | Keys |\n|---|---|\n| C-1 | `Z` |\n", 0), 0u) << table;
+    EXPECT_NE(table.find("| C-2 | `Q`, `,` |\n"), std::string::npos) << table; // two keys, an octave apart on the two rows
+    EXPECT_NE(table.find("| F#3 | `=` |\n"), std::string::npos) << table; // an OEM key by its US legend
+    EXPECT_NE(table.find("\n### AZERTY\n\n| Note | Keys |\n|---|---|\n| C-1 | `W` |\n"), std::string::npos) << table;
+    EXPECT_NE(table.find("| C-2 | `A`, `;` |\n"), std::string::npos) << table; // the French legends
+}

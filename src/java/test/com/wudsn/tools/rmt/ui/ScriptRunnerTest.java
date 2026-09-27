@@ -249,6 +249,11 @@ class ScriptRunnerTest {
 		assertTrue(text.contains("| Tool Bar Main | Toggle MIDI on/off |  | Toggle MIDI on/off |\n"), "a toolbar-only command: " + text);
 		assertFalse(text.contains("ERROR"), text);
 
+		assertEquals(ScriptRunner.EXIT_OK, run("dump notekeys k.md"), err());
+		String keys = Files.readString(dir.resolve("k.md"), StandardCharsets.UTF_8);
+		assertTrue(keys.startsWith("### QWERTY\n\n| Note | Keys |\n|---|---|\n| C-1 | `Z` |\n"), keys);
+		assertTrue(keys.contains("| C-2 | `Q`, `,` |\n") && keys.contains("\n### AZERTY\n\n| Note | Keys |\n|---|---|\n| C-1 | `W` |\n"), keys);
+
 		assertEquals(ScriptRunner.EXIT_COMMAND_FAILED, run("dump songs b.md"));
 		assertTrue(err().contains("Unknown dump 'songs'"), err());
 		assertEquals(ScriptRunner.EXIT_COMMAND_FAILED, run("dump actions a.md"), "overwrite refused");

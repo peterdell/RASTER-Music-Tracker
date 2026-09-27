@@ -16,6 +16,7 @@ import com.wudsn.tools.rmt.model.AssemblerFormat;
 import com.wudsn.tools.rmt.model.MessageAnswer;
 import com.wudsn.tools.rmt.model.MessageButtons;
 import com.wudsn.tools.rmt.model.Messages;
+import com.wudsn.tools.rmt.model.NoteKeys;
 import com.wudsn.tools.rmt.model.SapFile;
 import com.wudsn.tools.rmt.model.TrackerDriverVersion;
 import com.wudsn.tools.rmt.ui.ActionInfos;
@@ -251,16 +252,24 @@ public final class ScriptRunner {
 	}
 
 	/** An output file: relative to the output folder (created on demand), else the script's folder. */
-	/** {@code dump actions <file>}: the program's command table ({@link ActionInfos}); an ERROR marker in it fails the command, as in the C++ program. */
+	/**
+	 * {@code dump actions <file>}: the program's command table ({@link ActionInfos}); an ERROR marker in it fails the command, as in the C++ program.
+	 * {@code dump notekeys <file>}: the note keys of both keyboard layouts ({@link NoteKeys}).
+	 */
 	private void dump(ScriptCommand command) throws ScriptException, IOException {
-		requireArguments(command, 2, "dump actions <file>");
+		requireArguments(command, 2, "dump actions|notekeys <file>");
 		requireNoOptions(command);
 		String what = command.argument(0).toLowerCase(Locale.ROOT);
-		if (!what.equals("actions")) {
-			throw new ScriptException(command.line(), "Unknown dump '" + command.argument(0) + "'; one of actions.");
+		if (!what.equals("actions") && !what.equals("notekeys")) {
+			throw new ScriptException(command.line(), "Unknown dump '" + command.argument(0) + "'; one of actions, notekeys.");
 		}
 		Path file = resolveOutput(command.argument(1));
 		checkOverwrite(command, file);
+		if (what.equals("notekeys")) {
+			NoteKeys.write(file);
+			out.println("Dumped the note keys to " + file);
+			return;
+		}
 		int errors = ActionInfos.write(file);
 		out.println("Dumped the actions to " + file);
 		if (errors > 0) {

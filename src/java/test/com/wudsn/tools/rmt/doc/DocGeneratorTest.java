@@ -41,6 +41,7 @@ class DocGeneratorTest {
 		String manual = Files.readString(out.resolve("rmt_en.html"), StandardCharsets.UTF_8);
 		assertTrue(manual.contains("<h1>RASTER Music Tracker (RMT) - Manual</h1>"), manual.substring(0, 400));
 		assertTrue(manual.contains("<td>Menu Tools</td>") && manual.contains("<td>Run Script...</td>"), "rmt_action_infos.md included");
+		assertTrue(manual.contains("<h3>AZERTY</h3>"), "rmt_note_keys.md included");
 		assertTrue(Files.isRegularFile(out.resolve("rmt_en_128.html")));
 		assertTrue(Files.isRegularFile(out.resolve("rmt.gif")));
 		assertTrue(Files.isRegularFile(out.resolve("img").resolve("song-go-to-line.png")));

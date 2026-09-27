@@ -81,6 +81,7 @@ Exit codes of the command line:
 | `set ntsc yes\|no` | The Options dialog's NTSC setting (the video standard: 60 or 50 frames per second, and the POKEY clock). |
 | `set driver <version>` | The Options dialog's tracker driver: `unpatched`, `unpatched-with-tuning`, `patch3`, `patch6`, `patch8`, `patch16` (the default), `patch-prince-of-persia`. |
 | `dump actions <file>` | Writes the program's command table - every menu item, toolbar button and key with its description - as a Markdown table (`doc/rmt_action_infos.md` is made this way by the build). A row marked ERROR is an inconsistency in the program's resources and fails the command. |
+| `dump notekeys <file>` | Writes the note keys of the QWERTY and AZERTY keyboard layouts (which key plays which note) as Markdown tables (`doc/rmt_note_keys.md`). |
 | `echo <text ...>` | Prints the text. |
 | `quit` | Ends the script (implicit at its end). |
 

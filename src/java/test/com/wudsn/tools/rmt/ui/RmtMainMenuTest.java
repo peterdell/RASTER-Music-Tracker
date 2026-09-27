@@ -50,10 +50,12 @@ class RmtMainMenuTest {
 		assertEquals(RmtCommandId.PART_INFO, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.SHIFT_DOWN_MASK)));
 		assertEquals(RmtCommandId.SONG_STOP, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0)));
 		assertEquals(RmtCommandId.SONG_INCREASE_PATTERN_STEP_SIZE, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ADD, 0)));
-		// Alt+F4 and Alt+Enter are label hints only, as in Rmt.rc's table: Alt+F4 is Windows' system close (-> windowClosing -> FILE_EXIT),
-		// which is why TrackerPanel must not consume Alt combinations
+		// Alt+F4 is a label hint only, as in Rmt.rc's table: Windows' system close (-> windowClosing -> FILE_EXIT),
+		// which is why TrackerPanel must not consume Alt combinations it does not dispatch
 		assertNull(menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK)));
-		assertNull(menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.ALT_DOWN_MASK)));
+		// Alt+Enter and Ctrl+Shift+S are real accelerators since 2026-09-27 (the labels had promised them without a table entry)
+		assertEquals(RmtCommandId.FILE_PROPERTIES, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.ALT_DOWN_MASK)));
+		assertEquals(RmtCommandId.FILE_SAVE_AS, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)));
 		// Ctrl+U is TrackKey's/SongKey's own key, shown in the Song menu only as a hint
 		assertNull(menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK)));
 		assertNull(menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK)));

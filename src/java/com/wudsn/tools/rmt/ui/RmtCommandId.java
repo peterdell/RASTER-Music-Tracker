@@ -16,7 +16,7 @@ import com.wudsn.tools.base.repository.Action;
  */
 public enum RmtCommandId {
 	// File
-	FILE_NEW(Actions.MainMenu_File_New), FILE_OPEN(Actions.MainMenu_File_Open), FILE_REOPEN(Actions.MainMenu_File_Reopen), FILE_SAVE(Actions.MainMenu_File_Save), FILE_SAVE_AS(Actions.MainMenu_File_SaveAs, false, true), FILE_IMPORT(Actions.MainMenu_File_Import), FILE_EXPORT(Actions.MainMenu_File_Export), FILE_PRINT(Actions.MainMenu_File_Print), FILE_PRINT_PREVIEW(Actions.MainMenu_File_PrintPreview), FILE_PRINT_SETUP(Actions.MainMenu_File_PrintSetup), FILE_PROPERTIES(Actions.MainMenu_File_Properties, false, true), FILE_EXIT(Actions.MainMenu_File_Exit, false, true),
+	FILE_NEW(Actions.MainMenu_File_New), FILE_OPEN(Actions.MainMenu_File_Open), FILE_REOPEN(Actions.MainMenu_File_Reopen), FILE_SAVE(Actions.MainMenu_File_Save), FILE_SAVE_AS(Actions.MainMenu_File_SaveAs), FILE_IMPORT(Actions.MainMenu_File_Import), FILE_EXPORT(Actions.MainMenu_File_Export), FILE_PRINT(Actions.MainMenu_File_Print), FILE_PRINT_PREVIEW(Actions.MainMenu_File_PrintPreview), FILE_PRINT_SETUP(Actions.MainMenu_File_PrintSetup), FILE_PROPERTIES(Actions.MainMenu_File_Properties), FILE_EXIT(Actions.MainMenu_File_Exit, false, true),
 	// Edit
 	EDIT_UNDO(Actions.MainMenu_Edit_Undo), EDIT_REDO(Actions.MainMenu_Edit_Redo), EDIT_CLEAR_UNDO_REDO_HISTORY(Actions.MainMenu_Edit_ClearUndoRedoHistory), PART_TRACKS(Actions.MainMenu_Edit_PartTracks, true), PART_INSTRUMENTS(Actions.MainMenu_Edit_PartInstruments, true), PART_INFO(Actions.MainMenu_Edit_PartInfo, true), PART_SONG(Actions.MainMenu_Edit_PartSong, true), EDIT_SWITCH_EDIT_MODE(Actions.MainMenu_Edit_SwitchEditMode),
 	// View

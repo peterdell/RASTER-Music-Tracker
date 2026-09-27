@@ -24,14 +24,24 @@ is always the current state of the program.
 
 <!-- include: rmt_action_infos.md -->
 
+## Note Keys
+
+The "tonekeys" of the hotkey tables below: two rows of the keyboard form a
+piano, the lower row from C-1 and the upper row from C-2, with the row above
+each as the black keys. The layout follows the "Keyboard layout" option
+(QWERTY or AZERTY). These tables are generated from the program (the `dump
+notekeys` script command); on an AZERTY keyboard the digits are the number
+row's keys, whose unshifted legends are & é " ' ( - è _ ç à.
+
+<!-- include: rmt_note_keys.md -->
+
 ## For All Edit Modes
 
 ### Hotkeys
 
 | Key | Action |
 |---|---|
-| `ESC` | Stop playing song, mute all sounds. |
-| `SHIFT+ESC` | Stop playing song, mute all sounds and reinitialise the sound output. |
+| `ESC` | Stop playing song, mute all sounds. With the option "ESC resets Atari sound" (on by default) the sound routines are reinitialised as well. |
 | `F2` | Switch to TRACK EDIT. |
 | `F3` | Switch to INSTRUMENT EDIT. |
 | `SHIFT+F4` | Go to INFO EDIT. |
@@ -49,7 +59,7 @@ is always the current state of the program.
 | `F11` | RESPECT VOLUME mode on/off. |
 | `F12` | Turn on/off autofollow mode. |
 | `CONTROL+F12` | Toggle PAL/NTSC region. |
-| `PAGE UP`, `PAGE DOWN` | Go to next/previous SONG line. |
+| `PAGE UP`, `PAGE DOWN` | Go to previous/next SONG line. In TRACK EDIT they move the cursor by the highlight step within the pattern track instead; use `CONTROL+PAGE UP`, `CONTROL+PAGE DOWN` for the SONG line there. |
 | `SHIFT+PAGE UP`, `SHIFT+PAGE DOWN` | Go to next/previous subsong. |
 | `numblock /` | Decrease octave for newly entered notes. |
 | `numblock *` | Increase octave for newly entered notes. |
@@ -64,6 +74,8 @@ is always the current state of the program.
 | `CONTROL+L` | Load RMT module. |
 | `CONTROL+R` | Reload RMT module. |
 | `CONTROL+S` | Save RMT module. |
+| `CONTROL+SHIFT+S` | Save RMT module under a new name. |
+| `ALT+ENTER` | Open the song properties. |
 | `CONTROL+W` | Create new RMT module. |
 | `CONTROL+Y` | Redo last change. |
 | `CONTROL+Z` | Undo last change. |
@@ -93,19 +105,19 @@ NNN TT vV FSS
 |---|---|
 | `UP`, `DOWN`, `LEFT`, `RIGHT`, `TAB`, `CTRL+TAB`, `SHIFT+TAB`, `PAGE UP`, `PAGE DOWN` | Move cursor. |
 | `CONTROL+UP`, `CONTROL+DOWN` | Go to next/previous SONG line. |
-| `CONTROL+PAGE UP`, `CONTROL+PAGE DOWN` |  |
+| `CONTROL+PAGE UP`, `CONTROL+PAGE DOWN` | Go to next/previous SONG line (the same as `CONTROL+UP`, `CONTROL+DOWN`). |
 | `CONTROL+LEFT`, `CONTROL+RIGHT` | Change track pattern number at current possition. |
 | `HOME` | Move cursor to the start of current pattern track, or the start of a "wise loop". |
 | `CONTROL+HOME` | Set/clear the start position of a "wise loop". |
 | `END` | Move cursor to the end of current pattern track, or the end of a "wise loop". |
 | `CONTROL+END` | Set/clear the end line of a pattern track. |
-| `SHIFT+CONTROL+ENTER` |  |
+| `SHIFT+CONTROL+ENTER` | Set/clear the end line of a pattern track (the same as `CONTROL+END`). |
 | `ENTER` | Play note at the cursor position. Every new ENTER hotkeys will also loop inside a selection block, if it exists. |
 | `SHIFT+ENTER` | Play note at the cursor position and fetch its instrument and volume values, then become the active instrument. |
-| `CONTROL+ENTER` | Play all notes at the currently edited line. |
+| `CONTROL+ENTER` | Play all notes at the currently edited line. (The option "Swap ENTER and CONTROL+ENTER" exchanges the two.) |
 | `CONTROL+D` | Duplicate the current pattern track, and put it at the same place. (Note: If the pattern track is only used once in song, a messagebox asking for confirmation will appear.) |
 | `CONTROL+I`, `CONTROL+U` | Insert/delete lines in the current pattern track. |
-| `INSERT`, `DELETE` |  |
+| `INSERT`, `DELETE` | Insert/delete lines in the current pattern track (the same as `CONTROL+I`, `CONTROL+U`). If a selection block exists, `DELETE` deletes its data instead. |
 | `CONTROL+G` | Set "go to line" command in the song at current position. |
 | `CONTROL+N` | Put new empty unused track to current song position and active channel. |
 | `SPACE` | Delete note, instrument, volume and speed values in the track at the cursor position. |
@@ -334,8 +346,8 @@ MUSIC SPEED: AA/MM/S
 | `LEFT`, `RIGHT`, `UP`, `DOWN`, `PAGE UP`, `PAGE DOWN`, `TAB`, `SHIFT+TAB` | Move cursor. |
 | `HOME` | Move cursor to the start of the song. |
 | `END` | Move cursor to last song line with valid data. |
-| `CONTROL+PAGE UP` | Move cursor to the start of current subsong or start of previous subsong if the action is repeated. |
-| `CONTROL+PAGE DOWN` | Move cursor to start of next subsong. |
+| `SHIFT+PAGE UP` | Move cursor to the start of current subsong or start of previous subsong if the action is repeated. |
+| `SHIFT+PAGE DOWN` | Move cursor to start of next subsong. |
 | `0-F`, `CONTROL+LEFT`, `CONTROL+RIGHT`, `BACKSPACE` | Change the pattern track number or "go to line" value in the song. |
 | `INSERT`, `CONTROL+I`, `DELETE`, `CONTROL+U` | Insert/delete lines in the song (with auto-change of all relevant "go to line" values). |
 | `CONTROL+D` | Duplicate the current pattern track, and put it at the same place. (Note: If the pattern track is only used once in song, a messagebox asking for confirmation will appear.) |

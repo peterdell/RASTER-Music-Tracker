@@ -19,11 +19,11 @@ import com.wudsn.tools.base.repository.NLS;
  * table are accelerators here. Several C++ menu labels carry a "\tCtrl+X"
  * hint for a key that is <em>not</em> an accelerator but a key the tracker
  * handles itself ({@code TrackKey}/{@code SongKey}: Ctrl+U/I/P/O/N/D in
- * the Song menu, Ctrl+B/C/V/M/X/E/F/A/Del in the Block menu, Shift+Ctrl+S,
- * Alt+Enter); those are {@link RmtCommandId#acceleratorIsHint hint-only}
- * accelerators - displayed, never dispatched. A few C++ labels also show a
- * stale key ("Edit Tracks\tF1" while the accelerator is F2); the real
- * accelerator table wins.
+ * the Song menu, Ctrl+B/C/V/M/X/E/F/A/Del in the Block menu, Alt+F4); those
+ * are {@link RmtCommandId#acceleratorIsHint hint-only} accelerators -
+ * displayed, never dispatched. (Ctrl+Shift+S and Alt+Enter were such hints
+ * until 2026-09-27, when both programs got the real accelerators; the
+ * stale F-key labels of Rmt.rc were corrected the same day.)
  *
  * <p>Labels needed a mnemonic ({@code &}) where the C++ label had none, as
  * {@code ElementFactory} requires one for every menu item.
