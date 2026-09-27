@@ -32,6 +32,20 @@ Technical Documentation
 - Current [RMT Module File Format documentation](https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_format.md) and discussion
 
 
+### Java port
+
+This repository also contains a Java/Swing port of RMT 1.35 (`src/java`), developed side by side with the C++ program so RMT can run on Windows, Linux and macOS.
+The port covers the tracker, the editors, the import/export formats and real-time sound; the emulated 6502 and POKEY come from [ASAP](https://asap.sourceforge.net).
+Not ported: printing, MIDI input and the Pokey Explorer.
+
+- Build and test: `mvn package` from the repository root (needs Java 21, Maven and the [WUDSN Base](https://github.com/wudsn/wudsn-base) libraries installed with `mvn install`).
+  The result is the runnable `target/rmt.jar`; `mvn test` runs the tests alone.
+- Run: `java -jar target/rmt.jar [song.rmt]`. The program folder is the jar's folder (or `-Drmt.config.dir=<folder>`); it holds `rmt.ini`/`tuning.ini` and, as for `Rmt.exe`, the `rmt/` layout (`resources/`, `docs/`, `instruments/`, `songs/`). From a checkout the `rmt/` sub-folder is found automatically.
+- Eclipse: import the repository root ("Existing Projects into Workspace", Maven Integration) and use `launch/Rmt.launch`.
+- Releases: pushing a tag `v1.35.<n>` runs `.github/workflows/release.yml`, which builds portable app images with a bundled Java runtime for Windows, Linux and macOS (`build/stage_java_release.sh` stages the layout) and attaches them to a GitHub Release.
+- The port's plans and notes are in `plans/` (`JAVA_PORT_PLAN.md`, `JAVA_UI_PORT_PLAN.md`, `NOTES.md`).
+
+
 ### Main features:
 
 Note that this is as of RMT 1.28 and not accurate for 1.34 and later!

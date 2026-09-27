@@ -1,6 +1,7 @@
 # Java port, Phase B batch B9: packaging & polish
 
-Status: **B9a and B9b DONE 2026-09-27**; B9c open. Decisions 1-4 accepted by
+Status: **B9 DONE 2026-09-27** (B9a, B9b, B9c). Phase B of the Java port
+is complete; the next feature is scripting (section 5). Decisions 1-4 accepted by
 the user on 2026-09-27 (decision 5 replaced by "proper scripts", section 5).
 Companion to `plans/JAVA_UI_PORT_PLAN.md` (B9 is its last batch; B1-B8 are
 committed).
@@ -133,19 +134,22 @@ the image's `app/` holds the jar next to `resources/`, `docs/`, `rmt.ini`
 shows the build date, `app/rmt.ini` is written on exit. CI itself not run
 here.
 
-### B9c - polish
+### B9c - polish. DONE 2026-09-27.
 
-- HiDPI: toolbar icons scaled by the device scale (2x nearest-neighbour at
-  150%+, keeping the pixel look; the C++ toolbar is tiny at 150%, so this
-  is an improvement over C++ rather than a port - **decision 3**).
-- The status line: WUDSN `StatusBar`? Today a `JLabel`; C++ has a
-  three-pane status bar (prompt, and two empty panes). Keep the label
-  (the panes C++ shows are empty) - **decision 4**.
-- `RmtCommands.Host.notAvailable` after B9: only printing remains; the
-  message text drops "yet".
-- README.md: a "Java port" section (build, run, tests, layout), the
-  Eclipse launch, the release process. NOTES/plan entries; B9 DONE; Phase
-  B DONE in `JAVA_UI_PORT_PLAN.md` and `JAVA_PORT_PLAN.md`.
+- HiDPI: `RmtToolBars.iconScale()` = the device scale rounded (1 below
+  150%, 2 from 150%, 3 from 250%), the 32x30 button images enlarged
+  nearest-neighbour (`scaled()`) and drawn 1:1 in device pixels by
+  `PixelIcon` (Swing's own fractional scaling removed in the paint, as the
+  canvas does), the combo box height with them - decision 3, a deliberate
+  improvement over the DPI-unaware MFC toolbar.
+- The status line stays a `JLabel` (decision 4); `notAvailable` (printing
+  only, MFC's own) drops the "yet".
+- README.md "Java port" section (what it is, build/run/test, program
+  folder, Eclipse, releases, plans); `.gitattributes` keeps `*.sh`/`*.yml`
+  LF (the staging script runs on Linux/macOS runners; the repository uses
+  `core.autocrlf=true`).
+- `RmtToolBarsTest` (strip loading, the scaling, the scale factor).
+- Phase B closed in `JAVA_UI_PORT_PLAN.md` and `JAVA_PORT_PLAN.md`.
 
 ## 3. Decisions requested
 

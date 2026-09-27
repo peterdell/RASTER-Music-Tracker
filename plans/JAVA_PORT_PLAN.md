@@ -1746,11 +1746,16 @@ known-unported, real, meaningful C++ behavior left.
   `ExportSAP_B_LZSS`/`ExportXEX_LZSS`) are all ported and tested (see the
   ported batches above). No further known-unported, real, meaningful
   model-layer C++ behavior remains.
-- **Phase B** (large, not started - the only remaining work): the entire
-  Java UI layer (`com.wudsn.tools.rmt.ui` doesn't exist yet) - see
-  `plans/JAVA_PORT_NEXT_STEPS_PLAN.md` for what `plans/UI_SURVEY_PLAN.md`
-  already resolved versus what's still open (rendering/repaint model, UI
-  toolkit choice, click-positioned popups/custom cursors).
+- **Phase B - DONE 2026-09-27.** The Java UI layer
+  (`com.wudsn.tools.rmt.ui`, Swing + WUDSN Base), batches B1-B9 of
+  `plans/JAVA_UI_PORT_PLAN.md`: the canvas, keyboard/mouse input, menus and
+  toolbars, options and configuration, every dialog, real-time audio on
+  ASAP's emulation (`plans/JAVA_AUDIO_PLAN.md`) and packaging
+  (`plans/JAVA_B9_PLAN.md`: runnable jar, program folder, release workflow).
+  Not ported by decision: printing (MFC's own), MIDI, the Pokey Explorer.
+- **Next**: a real scripting feature in place of the C++ `/TEST`/`/SCRIPT`
+  developer switches (user decision 2026-09-27; design proposal first - see
+  `plans/JAVA_B9_PLAN.md` section 5).
 
 `BlockEffect`, the `FileXxx` dialog family, and `TimerRoutine`/hardware-
 timer methods stay permanently deferred per their own already-documented

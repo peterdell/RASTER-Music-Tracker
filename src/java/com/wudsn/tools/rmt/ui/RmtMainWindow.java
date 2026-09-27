@@ -254,7 +254,7 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 
 	@Override
 	public void notAvailable(String feature) {
-		statusLine.setText(feature + " is not available in the Java port yet.");
+		statusLine.setText(feature + " is not available in the Java port.");
 	}
 
 	@Override

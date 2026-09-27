@@ -277,9 +277,21 @@ shows anything, `plans/NOTES.md` entry, ask before committing.
     disabled, WAV export replaying the stream through the POKEY (with a
     stereo bug fixed in both languages); Esc's sound reset was already in
     place. Details in `JAVA_AUDIO_PLAN.md` §4 and `NOTES.md`.
-- **B9 - packaging & polish.** `maven-shade-plugin` fat jar + launcher
-  (as dis6502), `/SCRIPT`-style command line, unsaved-changes prompts on
-  close (`WarnUnsavedChanges`), min-size rules, final HiDPI pass.
+- **B9 - packaging & polish. DONE 2026-09-27** (`plans/JAVA_B9_PLAN.md`).
+  - **B9a**: `maven-shade-plugin` -> `target/rmt.jar`, `launch/Rmt.launch`,
+    `ProgramFolder` (the `rmt/` layout resolved as `g_prgpath`), the
+    command line (`/SCRIPT`/`/TEST` rejected - proper scripts are the next
+    feature, by user decision), local help, the build date in the title.
+  - **B9b**: `.github/workflows/release.yml` (jpackage app images per OS)
+    + `build/stage_java_release.sh`; local dry run on Windows.
+  - **B9c**: toolbar icons scaled on HiDPI, README "Java port" section,
+    `.gitattributes` for the scripts' line endings, notes closed. The
+    unsaved-changes prompt and the minimum-size rules were already done
+    (B7a, B1).
+
+**Phase B is complete.** What remains outside it: printing (MFC's own),
+MIDI and the Pokey Explorer (not ported by decision), and the scripting
+feature (`JAVA_B9_PLAN.md` section 5).
 
 ## DECISIONS
 

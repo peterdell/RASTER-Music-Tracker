@@ -4524,3 +4524,27 @@ build clean and all 123 tests pass.
       2026-09-27 09:52 UTC)", `app/rmt.ini`/`tuning.ini` are written on
       exit.
     - No Java or C++ source change; no new tests.
+  - **2026-09-27**: Phase B, batch B9c (polish) - B9 and Phase B complete.
+    - HiDPI toolbar: `RmtToolBars.iconScale()` rounds the default screen's
+      device scale (1 below 150%, 2 from 150%, 3 from 250%), `scaled()`
+      enlarges the 32x30 button images nearest-neighbour by it, and
+      `PixelIcon` draws the enlarged image 1:1 in device pixels (Swing is
+      told the logical size, the paint removes the scaling transform - the
+      canvas's own technique). A first version let Swing scale the 2x image
+      again, which made 3x at 150%. A deliberate improvement over the
+      DPI-unaware MFC toolbar (decision 3 of `JAVA_B9_PLAN.md`); the canvas
+      itself was HiDPI-correct since B1.
+    - `notAvailable`'s status text drops "yet" - only printing (MFC's own)
+      still uses it. The status line stays a `JLabel` (decision 4).
+    - README.md gains a "Java port" section (scope, build/run/test, the
+      program folder, Eclipse, releases, plans). `.gitattributes` keeps
+      `*.sh`/`*.yml` LF - the repository runs with `core.autocrlf=true`, and
+      a CRLF shebang would break `build/stage_java_release.sh` on the
+      Linux/macOS runners.
+    - `RmtToolBarsTest` (strip loading with the transparent button face,
+      the scaling, the scale factor, the device-pixel paint). 573 tests
+      (+4), no regressions.
+    - Live: the jar at the display's 150% shows the toolbar at 2x next to
+      the unchanged canvas (`b9c-toolbar.png`).
+    - Phase B is closed in `JAVA_UI_PORT_PLAN.md` and `JAVA_PORT_PLAN.md`;
+      the next feature is scripting (`JAVA_B9_PLAN.md` section 5).
