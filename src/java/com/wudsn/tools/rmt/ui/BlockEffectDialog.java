@@ -21,8 +21,9 @@ import com.wudsn.tools.rmt.model.Track;
  * the effect combo, its three parameter prompts/fields (a field is disabled
  * when the effect has no such parameter), and the buttons Try (apply to the
  * live track, from the original each time), Restore (the original back),
- * Play/Stop (the block, so the effect can be auditioned - audible from B8
- * on), Default (the effect's default parameters), OK (apply and keep) and
+ * Play/Stop (the block, so the effect can be auditioned - the
+ * {@link AudioEngine} keeps running while the dialog is open), Default (the
+ * effect's default parameters), OK (apply and keep) and
  * Cancel (restore). The chosen effect and the typed parameters are
  * remembered for the session in {@link BlockEffects.Settings}.
  */
@@ -130,21 +131,23 @@ final class BlockEffectDialog extends ModalDialog {
 		settings.params[effai][0] = edit1.getText();
 		settings.params[effai][1] = edit2.getText();
 		settings.params[effai][2] = edit3.getText();
-		BlockEffects.perform(track, original, effai, bfro, bto, ainstr, all, edit1.getText(), edit2.getText(), edit3.getText(), session.tracks, random);
+		session.locked(() -> BlockEffects.perform(track, original, effai, bfro, bto, ainstr, all, edit1.getText(), edit2.getText(), edit3.getText(), session.tracks, random));
 	}
 
 	/** {@code OnEffectRestore()}. */
 	private void onEffectRestore() {
-		track.copyFrom(original);
+		session.locked(() -> track.copyFrom(original));
 	}
 
-	/** {@code OnSongStop()}: Play/Stop toggles the block playback. */
+	/** {@code OnSongStop()}: Play/Stop toggles the block playback (audible: the dialog is modal but the sound thread keeps running). */
 	private void onSongStop() {
-		if (session.song.getPlayMode() != PlayMode.PLAY_STOP) {
-			session.song.stop(session.undo);
-		} else {
-			session.song.play(PlayMode.PLAY_BLOCK, session.song.getFollowPlayMode(), session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard);
-		}
+		session.locked(() -> {
+			if (session.song.getPlayMode() != PlayMode.PLAY_STOP) {
+				session.song.stop(session.undo);
+			} else {
+				session.song.play(PlayMode.PLAY_BLOCK, session.song.getFollowPlayMode(), session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard);
+			}
+		});
 	}
 
 	/** {@code DoModal()}: OK = {@code PerformEffect()} + remember the effect; anything else = {@code OnEffectRestore()}. */

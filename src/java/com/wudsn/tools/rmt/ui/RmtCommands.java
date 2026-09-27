@@ -30,8 +30,8 @@ import com.wudsn.tools.rmt.model.UndoType;
  * {@link Host#notAvailable} until their batch (B7); the printing
  * commands are MFC's own and stay unavailable; MIDI and the Pokey Explorer
  * commands are disabled (no MIDI, {@code CPokeyController} unported).
- * Playback commands change the play state exactly as C++ does - what makes
- * it audible and advancing is the timer routine of B8.
+ * Playback commands change the play state exactly as C++ does; the
+ * {@link AudioEngine} thread makes it audible and advancing.
  */
 public final class RmtCommands {
 
@@ -153,9 +153,10 @@ public final class RmtCommands {
 	 * {@code CRmtView::OnToolsOptions()}'s {@code if (dlg.DoModal() == IDOK)}
 	 * block: the dialog's values into the options and the session, with the
 	 * side effects C++ has on a change - the canvas rescaled, NTSC switched
-	 * through {@link RmtSession#setNTSC}, the driver reloaded. The
-	 * {@code ReInitSound()} on a sound-buffer change is the audio batch's
-	 * (B8); {@code g_Midi.MidiInit()} has no counterpart (MIDI not ported).
+	 * through {@link RmtSession#setNTSC}, the driver reloaded, the sound
+	 * re-initialized on a sound-buffer change (the option itself has no
+	 * effect on the Java line); {@code g_Midi.MidiInit()} has no counterpart
+	 * (MIDI not ported).
 	 */
 	public void applyOptions(OptionsValues dlg) {
 		RmtOptions o = session.options;
@@ -163,6 +164,9 @@ public final class RmtCommands {
 		if (o.scalingPercentage != dlg.scalingPercentage) {
 			o.scalingPercentage = dlg.scalingPercentage;
 			host.rescale(); // Necessary to scale everything without manually resizing the window first
+		}
+		if (o.noHwSoundBuffer != dlg.noHwSoundBuffer) {
+			session.reInitSound(); // Justified for testing, but this might be a little redundant
 		}
 		o.noHwSoundBuffer = dlg.noHwSoundBuffer;
 		if (session.song.isNTSC() != dlg.ntsc) {

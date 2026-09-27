@@ -4371,3 +4371,49 @@ build clean and all 123 tests pass.
       that go beyond the C++ test build's stubs.
     - 554 tests (+7: `AtariCpuTest` 3, `LivePlaybackTest` 3,
       `SongEditingTest` 1), no regressions. No C++ change.
+  - **2026-09-27**: Phase B, batch B8b (audio engine) - the sound is on.
+    `AudioEngine` is `CSongTimer` + `CSong::TimerRoutine()` +
+    `CXPokey::RenderSound1_50()`: a daemon thread that per video frame
+    runs `playVBI`, `playPressedTones`, then per instrument-speed
+    sub-frame `driver.play(specialProveMode)`, `CopyAtariMemoryToPokey`
+    (the $D200/$D210 shadow into the POKEY pair, a muted channel's
+    AUDF/AUDC as 0) and the sub-frame's share of the frame's cycles
+    rendered; `playTime++` while playing. Pacing is the sound card's: one
+    frame of cycles per iteration and a blocking `SourceDataLine.write`
+    into a 3-frame buffer (C++'s `m_Latency = 3`), 16-bit/44.1 kHz/2
+    channels (a mono song on both), so PAL/NTSC timing needs no
+    "17-17-16 groove"; without a device the thread sleeps a frame and the
+    model still advances (how the tests drive it, through
+    `renderFrame()`).
+    - Threading: `RmtSession.lock` (`ReentrantLock`) with
+      `locked`/`unlocked` helpers. The engine holds it for the frame's
+      model step; the EDT holds it in `TrackerPanel`'s key/mouse/wheel
+      listeners, the display timer's idle action and the paint's
+      `drawAll`, in `RmtMainWindow.executeCommand`, and in the dialog
+      buttons that touch the model (Effects Try/Restore/Play, Tuning
+      apply/reset). Every modal dialog, file chooser and message box is
+      shown with the lock released (`session.unlocked(...)` in the host
+      methods and in `SwingMessages`, which also moves a message raised on
+      the engine's thread onto the EDT) so the sound keeps running while
+      they are open - C++ audio runs through dialogs, the Effects dialog's
+      Play depends on it. `Stop()`'s `WaitForTimerRoutineProcessed`
+      busy-wait is not ported: the engine applies the silence on its next
+      frame (a wait under the lock would deadlock).
+    - `ReInitSound()`: `RmtSession.reInitSound()` = POKEY pair
+      re-initialized for the song's video standard/channel count, tuning
+      tables regenerated, driver reset. Called from the new
+      `RmtSession.setTracks4_8()` (C++'s `SetTracks`; the nine
+      `session.tracks4_8 = ...` writers in `SongFiles`/`SongDialogs` now
+      go through it, and the field starts at 8 as C++'s hardcoded
+      `g_tracks4_8 = 8` does), from `setNTSC` on a change, from the import
+      and from the options dialog's sound-buffer change; the engine also
+      re-checks at the top of every frame as a safety net.
+    - `g_playtime = 0` in `Play()` and `ClearSong()` (both had been noted
+      as omitted) through `Song.setPlayTimeResetListener`, the
+      `Undo.setChangeListener` precedent; the counter runs in the TIME
+      display now.
+    - Live check: Delta.rmt through the real line - a probe measured a
+      steady 50 frames/s after the first second (PAL nominal 49.86), and
+      two screenshots 5 s apart show TIME 0:02.82 -> 0:08.00, the
+      follow-play cursor moving and the POKEY register view changing.
+    - 559 tests (+5: `AudioEngineTest`), no regressions. No C++ change.

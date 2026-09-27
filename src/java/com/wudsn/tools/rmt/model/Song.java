@@ -66,9 +66,11 @@ package com.wudsn.tools.rmt.model;
  * {@code CSong::Stop()} calls the global {@code g_Undo.Separator()}, while
  * {@code CUndo::Undo()}/{@code Redo()} call the global {@code g_Song.Stop()}
  * - two free-standing globals referencing each other). It also omits the
- * real body's {@code g_SongTimer.WaitForTimerRoutineProcessed()} call - no
- * live-playback/timer subsystem exists yet, and it's already a no-op in the
- * C++ test environment for the same reason (see {@code SongEditingStub.cpp}).
+ * real body's {@code g_SongTimer.WaitForTimerRoutineProcessed()} call: the
+ * UI's {@code AudioEngine} applies the silence set here on its next frame
+ * (it runs under the session lock the caller holds, so a busy-wait would
+ * deadlock), and it's already a no-op in the C++ test environment (see
+ * {@code SongEditingStub.cpp}).
  */
 public final class Song {
 
@@ -1494,6 +1496,19 @@ public final class Song {
 		}
 	}
 
+	private Runnable playTimeResetListener;
+
+	/** Called where C++ sets {@code g_playtime = 0} ({@link #play}, {@link #clearSong}) - the UI's play-time counter lives outside the model, as {@code Undo}'s change listener does for {@code g_changes}. */
+	public void setPlayTimeResetListener(Runnable listener) {
+		this.playTimeResetListener = listener;
+	}
+
+	private void resetPlayTime() {
+		if (playTimeResetListener != null) {
+			playTimeResetListener.run();
+		}
+	}
+
 	/**
 	 * Stop playback, if playing - a no-op otherwise (see class javadoc for why {@code undo} is a parameter, and what's omitted).
 	 */
@@ -2484,7 +2499,7 @@ public final class Song {
 	 * no Java equivalent and nothing observing them here:
 	 * {@code g_rmtroutine}/{@code SetEditMode()}/{@code g_respectvolume}/
 	 * {@code g_rmtstripped_*}/{@code g_rmtmsxtext}/
-	 * {@code g_PrefixForAllAsmLabels}/{@code g_playtime}/
+	 * {@code g_PrefixForAllAsmLabels}/
 	 * {@code g_activepart}/{@code g_active_ti}/
 	 * {@code g_SkipLinesAfterNoteInsert}/
 	 * {@code SyncSkipLinesAfterNoteInsertComboBox()} (the real
@@ -2503,6 +2518,7 @@ public final class Song {
 		int tracks4_8 = setTracks(numOfTracks);
 
 		playPressedTonesInit();
+		resetPlayTime(); // g_playtime = 0
 
 		followplay = true;
 		mainSpeed = speed = speeda = 16;
@@ -3866,12 +3882,10 @@ public final class Song {
 	 * <p>Omits C++'s {@code g_Atari.Init()} ({@code PLAY_SONG} only - no
 	 * {@code Atari} collaborator is held by {@link Song}, matching this
 	 * class's established omission of the same call elsewhere) and
-	 * {@code g_SongTimer.WaitForTimerRoutineProcessed()} (no live-playback
-	 * timer subsystem exists yet - already a no-op in the C++ test
-	 * environment for the same reason {@link #stop} omits it). Also omits
-	 * {@code g_playtime = 0} (a UI-only global with no Java equivalent) and
-	 * the {@code m_pokeyStream} "notify" call (always null in every test -
-	 * matches {@link #songPlayNextLine}'s established omission).
+	 * {@code g_SongTimer.WaitForTimerRoutineProcessed()} (for the same
+	 * reason {@link #stop} omits it - see the class javadoc).
+	 * {@code g_playtime = 0} (a UI global) is the
+	 * {@link #setPlayTimeResetListener play-time reset listener}'s call.
 	 *
 	 * <p>{@code PLAY_BLOCK} reads {@code clipboard}'s block selection
 	 * directly (matching C++'s own read of the global {@code g_TrackClipboard}) -
@@ -3973,6 +3987,7 @@ public final class Song {
 			trackActiveLine = trackPlayLine;
 			songActiveLine = songPlayLine;
 		}
+		resetPlayTime(); // g_playtime = 0
 		playMode = mode;
 
 		if (pokeyStream != null) {

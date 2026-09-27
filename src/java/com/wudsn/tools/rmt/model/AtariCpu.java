@@ -59,6 +59,11 @@ public final class AtariCpu {
 		asap.rmtPokeRegister(offset, data);
 	}
 
+	/** The volume (AUDC & 15) the POKEY pair currently holds for channel 0-7 - what {@link #pokeRegister} fed it, after any channel muting. */
+	public int getChannelVolume(int channel) {
+		return asap.getPokeyChannelVolume(channel);
+	}
+
 	/** Bytes per rendered block: one 16-bit sample per POKEY. */
 	public int getBlockSize() {
 		return stereo ? 4 : 2;

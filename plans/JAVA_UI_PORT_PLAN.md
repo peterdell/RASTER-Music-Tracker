@@ -269,7 +269,10 @@ shows anything, `plans/NOTES.md` entry, ask before committing.
     `AtariCpu`; the tracker driver's JSRs are real; the SAP-R dump runs the
     driver as C++ does. Findings and details in `JAVA_AUDIO_PLAN.md` §4 and
     `NOTES.md`.
-  - **B8b - audio engine** (`AudioEngine` thread, session lock).
+  - **B8b - audio engine. DONE 2026-09-27.** `AudioEngine` thread paced by
+    the audio line, `RmtSession.lock` between it and the EDT (released
+    around modal dialogs), `ReInitSound` points, `playTime`. Delta.rmt
+    plays. Details in `JAVA_AUDIO_PLAN.md` §4 and `NOTES.md`.
   - **B8c - the rest**: Esc's sound reset, media keys, "Open ASAP file"
     disabled, WAV export replaying the stream through the POKEY.
 - **B9 - packaging & polish.** `maven-shade-plugin` fat jar + launcher

@@ -231,7 +231,7 @@ public final class SongFiles {
 	}
 
 	private void clearSong(int numOfTracks) {
-		session.tracks4_8 = session.song.clearSong(numOfTracks, session.undo);
+		session.setTracks4_8(session.song.clearSong(numOfTracks, session.undo));
 		session.uiState.changes = false;
 		session.exportSettings.resetOnClearSong();
 	}
@@ -327,13 +327,13 @@ public final class SongFiles {
 			Song.LoadRmtResult r = song.loadRMT(data);
 			loadedOk = r.success();
 			if (loadedOk) {
-				session.tracks4_8 = r.tracks4_8();
+				session.setTracks4_8(r.tracks4_8());
 				session.exportSettings.rmtStrippedAddress = r.moduleAddress(); // The main block of the module is OK => take its boot address
 			}
 			ioType = SongIOType.RMT;
 		}
 		case FILTER_TXT -> {
-			session.tracks4_8 = song.loadTxt(new String(data, TEXT_CHARSET), session.undo).tracks4_8();
+			session.setTracks4_8(song.loadTxt(new String(data, TEXT_CHARSET), session.undo).tracks4_8());
 			loadedOk = true; // LoadTxt "does not mean the resultant data is valid"
 			ioType = SongIOType.TXT;
 		}
@@ -341,7 +341,7 @@ public final class SongFiles {
 			Song.LoadRmwResult r = song.loadRMW(data, session.undo);
 			loadedOk = r.success();
 			if (loadedOk) {
-				session.tracks4_8 = r.tracks4_8();
+				session.setTracks4_8(r.tracks4_8());
 			}
 			ioType = SongIOType.RMW;
 		}
@@ -475,7 +475,7 @@ public final class SongFiles {
 		if (choice == null) {
 			return;
 		}
-		session.tracks4_8 = session.song.fileNewApply(choice.maxTrackLength(), choice.stereo() ? 8 : 4, session.undo);
+		session.setTracks4_8(session.song.fileNewApply(choice.maxTrackLength(), choice.stereo() ? 8 : 4, session.undo));
 		session.uiState.changes = false; // ClearSong
 		session.exportSettings.resetOnClearSong();
 		host.songChanged();
@@ -622,14 +622,14 @@ public final class SongFiles {
 			host.songImported(fn.toString()); // window name "Imported ..."
 		}
 		session.channelControl.setAllChannelsOn(); // All channels ON (unmute all)
-		// ReInitSound(): the audio batch's (B8)
+		session.reInitSound(); // Initialise RMT routine
 	}
 
 	/** {@code CSong::ImportMOD()}: returns whether the import ran (an import aborted in the final dialog still counts as run, as in C++). */
 	boolean importMOD(byte[] data) {
 		int originalTracks4_8 = session.tracks4_8; // keeps the original value for Abort
 		ModImporter.ParseHeaderResult header = ModImporter.parseHeader(data, session.song, session.tracks, session.undo); // ClearSong(8)
-		session.tracks4_8 = 8;
+		session.setTracks4_8(8);
 		session.uiState.changes = false;
 		session.exportSettings.resetOnClearSong();
 		if (!header.ok()) {
@@ -673,7 +673,7 @@ public final class SongFiles {
 
 		ModImporter.ApplyResult result = ModImporter.apply(header, rmttype, trackOrder, dlg.shiftDownOctave(), dlg.portamento(), dlg.fullVolumeRange(), dlg.volumeIncrease(), dlg.decreaseInstrument(), dlg.optimizeLoops(), dlg.truncateUnusedParts(), session.song, session.tracks,
 				session.instruments, session.undo);
-		session.tracks4_8 = result.tracks4_8();
+		session.setTracks4_8(result.tracks4_8());
 
 		// FINAL DIALOGUE AFTER IMPORT
 		String finished = result.destNum() + " tracks, " + result.nonEmptySamples() + " instruments, " + result.songLines() + " songlines";
@@ -706,7 +706,7 @@ public final class SongFiles {
 	boolean importTMC(byte[] data) {
 		int originalTracks4_8 = session.tracks4_8;
 		TmcImporter.ParseHeaderResult header = TmcImporter.parseHeader(data, session.song, session.tracks, session.undo); // ClearSong(8)
-		session.tracks4_8 = 8;
+		session.setTracks4_8(8);
 		session.uiState.changes = false;
 		session.exportSettings.resetOnClearSong();
 		if (!header.ok()) {
@@ -720,7 +720,7 @@ public final class SongFiles {
 		}
 
 		TmcImporter.ApplyResult result = TmcImporter.apply(header, dlg.useTable(), dlg.optimizeLoops(), dlg.truncateUnusedParts(), session.song, session.tracks, session.instruments, session.undo);
-		session.tracks4_8 = result.tracks4_8();
+		session.setTracks4_8(result.tracks4_8());
 
 		// FINAL DIALOGUE AFTER IMPORT
 		String finished = result.numOfTracks() + " tracks, " + result.nonEmptyInstruments() + " instruments, " + result.songLines() + " songlines";

@@ -1,6 +1,6 @@
 # Java port, Phase B batch B8: real-time audio
 
-Status: **B8a DONE 2026-09-27** (section 4 has the findings); B8b/B8c
+Status: **B8a and B8b DONE 2026-09-27** (section 4 has the findings); B8c
 open. Plan reviewed and its four decisions accepted by the user on
 2026-09-27. Companion to `plans/JAVA_UI_PORT_PLAN.md` (DECISION 4 there:
 "UI first, real-time audio deferred to B8"). Batches B1-B7 are committed;
@@ -189,12 +189,32 @@ timer, so pressed-tone preview works with playback stopped).
     `play()`, which PLAY_FROM overwrites from the *active* lines (C++ sets
     those) - every XEX subsong was dumped from the cursor line.
     `dumpSongToPokeyStreamPlayFromStartsAtTheGivenSongline` guards it.
-- **B8b - audio engine.** `AudioEngine`, the session lock in
-  `TrackerPanel`/`RmtCommands`/dialogs, start/stop with the window,
-  NTSC/stereo re-init, `playTime`. Tests: the engine stepped manually
-  (no line) advances `playVBI` and the play position; lock discipline by
-  inspection. Live check: Delta.rmt audible, TIME/BPM running, keyboard
-  preview in jam mode, channel mute, block play from the Effects dialog.
+- **B8b - audio engine. DONE 2026-09-27.** `AudioEngine` (daemon thread,
+  `SourceDataLine` 16-bit/44.1 kHz/2 ch, 3-frame buffer, one frame of
+  cycles per iteration split over the instrument-speed sub-frames,
+  `CopyAtariMemoryToPokey` with the channel mask, `playTime++`; without a
+  device it sleeps a frame). Lock: `RmtSession.lock` (a `ReentrantLock`)
+  with `locked`/`unlocked` helpers - the EDT holds it in `TrackerPanel`'s
+  listeners/timer/paint, `RmtMainWindow.executeCommand`, the dialog
+  buttons that touch the model (Effects, Tuning); it is released around
+  every modal dialog, file chooser and message box (`SwingMessages`, which
+  also hops to the EDT when the engine's thread raises a message).
+  `ReInitSound()`: `RmtSession.reInitSound()` (POKEY pair + tuning tables
+  + driver init) from `setTracks4_8` (new; every `tracks4_8` writer uses
+  it, C++'s `SetTracks`), `setNTSC` on a change, the import and the
+  options dialog's sound-buffer change; the engine re-checks at the top of
+  each frame as a safety net. `g_playtime = 0` in `Play()`/`ClearSong()`
+  through `Song.setPlayTimeResetListener` (the `Undo` change-listener
+  precedent). Start/stop with the window. Tests: `AudioEngineTest` (a
+  frame renders ~882 stereo blocks and counts, the position advances after
+  speed+1 frames, a muted channel reaches the POKEY as silence, a pressed
+  tone sounds while stopped, NTSC/stereo re-init, the thread paces without
+  a device). Live check: Delta.rmt audible through the real line at a
+  steady 50 frames/s (probe), TIME running and the cursor following
+  (screenshots `b8b-start.png`/`b8b-later.png`). Deviations: no
+  `WaitForTimerRoutineProcessed` busy-wait (the engine applies `Stop()`'s
+  silence on its next frame; a wait under the lock would deadlock); the
+  NTSC "17-17-16 groove" is not needed (the sample clock paces).
 - **B8c - the rest of 3.4** and the NOTES/plan entries.
 
 ## 5. Decisions requested

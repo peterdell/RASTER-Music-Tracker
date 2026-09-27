@@ -53,8 +53,70 @@ public final class RmtSession {
 	/** The Effects/tools dialog's remembered effect and parameters ({@code g_effai}, {@code eff_ed}). */
 	public final com.wudsn.tools.rmt.model.BlockEffects.Settings blockEffectSettings = new com.wudsn.tools.rmt.model.BlockEffects.Settings();
 
-	/** {@code g_tracks4_8}: 4 (mono) or 8 (stereo). */
-	public int tracks4_8;
+	/** {@code g_tracks4_8}: 4 (mono) or 8 (stereo). Starts at 8 as in C++ ("hardcoded to 8 to prevent ReInitSound() to run before RMT finished being initialised"); written through {@link #setTracks4_8}. */
+	public int tracks4_8 = 8;
+
+	/** {@code CSong::SetTracks()}: a change of the channel count re-initializes the sound. */
+	public void setTracks4_8(int tracksNum) {
+		if (tracksNum != tracks4_8) {
+			tracks4_8 = tracksNum;
+			reInitSound();
+		}
+	}
+
+	/**
+	 * The one lock between the EDT and the {@link AudioEngine} thread (C++
+	 * mutates the model from both its UI and its timer thread unguarded,
+	 * apart from {@code busyInCallback} spins). The engine holds it for a
+	 * frame's model step; the EDT holds it for a key/mouse event, a command
+	 * and a paint ({@link #locked}), and releases it around modal dialogs
+	 * and message boxes ({@link #unlocked}) so the sound keeps running while
+	 * they are open, as in C++. Reentrant, so the wrappers may nest freely.
+	 */
+	public final java.util.concurrent.locks.ReentrantLock lock = new java.util.concurrent.locks.ReentrantLock();
+
+	/** Runs {@code action} holding {@link #lock}. */
+	public void locked(Runnable action) {
+		lock.lock();
+		try {
+			action.run();
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	/** Runs {@code action} holding {@link #lock} and returns its result. */
+	public <T> T locked(java.util.function.Supplier<T> action) {
+		lock.lock();
+		try {
+			return action.get();
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	/** Runs {@code action} (a modal dialog) with every hold of {@link #lock} this thread has released, then re-acquires them. */
+	public <T> T unlocked(java.util.function.Supplier<T> action) {
+		int holds = lock.isHeldByCurrentThread() ? lock.getHoldCount() : 0;
+		for (int i = 0; i < holds; i++) {
+			lock.unlock();
+		}
+		try {
+			return action.get();
+		} finally {
+			for (int i = 0; i < holds; i++) {
+				lock.lock();
+			}
+		}
+	}
+
+	/** {@link #unlocked(java.util.function.Supplier)} for an action without a result. */
+	public void unlocked(Runnable action) {
+		unlocked(() -> {
+			action.run();
+			return null;
+		});
+	}
 
 	/**
 	 * Builds the empty stereo song {@code Rmt.exe} starts with, in
@@ -92,15 +154,37 @@ public final class RmtSession {
 		// to $4000 + instr * 256 for the driver (stereo = g_tracks4_8 == 8).
 		instruments.attachAtari(atari, () -> tracks4_8 == 8);
 
-		tracks4_8 = song.clearSong(8, undo);
+		setTracks4_8(song.clearSong(8, undo));
 		channelControl.setAllChannelsOn();
 		undo.setChangeListener(() -> uiState.changes = true); // CUndo::InsertEvent's g_changes = 1
+		song.setPlayTimeResetListener(() -> uiState.playTime = 0); // g_playtime = 0 in Play() and ClearSong()
 	}
 
-	/** {@code CRmtView::SetNTSC()}: rescales the base tuning between the two clocks and switches the song ("TODO code... well 3 times.." in C++). */
+	/** {@code CRmtView::SetNTSC()}: rescales the base tuning between the two clocks and switches the song ("TODO code... well 3 times.." in C++); {@code CSong::SetNTSC()} re-initializes the sound on a change. */
 	public void setNTSC(boolean ntsc) {
 		tuningSettings.basetuning = ntsc ? (tuningSettings.basetuning * Atari.FREQ_17_NTSC) / Atari.FREQ_17_PAL : (tuningSettings.basetuning * Atari.FREQ_17_PAL) / Atari.FREQ_17_NTSC;
+		boolean changed = song.isNTSC() != ntsc;
 		song.setNTSC(ntsc);
+		if (changed) {
+			reInitSound();
+		}
+	}
+
+	/**
+	 * {@code CSong::ReInitSound()}: "Force a systematic Sound Reset to
+	 * correctly handle Stereo and/or NTSC switch" - the POKEY pair
+	 * re-initialized for the song's video standard and channel count
+	 * ({@code CXPokey::ReInitSound}), the tuning tables regenerated
+	 * ({@code g_Atari.Init}), the driver reset ({@code g_AtariTrackerDriver->Init}).
+	 * Called, as in C++, from {@link #setTracks4_8}/{@link #setNTSC}/the
+	 * import and the options dialog; {@link AudioEngine} also calls it when
+	 * it finds the pair out of step at the top of a frame (a safety net for a
+	 * direct {@link #tracks4_8} write).
+	 */
+	public void reInitSound() {
+		atari.getCpu().initialize(song.isNTSC(), song.isStereo(tracks4_8));
+		atari.init(song.isNTSC(), tuningSettings, tuningRatios);
+		atariTrackerDriver.init();
 	}
 
 	/** {@code g_Tuning.InitTuning()}: regenerates the POKEY frequency tables in the Atari's memory from the current {@link #tuningSettings}/{@link #tuningRatios}. */

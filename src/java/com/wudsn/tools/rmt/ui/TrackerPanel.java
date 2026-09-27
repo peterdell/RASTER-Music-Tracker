@@ -107,7 +107,7 @@ public final class TrackerPanel extends JPanel {
 					return;
 				}
 				session.uiState.capsLock = isCapsLockOn();
-				songInput.keyDown(vk);
+				session.locked(() -> songInput.keyDown(vk));
 				e.consume();
 				refreshScreen();
 			}
@@ -116,7 +116,7 @@ public final class TrackerPanel extends JPanel {
 			public void keyReleased(KeyEvent e) {
 				int vk = VirtualKey.fromKeyEvent(e.getKeyCode());
 				if (vk >= 0) {
-					songInput.keyUp(vk);
+					session.locked(() -> songInput.keyUp(vk));
 				}
 			}
 		});
@@ -128,7 +128,7 @@ public final class TrackerPanel extends JPanel {
 				int button = toMkButton(e);
 				if (button != 0) {
 					Point p = toLogical(e);
-					mouseInput.buttonDown(p.x, p.y, button);
+					session.locked(() -> mouseInput.buttonDown(p.x, p.y, button));
 					applyCursor();
 					refreshScreen();
 				}
@@ -138,7 +138,7 @@ public final class TrackerPanel extends JPanel {
 			public void mouseReleased(MouseEvent e) {
 				int button = toMkButton(e);
 				if (button != 0) {
-					mouseInput.buttonUp(button);
+					session.locked(() -> mouseInput.buttonUp(button));
 				}
 			}
 		});
@@ -146,14 +146,14 @@ public final class TrackerPanel extends JPanel {
 			@Override
 			public void mouseMoved(MouseEvent e) {
 				Point p = toLogical(e);
-				mouseInput.mouseMove(p.x, p.y);
+				session.locked(() -> mouseInput.mouseMove(p.x, p.y));
 				applyCursor();
 			}
 
 			@Override
 			public void mouseDragged(MouseEvent e) {
 				Point p = toLogical(e);
-				mouseInput.mouseMove(p.x, p.y);
+				session.locked(() -> mouseInput.mouseMove(p.x, p.y));
 				applyCursor();
 				refreshScreen();
 			}
@@ -161,7 +161,7 @@ public final class TrackerPanel extends JPanel {
 		addMouseWheelListener(e -> {
 			Point p = toLogical(e);
 			// Windows' WHEEL_DELTA units, positive = wheel up (Swing's rotation is positive for down)
-			mouseInput.mouseWheel(p.x, p.y, -e.getWheelRotation() * 120);
+			session.locked(() -> mouseInput.mouseWheel(p.x, p.y, -e.getWheelRotation() * 120));
 			applyCursor();
 			refreshScreen();
 		});
@@ -171,7 +171,7 @@ public final class TrackerPanel extends JPanel {
 			tickCount++;
 			timer.setDelay(TIMER_DISPLAY_TICK[tickCount % 3]);
 			if (idleAction != null) {
-				idleAction.run();
+				session.locked(idleAction);
 			}
 			refreshScreen();
 		});
@@ -306,7 +306,7 @@ public final class TrackerPanel extends JPanel {
 		@Override
 		public void toggleNTSC() {
 			session.song.stop(session.undo);
-			session.setNTSC(!session.song.isNTSC());
+			session.setNTSC(!session.song.isNTSC()); // SetNTSC(): ReInitSound() on the change
 		}
 	}
 
@@ -391,8 +391,10 @@ public final class TrackerPanel extends JPanel {
 				getFPS();
 			}
 			resizeCanvas(deviceWidth, deviceHeight);
-			session.song.respectBoundaries(session.tracks4_8);
-			songUI.drawAll();
+			session.locked(() -> {
+				session.song.respectBoundaries(session.tracks4_8);
+				songUI.drawAll();
+			});
 		}
 		ui.screenUpdate = false;
 

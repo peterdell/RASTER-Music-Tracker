@@ -55,6 +55,8 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 	private final RmtCommands commands;
 	private final RmtMainMenu mainMenu;
 	private final RmtToolBars toolBars;
+	/** {@code g_SongTimer} + {@code g_Pokey}: the frame thread that plays and renders. */
+	private final AudioEngine audioEngine;
 	private final JPanel toolBarPanel = new JPanel();
 	/** C++'s status bar shows the command prompts and {@code SetStatusBarText()} messages; a plain label until B9 decides on WUDSN's {@code StatusBar}. */
 	private final JLabel statusLine = new JLabel(" ");
@@ -72,8 +74,10 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 		this.mainMenu = new RmtMainMenu(this::executeCommand);
 		this.toolBars = new RmtToolBars(mainMenu, this::executeCommand, this::skipLinesSelected);
 
+		this.audioEngine = new AudioEngine(session);
+
 		JFrame frame = mainWindow.getFrame();
-		session.messages.setHandler(new SwingMessages(frame));
+		session.messages.setHandler(new SwingMessages(frame, session));
 		// CMainFrame::OnClose: the close box goes through ID_FILE_EXIT (which saves everything), the frame only closes once that decided to
 		frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		frame.addWindowListener(new WindowAdapter() {
@@ -84,6 +88,7 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 
 			@Override
 			public void windowClosed(WindowEvent e) {
+				audioEngine.stop(); // CRmtApp::ExitInstance -> StopTimer + DeInitSound
 				trackerPanel.stopDisplayTimer();
 				System.exit(0);
 			}
@@ -136,9 +141,11 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 	}
 
 	private void executeCommand(RmtCommandId id) {
-		commands.execute(id);
-		updateCommandStates();
-		updateTitle();
+		session.locked(() -> {
+			commands.execute(id);
+			updateCommandStates();
+			updateTitle();
+		});
 		trackerPanel.requestFocusInWindow();
 		trackerPanel.refreshScreen();
 	}
@@ -146,7 +153,7 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 	/** {@code CMainFrame::OnSelChangedComboSkipLinesAfterNoteInsert()}. */
 	private void skipLinesSelected(int index) {
 		if (index >= 0 && index != session.options.skipLinesAfterNoteInsert) {
-			session.options.skipLinesAfterNoteInsert = index;
+			session.locked(() -> session.options.skipLinesAfterNoteInsert = index);
 		}
 		trackerPanel.requestFocusInWindow(); // OnRestoreFocusToMainWindow
 	}
@@ -243,7 +250,7 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 	/** {@code COptionsDialog dlg; ... dlg.DoModal() == IDOK}. */
 	@Override
 	public boolean editOptions(OptionsValues values) {
-		return new OptionsDialog(getFrame(), session, values).showDialog();
+		return session.unlocked(() -> new OptionsDialog(getFrame(), session, values).showDialog());
 	}
 
 	@Override
@@ -253,7 +260,7 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 
 	@Override
 	public void showAbout() {
-		new AboutDialog(getFrame()).setVisible(true);
+		session.unlocked(() -> new AboutDialog(getFrame()).setVisible(true));
 	}
 
 	// ---- SongFiles.Host: CFileDialog and the two small dialogs ----
@@ -268,7 +275,7 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 	@Override
 	public SongFiles.FileChoice chooseOpenFile(String title, List<SongFiles.FileFilter> filters, String initialDir, int initialFilterIndex) {
 		JFileChooser chooser = createFileChooser(title, filters, initialDir, initialFilterIndex, "");
-		if (chooser.showOpenDialog(getFrame()) != JFileChooser.APPROVE_OPTION) {
+		if (session.unlocked(() -> chooser.showOpenDialog(getFrame())) != JFileChooser.APPROVE_OPTION) {
 			return null;
 		}
 		return new SongFiles.FileChoice(chooser.getSelectedFile().toPath(), filterIndexOf(chooser, filters));
@@ -279,12 +286,12 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 	public SongFiles.FileChoice chooseSaveFile(String title, List<SongFiles.FileFilter> filters, String initialDir, int initialFilterIndex, String suggestedFileName) {
 		JFileChooser chooser = createFileChooser(title, filters, initialDir, initialFilterIndex, suggestedFileName);
 		while (true) {
-			if (chooser.showSaveDialog(getFrame()) != JFileChooser.APPROVE_OPTION) {
+			if (session.unlocked(() -> chooser.showSaveDialog(getFrame())) != JFileChooser.APPROVE_OPTION) {
 				return null;
 			}
 			int filterIndex = filterIndexOf(chooser, filters);
 			Path path = SongFiles.ensureFileExtension(chooser.getSelectedFile().toPath(), filters, filterIndex);
-			if (!Files.exists(path) || JOptionPane.showConfirmDialog(getFrame(), path.getFileName() + " already exists.\nDo you want to replace it?", title, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION) {
+			if (!Files.exists(path) || session.unlocked(() -> JOptionPane.showConfirmDialog(getFrame(), path.getFileName() + " already exists.\nDo you want to replace it?", title, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)) == JOptionPane.YES_OPTION) {
 				return new SongFiles.FileChoice(path, filterIndex);
 			}
 		}
@@ -326,7 +333,7 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 	@Override
 	public SongFiles.FileNewChoice showFileNew() {
 		FileNewDialog dialog = new FileNewDialog(getFrame());
-		if (!dialog.showDialog()) {
+		if (!session.unlocked(dialog::showDialog)) {
 			return null;
 		}
 		return new SongFiles.FileNewChoice(dialog.maxTrackLength, dialog.comboMonoOrStereo != 0);
@@ -334,7 +341,7 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 
 	@Override
 	public int showTracksLoad(int trackFrom, int trackNum) {
-		return new TracksLoadDialog(getFrame(), trackFrom, trackNum).showDialog();
+		return session.unlocked(() -> new TracksLoadDialog(getFrame(), trackFrom, trackNum).showDialog());
 	}
 
 	/** {@code SetWindowText("Imported " + fn)}: shown until the next {@code SetRMTTitle()} would change the title anyway (an edit, a load, a save). */
@@ -346,19 +353,19 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 
 	@Override
 	public SongFiles.ImportModChoice showImportMod(String info, String radio1, String radio2) {
-		return new ImportModDialog(getFrame(), info, radio1, radio2).showDialog();
+		return session.unlocked(() -> new ImportModDialog(getFrame(), info, radio1, radio2).showDialog());
 	}
 
 	@Override
 	public SongFiles.ImportTmcChoice showImportTmc(String info) {
-		return new ImportTmcDialog(getFrame(), info).showDialog();
+		return session.unlocked(() -> new ImportTmcDialog(getFrame(), info).showDialog());
 	}
 
 	@Override
 	public boolean showImportFinished(boolean mod, String info) {
 		ExportSettings es = session.exportSettings;
 		ImportFinishedDialog dialog = new ImportFinishedDialog(getFrame(), mod, info, mod ? es.importModUnderstood : es.importTmcUnderstood);
-		boolean ok = dialog.showDialog();
+		boolean ok = session.unlocked(dialog::showDialog);
 		if (mod) {
 			es.importModUnderstood = dialog.isUnderstood();
 		} else {
@@ -369,59 +376,59 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 
 	@Override
 	public SongFiles.StrippedRmtChoice showExportStrippedRmt(SongFiles.ModuleDescription stripped, SongFiles.ModuleDescription withSfx, String filename) {
-		return new ExportStrippedRmtDialog(getFrame(), session, stripped, withSfx, filename).showDialog();
+		return session.unlocked(() -> new ExportStrippedRmtDialog(getFrame(), session, stripped, withSfx, filename).showDialog());
 	}
 
 	@Override
 	public SongFiles.AsmChoice showExportAsm() {
-		return new ExportAsmDialog(getFrame(), session.exportSettings.prefixForAllAsmLabels).showDialog();
+		return session.unlocked(() -> new ExportAsmDialog(getFrame(), session.exportSettings.prefixForAllAsmLabels).showDialog());
 	}
 
 	@Override
 	public com.wudsn.tools.rmt.model.AsmFileExporter.RelocatableAsmExportParams showExportRelocatableAsm(SongFiles.ModuleDescription stripped, SongFiles.ModuleDescription withSfx) {
-		return new ExportRelocatableAsmDialog(getFrame(), session, stripped, withSfx).showDialog();
+		return session.unlocked(() -> new ExportRelocatableAsmDialog(getFrame(), session, stripped, withSfx).showDialog());
 	}
 
 	@Override
 	public SongFiles.SapChoice showExportSap(com.wudsn.tools.rmt.model.SapFile sapFile, String subsongs) {
-		return new ExportSapDialog(getFrame(), sapFile, subsongs).showDialog();
+		return session.unlocked(() -> new ExportSapDialog(getFrame(), sapFile, subsongs).showDialog());
 	}
 
 	@Override
 	public SongFiles.XexChoice showExportXex(String text, String speedInfo) {
-		return new ExportXexDialog(getFrame(), session.exportSettings, text, speedInfo).showDialog();
+		return session.unlocked(() -> new ExportXexDialog(getFrame(), session.exportSettings, text, speedInfo).showDialog());
 	}
 
 	// ---- SongDialogs.Host: the editing dialogs ----
 
 	@Override
 	public SongDialogs.InsertCopyChoice showInsertCopyOrClone(int lineFrom, int lineTo, int lineInto) {
-		return new InsertCopyOrCloneDialog(getFrame(), lineFrom, lineTo, lineInto).showDialog();
+		return session.unlocked(() -> new InsertCopyOrCloneDialog(getFrame(), lineFrom, lineTo, lineInto).showDialog());
 	}
 
 	@Override
 	public com.wudsn.tools.rmt.model.Song.InstrChangeParams showInstrumentChange(int instr, int onlyTrack, int onlySongLine) {
-		return new InstrumentChangeDialog(getFrame(), session, instr, onlyTrack, onlySongLine).showDialog();
+		return session.unlocked(() -> new InstrumentChangeDialog(getFrame(), session, instr, onlyTrack, onlySongLine).showDialog());
 	}
 
 	@Override
 	public SongDialogs.TracksOrderChoice showTracksOrder(String songLineFrom, String songLineTo) {
-		return new TracksOrderDialog(getFrame(), session.tracks4_8, songLineFrom, songLineTo).showDialog();
+		return session.unlocked(() -> new TracksOrderDialog(getFrame(), session.tracks4_8, songLineFrom, songLineTo).showDialog());
 	}
 
 	@Override
 	public int showChangeMaxTrackLength(String info, int maxTrackLength) {
-		return new ChangeMaxTrackLengthDialog(getFrame(), info, maxTrackLength).showDialog();
+		return session.unlocked(() -> new ChangeMaxTrackLengthDialog(getFrame(), info, maxTrackLength).showDialog());
 	}
 
 	@Override
 	public int showRenumberTracks() {
-		return RenumberDialogs.tracks(getFrame()).showDialog();
+		return session.unlocked(() -> RenumberDialogs.tracks(getFrame()).showDialog());
 	}
 
 	@Override
 	public int showRenumberInstruments() {
-		return RenumberDialogs.instruments(getFrame()).showDialog();
+		return session.unlocked(() -> RenumberDialogs.instruments(getFrame()).showDialog());
 	}
 
 	@Override
@@ -431,13 +438,18 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 
 	@Override
 	public boolean showBlockEffect(com.wudsn.tools.rmt.model.Track track, com.wudsn.tools.rmt.model.Track original, int bfro, int bto, int ainstr, boolean all, String info) {
-		return new BlockEffectDialog(getFrame(), session, track, original, bfro, bto, ainstr, all, info).showDialog();
+		return session.unlocked(() -> new BlockEffectDialog(getFrame(), session, track, original, bfro, bto, ainstr, all, info).showDialog());
 	}
 
-	/** Shows the window and starts the display timer ({@code CRmtApp::InitInstance()}'s {@code ShowWindow} plus {@code CRmtView::OnInitialUpdate()}'s {@code SetTimer}). */
+	/** Shows the window and starts the display timer and the sound ({@code CRmtApp::InitInstance()}'s {@code ShowWindow} plus {@code CRmtView::OnInitialUpdate()}'s {@code SetTimer}, {@code InitSound} and {@code ChangeTimer}). */
 	public void show() {
 		getFrame().setVisible(true);
 		trackerPanel.requestFocusInWindow();
 		trackerPanel.startDisplayTimer();
+		audioEngine.start();
+	}
+
+	public AudioEngine getAudioEngine() {
+		return audioEngine;
 	}
 }

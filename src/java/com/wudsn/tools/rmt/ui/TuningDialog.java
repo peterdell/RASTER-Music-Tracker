@@ -233,16 +233,20 @@ final class TuningDialog extends ModalDialog {
 	}
 
 	private void apply() {
-		copy(settings, session.tuningSettings);
-		copy(ratios, session.tuningRatios);
-		session.initTuning();
+		session.locked(() -> {
+			copy(settings, session.tuningSettings);
+			copy(ratios, session.tuningRatios);
+			session.initTuning();
+		});
 	}
 
 	/** {@code OnTuningReset()}: the backup into the session and {@code InitTuning()} - the fields are left alone, as in C++. */
 	private void onTuningReset() {
-		copy(settingsBackup, session.tuningSettings);
-		copy(ratiosBackup, session.tuningRatios);
-		session.initTuning();
+		session.locked(() -> {
+			copy(settingsBackup, session.tuningSettings);
+			copy(ratiosBackup, session.tuningRatios);
+			session.initTuning();
+		});
 	}
 
 	/** {@code DoModal()}: OK is {@code OnOK() = OnTuningTest() + close}, anything else is {@code OnCancel() = OnTuningReset() + close}. */

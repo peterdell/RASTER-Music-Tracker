@@ -197,13 +197,12 @@ public final class SongDialogs {
 		song.tracksOrderChangeApply(f, t, dlg.tracksOrder(), session.tracks4_8);
 	}
 
-	/** {@code OnSongSongswitch4_8()}: the model asks its own question; a switch re-initializes the Atari ({@code g_Atari.Init()}) and the window's minimum size. */
+	/** {@code OnSongSongswitch4_8()}: the model asks its own question; a switch re-initializes the sound ({@code SetTracks()} -> {@code ReInitSound()}, through {@link RmtSession#setTracks4_8}) and the window's minimum size. */
 	public void songswitch4_8() {
 		stop();
 		int before = session.tracks4_8;
-		session.tracks4_8 = session.song.songswitch4_8(before, before <= 4 ? 8 : 4, session.undo, session.messages);
+		session.setTracks4_8(session.song.songswitch4_8(before, before <= 4 ? 8 : 4, session.undo, session.messages));
 		if (session.tracks4_8 != before) {
-			session.initTuning(); // g_Atari.Init(g_Song.IsNTSC())
 			host.songLayoutChanged();
 		}
 	}
