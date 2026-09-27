@@ -1,17 +1,17 @@
-# RMT scripting (Java port)
+# RMT scripting
 
-The Java port of RASTER Music Tracker can run a script file: open a song,
-set what the export dialogs would ask, export in any format, save. This is
-meant for batch files, build scripts and CI, where the SAP, XEX, WAV and
-ASM files of a song are produced from its `.rmt` source reproducibly, and
-for repeated export sets while composing.
-
-The C++ `Rmt.exe` does not run these scripts (its `/SCRIPT` and `/TEST`
-switches are developer utilities).
+Both RASTER Music Tracker programs - the Windows `Rmt.exe` and the Java
+port - can run a script file: open a song, set what the export dialogs
+would ask, export in any format, save. This is meant for batch files, build
+scripts and CI, where the SAP, XEX, WAV and ASM files of a song are produced
+from its `.rmt` source reproducibly, for repeated export sets while
+composing, and for comparing the two programs' exports. The same script runs
+in both.
 
 ## Running a script
 
-- From the command line, without a window (no display is needed):
+- Java port, from the command line, without a window (no display is
+  needed):
 
   ```
   java -jar rmt.jar /SCRIPT:build.rmtscript
@@ -23,9 +23,23 @@ switches are developer utilities).
   Messages that would be boxes in the window are printed to the console:
   errors and warnings to stderr, information to stdout.
 
-- From the window: **Tools > Run Script...** picks a script and runs it on
-  the current session. Message boxes stay boxes; the commands' output is
-  shown once at the end.
+- Java port, from the window: **Tools > Run Script...** picks a script and
+  runs it on the current session. Message boxes stay boxes; the commands'
+  output is shown once at the end.
+
+- Windows program:
+
+  ```
+  start /wait Rmt.exe /SCRIPT:build.rmtscript
+  ```
+
+  `Rmt.exe` is a windowed program, so `cmd.exe` returns to the prompt at
+  once unless it is started with `start /wait` (in PowerShell:
+  `Start-Process Rmt.exe "/SCRIPT:build.rmtscript" -Wait`). The window is
+  created but stays hidden. The messages go to the console the program was
+  started from; when there is none (started from Explorer or a scheduler),
+  they go to `<script>.log` next to the script. The exit code is the same
+  as the Java port's (`%ERRORLEVEL%` after `start /wait`).
 
 Exit codes of the command line:
 

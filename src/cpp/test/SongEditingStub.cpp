@@ -137,6 +137,16 @@ void SetStatusBarText(const char*) {
 void CSong::ReInitSound() {
 }
 
+// Link-only stubs: the real CSong::StopTimer()/ChangeTimer() live in Song.cpp
+// (not linked here - they drive g_SongTimer's multimedia timer) and are
+// reached through CWaveFileExporter::ExportWAV(), which stops the timer for
+// the duration of the export (a DirectSound-bound function no test calls).
+void CSong::StopTimer() {
+}
+
+void CSong::ChangeTimer(int) {
+}
+
 // Link-only no-op stub: the real CSong::SyncSkipLinesAfterNoteInsertComboBox()
 // lives in Song.cpp (not linked here - it needs a real MFC AfxGetMainWnd()/
 // CMainFrame, unavailable in this console test binary) and is called at the

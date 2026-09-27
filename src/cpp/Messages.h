@@ -2,6 +2,8 @@
 
 #include "StdAfx.h"
 
+#include <string>
+
 // Display info message in the status bar or in the log.
 extern void SendInfoMessage(const char* message);
 
@@ -46,3 +48,13 @@ extern MessageAnswer SendQuestionMessage(const char* title, const char* message,
 // safe/non-destructive choice) so a test that forgets to set this doesn't
 // accidentally take a destructive branch.
 extern void SetTestQuestionAnswer(MessageAnswer answer);
+
+// Script mode (Rmt.exe /SCRIPT:<file>, see ScriptRunner.h): the message
+// boxes go to the console instead - errors and warnings to stderr,
+// information to stdout, questions answered No/Cancel with a note - and the
+// errors and warnings are collected so the script runner can fail the
+// current command on them.
+extern void SetScriptMessageMode(bool enabled);
+extern void ClearScriptProblems();
+// The errors and warnings since ClearScriptProblems(), one line each; "" for none.
+extern std::string GetScriptProblems();

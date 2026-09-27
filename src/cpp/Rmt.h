@@ -35,6 +35,7 @@ public:
     //{{AFX_VIRTUAL(CRmtApp)
 public:
     virtual BOOL InitInstance();
+    virtual int ExitInstance();
     //}}AFX_VIRTUAL
 
     CString GetVersionAndBuild() const;
@@ -53,6 +54,8 @@ public:
 
 private:
     bool helpOpened;
+    // The exit code of a /SCRIPT run (see ScriptRunner.h), -1 for a normal session.
+    int m_scriptExitCode = -1;
 };
 
 /////////////////////////////////////////////////////////////////////////////

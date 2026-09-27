@@ -42,6 +42,10 @@ public:
     void SetPlayerAddress(MemoryAddress player);
 
     void Init(const CSong& song);
+    // The "Subsongs" line of the export dialog (hex songline numbers separated by
+    // anything else) counted as SetSongs() wants it - shared by the dialog and
+    // the script runner.
+    static int ParseSubsongs(const CString& subsongs);
     void Normalize();
     // Takes std::ostream (not just std::ofstream) so tests can capture the
     // output with a std::ostringstream instead of writing a real file. Not

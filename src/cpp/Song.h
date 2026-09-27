@@ -322,6 +322,9 @@ public:
 
     CString GetFilename() const { return m_filename; };
     SongIOType GetIOType() const { return m_ioType; };
+    // FileSaveAs()'s result without its dialog (the script runner): the name and format FileSave() then writes.
+    void SetLoadedFile(const CString& filename, SongIOType ioType) { m_filename = filename; m_ioType = ioType; };
+    void SetLastExportIOType(SongIOType ioType) { m_lastExportIOType = ioType; };
 
     int (*GetSong()) [SONGLEN][SONGTRACKS] { return &m_song; };
     int (*GetSongGo()) [SONGLEN] { return &m_songgo; };

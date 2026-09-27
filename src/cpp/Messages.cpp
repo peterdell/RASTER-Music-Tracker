@@ -16,11 +16,38 @@ void SendInfoMessage(const char* message) {
 }
 
 namespace {
+bool g_scriptMessageMode = false;
+std::string g_scriptProblems;
+
+// One line: "title: message" with the message's line ends flattened.
+std::string OneLine(const char* title, const char* message) {
+    std::string text = message ? message : "";
+    for (char& c : text) {
+        if (c == '\r' || c == '\n') {
+            c = ' ';
+        }
+    }
+    while (!text.empty() && text.back() == ' ') {
+        text.pop_back();
+    }
+    return (title && *title ? std::string(title) + ": " : std::string()) + text;
+}
+
 // Shared by every fire-and-forget Send<Type>Message() below: logs
 // instead of showing a real MessageBox whenever no real status bar/UI
 // is present (i.e. in every test), so these call sites are always safe
-// to trigger there.
+// to trigger there. In script mode the console takes the box's place.
 void SendMessageBox(const char* logPrefix, const char* title, const char* message, UINT icon) {
+    if (g_scriptMessageMode) {
+        std::string line = OneLine(title, message);
+        if (icon == MB_ICONINFORMATION) {
+            printf("%s\n", line.c_str());
+        } else {
+            g_scriptProblems += line + "\n";
+            fprintf(stderr, "%s\n", line.c_str());
+        }
+        return;
+    }
     if (g_statusBar == nullptr) {
         OutputDebugString(logPrefix);
         if (title) {
@@ -68,7 +95,28 @@ void SetTestQuestionAnswer(MessageAnswer answer) {
     g_testQuestionAnswer = answer;
 }
 
+void SetScriptMessageMode(bool enabled) {
+    g_scriptMessageMode = enabled;
+    g_scriptProblems.clear();
+}
+
+void ClearScriptProblems() {
+    g_scriptProblems.clear();
+}
+
+std::string GetScriptProblems() {
+    std::string result = g_scriptProblems;
+    while (!result.empty() && result.back() == '\n') {
+        result.pop_back();
+    }
+    return result;
+}
+
 MessageAnswer SendQuestionMessage(const char* title, const char* message, MessageButtons buttons) {
+    if (g_scriptMessageMode) {
+        fprintf(stderr, "%s (a script answers No)\n", OneLine(title, message).c_str());
+        return buttons == MessageButtons::OkCancel ? MessageAnswer::Cancel : MessageAnswer::No;
+    }
     if (g_statusBar == nullptr) {
         OutputDebugString("QUESTION: ");
         if (title) {

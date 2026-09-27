@@ -228,9 +228,6 @@
     <ClCompile Include="LZSSFile.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\LZSS</Filter>
     </ClCompile>
-    <ClCompile Include="SongExporterTest.cpp">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClCompile>
     <ClCompile Include="AboutDialog.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
@@ -303,7 +300,10 @@
     <ClCompile Include="Shell.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
-    <ClCompile Include="RmtTest.cpp">
+    <ClCompile Include="Script.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptRunner.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
     <ClCompile Include="asap\asap.c">
@@ -482,9 +482,6 @@
     <ClInclude Include="lzss_sap.h">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\LZSS</Filter>
     </ClInclude>
-    <ClInclude Include="SongExporterTest.h">
-      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
-    </ClInclude>
     <ClInclude Include="AboutDialog.h">
       <Filter>Source Files\UI</Filter>
     </ClInclude>
@@ -521,7 +518,10 @@
     <ClInclude Include="Pokey.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
-    <ClInclude Include="RmtTest.h">
+    <ClInclude Include="Script.h">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptRunner.h">
       <Filter>Source Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="VUPlayer.h">

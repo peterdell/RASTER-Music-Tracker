@@ -7,18 +7,17 @@
 #include "Commands.h"
 #include "Global.h"
 #include "MainFrm.h"
-#include "Messages.h" 
+#include "Messages.h"
+#include "PokeyRenderer.h" // CXPokey g_Pokey (used to come in through the developer test headers)
 #include "Rmt.h"
 #include "RmtCommandLineInfo.h"
 #include "RmtDoc.h"
 #include "RmtVersion.h"
 #include "RmtView.h"
 #include "Shell.h"
+#include "ScriptRunner.h"
 #include "Song.h"
-#include "SongExporterTest.h"
 #include "StdAfx.h"
-
-#include "RmtTest.h"
 
 
 // Activate MFC memory leak detection.
@@ -138,12 +137,6 @@ BOOL CRmtApp::InitInstance()
     CRmtCommandLineInfo cmdInfo;
     ParseCommandLine(cmdInfo);
 
-    if (cmdInfo.IsTestFileSpecified()) {
-        CRmtTest test;
-        test.RunFor(*this, cmdInfo.GetTestFilePath());
-        return FALSE;
-    }
-
     // Dispatch the standard commands specified on the command line.
     // Will return FALSE if the app was launched with /RegServer, /Register, /Unregserver or /Unregister.
     if (!ProcessShellCommand(cmdInfo))
@@ -151,11 +144,15 @@ BOOL CRmtApp::InitInstance()
         return FALSE;
     }
 
-    // The one and only window has been initialized, so show and update it.
+    // The one and only window has been initialized, so show and update it
+    // (a script run keeps it hidden - the register dump needs its message
+    // pump, not its pixels).
     auto mainFrame = (CMainFrame*)GetMainWnd();
     g_statusBar = &mainFrame->m_wndStatusBar;
-    m_pMainWnd->ShowWindow(SW_SHOW);
-    m_pMainWnd->UpdateWindow();
+    if (!cmdInfo.IsScriptFileSpecified()) {
+        m_pMainWnd->ShowWindow(SW_SHOW);
+        m_pMainWnd->UpdateWindow();
+    }
 
     // Initialize the random number based on the current time.
     srand((unsigned int)time(NULL));
@@ -172,18 +169,22 @@ BOOL CRmtApp::InitInstance()
         break;
     }
 
-    // Dispatch additional automatic commands specified on the command line.
+    // /SCRIPT:<file>: run the script (doc/rmt_scripting.md) and exit with its
+    // code - the same format the Java port runs. Messages go to the console
+    // the program was started from, or to <file>.log.
     if (cmdInfo.IsScriptFileSpecified()) {
-        CFile scriptFile;
-        if (!scriptFile.Open(cmdInfo.GetScriptFilePath(), CFile::modeRead)) {
-            SendErrorMessage("Invalid Command Line Parameter", "The script file \"" + scriptFile.GetFilePath() + "\" specified via the command line switch /SCRIPT cannot be opened for reading.");
-            return FALSE;
-        }
-        CSongExporterTest::Test(g_Song);
-        return FALSE;
+        AttachScriptConsole(cmdInfo.GetScriptFilePath());
+        CScriptRunner runner(g_Song);
+        m_scriptExitCode = runner.RunFile(cmdInfo.GetScriptFilePath());
+        return FALSE; // MFC's normal shutdown (the window destroyed, the timer stopped, the sound released); ExitInstance() returns the script's code
     }
 
     return TRUE;
+}
+
+int CRmtApp::ExitInstance() {
+    int result = CWinApp::ExitInstance();
+    return m_scriptExitCode >= 0 ? m_scriptExitCode : result; // a script run's exit code (InitInstance() == FALSE would otherwise always exit with 0)
 }
 
 CString CRmtApp::GetVersionAndBuild() const {

@@ -241,7 +241,8 @@
     <ClCompile Include="RmtCommandLineInfo.cpp" />
     <ClCompile Include="RmtExporter.cpp" />
     <ClCompile Include="RmtExporterCore.cpp" />
-    <ClCompile Include="RmtTest.cpp" />
+    <ClCompile Include="Script.cpp" />
+    <ClCompile Include="ScriptRunner.cpp" />
     <ClCompile Include="RuntimeException.cpp" />
     <ClCompile Include="SAPFile.cpp" />
     <ClCompile Include="SAPFileExportDialog.cpp" />
@@ -289,7 +290,6 @@
     <ClCompile Include="Shell.cpp" />
     <ClCompile Include="SongContainer.cpp" />
     <ClCompile Include="SongExport.cpp" />
-    <ClCompile Include="SongExporterTest.cpp" />
     <ClCompile Include="SongIO.cpp" />
     <ClCompile Include="SongTimer.cpp" />
     <ClCompile Include="SongUI.cpp" />
@@ -417,7 +417,8 @@
     <ClInclude Include="RmtFile.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="RmtScreenLayout.h" />
-    <ClInclude Include="RmtTest.h" />
+    <ClInclude Include="Script.h" />
+    <ClInclude Include="ScriptRunner.h" />
     <ClInclude Include="RuntimeException.h" />
     <ClInclude Include="SAPFile.h" />
     <ClInclude Include="SAPFileExportDialog.h" />
@@ -441,7 +442,6 @@
     <ClInclude Include="SongContainer.h" />
     <ClInclude Include="SongExport.h" />
     <ClInclude Include="SongExporter.h" />
-    <ClInclude Include="SongExporterTest.h" />
     <ClInclude Include="SongIO.h" />
     <ClInclude Include="SongTimer.h" />
     <ClInclude Include="SongTypes.h" />

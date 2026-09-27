@@ -1,8 +1,10 @@
 # Java port: scripting (proposal)
 
 Status: **DONE 2026-09-27** - S1, S2 and S3 (decisions 1-5 and 7 as
-recommended; the C++ question, decision 6, stays open: the C++ program
-keeps its developer switches until the Java option set has settled).
+recommended). Decision 6 was reopened the same day on the user's question
+and answered with `plans/CPP_SCRIPTING_PLAN.md`: the C++ program runs the
+same scripts (C1 done), and the two programs' exports are to be compared
+through them (C2).
 
 S3 as built: `doc/rmt_scripting.md` (running from the command line and the
 window, exit codes, syntax, commands, formats and options with their

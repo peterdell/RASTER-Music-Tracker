@@ -77,6 +77,13 @@ public:
     // stream (see test/SongEditingTests.cpp).
     bool ExportXEX_LZSS(CSongExport& songExport, CXEXFile xexFile, std::ostream& ou);
 
+    // The screen text the XEX dialog proposes: the last export's, or the song's
+    // name, STEREO, the date and the two author lines. Shared with the script
+    // runner (ScriptRunner.cpp), which has no dialog.
+    static CString DefaultXexText(const CXEXFile& xexFile);
+    // The text into xexFile.atariText (5 lines of 40, Atari video codes).
+    static void SetXexText(CXEXFile& xexFile, const CString& text);
+
 private:
     static void StrToAtariVideo(char* txt, int count);
 

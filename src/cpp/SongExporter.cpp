@@ -71,27 +71,9 @@ bool CSongExporter::ShowXEXExportDialog(const CSong& song, CXEXFile& xexFile) {
 
     xexFile.InitFromSong(song);
 
-    CString EOL = "\r\n";
-
     CExpMSXDlg dlg;
     CString str;
-
-    str = xexFile.songname;
-    // TODO Move this to InitFromSong!
-
-    if (g_rmtmsxtext != "") {
-        dlg.m_txt = g_rmtmsxtext; // same from last time, making repeated exports faster
-    } else {
-        // 5 lines of text
-        dlg.m_txt = str + EOL;
-        if (xexFile.isStereo) {
-            dlg.m_txt += "STEREO";
-        }
-        dlg.m_txt += EOL;
-        dlg.m_txt += xexFile.currentTime.Format("%d/%m/%Y") + EOL;
-        dlg.m_txt += "Author: (press SHIFT key)" + EOL;
-        dlg.m_txt += "Author: ???";
-    }
+    dlg.m_txt = DefaultXexText(xexFile);
 
     str.Format("Playback speed will be adjusted to %s Hz on both PAL and NTSC systems.", (xexFile.isNTSC ? "60" : "50"));
     dlg.m_speedinfo = str;
@@ -103,12 +85,38 @@ bool CSongExporter::ShowXEXExportDialog(const CSong& song, CXEXFile& xexFile) {
     g_rmtmsxtext = dlg.m_txt;
     g_rmtmsxtext.Replace("\x0d\x0d", "\x0d"); //13, 13 => 13
 
+    SetXexText(xexFile, dlg.m_txt);
+
+    xexFile.rasterbarColor = dlg.m_metercolor;
+    xexFile.displayRasterbar = dlg.m_meter;
+    xexFile.autoRegion = dlg.m_region_auto;
+
+    return true;
+}
+CString CSongExporter::DefaultXexText(const CXEXFile& xexFile) {
+    CString EOL = "\r\n";
+    if (g_rmtmsxtext != "") {
+        return g_rmtmsxtext; // same from last time, making repeated exports faster
+    }
+    // 5 lines of text
+    CString txt = CString(xexFile.songname) + EOL;
+    if (xexFile.isStereo) {
+        txt += "STEREO";
+    }
+    txt += EOL;
+    txt += xexFile.currentTime.Format("%d/%m/%Y") + EOL;
+    txt += "Author: (press SHIFT key)" + EOL;
+    txt += "Author: ???";
+    return txt;
+}
+
+void CSongExporter::SetXexText(CXEXFile& xexFile, const CString& text) {
     // This block of code will handle all the user input text that will be inserted in the binary during the export process
     memset(xexFile.atariText, ' ', CXEXFile::ATARI_TEXT_SIZE);
     int p = 0, q = 0;
     char a;
-    for (int i = 0; i < dlg.m_txt.GetLength(); i++) {
-        a = dlg.m_txt.GetAt(i);
+    for (int i = 0; i < text.GetLength(); i++) {
+        a = text.GetAt(i);
         if (a == '\n') {
             p += 40;
             q = 0;
@@ -121,10 +129,4 @@ bool CSongExporter::ShowXEXExportDialog(const CSong& song, CXEXFile& xexFile) {
         }
     }
     StrToAtariVideo((char*)xexFile.atariText, CXEXFile::ATARI_TEXT_SIZE);
-
-    xexFile.rasterbarColor = dlg.m_metercolor;
-    xexFile.displayRasterbar = dlg.m_meter;
-    xexFile.autoRegion = dlg.m_region_auto;
-
-    return true;
 }

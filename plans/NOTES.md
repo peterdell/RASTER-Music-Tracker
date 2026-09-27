@@ -4632,3 +4632,56 @@ build clean and all 123 tests pass.
       section; `build/stage_java_release.sh` copies it into the
       distribution's `docs/`.
     - Decision 6 (the C++ program) left open as recommended.
+  - **2026-09-27**: C++ scripting, batch C1 (`plans/CPP_SCRIPTING_PLAN.md`)
+    - the user's question "would /SCRIPT support on Windows help to
+    simplify testing?" answered with the same script format in `Rmt.exe`,
+    so the two programs' exports can be compared end to end (C2).
+    - `Script.h/.cpp`: the parser (std only, linked into both projects), the
+      Java `ScriptParser`'s rules 1:1. `ScriptRunner.h/.cpp`: `open`, `save`,
+      `export` for the eight formats, `set overwrite|ntsc|driver`, `echo`,
+      `quit` - the exports through the dialog-independent entry points
+      (`ExportAsStrippedRMTApply`, `ExportAsAsmApply`,
+      `ExportAsRelocatableAsmForRmtPlayerApply`, `CSAPFileExporter::ExportSAP_R/
+      ExportSAP_B_LZSS`, `ExportLZSS`, `ExportXEX_LZSS(xexFile)`, `ExportWAV`)
+      with the parameters the dialogs would have collected and their
+      defaults from the same globals, the globals updated as the dialogs
+      update them; `set ntsc` as `CRmtView::SetNTSC`, `set driver` as the
+      options dialog's branch. Factored out of the dialogs for that:
+      `CSAPFile::ParseSubsongs`, `CSongExporter::DefaultXexText/SetXexText`;
+      added `CSong::SetLoadedFile/SetLastExportIOType` (the Java port had
+      them since B7).
+    - Script message mode (`Messages.cpp`): the boxes to the console -
+      errors/warnings to stderr and collected (they fail the command),
+      information to stdout, questions answered No/Cancel with a note.
+      `AttachScriptConsole`: the parent console when there is one, else
+      `<script>.log`. `Rmt.exe` is a GUI program, so batch files use
+      `start /wait`.
+    - `CRmtApp::InitInstance`: the window is created but not shown for a
+      script (the register dump pumps its messages), the run's exit code
+      goes through a new `CRmtApp::ExitInstance()` override (`InitInstance()
+      == FALSE` alone always exits 0; an `ExitProcess` crashed in the DLL
+      teardown). `/TEST` removed from `CRmtCommandLineInfo`; `RmtTest.*` and
+      `SongExporterTest.*` (the developer routines, the WASAP launcher, the
+      menu analyzer) deleted with their project entries.
+    - **Bug found by the first script run**: the WAV export crashed
+      mid-file (0xC0000005; 336 KB, 2.5 MB, 4.5 MB on three runs of a
+      6.8 MB file). `ExportWAV` renders through `RenderSoundV2` on the
+      main thread while the timer thread keeps rendering through
+      `RenderSound1_50` on the same POKEY; the `WRITE` state meant to stop
+      the timer routine never did, because `CSong::m_pokeyStream` is null
+      again once `DumpSongToPokeyStream()` returned - the source's own
+      "TODO: Fix the timing overlap causing conflicts / JAC! Does this
+      problem really still exist?". Fixed: `ExportWAV` stops the song timer
+      (`CSong::StopTimer`) for its duration and re-arms it (`ChangeTimer`)
+      at the end; link-only stubs for the two in `SongEditingStub.cpp`.
+      Three WAV runs now give the identical 6,773,804 bytes. The Java port
+      is not affected (its engine and the export share the session lock).
+    - Tests: `ScriptTests.cpp` (the parser cases of the Java
+      `ScriptParserTest`, `ParseSubsongs`); the `/TEST` case dropped from
+      `RmtCommandLineInfoTests.cpp`. 415 C++ tests (+4). Release build clean.
+    - Live: the `doc/rmt_scripting.md` example through `Rmt.exe /SCRIPT`
+      from Git Bash and through PowerShell's `Start-Process -Wait` - exit 0,
+      SAP/XEX/stripped RMT/WAV written; a rerun refuses to overwrite (exit
+      1); a broken quote gives exit 2.
+    - `doc/rmt_scripting.md` now covers both programs (the Windows
+      paragraph: `start /wait`, the `.log` fallback); README updated.

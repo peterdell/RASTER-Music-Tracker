@@ -101,6 +101,36 @@ void CSAPFile::SetPlayerAddress(MemoryAddress player) {
     m_player = player;
 }
 
+int CSAPFile::ParseSubsongs(const CString& subsongs) {
+    CString str = subsongs + " "; // Add space after the last character for parsing
+    str.MakeUpper();
+    int count = 0;
+    byte subpos[MAXSUBSONGS]{};
+    subpos[0] = 0; // Start at songline 0 by default
+    byte n = 0, isn = 0;
+
+    for (int i = 0; i < str.GetLength(); i++) {
+        char a = str.GetAt(i);
+        if (a >= '0' && a <= '9') {
+            n = (n << 4) + (a - '0');
+            isn = 1;
+        } else if (a >= 'A' && a <= 'F') {
+            n = (n << 4) + (a - 'A' + 10);
+            isn = 1;
+        } else {
+            if (isn) {
+                subpos[count] = n;
+                count++;
+                if (count >= MAXSUBSONGS) {
+                    break;
+                }
+                isn = 0;
+            }
+        }
+    }
+    return count;
+}
+
 void CSAPFile::Init(const CSong& song) {
     m_author = "???";
     m_name = song.GetName();

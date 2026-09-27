@@ -5,7 +5,6 @@
 TEST(RmtCommandLineInfoTest, NoParamsLeavesNeitherFileSpecified) {
     CRmtCommandLineInfo info;
     EXPECT_FALSE(info.IsScriptFileSpecified());
-    EXPECT_FALSE(info.IsTestFileSpecified());
 }
 
 TEST(RmtCommandLineInfoTest, ScriptSwitchSetsScriptFilePath) {
@@ -14,16 +13,6 @@ TEST(RmtCommandLineInfoTest, ScriptSwitchSetsScriptFilePath) {
 
     EXPECT_TRUE(info.IsScriptFileSpecified());
     EXPECT_STREQ(info.GetScriptFilePath(), "test-script.txt");
-    EXPECT_FALSE(info.IsTestFileSpecified());
-}
-
-TEST(RmtCommandLineInfoTest, TestSwitchSetsTestFilePath) {
-    CRmtCommandLineInfo info;
-    info.ParseParam(_T("TEST:song.rmt"), TRUE, TRUE);
-
-    EXPECT_TRUE(info.IsTestFileSpecified());
-    EXPECT_STREQ(info.GetTestFilePath(), "song.rmt");
-    EXPECT_FALSE(info.IsScriptFileSpecified());
 }
 
 TEST(RmtCommandLineInfoTest, SwitchNameIsCaseInsensitive) {
@@ -47,7 +36,6 @@ TEST(RmtCommandLineInfoTest, UnrecognizedFlagLeavesBothFilesUnspecified) {
     info.ParseParam(_T("SOMETHINGELSE:value"), TRUE, TRUE);
 
     EXPECT_FALSE(info.IsScriptFileSpecified());
-    EXPECT_FALSE(info.IsTestFileSpecified());
 }
 
 TEST(RmtCommandLineInfoTest, PlainFilenameParamDoesNotSetCustomFlags) {
@@ -55,5 +43,4 @@ TEST(RmtCommandLineInfoTest, PlainFilenameParamDoesNotSetCustomFlags) {
     info.ParseParam(_T("song.rmt"), FALSE, TRUE);
 
     EXPECT_FALSE(info.IsScriptFileSpecified());
-    EXPECT_FALSE(info.IsTestFileSpecified());
 }

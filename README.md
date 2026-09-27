@@ -41,7 +41,7 @@ Not ported: printing, MIDI input and the Pokey Explorer.
 - Build and test: `mvn package` from the repository root (needs Java 21, Maven and the [WUDSN Base](https://github.com/wudsn/wudsn-base) libraries installed with `mvn install`).
   The result is the runnable `target/rmt.jar`; `mvn test` runs the tests alone.
 - Run: `java -jar target/rmt.jar [song.rmt]`. The program folder is the jar's folder (or `-Drmt.config.dir=<folder>`); it holds `rmt.ini`/`tuning.ini` and, as for `Rmt.exe`, the `rmt/` layout (`resources/`, `docs/`, `instruments/`, `songs/`). From a checkout the `rmt/` sub-folder is found automatically.
-- Scripting: `java -jar rmt.jar /SCRIPT:<file>` runs a script (open, export in any format, save) without a window, for batch files and CI; Tools > Run Script runs one from the window. See the [scripting documentation](doc/rmt_scripting.md).
+- Scripting: `java -jar rmt.jar /SCRIPT:<file>` runs a script (open, export in any format, save) without a window, for batch files and CI; Tools > Run Script runs one from the window. `Rmt.exe /SCRIPT:<file>` runs the same scripts. See the [scripting documentation](doc/rmt_scripting.md).
 - Eclipse: import the repository root ("Existing Projects into Workspace", Maven Integration) and use `launch/Rmt.launch`.
 - Releases: pushing a tag `v1.35.<n>` runs `.github/workflows/release.yml`, which builds portable app images with a bundled Java runtime for Windows, Linux and macOS (`build/stage_java_release.sh` stages the layout) and attaches them to a GitHub Release.
 - The port's plans and notes are in `plans/` (`JAVA_PORT_PLAN.md`, `JAVA_UI_PORT_PLAN.md`, `NOTES.md`).
