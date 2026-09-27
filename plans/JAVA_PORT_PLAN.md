@@ -1753,9 +1753,16 @@ known-unported, real, meaningful C++ behavior left.
   ASAP's emulation (`plans/JAVA_AUDIO_PLAN.md`) and packaging
   (`plans/JAVA_B9_PLAN.md`: runnable jar, program folder, release workflow).
   Not ported by decision: printing (MFC's own), MIDI, the Pokey Explorer.
-- **Next**: a real scripting feature in place of the C++ `/TEST`/`/SCRIPT`
-  developer switches (user decision 2026-09-27; design proposal first - see
-  `plans/JAVA_B9_PLAN.md` section 5).
+- **Scripting - DONE 2026-09-27.** A real scripting feature in place of
+  the C++ `/TEST`/`/SCRIPT` developer switches (user decision, see
+  `plans/JAVA_B9_PLAN.md` section 5): `plans/JAVA_SCRIPTING_PLAN.md` (the
+  Java port, S1-S3) and `plans/CPP_SCRIPTING_PLAN.md` (the same script
+  format in `Rmt.exe`, C1-C3). The two programs' exports are compared byte
+  for byte through the scripts in `test-resources/scripts`
+  (`build/compare_exports.ps1`, `CrossProgramExportTest`) - the strongest
+  end-to-end port test there is; its first run found four port bugs.
+- **Next**: no open port batch. Findings of the comparison, and any
+  further feature parity work, get their own plan.
 
 `BlockEffect`, the `FileXxx` dialog family, and `TimerRoutine`/hardware-
 timer methods stay permanently deferred per their own already-documented

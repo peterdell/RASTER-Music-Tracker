@@ -54,6 +54,9 @@ Changes in RMT 1.35
 - Menu and dialog captions, mnemonics for (ALT+\<key>) added or/reworked
 
 
+- Scripting: "Rmt.exe /SCRIPT:<file>" runs a script file that opens a song, sets what the export dialogs would ask, exports in any format and saves - for batch files, build scripts and repeated export sets. The messages go to the console (or to "<script>.log"), the exit code reports success. See https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_scripting.md. (Build 2026-09-27)
+- Fixed: the WAV export could crash before the end of the file, at a different position each time - the playback timer kept rendering through the same POKEY emulation during the export. (Build 2026-09-27)
+- Fixed: the LZSS and SAP exports of a stereo song could crash when the compressed data exceeded 64 KB. (Build 2026-09-27)
 - Included the instruments and samples in the download again. (Build 2026-01-14)
 - https://github.com/raster-atari-org/RASTER-Music-Tracker/pull/16
 - https://github.com/raster-atari-org/RASTER-Music-Tracker/pull/15
@@ -61,6 +64,7 @@ Changes in RMT 1.35
 - The GitHub repository for RMT 1.34 at "https://github.com/VinsCool/RASTER-Music-Tracker" was archived by VinsCool. It will be kept as a reference and still includes several features (e.g., keyboard layout handling) that might find their way into RMT 2.0. (2026-01-08))
 - Technical documentation for the RMT tracker and the RMT current and future module file format versions was created. (Build 2026-01-06)
 Technical:
+- The "/TEST" switch and the hard-coded developer routines behind "/SCRIPT" were replaced by the script feature. The scripts in test-resources/scripts run through Rmt.exe and the Java port (build/compare_exports.ps1, part of the daily build) and every exported file is compared byte for byte. (Build 2026-09-27)
 - Extract the binaries for the tracker drivers from the source code and have them as resources in the file system. This way, it is easier to inspect and update their content. (Build 2026-01-13)
 - The debug display was extended to include the character of the last pressed key and the SHIFT and CTRL modifier keys (raster-atari-org#9). (Build 2026-01-12)
 - The following parts were changed: (Build 2026-01-06)

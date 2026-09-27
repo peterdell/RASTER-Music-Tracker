@@ -3,7 +3,8 @@
 Status: **C1 DONE 2026-09-27** (decisions 1, 2 and 6 as recommended);
 **C2 DONE 2026-09-27** (decisions 3, 4 and 5 as recommended: `set output`
 plus the `RMT_SCRIPT_OUTPUT` override, the JUnit `CrossProgramExportTest`,
-WAV reported but not compared); C3 (documentation) open. Origin: the user's
+WAV reported but not compared); **C3 DONE 2026-09-27** (`doc/rmt_changes.md`
+entries for the C++ program, README, the plans closed). Origin: the user's
 question after the Java scripting feature - would `/SCRIPT` support in the
 Windows program simplify testing? Answer: yes, twice - it enables an
 end-to-end comparison of both programs' export pipelines, which no test

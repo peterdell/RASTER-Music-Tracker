@@ -4725,3 +4725,15 @@ build clean and all 123 tests pass.
       `ScriptRunnerTest.setOutputRedirectsSavesAndExportsAndTheOverrideWins`,
       `CrossProgramExportTest`. 590 Java tests (+3, one conditional); 415
       C++ tests. Release build clean.
+  - **2026-09-27**: C++ scripting, batch C3 (documentation) - the C++
+    scripting plan is complete (`plans/CPP_SCRIPTING_PLAN.md`).
+    - `doc/rmt_changes.md`: the `/SCRIPT` feature and the two export
+      crashes fixed on the way (WAV timer race, stereo LZSS/SAP stack
+      buffers) as RMT 1.35 entries, linking `doc/rmt_scripting.md` on GitHub
+      (the Windows distribution's `docs/` stays HTML only - the user's
+      decision; a copy of the `.md` there was reverted); the removal of
+      `/TEST` and the cross-program comparison under "Technical".
+    - README: the comparison sentence in the Java section.
+      `plans/JAVA_SCRIPTING_PLAN.md`: decision 6 closed as (b), C1-C3 done.
+      `plans/JAVA_PORT_PLAN.md`: the "Next" item (scripting) marked DONE, no
+      open port batch remains.
