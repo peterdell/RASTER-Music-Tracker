@@ -1324,7 +1324,7 @@ BOOL CSong::ISBLOCKSELECTED() {
 // Both call Stop() first ("Stop the music first"), which only has any
 // effect if GetPlayMode() != PLAY_STOP (see Song.cpp) - a no-op as long as
 // Play() was never called on this instance, which is the only way these
-// are exercised in tests (see plans/SONG_IO_SONG_REMAINING_PLAN.md).
+// are exercised in tests (see plans/01_SONG_IO_SONG_REMAINING_PLAN.md).
 
 void CSong::TracksAllBuildLoops(int& tracksmodified, int& beatsreduced) {
     Stop();
@@ -2797,11 +2797,11 @@ BOOL CSong::SongPutnewemptyunusedtrack() {
 }
 
 // --- SongMaketracksduplicate / Songswitch4_8 ---
-// Both were deferred (plans/SONG_IO_SONG_REMAINING_PLAN.md's "Decisions
+// Both were deferred (plans/01_SONG_IO_SONG_REMAINING_PLAN.md's "Decisions
 // (resolved) #3") solely because of their confirmation prompt, previously
 // a real, unavoidable-in-tests MessageBox(). Now that MessageBox(g_hwnd,...)
 // calls route through SendQuestionMessage() (see
-// plans/MESSAGEBOX_REFACTOR_PLAN.md), which returns a test-injectable
+// plans/08_MESSAGEBOX_REFACTOR_PLAN.md), which returns a test-injectable
 // answer, both are fully testable on every branch.
 
 BOOL CSong::SongMaketracksduplicate() {
@@ -3038,7 +3038,7 @@ void CSong::InstrPaste(int special) {
 // g_Pokey.RenderSound1_50(), which is tied to a real DirectSound buffer
 // (see PokeyRenderer.h) - a genuine hazard, so those three stay in
 // Song.cpp, unlinked/deferred (see
-// plans/SONG_IO_SONG_REMAINING_PLAN.md).
+// plans/01_SONG_IO_SONG_REMAINING_PLAN.md).
 
 BOOL CSong::Play(PlayMode mode, BOOL follow, int special) {
     g_Undo.Separator();

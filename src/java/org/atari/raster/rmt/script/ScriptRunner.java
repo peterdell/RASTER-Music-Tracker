@@ -25,7 +25,7 @@ import org.atari.raster.rmt.ui.RmtSession;
 import org.atari.raster.rmt.ui.SongFiles;
 
 /**
- * Runs a script (plans/JAVA_SCRIPTING_PLAN.md) against an {@link RmtSession}
+ * Runs a script (plans/21_JAVA_SCRIPTING_PLAN.md) against an {@link RmtSession}
  * without a window: the file commands go through {@link SongFiles} exactly
  * as the menu commands do, with a {@link SongFiles.Host} that answers the
  * file chooser and the export dialogs from the command's options (the

@@ -10,7 +10,7 @@
 // CPokey's constructor/destructor and pure bookkeeping methods are
 // implemented in PokeyCore.cpp (only InitSound()/InitPokeyDll() below
 // actually call LoadLibrary()/GetProcAddress() - a real DLL-loading hazard,
-// see plans/EXPORTWAV_PLAN.md).
+// see plans/11_EXPORTWAV_PLAN.md).
 
 void CPokey::InitSound() {
     m_soundDriver = InitPokeyDll();

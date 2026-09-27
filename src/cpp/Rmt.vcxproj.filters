@@ -700,16 +700,16 @@
     <None Include="..\..\doc\rmt_action_infos.md">
       <Filter>Documentation Files</Filter>
     </None>
-    <None Include="..\..\plans\BROADER_SURVEY_PLAN.md">
+    <None Include="..\..\plans\04_BROADER_SURVEY_PLAN.md">
       <Filter>Agent Files</Filter>
     </None>
-    <None Include="..\..\plans\EXPORTV2_PLAN.md">
+    <None Include="..\..\plans\02_EXPORTV2_PLAN.md">
       <Filter>Agent Files</Filter>
     </None>
-    <None Include="..\..\plans\IO_IMPORTER_PLAN.md">
+    <None Include="..\..\plans\03_IO_IMPORTER_PLAN.md">
       <Filter>Agent Files</Filter>
     </None>
-    <None Include="..\..\plans\MESSAGEBOX_REFACTOR_PLAN.md">
+    <None Include="..\..\plans\08_MESSAGEBOX_REFACTOR_PLAN.md">
       <Filter>Agent Files</Filter>
     </None>
     <None Include="..\..\plans\NOTES.md">
@@ -718,10 +718,10 @@
     <None Include="..\..\plans\OVERALL_PLAN.md">
       <Filter>Agent Files</Filter>
     </None>
-    <None Include="..\..\plans\SAP_LZSS_WAV_XEX_PLAN.md">
+    <None Include="..\..\plans\05_SAP_LZSS_WAV_XEX_PLAN.md">
       <Filter>Agent Files</Filter>
     </None>
-    <None Include="..\..\plans\SONG_IO_SONG_REMAINING_PLAN.md">
+    <None Include="..\..\plans\01_SONG_IO_SONG_REMAINING_PLAN.md">
       <Filter>Agent Files</Filter>
     </None>
   </ItemGroup>

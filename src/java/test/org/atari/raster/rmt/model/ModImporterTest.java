@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Mirrors src/cpp/test/SongEditingTests.cpp's "CSong::ImportMODParseHeader /
- * ImportMODApply" section - Batch B of plans/JAVA_IMPORTER_PLAN.md.
+ * ImportMODApply" section - Batch B of plans/14_JAVA_IMPORTER_PLAN.md.
  */
 class ModImporterTest {
 

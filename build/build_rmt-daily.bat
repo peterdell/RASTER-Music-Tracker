@@ -80,7 +80,7 @@ goto :eof
 
 rem The command table doc\rmt_action_infos.md, regenerated from the release
 rem build's resources (the "dump actions" script command,
-rem plans/DOC_GENERATION_PLAN.md): a "git diff" shows what a menu change did,
+rem plans/23_DOC_GENERATION_PLAN.md): a "git diff" shows what a menu change did,
 rem an ERROR marker (an inconsistency in Rmt.rc) stops the build.
 :dump_actions
 set RMT_SCRIPT_OUTPUT=%BASE_DIR%\doc

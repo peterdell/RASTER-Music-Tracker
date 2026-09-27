@@ -23,7 +23,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.atari.raster.rmt.script.ScriptRunner;
 
 /**
- * The cross-program export comparison (plans/CPP_SCRIPTING_PLAN.md, section
+ * The cross-program export comparison (plans/22_CPP_SCRIPTING_PLAN.md, section
  * 4): every script in {@code test-resources/scripts} is run through the C++
  * {@code Rmt.exe} (when it is built) and through this port's
  * {@link ScriptRunner}, and the two output folders must match byte for byte

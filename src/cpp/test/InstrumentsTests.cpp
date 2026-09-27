@@ -220,7 +220,7 @@ TEST_F(InstrumentAtaFormatTest, AtaV0ToInstrDecodesOldFormat) {
 }
 
 // --- ClearInstrument / SetEnvelopeVolume / MemorizeOctaveAndVolume / RememberOctaveAndVolume ---
-// (Instruments.cpp - see plans/BROADER_SURVEY_PLAN.md's "cheapest win"
+// (Instruments.cpp - see plans/04_BROADER_SURVEY_PLAN.md's "cheapest win"
 // candidate: every dependency here turned out already real and safe.)
 
 extern BOOL g_keyboard_RememberOctavesAndVolumes;

@@ -4,13 +4,13 @@
 #include "SongTypes.h"
 #include "General.h"
 
-// See plans/BROADER_SURVEY_PLAN.md's "AtariTrackerDriver.cpp remainder"
+// See plans/04_BROADER_SURVEY_PLAN.md's "AtariTrackerDriver.cpp remainder"
 // candidate: LoadRMTRoutines()/Init()/Play()/SetPokey()/Silence() only need
 // g_rmtinstr (already real), CAtari::JSR() (already a no-op stub - see
 // AtariStub.cpp), IsSpecialProveMode() (real, trivial - see
 // SongEditingStub.cpp), and CRmtAtariBinaries (real on-disk resource
 // loading, already unlocked for ExportSAP_B_LZSS/ExportXEX_LZSS - see
-// plans/SAP_LZSS_WAV_XEX_PLAN.md). CAtari/CAtariTrackerDriver are cheap to
+// plans/05_SAP_LZSS_WAV_XEX_PLAN.md). CAtari/CAtariTrackerDriver are cheap to
 // construct locally (see AtariTests.cpp), so every test here uses its own
 // isolated instances rather than the real g_Atari/g_AtariTrackerDriver
 // globals.

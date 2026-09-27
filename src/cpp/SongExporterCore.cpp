@@ -22,7 +22,7 @@
 // all three had to move together to be linkable without the rest of
 // SongExporter.cpp's dialog-showing/disk-writing/audio-rendering methods
 // (ExportLZSS, ExportCompactLZSS, ExportWAV, the 1-arg ExportXEX_LZSS,
-// ShowXEXExportDialog). See plans/SAP_LZSS_WAV_XEX_PLAN.md.
+// ShowXEXExportDialog). See plans/05_SAP_LZSS_WAV_XEX_PLAN.md.
 
 void CXEXFile::InitFromSong(const CSong& song) {
     memcpy(this->songname, song.GetName(), SONG_NAME_MAX_LEN);
@@ -286,7 +286,7 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, CXEXFile xexFile, st
 // already dialog-free), but they'd otherwise only link alongside
 // SongExporter.cpp's real dialog-showing methods (ExportSAP_R/
 // ExportSAP_B_LZSS/ShowXEXExportDialog), which this test project doesn't
-// want. See plans/EXPORTLZSS_PLAN.md.
+// want. See plans/10_EXPORTLZSS_PLAN.md.
 
 bool CSongExporter::ExportLZSS(CSongExport& songExport, std::ofstream& ou) {
     const CPokeyStream& pokeyStream = songExport.GetPokeyStream();

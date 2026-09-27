@@ -2,7 +2,7 @@
 
 ## Context
 
-`plans/EXPORTV2_PLAN.md` identified this family (`CSongExporter::ExportSAP_R`/
+`plans/02_EXPORTV2_PLAN.md` identified this family (`CSongExporter::ExportSAP_R`/
 `ExportLZSS`/`ExportSAP_B_LZSS`/`ExportXEX_LZSS`/`ExportWAV`) as Tier 2 -
 gated behind `CSong::DumpSongToPokeyStream()`, a real Atari-hardware-adjacent
 playback loop that Batch 6 flagged but explicitly never investigated. This
@@ -93,7 +93,7 @@ the test project. 1 new test.
   now linked too; `ExportSAP_B_LZSS` moved into `SAPFileExporterCore.cpp`
   alongside `ExportSAP_R` (the now-empty `SAPFileExporter.cpp` deleted).
   1 new test - the first in this suite backed by a real on-disk file.
-- **`CSongExporter::ExportWAV` - DONE, see `plans/EXPORTWAV_PLAN.md`.**
+- **`CSongExporter::ExportWAV` - DONE, see `plans/11_EXPORTWAV_PLAN.md`.**
   The "genuinely hazardous" call here turned out to be only half right:
   `ExportWAV` calls `CXPokey::RenderSoundV2()`, not the DirectSound-heavy
   `RenderSound1_50()` - `RenderSoundV2()` only drives `CPokey`, whose
@@ -108,7 +108,7 @@ the test project. 1 new test.
   no hardware or DLL dependency, since `mmioOpen`/`mmioCreateChunk` are
   pure RIFF file I/O. 1 new test.
 - **`CSongExporter::ExportLZSS`/`ExportCompactLZSS` - DONE, see
-  `plans/EXPORTLZSS_PLAN.md`.** Neither shows a dialog at all - the only
+  `plans/10_EXPORTLZSS_PLAN.md`.** Neither shows a dialog at all - the only
   reason they weren't linked yet was living in `SongExporter.cpp` alongside
   the real dialog-showing methods; moved to `SongExporterCore.cpp` instead,
   same split already used for `ExportXEX_LZSS`. Both write real files to
@@ -155,17 +155,17 @@ the test project. 1 new test.
    `ExportXEX_LZSS`.
 2. ~~`ExportWAV`: stays deferred pending its own dedicated investigation
    into `CXPokey`'s real audio-rendering hazard.~~ **Resolved**: see
-   `plans/EXPORTWAV_PLAN.md` - the hazard was narrower than assumed
+   `plans/11_EXPORTWAV_PLAN.md` - the hazard was narrower than assumed
    (`RenderSoundV2()`, unlike `RenderSound1_50()`/`TimerRoutine`, never
    touches DirectSound).
 3. ~~`ExportLZSS`/`ExportCompactLZSS`: low priority given their real-file-
    write design and the "hacked up"/"currently unused?" self-assessment in
    their own comments; likely not worth pursuing without a specific
    reason.~~ **Resolved**: opened at the user's explicit request once
-   nothing else remained - see `plans/EXPORTLZSS_PLAN.md`.
+   nothing else remained - see `plans/10_EXPORTLZSS_PLAN.md`.
 
 All targets from the user's explicit `ExportSAP_B_LZSS/ExportXEX_LZSS`
 directive are now complete, and so is the rest of this family
-(`ExportWAV` - see `plans/EXPORTWAV_PLAN.md`; `ExportLZSS`/
-`ExportCompactLZSS` - see `plans/EXPORTLZSS_PLAN.md`). Nothing from
-`plans/EXPORTV2_PLAN.md`'s Tier 2 scope remains deferred.
+(`ExportWAV` - see `plans/11_EXPORTWAV_PLAN.md`; `ExportLZSS`/
+`ExportCompactLZSS` - see `plans/10_EXPORTLZSS_PLAN.md`). Nothing from
+`plans/02_EXPORTV2_PLAN.md`'s Tier 2 scope remains deferred.

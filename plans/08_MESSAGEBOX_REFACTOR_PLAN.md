@@ -64,7 +64,7 @@ different (needs a return value) from the other three (fire-and-forget).
 flow): `GUI_Song.cpp:76`, `IO_Song.cpp:51`, `IO_Song.cpp:926`,
 `Song.cpp:350` (`SongMaketracksduplicate`), `Song.cpp:482`, `Song.cpp:509`
 (`Songswitch4_8`). The last two are exactly the methods
-`plans/SONG_IO_SONG_REMAINING_PLAN.md` deferred specifically *because* of
+`plans/01_SONG_IO_SONG_REMAINING_PLAN.md` deferred specifically *because* of
 this hazard ("Decisions (resolved) #3: defer both entirely, not worth
 extracting"). See "Testability payoff" below - this refactor could
 actually unblock those two, if the design supports it.
@@ -210,7 +210,7 @@ every other batch in this project:
    pass (unchanged, 0 regressions).
 3. **`IO_Song.cpp`'s fire-and-forget notices - DONE** (18 sites). This file
    itself stays deferred (`FileXxx` family, confirmed no dialog-free
-   `Apply()` core exists - see `plans/SONG_IO_SONG_REMAINING_PLAN.md`
+   `Apply()` core exists - see `plans/01_SONG_IO_SONG_REMAINING_PLAN.md`
    Batch 7), so this batch was pure consistency/cleanup, not a new testing
    unlock. `#include "Global.h"` kept (other globals still needed).
 4. **The 6 confirmation prompts - DONE** (`GUI_Song.cpp` x1, `IO_Song.cpp`
@@ -233,12 +233,12 @@ every other batch in this project:
    with `Song.cpp` left with a one-line "implemented in SongEditing.cpp"
    comment for each, matching every other split in this effort. 7 new
    tests cover both the confirm and cancel branches. See `plans/NOTES.md`
-   and `plans/SONG_IO_SONG_REMAINING_PLAN.md` (its "defer both entirely"
+   and `plans/01_SONG_IO_SONG_REMAINING_PLAN.md` (its "defer both entirely"
    decision no longer applies to these two).
 5. **Everything else - DONE** (`C6502.cpp` x2, `Pokey.cpp` x3,
    `PokeyRenderer.cpp` x5, `RmtMidi.cpp` x1 - 11 sites). Real hardware/
    DLL-coupled files already confirmed permanently out of scope
-   (`plans/BROADER_SURVEY_PLAN.md`) - pure architectural consistency, no
+   (`plans/04_BROADER_SURVEY_PLAN.md`) - pure architectural consistency, no
    testability payoff, but done anyway since the migration is now
    complete everywhere: **zero** `MessageBox(g_hwnd, ...)` call sites
    remain in the codebase outside `Messages.cpp`'s own real

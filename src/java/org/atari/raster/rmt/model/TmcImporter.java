@@ -2,7 +2,7 @@ package org.atari.raster.rmt.model;
 
 /**
  * Ported from {@code CSong::ImportTMCParseHeader}/{@code ImportTMCApply}
- * (src/cpp/IO_ImporterCore.cpp) - Batch A of {@code plans/JAVA_IMPORTER_PLAN.md}.
+ * (src/cpp/IO_ImporterCore.cpp) - Batch A of {@code plans/14_JAVA_IMPORTER_PLAN.md}.
  * {@code CSong::ImportTMC()} itself (src/cpp/IO_Importer.cpp) stays
  * unported - a real, still-dialog-showing thin wrapper (two real MFC
  * dialogs), matching this project's established "real dialog stays

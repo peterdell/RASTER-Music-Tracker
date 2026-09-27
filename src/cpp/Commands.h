@@ -5,7 +5,7 @@
 // as data: CCommands::Analyze() reads the compiled resources of the running
 // program, WriteActionInfos() writes the table doc/rmt_action_infos.md is
 // generated from ("dump actions <file>" in a script, see
-// doc/rmt_scripting.md and plans/DOC_GENERATION_PLAN.md). The table doubles
+// doc/rmt_scripting.md and plans/23_DOC_GENERATION_PLAN.md). The table doubles
 // as a consistency check of Rmt.rc: a menu label whose displayed key is not
 // the real accelerator, or a tooltip that does not match the label, is an
 // ERROR marker in the table and a failure of the command.

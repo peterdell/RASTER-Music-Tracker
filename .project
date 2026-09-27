@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
 	<name>org.atari.raster.rmt</name>
-	<comment>RASTER Music Tracker (Java port) - see plans/JAVA_PORT_PLAN.md</comment>
+	<comment>RASTER Music Tracker (Java port) - see plans/13_JAVA_PORT_PLAN.md</comment>
 	<projects>
 	</projects>
 	<buildSpec>

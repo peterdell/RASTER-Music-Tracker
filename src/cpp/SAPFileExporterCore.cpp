@@ -17,7 +17,7 @@
 // CSAPFile they're given. ExportSAP_B_LZSS() does need a real on-disk
 // resource file (resources/players/vu_player_v2.obx, loaded via
 // GetResourceFilePath()) - the first such dependency in this test suite;
-// see plans/SAP_LZSS_WAV_XEX_PLAN.md and test/AtariBinariesStub.cpp for
+// see plans/05_SAP_LZSS_WAV_XEX_PLAN.md and test/AtariBinariesStub.cpp for
 // how that's satisfied for tests.
 //
 // GetResourceFilePath() itself lives in the much wider Global.cpp/Global.h

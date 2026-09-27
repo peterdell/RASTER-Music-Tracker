@@ -920,7 +920,7 @@ build clean and all 123 tests pass.
         methods needing `g_hwnd`/`g_AtariTrackerDriver`/other hazards) - none
         of these were in the "safe cluster" and still need their own,
         separate triage/decoupling work.
-- [x] Wrote a dedicated triage plan for the above (`plans/SONG_IO_SONG_REMAINING_PLAN.md`,
+- [x] Wrote a dedicated triage plan for the above (`plans/01_SONG_IO_SONG_REMAINING_PLAN.md`,
       committed `7276946`/`f7d72c6`) before implementing further, given the
       remaining work needs per-method judgment calls (not a single mechanical
       pass). Key findings recorded there: every remaining `g_hwnd` use in
@@ -1063,7 +1063,7 @@ build clean and all 123 tests pass.
         pass (up from 191, +3, 0 regressions).
       - **Remaining in `Song.cpp`/`IO_Song.cpp`**: `ClearSong` and `ExportV2`
         (each its own dedicated future decision, see
-        `plans/SONG_IO_SONG_REMAINING_PLAN.md`), `LoadRMW`/`LoadTxt` (blocked
+        `plans/01_SONG_IO_SONG_REMAINING_PLAN.md`), `LoadRMW`/`LoadTxt` (blocked
         on `ClearSong`), the `FileXxx` family (recommended to stay deferred
         indefinitely - real dialog orchestration, no independent test value
         beyond what's already covered), and the heavier editing/playback
@@ -1355,7 +1355,7 @@ build clean and all 123 tests pass.
         Full solution rebuild (Release|x64) confirmed 0 errors; 223 tests
         pass (up from 218, +5, 0 regressions).
 - [x] `ExportV2` triage (analysis only, no code changes) - written up in its
-      own `plans/EXPORTV2_PLAN.md`, mirroring this doc's own structure.
+      own `plans/02_EXPORTV2_PLAN.md`, mirroring this doc's own structure.
       Read every method `ExportV2` can reach (`CRmtExporter`,
       `CASMFileExporter`, `CSongExporter`, `CSongContainer`/`CSongExport`)
       rather than assuming from the dispatcher's shape alone. Found two
@@ -1389,7 +1389,7 @@ build clean and all 123 tests pass.
         `test/SongEditingStub.cpp` (a stub added during the `ClearSong`
         batch) - the stub must be removed first to avoid an LNK2005 clash.
       - No code changes, no build/test impact this pass - see
-        `plans/EXPORTV2_PLAN.md` for the full per-method breakdown and
+        `plans/02_EXPORTV2_PLAN.md` for the full per-method breakdown and
         suggested execution order (Batches A-D, plus what stays deferred).
 - [x] `ExportV2` Batch A: `CRmtExporter::ExportAsRMT` + `CAtariIO::SaveBinaryBlock`.
       - Widened `SaveBinaryBlock()` to `std::ostream&` (from `std::ofstream&`),
@@ -1485,7 +1485,7 @@ build clean and all 123 tests pass.
         - the `exportDescWithSFX`/`exportDescStripped` selection and the
         final stream write are the only things it does beyond delegating.
       - **Found and fixed a linker trap of my own making**: removing the
-        stale `g_PrefixForAllAsmLabels` test stub (per `EXPORTV2_PLAN.md`'s
+        stale `g_PrefixForAllAsmLabels` test stub (per `02_EXPORTV2_PLAN.md`'s
         Tier-1 findings) and just linking `ASMFileExporterCore.cpp` wasn't
         enough - `ASMFileExporterCore.cpp`'s `ExportAsAsmApply()` needed the
         global too, but its *definition* still lived in the dialog-only
@@ -1552,7 +1552,7 @@ build clean and all 123 tests pass.
         regressions).
 - [x] SAP/LZSS/WAV/XEX family (`ExportV2`'s Tier 2) - full triage and first
       unlock. Full per-method breakdown in the new
-      `plans/SAP_LZSS_WAV_XEX_PLAN.md`; highlights below.
+      `plans/05_SAP_LZSS_WAV_XEX_PLAN.md`; highlights below.
       - **`CSong::DumpSongToPokeyStream()` (`Song_DumpSong.cpp`) - the real
         prerequisite blocking this entire family - turned out safe.** It
         runs a real `while (m_play != PLAY_STOP) { PlayVBI(); ... }`
@@ -1708,13 +1708,13 @@ build clean and all 123 tests pass.
         pipeline ran for real). Full solution rebuild (Release|x64)
         confirmed 0 errors; 233 tests pass (up from 232, +1, 0
         regressions).
-      - This completes `plans/SAP_LZSS_WAV_XEX_PLAN.md`'s actively-pursued
+      - This completes `plans/05_SAP_LZSS_WAV_XEX_PLAN.md`'s actively-pursued
         scope. `ExportWAV` (real `CXPokey` audio synthesis) and
         `ExportLZSS`/`ExportCompactLZSS` (real multi-file disk writes,
         self-described as "hacked up"/"currently unused") remain
         deliberately deferred per that plan's findings.
 - [x] Re-verified the `FileXxx` family (Batch 7,
-      `plans/SONG_IO_SONG_REMAINING_PLAN.md`) - the last remaining
+      `plans/01_SONG_IO_SONG_REMAINING_PLAN.md`) - the last remaining
       "deferred hazard category" from that plan not yet given a per-method
       read (it was only ever assessed in bulk). Read all 11 methods
       (`FileReload`/`FileOpen`/`FileSave`/`FileSaveAs`/`FileNew`/
@@ -1737,10 +1737,10 @@ build clean and all 123 tests pass.
       assumed basis, and closes out the deferred-hazard backlog for
       `Song.cpp`/`IO_Song.cpp`/`ExportV2`: every remaining category now has
       an individually-investigated, confirmed reason to stay deferred (see
-      `plans/SONG_IO_SONG_REMAINING_PLAN.md`'s Batch 7 section for the
+      `plans/01_SONG_IO_SONG_REMAINING_PLAN.md`'s Batch 7 section for the
       full per-method writeup).
 - [x] Broader survey of every other production `.cpp` file not yet linked
-      into `RmtTests.vcxproj` (~55 files) - see `plans/BROADER_SURVEY_PLAN.md`.
+      into `RmtTests.vcxproj` (~55 files) - see `plans/04_BROADER_SURVEY_PLAN.md`.
       Most are confirmed out of scope (real UI/dialogs/views, real hardware/
       DLL coupling - verified `RmtMidi.cpp` genuinely calls
       `midiInGetNumDevs()`/`midiInGetDevCaps()` - `Global.cpp`'s mega-wiring,
@@ -1749,7 +1749,7 @@ build clean and all 123 tests pass.
       value), `Undo.cpp`, and two small/cheap wins (`Instruments.cpp`'s and
       `AtariTrackerDriver.cpp`'s remainders).
 - [x] `IO_Importer.cpp` Batch A: `CSong::ImportTMC` unlocked - see
-      `plans/IO_IMPORTER_PLAN.md`.
+      `plans/03_IO_IMPORTER_PLAN.md`.
       - `ImportTMC`/`ImportMOD` break every prior `*Apply()` split's
         assumption: their options dialog's own display text needs data only
         available after partially decoding the file (the parsed song
@@ -1784,12 +1784,12 @@ build clean and all 123 tests pass.
       - Fixed a stale comment in `SongEditingTests.cpp` claiming
         `CInstruments::Update()` was still stubbed as a no-op - it's had
         real behavior since Batch 3 of
-        `plans/SONG_IO_SONG_REMAINING_PLAN.md`; the comment was just never
+        `plans/01_SONG_IO_SONG_REMAINING_PLAN.md`; the comment was just never
         updated when that changed.
       - Full solution rebuild (Release|x64) confirmed 0 errors; 236 tests
         pass (up from 233, +3, 0 regressions).
 - [x] `IO_Importer.cpp` Batch B: `CSong::ImportMOD` unlocked - completes the
-      `IO_Importer.cpp` triage. See `plans/IO_IMPORTER_PLAN.md`.
+      `IO_Importer.cpp` triage. See `plans/03_IO_IMPORTER_PLAN.md`.
       - Same two-phase `Apply()` split as `ImportTMC`, plus two new
         wrinkles found while implementing (not assumed up front):
         1. `ImportModApply()` needs *continued* stream access (sample audio
@@ -1831,7 +1831,7 @@ build clean and all 123 tests pass.
         `IO_Importer.cpp` triage (both `ImportTMC` and `ImportMOD`).
 - [x] `MessageBox(g_hwnd, ...)` → `Send<Type>Message(...)` refactor,
       Batch 1 (the prerequisite + new functions) - user-requested, not a
-      characterization batch. See `plans/MESSAGEBOX_REFACTOR_PLAN.md` for
+      characterization batch. See `plans/08_MESSAGEBOX_REFACTOR_PLAN.md` for
       the full survey (71 call sites across 24 files) and the three
       decisions the user made: merge `MB_ICONSTOP`/`MB_ICONERROR` into one
       `SendErrorMessage` and `MB_ICONWARNING`/`MB_ICONEXCLAMATION` into one
@@ -1886,10 +1886,10 @@ build clean and all 123 tests pass.
       rebuild (Release|x64) confirmed 0 errors; 243 tests pass (unchanged,
       0 regressions).
 - [x] `MessageBox(g_hwnd, ...)` refactor, Batches 3-5 - completes the
-      migration. See `plans/MESSAGEBOX_REFACTOR_PLAN.md`.
+      migration. See `plans/08_MESSAGEBOX_REFACTOR_PLAN.md`.
       - **Batch 3**: `IO_Song.cpp`'s 18 fire-and-forget sites. Pure
         consistency (that file stays deferred per Batch 7 of
-        `plans/SONG_IO_SONG_REMAINING_PLAN.md`).
+        `plans/01_SONG_IO_SONG_REMAINING_PLAN.md`).
       - **Batch 4**: the 6 confirmation prompts (`GUI_Song.cpp` x1,
         `IO_Song.cpp` x2, `Song.cpp` x3) via `SendQuestionMessage`, bundled
         with `Song.cpp`'s 2 stray fire-and-forget sites found while
@@ -1901,7 +1901,7 @@ build clean and all 123 tests pass.
         test-injectable answer hook - not done, since `Song.cpp` itself
         still isn't linked into `RmtTests.vcxproj` for other, unrelated
         reasons; actually testing those two needs its own future move into
-        `SongEditing.cpp`, revisiting `plans/SONG_IO_SONG_REMAINING_PLAN.md`'s
+        `SongEditing.cpp`, revisiting `plans/01_SONG_IO_SONG_REMAINING_PLAN.md`'s
         "defer both entirely" decision.
       - **Batch 5**: the remaining hardware/DLL-coupled files (`C6502.cpp`
         x2, `Pokey.cpp` x3, `PokeyRenderer.cpp` x5, `RmtMidi.cpp` x1),
@@ -1909,14 +1909,14 @@ build clean and all 123 tests pass.
         for full consistency, per the user's "do all of these" request.
       - **Zero `MessageBox(g_hwnd, ...)` call sites remain anywhere in the
         codebase** outside `Messages.cpp`'s own real implementation - the
-        whole refactor described in `plans/MESSAGEBOX_REFACTOR_PLAN.md` is
+        whole refactor described in `plans/08_MESSAGEBOX_REFACTOR_PLAN.md` is
         complete.
       - Full solution rebuild (Release|x64) confirmed 0 errors; 243 tests
         pass (unchanged - none of Batches 3-5's files are linked into the
         test project - 0 regressions).
 - [x] `SongMaketracksduplicate`/`Songswitch4_8` unlocked - the follow-up the
       MessageBox refactor was flagged as enabling. Both were deferred
-      indefinitely by `plans/SONG_IO_SONG_REMAINING_PLAN.md`'s "Decisions
+      indefinitely by `plans/01_SONG_IO_SONG_REMAINING_PLAN.md`'s "Decisions
       (resolved) #3" solely because of their confirmation prompt, at the
       time a real, unavoidable-in-tests `MessageBox`. Now that it routes
       through `SendQuestionMessage()` (test-injectable answer), the prompt
@@ -1946,7 +1946,7 @@ build clean and all 123 tests pass.
         cross-test ordering dependency.
       - Full solution rebuild (Release|x64) confirmed 0 errors; 250 tests
         pass (up from 243, +7, 0 regressions).
-- [x] New `plans/RULES.md` (user-requested, style rules going forward) with
+- [x] New `plans/CPP_RULES.md` (user-requested, style rules going forward) with
       its first rule: always brace `if`/`else`/`for`/`while`/`do` bodies,
       even single-statement ones (the classic "goto fail"-style bug class).
       Also set up and applied real enforcement, not just documentation:
@@ -1998,7 +1998,7 @@ build clean and all 123 tests pass.
         of `&ClassName::Method`) that Clang's parser rejects outright as a
         hard error (confirmed `-fms-extensions` doesn't help) - unrelated
         to braces, but blocks clang-tidy from processing these files at
-        all. Flagged in `plans/RULES.md` as a known gap needing manual
+        all. Flagged in `plans/CPP_RULES.md` as a known gap needing manual
         attention later.
       - Verified zero remaining `readability-braces-around-statements`
         violations across every processed file (re-ran clang-tidy
@@ -2011,7 +2011,7 @@ build clean and all 123 tests pass.
       bodies in Allman while only flipping control statements - both
       should use the same brace style, matching Java's convention rather
       than mixing two styles in one codebase):
-      - `plans/RULES.md` updated: the rule text no longer carves out
+      - `plans/CPP_RULES.md` updated: the rule text no longer carves out
         function/class/struct/enum bodies as an exception, and the
         `BraceWrapping` enforcement details now list every `After*` key as
         `false` (function, class, struct, enum, namespace), not just
@@ -2109,7 +2109,7 @@ build clean and all 123 tests pass.
         left alone as out of scope, same reasoning as the `.cpp` pass.
       - Full solution rebuild (`Rmt.exe` + `RmtTests.exe`, Release|x64)
         confirmed 0 errors; 250 tests pass, 0 regressions.
-- [x] Wrote `plans/FILE_TIERING_STRATEGY.md` (user question: after the `.h`
+- [x] Wrote `plans/07_FILE_TIERING_STRATEGY.md` (user question: after the `.h`
       brace-style rollout, would headers also get split into tiers like
       `SongCore.cpp`/`SongEditing.cpp`/etc.?). Explained that the `.cpp`
       tiers are a per-class implementation split by runtime hazard (does a
@@ -2144,15 +2144,15 @@ build clean and all 123 tests pass.
         output-struct parameter) already preview option 2's seam design,
         so that triage work carries over regardless of which option is
         chosen later.
-- [x] Wrote `plans/DUAL_MODE_PATTERN_PLAN.md`: formalized the dual-mode
+- [x] Wrote `plans/06_DUAL_MODE_PATTERN_PLAN.md`: formalized the dual-mode
       pattern's three established variants (optional output-parameter,
       test-injectable answer, two-phase parse+apply), then audited every
       remaining `Send<Type>Message()` call site in the codebase (~90)
       against the existing triage docs before proposing any new batch.
       **Corrected a mistake found during that audit**: an earlier draft of
-      `plans/FILE_TIERING_STRATEGY.md`'s recommendation had implied
+      `plans/07_FILE_TIERING_STRATEGY.md`'s recommendation had implied
       `GUI_Song.cpp`/`Midi_Song.cpp` were untapped dual-mode candidates -
-      cross-checking `plans/BROADER_SURVEY_PLAN.md` showed both were
+      cross-checking `plans/04_BROADER_SURVEY_PLAN.md` showed both were
       already investigated and confirmed genuinely hazardous (the real
       keyboard-input dispatch layer; real MIDI hardware enumeration), with
       no extractable logic. Fixed that section in place rather than
@@ -2162,11 +2162,11 @@ build clean and all 123 tests pass.
       with its core already extracted, or genuinely real UI/hardware
       coupling. The one loose thread the audit turned up -
       `Undo.cpp`/`CUndo`, not yet investigated per
-      `plans/BROADER_SURVEY_PLAN.md` - isn't itself dual-mode-shaped (its
+      `plans/04_BROADER_SURVEY_PLAN.md` - isn't itself dual-mode-shaped (its
       `g_hwnd` uses are guard-only); flagged as a decision point rather
       than started unilaterally.
 - [x] User chose to open `Undo.cpp`/`CUndo` as a new investigation. Wrote
-      `plans/UNDO_PLAN.md` after reading `Undo.cpp`/`Undo.h`/
+      `plans/09_UNDO_PLAN.md` after reading `Undo.cpp`/`Undo.h`/
       `test/UndoStub.cpp` in full. Key findings:
       - 8 of `CUndo`'s 16 methods (`Init`/`Clear`/`DeleteEvent`/
         `GetUndoSteps`/`GetRedoSteps`/`DropLast`/`Separator`/`PosIsEqual`)
@@ -2187,7 +2187,7 @@ build clean and all 123 tests pass.
         constructs a `CWinApp`, so `AfxGetApp()` returns MFC's default-null
         pointer and this would likely crash. **Deliberately not verified
         empirically**, matching this effort's established caution around
-        exactly this class of hazard (`plans/SONG_IO_SONG_REMAINING_PLAN.md`
+        exactly this class of hazard (`plans/01_SONG_IO_SONG_REMAINING_PLAN.md`
         Batch 6's timeout-guarded `CSongTimer` verification) - avoided
         instead via a documented precondition (tests set `g_changes = 1`
         before calling any `Change*()` method), the same treatment already
@@ -2205,7 +2205,7 @@ build clean and all 123 tests pass.
         tests for every `UndoType` branch) - not yet implemented, this
         was investigation/planning only, per this effort's "write the
         plan before touching code" discipline for non-mechanical work.
-- [x] Implemented `plans/UNDO_PLAN.md` (user: "Implement"), as one combined
+- [x] Implemented `plans/09_UNDO_PLAN.md` (user: "Implement"), as one combined
       pass rather than two batches (the split had no independent value -
       see the plan doc's own note). `Undo.h`'s `TUndoEvent` gets a new
       `bool dataIsArray = false;` member fixing the `new`/`delete[]`
@@ -2233,7 +2233,7 @@ build clean and all 123 tests pass.
       `ChangeSong` were still stubbed. Full solution rebuild (`Rmt.exe` +
       `RmtTests.exe`, Release|x64) confirmed 0 errors; 280 tests pass (up
       from 250, +30, 0 regressions). Committed (`9515376`).
-- [x] Implemented `plans/BROADER_SURVEY_PLAN.md`'s `Instruments.cpp`
+- [x] Implemented `plans/04_BROADER_SURVEY_PLAN.md`'s `Instruments.cpp`
       remainder candidate (user: "yes" to opening it, after asking "what
       pieces are next?" and being given the priority-ordered list of
       everything still open across every plan doc). Confirmed the survey's
@@ -2288,7 +2288,7 @@ build clean and all 123 tests pass.
       confirmed 0 errors; 291 tests pass, 0 regressions (purely an
       initialization fix - no test needed to change its assertions, only
       the redundant setup lines were removable). Committed (`a180186`).
-- [x] Implemented `plans/BROADER_SURVEY_PLAN.md`'s `AtariTrackerDriver.cpp`
+- [x] Implemented `plans/04_BROADER_SURVEY_PLAN.md`'s `AtariTrackerDriver.cpp`
       remainder candidate (user: "Continue", after the prior "what pieces
       are next?" answer named it as the next priority item). Confirmed by
       reading `AtariTrackerDriver.cpp` in full: `Init()`/`SetPokey()`/
@@ -2330,10 +2330,10 @@ build clean and all 123 tests pass.
       - Full solution rebuild (`Rmt.exe` + `RmtTests.exe`, Release|x64)
         confirmed 0 errors; 298 tests pass (up from 291, +7, 0
         regressions). Committed (`fb40226`).
-- [x] Implemented `plans/EXPORTWAV_PLAN.md` (user: "Continue with
+- [x] Implemented `plans/11_EXPORTWAV_PLAN.md` (user: "Continue with
       ExportWAV", the last remaining `ExportV2` Tier 2 family member).
       Re-investigated from scratch rather than trusting
-      `plans/SAP_LZSS_WAV_XEX_PLAN.md`'s "genuinely hazardous, needs its
+      `plans/05_SAP_LZSS_WAV_XEX_PLAN.md`'s "genuinely hazardous, needs its
       own investigation" note: `ExportWAV` calls `CXPokey::RenderSoundV2()`,
       not the DirectSound-heavy `RenderSound1_50()` - `RenderSoundV2()`
       only drives `CPokey`, whose `GetSoundDriver()` defaults to `NONE`
@@ -2393,10 +2393,10 @@ build clean and all 123 tests pass.
         full suite - no hangs, no crashes.
       - Full solution rebuild (`Rmt.exe` + `RmtTests.exe`, Release|x64)
         confirmed 0 errors; 299 tests pass (up from 298, +1, 0
-        regressions). This closes out `plans/EXPORTV2_PLAN.md`'s Tier 2
+        regressions). This closes out `plans/02_EXPORTV2_PLAN.md`'s Tier 2
         family entirely except the deliberately-deferred, low-value
         `ExportLZSS`/`ExportCompactLZSS`. Committed (`2beb129`).
-- [x] Implemented `plans/EXPORTLZSS_PLAN.md` (user: "open
+- [x] Implemented `plans/10_EXPORTLZSS_PLAN.md` (user: "open
       ExportLZSS/ExportCompactLZSS", the last two deliberately-deferred
       items in the entire `ExportV2` family). Mechanical part: both
       methods were already dialog-free, just stuck in `SongExporter.cpp`
@@ -2436,16 +2436,16 @@ build clean and all 123 tests pass.
         this family): both new tests alone first, then the full suite -
         no hangs. Full solution rebuild (`Rmt.exe` + `RmtTests.exe`,
         Release|x64) confirmed 0 errors; 301 tests pass (up from 299, +2,
-        0 regressions). This closes `plans/EXPORTV2_PLAN.md`'s Tier 2
+        0 regressions). This closes `plans/02_EXPORTV2_PLAN.md`'s Tier 2
         family entirely - nothing from that scope remains deferred.
         Committed (`9a0f494`).
 - [x] With the characterization-testing phase essentially exhausted (per
-      `plans/BROADER_SURVEY_PLAN.md`'s own "nothing else worth pursuing"
+      `plans/04_BROADER_SURVEY_PLAN.md`'s own "nothing else worth pursuing"
       conclusion), asked "what's next?" - the user pointed out that the
       Java port can't be planned without first understanding the current
       UI, since the ported app needs to match today's Windows UI, not just
       the model classes. Forked a read-only investigation
-      (`plans/UI_SURVEY_PLAN.md`, ~311 lines): confirmed `CRmtDoc` is
+      (`plans/12_UI_SURVEY_PLAN.md`, ~311 lines): confirmed `CRmtDoc` is
       explicitly unused (its own comment says so) - the real architecture
       is global objects (`g_Song` etc.) plus one `CRmtView` controller/
       view class, not real MVC; rendering is a single off-screen GDI
@@ -2455,7 +2455,7 @@ build clean and all 123 tests pass.
       clean `Part` x `EditMode` dispatch; ~25 real dialogs were inventoried
       and cross-referenced against what characterization testing already
       established about their `*Apply()`-core splits (confirming
-      `plans/FILE_TIERING_STRATEGY.md`'s composition option has genuine
+      `plans/07_FILE_TIERING_STRATEGY.md`'s composition option has genuine
       seams to use). Also answered a follow-up factual question (Java's
       `javax.sound.midi` vs. RMT's raw `mmsystem.h` MIDI code - concluded
       Java's API is simpler for the I/O plumbing itself, but the real
@@ -2472,7 +2472,7 @@ build clean and all 123 tests pass.
            dropped/deprioritized.
         3. **MIDI**: deferred entirely for the initial port, matching the
            recommendation - not part of the first Java port's scope.
-      - Recorded all three answers in `plans/UI_SURVEY_PLAN.md`'s "Open
+      - Recorded all three answers in `plans/12_UI_SURVEY_PLAN.md`'s "Open
         questions" section. No Java port work has actually started yet -
         this was survey/decision-recording only.
 - [x] Kicked off the actual Java port (user: "Continue"). Read
@@ -2533,7 +2533,7 @@ build clean and all 123 tests pass.
         verified with a full `Rmt.exe`/`RmtTests.exe` rebuild (301 tests,
         0 regressions); Java side verified with `mvn -o test` (13 tests
         pass).
-      - Wrote `plans/JAVA_PORT_PLAN.md` documenting every decision above;
+      - Wrote `plans/13_JAVA_PORT_PLAN.md` documenting every decision above;
         updated `CLAUDE.md` to describe both source trees/build systems;
         updated `.gitignore` for `target/`. Not yet committed (both the
         C++ fix and the Java port should be separate commits, per
@@ -2569,7 +2569,7 @@ build clean and all 123 tests pass.
       `minorSecondIsStoredReduced` characterization test. No C++ changes
       needed - no bugs found this batch. Verified with `mvn -o test`: 28
       tests pass (13 `Fraction` + 15 new). Details in
-      `plans/JAVA_PORT_PLAN.md`. Committed (`8b01038`).
+      `plans/13_JAVA_PORT_PLAN.md`. Committed (`8b01038`).
   - **2026-09-24**: Backfilled the C++ test coverage the scope decision
     above deferred - `CTuning::GetTruePitch`/`CalculateDeltaAUDF`/
     `GenerateTable`/`InitTuning`, none of which had ever been unit-tested.
@@ -2607,7 +2607,7 @@ build clean and all 123 tests pass.
       methods, which now has real golden-master values to port against.
     - Verified via a full Release|x64 solution rebuild: `Rmt.exe` and
       `RmtTests.exe` both build clean (0 errors) and all 325 tests pass.
-      Details in `plans/JAVA_PORT_PLAN.md`. Committed (`73f199e`).
+      Details in `plans/13_JAVA_PORT_PLAN.md`. Committed (`73f199e`).
   - **2026-09-24**: Third Java-port batch - finished `Tuning` with
     `GenerateTable`/`InitTuning`/`GetTruePitch`/`CalculateDeltaAUDF`/
     `Timbre`, now unblocked by the C++ test backfill above. Every expected
@@ -2636,7 +2636,7 @@ build clean and all 123 tests pass.
       to construct that state, noted in a comment rather than
       characterized.
     - Verified with `mvn -o test`: 51 tests pass, all green first try.
-      Details in `plans/JAVA_PORT_PLAN.md`. Committed (`0d3bbbb`).
+      Details in `plans/13_JAVA_PORT_PLAN.md`. Committed (`0d3bbbb`).
   - **2026-09-24**: Added an Eclipse project (`.project`/`.classpath`/
     `.settings/`, m2e-managed) at the repository root, per the user's
     request, so the Java port can be compiled/edited in Eclipse without
@@ -2659,7 +2659,7 @@ build clean and all 123 tests pass.
       port; fixing it would need its own investigation of every call site
       first. Noted in `Notes`'s javadoc and its test's comment.
     - Verified with `mvn -o test`: 59 tests pass (+8), all green first
-      try. No C++ changes. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      try. No C++ changes. Details in `plans/13_JAVA_PORT_PLAN.md`. Committed
       (`67d8cb7`).
   - **2026-09-24**: Fifth Java-port batch - `ChannelControl` (from
     `CChannelControl`, `ChannelControl.h/.cpp`), per-channel on/off/toggle/
@@ -2675,7 +2675,7 @@ build clean and all 123 tests pass.
     - `std::vector<bool>` became a plain `boolean[]` (channel count is
       fixed after construction in both languages).
     - Verified with `mvn -o test`: 66 tests pass (+7), all green first
-      try. No C++ changes. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      try. No C++ changes. Details in `plans/13_JAVA_PORT_PLAN.md`. Committed
       (`28861b0`).
   - **2026-09-24**: Asked the user what's next once the small, unambiguous
     "model" candidates were exhausted (`CStringUtility` trivial-but-not-
@@ -2716,7 +2716,7 @@ build clean and all 123 tests pass.
       against - "how to handle corrupted input" is a different kind of
       decision than a same-input-different-output bug.
     - Verified with `mvn -o test`: 81 tests pass (+15), all green first
-      try. No C++ changes. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      try. No C++ changes. Details in `plans/13_JAVA_PORT_PLAN.md`. Committed
       (`94ab12c`).
   - **2026-09-24**: User asked to flag the two issues found-but-not-fixed
     during the Java-porting effort (`Notes`'s `isValidNote` off-by-one,
@@ -2751,7 +2751,7 @@ build clean and all 123 tests pass.
       `RmtTests.exe` both build clean and all 340 tests pass (325 -> 340,
       +15, 0 regressions). No new C++ bugs found - unblocks a future Java
       follow-up batch for these five methods. Details in
-      `plans/JAVA_PORT_PLAN.md`. Not yet committed.
+      `plans/13_JAVA_PORT_PLAN.md`. Not yet committed.
   - **2026-09-24**: User asked whether the C++ build uses available cores
     (14 logical, this machine). Found `Rmt.vcxproj` already had
     `MultiProcessorCompilation=true` but `RmtTests.vcxproj` (the slower
@@ -2838,7 +2838,7 @@ build clean and all 123 tests pass.
       try. This completes `CTracks`'s port to the extent the C++ source
       itself allows - `TracksEdit.cpp`'s `g_Undo`-coupled methods and
       `IO_Tracks.cpp`'s untested stream I/O remain deferred. Details in
-      `plans/JAVA_PORT_PLAN.md`. Committed (`c4a11d3`).
+      `plans/13_JAVA_PORT_PLAN.md`. Committed (`c4a11d3`).
   - **2026-09-24**: Eighth Java-port batch - `CInstruments` (from
     `Instruments.h`, `InstrumentsCore.cpp`, `Instruments.cpp`,
     `InstrumentsAtaFormat.cpp`), scoped to exactly what
@@ -2875,7 +2875,7 @@ build clean and all 123 tests pass.
       (`stereo = g_tracks4_8 > 4`) against each test's own global setup,
       not by a test failure (the fix was made before the first build).
     - Verified with `mvn -o test`: 112 tests pass (+16), all green after
-      that fix. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      that fix. Details in `plans/13_JAVA_PORT_PLAN.md`. Committed
       (`e6a324b`).
   - **2026-09-24**: Backfilled C++ test coverage for the five deferred
     `CInstruments` methods (`CheckInstrumentParameters`/`RecalculateFlag`/
@@ -2901,7 +2901,7 @@ build clean and all 123 tests pass.
       `RmtTests.exe` both build clean and all 368 tests pass (340 -> 368,
       +28, 0 regressions). No new C++ bugs found. Unblocks a future Java
       follow-up batch for these five methods. Details in
-      `plans/JAVA_PORT_PLAN.md`. Committed (`ac664a9`).
+      `plans/13_JAVA_PORT_PLAN.md`. Committed (`ac664a9`).
   - **2026-09-24**: Ninth Java-port batch - finished `Instruments` with
     `checkInstrumentParameters`/`recalculateFlag`/`calculateNotEmpty`/
     `getNote`/`getFrequency`, now unblocked by the C++ backfill above.
@@ -2918,7 +2918,7 @@ build clean and all 123 tests pass.
       try. This completes `CInstruments`'s port to the extent the C++
       source itself allows - the I/O methods (need unported infrastructure)
       and all GUI methods remain deferred. Details in
-      `plans/JAVA_PORT_PLAN.md`. Committed (`3820359`).
+      `plans/13_JAVA_PORT_PLAN.md`. Committed (`3820359`).
   - **2026-09-24**: Tenth Java-port batch - `Atari` (from `CAtari`,
     `Atari.h/.cpp`). Before porting, re-verified `Init(bool)` instead of
     trusting the old "hazardous, calls CTuning::InitTuning()" scoping
@@ -2947,7 +2947,7 @@ build clean and all 123 tests pass.
       `Atari.RMT_FRQTABLES`.
     - Verified via a full Release|x64 solution rebuild (370 C++ tests) and
       `mvn -o test` (149 Java tests, +9): all green, 0 regressions.
-      Details in `plans/JAVA_PORT_PLAN.md`. Committed (`626ca5c`, `031fbbe`).
+      Details in `plans/13_JAVA_PORT_PLAN.md`. Committed (`626ca5c`, `031fbbe`).
   - **2026-09-24**: User asked to continue with `CUndo` next. Investigation
     found it fully tested (30 tests) and not hazardous, but deeply wired
     into `CSong` (cursor/song-data/song-info methods, `TInfo`/`TSong`,
@@ -2992,7 +2992,7 @@ build clean and all 123 tests pass.
       **first** build - despite being the most structurally complex port
       this project has done (5 new collaborating classes, 2 new snapshot
       types). Full Release|x64 C++ rebuild also verified (comment-only
-      change). Details in `plans/JAVA_PORT_PLAN.md`. Committed (`ce9ab71`,
+      change). Details in `plans/13_JAVA_PORT_PLAN.md`. Committed (`ce9ab71`,
       `c96206f`).
   - **2026-09-24**: Twelfth Java-port batch - `SapFile` (from `CSAPFile`,
     `SAPFile.h/.cpp`), the already-tested subset (getters/setters,
@@ -3015,7 +3015,7 @@ build clean and all 123 tests pass.
       became a thrown `IllegalStateException`, matching the established
       idiom.
     - Verified with `mvn -o test`: 183 tests pass (+4). No C++ changes.
-      Details in `plans/JAVA_PORT_PLAN.md`. Committed (`cf32e86`,
+      Details in `plans/13_JAVA_PORT_PLAN.md`. Committed (`cf32e86`,
       `8830804`).
   - **2026-09-24**: Thirteenth Java-port batch - `AsmFileBuilder` (from
     `CASMFileBuilder`, `ASMFileBuilder.h/.cpp`), ported in full - no
@@ -3034,7 +3034,7 @@ build clean and all 123 tests pass.
       Reproduced the exact same visible output by hand via string
       concatenation instead.
     - Verified with `mvn -o test`: 191 tests pass (+8), all green on the
-      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      first build. Details in `plans/13_JAVA_PORT_PLAN.md`. Committed
       (`434f8a3`).
   - **2026-09-24**: Fourteenth Java-port batch - `Keyboard2NoteMapping`
     (from the free functions `NoteKey`/`NumbKey`/`Numblock09Key`,
@@ -3051,7 +3051,7 @@ build clean and all 123 tests pass.
     - Neither language bounds-checks `vk` against `0..255` - preserved as
       a characterized, not hardened, fragile contract.
     - Verified with `mvn -o test`: 198 tests pass (+7), all green on the
-      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      first build. Details in `plans/13_JAVA_PORT_PLAN.md`. Committed
       (`b8ab6d9`).
   - **2026-09-25**: Fifteenth Java-port batch - `RmtCommandLineInfo` (from
     `CRmtCommandLineInfo`, `RmtCommandLineInfo.h/.cpp`), the `SCRIPT:`/
@@ -3064,7 +3064,7 @@ build clean and all 123 tests pass.
     - Drops the `CCommandLineInfo` MFC base class entirely; the Java class
       is a plain data holder.
     - Verified with `mvn -o test`: 205 tests pass (+7), all green on the
-      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      first build. Details in `plans/13_JAVA_PORT_PLAN.md`. Committed
       (`474e1ae`).
   - **2026-09-25**: Sixteenth Java-port batch - `StringUtility` (from
     `CStringUtility`, `StringUtility.h/.cpp`), a single one-line static
@@ -3074,7 +3074,7 @@ build clean and all 123 tests pass.
       throw for a negative starting index when the suffix is longer than
       the string.
     - Verified with `mvn -o test`: 210 tests pass (+5), all green on the
-      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      first build. Details in `plans/13_JAVA_PORT_PLAN.md`. Committed
       (`d9fb6cf`).
   - **2026-09-25**: Seventeenth Java-port batch - `CompressLzss` (from
     `CCompressLzss`/`CLzss`, `lzss_sap.h/.cpp`), an optimal LZSS compressor
@@ -3108,7 +3108,7 @@ build clean and all 123 tests pass.
       `ByteArrayOutputStream`.
     - Verified with `mvn -o test`: 221 tests pass (+11), all green on the
       first build - the 3 golden-master compression tests matched exactly
-      with no debugging needed. Details in `plans/JAVA_PORT_PLAN.md`.
+      with no debugging needed. Details in `plans/13_JAVA_PORT_PLAN.md`.
       Committed (`201cd1a`).
   - **2026-09-25**: Eighteenth Java-port batch - grew `Song` (previously
     minimal, just what `Undo` needed) to cover all of `CSong`'s
@@ -3129,7 +3129,7 @@ build clean and all 123 tests pass.
       `ataToSong` as `boolean`-returning since no existing sibling forces
       otherwise and their tests assert on the return directly.
     - Verified with `mvn -o test`: 236 tests pass (+15), all green on the
-      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      first build. Details in `plans/13_JAVA_PORT_PLAN.md`. Committed
       (`b5a78f1`).
   - **2026-09-25**: Nineteenth Java-port batch - `Messages` (from
     Messages.h/.cpp), the subset `MessagesTests.cpp` exercises, ported in
@@ -3147,7 +3147,7 @@ build clean and all 123 tests pass.
       field (default `CANCEL`, the safe choice); `OutputDebugString`
       became `System.err`.
     - Verified with `mvn -o test`: 240 tests pass (+4), all green on the
-      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      first build. Details in `plans/13_JAVA_PORT_PLAN.md`. Committed
       (`83bffaf`).
   - **2026-09-25**: Twentieth Java-port batch - `AtariTrackerDriver` (from
     `CAtariTrackerDriver`), the subset `AtariTrackerDriverTests.cpp`
@@ -3171,7 +3171,7 @@ build clean and all 123 tests pass.
     - Verified with `mvn -o test`: 243 tests pass (+3), all green on the
       first build, including the real resource-loading/binary-parsing
       test matching its exact expected byte. Details in
-      `plans/JAVA_PORT_PLAN.md`. Committed (`a2ef5aa`).
+      `plans/13_JAVA_PORT_PLAN.md`. Committed (`a2ef5aa`).
   - **2026-09-25**: Twenty-first Java-port batch - `PokeyStream` (from
     `CPokeyStream`), the pure state-machine methods
     `PokeyStreamTests.cpp` exercises, plus the two early-return guard
@@ -3188,8 +3188,8 @@ build clean and all 123 tests pass.
       any non-`PlayMode` value is needed.
     - Verified with `mvn -o test`: 252 tests pass (+9), all green on the
       first build, including the hand-traced multi-step loop-detection
-      tests. Details in `plans/JAVA_PORT_PLAN.md`. Committed (`c5233c1`).
-  - **2026-09-25**: Wrote `plans/JAVA_SONGEDITING_PLAN.md`, scoping the
+      tests. Details in `plans/13_JAVA_PORT_PLAN.md`. Committed (`c5233c1`).
+  - **2026-09-25**: Wrote `plans/15_JAVA_SONGEDITING_PLAN.md`, scoping the
     much larger `SongEditing.cpp` port (plus its neighboring exporters/
     importers) into sub-batches, per the user's request. No implementation
     yet at that point.
@@ -3215,7 +3215,7 @@ build clean and all 123 tests pass.
     - `TrackLeft`/`TrackRight`'s `goto`-based control flow became a
       `wrapColumn` boolean flag - same branches, no `goto` needed.
     - Verified with `mvn -o test`: 270 tests pass (+18), all green on the
-      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      first build. Details in `plans/13_JAVA_PORT_PLAN.md`. Committed
       (`bcf89a5`).
   - **2026-09-25**: Twenty-third Java-port batch - `Song` grows to cover
     `SongEditing.cpp` sub-batch 6 (`InstrInfo`/`InstrChangeApply`/
@@ -3235,7 +3235,7 @@ build clean and all 123 tests pass.
       clamp value, not just for validity checking.
     - Verified with `mvn -o test`: 275 tests pass (+5), all green on the
       first build, including the intricate remap arithmetic. Details in
-      `plans/JAVA_PORT_PLAN.md`. Committed (`5f27af5`).
+      `plans/13_JAVA_PORT_PLAN.md`. Committed (`5f27af5`).
   - **2026-09-25**: Twenty-fourth Java-port batch - `Song` grows to cover
     `SongEditing.cpp` sub-batches 2-5 (song-line editing, track-length
     cleanup, track/instrument copy-paste, bookmark/settings), all done
@@ -3259,10 +3259,10 @@ build clean and all 123 tests pass.
       from the same clean slate the C++ fixture's manual memset provides.
     - Verified with `mvn -o test`: 307 tests pass (+32), all green on the
       first build once that fixture gap was found and fixed. Details in
-      `plans/JAVA_PORT_PLAN.md`. Committed (`bd826a9`).
+      `plans/13_JAVA_PORT_PLAN.md`. Committed (`bd826a9`).
   - **2026-09-25**: Fixed the `LoadTxt` bug on the C++ side (user's
     explicit "fix on both" decision - see
-    `plans/JAVA_SONGEDITING_PLAN.md`'s sub-batch 8 entry for the full
+    `plans/15_JAVA_SONGEDITING_PLAN.md`'s sub-batch 8 entry for the full
     mechanism). `LoadTxt()`'s `[MODULE]`/`[SONG]` segment loops now skip a
     lone `'\n'` byte (the blank "gap" line `SaveTxt()` writes before each
     segment) instead of handing it to `getline()` as content, which used
@@ -3296,12 +3296,12 @@ build clean and all 123 tests pass.
       `SetTracks`'s `g_tracks4_8` side effect needed a way to reach the
       caller.
     - Verified with `mvn -o test`: 308 tests pass (+1), all green on the
-      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed
+      first build. Details in `plans/13_JAVA_PORT_PLAN.md`. Committed
       (`23b5170`).
   - **2026-09-25**: Fixed `SaveRMW`/`LoadRMW`'s "main parameters"
     `sizeof(mainparams[0])` bug on the C++ side (user's explicit direction,
     after being shown the finding - see
-    `plans/JAVA_SONGEDITING_PLAN.md`'s sub-batch 8 entry for the full
+    `plans/15_JAVA_SONGEDITING_PLAN.md`'s sub-batch 8 entry for the full
     mechanism). `mainparams` is `int* mainparams[31]`, so
     `sizeof(mainparams[0])` is `sizeof(int*)` - 4 bytes on the 32-bit
     builds this project originally shipped as (masking the bug), 8 bytes
@@ -3336,7 +3336,7 @@ build clean and all 123 tests pass.
       compatibility, writing 0 for the unmapped ones.
     - New `RmtVersion.RMT_VERSION_STRING` and `AtariIO.loadBinaryBlock`.
     - Verified with `mvn -o test`: 316 tests pass (+8), all green on the
-      first build. Details in `plans/JAVA_PORT_PLAN.md`. Committed as
+      first build. Details in `plans/13_JAVA_PORT_PLAN.md`. Committed as
       `39347e2`.
   - **2026-09-25**: Twenty-seventh Java-port batch - `Song` grows to cover
     `SongEditing.cpp` sub-batch 9 (navigation/playback: `SongJump`/`SongUp`/
@@ -3376,9 +3376,9 @@ build clean and all 123 tests pass.
       every existing test).
     - Verified with `mvn -o test`: 339 tests pass (+23), all green on the
       first build. No C++ changes in this batch. Details in
-      `plans/JAVA_PORT_PLAN.md`. Committed as `2141688`.
+      `plans/13_JAVA_PORT_PLAN.md`. Committed as `2141688`.
   - **2026-09-25**: Started scoping `CTrackClipboard` as its own dedicated
-    porting pass (per `plans/JAVA_SONGEDITING_PLAN.md`'s execution order)
+    porting pass (per `plans/15_JAVA_SONGEDITING_PLAN.md`'s execution order)
     and found it has *no* existing C++ test coverage at all - unlike every
     other class ported this whole effort. Every method except `BlockEffect`
     (a real MFC dialog, confirmed unextractable) is otherwise hazard-free
@@ -3410,7 +3410,7 @@ build clean and all 123 tests pass.
       pattern.
     - Verified with `mvn -o test`: 345 tests pass (+6); full C++
       Release|x64 rebuild + `RmtTests.exe`: 372 tests pass (+1), 0
-      regressions on either side. Details in `plans/JAVA_PORT_PLAN.md`.
+      regressions on either side. Details in `plans/13_JAVA_PORT_PLAN.md`.
       Committed as `f411e21` (the C++ fix) and `0e29082` (the Java port).
   - **2026-09-25**: Corrected an earlier assessment - `CTrackClipboard`
     isn't actually untested. `SongEditingTests.cpp` already exercises a
@@ -3437,16 +3437,16 @@ build clean and all 123 tests pass.
       `TrackClipboard` constructor field too.
     - Verified with `mvn -o test`: 347 tests pass (+2), no regressions
       across every existing call site the new parameter touched. Details
-      in `plans/JAVA_PORT_PLAN.md`. Committed as `59c1c62`.
+      in `plans/13_JAVA_PORT_PLAN.md`. Committed as `59c1c62`.
   - **2026-09-25**: Scoping-only pass (no implementation) for the Java port
     of `IO_ImporterCore.cpp`'s TMC/MOD import, per the user's "perform
     required scoping" request. Read `IO_Importer.cpp`/`IO_ImporterCore.cpp`
     in full (1938 lines combined). Found this surface is already fully
-    C++-tested (a prior phase's `plans/IO_IMPORTER_PLAN.md` already split
+    C++-tested (a prior phase's `plans/03_IO_IMPORTER_PLAN.md` already split
     each format into a real-dialog wrapper plus a dialog-independent
     `ParseHeader`/`Apply` pair, both tested in `SongEditingTests.cpp`) and
     every Java dependency both `Apply()`s need already exists - no gaps.
-    Wrote `plans/JAVA_IMPORTER_PLAN.md`: new free-standing
+    Wrote `plans/14_JAVA_IMPORTER_PLAN.md`: new free-standing
     `TmcImporter`/`ModImporter` classes proposed (matching
     `RmtExporter`/`AsmFileExporter`'s precedent); struct-to-record
     mappings for `TImportTMCHeader`/`Result`/`TImportMODHeader`/`Result`;
@@ -3458,7 +3458,7 @@ build clean and all 123 tests pass.
     every `goto` restructured so far in this port. Suggested batching: TMC
     first (smaller, no `goto`s), MOD second. Not yet implemented.
   - **2026-09-25**: Thirtieth Java-port batch - `TmcImporter` (Batch A of
-    `plans/JAVA_IMPORTER_PLAN.md`), porting `CSong::ImportTMCParseHeader`/
+    `plans/14_JAVA_IMPORTER_PLAN.md`), porting `CSong::ImportTMCParseHeader`/
     `ImportTMCApply` and their `CConvertTracks` helper as a new
     free-standing class (matching `RmtExporter`/`AsmFileExporter`'s
     precedent).
@@ -3476,10 +3476,10 @@ build clean and all 123 tests pass.
       zero-songline TMC file - not reachable by any current test, but
       Java throws where C++ silently corrupts memory.
     - Verified with `mvn -o test`: 350 tests pass (+3), no regressions. No
-      C++ changes in this batch. Details in `plans/JAVA_PORT_PLAN.md`/
-      `plans/JAVA_IMPORTER_PLAN.md`. Committed as `e93e323`.
+      C++ changes in this batch. Details in `plans/13_JAVA_PORT_PLAN.md`/
+      `plans/14_JAVA_IMPORTER_PLAN.md`. Committed as `e93e323`.
   - **2026-09-26**: Thirty-first Java-port batch - `ModImporter` (Batch B
-    of `plans/JAVA_IMPORTER_PLAN.md`), porting `CSong::ImportMODParseHeader`/
+    of `plans/14_JAVA_IMPORTER_PLAN.md`), porting `CSong::ImportMODParseHeader`/
     `ImportMODApply` and their `TMODInstrumentMark`/`AtariVolume` helpers -
     completes both batches of the importer plan.
     - C++'s "continued stream access" wrinkle disappeared exactly as
@@ -3497,8 +3497,8 @@ build clean and all 123 tests pass.
       assigned anywhere in C++) - flagged to the user, who chose to leave
       it characterized as-is on both sides.
     - Verified with `mvn -o test`: 353 tests pass (+3), no regressions. No
-      C++ changes in this batch. Details in `plans/JAVA_PORT_PLAN.md`/
-      `plans/JAVA_IMPORTER_PLAN.md`. Committed as `53900a2`.
+      C++ changes in this batch. Details in `plans/13_JAVA_PORT_PLAN.md`/
+      `plans/14_JAVA_IMPORTER_PLAN.md`. Committed as `53900a2`.
   - **2026-09-26**: C++-only characterization batch (no Java changes),
     per the user's explicit request to characterize both remaining
     un-ported areas before continuing the Java port. Added one hand-traced
@@ -3510,7 +3510,7 @@ build clean and all 123 tests pass.
     pass (+7), 0 regressions. `CTrackClipboard` is now fully C++-tested
     except `BlockEffect` (real MFC dialog, stays deferred). The Java port
     of these 7 methods is still not started. Details in
-    `plans/JAVA_PORT_PLAN.md`/`plans/JAVA_SONGEDITING_PLAN.md`. Committed
+    `plans/13_JAVA_PORT_PLAN.md`/`plans/15_JAVA_SONGEDITING_PLAN.md`. Committed
     as `a9c31a9`.
   - **2026-09-26**: Second C++-only characterization batch, completing the
     user's "characterize both remaining areas" request:
@@ -3544,8 +3544,8 @@ build clean and all 123 tests pass.
       verification method" treatment.
     - Verified with a full C++ Release|x64 rebuild + `RmtTests.exe`: 381
       tests pass (+2), 0 regressions. The Java port of this serialization
-      surface is still not started. Details in `plans/JAVA_PORT_PLAN.md`/
-      `plans/JAVA_SONGEDITING_PLAN.md`. Committed as `654a140`.
+      surface is still not started. Details in `plans/13_JAVA_PORT_PLAN.md`/
+      `plans/15_JAVA_SONGEDITING_PLAN.md`. Committed as `654a140`.
   - **2026-09-26**: Thirty-second Java-port batch - `TrackClipboard` grows
     `blockAllOnOff`/`blockExchangeClipboard`/`blockClear`/
     `blockRestoreFromBackup`/`blockNoteTransposition`/
@@ -3556,7 +3556,7 @@ build clean and all 123 tests pass.
     Verified with `mvn -o test`: 360 tests pass (+7), all passing on the
     first run, no regressions. `TrackClipboard` is now feature-complete
     except `BlockEffect` (not ported on the C++ side either). Details in
-    `plans/JAVA_PORT_PLAN.md`/`plans/JAVA_SONGEDITING_PLAN.md`. Committed
+    `plans/13_JAVA_PORT_PLAN.md`/`plans/15_JAVA_SONGEDITING_PLAN.md`. Committed
     as `c5f9f58`.
   - **2026-09-26**: Thirty-third Java-port batch - `IO_Instruments.cpp`/
     `IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track serialization,
@@ -3592,13 +3592,13 @@ build clean and all 123 tests pass.
       established by earlier tests for this exact space-padded-not-null-
       terminated scenario. No production code was at fault.
     - Verified with `mvn -o clean test`: 362 tests pass (+2), no
-      regressions. Details in `plans/JAVA_PORT_PLAN.md`/
-      `plans/JAVA_SONGEDITING_PLAN.md`. Committed as `6bc1ba9`.
-  - **2026-09-26**: Wrote `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`, a roadmap
+      regressions. Details in `plans/13_JAVA_PORT_PLAN.md`/
+      `plans/15_JAVA_SONGEDITING_PLAN.md`. Committed as `6bc1ba9`.
+  - **2026-09-26**: Wrote `plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`, a roadmap
     for the rest of the port, after the user asked for one. Corrected an
-    overly-narrow claim in `plans/JAVA_PORT_PLAN.md`'s own "Next steps"
+    overly-narrow claim in `plans/13_JAVA_PORT_PLAN.md`'s own "Next steps"
     section (it said "no further areas identified", but that was scoped
-    only to `plans/JAVA_SONGEDITING_PLAN.md`'s own tracked list). A fresh
+    only to `plans/15_JAVA_SONGEDITING_PLAN.md`'s own tracked list). A fresh
     audit - checking every plan doc's actual "DONE" status plus a direct
     `src/cpp`-vs-`src/java` file comparison - found two real remaining
     categories: **Phase A**, small model-layer gaps (`TracksEdit.cpp`'s
@@ -3606,7 +3606,7 @@ build clean and all 123 tests pass.
     `PokeyStream`'s real recording path and its five dependent SAP-R/LZSS/
     WAV/XEX export methods, all already C++-characterized but not yet
     ported), and **Phase B**, the entire Java UI layer (`com.wudsn.tools.
-    rmt.ui` doesn't exist yet at all) - `plans/UI_SURVEY_PLAN.md` already
+    rmt.ui` doesn't exist yet at all) - `plans/12_UI_SURVEY_PLAN.md` already
     resolved keeping the bitmap-font look and the debug overlays and
     deferring MIDI, but the rendering/repaint model and the Java UI toolkit
     choice are still open. Committed as `17a46f5`.
@@ -3633,8 +3633,8 @@ build clean and all 123 tests pass.
       "C++ global -> explicit parameter" idiom. Tests (`SongEditingTest`,
       extended) mirror the 30 new C++ tests exactly. Verified with
       `mvn -o clean test`: 392 tests pass (+30), all green on the first
-      run, no regressions. Details in `plans/JAVA_PORT_PLAN.md`/
-      `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`. Committed as `caf07aa`.
+      run, no regressions. Details in `plans/13_JAVA_PORT_PLAN.md`/
+      `plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`. Committed as `caf07aa`.
   - **2026-09-26**: Vendored `asap.jar`/`asap-8.0.0-java-src.zip` into
     `lib/java/` (copied from `C:\jac\system\WWW\Sites\asma.atari.org\java\lib`,
     per the user's explicit direction: Phase A items 2-4's real CPU/POKEY
@@ -3657,7 +3657,7 @@ build clean and all 123 tests pass.
     `ASAP.java`, then vendoring a custom-compiled `asap.jar` from that
     patched source, mirroring `src/cpp/asap/asap-patch.h`/`.cpp`'s
     existing extension-point pattern for this same upstream library. Full
-    write-up in `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 2.
+    write-up in `plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 2.
     Analysis only - no code changes yet, since this item hasn't started.
     Committed as `2971772`.
   - **2026-09-26**: Phase A item 5 (closing sanity sweep) - done, clean, no
@@ -3674,11 +3674,11 @@ build clean and all 123 tests pass.
     `ExportWAV`'s test, which writes and validates an actual temp `.wav`
     file) or deliberate, already-documented exclusion (`PokeyController.cpp`,
     the Pokey-explorer debug submenu's real MFC command handlers - per
-    `plans/UI_SURVEY_PLAN.md`, "developer/diagnostic UI, not core
+    `plans/12_UI_SURVEY_PLAN.md`, "developer/diagnostic UI, not core
     end-user functionality"). The only genuine gap found was
     `PokeyStream.cpp`'s `StartRecording`/`FinishedRecording` - already
     tracked as Phase A item 2, not new. Full write-up in
-    `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s item 5. This closes out
+    `plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`'s item 5. This closes out
     Phase A's model-layer scope except for the ASAP-dependent items.
     Committed as `40c7007`.
   - **2026-09-26**: Thirty-fifth Java-port batch, per the user's explicit
@@ -3743,8 +3743,8 @@ build clean and all 123 tests pass.
       `AtariTrackerDriver::Play()` is also a no-op there, via the C++
       test binary's no-op JSR stub - see `AtariStub.cpp`). Verified with
       `mvn -o clean test`: 393 tests pass (+1), no regressions.
-    - Full write-up in `plans/JAVA_PORT_PLAN.md`'s thirty-fifth ported
-      batch and `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A items 2-3.
+    - Full write-up in `plans/13_JAVA_PORT_PLAN.md`'s thirty-fifth ported
+      batch and `plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A items 2-3.
       Committed as `9d96136`.
   - **2026-09-26**: Thirty-sixth Java-port batch, continuing "do the asap
     part" - three of the five dependent export methods: new
@@ -3787,8 +3787,8 @@ build clean and all 123 tests pass.
       both need a new `VUPlayer` class and real on-disk resource-file
       loading, a distinctly bigger chunk of work, flagged for a decision
       on whether to continue now. Full write-up in
-      `plans/JAVA_PORT_PLAN.md`'s thirty-sixth ported batch and
-      `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4. Committed as
+      `plans/13_JAVA_PORT_PLAN.md`'s thirty-sixth ported batch and
+      `plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4. Committed as
       `f209496`.
   - **2026-09-26**: Thirty-seventh Java-port batch, continuing "do the asap
     part" - the fourth of the five export methods: `ExportSAP_B_LZSS`.
@@ -3823,9 +3823,9 @@ build clean and all 123 tests pass.
       `CSong::GetSubsongParts`, a *different* embedded-resource loading
       path for the VU player binary, and per-subsong
       `dumpSongToPokeyStream` looping) - flagged for a decision on whether
-      to continue. Full write-up in `plans/JAVA_PORT_PLAN.md`'s
+      to continue. Full write-up in `plans/13_JAVA_PORT_PLAN.md`'s
       thirty-seventh ported batch and
-      `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4. Committed as
+      `plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4. Committed as
       `fd7c063`.
   - **2026-09-26**: Thirty-eighth Java-port batch, completing "do the asap
     part" - the fifth and last dependent export method: `ExportXEX_LZSS`,
@@ -3855,16 +3855,16 @@ build clean and all 123 tests pass.
       passed on the first real run despite being the largest, most
       involved method ported this session. Verified with
       `mvn -o clean test`: 398 tests pass (+1), no regressions.
-    - **Phase A of `plans/JAVA_PORT_NEXT_STEPS_PLAN.md` is now fully
+    - **Phase A of `plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md` is now fully
       DONE**: all five items closed (`TracksEdit.cpp`, real CPU/POKEY
       emulation via ASAP, all five export methods, and the closing sanity
       sweep). The Java port's model layer has no further known-unported,
       real, meaningful C++ behavior left - the only remaining work is
       Phase B, the entire not-yet-started Java UI layer. Full write-up in
-      `plans/JAVA_PORT_PLAN.md`'s thirty-eighth ported batch and
-      `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4/closing
+      `plans/13_JAVA_PORT_PLAN.md`'s thirty-eighth ported batch and
+      `plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4/closing
       summary. Committed as `08d9465`.
-  - **2026-09-26**: Wrote `plans/JAVA_UI_PORT_HANDOVER.md` at the user's
+  - **2026-09-26**: Wrote `plans/17_JAVA_UI_PORT_HANDOVER.md` at the user's
     request - a short entry point for a fresh session picking up Phase B
     (the Java UI port), written for the switch to the Fable model: current
     state, the hard "must match today's Windows UI" requirement, the
@@ -3872,9 +3872,9 @@ build clean and all 123 tests pass.
     recommended first slice, and the working conventions from the model
     port. Committed as `70681d1`.
   - **2026-09-26** (Fable 5.1 from here on): Phase B kicked off. Read the
-    handover and `plans/UI_SURVEY_PLAN.md` in full, then the C++ paint/
+    handover and `plans/12_UI_SURVEY_PLAN.md` in full, then the C++ paint/
     input/config code they describe, the resource files, and the `dis6502`
-    precedent. Wrote `plans/JAVA_UI_PORT_PLAN.md` - the dedicated Phase B
+    precedent. Wrote `plans/18_JAVA_UI_PORT_PLAN.md` - the dedicated Phase B
     plan (batches B0-B9) - and put the open decisions to the user.
     - Key findings that shaped it: `dis6502` is pure Swing on
       `com.wudsn.tools.base.gui` (already a dependency of this project),
@@ -4322,7 +4322,7 @@ build clean and all 123 tests pass.
       player), local help (B9) and the MIDI/Pokey-explorer ones (not
       ported).
   - **2026-09-27**: Phase B, batch B8a (emulation core) - the first audio
-    sub-batch of `plans/JAVA_AUDIO_PLAN.md`. The 6502 and the POKEY pair
+    sub-batch of `plans/19_JAVA_AUDIO_PLAN.md`. The 6502 and the POKEY pair
     behind live playback are ASAP's, in an "RMT mode" appended to the
     vendored `ASAP.java` (decision 1): `rmtInitialize` (hardware pages
     $D000-$D7FF as plain RAM, so the driver's POKEY stores land in the
@@ -4458,7 +4458,7 @@ build clean and all 123 tests pass.
       Release build and the unchanged 411-test suite.
     - 561 tests (+2), no regressions. C++: 1 file.
   - **2026-09-27**: Phase B, batch B9a (runnable jar and program folder) -
-    the first of the three B9 sub-batches of `plans/JAVA_B9_PLAN.md`.
+    the first of the three B9 sub-batches of `plans/20_JAVA_B9_PLAN.md`.
     - `pom.xml`: `maven-shade-plugin` as dis6502 -> `target/rmt.jar`
       (the two WUDSN jars merged, `Main-Class`, `Build-Date` in UTC and
       `Implementation-Version` in the manifest; `dependency-reduced-pom.xml`
@@ -4532,7 +4532,7 @@ build clean and all 123 tests pass.
       told the logical size, the paint removes the scaling transform - the
       canvas's own technique). A first version let Swing scale the 2x image
       again, which made 3x at 150%. A deliberate improvement over the
-      DPI-unaware MFC toolbar (decision 3 of `JAVA_B9_PLAN.md`); the canvas
+      DPI-unaware MFC toolbar (decision 3 of `20_JAVA_B9_PLAN.md`); the canvas
       itself was HiDPI-correct since B1.
     - `notAvailable`'s status text drops "yet" - only printing (MFC's own)
       still uses it. The status line stays a `JLabel` (decision 4).
@@ -4546,9 +4546,9 @@ build clean and all 123 tests pass.
       (+4), no regressions.
     - Live: the jar at the display's 150% shows the toolbar at 2x next to
       the unchanged canvas (`b9c-toolbar.png`).
-    - Phase B is closed in `JAVA_UI_PORT_PLAN.md` and `JAVA_PORT_PLAN.md`;
-      the next feature is scripting (`JAVA_B9_PLAN.md` section 5).
-  - **2026-09-27**: Scripting, batch S1 (`plans/JAVA_SCRIPTING_PLAN.md`) -
+    - Phase B is closed in `18_JAVA_UI_PORT_PLAN.md` and `13_JAVA_PORT_PLAN.md`;
+      the next feature is scripting (`20_JAVA_B9_PLAN.md` section 5).
+  - **2026-09-27**: Scripting, batch S1 (`plans/21_JAVA_SCRIPTING_PLAN.md`) -
     the user's "proper scripts instead of /TEST".
     - `org.atari.raster.rmt.script`: `ScriptParser` (one command per line,
       `#` comments, quoted tokens with `\"`/`\`, `name=value` options,
@@ -4624,7 +4624,7 @@ build clean and all 123 tests pass.
       written next to the script, the "Script 'ui.rmtscript' finished."
       box listed them (`s2-result.png`).
   - **2026-09-27**: Scripting, batch S3 (documentation) - the scripting
-    feature is complete (`plans/JAVA_SCRIPTING_PLAN.md`).
+    feature is complete (`plans/21_JAVA_SCRIPTING_PLAN.md`).
     - `doc/rmt_scripting.md`: how to run a script (command line without a
       display, Tools > Run Script), the exit codes, the syntax, the
       commands, the eight export formats with their options and defaults,
@@ -4632,7 +4632,7 @@ build clean and all 123 tests pass.
       section; `build/stage_java_release.sh` copies it into the
       distribution's `docs/`.
     - Decision 6 (the C++ program) left open as recommended.
-  - **2026-09-27**: C++ scripting, batch C1 (`plans/CPP_SCRIPTING_PLAN.md`)
+  - **2026-09-27**: C++ scripting, batch C1 (`plans/22_CPP_SCRIPTING_PLAN.md`)
     - the user's question "would /SCRIPT support on Windows help to
     simplify testing?" answered with the same script format in `Rmt.exe`,
     so the two programs' exports can be compared end to end (C2).
@@ -4685,7 +4685,7 @@ build clean and all 123 tests pass.
       1); a broken quote gives exit 2.
     - `doc/rmt_scripting.md` now covers both programs (the Windows
       paragraph: `start /wait`, the `.log` fallback); README updated.
-  - **2026-09-27**: C++ scripting, batch C2 (`plans/CPP_SCRIPTING_PLAN.md`)
+  - **2026-09-27**: C++ scripting, batch C2 (`plans/22_CPP_SCRIPTING_PLAN.md`)
     - the cross-program export comparison, and the port bugs its first run
     found.
     - `test-resources/scripts/delta.rmtscript`, `stereo.rmtscript`: the
@@ -4726,7 +4726,7 @@ build clean and all 123 tests pass.
       `CrossProgramExportTest`. 590 Java tests (+3, one conditional); 415
       C++ tests. Release build clean.
   - **2026-09-27**: C++ scripting, batch C3 (documentation) - the C++
-    scripting plan is complete (`plans/CPP_SCRIPTING_PLAN.md`).
+    scripting plan is complete (`plans/22_CPP_SCRIPTING_PLAN.md`).
     - `doc/rmt_changes.md`: the `/SCRIPT` feature and the two export
       crashes fixed on the way (WAV timer race, stereo LZSS/SAP stack
       buffers) as RMT 1.35 entries, linking `doc/rmt_scripting.md` on GitHub
@@ -4734,11 +4734,11 @@ build clean and all 123 tests pass.
       decision; a copy of the `.md` there was reverted); the removal of
       `/TEST` and the cross-program comparison under "Technical".
     - README: the comparison sentence in the Java section.
-      `plans/JAVA_SCRIPTING_PLAN.md`: decision 6 closed as (b), C1-C3 done.
-      `plans/JAVA_PORT_PLAN.md`: the "Next" item (scripting) marked DONE, no
+      `plans/21_JAVA_SCRIPTING_PLAN.md`: decision 6 closed as (b), C1-C3 done.
+      `plans/13_JAVA_PORT_PLAN.md`: the "Next" item (scripting) marked DONE, no
       open port batch remains.
   - **2026-09-27**: Documentation generation, batch D1
-    (`plans/DOC_GENERATION_PLAN.md`; the user's decisions: Markdown stays
+    (`plans/23_DOC_GENERATION_PLAN.md`; the user's decisions: Markdown stays
     the source on GitHub, the distributions ship HTML, the menus are to be
     extracted by the build).
     - `org.atari.raster.rmt.doc.DocGenerator` (in the jar): every `doc/*.md`
@@ -4766,7 +4766,7 @@ build clean and all 123 tests pass.
       browser (tables, code, title).
   - **2026-09-27**: Documentation generation, batch D2 - `dump actions` in
     both programs and the command table in the cross-program comparison
-    (`plans/DOC_GENERATION_PLAN.md`, findings listed there).
+    (`plans/23_DOC_GENERATION_PLAN.md`, findings listed there).
     - C++: `CCommands` refactored (`Analyze()` collects from the compiled
       resources: main menu, main and block toolbars, both accelerator
       tables; `WriteActionInfos(file)` writes the Markdown table, LF, and
@@ -4801,7 +4801,7 @@ build clean and all 123 tests pass.
       through a posted WM_COMMAND); the run through to the result box
       confirmed by the user by hand ("Script works OK").
   - **2026-09-27**: Documentation generation, batch D3 - the manual to
-    Markdown (`plans/DOC_GENERATION_PLAN.md` section 2.4).
+    Markdown (`plans/23_DOC_GENERATION_PLAN.md` section 2.4).
     - `doc/rmt_en.md`: `rmt_en.html` converted by a one-time script (the
       HTML was regular: headings, key tables with modifier/key/description
       cells, field tables, two `<pre>`, one list); the key cells became
@@ -4908,3 +4908,13 @@ build clean and all 123 tests pass.
     its French legends (& é " ' ( - è _ ç à). Both programs' documents
     byte-identical; RmtTests 416, Java 595; the manual's "Note Keys"
     chapter text adjusted.
+  - **2026-09-28**: the plan files numbered (the user's wish: to see at a
+    glance what is old and done and what is new). The 23 batch plans got a
+    two-digit prefix in creation order (`01_SONG_IO_SONG_REMAINING_PLAN.md`
+    .. `23_DOC_GENERATION_PLAN.md`; `git mv`, every reference in the
+    repository updated - plans, CLAUDE.md, READMEs, source comments, the
+    Visual Studio and Eclipse project files); `CPP_RULES.md`, `OVERALL_PLAN.md`
+    and `NOTES.md` stay unnumbered. New: `plans/README.md`, the index with
+    each plan's purpose and status; CLAUDE.md states the rule (next free
+    number, a row in the index). `23_DOC_GENERATION_PLAN.md` marked D4 DONE.
+    `RULES.md` renamed `CPP_RULES.md` (the user's wish; references updated).

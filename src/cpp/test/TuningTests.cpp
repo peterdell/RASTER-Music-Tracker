@@ -204,7 +204,7 @@ TEST_F(TuningGenerateTableTest, GeneratesASixteenBitJoinedTableUsingTwoBytesPerE
 // MessageBox+exit(1) guard (basetuning == 0) is never reached here because
 // SetUp() always initializes g_tuning/g_tuningRatios first - deliberately
 // not characterized directly since that would terminate the whole test
-// process (same hazard already documented in AtariStub.cpp/JAVA_PORT_PLAN.md
+// process (same hazard already documented in AtariStub.cpp/13_JAVA_PORT_PLAN.md
 // for CAtari::Init(bool)).
 class TuningInitTuningTest : public ::testing::Test {
   protected:

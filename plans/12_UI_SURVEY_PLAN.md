@@ -2,7 +2,7 @@
 
 ## Context
 
-The characterization-testing effort (`plans/BROADER_SURVEY_PLAN.md` and
+The characterization-testing effort (`plans/04_BROADER_SURVEY_PLAN.md` and
 everything downstream of it) deliberately treated every UI file as
 Category A - "real UI, out of scope for testing" - since UI code can't be
 unit-tested the way model code can. That phase is now essentially done.
@@ -11,7 +11,7 @@ replicate today's UI (the user's explicit requirement: "the UI also needs
 to match today's Windows UI"), so this document surveys what that UI
 *is* - architecture, rendering, input model, commands, dialogs - as a
 read-only inventory. **It does not propose a Java port design or make any
-architecture decision.** It exists so that `plans/FILE_TIERING_STRATEGY.md`'s
+architecture decision.** It exists so that `plans/07_FILE_TIERING_STRATEGY.md`'s
 open composition-vs-mechanical question, and any future UI-framework
 choice, can be made from real information instead of guesses from file
 names.
@@ -217,15 +217,15 @@ consumes its input:
 | `CInsertCopyOrCloneOfSongLinesDlg` | effectsdlg.h, impl in Song.cpp | Insert a copy/clone of a songline range, with optional tuning/volume adjustment | `CSong::SongInsertCopyOrCloneOfSongLines` → `SongInsertCopyOrCloneOfSongLinesApply()` (already split, tested) |
 | `COctaveSelectDlg` / `CVolumeSelectDlg` / `CInstrumentSelectDlg` | effectsdlg.h, impl in GUI_Song.cpp | Click-positioned popups for picking octave/volume/active-instrument from the Info panel | `CSong::InfoCursorGotoOctaveSelect`/`...VolumeSelect`/`...InstrumentSelect` |
 | `CChannelsSelectionDlg` | effectsdlg.h | Channel selection (not traced further this pass) | - |
-| `CImportModDlg` + `CImportModFinishedDlg` | importdlgs.h/.cpp | MOD import options (8 checkboxes: octave shift, portamento, full volume range, etc.) and post-import summary | `CSong::ImportMOD` → `ImportModParseHeader`/`ImportModApply` (already split, tested - see `plans/IO_IMPORTER_PLAN.md`) |
+| `CImportModDlg` + `CImportModFinishedDlg` | importdlgs.h/.cpp | MOD import options (8 checkboxes: octave shift, portamento, full volume range, etc.) and post-import summary | `CSong::ImportMOD` → `ImportModParseHeader`/`ImportModApply` (already split, tested - see `plans/03_IO_IMPORTER_PLAN.md`) |
 | `CImportTmcDlg` + `CImportTmcFinishedDlg` | importdlgs.h/.cpp | TMC import options and post-import summary | `CSong::ImportTMC` → `ImportTMCParseHeader`/`ImportTMCApply` (already split, tested) |
 | `CTracksLoadDlg` | importdlgs.h | Track load range options | `CTracks::LoadTrack`-adjacent (not traced further) |
 | `CExportStrippedRMTDialog` | exportdlgs.h | Export a size-optimized/stripped RMT module, with SFX-support and global-volume-fade options | RMT export path (not traced further this pass) |
-| `CExpMSXDlg` | exportdlgs.h, `ShowXEXExportDialog` in SongExporter.cpp | XEX/MSX export options: on-screen text (5 lines), meter color, raster-bar display, region auto-detect | `CSongExporter::ExportXEX_LZSS` (already split - dialog stays in `SongExporter.cpp`, real work in `SongExporterCore.cpp`, tested - see `plans/EXPORTLZSS_PLAN.md`/`plans/SAP_LZSS_WAV_XEX_PLAN.md`) |
+| `CExpMSXDlg` | exportdlgs.h, `ShowXEXExportDialog` in SongExporter.cpp | XEX/MSX export options: on-screen text (5 lines), meter color, raster-bar display, region auto-detect | `CSongExporter::ExportXEX_LZSS` (already split - dialog stays in `SongExporter.cpp`, real work in `SongExporterCore.cpp`, tested - see `plans/10_EXPORTLZSS_PLAN.md`/`plans/05_SAP_LZSS_WAV_XEX_PLAN.md`) |
 | `CExportAsmDlg` | exportdlgs.h | ASM export options (tracks vs. whole song, note format, duration format) | ASM export path (not traced further) |
 | `CExportRelocatableAsmForRmtPlayer` | exportdlgs.h | Relocatable-ASM export for the RMT player runtime (per-section relocation labels, SFX support) | ASM export path (not traced further) |
-| `CSAPFileExportDialog` | SAPFileExportDialog.h/.cpp | SAP file metadata (author/date/name/subsongs) | `CSAPFileExporter::ExportSAP_R`/`ExportSAP_B_LZSS` (already tested, see `plans/SAP_LZSS_WAV_XEX_PLAN.md`) |
-| 8x `CFileDialog` (standard Windows Open/Save) | IO_Song.cpp | File open/save/import/export/instrument-save/instrument-load/track-save/track-load | the `FileXxx` family - confirmed in `plans/SONG_IO_SONG_REMAINING_PLAN.md` Batch 7 to have no extractable split (the chosen path *is* the method) |
+| `CSAPFileExportDialog` | SAPFileExportDialog.h/.cpp | SAP file metadata (author/date/name/subsongs) | `CSAPFileExporter::ExportSAP_R`/`ExportSAP_B_LZSS` (already tested, see `plans/05_SAP_LZSS_WAV_XEX_PLAN.md`) |
+| 8x `CFileDialog` (standard Windows Open/Save) | IO_Song.cpp | File open/save/import/export/instrument-save/instrument-load/track-save/track-load | the `FileXxx` family - confirmed in `plans/01_SONG_IO_SONG_REMAINING_PLAN.md` Batch 7 to have no extractable split (the chosen path *is* the method) |
 
 `CTypedComboBox<T>` (`TypedComboBox.h`) is a trivial generic helper (an
 enum-backed `CComboBox`), used by `COptionsDialog` for the keyboard-layout
@@ -239,7 +239,7 @@ and tracker-driver-version pickers - not a dialog itself.
   optional-output-parameter split, the `*Apply()` cores already extracted
   from `InstrChange`/`TracksOrderChange`/`SongInsertCopyOrCloneOfSongLines`/
   `ImportTMC`/`ImportMOD`) lines up exactly with real dialog boundaries
-  found here - confirming `plans/FILE_TIERING_STRATEGY.md`'s option 2
+  found here - confirming `plans/07_FILE_TIERING_STRATEGY.md`'s option 2
   (composition via injected interfaces) has genuine seams to use, not just
   theoretical ones. The dialogs themselves are naturally "thin" (gather a
   fixed parameter struct, hand it to an already-separable `*Apply()`

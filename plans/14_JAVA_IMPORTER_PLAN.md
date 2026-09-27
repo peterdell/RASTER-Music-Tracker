@@ -2,14 +2,14 @@
 
 ## Context
 
-Flagged in `plans/JAVA_SONGEDITING_PLAN.md` as its own dedicated scoping
+Flagged in `plans/15_JAVA_SONGEDITING_PLAN.md` as its own dedicated scoping
 pass ("`IO_ImporterCore.cpp` alone is over 1000 lines... needs its own
 dedicated scoping plan if/when tackled"). This is that pass - read both
 `IO_Importer.cpp` (193 lines) and `IO_ImporterCore.cpp` (1745 lines) in
 full before writing this plan, per this effort's established discipline.
 
 **Good news found while scoping**: unlike `CTrackClipboard`'s remaining
-7 methods, this surface is *already fully C++-tested* - `plans/IO_IMPORTER_PLAN.md`
+7 methods, this surface is *already fully C++-tested* - `plans/03_IO_IMPORTER_PLAN.md`
 (a prior phase of this same overall effort) already did the C++-side
 triage: split each `Import*()` into a thin, still-real, still-dialog-showing
 wrapper (`ImportTMC()`/`ImportMOD()`, staying in `IO_Importer.cpp`, **not**
@@ -82,7 +82,7 @@ record" idiom):
 `TInstrumentMark`) become a package-private helper class local to
 `TmcImporter` (e.g. `TmcImporter.ConvertTracks`, with its three small
 struct-like fields as private arrays/nested records) - confirmed unused by
-MOD import, matching `IO_IMPORTER_PLAN.md`'s own C++-side finding.
+MOD import, matching `03_IO_IMPORTER_PLAN.md`'s own C++-side finding.
 
 **MOD-only helpers** (`TMODInstrumentMark`, `AtariVolume()`) become a
 private nested/static helper inside `ModImporter` for the same reason.
@@ -230,7 +230,7 @@ class and `atariVolume` as a private static helper. Went into its own new
 - Verified with `mvn -o test`: 353 tests pass (+3, all in the new
   `ModImporterTest`), 0 regressions. No C++ changes in this batch.
 
-This completes both batches of `plans/JAVA_IMPORTER_PLAN.md`.
+This completes both batches of `plans/14_JAVA_IMPORTER_PLAN.md`.
 
 ## Explicitly out of scope for this plan
 
@@ -244,7 +244,7 @@ This completes both batches of `plans/JAVA_IMPORTER_PLAN.md`.
 ## Next step
 
 Neither batch has been implemented yet - this document is the scoping
-pass only, matching how `plans/JAVA_SONGEDITING_PLAN.md` was itself
+pass only, matching how `plans/15_JAVA_SONGEDITING_PLAN.md` was itself
 scoped before any of its sub-batches were built. Confirm with the user
 before starting Batch A's implementation, per this project's established
 per-batch confirmation cadence.

@@ -1,4 +1,4 @@
-# Cross-program comparison script (see plans/CPP_SCRIPTING_PLAN.md): the
+# Cross-program comparison script (see plans/22_CPP_SCRIPTING_PLAN.md): the
 # stereo reference song through the saves and every export format.
 set output out/stereo
 set overwrite yes

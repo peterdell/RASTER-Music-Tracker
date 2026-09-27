@@ -12,7 +12,7 @@
 // CXPokey's constructor/destructor and every method that never touches
 // DirectSound are implemented in PokeyRendererCore.cpp (only
 // InitSoundInternal()/InitSound()/ReInitSound()/RenderSound1_50() below
-// create/use a real LPDIRECTSOUND(BUFFER) - see plans/EXPORTWAV_PLAN.md).
+// create/use a real LPDIRECTSOUND(BUFFER) - see plans/11_EXPORTWAV_PLAN.md).
 // g_lpds/g_lpdsbPrimary are defined there (shared with DeInitSound()).
 
 extern BOOL g_nohwsoundbuffer; // From Global.h

@@ -230,7 +230,7 @@ public:
     bool LoadTxt(std::istream& in);
     bool LoadRMW(std::istream& in);
 
-    // ImportTMC()'s two-phase split (see plans/IO_IMPORTER_PLAN.md and
+    // ImportTMC()'s two-phase split (see plans/03_IO_IMPORTER_PLAN.md and
     // IO_ImporterCore.cpp): ParseHeader() does the unconditional real work
     // needed before its options dialog can be shown (parses/validates the
     // file header, sets the song name); Apply() does the rest of the real
@@ -242,7 +242,7 @@ public:
 
     int ImportTMC(std::ifstream& in);
 
-    // ImportMOD()'s two-phase split (see plans/IO_IMPORTER_PLAN.md and
+    // ImportMOD()'s two-phase split (see plans/03_IO_IMPORTER_PLAN.md and
     // IO_ImporterCore.cpp): ParseHeader() does the unconditional real work
     // needed before its options dialog can be shown (parses the module
     // header, detects its channel/sample count, loads its header+pattern

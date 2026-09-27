@@ -16,7 +16,7 @@
 // in this file stays a provably safe no-op unless InitSound() runs first.
 // g_lpds/g_lpdsbPrimary are shared with PokeyRenderer.cpp's real
 // DirectSound calls, so they're plain externs here rather than this file's
-// own file-static copies. See plans/EXPORTWAV_PLAN.md.
+// own file-static copies. See plans/11_EXPORTWAV_PLAN.md.
 
 extern BOOL volatile g_rmtroutine; // From Global.h
 extern CAtariTrackerDriver* g_AtariTrackerDriver;

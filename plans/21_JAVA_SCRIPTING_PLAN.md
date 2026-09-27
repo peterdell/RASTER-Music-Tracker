@@ -2,7 +2,7 @@
 
 Status: **DONE 2026-09-27** - S1, S2 and S3 (decisions 1-5 and 7 as
 recommended). Decision 6 was reopened the same day on the user's question
-and answered with `plans/CPP_SCRIPTING_PLAN.md` (C1-C3 done the same day):
+and answered with `plans/22_CPP_SCRIPTING_PLAN.md` (C1-C3 done the same day):
 the C++ program runs the same scripts, and the two programs' exports are
 compared through them byte for byte - the first run found and fixed four
 port bugs. Decision 6 is thereby (b).
@@ -33,7 +33,7 @@ recording host: song opened, one result box, the failure box, cancel).
 Live: Tools > Run Script on Delta.rmt with a two-export script - both files
 written, the result box listing them. Origin:
 the user's decision during B9 - "have proper scripts instead of /TEST" -
-see `plans/JAVA_B9_PLAN.md` section 5. `/TEST:<file>` stays rejected by
+see `plans/20_JAVA_B9_PLAN.md` section 5. `/TEST:<file>` stays rejected by
 the Java port with the C++ "Invalid Command Line Parameter" box; the C++
 program still runs its developer routines behind both switches.
 

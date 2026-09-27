@@ -2,7 +2,7 @@
 
 ## Context
 
-The last two deliberately-deferred items from `plans/SAP_LZSS_WAV_XEX_PLAN.md`
+The last two deliberately-deferred items from `plans/05_SAP_LZSS_WAV_XEX_PLAN.md`
 ("low priority given their real-file-write design and the 'hacked
 up'/'currently unused?' self-assessment in their own comments"). Opened at
 the user's explicit request after every other characterization-testing
@@ -20,7 +20,7 @@ candidate across every plan doc was closed out.
    `SongExporterCore.cpp`, matching the exact same split already done for
    `ExportXEX_LZSS`'s dialog-independent overload.
 2. **Both only need already-safe dependencies**: `songExport.GetPokeyStream()`
-   (already established safe throughout `plans/SAP_LZSS_WAV_XEX_PLAN.md`),
+   (already established safe throughout `plans/05_SAP_LZSS_WAV_XEX_PLAN.md`),
    `CLZSSFile::GetFrameSize()` (already linked/tested), and
    `CCompressLzss::LZSS_SAP()` (already linked/tested - `LzssTests.cpp`).
    No new hazard category - this was mechanical linking, not a new
@@ -77,5 +77,5 @@ candidate across every plan doc was closed out.
   (`Rmt.exe` + `RmtTests.exe`, Release|x64) confirmed 0 errors; 301 tests
   pass (up from 299, +2, 0 regressions).
 
-This closes out `plans/SAP_LZSS_WAV_XEX_PLAN.md`'s entire `ExportV2` Tier 2
+This closes out `plans/05_SAP_LZSS_WAV_XEX_PLAN.md`'s entire `ExportV2` Tier 2
 family - nothing from that plan's scope remains deferred.

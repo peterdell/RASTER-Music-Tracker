@@ -3,7 +3,7 @@
 ## Context
 
 `CSong::ExportV2()` (`IO_Song.cpp`) is a static dispatcher, previously dropped
-from Batch 3 (`plans/SONG_IO_SONG_REMAINING_PLAN.md`) as needing its own
+from Batch 3 (`plans/01_SONG_IO_SONG_REMAINING_PLAN.md`) as needing its own
 triage rather than folding into "format encode/decode via streams". It
 builds a module via the already-safe `MakeModule()`, then switches on
 `SongIOType` to delegate to one of three exporter classes:
@@ -176,7 +176,7 @@ for now, same posture as `TimerRoutine`/`ChangeTimer`/`ReInitSound`.
    already directly tested via Batches A-C. `SongExportV2.cpp` stays
    production-only. See `plans/NOTES.md` for the full writeup.
 5. **The SAP/LZSS/WAV/XEX family (Tier 2 above)**: investigated in its own
-   `plans/SAP_LZSS_WAV_XEX_PLAN.md`. `DumpSongToPokeyStream()` turned out
+   `plans/05_SAP_LZSS_WAV_XEX_PLAN.md`. `DumpSongToPokeyStream()` turned out
    safe (traced by hand and confirmed bounded), unlocking `ExportSAP_R`;
    the other four methods each stay deferred for their own distinct
    reasons (a real on-disk resource-file dependency, genuine POKEY-

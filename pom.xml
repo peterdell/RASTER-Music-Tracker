@@ -31,7 +31,7 @@
 		</dependency>
 		<!-- The documentation generator (org.atari.raster.rmt.doc.DocGenerator):
 		     doc/*.md to the HTML the distributions ship - see
-		     plans/DOC_GENERATION_PLAN.md. CommonMark's reference implementation
+		     plans/23_DOC_GENERATION_PLAN.md. CommonMark's reference implementation
 		     (BSD-2-Clause) plus GitHub-flavoured tables. -->
 		<dependency>
 			<groupId>org.commonmark</groupId>

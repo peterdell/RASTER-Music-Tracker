@@ -13,7 +13,7 @@ import java.nio.file.Files;
  * its body contains genuinely dead/confused logic (an empty conditional
  * branch whose own comment reads "I don't know anymore, at this point...")
  * and writes a diagnostic text-log dump, not a real compressed export -
- * matching {@code plans/EXPORTLZSS_PLAN.md}'s own "low priority, hacked
+ * matching {@code plans/10_EXPORTLZSS_PLAN.md}'s own "low priority, hacked
  * up" characterization. Not real, meaningful behavior worth preserving.
  *
  * <p>C++'s three real on-disk {@code .lzss} files (full/intro/loop

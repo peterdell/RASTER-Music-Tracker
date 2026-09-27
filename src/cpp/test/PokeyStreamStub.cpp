@@ -11,11 +11,11 @@
 // bodies aren't needed - only the symbols, to satisfy the linker for this
 // translation unit. GetByteAt() used to be stubbed here too, but now has a
 // real body linked via AtariTrackerDriverCore.cpp (see
-// plans/SONG_IO_SONG_REMAINING_PLAN.md). CLZSSFile::GetFrameSize() used to be
+// plans/01_SONG_IO_SONG_REMAINING_PLAN.md). CLZSSFile::GetFrameSize() used to be
 // stubbed here too (always returning 9); it now has a real body linked via
-// LZSSFile.cpp (see plans/SAP_LZSS_WAV_XEX_PLAN.md). Init()/Play() used to
+// LZSSFile.cpp (see plans/05_SAP_LZSS_WAV_XEX_PLAN.md). Init()/Play() used to
 // be stubbed here too; both now have real bodies linked via
-// AtariTrackerDriver.cpp (see plans/BROADER_SURVEY_PLAN.md,
+// AtariTrackerDriver.cpp (see plans/04_BROADER_SURVEY_PLAN.md,
 // AtariTrackerDriverTests.cpp).
 
 // g_ChannelControl is a real, already-tested CChannelControl (see

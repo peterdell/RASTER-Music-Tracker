@@ -14,7 +14,7 @@
 // always done locally on the same machine here). CExportSAP_B_LZSS()/
 // ExportXEX_LZSS() need a real resource file there
 // (resources/players/vu_player_v2.obx) - the first real on-disk dependency
-// in this test suite (see plans/SAP_LZSS_WAV_XEX_PLAN.md).
+// in this test suite (see plans/05_SAP_LZSS_WAV_XEX_PLAN.md).
 
 CString g_prgpath;
 

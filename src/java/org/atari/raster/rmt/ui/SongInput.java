@@ -27,7 +27,7 @@ import org.atari.raster.rmt.model.UndoType;
  * {@link Instruments}/{@link TrackClipboard} operations, so it lives in
  * {@code ui} taking the {@link RmtSession} - the deviation from C++ (which
  * puts the handlers on {@code CSong}) recorded in
- * {@code plans/JAVA_UI_PORT_PLAN.md}.
+ * {@code plans/18_JAVA_UI_PORT_PLAN.md}.
  *
  * <p>Key codes are <b>Windows virtual-key codes</b> ({@link VirtualKey}),
  * exactly what the C++ switches on and what the

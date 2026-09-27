@@ -49,7 +49,7 @@ void WriteBinaryBlock(std::ostream& out, const unsigned char* mem, WORD fromAddr
 // IO_Song.cpp triage that identified this "safe cluster" (only touches
 // g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, all confirmed
 // cheap). g_Undo's ChangeTrack/ChangeSong now have real behavior too (see
-// plans/UNDO_PLAN.md, UndoTests.cpp) - these methods call them only to
+// plans/09_UNDO_PLAN.md, UndoTests.cpp) - these methods call them only to
 // *record* an edit for later undo, so the tests below still only assert on
 // the edit's own visible effect, not the undo recording (UndoTests.cpp
 // covers that separately). Likewise CInstruments::ClearInstrument()/
@@ -57,7 +57,7 @@ void WriteBinaryBlock(std::ostream& out, const unsigned char* mem, WORD fromAddr
 // (see InstrumentsStub.cpp) since their real bodies touch
 // g_AtariTrackerDriver/g_keyboard_RememberOctavesAndVolumes - but
 // CInstruments::Update() now has real behavior (IO_Instruments.cpp needed no
-// Global.h dependency at all, see plans/SONG_IO_SONG_REMAINING_PLAN.md).
+// Global.h dependency at all, see plans/01_SONG_IO_SONG_REMAINING_PLAN.md).
 
 class SongEditingTest : public ::testing::Test {
   protected:
@@ -695,8 +695,8 @@ TEST_F(SongEditingTest, BlockPastePastesTheCopiedTrackOntoTheActiveTrack) {
 // BlockRestoreFromBackup / BlockNoteTransposition / BlockInstrumentChange /
 // BlockVolumeChange ---
 // The remaining CTrackClipboard methods with no prior test coverage,
-// direct or indirect (see plans/JAVA_SONGEDITING_PLAN.md/
-// plans/JAVA_IMPORTER_PLAN.md's "CTrackClipboard" write-up) - confirmed
+// direct or indirect (see plans/15_JAVA_SONGEDITING_PLAN.md/
+// plans/14_JAVA_IMPORTER_PLAN.md's "CTrackClipboard" write-up) - confirmed
 // hazard-free by ClipboardCore.cpp's own header comment (only g_Tracks
 // plus the guard-only SetStatusBarText). Every track defaults to
 // len == g_Tracks.GetMaxTrackLength() (64 here) via CTracks::ClearTrack(),
@@ -1315,8 +1315,8 @@ TEST_F(SongEditingTest, LoadTxtRoundTripsTheModuleHeaderAndTheSongData) {
     EXPECT_EQ((*loaded.GetSong())[0][0], 5);
 }
 
-// Closes a previously-deferred gap (see plans/JAVA_SONGEDITING_PLAN.md/
-// plans/JAVA_IMPORTER_PLAN.md's "IO_Instruments.cpp/IO_Tracks.cpp"
+// Closes a previously-deferred gap (see plans/15_JAVA_SONGEDITING_PLAN.md/
+// plans/14_JAVA_IMPORTER_PLAN.md's "IO_Instruments.cpp/IO_Tracks.cpp"
 // write-up): every prior SaveTxt/LoadTxt test's song had no non-empty
 // instruments/tracks, so SaveAll's TXT branch (which only writes non-empty
 // ones) never actually emitted an "[INSTRUMENT]"/"[TRACK]" segment, and
@@ -1783,7 +1783,7 @@ TEST_F(SongEditingTest, ExportAsRelocatableAsmForRmtPlayerApplyWritesToStream) {
 
 // --- CSong::DumpSongToPokeyStream / CSongContainer::GetPokeyStream ---
 // The real Atari-hardware-adjacent piece of the SAP/LZSS/WAV/XEX export
-// family (plans/EXPORTV2_PLAN.md's Tier 2), previously deferred without
+// family (plans/02_EXPORTV2_PLAN.md's Tier 2), previously deferred without
 // investigation. DumpSongToPokeyStream() runs a real "while (m_play !=
 // PLAY_STOP) { PlayVBI(); ... }" playback loop - traced by hand and
 // confirmed bounded: SongPlayNextLine() (SongCore.cpp) sets m_play =
@@ -1990,7 +1990,7 @@ TEST_F(SongEditingTest, ExportXEXLZSSLoadsTheRealResourceAndWritesReconstructedB
 // zero-initializing every member in PokeyRenderer.h (same "just zero it"
 // treatment as CTracks::m_track/CInstruments::m_instr), rather than trying
 // to fabricate "realistic" values that production never actually reads
-// before InitSound() either way. See plans/EXPORTWAV_PLAN.md.
+// before InitSound() either way. See plans/11_EXPORTWAV_PLAN.md.
 //
 // The known Altirra-plugin interop bug (GitHub issue #10, referenced in
 // CXPokey::RenderSoundV2()'s own header comment) is unrelated to this test:
@@ -2254,11 +2254,11 @@ TEST_F(SongEditingTest, SongPutnewemptyunusedtrackAssignsAFreeTrackToTheActivePo
 }
 
 // --- SongMaketracksduplicate / Songswitch4_8 ---
-// Both were deferred (plans/SONG_IO_SONG_REMAINING_PLAN.md's "Decisions
+// Both were deferred (plans/01_SONG_IO_SONG_REMAINING_PLAN.md's "Decisions
 // (resolved) #3") solely because of their confirmation prompt, previously
 // a real, unavoidable-in-tests MessageBox(). Now testable on every branch
 // via SendQuestionMessage()'s test-injectable answer (SetTestQuestionAnswer(),
-// see plans/MESSAGEBOX_REFACTOR_PLAN.md).
+// see plans/08_MESSAGEBOX_REFACTOR_PLAN.md).
 
 TEST_F(SongEditingTest, SongMaketracksduplicateReturnsZeroOnAGotoLine) {
     song.SongSetActiveLine(0);
@@ -2521,7 +2521,7 @@ TEST_F(SongEditingTest, TracksOrderChangeApplyReordersAndClearsColumnsPerMapping
 }
 
 // --- CSong::ImportTMCParseHeader / ImportTMCApply ---
-// ImportTMC()'s two-phase split (see plans/IO_IMPORTER_PLAN.md): its options
+// ImportTMC()'s two-phase split (see plans/03_IO_IMPORTER_PLAN.md): its options
 // dialog needs the song name parsed from the file header to build its own
 // text, so ParseHeader() does that unconditional real work (also ClearSong,
 // per the original method), and Apply() does the rest of the real
@@ -2627,7 +2627,7 @@ TEST_F(SongEditingTest, ImportTMCApplyConvertsANoteIntoTheDestinationTrack) {
 // --- CSong::ImportMODParseHeader / ImportMODApply ---
 // Same two-phase split as ImportTMC above, for the same reason (the options
 // dialog needs the parsed channel/sample count to build its own text) - see
-// plans/IO_IMPORTER_PLAN.md. Unlike ImportTMC, ImportMODApply() also needs
+// plans/03_IO_IMPORTER_PLAN.md. Unlike ImportTMC, ImportMODApply() also needs
 // continued access to the input stream (sample data lives beyond what
 // ParseHeader() loads), so both calls below share the same stream object.
 

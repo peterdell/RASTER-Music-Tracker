@@ -59,7 +59,7 @@ struct TInstrChangeParams {
 // unconditional real work ImportTMC() does before its options dialog can be
 // shown (the dialog's own text needs the parsed song name), carried forward
 // into CSong::ImportTMCApply() for the rest of the real conversion. See
-// plans/IO_IMPORTER_PLAN.md.
+// plans/03_IO_IMPORTER_PLAN.md.
 struct TImportTMCHeader {
     bool ok; // false = corrupted/unsupported file (see ImportTMCParseHeader())
     unsigned char mem[65536]; // raw decoded TMC file bytes
@@ -82,7 +82,7 @@ struct TImportTMCResult {
 // count to build its own text). Unlike ImportTMC, ImportMODApply() also
 // needs continued access to the original input stream (sample data lives
 // beyond what's parsed here), so it takes std::istream& directly alongside
-// this header. See plans/IO_IMPORTER_PLAN.md.
+// this header. See plans/03_IO_IMPORTER_PLAN.md.
 struct TImportMODHeader {
     // 0 = ok; 1 = the file is too short to contain a full 1084-byte module
     // header; 2 = its header doesn't carry a recognized ProTracker

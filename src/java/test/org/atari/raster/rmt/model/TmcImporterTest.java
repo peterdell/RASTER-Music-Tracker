@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Mirrors src/cpp/test/SongEditingTests.cpp's "CSong::ImportTMCParseHeader /
- * ImportTMCApply" section - Batch A of plans/JAVA_IMPORTER_PLAN.md.
+ * ImportTMCApply" section - Batch A of plans/14_JAVA_IMPORTER_PLAN.md.
  */
 class TmcImporterTest {
 

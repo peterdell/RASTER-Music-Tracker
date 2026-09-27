@@ -23,7 +23,7 @@ import com.wudsn.tools.base.repository.Action;
  * The command table of the program - every menu item, toolbar button and
  * accelerator with its description - as {@code CCommands} writes it from
  * {@code Rmt.rc} in the C++ program ({@code dump actions <file>} in a script,
- * {@code doc/rmt_action_infos.md}; plans/DOC_GENERATION_PLAN.md section
+ * {@code doc/rmt_action_infos.md}; plans/23_DOC_GENERATION_PLAN.md section
  * 2.2). Built from the same data the window is built from: {@link Actions}
  * (labels, keys, descriptions), {@link RmtCommandId}, {@link RmtMainMenu}
  * (the menu tree, with the keys its items display) and {@link RmtToolBars}

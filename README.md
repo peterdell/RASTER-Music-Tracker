@@ -44,8 +44,8 @@ Not ported: printing, MIDI input and the Pokey Explorer.
 - Scripting: `java -jar rmt.jar /SCRIPT:<file>` runs a script (open, export in any format, save) without a window, for batch files and CI; Tools > Run Script runs one from the window. `Rmt.exe /SCRIPT:<file>` runs the same scripts. See the [scripting documentation](doc/rmt_scripting.md). The scripts in `test-resources/scripts` run through both programs (`build/compare_exports.ps1`, the test `CrossProgramExportTest`) and every exported file must be byte-identical.
 - Eclipse: import the repository root ("Existing Projects into Workspace", Maven Integration) and use `launch/Rmt.launch`.
 - Releases: pushing a tag `v1.35.<n>` runs `.github/workflows/release.yml`, which builds portable app images with a bundled Java runtime for Windows, Linux and macOS (`build/stage_java_release.sh` stages the layout) and attaches them to a GitHub Release.
-- Documentation: the Markdown files in `doc/` are the source. Both distributions ship them as HTML in `docs/`, generated during the build by the jar's `DocGenerator` (see `plans/DOC_GENERATION_PLAN.md`).
-- The port's plans and notes are in `plans/` (`JAVA_PORT_PLAN.md`, `JAVA_UI_PORT_PLAN.md`, `NOTES.md`).
+- Documentation: the Markdown files in `doc/` are the source. Both distributions ship them as HTML in `docs/`, generated during the build by the jar's `DocGenerator` (see `plans/23_DOC_GENERATION_PLAN.md`).
+- The port's plans and notes are in `plans/` (`13_JAVA_PORT_PLAN.md`, `18_JAVA_UI_PORT_PLAN.md`, `NOTES.md`).
 
 
 ### Main features:

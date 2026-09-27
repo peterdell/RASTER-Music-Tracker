@@ -635,7 +635,7 @@ public final class Instruments {
 	//
 	// Ported from CInstruments::SaveAll/LoadAll/SaveInstrument/LoadInstrument -
 	// the TXT and RMW iotypes only (RTI - single-instrument file import/export -
-	// is a separate, out-of-scope feature; see plans/JAVA_SONGEDITING_PLAN.md's
+	// is a separate, out-of-scope feature; see plans/15_JAVA_SONGEDITING_PLAN.md's
 	// "IO_Instruments.cpp/IO_Tracks.cpp" write-up). {@code Update(instr)}
 	// is called where C++ calls it - see update()'s javadoc for the half of
 	// it that exists here.

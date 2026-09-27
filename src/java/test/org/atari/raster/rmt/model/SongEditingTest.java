@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Mirrors src/cpp/test/SongEditingTests.cpp's SongEditingTest fixture -
  * the sub-batches of SongEditing.cpp scoped/ported so far in
- * plans/JAVA_SONGEDITING_PLAN.md. {@code getUECursor}/{@code setUECursor}/
+ * plans/15_JAVA_SONGEDITING_PLAN.md. {@code getUECursor}/{@code setUECursor}/
  * {@code songGetGo} are already covered by {@code SongTest}/
  * {@code UndoTest} - not repeated here.
  */
@@ -930,7 +930,7 @@ class SongEditingTest {
 	// --- instrCopy / instrCut / instrDelete ---
 	// Instruments.clearInstrument() has real behavior here (unlike the C++
 	// test binary, which link-time-stubs it as a no-op for this one test
-	// file - see plans/JAVA_PORT_PLAN.md's ActiveInstrSet note for the same
+	// file - see plans/13_JAVA_PORT_PLAN.md's ActiveInstrSet note for the same
 	// pattern), so these characterize a bit more than their C++ counterparts,
 	// but the assertions themselves (active instrument index unaffected)
 	// still hold either way.
@@ -1469,7 +1469,7 @@ class SongEditingTest {
 	}
 
 	// FIXED BUG (was pre-existing, from when this project was 32-bit - see
-	// plans/JAVA_SONGEDITING_PLAN.md's sub-batch 8 entry): SaveRMW/LoadRMW's
+	// plans/15_JAVA_SONGEDITING_PLAN.md's sub-batch 8 entry): SaveRMW/LoadRMW's
 	// main-parameters loop used to write/read 8 bytes per parameter instead
 	// of 4 on this 64-bit C++ build. This Java port always writes exactly 4
 	// bytes per parameter (no pointer-array sizeof to get wrong in the first

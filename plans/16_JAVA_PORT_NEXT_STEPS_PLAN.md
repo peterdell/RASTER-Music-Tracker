@@ -2,10 +2,10 @@
 
 ## Context
 
-`plans/JAVA_PORT_PLAN.md`'s "Next steps" section (written immediately after
+`plans/13_JAVA_PORT_PLAN.md`'s "Next steps" section (written immediately after
 the thirty-third ported batch) claimed "no further Java-porting areas are
 currently identified" - that claim was scoped only to
-`plans/JAVA_SONGEDITING_PLAN.md`'s own tracked list and was too narrow. A
+`plans/15_JAVA_SONGEDITING_PLAN.md`'s own tracked list and was too narrow. A
 fresh audit of every plan doc plus a direct `src/cpp`-vs-`src/java` file
 comparison (done to answer "what's next" properly) found two real
 categories of remaining work, addressed as two phases below. This
@@ -23,19 +23,19 @@ verify with `mvn -o clean test` and/or the full C++ suite, update
    `SetEnd`/`SetGo` (`src/cpp/TracksEdit.cpp`, 158 lines) touched only
    `g_Undo`/`g_respectvolume` - no dialogs, no hardware - but had never had
    a dedicated test despite the file already being linked into
-   `RmtTests.vcxproj`. Deferred twice in `plans/JAVA_PORT_PLAN.md` (Sixth
+   `RmtTests.vcxproj`. Deferred twice in `plans/13_JAVA_PORT_PLAN.md` (Sixth
    and Seventh ported batches) back when `CUndo` was still a no-op test
    stub; unblocked once `Undo` was fully characterized and ported
-   (`plans/UNDO_PLAN.md`). C++-characterized (30 new tests in
+   (`plans/09_UNDO_PLAN.md`). C++-characterized (30 new tests in
    `SongEditingTests.cpp`, all passing on the first run) then ported to
    `Tracks.java` (`delNoteInstrVolSpeed`/`setNoteInstrVol`/`setInstr`/
    `setVol`/`setSpeed`/`setEnd`/`setGo`, each taking an explicit `Undo`
    parameter, `setNoteInstrVol` also taking an explicit `respectVolume`
    boolean - matching this port's "C++ global -> explicit parameter"
-   idiom). Full write-up in `plans/JAVA_PORT_PLAN.md`'s next ported batch
+   idiom). Full write-up in `plans/13_JAVA_PORT_PLAN.md`'s next ported batch
    entry.
 2. **`PokeyStream`'s real recording path + a real CPU/POKEY emulator -
-   DONE (2026-09-26), via ASAP.** `plans/JAVA_PORT_PLAN.md`'s twentieth/
+   DONE (2026-09-26), via ASAP.** `plans/13_JAVA_PORT_PLAN.md`'s twentieth/
    twenty-first ported batches deliberately ported only the pure
    state-machine subset of `AtariTrackerDriver`/`PokeyStream`. The real
    blocker wasn't a buffer-size decision - it was that `PokeyStream.Record()`
@@ -141,7 +141,7 @@ verify with `mvn -o clean test` and/or the full C++ suite, update
      was deliberately **not** ported - its own C++ source self-describes
      as "TODO: What is this? Currently unused?" and its body has genuinely
      dead logic and writes a diagnostic text dump, not a real export
-     (matches `plans/EXPORTLZSS_PLAN.md`'s own "low priority, hacked up"
+     (matches `plans/10_EXPORTLZSS_PLAN.md`'s own "low priority, hacked up"
      characterization). Surfaced and worked around a real,
      previously-unexercised `CompressLzss` edge case: a zero-length
      section (e.g. a short loop's `thirdCountPoint`) throws
@@ -224,7 +224,7 @@ verify with `mvn -o clean test` and/or the full C++ suite, update
    complete**: all five real, meaningful export methods are ported
    (`ExportCompactLZSS` correctly excluded as self-described dead code).
 5. **Closing sanity sweep - DONE (2026-09-26), clean.** Ran the
-   `BROADER_SURVEY_PLAN.md`-style pass described above: extracted every
+   `04_BROADER_SURVEY_PLAN.md`-style pass described above: extracted every
    `ClassName::MethodName` defined across all 44 non-stub `.cpp` files
    linked into `RmtTests.vcxproj` (387 unique names), then checked each for
    a direct-call-by-name match anywhere in `src/cpp/test/*.cpp`. 133 came
@@ -257,7 +257,7 @@ verify with `mvn -o clean test` and/or the full C++ suite, update
      session), but its 40+ `OnIncrease*`/`OnDecrease*`/`OnToggle*` methods
      are the Pokey-explorer debug submenu's real MFC command handlers -
      confirmed only ever called from `PokeyView.cpp`/menu routing, matching
-     `plans/UI_SURVEY_PLAN.md`'s own explicit note that this submenu is
+     `plans/12_UI_SURVEY_PLAN.md`'s own explicit note that this submenu is
      "developer/diagnostic UI, not core end-user functionality." Not a
      testing gap; a UI file that happens to get linked for its harmless
      constructor.
@@ -277,7 +277,7 @@ verify with `mvn -o clean test` and/or the full C++ suite, update
 (`ExportSAP_R`/`ExportLZSS`/`ExportWAV`/`ExportSAP_B_LZSS`/`ExportXEX_LZSS`),
 and the closing sanity sweep. The Java port's model layer has no further
 known-unported, real, meaningful C++ behavior left - see
-`plans/JAVA_PORT_PLAN.md`'s "Next steps" section for what's left overall
+`plans/13_JAVA_PORT_PLAN.md`'s "Next steps" section for what's left overall
 (Phase B, the entire UI layer).
 
 **Confirmed permanently out of scope on the C++ side, not revisited by
@@ -291,11 +291,11 @@ Phase A's.
 ## Phase B: the Java UI port
 
 Not started at all - `org.atari.raster.rmt.ui` doesn't exist yet as a
-package. By far the largest remaining phase: `plans/UI_SURVEY_PLAN.md`'s
+package. By far the largest remaining phase: `plans/12_UI_SURVEY_PLAN.md`'s
 own inventory covers dozens of dialogs/views/commands versus the ~45
 already-ported model classes.
 
-**Already resolved** (`plans/UI_SURVEY_PLAN.md`'s "Open questions"
+**Already resolved** (`plans/12_UI_SURVEY_PLAN.md`'s "Open questions"
 section):
 - Keep the exact pixelated bitmap-font look, not a modernized text
   render - needs the `IDB_GFX` glyph sheet exported from the Win32
@@ -325,7 +325,7 @@ section):
   `CInstrumentSelectDlg`, positioned at the mouse click rather than
   centered) and the 5 custom per-context cursors. Both need a deliberate
   design, not something that falls out of a standard dialog/cursor API.
-- **A handful of dialogs UI_SURVEY_PLAN.md flagged but didn't trace to
+- **A handful of dialogs 12_UI_SURVEY_PLAN.md flagged but didn't trace to
   their consuming model method**: `CRenumberTracksDlg`/
   `CRenumberInstrumentsDlg`, `CChangeMaxtracklenDlg`,
   `CChannelsSelectionDlg`, `CExportStrippedRMTDialog`, `CExportAsmDlg`,
@@ -333,7 +333,7 @@ section):
   follow-up trace pass once those specific flows become relevant to
   porting order, not before.
 
-**Note on `plans/FILE_TIERING_STRATEGY.md`'s open "recombination vs
+**Note on `plans/07_FILE_TIERING_STRATEGY.md`'s open "recombination vs
 composition" question for `CSong`**: already effectively resolved in
 practice, not by an explicit decision - `Song.java` mechanically
 recombines every safe C++ tier (`SongCore.cpp`/`SongEditing.cpp`/
@@ -353,7 +353,7 @@ answers the toolkit and repaint-model questions above with real code
 before committing to a design for anything bigger. This mirrors how the
 model port itself started with `Fraction` (the smallest, dependency-free
 class) rather than `Song`. Once that slice works, break the rest of
-Phase B into its own dedicated plan (`plans/JAVA_UI_PORT_PLAN.md`),
+Phase B into its own dedicated plan (`plans/18_JAVA_UI_PORT_PLAN.md`),
 following the same per-batch cadence used throughout the model port -
 not attempted in the same sitting as this roadmap.
 
@@ -363,7 +363,7 @@ not attempted in the same sitting as this roadmap.
    and low-risk, and item 5's sanity sweep is only meaningful once 1-4 are
    actually done.
 2. Once Phase A closes, resolve Phase B's open questions (a design
-   conversation, not code) and write `plans/JAVA_UI_PORT_PLAN.md`.
+   conversation, not code) and write `plans/18_JAVA_UI_PORT_PLAN.md`.
 3. Begin Phase B's vertical-slice proof of concept.
 
 Each item is still intended to be confirmed with the user individually

@@ -2,7 +2,7 @@
 # Stages the Java port's distribution layout - the checked-in rmt/ folder as
 # Rmt.exe ships it (resources, instruments, songs, exports, rmt.ini,
 # tuning.ini), docs/ generated from doc/*.md by the jar's DocGenerator (as the
-# C++ pre-build does into the gitignored rmt/docs; plans/DOC_GENERATION_PLAN.md),
+# C++ pre-build does into the gitignored rmt/docs; plans/23_DOC_GENERATION_PLAN.md),
 # and target/rmt.jar - into the given folder (default:
 # target/stage). That folder is jpackage's --input, so the jar ends up next
 # to resources/ and docs/ and ProgramFolder resolves them as g_prgpath does.

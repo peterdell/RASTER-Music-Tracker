@@ -10,7 +10,7 @@
 
 // CSong::ImportTMCParseHeader()/ImportTMCApply() (and their private helper
 // CConvertTracks, used only by ImportTMCApply()) split from IO_Importer.cpp
-// - see plans/IO_IMPORTER_PLAN.md. ImportTMC()'s options dialog needs the
+// - see plans/03_IO_IMPORTER_PLAN.md. ImportTMC()'s options dialog needs the
 // song name parsed from the file header to build its own text, so the real
 // work is a two-phase split rather than a single Apply(): ParseHeader()
 // does the unconditional real work needed before the dialog can be shown
@@ -910,7 +910,7 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
 }
 
 // CSong::ImportMODParseHeader()/ImportMODApply() split from IO_Importer.cpp
-// the same way as ImportTMC above - see plans/IO_IMPORTER_PLAN.md. Unlike
+// the same way as ImportTMC above - see plans/03_IO_IMPORTER_PLAN.md. Unlike
 // ImportTMC, ImportMODApply() also needs continued access to the input
 // stream (sample data lives beyond what ParseHeader() loads into
 // header.mem - only the module's header+pattern data), so it takes

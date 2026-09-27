@@ -2,7 +2,7 @@
 
 Status: **B8 DONE 2026-09-27** - B8a, B8b and B8c (section 4 has the
 findings). Plan reviewed and its four decisions accepted by the user on
-2026-09-27. Companion to `plans/JAVA_UI_PORT_PLAN.md` (DECISION 4 there:
+2026-09-27. Companion to `plans/18_JAVA_UI_PORT_PLAN.md` (DECISION 4 there:
 "UI first, real-time audio deferred to B8"). Batches B1-B7 are committed;
 every menu command is wired except printing, "Open ASAP file", local help,
 MIDI and the Pokey explorer.

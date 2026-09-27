@@ -7,7 +7,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * The script syntax (plans/JAVA_SCRIPTING_PLAN.md, 3.2): one command per
+ * The script syntax (plans/21_JAVA_SCRIPTING_PLAN.md, 3.2): one command per
  * line; {@code #} starts a comment (at the line's start or before a
  * token); blank lines are ignored; tokens are separated by whitespace and
  * may be quoted with {@code "..."} (the quotes are removed, blanks kept;

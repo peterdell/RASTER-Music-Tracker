@@ -1,5 +1,5 @@
 ---
-# Enforces plans/RULES.md's "always brace if/else/for/while/do" rule.
+# Enforces plans/CPP_RULES.md's "always brace if/else/for/while/do" rule.
 # Scoped narrowly on purpose - this project does not otherwise use
 # clang-tidy for general static analysis.
 #

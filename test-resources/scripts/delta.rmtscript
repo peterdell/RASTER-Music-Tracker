@@ -1,4 +1,4 @@
-# Cross-program comparison script (see plans/CPP_SCRIPTING_PLAN.md): the mono
+# Cross-program comparison script (see plans/22_CPP_SCRIPTING_PLAN.md): the mono
 # reference song through every save and export, first with the dialogs'
 # defaults, then with every option set. Run through Rmt.exe and rmt.jar; the
 # two output folders must match byte for byte (except the WAV, whose sample

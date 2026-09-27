@@ -3,8 +3,8 @@
 ## Context
 
 `plans/OVERALL_PLAN.md`'s ultimate goal, now that the characterization-
-testing phase is essentially exhausted (`plans/BROADER_SURVEY_PLAN.md`)
-and `plans/UI_SURVEY_PLAN.md` has inventoried the current UI. This plan
+testing phase is essentially exhausted (`plans/04_BROADER_SURVEY_PLAN.md`)
+and `plans/12_UI_SURVEY_PLAN.md` has inventoried the current UI. This plan
 records the setup decisions made to actually start the port, following the
 same author's own prior, now-complete C++-to-Java port
 (`dis6502`/`jdis6502`, `C:\jac\system\Java\Programming\Repositories\dis6502`)
@@ -42,7 +42,7 @@ as precedent wherever it applies.
 4. **Start with the smallest, already-fully-tested model classes**, not
    `CSong` - matching `dis6502`'s own hard rule ("port the model/logic
    layer completely, with unit tests, before starting on `ui/`") and
-   deferring `plans/FILE_TIERING_STRATEGY.md`'s bigger composition-vs-
+   deferring `plans/07_FILE_TIERING_STRATEGY.md`'s bigger composition-vs-
    mechanical question until `CSong` itself is reached.
 5. **Maven groupId/artifactId**: `com.wudsn.tools`/`org.atari.raster.rmt`,
    matching `dis6502`'s own `com.wudsn.tools`/`com.wudsn.tools.dis6502` -
@@ -1068,7 +1068,7 @@ real driver/stream buffer. No C++ changes needed.
 ## Twenty-second ported batch (2026-09-25): `Song` grows to cover `SongEditing.cpp` sub-batch 1 (cursor/navigation helpers)
 
 First sub-batch of the `SongEditing.cpp` port scoped in
-`plans/JAVA_SONGEDITING_PLAN.md`: `GetSubsongParts`, `MarkTF_USED`/
+`plans/15_JAVA_SONGEDITING_PLAN.md`: `GetSubsongParts`, `MarkTF_USED`/
 `MarkTF_NOEMPTY`, `ActiveInstrSet`/`Prev`/`Next`, `TrackLeft`/`TrackRight`,
 `RespectBoundaries`, `TrackGetLoopingNoteInstrVol`, `SongTrackSet`/
 `SetByNum`/`Dec`/`Inc`/`Empty`/`GoOnOff`. No C++ changes needed.
@@ -1118,7 +1118,7 @@ First sub-batch of the `SongEditing.cpp` port scoped in
 ## Twenty-third ported batch (2026-09-25): `Song` grows to cover `SongEditing.cpp` sub-batch 6 (`InstrInfo`/`InstrChangeApply`/`TrackInfo`)
 
 Second sub-batch of the `SongEditing.cpp` port, done out of numeric order
-per `plans/JAVA_SONGEDITING_PLAN.md`'s suggested execution order (this is
+per `plans/15_JAVA_SONGEDITING_PLAN.md`'s suggested execution order (this is
 its "sub-batch 6", picked second since it reuses the dual-mode pattern).
 No C++ changes needed.
 
@@ -1153,7 +1153,7 @@ No C++ changes needed.
 ## Twenty-fourth ported batch (2026-09-25): `Song` grows to cover `SongEditing.cpp` sub-batches 2-5
 
 Covers song-line editing, track-length analysis/cleanup, track/instrument
-copy-paste, and bookmark/settings - see `plans/JAVA_SONGEDITING_PLAN.md`
+copy-paste, and bookmark/settings - see `plans/15_JAVA_SONGEDITING_PLAN.md`
 for the full per-sub-batch breakdown. No C++ changes needed.
 
 - **Scope correction**: `TrackCopy`/`TrackPaste`/`TrackCut` turned out to
@@ -1205,7 +1205,7 @@ for the full per-sub-batch breakdown. No C++ changes needed.
 ## Twenty-fifth ported batch (2026-09-25): `Song` grows to cover `SongEditing.cpp` sub-batch 7 (`MakeModule`/`DecodeModule`)
 
 Ports the RMT module byte-format encoder/decoder - see
-`plans/JAVA_SONGEDITING_PLAN.md` for the full breakdown. No C++ changes
+`plans/15_JAVA_SONGEDITING_PLAN.md` for the full breakdown. No C++ changes
 needed (the `LoadTxt` fix from earlier today is unrelated to this
 sub-batch).
 
@@ -1236,7 +1236,7 @@ Ports `SaveTxt`/`LoadTxt`, `SaveRMW`/`LoadRMW`, `LoadRMT`, and - pulled
 forward as a genuine blocking dependency rather than the originally-planned
 capstone - `ClearSong`. Two real C++ bugs were found and fixed along the
 way (`LoadTxt`'s segment-boundary bug, `SaveRMW`/`LoadRMW`'s `sizeof` bug -
-both already committed separately). See `plans/JAVA_SONGEDITING_PLAN.md`
+both already committed separately). See `plans/15_JAVA_SONGEDITING_PLAN.md`
 for the full per-method breakdown.
 
 - **`ClearSong` pulled forward**: `LoadTxt`/`LoadRMW` both call it
@@ -1279,7 +1279,7 @@ for the full per-method breakdown.
 Ports `SongJump`/`SongUp`/`SongDown`/`SongSubsongPrev`/`SongSubsongNext`,
 `TrackUp`/`TrackDown`, `SongPrepareNewLine`/`SongPutnewemptyunusedtrack`,
 `SongMaketracksduplicate`/`Songswitch4_8`, `PlayPressedTones`, `InstrPaste`,
-and `Play`/`PlayBeat`/`PlayVBI`. See `plans/JAVA_SONGEDITING_PLAN.md`'s
+and `Play`/`PlayBeat`/`PlayVBI`. See `plans/15_JAVA_SONGEDITING_PLAN.md`'s
 sub-batch 9 entry for the full per-method breakdown; highlights:
 
 - All always-true/never-observed `BOOL` returns dropped to `void`
@@ -1389,9 +1389,9 @@ plus `Song`'s own wrapper methods.
 ## TMC/MOD importer scoping pass (2026-09-25)
 
 Scoped (not implemented) the Java port of `IO_ImporterCore.cpp`'s TMC/MOD
-import - full write-up in the new `plans/JAVA_IMPORTER_PLAN.md`. Unlike
+import - full write-up in the new `plans/14_JAVA_IMPORTER_PLAN.md`. Unlike
 `CTrackClipboard`'s remaining 7 methods, this surface is *already fully
-C++-tested* (a prior phase's `plans/IO_IMPORTER_PLAN.md` already split each
+C++-tested* (a prior phase's `plans/03_IO_IMPORTER_PLAN.md` already split each
 format into a thin real-dialog wrapper plus a dialog-independent
 `ParseHeader()`/`Apply()` pair, both with real tests in
 `SongEditingTests.cpp`) - a clean "port already-tested C++" candidate, just
@@ -1412,7 +1412,7 @@ a large one (~1650 combined C++ lines across both formats).
 - Suggested batching: TMC first (smaller, no `goto`s), MOD second (larger,
   needs the state-machine design work).
 
-## Thirtieth ported batch (2026-09-25): `TmcImporter` (TMC import, Batch A of `plans/JAVA_IMPORTER_PLAN.md`)
+## Thirtieth ported batch (2026-09-25): `TmcImporter` (TMC import, Batch A of `plans/14_JAVA_IMPORTER_PLAN.md`)
 
 Ports `CSong::ImportTMCParseHeader`/`ImportTMCApply` (and their `CConvertTracks`
 helper) as a new free-standing `TmcImporter` class, matching
@@ -1435,10 +1435,10 @@ wrapper, matching this project's established pattern.
   songlines - not reachable by any current test, but Java throws where
   C++ silently corrupts memory.
 - Verified with `mvn -o test`: 350 tests pass (+3), no regressions. No C++
-  changes in this batch. Full write-up in `plans/JAVA_IMPORTER_PLAN.md`'s
+  changes in this batch. Full write-up in `plans/14_JAVA_IMPORTER_PLAN.md`'s
   "Batch A - DONE" section.
 
-## Thirty-first ported batch (2026-09-26): `ModImporter` (MOD import, Batch B of `plans/JAVA_IMPORTER_PLAN.md`)
+## Thirty-first ported batch (2026-09-26): `ModImporter` (MOD import, Batch B of `plans/14_JAVA_IMPORTER_PLAN.md`)
 
 Ports `CSong::ImportMODParseHeader`/`ImportMODApply` (and their
 `TMODInstrumentMark`/`AtariVolume` helpers) as a new free-standing
@@ -1464,7 +1464,7 @@ Ports `CSong::ImportMODParseHeader`/`ImportMODApply` (and their
   who chose to leave it characterized as-is on both sides rather than
   guess at the missing assignment's target.
 - Verified with `mvn -o test`: 353 tests pass (+3), no regressions. No C++
-  changes in this batch. Full write-up in `plans/JAVA_IMPORTER_PLAN.md`'s
+  changes in this batch. Full write-up in `plans/14_JAVA_IMPORTER_PLAN.md`'s
   "Batch B - DONE" section, which now completes that plan.
 
 ## C++ characterization batch (2026-09-26): `CTrackClipboard`'s remaining 7 methods
@@ -1475,7 +1475,7 @@ continuing the Java port. Added one hand-traced test each for
 `BlockAllOnOff`/`BlockExchangeClipboard`/`BlockClear`/
 `BlockRestoreFromBackup`/`BlockNoteTransposition`/`BlockInstrumentChange`/
 `BlockVolumeChange` to `SongEditingTests.cpp` - all 7 passed on the first
-run. Full write-up in `plans/JAVA_SONGEDITING_PLAN.md`'s `CTrackClipboard`
+run. Full write-up in `plans/15_JAVA_SONGEDITING_PLAN.md`'s `CTrackClipboard`
 section. Full C++ Release|x64 rebuild + `RmtTests.exe`: 379 tests pass
 (+7), 0 regressions. `CTrackClipboard` is now fully C++-tested except
 `BlockEffect` (a real MFC dialog, stays deferred). **The Java port of
@@ -1503,7 +1503,7 @@ original fix never touched. It silently swallowed the following
 the same way: skip a lone `'\n'` byte instead of handing it to `getline()`.
 `CTracks::LoadTrack()`'s own TXT case does not have this bug (different,
 already-correct code shape). Full write-up in
-`plans/JAVA_SONGEDITING_PLAN.md`'s dedicated section.
+`plans/15_JAVA_SONGEDITING_PLAN.md`'s dedicated section.
 
 Verified with a full C++ Release|x64 rebuild + `RmtTests.exe`: 381 tests
 pass (+2), 0 regressions. **The Java port of this serialization surface is
@@ -1523,7 +1523,7 @@ explicitly, matching this class's established idiom; the guard-only
 passing on the first run. Verified with `mvn -o test`: 360 tests pass
 (+7), no regressions. `TrackClipboard` is now feature-complete except
 `BlockEffect` (not ported on the C++ side either). Full write-up in
-`plans/JAVA_SONGEDITING_PLAN.md`'s `CTrackClipboard` section.
+`plans/15_JAVA_SONGEDITING_PLAN.md`'s `CTrackClipboard` section.
 
 ## Thirty-third ported batch (2026-09-26): `IO_Instruments.cpp`/`IO_Tracks.cpp` TXT/RMW serialization
 
@@ -1540,7 +1540,7 @@ mapping helpers handle `InstrumentSection`'s enum-ordinal-vs-C++-backing-value
 mismatch for RMW's byte-exact encoding. `Song`'s `charH4`/`charL4`/`hexstr`/
 `trimstr`/`readLine`/`nextSegment`/`Line` were widened from `private` to
 package-private so `Instruments`/`Tracks` could reuse them. Full write-up
-in `plans/JAVA_SONGEDITING_PLAN.md`'s dedicated section. Tests
+in `plans/15_JAVA_SONGEDITING_PLAN.md`'s dedicated section. Tests
 (`SongEditingTest`, extended): `saveTxtAndLoadTxtRoundTripNonEmptyInstrumentAndTrack`/
 `saveRMWAndLoadRMWRoundTripNonEmptyInstrumentAndTrack`, mirroring the C++
 tests exactly. Verified with `mvn -o clean test`: 362 tests pass (+2), no
@@ -1548,7 +1548,7 @@ regressions.
 
 ## C++ characterization + Thirty-fourth ported batch (2026-09-26): `TracksEdit.cpp`'s 7 methods
 
-Phase A item 1 of `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`. `CTracks::
+Phase A item 1 of `plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`. `CTracks::
 DelNoteInstrVolSpeed`/`SetNoteInstrVol`/`SetInstr`/`SetVol`/`SetSpeed`/
 `SetEnd`/`SetGo` (`src/cpp/TracksEdit.cpp`) touch only `g_Undo`/
 `g_respectvolume` - no dialogs, no hardware - but had never had a dedicated
@@ -1556,7 +1556,7 @@ test despite the file already being linked into `RmtTests.vcxproj` (needed
 by `PlayVBI`'s quantization branch). Deferred twice in this plan's Sixth
 and Seventh ported batches back when `Undo` was still a no-op test stub;
 unblocked now that `Undo` is fully characterized and ported
-(`plans/UNDO_PLAN.md`).
+(`plans/09_UNDO_PLAN.md`).
 
 **C++ characterization**: added 30 tests to `SongEditingTests.cpp` (its
 `g_Tracks`/`g_Undo` globals are already real and wired together by the
@@ -1584,7 +1584,7 @@ on the first run, no regressions.
 
 ## Thirty-fifth ported batch (2026-09-26): real CPU/POKEY emulation via ASAP, `PokeyStream`'s real body, `dumpSongToPokeyStream`
 
-Phase A items 2-3 of `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`. Vendored ASAP's
+Phase A items 2-3 of `plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`. Vendored ASAP's
 official Java source (`net.sf.asap`, see `lib/java/README.md`) directly
 into `src/java/net/sf/asap/` - a complete, portable, pure-software 6502
 CPU + dual-POKEY emulator, unlike C++'s own `C6502` (an external native
@@ -1639,7 +1639,7 @@ the C++ test binary's no-op JSR stub). Needed a real, non-silent
 instrument envelope - a blank one makes ASAP's own RMT parser correctly
 reject the module as "no songs found" (real playback semantics, not a
 bug). Verified with `mvn -o clean test`: 393 tests pass (+1), no
-regressions. Full write-up in `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s
+regressions. Full write-up in `plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`'s
 Phase A items 2-3.
 
 `SapFileExporter`/`SongContainer`/`SongExport` and the five export methods
@@ -1647,7 +1647,7 @@ themselves (item 4) are not part of this batch - see the next one.
 
 ## Thirty-sixth ported batch (2026-09-26): three of the five dependent export methods
 
-Phase A item 4 of `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`, continued from the
+Phase A item 4 of `plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`, continued from the
 batch above. Ports `CSAPFileExporter::ExportSAP_R` (new `SapFileExporter`
 class), `CSongExporter::ExportLZSS` (new `SongExporter` class, using the
 already-ported `CompressLzss`), and `CWaveFileExporter::ExportWAV` (new
@@ -1677,7 +1677,7 @@ Tests (`SongEditingTest`, extended): `exportSapRWritesTheHeaderAndRealPokeyStrea
 `SongEditingTests.cpp`'s own honest "never crosses the threshold in this
 test environment" finding, for a different underlying reason). Verified
 with `mvn -o clean test`: 396 tests pass (+3), no regressions. Full
-write-up in `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4.
+write-up in `plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4.
 
 `ExportSAP_B_LZSS`/`ExportXEX_LZSS` remain unported at the end of this
 batch - both need a new `VUPlayer` class plus real on-disk resource-file
@@ -1703,7 +1703,7 @@ always runs with the repository root as the working directory).
 Test (`SongEditingTest`, extended):
 `exportSapBLzssLoadsTheRealResourceAndWritesPatchedMemory` - passed on the
 first real run. Verified with `mvn -o clean test`: 397 tests pass (+1), no
-regressions. Full write-up in `plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase
+regressions. Full write-up in `plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase
 A item 4.
 
 ## Thirty-eighth ported batch (2026-09-26): `ExportXEX_LZSS` - completes Phase A item 4
@@ -1731,7 +1731,7 @@ Test (`SongEditingTest`, extended):
 `exportXexLzssLoadsTheRealResourceAndWritesReconstructedBinary` - passed
 on the first real run despite the method's size. Verified with
 `mvn -o clean test`: 398 tests pass (+1), no regressions. Full write-up in
-`plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4.
+`plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A item 4.
 
 **Phase A is now fully DONE**: all five items closed (`TracksEdit.cpp`,
 real CPU/POKEY emulation via ASAP, all five export methods, and the
@@ -1748,25 +1748,25 @@ known-unported, real, meaningful C++ behavior left.
   model-layer C++ behavior remains.
 - **Phase B - DONE 2026-09-27.** The Java UI layer
   (`org.atari.raster.rmt.ui`, Swing + WUDSN Base), batches B1-B9 of
-  `plans/JAVA_UI_PORT_PLAN.md`: the canvas, keyboard/mouse input, menus and
+  `plans/18_JAVA_UI_PORT_PLAN.md`: the canvas, keyboard/mouse input, menus and
   toolbars, options and configuration, every dialog, real-time audio on
-  ASAP's emulation (`plans/JAVA_AUDIO_PLAN.md`) and packaging
-  (`plans/JAVA_B9_PLAN.md`: runnable jar, program folder, release workflow).
+  ASAP's emulation (`plans/19_JAVA_AUDIO_PLAN.md`) and packaging
+  (`plans/20_JAVA_B9_PLAN.md`: runnable jar, program folder, release workflow).
   Not ported by decision: printing (MFC's own), MIDI, the Pokey Explorer.
 - **Scripting - DONE 2026-09-27.** A real scripting feature in place of
   the C++ `/TEST`/`/SCRIPT` developer switches (user decision, see
-  `plans/JAVA_B9_PLAN.md` section 5): `plans/JAVA_SCRIPTING_PLAN.md` (the
-  Java port, S1-S3) and `plans/CPP_SCRIPTING_PLAN.md` (the same script
+  `plans/20_JAVA_B9_PLAN.md` section 5): `plans/21_JAVA_SCRIPTING_PLAN.md` (the
+  Java port, S1-S3) and `plans/22_CPP_SCRIPTING_PLAN.md` (the same script
   format in `Rmt.exe`, C1-C3). The two programs' exports are compared byte
   for byte through the scripts in `test-resources/scripts`
   (`build/compare_exports.ps1`, `CrossProgramExportTest`) - the strongest
   end-to-end port test there is; its first run found four port bugs.
-- **Next**: documentation generation (`plans/DOC_GENERATION_PLAN.md`,
+- **Next**: documentation generation (`plans/23_DOC_GENERATION_PLAN.md`,
   proposal): Markdown stays the source, both distributions get generated
   HTML, and the command/menu table is extracted by the build through a
   `dump actions` script command in both programs.
 
 `BlockEffect`, the `FileXxx` dialog family, and `TimerRoutine`/hardware-
 timer methods stay permanently deferred per their own already-documented
-hazard reasoning - see `plans/JAVA_SONGEDITING_PLAN.md`'s "Explicitly out
+hazard reasoning - see `plans/15_JAVA_SONGEDITING_PLAN.md`'s "Explicitly out
 of scope" section.

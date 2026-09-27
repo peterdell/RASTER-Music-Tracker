@@ -14,7 +14,7 @@
 // CSongExport's ctor just stores pointers - neither touches the real Atari
 // rendering pipeline, which only runs lazily inside
 // CSongContainer::GetPokeyStream() (confirmed while triaging ExportV2, see
-// plans/EXPORTV2_PLAN.md).
+// plans/02_EXPORTV2_PLAN.md).
 //
 // Kept as its own file (rather than staying in IO_Song.cpp) because the
 // rest of that file is the FileXxx family (Batch 7, real CFileDialog/
@@ -28,7 +28,7 @@
 // resolve regardless of which case actually runs. That means even testing
 // just the RMT case here would require linking or stubbing
 // CSongContainer/CSongExport/CSongExporter's constructors, all 5 of
-// CSongExporter's Tier-2 export methods (plans/EXPORTV2_PLAN.md - real
+// CSongExporter's Tier-2 export methods (plans/02_EXPORTV2_PLAN.md - real
 // Atari audio-rendering pipeline, deferred), the two real-dialog wrappers
 // CRmtExporter::ExportAsStrippedRMT()/CASMFileExporter::ExportAsRelocatableAsmForRmtPlayer()
 // (not their already-tested *Apply() siblings), and a real g_Pokey global -

@@ -25,7 +25,7 @@ import org.commonmark.renderer.html.HtmlRenderer;
 import org.commonmark.renderer.text.TextContentRenderer;
 
 /**
- * The documentation generator (plans/DOC_GENERATION_PLAN.md, section 2.1):
+ * The documentation generator (plans/23_DOC_GENERATION_PLAN.md, section 2.1):
  * the Markdown files in {@code doc/} are the documentation's source, kept
  * as Markdown because that is what is maintained and what GitHub shows; the
  * distributions ship HTML, because their users have no Markdown reader.

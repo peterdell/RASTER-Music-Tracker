@@ -2,7 +2,7 @@
 
 ## Context
 
-`plans/SONG_IO_SONG_REMAINING_PLAN.md` and `plans/SAP_LZSS_WAV_XEX_PLAN.md`
+`plans/01_SONG_IO_SONG_REMAINING_PLAN.md` and `plans/05_SAP_LZSS_WAV_XEX_PLAN.md`
 closed out every deferred-hazard category *within* `Song.cpp`/`IO_Song.cpp`/
 `ExportV2`. This is a wider survey of every other production `.cpp` file in
 `src/cpp/` not yet linked into `RmtTests.vcxproj`, to find what - if

@@ -5,7 +5,7 @@
 #include "Tracks.h"
 #include "Instruments.h"
 
-// See plans/UNDO_PLAN.md for the investigation that led to this file: all of
+// See plans/09_UNDO_PLAN.md for the investigation that led to this file: all of
 // CUndo's real dependencies (g_Song/g_Tracks/g_Instruments/g_activepart/
 // g_changes) turned out already safe once the CSong split was done, so the
 // whole class is linked for real here (..\Undo.cpp in RmtTests.vcxproj) -
@@ -41,7 +41,7 @@ class UndoTest : public ::testing::Test {
         g_activepart = Part::PART_TRACKS;
         // Avoids CUndo::InsertEvent()'s first-change SetRMTTitle() call,
         // which would otherwise reach GUI_Song.cpp's real, untested
-        // AfxGetApp()->GetMainWnd() call - see plans/UNDO_PLAN.md finding
+        // AfxGetApp()->GetMainWnd() call - see plans/09_UNDO_PLAN.md finding
         // #3 (same documented-precondition treatment as CSong::Stop()'s
         // m_play precondition).
         g_changes = 1;

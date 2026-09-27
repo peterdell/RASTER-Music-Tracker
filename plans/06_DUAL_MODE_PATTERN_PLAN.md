@@ -2,20 +2,20 @@
 
 ## Context
 
-`plans/FILE_TIERING_STRATEGY.md`'s recommendation (against pulling the
+`plans/07_FILE_TIERING_STRATEGY.md`'s recommendation (against pulling the
 Java-port composition split forward into C++ now) named "continue applying
 the dual-mode pattern to more untested hazardous methods" as the one thing
 worth doing now instead. This plan formalizes that pattern and - before
 proposing any new batch of work - audits whether there's actually any
 untriaged code left that fits it. **Finding: essentially none.** The
 backlog this pattern applies to is already closed by prior work
-(`plans/SONG_IO_SONG_REMAINING_PLAN.md`, `plans/IO_IMPORTER_PLAN.md`,
-`plans/BROADER_SURVEY_PLAN.md`). This plan exists to (a) name the pattern
+(`plans/01_SONG_IO_SONG_REMAINING_PLAN.md`, `plans/03_IO_IMPORTER_PLAN.md`,
+`plans/04_BROADER_SURVEY_PLAN.md`). This plan exists to (a) name the pattern
 for future reference, since it'll matter again at Java-port time per
-`plans/FILE_TIERING_STRATEGY.md`'s option 2, and (b) document the audit
+`plans/07_FILE_TIERING_STRATEGY.md`'s option 2, and (b) document the audit
 that led to that finding, so a future session doesn't have to redo it from
 scratch or wrongly assume there's low-hanging fruit here (as an earlier,
-uncorrected draft of `plans/FILE_TIERING_STRATEGY.md`'s recommendation
+uncorrected draft of `plans/07_FILE_TIERING_STRATEGY.md`'s recommendation
 briefly did - see its own correction note).
 
 ## The pattern, formalized
@@ -84,7 +84,7 @@ one of these buckets - none is a new, untriaged dual-mode candidate:
   check, `Undo.cpp`'s five `"... BAD!"` internal-error assertions on
   invalid enum values.
 - **Real dialog wrapper, core already extracted** (the fourth shape
-  above, already DONE per `plans/SONG_IO_SONG_REMAINING_PLAN.md` Batch 5):
+  above, already DONE per `plans/01_SONG_IO_SONG_REMAINING_PLAN.md` Batch 5):
   `CSong::TracksOrderChange`'s `.DoModal()` call in `Song.cpp`.
 - **Confirmed no extractable logic at all, stays deferred**:
   `IO_Song.cpp`'s 12 `FileXxx` methods (Batch 7 - each unconditionally
@@ -92,11 +92,11 @@ one of these buckets - none is a new, untriaged dual-mode candidate:
   the method, not a parameter to route around).
 - **Real hardware/DLL coupling, not a messaging problem**: `C6502.cpp`,
   `Pokey.cpp`, `PokeyRenderer.cpp`, `RmtMidi.cpp`, `WaveFileExporter.cpp`
-  (all Category A in `plans/BROADER_SURVEY_PLAN.md`), `Midi_Song.cpp`
+  (all Category A in `plans/04_BROADER_SURVEY_PLAN.md`), `Midi_Song.cpp`
   (real `midiInGetNumDevs()`/`midiInGetDevCaps()`), `SongContainer.cpp`'s
   `GetModifiablePokeyStream()` (gated on the deferred
   `CSong::DumpSongToPokeyStream()` real audio pipeline, per
-  `plans/EXPORTV2_PLAN.md`).
+  `plans/02_EXPORTV2_PLAN.md`).
 - **Real UI, not a messaging problem**: `GUI_Song.cpp` (the keyboard-input
   dispatch layer - `InfoKey`/`InstrKey`/`ProveKey`/`TrackKey`/`SongKey` and
   cursor-goto helpers - confirmed Category A), `Commands.cpp`, `Shell.cpp`,
@@ -113,7 +113,7 @@ useful logic the way `InstrInfo`/`TrackInfo`/`ImportTMC`/`ImportMOD` did.
 
 ## The one open item this audit surfaced (not dual-mode - a different question)
 
-`plans/BROADER_SURVEY_PLAN.md`'s Category B, priority #2: `Undo.cpp`
+`plans/04_BROADER_SURVEY_PLAN.md`'s Category B, priority #2: `Undo.cpp`
 (`CUndo`, 16 methods - `Init`, `Clear`, `DeleteEvent`, `GetUndoSteps`,
 `Undo`, `GetRedoSteps`, `Redo`, `InsertEvent`, `DropLast`, `Separator`,
 `ChangeTrack`, `ChangeSong`, `ChangeInstrument`, `ChangeInfo`,

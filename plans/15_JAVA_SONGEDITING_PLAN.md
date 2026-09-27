@@ -4,11 +4,11 @@
 
 `Song.java` currently covers only `SongCore.cpp` (the constructor-adjacent,
 globals-free slice ported in the "Eighteenth ported batch" - see
-`plans/JAVA_PORT_PLAN.md`). `SongEditing.cpp` is the much larger sibling
+`plans/13_JAVA_PORT_PLAN.md`). `SongEditing.cpp` is the much larger sibling
 C++ file: ~80 already-tested `CSong` methods that only transitively touch
 `g_Tracks`/`g_Instruments`/`g_Undo`/`g_TrackClipboard`/`g_tracks4_8` (all
 already real, safe globals in the C++ test project - see
-`plans/SONG_IO_SONG_REMAINING_PLAN.md` for the full triage history that
+`plans/01_SONG_IO_SONG_REMAINING_PLAN.md` for the full triage history that
 produced it). `SongEditingTests.cpp` (2181 lines) also covers several
 *other* C++ classes that aren't `CSong` methods at all: the exporter family
 (`CRmtExporter`, `CASMFileExporter`, `CSAPFileExporter`, `CSongExporter`,
@@ -17,7 +17,7 @@ produced it). `SongEditingTests.cpp` (2181 lines) also covers several
 This plan scopes all of it into Java-port sub-batches, following this
 project's established cadence: one sub-batch at a time, each confirmed with
 the user before implementation, verified via `mvn -o test`, documented in
-`plans/JAVA_PORT_PLAN.md`/`plans/NOTES.md`, and committed only once
+`plans/13_JAVA_PORT_PLAN.md`/`plans/NOTES.md`, and committed only once
 approved. Like the original C++ triage, expect corrections once a sub-batch
 is actually implemented - method call graphs (not just direct field/global
 reads) have repeatedly turned out to hide extra dependencies in this
@@ -125,7 +125,7 @@ this port's "no stored global" treatment of `tracks4_8` everywhere else.
 ### 6. The three "info/dialog" methods - DONE (commit pending)
 `InstrInfo`, `InstrChangeApply`, `TrackInfo` - already refactored on the
 C++ side into the dual-mode (output-parameter vs. `MessageBox`) shape (see
-`plans/DUAL_MODE_PATTERN_PLAN.md`).
+`plans/06_DUAL_MODE_PATTERN_PLAN.md`).
 
 **Simplification found while implementing**: since the Java port has no
 UI/window to show a `MessageBox` in, and only the non-null-output-parameter
@@ -321,7 +321,7 @@ unlike the guard-only `SendErrorMessage`/`SendInformationMessage` calls
 dropped throughout this port, `SendQuestionMessage`'s *return value*
 drives branching here, so it can't just be omitted. Fully testable on
 every branch since `MessageBox` calls route through `Messages` (see
-`plans/MESSAGEBOX_REFACTOR_PLAN.md`) - these two were previously deferred
+`plans/08_MESSAGEBOX_REFACTOR_PLAN.md`) - these two were previously deferred
 solely because of that prompt. `songswitch4_8(int currentTracks4_8, int
 newTracks4_8, Undo, Messages)` needed a genuinely new shape versus C++'s
 single-parameter `Songswitch4_8(int tracks4_8)`: C++'s parameter serves
@@ -441,7 +441,7 @@ block-selection state exists, `isBlockSelected`/`blockDeselect`/
 `trackUp`/`trackDown`/`songUp`/`songDown`/
 `songInsertCopyOrCloneOfSongLinesApply`/`play` all take an explicit
 `TrackClipboard` parameter, and `play()`'s `PLAY_BLOCK` branch reads
-`clipboard.getFromTo()`/`getSelSongLine()` for real - see `plans/JAVA_PORT_PLAN.md`
+`clipboard.getFromTo()`/`getSelSongLine()` for real - see `plans/13_JAVA_PORT_PLAN.md`
 for the full ripple's write-up. `Undo` also gained a `TrackClipboard`
 constructor field (matching its own established "store collaborators"
 pattern, unlike `Song`'s per-call explicit-parameter style), since
@@ -534,7 +534,7 @@ tests above exactly. Verified with `mvn -o clean test`: 362 tests pass
 `CSongExporter::ExportXEX_LZSS`/`ExportLZSS`/`ExportCompactLZSS`,
 `CWaveFileExporter::ExportWAV`. All of these ultimately drive
 `PokeyStream.StartRecording`/`Record`'s real data-writing body - explicitly
-deferred in the "Twenty-first ported batch" (see `plans/JAVA_PORT_PLAN.md`)
+deferred in the "Twenty-first ported batch" (see `plans/13_JAVA_PORT_PLAN.md`)
 because that path needs a real `AtariTrackerDriver` collaborator and a
 growable buffer, neither modeled yet. Revisit once `PokeyStream`'s real
 recording path is unblocked - likely its own dedicated sub-effort, not a
@@ -596,7 +596,7 @@ tests pass (+1, the new regression test), 0 regressions on either side.
   `ImportTMCApply`, `ImportMOD`/`ImportMODParseHeader`/`ImportMODApply`,
   `IO_Importer.cpp`/`IO_ImporterCore.cpp`) - its own large undertaking on
   the scale of `SongEditing.cpp` itself, not a sub-batch of it. Now scoped
-  in its own dedicated plan, `plans/JAVA_IMPORTER_PLAN.md` - not yet
+  in its own dedicated plan, `plans/14_JAVA_IMPORTER_PLAN.md` - not yet
   implemented.
 - **`BlockEffect`** - confirmed on the C++ side to have no extractable
   logic at all (unlike `InstrChangeApply`/`TrackInfo`'s dialog-wrapper
@@ -640,7 +640,7 @@ tests pass (+1, the new regression test), 0 regressions on either side.
    family stays deferred until `PokeyStream`'s real recording path is
    unblocked.
 9. TMC/MOD importers - separate, dedicated plan, not part of this one -
-   now scoped in `plans/JAVA_IMPORTER_PLAN.md` (not yet implemented).
+   now scoped in `plans/14_JAVA_IMPORTER_PLAN.md` (not yet implemented).
 10. `IO_Instruments.cpp`/`IO_Tracks.cpp`'s TXT/RMW per-instrument/per-track
     serialization - DONE (2026-09-26, see its own section above), including
     both the C++ characterization (a real bug found and fixed) and the Java

@@ -2,7 +2,7 @@ package org.atari.raster.rmt.model;
 
 /**
  * Ported from {@code CSong::ImportMODParseHeader}/{@code ImportMODApply}
- * (src/cpp/IO_ImporterCore.cpp) - Batch B of {@code plans/JAVA_IMPORTER_PLAN.md}.
+ * (src/cpp/IO_ImporterCore.cpp) - Batch B of {@code plans/14_JAVA_IMPORTER_PLAN.md}.
  * {@code CSong::ImportMOD()} itself (src/cpp/IO_Importer.cpp) stays
  * unported - a real, still-dialog-showing thin wrapper, matching this
  * project's established "real dialog stays deferred" pattern. Its three

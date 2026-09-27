@@ -3,7 +3,7 @@ package org.atari.raster.rmt.model;
 /**
  * Ported from CSong (src/cpp/Song.h, SongCore.cpp, SongEditing.cpp). Started
  * as a deliberately minimal slice, just what {@link Undo} needs (see
- * {@code plans/JAVA_PORT_PLAN.md} for the full scoping rationale), then
+ * {@code plans/13_JAVA_PORT_PLAN.md} for the full scoping rationale), then
  * grew to cover all of {@code SongCore.cpp} - the already-tested,
  * globals-free "safe cluster" C++ split out from the rest of
  * {@code Song.cpp}/{@code IO_Song.cpp} for the same reason
@@ -55,7 +55,7 @@ package org.atari.raster.rmt.model;
  * slot, which this class models directly as its own
  * {@code trackCopyClipboard} field rather than going through
  * {@code TrackClipboard} at all (see that field's own comment, and
- * {@code plans/JAVA_SONGEDITING_PLAN.md}).
+ * {@code plans/15_JAVA_SONGEDITING_PLAN.md}).
  *
  * <p><b>No UI/window-title tracking</b>: C++'s {@code InsertEvent()}-side
  * {@code g_changes}/{@code SetRMTTitle()} bookkeeping has no Java
@@ -133,7 +133,7 @@ public final class Song {
 	// A deliberately minimal slice of C++'s CTrackClipboard - just its
 	// single-track m_trackcopy slot, needed by trackCopy/trackPaste/trackCut.
 	// The rest of CTrackClipboard (block selection, BlockPaste, etc.) is a
-	// separate, not-yet-ported class - see plans/JAVA_SONGEDITING_PLAN.md.
+	// separate, not-yet-ported class - see plans/15_JAVA_SONGEDITING_PLAN.md.
 	private final Track trackCopyClipboard = new Track();
 
 	public Song(Instruments instruments, Tracks tracks) {
@@ -762,7 +762,7 @@ public final class Song {
 	 * <p>Only the {@code iinfo != NULL} branch of C++'s dual-mode
 	 * {@code InstrInfo} is ported - the {@code iinfo == NULL} branch builds
 	 * and shows a {@code MessageBox} summary, untested and with no Java UI
-	 * to show it in (see {@code plans/DUAL_MODE_PATTERN_PLAN.md}).
+	 * to show it in (see {@code plans/06_DUAL_MODE_PATTERN_PLAN.md}).
 	 */
 	public void instrInfo(InstrInfo info, int instr, int instrto) {
 		if (!instruments.isValidInstrument(instr)) {
@@ -1974,7 +1974,7 @@ public final class Song {
 	 * Runs {@link Tracks#trackBuildLoop} over every track. Calls
 	 * {@link #stop} first - a no-op as long as {@code Play()} was never
 	 * called on this instance first, the only way this is exercised in
-	 * tests (see {@code plans/SONG_IO_SONG_REMAINING_PLAN.md}).
+	 * tests (see {@code plans/01_SONG_IO_SONG_REMAINING_PLAN.md}).
 	 */
 	public TracksAllLoopResult tracksAllBuildLoops(Undo undo) {
 		stop(undo);
@@ -2642,7 +2642,7 @@ public final class Song {
 	 *
 	 * <p>{@code g_Instruments.SaveAll}/{@code g_Tracks.SaveAll}'s
 	 * {@code [INSTRUMENT]}/{@code [TRACK]} sections (previously omitted -
-	 * see {@code plans/JAVA_SONGEDITING_PLAN.md}'s
+	 * see {@code plans/15_JAVA_SONGEDITING_PLAN.md}'s
 	 * "IO_Instruments.cpp/IO_Tracks.cpp" write-up) are now ported as
 	 * {@link Instruments#saveAllTxt}/{@link Tracks#saveAllTxt}.
 	 */
@@ -2876,7 +2876,7 @@ public final class Song {
 	 * reasoning). Each of the 31 "main parameters" is written as a 4-byte
 	 * little-endian int (matching this project's native x86/x64 byte order
 	 * and the just-fixed {@code sizeof(int)} - see
-	 * {@code plans/JAVA_SONGEDITING_PLAN.md}'s sub-batch 8 entry for that
+	 * {@code plans/15_JAVA_SONGEDITING_PLAN.md}'s sub-batch 8 entry for that
 	 * fix's own history).
 	 *
 	 * <p><b>16 of the 31 "main parameters" are UI settings</b>, C++'s
@@ -3638,7 +3638,7 @@ public final class Song {
 	 * {@link Messages#sendQuestionMessage} if the track is otherwise unused
 	 * elsewhere in the song. Now fully testable on every branch since
 	 * {@code MessageBox} calls route through {@code Messages} (see
-	 * {@code plans/MESSAGEBOX_REFACTOR_PLAN.md}) - previously deferred
+	 * {@code plans/08_MESSAGEBOX_REFACTOR_PLAN.md}) - previously deferred
 	 * solely because of that prompt.
 	 */
 	public boolean songMaketracksduplicate(Undo undo, int tracks4_8, Messages messages) {

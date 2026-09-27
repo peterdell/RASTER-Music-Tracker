@@ -3,7 +3,7 @@
 #include "Messages.h"
 
 // Messages.cpp's g_statusBar defaults to nullptr and no test ever sets it
-// (see plans/MESSAGEBOX_REFACTOR_PLAN.md), so every Send<Type>Message()
+// (see plans/08_MESSAGEBOX_REFACTOR_PLAN.md), so every Send<Type>Message()
 // below always takes the log-fallback path here, never the real
 // MessageBox() one - this is what makes calling them from a test safe.
 

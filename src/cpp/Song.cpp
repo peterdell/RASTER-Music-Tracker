@@ -319,7 +319,7 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLines(int& line) {
 
 // CSong::SongMaketracksduplicate() is implemented in SongEditing.cpp - its
 // confirmation prompt (SendQuestionMessage()) is now safe to trigger in
-// tests via the test-injectable answer hook (see plans/MESSAGEBOX_REFACTOR_PLAN.md).
+// tests via the test-injectable answer hook (see plans/08_MESSAGEBOX_REFACTOR_PLAN.md).
 
 //--clipboard functions
 
@@ -439,7 +439,7 @@ void CSong::TracksOrderChange() {
 
 // CSong::Songswitch4_8() is implemented in SongEditing.cpp - its
 // confirmation prompt (SendQuestionMessage()) is now safe to trigger in
-// tests via the test-injectable answer hook (see plans/MESSAGEBOX_REFACTOR_PLAN.md).
+// tests via the test-injectable answer hook (see plans/08_MESSAGEBOX_REFACTOR_PLAN.md).
 
 // CSong::GetEffectiveMaxtracklen() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
 

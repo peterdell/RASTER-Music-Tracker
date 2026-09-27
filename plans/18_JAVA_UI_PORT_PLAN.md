@@ -1,13 +1,13 @@
 # Plan: the Java UI port (Phase B)
 
-Written 2026-09-26 on picking up `plans/JAVA_UI_PORT_HANDOVER.md`. This is
+Written 2026-09-26 on picking up `plans/17_JAVA_UI_PORT_HANDOVER.md`. This is
 the dedicated plan that handover said Phase B deserves. Sections marked
 **DECISION** need the user's input before the affected batch starts; the
 recommendation given for each is the default if not overridden.
 
 ## What was verified before writing this
 
-- `plans/UI_SURVEY_PLAN.md` read in full, plus the C++ code it describes:
+- `plans/12_UI_SURVEY_PLAN.md` read in full, plus the C++ code it describes:
   `RmtView.cpp` (paint loop, `Resize()`, `OnInitialUpdate()`,
   `Read/WriteRMTConfig()`), `CanvasXY.cpp`/`.h`, `Canvas.h`,
   `TextColors.h`, `GuiHelpers.cpp`, `Global.h`, `MainFrm.cpp`,
@@ -128,7 +128,7 @@ list - see DECISION 4.
 
 ## Design (Java)
 
-Package `org.atari.raster.rmt.ui` (decided in `plans/JAVA_PORT_PLAN.md`
+Package `org.atari.raster.rmt.ui` (decided in `plans/13_JAVA_PORT_PLAN.md`
 decision 6). Mapping from the C++ classes:
 
 | C++ | Java | Notes |
@@ -263,21 +263,21 @@ shows anything, `plans/NOTES.md` entry, ask before committing.
     all: model `BlockEffects.perform()` (tested) + UI `BlockEffectDialog`;
     `SongDialogs.blockEffect()`/`blockEffectFromKey()` for Ctrl+F and the
     Block menu. Details in `NOTES.md`.
-- **B8 - audio (DECISION 4).** Designed in `plans/JAVA_AUDIO_PLAN.md`
+- **B8 - audio (DECISION 4).** Designed in `plans/19_JAVA_AUDIO_PLAN.md`
   (three sub-batches).
   - **B8a - emulation core. DONE 2026-09-27.** ASAP "RMT mode" +
     `AtariCpu`; the tracker driver's JSRs are real; the SAP-R dump runs the
-    driver as C++ does. Findings and details in `JAVA_AUDIO_PLAN.md` §4 and
+    driver as C++ does. Findings and details in `19_JAVA_AUDIO_PLAN.md` §4 and
     `NOTES.md`.
   - **B8b - audio engine. DONE 2026-09-27.** `AudioEngine` thread paced by
     the audio line, `RmtSession.lock` between it and the EDT (released
     around modal dialogs), `ReInitSound` points, `playTime`. Delta.rmt
-    plays. Details in `JAVA_AUDIO_PLAN.md` §4 and `NOTES.md`.
+    plays. Details in `19_JAVA_AUDIO_PLAN.md` §4 and `NOTES.md`.
   - **B8c - the rest. DONE 2026-09-27.** Media keys, "Open ASAP file"
     disabled, WAV export replaying the stream through the POKEY (with a
     stereo bug fixed in both languages); Esc's sound reset was already in
-    place. Details in `JAVA_AUDIO_PLAN.md` §4 and `NOTES.md`.
-- **B9 - packaging & polish. DONE 2026-09-27** (`plans/JAVA_B9_PLAN.md`).
+    place. Details in `19_JAVA_AUDIO_PLAN.md` §4 and `NOTES.md`.
+- **B9 - packaging & polish. DONE 2026-09-27** (`plans/20_JAVA_B9_PLAN.md`).
   - **B9a**: `maven-shade-plugin` -> `target/rmt.jar`, `launch/Rmt.launch`,
     `ProgramFolder` (the `rmt/` layout resolved as `g_prgpath`), the
     command line (`/SCRIPT`/`/TEST` rejected - proper scripts are the next
@@ -291,7 +291,7 @@ shows anything, `plans/NOTES.md` entry, ask before committing.
 
 **Phase B is complete.** What remains outside it: printing (MFC's own),
 MIDI and the Pokey Explorer (not ported by decision), and the scripting
-feature (`JAVA_B9_PLAN.md` section 5).
+feature (`20_JAVA_B9_PLAN.md` section 5).
 
 ## DECISIONS
 

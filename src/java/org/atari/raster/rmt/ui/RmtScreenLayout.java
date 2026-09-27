@@ -4,7 +4,7 @@ package org.atari.raster.rmt.ui;
  * Ported from the C++ class CRmtScreenLayout (RmtScreenLayout.h) - the
  * fixed-pixel screen layout, in units of the 8x16 character cell. The
  * whole screen is composed at this fixed logical resolution and scaled as
- * one image afterward (see {@code plans/JAVA_UI_PORT_PLAN.md}).
+ * one image afterward (see {@code plans/18_JAVA_UI_PORT_PLAN.md}).
  */
 public final class RmtScreenLayout {
 

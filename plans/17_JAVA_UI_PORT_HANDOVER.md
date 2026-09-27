@@ -18,14 +18,14 @@ written.** That's this phase's job.
 ## The one hard requirement
 
 The user has explicitly said: **the UI needs to match today's Windows
-UI.** This is not a modernization opportunity - `plans/UI_SURVEY_PLAN.md`
+UI.** This is not a modernization opportunity - `plans/12_UI_SURVEY_PLAN.md`
 exists specifically to inventory the real C++ UI (architecture, rendering,
 input model, dialogs) so the Java port replicates it, not reimagines it.
 Read that document before making any UI design decision.
 
 ## Already-resolved architecture decisions
 
-From `plans/UI_SURVEY_PLAN.md`'s "Open questions" section - don't
+From `plans/12_UI_SURVEY_PLAN.md`'s "Open questions" section - don't
 re-litigate these:
 
 - **Keep the exact pixelated bitmap-font look**, not a modernized
@@ -73,7 +73,7 @@ questions above before committing to anything bigger. This mirrors how
 the model port itself started with `Fraction` (the smallest,
 dependency-free class) rather than `Song`. Once that slice works, this
 phase deserves its own dedicated plan doc (e.g.
-`plans/JAVA_UI_PORT_PLAN.md`), broken into batches the same way the model
+`plans/18_JAVA_UI_PORT_PLAN.md`), broken into batches the same way the model
 port was.
 
 ## What the model layer already gives you to build against
@@ -119,11 +119,11 @@ behavior.
 
 ## Reading order
 
-1. `plans/UI_SURVEY_PLAN.md` - the real UI's architecture, in full.
+1. `plans/12_UI_SURVEY_PLAN.md` - the real UI's architecture, in full.
 2. This document's "Still open" section - the decisions to make first.
-3. `plans/JAVA_PORT_PLAN.md` - skim for conventions (it's a long batch-by-
+3. `plans/13_JAVA_PORT_PLAN.md` - skim for conventions (it's a long batch-by-
    batch history of the model port; you don't need every batch, just the
    idioms).
-4. `plans/JAVA_PORT_NEXT_STEPS_PLAN.md` - Phase A's closing state and
+4. `plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md` - Phase A's closing state and
    Phase B's own section.
 5. `CLAUDE.md` - build/test commands for both languages.

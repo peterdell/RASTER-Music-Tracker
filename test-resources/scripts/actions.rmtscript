@@ -1,4 +1,4 @@
-# Cross-program comparison script (see plans/DOC_GENERATION_PLAN.md): the
+# Cross-program comparison script (see plans/23_DOC_GENERATION_PLAN.md): the
 # command table of the program - every menu item, toolbar button and
 # accelerator with its prompt - and the note keys of both keyboard layouts.
 # doc/rmt_action_infos.md and doc/rmt_note_keys.md are these files, written

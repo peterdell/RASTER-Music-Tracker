@@ -10,7 +10,7 @@ Windows program simplify testing? Answer: yes, twice - it enables an
 end-to-end comparison of both programs' export pipelines, which no test
 covers today, and it replaces the hard-coded developer routines behind the
 C++ `/SCRIPT`/`/TEST`. This resolves decision 6 of
-`plans/JAVA_SCRIPTING_PLAN.md`.
+`plans/21_JAVA_SCRIPTING_PLAN.md`.
 
 C1 as built: `Script.h/.cpp` (the parser, std only, in both projects),
 `ScriptRunner.h/.cpp` (the commands as in Java; the exports through the

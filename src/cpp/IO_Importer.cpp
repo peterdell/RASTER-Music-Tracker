@@ -16,7 +16,7 @@ extern CInstruments g_Instruments;
 
 // CConvertTracks (TMC-only helper) and CSong::ImportTMCParseHeader()/
 // ImportTMCApply() (the real conversion work) are implemented in
-// IO_ImporterCore.cpp - see plans/IO_IMPORTER_PLAN.md. ImportTMC() below is
+// IO_ImporterCore.cpp - see plans/03_IO_IMPORTER_PLAN.md. ImportTMC() below is
 // now a thin wrapper around them, showing its two real dialogs.
 
 //----------------------------------------------
@@ -79,7 +79,7 @@ int CSong::ImportTMC(std::ifstream& in) {
 
 // CSong::ImportMODParseHeader()/ImportMODApply() (and their private helpers
 // TMODInstrumentMark/AtariVolume) are implemented in IO_ImporterCore.cpp -
-// see plans/IO_IMPORTER_PLAN.md. ImportMOD() below is now a thin wrapper
+// see plans/03_IO_IMPORTER_PLAN.md. ImportMOD() below is now a thin wrapper
 // around them, showing its two real dialogs.
 
 int CSong::ImportMOD(std::ifstream& in) {

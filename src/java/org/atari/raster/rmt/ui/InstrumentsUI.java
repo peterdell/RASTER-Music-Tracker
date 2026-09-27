@@ -16,7 +16,7 @@ import org.atari.raster.rmt.model.Song;
  * {@code DrawParameter}/{@code DrawEnv}/{@code DrawNoteTableValue}). C++
  * implements these as methods of the model class {@code CInstruments};
  * this port keeps {@link Instruments} UI-free and puts them here, taking
- * the model (the deviation recorded in {@code plans/JAVA_UI_PORT_PLAN.md}).
+ * the model (the deviation recorded in {@code plans/18_JAVA_UI_PORT_PLAN.md}).
  * The hit-testing half ({@link #getGUIArea}/{@link #cursorGoto}) is here
  * too, used by {@link MouseInput}.
  *

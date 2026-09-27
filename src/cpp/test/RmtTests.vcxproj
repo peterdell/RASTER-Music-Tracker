@@ -40,7 +40,7 @@
   <PropertyGroup Label="UserMacros" />
   <!-- Enables Visual Studio's built-in Clang-Tidy analysis (Analyze > Run
        Code Analysis, and live in-editor squiggles) to enforce
-       plans/RULES.md's "always brace if/else/for/while/do" rule. Only
+       plans/CPP_RULES.md's "always brace if/else/for/while/do" rule. Only
        affects on-demand/background analysis, not normal Build/Rebuild.
        ClangTidyChecks must be kept in sync with the repo-root .clang-tidy
        file - Visual Studio's integration always passes its own -checks=

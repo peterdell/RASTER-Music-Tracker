@@ -2,7 +2,7 @@
 
 ## Context
 
-`plans/SAP_LZSS_WAV_XEX_PLAN.md` deferred `ExportWAV` as "genuinely
+`plans/05_SAP_LZSS_WAV_XEX_PLAN.md` deferred `ExportWAV` as "genuinely
 hazardous" without investigating it in depth, on the assumption that it
 needed the same real audio-hardware coupling (`CXPokey`/
 `LPDIRECTSOUNDBUFFER`) already confirmed for `TimerRoutine()`. This plan
@@ -112,7 +112,7 @@ files.
   `RIFF`/`WAVE` header, then deletes it.
 - Verified incrementally with an explicit timeout given the
   audio/file-I/O-adjacent hazard class, matching this effort's established
-  caution for exactly this situation (`plans/SAP_LZSS_WAV_XEX_PLAN.md`
+  caution for exactly this situation (`plans/05_SAP_LZSS_WAV_XEX_PLAN.md`
   Batch 6's `CSongTimer` verification): the new test alone first, then the
   full suite - no hangs. Full solution rebuild (`Rmt.exe` + `RmtTests.exe`,
   Release|x64) confirmed 0 errors; 299 tests pass (up from 298, +1, 0
@@ -121,13 +121,13 @@ files.
 ## What's still deferred
 
 `CSongExporter::ExportLZSS`/`ExportCompactLZSS` remain deliberately
-deferred per `plans/SAP_LZSS_WAV_XEX_PLAN.md` (low priority - both write
+deferred per `plans/05_SAP_LZSS_WAV_XEX_PLAN.md` (low priority - both write
 multiple real files with filenames derived from `songExport.GetFilePath()`,
 and the code's own comments call this "a hacked up method... I refuse to
 touch RMT2LZSS ever again", with `ExportCompactLZSS` marked "Currently
 unused?"). This plan doesn't reopen that assessment.
 
-This closes out `plans/EXPORTV2_PLAN.md`'s Tier 2 family entirely:
+This closes out `plans/02_EXPORTV2_PLAN.md`'s Tier 2 family entirely:
 `ExportSAP_R`, `ExportSAP_B_LZSS`, `ExportXEX_LZSS` (done in
-`plans/SAP_LZSS_WAV_XEX_PLAN.md`) and now `ExportWAV`, leaving only the two
+`plans/05_SAP_LZSS_WAV_XEX_PLAN.md`) and now `ExportWAV`, leaving only the two
 deliberately-deferred, low-value `LZSS` methods.

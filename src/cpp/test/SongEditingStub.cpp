@@ -15,7 +15,7 @@ extern CAtari g_Atari;
 // calls the real, hazardous Windows timeSetEvent()) is never invoked. None
 // of Play()/Stop()/PlayBeat()/PlayVBI() call SetTimer(), ChangeTimer(), or
 // StopTimer() - only CSong::ChangeTimer()/TimerRoutine() do (both stay
-// unlinked/deferred, see plans/SONG_IO_SONG_REMAINING_PLAN.md), so this
+// unlinked/deferred, see plans/01_SONG_IO_SONG_REMAINING_PLAN.md), so this
 // stays a guaranteed safe no-op for every test in this binary. Do not add
 // a test that calls ChangeTimer()/StopTimer()/TimerRoutine() without
 // re-verifying this reasoning first.
@@ -71,7 +71,7 @@ HWND g_hwnd = NULL;
 
 // Real, simple globals for DEFINE_MAINPARAMS (see SongEditing.cpp's
 // SaveRMW()/LoadRMW() - actually only SaveRMW() is linked here, LoadRMW()
-// needs ClearSong(), see plans/SONG_IO_SONG_REMAINING_PLAN.md). All are
+// needs ClearSong(), see plans/01_SONG_IO_SONG_REMAINING_PLAN.md). All are
 // plain ints/enums/bools with no constructor or hazard of their own - only
 // their *addresses* are taken, to build the RMW "main parameters" block.
 // g_keyboard_layout already exists in Keyboard2NoteMappingStub.cpp.
@@ -162,7 +162,7 @@ void CSong::SyncSkipLinesAfterNoteInsertComboBox() {
 // here) and is reachable from CUndo::InsertEvent() (see Undo.cpp) only on
 // the first change (`if (!g_changes)`). UndoTests.cpp always pre-sets
 // g_changes = 1 before calling any CUndo::Change*() method specifically to
-// avoid ever reaching this - see plans/UNDO_PLAN.md finding #3. This stub
+// avoid ever reaching this - see plans/09_UNDO_PLAN.md finding #3. This stub
 // only needs to exist to satisfy the linker; it's provably never called.
 void CSong::SetRMTTitle() {
 }

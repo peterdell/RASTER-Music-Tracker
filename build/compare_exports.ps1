@@ -1,4 +1,4 @@
-# Cross-program export comparison (plans/CPP_SCRIPTING_PLAN.md, section 4):
+# Cross-program export comparison (plans/22_CPP_SCRIPTING_PLAN.md, section 4):
 # runs every script in test-resources\scripts through the Windows program
 # (out\Release\output\Rmt.exe) and through the Java port (target\rmt.jar),
 # with the same rmt.ini/tuning.ini (the C++ program folder's), and compares

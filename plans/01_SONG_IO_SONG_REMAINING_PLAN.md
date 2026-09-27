@@ -234,7 +234,7 @@ only when `m_play && m_followplay`, never taken since nothing calls the real
 `SongMaketracksduplicate` and `Songswitch4_8` confirmed to only have
 confirmation-prompt `MessageBox`es (no hidden dialogs) - stayed deferred at
 the time per the "confirm prompts stay deferred" decision below, until
-`plans/MESSAGEBOX_REFACTOR_PLAN.md`'s `SendQuestionMessage()` (with its
+`plans/08_MESSAGEBOX_REFACTOR_PLAN.md`'s `SendQuestionMessage()` (with its
 test-injectable answer) made the confirm prompt itself safe to trigger in
 tests. **Both moved to `SongEditing.cpp` and tested - DONE** (see
 `plans/NOTES.md`); the "defer both entirely" decision (#3 below) no longer
@@ -260,7 +260,7 @@ applies to these two specifically.
 - `SongMaketracksduplicate`, `Songswitch4_8` - **DONE** (confirmation
   prompts only, no hidden dialogs - confirmed while scoping Batch 4;
   unlocked and moved to `SongEditing.cpp` once
-  `plans/MESSAGEBOX_REFACTOR_PLAN.md`'s test-injectable
+  `plans/08_MESSAGEBOX_REFACTOR_PLAN.md`'s test-injectable
   `SendQuestionMessage()` made the confirm prompt itself safe to trigger)
 - `FileReload` and the rest of the `FileXxx` family (see Batch 7)
 
@@ -365,7 +365,7 @@ one-line `SetEditMode()` stub were added to the test project. 2 new tests,
 `LoadTxt` (Batch 3), unblocked by this, are now DONE too - see Batch 3's
 entry above.
 
-### `ExportV2` - triage DONE, see `plans/EXPORTV2_PLAN.md`
+### `ExportV2` - triage DONE, see `plans/02_EXPORTV2_PLAN.md`
 A dispatcher, not a simple encode: beyond the already-safe `MakeModule()`,
 it switches over `iotype` and delegates to `CRmtExporter`,
 `CASMFileExporter`, and several `CSongExporter` methods (SAP-R, LZSS,
@@ -411,7 +411,7 @@ Batch 6, and stays deferred pending its own dedicated investigation.
    `Songswitch4_8`): deferred at the time - not worth extracting the
    post-confirmation logic while the confirm prompt itself was a real,
    unavoidable `MessageBox`. **Superseded**: once
-   `plans/MESSAGEBOX_REFACTOR_PLAN.md` gave `SendQuestionMessage()` a
+   `plans/08_MESSAGEBOX_REFACTOR_PLAN.md` gave `SendQuestionMessage()` a
    test-injectable answer, the confirm prompt itself became safe to
    trigger, so no extraction was even needed - both moved to
    `SongEditing.cpp` verbatim and tested on every branch (confirm and

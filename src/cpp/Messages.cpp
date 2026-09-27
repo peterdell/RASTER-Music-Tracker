@@ -4,7 +4,7 @@
 
 // g_hwnd itself lives in the much wider Global.cpp/Global.h (not included
 // here) - declared directly instead, same "declare individual externs,
-// avoid Global.h" pattern as elsewhere (see plans/MESSAGEBOX_REFACTOR_PLAN.md).
+// avoid Global.h" pattern as elsewhere (see plans/08_MESSAGEBOX_REFACTOR_PLAN.md).
 // This is what lets this file link directly into the test project - no
 // verbatim copies of these functions needed anywhere else anymore.
 extern HWND g_hwnd;

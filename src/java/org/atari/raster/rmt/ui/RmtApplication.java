@@ -25,7 +25,7 @@ import org.atari.raster.rmt.model.ProgramFolder;
  * (C++'s {@code CCommandLineInfo::FileOpen}); the C++ {@code /TEST} switch
  * and the developer routines behind {@code /TEST}/{@code /SCRIPT} are not
  * ported - {@code /SCRIPT} is reserved for the scripting feature (see
- * {@code plans/JAVA_B9_PLAN.md}) - both are rejected with C++'s "Invalid
+ * {@code plans/20_JAVA_B9_PLAN.md}) - both are rejected with C++'s "Invalid
  * Command Line Parameter" box. The system property {@code rmt.config.dir}
  * overrides the program folder ({@link ProgramFolder}: {@code rmt.ini},
  * {@code tuning.ini}, the Atari binaries under {@code resources/}, the

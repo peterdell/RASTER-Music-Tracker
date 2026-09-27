@@ -16,7 +16,7 @@ package org.atari.raster.rmt.model;
  * {@link #blockInitBase} (an internal helper called by {@link #blockSetBegin}),
  * {@link #blockCopyToClipboard}, {@link #blockPasteToTrack}, {@link #getFromTo},
  * plus (added once C++ characterization tests existed for them - see
- * {@code plans/JAVA_SONGEDITING_PLAN.md}'s {@code CTrackClipboard} section)
+ * {@code plans/15_JAVA_SONGEDITING_PLAN.md}'s {@code CTrackClipboard} section)
  * {@link #blockAllOnOff}, {@link #blockExchangeClipboard}, {@link #blockClear},
  * {@link #blockRestoreFromBackup}, {@link #blockNoteTransposition},
  * {@link #blockInstrumentChange}, {@link #blockVolumeChange}.

@@ -2,9 +2,9 @@
 
 ## Context
 
-Flagged by `plans/BROADER_SURVEY_PLAN.md` (Category B, priority #2) and
+Flagged by `plans/04_BROADER_SURVEY_PLAN.md` (Category B, priority #2) and
 surfaced again while auditing dual-mode candidates
-(`plans/DUAL_MODE_PATTERN_PLAN.md`): `CUndo` is real, significant,
+(`plans/06_DUAL_MODE_PATTERN_PLAN.md`): `CUndo` is real, significant,
 currently-uncharacterized production functionality (undo/redo), stubbed
 out as no-ops in the test binary (`test/UndoStub.cpp`) since it was judged
 "squarely downstream of the `CSong` split work" - a note written before
@@ -39,7 +39,7 @@ below, none of it needs to stay behind in a separate hazardous file).
      `SongEditing.cpp` tests).
    - `ChangeInstrument`/`PerformEvent`'s instrument cases call
      `g_Instruments.Update()`, which has had real (non-stub) behavior
-     since `plans/SONG_IO_SONG_REMAINING_PLAN.md` Batch 3.
+     since `plans/01_SONG_IO_SONG_REMAINING_PLAN.md` Batch 3.
    - `ChangeInfo`/`PerformEvent`'s info case call `g_Song.GetSongInfoPars`/
      `SetSongInfoPars`, already implemented in `SongEditing.cpp` and
      exercised by dozens of existing tests.
@@ -57,7 +57,7 @@ below, none of it needs to stay behind in a separate hazardous file).
    `g_Song.SetRMTTitle()`, but only the first time a change is made
    (`if (!g_changes) { g_changes = 1; g_Song.SetRMTTitle(); }`).
    `SetRMTTitle()` (`GUI_Song.cpp`, confirmed Category A "real UI" in
-   `plans/BROADER_SURVEY_PLAN.md`) unconditionally calls
+   `plans/04_BROADER_SURVEY_PLAN.md`) unconditionally calls
    `AfxGetApp()->GetMainWnd()` before its one internal null-check (the
    check guards `GetMainWnd()`'s *result*, not `AfxGetApp()` itself).
    `RmtTests.exe` never constructs a `CWinApp`-derived object, so
@@ -65,7 +65,7 @@ below, none of it needs to stay behind in a separate hazardous file).
    `->GetMainWnd()` on that is a null-pointer dereference, a real crash
    risk. **Not verified empirically** (deliberately, given the crash risk
    and this effort's established caution around exactly this class of
-   hazard - see `plans/SONG_IO_SONG_REMAINING_PLAN.md` Batch 6's
+   hazard - see `plans/01_SONG_IO_SONG_REMAINING_PLAN.md` Batch 6's
    timeout-guarded verification of `CSongTimer`). Avoided instead the same
    way `Stop()`'s `m_play` precondition is: tests always set
    `g_changes = 1` before calling any `Change*()` method, which skips this
@@ -142,7 +142,7 @@ below, none of it needs to stay behind in a separate hazardous file).
 
 ## No open design decision found
 
-Unlike `plans/DUAL_MODE_PATTERN_PLAN.md`'s audit, this investigation
+Unlike `plans/06_DUAL_MODE_PATTERN_PLAN.md`'s audit, this investigation
 didn't surface a genuine decision point - every finding above resolves
 cleanly via patterns this effort has already established and approved
 (documented preconditions, fixing real `delete`/`delete[]` bugs outright,

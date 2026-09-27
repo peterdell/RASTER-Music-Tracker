@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Mirrors src/cpp/test/SongTests.cpp's SongCoreTest - only the CSong
- * methods implemented in SongCore.cpp (see plans/JAVA_PORT_PLAN.md for the
+ * methods implemented in SongCore.cpp (see plans/13_JAVA_PORT_PLAN.md for the
  * Song.cpp/IO_Song.cpp triage this project inherited from the C++
  * characterization effort).
  */

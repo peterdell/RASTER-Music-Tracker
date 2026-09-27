@@ -2,7 +2,7 @@
 
 Reference screenshots of the real `Rmt.exe` (the C++ app), used by the
 Java UI port's golden-image tests to check that the Java rendering matches
-today's Windows UI pixel for pixel (see `plans/JAVA_UI_PORT_PLAN.md`,
+today's Windows UI pixel for pixel (see `plans/18_JAVA_UI_PORT_PLAN.md`,
 decision 6 and batches B1/B2). Each scenario is one self-contained folder
 holding the `.rmt` it shows (so the Java test can load the same module)
 and its screenshots.

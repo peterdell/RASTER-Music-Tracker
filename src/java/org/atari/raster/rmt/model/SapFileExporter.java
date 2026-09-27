@@ -17,7 +17,7 @@ import java.nio.file.Path;
  * C++'s {@code CSongExport} (which lazily triggers
  * {@link Song#dumpSongToPokeyStream} through the unported
  * {@code CSongContainer}/{@code CSongExport} caching pair - see
- * {@code plans/JAVA_PORT_NEXT_STEPS_PLAN.md}'s Phase A item 4 for why
+ * {@code plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md}'s Phase A item 4 for why
  * that pair was skipped) - the caller runs {@link Song#dumpSongToPokeyStream}
  * itself first.
  *

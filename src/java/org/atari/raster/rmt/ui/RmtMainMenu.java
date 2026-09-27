@@ -328,7 +328,7 @@ public final class RmtMainMenu {
 		JMenu menu = ElementFactory.createMenu(Actions.MainMenu_Tools);
 		item(menu, RmtCommandId.TOOLS_OPEN_ASMA);
 		item(menu, RmtCommandId.TOOLS_OPEN_ASAP_FILE);
-		item(menu, RmtCommandId.TOOLS_RUN_SCRIPT); // the Java port's scripting (plans/JAVA_SCRIPTING_PLAN.md), no C++ counterpart
+		item(menu, RmtCommandId.TOOLS_RUN_SCRIPT); // the Java port's scripting (plans/21_JAVA_SCRIPTING_PLAN.md), no C++ counterpart
 		menu.addSeparator();
 		item(menu, RmtCommandId.TOOLS_OPTIONS);
 		return menu;

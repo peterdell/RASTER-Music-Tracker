@@ -2,7 +2,7 @@
 
 ## Context
 
-Flagged by `plans/BROADER_SURVEY_PLAN.md` as the single biggest remaining
+Flagged by `plans/04_BROADER_SURVEY_PLAN.md` as the single biggest remaining
 testing opportunity: `CSong::ImportTMC(std::ifstream&)` and
 `CSong::ImportMOD(std::ifstream&)` are real, substantial, currently-untested
 production functionality (importing Protracker MOD and TMC module files),
@@ -161,7 +161,7 @@ a full-RAM buffer directly in a struct).
   input) - not a test bug, fixed the expectation and documented why.
   Also fixed a stale comment in `SongEditingTests.cpp` claiming
   `CInstruments::Update()` was still stubbed as a no-op - it's had real
-  behavior since Batch 3 of `plans/SONG_IO_SONG_REMAINING_PLAN.md`,
+  behavior since Batch 3 of `plans/01_SONG_IO_SONG_REMAINING_PLAN.md`,
   the comment was just never updated.
 - Full solution rebuild (Release|x64) confirmed 0 errors; 236 tests pass
   (up from 233, +3, 0 regressions).

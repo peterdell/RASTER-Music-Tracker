@@ -133,7 +133,7 @@ anyway. The recommendation is **not to**, for now:
   exactly the ones with **no test coverage today**. *Correction, checked
   against the existing triage docs after first writing this
   recommendation*: `GUI_Song.cpp` (16 methods) and `Midi_Song.cpp` (1
-  method) are not untapped candidates - `plans/BROADER_SURVEY_PLAN.md`
+  method) are not untapped candidates - `plans/04_BROADER_SURVEY_PLAN.md`
   already read them and confirmed them Category A ("real UI, hardware, or
   mega-wiring"): `GUI_Song.cpp` is the real keyboard-input dispatch layer
   (`InfoKey`/`InstrKey`/`ProveKey`/`TrackKey`/`SongKey`, cursor-goto
@@ -142,13 +142,13 @@ anyway. The recommendation is **not to**, for now:
   neither has a `MessageBox`/dialog gating otherwise-extractable logic the
   way `InstrInfo`/`TrackInfo` did. `IO_Song.cpp`'s remaining 12 methods are
   the `FileXxx` family, individually re-verified in
-  `plans/SONG_IO_SONG_REMAINING_PLAN.md` (Batch 7) to have no
+  `plans/01_SONG_IO_SONG_REMAINING_PLAN.md` (Batch 7) to have no
   `InstrChange`-style split available - each unconditionally constructs a
   real `CFileDialog`/`CFileNewDlg` and the dialog's result (the chosen
   path) *is* the method, not a parameter to route around. `IO_Importer.cpp`
-  is fully done (`plans/IO_IMPORTER_PLAN.md`, both batches closed). So the
+  is fully done (`plans/03_IO_IMPORTER_PLAN.md`, both batches closed). So the
   20%-untested figure is real, but essentially none of it is currently
-  dual-mode-shaped - see `plans/DUAL_MODE_PATTERN_PLAN.md` for the honest
+  dual-mode-shaped - see `plans/06_DUAL_MODE_PATTERN_PLAN.md` for the honest
   accounting of what (if anything) is actually left.
 - The already-tested safe tiers (`SongCore.cpp`: 22, `SongEditing.cpp`:
   82, plus `Song_DumpSong.cpp`/`SongExportV2.cpp` - about 106 methods,
@@ -165,4 +165,4 @@ to more of the untested hazardous methods where it's cheap to do safely.
 It's lower-risk than real interface extraction, grows test coverage now,
 and is exactly the seam-identification work option 2 would need later
 regardless of when the bigger split happens. See
-`plans/DUAL_MODE_PATTERN_PLAN.md` for the concrete plan.
+`plans/06_DUAL_MODE_PATTERN_PLAN.md` for the concrete plan.

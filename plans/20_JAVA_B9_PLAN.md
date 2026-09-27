@@ -3,7 +3,7 @@
 Status: **B9 DONE 2026-09-27** (B9a, B9b, B9c). Phase B of the Java port
 is complete; the next feature is scripting (section 5). Decisions 1-4 accepted by
 the user on 2026-09-27 (decision 5 replaced by "proper scripts", section 5).
-Companion to `plans/JAVA_UI_PORT_PLAN.md` (B9 is its last batch; B1-B8 are
+Companion to `plans/18_JAVA_UI_PORT_PLAN.md` (B9 is its last batch; B1-B8 are
 committed).
 
 B9a as built: `maven-shade-plugin` -> `target/rmt.jar` (manifest
@@ -149,7 +149,7 @@ here.
   LF (the staging script runs on Linux/macOS runners; the repository uses
   `core.autocrlf=true`).
 - `RmtToolBarsTest` (strip loading, the scaling, the scale factor).
-- Phase B closed in `JAVA_UI_PORT_PLAN.md` and `JAVA_PORT_PLAN.md`.
+- Phase B closed in `18_JAVA_UI_PORT_PLAN.md` and `13_JAVA_PORT_PLAN.md`.
 
 ## 3. Decisions requested
 

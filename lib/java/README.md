@@ -19,8 +19,8 @@ approach that produces `src/cpp/asap/asap.c`/`.h`, this repo's own
 already-vendored C build of the same library, used today only by
 `RmtTest.cpp`'s developer-only `/TEST` verification utility).
 
-**Used in the Java port** (`plans/JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A,
-items 2-3 - DONE 2026-09-26; `plans/JAVA_AUDIO_PLAN.md` - B8, 2026-09-27):
+**Used in the Java port** (`plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A,
+items 2-3 - DONE 2026-09-26; `plans/19_JAVA_AUDIO_PLAN.md` - B8, 2026-09-27):
 ASAP's `net.sf.asap` package contains a complete, portable, pure-software
 6502 CPU emulator (`Cpu6502.java`) plus a dual-POKEY sound chip emulator
 (`Pokey`/`PokeyChannel`/`PokeyPair.java`). The C++ original's `C6502`/
