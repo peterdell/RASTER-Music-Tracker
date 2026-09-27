@@ -6,13 +6,19 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.wudsn.tools.base.gui.MainWindow;
 
@@ -36,7 +42,7 @@ import com.wudsn.tools.base.gui.MainWindow;
  * configuration files and the geometry are written. Still to come: the
  * unsaved-changes prompt on close ({@code WarnUnsavedChanges}, B9).
  */
-public final class RmtMainWindow implements RmtCommands.Host {
+public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host {
 
 	/** What {@code CRmtApp::GetVersionAndBuild()} produces for the C++ build ("RASTER Music Tracker 1.35 (Sep 25 2026 01:30:01)"); the Java port carries no build stamp yet. */
 	public static final String VERSION_AND_BUILD = "RASTER Music Tracker 1.35 (Java)";
@@ -58,7 +64,7 @@ public final class RmtMainWindow implements RmtCommands.Host {
 		this.config = config;
 		this.preferences = preferences;
 		this.trackerPanel = new TrackerPanel(session);
-		this.commands = new RmtCommands(session, trackerPanel.getSongInput(), this);
+		this.commands = new RmtCommands(session, trackerPanel.getSongInput(), this, new SongFiles(session, this));
 		this.mainMenu = new RmtMainMenu(this::executeCommand);
 		this.toolBars = new RmtToolBars(mainMenu, this::executeCommand, this::skipLinesSelected);
 
@@ -111,7 +117,10 @@ public final class RmtMainWindow implements RmtCommands.Host {
 			executeCommand(id);
 			return true;
 		});
-		trackerPanel.setIdleAction(this::updateCommandStates);
+		trackerPanel.setIdleAction(() -> {
+			updateCommandStates();
+			updateTitle(); // g_changes may have been set by any edit (InsertEvent's SetRMTTitle)
+		});
 
 		// CRmtView::OnInitialUpdate: CONFIGURATION, tuning, view elements (without write!)
 		config.readRMTConfig(session);
@@ -192,10 +201,12 @@ public final class RmtMainWindow implements RmtCommands.Host {
 		config.writeRMTConfig(session);
 	}
 
-	/** {@code OnFileExit} + {@code CMainFrame::OnClose}: configuration, tuning and window geometry saved, then the frame closed. */
+	/** {@code OnFileExit} + {@code CMainFrame::OnClose}: the unsaved-changes prompt, then configuration, tuning and window geometry saved, then the frame closed. */
 	@Override
 	public void exit() {
-		// B9: WarnUnsavedChanges first
+		if (commands.getSongFiles().warnUnsavedChanges()) {
+			return; // There is no exit
+		}
 		session.song.stop(session.undo);
 		config.writeRMTConfig(session); // Save the current configuration
 		config.writeTuningConfig(session); // Save the current tuning parameters
@@ -225,6 +236,92 @@ public final class RmtMainWindow implements RmtCommands.Host {
 	@Override
 	public void rescale() {
 		trackerPanel.rescale();
+	}
+
+	@Override
+	public void showAbout() {
+		new AboutDialog(getFrame()).setVisible(true);
+	}
+
+	// ---- SongFiles.Host: CFileDialog and the two small dialogs ----
+
+	/** {@code SetRMTTitle()}, plus the minimum size a mono/stereo change implies. */
+	@Override
+	public void songChanged() {
+		updateTitle();
+		updateMinimumSize();
+	}
+
+	@Override
+	public SongFiles.FileChoice chooseOpenFile(String title, List<SongFiles.FileFilter> filters, String initialDir, int initialFilterIndex) {
+		JFileChooser chooser = createFileChooser(title, filters, initialDir, initialFilterIndex, "");
+		if (chooser.showOpenDialog(getFrame()) != JFileChooser.APPROVE_OPTION) {
+			return null;
+		}
+		return new SongFiles.FileChoice(chooser.getSelectedFile().toPath(), filterIndexOf(chooser, filters));
+	}
+
+	/** {@code OFN_OVERWRITEPROMPT}: the file (with the filter's extension ensured, as C++ does right after the dialog) must not exist, or the user agrees. */
+	@Override
+	public SongFiles.FileChoice chooseSaveFile(String title, List<SongFiles.FileFilter> filters, String initialDir, int initialFilterIndex, String suggestedFileName) {
+		JFileChooser chooser = createFileChooser(title, filters, initialDir, initialFilterIndex, suggestedFileName);
+		while (true) {
+			if (chooser.showSaveDialog(getFrame()) != JFileChooser.APPROVE_OPTION) {
+				return null;
+			}
+			int filterIndex = filterIndexOf(chooser, filters);
+			Path path = SongFiles.ensureFileExtension(chooser.getSelectedFile().toPath(), filters, filterIndex);
+			if (!Files.exists(path) || JOptionPane.showConfirmDialog(getFrame(), path.getFileName() + " already exists.\nDo you want to replace it?", title, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION) {
+				return new SongFiles.FileChoice(path, filterIndex);
+			}
+		}
+	}
+
+	/** A {@code CFileDialog}: one selectable filter per {@code FILE_*} entry (no "all files"), the initial folder and filter, the suggested name. */
+	private static JFileChooser createFileChooser(String title, List<SongFiles.FileFilter> filters, String initialDir, int initialFilterIndex, String suggestedFileName) {
+		JFileChooser chooser = new JFileChooser();
+		chooser.setDialogTitle(title);
+		chooser.setAcceptAllFileFilterUsed(false);
+		for (SongFiles.FileFilter filter : filters) {
+			String[] extensions = filter.extensions().stream().map(e -> e.substring(1)).toArray(String[]::new);
+			String description = filter.description() + " (" + String.join(", ", filter.extensions().stream().map(e -> "*" + e).toList()) + ")";
+			chooser.addChoosableFileFilter(new FileNameExtensionFilter(description, extensions));
+		}
+		if (initialFilterIndex >= 1 && initialFilterIndex <= filters.size()) {
+			chooser.setFileFilter(chooser.getChoosableFileFilters()[initialFilterIndex - 1]);
+		}
+		if (initialDir != null && !initialDir.isEmpty() && Files.isDirectory(Path.of(initialDir))) {
+			chooser.setCurrentDirectory(Path.of(initialDir).toFile());
+		}
+		if (suggestedFileName != null && !suggestedFileName.isEmpty()) {
+			chooser.setSelectedFile(new java.io.File(chooser.getCurrentDirectory(), suggestedFileName));
+		}
+		return chooser;
+	}
+
+	/** {@code m_ofn.nFilterIndex}: 1-based index of the filter the user left selected. */
+	private static int filterIndexOf(JFileChooser chooser, List<SongFiles.FileFilter> filters) {
+		javax.swing.filechooser.FileFilter[] choosable = chooser.getChoosableFileFilters();
+		for (int i = 0; i < choosable.length; i++) {
+			if (choosable[i] == chooser.getFileFilter()) {
+				return i + 1;
+			}
+		}
+		return filters.size() == 1 ? 1 : 0;
+	}
+
+	@Override
+	public SongFiles.FileNewChoice showFileNew() {
+		FileNewDialog dialog = new FileNewDialog(getFrame());
+		if (!dialog.showDialog()) {
+			return null;
+		}
+		return new SongFiles.FileNewChoice(dialog.maxTrackLength, dialog.comboMonoOrStereo != 0);
+	}
+
+	@Override
+	public int showTracksLoad(int trackFrom, int trackNum) {
+		return new TracksLoadDialog(getFrame(), trackFrom, trackNum).showDialog();
 	}
 
 	/** Shows the window and starts the display timer ({@code CRmtApp::InitInstance()}'s {@code ShowWindow} plus {@code CRmtView::OnInitialUpdate()}'s {@code SetTimer}). */

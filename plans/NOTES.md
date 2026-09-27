@@ -4165,4 +4165,46 @@ build clean and all 123 tests pass.
       captures, Interface Size 200 rescaling the canvas at once, the value
       persisted on exit.
     - 509 tests (+12: `RmtConfigTest` 6, `OptionsDialogsTest` 4,
-      `RmtCommandsTest` 2), no regressions.
+      `RmtCommandsTest` 2), no regressions. Committed as `b00e44d`.
+  - **2026-09-27**: Phase B, batch B7a (file commands - the first of the
+    B7 sub-batches; B7 as planned is too large for one commit and splits
+    into B7a file commands, B7b import/export, B7c editing dialogs, B7d
+    block effects). `SongFiles` ports `IO_Song.cpp`'s
+    `FileOpen/FileReload/FileSave/FileSaveAs/FileNew/FileInstrumentSave/
+    FileInstrumentLoad/FileTrackSave/FileTrackLoad` and `GUI_Song.cpp`'s
+    `WarnUnsavedChanges` flow for flow (the same prompts, texts, order of
+    `Stop()`/warn/dialog/clear/load, `g_lastLoadPath_*` updates, extension
+    ensuring, "delete the file and warn" on a failed RMT save) behind a
+    `SongFiles.Host` (the `CFileDialog`s, `CFileNewDlg`, `CTracksLoadDlg`,
+    `SetRMTTitle`) so `SongFilesTest` drives every flow headless with a
+    scripted stub; `RmtMainWindow` implements the host on `JFileChooser`
+    (one selectable filter per `FILE_LOADSAVE` entry, the filter index
+    deciding the format as `nFilterIndex` does, `OFN_OVERWRITEPROMPT` as a
+    Yes/No box) and the new `FileNewDialog`/`TracksLoadDialog` (WUDSN
+    `ModalDialog`) and `AboutDialog` (a plain `JDialog` like dis6502's; the
+    two emulation boxes credit ASAP 8.0.0, per the plan's B7 note).
+    `RmtCommands` gains `OnFileSave`'s "Prompt a save dialog box each time
+    Ctrl+S is pressed" question; exit now runs `WarnUnsavedChanges` first
+    (`OnFileExit`), so the B9 item is done early.
+    - Model additions, all with C++ counterparts: `Undo.setChangeListener`
+      (`InsertEvent`'s `g_changes = 1` - `RmtSession` points it at
+      `uiState.changes`; the title's " *" now appears on the first edit),
+      `Instruments.saveInstrumentRti/loadInstrumentRti` (the RTI file
+      format, versions 0/1), `Tracks.saveTrackTxt` made public and
+      `loadTrackTxt(track, ...)` with an explicit target, plus
+      `countTrackSectionsTxt`/`loadTracksTxt` (`FileTrackLoad`'s two
+      passes), `Song.fileNewApply` and `Song.testBeforeFileSave` (the
+      pre-save validation with its error/warning/"unexpected end of song"
+      boxes through `Messages`). `RmtSession.openRmtFile` is gone -
+      `SongFiles.fileOpen(path, false)` is what `InitInstance` calls.
+    - Deviations: TXT files are written with the platform line separator
+      and read byte-transparently (ISO-8859-1), as C++'s text-mode
+      streams; `testBeforeFileSave` guards the `m_songgo[last + 1] = 0`
+      write C++ makes past the array when the last song line is in use;
+      a truncated RTI file is rejected where C++'s stream reads would fail
+      silently. Shift+Ctrl+S is a label hint in both (not in the
+      accelerator table), so it does nothing in either program.
+    - Live-checked: New Module, Load song file (filter preselected from
+      the current format), About, the " *" title after an edit and the
+      "Save current changes?" prompt on Alt+F4 (No exits).
+    - 522 tests (+13: `SongFilesTest` 13), no regressions.

@@ -2337,6 +2337,121 @@ public final class Song {
 	}
 
 	/**
+	 * The data half of {@code CSong::FileNew()} after the dialog: the new
+	 * maximal track length, an empty mono/stereo song, one song line of
+	 * empty patterns ({@code m_song[0][i] = i}), a "go to line 0" on line 1,
+	 * and the undo history cleared. Returns the new {@code tracks4_8}; the
+	 * "all channels on" and the title are the caller's.
+	 */
+	public int fileNewApply(int maxTrackLength, int numOfTracks, Undo undo) {
+		tracks.setMaxTrackLength(maxTrackLength);
+		int tracks4_8 = clearSong(numOfTracks, undo);
+		for (int i = 0; i < tracks4_8; i++) {
+			song[0][i] = i; // Automatically create 1 songline of empty patterns
+		}
+		songGo[1] = 0; // Set the goto to the first line
+		undo.clear(); // Delete undo history
+		return tracks4_8;
+	}
+
+	/**
+	 * {@code CSong::TestBeforeFileSave()}: validates the song before an RMT
+	 * save/export - a module must build, the song must not be empty, no
+	 * "go to" may point past the last used line or at another "go to"
+	 * (errors); consecutive "go to" lines and runs of empty lines are
+	 * warnings the user may ignore; a song without a final "go to" gets one
+	 * to line 0 (after an information box). Returns whether saving may
+	 * proceed. The boxes go through {@code messages}.
+	 */
+	public boolean testBeforeFileSave(int tracks4_8, Messages messages) {
+		// Try to create a module
+		byte[] mem = new byte[65536];
+		int adrModule = 0x4000;
+		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
+		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
+		if (makeModule(mem, adrModule, SongIOType.RMT, instrumentSavedFlags, trackSavedFlags, tracks4_8) < 0) {
+			return false; // Dump out if the module could not be created
+		}
+
+		// and now it will be checked whether the song ends with GOTO line and if there is no GOTO on GOTO line
+		StringBuilder errmsg = new StringBuilder();
+		StringBuilder wrnmsg = new StringBuilder();
+		int[] trx = new int[SONGLEN];
+		int last = -1;
+		int empty = 0;
+		for (int i = 0; i < SONGLEN; i++) {
+			if (songGo[i] >= 0) {
+				trx[i] = 2;
+				last = i;
+			} else {
+				trx[i] = 0;
+				for (int j = 0; j < tracks4_8; j++) {
+					if (song[i][j] >= 0 && song[i][j] < Tracks.TRACKSNUM) {
+						trx[i] = 1;
+						last = i; // tracks
+						break;
+					}
+				}
+			}
+		}
+
+		if (last < 0) {
+			errmsg.append("Error: Song is empty.\n");
+		}
+
+		for (int i = 0; i <= last; i++) {
+			boolean testTooManyEmptyLines;
+			if (songGo[i] >= 0) {
+				// there is a goto line
+				int go = songGo[i]; // where is goto set to?
+				if (go > last) {
+					errmsg.append(String.format("Error: Song line [%02X]: Go to line over last used song line.\n", i));
+				}
+				if (songGo[go] >= 0) {
+					errmsg.append(String.format("Error: Song line [%02X]: Recursive \"go to line\" to \"go to line\".\n", i));
+				}
+				if (i > 0 && songGo[i - 1] >= 0) {
+					wrnmsg.append(String.format("Warning: Song line [%02X]: More \"go to line\" on subsequent lines.\n", i));
+				}
+				testTooManyEmptyLines = true; // goto TestTooManyEmptyLines
+			} else {
+				// are there tracks or empty lines?
+				testTooManyEmptyLines = trx[i] != 0;
+				if (!testTooManyEmptyLines) {
+					empty++;
+				}
+			}
+			if (testTooManyEmptyLines) {
+				if (empty > 1) {
+					wrnmsg.append(String.format("Warning: Song lines [%02X-%02X]: Too many empty song lines (%d) waste memory.\n", i - empty, i - 1, empty));
+				}
+				empty = 0;
+			}
+		}
+
+		if (last >= 0 && trx[last] == 1) {
+			String gotoline = String.format("Song line[%02X]: Unexpected end of song.\nYou have to use \"go to line\" at the end of song.\n\nSong line [00] will be used by default.", last + 1);
+			messages.sendInformationMessage("Warning", gotoline);
+			if (last + 1 < SONGLEN) {
+				songGo[last + 1] = 0; // force a goto line to the first track line (C++ writes past the array when last is the final line)
+			}
+		}
+
+		// If the warning or error messages aren't empty, something did happen
+		if (errmsg.length() > 0 || wrnmsg.length() > 0) {
+			// If there are warnings without errors, the choice is left to ignore them
+			if (errmsg.length() == 0) {
+				wrnmsg.append("\nIgnore warnings and save anyway?");
+				return messages.sendQuestionMessage("Warnings", wrnmsg.toString(), MessageButtons.YES_NO) == MessageAnswer.YES;
+			}
+			// Otherwise, if there are any errors, always return failure
+			messages.sendErrorMessage("Errors", errmsg.toString() + wrnmsg);
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Resets the song to empty and RMT into a default state. Returns the new
 	 * {@code tracks4_8} value (see {@link #setTracks}'s javadoc for why).
 	 *

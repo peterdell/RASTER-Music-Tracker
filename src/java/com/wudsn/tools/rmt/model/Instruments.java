@@ -859,6 +859,71 @@ public final class Instruments {
 	}
 
 	/** Encodes every instrument (unconditionally, unlike {@link #saveAllTxt}) in RMW's binary format, concatenated. */
+	/** {@code SaveInstrument(instr, ou, InstrumentIOType::RTI)}: the single-instrument file - {@code "RTI"} + version byte 1, the 32-character name plus its terminating zero, the Atari-encoded length byte and data. */
+	public byte[] saveInstrumentRti(int instr, boolean stereo) {
+		Instrument ai = getInstrument(instr);
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+		out.write('R');
+		out.write('T');
+		out.write('I');
+		out.write(1); // Type 1
+		for (int c = 0; c < Instrument.INSTRUMENT_NAME_MAX_LEN; c++) {
+			out.write(ai.name[c] & 0xFF);
+		}
+		out.write(0); // name 32 byte + 33 is a binary zero terminating string
+		byte[] ibf = new byte[256]; // ATARI_MAX_INSTR_LENGTH
+		int len = instrToAta(instr, ibf, stereo);
+		out.write(len & 0xFF); // instrument length in Atari bytes
+		if ((len & 0xFF) > 0) {
+			out.write(ibf, 0, len & 0xFF); // instrument data
+		}
+		return out.toByteArray();
+	}
+
+	/**
+	 * {@code LoadInstrument(instr, in, InstrumentIOType::RTI)}: reads a
+	 * version 0 or 1 RTI file into {@code instr} (cleared first), returning
+	 * whether it was accepted - a bad header, an unsupported version, a
+	 * truncated file or data the converters reject give {@code false}.
+	 */
+	public boolean loadInstrumentRti(int instr, byte[] data, boolean stereo) {
+		if (instr < 0 || instr >= INSTRSNUM) {
+			return false;
+		}
+		clearInstrument(instr); // it will first delete it before it reads
+		Instrument ai = getInstrument(instr);
+		if (data.length < 4 || data[0] != 'R' || data[1] != 'T' || data[2] != 'I') {
+			return false; // if there is no RTI header
+		}
+		int version = data[3];
+		if (version >= 2) {
+			return false; // it's version 2 and more (only 0 and 1 are supported)
+		}
+		int pos = 4;
+		if (data.length < pos + Instrument.INSTRUMENT_NAME_MAX_LEN + 1 + 1) {
+			return false; // C++'s stream reads would fail silently; nothing sensible to load
+		}
+		for (int c = 0; c < Instrument.INSTRUMENT_NAME_MAX_LEN; c++) {
+			ai.name[c] = (char) (data[pos + c] & 0xFF);
+		}
+		pos += Instrument.INSTRUMENT_NAME_MAX_LEN + 1; // name 32 bytes + 33rd byte terminating zero
+		int len = data[pos] & 0xFF; // instrument length in Atari bytes
+		pos++;
+		if (len > 0) {
+			if (data.length < pos + len) {
+				return false;
+			}
+			byte[] ibf = new byte[256];
+			System.arraycopy(data, pos, ibf, 0, len);
+			boolean r = version == 0 ? ataV0ToInstr(ibf, instr, stereo) : ataToInstr(ibf, instr, stereo);
+			update(instr); // writes to Atari RAM
+			if (!r) {
+				return false; // if there was some problem with the instrument, return 0
+			}
+		}
+		return true;
+	}
+
 	public byte[] saveAllRmw() {
 		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
 		for (int i = 0; i < INSTRSNUM; i++) {

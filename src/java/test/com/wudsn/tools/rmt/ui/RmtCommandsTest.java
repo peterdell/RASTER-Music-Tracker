@@ -63,12 +63,18 @@ class RmtCommandsTest {
 		public void rescale() {
 			calls.add("rescale");
 		}
+
+		@Override
+		public void showAbout() {
+			calls.add("showAbout");
+		}
 	}
 
 	private RmtSession session;
 	private RecordingHost host;
 	private RmtCommands commands;
 	private SongInput input;
+	private StubSongFilesHost filesHost;
 
 	@BeforeEach
 	void setUp() {
@@ -78,7 +84,8 @@ class RmtCommandsTest {
 		}
 		host = new RecordingHost();
 		input = new SongInput(session);
-		commands = new RmtCommands(session, input, host);
+		filesHost = new StubSongFilesHost();
+		commands = new RmtCommands(session, input, host, new SongFiles(session, filesHost));
 	}
 
 	@Test
@@ -229,8 +236,8 @@ class RmtCommandsTest {
 
 	@Test
 	void unportedDialogsReportThemselvesInsteadOfDoingNothingSilently() {
-		commands.execute(RmtCommandId.FILE_OPEN);
-		assertEquals(List.of("notAvailable:Open (B7)"), host.calls);
+		commands.execute(RmtCommandId.FILE_IMPORT);
+		assertEquals(List.of("notAvailable:Import (B7)"), host.calls);
 		commands.execute(RmtCommandId.FILE_EXIT);
 		assertEquals("exit", host.calls.get(1));
 	}

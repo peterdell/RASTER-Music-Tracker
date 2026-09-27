@@ -66,7 +66,7 @@ class SongUITest {
 
 	private static RmtSession openReference(String scenario, String rmtName) throws IOException {
 		RmtSession session = new RmtSession();
-		assertTrue(session.openRmtFile(ReferenceScreenshot.ROOT.resolve(scenario).resolve(rmtName)));
+		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(ReferenceScreenshot.ROOT.resolve(scenario).resolve(rmtName), false));
 		return session;
 	}
 

@@ -92,7 +92,11 @@ class RmtMainMenuTest {
 			@Override
 			public void rescale() {
 			}
-		});
+
+			@Override
+			public void showAbout() {
+			}
+		}, new SongFiles(session, new StubSongFilesHost()));
 
 		menu.updateStates(commands);
 		JMenuItem undo = (JMenuItem) menu.getButtons(RmtCommandId.EDIT_UNDO).get(0);

@@ -53,6 +53,13 @@ public final class Undo {
 	private int undoSteps, redoSteps;
 
 	private Part activePart = Part.PART_TRACKS; // matches g_activepart's own default
+	/** Told on every recorded event - C++'s {@code InsertEvent()} sets {@code g_changes = 1} (and refreshes the title); the UI installs the flag setter here. */
+	private Runnable changeListener;
+
+	/** Installs what {@code InsertEvent()}'s {@code g_changes = 1; SetRMTTitle()} does in C++ - the UI's "unsaved changes" flag; {@code null} for none. */
+	public void setChangeListener(Runnable changeListener) {
+		this.changeListener = changeListener;
+	}
 
 	public Undo(Tracks tracks, Instruments instruments, Song song, TrackClipboard trackClipboard) {
 		this.tracks = tracks;
@@ -137,6 +144,9 @@ public final class Undo {
 	}
 
 	private void insertEvent(UndoEvent ue) {
+		if (changeListener != null) {
+			changeListener.run(); // g_changes = 1; there has been some change
+		}
 		// add cursor
 		ue.part = activePart;
 		ue.cursor = song.getUECursor(activePart);

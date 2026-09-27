@@ -1,13 +1,11 @@
 package com.wudsn.tools.rmt.ui;
 
 import java.awt.EventQueue;
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.CodeSource;
 
-import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 /**
@@ -42,7 +40,7 @@ public final class RmtApplication {
 			RmtMainWindow window = new RmtMainWindow(session, config, RmtWindowPreferences.forUser());
 
 			if (args.length > 0) {
-				openFile(session, window, Path.of(args[0]));
+				openFile(window, Path.of(args[0]));
 			}
 
 			window.show();
@@ -74,21 +72,9 @@ public final class RmtApplication {
 		return Path.of(System.getProperty("user.dir", "."));
 	}
 
-	private static void openFile(RmtSession session, RmtMainWindow window, Path path) {
-		boolean loaded;
-		String problem = null;
-		try {
-			loaded = session.openRmtFile(path);
-		} catch (IOException ex) {
-			loaded = false;
-			problem = ex.getMessage();
-		}
-		if (!loaded) {
-			// CSong::FileOpen()'s SendErrorMessage("Open error", ...) - Java has no separate "can't decode" text, so the same box serves both
-			JOptionPane.showMessageDialog(window.getFrame(), "Can't open this file: " + path + (problem != null ? "\n" + problem : ""), "Open error", JOptionPane.ERROR_MESSAGE);
-		}
-		window.updateMinimumSize();
-		window.updateTitle();
+	/** {@code CRmtApp::InitInstance()}'s {@code g_Song.FileOpen(cmdInfo.m_strFileName, FALSE)}: the format follows the extension, errors come as message boxes. */
+	private static void openFile(RmtMainWindow window, Path path) {
+		window.getCommands().getSongFiles().fileOpen(path, false);
 	}
 
 	/** Same as dis6502's: the host OS's look and feel, or whatever Swing already selected if that fails. */

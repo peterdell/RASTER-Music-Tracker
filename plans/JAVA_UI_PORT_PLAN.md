@@ -243,12 +243,22 @@ shows anything, `plans/NOTES.md` entry, ask before committing.
   geometry, `OptionsDialog` + `OptionsPathsDialog` + `TuningDialog` on
   WUDSN `ModalDialog`, `RmtCommands.applyOptions`. C++ `MAJ_7TH` read
   omission fixed in both languages. Details in `NOTES.md`.
-- **B7 - dialogs.** File new/open/save/import/export via WUDSN
-  `FileChooser` -> the already-ported loaders/`*Apply()`/exporters; SAP
-  and XEX export dialogs; instrument change, tracks order, insert/clone,
-  renumber, channels selection, change max track length, tracks load;
-  `BlockEffect` (dialog + its logic together, since C++ has no separable
-  core); About (with the 6502/POKEY driver info replaced by ASAP's).
+- **B7 - dialogs**, in four sub-batches:
+  - **B7a - file commands. DONE 2026-09-27.** `SongFiles` (New/Open/
+    Reopen/Save/Save As, instrument RTI load/save, track TXT load/save,
+    `WarnUnsavedChanges` incl. on exit) on `JFileChooser` (as dis6502, not
+    WUDSN `FileChooser`), `FileNewDialog`, `TracksLoadDialog`, About
+    (ASAP credits). Details in `NOTES.md`.
+  - **B7b - import/export.** `FileImport` (MOD/TMC dialogs + finished
+    boxes), `FileExportAs` (stripped RMT, ASM, SAP-R, LZSS, SAP, XEX,
+    relocatable ASM, WAV dialogs) -> the already-ported importers/
+    `*Apply()`/exporters.
+  - **B7c - editing dialogs.** Instrument change, tracks order,
+    insert/clone song lines, renumber tracks/instruments, channels
+    selection, change max track length, mono/stereo switch, instrument
+    info box.
+  - **B7d - block effects.** `BlockEffect` (dialog + its logic together,
+    since C++ has no separable core).
 - **B8 - audio (DECISION 4).** Scope depends on the decision; see below.
 - **B9 - packaging & polish.** `maven-shade-plugin` fat jar + launcher
   (as dis6502), `/SCRIPT`-style command line, unsaved-changes prompts on

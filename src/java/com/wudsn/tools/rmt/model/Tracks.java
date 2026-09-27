@@ -852,7 +852,8 @@ public final class Tracks {
 	// (`writeIntLE`/`readIntLE`), unlike the per-line data.
 
 	/** Encodes one track's TXT representation - the {@link #saveAllTxt} counterpart's per-track step. */
-	private String saveTrackTxt(int trackNumber) {
+	/** {@code SaveTrack(track, ou, SongIOType::TXT)}: one {@code [TRACK]} section (used per track by {@link #saveAllTxt} and by the "Save track as" command for a single track). */
+	public String saveTrackTxt(int trackNumber) {
 		Track at = getTrack(trackNumber);
 		StringBuilder s = new StringBuilder();
 
@@ -872,6 +873,55 @@ public final class Tracks {
 		s.append("\n"); // std::endl, on top of the content's own trailing newline
 
 		return s.toString();
+	}
+
+	/** {@code CSong::FileTrackLoad()}'s first pass: how many {@code [TRACK]} sections a TXT file holds. */
+	public static int countTrackSectionsTxt(String text) {
+		int nt = 0;
+		int pos = Song.nextSegment(text, 0);
+		while (pos < text.length()) { // will therefore look for the beginning of the next segment "["
+			Song.Line line = Song.readLine(text, pos);
+			if (Song.trimstr(line.content()).equals("TRACK]")) {
+				nt++;
+			}
+			pos = Song.nextSegment(text, line.nextPos());
+		}
+		return nt;
+	}
+
+	/** {@link #loadTracksTxt}'s outcome: how many tracks were loaded, and whether loading stopped because the track numbers ran out. */
+	public record LoadTracksTxtResult(int loaded, boolean maximumReached) {
+	}
+
+	/**
+	 * {@code CSong::FileTrackLoad()}'s second pass: every {@code [TRACK]}
+	 * section of a TXT file into consecutive tracks from {@code firstTrack}
+	 * on ({@code type == 0}), or into the tracks the sections name themselves
+	 * ({@code toOriginalPlaces}). The caller records the undo step and shows
+	 * the messages.
+	 */
+	public LoadTracksTxtResult loadTracksTxt(String text, int firstTrack, boolean toOriginalPlaces) {
+		int track = firstTrack;
+		int nr = 0;
+		int pos = Song.nextSegment(text, 0); // Move after the first "["
+		while (pos < text.length()) {
+			Song.Line line = Song.readLine(text, pos);
+			pos = line.nextPos();
+			if (Song.trimstr(line.content()).equals("TRACK]")) {
+				int tt = toOriginalPlaces ? -1 : track;
+				pos = loadTrackTxt(tt, text, pos);
+				nr++; // number of tracks loaded (LoadTrack's TXT branch always returns 1)
+				if (!toOriginalPlaces) {
+					track++; // shift by 1 to load the next track
+					if (track >= TRACKSNUM) {
+						return new LoadTracksTxtResult(nr, true); // Track's maximum number reached. Loading aborted.
+					}
+				}
+			} else {
+				pos = Song.nextSegment(text, pos); // move to the next "["
+			}
+		}
+		return new LoadTracksTxtResult(nr, false);
 	}
 
 	/** Encodes every non-empty track as TXT, concatenated (the {@code [TRACK]} sections {@link Song#saveTxt} appends). */
@@ -899,13 +949,25 @@ public final class Tracks {
 	 * C++ source exactly.
 	 */
 	public int loadTrackTxt(String text, int pos) {
+		return loadTrackTxt(-1, text, pos);
+	}
+
+	/**
+	 * {@code LoadTrack(track, in, SongIOType::TXT)} with an explicit target:
+	 * the section's data goes into {@code trackNumber}, or into the track the
+	 * section's own first line names when {@code trackNumber} is invalid
+	 * (-1) - the two ways {@code CSong::FileTrackLoad()} calls it.
+	 */
+	public int loadTrackTxt(int trackNumber, String text, int pos) {
 		Song.Line firstLine = Song.readLine(text, pos);
 		pos = firstLine.nextPos();
 		String line = firstLine.content();
 
-		int trackNumber = Song.hexstr(line, 0, 2); // -1 sentinel always requested by the one caller (Song.loadTxt) - take it from the text
 		if (!isValidTrack(trackNumber)) {
-			return Song.nextSegment(text, pos);
+			trackNumber = Song.hexstr(line, 0, 2); // If the track is invalid, it is set to the value found in the text file
+		}
+		if (!isValidTrack(trackNumber)) {
+			return Song.nextSegment(text, pos); // If the track is still invalid, it will be skipped
 		}
 
 		Track at = getTrack(trackNumber);

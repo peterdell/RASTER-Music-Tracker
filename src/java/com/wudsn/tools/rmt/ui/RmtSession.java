@@ -1,16 +1,11 @@
 package com.wudsn.tools.rmt.ui;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 import com.wudsn.tools.rmt.model.Atari;
 import com.wudsn.tools.rmt.model.AtariTrackerDriver;
 import com.wudsn.tools.rmt.model.ChannelControl;
 import com.wudsn.tools.rmt.model.Instruments;
 import com.wudsn.tools.rmt.model.Messages;
 import com.wudsn.tools.rmt.model.Song;
-import com.wudsn.tools.rmt.model.SongIOType;
 import com.wudsn.tools.rmt.model.TrackClipboard;
 import com.wudsn.tools.rmt.model.TrackerDriverVersion;
 import com.wudsn.tools.rmt.model.Tracks;
@@ -94,6 +89,7 @@ public final class RmtSession {
 
 		tracks4_8 = song.clearSong(8, undo);
 		channelControl.setAllChannelsOn();
+		undo.setChangeListener(() -> uiState.changes = true); // CUndo::InsertEvent's g_changes = 1
 	}
 
 	/** {@code CRmtView::SetNTSC()}: rescales the base tuning between the two clocks and switches the song ("TODO code... well 3 times.." in C++). */
@@ -116,28 +112,5 @@ public final class RmtSession {
 		options.trackerDriverVersion = version;
 		atari.init(song.isNTSC(), tuningSettings, tuningRatios);
 		atariTrackerDriver.loadRMTRoutines(version);
-	}
-
-	/**
-	 * {@code CSong::FileOpen(filename, FALSE)} for an {@code .rmt} file: clears
-	 * the song, decodes the module, and on success remembers the file and
-	 * turns all channels on; on a decode failure the song is cleared again
-	 * (C++ then also shows an error box - the caller's job here). Returns
-	 * whether the file was loaded. The {@code .txt}/{@code .rmw} formats
-	 * and the file dialog itself come with the file-dialog batch (B7).
-	 */
-	public boolean openRmtFile(Path path) throws IOException {
-		byte[] data = Files.readAllBytes(path);
-
-		song.clearSong(tracks4_8, undo);
-		Song.LoadRmtResult loaded = song.loadRMT(data);
-		if (!loaded.success()) {
-			tracks4_8 = song.clearSong(tracks4_8, undo); // Erases everything
-			return false;
-		}
-		tracks4_8 = loaded.tracks4_8();
-		song.setLoadedFile(path.toString(), SongIOType.RMT);
-		channelControl.setAllChannelsOn();
-		return true;
 	}
 }

@@ -30,6 +30,19 @@ public final class Texts extends NLS {
 	public static String TuningDialog_GroupGeneral;
 	public static String TuningDialog_GroupRatios;
 
+	// FileNewDialog (IDD_FILE_NEW)
+	public static String FileNewDialog_Title;
+
+	// TracksLoadDialog (IDD_TRACKSLOAD)
+	public static String TracksLoadDialog_Title;
+
+	// AboutDialog (IDD_ABOUT and the IDS_RMT_* strings)
+	public static String AboutDialog_Title;
+	public static String AboutDialog_Author;
+	public static String AboutDialog_Repository;
+	public static String AboutDialog_PokeyEmulation;
+	public static String AboutDialog_Cpu6502Emulation;
+
 	// MFC's DDV_MinMaxInt/DDV_MinMaxDouble/DDX_Text messages (AFX_IDP_PARSE_*)
 	/** "Please enter an integer between {0} and {1}." */
 	public static String Validation_IntegerRange;

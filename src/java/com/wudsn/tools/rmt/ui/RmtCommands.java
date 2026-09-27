@@ -10,6 +10,7 @@ import com.wudsn.tools.rmt.model.MessageButtons;
 import com.wudsn.tools.rmt.model.Part;
 import com.wudsn.tools.rmt.model.PlayMode;
 import com.wudsn.tools.rmt.model.Song;
+import com.wudsn.tools.rmt.model.SongIOType;
 import com.wudsn.tools.rmt.model.TrackClipboard;
 import com.wudsn.tools.rmt.model.UndoType;
 
@@ -56,6 +57,9 @@ public final class RmtCommands {
 
 		/** {@code m_width = m_height = 0; Resize()}: the scaling option changed, redo the canvas without waiting for a window resize. */
 		void rescale();
+
+		/** {@code CRmtApp::OnHelpAboutApp()}: the About dialog. */
+		void showAbout();
 	}
 
 	static final String ONLINE_HELP_URL = "https://html-preview.github.io/?url=https://github.com/raster-atari-org/RASTER-Music-Tracker/blob/1.35/doc//rmt_en.html";
@@ -64,11 +68,17 @@ public final class RmtCommands {
 	private final RmtSession session;
 	private final SongInput songInput;
 	private final Host host;
+	private final SongFiles songFiles;
 
-	public RmtCommands(RmtSession session, SongInput songInput, Host host) {
+	public RmtCommands(RmtSession session, SongInput songInput, Host host, SongFiles songFiles) {
 		this.session = session;
 		this.songInput = songInput;
 		this.host = host;
+		this.songFiles = songFiles;
+	}
+
+	public SongFiles getSongFiles() {
+		return songFiles;
 	}
 
 	private boolean askYes(String title, String message) {
@@ -98,6 +108,29 @@ public final class RmtCommands {
 
 	private void switchEditMode() {
 		session.uiState.switchEditMode(EditMode.EDIT_MODE, session.song.isStereo(session.tracks4_8));
+	}
+
+	/**
+	 * {@code CRmtView::OnFileSave()}: with "Prompt a save dialog box each time
+	 * Ctrl+S is pressed" on and a file to overwrite, asks first - No goes to
+	 * Save As, Cancel does nothing. (The two {@code Sleep(128)} calls around
+	 * the save have no purpose here.)
+	 */
+	private void onFileSave() {
+		Song song = session.song;
+		String filename = song.getFilename();
+		if (session.options.keyboardAskWhenControlS && (!filename.isEmpty() || song.getIOType() != SongIOType.NONE)) {
+			// If a question is asked and if a file already exists (=> there will be a "Save as ..." dialog)
+			MessageAnswer r = session.messages.sendQuestionMessage("Save song", "Do you want to save song file '" + filename + "'?\nIs it okay to overwrite?", MessageButtons.YES_NO_CANCEL);
+			if (r == MessageAnswer.NO) {
+				songFiles.fileSaveAs();
+				return;
+			}
+			if (r != MessageAnswer.YES) {
+				return;
+			}
+		}
+		songFiles.fileSave();
 	}
 
 	private static void browse(String url) {
@@ -165,11 +198,11 @@ public final class RmtCommands {
 
 		switch (id) {
 		// --- File ---
-		case FILE_NEW -> host.notAvailable("New (B7)");
-		case FILE_OPEN -> host.notAvailable("Open (B7)");
-		case FILE_REOPEN -> host.notAvailable("Reopen (B7)");
-		case FILE_SAVE -> host.notAvailable("Save (B7)");
-		case FILE_SAVE_AS -> host.notAvailable("Save As (B7)");
+		case FILE_NEW -> songFiles.fileNew();
+		case FILE_OPEN -> songFiles.fileOpen(null, true);
+		case FILE_REOPEN -> songFiles.fileReload();
+		case FILE_SAVE -> onFileSave();
+		case FILE_SAVE_AS -> songFiles.fileSaveAs();
 		case FILE_IMPORT -> host.notAvailable("Import (B7)");
 		case FILE_EXPORT -> host.notAvailable("Export (B7)");
 		case FILE_PRINT, FILE_PRINT_PREVIEW, FILE_PRINT_SETUP, FILE_PROPERTIES -> host.notAvailable("Printing");
@@ -298,8 +331,8 @@ public final class RmtCommands {
 		case INSTRUMENT_INFO -> host.notAvailable("Info about current instrument (B7)");
 		case INSTRUMENT_CHANGE -> host.notAvailable("Change all the instrument occurences (B7)");
 		case INSTRUMENT_RENUMBERALLINSTRUMENTS -> host.notAvailable("Renumber all instruments (B7)");
-		case INSTR_LOAD -> host.notAvailable("Load instrument from file (B7)");
-		case INSTR_SAVE -> host.notAvailable("Save instrument as (B7)");
+		case INSTR_LOAD -> songFiles.fileInstrumentLoad();
+		case INSTR_SAVE -> songFiles.fileInstrumentSave();
 		case INSTRUMENT_CLEARALLUNUSEDINSTRUMENTS -> {
 			stop();
 			if (!askYes("Clear unused instruments", "Are you sure you want to delete all unused instruments in any tracks?")) {
@@ -387,8 +420,8 @@ public final class RmtCommands {
 			info("Expand loops", "Found and expanded loops in " + r.tracksModified() + " tracks (" + r.beatsOrLoops() + " beats/lines).");
 		}
 		case TRACK_RENUMBERALLTRACKS -> host.notAvailable("Renumber all tracks (B7)");
-		case TRACK_LOAD -> host.notAvailable("Load track from file (B7)");
-		case TRACK_SAVE -> host.notAvailable("Save track as (B7)");
+		case TRACK_LOAD -> songFiles.fileTrackLoad();
+		case TRACK_SAVE -> songFiles.fileTrackSave();
 		case TRACK_CLEARALLDUPLICATEDTRACKS -> {
 			stop();
 			if (!askYes("Clear all duplicated tracks", "Are you sure you want to clear all duplicated tracks and adjust song?")) {
@@ -460,7 +493,7 @@ public final class RmtCommands {
 		// --- Help ---
 		case HELP -> host.notAvailable("Local help (B9)");
 		case CONTEXT_HELP -> browse(ONLINE_HELP_URL);
-		case HELP_ABOUT_APP -> host.notAvailable("About (B7)");
+		case HELP_ABOUT_APP -> host.showAbout();
 
 		case MIDIONOFF -> {
 			// never enabled - no MIDI
@@ -542,7 +575,7 @@ public final class RmtCommands {
 		int activeTrack = song.songGetActiveTrack();
 
 		return switch (id) {
-		case FILE_REOPEN -> !song.getFilename().isEmpty(); // FileCanBeReloaded
+		case FILE_REOPEN -> songFiles.fileCanBeReloaded();
 		case FILE_PRINT, FILE_PRINT_PREVIEW, FILE_PRINT_SETUP, FILE_PROPERTIES -> false;
 		case EDIT_UNDO -> session.undo.getUndoSteps() > 0;
 		case EDIT_REDO -> session.undo.getRedoSteps() > 0;
