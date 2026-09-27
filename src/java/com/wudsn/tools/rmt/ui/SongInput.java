@@ -60,6 +60,13 @@ public final class SongInput {
 		this.insertCopyOrCloneAction = insertCopyOrCloneAction;
 	}
 
+	/** Ctrl+F's {@code BlockEffect()} dialog with its undo bookkeeping ({@link SongDialogs#blockEffectFromKey}); nothing happens without one. */
+	private Runnable blockEffectAction;
+
+	public void setBlockEffectAction(Runnable blockEffectAction) {
+		this.blockEffectAction = blockEffectAction;
+	}
+
 	// --- key tables (Keyboard2NoteMapping is indexed by the raw 0..255 VK byte) ---
 
 	private int noteKey(int vk) {
@@ -1802,8 +1809,8 @@ public final class SongInput {
 			break;
 
 		case VK_F:
-			if (control && !shift && isBlockSelected()) {
-				// B7: g_TrackClipboard.BlockEffect() - the Block Effects dialog (with g_Undo.DropLast() on cancel)
+			if (control && !shift && isBlockSelected() && blockEffectAction != null) {
+				blockEffectAction.run(); // g_Undo.ChangeTrack(...); if (!g_TrackClipboard.BlockEffect()) g_Undo.DropLast();
 			}
 			break;
 

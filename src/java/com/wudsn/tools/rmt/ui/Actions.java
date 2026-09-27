@@ -241,6 +241,10 @@ public final class Actions extends NLS {
 	public static Action ExportDialog_CopyToClipboard;
 	public static Action InstrumentChangeDialog_DefaultRanges;
 	public static Action InstrumentChangeDialog_AllInstruments;
+	public static Action BlockEffectDialog_Try;
+	public static Action BlockEffectDialog_Restore;
+	public static Action BlockEffectDialog_PlayStop;
+	public static Action BlockEffectDialog_Default;
 
 	static {
 		initializeClass(Actions.class, null);

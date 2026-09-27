@@ -63,6 +63,7 @@ public final class Texts extends NLS {
 	public static String ChangeMaxTrackLengthDialog_Title;
 	public static String RenumberTracksDialog_Title;
 	public static String RenumberInstrumentsDialog_Title;
+	public static String BlockEffectDialog_Title;
 
 	// MFC's DDV_MinMaxInt/DDV_MinMaxDouble/DDX_Text messages (AFX_IDP_PARSE_*)
 	/** "Please enter an integer between {0} and {1}." */

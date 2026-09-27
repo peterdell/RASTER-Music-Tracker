@@ -49,6 +49,8 @@ public final class RmtSession {
 	public final RmtOptions options = new RmtOptions();
 	/** The import/export dialogs' remembered choices ({@code g_rmtstripped_*}, {@code g_rmtmsxtext}, ...). */
 	public final ExportSettings exportSettings = new ExportSettings();
+	/** The Effects/tools dialog's remembered effect and parameters ({@code g_effai}, {@code eff_ed}). */
+	public final com.wudsn.tools.rmt.model.BlockEffects.Settings blockEffectSettings = new com.wudsn.tools.rmt.model.BlockEffects.Settings();
 
 	/** {@code g_tracks4_8}: 4 (mono) or 8 (stereo). */
 	public int tracks4_8;

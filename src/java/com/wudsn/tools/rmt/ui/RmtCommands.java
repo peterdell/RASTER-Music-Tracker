@@ -465,7 +465,7 @@ public final class RmtCommands {
 		case BLOCK_CUT -> songInput.trackKey(VirtualKey.VK_X, false, true); // Ctrl+X
 		case BLOCK_DELETE -> songInput.trackKey(VirtualKey.VK_DELETE, false, true); // Del
 		case BLOCK_EXCHANGE -> songInput.trackKey(VirtualKey.VK_E, false, true); // Ctrl+E
-		case BLOCK_APPLY_EFFECTS -> host.notAvailable("Block Effects/Tools (B7)");
+		case BLOCK_APPLY_EFFECTS -> songDialogs.blockEffectFromKey(); // OnBlockEffect: TrackKey(70, 0, 1) = Ctrl+F
 		case BLOCK_SELECTALL -> songInput.trackKey(VirtualKey.VK_A, false, true); // Ctrl+A
 		case BLOCK_TRANSPOSE_NOTES_UP -> clipboard.blockNoteTransposition(song.getActiveInstr(), 1, session.tracks);
 		case BLOCK_TRANSPOSE_NOTES_DOWN -> clipboard.blockNoteTransposition(song.getActiveInstr(), -1, session.tracks);

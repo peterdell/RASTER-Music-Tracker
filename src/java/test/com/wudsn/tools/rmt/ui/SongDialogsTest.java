@@ -172,6 +172,38 @@ class SongDialogsTest {
 	}
 
 	@Test
+	void blockEffectNeedsABlockAndKeepsOneUndoStepOnlyWhenApplied() {
+		host.tracks = session.tracks;
+		dialogs.blockEffectFromKey(); // no block selected
+		assertTrue(host.calls.isEmpty());
+
+		session.clipboard.blockSetBegin(0, session.song.getSong()[0][0], 0, session.tracks, session.song);
+		session.clipboard.blockSetEnd(4, session.tracks);
+		assertTrue(session.clipboard.isBlockSelected());
+		int track = session.song.getSong()[0][0];
+		int[] before = session.tracks.getTrack(track).volume.clone();
+		int undoBefore = session.undo.getUndoSteps();
+
+		host.nextBlockEffect = null; // cancelled
+		dialogs.blockEffectFromKey();
+		assertEquals(1, host.calls.size());
+		assertTrue(host.calls.get(0).startsWith("blockEffect:0:4:"), host.calls.get(0));
+		assertEquals("Changes will be provided for all data in the block", host.lastBlockEffectInfo);
+		assertEquals(undoBefore, session.undo.getUndoSteps()); // DropLast
+		assertEquals(before[0], session.tracks.getTrack(track).volume[0]);
+
+		host.nextBlockEffect = 5; // volume set: everything to 3
+		host.nextBlockEffectParams = new String[] { "0", "15", "3" };
+		dialogs.blockEffectFromKey();
+		assertEquals(undoBefore + 1, session.undo.getUndoSteps());
+		for (int line = 0; line <= 4; line++) {
+			if (before[line] >= 0) {
+				assertEquals(3, session.tracks.getTrack(track).volume[line]);
+			}
+		}
+	}
+
+	@Test
 	void monoStereoSwitchGoesThroughTheModelsQuestionAndTellsTheHost() {
 		assertEquals(4, session.tracks4_8);
 		messages.answer = MessageAnswer.CANCEL;

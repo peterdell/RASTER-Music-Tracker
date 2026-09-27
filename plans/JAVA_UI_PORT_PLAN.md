@@ -259,8 +259,10 @@ shows anything, `plans/NOTES.md` entry, ask before committing.
     tracks/instruments, channels selection, change max track length,
     mono/stereo switch, instrument info box) and their seven dialogs.
     Details in `NOTES.md`.
-  - **B7d - block effects.** `BlockEffect` (dialog + its logic together,
-    since C++ has no separable core).
+  - **B7d - block effects. DONE 2026-09-27.** The logic separated after
+    all: model `BlockEffects.perform()` (tested) + UI `BlockEffectDialog`;
+    `SongDialogs.blockEffect()`/`blockEffectFromKey()` for Ctrl+F and the
+    Block menu. Details in `NOTES.md`.
 - **B8 - audio (DECISION 4).** Scope depends on the decision; see below.
 - **B9 - packaging & polish.** `maven-shade-plugin` fat jar + launcher
   (as dis6502), `/SCRIPT`-style command line, unsaved-changes prompts on

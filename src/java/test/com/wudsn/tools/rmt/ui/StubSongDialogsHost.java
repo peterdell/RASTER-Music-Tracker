@@ -57,4 +57,24 @@ final class StubSongDialogsHost implements SongDialogs.Host {
 	public void songLayoutChanged() {
 		layoutChangedCount++;
 	}
+
+	/** What the stub "dialog" does to the track: {@code null} cancels (restoring the original), otherwise the effect index applied with these parameters and OK. */
+	Integer nextBlockEffect;
+	String[] nextBlockEffectParams = { "", "", "" };
+	String lastBlockEffectInfo;
+
+	@Override
+	public boolean showBlockEffect(com.wudsn.tools.rmt.model.Track track, com.wudsn.tools.rmt.model.Track original, int bfro, int bto, int ainstr, boolean all, String info) {
+		calls.add("blockEffect:" + bfro + ":" + bto + ":" + ainstr + ":" + all);
+		lastBlockEffectInfo = info;
+		if (nextBlockEffect == null) {
+			track.copyFrom(original); // OnCancel -> OnEffectRestore
+			return false;
+		}
+		com.wudsn.tools.rmt.model.BlockEffects.perform(track, original, nextBlockEffect, bfro, bto, ainstr, all, nextBlockEffectParams[0], nextBlockEffectParams[1], nextBlockEffectParams[2], tracks, new java.util.Random(1));
+		return true;
+	}
+
+	/** The tracks the stub's "dialog" applies the effect with. */
+	com.wudsn.tools.rmt.model.Tracks tracks;
 }

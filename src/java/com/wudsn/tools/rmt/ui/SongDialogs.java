@@ -52,6 +52,9 @@ public final class SongDialogs {
 
 		/** {@code OnGetMinMaxInfo}'s input changed (the mono/stereo switch). */
 		void songLayoutChanged();
+
+		/** {@code CEffectsDlg}: works on the live {@code track} (restoring {@code original} on cancel); returns whether OK was pressed. */
+		boolean showBlockEffect(Track track, Track original, int bfro, int bto, int ainstr, boolean all, String info);
 	}
 
 	private final RmtSession session;
@@ -244,5 +247,33 @@ public final class SongDialogs {
 	/** {@code Instruments.INSTRSNUM} for the dialogs' combo boxes. */
 	static int instrumentCount() {
 		return Instruments.INSTRSNUM;
+	}
+
+	/** {@code CTrackClipboard::BlockEffect()}: the Effects/tools dialog on the selected block's track; {@code false} if there is no block or the dialog was cancelled. */
+	public boolean blockEffect() {
+		var clipboard = session.clipboard;
+		Track td = session.tracks.getTrack(clipboard.getSelTrack());
+		if (td == null || !clipboard.isBlockSelected() || !clipboard.isTrackSelected()) {
+			return false;
+		}
+		var fromTo = clipboard.getFromTo();
+		int bfro = fromTo.from();
+		int bto = Math.min(fromTo.to(), td.len - 1);
+		int ainstr = session.song.getActiveInstr();
+		Track original = new Track();
+		original.copyFrom(td);
+		String info = clipboard.isAll() ? "Changes will be provided for all data in the block" : String.format("Changes will be provided for data making use of instrument %02X only", ainstr);
+		return host.showBlockEffect(td, original, bfro, bto, ainstr, clipboard.isAll(), info);
+	}
+
+	/** {@code TrackKey}'s Ctrl+F (and {@code OnBlockEffect}, which sends that key): one undo step for the track, dropped again if the dialog was cancelled. */
+	public void blockEffectFromKey() {
+		if (!session.clipboard.isBlockSelected()) {
+			return;
+		}
+		session.undo.changeTrack(session.song.songGetActiveTrack(), session.song.getActiveLine(), UndoType.UETYPE_TRACKDATA, 1);
+		if (!blockEffect()) {
+			session.undo.dropLast();
+		}
 	}
 }

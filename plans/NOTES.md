@@ -4292,4 +4292,32 @@ build clean and all 123 tests pass.
       (`insert-copy-clone`, `tracks-order`, `instrument-change`,
       `renumber-instruments`, `renumber-tracks`,
       `change-max-track-length`).
-    - 539 tests (+7: `SongDialogsTest`), no regressions.
+    - 539 tests (+7: `SongDialogsTest`), no regressions. Committed as
+      `2462f39`.
+  - **2026-09-27**: Phase B, batch B7d (block effects) - the last B7
+    sub-batch. C++ keeps the six effects' arithmetic inside
+    `CEffectsDlg::PerformEffect()` (which is why the plan expected "dialog
+    + its logic together"); the port separates them: model
+    `BlockEffects.perform()` (fade in/out, modify, echo, expand/shrink,
+    volume humanize, volume set/remove, plus `parseChPar` =
+    `ZpracujChPar`; `rand() % 1000` becomes an injected `Random`) with
+    `BlockEffectsTest` deriving each effect by hand from the C++
+    arithmetic, and UI `BlockEffectDialog` (`IDD_EFFECTS`: the effect
+    combo with the three prompts/fields, Try/Restore/Play-Stop/Default,
+    OK applies and remembers the effect, Cancel restores; the dialog works
+    on the live track from a copy of the original, as C++'s
+    `m_trackptr`/`m_trackorig`). `SongDialogs.blockEffect()` is
+    `CTrackClipboard::BlockEffect()` (block clamped to the track length,
+    the "all data" / "instrument xx only" info), `blockEffectFromKey()` the
+    Ctrl+F path with its undo step dropped on cancel - reached from
+    `SongInput` (Ctrl+F) and `BLOCK_APPLY_EFFECTS` (`OnBlockEffect`, which
+    sends Ctrl+F in C++). `BlockEffects.Settings` on the session holds
+    `g_effai`/`eff_ed`. Play/Stop sets the block play mode; audible from
+    B8 on.
+    - Live-checked: the dialog opened on Delta.rmt through a scratch
+      preview class and compared with `block-effects.png`.
+    - 547 tests (+8: `BlockEffectsTest` 7, `SongDialogsTest` 1), no
+      regressions. With this, every command of `IDR_MAIN_WINDOW` is wired
+      except the printing commands (MFC's own), "Open ASAP file" (B8's
+      player), local help (B9) and the MIDI/Pokey-explorer ones (not
+      ported).

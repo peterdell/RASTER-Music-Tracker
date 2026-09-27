@@ -68,6 +68,7 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 		this.commands = new RmtCommands(session, trackerPanel.getSongInput(), this, new SongFiles(session, this), songDialogs);
 		trackerPanel.setSongDialogs(songDialogs);
 		trackerPanel.getSongInput().setInsertCopyOrCloneAction(songDialogs::insertCopyOrCloneOfSongLines);
+		trackerPanel.getSongInput().setBlockEffectAction(songDialogs::blockEffectFromKey);
 		this.mainMenu = new RmtMainMenu(this::executeCommand);
 		this.toolBars = new RmtToolBars(mainMenu, this::executeCommand, this::skipLinesSelected);
 
@@ -426,6 +427,11 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 	@Override
 	public void songLayoutChanged() {
 		updateMinimumSize();
+	}
+
+	@Override
+	public boolean showBlockEffect(com.wudsn.tools.rmt.model.Track track, com.wudsn.tools.rmt.model.Track original, int bfro, int bto, int ainstr, boolean all, String info) {
+		return new BlockEffectDialog(getFrame(), session, track, original, bfro, bto, ainstr, all, info).showDialog();
 	}
 
 	/** Shows the window and starts the display timer ({@code CRmtApp::InitInstance()}'s {@code ShowWindow} plus {@code CRmtView::OnInitialUpdate()}'s {@code SetTimer}). */
