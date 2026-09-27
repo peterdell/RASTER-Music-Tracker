@@ -4969,3 +4969,11 @@ build clean and all 123 tests pass.
     The user-facing entries since the port started moved to their own
     section of `doc/rmt_changes.md` ("Changes in RMT 1.35 since the start
     of the Java port"), the file's mixed line endings normalised.
+  - **2026-09-28**: the GitHub release workflow's Linux and macOS jobs
+    failed (run 36358858017, a manual test build of 2026-09-27): two test
+    assumptions of the Windows machine. `RmtCommandLineTest` passed a
+    backslash path literal, no separator on Linux/macOS - now the
+    platform's separator. `RmtMainMenuTest` looked accelerators up with
+    Ctrl, while the actions use WUDSN Base's `KeyStroke.M1` - Command on
+    macOS (Ctrl on Windows and Linux) - now M1 too; that was the macOS-only
+    part. The Windows job had passed.

@@ -15,7 +15,10 @@ import javax.swing.KeyStroke;
 
 import org.junit.jupiter.api.Test;
 
-/** The menu bar and toolbars are built headless (no window needed); this checks structure, accelerator lookup and state updates. */
+/**
+ * The menu bar and toolbars are built headless (no window needed); this checks structure, accelerator lookup and state updates. The command modifier is
+ * WUDSN Base's {@code KeyStroke.M1} - Ctrl on Windows and Linux, Command on macOS - so the lookups use it too (the macOS build failed on Ctrl).
+ */
 class RmtMainMenuTest {
 
 	@Test
@@ -32,7 +35,7 @@ class RmtMainMenuTest {
 			}
 			assertFalse(menu.getButtons(id).isEmpty(), id + " has no menu item or toolbar button");
 		}
-		assertEquals(RmtCommandId.SONG_TOGGLE_NTSC, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F12, InputEvent.CTRL_DOWN_MASK)));
+		assertEquals(RmtCommandId.SONG_TOGGLE_NTSC, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F12, com.wudsn.tools.base.gui.KeyStroke.M1)));
 		assertEquals(17 + 7 + 1, toolBars.mainToolBar.getComponentCount()); // 17 buttons, 7 separators, the combo box
 		assertEquals(10 + 3, toolBars.blockToolBar.getComponentCount());
 		assertEquals(8, menu.getButtons(RmtCommandId.POKEY_REGISTER_INCREASE_BY_01).size()); // the 8 register submenus share the 4 register commands
@@ -45,7 +48,7 @@ class RmtMainMenuTest {
 	void realAcceleratorsAreFoundAndHintOnlyOnesAreNot() {
 		RmtMainMenu menu = new RmtMainMenu(id -> {
 		});
-		assertEquals(RmtCommandId.EDIT_UNDO, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK)));
+		assertEquals(RmtCommandId.EDIT_UNDO, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, com.wudsn.tools.base.gui.KeyStroke.M1)));
 		assertEquals(RmtCommandId.PART_TRACKS, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0)));
 		assertEquals(RmtCommandId.PART_INFO, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.SHIFT_DOWN_MASK)));
 		assertEquals(RmtCommandId.SONG_STOP, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0)));
@@ -55,14 +58,14 @@ class RmtMainMenuTest {
 		assertNull(menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK)));
 		// Alt+Enter and Ctrl+Shift+S are real accelerators since 2026-09-27 (the labels had promised them without a table entry)
 		assertEquals(RmtCommandId.FILE_PROPERTIES, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.ALT_DOWN_MASK)));
-		assertEquals(RmtCommandId.FILE_SAVE_AS, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)));
+		assertEquals(RmtCommandId.FILE_SAVE_AS, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, com.wudsn.tools.base.gui.KeyStroke.M1 | InputEvent.SHIFT_DOWN_MASK)));
 		assertEquals(RmtCommandId.HELP, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0))); // F1 opens the help (a label hint only, without a binding, until 2026-09-28)
 		// Ctrl+U is TrackKey's/SongKey's own key, shown in the Song menu only as a hint
-		assertNull(menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK)));
-		assertNull(menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK)));
+		assertNull(menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, com.wudsn.tools.base.gui.KeyStroke.M1)));
+		assertNull(menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, com.wudsn.tools.base.gui.KeyStroke.M1)));
 		// but the item still displays it
 		JMenuItem deleteLine = (JMenuItem) menu.getButtons(RmtCommandId.SONG_DELETEACTUALLINE).get(0);
-		assertEquals(KeyStroke.getKeyStroke(KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK), deleteLine.getAccelerator());
+		assertEquals(KeyStroke.getKeyStroke(KeyEvent.VK_U, com.wudsn.tools.base.gui.KeyStroke.M1), deleteLine.getAccelerator());
 	}
 
 	@Test

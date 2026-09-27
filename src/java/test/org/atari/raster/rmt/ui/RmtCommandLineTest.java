@@ -13,7 +13,7 @@ class RmtCommandLineTest {
 
 	@Test
 	void theFirstPlainParameterIsTheFileToOpen() {
-		RmtCommandLine.Result r = RmtCommandLine.parse(new String[] { "songs\\Delta.rmt", "ignored.rmt" });
+		RmtCommandLine.Result r = RmtCommandLine.parse(new String[] { "songs" + java.io.File.separator + "Delta.rmt", "ignored.rmt" }); // the platform's separator - a backslash is none on Linux/macOS, where the GitHub builds failed on it
 		assertEquals(Path.of("songs", "Delta.rmt"), r.file());
 		assertNull(r.rejection());
 	}
