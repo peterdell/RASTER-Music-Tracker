@@ -1761,8 +1761,10 @@ known-unported, real, meaningful C++ behavior left.
   for byte through the scripts in `test-resources/scripts`
   (`build/compare_exports.ps1`, `CrossProgramExportTest`) - the strongest
   end-to-end port test there is; its first run found four port bugs.
-- **Next**: no open port batch. Findings of the comparison, and any
-  further feature parity work, get their own plan.
+- **Next**: documentation generation (`plans/DOC_GENERATION_PLAN.md`,
+  proposal): Markdown stays the source, both distributions get generated
+  HTML, and the command/menu table is extracted by the build through a
+  `dump actions` script command in both programs.
 
 `BlockEffect`, the `FileXxx` dialog family, and `TimerRoutine`/hardware-
 timer methods stay permanently deferred per their own already-documented
