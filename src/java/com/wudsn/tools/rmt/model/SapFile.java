@@ -144,6 +144,39 @@ public final class SapFile {
 		this.playerAddress = playerAddress;
 	}
 
+	public void setFastplay(int fastplay) {
+		this.fastplay = fastplay;
+	}
+
+	public int getFastplay() {
+		return fastplay;
+	}
+
+	/**
+	 * {@code CSAPFile::Init(song)}: author "???", the song's name, the date
+	 * (C++'s {@code CTime::GetCurrentTime().Format("%d/%m/%Y")} - passed in
+	 * so tests are deterministic), stereo/NTSC, and FASTPLAY for instrument
+	 * speeds above 1; then normalized.
+	 */
+	public void init(Song song, int tracks4_8, String date) {
+		author = "???";
+		name = song.getName();
+		this.date = date;
+		stereo = song.isStereo(tracks4_8);
+		ntsc = song.isNTSC();
+		if (song.getInstrumentSpeed() > 1) {
+			fastplay = switch (song.getInstrumentSpeed()) {
+			case 2 -> ntsc ? 131 : 156;
+			case 3 -> ntsc ? 87 : 104;
+			case 4 -> ntsc ? 66 : 78;
+			default -> ntsc ? 262 : 312;
+			};
+		} else {
+			fastplay = 0;
+		}
+		normalize();
+	}
+
 	public void normalize() {
 		author = normalize(author);
 		name = normalize(name);

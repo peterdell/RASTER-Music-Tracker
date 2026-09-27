@@ -249,10 +249,11 @@ shows anything, `plans/NOTES.md` entry, ask before committing.
     `WarnUnsavedChanges` incl. on exit) on `JFileChooser` (as dis6502, not
     WUDSN `FileChooser`), `FileNewDialog`, `TracksLoadDialog`, About
     (ASAP credits). Details in `NOTES.md`.
-  - **B7b - import/export.** `FileImport` (MOD/TMC dialogs + finished
-    boxes), `FileExportAs` (stripped RMT, ASM, SAP-R, LZSS, SAP, XEX,
-    relocatable ASM, WAV dialogs) -> the already-ported importers/
-    `*Apply()`/exporters.
+  - **B7b - import/export. DONE 2026-09-27.** `SongFiles.fileImport`/
+    `fileExportAs`/`exportV2` (MOD/TMC dialogs + finished boxes; stripped
+    RMT, ASM, SAP-R, LZSS, SAP, XEX, relocatable ASM, WAV dialogs) -> the
+    already-ported importers/`*Apply()`/exporters; `ExportSettings` for
+    the remembered choices. Details in `NOTES.md`.
   - **B7c - editing dialogs.** Instrument change, tracks order,
     insert/clone song lines, renumber tracks/instruments, channels
     selection, change max track length, mono/stereo switch, instrument

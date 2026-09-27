@@ -203,8 +203,8 @@ public final class RmtCommands {
 		case FILE_REOPEN -> songFiles.fileReload();
 		case FILE_SAVE -> onFileSave();
 		case FILE_SAVE_AS -> songFiles.fileSaveAs();
-		case FILE_IMPORT -> host.notAvailable("Import (B7)");
-		case FILE_EXPORT -> host.notAvailable("Export (B7)");
+		case FILE_IMPORT -> songFiles.fileImport();
+		case FILE_EXPORT -> songFiles.fileExportAs();
 		case FILE_PRINT, FILE_PRINT_PREVIEW, FILE_PRINT_SETUP, FILE_PROPERTIES -> host.notAvailable("Printing");
 		case FILE_EXIT -> host.exit();
 

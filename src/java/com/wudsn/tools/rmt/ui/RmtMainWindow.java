@@ -170,13 +170,22 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host {
 		getFrame().setMinimumSize(new Dimension(session.tracks4_8 == 8 ? 1120 : 800, 600));
 	}
 
+	/** {@code FileImport()}'s "Imported ..." window text, until {@link #updateTitle} has a reason to replace it. */
+	private String importedTitle;
+
 	/** {@code CSong::SetRMTTitle()}: the file name (or the version text for an unnamed song), with " *" appended once there are unsaved changes. */
 	public void updateTitle() {
 		String filename = session.song.getFilename();
 		String title;
 		if (filename.isEmpty()) {
-			title = session.uiState.changes ? "Noname *" : VERSION_AND_BUILD;
+			if (importedTitle != null && !session.uiState.changes) {
+				title = importedTitle; // C++ only overwrites "Imported ..." on the next SetRMTTitle (an edit's "Noname *", a load, ...)
+			} else {
+				importedTitle = null;
+				title = session.uiState.changes ? "Noname *" : VERSION_AND_BUILD;
+			}
 		} else {
+			importedTitle = null;
 			title = session.uiState.changes ? filename + " *" : filename;
 		}
 		if (!title.equals(getFrame().getTitle())) {
@@ -322,6 +331,61 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host {
 	@Override
 	public int showTracksLoad(int trackFrom, int trackNum) {
 		return new TracksLoadDialog(getFrame(), trackFrom, trackNum).showDialog();
+	}
+
+	/** {@code SetWindowText("Imported " + fn)}: shown until the next {@code SetRMTTitle()} would change the title anyway (an edit, a load, a save). */
+	@Override
+	public void songImported(String fileName) {
+		importedTitle = "Imported " + fileName;
+		getFrame().setTitle(importedTitle);
+	}
+
+	@Override
+	public SongFiles.ImportModChoice showImportMod(String info, String radio1, String radio2) {
+		return new ImportModDialog(getFrame(), info, radio1, radio2).showDialog();
+	}
+
+	@Override
+	public SongFiles.ImportTmcChoice showImportTmc(String info) {
+		return new ImportTmcDialog(getFrame(), info).showDialog();
+	}
+
+	@Override
+	public boolean showImportFinished(boolean mod, String info) {
+		ExportSettings es = session.exportSettings;
+		ImportFinishedDialog dialog = new ImportFinishedDialog(getFrame(), mod, info, mod ? es.importModUnderstood : es.importTmcUnderstood);
+		boolean ok = dialog.showDialog();
+		if (mod) {
+			es.importModUnderstood = dialog.isUnderstood();
+		} else {
+			es.importTmcUnderstood = dialog.isUnderstood();
+		}
+		return ok;
+	}
+
+	@Override
+	public SongFiles.StrippedRmtChoice showExportStrippedRmt(SongFiles.ModuleDescription stripped, SongFiles.ModuleDescription withSfx, String filename) {
+		return new ExportStrippedRmtDialog(getFrame(), session, stripped, withSfx, filename).showDialog();
+	}
+
+	@Override
+	public SongFiles.AsmChoice showExportAsm() {
+		return new ExportAsmDialog(getFrame(), session.exportSettings.prefixForAllAsmLabels).showDialog();
+	}
+
+	@Override
+	public com.wudsn.tools.rmt.model.AsmFileExporter.RelocatableAsmExportParams showExportRelocatableAsm(SongFiles.ModuleDescription stripped, SongFiles.ModuleDescription withSfx) {
+		return new ExportRelocatableAsmDialog(getFrame(), session, stripped, withSfx).showDialog();
+	}
+
+	@Override
+	public SongFiles.SapChoice showExportSap(com.wudsn.tools.rmt.model.SapFile sapFile, String subsongs) {
+		return new ExportSapDialog(getFrame(), sapFile, subsongs).showDialog();
+	}
+
+	@Override
+	public SongFiles.XexChoice showExportXex(String text, String speedInfo) {
+		return new ExportXexDialog(getFrame(), session.exportSettings, text, speedInfo).showDialog();
 	}
 
 	/** Shows the window and starts the display timer ({@code CRmtApp::InitInstance()}'s {@code ShowWindow} plus {@code CRmtView::OnInitialUpdate()}'s {@code SetTimer}). */

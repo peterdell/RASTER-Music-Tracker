@@ -236,8 +236,8 @@ class RmtCommandsTest {
 
 	@Test
 	void unportedDialogsReportThemselvesInsteadOfDoingNothingSilently() {
-		commands.execute(RmtCommandId.FILE_IMPORT);
-		assertEquals(List.of("notAvailable:Import (B7)"), host.calls);
+		commands.execute(RmtCommandId.SONG_TRACKSORDERCHANGE);
+		assertEquals(List.of("notAvailable:Song columns' order change (B7)"), host.calls);
 		commands.execute(RmtCommandId.FILE_EXIT);
 		assertEquals("exit", host.calls.get(1));
 	}

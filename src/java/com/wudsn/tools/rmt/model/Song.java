@@ -2322,6 +2322,15 @@ public final class Song {
 		return ioType;
 	}
 
+	/** {@code m_lastExportIOType}: the format of the last export, preselected in the next export dialog; {@link #clearSong} resets it. */
+	public SongIOType getLastExportIOType() {
+		return lastExportIOType;
+	}
+
+	public void setLastExportIOType(SongIOType lastExportIOType) {
+		this.lastExportIOType = lastExportIOType;
+	}
+
 	/**
 	 * The tail of C++'s {@code CSong::FileOpen()} after a successful load:
 	 * remembers the file name and format and resets the current speed to the
@@ -3001,7 +3010,7 @@ public final class Song {
 	 * it. On failure it is whatever {@link #decodeModule} got to (-1 if it
 	 * never read a header).
 	 */
-	public record LoadRmtResult(boolean success, int tracks4_8) {
+	public record LoadRmtResult(boolean success, int tracks4_8, int moduleAddress) {
 	}
 
 	public LoadRmtResult loadRMT(byte[] data) {
@@ -3009,7 +3018,7 @@ public final class Song {
 
 		AtariIO.BinaryBlockResult mainBlock = AtariIO.loadBinaryBlock(data, 0, mem);
 		if (mainBlock.length() <= 0) {
-			return new LoadRmtResult(false, -1); // did not retrieve any data in the first block
+			return new LoadRmtResult(false, -1, 0); // did not retrieve any data in the first block
 		}
 
 		byte[] instrumentLoadedFlags = new byte[Instruments.INSTRSNUM];
@@ -3017,13 +3026,13 @@ public final class Song {
 		DecodeModuleResult decodeResult = decodeModule(mem, mainBlock.fromAddr(), mainBlock.toAddr() + 1, instrumentLoadedFlags, trackLoadedFlags);
 		int tracks4_8 = decodeResult.tracks4_8();
 		if (decodeResult.version() == 0) {
-			return new LoadRmtResult(false, tracks4_8); // bad RMT data format or old tracker version
+			return new LoadRmtResult(false, tracks4_8, 0); // bad RMT data format or old tracker version
 		}
 
 		// RMT - now read the second block with names
 		AtariIO.BinaryBlockResult namesBlock = AtariIO.loadBinaryBlock(data, mainBlock.inputBytesConsumed(), mem);
 		if (namesBlock.length() < 1) {
-			return new LoadRmtResult(true, tracks4_8); // stripped RMT module - song/instrument names are missing, not a failure
+			return new LoadRmtResult(true, tracks4_8, mainBlock.fromAddr()); // stripped RMT module - song/instrument names are missing, not a failure
 		}
 
 		// Parse the song name (until we hit the terminating zero)
@@ -3061,7 +3070,7 @@ public final class Song {
 			addrInstrumentNames += nameIdx + 1; // +1 is zero behind the name
 		}
 
-		return new LoadRmtResult(true, tracks4_8);
+		return new LoadRmtResult(true, tracks4_8, mainBlock.fromAddr()); // The main block of the module is OK => take its boot address (C++: g_rmtstripped_adr_module = fromAddr)
 	}
 
 	private static final int ATARI_MAX_INSTR_OR_TRACK_LENGTH = 256; // matches C++'s ATARI_MAX_INSTR_LENGTH/ATARI_MAX_TRACK_LENGTH (SongTypes.h) - both happen to be 256

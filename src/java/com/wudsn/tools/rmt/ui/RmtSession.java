@@ -47,6 +47,8 @@ public final class RmtSession {
 
 	public final UiState uiState = new UiState();
 	public final RmtOptions options = new RmtOptions();
+	/** The import/export dialogs' remembered choices ({@code g_rmtstripped_*}, {@code g_rmtmsxtext}, ...). */
+	public final ExportSettings exportSettings = new ExportSettings();
 
 	/** {@code g_tracks4_8}: 4 (mono) or 8 (stereo). */
 	public int tracks4_8;

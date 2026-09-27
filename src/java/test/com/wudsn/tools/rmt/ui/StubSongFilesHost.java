@@ -61,4 +61,88 @@ final class StubSongFilesHost implements SongFiles.Host {
 	public void songChanged() {
 		songChangedCount++;
 	}
+
+	String importedFileName;
+	SongFiles.ImportModChoice nextImportMod;
+	SongFiles.ImportTmcChoice nextImportTmc;
+	boolean importFinishedOk = true;
+	String lastImportInfo;
+	String lastFinishedInfo;
+	SongFiles.StrippedRmtChoice nextStrippedRmt;
+	SongFiles.AsmChoice nextAsm;
+	com.wudsn.tools.rmt.model.AsmFileExporter.RelocatableAsmExportParams nextRelocatableAsm;
+	SongFiles.SapChoice nextSap;
+	SongFiles.XexChoice nextXex;
+	SongFiles.ModuleDescription lastStripped;
+	SongFiles.ModuleDescription lastWithSfx;
+	com.wudsn.tools.rmt.model.SapFile lastSapFile;
+	String lastSapAuthor;
+	String lastSubsongs;
+	String lastXexText;
+	String lastSpeedInfo;
+
+	@Override
+	public void songImported(String fileName) {
+		importedFileName = fileName;
+	}
+
+	@Override
+	public SongFiles.ImportModChoice showImportMod(String info, String radio1, String radio2) {
+		calls.add("importMod:" + radio1 + "|" + radio2);
+		lastImportInfo = info;
+		return nextImportMod;
+	}
+
+	@Override
+	public SongFiles.ImportTmcChoice showImportTmc(String info) {
+		calls.add("importTmc");
+		lastImportInfo = info;
+		return nextImportTmc;
+	}
+
+	@Override
+	public boolean showImportFinished(boolean mod, String info) {
+		calls.add("importFinished:" + (mod ? "mod" : "tmc"));
+		lastFinishedInfo = info;
+		return importFinishedOk;
+	}
+
+	@Override
+	public SongFiles.StrippedRmtChoice showExportStrippedRmt(SongFiles.ModuleDescription stripped, SongFiles.ModuleDescription withSfx, String filename) {
+		calls.add("exportStrippedRmt");
+		lastStripped = stripped;
+		lastWithSfx = withSfx;
+		return nextStrippedRmt;
+	}
+
+	@Override
+	public SongFiles.AsmChoice showExportAsm() {
+		calls.add("exportAsm");
+		return nextAsm;
+	}
+
+	@Override
+	public com.wudsn.tools.rmt.model.AsmFileExporter.RelocatableAsmExportParams showExportRelocatableAsm(SongFiles.ModuleDescription stripped, SongFiles.ModuleDescription withSfx) {
+		calls.add("exportRelocatableAsm");
+		lastStripped = stripped;
+		lastWithSfx = withSfx;
+		return nextRelocatableAsm;
+	}
+
+	@Override
+	public SongFiles.SapChoice showExportSap(com.wudsn.tools.rmt.model.SapFile sapFile, String subsongs) {
+		calls.add("exportSap:" + sapFile.getType());
+		lastSapFile = sapFile;
+		lastSapAuthor = sapFile.getAuthor();
+		lastSubsongs = subsongs;
+		return nextSap;
+	}
+
+	@Override
+	public SongFiles.XexChoice showExportXex(String text, String speedInfo) {
+		calls.add("exportXex");
+		lastXexText = text;
+		lastSpeedInfo = speedInfo;
+		return nextXex;
+	}
 }

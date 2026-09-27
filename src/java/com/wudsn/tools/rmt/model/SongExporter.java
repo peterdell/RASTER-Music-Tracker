@@ -98,7 +98,7 @@ public final class SongExporter {
 	 * (this port's established "explicit array + offset" idiom for an
 	 * in-place buffer mutation).
 	 */
-	private static void strToAtariVideo(byte[] mem, int offset, int count) {
+	static void strToAtariVideo(byte[] mem, int offset, int count) {
 		for (int i = 0; i < count; i++) {
 			int a = mem[offset + i] & 0x7f;
 			if (a < 32) {

@@ -4207,4 +4207,55 @@ build clean and all 123 tests pass.
     - Live-checked: New Module, Load song file (filter preselected from
       the current format), About, the " *" title after an edit and the
       "Save current changes?" prompt on Alt+F4 (No exits).
-    - 522 tests (+13: `SongFilesTest` 13), no regressions.
+    - 522 tests (+13: `SongFilesTest` 13), no regressions. Committed as
+      `59f1e02`.
+  - **2026-09-27**: Phase B, batch B7b (import/export). `SongFiles` gained
+    `fileImport` (`FileImport()` + `ImportMOD()`/`ImportTMC()`'s dialog
+    wrappers around the ported `ModImporter`/`TmcImporter`, incl. the
+    abort-in-the-final-box path that restores an empty song of the
+    original size) and `fileExportAs` + `exportV2` (`FileExportAs()` +
+    `ExportV2()`: the module built first, then per format the dialog and
+    the ported exporter - stripped RMT, simple ASM, relocatable ASM for
+    RmtPlayer, SAP-R, LZSS (full file + `_INTRO`/`_LOOP` siblings, each
+    only above 16 bytes), SAP type B, XEX, WAV; the POKEY stream generated
+    once per export as `CSongContainer` does). C++ creates the output
+    file before the format dialog and deletes it with "Incomplete export
+    file ... was deleted." on any failure or cancel - reproduced. Eight
+    dialogs on WUDSN `ModalDialog`: `ImportModDialog` (radio texts per
+    channel count, the envelope box following the volume box),
+    `ImportTmcDialog`, `ImportFinishedDialog` (one class for both C++
+    ones; OK gated by the "I understand" box, remembered per session),
+    `ExportStrippedRmtDialog` (hex address clamped to fit, live RMT FEAT
+    block via `composeRMTFEATstring`, clipboard button, SFX-dependent
+    warning), `ExportAsmDialog` (three radio groups, 32-char prefix),
+    `ExportRelocatableAsmDialog` (label fields enabled by their boxes, live
+    size summary via `buildRelocatableAsm(..., wantSizeInfoOnly)` - the
+    same `$0038/$0160/$02fb/$001a` as the Rmt.exe capture),
+    `ExportSapDialog`, `ExportXexDialog` (5x40 text with the 40-column
+    preview and the SHIFT-key toggle, color scrollbar 1..127 with the PAL
+    hue names). `ExportSettings` on the session holds the C++ globals
+    these remember (`g_rmtstripped_*`, `g_AsmFormat`,
+    `g_PrefixForAllAsmLabels`, the relocatable labels, `g_rmtmsxtext` +
+    rasterbar options, the two "understood" flags, the last import
+    filter) with `ClearSong()`'s subset reset where C++ resets it and the
+    stripped address taken from a loaded module (`LoadRmtResult` now
+    carries it). "Imported ..." stays the window title until the next
+    `SetRMTTitle` reason, as in C++.
+    - Model additions: `SapFile.init(song, tracks4_8, date)`
+      (`CSAPFile::Init` incl. FASTPLAY), `XexFile.setDisplayedText`
+      (`ShowXEXExportDialog`'s screen-block fill + screen codes),
+      `Song.get/setLastExportIOType`, `LoadRmtResult.moduleAddress`.
+    - Deviations: the SAP dialog's date comes from `java.time` (same
+      `dd/MM/yyyy`); a driver-file or memory-overflow failure of the
+      SAP-B/XEX exporters (`IllegalStateException` in the model) shows one
+      "Export aborted" box with the exception's text instead of C++'s two
+      differently titled boxes; status-bar texts ("Generating stream data
+      ...", "Compressing data ...") are not shown; the WAV export renders
+      the loop-point frame count through ASAP (`WaveFileExporter`) rather
+      than the C++ POKEY renderer loop.
+    - Live-checked: Export song as... with the stripped RMT dialog (same
+      `$4000 - $44AE, length $04AF (1199 bytes)` as the reference), the
+      cancel path's "Export aborted" box, Import Song File's filters; the
+      other seven dialogs opened on Delta.rmt through a scratch preview
+      class and compared with the reference captures.
+    - 532 tests (+10: `ImportExportTest`), no regressions.

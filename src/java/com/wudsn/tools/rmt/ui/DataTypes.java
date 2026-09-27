@@ -44,6 +44,12 @@ public final class DataTypes extends NLS {
 	public static DataType FileNewDialog_Tracks = new DataType(String.class);
 	public static DataType FileNewDialog_NotesPerTrack = new DataType(Integer.class);
 
+	// ExportSapDialog (IDD_EXPORT_SAP_TYPE_R)
+	public static DataType ExportSapDialog_Title = new DataType(String.class);
+	public static DataType ExportSapDialog_Author = new DataType(String.class);
+	public static DataType ExportSapDialog_Date = new DataType(String.class);
+	public static DataType ExportSapDialog_Subsongs = new DataType(String.class);
+
 	// TuningDialog (IDD_TUNING)
 	public static DataType TuningDialog_BaseTuning = new DataType(Double.class);
 	public static DataType TuningDialog_BaseNote = new DataType(String.class);

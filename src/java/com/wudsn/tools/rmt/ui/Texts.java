@@ -43,6 +43,18 @@ public final class Texts extends NLS {
 	public static String AboutDialog_PokeyEmulation;
 	public static String AboutDialog_Cpu6502Emulation;
 
+	// Import dialogs (IDD_IMPORTMOD, IDD_IMPORTMODFINISHED, IDD_IMPORTTMC, IDD_IMPORTTMCFINISHED)
+	public static String ImportModDialog_Title;
+	public static String ImportModDialog_GroupType;
+	public static String ImportTmcDialog_Title;
+	public static String ImportTmcFinishedDialog_Title;
+
+	// Export dialogs (IDD_EXPORT_STRIPPED_RMT, IDD_EXPORT_ASM, IDD_EXPORT_RMTPLAYER_ASM, IDD_EXPMSX)
+	public static String ExportStrippedRmtDialog_Title;
+	public static String ExportAsmDialog_Title;
+	public static String ExportRelocatableAsmDialog_Title;
+	public static String ExportXexDialog_Title;
+
 	// MFC's DDV_MinMaxInt/DDV_MinMaxDouble/DDX_Text messages (AFX_IDP_PARSE_*)
 	/** "Please enter an integer between {0} and {1}." */
 	public static String Validation_IntegerRange;
