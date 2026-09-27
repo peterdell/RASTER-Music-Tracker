@@ -268,6 +268,7 @@ NNN TT vV FSS
 | `TAB` | Move cursor to the instrument parameters, the envelope parameters or the table parameters in succession |
 | `SHIFT+TAB` | Move cursor to the instrument name line. |
 | `0-F`, `CONTROL+LEFT`, `CONTROL+UP`, `CONTROL+RIGHT`, `CONTROL+DOWN`, `BACKSPACE`, `SPACE`, `DELETE` | Change parameter values (in valid ranges only). |
+| `HOME` | In the parameters: move cursor to the first parameter (ENVELOPE LENGTH). |
 | `SHIFT+CONTROL+UP`, `SHIFT+CONTROL+DOWN` | Change values for all steps of instrument envelope/table at cursor position. |
 | `SHIFT+CONTROL+numblock +`, `SHIFT+CONTROL+numblock -` | Change the L+R volume envelopes up/down. If the cursor is on the "VOLUME L" or "VOLUME R" line, only the volume envelope for either line will be changed. |
 

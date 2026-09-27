@@ -732,9 +732,6 @@
     <Text Include="..\..\doc\rmt_changes.md">
       <Filter>Documentation Files</Filter>
     </Text>
-    <Text Include="..\..\doc\keymappings.txt">
-      <Filter>Documentation Files</Filter>
-    </Text>
     <Text Include="..\..\doc\midi.txt">
       <Filter>Documentation Files</Filter>
     </Text>

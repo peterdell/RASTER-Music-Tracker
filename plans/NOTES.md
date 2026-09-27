@@ -4891,3 +4891,10 @@ build clean and all 123 tests pass.
     `Preferences.userNodeForPackage`, so the stored window position moves
     to a new node (one-time loss of the remembered position). CLAUDE.md
     notes the package.
+  - **2026-09-27**: `doc/keymappings.txt` removed (the user's decision
+    after a check): Vin Samuel's working notes of the 1.31 hotkey remap,
+    from which the manual's tables were once written (with the same errors
+    the code check corrected today); not shipped, referenced only as a
+    Visual Studio solution item (`Rmt.vcxproj` and its filters, entries
+    dropped). Its one row the manual lacked - HOME in the instrument
+    parameters moves to ENVELOPE LENGTH - added to the manual first.

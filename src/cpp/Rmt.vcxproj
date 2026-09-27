@@ -529,7 +529,6 @@
   <ItemGroup>
     <Text Include="..\..\build\build_rmt-daily-excluded-extensions.txt" />
     <Text Include="..\..\doc\rmt_changes.md" />
-    <Text Include="..\..\doc\keymappings.txt" />
     <Text Include="..\..\doc\midi.txt" />
     <Text Include="..\..\doc\optimization.txt" />
     <Text Include="..\..\doc\rmt_format.md" />
