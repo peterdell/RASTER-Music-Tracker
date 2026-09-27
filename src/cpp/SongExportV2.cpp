@@ -1,5 +1,7 @@
 #include "StdAfx.h"
 
+#include "GuiHelpers.h"
+
 #include "ASMFileExporter.h"
 #include "Atari.h"
 #include "PokeyRenderer.h"
@@ -53,6 +55,8 @@ extern CAtari g_Atari;
 /// <param name="filename">filename of the output</param>
 /// <returns>0 if the export failed, 1 if the export is ok</returns>
 bool CSong::ExportV2(CSong& song, std::ofstream& ou, SongIOType iotype, LPCTSTR filename) {
+    CExportSection section(song); // no input, no timer thread, no redraws until the export is done
+
     // Init the export data container
     TExportDescription exportDesc{};
     exportDesc.targetAddrOfModule = 0x4000; // Standard RMT modules are set to start @ $4000

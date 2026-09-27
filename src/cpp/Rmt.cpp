@@ -137,6 +137,26 @@ BOOL CRmtApp::InitInstance()
     CRmtCommandLineInfo cmdInfo;
     ParseCommandLine(cmdInfo);
 
+    // A script run keeps the window hidden - the register dump needs its
+    // message pump, not its pixels - unless RMT_SCRIPT_SHOW_WINDOW is set,
+    // which shows what the script does (for debugging, and for timing the
+    // exports as the window user sees them). MFC shows the frame itself
+    // while processing the shell command (CFrameWnd::ActivateFrame with
+    // m_nCmdShow, which CMainFrame::PreCreateWindow sets from the saved
+    // placement), so the decision is made here, before that, as m_nCmdShow.
+    bool showWindow = !cmdInfo.IsScriptFileSpecified();
+    if (!showWindow) {
+        char* show = nullptr;
+        size_t showLength = 0;
+        if (_dupenv_s(&show, &showLength, "RMT_SCRIPT_SHOW_WINDOW") == 0 && show != nullptr) {
+            showWindow = *show != 0 && *show != '0';
+            free(show);
+        }
+    }
+    if (!showWindow) {
+        m_nCmdShow = SW_HIDE;
+    }
+
     // Dispatch the standard commands specified on the command line.
     // Will return FALSE if the app was launched with /RegServer, /Register, /Unregserver or /Unregister.
     if (!ProcessShellCommand(cmdInfo))
@@ -145,13 +165,13 @@ BOOL CRmtApp::InitInstance()
     }
 
     // The one and only window has been initialized, so show and update it
-    // (a script run keeps it hidden - the register dump needs its message
-    // pump, not its pixels).
     auto mainFrame = (CMainFrame*)GetMainWnd();
     g_statusBar = &mainFrame->m_wndStatusBar;
-    if (!cmdInfo.IsScriptFileSpecified()) {
+    if (showWindow) {
         m_pMainWnd->ShowWindow(SW_SHOW);
         m_pMainWnd->UpdateWindow();
+    } else {
+        m_pMainWnd->ShowWindow(SW_HIDE);
     }
 
     // Initialize the random number based on the current time.

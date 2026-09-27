@@ -2161,10 +2161,14 @@ class SongEditingTest {
 		useRealAtari();
 		ChannelControl channelControl = new ChannelControl(4);
 		PokeyStream pokeyStream = new PokeyStream();
+		song.songSetActiveLine(1); // the dump plays from line 0 and must not move the cursor
+		song.setActiveLine(1);
 
 		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
 
 		assertEquals(PlayMode.PLAY_STOP, song.getPlayMode());
+		assertEquals(1, song.songGetActiveLine());
+		assertEquals(1, song.getActiveLine());
 		assertTrue(pokeyStream.getFirstCountPoint() > 0, "expected at least one frame before the loop point");
 
 		byte[] frames = pokeyStream.getFrameBytes(pokeyStream.getFirstCountPoint(), 0);

@@ -4056,6 +4056,8 @@ public final class Song {
 	 * registers stay zero, as in the C++ test build.
 	 */
 	public void dumpSongToPokeyStream(PokeyStream pokeyStream, PlayMode initialPlayMode, int songLine, int trackLine, int tracks4_8, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
+		int savedSongActiveLine = songActiveLine; // the dump plays from its own start line and must not move the cursor (as C++ since 2026-09-28)
+		int savedTrackActiveLine = trackActiveLine;
 		stop(undo); // Make sure RMT is stopped
 		atariTrackerDriver.init(); // Reset the RMT routines
 		channelControl.setAllChannelsOff();
@@ -4086,6 +4088,8 @@ public final class Song {
 
 		// End playback now, the SAP-R data should have been dumped successfully!
 		stop(undo);
+		songActiveLine = savedSongActiveLine;
+		trackActiveLine = savedTrackActiveLine;
 
 		// Deliberately NOT calling pokeyStream.finishedRecording() here, matching
 		// C++ exactly: CSong::DumpSongToPokeyStream() never calls

@@ -1803,6 +1803,8 @@ TEST_F(SongEditingTest, ExportAsRelocatableAsmForRmtPlayerApplyWritesToStream) {
 // of the fixture's already-stopped default, given how severe that failure
 // mode would be.
 
+extern long g_playtime;
+
 TEST_F(SongEditingTest, DumpSongToPokeyStreamRecordsFramesUntilTheSongLoops) {
     song.Stop(); // defensive - see CSongContainer hazard note above
 
@@ -1817,11 +1819,17 @@ TEST_F(SongEditingTest, DumpSongToPokeyStreamRecordsFramesUntilTheSongLoops) {
     g_Tracks.GetTrack(5)->note[0] = 10;
     g_Tracks.GetTrack(5)->instr[0] = 2;
     (*song.GetSongGo())[1] = 0; // songline 1 goes back to songline 0 - guarantees a fast loop
+    song.SongSetActiveLine(1); // the dump plays from line 0 and must not move the cursor (2026-09-28)
+    song.SetActiveLine(1);
+    g_playtime = 77;
 
     CSongContainer container(song);
     const CPokeyStream& stream = container.GetPokeyStream();
 
     EXPECT_FALSE(stream.IsRecording()); // finished and stopped, not still recording
+    EXPECT_EQ(song.SongGetActiveLine(), 1);
+    EXPECT_EQ(song.GetActiveLine(), 1);
+    EXPECT_EQ(g_playtime, 77);
     EXPECT_GT(stream.GetCurrentFrame(), 0);
     // Songline 1 is a pure GOTO pass-through (redirected back to 0 before it's
     // ever "landed on" by SongPlayNextLine()), so only songline 0 is ever

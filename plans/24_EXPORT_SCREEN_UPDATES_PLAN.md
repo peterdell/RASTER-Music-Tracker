@@ -1,7 +1,8 @@
 # Exports without screen updates (proposal)
 
 Status: **approved 2026-09-28** (decisions 1-3 as recommended, D and E
-later); E1 in progress. Origin: the user's
+later); **E1 DONE 2026-09-28** - A, B and C as proposed, measured
+(section 6). Origin: the user's
 observation that the C++ program updates the screen during exports,
 "probably due to reusing the UI logic/timer", which creates visual noise
 and slows the export down.
@@ -152,3 +153,46 @@ but it is a Java-only improvement and a separate batch.
    redraws.
 5. **E** the Java port's export on a worker thread with progress. *Later*
    (E3), if the frozen window during long exports bothers.
+
+## 6. E1 as built, and what the measurement showed
+
+- `RMT_SCRIPT_SHOW_WINDOW=1` (new, documented) shows the window during a
+  script run, so the interactive export could be timed without UI
+  automation; the script runners of both programs print the export time
+  ("Exported <file> (N ms)").
+- **Finding on the way**: the "hidden" script window was not always
+  hidden. MFC shows the frame itself while processing the shell command,
+  with the `m_nCmdShow` that `CMainFrame::PreCreateWindow` restores from
+  the saved window placement - so as soon as the program had once been
+  closed interactively, script runs showed the window (and painted, and
+  wrote a layout-dependent `g_cursoractview` into `.rmw` saves, which the
+  cross-program comparison caught). Fixed: `m_nCmdShow = SW_HIDE` before
+  the shell command for a script run, `PreCreateWindow` respects it.
+- **Timings** (stereo reference song, Release build, this machine; the
+  program's own export time, median of two runs; window shown):
+
+  | Export | before | after (A + B) |
+  |---|---|---|
+  | `sapr` (the dump alone) | 920 ms | 520 ms |
+  | `lzss` (dump + 8 compression passes) | 2 370 ms | 1 980 ms |
+  | `wav` (dump + rendering) | 1 560 ms | 1 170 ms |
+
+  Before and after, "hidden" and "shown" did not differ measurably - and
+  in the "before" runs both were in fact shown (see the finding), so the
+  redraws themselves cost little at this window size. The gain of about
+  400 ms per export comes from B: the song timer thread no longer renders
+  sound through the POKEY at 50 Hz beside the export. The visual noise was
+  confirmed by a screenshot during the export (the play time racing, the
+  song lines running, 49 frames per second in the debug display) and is
+  gone: the screen stands still, the status bar counts the frames.
+- A: `DumpSongToPokeyStream` without `RefreshScreen`, the status text every
+  250 ms by `GetTickCount`; `ExportLZSS` without its 8 redraws.
+- B: `CExportSection` (`GuiHelpers.h`) in `CSong::ExportV2` and in the
+  script runner's `Export`: window disabled, wait cursor, song timer
+  stopped; on leaving the timer re-armed, the status bar cleared, one
+  refresh. `DisableEventSection` and `ExportWAV`'s own `StopTimer`/
+  `ChangeTimer` removed.
+- C: the dump restores `m_songactiveline`, `m_trackactiveline` and
+  `g_playtime`; the Java dump restores the active lines and
+  `SongFiles.fileExportAs` the UI's play time. Tests in both programs.
+

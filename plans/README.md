@@ -37,4 +37,4 @@ look for what was done, why, and what was found).
 | 21 | [JAVA_SCRIPTING_PLAN](21_JAVA_SCRIPTING_PLAN.md) | The script feature of the Java port (S1-S3) | Done 2026-09-27 |
 | 22 | [CPP_SCRIPTING_PLAN](22_CPP_SCRIPTING_PLAN.md) | The same scripts in `Rmt.exe` and the cross-program export comparison (C1-C3) | Done 2026-09-27 |
 | 23 | [DOC_GENERATION_PLAN](23_DOC_GENERATION_PLAN.md) | Markdown as the documentation source, generated HTML, the command and note key tables from the programs (D1-D4) | Done 2026-09-27 |
-| 24 | [EXPORT_SCREEN_UPDATES_PLAN](24_EXPORT_SCREEN_UPDATES_PLAN.md) | The C++ exports redraw the whole screen up to 60 times a second: proposals for a quiet, faster export (E1-E3) | Proposal 2026-09-28 |
+| 24 | [EXPORT_SCREEN_UPDATES_PLAN](24_EXPORT_SCREEN_UPDATES_PLAN.md) | The C++ exports redraw the whole screen up to 60 times a second: proposals for a quiet, faster export (E1-E3) | E1 done 2026-09-28; E2/E3 later |

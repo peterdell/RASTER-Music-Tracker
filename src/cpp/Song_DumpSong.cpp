@@ -12,12 +12,19 @@ extern BOOL volatile g_rmtroutine;
 extern long g_playtime;
 
 /// <summary>
-/// Get the Pokey registers to be dumped to a stream buffer.
-/// GUI is disabled but MFC messages are being pumped, so the screen is updated
+/// Get the Pokey registers to be dumped to a stream buffer: the song is
+/// played in quick mode through the tracker driver until its loop point.
+/// Runs inside the caller's CExportSection (window disabled, timer stopped);
+/// the screen is not redrawn meanwhile - the song is in playback state and
+/// would show itself racing (plans/24_EXPORT_SCREEN_UPDATES_PLAN.md) - only
+/// the status bar reports the progress, a few times per second. The cursor
+/// and the play time are as before the dump afterwards.
 /// </summary>
-/// <returns></returns>
 void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, int songline, int trackline) {
     CString statusBarLog;
+    int savedSongActiveLine = m_songactiveline;
+    int savedTrackActiveLine = m_trackactiveline;
+    long savedPlayTime = g_playtime;
 
     Stop(); // Make sure RMT is stopped
     g_AtariTrackerDriver->Init(); // Reset the RMT routines
@@ -33,9 +40,9 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, 
     m_trackactiveline = trackline;
     Play(playMode, m_followplay);
 
-    // Wait in a tight loop pumping messages until the playback stops
+    // The recording loop, until the playback stops
     {
-        DisableEventSection section;
+        DWORD lastStatusTick = GetTickCount();
 
         // The SAP-R dumper is running during that time...
         while (m_play != PLAY_STOP) {
@@ -55,15 +62,13 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, 
                 pokeyStream.Record();
             }
 
-            // Update the screen only once every few frames
-            // Displaying everything in real time slows things down considerably!
-            if (!RefreshScreen(1)) {
-                continue;
+            // The number of frames dumped so far, a few times per second
+            DWORD now = GetTickCount();
+            if (now - lastStatusTick >= 250) {
+                lastStatusTick = now;
+                statusBarLog.Format("Generating Pokey stream, playing song in quick mode... %i frames recorded", pokeyStream.GetCurrentFrame());
+                SetStatusBarText(statusBarLog);
             }
-
-            // Display the number of frames dumped so far
-            statusBarLog.Format("Generating Pokey stream, playing song in quick mode... %i frames recorded", pokeyStream.GetCurrentFrame());
-            SetStatusBarText(statusBarLog);
         }
         g_AtariTrackerDriver->Init(); // Reset the RMT routines
 
@@ -72,6 +77,11 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, 
 
         // Deactivate stream recording.
         m_pokeyStream = nullptr;
+
+        // The dump leaves no traces: the cursor and the play time as before
+        m_songactiveline = savedSongActiveLine;
+        m_trackactiveline = savedTrackActiveLine;
+        g_playtime = savedPlayTime;
 
         statusBarLog.Format("Done... %i frames recorded in total, Loop point found at frame %i", pokeyStream.GetCurrentFrame(), pokeyStream.GetFirstCountPoint());
         SetStatusBarText(statusBarLog);

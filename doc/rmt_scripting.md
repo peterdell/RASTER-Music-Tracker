@@ -133,6 +133,7 @@ different outputs, without editing it:
 |---|---|---|
 | `RMT_SCRIPT_OUTPUT=<folder>` | both | The output folder for every `save`/`export`; overrides the script's `set output`. |
 | `RMT_SCRIPT_LOG=<file>` | Windows | Writes the messages to this file instead of the console or `<script>.log`. |
+| `RMT_SCRIPT_SHOW_WINDOW=1` | Windows | Shows the window during the script run (normally it stays hidden), to watch what a script does. |
 
 ## Comparing the two programs
 

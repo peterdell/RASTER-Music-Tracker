@@ -6,6 +6,7 @@
 #include "AtariTrackerDriver.h"
 #include "Commands.h"
 #include "Global.h"
+#include "GuiHelpers.h"
 #include "Keyboard2NoteMapping.h"
 #include "Messages.h"
 #include "RmtExporter.h"
@@ -18,6 +19,7 @@
 #include "TrackerDriverVersion.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cstdio>
 #include <fstream>
 #include <io.h>
@@ -460,6 +462,7 @@ void CScriptRunner::Export(const TScriptCommand& command) {
         file += format->extension;
     }
     CheckOverwrite(command, file);
+    CExportSection section(m_song); // as CSong::ExportV2 has it: no input, no timer thread, no redraws
 
     // CSong::FileExportAs() without its dialogs
     m_song.Stop();
@@ -474,6 +477,7 @@ void CScriptRunner::Export(const TScriptCommand& command) {
         throw CScriptError(command.line, "Can't create this file: " + file.string());
     }
     m_song.SetLastExportIOType(format->ioType);
+    auto started = std::chrono::steady_clock::now();
 
     // CSong::ExportV2() with the dialogs' answers taken from the options
     TExportDescription exportDesc{};
@@ -615,7 +619,8 @@ void CScriptRunner::Export(const TScriptCommand& command) {
     if (!exportResult || !GetScriptProblems().empty() || !std::filesystem::is_regular_file(file)) {
         throw CScriptError(command.line, "Exporting '" + file.string() + "' as " + formatName + " failed." + Problems());
     }
-    Out("Exported " + file.string());
+    long long ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - started).count();
+    Out("Exported " + file.string() + " (" + std::to_string(ms) + " ms)");
 }
 
 void CScriptRunner::Set(const TScriptCommand& command) {

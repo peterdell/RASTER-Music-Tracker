@@ -60,8 +60,6 @@ int CSongExporter::BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigne
     auto optimal = SAPROptimization::NONE;
     int result;
     {
-        DisableEventSection section;
-
         for (auto i : {SAPROptimization::NONE,
                        SAPROptimization::AUDC, SAPROptimization::AUDCTL, SAPROptimization::AUDF, SAPROptimization::AUDC_AUDF, SAPROptimization::AUDCTL_AUDC, SAPROptimization::AUDCTL_AUDF, SAPROptimization::ALL}) {
             int bruteforced = lzssData.LZSS_SAP(src, srclen, dst, i);
@@ -70,9 +68,6 @@ int CSongExporter::BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigne
                 bestScore = bruteforced;
                 optimal = i;
             }
-
-            // Always refresh the screen after each iteration
-            RefreshScreen();
 
             message.Format("Compressing %i bytes, bruteforcing optimisation pattern %i... Current best: %i bytes with optimisation pattern %i", srclen, i, bestScore, optimal);
             SetStatusBarText(message);

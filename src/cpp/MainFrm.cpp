@@ -132,8 +132,10 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
         -1 != (r = app->GetProfileInt("Frame", "Right", -1))
         ) {
 
-        // restore the window's status
-        app->m_nCmdShow = s;
+        // restore the window's status (a script run has asked for a hidden window, see CRmtApp::InitInstance)
+        if (app->m_nCmdShow != SW_HIDE) {
+            app->m_nCmdShow = s;
+        }
 
         // restore the window's width and height
         cs.cx = r - l;

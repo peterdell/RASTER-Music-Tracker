@@ -220,11 +220,12 @@ public final class ScriptRunner {
 		Path file = SongFiles.ensureFileExtension(resolveOutput(command.argument(1)), SongFiles.EXPORT_FILTERS, filterIndex);
 		checkOverwrite(command, file);
 		host.answer(file, filterIndex);
+		long started = System.nanoTime();
 		files.fileExportAs();
 		if (!problems.isEmpty() || !Files.isRegularFile(file)) {
 			throw new ScriptException(command.line(), "Exporting '" + file + "' as " + format + " failed." + problemText());
 		}
-		out.println("Exported " + file);
+		out.println("Exported " + file + " (" + (System.nanoTime() - started) / 1_000_000 + " ms)");
 	}
 
 	private void set(ScriptCommand command) throws ScriptException {

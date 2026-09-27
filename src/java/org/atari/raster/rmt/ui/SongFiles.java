@@ -829,10 +829,13 @@ public final class SongFiles {
 
 		song.setLastExportIOType(EXPORT_IO_TYPES[filterIndex - 1]);
 		boolean exportResult;
+		int playTime = session.uiState.playTime; // the register dump plays the song (Play() resets the counter); an export leaves the play time as it was, as C++ does since 2026-09-28
 		try {
 			exportResult = exportV2(song.getLastExportIOType(), fn);
 		} catch (IOException ex) {
 			exportResult = false;
+		} finally {
+			session.uiState.playTime = playTime;
 		}
 		if (!exportResult) {
 			try {

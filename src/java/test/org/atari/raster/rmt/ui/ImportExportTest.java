@@ -248,7 +248,9 @@ class ImportExportTest {
 	void exportStreamsSapRLzssSapBXexAndWav() throws IOException {
 		openDelta();
 		host.nextSap = new SongFiles.SapChoice("Me", "Delta", "01/01/2026", "00 05");
+		session.uiState.playTime = 77; // the export's register dump plays the song; the play time shown must survive it
 		Path sapr = export("delta", 3);
+		assertEquals(77, session.uiState.playTime);
 		String header = new String(Files.readAllBytes(sapr), 0, 80, SongFiles.TEXT_CHARSET);
 		assertTrue(header.startsWith("SAP\r\n"), header);
 		assertTrue(header.contains("AUTHOR \"Me\""), header);

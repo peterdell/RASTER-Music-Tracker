@@ -34,17 +34,14 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
     CPokeyStream& pokeyStream = songExport.GetSongContainer().GetModifiablePokeyStream();
 
     // Busy writing! The timing overlap the old note here asked about is real:
-    // the timer thread keeps rendering through the same POKEY
+    // the timer thread would render through the same POKEY
     // (CSong::TimerRoutine -> RenderSound1_50) while this renders through
     // RenderSoundV2, and the WRITE state below does not stop it - the song's
     // m_pokeyStream is already null once DumpSongToPokeyStream() returned.
     // Reproduced with a script run (Rmt.exe /SCRIPT): the export crashed
-    // mid-file with a different length each time. So the timer is stopped
-    // for the duration and re-armed at the end, as TimerRoutine() re-arms
-    // itself every tick.
+    // mid-file with a different length each time. The timer is stopped for
+    // the whole export by the caller's CExportSection (GuiHelpers.h).
     pokeyStream.SetState(CPokeyStream::WRITE);
-    CSong& song = songExport.GetSong();
-    song.StopTimer();
 
     g_AtariTrackerDriver->Init(); // Reset the Atari memory
     g_ChannelControl.SetAllChannelsOn();
@@ -100,9 +97,6 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
 
     // Finished doing WAV things...
     wavefile.CloseFile();
-
-    // The timer thread again (see above)
-    song.ChangeTimer(song.IsNTSC() ? 17 : 20);
 
     // Also make sure to delete the buffer once it's no longer needed
     delete buffer;

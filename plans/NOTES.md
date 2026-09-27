@@ -4918,3 +4918,28 @@ build clean and all 123 tests pass.
     each plan's purpose and status; CLAUDE.md states the rule (next free
     number, a row in the index). `23_DOC_GENERATION_PLAN.md` marked D4 DONE.
     `RULES.md` renamed `CPP_RULES.md` (the user's wish; references updated).
+  - **2026-09-28**: Exports without screen updates, batch E1
+    (`plans/24_EXPORT_SCREEN_UPDATES_PLAN.md`, section 6 has the numbers).
+    - The user's observation confirmed by a screenshot: the register dump
+      redrew the whole screen up to 60 times a second with the song in
+      playback state. Now: no redraw during the dump, a status text every
+      250 ms (A); one `CExportSection` guard around every export - window
+      disabled, wait cursor, song timer stopped, restored on leaving (B),
+      replacing `DisableEventSection` and the WAV exporter's own timer
+      handling; the dump restores the cursor lines and the play time in
+      both programs (C).
+    - Measured (stereo song): `sapr` 920 -> 520 ms, `lzss` 2370 -> 1980 ms,
+      `wav` 1560 -> 1170 ms. The gain is the stopped timer thread (it
+      rendered sound at 50 Hz beside the export); the redraws themselves
+      were cheap at this window size.
+    - Found on the way: the script run's window was only hidden until the
+      program had once been closed interactively - MFC shows the frame
+      with the placement's saved `showCmd` during `ProcessShellCommand`.
+      That showed the window in script runs and wrote a layout-dependent
+      `g_cursoractview` into `.rmw` saves (the comparison caught it).
+      Fixed with `m_nCmdShow = SW_HIDE` before the shell command.
+      `RMT_SCRIPT_SHOW_WINDOW=1` shows it on purpose (documented). Both
+      script runners print the export time.
+    - Verified: RmtTests 416, Java 595, `compare_exports.ps1` identical,
+      a hidden script run has no window, a shown one stands still during
+      the export.
