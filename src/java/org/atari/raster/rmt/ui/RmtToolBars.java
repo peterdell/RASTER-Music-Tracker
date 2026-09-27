@@ -52,15 +52,14 @@ public final class RmtToolBars {
 
 	public RmtToolBars(RmtMainMenu menu, Consumer<RmtCommandId> executor, Consumer<Integer> skipLinesListener) {
 		double deviceScale = deviceScale();
-		int scale = iconScale(deviceScale);
 		mainToolBar.setFloatable(false);
 		blockToolBar.setFloatable(false);
-		fill(mainToolBar, MAIN_BUTTONS, loadStrip("toolbar_main_window-32x30.bmp"), scale, deviceScale, menu, executor);
-		fill(blockToolBar, BLOCK_BUTTONS, loadStrip("toolbar_block-32x30.bmp"), scale, deviceScale, menu, executor);
+		fill(mainToolBar, MAIN_BUTTONS, loadStrip("toolbar_main_window-32x30.bmp"), deviceScale, menu, executor);
+		fill(blockToolBar, BLOCK_BUTTONS, loadStrip("toolbar_block-32x30.bmp"), deviceScale, menu, executor);
 
 		skipLinesCombo.setToolTipText(Actions.Toolbar_SkipLinesAfterNoteInsert.getToolTip());
 		skipLinesCombo.setSelectedIndex(1);
-		skipLinesCombo.setMaximumSize(new Dimension(60, (int) Math.ceil(BUTTON_HEIGHT * scale / deviceScale)));
+		skipLinesCombo.setMaximumSize(new Dimension(60, (int) Math.ceil(BUTTON_HEIGHT / deviceScale)));
 		skipLinesCombo.setFocusable(false); // OnRestoreFocusToMainWindow: the tracker keeps the keyboard
 		skipLinesCombo.addActionListener(e -> skipLinesListener.accept(skipLinesCombo.getSelectedIndex()));
 		mainToolBar.add(skipLinesCombo);
@@ -79,22 +78,14 @@ public final class RmtToolBars {
 	}
 
 	/**
-	 * The integer factor the 32x30 button images are enlarged by in device
-	 * pixels on a HiDPI display: 1 below 150% Windows scaling, 2 from 150%,
-	 * 3 from 250% (nearest-neighbour, keeping the pixel look). The enlarged
-	 * image is drawn 1:1 in device pixels ({@link PixelIcon}), not through
-	 * Swing's fractional scaling - the same device-pixel blit the canvas
-	 * uses. A deliberate improvement over {@code Rmt.exe}, whose MFC toolbar
-	 * is not DPI-aware and stays tiny on such displays.
-	 */
-	static int iconScale(double deviceScale) {
-		return Math.max(1, (int) Math.round(deviceScale));
-	}
-
-	/**
 	 * An icon holding a device-pixel image: Swing is told a logical size
 	 * ({@code image size / device scale}) and the image is drawn with the
-	 * scaling transform removed, so its pixels land 1:1 on the screen.
+	 * scaling transform removed, so its pixels land 1:1 on the screen - the
+	 * 32x30 button images at the size {@code Rmt.exe}'s MFC toolbar shows
+	 * them on every display, whatever the Windows scaling (the port had
+	 * enlarged them 2x/3x on HiDPI displays until 2026-09-28; the user found
+	 * them too large - the C++ size is the reference), and without Swing's
+	 * blurry fractional scaling.
 	 */
 	static final class PixelIcon implements Icon {
 		private final BufferedImage deviceImage;
@@ -129,21 +120,7 @@ public final class RmtToolBars {
 		}
 	}
 
-	/** {@code image} enlarged {@code scale} times without smoothing. */
-	static BufferedImage scaled(BufferedImage image, int scale) {
-		if (scale <= 1) {
-			return image;
-		}
-		BufferedImage result = new BufferedImage(image.getWidth() * scale, image.getHeight() * scale, BufferedImage.TYPE_INT_ARGB);
-		for (int y = 0; y < result.getHeight(); y++) {
-			for (int x = 0; x < result.getWidth(); x++) {
-				result.setRGB(x, y, image.getRGB(x / scale, y / scale));
-			}
-		}
-		return result;
-	}
-
-	private static void fill(JToolBar toolBar, RmtCommandId[] ids, BufferedImage strip, int scale, double deviceScale, RmtMainMenu menu, Consumer<RmtCommandId> executor) {
+	private static void fill(JToolBar toolBar, RmtCommandId[] ids, BufferedImage strip, double deviceScale, RmtMainMenu menu, Consumer<RmtCommandId> executor) {
 		int image = 0;
 		for (RmtCommandId id : ids) {
 			if (id == null) {
@@ -152,7 +129,7 @@ public final class RmtToolBars {
 			}
 			AbstractButton button = id.checkable ? new JToggleButton() : new JButton();
 			BufferedImage face = strip.getSubimage(image * BUTTON_WIDTH, 0, BUTTON_WIDTH, BUTTON_HEIGHT);
-			button.setIcon(scale > 1 ? new PixelIcon(scaled(face, scale), deviceScale) : new ImageIcon(face));
+			button.setIcon(deviceScale != 1 ? new PixelIcon(face, deviceScale) : new ImageIcon(face));
 			image++;
 			String toolTip = id.action.getToolTip();
 			button.setToolTipText(toolTip == null || toolTip.isEmpty() ? id.action.getLabelWithoutMnemonics() : toolTip);

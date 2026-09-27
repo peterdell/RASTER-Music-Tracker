@@ -4943,3 +4943,11 @@ build clean and all 123 tests pass.
     - Verified: RmtTests 416, Java 595, `compare_exports.ps1` identical,
       a hidden script run has no window, a shown one stands still during
       the export.
+  - **2026-09-28**: Java toolbar buttons back to the C++ size (the user:
+    "The toolbar buttons in java are too large"). B9c had enlarged the
+    32x30 button images 2x/3x on HiDPI displays as an improvement over
+    `Rmt.exe`; the C++ size is the reference: `PixelIcon` now draws the
+    images 1:1 in device pixels at every Windows scaling (still without
+    Swing's blurry fractional scaling), `iconScale()`/`scaled()` removed,
+    the combo box height follows. Checked on the 150 % display: the Java
+    toolbar matches `Rmt.exe`'s. 594 Java tests (-1, the removed helpers' test).
