@@ -1,92 +1,112 @@
 #include "Commands.h"
 #include "Messages.h"
 
-#include "afxacceleratorkey.h"
 #include "resource.h"
 #include "Rmt.h"
 #include <assert.h>
 #include <fstream>
-#include <iostream>
 
 extern CRmtApp g_app;
 
-CAcceleratorTable::CAcceleratorTable() : size(0), pAccel(nullptr) {
-}
-
-CAcceleratorTable::~CAcceleratorTable() {
-    Clear();
-}
-
 void CAcceleratorTable::Clear() {
-    if (pAccel != nullptr) {
-        delete[] pAccel;
-        pAccel = nullptr;
-        size = 0;
-    }
+    m_entries.clear();
 }
 
 void CAcceleratorTable::Add(const UINT id) {
-    Clear();
+    // Appends: the program has two tables (the main window's and the Pokey
+    // Explorer's) and both belong into one lookup. (Until 2026-09-27 this
+    // cleared the previous table, so the main window's accelerators were
+    // never in the generated table - it showed the menu labels' hints.)
     HACCEL hAccel = LoadAccelerators(g_app.m_hInstance, MAKEINTRESOURCE(id));
     if (hAccel) {
-        size = ::CopyAcceleratorTable(hAccel, NULL, 0);
-        pAccel = new ACCEL[size];
-
+        int size = ::CopyAcceleratorTable(hAccel, NULL, 0);
         if (size > 0) {
-            ::CopyAcceleratorTable(hAccel, pAccel, size);
+            std::vector<ACCEL> entries(size);
+            ::CopyAcceleratorTable(hAccel, entries.data(), size);
+            m_entries.insert(m_entries.end(), entries.begin(), entries.end());
         }
     }
 }
 
 int CAcceleratorTable::GetSize() const {
-    return size;
+    return (int)m_entries.size();
 }
 
 const ACCEL& CAcceleratorTable::GetEntry(const int index) const {
-    return pAccel[index];
+    return m_entries[index];
 }
 
-ACCEL* CAcceleratorTable::GetEntryByCommand(const WORD cmd) const {
-    for (int i = 0; i < GetSize(); i++) {
-        if (pAccel[i].cmd == cmd) {
-            return &pAccel[i];
+const ACCEL* CAcceleratorTable::GetEntryByCommand(const WORD cmd) const {
+    for (const ACCEL& entry : m_entries) {
+        if (entry.cmd == cmd) {
+            return &entry;
         }
     }
     return nullptr;
 }
 
-CString CAcceleratorTable::GetText(ACCEL& entry) const {
-    auto key = entry.key; // The key (e.g., 'C', VK_F1)
-    auto flags = entry.fVirt; // Modifier flags
-
+CString CAcceleratorTable::GetText(const ACCEL& entry) {
+    // MFC's CMFCAcceleratorKey::Format takes the key names from the active
+    // keyboard layout ("Strg", "Umschalt", "+ (Zehnertastatur)" on a German
+    // system), which is no good for a generated document that must read the
+    // same everywhere and equal the Java port's. Same order as MFC:
+    // Ctrl+Shift+Alt+Key; the names are the English ones of the US layout.
     CString result;
-
-    CMFCAcceleratorKey test(&entry);
-    test.Format(result);
-
-    /*
-    // Interpret flags (FCONTROL, FALT, FSHIFT, FVIRTKEY)
-    if (flags & FSHIFT) {
-        result += "Shift+";
-    }
-    if (flags & FCONTROL) {
+    if (entry.fVirt & FCONTROL) {
         result += "Ctrl+";
     }
-    if (flags & FALT) {
+    if (entry.fVirt & FSHIFT) {
+        result += "Shift+";
+    }
+    if (entry.fVirt & FALT) {
         result += "Alt+";
     }
-
-    // Display key (if FVIRTKEY is set, key is a Virtual Key Code)
-    if (flags & FVIRTKEY) {
-        // Convert virtual key code to string
-        char keyName[64];
-        GetKeyNameTextA(MapVirtualKeyA(key, MAPVK_VK_TO_VSC) << 16, keyName, sizeof(keyName));
-        result += keyName;
+    if (!(entry.fVirt & FVIRTKEY)) {
+        result += (char)entry.key;
+        return result;
     }
-    else {
-        result += (char)key; // Regular character
-    }*/
-    return result;
+    WORD key = entry.key;
+    if (key >= VK_F1 && key <= VK_F24) {
+        CString f;
+        f.Format("F%d", key - VK_F1 + 1);
+        return result + f;
+    }
+    if ((key >= '0' && key <= '9') || (key >= 'A' && key <= 'Z')) {
+        return result + (char)key;
+    }
+    if (key >= VK_NUMPAD0 && key <= VK_NUMPAD9) {
+        CString n;
+        n.Format("Num %d", key - VK_NUMPAD0);
+        return result + n;
+    }
+    switch (key) {
+    case VK_SPACE: return result + "Space";
+    case VK_ESCAPE: return result + "Esc";
+    case VK_RETURN: return result + "Enter";
+    case VK_TAB: return result + "Tab";
+    case VK_BACK: return result + "Backspace";
+    case VK_DELETE: return result + "Del";
+    case VK_INSERT: return result + "Ins";
+    case VK_HOME: return result + "Home";
+    case VK_END: return result + "End";
+    case VK_PRIOR: return result + "PgUp";
+    case VK_NEXT: return result + "PgDn";
+    case VK_UP: return result + "Up";
+    case VK_DOWN: return result + "Down";
+    case VK_LEFT: return result + "Left";
+    case VK_RIGHT: return result + "Right";
+    case VK_ADD: return result + "Num +";
+    case VK_SUBTRACT: return result + "Num -";
+    case VK_MULTIPLY: return result + "Num *";
+    case VK_DIVIDE: return result + "Num /";
+    case VK_DECIMAL: return result + "Num .";
+    case VK_PAUSE: return result + "Pause";
+    default:
+        break;
+    }
+    CString other;
+    other.Format("VK_%02X", key);
+    return result + other;
 }
 
 CMenuEntry::CMenuEntry(const MenuPath& menuIDPath, const MenuPath& menuTextPath, const UINT id, const CString& text) {
@@ -127,29 +147,25 @@ CString CMenuEntry::GetText() const {
 }
 
 CString CMenuEntry::GetPlainText(const CString& menuText) {
+    // The label without the mnemonic marker: "&File" is "File", "&&" is one
+    // "&", the key after the tab is not part of it. (Before 2026-09-27 the
+    // marker state was never reset, so "Clear Undo && Redo History" kept
+    // both ampersands.)
     CString result;
-    bool ampersand = false;
-    bool end = false;
-    for (int i = 0; i < menuText.GetLength() && !end; i++) {
+    for (int i = 0; i < menuText.GetLength(); i++) {
         auto c = menuText[i];
-        switch (c) {
-        case '&':
-            if (ampersand) {
-                result.AppendChar(c);
-            } else {
-                ampersand = !ampersand;
-            }
+        if (c == '\t') {
             break;
-
-        case '\t':
-            end = true;
-            break;
-
-        default:
-            result.AppendChar(c);
         }
+        if (c == '&') {
+            if (i + 1 < menuText.GetLength() && menuText[i + 1] == '&') {
+                result.AppendChar('&');
+                i++;
+            }
+            continue;
+        }
+        result.AppendChar(c);
     }
-
     return result;
 }
 
@@ -193,6 +209,10 @@ CCommands::CActionInfo::CActionInfo(const UINT id, const CMenuEntry* menuEntry) 
     this->menuEntry = menuEntry;
 }
 
+CCommands::CActionInfo::~CActionInfo() {
+    delete menuEntry;
+}
+
 UINT CCommands::CActionInfo::GetID() const {
     return id;
 }
@@ -210,6 +230,7 @@ const CMenuEntry* CCommands::CActionInfo::GetMenuEntry() const {
 }
 
 void CCommands::CActionInfo::SetMenuEntry(const CMenuEntry* menuEntry) {
+    delete this->menuEntry;
     this->menuEntry = menuEntry;
 }
 
@@ -217,40 +238,26 @@ CString CCommands::CActionInfo::GetToolBar() const {
     return toolBar;
 }
 
-void CCommands::CActionInfo::SetToolBar(const CString& toolBar) {
-    this->toolBar = toolBar;
+void CCommands::CActionInfo::AddToolBar(const CString& toolBar) {
+    if (!this->toolBar.IsEmpty()) {
+        this->toolBar += ", ";
+    }
+    this->toolBar += toolBar;
 }
 
-bool CCommands::CActionInfo::Compare(const CCommands::CActionInfo* first, CCommands::CActionInfo* second) {
-    if (first == second) {
-        return 0;
-    }
-    auto menuEntry1 = first->GetMenuEntry();
-    auto menuEntry2 = second->GetMenuEntry();
+CCommands::CCommands() {
+}
 
-    if (menuEntry1 == nullptr || menuEntry2 == nullptr) {
-        return menuEntry1;
-    }
-    auto menuPositon1 = menuEntry1->GetMenuIDPathString();
-    auto menuPositon2 = menuEntry2->GetMenuIDPathString();
-    auto result = menuPositon1 < menuPositon2;
-    CString s;
-    s.Format("Compare(%s, %s)=%d", menuPositon1, menuPositon2, result);
-    SendInfoMessage(s);
-    return result;
+CCommands::~CCommands() {
+    ClearActionInfos();
 }
 
 void CCommands::ClearActionInfos() {
-
     for (auto it = m_actionInfoMap.begin(); it != m_actionInfoMap.end(); it++) {
-        CString s;
-        auto actionEntry = it->second;
-        auto menuEntry = actionEntry->GetMenuEntry();
-        if (menuEntry != nullptr) {
-            delete menuEntry;
-        }
-        delete actionEntry;
+        delete it->second;
     }
+    m_actionInfoMap.clear();
+    m_order.clear();
 }
 
 const CCommands::CActionInfo* CCommands::GetActionInfo(UINT id) const {
@@ -276,104 +283,120 @@ CCommands::CActionInfo* CCommands::GetMutableActionInfo(UINT id) {
     } else {
         result = new CActionInfo(id, nullptr);
         m_actionInfoMap.emplace(result->GetID(), result);
+        m_order.push_back(result);
     }
 
     return result;
 }
 
-void CCommands::PrintActionInfos() const {
+namespace {
 
-    ActionInfoList actionInfoList;
+CString Escape(const CString& cell) {
+    CString result = cell;
+    result.Replace("|", "\\|");
+    return result;
+}
 
-    std::ofstream myfile;
+CString Error(const CString& message) {
+    return "<br><span style=\"color:red;\">ERROR: " + message + "</span>";
+}
 
-    for (auto it = m_actionInfoMap.begin(); it != m_actionInfoMap.end(); it++) {
-        CString s;
-        auto actionInfo = it->second;
-        actionInfoList.push_back(actionInfo);
-    }
-    actionInfoList.sort(CActionInfo::Compare);
+} // namespace
 
-    myfile.open("../doc/rmt_action_infos.md");
-    myfile << "| Access Path | Entry | Accelerator Key | Action | \n";
-    myfile << "|-------------|-------|-----------------|--------| \n";
-    for (auto it = actionInfoList.begin(); it != actionInfoList.end(); it++) {
-        CString s;
-        auto actionInfo = (*it);
-        auto acceleratorEntry = m_acceleratorTable.GetEntryByCommand(actionInfo->GetID());
+CString CCommands::GetActionInfosText(int& errorCount) const {
+    errorCount = 0;
+    CString result;
+    result += "| Access Path | Entry | Accelerator Key | Action |\n";
+    result += "|---|---|---|---|\n";
+    for (const CActionInfo* actionInfo : m_order) {
+        const CMenuEntry* menuEntry = actionInfo->GetMenuEntry();
 
-        CString acceleratorKey;
+        // The key: the accelerator table's entry, MFC-formatted; a menu label
+        // that displays another key (after its tab) is an error - the label
+        // lies. A label's key without a table entry is a hint the program
+        // handles itself (the tracker's own keys), shown as the menu shows it.
+        CString realKey;
+        const ACCEL* acceleratorEntry = m_acceleratorTable.GetEntryByCommand((WORD)actionInfo->GetID());
         if (acceleratorEntry != nullptr) {
-            acceleratorKey = m_acceleratorTable.GetText(*acceleratorEntry);
+            realKey = CAcceleratorTable::GetText(*acceleratorEntry);
         }
-
-        auto menuEntry = actionInfo->GetMenuEntry();
-        if (menuEntry != nullptr) {
-            auto menuEcceleratorKey = menuEntry->GetAcceleatorKey();
-            if (!menuEcceleratorKey.IsEmpty()) {
-                if (acceleratorKey.IsEmpty()) {
-                    acceleratorKey = menuEcceleratorKey;
-                } else if (acceleratorKey != menuEcceleratorKey) {
-                    acceleratorKey = "ERROR: " + acceleratorKey + " vs. " + menuEcceleratorKey;
-                }
+        CString shownKey = menuEntry != nullptr ? menuEntry->GetAcceleatorKey() : CString();
+        // A button or key without a menu item: the prompt's tooltip "Label (Key)" is its label and shown key.
+        CString entry = menuEntry != nullptr ? menuEntry->GetPlainText() : actionInfo->GetDescription();
+        if (menuEntry == nullptr && entry.GetLength() > 2 && entry[entry.GetLength() - 1] == ')') {
+            int open = entry.ReverseFind('(');
+            if (open > 0 && entry[open - 1] == ' ') {
+                shownKey = entry.Mid(open + 1, entry.GetLength() - open - 2);
+                entry = entry.Left(open - 1);
             }
         }
+        CString key = realKey.IsEmpty() ? shownKey : realKey;
+        CString keyCell;
+        if (!key.IsEmpty()) {
+            keyCell = "`" + key + "`";
+        }
+        if (!realKey.IsEmpty() && !shownKey.IsEmpty() && realKey != shownKey) {
+            keyCell += Error("the menu shows '" + shownKey + "'");
+            errorCount++;
+        }
 
-        auto text = actionInfo->GetText();
-        auto description = actionInfo->GetDescription();
+        // The prompt: the STRINGTABLE's status text is the "Action"; its
+        // tooltip part must be the plain label plus the shown key in
+        // parentheses, the convention of Rmt.rc.
+        CString action = actionInfo->GetText();
+        CString description = actionInfo->GetDescription();
         if (!description.IsEmpty() && menuEntry != nullptr) {
             CString expected = menuEntry->GetPlainText();
-            auto acceleratorKey = menuEntry->GetAcceleatorKey();
-            if (!acceleratorKey.IsEmpty()) {
-                expected += " (" + acceleratorKey + ")";
+            if (!shownKey.IsEmpty()) {
+                expected += " (" + shownKey + ")";
             }
             if (description != expected) {
-                text += "<br><span style=\"color:red;\">ERROR: Expected description '" + expected + "' instead of '" + description + "'</span>";
+                action += Error("expected the tooltip '" + expected + "' instead of '" + description + "'");
+                errorCount++;
             }
         }
+
         CString accessPath;
         if (menuEntry != nullptr) {
             accessPath = "Menu " + menuEntry->GetMenuTextPathString();
-            if (!actionInfo->GetToolBar().IsEmpty()) {
-                accessPath += "<br>Tool Bar" + actionInfo->GetToolBar();
+        }
+        if (!actionInfo->GetToolBar().IsEmpty()) {
+            if (!accessPath.IsEmpty()) {
+                accessPath += "<br>";
             }
-        }
-        CString accessText;
-        if (menuEntry != nullptr) {
-            accessText = menuEntry->GetPlainText();
+            accessPath += "Tool Bar " + actionInfo->GetToolBar();
         }
 
-        CString acceleratorKeyFormatted;
-        if (!acceleratorKey.IsEmpty()) {
-            acceleratorKeyFormatted = "`" + acceleratorKey + "`";
-        }
-
-        s.Format("| %s | %s | %s | %s |", accessPath, accessText, acceleratorKeyFormatted, text);
-
-        SendInfoMessage(s);
-        myfile << s << "\n";
+        CString line;
+        line.Format("| %s | %s | %s | %s |\n", Escape(accessPath), Escape(entry), keyCell, Escape(action));
+        result += line;
     }
+    return result;
+}
 
-    myfile.close();
+int CCommands::WriteActionInfos(const std::filesystem::path& file) const {
+    int errorCount = 0;
+    CString text = GetActionInfosText(errorCount);
+    std::ofstream out(file, std::ios::binary);
+    out.write((LPCTSTR)text, text.GetLength());
+    out.close();
+    return errorCount;
 }
 
 void CCommands::AnalyzeMenu(const CMenuEntry::MenuPath& menuIDPath, const CMenuEntry::MenuPath& menuTextPath, const CMenu& menu) {
 
     for (int pos = 0; pos < menu.GetMenuItemCount(); pos++) {
-        CString posString;
-        posString.Format("%d", pos);
-
         CString menuItemText;
         auto menuItemID = menu.GetMenuItemID(pos);
         menu.GetMenuString(pos, menuItemText, MF_BYPOSITION);
 
-        if (menuItemID > 0) {
+        auto subMenu = menu.GetSubMenu(pos);
+        if (subMenu == nullptr && menuItemID > 0) { // a popup reports (UINT)-1 as its ID
             auto menuEntry = new CMenuEntry(menuIDPath, menuTextPath, menuItemID, menuItemText);
             auto actionInfo = GetMutableActionInfo(menuItemID);
             actionInfo->SetMenuEntry(menuEntry);
         }
 
-        auto subMenu = menu.GetSubMenu(pos);
         if (subMenu != nullptr) {
             CString menuItemIDText;
             CMenuEntry::MenuPath subMenuIDPath;
@@ -415,13 +438,10 @@ void CCommands::AnalyzeMenu(const UINT id, const CString& menuID, const CString&
 void CCommands::AnalyzeToolBar(const CString& name, const CToolBar& toolBar) {
 
     for (int pos = 0; pos < toolBar.GetCount(); pos++) {
-
-        CString menuItemText;
         auto itemID = toolBar.GetItemID(pos);
-
-        if (itemID > 0) {
+        if (itemID > 0 && itemID != ID_SEPARATOR) {
             auto actionInfo = GetMutableActionInfo(itemID);
-            actionInfo->SetToolBar(name);
+            actionInfo->AddToolBar(name);
         }
     }
 }
@@ -439,16 +459,14 @@ void CCommands::AnalyzeToolBar(const UINT id, const CString& name) {
     }
 }
 
-CCommands::CCommands() {
+void CCommands::AnalyzeAccelerators() {
+    // Commands that only have a key (no menu item, no button) get a row too.
+    for (int i = 0; i < m_acceleratorTable.GetSize(); i++) {
+        GetMutableActionInfo(m_acceleratorTable.GetEntry(i).cmd);
+    }
 }
 
 void CCommands::Analyze() {
-    auto oldhKL = GetKeyboardLayout(0);
-    auto hkl = LoadKeyboardLayoutA(
-        "00000409", //  U.S. English layout
-        KLF_ACTIVATE);
-    ActivateKeyboardLayout(hkl, KLF_REORDER);
-
     ClearActionInfos();
     m_acceleratorTable.Clear();
     m_acceleratorTable.Add(IDR_MAIN_WINDOW);
@@ -456,11 +474,8 @@ void CCommands::Analyze() {
 
     AnalyzeMenu(IDR_MAIN_WINDOW, "Main", "");
 
+    AnalyzeToolBar(IDR_MAIN_WINDOW, "Main");
     AnalyzeToolBar(IDR_TOOLBAR_BLOCK, "Block");
 
-    PrintActionInfos();
-
-    ClearActionInfos();
-
-    ActivateKeyboardLayout(oldhKL, KLF_REORDER);
+    AnalyzeAccelerators();
 }

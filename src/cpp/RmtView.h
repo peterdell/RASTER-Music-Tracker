@@ -223,6 +223,7 @@ protected:
     // Menu Tools
 
     afx_msg void OnToolsOptions();
+    afx_msg void OnToolsRunScript();
 
     // Menu Track
     afx_msg void OnTrackAlltrackscleanup();

@@ -4,8 +4,9 @@
 // - the same commands, format names, options and defaults as the Java port's
 // ScriptRunner: open, save, export (the Export dialog's eight formats, each
 // through the dialog-independent *Apply/exporter entry point with the
-// parameters the dialog would have collected), set overwrite|ntsc|driver,
-// echo, quit. Paths are relative to the script's folder. Exit codes: 0 =
+// parameters the dialog would have collected), set overwrite|output|ntsc|driver,
+// dump actions (the command table, CCommands), echo, quit. Paths are
+// relative to the script's folder. Exit codes: 0 =
 // every command succeeded, 1 = a command failed (the script stops there),
 // 2 = the script could not be read or parsed.
 //
@@ -38,6 +39,12 @@ public:
     // reads, parses and runs the script; returns the exit code.
     int RunFile(const CString& scriptFilePath);
 
+    // Tools > Run Script: runs the script on the window's session - the
+    // message boxes stay boxes (errors and warnings still fail the command)
+    // and the commands' output is collected in output for one result box at
+    // the end. Returns the exit code.
+    int RunInteractive(const CString& scriptFilePath, std::string& output);
+
     // Runs parsed commands, resolving relative paths against baseFolder.
     int Run(const std::vector<TScriptCommand>& commands, const std::filesystem::path& baseFolder);
 
@@ -47,6 +54,11 @@ private:
     std::filesystem::path m_outputFolder; // "set output", empty = the script's folder
     std::filesystem::path m_outputOverride; // SetOutputFolder(), empty = none
     bool m_overwrite = false;
+    bool m_interactive = false;
+    std::string* m_capture = nullptr; // RunInteractive: every line of output, stdout and stderr
+
+    void Out(const std::string& line); // a line to stdout (and the capture)
+    void Err(const std::string& line); // a line to stderr (and the capture)
 
     // false for quit; throws CScriptError on a failure
     bool Execute(const TScriptCommand& command);
@@ -54,6 +66,7 @@ private:
     void Save(const TScriptCommand& command);
     void Export(const TScriptCommand& command);
     void Set(const TScriptCommand& command);
+    void Dump(const TScriptCommand& command);
 
     std::filesystem::path Resolve(const std::string& path) const;
     // An output file: relative to the output folder (created on demand), else the script's folder.

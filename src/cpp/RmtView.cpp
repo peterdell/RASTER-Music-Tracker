@@ -16,6 +16,8 @@
 #include "RmtMidi.h"
 #include "RmtVersion.h"
 #include "RmtView.h"
+#include "ScriptRunner.h"
+#include "Messages.h"
 #include "StdAfx.h"
 #include <chrono>
 #include <iomanip>
@@ -277,6 +279,7 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
 
     // Menu Tools
     ON_COMMAND(ID_TOOLS_OPTIONS, OnToolsOptions)
+    ON_COMMAND(ID_TOOLS_RUN_SCRIPT, OnToolsRunScript)
 
     // Menu Channels
     ON_COMMAND(ID_CHANNELS_CHANNEL1, &CRmtView::OnChannelsChannel1)
@@ -1012,7 +1015,7 @@ void CRmtView::OnInitialUpdate()
     //Displays the ABOUT dialog if there is no Pokey or 6502 initialized...
     if (!g_Pokey.GetPokey()->IsSoundDriverLoaded() || !g_is6502)
     {
-        AfxGetApp()->GetMainWnd()->PostMessage(WM_COMMAND, ID_HELP_ABOUT, 0);
+        AfxGetApp()->GetMainWnd()->PostMessage(WM_COMMAND, ID_HELP_ABOUT_APP, 0); // ID_HELP_ABOUT had no handler
     }
 
     //Initialise MIDI
@@ -2984,4 +2987,31 @@ void CRmtView::OnSongDecreasePatternStepSize()
     if (g_SkipLinesAfterNoteInsert < 0) { g_SkipLinesAfterNoteInsert = 8; }
     auto mf = ((CMainFrame*)AfxGetMainWnd());
     if (mf) { mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_SkipLinesAfterNoteInsert); }
+}
+
+// Tools > Run Script...: a script (doc/rmt_scripting.md) on the current
+// session, as the Java port's command - the message boxes stay boxes, the
+// commands' output is shown once at the end.
+void CRmtView::OnToolsRunScript()
+{
+    g_Song.Stop();
+    CFileDialog dlg(TRUE, "rmtscript", NULL, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST, "RMT script files (*.rmtscript;*.txt)|*.rmtscript;*.txt|All files (*.*)|*.*||");
+    dlg.m_ofn.lpstrTitle = "Run script file";
+    if (dlg.DoModal() != IDOK) {
+        return;
+    }
+    CString path = dlg.GetPathName();
+    CString name = dlg.GetFileName();
+    std::string output;
+    CScriptRunner runner(g_Song);
+    int code = runner.RunInteractive(path, output);
+    CString text;
+    if (code == CScriptRunner::EXIT_OK) {
+        text.Format("Script '%s' finished.\n\n%s", (LPCTSTR)name, output.c_str());
+        SendInformationMessage("Run Script", text);
+    } else {
+        text.Format("Script '%s' failed (exit code %d).\n\n%s", (LPCTSTR)name, code, output.c_str());
+        SendErrorMessage("Run Script", text);
+    }
+    Invalidate();
 }

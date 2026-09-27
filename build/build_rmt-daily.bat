@@ -34,6 +34,7 @@ call :build_configuration
 set CONFIGURATION=Release
 call :build_configuration
 
+call :dump_actions
 call :compare_exports
 call :upload
 echo Done.
@@ -77,6 +78,21 @@ cd %TARGET_DIR%
 call %UPLOAD% productions
 goto :eof
 
+rem The command table doc\rmt_action_infos.md, regenerated from the release
+rem build's resources (the "dump actions" script command,
+rem plans/DOC_GENERATION_PLAN.md): a "git diff" shows what a menu change did,
+rem an ERROR marker (an inconsistency in Rmt.rc) stops the build.
+:dump_actions
+set RMT_SCRIPT_OUTPUT=%BASE_DIR%\doc
+set RMT_SCRIPT_LOG=%OUTPUT_DIR%\actions.log
+start /wait %RESULT_EXE% /SCRIPT:%BASE_DIR%\test-resources\scripts\actions.rmtscript
+set DUMP_RESULT=%ERRORLEVEL%
+set RMT_SCRIPT_OUTPUT=
+set RMT_SCRIPT_LOG=
+type %OUTPUT_DIR%\actions.log
+if not %DUMP_RESULT%==0 goto :dump_failed_error
+goto :eof
+
 rem The cross-program export comparison (compare_exports.ps1): the release
 rem build's Rmt.exe against the Java port's target\rmt.jar. A difference is
 rem a port bug in one of the two programs, so it stops the daily build
@@ -110,6 +126,10 @@ goto :error
 
 :jar_missing_error
 echo ERROR: %BASE_DIR%\target\rmt.jar not built - run "mvn -o package" first.
+goto :error
+
+:dump_failed_error
+echo ERROR: The command table has ERROR markers (an inconsistency in Rmt.rc), see doc\rmt_action_infos.md.
 
 :error
 echo ERROR: See error messages above.

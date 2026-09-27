@@ -553,6 +553,12 @@ public final class RmtCommands {
 			}
 		}
 
+		// Ctrl+F12 (no menu item), CRmtView::OnSongToggleNTSC - the same as the info area's NTSC click
+		case SONG_TOGGLE_NTSC -> {
+			session.song.stop(session.undo);
+			session.setNTSC(!session.song.isNTSC()); // SetNTSC(): ReInitSound() on the change
+		}
+
 		// --- Help ---
 		case HELP -> openLocalHelp();
 		case CONTEXT_HELP -> browse(ONLINE_HELP_URL);

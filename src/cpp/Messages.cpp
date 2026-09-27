@@ -17,6 +17,7 @@ void SendInfoMessage(const char* message) {
 
 namespace {
 bool g_scriptMessageMode = false;
+bool g_scriptInteractive = false; // script mode with the window: boxes shown, problems still collected
 std::string g_scriptProblems;
 
 // One line: "title: message" with the message's line ends flattened.
@@ -40,13 +41,18 @@ std::string OneLine(const char* title, const char* message) {
 void SendMessageBox(const char* logPrefix, const char* title, const char* message, UINT icon) {
     if (g_scriptMessageMode) {
         std::string line = OneLine(title, message);
-        if (icon == MB_ICONINFORMATION) {
-            printf("%s\n", line.c_str());
-        } else {
-            g_scriptProblems += line + "\n";
-            fprintf(stderr, "%s\n", line.c_str());
+        if (icon != MB_ICONINFORMATION) {
+            g_scriptProblems += line + "\n"; // fails the command, in both script modes
         }
-        return;
+        if (!g_scriptInteractive) {
+            if (icon == MB_ICONINFORMATION) {
+                printf("%s\n", line.c_str());
+            } else {
+                fprintf(stderr, "%s\n", line.c_str());
+            }
+            return;
+        }
+        // interactive (Tools > Run Script): the box is shown as always
     }
     if (g_statusBar == nullptr) {
         OutputDebugString(logPrefix);
@@ -95,8 +101,9 @@ void SetTestQuestionAnswer(MessageAnswer answer) {
     g_testQuestionAnswer = answer;
 }
 
-void SetScriptMessageMode(bool enabled) {
+void SetScriptMessageMode(bool enabled, bool interactive) {
     g_scriptMessageMode = enabled;
+    g_scriptInteractive = enabled && interactive;
     g_scriptProblems.clear();
 }
 
@@ -113,7 +120,7 @@ std::string GetScriptProblems() {
 }
 
 MessageAnswer SendQuestionMessage(const char* title, const char* message, MessageButtons buttons) {
-    if (g_scriptMessageMode) {
+    if (g_scriptMessageMode && !g_scriptInteractive) {
         fprintf(stderr, "%s (a script answers No)\n", OneLine(title, message).c_str());
         return buttons == MessageButtons::OkCancel ? MessageAnswer::Cancel : MessageAnswer::No;
     }

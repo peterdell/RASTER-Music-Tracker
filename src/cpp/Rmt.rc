@@ -129,7 +129,7 @@ BUTTON      ID_FILE_OPEN
 BUTTON      ID_FILE_SAVE
 BUTTON      ID_FILE_EXPORT
 SEPARATOR
-BUTTON      ID_HELP_ABOUT
+BUTTON      ID_HELP_ABOUT_APP
 SEPARATOR
 BUTTON      ID_SONG_PLAY_FROM_BOOKMARK
 BUTTON      ID_SONG_PLAY_FROM_START
@@ -1179,7 +1179,7 @@ MENUITEM "&Open...\tCtrl+L", ID_FILE_OPEN
 MENUITEM "&Reopen\tCtrl+R", ID_FILE_REOPEN
 MENUITEM SEPARATOR
 MENUITEM "&Save\tCtrl+S", ID_FILE_SAVE
-MENUITEM "Save &As...\tShift+Ctrl+S", ID_FILE_SAVE_AS
+MENUITEM "Save &As...\tCtrl+Shift+S", ID_FILE_SAVE_AS
 MENUITEM SEPARATOR
 MENUITEM "&Import...", ID_FILE_IMPORT
 MENUITEM "&Export", ID_FILE_EXPORT
@@ -1199,12 +1199,12 @@ MENUITEM "&Redo\tCtrl+Y", ID_EDIT_REDO
 MENUITEM SEPARATOR
 MENUITEM "&Clear Undo && Redo History", ID_EDIT_CLEAR_UNDO_REDO_HISTORY
 MENUITEM SEPARATOR
-MENUITEM "Edit Tracks\tF1", ID_PART_TRACKS
-MENUITEM "Edit Instruments\tF2", ID_PART_INSTRUMENTS
-MENUITEM "Edit Info\tF3", ID_PART_INFO
+MENUITEM "Edit Tracks\tF2", ID_PART_TRACKS
+MENUITEM "Edit Instruments\tF3", ID_PART_INSTRUMENTS
+MENUITEM "Edit Info\tShift+F4", ID_PART_INFO
 MENUITEM "Edit Song\tF4", ID_PART_SONG
 MENUITEM SEPARATOR
-MENUITEM "Switch &Edit Mode\tCtrl+SPACE", ID_EDIT_SWITCH_EDIT_MODE
+MENUITEM "Switch &Edit Mode\tCtrl+Space", ID_EDIT_SWITCH_EDIT_MODE
 END
 POPUP "&View"
 BEGIN
@@ -1224,7 +1224,7 @@ MENUITEM "Play From &Bookmark\tShift+F7", ID_SONG_PLAY_FROM_BOOKMARK
 MENUITEM "Play From &Start\tF5", ID_SONG_PLAY_FROM_START
 MENUITEM "&Play\tF7", ID_SONG_PLAY_FROM_CURRENT_POSITION
 MENUITEM "Play And &Loop Song Line\tF6", ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP
-MENUITEM "Sto&p\tESC", ID_SONG_STOP
+MENUITEM "Sto&p\tEsc", ID_SONG_STOP
 MENUITEM "Toggle &Follow Mode\tF12", ID_SONG_PLAY_FOLLOW
 END
 POPUP "&Channels"
@@ -1303,8 +1303,8 @@ MENUITEM "&Paste", ID_TRACK_PASTE
 MENUITEM "Cu&t", ID_TRACK_CUT
 MENUITEM "&Delete", ID_TRACK_DELETE
 MENUITEM SEPARATOR
-MENUITEM "Increase Step Size\tCtrl++", ID_SONG_INCREASE_PATTERN_STEP_SIZE
-MENUITEM "Decrease Step Size\tCtrl+-", ID_SONG_DECREASE_PATTERN_STEP_SIZE
+MENUITEM "Increase Step Size\tNum +", ID_SONG_INCREASE_PATTERN_STEP_SIZE
+MENUITEM "Decrease Step Size\tNum -", ID_SONG_DECREASE_PATTERN_STEP_SIZE
 MENUITEM SEPARATOR
 MENUITEM "&Info about current track...", ID_TRACK_INFOABOUTUSINGOFACTUALTRACK
 MENUITEM "Search and &build wise loop", ID_TRACK_SEARCHANDBUILDLOOP
@@ -1352,7 +1352,7 @@ BEGIN
 MENUITEM "&Increase By 0x01\t1", ID_POKEY_AUDF0_INCREASE_BY_01
 MENUITEM "I&ncrease By 0x10\tShift+1", ID_POKEY_AUDF0_INCREASE_BY_10
 MENUITEM "&Decrease By 0x01\tQ", ID_POKEY_AUDF0_DECREASE_BY_01
-MENUITEM "D&ecrease By 0x11\tShift+Q", ID_POKEY_AUDF0_DECREASE_BY_10
+MENUITEM "D&ecrease By 0x10\tShift+Q", ID_POKEY_AUDF0_DECREASE_BY_10
 END
 POPUP "AUD&C0"
 BEGIN
@@ -1445,13 +1445,14 @@ POPUP "&Tools"
 BEGIN
 MENUITEM "Open &ASMA", ID_TOOLS_OPEN_ASMA
 MENUITEM "Open A&SAP File...", ID_TOOLS_OPEN_ASAP_FILE
+MENUITEM "&Run Script...", ID_TOOLS_RUN_SCRIPT
 MENUITEM SEPARATOR
 MENUITEM "&Options...", ID_TOOLS_OPTIONS
 END
 POPUP "&Help"
 BEGIN
-MENUITEM "&Help\tF1", ID_HELP
-MENUITEM "&Online Help\tShift+F1", ID_CONTEXT_HELP
+MENUITEM "&Help\tF1", ID_HELP_HELP_TOPICS
+MENUITEM "&Online Help\tShift+F1", ID_HELP_ONLINE_HELP
 MENUITEM "&About RASTER Music Tracker", ID_HELP_ABOUT_APP
 END
 END
@@ -1513,7 +1514,7 @@ BEGIN
 VK_F9, ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_ON_OFF, VIRTKEY, NOINVERT
 VK_F9, ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_SOLO, VIRTKEY, CONTROL, NOINVERT
 VK_F9, ID_CHANNELS_TOGGLE_ALL_CHANNELS_ON_OFF, VIRTKEY, SHIFT, NOINVERT
-VK_F1, ID_CONTEXT_HELP, VIRTKEY, SHIFT, NOINVERT
+VK_F1, ID_HELP_ONLINE_HELP, VIRTKEY, SHIFT, NOINVERT
 VK_F5, ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE, VIRTKEY, SHIFT, CONTROL, NOINVERT
 "Y", ID_EDIT_REDO, VIRTKEY, CONTROL, NOINVERT
 VK_SPACE, ID_EDIT_SWITCH_EDIT_MODE, VIRTKEY, CONTROL, NOINVERT
@@ -1612,9 +1613,9 @@ END
 STRINGTABLE
 BEGIN
 ID_SONG_INCREASE_PATTERN_STEP_SIZE
-"Increase the pattern step size\nIncrease Step Size (Ctrl++)"
+"Increase the pattern step size\nIncrease Step Size (Num +)"
 ID_SONG_DECREASE_PATTERN_STEP_SIZE
-"Decrease the pattern step size\nDecrease Step Size (Ctrl+-)"
+"Decrease the pattern step size\nDecrease Step Size (Num -)"
 END
 
 STRINGTABLE
@@ -1626,48 +1627,49 @@ END
 
 STRINGTABLE
 BEGIN
-ID_SONG_STOP            "Stop playing the song. Mute all sounds.\nStop (ESC)"
-ID_SONG_TOGGLE_NTSC     "Toggle NTSC/PAL"
+ID_SONG_STOP            "Stop playing the song. Mute all sounds.\nStop (Esc)"
+ID_SONG_TOGGLE_NTSC     "Toggle NTSC/PAL\nToggle NTSC/PAL (Ctrl+F12)"
 ID_TOOLBAR_SWITCH_EDIT_MODE
-"Switch between ""Edit"" mode and ""Jam"" modes\nSwitch Edit Mode (Ctrl+SPACE)"
+"Switch between ""Edit"" mode and ""Jam"" modes\nSwitch Edit Mode (Ctrl+Space)"
 ID_TOOLS_OPEN_ASAP_FILE "Open an .SAP or other Atari Sound Module File"
 ID_TOOLS_OPEN_ASMA      "Open the Atari Sound Music Archive Website"
 ID_TOOLS_OPTIONS        "Open the application options dialog"
+ID_TOOLS_RUN_SCRIPT     "Run an RMT script file (open, export, save) on the current session\nRun Script..."
 END
 
 STRINGTABLE
 BEGIN
 ID_MIDIONOFF            "Toggle MIDI on/off\nToggle MIDI on/off"
-ID_PART_INFO            "Move cursor to info edit area\nEdit Info (F3)"
-ID_PART_INSTRUMENTS     "Switch to instrument edit view\nEdit Instruments (F2)"
+ID_PART_INFO            "Move cursor to info edit area\nEdit Info (Shift+F4)"
+ID_PART_INSTRUMENTS     "Switch to instrument edit view\nEdit Instruments (F3)"
 ID_PART_SONG            "Move cursor to song edit area\nEdit Song (F4)"
-ID_PART_TRACKS          "Switch to track edit view\nEdit Tracks (F1)"
+ID_PART_TRACKS          "Switch to track edit view\nEdit Tracks (F2)"
 ID_SONG_ESCAPE          "Escape"
 END
 
 STRINGTABLE
 BEGIN
 ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_ON_OFF
-"Mute/unmute the active channel (F9)"
+"Mute/unmute the active channel\nMute/Unmute Active Channel (F9)"
 ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_SOLO
-"Mute all channels except active channel / Unmute all channels (Ctrl+F9)"
+"Mute all channels except active channel / Unmute all channels\nSolo Active Channel (Ctrl+F9)"
 ID_CHANNELS_TOGGLE_ALL_CHANNELS_ON_OFF
-"Mute / Umnute all channels (Shift+F9)"
+"Mute / Unmute all channels\nMute/Unmute All Channels (Shift+F9)"
 ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE
-"Activate POKEY Explorer Mode (Ctrl+Shift+F5)"
+"Activate POKEY Explorer Mode\nActivate Pokey Explorer Mode (Ctrl+Shift+F5)"
 END
 
 STRINGTABLE
 BEGIN
 ID_EDIT_SWITCH_EDIT_MODE
-"Switch between ""Edit"" mode and ""Jam"" modes\nSwitch Edit Mode (Ctrl+SPACE)"
+"Switch between ""Edit"" mode and ""Jam"" modes\nSwitch Edit Mode (Ctrl+Space)"
 ID_FILE_EXPORT          "Export the module file in different formats\nExport"
 ID_FILE_IMPORT          "Import a module from a file\nImport..."
 ID_FILE_REOPEN          "Discard current module file changes and reopen the last saved version\nReopen (Ctrl+R)"
 ID_HELP_ABOUT           "Display program information, version number and copyright"
 ID_HELP_ABOUT_APP       "Display information about the app and its version in a pop-up dialog"
-ID_HELP_HELP_TOPICS     "Open the local help in a browser."
-ID_HELP_ONLINE_HELP     "Open the online help in a browser window"
+ID_HELP_HELP_TOPICS     "Open the local help in a browser.\nHelp (F1)"
+ID_HELP_ONLINE_HELP     "Open the online help in a browser window\nOnline Help (Shift+F1)"
 END
 
 STRINGTABLE
@@ -1681,9 +1683,9 @@ BEGIN
 ID_FILE_NEW             "Create a new module\nNew (Ctrl+W)"
 ID_FILE_OPEN            "Open a module file\nOpen... (Ctrl+L)"
 ID_FILE_SAVE            "Save the module file\nSave (Ctrl+S)"
-ID_FILE_SAVE_AS         "Save the module file with a new filename\nSave As... (Shift+Ctrl+S)"
+ID_FILE_SAVE_AS         "Save the module file with a new filename\nSave As... (Ctrl+Shift+S)"
 ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup..."
-ID_FILE_PRINT           "Print the active view\nPrint... (Ctrl-P)"
+ID_FILE_PRINT           "Print the active view\nPrint..."
 ID_FILE_PRINT_PREVIEW   "Preview the print version of the view"
 END
 
@@ -1707,12 +1709,12 @@ END
 
 STRINGTABLE
 BEGIN
-ID_BLOCK_APPLY_EFFECTS  "Apply Effects... (Ctrl+F)"
+ID_BLOCK_APPLY_EFFECTS  "Apply Effects...\nEffects/Tools... (Ctrl+F)"
 ID_BLOCK_DECREASE_VOLUME
 "Decrease the volume\nDecrease the Volume (Ctrl+Shift+Down)"
 ID_BLOCK_INCREASE_VOLUME
 "Increase the volume\nIncrease the Volume (Ctrl+Shift+Up)"
-ID_BLOCK_PLAY_AND_LOOP  "Play the block and loop\nPlay the Block and Loop (Shift-F6)"
+ID_BLOCK_PLAY_AND_LOOP  "Play the block and loop\nPlay the Block and Loop (Shift+F6)"
 ID_BLOCK_RESTORE_FROM_BACKUP
 "Restore the block from the backup\nRestore From Backup (Ctrl+B)"
 END

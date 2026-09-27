@@ -4,6 +4,7 @@
 #include "AssemblerTypes.h"
 #include "Atari.h"
 #include "AtariTrackerDriver.h"
+#include "Commands.h"
 #include "Global.h"
 #include "Messages.h"
 #include "RmtExporter.h"
@@ -274,9 +275,48 @@ int CScriptRunner::RunFile(const CString& scriptFilePath) {
     return Run(commands, folder);
 }
 
+int CScriptRunner::RunInteractive(const CString& scriptFilePath, std::string& output) {
+    m_interactive = true;
+    m_capture = &output;
+    int code;
+    std::ifstream in(scriptFilePath, std::ios::binary);
+    if (!in) {
+        Err("The script file '" + std::string((LPCTSTR)scriptFilePath) + "' cannot be read.");
+        code = EXIT_SCRIPT_INVALID;
+    } else {
+        std::stringstream buffer;
+        buffer << in.rdbuf();
+        try {
+            std::vector<TScriptCommand> commands = CScriptParser::Parse(CScriptParser::SplitLines(buffer.str()));
+            std::filesystem::path folder = std::filesystem::absolute(std::filesystem::path((LPCTSTR)scriptFilePath)).parent_path();
+            code = Run(commands, folder);
+        } catch (const CScriptError& e) {
+            Err(e.GetLocatedMessage());
+            code = EXIT_SCRIPT_INVALID;
+        }
+    }
+    m_capture = nullptr;
+    m_interactive = false;
+    return code;
+}
+
+void CScriptRunner::Out(const std::string& line) {
+    printf("%s\n", line.c_str());
+    if (m_capture != nullptr) {
+        *m_capture += line + "\n";
+    }
+}
+
+void CScriptRunner::Err(const std::string& line) {
+    fprintf(stderr, "%s\n", line.c_str());
+    if (m_capture != nullptr) {
+        *m_capture += line + "\n";
+    }
+}
+
 int CScriptRunner::Run(const std::vector<TScriptCommand>& commands, const std::filesystem::path& baseFolder) {
     m_baseFolder = baseFolder;
-    SetScriptMessageMode(true);
+    SetScriptMessageMode(true, m_interactive);
     int code = EXIT_OK;
     for (const TScriptCommand& command : commands) {
         ClearScriptProblems();
@@ -285,11 +325,11 @@ int CScriptRunner::Run(const std::vector<TScriptCommand>& commands, const std::f
                 break; // quit
             }
         } catch (const CScriptError& e) {
-            fprintf(stderr, "%s\n", e.GetLocatedMessage().c_str());
+            Err(e.GetLocatedMessage());
             code = EXIT_COMMAND_FAILED;
             break;
         } catch (const std::exception& e) {
-            fprintf(stderr, "line %d: %s failed: %s\n", command.line, command.name.c_str(), e.what());
+            Err("line " + std::to_string(command.line) + ": " + command.name + " failed: " + e.what());
             code = EXIT_COMMAND_FAILED;
             break;
         }
@@ -309,8 +349,10 @@ bool CScriptRunner::Execute(const TScriptCommand& command) {
         Export(command);
     } else if (command.name == "set") {
         Set(command);
+    } else if (command.name == "dump") {
+        Dump(command);
     } else if (command.name == "echo") {
-        printf("%s\n", Join(command.arguments, " ").c_str());
+        Out(Join(command.arguments, " "));
     } else if (command.name == "quit") {
         return false;
     } else {
@@ -358,7 +400,7 @@ void CScriptRunner::Open(const TScriptCommand& command) {
     if (!m_song.FileOpen(PathString(file), FALSE) || !GetScriptProblems().empty()) {
         throw CScriptError(command.line, "Cannot open '" + file.string() + "'." + Problems());
     }
-    printf("Opened %s\n", file.string().c_str());
+    Out("Opened " + file.string());
 }
 
 void CScriptRunner::Save(const TScriptCommand& command) {
@@ -384,7 +426,7 @@ void CScriptRunner::Save(const TScriptCommand& command) {
     if (!GetScriptProblems().empty() || !std::filesystem::is_regular_file(file)) {
         throw CScriptError(command.line, "Saving '" + file.string() + "' failed." + Problems());
     }
-    printf("Saved %s\n", file.string().c_str());
+    Out("Saved " + file.string());
 }
 
 void CScriptRunner::Export(const TScriptCommand& command) {
@@ -572,7 +614,7 @@ void CScriptRunner::Export(const TScriptCommand& command) {
     if (!exportResult || !GetScriptProblems().empty() || !std::filesystem::is_regular_file(file)) {
         throw CScriptError(command.line, "Exporting '" + file.string() + "' as " + formatName + " failed." + Problems());
     }
-    printf("Exported %s\n", file.string().c_str());
+    Out("Exported " + file.string());
 }
 
 void CScriptRunner::Set(const TScriptCommand& command) {
@@ -601,5 +643,25 @@ void CScriptRunner::Set(const TScriptCommand& command) {
         }
     } else {
         throw CScriptError(command.line, "Unknown setting '" + command.GetArgument(0) + "'; one of overwrite, output, ntsc, driver.");
+    }
+}
+
+void CScriptRunner::Dump(const TScriptCommand& command) {
+    RequireArguments(command, 2, "dump actions <file>");
+    RequireNoOptions(command);
+    std::string what = Lower(command.GetArgument(0));
+    if (what != "actions") {
+        throw CScriptError(command.line, "Unknown dump '" + command.GetArgument(0) + "'; one of actions.");
+    }
+    std::filesystem::path file = ResolveOutput(command, command.GetArgument(1));
+    CheckOverwrite(command, file);
+    // The command table of the program's resources (doc/rmt_action_infos.md);
+    // an ERROR marker in it is an inconsistency in Rmt.rc and fails the command.
+    CCommands commands;
+    commands.Analyze();
+    int errors = commands.WriteActionInfos(file);
+    Out("Dumped the actions to " + file.string());
+    if (errors > 0) {
+        throw CScriptError(command.line, "The action table has " + std::to_string(errors) + " ERROR marker(s), see " + file.string() + ".");
     }
 }

@@ -169,14 +169,14 @@ public final class Actions extends NLS {
 	public static Action MainMenu_Block_Exchange = new Action(KeyEvent.VK_E, KeyStroke.M1);
 	public static Action MainMenu_Block_Effects = new Action(KeyEvent.VK_F, KeyStroke.M1);
 	public static Action MainMenu_Block_SelectAll = new Action(KeyEvent.VK_A, KeyStroke.M1);
-	// Block toolbar only
-	public static Action MainMenu_Block_TransposeNotesUp;
-	public static Action MainMenu_Block_TransposeNotesDown;
-	public static Action MainMenu_Block_UsePreviousInstrument;
-	public static Action MainMenu_Block_UseNextInstrument;
-	public static Action MainMenu_Block_IncreaseVolume;
-	public static Action MainMenu_Block_DecreaseVolume;
-	public static Action MainMenu_Block_ToggleModificationMode;
+	// Block toolbar only - the keys are the tracker's own block keys (TrackKey), shown as Rmt.rc's tooltips name them; hint-only (RmtCommandId)
+	public static Action MainMenu_Block_TransposeNotesUp = new Action(KeyEvent.VK_F2, KeyStroke.M1);
+	public static Action MainMenu_Block_TransposeNotesDown = new Action(KeyEvent.VK_F1, KeyStroke.M1);
+	public static Action MainMenu_Block_UsePreviousInstrument = new Action(KeyEvent.VK_LEFT, KeyStroke.M1 | KeyStroke.M2);
+	public static Action MainMenu_Block_UseNextInstrument = new Action(KeyEvent.VK_RIGHT, KeyStroke.M1 | KeyStroke.M2);
+	public static Action MainMenu_Block_IncreaseVolume = new Action(KeyEvent.VK_UP, KeyStroke.M1 | KeyStroke.M2);
+	public static Action MainMenu_Block_DecreaseVolume = new Action(KeyEvent.VK_DOWN, KeyStroke.M1 | KeyStroke.M2);
+	public static Action MainMenu_Block_ToggleModificationMode = new Action(KeyEvent.VK_A, KeyStroke.M1 | KeyStroke.M2);
 	public static Action MainMenu_Block_PlayAndLoop = new Action(KeyEvent.VK_F6, KeyStroke.M2);
 
 	// Pokey
@@ -198,25 +198,27 @@ public final class Actions extends NLS {
 	public static Action MainMenu_Pokey_Register_IncreaseBy10;
 	public static Action MainMenu_Pokey_Register_DecreaseBy01;
 	public static Action MainMenu_Pokey_Register_DecreaseBy10;
+	// The Pokey Explorer's keys (IDR_POKEY_EXPLORER ACCELERATORS and the menu labels' hints in Rmt.rc), displayed as the C++ menu displays them;
+	// hint-only until CPokeyController is ported (RmtCommandId), the register submenus' per-register keys are set by RmtMainMenu
 	public static Action MainMenu_Pokey_AUDCTL;
-	public static Action MainMenu_Pokey_AUDCTL_Bit0;
-	public static Action MainMenu_Pokey_AUDCTL_Bit1;
-	public static Action MainMenu_Pokey_AUDCTL_Bit2;
-	public static Action MainMenu_Pokey_AUDCTL_Bit3;
-	public static Action MainMenu_Pokey_AUDCTL_Bit4;
-	public static Action MainMenu_Pokey_AUDCTL_Bit5;
-	public static Action MainMenu_Pokey_AUDCTL_Bit6;
-	public static Action MainMenu_Pokey_AUDCTL_Bit7;
+	public static Action MainMenu_Pokey_AUDCTL_Bit0 = new Action(KeyEvent.VK_C, 0);
+	public static Action MainMenu_Pokey_AUDCTL_Bit1 = new Action(KeyEvent.VK_G, 0);
+	public static Action MainMenu_Pokey_AUDCTL_Bit2 = new Action(KeyEvent.VK_F, 0);
+	public static Action MainMenu_Pokey_AUDCTL_Bit3 = new Action(KeyEvent.VK_K, 0);
+	public static Action MainMenu_Pokey_AUDCTL_Bit4 = new Action(KeyEvent.VK_J, 0);
+	public static Action MainMenu_Pokey_AUDCTL_Bit5 = new Action(KeyEvent.VK_D, 0);
+	public static Action MainMenu_Pokey_AUDCTL_Bit6 = new Action(KeyEvent.VK_A, 0);
+	public static Action MainMenu_Pokey_AUDCTL_Bit7 = new Action(KeyEvent.VK_P, 0);
 	public static Action MainMenu_Pokey_SKCTL;
-	public static Action MainMenu_Pokey_SKCTL_TwoToneMode;
+	public static Action MainMenu_Pokey_SKCTL_TwoToneMode = new Action(KeyEvent.VK_M, 0);
 	public static Action MainMenu_Pokey_DebugChannel;
-	public static Action MainMenu_Pokey_DebugChannel_NextChannel;
-	public static Action MainMenu_Pokey_DebugChannel_PreviousChannel;
+	public static Action MainMenu_Pokey_DebugChannel_NextChannel = new Action(KeyEvent.VK_ENTER, 0);
+	public static Action MainMenu_Pokey_DebugChannel_PreviousChannel = new Action(KeyEvent.VK_BACK_SPACE, 0);
 	public static Action MainMenu_Pokey_Divisor;
-	public static Action MainMenu_Pokey_Divisor_IncreaseBy01;
-	public static Action MainMenu_Pokey_Divisor_IncreaseBy1;
-	public static Action MainMenu_Pokey_Divisor_DecreaseBy01;
-	public static Action MainMenu_Pokey_Divisor_DecreaseBy1;
+	public static Action MainMenu_Pokey_Divisor_IncreaseBy01 = new Action(KeyEvent.VK_PLUS, 0);
+	public static Action MainMenu_Pokey_Divisor_IncreaseBy1 = new Action(KeyEvent.VK_PLUS, KeyStroke.M2);
+	public static Action MainMenu_Pokey_Divisor_DecreaseBy01 = new Action(KeyEvent.VK_MINUS, 0);
+	public static Action MainMenu_Pokey_Divisor_DecreaseBy1 = new Action(KeyEvent.VK_MINUS, KeyStroke.M2);
 
 	// Tools
 	public static Action MainMenu_Tools_OpenASMA;
@@ -225,13 +227,16 @@ public final class Actions extends NLS {
 	public static Action MainMenu_Tools_Options;
 
 	// Help
-	public static Action MainMenu_Help_Help;
+	public static Action MainMenu_Help_Help = new Action(KeyEvent.VK_F1, 0); // Rmt.rc's label shows F1, the accelerator table has none: hint-only (RmtCommandId)
 	public static Action MainMenu_Help_OnlineHelp = new Action(KeyEvent.VK_F1, KeyStroke.M2);
 	public static Action MainMenu_Help_About;
 
 	// Toolbar-only
 	public static Action Toolbar_MidiOnOff;
 	public static Action Toolbar_SkipLinesAfterNoteInsert;
+
+	// Accelerator-only (IDR_MAIN_WINDOW ACCELERATORS without a menu item or button)
+	public static Action Key_ToggleNTSC = new Action(KeyEvent.VK_F12, KeyStroke.M1);
 
 	// Dialog buttons (IDD_OPTIONS, IDD_OPTIONS_FILE_PATHS, IDD_TUNING)
 	public static Action OptionsDialog_Paths;

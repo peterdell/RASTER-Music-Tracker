@@ -23,9 +23,9 @@ in both.
   Messages that would be boxes in the window are printed to the console:
   errors and warnings to stderr, information to stdout.
 
-- Java port, from the window: **Tools > Run Script...** picks a script and
-  runs it on the current session. Message boxes stay boxes; the commands'
-  output is shown once at the end.
+- From the window, in both programs: **Tools > Run Script...** picks a
+  script and runs it on the current session. Message boxes stay boxes; the
+  commands' output is shown once at the end.
 
 - Windows program:
 
@@ -80,6 +80,7 @@ Exit codes of the command line:
 | `set output <folder>` | Where later `save`/`export` commands write (relative to the script's folder; created when missing). Default: the script's folder. |
 | `set ntsc yes\|no` | The Options dialog's NTSC setting (the video standard: 60 or 50 frames per second, and the POKEY clock). |
 | `set driver <version>` | The Options dialog's tracker driver: `unpatched`, `unpatched-with-tuning`, `patch3`, `patch6`, `patch8`, `patch16` (the default), `patch-prince-of-persia`. |
+| `dump actions <file>` | Writes the program's command table - every menu item, toolbar button and key with its description - as a Markdown table (`doc/rmt_action_infos.md` is made this way by the build). A row marked ERROR is an inconsistency in the program's resources and fails the command. |
 | `echo <text ...>` | Prints the text. |
 | `quit` | Ends the script (implicit at its end). |
 

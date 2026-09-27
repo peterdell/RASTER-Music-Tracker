@@ -4764,3 +4764,39 @@ build clean and all 123 tests pass.
     - Verified: `mvn -o clean package` 594 tests (+4); the staging and the
       pre-build both produce the 12 files; the scripting page rendered in a
       browser (tables, code, title).
+  - **2026-09-27**: Documentation generation, batch D2 - `dump actions` in
+    both programs and the command table in the cross-program comparison
+    (`plans/DOC_GENERATION_PLAN.md`, findings listed there).
+    - C++: `CCommands` refactored (`Analyze()` collects from the compiled
+      resources: main menu, main and block toolbars, both accelerator
+      tables; `WriteActionInfos(file)` writes the Markdown table, LF, and
+      returns the ERROR count); rows in the order met (menus, toolbar-only
+      buttons, key-only commands); an own English key formatter (MFC's was
+      locale-dependent); the accelerator-table bug, the popup-ID row, the
+      `&&` handling fixed. `CScriptRunner::Dump` (`dump actions <file>`,
+      fails on ERROR markers). `Rmt.rc`: the stale labels and prompts the
+      first dump flagged, the Help menu on the program's own IDs, the About
+      toolbar button on `ID_HELP_ABOUT_APP` (`ID_HELP_ABOUT` had no
+      handler), five prompts in the "status\nLabel (Key)" convention.
+      Tools > Run Script... (`ID_TOOLS_RUN_SCRIPT`, `CRmtView::
+      OnToolsRunScript`, `CScriptRunner::RunInteractive` with the output
+      captured for one result box, `SetScriptMessageMode(enabled,
+      interactive)`: boxes shown, problems still collected) - the Java
+      port's S2 command, now in both. The Debug-only start-up `Analyze()`
+      call removed.
+    - Java: `ActionInfos` (the same table from `Actions`/`RmtCommandId`/
+      `RmtMainMenu`/`RmtToolBars`, the keys the items display, the same key
+      names), `ScriptRunner` `dump`; the Pokey Explorer's keys and the block
+      toolbar's keys displayed as hints as the C++ menus display them, the
+      toolbar-only labels as the C++ tooltips, `SONG_TOGGLE_NTSC` (Ctrl+F12,
+      accelerator-only) executing `OnSongToggleNTSC`'s port.
+    - `test-resources/scripts/actions.rmtscript`; `build_rmt-daily.bat`
+      regenerates `doc/rmt_action_infos.md` after the Release build and
+      stops on ERROR markers; the checked-in table is the build's (176
+      rows, both programs byte-identical). `doc/rmt_scripting.md` (`dump`,
+      Run Script in both), `doc/rmt_changes.md` entries.
+    - Verified: `mvn -o clean package` 595 tests (+1); RmtTests 415;
+      `compare_exports.ps1` 3 scripts identical; Tools > Run Script in
+      `Rmt.exe`: the command opens the "Run script file" dialog (checked
+      through a posted WM_COMMAND); the run through to the result box was
+      not captured by automation - to be tried by hand.

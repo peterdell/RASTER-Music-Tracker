@@ -1,33 +1,40 @@
 #pragma once
 
-// Use Accelerator Key Mapping in Rmt.rc
+// The command table of the program - every menu item, toolbar button and
+// accelerator of Rmt.rc joined per command ID with its STRINGTABLE prompt -
+// as data: CCommands::Analyze() reads the compiled resources of the running
+// program, WriteActionInfos() writes the table doc/rmt_action_infos.md is
+// generated from ("dump actions <file>" in a script, see
+// doc/rmt_scripting.md and plans/DOC_GENERATION_PLAN.md). The table doubles
+// as a consistency check of Rmt.rc: a menu label whose displayed key is not
+// the real accelerator, or a tooltip that does not match the label, is an
+// ERROR marker in the table and a failure of the command.
 
 #include "StdAfx.h"
+#include <filesystem>
 #include <list>
 #include <map>
+#include <vector>
 
 class CAcceleratorTable {
 public:
-    CAcceleratorTable();
-    ~CAcceleratorTable();
-
     void Clear();
+    // Appends the entries of the ACCELERATORS resource id.
     void Add(const UINT id);
 
     int GetSize() const;
     const ACCEL& GetEntry(const int index) const;
-    ACCEL* GetEntryByCommand(const WORD cmd) const;
-    CString GetText(ACCEL& entry) const;
+    const ACCEL* GetEntryByCommand(const WORD cmd) const;
+    // "Ctrl+Shift+F4": MFC's modifier order, English key names (see the .cpp).
+    static CString GetText(const ACCEL& entry);
 
 private:
-    int size;
-    ACCEL* pAccel;
+    std::vector<ACCEL> m_entries;
 };
 
 class CMenuEntry {
 public:
     typedef CStringArray MenuPath;
-    typedef CString MenuPosition;
 
     static CString GetPlainText(const CString& menuText);
     static CString GetAcceleatorKey(const CString& menuText);
@@ -62,22 +69,34 @@ class CCommands {
 
 public:
     CCommands();
+    ~CCommands();
+
+    // Reads the main menu, the main and block toolbars and the two
+    // accelerator tables.
     void Analyze();
+
+    // Writes the table (Markdown, LF line ends) to file; returns the number
+    // of ERROR markers in it. Analyze() first.
+    int WriteActionInfos(const std::filesystem::path& file) const;
+
+    // The table as text, for tests and WriteActionInfos().
+    CString GetActionInfosText(int& errorCount) const;
 
     class CActionInfo {
     public:
-        static bool Compare(const CActionInfo* first, CActionInfo* second);
-
         CActionInfo(const UINT id, const CMenuEntry* menuEntry);
+        ~CActionInfo();
 
         UINT GetID() const;
+        // The status bar text of the STRINGTABLE prompt (before the '\n').
         CString GetText() const;
+        // The tooltip text of the STRINGTABLE prompt (after the '\n').
         CString GetDescription() const;
         const CMenuEntry* GetMenuEntry() const;
         void SetMenuEntry(const CMenuEntry* menuEntry);
 
         CString GetToolBar() const;
-        void SetToolBar(const CString& toolBar);
+        void AddToolBar(const CString& toolBar);
 
     private:
         UINT id;
@@ -93,16 +112,17 @@ public:
 private:
     CAcceleratorTable m_acceleratorTable;
     ActionInfoMap m_actionInfoMap;
+    ActionInfoList m_order; // the rows in the order they are met: menus, toolbars, accelerators
 
     void ClearActionInfos();
     const CActionInfo* GetActionInfo(UINT id) const;
     CActionInfo* GetMutableActionInfo(UINT id);
 
-    void PrintActionInfos() const;
-
     void AnalyzeMenu(const CMenuEntry::MenuPath& menuIDPath, const CMenuEntry::MenuPath& menuTextPath, const CMenu& menu);
     void AnalyzeMenu(const UINT id, const CString& menuID, const CString& menuText);
 
-    void AnalyzeToolBar(const CString& namne, const CToolBar& toolBar);
+    void AnalyzeToolBar(const CString& name, const CToolBar& toolBar);
     void AnalyzeToolBar(const UINT id, const CString& name);
+
+    void AnalyzeAccelerators();
 };

@@ -49,11 +49,22 @@ public final class RmtMainMenu {
 		menuBar.add(createPokeyMenu());
 		menuBar.add(createToolsMenu());
 		menuBar.add(createHelpMenu());
+		accelerators.put(RmtCommandId.SONG_TOGGLE_NTSC.action.getAccelerator(), RmtCommandId.SONG_TOGGLE_NTSC); // Ctrl+F12: an accelerator without a menu item, as in Rmt.rc
 	}
 
 	/** The buttons (menu items, and via {@link #register} toolbar buttons) that trigger {@code id}. */
 	List<AbstractButton> getButtons(RmtCommandId id) {
 		return items.getOrDefault(id, List.of());
+	}
+
+	/** The command a menu item or registered toolbar button triggers, or {@code null} ({@link ActionInfos}). */
+	RmtCommandId commandOf(AbstractButton button) {
+		for (Map.Entry<RmtCommandId, List<AbstractButton>> entry : items.entrySet()) {
+			if (entry.getValue().contains(button)) {
+				return entry.getKey();
+			}
+		}
+		return null;
 	}
 
 	/** Lets {@link RmtToolBars} share the same state updates. */
@@ -274,14 +285,21 @@ public final class RmtMainMenu {
 		Action[] channels = { Actions.MainMenu_Pokey_Channel1, Actions.MainMenu_Pokey_Channel2, Actions.MainMenu_Pokey_Channel3, Actions.MainMenu_Pokey_Channel4 };
 		Action[] audf = { Actions.MainMenu_Pokey_AUDF0, Actions.MainMenu_Pokey_AUDF1, Actions.MainMenu_Pokey_AUDF2, Actions.MainMenu_Pokey_AUDF3 };
 		Action[] audc = { Actions.MainMenu_Pokey_AUDC0, Actions.MainMenu_Pokey_AUDC1, Actions.MainMenu_Pokey_AUDC2, Actions.MainMenu_Pokey_AUDC3 };
+		// IDR_POKEY_EXPLORER ACCELERATORS: per register, the digit increases and the letter decreases, Shift for the 0x10 steps -
+		// displayed as the C++ menu displays them (hint-only: the four shared commands are disabled until CPokeyController is ported)
+		int[] decreaseAudf = { java.awt.event.KeyEvent.VK_Q, java.awt.event.KeyEvent.VK_E, java.awt.event.KeyEvent.VK_T, java.awt.event.KeyEvent.VK_U };
+		int[] decreaseAudc = { java.awt.event.KeyEvent.VK_W, java.awt.event.KeyEvent.VK_R, java.awt.event.KeyEvent.VK_Z, java.awt.event.KeyEvent.VK_I };
 		for (int c = 0; c < 4; c++) {
 			JMenu channel = submenu(menu, channels[c]);
-			for (Action register : new Action[] { audf[c], audc[c] }) {
+			for (int r = 0; r < 2; r++) {
+				Action register = r == 0 ? audf[c] : audc[c];
+				int increaseKey = java.awt.event.KeyEvent.VK_1 + 2 * c + r;
+				int decreaseKey = r == 0 ? decreaseAudf[c] : decreaseAudc[c];
 				JMenu reg = submenu(channel, register);
-				item(reg, RmtCommandId.POKEY_REGISTER_INCREASE_BY_01);
-				item(reg, RmtCommandId.POKEY_REGISTER_INCREASE_BY_10);
-				item(reg, RmtCommandId.POKEY_REGISTER_DECREASE_BY_01);
-				item(reg, RmtCommandId.POKEY_REGISTER_DECREASE_BY_10);
+				item(reg, RmtCommandId.POKEY_REGISTER_INCREASE_BY_01).setAccelerator(KeyStroke.getKeyStroke(increaseKey, 0));
+				item(reg, RmtCommandId.POKEY_REGISTER_INCREASE_BY_10).setAccelerator(KeyStroke.getKeyStroke(increaseKey, java.awt.event.InputEvent.SHIFT_DOWN_MASK));
+				item(reg, RmtCommandId.POKEY_REGISTER_DECREASE_BY_01).setAccelerator(KeyStroke.getKeyStroke(decreaseKey, 0));
+				item(reg, RmtCommandId.POKEY_REGISTER_DECREASE_BY_10).setAccelerator(KeyStroke.getKeyStroke(decreaseKey, java.awt.event.InputEvent.SHIFT_DOWN_MASK));
 			}
 		}
 		JMenu audctl = submenu(menu, Actions.MainMenu_Pokey_AUDCTL);

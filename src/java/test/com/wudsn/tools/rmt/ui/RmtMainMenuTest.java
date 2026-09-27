@@ -27,8 +27,12 @@ class RmtMainMenuTest {
 
 		assertEquals(12, menu.menuBar.getMenuCount());
 		for (RmtCommandId id : RmtCommandId.values()) {
+			if (id == RmtCommandId.SONG_TOGGLE_NTSC) {
+				continue; // accelerator-only, as in Rmt.rc
+			}
 			assertFalse(menu.getButtons(id).isEmpty(), id + " has no menu item or toolbar button");
 		}
+		assertEquals(RmtCommandId.SONG_TOGGLE_NTSC, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F12, InputEvent.CTRL_DOWN_MASK)));
 		assertEquals(17 + 7 + 1, toolBars.mainToolBar.getComponentCount()); // 17 buttons, 7 separators, the combo box
 		assertEquals(10 + 3, toolBars.blockToolBar.getComponentCount());
 		assertEquals(8, menu.getButtons(RmtCommandId.POKEY_REGISTER_INCREASE_BY_01).size()); // the 8 register submenus share the 4 register commands

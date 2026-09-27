@@ -18,6 +18,7 @@ import com.wudsn.tools.rmt.model.MessageButtons;
 import com.wudsn.tools.rmt.model.Messages;
 import com.wudsn.tools.rmt.model.SapFile;
 import com.wudsn.tools.rmt.model.TrackerDriverVersion;
+import com.wudsn.tools.rmt.ui.ActionInfos;
 import com.wudsn.tools.rmt.ui.ExportSettings;
 import com.wudsn.tools.rmt.ui.RmtSession;
 import com.wudsn.tools.rmt.ui.SongFiles;
@@ -165,6 +166,7 @@ public final class ScriptRunner {
 		case "save" -> save(command);
 		case "export" -> export(command);
 		case "set" -> set(command);
+		case "dump" -> dump(command);
 		case "echo" -> out.println(String.join(" ", command.arguments()));
 		case "quit" -> {
 			return false;
@@ -249,6 +251,23 @@ public final class ScriptRunner {
 	}
 
 	/** An output file: relative to the output folder (created on demand), else the script's folder. */
+	/** {@code dump actions <file>}: the program's command table ({@link ActionInfos}); an ERROR marker in it fails the command, as in the C++ program. */
+	private void dump(ScriptCommand command) throws ScriptException, IOException {
+		requireArguments(command, 2, "dump actions <file>");
+		requireNoOptions(command);
+		String what = command.argument(0).toLowerCase(Locale.ROOT);
+		if (!what.equals("actions")) {
+			throw new ScriptException(command.line(), "Unknown dump '" + command.argument(0) + "'; one of actions.");
+		}
+		Path file = resolveOutput(command.argument(1));
+		checkOverwrite(command, file);
+		int errors = ActionInfos.write(file);
+		out.println("Dumped the actions to " + file);
+		if (errors > 0) {
+			throw new ScriptException(command.line(), "The action table has " + errors + " ERROR marker(s), see " + file + ".");
+		}
+	}
+
 	private Path resolveOutput(String path) throws ScriptException {
 		Path base = outputOverride != null ? outputOverride : outputFolder != null ? outputFolder : baseFolder;
 		Path file = base.resolve(path).normalize();

@@ -5,7 +5,14 @@ decision 4: the tables compared, normalized). **D1 DONE 2026-09-27**: `DocGenera
 (commonmark 0.29.0 + GFM tables as Maven dependencies, shaded into the jar),
 `DocGeneratorTest`, `stage_java_release.sh` and `build_rmt_pre.bat` generate
 `docs/` (12 files: 8 pages from `.md`, the two manuals, `rmt.gif`, `img/`);
-`build_rmt-daily.bat` requires the jar. D2 next. Origin: the user's two
+`build_rmt-daily.bat` requires the jar. **D2 DONE 2026-09-27**: `dump
+actions <file>` in both programs, `actions.rmtscript` in the comparison
+(the two tables byte-identical, 176 rows), the daily build regenerates
+`doc/rmt_action_infos.md` and fails on ERROR markers; found and fixed on the
+way (section 2.2's findings below): the accelerator table bug, stale menu
+labels, a dead About button, two typos, the MFC key names; Tools > Run
+Script added to the C++ program, Ctrl+F12 (NTSC) to the Java port. D3 next.
+Origin: the user's two
 points after the C++ scripting batch C3 - (1) the documentation is
 maintained as Markdown on GitHub, because that is easier to maintain, and
 must stay so; (2) normal users have no Markdown reader, so what ships in the
@@ -135,6 +142,32 @@ text nobody reopens.
   `doc/rmt_action_infos.md` after the Release build, so the checked-in file
   is always the build's (a `git diff` shows what a menu change did), and
   the generator (2.1) includes it into the manual.
+
+**D2 findings** (each fixed): (1) `CAcceleratorTable::Add()` cleared the
+previous table, so the main window's accelerators were never in the table
+and the key check could not fire. (2) MFC's `CMFCAcceleratorKey::Format`
+names keys in the system language ("Strg", "Umschalt"); the table now
+formats them itself, English, and the Java port formats the same way.
+(3) Popups report `(UINT)-1` as their command ID and produced a bogus
+"Help" row. (4) `GetPlainText` never reset its mnemonic state ("Clear Undo
+&& Redo History" kept both ampersands). (5) Stale labels in `Rmt.rc`: Edit
+Tracks/Instruments/Info showed F1/F2/F3 (the keys are F2/F3/Shift+F4),
+Increase/Decrease Step Size showed Ctrl++/Ctrl+- (they are the keypad's
+Num +/Num -), "Ctrl+SPACE"/"ESC"/"Shift+Ctrl+S"/"Shift-F6" spellings, the
+Print prompt claimed Ctrl-P, "Decrease By 0x11", "Umnute". (6) The toolbar's
+About button used `ID_HELP_ABOUT`, which has no handler - dead; now
+`ID_HELP_ABOUT_APP`. (7) The Help menu used MFC's `ID_HELP`/
+`ID_CONTEXT_HELP` and so MFC's prompts; it uses the program's own IDs and
+prompts now. (8) Five prompts carried the key in the status text instead
+of the "status
+Label (Key)" convention. (9) Normalizations for the
+comparison: the Java port now displays the Pokey Explorer's keys and the
+block toolbar's keys as the C++ menus do (hint-only), its toolbar-only
+labels follow the C++ tooltips, C++ splits a button's tooltip "Label (Key)"
+into entry and key. (10) Real parity gaps closed instead of listed: Tools >
+Run Script in the C++ program (`CScriptRunner::RunInteractive`, script
+message mode with boxes), Ctrl+F12 toggle NTSC in the Java port
+(`SONG_TOGGLE_NTSC`, accelerator-only as in `Rmt.rc`).
 
 ### 2.3 What ships where
 

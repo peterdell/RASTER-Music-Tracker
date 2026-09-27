@@ -54,7 +54,7 @@ extern void SetTestQuestionAnswer(MessageAnswer answer);
 // information to stdout, questions answered No/Cancel with a note - and the
 // errors and warnings are collected so the script runner can fail the
 // current command on them.
-extern void SetScriptMessageMode(bool enabled);
+extern void SetScriptMessageMode(bool enabled, bool interactive = false);
 extern void ClearScriptProblems();
 // The errors and warnings since ClearScriptProblems(), one line each; "" for none.
 extern std::string GetScriptProblems();

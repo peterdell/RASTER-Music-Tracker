@@ -47,8 +47,8 @@ BEGIN_MESSAGE_MAP(CRmtApp, CWinApp)
     ON_COMMAND(ID_FILE_OPEN, CWinApp::OnFileOpen)
     // Standard print setup command
     ON_COMMAND(ID_FILE_PRINT_SETUP, CWinApp::OnFilePrintSetup)
-    ON_COMMAND(ID_HELP, CRmtApp::OnHelp)
-    ON_COMMAND(ID_CONTEXT_HELP, CRmtApp::OnHelpOnlineHelp) // TODO: Should be real context help instead
+    ON_COMMAND(ID_HELP_HELP_TOPICS, CRmtApp::OnHelp)
+    ON_COMMAND(ID_HELP_ONLINE_HELP, CRmtApp::OnHelpOnlineHelp) // TODO: Should be real context help instead
     ON_COMMAND(ID_HELP_ABOUT_APP, CRmtApp::OnHelpAboutApp)
 END_MESSAGE_MAP()
 
@@ -156,11 +156,6 @@ BOOL CRmtApp::InitInstance()
 
     // Initialize the random number based on the current time.
     srand((unsigned int)time(NULL));
-
-#ifdef DEBUG
-    CCommands commands;
-    commands.Analyze();
-#endif
 
     // Dispatch additional interactive commands specified on the command line.
     switch (cmdInfo.m_nShellCommand) {
