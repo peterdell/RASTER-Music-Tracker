@@ -24,6 +24,6 @@ for folder in exports instruments resources songs; do
 	cp -r "$ROOT/rmt/$folder" "$STAGE/"
 done
 cp "$ROOT/rmt/rmt.ini" "$ROOT/rmt/tuning.ini" "$STAGE/"
-cp "$ROOT/doc/rmt_en.html" "$ROOT/doc/rmt_en_128.html" "$ROOT/doc/rmt.gif" "$STAGE/docs/"
+cp "$ROOT/doc/rmt_en.html" "$ROOT/doc/rmt_en_128.html" "$ROOT/doc/rmt.gif" "$ROOT/doc/rmt_scripting.md" "$STAGE/docs/"
 cp -r "$ROOT/doc/img" "$STAGE/docs/"
 echo "Staged the Java port's distribution layout in $STAGE"

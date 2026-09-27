@@ -4623,3 +4623,12 @@ build clean and all 123 tests pass.
       script typed into the chooser - the SAP-R and the stripped RMT were
       written next to the script, the "Script 'ui.rmtscript' finished."
       box listed them (`s2-result.png`).
+  - **2026-09-27**: Scripting, batch S3 (documentation) - the scripting
+    feature is complete (`plans/JAVA_SCRIPTING_PLAN.md`).
+    - `doc/rmt_scripting.md`: how to run a script (command line without a
+      display, Tools > Run Script), the exit codes, the syntax, the
+      commands, the eight export formats with their options and defaults,
+      an example, what is not a command. Linked from README's Java
+      section; `build/stage_java_release.sh` copies it into the
+      distribution's `docs/`.
+    - Decision 6 (the C++ program) left open as recommended.

@@ -1,8 +1,16 @@
 # Java port: scripting (proposal)
 
-Status: **S1 and S2 DONE 2026-09-27** (decisions 1-5 and 7 as
-recommended; the C++ question, decision 6, stays open); S3 (documentation)
-next.
+Status: **DONE 2026-09-27** - S1, S2 and S3 (decisions 1-5 and 7 as
+recommended; the C++ question, decision 6, stays open: the C++ program
+keeps its developer switches until the Java option set has settled).
+
+S3 as built: `doc/rmt_scripting.md` (running from the command line and the
+window, exit codes, syntax, commands, formats and options with their
+defaults, an example, what is not a command), linked from README's Java
+section and staged into the distribution's `docs/` by
+`build/stage_java_release.sh`. The "Scripting" paragraph planned for
+`doc/rmt_tracker_usage.md` was dropped - that file is about GO TO LINE and
+subsongs only.
 
 S2 as built: `set ntsc yes|no` (`RmtSession.setNTSC`, with its
 `ReInitSound`) and `set driver <version>` (the enum names, case-insensitive,
