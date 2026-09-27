@@ -63,6 +63,9 @@ public final class RmtCommands {
 
 		/** {@code CRmtApp::OnHelpAboutApp()}: the About dialog. */
 		void showAbout();
+
+		/** Tools > Run Script...: the script file to run, {@code null} if cancelled. */
+		java.nio.file.Path chooseScriptFile();
 	}
 
 	static final String ONLINE_HELP_URL = "https://html-preview.github.io/?url=https://github.com/raster-atari-org/RASTER-Music-Tracker/blob/1.35/doc//rmt_en.html";
@@ -140,6 +143,33 @@ public final class RmtCommands {
 			}
 		}
 		songFiles.fileSave();
+	}
+
+	/**
+	 * Tools > Run Script... (the Java port's scripting, no C++ counterpart):
+	 * the chosen script on the live session, the message boxes staying boxes;
+	 * the commands' own output is shown once at the end - as an information
+	 * box on success, as an error box naming the failed line otherwise.
+	 */
+	private void runScript() {
+		Path script = host.chooseScriptFile();
+		if (script == null) {
+			return;
+		}
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+		java.io.ByteArrayOutputStream err = new java.io.ByteArrayOutputStream();
+		int code;
+		try (java.io.PrintStream outStream = new java.io.PrintStream(out, true, java.nio.charset.StandardCharsets.UTF_8); java.io.PrintStream errStream = new java.io.PrintStream(err, true, java.nio.charset.StandardCharsets.UTF_8)) {
+			code = new com.wudsn.tools.rmt.script.ScriptRunner(session, outStream, errStream, session.messages.getHandler()).run(script);
+		}
+		host.updateMinimumSize(); // the script may have opened a song with the other channel count
+		host.skipLinesChanged();
+		String log = out.toString(java.nio.charset.StandardCharsets.UTF_8).trim();
+		if (code == com.wudsn.tools.rmt.script.ScriptRunner.EXIT_OK) {
+			session.messages.sendInformationMessage("Script", "Script '" + script.getFileName() + "' finished." + (log.isEmpty() ? "" : "\n\n" + log));
+		} else {
+			session.messages.sendErrorMessage("Script", "Script '" + script.getFileName() + "' failed:\n" + err.toString(java.nio.charset.StandardCharsets.UTF_8).trim() + (log.isEmpty() ? "" : "\n\nDone before that:\n" + log));
+		}
 	}
 
 	/** {@code CRmtApp::OnHelp()}: {@code CShell::OpenLocalFile(GetResourceFilePath("docs", "rmt_en.html"))} - the browser is the help viewer; a missing file is reported (the shell would report it in C++). */
@@ -515,6 +545,7 @@ public final class RmtCommands {
 		case TOOLS_OPEN_ASAP_FILE -> {
 			// ID_TOOLS_OPEN_ASAP_FILE has no handler anywhere in the C++ sources (only its resource ID): MFC shows it disabled, see isEnabled()
 		}
+		case TOOLS_RUN_SCRIPT -> runScript();
 		case TOOLS_OPTIONS -> {
 			OptionsValues values = OptionsValues.from(session);
 			if (host.editOptions(values)) {

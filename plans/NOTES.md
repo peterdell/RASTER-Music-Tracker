@@ -4594,3 +4594,32 @@ build clean and all 123 tests pass.
       folder with the staged `rmt/` layout and a configuration-only
       folder; a rerun refuses to overwrite (exit 1); a broken quote gives
       exit 2 with the line; `/TEST:x` still shows the rejection box.
+  - **2026-09-27**: Scripting, batch S2 - the settings and the menu command.
+    - `set ntsc yes|no` and `set driver <version>` in `ScriptRunner`: the
+      two Options-dialog settings that shape exports, applied through the
+      same session methods the dialog uses (`setNTSC` with its
+      `ReInitSound`, `setTrackerDriverVersion`). Driver names are the enum
+      names, case-insensitive with `-` or `_`; `none` is not offered.
+    - **Tools > Run Script...** (`TOOLS_RUN_SCRIPT`; a command of the Java
+      port only, no C++ counterpart - decision 5 of the scripting plan):
+      `RmtCommands.Host.chooseScriptFile()` (a file chooser for
+      `.rmtscript`/`.txt`), then the runner on the live session in its new
+      interactive message policy: `ScriptRunner(session, out, err,
+      messageBoxes)` wraps the window's `Messages.Handler` (new
+      `Messages.getHandler()`) so the model's boxes stay boxes while errors
+      and warnings still fail the command, and restores the handler
+      afterwards. The commands' output is shown once at the end - an
+      information box on success, an error box with the failed line
+      otherwise; `updateMinimumSize`/`skipLinesChanged` follow a possible
+      song change.
+    - Tests: `ScriptRunnerTest` (`set ntsc` makes the session and its
+      POKEY pair NTSC and the WAV shorter, `set driver` sets the option,
+      bad values fail with the choices listed; the interactive policy
+      delivers the box to the window and restores the handler);
+      `RmtCommandsTest` (the command opens a song from a script, reports
+      once, reports a failure, does nothing when cancelled). 587 tests
+      (+3).
+    - Live: Delta.rmt in the window, Tools > Run Script, a two-export
+      script typed into the chooser - the SAP-R and the stripped RMT were
+      written next to the script, the "Script 'ui.rmtscript' finished."
+      box listed them (`s2-result.png`).

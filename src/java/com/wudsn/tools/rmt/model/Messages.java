@@ -60,6 +60,11 @@ public final class Messages {
 		testQuestionAnswer = answer;
 	}
 
+	/** The current handler (the log fallback, the UI's boxes, or a test's recorder). */
+	public Handler getHandler() {
+		return handler;
+	}
+
 	/** Installs the UI's message boxes in place of the log fallback ({@code null} restores the log). */
 	public void setHandler(Handler handler) {
 		this.handler = handler != null ? handler : createLogHandler();

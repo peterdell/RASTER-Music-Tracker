@@ -1,7 +1,26 @@
 # Java port: scripting (proposal)
 
-Status: **S1 DONE 2026-09-27** (decisions 1-4 and 7 as recommended; S2's
-menu item and the C++ question, decisions 5 and 6, still open). Origin:
+Status: **S1 and S2 DONE 2026-09-27** (decisions 1-5 and 7 as
+recommended; the C++ question, decision 6, stays open); S3 (documentation)
+next.
+
+S2 as built: `set ntsc yes|no` (`RmtSession.setNTSC`, with its
+`ReInitSound`) and `set driver <version>` (the enum names, case-insensitive,
+`-` or `_`: `unpatched`, `unpatched-with-tuning`, `patch3`, `patch6`,
+`patch8`, `patch16`, `patch-prince-of-persia`;
+`RmtSession.setTrackerDriverVersion`). **Tools > Run Script...**
+(`TOOLS_RUN_SCRIPT`, a Java-port command without C++ counterpart): a file
+chooser (`.rmtscript`/`.txt`), the same runner on the live session in its
+interactive message policy - the model's boxes stay the window's boxes
+(`ScriptRunner(session, out, err, messageBoxes)` wraps the current
+`Messages.Handler` to notice errors and restores it afterwards; new
+`Messages.getHandler()`), the commands' output shown once at the end as an
+information box, or an error box naming the failed line. Tests:
+`ScriptRunnerTest` (`set ntsc`/`set driver` and their errors, the
+interactive message policy), `RmtCommandsTest` (the command with a
+recording host: song opened, one result box, the failure box, cancel).
+Live: Tools > Run Script on Delta.rmt with a two-export script - both files
+written, the result box listing them. Origin:
 the user's decision during B9 - "have proper scripts instead of /TEST" -
 see `plans/JAVA_B9_PLAN.md` section 5. `/TEST:<file>` stays rejected by
 the Java port with the C++ "Invalid Command Line Parameter" box; the C++

@@ -17,6 +17,7 @@ import com.wudsn.tools.rmt.model.MessageAnswer;
 import com.wudsn.tools.rmt.model.MessageButtons;
 import com.wudsn.tools.rmt.model.Messages;
 import com.wudsn.tools.rmt.model.SapFile;
+import com.wudsn.tools.rmt.model.TrackerDriverVersion;
 import com.wudsn.tools.rmt.ui.ExportSettings;
 import com.wudsn.tools.rmt.ui.RmtSession;
 import com.wudsn.tools.rmt.ui.SongFiles;
@@ -31,10 +32,16 @@ import com.wudsn.tools.rmt.ui.SongFiles;
  *
  * <p>Commands: {@code open <file>}, {@code save <file>},
  * {@code export <format> <file> [name=value ...]}, {@code set overwrite
- * yes|no}, {@code echo <text>}, {@code quit}. Paths are relative to the
- * script's folder. Exit codes: 0 = all commands succeeded, 1 = a command
- * failed (the script stops there), 2 = the script could not be read or
- * parsed.
+ * yes|no}, {@code set ntsc yes|no}, {@code set driver <version>},
+ * {@code echo <text>}, {@code quit}. Paths are relative to the script's
+ * folder. Exit codes: 0 = all commands succeeded, 1 = a command failed (the
+ * script stops there), 2 = the script could not be read or parsed.
+ *
+ * <p>Two message policies: headless (the command line), where the message
+ * boxes are printed to the console; and interactive (Tools > Run script...
+ * in the window), where they stay the window's boxes - either way an error
+ * or warning box fails the command. The session's handler is restored
+ * after the run.
  */
 public final class ScriptRunner {
 
@@ -68,12 +75,20 @@ public final class ScriptRunner {
 	/** Set by the message handler when a command raised an error or warning box. */
 	private final List<String> problems = new ArrayList<>();
 
+	private final Messages.Handler messageBoxes;
+
+	/** Headless: the message boxes go to the console. */
 	public ScriptRunner(RmtSession session, PrintStream out, PrintStream err) {
+		this(session, out, err, null);
+	}
+
+	/** {@code messageBoxes} non-null: the boxes stay boxes (the window's handler), only the command results go to {@code out}/{@code err}. */
+	public ScriptRunner(RmtSession session, PrintStream out, PrintStream err, Messages.Handler messageBoxes) {
 		this.session = session;
 		this.out = out;
 		this.err = err;
+		this.messageBoxes = messageBoxes;
 		this.files = new SongFiles(session, host);
-		session.messages.setHandler(new ConsoleMessages());
 	}
 
 	/** Reads, parses and runs the script file; returns the exit code. */
@@ -98,6 +113,16 @@ public final class ScriptRunner {
 
 	/** Runs already parsed commands, resolving relative paths against {@code baseFolder}; returns the exit code. */
 	public int run(List<ScriptCommand> commands, Path baseFolder) {
+		Messages.Handler previous = session.messages.getHandler();
+		session.messages.setHandler(new RecordingMessages(messageBoxes != null ? messageBoxes : new ConsoleMessages()));
+		try {
+			return runCommands(commands, baseFolder);
+		} finally {
+			session.messages.setHandler(previous);
+		}
+	}
+
+	private int runCommands(List<ScriptCommand> commands, Path baseFolder) {
 		this.baseFolder = baseFolder;
 		for (ScriptCommand command : commands) {
 			current = command;
@@ -195,8 +220,36 @@ public final class ScriptRunner {
 		String value = command.argument(1);
 		switch (name) {
 		case "overwrite" -> overwrite = parseBoolean(command, "overwrite", value);
-		default -> throw new ScriptException(command.line(), "Unknown setting '" + command.argument(0) + "'; one of overwrite.");
+		case "ntsc" -> { // the Options dialog's NTSC box (OnToolsOptions -> SetNTSC)
+			boolean ntsc = parseBoolean(command, "ntsc", value);
+			if (session.song.isNTSC() != ntsc) {
+				session.setNTSC(ntsc);
+			}
 		}
+		case "driver" -> { // the Options dialog's tracker driver version
+			TrackerDriverVersion version = parseDriverVersion(command, value);
+			if (session.options.trackerDriverVersion != version) {
+				session.setTrackerDriverVersion(version);
+			}
+		}
+		default -> throw new ScriptException(command.line(), "Unknown setting '" + command.argument(0) + "'; one of overwrite, ntsc, driver.");
+		}
+	}
+
+	/** {@code unpatched}, {@code unpatched-with-tuning}, {@code patch3}, {@code patch6}, {@code patch8}, {@code patch16}, {@code patch-prince-of-persia} (the enum names, case-insensitive, {@code -} or {@code _}). */
+	private static TrackerDriverVersion parseDriverVersion(ScriptCommand command, String value) throws ScriptException {
+		String wanted = value.trim().toUpperCase(Locale.ROOT).replace('-', '_');
+		List<String> names = new ArrayList<>();
+		for (TrackerDriverVersion v : TrackerDriverVersion.values()) {
+			if (v == TrackerDriverVersion.NONE) {
+				continue;
+			}
+			if (v.name().equals(wanted)) {
+				return v;
+			}
+			names.add(v.name().toLowerCase(Locale.ROOT).replace('_', '-'));
+		}
+		throw new ScriptException(command.line(), "'driver' must be one of " + String.join(", ", names) + ", not '" + value + "'.");
 	}
 
 	// ---- helpers ----
@@ -325,17 +378,51 @@ public final class ScriptRunner {
 		}
 	}
 
-	/** The console as the message boxes: errors and warnings mark the command failed, information goes to stdout, questions are declined. */
-	private final class ConsoleMessages implements Messages.Handler {
+	/** Notes every error and warning box (they fail the current command) and forwards all boxes to the real handler. */
+	private final class RecordingMessages implements Messages.Handler {
+		private final Messages.Handler delegate;
+
+		RecordingMessages(Messages.Handler delegate) {
+			this.delegate = delegate;
+		}
+
 		@Override
 		public void showError(String title, String message) {
 			problems.add(oneLine(title, message));
-			err.println(oneLine(title, message));
+			delegate.showError(title, message);
 		}
 
 		@Override
 		public void showWarning(String title, String message) {
 			problems.add(oneLine(title, message));
+			delegate.showWarning(title, message);
+		}
+
+		@Override
+		public void showInformation(String title, String message) {
+			delegate.showInformation(title, message);
+		}
+
+		@Override
+		public MessageAnswer askQuestion(String title, String message, MessageButtons buttons) {
+			return delegate.askQuestion(title, message, buttons);
+		}
+	}
+
+	private static String oneLine(String title, String message) {
+		String text = message.replace("\r", "").replace("\n", " ").trim();
+		return (title != null && !title.isEmpty() ? title + ": " : "") + text;
+	}
+
+	/** The console as the message boxes: errors and warnings to stderr, information to stdout, questions declined. */
+	private final class ConsoleMessages implements Messages.Handler {
+		@Override
+		public void showError(String title, String message) {
+			err.println(oneLine(title, message));
+		}
+
+		@Override
+		public void showWarning(String title, String message) {
 			err.println(oneLine(title, message));
 		}
 
@@ -348,11 +435,6 @@ public final class ScriptRunner {
 		public MessageAnswer askQuestion(String title, String message, MessageButtons buttons) {
 			err.println(oneLine(title, message) + " (a script answers No)");
 			return buttons == MessageButtons.OK_CANCEL ? MessageAnswer.CANCEL : MessageAnswer.NO;
-		}
-
-		private String oneLine(String title, String message) {
-			String text = message.replace("\r", "").replace("\n", " ").trim();
-			return (title != null && !title.isEmpty() ? title + ": " : "") + text;
 		}
 	}
 

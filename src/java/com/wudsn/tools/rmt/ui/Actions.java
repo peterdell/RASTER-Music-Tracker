@@ -221,6 +221,7 @@ public final class Actions extends NLS {
 	// Tools
 	public static Action MainMenu_Tools_OpenASMA;
 	public static Action MainMenu_Tools_OpenASAPFile;
+	public static Action MainMenu_Tools_RunScript;
 	public static Action MainMenu_Tools_Options;
 
 	// Help

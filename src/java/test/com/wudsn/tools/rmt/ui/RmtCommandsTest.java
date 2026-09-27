@@ -68,6 +68,14 @@ class RmtCommandsTest {
 		public void showAbout() {
 			calls.add("showAbout");
 		}
+
+		java.nio.file.Path nextScript;
+
+		@Override
+		public java.nio.file.Path chooseScriptFile() {
+			calls.add("chooseScriptFile");
+			return nextScript;
+		}
 	}
 
 	private RmtSession session;
@@ -267,6 +275,53 @@ class RmtCommandsTest {
 		} finally {
 			com.wudsn.tools.rmt.model.ProgramFolder.set(original);
 		}
+	}
+
+	@Test
+	void runScriptRunsTheChosenScriptOnTheLiveSessionAndReportsOnce(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) throws java.io.IOException {
+		java.nio.file.Path script = dir.resolve("open.rmtscript");
+		java.nio.file.Files.write(script, List.of("open \"" + ReferenceScreenshot.ROOT.resolve("song1-mono").resolve("Delta.rmt").toAbsolutePath().toString().replace("\\", "\\\\") + "\"", "echo hello"));
+		List<String> boxes = new ArrayList<>();
+		session.messages.setHandler(new com.wudsn.tools.rmt.model.Messages.Handler() {
+			@Override
+			public void showError(String title, String message) {
+				boxes.add("E:" + title + ":" + message);
+			}
+
+			@Override
+			public void showWarning(String title, String message) {
+				boxes.add("W:" + title + ":" + message);
+			}
+
+			@Override
+			public void showInformation(String title, String message) {
+				boxes.add("I:" + title + ":" + message);
+			}
+
+			@Override
+			public MessageAnswer askQuestion(String title, String message, com.wudsn.tools.rmt.model.MessageButtons buttons) {
+				return MessageAnswer.CANCEL;
+			}
+		});
+
+		host.nextScript = script;
+		commands.execute(RmtCommandId.TOOLS_RUN_SCRIPT);
+		assertEquals(4, session.tracks4_8, "Delta.rmt (mono) was opened");
+		assertTrue(host.calls.contains("chooseScriptFile") && host.calls.contains("updateMinimumSize"), host.calls.toString());
+		assertEquals(1, boxes.size(), boxes.toString());
+		assertTrue(boxes.get(0).startsWith("I:Script:Script 'open.rmtscript' finished.") && boxes.get(0).contains("hello"), boxes.get(0));
+		assertTrue(session.messages.getHandler() != null, "the window's handler is back in place");
+
+		boxes.clear();
+		java.nio.file.Files.write(script, List.of("export mp3 x.mp3"));
+		commands.execute(RmtCommandId.TOOLS_RUN_SCRIPT);
+		assertEquals(1, boxes.size(), boxes.toString());
+		assertTrue(boxes.get(0).startsWith("E:Script:Script 'open.rmtscript' failed:") && boxes.get(0).contains("line 1"), boxes.get(0));
+
+		host.nextScript = null; // cancelled
+		boxes.clear();
+		commands.execute(RmtCommandId.TOOLS_RUN_SCRIPT);
+		assertTrue(boxes.isEmpty());
 	}
 
 	@Test

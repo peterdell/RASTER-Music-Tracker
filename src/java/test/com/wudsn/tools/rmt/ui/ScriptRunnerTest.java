@@ -164,6 +164,64 @@ class ScriptRunnerTest {
 	}
 
 	@Test
+	void setNtscAndDriverChangeTheSessionAsTheOptionsDialogWould() throws IOException {
+		RmtSession session = new RmtSession();
+		Path script = dir.resolve("set.rmtscript");
+		Files.write(script, List.of("open Delta.rmt", "set ntsc yes", "set driver unpatched-with-tuning", "export wav ntsc.wav"), StandardCharsets.UTF_8);
+		assertEquals(ScriptRunner.EXIT_OK, new ScriptRunner(session, new PrintStream(out), new PrintStream(err)).run(script), err());
+		assertTrue(session.song.isNTSC());
+		assertTrue(session.atari.getCpu().isNTSC(), "ReInitSound() followed");
+		assertEquals(com.wudsn.tools.rmt.model.TrackerDriverVersion.UNPATCHED_WITH_TUNING, session.options.trackerDriverVersion);
+		long ntscSize = Files.size(dir.resolve("ntsc.wav"));
+
+		assertEquals(ScriptRunner.EXIT_OK, run("open Delta.rmt", "export wav pal.wav"), err());
+		assertTrue(ntscSize < Files.size(dir.resolve("pal.wav")), "60 frames/s play the same frames in less time");
+
+		err.reset();
+		assertEquals(ScriptRunner.EXIT_COMMAND_FAILED, run("set driver patch99"));
+		assertTrue(err().contains("'driver' must be one of unpatched, unpatched-with-tuning, patch3"), err());
+		err.reset();
+		assertEquals(ScriptRunner.EXIT_COMMAND_FAILED, run("set volume 11"));
+		assertTrue(err().contains("Unknown setting 'volume'"), err());
+	}
+
+	@Test
+	void theWindowsMessageBoxesStayInPlaceInInteractiveMode() throws IOException {
+		RmtSession session = new RmtSession();
+		List<String> boxes = new java.util.ArrayList<>();
+		com.wudsn.tools.rmt.model.Messages.Handler windowBoxes = new com.wudsn.tools.rmt.model.Messages.Handler() {
+			@Override
+			public void showError(String title, String message) {
+				boxes.add(title + ": " + message);
+			}
+
+			@Override
+			public void showWarning(String title, String message) {
+				boxes.add(title + ": " + message);
+			}
+
+			@Override
+			public void showInformation(String title, String message) {
+				boxes.add(title + ": " + message);
+			}
+
+			@Override
+			public com.wudsn.tools.rmt.model.MessageAnswer askQuestion(String title, String message, com.wudsn.tools.rmt.model.MessageButtons buttons) {
+				return com.wudsn.tools.rmt.model.MessageAnswer.CANCEL;
+			}
+		};
+		session.messages.setHandler(windowBoxes);
+		Path script = dir.resolve("ui.rmtscript");
+		Files.write(script, List.of("open missing.rmt"), StandardCharsets.UTF_8);
+		int code = new ScriptRunner(session, new PrintStream(out), new PrintStream(err), windowBoxes).run(script);
+		assertEquals(ScriptRunner.EXIT_COMMAND_FAILED, code);
+		assertEquals(1, boxes.size(), boxes.toString()); // the "Open error" box went to the window
+		assertTrue(boxes.get(0).startsWith("Open error"), boxes.get(0));
+		assertTrue(err().contains("line 1: Cannot open"), err()); // the command's failure (which repeats the box text as its cause)
+		assertTrue(session.messages.getHandler() == windowBoxes, "the handler is restored");
+	}
+
+	@Test
 	void quitEndsTheScriptSuccessfully() throws IOException {
 		assertEquals(ScriptRunner.EXIT_OK, run("open Delta.rmt", "quit", "export mp3 nonsense"));
 	}

@@ -298,6 +298,17 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 		return new SongFiles.FileChoice(chooser.getSelectedFile().toPath(), filterIndexOf(chooser, filters));
 	}
 
+	private static final List<SongFiles.FileFilter> SCRIPT_FILTERS = List.of(new SongFiles.FileFilter("RMT script file", ".rmtscript", ".txt"));
+
+	@Override
+	public Path chooseScriptFile() {
+		JFileChooser chooser = createFileChooser("Run script", SCRIPT_FILTERS, session.options.lastSongsPath, 1, "");
+		if (session.unlocked(() -> chooser.showOpenDialog(getFrame())) != JFileChooser.APPROVE_OPTION) {
+			return null;
+		}
+		return chooser.getSelectedFile().toPath();
+	}
+
 	/** {@code OFN_OVERWRITEPROMPT}: the file (with the filter's extension ensured, as C++ does right after the dialog) must not exist, or the user agrees. */
 	@Override
 	public SongFiles.FileChoice chooseSaveFile(String title, List<SongFiles.FileFilter> filters, String initialDir, int initialFilterIndex, String suggestedFileName) {

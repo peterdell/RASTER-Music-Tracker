@@ -96,6 +96,11 @@ class RmtMainMenuTest {
 			@Override
 			public void showAbout() {
 			}
+
+			@Override
+			public java.nio.file.Path chooseScriptFile() {
+				return null;
+			}
 		}, new SongFiles(session, new StubSongFilesHost()), new SongDialogs(session, new StubSongDialogsHost()));
 
 		menu.updateStates(commands);
