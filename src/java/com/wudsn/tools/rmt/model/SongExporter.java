@@ -118,7 +118,7 @@ public final class SongExporter {
 	 * exactly. Reads the same real, checked-in
 	 * {@code rmt/resources/players/vu_player_v2.obx} as
 	 * {@link SapFileExporter#exportSapBLzss} (see that class's own
-	 * {@code VU_PLAYER_PATH} javadoc for why one file, two different C++
+	 * {@code vuPlayerPath()} comment for why one file, two different C++
 	 * loading mechanisms, needs only one Java load here). A fresh
 	 * {@link PokeyStream} is recorded per subsong via
 	 * {@link Song#dumpSongToPokeyStream} (mode {@link PlayMode#PLAY_FROM},
@@ -152,12 +152,12 @@ public final class SongExporter {
 		// Load VUPlayerLZSS to memory
 		byte[] vuPlayerData;
 		try {
-			vuPlayerData = Files.readAllBytes(SapFileExporter.VU_PLAYER_PATH);
+			vuPlayerData = Files.readAllBytes(SapFileExporter.vuPlayerPath());
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
 		if (AtariIO.loadBinaryFile(vuPlayerData, mem).bytesRead() <= 0) {
-			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + SapFileExporter.VU_PLAYER_PATH + "'.");
+			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + SapFileExporter.vuPlayerPath() + "'.");
 		}
 
 		CompressLzss lzssData = new CompressLzss();

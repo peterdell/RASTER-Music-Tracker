@@ -1,6 +1,9 @@
 package com.wudsn.tools.rmt.ui;
 
 import java.awt.Desktop;
+import com.wudsn.tools.rmt.model.ProgramFolder;
+import java.nio.file.Path;
+import java.nio.file.Files;
 import java.net.URI;
 
 import com.wudsn.tools.rmt.model.EditMode;
@@ -137,6 +140,27 @@ public final class RmtCommands {
 			}
 		}
 		songFiles.fileSave();
+	}
+
+	/** {@code CRmtApp::OnHelp()}: {@code CShell::OpenLocalFile(GetResourceFilePath("docs", "rmt_en.html"))} - the browser is the help viewer; a missing file is reported (the shell would report it in C++). */
+	private void openLocalHelp() {
+		Path help = localHelpFile();
+		if (!Files.isRegularFile(help)) {
+			session.messages.sendErrorMessage("Help", "The help file '" + help + "' was not found.");
+			return;
+		}
+		try {
+			if (Desktop.isDesktopSupported()) {
+				Desktop.getDesktop().browse(help.toUri());
+			}
+		} catch (Exception e) {
+			// Nothing sensible to do - C++'s ShellExecute failure is silent too
+		}
+	}
+
+	/** {@code docs/rmt_en.html} in the program folder's layout. */
+	static Path localHelpFile() {
+		return ProgramFolder.getResourceFilePath(Path.of("docs"), "rmt_en.html");
 	}
 
 	private static void browse(String url) {
@@ -499,7 +523,7 @@ public final class RmtCommands {
 		}
 
 		// --- Help ---
-		case HELP -> host.notAvailable("Local help (B9)");
+		case HELP -> openLocalHelp();
 		case CONTEXT_HELP -> browse(ONLINE_HELP_URL);
 		case HELP_ABOUT_APP -> host.showAbout();
 

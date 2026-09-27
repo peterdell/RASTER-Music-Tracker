@@ -14,6 +14,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.release>21</maven.compiler.release>
+		<!-- CRmtApp::GetVersionAndBuild()'s __DATE__ __TIME__: written into the jar manifest as Build-Date. -->
+		<maven.build.timestamp.format>yyyy-MM-dd HH:mm 'UTC'</maven.build.timestamp.format>
 	</properties>
 
 	<dependencies>
@@ -66,6 +68,33 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.2.5</version>
+			</plugin>
+			<!-- Merges this project's classes with com.wudsn.tools.base(.atari) into
+			     a single runnable jar, target/rmt.jar (as dis6502 does). Run it from
+			     the rmt/ layout (or a checkout root) - see ProgramFolder. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.5.3</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>com.wudsn.tools.rmt.ui.RmtApplication</mainClass>
+									<manifestEntries>
+										<Implementation-Version>${project.version}</Implementation-Version>
+										<Build-Date>${maven.build.timestamp}</Build-Date>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

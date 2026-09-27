@@ -45,18 +45,17 @@ public final class SapFileExporter {
 		return out.toByteArray();
 	}
 
-	// resources/players/vu_player_v2.obx, checked into the repo's own rmt/
-	// folder - relative to the working directory, matching this repo's own
-	// C++ test convention (AtariBinariesStub.cpp's g_prgpath, resolved to
-	// this same rmt/ folder). Maven always runs with the repository root as
-	// the working directory, so no further path resolution is needed here.
-	// Package-private (not private): CSAPFileExporter's own on-disk
-	// std::ifstream load and CSongExporter::ExportXEX_LZSS's
-	// CRmtAtariBinaries::GetVUPlayerBinary() (a real MFC CFile-based load)
-	// read the exact same real file in C++ too - two different C++ loading
-	// mechanisms with no observable difference, so SongExporter reuses this
-	// same constant/loading logic rather than duplicating a second one.
-	static final Path VU_PLAYER_PATH = Path.of("rmt", "resources", "players", "vu_player_v2.obx");
+	// resources/players/vu_player_v2.obx of the program folder's rmt/ layout
+	// (C++: GetResourceFilePath(), see ProgramFolder). Package-private (not
+	// private): CSAPFileExporter's own on-disk std::ifstream load and
+	// CSongExporter::ExportXEX_LZSS's CRmtAtariBinaries::GetVUPlayerBinary()
+	// (a real MFC CFile-based load) read the exact same real file in C++
+	// too - two different C++ loading mechanisms with no observable
+	// difference, so SongExporter reuses this same path/loading logic
+	// rather than duplicating a second one.
+	static Path vuPlayerPath() {
+		return ProgramFolder.getResourceFilePath(Path.of("resources", "players"), "vu_player_v2.obx");
+	}
 
 	/**
 	 * Compresses the recorded PokeyStream's intro/loop sections, patches
@@ -79,13 +78,13 @@ public final class SapFileExporter {
 		byte[] memory = new byte[Atari.MEMORY_SIZE];
 		byte[] vuPlayerData;
 		try {
-			vuPlayerData = Files.readAllBytes(VU_PLAYER_PATH);
+			vuPlayerData = Files.readAllBytes(vuPlayerPath());
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
 		AtariIO.Result loadResult = AtariIO.loadBinaryFile(vuPlayerData, memory);
 		if (loadResult.bytesRead() <= 0) {
-			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + VU_PLAYER_PATH + "'.");
+			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + vuPlayerPath() + "'.");
 		}
 
 		CompressLzss lzssData = new CompressLzss();

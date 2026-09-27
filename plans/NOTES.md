@@ -4457,3 +4457,47 @@ build clean and all 123 tests pass.
       `ExportWAV` is DirectSound-bound and has no test; verified by the
       Release build and the unchanged 411-test suite.
     - 561 tests (+2), no regressions. C++: 1 file.
+  - **2026-09-27**: Phase B, batch B9a (runnable jar and program folder) -
+    the first of the three B9 sub-batches of `plans/JAVA_B9_PLAN.md`.
+    - `pom.xml`: `maven-shade-plugin` as dis6502 -> `target/rmt.jar`
+      (the two WUDSN jars merged, `Main-Class`, `Build-Date` in UTC and
+      `Implementation-Version` in the manifest; `dependency-reduced-pom.xml`
+      gitignored). `launch/Rmt.launch` for Eclipse.
+    - `ProgramFolder` (model): C++'s `g_prgpath` + `GetResourceFilePath()`,
+      the one process-wide setting the port keeps (process configuration,
+      not model state). `getResourceRoot()` is the first of the program
+      folder, its `rmt/`, the working directory and its `rmt/` that holds
+      `resources/`: an installed copy (the jar inside the `rmt/` layout the
+      C++ build also ships) resolves exactly as `Rmt.exe`, and a checkout
+      works from `target/rmt.jar`, the classes folder or `mvn test`
+      without configuration. `RmtAtariBinaries` and `SapFileExporter`'s
+      player path (now `vuPlayerPath()`) resolve through it instead of the
+      former working-directory paths. `RmtApplication` sets it from
+      `getProgramFolder()` (`-Drmt.config.dir`, the jar's folder, the
+      working directory), which also stays the `rmt.ini`/`tuning.ini`
+      folder.
+    - `RmtCommandLine`: MFC's shape (a `/` or `-` parameter is a switch,
+      the first other one the file to open, the rest ignored) over the
+      ported `RmtCommandLineInfo`. Per the user's decision ("proper
+      scripts instead of /TEST"), `/SCRIPT:<file>` and `/TEST:<file>` are
+      rejected with the C++ "Invalid Command Line Parameter" box and exit
+      code 1 - `/SCRIPT` is reserved for the scripting feature (plan
+      section 5), the C++ developer routines are not ported.
+    - Local help (`HELP`): `docs/rmt_en.html` of the resource root opened
+      in the browser (`CRmtApp::OnHelp` = `CShell::OpenLocalFile`); a
+      missing file gives a "Help" error box with the path. `rmt/docs/*.*`
+      stays gitignored; the release step (B9b) fills it from `doc/`.
+    - `VERSION_AND_BUILD`: "RASTER Music Tracker 1.35 (Java <Build-Date>)"
+      from the jar manifest, "(Java)" from a classes folder - C++'s
+      `GetVersionAndBuild()` with `__DATE__ __TIME__`.
+    - Tests: `ProgramFolderTest` (checkout, installed layout, the
+      working-directory fallback), `RmtCommandLineTest`, the missing-help
+      case in `RmtCommandsTest`. 569 tests (+8), no regressions.
+    - Live: a staged `rmt/` layout with the jar, run from a foreign working
+      directory - Delta.rmt plays (POKEY registers live, so the driver
+      came from the staged `resources/`), About shows the build date,
+      `rmt.ini`/`tuning.ini` are written beside the jar on exit; the jar
+      run from the checkout root shows C++'s first-start "Could not find
+      rmt.ini" box (a fresh `target/` folder) and then plays;
+      `java -jar target/rmt.jar /SCRIPT:x` shows the rejection box and
+      exits with 1.

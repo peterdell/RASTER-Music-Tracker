@@ -2250,7 +2250,7 @@ class SongEditingTest {
 
 	// --- SapFileExporter.exportSapBLzss ---
 	// Needs a real on-disk resource file (rmt/resources/players/vu_player_v2.obx,
-	// checked into the repo - see SapFileExporter's own VU_PLAYER_PATH), the
+	// checked into the repo - see SapFileExporter's own vuPlayerPath()), the
 	// first real file-system dependency in this Java test suite. Caller
 	// (matching the real dialog) sets the SapFile's type to "B" itself.
 

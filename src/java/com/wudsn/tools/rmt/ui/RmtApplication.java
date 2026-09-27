@@ -6,7 +6,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.CodeSource;
 
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
+
+import com.wudsn.tools.rmt.model.ProgramFolder;
 
 /**
  * Application entry point - the port of {@code CRmtApp} (Rmt.cpp): build
@@ -18,14 +21,19 @@ import javax.swing.UIManager;
  * Swing event dispatch thread, native look and feel with a silent
  * fallback).
  *
- * <p>Command line so far: an optional {@code .rmt} file path (C++'s
- * {@code CCommandLineInfo::FileOpen}); the {@code /SCRIPT} and
- * {@code /TEST} switches come with B9. The system property
- * {@code rmt.config.dir} overrides the configuration folder.
+ * <p>Command line ({@link RmtCommandLine}): an optional song file path
+ * (C++'s {@code CCommandLineInfo::FileOpen}); the C++ {@code /TEST} switch
+ * and the developer routines behind {@code /TEST}/{@code /SCRIPT} are not
+ * ported - {@code /SCRIPT} is reserved for the scripting feature (see
+ * {@code plans/JAVA_B9_PLAN.md}) - both are rejected with C++'s "Invalid
+ * Command Line Parameter" box. The system property {@code rmt.config.dir}
+ * overrides the program folder ({@link ProgramFolder}: {@code rmt.ini},
+ * {@code tuning.ini}, the Atari binaries under {@code resources/}, the
+ * local help under {@code docs/}).
  */
 public final class RmtApplication {
 
-	/** System property naming the folder for {@code rmt.ini}/{@code tuning.ini}; default: the program folder, see {@link #getProgramFolder()}. */
+	/** System property naming the program folder ({@code rmt.ini}/{@code tuning.ini}, {@code resources/}, {@code docs/}); default: see {@link #getProgramFolder()}. */
 	public static final String CONFIG_DIR_PROPERTY = "rmt.config.dir";
 
 	private RmtApplication() {
@@ -35,12 +43,20 @@ public final class RmtApplication {
 		EventQueue.invokeLater(() -> {
 			setNativeLookAndFeel();
 
+			RmtCommandLine.Result commandLine = RmtCommandLine.parse(args);
+			if (commandLine.rejection() != null) {
+				JOptionPane.showMessageDialog(null, commandLine.rejection(), RmtCommandLine.INVALID_PARAMETER_TITLE, JOptionPane.ERROR_MESSAGE);
+				System.exit(1);
+			}
+
+			Path programFolder = getProgramFolder();
+			ProgramFolder.set(programFolder); // g_prgpath
 			RmtSession session = new RmtSession();
-			RmtConfig config = new RmtConfig(getProgramFolder());
+			RmtConfig config = new RmtConfig(programFolder);
 			RmtMainWindow window = new RmtMainWindow(session, config, RmtWindowPreferences.forUser());
 
-			if (args.length > 0) {
-				openFile(window, Path.of(args[0]));
+			if (commandLine.file() != null) {
+				openFile(window, commandLine.file());
 			}
 
 			window.show();

@@ -235,6 +235,41 @@ class RmtCommandsTest {
 	}
 
 	@Test
+	void localHelpReportsAMissingHelpFile(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) throws java.io.IOException {
+		java.nio.file.Path original = com.wudsn.tools.rmt.model.ProgramFolder.get();
+		java.nio.file.Files.createDirectories(dir.resolve("resources")); // a resource root of its own (else the checkout's rmt/ would serve), without docs/
+		List<String> errors = new ArrayList<>();
+		session.messages.setHandler(new com.wudsn.tools.rmt.model.Messages.Handler() {
+			@Override
+			public void showError(String title, String message) {
+				errors.add(title + ": " + message);
+			}
+
+			@Override
+			public void showWarning(String title, String message) {
+			}
+
+			@Override
+			public void showInformation(String title, String message) {
+			}
+
+			@Override
+			public MessageAnswer askQuestion(String title, String message, com.wudsn.tools.rmt.model.MessageButtons buttons) {
+				return MessageAnswer.CANCEL;
+			}
+		});
+		try {
+			com.wudsn.tools.rmt.model.ProgramFolder.set(dir); // no docs/ here
+			assertEquals(dir.resolve("docs").resolve("rmt_en.html"), RmtCommands.localHelpFile());
+			commands.execute(RmtCommandId.HELP);
+			assertEquals(1, errors.size());
+			assertTrue(errors.get(0).startsWith("Help: The help file '"), errors.get(0));
+		} finally {
+			com.wudsn.tools.rmt.model.ProgramFolder.set(original);
+		}
+	}
+
+	@Test
 	void openAsapFileIsDisabledLikeItsHandlerlessMenuItemInMfc() {
 		assertFalse(commands.isEnabled(RmtCommandId.TOOLS_OPEN_ASAP_FILE));
 		commands.execute(RmtCommandId.TOOLS_OPEN_ASAP_FILE); // does nothing, reports nothing
