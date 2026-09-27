@@ -2,7 +2,6 @@ package com.wudsn.tools.rmt.model;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -80,7 +79,7 @@ public final class SapFileExporter {
 		try {
 			vuPlayerData = Files.readAllBytes(vuPlayerPath());
 		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + vuPlayerPath() + "'.", e); // C++'s GetVUPlayerBinary() failure box
 		}
 		AtariIO.Result loadResult = AtariIO.loadBinaryFile(vuPlayerData, memory);
 		if (loadResult.bytesRead() <= 0) {

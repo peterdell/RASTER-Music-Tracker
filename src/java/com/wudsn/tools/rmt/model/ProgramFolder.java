@@ -26,6 +26,7 @@ import java.nio.file.Path;
 public final class ProgramFolder {
 
 	private static volatile Path folder = Path.of(System.getProperty("user.dir", "."));
+	private static volatile Path installFolder;
 
 	private ProgramFolder() {
 	}
@@ -35,6 +36,11 @@ public final class ProgramFolder {
 		folder = programFolder;
 	}
 
+	/** The folder the program is installed in (the jar's folder), searched for resources after the program folder - for a {@code -Drmt.config.dir} that names a configuration-only folder. */
+	public static void setInstallFolder(Path installFolder) {
+		ProgramFolder.installFolder = installFolder;
+	}
+
 	/** {@code g_prgpath}. */
 	public static Path get() {
 		return folder;
@@ -42,19 +48,25 @@ public final class ProgramFolder {
 
 	/**
 	 * The folder holding {@code resources/} and {@code docs/}: the first of
-	 * the program folder, its {@code rmt/} sub-folder, the working directory
-	 * and the working directory's {@code rmt/} sub-folder that has a
-	 * {@code resources/} folder - an installed copy resolves as
-	 * {@code Rmt.exe} does, a checkout works whether the jar runs from
-	 * {@code target/} or the classes folder. Without any match the program
-	 * folder itself, so a missing file is reported there.
+	 * the program folder, the install folder and the working directory - each
+	 * followed by its {@code rmt/} sub-folder - that has a {@code resources/}
+	 * folder. An installed copy resolves as {@code Rmt.exe} does, a checkout
+	 * works whether the jar runs from {@code target/} or the classes folder,
+	 * and a configuration-only {@code -Drmt.config.dir} still finds the
+	 * installed resources. Without any match the program folder itself, so a
+	 * missing file is reported there.
 	 */
 	public static Path getResourceRoot() {
 		Path root = folder;
 		Path workingDirectory = Path.of(System.getProperty("user.dir", "."));
-		for (Path candidate : new Path[] { root, root.resolve("rmt"), workingDirectory, workingDirectory.resolve("rmt") }) {
-			if (Files.isDirectory(candidate.resolve("resources"))) {
-				return candidate;
+		for (Path base : new Path[] { root, installFolder, workingDirectory }) {
+			if (base == null) {
+				continue;
+			}
+			for (Path candidate : new Path[] { base, base.resolve("rmt") }) {
+				if (Files.isDirectory(candidate.resolve("resources"))) {
+					return candidate;
+				}
 			}
 		}
 		return root;

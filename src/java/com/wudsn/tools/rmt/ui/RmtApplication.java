@@ -40,10 +40,13 @@ public final class RmtApplication {
 	}
 
 	public static void main(String[] args) {
+		RmtCommandLine.Result commandLine = RmtCommandLine.parse(args);
+		if (commandLine.rejection() == null && commandLine.scriptFile() != null) {
+			System.exit(runScript(commandLine.scriptFile()));
+		}
 		EventQueue.invokeLater(() -> {
 			setNativeLookAndFeel();
 
-			RmtCommandLine.Result commandLine = RmtCommandLine.parse(args);
 			if (commandLine.rejection() != null) {
 				JOptionPane.showMessageDialog(null, commandLine.rejection(), RmtCommandLine.INVALID_PARAMETER_TITLE, JOptionPane.ERROR_MESSAGE);
 				System.exit(1);
@@ -51,6 +54,7 @@ public final class RmtApplication {
 
 			Path programFolder = getProgramFolder();
 			ProgramFolder.set(programFolder); // g_prgpath
+			ProgramFolder.setInstallFolder(getInstallFolder());
 			RmtSession session = new RmtSession();
 			RmtConfig config = new RmtConfig(programFolder);
 			RmtMainWindow window = new RmtMainWindow(session, config, RmtWindowPreferences.forUser());
@@ -74,6 +78,11 @@ public final class RmtApplication {
 		if (override != null && !override.isEmpty()) {
 			return Path.of(override);
 		}
+		return getInstallFolder();
+	}
+
+	/** The folder holding the jar this class runs from, or - from a classes directory during development - the working directory. */
+	public static Path getInstallFolder() {
 		try {
 			CodeSource source = RmtApplication.class.getProtectionDomain().getCodeSource();
 			if (source != null && source.getLocation() != null) {
@@ -86,6 +95,25 @@ public final class RmtApplication {
 			// fall through to the working directory
 		}
 		return Path.of(System.getProperty("user.dir", "."));
+	}
+
+	/**
+	 * {@code /SCRIPT:<file>}: the script on a fresh session, headless (no
+	 * window, no Swing at all - so it runs without a display), with the
+	 * program folder's {@code rmt.ini}/{@code tuning.ini} read as the window
+	 * would read them (the tuning shapes the exports); returns the exit code.
+	 */
+	static int runScript(Path scriptFile) {
+		System.setProperty("java.awt.headless", "true");
+		Path programFolder = getProgramFolder();
+		ProgramFolder.set(programFolder); // g_prgpath
+		ProgramFolder.setInstallFolder(getInstallFolder());
+		RmtSession session = new RmtSession();
+		com.wudsn.tools.rmt.script.ScriptRunner runner = new com.wudsn.tools.rmt.script.ScriptRunner(session, System.out, System.err);
+		RmtConfig config = new RmtConfig(programFolder);
+		config.readRMTConfig(session);
+		config.readTuningConfig(session);
+		return runner.run(scriptFile);
 	}
 
 	/** {@code CRmtApp::InitInstance()}'s {@code g_Song.FileOpen(cmdInfo.m_strFileName, FALSE)}: the format follows the extension, errors come as message boxes. */

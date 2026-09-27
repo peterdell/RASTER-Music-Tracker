@@ -12,16 +12,21 @@ import com.wudsn.tools.rmt.model.RmtCommandLineInfo;
  * {@code FileOpen}); further plain parameters are ignored, as MFC ignores
  * them.
  *
- * <p>The C++ {@code /TEST} switch and the developer routines behind
- * {@code /TEST}/{@code /SCRIPT} are not ported (user decision 2026-09-27:
- * proper scripts instead); {@code /SCRIPT} is reserved for the scripting
- * feature. {@link Result#rejection()} carries the C++-style error text for
- * either switch, and the application shows it and exits.
+ * <p>{@code /SCRIPT:<file>} runs the script headless
+ * ({@link com.wudsn.tools.rmt.script.ScriptRunner}). The C++ {@code /TEST}
+ * switch and the developer routines behind the C++ {@code /TEST}/
+ * {@code /SCRIPT} are not ported (user decision 2026-09-27: proper scripts
+ * instead); {@link Result#rejection()} carries the C++-style error text for
+ * {@code /TEST}, and the application shows it and exits.
  */
 final class RmtCommandLine {
 
 	/** {@code file} may be null; {@code rejection} is null when the command line is acceptable. */
 	record Result(Path file, RmtCommandLineInfo info, String rejection) {
+		/** The {@code /SCRIPT:<file>} path, or {@code null}. */
+		Path scriptFile() {
+			return info.isScriptFileSpecified() ? Path.of(info.getScriptFilePath()) : null;
+		}
 	}
 
 	static final String INVALID_PARAMETER_TITLE = "Invalid Command Line Parameter";
@@ -42,10 +47,10 @@ final class RmtCommandLine {
 			}
 		}
 		String rejection = null;
-		if (info.isScriptFileSpecified()) {
-			rejection = "The command line switch /SCRIPT is reserved for the scripting feature, which is not available in this version.";
-		} else if (info.isTestFileSpecified()) {
-			rejection = "The command line switch /TEST is not supported by the Java port; scripting will take its place.";
+		if (info.isTestFileSpecified()) {
+			rejection = "The command line switch /TEST is not supported by the Java port; use /SCRIPT:<file> instead.";
+		} else if (info.isScriptFileSpecified() && info.getScriptFilePath().isEmpty()) {
+			rejection = "The command line switch /SCRIPT needs a script file: /SCRIPT:<file>.";
 		}
 		return new Result(file, info, rejection);
 	}

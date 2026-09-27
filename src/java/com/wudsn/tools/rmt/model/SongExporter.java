@@ -2,7 +2,6 @@ package com.wudsn.tools.rmt.model;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
@@ -154,7 +153,7 @@ public final class SongExporter {
 		try {
 			vuPlayerData = Files.readAllBytes(SapFileExporter.vuPlayerPath());
 		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + SapFileExporter.vuPlayerPath() + "'.", e); // C++'s GetVUPlayerBinary() failure box
 		}
 		if (AtariIO.loadBinaryFile(vuPlayerData, mem).bytesRead() <= 0) {
 			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + SapFileExporter.vuPlayerPath() + "'.");

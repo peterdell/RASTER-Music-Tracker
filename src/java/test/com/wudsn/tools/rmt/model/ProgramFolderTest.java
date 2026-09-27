@@ -35,6 +35,22 @@ class ProgramFolderTest {
 	}
 
 	@Test
+	void aConfigurationOnlyProgramFolderFindsTheInstalledResources(@TempDir Path dir) throws IOException {
+		// -Drmt.config.dir=<config folder> with the jar installed in the rmt/ layout elsewhere
+		Path original = ProgramFolder.get();
+		try {
+			Path config = Files.createDirectory(dir.resolve("config"));
+			Path install = Files.createDirectories(dir.resolve("install").resolve("resources")).getParent();
+			ProgramFolder.set(config);
+			ProgramFolder.setInstallFolder(install);
+			assertEquals(install, ProgramFolder.getResourceRoot());
+		} finally {
+			ProgramFolder.setInstallFolder(null);
+			ProgramFolder.set(original);
+		}
+	}
+
+	@Test
 	void aProgramFolderWithoutResourcesFallsBackToTheWorkingDirectorysCheckout(@TempDir Path dir) {
 		// java -jar target/rmt.jar from a checkout: the jar's folder has no resources, the working directory's rmt/ has
 		Path original = ProgramFolder.get();

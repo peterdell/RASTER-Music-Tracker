@@ -129,12 +129,18 @@ final class StubSongFilesHost implements SongFiles.Host {
 		return nextRelocatableAsm;
 	}
 
+	/** True = the SAP and XEX dialogs answer with their untouched fields (what OK without edits returns), instead of {@link #nextSap}/{@link #nextXex}. */
+	boolean answerDialogDefaults;
+
 	@Override
 	public SongFiles.SapChoice showExportSap(com.wudsn.tools.rmt.model.SapFile sapFile, String subsongs) {
 		calls.add("exportSap:" + sapFile.getType());
 		lastSapFile = sapFile;
 		lastSapAuthor = sapFile.getAuthor();
 		lastSubsongs = subsongs;
+		if (answerDialogDefaults) {
+			return new SongFiles.SapChoice(sapFile.getAuthor(), sapFile.getName(), sapFile.getDate(), subsongs);
+		}
 		return nextSap;
 	}
 
@@ -143,6 +149,9 @@ final class StubSongFilesHost implements SongFiles.Host {
 		calls.add("exportXex");
 		lastXexText = text;
 		lastSpeedInfo = speedInfo;
+		if (answerDialogDefaults) {
+			return new SongFiles.XexChoice(text, true, true, true, 6); // ExportSettings' initial values
+		}
 		return nextXex;
 	}
 }

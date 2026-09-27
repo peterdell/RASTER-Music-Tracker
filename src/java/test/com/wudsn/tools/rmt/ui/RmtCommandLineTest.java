@@ -33,15 +33,22 @@ class RmtCommandLineTest {
 	}
 
 	@Test
-	void scriptAndTestSwitchesAreRejectedWithAnExplanation() {
+	void theScriptSwitchNamesTheScriptToRun() {
 		RmtCommandLine.Result script = RmtCommandLine.parse(new String[] { "/SCRIPT:run.txt" });
-		assertTrue(script.info().isScriptFileSpecified());
-		assertEquals("run.txt", script.info().getScriptFilePath());
-		assertNotNull(script.rejection());
-		assertTrue(script.rejection().contains("/SCRIPT"));
+		assertEquals(Path.of("run.txt"), script.scriptFile());
+		assertNull(script.rejection());
+		assertNull(RmtCommandLine.parse(new String[] { "song.rmt" }).scriptFile());
 
+		RmtCommandLine.Result noFile = RmtCommandLine.parse(new String[] { "/SCRIPT" });
+		assertNotNull(noFile.rejection());
+		assertTrue(noFile.rejection().contains("/SCRIPT:<file>"));
+	}
+
+	@Test
+	void theTestSwitchIsRejectedWithAnExplanation() {
 		RmtCommandLine.Result test = RmtCommandLine.parse(new String[] { "-test:x.sapr" }); // case-insensitive, '-' prefix as MFC
 		assertTrue(test.info().isTestFileSpecified());
 		assertTrue(test.rejection().contains("/TEST"));
+		assertTrue(test.rejection().contains("/SCRIPT"));
 	}
 }

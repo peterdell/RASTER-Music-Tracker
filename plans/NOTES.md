@@ -4548,3 +4548,49 @@ build clean and all 123 tests pass.
       the unchanged canvas (`b9c-toolbar.png`).
     - Phase B is closed in `JAVA_UI_PORT_PLAN.md` and `JAVA_PORT_PLAN.md`;
       the next feature is scripting (`JAVA_B9_PLAN.md` section 5).
+  - **2026-09-27**: Scripting, batch S1 (`plans/JAVA_SCRIPTING_PLAN.md`) -
+    the user's "proper scripts instead of /TEST".
+    - `com.wudsn.tools.rmt.script`: `ScriptParser` (one command per line,
+      `#` comments, quoted tokens with `\"`/`\`, `name=value` options,
+      case-insensitive names; `ScriptCommand`, `ScriptException` with the
+      line number) and `ScriptRunner` (`open <file>`, `save <file>` by
+      extension, `export <format> <file> [options]` for the Export
+      dialog's eight formats - `stripped-rmt`, `asm`, `sapr`, `lzss`,
+      `sap`, `xex`, `rmtplayer-asm`, `wav` - with each dialog's fields as
+      options and the dialog's defaults when omitted, `set overwrite
+      yes|no`, `echo`, `quit`). The runner drives the unchanged
+      `SongFiles` flows through a `SongFiles.Host` that answers the file
+      chooser and the export dialogs from the command, and a
+      `Messages.Handler` that prints the message boxes to the console
+      (errors and warnings fail the command, questions are declined).
+      Exit codes 0 (all done), 1 (a command failed - the script stops, the
+      message names the line), 2 (unreadable or unparsable script). Paths
+      are relative to the script's folder. An existing output file is an
+      error unless `set overwrite yes`.
+    - `/SCRIPT:<file>` (`RmtCommandLine`, `RmtApplication.runScript`) runs
+      before any Swing object exists, `java.awt.headless` set, with the
+      program folder's `rmt.ini`/`tuning.ini` read as the window reads
+      them (the tuning shapes the exports). `/TEST` stays rejected, its
+      message now pointing at `/SCRIPT`.
+    - Tests: `ScriptRunnerTest` (ui test package, for `StubSongFilesHost`
+      - which gained `answerDialogDefaults` for the SAP/XEX dialogs):
+      every format's script export is byte-identical to the dialog path
+      with untouched dialogs; options reach the exporters and are
+      validated with line numbers; save by extension (a re-save of
+      Delta.rmt is idempotent, not identical to the 2003 original);
+      overwrite refused/allowed; failures and exit codes; `quit`.
+      `ScriptParserTest` the syntax. 584 tests (+11).
+    - Two fixes on the way: (1) a missing `vu_player_v2.obx` escaped
+      `SapFileExporter.exportSapBLzss`/`SongExporter.exportXexLzss` as an
+      `UncheckedIOException` - uncaught in the UI and leaving the empty
+      output file behind - instead of the `IllegalStateException` the
+      callers catch (C++'s "Fatal error with RMT LZSS system routines"
+      box, which then deletes the file); (2) a configuration-only
+      `-Drmt.config.dir` lost the installed resources -
+      `ProgramFolder.setInstallFolder` (the jar's folder) is searched
+      after the program folder and before the working directory.
+    - Live: the plan's sample script headless from the checkout root
+      (exit 0, SAP/XEX/stripped RMT/WAV written) and from a foreign
+      folder with the staged `rmt/` layout and a configuration-only
+      folder; a rerun refuses to overwrite (exit 1); a broken quote gives
+      exit 2 with the line; `/TEST:x` still shows the rejection box.
