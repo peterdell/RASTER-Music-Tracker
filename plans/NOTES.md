@@ -4800,3 +4800,30 @@ build clean and all 123 tests pass.
       `Rmt.exe`: the command opens the "Run script file" dialog (checked
       through a posted WM_COMMAND); the run through to the result box was
       not captured by automation - to be tried by hand.
+  - **2026-09-27**: Documentation generation, batch D3 - the manual to
+    Markdown (`plans/DOC_GENERATION_PLAN.md` section 2.4).
+    - `doc/rmt_en.md`: `rmt_en.html` converted by a one-time script (the
+      HTML was regular: headings, key tables with modifier/key/description
+      cells, field tables, two `<pre>`, one list); the key cells became
+      `CONTROL+F8` style code spans, the tables Key/Action, Field/Meaning
+      and Value/Meaning. New chapter "Menus, Toolbars and Keys" with
+      `<!-- include: rmt_action_infos.md -->`, so the manual's command
+      reference is the build's. Corrected on the way, because the generated
+      table proves them: the three F-key rows (F2/F3/Shift+F4, the manual
+      said F1/F2/F3). Everything else 1:1 - the revision of the outdated
+      chapters is D4, the user's (the empty descriptions of three key rows
+      and the Num +/- question below are for it).
+    - `doc/rmt_en.html` deleted: `DocGenerator` generates it from the
+      Markdown (title from the heading, the included table). README, the
+      Java `ONLINE_HELP_URL` and the C++ online help open the Markdown page
+      on GitHub instead of the html-preview of the deleted file; the local
+      help of both programs still opens `docs/rmt_en.html` (generated).
+    - Open question for D4: the manual says numblock +/- change the volume
+      and Ctrl+numblock +/- the step size, while `Rmt.rc`'s accelerator
+      table binds plain `VK_ADD`/`VK_SUBTRACT` to the step size (and the
+      view has no `PreTranslateMessage`, so the accelerator wins); the menu
+      labels now follow the table. To be checked by hand in `Rmt.exe`.
+    - Verified: `mvn -o clean package` 595 tests (`DocGeneratorTest` checks
+      the generated manual's heading and included table); the staging
+      produces 12 files with the generated manual (383 table rows); the C++
+      Release build clean; the manual rendered in a browser.

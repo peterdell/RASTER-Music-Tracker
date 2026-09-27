@@ -68,7 +68,7 @@ public final class RmtCommands {
 		java.nio.file.Path chooseScriptFile();
 	}
 
-	static final String ONLINE_HELP_URL = "https://html-preview.github.io/?url=https://github.com/raster-atari-org/RASTER-Music-Tracker/blob/1.35/doc//rmt_en.html";
+	static final String ONLINE_HELP_URL = "https://github.com/raster-atari-org/RASTER-Music-Tracker/blob/1.35/doc/rmt_en.md";
 	static final String ASMA_URL = "https://asma.atari.org/";
 
 	private final RmtSession session;

@@ -24,7 +24,7 @@ Please provide your feedback about the daily version via one of the following ch
 
 ### Documentation
 
-- Current [RMT 1.35 Documentation](https://html-preview.github.io/?url=https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_en.html)
+- Current [RMT 1.35 Documentation](https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_en.md)
 - Original [RMT 1.28 documentation](https://html-preview.github.io/?url=https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_en_128.html)
 
 Technical Documentation

@@ -55,6 +55,7 @@ Changes in RMT 1.35
 
 
 - Scripting: `Rmt.exe /SCRIPT:<file>` runs a script file that opens a song, sets what the export dialogs would ask, exports in any format and saves - for batch files, build scripts and repeated export sets. The messages go to the console (or to `<script>.log`), the exit code reports success. See the [scripting documentation](rmt_scripting.md). (Build 2026-09-27)
+- The manual is maintained as Markdown (doc/rmt_en.md) and contains the generated table of all menu commands, toolbar buttons and keys; the HTML manual in the download is generated from it. The Help menu's online help opens the Markdown page on GitHub. (Build 2026-09-27)
 - Tools > Run Script... runs a script file on the current session from the window (the same as "Rmt.exe /SCRIPT", with message boxes). (Build 2026-09-27)
 - Menu labels corrected to the keys that actually work: Edit Tracks is F2, Edit Instruments F3, Edit Info Shift+F4 (the labels still said F1/F2/F3); Increase/Decrease Step Size are the numeric keypad's + and - (the labels said Ctrl++ and Ctrl+-); Pokey Explorer "Decrease By 0x11" is 0x10. The Help menu's entries now have their own descriptions in the status bar. (Build 2026-09-27)
 - Fixed: the toolbar's About button did nothing (it had no command handler). (Build 2026-09-27)

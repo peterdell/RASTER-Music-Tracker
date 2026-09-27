@@ -11,7 +11,12 @@ actions <file>` in both programs, `actions.rmtscript` in the comparison
 `doc/rmt_action_infos.md` and fails on ERROR markers; found and fixed on the
 way (section 2.2's findings below): the accelerator table bug, stale menu
 labels, a dead About button, two typos, the MFC key names; Tools > Run
-Script added to the C++ program, Ctrl+F12 (NTSC) to the Java port. D3 next.
+Script added to the C++ program, Ctrl+F12 (NTSC) to the Java port. **D3 DONE 2026-09-27**: `doc/rmt_en.md`
+(the manual converted 1:1 by a one-time script, with a "Menus, Toolbars and
+Keys" chapter that includes the generated table; the three F-key rows the
+table proves stale corrected), `doc/rmt_en.html` deleted (generated from now
+on), the online help of both programs and README point at the Markdown page
+on GitHub. D4 (the revision of the outdated chapters) is the user's.
 Origin: the user's two
 points after the C++ scripting batch C3 - (1) the documentation is
 maintained as Markdown on GitHub, because that is easier to maintain, and
