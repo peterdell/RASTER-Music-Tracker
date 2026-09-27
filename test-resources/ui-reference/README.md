@@ -43,11 +43,14 @@ mode (not jam), not playing, default view options.
   Instruments screen).
 - `<state>` (optional): `playing`, `jam`, `goto`.
 
-Tests skip any reference image smaller than a real capture, so an
-unreplaced 1x1 placeholder is harmless - just overwrite it with the real
-capture under the same name.
+Tests skip any reference image smaller than a real capture, so should a
+1x1 placeholder ever be added for a new capture request again, it is
+harmless until overwritten with the real capture under the same name.
 
 ## Present
+
+Every requested capture is present (the last five dialogs arrived on
+2026-09-27).
 
 | Folder | Module | Captures |
 |---|---|---|
@@ -55,20 +58,6 @@ capture under the same name.
 | `song1-mono/` | `Delta.rmt` (`RMT4`, mono) | `tracks-scale200.png`, `instruments-scale200.png`, `tracks-playing-scale200.png`, `tracks-goto-scale200.png` |
 | `song2-stereo/` | `Why_Do_You_Dance_With_Me-132-$4000.rmt` (`RMT8`, stereo) | `tracks.png`, `instruments.png` (RMT 100%); `tracks-scale200.png`, `instruments-scale200.png`, `tracks-playing-scale200.png`, `tracks-jam-scale200.png` |
 | `dialogs/` | - | see the table below |
-
-## Missing
-
-Placeholders still to overwrite (all dialogs; open any song first):
-
-- `dialogs/instrument-change.png` - **Instrument > Change all the
-  instrument occurences...**
-- `dialogs/renumber-instruments.png` - **Instrument > Renumber all
-  instruments...**
-- `dialogs/tracks-order.png` - **Song > Song columns' order
-  change/copy/clear...**
-- `dialogs/insert-copy-clone.png` - **Song > Insert copy or clone of song
-  line(s)...** (Ctrl+O)
-- `dialogs/renumber-tracks.png` - **Track > Renumber all tracks...**
 
 ## Dialogs - what each capture shows and how to open it
 
