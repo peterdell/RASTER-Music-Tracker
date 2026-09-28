@@ -38,7 +38,7 @@ import org.commonmark.renderer.text.TextContentRenderer;
  * generated tables where a page says {@code <!-- include: file.md -->}.
  *
  * <p>Run by {@code build/stage_java_release.sh} and
- * {@code build/build_rmt_pre.bat} from the built {@code rmt.jar}:
+ * {@code build/build_rmt-cpp-pre.bat} from the built {@code rmt.jar}:
  *
  * <pre>
  * java -cp rmt.jar org.atari.raster.rmt.doc.DocGenerator doc target/stage/docs
