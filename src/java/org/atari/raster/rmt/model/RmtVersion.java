@@ -11,5 +11,5 @@ public final class RmtVersion {
 	private RmtVersion() {
 	}
 
-	public static final String RMT_VERSION_STRING = "RASTER Music Tracker 1.35";
+	public static final String RMT_VERSION_STRING = "RASTER Music Tracker 1.36";
 }

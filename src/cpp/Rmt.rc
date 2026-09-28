@@ -1464,8 +1464,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 35, 0, 0
-PRODUCTVERSION 1, 35, 0, 0
+FILEVERSION 1, 36, 0, 0
+PRODUCTVERSION 1, 36, 0, 0
 FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
 FILEFLAGS 0x9L
@@ -1481,12 +1481,12 @@ BEGIN
 BLOCK "040904b0"
 BEGIN
 VALUE "FileDescription", "RASTER Music Tracker"
-VALUE "FileVersion", "1.35.0.0"
+VALUE "FileVersion", "1.36.0.0"
 VALUE "InternalName", "RASTER Music Tracker by Raster/C.P.U., VinsCool and JAC!"
 VALUE "LegalCopyright", "Copyright (C) 2002-2009, 2021-2026"
 VALUE "OriginalFilename", "Rmt.exe"
 VALUE "ProductName", "RASTER Music Tracker"
-VALUE "ProductVersion", "1.35.0.0"
+VALUE "ProductVersion", "1.36.0.0"
 END
 END
 BLOCK "VarFileInfo"
@@ -1626,7 +1626,7 @@ STRINGTABLE
 BEGIN
 IDS_RMT_AUTHOR          "by Radek Sterba, (c) Raster/C.P.U. (2002-2009), VinsCool (2021-2024), JAC! (2024-2026)"
 IDS_RMT_REPOSITORY      "https://github.com/raster-atari-org/RASTER-Music-Tracker"
-IDS_RMT_VERSION         "RASTER Music Tracker 1.35"
+IDS_RMT_VERSION         "RASTER Music Tracker 1.36"
 END
 
 STRINGTABLE

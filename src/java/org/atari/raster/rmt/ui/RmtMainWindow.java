@@ -44,7 +44,7 @@ import com.wudsn.tools.base.gui.MainWindow;
  */
 public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, SongDialogs.Host {
 
-	/** What {@code CRmtApp::GetVersionAndBuild()} produces for the C++ build ("RASTER Music Tracker 1.35 (Sep 25 2026 01:30:01)"); the Java port carries no build stamp yet. */
+	/** What {@code CRmtApp::GetVersionAndBuild()} produces for the C++ build ("RASTER Music Tracker 1.36 (Sep 28 2026 01:30:01)"); the Java port carries no build stamp yet. */
 	/** {@code CRmtApp::GetVersionAndBuild()}: {@code "<version> (<build date>)"} - the date from the jar manifest's {@code Build-Date} (written by the Maven build), "Java" alone when running from a classes folder. */
 	public static final String VERSION_AND_BUILD = versionAndBuild();
 

@@ -4977,3 +4977,27 @@ build clean and all 123 tests pass.
     Ctrl, while the actions use WUDSN Base's `KeyStroke.M1` - Command on
     macOS (Ctrl on Windows and Linux) - now M1 too; that was the macOS-only
     part. The Windows job had passed.
+  - **2026-09-28**: release number raised to 1.36.0 (the user's request:
+    every reference except the history in `doc/rmt_changes.md`, whose
+    "Changes in RMT 1.36" section the user had already opened). Changed:
+    `Rmt.rc` (`FILEVERSION`/`PRODUCTVERSION` 1,36,0,0, the `FileVersion`/
+    `ProductVersion` strings, `IDS_RMT_VERSION`), `RmtVersion.h` and
+    `RmtVersion.java` (`RMT_VERSION_STRING` "RASTER Music Tracker 1.36"),
+    the shipped `rmt/rmt.ini` and `rmt/tuning.ini` headers (what
+    `ResetRMTConfig` writes) and `RmtConfigTest`'s expected headers, the
+    online help URLs in `Rmt.cpp`/`RmtCommands.java` (`blob/1.36/`),
+    `release.yml` (default `version=1.36.0`, comments), `README.md`
+    (version line, tag example `v1.36.<n>`), the `--app-version` example in
+    `stage_java_release.sh`, the `GetVersionAndBuild()` example in
+    `RmtMainWindow.java`. Left alone as history: the "C++ 1.35 wrote
+    MAJ_7TH but never read it" comments (true of 1.35), the plans, the
+    change and version history. `pom.xml` stays `1.0.0-SNAPSHOT` - it never
+    carried the RMT version. `DocGeneratorTest` adapted to the user's
+    heading rename "RMT Scripting". Caveats reported: `RMT_VERSION_STRING`
+    is the `.rmw` format marker (both `LoadRMW`s compare it exactly), so
+    `.rmw` files saved by 1.35 report "Incorrect version" in 1.36 - the
+    original's behaviour at every version step, kept; the help URLs point
+    at a branch `1.36` of raster-atari-org that does not exist yet.
+    Verified: Release build of `Rmt.sln` (416 C++ tests), `mvn -o clean
+    package` (594 Java tests), `compare_exports.ps1` - every export
+    identical, the `.rmw` files included.

@@ -1,4 +1,4 @@
-# RMT scripting
+# RMT Scripting
 
 Both RASTER Music Tracker programs - the Windows `Rmt.exe` and the Java
 port - can run a script file: open a song, set what the export dialogs
