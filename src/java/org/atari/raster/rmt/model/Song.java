@@ -4073,8 +4073,8 @@ public final class Song {
 		play(initialPlayMode, followplay, 0, undo, tracks4_8, atariTrackerDriver, clipboard, pokeyStream);
 
 		while (playMode != PlayMode.PLAY_STOP) {
-			// 1 VBI of module playback
-			playVBI(tracks4_8, atariTrackerDriver, pokeyStream);
+			// 1 VBI of module playback (play() above cleared any pending quantized note, so the volume rule cannot matter here - false)
+			playVBI(tracks4_8, atariTrackerDriver, pokeyStream, false, undo);
 
 			// Multiple RMT routine calls will be processed if needed
 			for (int i = 0; i < instrumentSpeed; i++) {
@@ -4209,22 +4209,22 @@ public final class Song {
 	 * selected block, advancing to the next songline once the pattern ends,
 	 * and syncing the edit cursor to the player when following.
 	 *
-	 * <p><b>Omits C++'s quantization branches</b> (triggered when
-	 * {@code speeda == speed && followplay} and {@code quantizationNote} is
-	 * set to a real note or -2): they need {@code Tracks}'s
-	 * {@code SetInstr}/{@code SetVol}/{@code SetSpeed}/{@code SetNoteInstrVol}
-	 * family and the {@code g_respectvolume} global, none of which are
-	 * ported yet. {@code quantizationNote} defaults to -1 and no ported
-	 * caller ever sets it to a note or -2, so both branches are unreachable
-	 * in every existing test - the reset to -1 at the end is kept since
-	 * it's a real, cheap, always-correct effect either way.
+	 * <p>The quantization: a note held back by {@link #setQuantization} (typed
+	 * during follow-play in the first half of a line - {@code TrackKey}'s
+	 * {@code insertnotes}, and the MIDI input) is entered on the line the
+	 * cursor lands on, with the line's own volume when {@code respectVolume}
+	 * ({@code g_respectvolume}), and played; {@code -2} (a MIDI note off)
+	 * deletes the note and writes volume 0. {@code undo} is
+	 * {@code g_Undo}'s explicit parameter. Until 2026-09-29 the port left
+	 * this branch out (its comment said no caller set the note - untrue
+	 * since the UI port: such a note was silently lost).
 	 */
-	public boolean playVBI(int tracks4_8, AtariTrackerDriver atariTrackerDriver) {
-		return playVBI(tracks4_8, atariTrackerDriver, null);
+	public boolean playVBI(int tracks4_8, AtariTrackerDriver atariTrackerDriver, boolean respectVolume, Undo undo) {
+		return playVBI(tracks4_8, atariTrackerDriver, null, respectVolume, undo);
 	}
 
 	/** {@code pokeyStream} defaults to {@code null} on the other overload, matching every pre-existing call site; only {@link #dumpSongToPokeyStream} passes a real one. */
-	public boolean playVBI(int tracks4_8, AtariTrackerDriver atariTrackerDriver, PokeyStream pokeyStream) {
+	public boolean playVBI(int tracks4_8, AtariTrackerDriver atariTrackerDriver, PokeyStream pokeyStream, boolean respectVolume, Undo undo) {
 		if (playMode == PlayMode.PLAY_STOP) {
 			return false; // not playing
 		}
@@ -4252,8 +4252,25 @@ public final class Song {
 			trackActiveLine = trackPlayLine;
 			songActiveLine = songPlayLine;
 
-			// Quantization - see method javadoc for why it's omitted.
+			// Quantization
+			if (quantizationNote >= 0 && quantizationNote < Notes.NOTESNUM && quantizationInstr >= 0 && quantizationInstr < Instruments.INSTRSNUM) {
+				int vol = quantizationVol;
+				if (respectVolume) {
+					int v = trackGetVol();
+					if (v >= 0 && v <= Tracks.MAXVOLUME) {
+						vol = v;
+					}
+				}
+
+				if (trackSetNoteInstrVol(quantizationNote, quantizationInstr, vol, respectVolume, undo)) {
+					setPlayPressedTonesTNIV(trackActiveCol, quantizationNote, quantizationInstr, vol);
+				}
+			} else if (quantizationNote == -2) { // Special case (midi NoteOFF)
+				trackSetNoteActualInstrVol(-1, respectVolume, undo);
+				trackSetVol(0, undo);
+			}
 			quantizationNote = -1; // cancel the quantized note
+			// end of Q
 		}
 
 		return true;

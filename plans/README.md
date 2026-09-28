@@ -38,4 +38,4 @@ look for what was done, why, and what was found).
 | 22 | [CPP_SCRIPTING_PLAN](22_CPP_SCRIPTING_PLAN.md) | The same scripts in `Rmt.exe` and the cross-program export comparison (C1-C3) | Done 2026-09-27 |
 | 23 | [DOC_GENERATION_PLAN](23_DOC_GENERATION_PLAN.md) | Markdown as the documentation source, generated HTML, the command and note key tables from the programs (D1-D4) | Done 2026-09-27 |
 | 24 | [EXPORT_SCREEN_UPDATES_PLAN](24_EXPORT_SCREEN_UPDATES_PLAN.md) | The C++ exports redraw the whole screen up to 60 times a second: proposals for a quiet, faster export (E1-E3) | E1 done 2026-09-28; E2/E3 later |
-| 25 | [JAVA_MIDI_PLAN](25_JAVA_MIDI_PLAN.md) | MIDI input for the Java port: device lifecycle, the `CSong::MidiEvent` handler, the CH16/CH10 controller mode, a `midi` script command for the cross-program check (M0-M5) | Proposal 2026-09-29 |
+| 25 | [JAVA_MIDI_PLAN](25_JAVA_MIDI_PLAN.md) | MIDI input for the Java port: device lifecycle, the `CSong::MidiEvent` handler, the CH16/CH10 controller mode, a `midi` script command for the cross-program check (M0-M5) | M0 and the C++ fix done 2026-09-29; M1-M5 deferred |

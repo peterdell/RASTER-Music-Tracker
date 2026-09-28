@@ -5001,3 +5001,19 @@ build clean and all 123 tests pass.
     Verified: Release build of `Rmt.sln` (416 C++ tests), `mvn -o clean
     package` (594 Java tests), `compare_exports.ps1` - every export
     identical, the `.rmw` files included.
+  - **2026-09-29**: `plans/25_JAVA_MIDI_PLAN.md` written (MIDI input for
+    the Java port, M0-M5, with the C++ handler `CSong::MidiEvent` analysed
+    channel by channel). The user: "apply the fix. The rest remains
+    deferred for now." Applied: (1) the Java quantization branch of
+    `Song.playVBI` (M0) - `SongInput.insertNote` had set the quantized note
+    since the UI port while `playVBI` still omitted the consuming branch
+    (its javadoc claimed no caller set it), so a note typed during
+    follow-play in the first half of a line was lost; now entered on the
+    next line with `respectVolume`/`undo` as explicit parameters from
+    `AudioEngine` (the dump passes `false` - `play()` clears the pending
+    note first), `-2` deletes the note and writes volume 0; four tests in
+    `SongEditingTest`. (2) The C++ `Midi_Song.cpp` note-off quantization
+    compared `m_speed` with itself (twice, always false): now `m_speeda`,
+    change history entry. M1-M5 (device, handler, controller mode, `midi`
+    script command, manual) deferred. Verified: `mvn -o clean package`
+    green, Release build of `Rmt.sln` + `RmtTests.exe` green.

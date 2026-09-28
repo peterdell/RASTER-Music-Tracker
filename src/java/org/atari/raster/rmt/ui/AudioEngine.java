@@ -160,7 +160,7 @@ public final class AudioEngine implements Runnable {
 		}
 
 		// Things that are solved 1x for vbi
-		song.playVBI(tracks4_8, driver);
+		song.playVBI(tracks4_8, driver, session.uiState.respectVolume, session.undo);
 		// Play tones if there are key presses
 		song.playPressedTones(driver);
 

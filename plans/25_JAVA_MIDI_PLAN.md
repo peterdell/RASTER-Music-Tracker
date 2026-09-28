@@ -1,6 +1,6 @@
 # Plan: MIDI input for the Java port (M0-M5)
 
-Status: proposal (2026-09-29). Nothing implemented yet.
+Status: proposal (2026-09-29). Done so far: M0 and the C++ fix of 1.4 (2026-09-29, the user: "apply the fix, the rest remains deferred"). M1-M5 deferred.
 
 ## 1. What the C++ program does
 
@@ -238,7 +238,7 @@ comparison and the only way to test the C++ handler without a MIDI cable.
 
 ## 4. Batches
 
-### M0 - quantization in `Song.playVBI` (prerequisite, bug fix)
+### M0 - quantization in `Song.playVBI` (prerequisite, bug fix) - DONE 2026-09-29
 
 Port the omitted branch: a pending note (`quantizationNote` 0..NOTESNUM-1,
 `quantizationInstr` valid) -> `trackSetNoteInstrVol(note, instr, vol,
@@ -297,7 +297,7 @@ in the Java enum and unreachable without it, and the mode is what the
 C++ author uses; but it stays documented as experimental, as the C++
 comments say.
 
-### M4 - C++ side: `midi` script command, `hasFocus` parameter, the fix
+### M4 - C++ side: `midi` script command, `hasFocus` parameter (the fix of 1.4 is done)
 
 `CScriptRunner` gets `midi` (3.4); `CSong::MidiEvent(DWORD, bool hasFocus)`
 (`MidiInProc` passes `g_RmtHasFocus`); the two `m_speed < m_speed/2`
