@@ -52,7 +52,7 @@ The Atari 8-bit emulation consists of two parts
 
 The Pokey sound emulation and Atari 6502 processor emulation aren't built-in components of RMT. If the sound output is needed, the external dynamic DLL libraries with the following functions are required.  If you run RMT without this way described DLLs ( `sa_c6502.dll`, `apokeysnd.dll` or `sa_pokey.dll`), RMT will work, but there won't be any Pokey sound output and Atari sound routines won't be executed.
 
-#### CPU Emulation
+#### CPU Emulation (C++/Windows)
 
 Contained in `sa_c6502.dll` from [Altirra](https://www.virtualdub.org/altirra.html) by Avery Lee
 Procedures
@@ -61,7 +61,7 @@ Procedures
 - `void C6502_About(char** name, char** author, char** description)`;
 
 
-#### Pokey Emulation
+#### Pokey Emulation  (C++/Windows)
 
 Contained in `sa_pokey.dll` [Altirra](https://www.virtualdub.org/altirra.html) by Avery Lee
 - `void Pokey_Initialise(int *argc, char *argv[]);`
@@ -71,7 +71,7 @@ Contained in `sa_pokey.dll` [Altirra](https://www.virtualdub.org/altirra.html) b
 - `void Pokey_PutByte(UWORD addr, UBYTE byte);`
 - `void Pokey_About(char** name, char** author, char** description);`
 
-or in `apokeysnd.dll` from [ASAP](http://asap.sourceforge.net/apokeysnd.dll) by Avery Lee
+or in `apokeysnd.dll` from [ASAP](http://asap.sourceforge.net/apokeysnd.dll) by Piotr Fusik
 - `void APokeySound_Initialize(abool stereo);`
 - `void APokeySound_PutByte(int addr, int data);`
 - `int APokeySound_GetRandom(int addr, int cycle);`
