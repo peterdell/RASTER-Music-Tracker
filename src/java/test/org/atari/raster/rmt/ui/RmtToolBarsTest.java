@@ -21,6 +21,31 @@ class RmtToolBarsTest {
 		assertTrue(transparent, "the first image's top row has transparent pixels");
 	}
 
+	// Disabled buttons must look disabled on every display: Swing grays an ImageIcon by itself but not a PixelIcon (the HiDPI
+	// case), so the toolbar sets the grayed face explicitly (the user, 2026-09-29: the Java icons did not look disabled)
+	@Test
+	void aDisabledFaceIsGrayWhereTheFaceHadColorAndTransparentWhereItWasTransparent() {
+		BufferedImage face = new BufferedImage(2, 1, BufferedImage.TYPE_INT_ARGB);
+		face.setRGB(0, 0, 0xFFFF0000); // opaque red
+		face.setRGB(1, 0, 0); // transparent
+
+		BufferedImage disabled = RmtToolBars.disabledFace(face);
+
+		int rgb = disabled.getRGB(0, 0);
+		assertEquals(0xFF, rgb >>> 24, "still opaque");
+		int r = (rgb >> 16) & 0xFF, gr = (rgb >> 8) & 0xFF, b = rgb & 0xFF;
+		assertTrue(r == gr && gr == b, "gray: " + Integer.toHexString(rgb));
+		assertTrue(r != 0xFF, "not the original red");
+		assertEquals(0, disabled.getRGB(1, 0) >>> 24, "transparency kept");
+	}
+
+	@Test
+	void theIconIsAPixelIconOnAScaledDisplayAndAnImageIconOtherwise() {
+		BufferedImage face = new BufferedImage(32, 30, BufferedImage.TYPE_INT_ARGB);
+		assertTrue(RmtToolBars.icon(face, 1.5) instanceof RmtToolBars.PixelIcon);
+		assertTrue(RmtToolBars.icon(face, 1.0) instanceof javax.swing.ImageIcon);
+	}
+
 	@Test
 	void theDeviceScaleIsAtLeastOne() {
 		assertTrue(RmtToolBars.deviceScale() >= 1);

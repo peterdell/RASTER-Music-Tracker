@@ -5017,3 +5017,14 @@ build clean and all 123 tests pass.
     change history entry. M1-M5 (device, handler, controller mode, `midi`
     script command, manual) deferred. Verified: `mvn -o clean package`
     green, Release build of `Rmt.sln` + `RmtTests.exe` green.
+  - **2026-09-29**: the user: the Java toolbar icons do not look disabled
+    when disabled, unlike Rmt.exe. Cause: on a scaled (HiDPI) display the
+    buttons carry a `PixelIcon`, and Swing derives the grayed disabled icon
+    on its own only from an `ImageIcon` (`LookAndFeel.getDisabledIcon`), so
+    a disabled button painted its normal image; at 100% (ImageIcon) it was
+    grayed. `RmtToolBars` now sets the disabled (and disabled-selected)
+    icon explicitly: `disabledFace()` = `GrayFilter.createDisabledImage`
+    (Swing's standard disabled look, the one the 100% case already had),
+    wrapped in the same `icon()` (PixelIcon or ImageIcon). Two tests in
+    `RmtToolBarsTest`. No change-history entry: the 1.36 section lists
+    the Windows program's changes.
