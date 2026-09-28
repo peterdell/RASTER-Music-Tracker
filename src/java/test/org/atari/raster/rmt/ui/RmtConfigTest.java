@@ -25,10 +25,10 @@ import org.atari.raster.rmt.model.TuningSettings;
 /** rmt.ini / tuning.ini: the exact text C++ writes, the C++ parser's behavior, and the missing-file paths. */
 class RmtConfigTest {
 
-	/** What Rmt.exe 1.35 writes for its defaults (ResetRMTConfig), with the C++ order and spacing. */
+	/** What Rmt.exe writes for its defaults (ResetRMTConfig), with the C++ order and spacing. */
 	static final String DEFAULT_RMT_INI = """
 			# RMT CONFIGURATION FILE
-			# RASTER Music Tracker 1.35
+			# RASTER Music Tracker 1.36
 
 			# GENERAL
 
@@ -79,10 +79,10 @@ class RmtConfigTest {
 			VIEW_DEBUGDISPLAY = 1
 			""";
 
-	/** The default tuning.ini - note the ratios as C++ 1.35 writes them before Fraction's normalization (40/38 etc.); Java writes them reduced. */
+	/** The default tuning.ini - note the ratios as C++ writes them before Fraction's normalization (40/38 etc.); Java writes them reduced. */
 	static final String DEFAULT_TUNING_INI = """
 			# RMT CONFIGURATION FILE
-			# RASTER Music Tracker 1.35
+			# RASTER Music Tracker 1.36
 
 			# TUNING
 

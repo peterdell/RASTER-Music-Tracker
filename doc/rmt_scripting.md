@@ -1,4 +1,4 @@
-# RMT scripting
+# RMT Scripting
 
 Both RASTER Music Tracker programs - the Windows `Rmt.exe` and the Java
 port - can run a script file: open a song, set what the export dialogs
@@ -142,7 +142,7 @@ format, once with the defaults and once with every option set.
 `build/compare_exports.ps1` runs each of them through `Rmt.exe` and through
 `rmt.jar` with the same `rmt.ini`/`tuning.ini` and compares the output
 folders byte for byte (WAV files excepted: 8-bit in `Rmt.exe`, 16-bit in
-the Java port). `build/build_rmt-daily.bat` runs it after the release build
+the Java port). `build/build_rmt-cpp-daily.bat` runs it after the release build
 when `target/rmt.jar` exists; the JUnit test `CrossProgramExportTest` runs
 the same comparison with every `mvn test` when `Rmt.exe` is built. A
 difference is a port bug in one of the two programs.

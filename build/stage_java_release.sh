@@ -7,7 +7,7 @@
 # target/stage). That folder is jpackage's --input, so the jar ends up next
 # to resources/ and docs/ and ProgramFolder resolves them as g_prgpath does.
 # Used by .github/workflows/release.yml and for local dry runs:
-#   mvn -o package && bash build/stage_java_release.sh && jpackage --type app-image --name rmt --input target/stage --main-jar rmt.jar --main-class org.atari.raster.rmt.ui.RmtApplication --app-version 1.35.0 --dest target/dist
+#   mvn -o package && bash build/stage_java_release.sh && jpackage --type app-image --name rmt --input target/stage --main-jar rmt.jar --main-class org.atari.raster.rmt.ui.RmtApplication --app-version 1.36.0 --dest target/dist
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

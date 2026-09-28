@@ -29,8 +29,8 @@ Key facts:
 
 - `Rmt.sln` (root) + `src/Rmt.vcxproj` — single VS project, MFC app, VS2026/toolset v145,
   64-bit only as of the 1.35 changes.
-- `build/build_rmt.bat`, `build/build_rmt-daily.bat`, `build/build_rmt_pre.bat` — build
-  scripts (batch files), plus `build/build_rmt-daily-excluded-extensions.txt`.
+- `build/build_rmt-cpp-daily-DEBUG.bat`, `build/build_rmt-cpp-daily.bat`, `build/build_rmt-cpp-pre.bat` — build
+  scripts (batch files), plus `build/build_rmt-cpp-daily-excluded-extensions.txt`.
 - `src/` — 173 files directly in the folder (all C++ MFC sources: doc/view classes,
   dialogs, IO/exporters, song/instrument model, etc.), plus two subfolders:
   - `src/asap/` — vendored ASAP C sources (`asap.c`, `astil.c`, `wasap.c`, ...).
@@ -79,7 +79,7 @@ What was changed:
   `..\..\build\...` etc.), since the project file is now one directory level deeper.
   Paths using `$(SolutionDir)` (OutDir/IntDir, the pre/post-build event commands) did
   **not** need changes since they're already root-anchored.
-- `build/build_rmt_pre.bat`: this script's working directory is the *project* directory
+- `build/build_rmt-cpp-pre.bat`: this script's working directory is the *project* directory
   (an MSBuild `PreBuildEvent` default), which changed from `src/` to `src/cpp/`, so its
   two `xcopy ..\doc\... ..\rmt\docs` lines got an extra `..\` each. Comment updated too.
 - No other files referenced `src\Rmt...`, `src\asap`, or `src\res` (checked via
@@ -111,7 +111,7 @@ What was built:
   `StdAfx.h`) pull in MFC (`CString` etc.) — the test binary needs to link the same way
   to compile them unmodified. `OutDir`/`IntDir` point at `out\$(Configuration)\test\` /
   `test-intermediate\`, separate from `out\$(Configuration)\output\` (the shipped Rmt
-  build), so `build/build_rmt-daily.bat`'s xcopy of the output folder never picks up
+  build), so `build/build_rmt-cpp-daily.bat`'s xcopy of the output folder never picks up
   `RmtTests.exe`.
 - Test project compiles GoogleTest (`googletest/src/gtest-all.cc` + `gtest_main.cc`)
   together with the **actual production `.cpp` files** it's testing, referenced
@@ -2787,11 +2787,11 @@ build clean and all 123 tests pass.
   - **2026-09-24**: User asked which files `Rmt.vcxproj`'s `PostBuildEvent`
     xcopy step was copying, then whether it could be made to only copy
     changed files. Investigation found the real reason it always did a
-    full copy: `build_rmt_pre.bat`'s `PreBuildEvent` ran
+    full copy: `build_rmt-cpp-pre.bat`'s `PreBuildEvent` ran
     `del /Q /S %1` (`%1` = `$(OutDir)`) before *every* build, wiping out
     the destination's file timestamps that `xcopy /d` would otherwise need
     to compare against - so adding `/d` alone would have done nothing.
-    - Also found this touches `build_rmt-daily.bat` (the actual release-
+    - Also found this touches `build_rmt-cpp-daily.bat` (the actual release-
       packaging script, which ships `rmt135-daily.zip` to wudsn.com): its
       `copy_output` step just copies whatever's currently in
       `out/<Config>/output/` into the release, with no staleness check of
@@ -2800,8 +2800,8 @@ build clean and all 123 tests pass.
       release, undetected.
     - **User's chosen fix**: keep `xcopy` (smaller diff than switching to
       `robocopy /MIR`, which was also offered), but relocate the wipe
-      rather than dropping it - move it from `build_rmt_pre.bat` (runs on
-      every dev-loop build) into `build_rmt-daily.bat`'s
+      rather than dropping it - move it from `build_rmt-cpp-pre.bat` (runs on
+      every dev-loop build) into `build_rmt-cpp-daily.bat`'s
       `:build_configuration` (runs only when actually cutting a release),
       and add `/d` to `Rmt.vcxproj`'s `xcopy` (both Debug/Release
       `PostBuildEvent`s) now that the destination's timestamps survive
@@ -2813,7 +2813,7 @@ build clean and all 123 tests pass.
       `output/` copies 0 files; touching one `rmt/` file (`tuning.ini`)
       copies exactly that one file. Full solution build + `RmtTests.exe`
       re-run: 340 tests still pass, 0 regressions.
-    - **Did not run `build_rmt-daily.bat` itself** to verify its half of
+    - **Did not run `build_rmt-cpp-daily.bat` itself** to verify its half of
       the change - it uploads to the live wudsn.com production site via
       WinRAR/an upload script, which is not something to trigger from an
       automated session. The wipe placement there was verified by reading
@@ -4701,7 +4701,7 @@ build clean and all 123 tests pass.
     - `build/compare_exports.ps1`: both programs over every script with the
       C++ program folder's `rmt.ini`/`tuning.ini`, the output trees byte for
       byte, WAV reported only (decision 5); exit 1 on a difference, 2 when a
-      program is not built. `build_rmt-daily.bat` calls it after the release
+      program is not built. `build_rmt-cpp-daily.bat` calls it after the release
       build when `target\rmt.jar` exists and stops before the upload on a
       difference. `CrossProgramExportTest` (decision 4): the same comparison
       with every `mvn test`, skipped without `Rmt.exe`.
@@ -4753,10 +4753,10 @@ build clean and all 123 tests pass.
       tables/fences/link rewriting, the `<file>` placeholder as text), the
       include marker and its failure, Markdown winning over a page of the
       same name, the title fallback.
-    - `build/stage_java_release.sh` and `build/build_rmt_pre.bat` run the
+    - `build/stage_java_release.sh` and `build/build_rmt-cpp-pre.bat` run the
       generator into `docs/` (the pre-build falls back to copying the HTML
       files when `target\rmt.jar` is not built, so the C++ dev loop needs no
-      Java build; `build_rmt-daily.bat` requires the jar). `.gitignore`
+      Java build; `build_rmt-cpp-daily.bat` requires the jar). `.gitignore`
       covers `rmt/docs/img/`. `doc/rmt_changes.md`: the `<file>` placeholder
       in code spans (CommonMark took it for a tag), a relative link to the
       scripting page, an entry for the HTML documentation in the download.
@@ -4790,7 +4790,7 @@ build clean and all 123 tests pass.
       toolbar's keys displayed as hints as the C++ menus display them, the
       toolbar-only labels as the C++ tooltips, `SONG_TOGGLE_NTSC` (Ctrl+F12,
       accelerator-only) executing `OnSongToggleNTSC`'s port.
-    - `test-resources/scripts/actions.rmtscript`; `build_rmt-daily.bat`
+    - `test-resources/scripts/actions.rmtscript`; `build_rmt-cpp-daily.bat`
       regenerates `doc/rmt_action_infos.md` after the Release build and
       stops on ERROR markers; the checked-in table is the build's (176
       rows, both programs byte-identical). `doc/rmt_scripting.md` (`dump`,
@@ -4884,7 +4884,7 @@ build clean and all 123 tests pass.
     qualified names, javadoc, `pom.xml` - Maven group `org.atari.raster`,
     artifact `org.atari.raster.rmt`, the shade `mainClass` -, `.project`,
     `launch/Rmt.launch`, `release.yml` - icon path and `--main-class` -,
-    `stage_java_release.sh`, `build_rmt_pre.bat`, `lib/java/README.md`,
+    `stage_java_release.sh`, `build_rmt-cpp-pre.bat`, `lib/java/README.md`,
     the C++ comments naming Java classes, the plans). The WUDSN Base
     dependencies (`com.wudsn.tools.base`, `.base.atari`) and the vendored
     `net.sf.asap` are unchanged. `RmtWindowPreferences` uses
@@ -4977,3 +4977,27 @@ build clean and all 123 tests pass.
     Ctrl, while the actions use WUDSN Base's `KeyStroke.M1` - Command on
     macOS (Ctrl on Windows and Linux) - now M1 too; that was the macOS-only
     part. The Windows job had passed.
+  - **2026-09-28**: release number raised to 1.36.0 (the user's request:
+    every reference except the history in `doc/rmt_changes.md`, whose
+    "Changes in RMT 1.36" section the user had already opened). Changed:
+    `Rmt.rc` (`FILEVERSION`/`PRODUCTVERSION` 1,36,0,0, the `FileVersion`/
+    `ProductVersion` strings, `IDS_RMT_VERSION`), `RmtVersion.h` and
+    `RmtVersion.java` (`RMT_VERSION_STRING` "RASTER Music Tracker 1.36"),
+    the shipped `rmt/rmt.ini` and `rmt/tuning.ini` headers (what
+    `ResetRMTConfig` writes) and `RmtConfigTest`'s expected headers, the
+    online help URLs in `Rmt.cpp`/`RmtCommands.java` (`blob/1.36/`),
+    `release.yml` (default `version=1.36.0`, comments), `README.md`
+    (version line, tag example `v1.36.<n>`), the `--app-version` example in
+    `stage_java_release.sh`, the `GetVersionAndBuild()` example in
+    `RmtMainWindow.java`. Left alone as history: the "C++ 1.35 wrote
+    MAJ_7TH but never read it" comments (true of 1.35), the plans, the
+    change and version history. `pom.xml` stays `1.0.0-SNAPSHOT` - it never
+    carried the RMT version. `DocGeneratorTest` adapted to the user's
+    heading rename "RMT Scripting". Caveats reported: `RMT_VERSION_STRING`
+    is the `.rmw` format marker (both `LoadRMW`s compare it exactly), so
+    `.rmw` files saved by 1.35 report "Incorrect version" in 1.36 - the
+    original's behaviour at every version step, kept; the help URLs point
+    at a branch `1.36` of raster-atari-org that does not exist yet.
+    Verified: Release build of `Rmt.sln` (416 C++ tests), `mvn -o clean
+    package` (594 Java tests), `compare_exports.ps1` - every export
+    identical, the `.rmw` files included.

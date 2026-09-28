@@ -3,9 +3,9 @@
 Status: **approved 2026-09-27** with every recommendation (decisions 1-6;
 decision 4: the tables compared, normalized). **D1 DONE 2026-09-27**: `DocGenerator`
 (commonmark 0.29.0 + GFM tables as Maven dependencies, shaded into the jar),
-`DocGeneratorTest`, `stage_java_release.sh` and `build_rmt_pre.bat` generate
+`DocGeneratorTest`, `stage_java_release.sh` and `build_rmt-cpp-pre.bat` generate
 `docs/` (12 files: 8 pages from `.md`, the two manuals, `rmt.gif`, `img/`);
-`build_rmt-daily.bat` requires the jar. **D2 DONE 2026-09-27**: `dump
+`build_rmt-cpp-daily.bat` requires the jar. **D2 DONE 2026-09-27**: `dump
 actions <file>` in both programs, `actions.rmtscript` in the comparison
 (the two tables byte-identical, 176 rows), the daily build regenerates
 `doc/rmt_action_infos.md` and fails on ERROR markers; found and fixed on the
@@ -52,7 +52,7 @@ menus for the documentation, ideally as part of the build.
 | `rmt_action_infos.md` | 172 | one table, `<br>`/`<span>` markers | **generated** by `CCommands::Analyze()` |
 
 The distributions' `docs/` folder receives `*.html` and `*.gif` only
-(`build/build_rmt_pre.bat` into the gitignored `rmt/docs`, then the
+(`build/build_rmt-cpp-pre.bat` into the gitignored `rmt/docs`, then the
 PostBuildEvent's `xcopy` into `out/<Config>/output`), and the Java staging
 (`build/stage_java_release.sh`) the same plus `img/` and - since S3 -
 `rmt_scripting.md`, which a user cannot read there. The Java port's Help
@@ -120,9 +120,9 @@ needs it too and the scripts already own the `docs/` step:
 - `build/stage_java_release.sh`: `java -cp target/rmt.jar
   org.atari.raster.rmt.doc.DocGenerator doc "$STAGE/docs"` in place of the
   `cp` lines.
-- `build/build_rmt_pre.bat`: the same into `rmt\docs` when
+- `build/build_rmt-cpp-pre.bat`: the same into `rmt\docs` when
   `target\rmt.jar` exists; otherwise the `xcopy` of `*.html`/`*.gif` as
-  today, so the C++ dev loop works without a Java build. `build_rmt-daily.bat`
+  today, so the C++ dev loop works without a Java build. `build_rmt-cpp-daily.bat`
   requires the jar (it already runs the export comparison with it) so the
   release zip always has the generated pages.
 
@@ -151,7 +151,7 @@ text nobody reopens.
   the dump normalizes them (plain text without `&`, accelerator from the
   real table only, hint keys in a separate column) or the comparison takes
   an allow-list; **decision 4**.
-- `build_rmt-daily.bat` runs `Rmt.exe /SCRIPT:...actions.rmtscript` into
+- `build_rmt-cpp-daily.bat` runs `Rmt.exe /SCRIPT:...actions.rmtscript` into
   `doc/rmt_action_infos.md` after the Release build, so the checked-in file
   is always the build's (a `git diff` shows what a menu change did), and
   the generator (2.1) includes it into the manual.

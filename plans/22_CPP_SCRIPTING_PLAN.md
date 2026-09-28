@@ -50,7 +50,7 @@ too big to fit in memory"); `set output <folder>` and the
 `RMT_SCRIPT_OUTPUT` environment variable in both programs, `RMT_SCRIPT_LOG`
 in the C++ one (its console output into a file whatever console the caller
 has); `build/compare_exports.ps1` (exit 1 on a difference, 2 when a program
-is not built) called from `build_rmt-daily.bat` after the release build
+is not built) called from `build_rmt-cpp-daily.bat` after the release build
 when `target\rmt.jar` exists; `CrossProgramExportTest` (skips without
 `Rmt.exe`). **The first run found four port bugs**, all fixed:
 
@@ -179,7 +179,7 @@ options dialog; `set ntsc` to `SetNTSC`.
   `out\Release\output\Rmt.exe` and `target\rmt.jar`, then compares the
   two output trees byte for byte and reports every difference (file,
   first differing offset). Exit code 1 on any difference. Called at the
-  end of `build_rmt-daily.bat` (after both programs are built) and
+  end of `build_rmt-cpp-daily.bat` (after both programs are built) and
   runnable by hand.
 - Optionally (**decision 4**) a JUnit test `CrossProgramExportTest` that
   runs the same comparison when `Rmt.exe` exists at its build location and

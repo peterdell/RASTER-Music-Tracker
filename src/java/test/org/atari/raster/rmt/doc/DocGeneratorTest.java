@@ -51,7 +51,7 @@ class DocGeneratorTest {
 		}
 
 		String scripting = Files.readString(out.resolve("rmt_scripting.html"), StandardCharsets.UTF_8);
-		assertTrue(scripting.contains("<title>RMT scripting</title>"), "title from the first heading");
+		assertTrue(scripting.contains("<title>RMT Scripting</title>"), "title from the first heading");
 		assertTrue(scripting.contains("<table>"), "GFM tables are rendered");
 		assertTrue(scripting.contains("<pre><code>"), "code fences are rendered");
 

@@ -7,14 +7,14 @@ name: Release (Java port)
 # the rmt/ distribution layout staged next to the jar (see
 # build/stage_java_release.sh) and the WUDSN Base dependency built first.
 #
-# Trigger: push a tag matching v*, e.g. `git tag v1.35.0 && git push origin v1.35.0`
-# (the Java port ships as the same 1.35 line the C++ program is at; the
-# version string is also a file-format marker, so it stays 1.35).
+# Trigger: push a tag matching v*, e.g. `git tag v1.36.0 && git push origin v1.36.0`
+# (the Java port ships as the same 1.36 line the C++ program is at; the
+# version string is also a file-format marker, so it follows RMT_VERSION_STRING).
 #
 # Can also be run manually (workflow_dispatch):
 # - With the release_tag input left empty: a plain test build - no release is
 #   published, only build artifacts you can download from the workflow run.
-# - With release_tag set to an EXISTING release's tag (e.g. v1.35.0): rebuilds
+# - With release_tag set to an EXISTING release's tag (e.g. v1.36.0): rebuilds
 #   whatever the triggering branch currently is and republishes those binaries
 #   to that release, without moving the git tag itself.
 
@@ -91,7 +91,7 @@ jobs:
           if [[ -n "${TAG:-}" ]]; then
             echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
           else
-            echo "version=1.35.0" >> "$GITHUB_OUTPUT"
+            echo "version=1.36.0" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build portable app image with jpackage

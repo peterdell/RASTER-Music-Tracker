@@ -646,7 +646,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\build\build_rmt-daily.bat">
+    <None Include="..\..\build\build_rmt-cpp-daily.bat">
       <Filter>Build Files</Filter>
     </None>
     <None Include=".gitignore">
@@ -670,7 +670,7 @@
     <None Include="..\..\doc\rmt_tracker_drivers.md">
       <Filter>Documentation Files</Filter>
     </None>
-    <None Include="..\..\build\build_rmt_pre.bat">
+    <None Include="..\..\build\build_rmt-cpp-pre.bat">
       <Filter>Build Files</Filter>
     </None>
     <None Include="asap\asap.md">
@@ -726,7 +726,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\build\build_rmt-daily-excluded-extensions.txt">
+    <Text Include="..\..\build\build_rmt-cpp-daily-excluded-extensions.txt">
       <Filter>Build Files</Filter>
     </Text>
     <Text Include="..\..\doc\rmt_changes.md">

@@ -122,7 +122,7 @@
       <Culture>0x0405</Culture>
     </ResourceCompile>
     <PreBuildEvent>
-      <Command>%COMSPEC% /C $(SolutionDir)build\build_rmt_pre.bat</Command>
+      <Command>%COMSPEC% /C $(SolutionDir)build\build_rmt-cpp-pre.bat</Command>
       <Message>Prepare doc files for the output directory</Message>
     </PreBuildEvent>
     <PostBuildEvent>
@@ -177,7 +177,7 @@
       <Message>Copy changed resources and examples to output directory</Message>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>%COMSPEC% /C $(SolutionDir)build\build_rmt_pre.bat</Command>
+      <Command>%COMSPEC% /C $(SolutionDir)build\build_rmt-cpp-pre.bat</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Prepare doc files for the output directory</Message>
@@ -470,7 +470,7 @@
     <ClInclude Include="WaveFileExporter.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\build\build_rmt-daily.bat" />
+    <None Include="..\..\build\build_rmt-cpp-daily.bat" />
     <CopyFileToFolders Include="..\..\lib\x64\sa_pokey.dll">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
@@ -481,7 +481,7 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
     </CopyFileToFolders>
-    <None Include="..\..\build\build_rmt_pre.bat" />
+    <None Include="..\..\build\build_rmt-cpp-pre.bat" />
     <None Include="..\..\doc\rmt_action_infos.md" />
     <None Include="..\..\doc\rmt_en.html" />
     <None Include="..\..\doc\rmt_en_128.html" />
@@ -527,7 +527,7 @@
     <None Include="res\cursor_set_position.cur" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\build\build_rmt-daily-excluded-extensions.txt" />
+    <Text Include="..\..\build\build_rmt-cpp-daily-excluded-extensions.txt" />
     <Text Include="..\..\doc\rmt_changes.md" />
     <Text Include="..\..\doc\midi.txt" />
     <Text Include="..\..\doc\optimization.txt" />

@@ -235,7 +235,7 @@ void CRmtApp::OnHelp()
 void CRmtApp::OnHelpOnlineHelp()
 {
 
-    CShell::OpenFile("https://github.com/raster-atari-org/RASTER-Music-Tracker/blob/1.35/doc/rmt_en.md");
+    CShell::OpenFile("https://github.com/raster-atari-org/RASTER-Music-Tracker/blob/1.36/doc/rmt_en.md");
 
 }
 

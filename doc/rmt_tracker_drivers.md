@@ -45,7 +45,10 @@ Adapted from Analmux's original post on [AtariAge](https://forums.atariage.com/t
 
 Adapted from Analmux's original post on [AtariAge](https://forums.atariage.com/topic/234769-rmt-patch-8/): 
 
-> | RMT Distortion | POKEY  Distortion | Bits | Clock    | Number of Bytes |Instrument                                                       |
+> The 16-bit 'distortion guitar' works best when you use RMT-distortion 8 instead. It looks a bit mysterious, but the HSB (highest significant byte) has a full auto-modulation control.
+If you use command 2 (at voice 2), then (X/,Y\) = (0,0) gives a modulation of 0. If f.e. (X/,Y\) = (0,6) = $06, then the auto-modulation speed is not zero, and it sounds a bit like an electric distortion guitar effect. Backwards auto-modulation, then you compute a binary minus of $06, i.e. $00-$06=$FA.
+
+| RMT Distortion | POKEY  Distortion | Bits | Clock    | Number of Bytes |Instrument                                                       |
 |----------------|-------------------|------|----------|-----------------|-----------------------------------------------------------------|
 | 0              | 0                 | 8    | x        | x               | White noise                                                     |
 | 2              | 2                 | 8    | 1.79 MHz | 48              | Poly 5 / Generator 2                                            |
