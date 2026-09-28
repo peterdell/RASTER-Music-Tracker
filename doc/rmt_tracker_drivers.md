@@ -45,7 +45,8 @@ Adapted from Analmux's original post on [AtariAge](https://forums.atariage.com/t
 
 Adapted from Analmux's original post on [AtariAge](https://forums.atariage.com/topic/234769-rmt-patch-8/): 
 
-> | RMT Distortion | POKEY  Distortion | Bits | Clock    | Number of Bytes |Instrument                                                       |
+> 
+| RMT Distortion | POKEY  Distortion | Bits | Clock    | Number of Bytes |Instrument                                                       |
 |----------------|-------------------|------|----------|-----------------|-----------------------------------------------------------------|
 | 0              | 0                 | 8    | x        | x               | White noise                                                     |
 | 2              | 2                 | 8    | 1.79 MHz | 48              | Poly 5 / Generator 2                                            |
