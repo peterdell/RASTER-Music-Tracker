@@ -1,0 +1,3017 @@
+//
+// RmtView.cpp : implementation of the CRmtView class
+// originally made by Raster, 2002-2009
+// reworked by VinsCool, 2021-2022
+//
+
+#include "Atari.h"
+#include "Clipboard.h"
+#include "EffectsDlg.h"
+#include "FileNewDlg.h"
+#include "Fraction.h"
+#include "MainFrm.h"
+#include "OptionsDialog.h"
+#include "PokeyRenderer.h"
+#include "RmtDoc.h"
+#include "RmtMidi.h"
+#include "RmtVersion.h"
+#include "RmtView.h"
+#include "ScriptRunner.h"
+#include "Messages.h"
+#include "StdAfx.h"
+#include <chrono>
+#include <iomanip>
+
+#include "Global.h"
+
+#include "CanvasXY.h"
+#include "ChannelControl.h"
+#include "GuiHelpers.h"
+#include "Keyboard2NoteMapping.h"
+#include "Rmt.h"
+#include "Song.h"
+#include "SongUI.h"
+#include "Undo.h"
+
+
+
+// Activate MFC memory leak detection.
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
+#endif
+
+extern CRmtApp	g_app;
+extern CSong	g_Song;
+extern CSongUI* g_SongUI;
+extern CRmtMidi	g_Midi;
+extern CUndo	g_Undo;
+extern CXPokey	g_Pokey;
+extern CInstruments	g_Instruments;
+extern CTrackClipboard g_TrackClipboard;
+extern CAtariTrackerDriver* g_AtariTrackerDriver;
+
+/////////////////////////////////////////////////////////////////////////////
+// CRmtView
+
+IMPLEMENT_DYNCREATE(CRmtView, CView)
+
+BEGIN_MESSAGE_MAP(CRmtView, CView)
+    //{{AFX_MSG_MAP(CRmtView)
+    ON_WM_ERASEBKGND()
+    ON_WM_LBUTTONDOWN()
+    ON_WM_RBUTTONDOWN()
+    ON_WM_SYSCHAR()
+    ON_WM_KEYDOWN()
+    ON_WM_KEYUP()
+
+    // Menu File
+    ON_COMMAND(ID_FILE_NEW, OnFileNew)
+    ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
+    ON_COMMAND(ID_FILE_REOPEN, OnFileReopen)
+    ON_UPDATE_COMMAND_UI(ID_FILE_REOPEN, OnUpdateFileReopen)
+    ON_COMMAND(ID_FILE_SAVE, OnFileSave)
+    ON_COMMAND(ID_FILE_SAVE_AS, OnFileSaveAs)
+    ON_COMMAND(ID_FILE_IMPORT, OnFileImport)
+    ON_COMMAND(ID_FILE_EXPORT, OnFileExport)
+    // Standard printing commands
+    ON_COMMAND(ID_FILE_PRINT, CView::OnFilePrint)
+    ON_COMMAND(ID_FILE_PRINT_DIRECT, CView::OnFilePrint)
+    ON_COMMAND(ID_FILE_PRINT_PREVIEW, CView::OnFilePrintPreview)
+    ON_COMMAND(ID_FILE_EXIT, OnFileExit)
+
+    // Instruments
+    ON_COMMAND(ID_INSTR_LOAD, OnInstrLoad)
+    ON_COMMAND(ID_INSTR_SAVE, OnInstrSave)
+    ON_COMMAND(ID_INSTR_COPY, OnInstrCopy)
+    ON_COMMAND(ID_INSTR_PASTE, OnInstrPaste)
+    ON_COMMAND(ID_INSTR_CUT, OnInstrCut)
+    ON_COMMAND(ID_INSTR_DELETE, OnInstrDelete)
+    ON_COMMAND(ID_TRACK_DELETE, OnTrackDelete)
+    ON_COMMAND(ID_TRACK_COPY, OnTrackCopy)
+    ON_COMMAND(ID_TRACK_PASTE, OnTrackPaste)
+    ON_COMMAND(ID_TRACK_CUT, OnTrackCut)
+
+    // Song
+    ON_COMMAND(ID_SONG_TOGGLE_NTSC, OnSongToggleNTSC)
+    ON_COMMAND(ID_SONG_COPY_LINE, OnSongCopyline)
+    ON_COMMAND(ID_SONG_PASTE_LINE, OnSongPasteline)
+    ON_COMMAND(ID_SONG_CLEAR_LINE, OnSongClearline)
+    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FOLLOW, OnUpdateSongPlayFollow)
+    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_START, OnUpdatePlaySong)
+    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_CURRENT_POSITION, OnUpdatePlayFrom)
+    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnUpdatePlayTrack)
+    ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnSongPlayFromCurrentPositionAndLoop)
+    ON_COMMAND(ID_SONG_PLAY_FROM_START, OnSongPlayeFromStart)
+    ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION, OnSongPlayFromCurrentPosition)
+    ON_COMMAND(ID_SONG_PLAY_FROM_CURRENT_POSITION_AND_LOOP, OnSongPlayFromCurrentPositionAndLoop)
+    ON_COMMAND(ID_SONG_STOP, OnSongStop)
+    ON_UPDATE_COMMAND_UI(ID_SONG_STOP, OnUpdateSongStop)
+
+    ON_COMMAND(ID_SONG_PLAY_FOLLOW, OnSongPlayFollow)
+    ON_COMMAND(ID_PART_INFO, OnPartInfo)
+    ON_COMMAND(ID_PART_INSTRUMENTS, OnPartInstruments)
+    ON_COMMAND(ID_PART_SONG, OnPartSong)
+    ON_COMMAND(ID_PART_TRACKS, OnPartTracks)
+    ON_UPDATE_COMMAND_UI(ID_PART_TRACKS, OnUpdateEmTracks)
+    ON_UPDATE_COMMAND_UI(ID_PART_INSTRUMENTS, OnUpdateEmInstruments)
+    ON_UPDATE_COMMAND_UI(ID_PART_INFO, OnUpdateEmInfo)
+    ON_UPDATE_COMMAND_UI(ID_PART_SONG, OnUpdateEmSong)
+
+
+    ON_COMMAND(ID_EDIT_SWITCH_EDIT_MODE, OnEditSwitchEditMode)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_SWITCH_EDIT_MODE, OnUpdateEditSwitchEditMode)
+
+
+    // Menu View
+    ON_COMMAND(ID_VIEW_VOLUMEANALYZER, OnViewVolumeanalyzer)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_VOLUMEANALYZER, OnUpdateViewVolumeanalyzer)
+    ON_COMMAND(ID_VIEW_PLAYTIMECOUNTER, OnViewPlaytimecounter)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_PLAYTIMECOUNTER, OnUpdateViewPlaytimecounter)
+    ON_COMMAND(ID_VIEW_INSTRUMENTACTIVEHELP, OnViewInstrumentactivehelp)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_INSTRUMENTACTIVEHELP, OnUpdateViewInstrumentactivehelp)
+    ON_COMMAND(ID_VIEW_BLOCKTOOLBAR, OnViewBlocktoolbar)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_BLOCKTOOLBAR, OnUpdateViewBlocktoolbar)
+    ON_COMMAND(ID_VIEW_POKEYREGS, OnViewPokeyregs)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_POKEYREGS, OnUpdateViewPokeyregs)
+
+    // Menu Block
+    ON_COMMAND(ID_BLOCK_TRANSPOSE_NOTES_UP, OnBlockNoteup)
+    ON_UPDATE_COMMAND_UI(ID_BLOCK_TRANSPOSE_NOTES_UP, OnUpdateBlockNoteup)
+    ON_COMMAND(ID_BLOCK_DECREASE_VOLUME, OnBlockVolumedown)
+    ON_UPDATE_COMMAND_UI(ID_BLOCK_DECREASE_VOLUME, OnUpdateBlockVolumedown)
+    ON_COMMAND(ID_BLOCK_INCREASE_VOLUME, OnBlockVolumeup)
+    ON_UPDATE_COMMAND_UI(ID_BLOCK_INCREASE_VOLUME, OnUpdateBlockVolumeup)
+    ON_COMMAND(ID_BLOCK_TRANSPOSE_NOTES_DOWN, OnBlockNotedown)
+    ON_UPDATE_COMMAND_UI(ID_BLOCK_TRANSPOSE_NOTES_DOWN, OnUpdateBlockNotedown)
+    ON_COMMAND(ID_BLOCK_USE_PREVIOUS_INSTRUMENT, OnBlockInstrleft)
+    ON_UPDATE_COMMAND_UI(ID_BLOCK_USE_PREVIOUS_INSTRUMENT, OnUpdateBlockInstrleft)
+    ON_COMMAND(ID_BLOCK_USE_NEXT_INSTRUMENT, OnBlockInstrright)
+    ON_UPDATE_COMMAND_UI(ID_BLOCK_USE_NEXT_INSTRUMENT, OnUpdateBlockInstrright)
+    ON_COMMAND(ID_BLOCK_TOGGLE_MODIFICATION_MODE, OnBlockInstrall)
+    ON_UPDATE_COMMAND_UI(ID_BLOCK_TOGGLE_MODIFICATION_MODE, OnUpdateBlockInstrall)
+    ON_COMMAND(ID_BLOCK_RESTORE_FROM_BACKUP, OnBlockBackup)
+    ON_UPDATE_COMMAND_UI(ID_BLOCK_RESTORE_FROM_BACKUP, OnUpdateBlockBackup)
+    ON_COMMAND(ID_BLOCK_PLAY_AND_LOOP, OnBlockPlayAndLoop)
+    ON_UPDATE_COMMAND_UI(ID_BLOCK_PLAY_AND_LOOP, OnUpdateBlockPlayAndLoop)
+    ON_COMMAND(ID_BLOCK_COPY, OnBlockCopy)
+    ON_COMMAND(ID_BLOCK_CUT, OnBlockCut)
+    ON_COMMAND(ID_BLOCK_DELETE, OnBlockDelete)
+    ON_COMMAND(ID_BLOCK_PASTE, OnBlockPaste)
+    ON_COMMAND(ID_BLOCK_EXCHANGE, OnBlockExchange)
+    ON_COMMAND(ID_BLOCK_APPLY_EFFECTS, OnBlockEffect)
+    ON_COMMAND(ID_BLOCK_SELECTALL, OnBlockSelectall)
+    ON_UPDATE_COMMAND_UI(ID_BLOCK_CUT, OnUpdateBlockCut)
+    ON_UPDATE_COMMAND_UI(ID_BLOCK_DELETE, OnUpdateBlockDelete)
+    ON_UPDATE_COMMAND_UI(ID_BLOCK_APPLY_EFFECTS, OnUpdateBlockEffect)
+    ON_UPDATE_COMMAND_UI(ID_BLOCK_EXCHANGE, OnUpdateBlockExchange)
+
+    // Timer
+    ON_WM_TIMER()
+    ON_WM_DESTROY()
+
+    // Mouse
+    ON_WM_MOUSEMOVE()
+    ON_WM_MOUSEWHEEL()
+    ON_WM_SETCURSOR()
+    ON_WM_LBUTTONUP()
+    ON_WM_RBUTTONUP()
+    ON_WM_LBUTTONDBLCLK()
+    ON_WM_RBUTTONDBLCLK()
+
+    // Window
+    ON_WM_SETFOCUS()
+    ON_WM_KILLFOCUS()
+
+    ON_COMMAND(ID_MIDIONOFF, OnMidiOnOff)
+    ON_UPDATE_COMMAND_UI(ID_MIDIONOFF, OnUpdateMidiOnOff)
+
+    ON_COMMAND(ID_BLOCK_PASTESPECIAL_MERGEWITHCURRENTCONTENT, OnBlockPastespecialMergewithcurrentcontent)
+    ON_COMMAND(ID_BLOCK_PASTESPECIAL_SPEEDVALUESONLY, OnBlockPastespecialSpeedvaluesonly)
+    ON_COMMAND(ID_BLOCK_PASTESPECIAL_VOLUMEVALUESONLY, OnBlockPastespecialVolumevaluesonly)
+    ON_COMMAND(ID_INSTR_ALLINSTRUMENTSCLEANUP, OnInstrAllinstrumentscleanup)
+    ON_COMMAND(ID_INSTRUMENT_CHANGE, OnInstrumentChange)
+    ON_COMMAND(ID_INSTRUMENT_CLEARALLUNUSEDINSTRUMENTS, OnInstrumentClearallunusedinstruments)
+    ON_COMMAND(ID_INSTRUMENT_INFO, OnInstrumentInfo)
+    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_ENVELOPEPARAMETERSONLY, OnInstrumentPastespecialEnvelopeparametersonly)
+    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_TABLEONLY, OnInstrumentPastespecialTableonly)
+    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMELENVELOPEONLY, OnInstrumentPastespecialVolumeLenvelopeonly)
+    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMELRENVELOPESONLY, OnInstrumentPastespecialVolumeLRenvelopesonly)
+    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMERENVELOPEONLY, OnInstrumentPastespecialVolumeRenvelopeonly)
+    ON_COMMAND(ID_INSTRUMENT_RENUMBERALLINSTRUMENTS, OnInstrumentRenumberallinstruments)
+
+    // Menu Song
+    ON_COMMAND(ID_SONG_DELETEACTUALLINE, OnSongDeleteactualline)
+    ON_COMMAND(ID_SONG_EXPANDLOOPSINALLTRACKS, OnSongExpandloopsinalltracks)
+    ON_COMMAND(ID_SONG_INSERTCOPYORCLONEOFSONGLINES, OnSongInsertcopyorcloneofsonglines)
+    ON_COMMAND(ID_SONG_INSERTNEWEMPTYLINE, OnSongInsertnewemptyline)
+    ON_COMMAND(ID_SONG_INSERTNEWLINEWITHUNUSEDTRACKS, OnSongInsertnewlinewithunusedtracks)
+    ON_COMMAND(ID_SONG_PUTNEWEMPTYUNUSEDTRACK, OnSongPutnewemptyunusedtrack)
+    ON_COMMAND(ID_SONG_SEARCHANDBUILDLOOPSINALLTRACKS, OnSongSearchandrebuildloopsinalltracks)
+    ON_COMMAND(ID_SONG_SIZEOPTIMIZATION, OnSongSizeoptimization)
+    ON_COMMAND(ID_SONG_SONG_TOGGLE_TRACK_NUMBER, OnSongSongswitch4_8)
+    ON_COMMAND(ID_SONG_TRACKSORDERCHANGE, OnSongTracksorderchange)
+    ON_UPDATE_COMMAND_UI(ID_SONG_SONG_TOGGLE_TRACK_NUMBER, OnUpdateSongSongswitch4_8)
+
+    ON_COMMAND(ID_SONG_CLEAR_BOOKMARK, &CRmtView::OnSongClearBookmark)
+    ON_UPDATE_COMMAND_UI(ID_SONG_CLEAR_BOOKMARK, &CRmtView::OnUpdateSongClearBookmark)
+    ON_COMMAND(ID_SONG_SET_BOOKMARK, &CRmtView::OnSongSetBookmark)
+
+    // Menu Track
+    ON_UPDATE_COMMAND_UI(ID_TRACK_COPY, OnUpdateTrackCopy)
+    ON_UPDATE_COMMAND_UI(ID_TRACK_CUT, OnUpdateTrackCut)
+    ON_UPDATE_COMMAND_UI(ID_TRACK_DELETE, OnUpdateTrackDelete)
+    ON_UPDATE_COMMAND_UI(ID_TRACK_EXPANDLOOP, OnUpdateTrackExpandloop)
+    ON_UPDATE_COMMAND_UI(ID_TRACK_INFOABOUTUSINGOFACTUALTRACK, OnUpdateTrackInfoaboutusingofactualtrack)
+    ON_UPDATE_COMMAND_UI(ID_TRACK_PASTE, OnUpdateTrackPaste)
+    ON_UPDATE_COMMAND_UI(ID_TRACK_SEARCHANDBUILDLOOP, OnUpdateTrackSearchandbuildloop)
+    ON_COMMAND(ID_TRACK_ALLTRACKSCLEANUP, OnTrackAlltrackscleanup)
+    ON_COMMAND(ID_TRACK_CLEARALLTRACKSUNUSEDINSONG, OnTrackClearalltracksunusedinsong)
+    ON_COMMAND(ID_TRACK_EXPANDLOOP, OnTrackExpandloop)
+    ON_COMMAND(ID_TRACK_INFOABOUTUSINGOFACTUALTRACK, OnTrackInfoaboutusingofactualtrack)
+    ON_COMMAND(ID_TRACK_RENUMBERALLTRACKS, OnTrackRenumberalltracks)
+    ON_COMMAND(ID_TRACK_SEARCHANDBUILDLOOP, OnTrackSearchandbuildloop)
+
+    ON_COMMAND(ID_TRACK_LOAD, OnTrackLoad)
+    ON_COMMAND(ID_TRACK_SAVE, OnTrackSave)
+    ON_UPDATE_COMMAND_UI(ID_TRACK_LOAD, OnUpdateTrackLoad)
+    ON_UPDATE_COMMAND_UI(ID_TRACK_SAVE, OnUpdateTrackSave)
+    ON_COMMAND(ID_TRACK_CLEARALLDUPLICATEDTRACKS, OnTrackClearallduplicatedtracks)
+    ON_COMMAND(ID_SONG_MAKETRACKSDUPLICATE, OnSongMaketracksduplicate)
+    ON_UPDATE_COMMAND_UI(ID_SONG_MAKETRACKSDUPLICATE, OnUpdateSongMaketracksduplicate)
+
+    ON_COMMAND(ID_SONG_PLAY_FROM_BOOKMARK, OnSongPlayFromBookmark)
+    ON_UPDATE_COMMAND_UI(ID_SONG_PLAY_FROM_BOOKMARK, OnUpdateSongPlayBookmark)
+
+    // Menu Edit
+    ON_COMMAND(ID_EDIT_CLEAR_UNDO_REDO_HISTORY, OnEditClearUndoRedoHistory)
+    ON_COMMAND(ID_EDIT_REDO, OnEditRedo)
+    ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
+
+    ON_UPDATE_COMMAND_UI(ID_EDIT_CLEAR_UNDO_REDO_HISTORY, OnUpdateEditClearUndoRedoHistory)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_REDO, OnUpdateEditRedo)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_UNDO, OnUpdateEditUndo)
+
+    ON_COMMAND(ID_SONG_SONGCHANGEMAXIMALLENGTHOFTRACKS, OnSongSongchangemaximallengthoftracks)
+
+
+    // Menu Instrument
+    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_INSERTVOLUMEENVSANDENVELOPEPARSTOCURSORPOSITION, OnInstrumentPastespecialInsertvolenvsandenvparstocurpos)
+    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMEENVANDENVELOPEPARSONLY, OnInstrumentPastespecialVolumeenvandenvelopeparsonly)
+    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMELTORENVELOPEONLY, OnInstrumentPastespecialVolumeltorenvelopeonly)
+    ON_COMMAND(ID_INSTRUMENT_PASTESPECIAL_VOLUMERTOLENVELOPEONLY, OnInstrumentPastespecialVolumertolenvelopeonly)
+
+
+    ON_UPDATE_COMMAND_UI(ID_INSTRUMENT_PASTESPECIAL_VOLUMERENVELOPEONLY, OnUpdateInstrumentPastespecialVolumerenvelopeonly)
+    ON_UPDATE_COMMAND_UI(ID_INSTRUMENT_PASTESPECIAL_INSERTVOLUMEENVSANDENVELOPEPARSTOCURSORPOSITION, OnUpdateInstrumentPastespecialInsertvolenvsandenvparstocurpos)
+    ON_UPDATE_COMMAND_UI(ID_INSTRUMENT_PASTESPECIAL_VOLUMELENVELOPEONLY, OnUpdateInstrumentPastespecialVolumelenvelopeonly)
+    ON_UPDATE_COMMAND_UI(ID_INSTRUMENT_PASTESPECIAL_VOLUMELTORENVELOPEONLY, OnUpdateInstrumentPastespecialVolumeltorenvelopeonly)
+    ON_UPDATE_COMMAND_UI(ID_INSTRUMENT_PASTESPECIAL_VOLUMERTOLENVELOPEONLY, OnUpdateInstrumentPastespecialVolumertolenvelopeonly)
+
+
+    // Menu View
+    ON_COMMAND(ID_VIEW_STATUS_BAR, OnViewStatusBar)
+    ON_COMMAND(ID_VIEW_TOOLBAR, OnViewToolbar)
+
+    ON_UPDATE_COMMAND_UI(ID_VIEW_STATUS_BAR, OnUpdateViewStatusBar)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_TOOLBAR, OnUpdateViewToolbar)
+
+    // Menu Tools
+    ON_COMMAND(ID_TOOLS_OPTIONS, OnToolsOptions)
+    ON_COMMAND(ID_TOOLS_RUN_SCRIPT, OnToolsRunScript)
+
+    // Menu Channels
+    ON_COMMAND(ID_CHANNELS_CHANNEL1, &CRmtView::OnChannelsChannel1)
+    ON_COMMAND(ID_CHANNELS_CHANNEL2, &CRmtView::OnChannelsChannel2)
+    ON_COMMAND(ID_CHANNELS_CHANNEL3, &CRmtView::OnChannelsChannel3)
+    ON_COMMAND(ID_CHANNELS_CHANNEL4, &CRmtView::OnChannelsChannel4)
+    ON_COMMAND(ID_CHANNELS_CHANNEL5, &CRmtView::OnChannelsChannel5)
+    ON_COMMAND(ID_CHANNELS_CHANNEL6, &CRmtView::OnChannelsChannel6)
+    ON_COMMAND(ID_CHANNELS_CHANNEL7, &CRmtView::OnChannelsChannel7)
+    ON_COMMAND(ID_CHANNELS_CHANNEL8, &CRmtView::OnChannelsChannel8)
+    ON_COMMAND(ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_ON_OFF, &CRmtView::OnChannelsToggleActiveChannelOnOff)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_ON_OFF, &CRmtView::OnUpdateChannelsToggleActiveChannelOnOff)
+    ON_COMMAND(ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_SOLO, &CRmtView::OnChannelsToggleActiveChannelSolo)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_TOGGLE_ACTIVE_CHANNEL_SOLO, &CRmtView::OnUpdateChannelsToggleActiveChannelSolo)
+    ON_COMMAND(ID_CHANNELS_TOGGLE_ALL_CHANNELS_ON_OFF, &CRmtView::OnChannelsToggleAllChannelsOnOff)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_TOGGLE_ALL_CHANNELS_ON_OFF, &CRmtView::OnUpdateChannelsToggleAllChannelsOnOff)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL1, &CRmtView::OnUpdateChannelsChannel1)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL2, &CRmtView::OnUpdateChannelsChannel2)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL3, &CRmtView::OnUpdateChannelsChannel3)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL4, &CRmtView::OnUpdateChannelsChannel4)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL5, &CRmtView::OnUpdateChannelsChannel5)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL6, &CRmtView::OnUpdateChannelsChannel6)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL7, &CRmtView::OnUpdateChannelsChannel7)
+    ON_UPDATE_COMMAND_UI(ID_CHANNELS_CHANNEL8, &CRmtView::OnUpdateChannelsChannel8)
+    ON_COMMAND(ID_TOOLBAR_SWITCH_EDIT_MODE, &CRmtView::OnToolbarSwitchEditMode)
+    ON_UPDATE_COMMAND_UI(ID_TOOLBAR_SWITCH_EDIT_MODE, &CRmtView::OnUpdateToolbarSwitchEditMode)
+    ON_COMMAND(ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE, &CRmtView::OnEditActivatePokeyExplorerMode)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_ACTIVATE_POKEY_EXPLORER_MODE, &CRmtView::OnUpdateEditActivatePokeyExplorerMode)
+
+    // More
+    ON_COMMAND(ID_SONG_INCREASE_PATTERN_STEP_SIZE, &CRmtView::OnSongIncreasePatternStepSize)
+    ON_COMMAND(ID_SONG_DECREASE_PATTERN_STEP_SIZE, &CRmtView::OnSongDecreasePatternStepSize)
+END_MESSAGE_MAP()
+
+/////////////////////////////////////////////////////////////////////////////
+// CRmtView construction/destruction
+
+CRmtView::CRmtView()
+{
+    m_canvasXY = nullptr;
+    m_width = 0;
+    m_height = 0;
+    m_pen1 = NULL;
+}
+
+CRmtView::~CRmtView()
+{
+    if (m_canvasXY) { m_canvasXY->SelectObject(m_penorig); }    // Reset to the original pen
+    if (m_pen1) { delete m_pen1; }
+}
+
+void CRmtView::OnDestroy()
+{
+
+    if (g_AtariTrackerDriver) {
+        delete g_AtariTrackerDriver;
+        g_AtariTrackerDriver = nullptr;
+    }
+
+    // Unload Pokey DLL
+    g_Pokey.DeInitSound();
+
+
+    // Unload 6502 DLL
+    g_Atari.DeInit();
+
+    // Turn off the timer
+    if (m_timerDisplay)
+    {
+        KillTimer(m_timerDisplay);
+        m_timerDisplay = NULL;
+    }
+    CView::OnDestroy();
+}
+
+void CRmtView::OnTimer(UINT_PTR nIDEvent)
+{
+    if (nIDEvent == m_timerDisplay)
+    {
+        KillTimer(m_timerDisplay);
+        m_timerDisplay = SetTimer(1, m_timerDisplayTick[g_timerGlobalCount % 3], NULL);
+        RefreshScreen();
+    }
+
+    CView::OnTimer(nIDEvent);
+}
+
+// Debug function, poor attempt at a FPS counter
+void CRmtView::GetFPS()
+{
+    using namespace std::chrono;
+    uint64_t ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    uint64_t sec = duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
+
+    real_fps++;
+    int delta = (int)ms - (int)last_ms;
+    avg_fps[real_fps % 120] = 1000.0 / delta;
+    last_ms = ms;
+
+    if (real_fps)
+    {
+        last_fps = 0;
+        for (int i = 0; i < real_fps % 120; i++) { last_fps += avg_fps[i]; }
+        last_fps /= real_fps % 120;
+    }
+
+    if (last_sec != sec)
+    {
+        real_fps = -1;
+        last_sec = sec;
+    }
+}
+
+void CRmtView::StoreMouseInformation(int px, int py, int mousebutt, short wheelzDelta)
+{
+    g_mouse.pointX = px;
+    g_mouse.pointY = py;
+    g_mouse.button = mousebutt;
+    g_mouse.wheelDelta = wheelzDelta;
+}
+
+BOOL CRmtView::PreCreateWindow(CREATESTRUCT& cs)
+{
+    return CView::PreCreateWindow(cs);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// CRmtView drawing
+
+//screen drawing changes involved in order to make use of the window dimensions
+void CRmtView::OnSize(UINT nType, int cx, int cy)
+{
+    TRACE("Rect: %d %d\n", cx, cy);
+}
+
+void CRmtView::OnDraw(CDC* pDC)
+{
+    // Redraw the screen if needed
+    if (g_screenupdate)
+    {
+        if (g_view.debugDisplay) GetFPS();
+        Resize();
+        g_Song.RespectBoundaries();
+        DrawAll();
+        //pDC->SetStretchBltMode(HALFTONE);
+        pDC->StretchBlt(0, 0, m_width, m_height, &m_mem_dc, 0, 0, g_width, g_height, SRCCOPY);
+    }
+
+    NO_SCREENUPDATE;
+}
+
+void CRmtView::DrawAll()
+{
+    // Clear the screen with the background color
+    if (m_mem_dc.m_hDC == NULL) {
+        return;
+    }
+
+    m_mem_dc.FillSolidRect(0, 0, m_width, m_height, CRGBColor::BACKGROUND);
+    // Draw the secondary screen elements
+    g_SongUI->DrawInfo();
+    g_SongUI->DrawSong();
+    g_SongUI->DrawVolumeAnalyzer();
+    g_SongUI->DrawPlayTimeCounter();
+
+    // Draw the primary screen above everything
+    if (g_active_ti == Part::PART_TRACKS)
+    {
+        g_SongUI->DrawTracks();
+    }
+    else
+    {
+        g_SongUI->DrawInstrument();
+    }
+}
+
+BOOL CRmtView::OnEraseBkgnd(CDC* pDC)
+{
+    return 1;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// CRmtView printing
+
+BOOL CRmtView::OnPreparePrinting(CPrintInfo* pInfo)
+{
+    // default preparation
+    return DoPreparePrinting(pInfo);
+}
+
+void CRmtView::OnBeginPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
+{
+    // TODO: add extra initialization before printing
+}
+
+void CRmtView::OnEndPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
+{
+    // TODO: add cleanup after printing
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// CRmtView diagnostics
+
+#ifdef _DEBUG
+void CRmtView::AssertValid() const
+{
+    CView::AssertValid();
+}
+
+void CRmtView::Dump(CDumpContext& dc) const
+{
+    CView::Dump(dc);
+}
+
+CRmtDoc* CRmtView::GetDocument() // non-debug version is inline
+{
+    ASSERT(m_pDocument->IsKindOf(RUNTIME_CLASS(CRmtDoc)));
+    return (CRmtDoc*)m_pDocument;
+}
+#endif //_DEBUG
+
+/////////////////////////////////////////////////////////////////////////////
+// CRmtView message handlers
+
+void CRmtView::ReadRMTConfig()
+{
+#define NAME(a)	(strcmp(a,name)==0)
+
+    auto filePath = GetResourceFilePath(std::filesystem::path(""), CONFIG_FILENAME);
+
+    char line[1024];
+    char* tmp, * name, * value;
+    std::ifstream in(filePath);
+    if (!in)
+    {
+        MessageBox("Could not find: '" + filePath + "'\n\nRMT will use the default configuration.\n", "RMT", MB_ICONEXCLAMATION);
+        ResetRMTConfig();	// In order to save the default configuration file 
+        return;
+    }
+
+    // Parse individual lines until the end of the file is reached 
+    while (!in.eof())
+    {
+        in.getline(line, 1023);		// Seek for the next character in memory 
+        tmp = strchr(line, '=');	// The tmp pointer will be set at the position of '=' 
+        if (!tmp) continue;			// Seek for the character until a match is found 
+        tmp[-1] = 0;				// Offset by 1 to compensate the Space   
+        name = line;				// Name set to the current line, terminated by tmp 
+        value = tmp + 2;			// Offset by 1 to compensate the Space 
+
+        // GENERAL
+        if (NAME("SCALEPERCENTAGE")) { g_scaling_percentage = atoi(value); continue; }
+        if (NAME("TRACKLINEPRIMARYHIGHLIGHT")) { g_trackLinePrimaryHighlight = atoi(value); continue; }
+        if (NAME("TRACKLINESECONDARYHIGHLIGHT")) { g_trackLineSecondaryHighlight = atoi(value); continue; }
+        if (NAME("TRACKLINEALTNUMBERING")) { g_tracklinealtnumbering = atoi(value); continue; }
+        if (NAME("DISPLAYFLATNOTES")) { g_displayflatnotes = atoi(value); continue; }
+        if (NAME("USEGERMANNOTATION")) { g_usegermannotation = atoi(value); continue; }
+
+        if (NAME("NOHWSOUNDBUFFER")) { g_nohwsoundbuffer = atoi(value); continue; }
+
+        // TODO: Tracker must be in the module instead
+        if (NAME("NTSC_SYSTEM")) { g_Song.SetNTSC(atoi(value)); continue; }
+        if (NAME("TRACKERDRIVERVERSION")) { g_trackerDriverVersion = (TrackerDriverVersion)atoi(value); continue; }
+
+        // KEYBOARD
+        if (NAME("KEYBOARD_LAYOUT")) { g_keyboard_layout = (KeyboardLayout)atoi(value); continue; }
+        if (NAME("KEYBOARD_UPDOWNCONTINUE")) { g_keyboard_updowncontinue = atoi(value); continue; }
+        if (NAME("KEYBOARD_REMEMBEROCTAVESANDVOLUMES")) { g_keyboard_RememberOctavesAndVolumes = atoi(value); continue; }
+        if (NAME("KEYBOARD_ESCRESETATARISOUND")) { g_keyboard_escresetatarisound = atoi(value); continue; }
+        if (NAME("KEYBOARD_ASKWHENCONTROL_S")) { g_keyboard_askwhencontrol_s = atoi(value); continue; }
+
+        // MIDI
+        if (NAME("MIDI_IN")) { g_Midi.SetDevice(value); continue; }
+        if (NAME("MIDI_TR")) { g_Midi.m_TouchResponse = atoi(value); continue; }
+        if (NAME("MIDI_VOLUMEOFFSET")) { g_Midi.m_VolumeOffset = atoi(value); continue; }
+        if (NAME("MIDI_NOTEOFF")) { g_Midi.m_NoteOff = atoi(value); continue; }
+
+        // PATHS
+        if (NAME("PATH_DEFAULTSONGS")) { g_defaultSongsPath = value; continue; }
+        if (NAME("PATH_DEFAULTINSTRUMENTS")) { g_defaultInstrumentsPath = value; continue; }
+        if (NAME("PATH_DEFAULTTRACKS")) { g_defaultTracksPath = value; continue; }
+        if (NAME("PATH_LASTSONGS")) { g_lastLoadPath_Songs = value; continue; }
+        if (NAME("PATH_LASTINSTRUMENTS")) { g_lastLoadPath_Instruments = value; continue; }
+        if (NAME("PATH_LASTTRACKS")) { g_lastLoadPath_Tracks = value; continue; }
+
+        // VIEW 
+        if (NAME("VIEW_MAINTOOLBAR")) { g_view.mainToolbar = atoi(value); continue; }
+        if (NAME("VIEW_BLOCKTOOLBAR")) { g_view.blockToolbar = atoi(value); continue; }
+        if (NAME("VIEW_STATUSBAR")) { g_view.statusBar = atoi(value); continue; }
+        if (NAME("VIEW_PLAYTIMECOUNTER")) { g_view.playTimeCounter = atoi(value); continue; }
+        if (NAME("VIEW_VOLUMEANALYZER")) { g_view.volumeAnalyzer = atoi(value); continue; }
+        if (NAME("VIEW_POKEYCHIPREGISTERS")) { g_view.pokeyRegisters = atoi(value); continue; }
+        if (NAME("VIEW_INSTRUMENTACTIVEHELP")) { g_view.instrumentEditHelp = atoi(value); continue; }
+        if (NAME("SMOOTH_SCROLL")) { g_view.smoothScrolling = atoi(value); continue; }
+        if (NAME("VIEW_DEBUGDISPLAY")) { g_view.debugDisplay = atoi(value); continue; }
+    }
+    in.close();
+}
+
+void CRmtView::WriteRMTConfig()
+{
+    auto s = GetResourceFilePath(std::filesystem::path(""), CONFIG_FILENAME);
+    std::ofstream ou(s);
+    if (!ou)
+    {
+        MessageBox("Could not create: '" + s + "'\n\nThe RMT configuration won't be saved.\n", "RMT", MB_ICONEXCLAMATION);
+        return;
+    }
+
+    ou << "# RMT CONFIGURATION FILE" << std::endl;
+    CString version = RMT_VERSION_STRING;
+    ou << "# " << version << std::endl;
+    ou << std::setprecision(16);
+
+    ou << "\n# GENERAL\n" << std::endl;
+    ou << "SCALEPERCENTAGE = " << g_scaling_percentage << std::endl;
+    ou << "TRACKLINEPRIMARYHIGHLIGHT = " << g_trackLinePrimaryHighlight << std::endl;
+    ou << "TRACKLINESECONDARYHIGHLIGHT = " << g_trackLineSecondaryHighlight << std::endl;
+    ou << "TRACKLINEALTNUMBERING = " << g_tracklinealtnumbering << std::endl;
+    ou << "DISPLAYFLATNOTES = " << g_displayflatnotes << std::endl;
+    ou << "USEGERMANNOTATION = " << g_usegermannotation << std::endl;
+    ou << "NTSC_SYSTEM = " << g_Song.IsNTSC() << std::endl;
+    ou << "NOHWSOUNDBUFFER = " << g_nohwsoundbuffer << std::endl;
+    ou << "TRACKERDRIVERVERSION = " << (int)g_trackerDriverVersion << std::endl;
+
+    ou << "\n# KEYBOARD\n" << std::endl;
+    ou << "KEYBOARD_LAYOUT = " << (int)g_keyboard_layout << std::endl;
+    ou << "KEYBOARD_UPDOWNCONTINUE = " << g_keyboard_updowncontinue << std::endl;
+    ou << "KEYBOARD_REMEMBEROCTAVESANDVOLUMES = " << g_keyboard_RememberOctavesAndVolumes << std::endl;
+    ou << "KEYBOARD_ESCRESETATARISOUND = " << g_keyboard_escresetatarisound << std::endl;
+    ou << "KEYBOARD_ASKWHENCONTROL_S = " << g_keyboard_askwhencontrol_s << std::endl;
+
+    ou << "\n# MIDI\n" << std::endl;
+    ou << "MIDI_IN = " << g_Midi.GetMidiDevName() << std::endl;
+    ou << "MIDI_TR = " << g_Midi.m_TouchResponse << std::endl;
+    ou << "MIDI_VOLUMEOFFSET = " << g_Midi.m_VolumeOffset << std::endl;
+    ou << "MIDI_NOTEOFF = " << g_Midi.m_NoteOff << std::endl;
+
+    ou << "\n# PATHS\n" << std::endl;
+    ou << "PATH_DEFAULTSONGS = " << g_defaultSongsPath << std::endl;
+    ou << "PATH_DEFAULTINSTRUMENTS = " << g_defaultInstrumentsPath << std::endl;
+    ou << "PATH_DEFAULTTRACKS = " << g_defaultTracksPath << std::endl;
+    ou << "PATH_LASTSONGS = " << g_lastLoadPath_Songs << std::endl;
+    ou << "PATH_LASTINSTRUMENTS = " << g_lastLoadPath_Instruments << std::endl;
+    ou << "PATH_LASTTRACKS = " << g_lastLoadPath_Tracks << std::endl;
+
+    ou << "\n# VIEW\n" << std::endl;
+    ou << "VIEW_MAINTOOLBAR = " << g_view.mainToolbar << std::endl;
+    ou << "VIEW_BLOCKTOOLBAR = " << g_view.blockToolbar << std::endl;
+    ou << "VIEW_STATUSBAR = " << g_view.statusBar << std::endl;
+    ou << "VIEW_PLAYTIMECOUNTER = " << g_view.playTimeCounter << std::endl;
+    ou << "VIEW_VOLUMEANALYZER = " << g_view.volumeAnalyzer << std::endl;
+    ou << "VIEW_POKEYCHIPREGISTERS = " << g_view.pokeyRegisters << std::endl;
+    ou << "VIEW_INSTRUMENTACTIVEHELP = " << g_view.instrumentEditHelp << std::endl;
+    ou << "SMOOTH_SCROLL = " << g_view.smoothScrolling << std::endl;
+    ou << "VIEW_DEBUGDISPLAY = " << g_view.debugDisplay << std::endl;
+
+    ou.close();
+}
+
+void CRmtView::ResetRMTConfig()
+{
+    g_scaling_percentage = 100;					// RMT interface scaling (in percentage) 
+    g_trackLinePrimaryHighlight = 8;			// Primary line highlighted every x lines
+    g_trackLineSecondaryHighlight = 4;			// Secondary line highlighted every x lines
+    g_tracklinealtnumbering = 0;				// Alternative way of line numbering in tracks 
+    g_SkipLinesAfterNoteInsert = 1;							// Number of lines to scroll after inserting a note 
+    SetNTSC(false);								// NTSC (60Hz)
+    g_nohwsoundbuffer = 0;						// Don't use hardware soundbuffer
+    g_trackerDriverVersion = TrackerDriverVersion::PATCH16; // Tracker driver version
+    g_displayflatnotes = 0;						// Display accidentals as Flats instead of Sharps
+    g_usegermannotation = 0;					// Display H notes instead of B
+
+    g_view.mainToolbar = TRUE;						// Display the Main Toolbar
+    g_view.blockToolbar = TRUE;						// Display the Block Toolbar 
+    g_view.statusBar = TRUE;						// Display the Status Bar
+    g_view.playTimeCounter = TRUE;					// Display the Play Time and BPM Counter
+    g_view.volumeAnalyzer = TRUE;					// Display the Volume Analyser Bars
+    g_view.pokeyRegisters = TRUE;					// Display the POKEY Registers (TODO: Move the Detailed Registers to its own entry) 
+    g_view.instrumentEditHelp = TRUE;				// Display useful info when editing various parts of an instrument
+    g_view.smoothScrolling = TRUE;				// Smoothly scroll the track and song line data is smooth during playback 
+    g_view.debugDisplay = TRUE;						// Debug display for a bunch of variables used for various tasks 
+
+    g_lastLoadPath_Songs = "";					// Path of the last song loaded
+    g_lastLoadPath_Instruments = "";			// Path of the last instrument loaded
+    g_lastLoadPath_Tracks = "";					// Path of the last track loaded
+    g_defaultSongsPath = "";					// Default path for songs
+    g_defaultInstrumentsPath = "";				// Default path for instruments
+    g_defaultTracksPath = "";					// Default path for tracks
+
+    // TODO: Why is the default here different from Global.cpp
+    g_keyboard_layout = KeyboardLayout::QWERTY; // Keyboard layout used by RMT. eg: QWERTY, AZERTY, etc 
+    g_keyboard_updowncontinue = 1;				// Scroll to the next/previous Songline when the Pattern limits are crossed 
+    g_keyboard_RememberOctavesAndVolumes = 1;	// Remember the last octave and volume values used with an Instrument 
+    g_keyboard_escresetatarisound = 1;			// Reset the RMT Atari routines if the ESC key is pressed 
+    g_keyboard_askwhencontrol_s = 1;			// Prompt a dialog box upon hitting CTRL+S to ask if it is OK to overwrite the file 
+    g_Midi.SetDevice("");						// MIDI Device
+    g_Midi.m_TouchResponse = 0;					// MIDI Touch response
+    g_Midi.m_VolumeOffset = 0;					// MIDI Volume offset
+    g_Midi.m_NoteOff = 0;						// MIDI Note Off 
+    g_Midi.MidiInit();							// MIDI must be initialised just in case 
+    WriteRMTConfig();							// Write the default configuration file 
+}
+
+boolean ReadFraction(const char* name, const char* value, const char* value2, const char* wantedName, CFraction& fraction) {
+    if (strcmp(wantedName, name) == 0) {
+        fraction.numerator = atoi(value);  fraction.denominator = atoi(value2);
+        if (fraction.denominator == 0) {
+            fraction.numerator = 1;
+            fraction.denominator = 1;
+        }
+        return true;
+    };
+    return false;
+}
+
+void CRmtView::ReadTuningConfig()
+{
+#define NAME(a)	(strcmp(a,name)==0)
+
+    auto filePath = GetResourceFilePath(std::filesystem::path(""), TUNING_FILENAME);
+    char line[1024];
+    char* tmp, * div, * name, * value, * value2;
+    std::ifstream in(filePath);
+    if (!in)
+    {
+        MessageBox("Could not find: '" + filePath + "'\n\nRMT will use the default Tuning parameters.\n", "RMT", MB_ICONEXCLAMATION);
+        g_Song.ResetTuningVariables();
+        WriteTuningConfig();	// In order to save the default Tuning configuration file 
+        return;
+    }
+
+    // Parse individual lines until the end of the file is reached 
+    while (!in.eof())
+    {
+        in.getline(line, 1023);		// Seek for the next character in memory 
+        tmp = strchr(line, '=');	// The tmp pointer will be set at the position of '=' 
+        div = strchr(line, '/');	// The div pointer will be set at the position of '/'
+        if (!tmp) continue;			// Seek for the character until a match is found 
+        tmp[-1] = 0;				// Offset by 1 to compensate the Space   
+        name = line;				// Name set to the current line, terminated by tmp 
+        value = tmp + 2;			// Offset by 1 to compensate the Space 
+        if (div)					// The div pointer is used to get the 2nd Ratio value 
+        {
+            div[-1] = 0;			// Same as above, offset by 1 to compensate the Space(s) 
+            value2 = div + 2;
+        }
+
+        // TUNING 
+        if (NAME("TUNING")) { g_tuning.basetuning = atof(value); continue; }
+        if (NAME("BASENOTE")) { g_tuning.basenote = atoi(value); continue; }
+        if (NAME("TEMPERAMENT")) { g_tuning.temperament = atoi(value); continue; }
+
+        // RATIOS
+        if (ReadFraction(name, value, value2, "UNISON", g_tuningRatios.UNISON)) { continue; }
+        if (ReadFraction(name, value, value2, "MIN_2ND", g_tuningRatios.MIN_2ND)) { continue; }
+        if (ReadFraction(name, value, value2, "MAJ_2ND", g_tuningRatios.MAJ_2ND)) { continue; }
+        if (ReadFraction(name, value, value2, "MIN_3RD", g_tuningRatios.MIN_3RD)) { continue; }
+        if (ReadFraction(name, value, value2, "MAJ_3RD", g_tuningRatios.MAJ_3RD)) { continue; }
+        if (ReadFraction(name, value, value2, "PERF_4TH", g_tuningRatios.PERF_4TH)) { continue; }
+        if (ReadFraction(name, value, value2, "TRITONE", g_tuningRatios.TRITONE)) { continue; }
+        if (ReadFraction(name, value, value2, "PERF_5TH", g_tuningRatios.PERF_5TH)) { continue; }
+        if (ReadFraction(name, value, value2, "MIN_6TH", g_tuningRatios.MIN_6TH)) { continue; }
+        if (ReadFraction(name, value, value2, "MAJ_6TH", g_tuningRatios.MAJ_6TH)) { continue; }
+        if (ReadFraction(name, value, value2, "MIN_7TH", g_tuningRatios.MIN_7TH)) { continue; }
+        if (ReadFraction(name, value, value2, "MAJ_7TH", g_tuningRatios.MAJ_7TH)) { continue; }
+        if (ReadFraction(name, value, value2, "OCTAVE", g_tuningRatios.OCTAVE)) { continue; }
+
+    }
+    in.close();
+}
+
+void WriteFraction(std::ostream& os, const char* id, const CFraction& fraction) {
+    os << id << " = " << fraction.numerator << " / " << fraction.denominator << std::endl;
+}
+
+void CRmtView::WriteTuningConfig()
+{
+    auto filePath = GetResourceFilePath(std::filesystem::path(""), TUNING_FILENAME);
+    std::ofstream os(filePath);
+    if (!os)
+    {
+        MessageBox("Could not create: '" + filePath + "'\n\nThe Tuning parameters won't be saved.\n", "RMT", MB_ICONEXCLAMATION);
+        return;
+    }
+
+    os << "# RMT CONFIGURATION FILE" << std::endl;
+    CString version = RMT_VERSION_STRING;
+    os << "# " << version << std::endl;
+    os << std::setprecision(16);
+
+    os << "\n# TUNING\n" << std::endl;
+    os << "TUNING = " << g_tuning.basetuning << std::endl;
+    os << "BASENOTE = " << g_tuning.basenote << std::endl;
+    os << "TEMPERAMENT = " << g_tuning.temperament << std::endl;
+
+    os << "\n# RATIOS\n" << std::endl;
+    WriteFraction(os, "UNISON", g_tuningRatios.UNISON);
+    WriteFraction(os, "MIN_2ND", g_tuningRatios.MIN_2ND);
+    WriteFraction(os, "MAJ_2ND", g_tuningRatios.MAJ_2ND);
+    WriteFraction(os, "MIN_3RD", g_tuningRatios.MIN_3RD);
+    WriteFraction(os, "MAJ_3RD", g_tuningRatios.MAJ_3RD);
+    WriteFraction(os, "PERF_4TH", g_tuningRatios.PERF_4TH);
+    WriteFraction(os, "TRITONE", g_tuningRatios.TRITONE);
+    WriteFraction(os, "PERF_5TH", g_tuningRatios.PERF_5TH);
+    WriteFraction(os, "MIN_6TH", g_tuningRatios.MIN_6TH);
+    WriteFraction(os, "MAJ_6TH", g_tuningRatios.MAJ_6TH);
+    WriteFraction(os, "MIN_7TH", g_tuningRatios.MIN_7TH);
+    WriteFraction(os, "MAJ_7TH", g_tuningRatios.MAJ_7TH);
+    WriteFraction(os, "OCTAVE", g_tuningRatios.OCTAVE);
+
+    os.close();
+}
+
+void CRmtView::OnToolsOptions()
+{
+    COptionsDialog dlg;
+
+    // GENERAL
+    dlg.m_scaling_percentage = g_scaling_percentage;
+    dlg.m_trackLinePrimaryHighlight = g_trackLinePrimaryHighlight;
+    dlg.m_trackLineSecondaryHighlight = g_trackLineSecondaryHighlight;
+    dlg.m_tracklinealtnumbering = g_tracklinealtnumbering;
+    dlg.m_displayflatnotes = g_displayflatnotes;
+    dlg.m_usegermannotation = g_usegermannotation;
+    dlg.m_ntsc = g_Song.IsNTSC();
+    dlg.m_nohwsoundbuffer = g_nohwsoundbuffer;
+    dlg.m_doSmoothScrolling = g_view.smoothScrolling;
+    dlg.m_viewDebugDisplay = g_view.debugDisplay;
+
+    // TODO: Module
+    dlg.m_trackerDriverVersion = g_trackerDriverVersion;
+
+    // KEYBOARD
+    dlg.m_keyboard_layout = g_keyboard_layout;
+    dlg.m_keyboard_escresetatarisound = g_keyboard_escresetatarisound;
+    dlg.m_keyboard_updowncontinue = g_keyboard_updowncontinue;
+    dlg.m_keyboard_rememberoctavesandvolumes = g_keyboard_RememberOctavesAndVolumes;
+    dlg.m_keyboard_askwhencontrol_s = g_keyboard_askwhencontrol_s;
+
+    // MIDI 
+    dlg.m_midi_device = g_Midi.GetMidiDevId();
+    dlg.m_midi_TouchResponse = g_Midi.m_TouchResponse;
+    dlg.m_midi_VolumeOffset = g_Midi.m_VolumeOffset;
+    dlg.m_midi_NoteOff = g_Midi.m_NoteOff;
+
+    if (dlg.DoModal() == IDOK)
+    {
+        // GENERAL
+        if (g_scaling_percentage != dlg.m_scaling_percentage)
+        {
+            g_scaling_percentage = dlg.m_scaling_percentage;
+            m_width = m_height = 0;
+            Resize();	// Necessary to scale everything without manually resizing the window first
+        }
+
+        if (g_nohwsoundbuffer != dlg.m_nohwsoundbuffer)
+        {
+            g_Song.ReInitSound();   // Justified for testing, but this might be a little redundant
+        }
+        g_nohwsoundbuffer = dlg.m_nohwsoundbuffer;
+
+        if (g_Song.IsNTSC() != dlg.m_ntsc)
+        {
+            SetNTSC(dlg.m_ntsc);
+        }
+
+        if (g_trackerDriverVersion != dlg.m_trackerDriverVersion)
+        {
+            // Something here to reset the thing
+            g_trackerDriverVersion = dlg.m_trackerDriverVersion;
+            g_Atari.Init(g_Song.IsNTSC()); // TODO: This is done serveral times. We need something like "beginUpdate"
+            g_AtariTrackerDriver->LoadRMTRoutines(g_trackerDriverVersion);
+        }
+        g_trackerDriverVersion = dlg.m_trackerDriverVersion;
+
+        g_view.smoothScrolling = dlg.m_doSmoothScrolling;
+        g_view.debugDisplay = dlg.m_viewDebugDisplay;
+
+        g_trackLinePrimaryHighlight = dlg.m_trackLinePrimaryHighlight;
+        g_trackLineSecondaryHighlight = dlg.m_trackLineSecondaryHighlight;
+        g_tracklinealtnumbering = dlg.m_tracklinealtnumbering;
+        g_displayflatnotes = dlg.m_displayflatnotes;
+        g_usegermannotation = dlg.m_usegermannotation;
+
+        // KEYBOARD
+        g_keyboard_layout = dlg.m_keyboard_layout;
+        g_keyboard_escresetatarisound = dlg.m_keyboard_escresetatarisound;
+        g_keyboard_updowncontinue = dlg.m_keyboard_updowncontinue;
+        g_keyboard_RememberOctavesAndVolumes = dlg.m_keyboard_rememberoctavesandvolumes;
+        g_keyboard_askwhencontrol_s = dlg.m_keyboard_askwhencontrol_s;
+
+        // MIDI
+        if (dlg.m_midi_device >= 0)
+        {
+            MIDIINCAPS micaps;
+            midiInGetDevCaps(dlg.m_midi_device, &micaps, sizeof(MIDIINCAPS));
+            g_Midi.SetDevice(micaps.szPname);
+        }
+        else
+            g_Midi.SetDevice("");
+        g_Midi.m_TouchResponse = dlg.m_midi_TouchResponse;
+        g_Midi.m_VolumeOffset = dlg.m_midi_VolumeOffset;
+        g_Midi.m_NoteOff = dlg.m_midi_NoteOff;
+        g_Midi.MidiInit();
+    }
+}
+
+void GetCommandLineItem(CString& commandline, int& fromidx, int& toidx)
+{
+    BOOL uvo = 0;
+    while (fromidx < commandline.GetLength() && commandline.GetAt(fromidx) == ' ') fromidx++;
+    if (fromidx >= commandline.GetLength()) { fromidx = toidx = 0; return; }
+    for (toidx = fromidx; toidx < commandline.GetLength(); toidx++)
+    {
+        char a = commandline.GetAt(toidx);
+        if (a == '"')
+        {
+            uvo ^= 1;
+            if (uvo == 1) fromidx = toidx + 1; else return;
+        }
+        else
+            if (a == ' ' && uvo == 0) return;
+    }
+}
+
+// Check for resized window, return without changing anything if the window was not resized 
+void CRmtView::Resize()
+{
+    RECT r;
+    GetClientRect(&r);
+
+    int width = r.right - r.left;
+    int height = r.bottom - r.top;
+
+    // If the current dimensions are the same, there is nothing to be done here
+    if (width == m_width && height == m_height) { return; }
+
+    // If the values are beyond those limits, reset the default scaling as a failsafe
+    if (g_scaling_percentage > 300 || g_scaling_percentage < 100) g_scaling_percentage = 100;
+
+    // Set the screen dimensions as well as the scaled screen dimensions
+    m_width = width;
+    m_height = height;
+    g_width = INVERSE_SCALE(m_width);
+    g_height = INVERSE_SCALE(m_height);
+
+    // The number of track lines that can be displayed is based on the scaled window height
+    g_tracklines = (g_height - (CRmtScreenLayout::TRACKS_Y + 3 * 16) - 40) / 16;
+    g_line_y = g_tracklines / 2;
+
+    // Clear the current Bitmap object
+    if (m_mem_dc.m_hDC != NULL) {
+        m_mem_dc.SelectObject((CBitmap*)0);
+        m_mem_bitmap.DeleteObject();
+        m_mem_dc.DeleteDC();
+    }
+
+
+    // Initialise the parameters for the resized screen
+    CDC* dc = GetDC();
+    m_mem_bitmap.CreateCompatibleBitmap(dc, m_width, m_height);
+    m_mem_dc.CreateCompatibleDC(dc);
+    m_mem_dc.SelectObject(&m_mem_bitmap);
+    if (m_canvasXY == nullptr) {
+        m_canvasXY = new CCanvasXY();
+    }
+    m_canvasXY->SetCDC(m_mem_dc);
+    g_Instruments.SetCanvas(*m_canvasXY);
+    g_SongUI->SetCanvas(*m_canvasXY);
+
+    if (m_pen1) { delete m_pen1; }
+    m_pen1 = new CPen(PS_SOLID, 1, CRGBColor::LINES);
+    m_penorig = (CPen*)m_canvasXY->SelectObject(m_pen1);
+    ReleaseDC(dc);
+}
+
+void CRmtView::OnInitialUpdate()
+{
+    CView::OnInitialUpdate();
+
+    g_lastLoadPath_Songs = g_lastLoadPath_Instruments = g_lastLoadPath_Tracks = "";
+
+    CDC* dc = GetDC();
+    m_gfx_bitmap.LoadBitmap(MAKEINTRESOURCE(IDB_GFX));
+    m_gfx_dc.CreateCompatibleDC(dc);
+    m_gfx_dc.SelectObject(&m_gfx_bitmap);
+    CCanvasXY::g_gfx_dc = &m_gfx_dc;
+    g_hwnd = AfxGetApp()->GetMainWnd()->m_hWnd;
+    g_viewhwnd = this->m_hWnd;
+    ReleaseDC(dc);
+
+    //cursor
+    m_cursororig = LoadCursor(NULL, IDC_ARROW);
+    m_cursorChanbelOnOff = LoadCursor(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDC_CURSOR_CHANNEL_ON_OFF));
+    m_cursorEnvelopVolume = LoadCursor(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDC_CURSOR_ENVELOPE_VOLUME));
+    m_cursorGoto = LoadCursor(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDC_CURSOR_GOTO));
+    m_cursorDialog = LoadCursor(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDC_CURSOR_DIALOG));
+    m_cursorSetPosition = LoadCursor(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDC_CURSOR_SET_POSITION));
+
+    //keyboard
+    g_shiftkey = g_controlkey = g_altkey = FALSE;
+
+    //current parts
+    g_activepart = Part::PART_TRACKS;	//tracks
+    g_active_ti = Part::PART_TRACKS;	//below the active tracks
+
+    //turn on all channels
+    g_ChannelControl.SetAllChannelsOn();
+
+    //CONFIGURATION
+    ReadRMTConfig();
+
+    //tuning
+    ReadTuningConfig();
+
+    //view elements
+    ChangeViewElements(0); //without write!
+
+
+    // INITIAL POKEY INITIALISATION (DLL)
+    if (!g_Pokey.InitSound(g_Song.IsNTSC(), g_Song.IsStereo()))
+    {
+        g_Pokey.DeInitSound();
+        exit(1);
+    }
+
+    g_Song.SetRMTTitle();
+
+    // RMTView Timer Initialisation
+    m_timerDisplay = SetTimer(1, 16, NULL);
+
+    //Displays the ABOUT dialog if there is no Pokey or 6502 initialized...
+    if (!g_Pokey.GetPokey()->IsSoundDriverLoaded() || !g_is6502)
+    {
+        AfxGetApp()->GetMainWnd()->PostMessage(WM_COMMAND, ID_HELP_ABOUT_APP, 0); // ID_HELP_ABOUT had no handler
+    }
+
+    //Initialise MIDI
+    g_Midi.MidiInit();
+    g_Midi.MidiOn();
+
+    // Pal or NTSC
+    g_Song.ChangeTimer((g_Song.IsNTSC()) ? 17 : 20);
+}
+
+int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
+{
+    int i;
+    int px, py;
+
+    // Scale the mouse XY coordinates to the actual display scaling, so the hitboxes will match everything visually rendered
+    point.x = INVERSE_SCALE(point.x);
+    point.y = INVERSE_SCALE(point.y);
+
+    // Store the last known mouse XY coordinates and buttons used
+    StoreMouseInformation(point.x, point.y, mousebutt, wheelzDelta);
+
+    //TODO: make those parameters global so they won't have to be re-initialised in multiple functions separately
+    const auto stereo = g_Song.IsStereo();
+    int MINIMAL_WIDTH_TRACKS = (stereo && g_active_ti == Part::PART_TRACKS) ? 1420 : 960;
+    int MINIMAL_WIDTH_INSTRUMENTS = (stereo && g_active_ti == Part::PART_INSTRUMENTS) ? 1220 : 1220;
+    int WINDOW_OFFSET = (g_width < 1320 && stereo && g_active_ti == Part::PART_TRACKS) ? -250 : 0;	//test displacement with the window size
+    int INSTRUMENT_OFFSET = (g_active_ti == Part::PART_INSTRUMENTS && stereo) ? -250 : 0;
+    if (g_tracks4_8 == 4 && g_active_ti == Part::PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) INSTRUMENT_OFFSET = 260;
+    int SONG_OFFSET = CRmtScreenLayout::SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((g_tracks4_8 == 4) ? -200 : 310);	//displace the SONG block depending on certain parameters
+
+    int linescount = (WINDOW_OFFSET) ? 5 : 9;	//songlines displayed depend on the window offset, if it's displaced to the left side, only 5 lines will be visible, else, 9 will be displayed
+
+    //SONG PARTS
+    CRect rec(SONG_OFFSET + 6 * 8, CRmtScreenLayout::SONG_Y + 16, SONG_OFFSET + 6 * 8 + g_tracks4_8 * 3 * 8 - 8, CRmtScreenLayout::SONG_Y + 16 + linescount * 16);
+    if (rec.PtInRect(point))
+    {
+        //Song
+        SetCursor(m_cursorGoto);
+
+        if (mousebutt & MK_LBUTTON)
+        {
+            int lineoffset = (WINDOW_OFFSET) ? CRmtScreenLayout::SONG_Y + 16 : CRmtScreenLayout::SONG_Y + 48;
+            g_Song.SongCursorGoto(CPoint(point.x - (SONG_OFFSET + 6 * 8), point.y - lineoffset));
+        }
+        if (wheelzDelta != 0)
+        {
+            //g_Song.SongJump((wheelzDelta / 256) * -1);
+            if (wheelzDelta > 0) g_Song.SongKey(VK_UP, 0, 0);
+            if (wheelzDelta < 0) g_Song.SongKey(VK_DOWN, 0, 0);
+        }
+        return 5;
+    }
+
+    rec.SetRect(SONG_OFFSET + 6 * 8, CRmtScreenLayout::SONG_Y, SONG_OFFSET + 6 * 8 + g_tracks4_8 * 3 * 8 - 8, CRmtScreenLayout::SONG_Y + 16);
+    if (rec.PtInRect(point))
+    {
+        //over Song L1-R4 for channel on/off/solo/inversion
+        i = (point.x + 4 - (SONG_OFFSET + 6 * 8)) / (8 * 3);
+        if (i < 0) i = 0;
+        else
+        {
+            if (i >= g_tracks4_8) i = g_tracks4_8 - 1;
+        }
+        px = i;
+        SetCursor(m_cursorChanbelOnOff);
+        if (mousebutt & MK_LBUTTON)
+        {
+            g_ChannelControl.ToggleChannelOnOff(px);	//inversion
+        }
+        if (mousebutt & MK_RBUTTON)
+        {
+            g_ChannelControl.SetChannelSolo(px);		//solo/mute on off
+        }
+        return 1;
+    }
+
+    //INFO PARTS
+    rec.SetRect(64, 32, 64 + SONG_NAME_MAX_LEN * 8, 32 + 16);
+    if (rec.PtInRect(point))
+    {
+        //Song name
+        SetCursor(m_cursorGoto);
+        if (mousebutt & MK_LBUTTON)
+        {
+            g_Song.InfoCursorGotoSongname(point.x - 64);
+        }
+        return 6;
+    }
+
+    rec.SetRect(120, 48, 120 + 7 * 8, 48 + 16);
+    if (rec.PtInRect(point))
+    {
+        //Song speed
+        SetCursor(m_cursorGoto);
+        if (mousebutt & MK_LBUTTON)
+        {
+            g_Song.InfoCursorGotoSpeed(point.x - 120);
+        }
+        return 6;
+    }
+
+    rec.SetRect(336, 48, 336 + 2 * 8, 48 + 16);
+    if (rec.PtInRect(point))
+    {
+        //MAXTRACKLENGTH
+        SetCursor(m_cursorDialog);
+        if (mousebutt & MK_LBUTTON)
+        {
+            OnSongSongchangemaximallengthoftracks();
+        }
+        return 6;
+    }
+
+    rec.SetRect(384, 48, 384 + 8 * ((g_tracks4_8 == 8) ? 15 : 13), 48 + 16);
+    if (rec.PtInRect(point))
+    {
+        //MONO-4-TRACKS or STEREO-8-TRACKS
+        SetCursor(m_cursorDialog);
+        if (mousebutt & MK_LBUTTON)
+        {
+            OnSongSongswitch4_8();
+        }
+        return 6;
+    }
+
+    const auto ntsc = g_Song.IsNTSC();
+    // TODO Use constants/have function for TextXY
+    rec.SetRect(280, 16, 280 + 8 * ((ntsc) ? 4 : 3), 16 + 16);
+    if (rec.PtInRect(point))
+    {
+
+        SetCursor(m_cursorGoto);
+        if (mousebutt & MK_LBUTTON)
+        {
+            OnSongToggleNTSC();
+        }
+        return 6;
+    }
+
+    rec.SetRect(432, 16, 432 + 8 * 5, 16 + 16);
+    if (rec.PtInRect(point))
+    {
+        //track line highlights
+        int ma = g_Tracks.GetMaxTrackLength() / 2;
+        int px = (point.x - 432 - 4) / 8;
+        SetCursor(m_cursorGoto);
+        if (mousebutt & MK_LBUTTON)
+        {
+            g_Song.InfoCursorGotoHighlight(point.x - 432);
+        }
+        if (wheelzDelta != 0)
+        {
+            if (px < 2)	//primary line highlight
+            {
+                if (wheelzDelta < 0)
+                {
+                    g_trackLinePrimaryHighlight++;
+                    if (g_trackLinePrimaryHighlight > ma) g_trackLinePrimaryHighlight = ma;
+                }
+                else if (wheelzDelta > 0)
+                {
+                    g_trackLinePrimaryHighlight--;
+                    if (g_trackLinePrimaryHighlight < 1) g_trackLinePrimaryHighlight = 1;
+                }
+            }
+            else //secondary line highlight 
+            {
+                if (wheelzDelta < 0)
+                {
+                    g_trackLineSecondaryHighlight++;
+                    if (g_trackLineSecondaryHighlight > ma) g_trackLineSecondaryHighlight = ma;
+                }
+                else if (wheelzDelta > 0)
+                {
+                    g_trackLineSecondaryHighlight--;
+                    if (g_trackLineSecondaryHighlight < 1) g_trackLineSecondaryHighlight = 1;
+                }
+            }
+        }
+        return 6;
+    }
+
+    rec.SetRect(456, 64, 456 + 8 * 10, 64 + 16);
+    if (rec.PtInRect(point))
+    {
+        //Octave Select Dialog
+        SetCursor(m_cursorDialog);
+        if (mousebutt & MK_LBUTTON)
+        {
+            g_Song.InfoCursorGotoOctaveSelect(point.x, point.y);
+        }
+        if (wheelzDelta != 0)
+        {
+            if (wheelzDelta < 0) g_Song.OctaveUp();
+            else if (wheelzDelta > 0) g_Song.OctaveDown();
+        }
+        return 6;
+    }
+
+    rec.SetRect(472, 80, 472 + 8 * 8, 80 + 16);
+    if (rec.PtInRect(point))
+    {
+        //Volume Select Dialog
+        SetCursor(m_cursorDialog);
+        if (mousebutt & MK_LBUTTON)
+        {
+            g_Song.InfoCursorGotoVolumeSelect(point.x, point.y);
+        }
+        if (wheelzDelta != 0)
+        {
+            if (wheelzDelta < 0) g_Song.VolumeUp();
+            else if (wheelzDelta > 0) g_Song.VolumeDown();
+        }
+        return 6;
+    }
+
+    rec.SetRect(136, 80, 136 + INSTRUMENT_NAME_MAX_LEN * 8, 80 + 16);
+    if (rec.PtInRect(point))
+    {
+        //Instrument Select Dialog
+    Instrument_Select_Dialog:
+
+        SetCursor(m_cursorDialog);
+        if (mousebutt & MK_LBUTTON)
+        {
+            g_Song.InfoCursorGotoInstrumentSelect(point.x, point.y);
+        }
+        if (wheelzDelta != 0)
+        {
+            if (wheelzDelta > 0) g_Song.ActiveInstrPrev();
+            else if (wheelzDelta < 0) g_Song.ActiveInstrNext();
+        }
+        return 6;
+    }
+
+    //LOWER PARTS
+    if (g_active_ti == Part::PART_TRACKS)
+    {
+        rec.SetRect(CRmtScreenLayout::TRACKS_X + 3 * 16, CRmtScreenLayout::TRACKS_Y - 12, CRmtScreenLayout::TRACKS_X + 3 * 8 + g_tracks4_8 * 8 * 16, CRmtScreenLayout::TRACKS_Y + 32);
+
+        if (rec.PtInRect(point))
+        {
+            i = (point.x - (CRmtScreenLayout::TRACKS_X + 5 * 8)) / (8 * 16);
+            if (i < 0) i = 0;
+            else
+                if (i >= g_tracks4_8) i = g_tracks4_8 - 1;
+            px = i;
+
+            SetCursor(m_cursorChanbelOnOff);
+
+            if (mousebutt & MK_LBUTTON)
+            {
+                g_ChannelControl.ToggleChannelOnOff(px);	// inversion
+            }
+            if (mousebutt & MK_RBUTTON)
+            {
+                g_ChannelControl.SetChannelSolo(px);		// solo/mute/on/off
+            }
+            return 1;
+        }
+        //the number of tracklines is adjusted based on the window height
+        rec.SetRect(CRmtScreenLayout::TRACKS_X + 6 * 8, CRmtScreenLayout::TRACKS_Y + 48, CRmtScreenLayout::TRACKS_X + 3 * 8 + g_tracks4_8 * 8 * 16, CRmtScreenLayout::TRACKS_Y + 48 + g_tracklines * 16);
+        if (rec.PtInRect(point))
+        {
+            SetCursor(m_cursorGoto);
+            if (mousebutt & MK_LBUTTON)
+            {
+                g_Song.TrackCursorGoto(CPoint(point.x - (CRmtScreenLayout::TRACKS_X + 6 * 8), point.y - (CRmtScreenLayout::TRACKS_Y + 48)));
+            }
+            if (wheelzDelta != 0)
+            {
+                if (wheelzDelta > 0) g_Song.TrackKey(VK_UP, 0, 0);
+                else
+                    if (wheelzDelta < 0) g_Song.TrackKey(VK_DOWN, 0, 0);
+            }
+            return 4;
+        }
+    }
+    else
+        if (g_active_ti == Part::PART_INSTRUMENTS)
+        {
+            // Detect bounding box hits on various parts of the instrument display
+            // Algo:
+            // 1. Find the area that a specific GUI part (zone) will cover.
+            //		Size depends on instrument data
+            // 2. Check if the action point is within the zone
+            // 3. Do zone specific action
+
+            int activeInstrNum = g_Song.GetActiveInstr();
+            //VOLUME LEFT (bottom)
+            int r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::ENVELOPE_LEFT_ENVELOPE, rec);
+            if (r && rec.PtInRect(point))
+            {
+                // In the left volume envelope area
+                px = (point.x - rec.left) / 8;			// px is how far into the envelop the cursor is
+                py = 15 - ((point.y - rec.top) / 4);		// py is the volume at the cursor position
+                SetCursor(m_cursorEnvelopVolume);
+                if (g_mousebutt & MK_LBUTTON) //compares g_mousebutt to make it work while moving
+                {
+                    // Set the volume
+                    g_Undo.ChangeInstrument(activeInstrNum, 0, UETYPE_INSTRDATA);
+                    g_Instruments.SetEnvelopeVolume(activeInstrNum, 0, px, py);
+                }
+                if (g_mousebutt & MK_RBUTTON) //compares g_mousebutt to make it work while moving
+                {
+                    // Clear the volume
+                    g_Undo.ChangeInstrument(activeInstrNum, 0, UETYPE_INSTRDATA);
+                    g_Instruments.SetEnvelopeVolume(activeInstrNum, 0, px, 0);
+                }
+                return 2;
+            }
+
+            //VOLUME RIGHT (upper)
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::ENVELOPE_RIGHT_ENVELOPE, rec);
+            if (r && rec.PtInRect(point))
+            {
+                // In the right volume envelope area
+                px = (point.x - rec.left) / 8;
+                py = 15 - ((point.y - rec.top) / 4);
+                SetCursor(m_cursorEnvelopVolume);
+                if (g_mousebutt & MK_LBUTTON) //compares g_mousebutt to make it work while moving
+                {
+                    // Set the volume
+                    g_Undo.ChangeInstrument(activeInstrNum, 0, UETYPE_INSTRDATA);
+                    g_Instruments.SetEnvelopeVolume(activeInstrNum, 1, px, py);
+                }
+                if (g_mousebutt & MK_RBUTTON) //compares g_mousebutt to make it work while moving
+                {
+                    // Clear the volume
+                    g_Undo.ChangeInstrument(activeInstrNum, 0, UETYPE_INSTRDATA);
+                    g_Instruments.SetEnvelopeVolume(activeInstrNum, 1, px, 0);
+                }
+                return 3;
+            }
+
+            //ENVELOPE PARAMETERS large table
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::ENVELOPE_PARAM_TABLE, rec);
+            if (r && rec.PtInRect(point))
+            {
+                SetCursor(m_cursorGoto);
+                if (mousebutt & MK_LBUTTON)
+                {
+                    g_Instruments.CursorGoto(activeInstrNum, CPoint(point.x - rec.left, point.y - rec.top), 0);
+                }
+                return 3;
+            }
+
+            //ENVELOPE PARAMETERS series of numbers for the right channel volume
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::ENVELOPE_RIGHT_VOL_NUMS, rec);
+            if (r && rec.PtInRect(point))
+            {
+                SetCursor(m_cursorGoto);
+                if (mousebutt & MK_LBUTTON)
+                {
+                    g_Instruments.CursorGoto(activeInstrNum, CPoint(point.x - rec.left, point.y - rec.top), 1);
+                }
+                return 3;
+            }
+
+            //INSTRUMENT NOTE TABLE
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::NOTE_TABLE, rec);
+            if (r && rec.PtInRect(point))
+            {
+                SetCursor(m_cursorGoto);
+                if (mousebutt & MK_LBUTTON)
+                {
+                    g_Instruments.CursorGoto(activeInstrNum, CPoint(point.x - rec.left, point.y - rec.top), 2);
+                }
+                return 3;
+            }
+
+            //INSTRUMENT NAME
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::INSTRUMENT_NAME, rec);
+            if (r && rec.PtInRect(point))
+            {
+                SetCursor(m_cursorGoto);
+                if (mousebutt & MK_LBUTTON)
+                {
+                    g_Instruments.CursorGoto(activeInstrNum, CPoint(point.x - rec.left, point.y - rec.top), 3);
+                }
+                return 3;
+            }
+
+            //INSTRUMENT PARAMETERS
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::PARAMETERS, rec);
+            if (r && rec.PtInRect(point))
+            {
+                SetCursor(m_cursorGoto);
+                if (mousebutt & MK_LBUTTON)
+                {
+                    g_Instruments.CursorGoto(activeInstrNum, CPoint(point.x - rec.left, point.y - rec.top), 4);
+                }
+                return 3;
+            }
+
+            //INSTRUMENT SELECT DIALOG
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::INSTRUMENT_NUMBER_DLG, rec);
+            if (r && rec.PtInRect(point))
+            {
+                point.y -= (4 * 16 + 8);
+                point.x += 64;
+                goto Instrument_Select_Dialog;
+            }
+
+            //ENVELOPE LEN a GO PARAMETER - length and loop to help the mouse
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::LEN_AND_GOTO_ARROWS, rec);
+            if (r && rec.PtInRect(point))
+            {
+                SetCursor(m_cursorSetPosition);
+                r = 0;
+                if (mousebutt & MK_LBUTTON)
+                {
+                    // Set the
+                    g_Undo.ChangeInstrument(activeInstrNum, 0, UETYPE_INSTRDATA);
+                    g_Instruments.CursorGoto(activeInstrNum, CPoint(point.x - rec.left, point.y - rec.top), 5);
+                }
+                if (mousebutt & MK_RBUTTON)
+                {
+                    g_Undo.ChangeInstrument(activeInstrNum, 0, UETYPE_INSTRDATA);
+                    g_Instruments.CursorGoto(activeInstrNum, CPoint(point.x - rec.left, point.y - rec.top), 6);
+                }
+                return 7;
+            }
+
+            //TABLE LEN a GO PARAMETER - length and loop to help the mouse
+            r = g_Instruments.GetGUIArea(activeInstrNum, InstrumentGUIZone::NOTE_TBL_LEN_AND_GOTO, rec);
+            if (r && rec.PtInRect(point))
+            {
+                SetCursor(m_cursorSetPosition);
+                r = 0;
+                if (mousebutt & MK_LBUTTON)
+                {
+                    g_Undo.ChangeInstrument(activeInstrNum, 0, UETYPE_INSTRDATA);
+                    g_Instruments.CursorGoto(activeInstrNum, CPoint(point.x - rec.left, point.y - rec.top), 7);
+                }
+                if (mousebutt & MK_RBUTTON)
+                {
+                    g_Undo.ChangeInstrument(activeInstrNum, 0, UETYPE_INSTRDATA);
+                    g_Instruments.CursorGoto(activeInstrNum, CPoint(point.x - rec.left, point.y - rec.top), 8);
+                }
+                return 7;
+            }
+
+        }
+    SetCursor(m_cursororig);
+    return 0;
+}
+
+void CRmtView::OnLButtonDown(UINT nFlags, CPoint point)
+{
+    g_Undo.Separator();
+    g_mousebutt |= MK_LBUTTON;
+    MouseAction(point, MK_LBUTTON);
+    CView::OnLButtonDown(nFlags, point);
+}
+
+void CRmtView::OnLButtonUp(UINT nFlags, CPoint point)
+{
+    g_Undo.Separator();
+    g_mousebutt &= ~MK_LBUTTON;
+    CView::OnLButtonUp(nFlags, point);
+}
+
+void CRmtView::OnLButtonDblClk(UINT nFlags, CPoint point)
+{
+    g_Undo.Separator();
+    OnLButtonDown(nFlags, point);
+    OnLButtonUp(nFlags, point);
+}
+
+void CRmtView::OnRButtonDown(UINT nFlags, CPoint point)
+{
+    g_Undo.Separator();
+    g_mousebutt |= MK_RBUTTON;
+    MouseAction(point, MK_RBUTTON);
+    CView::OnRButtonDown(nFlags, point);
+}
+
+void CRmtView::OnRButtonUp(UINT nFlags, CPoint point)
+{
+    g_Undo.Separator();
+    g_mousebutt &= ~MK_RBUTTON;
+    CView::OnRButtonUp(nFlags, point);
+}
+
+void CRmtView::OnRButtonDblClk(UINT nFlags, CPoint point)
+{
+    g_Undo.Separator();
+    OnRButtonDown(nFlags, point);
+    OnRButtonUp(nFlags, point);
+}
+
+void CRmtView::OnMouseMove(UINT nFlags, CPoint point)
+{
+    MouseAction(point, 0);
+    CView::OnMouseMove(nFlags, point);
+}
+
+BOOL CRmtView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
+{
+    return 1;
+}
+
+void CRmtView::OnSysChar(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+    CView::OnSysChar(nChar, nRepCnt, nFlags);
+}
+
+const int  NChaCode[] = { 36,  38,  33, VK_SUBTRACT,  37,  12,  39, VK_ADD,  35,  40,  34,  45 };
+const char FlaToCha[] = { 0x67,0x68,0x69,109,0x64,0x65,0x66,107,0x61,0x62,0x63,0x60 };
+
+void CRmtView::SetNTSC(const bool ntsc) {
+    // TODO  code... well 3 times..
+    g_tuning.basetuning = (ntsc) ? (g_tuning.basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_tuning.basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
+    g_Song.SetNTSC(ntsc);
+
+}
+
+//TODO: cleanup and reconfigure, since testing keys in Stereo is not working correctly due to all the shortcuts being intermixed into the inputs
+void CRmtView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+    UINT vk = nChar;
+    UINT nfb = nFlags & 0x1ff;	//when autorepeat is set in nFlags bit 16384
+    //this seems to work around possible problems and causes no harm... so let's leave this untouched
+    if (nfb >= 71 && nfb <= 82) //shift + numblock 0-9 + -
+    {
+        if ((int)nChar == NChaCode[nfb - 71])
+        {
+            vk = FlaToCha[nfb - 71];
+        }
+    }
+
+    // Debug key reading for setting up keyboard layouts withought having to guess which key is where
+    g_lastKeyPressed = vk;
+
+    switch (vk)
+    {
+
+    case VK_F11:
+        g_Undo.Separator();	//respect volume
+        g_respectvolume ^= TRUE;
+        break;
+
+    case VK_MEDIA_PLAY_PAUSE:
+        if (g_Song.GetPlayMode() == PlayMode::PLAY_STOP) {
+            g_Song.Play(PLAY_SONG, g_Song.GetFollowPlayMode());	//play song from start
+        }
+        else {
+            g_Song.Stop();								//if playing, stop
+        }
+        break;
+
+    case VK_MEDIA_NEXT_TRACK:
+        g_Song.Play(PLAY_SEEK_NEXT, g_Song.GetFollowPlayMode()); //seek next and play from track
+        break;
+
+    case VK_MEDIA_PREV_TRACK:
+        g_Song.Play(PLAY_SEEK_PREV, g_Song.GetFollowPlayMode()); //seek prev and play from track
+        break;
+
+    case VK_SHIFT:
+        g_shiftkey = TRUE;
+        goto KeyDownNoUndoCheckPoint;
+        break;
+
+    case VK_CONTROL:
+        g_controlkey = TRUE;
+        goto KeyDownNoUndoCheckPoint;
+        break;
+
+        //TODO: Add ALT key support for the "is held" flag, for some reason I am unable to make it work, it seems to behave like the F10 key and take priority over everything else.
+    case VK_LMENU:
+        g_altkey = 1;
+        goto KeyDownNoUndoCheckPoint;
+        break;
+
+    default:
+        BOOL CAPSLOCK = GetKeyState(VK_CAPITAL);
+        switch (g_activepart)
+        {
+        case Part::PART_INFO:
+            if (g_shiftkey && !is_editing_infos && (NoteKey(vk) >= 0 || Numblock09Key(vk) >= 0 || vk == VK_SPACE))
+                g_Song.ProveKey(vk, g_shiftkey, g_controlkey);	//plays a note while the SHIFT key is held, except on the Song Name field, it will be ignored
+            else if (g_shiftkey && !is_editing_infos && (NoteKey(vk) < 0))
+                if (vk == VK_TAB || vk == VK_LEFT || vk == VK_RIGHT || vk == VK_PRIOR || vk == VK_NEXT) goto do_infokey_anyway;
+                else break;	//prevents inputing incorrect infos by accident while testing notes holding SHIFT
+            else if (is_editing_infos && CAPSLOCK && !g_shiftkey)
+            {
+                g_shiftkey = TRUE;
+                g_Song.InfoKey(vk, g_shiftkey, g_controlkey);
+                g_shiftkey = FALSE;	//workaround: so it won't *stay* locked when CAPSLOCK isn't active
+                break;
+            }
+            else if (is_editing_infos && CAPSLOCK && g_shiftkey)
+            {
+                g_shiftkey = FALSE;
+                g_Song.InfoKey(vk, g_shiftkey, g_controlkey);
+                g_shiftkey = TRUE;	//workaround: so it will *stay* locked when CAPSLOCK isn't active
+                break;
+            }
+            else
+            {
+            do_infokey_anyway:
+                if (vk == VK_PRIOR || vk == VK_NEXT)
+                    g_Song.ProveKey(vk, g_shiftkey, g_controlkey);
+                else
+                    g_Song.InfoKey(vk, g_shiftkey, g_controlkey);
+            }
+            break;
+
+        case Part::PART_TRACKS:
+            if (IsProveMode())
+                g_Song.ProveKey(vk, g_shiftkey, g_controlkey);
+            else if (g_shiftkey && (NoteKey(vk) >= 0 || Numblock09Key(vk) >= 0 || vk == VK_SPACE))
+                g_Song.ProveKey(vk, g_shiftkey, g_controlkey);
+            else
+                g_Song.TrackKey(vk, g_shiftkey, g_controlkey);
+            break;
+
+        case Part::PART_INSTRUMENTS:
+            if (g_shiftkey && !g_isEditingInstrumentName && (NoteKey(vk) >= 0 || Numblock09Key(vk) >= 0 || vk == VK_SPACE))
+                g_Song.ProveKey(vk, g_shiftkey, g_controlkey);	//plays a note while the SHIFT key is held, except on the Instrument Name field, it will be ignored
+            else if (g_shiftkey && !g_isEditingInstrumentName && (NoteKey(vk) < 0))
+                if (vk == VK_TAB || vk == VK_INSERT || vk == VK_DELETE || vk == VK_LEFT || vk == VK_RIGHT || vk == VK_UP || vk == VK_DOWN || vk == VK_DIVIDE || vk == VK_MULTIPLY || vk == VK_SUBTRACT || vk == VK_ADD || vk == VK_PRIOR || vk == VK_NEXT) goto do_instrkey_anyway;
+                else break;	//prevents inputing incorrect infos by accident while testing notes holding SHIFT
+            else if (g_isEditingInstrumentName && CAPSLOCK && !g_shiftkey)
+            {
+                g_shiftkey = TRUE;
+                g_Song.InstrKey(vk, g_shiftkey, g_controlkey);
+                g_shiftkey = FALSE;	//workaround: so it won't *stay* locked when CAPSLOCK isn't active
+                break;
+            }
+            else if (g_isEditingInstrumentName && CAPSLOCK && g_shiftkey)
+            {
+                g_shiftkey = FALSE;
+                g_Song.InstrKey(vk, g_shiftkey, g_controlkey);
+                g_shiftkey = TRUE;	//workaround: so it will *stay* locked when CAPSLOCK isn't active
+                break;
+            }
+            else
+            {
+            do_instrkey_anyway:
+                if (vk == VK_PRIOR || vk == VK_NEXT)
+                    g_Song.ProveKey(vk, g_shiftkey, g_controlkey);
+                else
+                    g_Song.InstrKey(vk, g_shiftkey, g_controlkey);
+            }
+            break;
+
+        case Part::PART_SONG:
+            if (IsProveMode())
+                g_Song.ProveKey(vk, g_shiftkey, g_controlkey);
+            else if (g_shiftkey && (NoteKey(vk) >= 0 || Numblock09Key(vk) >= 0 || vk == VK_SPACE))
+                g_Song.ProveKey(vk, g_shiftkey, g_controlkey);
+            else
+                g_Song.SongKey(vk, g_shiftkey, g_controlkey);
+            break;
+        }
+    }
+
+    // UndoCheckPoint does not work if it is only a shift or just a control (to which the next key will come)
+KeyDownNoUndoCheckPoint:
+    CView::OnKeyDown(nChar, nRepCnt, nFlags);
+}
+
+void CRmtView::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+    //TODO: Add support for ALT key for the "is held" flag, currently it does not work for some reason
+    switch (nChar) {
+    case VK_SHIFT:
+        g_shiftkey = FALSE;
+        break;
+
+    case VK_CONTROL:
+        g_controlkey = FALSE;
+        break;
+
+    case  VK_LMENU:
+        g_altkey = FALSE;
+        break;
+    }
+    CView::OnKeyUp(nChar, nRepCnt, nFlags);
+}
+
+void CRmtView::OnFileOpen()
+{
+    g_Song.FileOpen();
+}
+
+void CRmtView::OnFileReopen()
+{
+    g_Song.FileReload();
+}
+
+void CRmtView::OnUpdateFileReopen(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_Song.FileCanBeReloaded());
+}
+
+void CRmtView::OnFileSave()
+{
+    //g_Song.Stop();
+    auto filename = g_Song.GetFilename();
+    if (g_keyboard_askwhencontrol_s
+        && (!filename.IsEmpty() || g_Song.GetIOType() != SongIOType::NONE))
+    {
+        // If a question is asked and if a file already exists
+        // (=> there will be a "Save as ..." dialog)
+        CString s;
+        s.Format("Do you want to save song file '%s'?\nIs it okay to overwrite?", filename);
+        int r = MessageBox(s, "Save song", MB_YESNOCANCEL | MB_ICONQUESTION);
+        if (r == IDNO) {
+            OnFileSaveAs();
+            return;
+        }
+
+        if (r != IDYES) {
+            return;
+        }
+
+    }
+    Sleep(128);
+    g_Song.FileSave();
+    Sleep(128);
+}
+
+void CRmtView::OnFileSaveAs()
+{
+    g_Song.FileSaveAs();
+}
+
+void CRmtView::OnFileNew()
+{
+    int r = MessageBox("Would you like to create a new song?", "Create new song", MB_YESNOCANCEL | MB_ICONQUESTION);
+    if (r == IDYES) {
+        g_Song.FileNew();
+    }
+}
+
+void CRmtView::OnFileImport()
+{
+    g_Song.FileImport();
+}
+
+void CRmtView::OnFileExport()
+{
+    g_Song.FileExportAs();
+}
+
+void CRmtView::OnInstrLoad()
+{
+    g_Song.FileInstrumentLoad();
+}
+
+void CRmtView::OnInstrSave()
+{
+    g_Song.FileInstrumentSave();
+}
+
+void CRmtView::OnInstrCopy()
+{
+    g_Song.InstrCopy();
+}
+
+void CRmtView::OnInstrPaste()
+{
+    g_Song.InstrPaste();
+}
+
+void CRmtView::OnInstrCut()
+{
+    g_Undo.ChangeInstrument(g_Song.GetActiveInstr(), 0, UETYPE_INSTRDATA, 1);
+    g_Song.InstrCut();
+}
+
+void CRmtView::OnInstrDelete()
+{
+    g_Undo.ChangeInstrument(g_Song.GetActiveInstr(), 0, UETYPE_INSTRDATA, 1);
+    g_Song.InstrDelete();
+}
+
+void CRmtView::OnInstrumentPastespecialVolumeLRenvelopesonly()
+{
+    g_Song.InstrPaste(1); //L/R
+}
+
+void CRmtView::OnInstrumentPastespecialVolumeRenvelopeonly()
+{
+    g_Song.InstrPaste(2); //R
+}
+
+void CRmtView::OnInstrumentPastespecialVolumeLenvelopeonly()
+{
+    g_Song.InstrPaste(3); //L
+}
+
+void CRmtView::OnInstrumentPastespecialEnvelopeparametersonly()
+{
+    g_Song.InstrPaste(4); //ENVELOPE PARS
+}
+
+void CRmtView::OnInstrumentPastespecialTableonly()
+{
+    g_Song.InstrPaste(5); //TABLE
+}
+
+void CRmtView::OnInstrumentPastespecialVolumeenvandenvelopeparsonly()
+{
+    g_Song.InstrPaste(6); //VOL+ENV
+}
+
+void CRmtView::OnInstrumentPastespecialInsertvolenvsandenvparstocurpos()
+{
+    g_Song.InstrPaste(7); //VOL+ENV TO CURPOS
+}
+
+void CRmtView::OnInstrumentPastespecialVolumeltorenvelopeonly()
+{
+    g_Song.InstrPaste(8); //volume L to R
+}
+
+void CRmtView::OnInstrumentPastespecialVolumertolenvelopeonly()
+{
+    g_Song.InstrPaste(9); //volume R to L
+}
+
+//update
+void CRmtView::OnUpdateInstrumentPastespecialInsertvolenvsandenvparstocurpos(CCmdUI* pCmdUI)
+{
+    //to cur pos
+    int i = g_Song.GetActiveInstr();
+    TInstrument* ai = g_Instruments.GetInstrument(i);
+    pCmdUI->Enable(g_activepart == Part::PART_INSTRUMENTS && (ai->activeEditSection == InstrumentSection::ENVELOPE)); //when the envelope is being edited
+}
+
+void CRmtView::OnUpdateInstrumentPastespecialVolumelenvelopeonly(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_tracks4_8 > 4);	//L only
+}
+
+void CRmtView::OnUpdateInstrumentPastespecialVolumerenvelopeonly(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_tracks4_8 > 4);	//R only
+}
+
+void CRmtView::OnUpdateInstrumentPastespecialVolumertolenvelopeonly(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_tracks4_8 > 4); //R to L
+}
+
+void CRmtView::OnUpdateInstrumentPastespecialVolumeltorenvelopeonly(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_tracks4_8 > 4); //L to R
+}
+
+void CRmtView::OnTrackCopy()
+{
+    g_Song.TrackCopy();
+}
+
+void CRmtView::OnTrackPaste()
+{
+    g_Undo.ChangeTrack(g_Song.SongGetActiveTrack(), g_Song.GetActiveLine(), UETYPE_TRACKDATA);
+    g_Song.TrackPaste();
+}
+
+void CRmtView::OnTrackCut()
+{
+    g_Undo.ChangeTrack(g_Song.SongGetActiveTrack(), g_Song.GetActiveLine(), UETYPE_TRACKDATA);
+    g_Song.TrackCut();
+}
+
+void CRmtView::OnTrackDelete()
+{
+    g_Undo.ChangeTrack(g_Song.SongGetActiveTrack(), g_Song.GetActiveLine(), UETYPE_TRACKDATA);
+    g_Song.TrackDelete();
+}
+
+void CRmtView::OnUpdateTrackCopy(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable((g_activepart != Part::PART_INSTRUMENTS) && (g_Song.SongGetActiveTrack() >= 0));
+}
+
+void CRmtView::OnUpdateTrackPaste(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable((g_activepart != Part::PART_INSTRUMENTS) && (g_Song.SongGetActiveTrack() >= 0));
+}
+
+void CRmtView::OnUpdateTrackCut(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable((g_activepart != Part::PART_INSTRUMENTS) && (g_Song.SongGetActiveTrack() >= 0));
+}
+
+void CRmtView::OnUpdateTrackDelete(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable((g_activepart != Part::PART_INSTRUMENTS) && (g_Song.SongGetActiveTrack() >= 0));
+}
+
+void CRmtView::OnTrackLoad()
+{
+    g_Song.FileTrackLoad();
+}
+
+void CRmtView::OnTrackSave()
+{
+    g_Song.FileTrackSave();
+}
+
+void CRmtView::OnUpdateTrackLoad(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_Song.SongGetActiveTrack() >= 0);
+}
+
+void CRmtView::OnUpdateTrackSave(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_Song.SongGetActiveTrack() >= 0);
+}
+
+void CRmtView::OnSongCopyline()
+{
+    g_Song.SongCopyLine();
+}
+
+void CRmtView::OnSongPasteline()
+{
+    g_Song.SongPasteLine();
+}
+
+void CRmtView::OnSongClearline()
+{
+    g_Song.SongClearLine();
+}
+
+void CRmtView::OnSongDeleteactualline()
+{
+    g_Song.SongDeleteLine(g_Song.SongGetActiveLine());
+}
+
+void CRmtView::OnSongInsertnewemptyline()
+{
+    g_Song.SongInsertLine(g_Song.SongGetActiveLine());
+}
+
+void CRmtView::OnSongInsertnewlinewithunusedtracks()
+{
+    int line = g_Song.SongGetActiveLine();
+    g_Song.SongPrepareNewLine(line);
+    g_Song.SongSetActiveLine(line);
+}
+
+void CRmtView::OnSongInsertcopyorcloneofsonglines()
+{
+    int line = g_Song.SongGetActiveLine();
+    g_Song.SongInsertCopyOrCloneOfSongLines(line);
+    g_Song.SongSetActiveLine(line);
+}
+
+void CRmtView::OnSongPutnewemptyunusedtrack()
+{
+    g_Song.SongPutnewemptyunusedtrack();
+}
+
+void CRmtView::OnSongMaketracksduplicate()
+{
+    g_Song.SongMaketracksduplicate();
+}
+
+void CRmtView::OnUpdateSongMaketracksduplicate(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_Song.SongGetActiveTrack() >= 0);
+}
+
+void CRmtView::OnSongPlayFromBookmark()
+{
+    g_Song.Play(PLAY_BOOKMARK, g_Song.GetFollowPlayMode());	// from the bookmark - with respect to followplay
+}
+
+void CRmtView::OnSongPlayeFromStart()
+{
+    g_Song.Play(PLAY_SONG, g_Song.GetFollowPlayMode());		// whole song from start - with respect to followplay
+}
+
+void CRmtView::OnSongPlayFromCurrentPosition()
+{
+    g_Song.Play(PLAY_FROM, g_Song.GetFollowPlayMode());		// from the current position - with respect to followplay
+}
+
+void CRmtView::OnSongPlayFromCurrentPositionAndLoop()
+{
+    g_Song.Play(PLAY_TRACK, g_Song.GetFollowPlayMode());	// from current pattern and loop - with respect to followplay
+}
+
+void CRmtView::OnSongStop()
+{
+    // Stop the music
+    if (g_Song.GetPlayMode() == PlayMode::PLAY_STOP) {
+        return;
+    }
+
+    g_Song.Stop();
+    g_playtime = 0;
+
+    // Reset RMT routines automatically?
+    if (g_keyboard_escresetatarisound) {
+        g_AtariTrackerDriver->Init();
+    }
+}
+
+void CRmtView::OnUpdateSongStop(CCmdUI* pCmdUI) {
+    BOOL enabled = ((g_Song.GetPlayMode() == PlayMode::PLAY_STOP) ? FALSE : TRUE);
+    pCmdUI->Enable(enabled);
+}
+
+void CRmtView::OnSongPlayFollow()
+{
+    g_Song.SetFollowPlayMode(g_Song.GetFollowPlayMode() ^ 1);
+}
+
+void CRmtView::OnPartTracks()
+{
+    g_Undo.Separator();
+    g_activepart = g_active_ti = Part::PART_TRACKS;
+}
+
+void CRmtView::OnPartInstruments()
+{
+    g_Undo.Separator();
+    g_activepart = g_active_ti = Part::PART_INSTRUMENTS;
+    g_TrackClipboard.BlockDeselect();
+}
+
+void CRmtView::OnPartInfo()
+{
+    g_Undo.Separator();
+    g_activepart = Part::PART_INFO;
+    g_TrackClipboard.BlockDeselect();
+}
+
+void CRmtView::OnPartSong()
+{
+    g_Undo.Separator();
+    g_activepart = Part::PART_SONG;
+    g_TrackClipboard.BlockDeselect();
+}
+
+void CRmtView::OnUpdateSongPlayBookmark(CCmdUI* pCmdUI)
+{
+    int ch = g_Song.IsBookmark();
+    pCmdUI->Enable(ch);
+    ch = (g_Song.GetPlayMode() == PlayMode::PLAY_BOOKMARK);
+    pCmdUI->SetCheck(ch);
+}
+
+void CRmtView::OnUpdatePlaySong(CCmdUI* pCmdUI)
+{
+    int ch = (g_Song.GetPlayMode() == PlayMode::PLAY_SONG) ? 1 : 0;
+    pCmdUI->SetCheck(ch);
+}
+
+void CRmtView::OnUpdatePlayFrom(CCmdUI* pCmdUI)
+{
+    int ch = (g_Song.GetPlayMode() == PlayMode::PLAY_FROM) ? 1 : 0;
+    pCmdUI->SetCheck(ch);
+}
+
+void CRmtView::OnUpdatePlayTrack(CCmdUI* pCmdUI)
+{
+    int ch = (g_Song.GetPlayMode() == PlayMode::PLAY_TRACK) ? 1 : 0;
+    pCmdUI->SetCheck(ch);
+}
+
+void CRmtView::OnUpdateSongPlayFollow(CCmdUI* pCmdUI)
+{
+    int ch = g_Song.GetFollowPlayMode();
+    pCmdUI->SetCheck(ch);
+}
+
+void CRmtView::OnUpdateEmTracks(CCmdUI* pCmdUI)
+{
+    int ch = (g_activepart == Part::PART_TRACKS && g_active_ti == Part::PART_TRACKS) ? 1 : 0;
+    pCmdUI->SetCheck(ch);
+}
+
+void CRmtView::OnUpdateEmInstruments(CCmdUI* pCmdUI)
+{
+    int ch = (g_activepart == Part::PART_INSTRUMENTS && g_active_ti == Part::PART_INSTRUMENTS) ? 1 : 0;
+    pCmdUI->SetCheck(ch);
+}
+
+void CRmtView::OnUpdateEmInfo(CCmdUI* pCmdUI)
+{
+    int ch = (g_activepart == Part::PART_INFO) ? 1 : 0;
+    pCmdUI->SetCheck(ch);
+}
+
+void CRmtView::OnUpdateEmSong(CCmdUI* pCmdUI)
+{
+    int ch = (g_activepart == Part::PART_SONG) ? 1 : 0;
+    pCmdUI->SetCheck(ch);
+}
+
+
+void CRmtView::OnToolbarSwitchEditMode()
+{
+    OnEditSwitchEditMode();
+}
+
+
+void CRmtView::OnUpdateToolbarSwitchEditMode(CCmdUI* pCmdUI)
+{
+    int ch = (IsProveMode()) ? 1 : 0;
+    pCmdUI->SetCheck(ch);
+}
+
+
+void CRmtView::ChangeViewElements(BOOL writeconfig)
+{
+    CMainFrame* mf = (CMainFrame*)AfxGetApp()->GetMainWnd();
+    mf->ShowControlBar((CControlBar*)(&mf->m_wndToolBar), g_view.mainToolbar, 0);
+    mf->ShowControlBar((CControlBar*)(&mf->m_ToolBarBlock), g_view.blockToolbar, 0);
+    mf->ShowControlBar((CControlBar*)(&mf->m_wndStatusBar), g_view.statusBar, 0);
+    if (writeconfig) { WriteRMTConfig(); }
+}
+
+void CRmtView::OnViewToolbar()
+{
+    g_view.mainToolbar ^= TRUE;
+    ChangeViewElements();
+}
+
+void CRmtView::OnUpdateViewToolbar(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_view.mainToolbar);
+}
+
+void CRmtView::OnViewBlocktoolbar()
+{
+    g_view.blockToolbar ^= TRUE;
+    ChangeViewElements();
+}
+
+void CRmtView::OnUpdateViewBlocktoolbar(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_view.blockToolbar);
+}
+
+void CRmtView::OnViewStatusBar()
+{
+    g_view.statusBar ^= TRUE;
+    ChangeViewElements();
+}
+
+void CRmtView::OnUpdateViewStatusBar(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_view.statusBar);
+}
+
+void CRmtView::OnViewPlaytimecounter()
+{
+    g_view.playTimeCounter ^= TRUE;
+    ChangeViewElements();
+}
+
+void CRmtView::OnUpdateViewPlaytimecounter(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_view.playTimeCounter);
+}
+
+void CRmtView::OnViewVolumeanalyzer()
+{
+    g_view.volumeAnalyzer ^= TRUE;
+    ChangeViewElements();
+}
+
+void CRmtView::OnUpdateViewVolumeanalyzer(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_view.volumeAnalyzer);
+}
+
+void CRmtView::OnViewPokeyregs()
+{
+    g_view.pokeyRegisters ^= TRUE;
+    ChangeViewElements();
+}
+
+void CRmtView::OnUpdateViewPokeyregs(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_view.pokeyRegisters);
+    pCmdUI->Enable(g_view.volumeAnalyzer);
+}
+
+void CRmtView::OnViewInstrumentactivehelp()
+{
+    g_view.instrumentEditHelp ^= TRUE;
+    ChangeViewElements();
+}
+
+void CRmtView::OnUpdateViewInstrumentactivehelp(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_view.instrumentEditHelp);
+}
+
+void CRmtView::OnBlockNoteup()
+{
+    g_TrackClipboard.BlockNoteTransposition(g_Song.GetActiveInstr(), 1);
+}
+
+void CRmtView::OnUpdateBlockNoteup(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_TrackClipboard.IsBlockSelected());
+}
+
+void CRmtView::OnBlockNotedown()
+{
+    g_TrackClipboard.BlockNoteTransposition(g_Song.GetActiveInstr(), -1);
+}
+
+void CRmtView::OnUpdateBlockNotedown(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_TrackClipboard.IsBlockSelected());
+}
+
+void CRmtView::OnBlockVolumeup()
+{
+    g_TrackClipboard.BlockVolumeChange(g_Song.GetActiveInstr(), 1);
+}
+
+void CRmtView::OnUpdateBlockVolumeup(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_TrackClipboard.IsBlockSelected());
+}
+
+void CRmtView::OnBlockVolumedown()
+{
+    g_TrackClipboard.BlockVolumeChange(g_Song.GetActiveInstr(), -1);
+}
+
+void CRmtView::OnUpdateBlockVolumedown(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_TrackClipboard.IsBlockSelected());
+}
+
+void CRmtView::OnBlockInstrleft()
+{
+    g_TrackClipboard.BlockInstrumentChange(g_Song.GetActiveInstr(), -1);
+}
+
+void CRmtView::OnUpdateBlockInstrleft(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_TrackClipboard.IsBlockSelected());
+}
+
+void CRmtView::OnBlockInstrright()
+{
+    g_TrackClipboard.BlockInstrumentChange(g_Song.GetActiveInstr(), 1);
+}
+
+void CRmtView::OnUpdateBlockInstrright(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_TrackClipboard.IsBlockSelected());
+}
+
+void CRmtView::OnBlockInstrall()
+{
+    g_TrackClipboard.BlockAllOnOff();
+}
+
+void CRmtView::OnUpdateBlockInstrall(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_TrackClipboard.m_all);
+    pCmdUI->Enable(g_TrackClipboard.IsBlockSelected());
+}
+
+void CRmtView::OnBlockBackup()
+{
+    g_Undo.ChangeTrack(g_Song.SongGetActiveTrack(), g_Song.GetActiveLine(), UETYPE_TRACKDATA, 1);
+    g_TrackClipboard.BlockRestoreFromBackup();
+}
+
+void CRmtView::OnUpdateBlockBackup(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_TrackClipboard.IsBlockSelected());
+}
+
+void CRmtView::OnBlockPlayAndLoop()
+{
+    g_Song.Play(PLAY_BLOCK, g_Song.GetFollowPlayMode());	//selected block and loop - with respect to followplay
+}
+
+void CRmtView::OnUpdateBlockPlayAndLoop(CCmdUI* pCmdUI)
+{
+    auto blockMode = (g_Song.GetPlayMode() == PlayMode::PLAY_BLOCK);
+    pCmdUI->SetCheck(blockMode);
+    pCmdUI->Enable(g_TrackClipboard.IsBlockSelected());
+}
+
+//----------------------------------------------------------------------------
+// CHANNELS
+
+
+
+void CRmtView::OnUpdateChan1_4(CCmdUI* pCmdUI)
+{
+    // The first 4 channels are always visible.
+}
+
+void CRmtView::OnUpdateChan5_8(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable((g_tracks4_8 > 4));
+}
+
+void CRmtView::OnMidiOnOff()
+{
+    if (g_Midi.IsOn())
+        g_Midi.MidiOff();
+    else
+        g_Midi.MidiOn();
+}
+
+void CRmtView::OnUpdateMidiOnOff(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_Midi.GetMidiDevId() >= 0);
+    pCmdUI->SetCheck(g_Midi.IsOn());
+}
+
+void CRmtView::OnBlockCopy()
+{
+    g_Song.TrackKey(67, 0, 1);	//Ctrl+C
+}
+
+void CRmtView::OnBlockCut()
+{
+    g_Song.TrackKey(88, 0, 1);	//Ctrl+X
+}
+
+void CRmtView::OnBlockDelete()
+{
+    g_Song.TrackKey(VK_DELETE, 0, 1);	//Del
+}
+
+void CRmtView::OnBlockPaste()
+{
+    g_Song.BlockPaste();	// Paste normal
+}
+
+void CRmtView::OnBlockPastespecialMergewithcurrentcontent()
+{
+    g_Song.BlockPaste(1);	//paste special - merge
+}
+
+void CRmtView::OnBlockPastespecialVolumevaluesonly()
+{
+    g_Song.BlockPaste(2);	//paste special - volumes only
+}
+
+void CRmtView::OnBlockPastespecialSpeedvaluesonly()
+{
+    g_Song.BlockPaste(3);	//paste special - speeds only
+}
+
+void CRmtView::OnBlockExchange()
+{
+    g_Song.TrackKey(69, 0, 1);	//Ctrl+E
+}
+
+void CRmtView::OnBlockEffect()
+{
+    g_Song.TrackKey(70, 0, 1);	//Ctrl+F
+}
+
+void CRmtView::OnBlockSelectall()
+{
+    g_Song.TrackKey(65, 0, 1);	//Ctrl+A
+}
+
+void CRmtView::OnUpdateBlockCut(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_TrackClipboard.IsBlockSelected());
+}
+
+void CRmtView::OnUpdateBlockDelete(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_TrackClipboard.IsBlockSelected());
+}
+
+void CRmtView::OnUpdateBlockEffect(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_TrackClipboard.IsBlockSelected());
+}
+
+void CRmtView::OnUpdateBlockExchange(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_TrackClipboard.IsBlockSelected());
+}
+
+void CRmtView::OnTrackClearallduplicatedtracks()
+{
+    g_Song.Stop();
+    int r = MessageBox("Are you sure you want to clear all duplicated tracks and adjust song?", "Clear all duplicated tracks", MB_YESNOCANCEL | MB_ICONEXCLAMATION);
+    if (r != IDYES) return;
+
+    g_Undo.ChangeTrack(0, 0, UETYPE_TRACKSALL, -1);
+    g_Undo.ChangeSong(0, 0, UETYPE_SONGDATA, 1);
+
+    int clearedtracks;
+    clearedtracks = g_Song.SongClearDuplicatedTracks();
+
+    CString s;
+    s.Format("Deleted %i duplicated tracks.", clearedtracks);
+    MessageBox((LPCTSTR)s, "Clear all duplicated tracks", MB_OK);
+}
+
+void CRmtView::OnTrackClearalltracksunusedinsong()
+{
+    g_Song.Stop();
+    int r = MessageBox("Are you sure you want to delete all tracks unused in song?", "Clear all unused tracks", MB_YESNOCANCEL | MB_ICONEXCLAMATION);
+    if (r != IDYES) return;
+
+    g_Undo.ChangeTrack(0, 0, UETYPE_TRACKSALL);
+
+    int clearedtracks;
+    clearedtracks = g_Song.SongClearUnusedTracks();
+
+    CString s;
+    s.Format("Deleted %i tracks unused in song.", clearedtracks);
+    MessageBox((LPCTSTR)s, "Clear all unused tracks", MB_OK);
+}
+
+void CRmtView::OnTrackAlltrackscleanup()
+{
+    //Delete all tracks
+    g_Song.Stop();
+
+    int r = MessageBox("WARNING:\nReally cleanup all tracks?", "All tracks cleanup", MB_YESNO | MB_ICONWARNING);
+    if (r == IDYES)
+    {
+        g_Undo.ChangeTrack(0, 0, UETYPE_TRACKSALL);
+        g_Tracks.InitTracks();
+    }
+}
+
+void CRmtView::OnUpdateTrackSearchandbuildloop(CCmdUI* pCmdUI)
+{
+    int track = g_Song.SongGetActiveTrack();
+    pCmdUI->Enable((track >= 0) && (g_Tracks.GetGoLine(track) < 0));
+}
+
+void CRmtView::OnTrackSearchandbuildloop()
+{
+    g_Song.Stop();
+
+    int track = g_Song.SongGetActiveTrack();
+    if (track >= 0)
+    {
+        g_Undo.ChangeTrack(track, g_Song.GetActiveLine(), UETYPE_TRACKDATA);
+        g_Tracks.TrackBuildLoop(track);
+    }
+}
+
+void CRmtView::OnUpdateTrackExpandloop(CCmdUI* pCmdUI)
+{
+    int track = g_Song.SongGetActiveTrack();
+    pCmdUI->Enable((track >= 0) && (g_Tracks.GetGoLine(track) >= 0));
+}
+
+void CRmtView::OnTrackExpandloop()
+{
+    g_Song.Stop();
+
+    int track = g_Song.SongGetActiveTrack();
+    if (track >= 0)
+    {
+        g_Undo.ChangeTrack(track, g_Song.GetActiveLine(), UETYPE_TRACKDATA);
+        g_Tracks.TrackExpandLoop(track);
+    }
+}
+
+void CRmtView::OnUpdateTrackInfoaboutusingofactualtrack(CCmdUI* pCmdUI)
+{
+    int track = g_Song.SongGetActiveTrack();
+    pCmdUI->Enable((track >= 0));
+}
+
+void CRmtView::OnTrackInfoaboutusingofactualtrack()
+{
+    g_Song.TrackInfo(g_Song.SongGetActiveTrack());
+}
+
+void CRmtView::OnInstrumentInfo()
+{
+    g_Song.InstrInfo(g_Song.GetActiveInstr());
+}
+
+void CRmtView::OnInstrumentChange()
+{
+    g_Song.InstrChange(g_Song.GetActiveInstr());
+}
+
+void CRmtView::OnInstrumentClearallunusedinstruments()
+{
+    g_Song.Stop();
+    int r = MessageBox("Are you sure you want to delete all unused instruments in any tracks?", "Clear unused instruments", MB_YESNOCANCEL | MB_ICONEXCLAMATION);
+    if (r != IDYES) return;
+
+    g_Undo.ChangeInstrument(0, 0, UETYPE_INSTRSALL);
+
+    int clearedinstrs = g_Song.ClearAllInstrumentsUnusedInAnyTrack();
+    CString s;
+    s.Format("Deleted %i unused instruments.", clearedinstrs);
+    MessageBox((LPCTSTR)s, "Clear unused instruments", MB_OK);
+}
+
+void CRmtView::OnInstrAllinstrumentscleanup()
+{
+    //Delete all instruments
+    g_Song.Stop();
+
+    int r = MessageBox("WARNING:\nAre you sure you want to cleanup all the instruments?", "All instruments cleanup", MB_YESNO | MB_ICONWARNING);
+    if (r == IDYES)
+    {
+        g_Undo.ChangeInstrument(0, 0, UETYPE_INSTRSALL);
+        g_Instruments.InitInstruments();
+    }
+}
+
+
+void CRmtView::OnSongClearBookmark()
+{
+    g_Song.ClearBookmark();
+}
+
+void CRmtView::OnUpdateSongClearBookmark(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_Song.IsBookmark());
+}
+
+void CRmtView::OnSongSetBookmark()
+{
+    g_Song.SetBookmark();
+}
+
+
+void CRmtView::OnSongTracksorderchange()
+{
+    g_Song.Stop();
+    g_Song.TracksOrderChange();
+}
+
+void CRmtView::OnUpdateSongSongswitch4_8(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetText((g_tracks4_8 <= 4) ? "Switch song to Stereo 8 tracks..." : "Switch song to Mono 4 tracks...");
+}
+
+void CRmtView::OnSongSongswitch4_8()
+{
+    g_Song.Stop();
+    g_Song.Songswitch4_8((g_tracks4_8 <= 4) ? 8 : 4);
+}
+
+void CRmtView::OnSongSongchangemaximallengthoftracks()
+{
+    g_Song.Stop();
+
+    int ma = g_Song.GetEffectiveMaxtracklen();
+
+    CChangeMaxtracklenDlg dlg;
+    dlg.m_info.Format("Current value: %i\nComputed effective value for current song: %i", g_Tracks.GetMaxTrackLength(), ma);
+    dlg.m_maxtracklen = ma;
+    if (dlg.DoModal() == IDOK)
+    {
+        //Undo
+        g_Undo.ChangeTrack(0, 0, UETYPE_TRACKSALL);
+        ma = dlg.m_maxtracklen;
+        g_Song.ChangeMaxtracklen(ma);
+    }
+}
+
+void CRmtView::OnSongSearchandrebuildloopsinalltracks()
+{
+    // Stop the music first
+    g_Song.Stop();
+
+    int r = MessageBox("Are you sure you want to search and rebuild wise loops in all tracks?", "Search and rebuild loops", MB_YESNOCANCEL | MB_ICONEXCLAMATION);
+    if (r != IDYES) return;
+
+    g_Undo.ChangeTrack(0, 0, UETYPE_TRACKSALL);
+
+    //first unpack all existing loops
+    int tracksmodified = 0, loopsexpanded = 0;
+    g_Song.TracksAllExpandLoops(tracksmodified, loopsexpanded);
+    //and now search all and create loops again
+    int optitracks = 0, optibeats = 0;
+    g_Song.TracksAllBuildLoops(optitracks, optibeats);
+    CString s;
+    s.Format("Found and rebuilt loops in %i tracks (%i beats/lines).", optitracks, optibeats);
+    MessageBox((LPCTSTR)s, "Search and rebuild loops", MB_OK);
+}
+
+void CRmtView::OnSongExpandloopsinalltracks()
+{
+    // Stop the music first
+    g_Song.Stop();
+
+    int r = MessageBox("Are you sure you want to expand loops in all tracks?", "Expand loops", MB_YESNOCANCEL | MB_ICONEXCLAMATION);
+    if (r != IDYES) return;
+
+    g_Undo.ChangeTrack(0, 0, UETYPE_TRACKSALL);
+
+    int tracksmodified = 0, loopsexpanded = 0;
+    g_Song.TracksAllExpandLoops(tracksmodified, loopsexpanded);
+    CString s;
+    s.Format("Found and expanded loops in %i tracks (%i beats/lines).", tracksmodified, loopsexpanded);
+    MessageBox((LPCTSTR)s, "Expand loops", MB_OK);
+}
+
+void CRmtView::OnSongSizeoptimization()
+{
+    // ALL size optimalizations
+    int r = MessageBox("Are you sure you want to delete all tracks and instruments unused in song,\ntruncate unused tracks and rebuild wise tracks loops,\ndelete all duplicated tracks, renumber all tracks and instruments\nand change maximal tracks length to effective computed value?", "All size optimizations", MB_YESNOCANCEL | MB_ICONEXCLAMATION);
+    if (r != IDYES) return;
+
+    g_Song.Stop();	// Stop music
+
+    g_Undo.ChangeTrack(0, 0, UETYPE_TRACKSALL, -1);
+    g_Undo.ChangeInstrument(0, 0, UETYPE_INSTRSALL, -1);
+    g_Undo.ChangeSong(0, 0, UETYPE_SONGDATA, 1);
+
+    int chmaxtl = 0;
+
+    // First unpack all existing loops
+    int tracksmodified = 0, loopsexpanded = 0;
+    g_Song.TracksAllExpandLoops(tracksmodified, loopsexpanded);
+
+    // Find the effective length of maxtracklen and shorten it if necessary
+    int maxtracklen = g_Tracks.GetMaxTrackLength();
+    int effemaxtracklen = g_Song.GetEffectiveMaxtracklen();
+    if (effemaxtracklen < maxtracklen)
+    {
+        g_Song.ChangeMaxtracklen(effemaxtracklen);
+        chmaxtl = 1;
+    }
+
+    // Now it will back up
+    int optitracks = 0, optibeats = 0;
+    g_Song.TracksAllBuildLoops(optitracks, optibeats);
+
+    // And until the end, don't use the tracks and their parts
+    int clearedtracks = 0, truncatedtracks = 0, truncatedbeats = 0;
+    g_Song.SongClearUnusedTracksAndParts(clearedtracks, truncatedtracks, truncatedbeats);
+
+    // And only now (after clearing unused tracks) it will remove unused instruments
+    int clearedinstruments;
+    clearedinstruments = g_Song.ClearAllInstrumentsUnusedInAnyTrack();
+
+    // And now it eliminates double tracks and corrects their occurrences in the song
+    // (may have been created by previous edits)
+    int duplicatedtracks;
+    duplicatedtracks = g_Song.SongClearDuplicatedTracks();
+
+    // Now refines the tracks (to remove any gaps)
+    g_Song.RenumberAllTracks(1);
+
+    // And now refines the instruments (to remove any gaps)
+    g_Song.RenumberAllInstruments(1);
+
+    CString s;
+    s.Format("Deleted %i unused tracks, %i unused instruments,\ntruncated %i tracks (%i beats/lines),\nfound and rebuilt loops in %i tracks (%i beats/lines),\ndeleted %i duplicated tracks.", clearedtracks, clearedinstruments, truncatedtracks, truncatedbeats, optitracks, optibeats, duplicatedtracks);
+    if (chmaxtl)
+    {
+        CString s2;
+        s2.Format("\nMaximal length of tracks changed to %u.", effemaxtracklen);
+        s += s2;
+    }
+    MessageBox((LPCTSTR)s, "All size optimizations", MB_OK);
+}
+
+void CRmtView::OnTrackRenumberalltracks()
+{
+    CRenumberTracksDlg dlg;
+
+    if (dlg.DoModal() == IDOK)
+    {
+        g_Song.Stop();
+
+        // Hide the tracks and song
+        g_Undo.ChangeTrack(0, 0, UETYPE_TRACKSALL, -1);
+        g_Undo.ChangeSong(0, 0, UETYPE_SONGDATA, 1);
+
+        // Type = 1 -> Order by songcolumns, Type = 2 -> Order by songlines
+        g_Song.RenumberAllTracks(dlg.m_radio);
+    }
+}
+
+void CRmtView::OnInstrumentRenumberallinstruments()
+{
+    g_Song.Stop();
+
+    CRenumberInstrumentsDlg dlg;
+    if (dlg.DoModal() == IDOK)
+    {
+        //hide instruments and tracks
+        g_Undo.ChangeInstrument(0, 0, UETYPE_INSTRSALL, -1);
+        g_Undo.ChangeTrack(0, 0, UETYPE_TRACKSALL, 1);
+        g_Song.RenumberAllInstruments(dlg.m_radio);	//type=1...remove gaps, 2=order by using in tracks, type=3...order by instrument names
+    }
+}
+
+void CRmtView::OnSetFocus(CWnd* pOldWnd)
+{
+    CView::OnSetFocus(pOldWnd);
+    g_shiftkey = g_controlkey = g_altkey = FALSE;
+    g_RmtHasFocus = 1;	// RMT main window has focus
+}
+
+void CRmtView::OnKillFocus(CWnd* pNewWnd)
+{
+    CView::OnKillFocus(pNewWnd);
+    g_RmtHasFocus = 0;	// RMT main window does not have focus
+}
+
+BOOL CRmtView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
+{
+    CRect rec;
+    ::GetWindowRect(g_viewhwnd, &rec);
+    CPoint np(pt - rec.TopLeft());
+    MouseAction(np, 0, zDelta);
+    return CView::OnMouseWheel(nFlags, zDelta, pt);
+}
+
+void CRmtView::OnEditUndo()
+{
+    g_Song.Undo();
+}
+
+void CRmtView::OnUpdateEditUndo(CCmdUI* pCmdUI)
+{
+    int u = g_Song.UndoGetUndoSteps();
+    if (u > 0)
+    {
+        pCmdUI->Enable(1);
+        CString s;
+        s.Format("&Undo (%u)\tCtrl+Z", u);
+        pCmdUI->SetText(s);
+    }
+    else
+    {
+        pCmdUI->Enable(0);
+        pCmdUI->SetText("&Undo\tCtrl+Z");
+    }
+}
+
+void CRmtView::OnEditRedo()
+{
+    g_Song.Redo();
+}
+
+void CRmtView::OnUpdateEditRedo(CCmdUI* pCmdUI)
+{
+    int u = g_Song.UndoGetRedoSteps();
+    if (u > 0)
+    {
+        pCmdUI->Enable(1);
+        CString s;
+        s.Format("&Redo (%u)\tCtrl+Y", u);
+        pCmdUI->SetText(s);
+    }
+    else
+    {
+        pCmdUI->Enable(0);
+        pCmdUI->SetText("&Redo\tCtrl+Y");
+    }
+}
+
+void CRmtView::OnEditClearUndoRedoHistory()
+{
+    g_Undo.Clear();
+}
+
+void CRmtView::OnUpdateEditClearUndoRedoHistory(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_Song.UndoGetUndoSteps() || g_Song.UndoGetRedoSteps());
+}
+
+
+void CRmtView::OnEditSwitchEditMode()
+{
+
+    SwitchEditMode(EditMode::EDIT_MODE, g_Song.IsStereo());
+}
+
+
+void CRmtView::OnUpdateEditSwitchEditMode(CCmdUI* pCmdUI)
+{
+
+    pCmdUI->Enable();
+}
+
+
+void CRmtView::OnEditActivatePokeyExplorerMode()
+{
+    SetEditMode(EditMode::POKEY_EXPLORER_MODE);
+}
+
+
+void CRmtView::OnUpdateEditActivatePokeyExplorerMode(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(IsEditMode(EditMode::POKEY_EXPLORER_MODE) ? 0 : 1);
+}
+
+
+void CRmtView::OnFileExit() // Called from the menu File/Exit ID_FILE_EXIT instead of the original ID_APP_EXIT
+{
+    if (g_Song.WarnUnsavedChanges())
+    {
+        return; // There is no exit
+    }
+    g_Song.Stop();
+    g_closeApplication = TRUE;
+    g_Song.StopTimer();
+    WriteRMTConfig();		// Save the current configuration 
+    WriteTuningConfig();	// Save the current tuning parameters 
+    AfxGetApp()->GetMainWnd()->PostMessage(WM_CLOSE, 0, 0);
+}
+
+void CRmtView::OnTrackCursorgotothespeedcolumn()
+{
+    g_Song.CursorToSpeedColumn();
+}
+
+void CRmtView::OnUpdateTrackCursorgotothespeedcolumn(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_activepart == Part::PART_TRACKS && g_Song.SongGetActiveTrack() >= 0);
+}
+
+void CRmtView::OnSongToggleNTSC()
+{
+    SetNTSC(!g_Song.IsNTSC());
+}
+
+void CRmtView::OnChannelsChannel1()
+{
+    g_ChannelControl.ToggleChannelOnOff(0);
+}
+
+void CRmtView::OnUpdateChannelsChannel1(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_ChannelControl.IsChannelOn(0));
+}
+
+void CRmtView::OnChannelsChannel2()
+{
+    g_ChannelControl.ToggleChannelOnOff(1);
+}
+
+void CRmtView::OnUpdateChannelsChannel2(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_ChannelControl.IsChannelOn(1));
+}
+
+void CRmtView::OnChannelsChannel3()
+{
+    g_ChannelControl.ToggleChannelOnOff(2);
+}
+
+void CRmtView::OnUpdateChannelsChannel3(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_ChannelControl.IsChannelOn(2));
+}
+
+void CRmtView::OnChannelsChannel4()
+{
+    g_ChannelControl.ToggleChannelOnOff(3);
+}
+
+void CRmtView::OnUpdateChannelsChannel4(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_ChannelControl.IsChannelOn(3));
+}
+
+
+void CRmtView::OnChannelsChannel5()
+{
+    g_ChannelControl.ToggleChannelOnOff(4);
+}
+
+void CRmtView::OnUpdateChannelsChannel5(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_ChannelControl.IsChannelOn(4));
+}
+
+void CRmtView::OnChannelsChannel6()
+{
+    g_ChannelControl.ToggleChannelOnOff(5);
+}
+
+void CRmtView::OnUpdateChannelsChannel6(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_ChannelControl.IsChannelOn(5));
+
+}
+
+void CRmtView::OnChannelsChannel7()
+{
+    g_ChannelControl.ToggleChannelOnOff(6);
+}
+
+
+void CRmtView::OnUpdateChannelsChannel7(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_ChannelControl.IsChannelOn(6));
+}
+
+void CRmtView::OnChannelsChannel8()
+{
+    g_ChannelControl.ToggleChannelOnOff(7);
+}
+
+
+void CRmtView::OnUpdateChannelsChannel8(CCmdUI* pCmdUI)
+{
+    pCmdUI->SetCheck(g_ChannelControl.IsChannelOn(7));
+}
+
+
+void CRmtView::OnChannelsToggleActiveChannelOnOff()
+{
+    auto channelNumber = g_Song.GetActiveColumn();
+    g_ChannelControl.ToggleChannelOnOff(channelNumber);
+}
+
+void CRmtView::OnUpdateChannelsToggleActiveChannelOnOff(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_Song.GetActiveColumn() >= 0);
+}
+
+void CRmtView::OnChannelsToggleActiveChannelSolo()
+{
+    auto channelNumber = g_Song.GetActiveColumn();
+    g_ChannelControl.SetChannelSolo(channelNumber);
+}
+
+void CRmtView::OnUpdateChannelsToggleActiveChannelSolo(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(g_Song.GetActiveColumn() >= 0);
+}
+
+void CRmtView::OnChannelsToggleAllChannelsOnOff()
+{
+    g_ChannelControl.ToggleAllChannelsOnOff();
+}
+
+void CRmtView::OnUpdateChannelsToggleAllChannelsOnOff(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(true);
+}
+
+void CRmtView::OnSongIncreasePatternStepSize()
+{
+    g_SkipLinesAfterNoteInsert++;
+    if (g_SkipLinesAfterNoteInsert > 8) { g_SkipLinesAfterNoteInsert = 0; }
+    auto mf = ((CMainFrame*)AfxGetMainWnd());
+    if (mf) { mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_SkipLinesAfterNoteInsert); }
+}
+
+void CRmtView::OnSongDecreasePatternStepSize()
+{
+    g_SkipLinesAfterNoteInsert--;
+    if (g_SkipLinesAfterNoteInsert < 0) { g_SkipLinesAfterNoteInsert = 8; }
+    auto mf = ((CMainFrame*)AfxGetMainWnd());
+    if (mf) { mf->m_comboSkipLinesAfterNoteInsert.SetCurSel(g_SkipLinesAfterNoteInsert); }
+}
+
+// Tools > Run Script...: a script (doc/rmt_scripting.md) on the current
+// session, as the Java port's command - the message boxes stay boxes, the
+// commands' output is shown once at the end.
+void CRmtView::OnToolsRunScript()
+{
+    g_Song.Stop();
+    CFileDialog dlg(TRUE, "rmtscript", NULL, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST, "RMT script files (*.rmtscript;*.txt)|*.rmtscript;*.txt|All files (*.*)|*.*||");
+    dlg.m_ofn.lpstrTitle = "Run script file";
+    if (dlg.DoModal() != IDOK) {
+        return;
+    }
+    CString path = dlg.GetPathName();
+    CString name = dlg.GetFileName();
+    std::string output;
+    CScriptRunner runner(g_Song);
+    int code = runner.RunInteractive(path, output);
+    CString text;
+    if (code == CScriptRunner::EXIT_OK) {
+        text.Format("Script '%s' finished.\n\n%s", (LPCTSTR)name, output.c_str());
+        SendInformationMessage("Run Script", text);
+    } else {
+        text.Format("Script '%s' failed (exit code %d).\n\n%s", (LPCTSTR)name, code, output.c_str());
+        SendErrorMessage("Run Script", text);
+    }
+    Invalidate();
+}

@@ -1,0 +1,23 @@
+# Cross-program comparison script (see plans/22_CPP_SCRIPTING_PLAN.md): the
+# stereo reference song through the saves and every export format.
+set output out/stereo
+set overwrite yes
+open "../ui-reference/song2-stereo/Why_Do_You_Dance_With_Me-132-$4000.rmt"
+
+save stereo.rmt
+save stereo.txt
+save stereo.rmw
+
+export stripped-rmt s1.rmt
+export asm s1.asm
+export sapr s1.sapr date="01/01/2026"
+export lzss s1.lzss
+# no sap/xex: this song's compressed stream does not fit the LZSS player's
+# memory ("LZSS data is too big to fit in memory" - both programs refuse it)
+export rmtplayer-asm s1_player.asm
+export wav s1.wav
+
+export stripped-rmt s2.rmt address=$4800 sfx=yes
+export asm s2.asm type=song prefix=ST
+export rmtplayer-asm s2_player.asm relocate=tracks asmformat=atasm
+echo stereo done

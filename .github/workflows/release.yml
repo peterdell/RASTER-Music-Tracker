@@ -1,0 +1,173 @@
+name: Release (Java port)
+
+# Builds a portable, no-install-needed app image of the Java port for
+# Windows, Linux and macOS via jpackage (bundling the JVM, so end users need
+# no Java install of their own) and publishes them as assets on a GitHub
+# Release. Same shape as dis6502's release workflow; the RMT specifics are
+# the rmt/ distribution layout staged next to the jar (see
+# build/stage_java_release.sh) and the WUDSN Base dependency built first.
+#
+# Trigger: push a tag matching v*, e.g. `git tag v1.35.0 && git push origin v1.35.0`
+# (the Java port ships as the same 1.35 line the C++ program is at; the
+# version string is also a file-format marker, so it stays 1.35).
+#
+# Can also be run manually (workflow_dispatch):
+# - With the release_tag input left empty: a plain test build - no release is
+#   published, only build artifacts you can download from the workflow run.
+# - With release_tag set to an EXISTING release's tag (e.g. v1.35.0): rebuilds
+#   whatever the triggering branch currently is and republishes those binaries
+#   to that release, without moving the git tag itself.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing release tag to rebuild and republish assets for (leave empty for a plain test build)"
+        required: false
+        type: string
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows
+            icon: RASTER-Music-Tracker/src/cpp/res/application.ico
+          - os: macos-latest
+            platform: macos
+            icon: ""
+          - os: ubuntu-latest
+            platform: linux
+            icon: RASTER-Music-Tracker/src/java/org/atari/raster/rmt/ui/application.png
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout RASTER Music Tracker
+        uses: actions/checkout@v5
+        with:
+          path: RASTER-Music-Tracker
+
+      - name: Checkout WUDSN-Base
+        uses: actions/checkout@v5
+        with:
+          repository: wudsn/wudsn-base
+          path: wudsn-base
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Install WUDSN-Base into the local Maven repo
+        run: mvn -B -ntp install
+        working-directory: wudsn-base
+
+      - name: Build the shaded jar
+        # The tests run as part of the build; the one needing a display skips itself headless.
+        run: mvn -B -ntp package
+        working-directory: RASTER-Music-Tracker
+
+      - name: Stage the distribution layout
+        shell: bash
+        run: bash RASTER-Music-Tracker/build/stage_java_release.sh stage
+
+      - name: Determine app version
+        id: version
+        shell: bash
+        env:
+          RELEASE_TAG_INPUT: ${{ github.event.inputs.release_tag }}
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            TAG="${GITHUB_REF_NAME}"
+          elif [[ -n "${RELEASE_TAG_INPUT}" ]]; then
+            TAG="${RELEASE_TAG_INPUT}"
+          fi
+          if [[ -n "${TAG:-}" ]]; then
+            echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=1.35.0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build portable app image with jpackage
+        shell: bash
+        env:
+          ICON: ${{ matrix.icon }}
+        run: |
+          ICON_ARGS=()
+          if [[ -n "${ICON}" ]]; then
+            ICON_ARGS=(--icon "${ICON}")
+          fi
+          jpackage \
+            --type app-image \
+            --name rmt \
+            --input stage \
+            --main-jar rmt.jar \
+            --main-class org.atari.raster.rmt.ui.RmtApplication \
+            --app-version "${{ steps.version.outputs.version }}" \
+            --description "RASTER Music Tracker (Java port)" \
+            --vendor "wudsn.com" \
+            --add-modules ALL-MODULE-PATH \
+            "${ICON_ARGS[@]}" \
+            --dest dist
+
+      - name: Archive app image (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: Compress-Archive -Path dist/rmt -DestinationPath rmt-java-windows-x64.zip
+
+      - name: Archive app image (Linux)
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: tar czf rmt-java-linux-x64.tar.gz -C dist rmt
+
+      - name: Archive app image (macOS)
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: tar czf rmt-java-macos.tar.gz -C dist rmt.app
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rmt-java-${{ matrix.platform }}
+          path: rmt-java-${{ matrix.platform }}*.*
+          if-no-files-found: error
+
+  release:
+    if: github.ref_type == 'tag' || github.event.inputs.release_tag != ''
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Determine release tag
+        id: tag
+        shell: bash
+        env:
+          RELEASE_TAG_INPUT: ${{ github.event.inputs.release_tag }}
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${RELEASE_TAG_INPUT}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # tag_name targets an existing release/tag when republishing via
+      # release_tag - the action updates that release's assets/notes in
+      # place rather than creating a new one, and does not move the git tag.
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          files: artifacts/*/*
+          generate_release_notes: true

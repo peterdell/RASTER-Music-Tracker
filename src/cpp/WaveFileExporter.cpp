@@ -1,0 +1,106 @@
+#include "AtariTrackerDriver.h"
+#include "AtariTrackerDriver.h"
+#include "Global.h"
+#include "LZSSFile.h"
+#include "Messages.h"
+#include "StdAfx.h"
+#include "WaveFile.h"
+#include "WaveFileExporter.h"
+
+extern CAtariTrackerDriver* g_AtariTrackerDriver;
+
+bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CXPokey& pokey, byte* memory) {
+    CWaveFile wavefile{};
+
+    BYTE* buffer = NULL;
+    BYTE* streambuffer = NULL;
+    const WAVEFORMATEX* wfm = NULL;
+    int length = 0, frames = 0, offset = 0;
+    const int frameSize = CLZSSFile::GetFrameSize(songExport.GetSong());
+
+    ou.close(); // hack, just to be able to actually use the filename for now...
+
+    if (!(wfm = pokey.GetSoundFormat())) {
+        SendErrorMessage("Wave Export Failed", "Could not get sound format!");
+        return false;
+    }
+
+    if (!wavefile.OpenFile(songExport.GetFilePath().GetBuffer(), wfm->nSamplesPerSec, wfm->wBitsPerSample, wfm->nChannels)) {
+        SendErrorMessage("Wave Export Failed", "Could not get sound format!");
+        return false;
+    }
+
+    // Dump the POKEY registers from full song playback
+    CPokeyStream& pokeyStream = songExport.GetSongContainer().GetModifiablePokeyStream();
+
+    // Busy writing! The timing overlap the old note here asked about is real:
+    // the timer thread would render through the same POKEY
+    // (CSong::TimerRoutine -> RenderSound1_50) while this renders through
+    // RenderSoundV2, and the WRITE state below does not stop it - the song's
+    // m_pokeyStream is already null once DumpSongToPokeyStream() returned.
+    // Reproduced with a script run (Rmt.exe /SCRIPT): the export crashed
+    // mid-file with a different length each time. The timer is stopped for
+    // the whole export by the caller's CExportSection (GuiHelpers.h).
+    pokeyStream.SetState(CPokeyStream::WRITE);
+
+    g_AtariTrackerDriver->Init(); // Reset the Atari memory
+    g_ChannelControl.SetAllChannelsOn();
+
+    // Create the sound buffer to copy from and to
+    auto bufferSize = CXPokey::BUFFER_SIZE;
+    buffer = new BYTE[CXPokey::BUFFER_SIZE];
+    memset(buffer, 0x80, bufferSize);
+
+    while (frames < pokeyStream.GetFirstCountPoint()) {
+        // Copy the SAP-R bytes to memory for this frame
+        streambuffer = pokeyStream.GetStreamBuffer() + frames * frameSize;
+
+        //for (int i = 0; i < frameSize; i++)
+        //{
+        //	memory[0xd200 + i] = streambuffer[i];
+        //}
+
+        if (frameSize == 18) {
+            // Stereo: CPokeyStream::Record() stores the second POKEY's 9 bytes first, then the first POKEY's
+            // ("1st POKEY is 2nd in the stream"). Tracks 4-7 / v_audctl2 are what SetPokey writes to $D210-$D218.
+            for (int i = 0; i < 4; i++) {
+                memory[RMTPLAYR_TRACKN_AUDF + i] = streambuffer[0x09 + i * 2];
+                memory[RMTPLAYR_TRACKN_AUDC + i] = streambuffer[0x0A + i * 2];
+                memory[RMTPLAYR_TRACKN_AUDF + 4 + i] = streambuffer[0x00 + i * 2];
+                memory[RMTPLAYR_TRACKN_AUDC + 4 + i] = streambuffer[0x01 + i * 2];
+            }
+            memory[RMTPLAYR_V_AUDCTL] = streambuffer[0x11];
+            memory[RMTPLAYR_V_AUDCTL2] = streambuffer[0x08];
+        } else {
+            memory[RMTPLAYR_TRACKN_AUDF + 0] = streambuffer[0x00];
+            memory[RMTPLAYR_TRACKN_AUDF + 1] = streambuffer[0x02];
+            memory[RMTPLAYR_TRACKN_AUDF + 2] = streambuffer[0x04];
+            memory[RMTPLAYR_TRACKN_AUDF + 3] = streambuffer[0x06];
+            memory[RMTPLAYR_TRACKN_AUDC + 0] = streambuffer[0x01];
+            memory[RMTPLAYR_TRACKN_AUDC + 1] = streambuffer[0x03];
+            memory[RMTPLAYR_TRACKN_AUDC + 2] = streambuffer[0x05];
+            memory[RMTPLAYR_TRACKN_AUDC + 3] = streambuffer[0x07];
+            memory[RMTPLAYR_V_AUDCTL] = streambuffer[0x08];
+        }
+
+        // Fill the POKEY buffer with 1 rendered chunk
+        pokey.RenderSoundV2(songExport.GetSong().GetInstrumentSpeed(), buffer, length);
+
+        // Write the buffer to WAV file
+        wavefile.WriteWave(buffer, length);
+
+        // Update the PokeyStream offset for the next frame
+        frames++;
+    }
+
+    g_ChannelControl.SetAllChannelsOff();
+
+    // Finished doing WAV things...
+    wavefile.CloseFile();
+
+    // Also make sure to delete the buffer once it's no longer needed
+    delete buffer;
+
+    // TODO: Set channels on again?
+    return true;
+}

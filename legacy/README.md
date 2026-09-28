@@ -1,6 +1,4 @@
-\#Legacy
-
-
+# Legacy
 
 This folder contains files from the original RMT by Radek Sterba, Raster/C.P.U., 2002-2009.
 

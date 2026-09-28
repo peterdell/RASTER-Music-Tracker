@@ -1,0 +1,245 @@
+// Rmt.cpp : Defines the class behaviors for the application.
+// originally made by Raster, 2002-2009
+// reworked by VinsCool, 2021-2022
+//
+
+#include "AboutDialog.h"
+#include "Commands.h"
+#include "Global.h"
+#include "MainFrm.h"
+#include "Messages.h"
+#include "PokeyRenderer.h" // CXPokey g_Pokey (used to come in through the developer test headers)
+#include "Rmt.h"
+#include "RmtCommandLineInfo.h"
+#include "RmtDoc.h"
+#include "RmtVersion.h"
+#include "RmtView.h"
+#include "Shell.h"
+#include "ScriptRunner.h"
+#include "Song.h"
+#include "StdAfx.h"
+
+
+// Activate MFC memory leak detection.
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
+#endif
+
+extern void SetProgramFolderPath(const CString& folderPath); // See Global.cpp
+extern CStatusBar* g_statusBar; // See GuiHelpers.cpp
+
+// Some information for the about box is supplied by components outside this file
+extern CString g_about6502;
+extern CAtari g_Atari;
+extern CAtariTrackerDriver* g_AtariTrackerDriver;
+extern CXPokey g_Pokey;
+extern CSong g_Song;
+
+/////////////////////////////////////////////////////////////////////////////
+// CRmtApp
+
+BEGIN_MESSAGE_MAP(CRmtApp, CWinApp)
+
+    // Standard file based document commands
+    ON_COMMAND(ID_FILE_NEW, CWinApp::OnFileNew)
+    ON_COMMAND(ID_FILE_OPEN, CWinApp::OnFileOpen)
+    // Standard print setup command
+    ON_COMMAND(ID_FILE_PRINT_SETUP, CWinApp::OnFilePrintSetup)
+    ON_COMMAND(ID_HELP_HELP_TOPICS, CRmtApp::OnHelp)
+    ON_COMMAND(ID_HELP_ONLINE_HELP, CRmtApp::OnHelpOnlineHelp) // TODO: Should be real context help instead
+    ON_COMMAND(ID_HELP_ABOUT_APP, CRmtApp::OnHelpAboutApp)
+END_MESSAGE_MAP()
+
+/////////////////////////////////////////////////////////////////////////////
+// CRmtApp construction
+
+CRmtApp::CRmtApp() :CWinApp("RMT")
+{
+    // Place all significant initialization in InitInstance.
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// This declaration ensures that there is excatly one app instance.
+// This should be the only static variable in the solution.
+
+CRmtApp g_app;
+
+/////////////////////////////////////////////////////////////////////////////
+// CRmtApp initialization
+
+BOOL CRmtApp::InitInstance()
+{
+    // Set the registry key under which our settings are stored.
+    // This is a standard AFX feafture.
+    // The subtree has this structure:
+    // - RMT (the app name specifed in the constructor)
+    // - RMT/Frame: Main window position and size.
+    // - RMT/Recent File List: MRU list of files.
+    // - RMT/Settings: Not used.
+    SetRegistryKey(_T("RASTER Music Tracker"));
+
+    // Initialize the COM library on the current thread and identifies the concurrency model as single-thread apartmen
+    CoInitialize(NULL);
+
+    // Register the application's document templates. Document templates
+    // serve as the connection between documents, frame windows and views.
+
+    CSingleDocTemplate* pDocTemplate;
+    pDocTemplate = new CSingleDocTemplate(
+        IDR_MAIN_WINDOW,
+        RUNTIME_CLASS(CRmtDoc),
+        RUNTIME_CLASS(CMainFrame),       // main SDI frame window
+        RUNTIME_CLASS(CRmtView));
+    AddDocTemplate(pDocTemplate);
+
+    // Load standard INI file contents including MRU)
+    LoadStdProfileSettings();
+
+    // Determine program folder as base folder for resources.
+    CString fullPath;
+    auto pathLen = ::GetModuleFileName(NULL, fullPath.GetBufferSetLength(MAX_PATH + 1), MAX_PATH);
+    fullPath.ReleaseBuffer(pathLen); // Note that ReleaseBuffer doesn't need a +1 for the null byte.
+    auto nPos = fullPath.ReverseFind('\\');
+    if (nPos != -1) {
+        fullPath = fullPath.Left(nPos + 1);
+    }
+    SetProgramFolderPath(fullPath);
+
+
+    // INITIAL 6502 INITIALIZATION (DLL)
+    if (!g_Atari.Init())
+    {
+        g_Atari.DeInit();
+        exit(1);
+    }
+
+
+    g_tuning.Initialize(g_Song.IsNTSC());
+    g_tuningRatios.Initialize();
+
+    // Intitilaize the Atari computer.
+    g_Atari.Init(g_Song.IsNTSC());
+
+    // Initialize Atari RMT routines.
+    g_AtariTrackerDriver = new CAtariTrackerDriver(g_Atari);
+    g_AtariTrackerDriver->LoadRMTRoutines(g_trackerDriverVersion);
+    g_AtariTrackerDriver->Init();
+
+
+    g_Song.ClearSong(8);
+    g_SongUI = new CSongUI(g_Song);
+
+
+
+    // Parse the command line for standard shell commands, DDE, file open.
+    CRmtCommandLineInfo cmdInfo;
+    ParseCommandLine(cmdInfo);
+
+    // A script run keeps the window hidden - the register dump needs its
+    // message pump, not its pixels - unless RMT_SCRIPT_SHOW_WINDOW is set,
+    // which shows what the script does (for debugging, and for timing the
+    // exports as the window user sees them). MFC shows the frame itself
+    // while processing the shell command (CFrameWnd::ActivateFrame with
+    // m_nCmdShow, which CMainFrame::PreCreateWindow sets from the saved
+    // placement), so the decision is made here, before that, as m_nCmdShow.
+    bool showWindow = !cmdInfo.IsScriptFileSpecified();
+    if (!showWindow) {
+        char* show = nullptr;
+        size_t showLength = 0;
+        if (_dupenv_s(&show, &showLength, "RMT_SCRIPT_SHOW_WINDOW") == 0 && show != nullptr) {
+            showWindow = *show != 0 && *show != '0';
+            free(show);
+        }
+    }
+    if (!showWindow) {
+        m_nCmdShow = SW_HIDE;
+    }
+
+    // Dispatch the standard commands specified on the command line.
+    // Will return FALSE if the app was launched with /RegServer, /Register, /Unregserver or /Unregister.
+    if (!ProcessShellCommand(cmdInfo))
+    {
+        return FALSE;
+    }
+
+    // The one and only window has been initialized, so show and update it
+    auto mainFrame = (CMainFrame*)GetMainWnd();
+    g_statusBar = &mainFrame->m_wndStatusBar;
+    if (showWindow) {
+        m_pMainWnd->ShowWindow(SW_SHOW);
+        m_pMainWnd->UpdateWindow();
+    } else {
+        m_pMainWnd->ShowWindow(SW_HIDE);
+    }
+
+    // Initialize the random number based on the current time.
+    srand((unsigned int)time(NULL));
+
+    // Dispatch additional interactive commands specified on the command line.
+    switch (cmdInfo.m_nShellCommand) {
+    case CCommandLineInfo::FileOpen:
+        g_Song.FileOpen(cmdInfo.m_strFileName, FALSE);
+        break;
+    }
+
+    // /SCRIPT:<file>: run the script (doc/rmt_scripting.md) and exit with its
+    // code - the same format the Java port runs. Messages go to the console
+    // the program was started from, or to <file>.log.
+    if (cmdInfo.IsScriptFileSpecified()) {
+        AttachScriptConsole(cmdInfo.GetScriptFilePath());
+        CScriptRunner runner(g_Song);
+        char* outputOverride = nullptr;
+        size_t outputOverrideLength = 0;
+        if (_dupenv_s(&outputOverride, &outputOverrideLength, "RMT_SCRIPT_OUTPUT") == 0 && outputOverride != nullptr) {
+            if (*outputOverride) {
+                runner.SetOutputFolder(std::filesystem::path(outputOverride)); // the cross-program comparison runs one script into two folders
+            }
+            free(outputOverride);
+        }
+        m_scriptExitCode = runner.RunFile(cmdInfo.GetScriptFilePath());
+        return FALSE; // MFC's normal shutdown (the window destroyed, the timer stopped, the sound released); ExitInstance() returns the script's code
+    }
+
+    return TRUE;
+}
+
+int CRmtApp::ExitInstance() {
+    int result = CWinApp::ExitInstance();
+    return m_scriptExitCode >= 0 ? m_scriptExitCode : result; // a script run's exit code (InitInstance() == FALSE would otherwise always exit with 0)
+}
+
+CString CRmtApp::GetVersionAndBuild() const {
+    CString version = RMT_VERSION_STRING;
+    CString result;
+
+    result.Format("%s (%s %s)", version, __DATE__, __TIME__);
+    return result;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// CRmtApp message handlers
+
+
+void CRmtApp::OnHelp()
+{
+    if (!helpOpened) {
+        helpOpened = true;
+        CShell::OpenLocalFile(GetResourceFilePath(std::filesystem::path("docs"), "rmt_en.html"));
+        helpOpened = false;
+    }
+}
+
+
+void CRmtApp::OnHelpOnlineHelp()
+{
+
+    CShell::OpenFile("https://github.com/raster-atari-org/RASTER-Music-Tracker/blob/1.35/doc/rmt_en.md");
+
+}
+
+void CRmtApp::OnHelpAboutApp()
+{
+    CAboutDialog::Show(g_about6502, g_Pokey.GetPokey()->GetAbout());
+}

@@ -1,0 +1,5 @@
+# Shell scripts and workflow files must stay LF: they run on Linux/macOS
+# runners (a CRLF shebang breaks bash), whatever core.autocrlf says.
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf

@@ -1,7 +1,9 @@
 @echo off
 cd "%~dp0"
 
+setlocal
 set RELEASE=Rmt
+set CONFIGURATION=%1
 set BASE_DIR=C:\jac\system\Windows\Programming\Repositories\RASTER-Music-Tracker
 set TARGET_FILE=rmt135-daily.zip
 
@@ -20,22 +22,41 @@ set RELEASE_BASE_DIR=%TEMP%\%RELEASE%\
 rmdir /S /Q %RELEASE_BASE_DIR%
 mkdir %RELEASE_BASE_DIR%
 
+if not [%CONFIGURATION%]==[] goto :build_specified_configuration
+
+REM Build both configurations and upload the result. The release needs the
+REM Java port's jar: the pre-build generates the HTML documentation with it
+REM and the export comparison below runs against it.
+if not exist %BASE_DIR%\target\rmt.jar goto :jar_missing_error
 set CONFIGURATION=Debug
 call :build_configuration
+
 set CONFIGURATION=Release
 call :build_configuration
 
+call :dump_actions
+call :compare_exports
 call :upload
 echo Done.
 pause
 goto :eof
+
+REM Build only the specified configurations and do not upload.
+:build_specified_configuration
+call :build_configuration
+goto: eof
+
 
 :build_configuration
 set CONFIGURATION_DIR=%CONFIGURATION%
 set OUTPUT_DIR=%BASE_DIR%\out\%CONFIGURATION_DIR%\output
 set RESULT_EXE=%OUTPUT_DIR%\%RELEASE%.exe
 echo INFO: Buidling %RESULT_EXE% for configuration %CONFIGURATION%.
-if exist %RESULT_EXE% del %RESULT_EXE%
+rem Wipe the output directory completely before building, so the release
+rem zip below never picks up a file that was since removed from rmt/ (the
+rem normal dev-loop build no longer does this - see build_rmt_pre.bat -
+rem so this is the only place that still guarantees a clean copy).
+if exist %OUTPUT_DIR% del /Q /S %OUTPUT_DIR% >nul
 %MSBUILD% %SLN% /property:Configuration=%CONFIGURATION% -fl -flp:logfile=%OUTPUT_DIR%\msbuild.log
 if not exist %RESULT_EXE% goto :build_failed_error
 
@@ -57,6 +78,30 @@ cd %TARGET_DIR%
 call %UPLOAD% productions
 goto :eof
 
+rem The command table doc\rmt_action_infos.md, regenerated from the release
+rem build's resources (the "dump actions" script command,
+rem plans/23_DOC_GENERATION_PLAN.md): a "git diff" shows what a menu change did,
+rem an ERROR marker (an inconsistency in Rmt.rc) stops the build.
+:dump_actions
+set RMT_SCRIPT_OUTPUT=%BASE_DIR%\doc
+set RMT_SCRIPT_LOG=%OUTPUT_DIR%\actions.log
+start /wait %RESULT_EXE% /SCRIPT:%BASE_DIR%\test-resources\scripts\actions.rmtscript
+set DUMP_RESULT=%ERRORLEVEL%
+set RMT_SCRIPT_OUTPUT=
+set RMT_SCRIPT_LOG=
+type %OUTPUT_DIR%\actions.log
+if not %DUMP_RESULT%==0 goto :dump_failed_error
+goto :eof
+
+rem The cross-program export comparison (compare_exports.ps1): the release
+rem build's Rmt.exe against the Java port's target\rmt.jar. A difference is
+rem a port bug in one of the two programs, so it stops the daily build
+rem before the upload.
+:compare_exports
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0compare_exports.ps1"
+if ERRORLEVEL 1 goto :compare_failed_error
+goto :eof
+
 :copy_output
 set RELEASE_DIR=%RELEASE_BASE_DIR%\%CONFIGURATION%
 mkdir %RELEASE_DIR%
@@ -73,6 +118,18 @@ goto :error
 
 :build_failed_error
 echo ERROR: %RESULT_EXE% was not created.
+goto :error
+
+:compare_failed_error
+echo ERROR: The exports of Rmt.exe and the Java port differ, see above.
+goto :error
+
+:jar_missing_error
+echo ERROR: %BASE_DIR%\target\rmt.jar not built - run "mvn -o package" first.
+goto :error
+
+:dump_failed_error
+echo ERROR: The command table has ERROR markers (an inconsistency in Rmt.rc), see doc\rmt_action_infos.md.
 
 :error
 echo ERROR: See error messages above.

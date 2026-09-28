@@ -24,12 +24,28 @@ Please provide your feedback about the daily version via one of the following ch
 
 ### Documentation
 
-- Current [RMT 1.35 Documentation](https://html-preview.github.io/?url=https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_en.html)
+- Current [RMT 1.35 Documentation](https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_en.md)
 - Original [RMT 1.28 documentation](https://html-preview.github.io/?url=https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_en_128.html)
 
 Technical Documentation
 - Current [RMT Tracker documentation](https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_tracker.md) and discussion
 - Current [RMT Module File Format documentation](https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_format.md) and discussion
+
+
+### Java port
+
+This repository also contains a Java/Swing port of RMT 1.35 (`src/java`), developed side by side with the C++ program so RMT can run on Windows, Linux and macOS.
+The port covers the tracker, the editors, the import/export formats and real-time sound; the emulated 6502 and POKEY come from [ASAP](https://asap.sourceforge.net).
+Not ported: printing, MIDI input and the Pokey Explorer.
+
+- Build and test: `mvn package` from the repository root (needs Java 21, Maven and the [WUDSN Base](https://github.com/wudsn/wudsn-base) libraries installed with `mvn install`).
+  The result is the runnable `target/rmt.jar`; `mvn test` runs the tests alone.
+- Run: `java -jar target/rmt.jar [song.rmt]`. The program folder is the jar's folder (or `-Drmt.config.dir=<folder>`); it holds `rmt.ini`/`tuning.ini` and, as for `Rmt.exe`, the `rmt/` layout (`resources/`, `docs/`, `instruments/`, `songs/`). From a checkout the `rmt/` sub-folder is found automatically.
+- Scripting: `java -jar rmt.jar /SCRIPT:<file>` runs a script (open, export in any format, save) without a window, for batch files and CI; Tools > Run Script runs one from the window. `Rmt.exe /SCRIPT:<file>` runs the same scripts. See the [scripting documentation](doc/rmt_scripting.md). The scripts in `test-resources/scripts` run through both programs (`build/compare_exports.ps1`, the test `CrossProgramExportTest`) and every exported file must be byte-identical.
+- Eclipse: import the repository root ("Existing Projects into Workspace", Maven Integration) and use `launch/Rmt.launch`.
+- Releases: pushing a tag `v1.35.<n>` runs `.github/workflows/release.yml`, which builds portable app images with a bundled Java runtime for Windows, Linux and macOS (`build/stage_java_release.sh` stages the layout) and attaches them to a GitHub Release.
+- Documentation: the Markdown files in `doc/` are the source. Both distributions ship them as HTML in `docs/`, generated during the build by the jar's `DocGenerator` (see `plans/23_DOC_GENERATION_PLAN.md`).
+- The port's plans and notes are in `plans/` (`13_JAVA_PORT_PLAN.md`, `18_JAVA_UI_PORT_PLAN.md`, `NOTES.md`).
 
 
 ### Main features:

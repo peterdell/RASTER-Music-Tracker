@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{9C6C52DE-D787-4D5B-8738-837AA9DD020C}</ProjectGuid>
+    <Keyword>MFCProj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v145</PlatformToolset>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v145</PlatformToolset>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <!-- Enables Visual Studio's built-in Clang-Tidy analysis (Analyze > Run
+       Code Analysis, and live in-editor squiggles) to enforce
+       plans/CPP_RULES.md's "always brace if/else/for/while/do" rule. Only
+       affects on-demand/background analysis, not normal Build/Rebuild.
+       ClangTidyChecks must be kept in sync with the repo-root .clang-tidy
+       file - Visual Studio's integration always passes its own -checks=
+       argument, which would otherwise override that file's Checks: key. -->
+  <PropertyGroup>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
+    <ClangTidyChecks>-*,readability-braces-around-statements,readability-misleading-indentation</ClangTidyChecks>
+    <ClangTidyHeaderFilter>^$</ClangTidyHeaderFilter>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)out\Release\test\</OutDir>
+    <IntDir>$(SolutionDir)out\Release\test-intermediate\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)out\Debug\test\</OutDir>
+    <IntDir>$(SolutionDir)out\Debug\test-intermediate\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>NDEBUG;WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>..;googletest\include;googletest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>$(OutDir)RmtTests.exe</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>_DEBUG;WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>..;googletest\include;googletest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>$(OutDir)RmtTests.exe</OutputFile>
+      <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <!-- Vendored GoogleTest (see googletest/README.md), compiled as a single translation unit. -->
+    <ClCompile Include="googletest\src\gtest-all.cc" />
+    <ClCompile Include="googletest\src\gtest_main.cc" />
+    <!-- Production sources under test, compiled directly into the test binary. -->
+    <ClCompile Include="..\Fraction.cpp" />
+    <ClCompile Include="..\StringUtility.cpp" />
+    <ClCompile Include="..\Notes.cpp" />
+    <ClCompile Include="..\TuningTypes.cpp" />
+    <!-- Tuning.cpp deliberately excludes TuningTables.cpp/InitTuning()'s global-state
+         orchestration (see TuningTables.cpp's header comment) - only the pure pitch-math
+         methods below are compiled here, with no dependency on Global.h. -->
+    <ClCompile Include="..\Tuning.cpp" />
+    <ClCompile Include="..\TuningTables.cpp" />
+    <ClCompile Include="TuningTablesStub.cpp" />
+    <ClCompile Include="..\lzss_sap.cpp" />
+    <ClCompile Include="..\Tracks.cpp" />
+    <ClCompile Include="..\TracksEdit.cpp" />
+    <ClCompile Include="..\IO_Tracks.cpp" />
+    <ClCompile Include="..\IOHelpers.cpp" />
+    <ClCompile Include="..\InstrumentsCore.cpp" />
+    <ClCompile Include="..\InstrumentsAtaFormat.cpp" />
+    <ClCompile Include="..\IO_Instruments.cpp" />
+    <ClCompile Include="..\Instruments.cpp" />
+    <ClCompile Include="InstrumentsStub.cpp" />
+    <ClCompile Include="..\SAPFile.cpp" />
+    <ClCompile Include="..\SAPFileExporterCore.cpp" />
+    <ClCompile Include="..\VUPlayer.cpp" />
+    <ClCompile Include="..\AtariBinaries.cpp" />
+    <ClCompile Include="AtariBinariesStub.cpp" />
+    <ClCompile Include="..\Messages.cpp" />
+    <ClCompile Include="..\LZSSFile.cpp" />
+    <ClCompile Include="SAPFileStub.cpp" />
+    <ClCompile Include="..\Keyboard2NoteMapping.cpp" />
+    <ClCompile Include="Keyboard2NoteMappingStub.cpp" />
+    <ClCompile Include="..\ASMFileBuilder.cpp" />
+    <ClCompile Include="..\ASMFileExporterCore.cpp" />
+    <ClCompile Include="..\ChannelControl.cpp" />
+    <ClCompile Include="..\RmtCommandLineInfo.cpp" />
+    <ClCompile Include="..\Script.cpp" />
+    <ClCompile Include="..\PokeyStream.cpp" />
+    <ClCompile Include="PokeyStreamStub.cpp" />
+    <ClCompile Include="..\Atari.cpp" />
+    <ClCompile Include="AtariStub.cpp" />
+    <ClCompile Include="..\AtariTrackerDriverCore.cpp" />
+    <ClCompile Include="..\AtariTrackerDriver.cpp" />
+    <ClCompile Include="..\SongCore.cpp" />
+    <ClCompile Include="..\PokeyController.cpp" />
+    <ClCompile Include="..\SongEditing.cpp" />
+    <ClCompile Include="..\ClipboardCore.cpp" />
+    <ClCompile Include="..\AtariIO.cpp" />
+    <ClCompile Include="..\RmtExporterCore.cpp" />
+    <ClCompile Include="..\Song_DumpSong.cpp" />
+    <ClCompile Include="..\SongContainer.cpp" />
+    <ClCompile Include="..\SongExport.cpp" />
+    <ClCompile Include="..\PokeyCore.cpp" />
+    <ClCompile Include="..\PokeyRendererCore.cpp" />
+    <ClCompile Include="..\WaveFile.cpp" />
+    <ClCompile Include="..\WaveFileExporter.cpp" />
+    <ClCompile Include="..\SongExporterCore.cpp" />
+    <ClCompile Include="..\IO_ImporterCore.cpp" />
+    <ClCompile Include="Song_DumpSongStub.cpp" />
+    <ClCompile Include="..\Undo.cpp" />
+    <ClCompile Include="UndoStub.cpp" />
+    <ClCompile Include="SongEditingStub.cpp" />
+    <!-- Test sources. -->
+    <ClCompile Include="FractionTests.cpp" />
+    <ClCompile Include="MessagesTests.cpp" />
+    <ClCompile Include="StringUtilityTests.cpp" />
+    <ClCompile Include="NotesTests.cpp" />
+    <ClCompile Include="TuningTypesTests.cpp" />
+    <ClCompile Include="TuningTests.cpp" />
+    <ClCompile Include="LzssTests.cpp" />
+    <ClCompile Include="TracksTests.cpp" />
+    <ClCompile Include="InstrumentsTests.cpp" />
+    <ClCompile Include="SAPFileTests.cpp" />
+    <ClCompile Include="Keyboard2NoteMappingTests.cpp" />
+    <ClCompile Include="ASMFileBuilderTests.cpp" />
+    <ClCompile Include="ChannelControlTests.cpp" />
+    <ClCompile Include="RmtCommandLineInfoTests.cpp" />
+    <ClCompile Include="ScriptTests.cpp" />
+    <ClCompile Include="PokeyStreamTests.cpp" />
+    <ClCompile Include="AtariTests.cpp" />
+    <ClCompile Include="SongTests.cpp" />
+    <ClCompile Include="SongEditingTests.cpp" />
+    <ClCompile Include="UndoTests.cpp" />
+    <ClCompile Include="AtariTrackerDriverTests.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Fraction.h" />
+    <ClInclude Include="..\StringUtility.h" />
+    <ClInclude Include="..\Notes.h" />
+    <ClInclude Include="..\StdAfx.h" />
+    <ClInclude Include="..\TuningTypes.h" />
+    <ClInclude Include="..\Tuning.h" />
+    <ClInclude Include="..\C6502.h" />
+    <ClInclude Include="..\lzss_sap.h" />
+    <ClInclude Include="..\Tracks.h" />
+    <ClInclude Include="..\TracksTypes.h" />
+    <ClInclude Include="..\TrackTypes.h" />
+    <ClInclude Include="..\IOHelpers.h" />
+    <ClInclude Include="..\Instruments.h" />
+    <ClInclude Include="..\InstrumentTypes.h" />
+    <ClInclude Include="..\SAPFile.h" />
+    <ClInclude Include="..\Keyboard2NoteMapping.h" />
+    <ClInclude Include="..\ASMFileBuilder.h" />
+    <ClInclude Include="..\ChannelControl.h" />
+    <ClInclude Include="..\RmtCommandLineInfo.h" />
+    <ClInclude Include="..\Script.h" />
+    <ClInclude Include="..\PokeyStream.h" />
+    <ClInclude Include="..\Atari.h" />
+    <ClInclude Include="..\Song.h" />
+    <ClInclude Include="..\Undo.h" />
+    <ClInclude Include="..\Clipboard.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="googletest\LICENSE" />
+    <None Include="googletest\README.md" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

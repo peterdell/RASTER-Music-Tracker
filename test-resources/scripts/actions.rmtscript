@@ -1,0 +1,9 @@
+# Cross-program comparison script (see plans/23_DOC_GENERATION_PLAN.md): the
+# command table of the program - every menu item, toolbar button and
+# accelerator with its prompt - and the note keys of both keyboard layouts.
+# doc/rmt_action_infos.md and doc/rmt_note_keys.md are these files, written
+# by build_rmt-daily.bat with RMT_SCRIPT_OUTPUT=doc; both programs must
+# produce the same rows.
+set overwrite yes
+dump actions rmt_action_infos.md
+dump notekeys rmt_note_keys.md
