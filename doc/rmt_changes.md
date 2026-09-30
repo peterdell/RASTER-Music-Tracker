@@ -27,7 +27,8 @@ Changes in RMT 1.37 (Planned)
 Changes in RMT 1.36 
 -------------------
 
-- A Java port of RMT is developed side by side with the Windows program, so RMT can run on Windows, Linux and macOS (see the README). The changes below are changes of the Windows program Rmt.exe that came out of that work; the Java port has them as well (printing, MIDI input and the Pokey Explorer are not ported, so Print has no function there).
+- A Java port of RMT is developed side by side with the Windows program, so RMT can run on Windows, Linux and macOS (see the README). The changes below are changes of the Windows program Rmt.exe that came out of that work; the Java port has them as well (printing, MIDI input and the Pokey Explorer are not ported, so Print has no function there). Going forward, the C++ development will be phased out.
+- All CPU emulation and sound genration is now independent of the old libraries and based on [ASAP](https://asap.sourceforge.net/).
 - Scripting: `Rmt.exe /SCRIPT:<file>` runs a script file that opens a song, sets what the export dialogs would ask, exports in any format and saves - for batch files, build scripts and repeated export sets. The messages go to the console (or to `<script>.log`), the exit code reports success. See the [scripting documentation](rmt_scripting.md). (Build 2026-09-27)
 - The full [ASAP - Another Slight Atari Player](https://asap.sourceforge.net/) is used for the CPU & Pokey emulation instead of the `sa_c6502.dll/sa_pokey.dll` from [Altirra](https://www.virtualdub.org/altirra.html) by Avery Lee or the  `apokeysnd.dll` also from [ASAP](http://asap.sourceforge.net/apokeysnd.dll) by Piotr Fusik. As a result, the replay and WAV export are now 16-bit instead of 8-bit. (Build 2026-09-27)
 - Tools > Run Script... runs a script file on the current session from the window (the same as "Rmt.exe /SCRIPT", with message boxes). (Build 2026-09-27)
