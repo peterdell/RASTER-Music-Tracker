@@ -39,3 +39,5 @@ look for what was done, why, and what was found).
 | 23 | [DOC_GENERATION_PLAN](23_DOC_GENERATION_PLAN.md) | Markdown as the documentation source, generated HTML, the command and note key tables from the programs (D1-D4) | Done 2026-09-27 |
 | 24 | [EXPORT_SCREEN_UPDATES_PLAN](24_EXPORT_SCREEN_UPDATES_PLAN.md) | The C++ exports redraw the whole screen up to 60 times a second: proposals for a quiet, faster export (E1-E3) | E1 done 2026-09-28; E2/E3 later |
 | 25 | [JAVA_MIDI_PLAN](25_JAVA_MIDI_PLAN.md) | MIDI input for the Java port: device lifecycle, the `CSong::MidiEvent` handler, the CH16/CH10 controller mode, a `midi` script command for the cross-program check (M0-M5) | Done 2026-09-30 |
+| 26 | [JAVA_POKEY_EXPLORER_PLAN](26_JAVA_POKEY_EXPLORER_PLAN.md) | The Pokey Explorer in the Java port: `CPokeyController`, the explorer rows of the POKEY view, the Pokey menu (P1-P4) | Proposal 2026-09-30 |
+| 27 | [QWERTZ_LAYOUT_PLAN](27_QWERTZ_LAYOUT_PLAN.md) | A QWERTZ (German) keyboard layout for the note keys in both programs, the explorer key row per layout, the OS-derived default (K1-K5) | Proposal 2026-09-30 |
