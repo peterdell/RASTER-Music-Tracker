@@ -106,9 +106,9 @@ QWERTZ `Q W E R T Z U I`, AZERTY `A Z E R T Y U I` - positional, like the
 digits above them. The menu hint (`Rmt.rc`, `RmtMainMenu.decreaseAudc`)
 stays the QWERTY letters (a static resource; the action table is layout
 independent) and the manual's explorer section says "the key row under
-the digits in your layout". Java: after plan 26 P1 (the controller must
-exist); C++: any time. Replaces plan 26's "hint Z -> Y" fix - the hint
-becomes `Y` for QWERTY anyway.
+the digits in your layout". Java: after plan 26 P1 (done 2026-09-30, the controller exists); C++: any
+time. The hint is `Y` in both programs since plan 26 (the QWERTY letter);
+K3 adds the per-layout key row.
 
 ### K4 - documentation and bookkeeping
 

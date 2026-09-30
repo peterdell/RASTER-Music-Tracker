@@ -52,6 +52,8 @@ public final class RmtSession {
 	public final ExportSettings exportSettings = new ExportSettings();
 	/** {@code g_Midi}: the MIDI IN device (its settings are in {@link #options}); the handler is {@link MidiInput}, created by the window or the script runner. */
 	public final RmtMidi midi = new RmtMidi(this);
+	/** {@code CSong::m_PokeyController}: the Pokey Explorer mode's controller over the Atari's memory. */
+	public final PokeyController pokeyController;
 	/** The Effects/tools dialog's remembered effect and parameters ({@code g_effai}, {@code eff_ed}). */
 	public final org.atari.raster.rmt.model.BlockEffects.Settings blockEffectSettings = new org.atari.raster.rmt.model.BlockEffects.Settings();
 
@@ -149,6 +151,7 @@ public final class RmtSession {
 		atari = new Atari(new AtariCpu(song.isNTSC(), true));
 		atari.init(song.isNTSC(), tuningSettings, tuningRatios);
 		tuning = new Tuning(atari.getClockFrequency());
+		pokeyController = new PokeyController(atari);
 		atariTrackerDriver = new AtariTrackerDriver(atari);
 		atariTrackerDriver.loadRMTRoutines(options.trackerDriverVersion); // g_trackerDriverVersion's default; InitInstance runs before rmt.ini is read
 		atariTrackerDriver.init();

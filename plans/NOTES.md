@@ -5063,3 +5063,29 @@ build clean and all 123 tests pass.
     4 scripts identical. Not done: a real controller was not at hand -
     the Java Sound device names and the open/close path on Windows need
     the user's check.
+  - **2026-09-30**: plans 26 (Pokey Explorer) and 27 (QWERTZ layout)
+    written and committed (the user added the Rmt.exe screenshot
+    `test-resources/ui-reference/pokey-explorer/pokey-chip-registers.png`
+    as evidence; the "Z" vs "Y" hint turned out to be German versus
+    English keyboard - plan 27 makes it a layout). Plan 26 implemented
+    (P1-P4, the menu improved in both programs): Java `PokeyController`
+    (in `ui`, owned by `RmtSession`; the shadow register constants moved
+    there from `MidiInput`), `SongInput.proveKey`'s branch, `VirtualKey`
+    gained VK_1-8/R/W/Y; `PokeyView.draw` got `explorerMode` and the
+    controller and draws the three rows (`explorerValues()` for the
+    numbers, tested; a render test for the rows' presence); the 4 shared
+    `POKEY_REGISTER_*` ids became 32 per-register ids sharing the 4 label
+    actions, `RmtCommands.pokeyCommand()` runs the 47 explorer items, all
+    enabled in the explorer mode only. C++: `OnPreviousChannel` fixed (no
+    decrement - Backspace did nothing), `CPokeyController::IsCommand/
+    OnCommand` + `CRmtView::OnCmdMsg` route the 50 `ID_POKEY_*` menu items
+    (never handled before - MFC greyed them) to the controller in the
+    explorer mode, `Rmt.rc` hint Z -> Y for AUDC2 decrease (menu label and
+    `IDR_POKEY_EXPLORER`), `PokeyControllerTests.cpp` (7 tests, the same
+    table as `PokeyControllerTest`). Docs: manual section "Pokey
+    Explorer", change history (three entries, the 1.37 line gone), README
+    ("Not ported: printing."), `doc/rmt_action_infos.md` two rows (Y).
+    Verified: `mvn -o clean package` green (637 tests, the action tables
+    of both programs identical), Release `Rmt.sln` + 423 C++ tests green.
+    Found on the way, not fixed: `Keyboard.h` defines `VK_0 = '1'` (a
+    typo; nothing uses VK_0 in C++).

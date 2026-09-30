@@ -13,15 +13,44 @@ import org.atari.raster.rmt.model.TuningSettings;
  * tuning globals ({@code g_tuning.basetuning/basenote},
  * {@code g_notesperoctave}) from the explicitly passed objects.
  *
- * <p>The Pokey Explorer block ({@code explorerMode}, reading
- * {@code CPokeyController}'s channel index and divisor) is not ported yet:
- * the explorer mode is entered through a key sequence (B3) and the
- * controller class itself is unported; the rows it would occupy stay empty
- * until then.
+ * <p>In the Pokey Explorer mode ({@code explorerMode}) three rows below the
+ * register dumps detail the {@link PokeyController}'s channel: the
+ * register bytes, the pitch formula's coarse divisor, free divisor and
+ * modulo offset ({@link #explorerValues}) and the pitch
+ * ({@link Tuning#getPitch}).
  */
 public final class PokeyView {
 
 	private static final int[] POKEY_ADDRESS = { 0xd200, 0xd210 };
+
+	/** The explorer rows' numbers for a channel: the pitch formula's coarse divisor and modulo offset from the AUDCTL bits, and the "modulo" (the first divisor 3..255 of {@code audf + modoffset}, 255 when none). */
+	record ExplorerValues(int coarseDivisor, int modoffset, int modulo) {
+	}
+
+	static ExplorerValues explorerValues(int audf, boolean join16bit, boolean clock179, boolean clock15) {
+		// Always initialised to 1 to avoid a division by 0 error
+		int modoffset = 1;
+		int coarseDivisor = 1;
+
+		// Set the divisor and modoffset variables based on the AUDCTL bits currently set
+		if (join16bit) {
+			modoffset = 7;
+		} else if (clock179) {
+			modoffset = 4;
+		} else {
+			coarseDivisor = clock15 ? 114 : 28;
+		}
+
+		// Identify the first modulo value that results to 0 when used
+		int modulo = 0; // Does not matter right now, used in tandem with e_valid
+		for (int i = 3; i < 256; i++) {
+			modulo = i;
+			if ((audf + modoffset) % i == 0) {
+				break;
+			}
+		}
+		return new ExplorerValues(coarseDivisor, modoffset, modulo);
+	}
 
 	private final Canvas canvas;
 
@@ -34,12 +63,13 @@ public final class PokeyView {
 		return x < 0 ? -Math.floor(-x + 0.5) : Math.floor(x + 0.5);
 	}
 
-	public void draw(boolean stereo, Tuning tuning, TuningSettings tuningSettings, int notesPerOctave, Atari atari) {
+	public void draw(boolean stereo, Tuning tuning, TuningSettings tuningSettings, int notesPerOctave, Atari atari, boolean explorerMode, PokeyController pokeyController) {
 		final int tuningRow = 0;
 		final int pokeyRows = 9;
 
 		final int pokey1Row = tuningRow + 3;
 		final int pokey2Row = pokey1Row + pokeyRows;
+		final int explorerRow = pokey2Row + pokeyRows;
 
 		// Tuning
 		final double basetuning = tuningSettings.basetuning;
@@ -230,7 +260,36 @@ public final class PokeyView {
 					}
 				}
 
-				// B3: Pokey Explorer Mode rows (explorerRow = pokey2Row + pokeyRows) - see the class javadoc
+				// Pokey Explorer Mode
+				if (explorerMode) {
+					final int eChannelIndex = pokey * POKEY_CHANNELS + pokeyChannel;
+					if (pokeyController.getChannelIndex() == eChannelIndex) {
+						final int row = explorerRow;
+
+						canvas.colorMini(TextMiniColor.GRAY).at(0, row);
+						canvas.printMini("CH_IDX:   , AUDF: $     , AUDC: $   , MODULO:    ").nextRow();
+						canvas.printMini("COARSE_DIVISOR:    , DIVISOR:       , MODOFFSET:  ").nextRow();
+						canvas.printMini("         HZ = ((FREQ17 / (COARSE_DIVISOR * DIVISOR)) / (AUDF + MODOFFSET)) / 2");
+
+						final ExplorerValues e = explorerValues(audf, JOIN_16BIT, CLOCK_179, CLOCK_15);
+						final double eDivisor = pokeyController.getDivisor();
+						final double ePitch = tuning.getPitch(iAudf, e.coarseDivisor(), eDivisor, e.modoffset());
+
+						canvas.colorMini(TextMiniColor.WHITE).at(0, row);
+						canvas.atColumn(8).printfMini(1, "%d", eChannelIndex);
+						canvas.atColumn(19).printByte(audf);
+						if (JOIN_16BIT || JOIN_64KHZ || JOIN_15KHZ) {
+							canvas.atColumn(61).printByte(audfLow);
+						}
+						canvas.atColumn(33).printByte(audc);
+						canvas.atColumn(46).printfMini(3, "%d", e.modulo()).nextRow();
+
+						canvas.atColumn(16).printfMini(3, "%d", e.coarseDivisor());
+						canvas.atColumn(30).printfMini(9, "%6.1f", eDivisor);
+						canvas.atColumn(49).printfMini(3, "%d", e.modoffset()).nextRow();
+						canvas.atColumn(0).printfMini(9, "%9.2f", ePitch);
+					}
+				}
 
 				if (PITCH != 0) { // If 0.0 is read, there is nothing to show. The volume-only mode or invalid parameters may result in this.
 					if (JOIN_WRONG) { // 16-bit, but wrong channels, and the volume is 0

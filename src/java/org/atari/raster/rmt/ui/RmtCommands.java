@@ -31,9 +31,10 @@ import org.atari.raster.rmt.model.UndoType;
  * handlers that open a dialog or a file chooser ({@code FileOpen}, the
  * export/import/renumber/change/order dialogs, About, Options) report
  * {@link Host#notAvailable} until their batch (B7); the printing
- * commands are MFC's own and stay unavailable; the Pokey Explorer
- * commands are disabled ({@code CPokeyController} unported); the MIDI
- * toggle is {@link RmtSession#midi}'s.
+ * commands are MFC's own and stay unavailable; the Pokey menu's explorer
+ * commands run {@link PokeyController}'s operations in the explorer mode
+ * (in C++ they had no handlers and were always greyed, until 2026-09-30);
+ * the MIDI toggle is {@link RmtSession#midi}'s.
  * Playback commands change the play state exactly as C++ does; the
  * {@link AudioEngine} thread makes it audible and advancing.
  */
@@ -537,9 +538,7 @@ public final class RmtCommands {
 
 		// --- Pokey ---
 		case EDIT_ACTIVATE_POKEY_EXPLORER_MODE -> ui.editMode = EditMode.POKEY_EXPLORER_MODE;
-		case POKEY_REGISTER_INCREASE_BY_01, POKEY_REGISTER_INCREASE_BY_10, POKEY_REGISTER_DECREASE_BY_01, POKEY_REGISTER_DECREASE_BY_10, POKEY_AUDCTL_BIT0, POKEY_AUDCTL_BIT1, POKEY_AUDCTL_BIT2, POKEY_AUDCTL_BIT3, POKEY_AUDCTL_BIT4, POKEY_AUDCTL_BIT5, POKEY_AUDCTL_BIT6, POKEY_AUDCTL_BIT7, POKEY_SKCTL_TWO_TONE_MODE, POKEY_NEXTCHANNEL, POKEY_PREVIOUSCHANNEL, POKEY_DIVISOR_INCREASE_BY_01, POKEY_DIVISOR_INCREASE_BY_1, POKEY_DIVISOR_DECREASE_BY_01, POKEY_DIVISOR_DECREASE_BY_1 -> {
-			// never enabled - CPokeyController is unported
-		}
+		case POKEY_AUDF0_INCREASE_BY_01, POKEY_AUDF0_INCREASE_BY_10, POKEY_AUDF0_DECREASE_BY_01, POKEY_AUDF0_DECREASE_BY_10, POKEY_AUDC0_INCREASE_BY_01, POKEY_AUDC0_INCREASE_BY_10, POKEY_AUDC0_DECREASE_BY_01, POKEY_AUDC0_DECREASE_BY_10, POKEY_AUDF1_INCREASE_BY_01, POKEY_AUDF1_INCREASE_BY_10, POKEY_AUDF1_DECREASE_BY_01, POKEY_AUDF1_DECREASE_BY_10, POKEY_AUDC1_INCREASE_BY_01, POKEY_AUDC1_INCREASE_BY_10, POKEY_AUDC1_DECREASE_BY_01, POKEY_AUDC1_DECREASE_BY_10, POKEY_AUDF2_INCREASE_BY_01, POKEY_AUDF2_INCREASE_BY_10, POKEY_AUDF2_DECREASE_BY_01, POKEY_AUDF2_DECREASE_BY_10, POKEY_AUDC2_INCREASE_BY_01, POKEY_AUDC2_INCREASE_BY_10, POKEY_AUDC2_DECREASE_BY_01, POKEY_AUDC2_DECREASE_BY_10, POKEY_AUDF3_INCREASE_BY_01, POKEY_AUDF3_INCREASE_BY_10, POKEY_AUDF3_DECREASE_BY_01, POKEY_AUDF3_DECREASE_BY_10, POKEY_AUDC3_INCREASE_BY_01, POKEY_AUDC3_INCREASE_BY_10, POKEY_AUDC3_DECREASE_BY_01, POKEY_AUDC3_DECREASE_BY_10, POKEY_AUDCTL_BIT0, POKEY_AUDCTL_BIT1, POKEY_AUDCTL_BIT2, POKEY_AUDCTL_BIT3, POKEY_AUDCTL_BIT4, POKEY_AUDCTL_BIT5, POKEY_AUDCTL_BIT6, POKEY_AUDCTL_BIT7, POKEY_SKCTL_TWO_TONE_MODE, POKEY_NEXTCHANNEL, POKEY_PREVIOUSCHANNEL, POKEY_DIVISOR_INCREASE_BY_01, POKEY_DIVISOR_INCREASE_BY_1, POKEY_DIVISOR_DECREASE_BY_01, POKEY_DIVISOR_DECREASE_BY_1 -> pokeyCommand(id);
 
 		// --- Tools ---
 		case TOOLS_OPEN_ASMA -> browse(ASMA_URL);
@@ -572,6 +571,61 @@ public final class RmtCommands {
 				session.midi.midiOn();
 			}
 		}
+		}
+	}
+
+	/** The Pokey menu's explorer items: the same operations as the {@link PokeyController}'s keys. */
+	private void pokeyCommand(RmtCommandId id) {
+		PokeyController pc = session.pokeyController;
+		switch (id) {
+		case POKEY_AUDF0_INCREASE_BY_01 -> pc.increase(PokeyController.AUDF + 0, 0x01);
+		case POKEY_AUDF0_INCREASE_BY_10 -> pc.increase(PokeyController.AUDF + 0, 0x10);
+		case POKEY_AUDF0_DECREASE_BY_01 -> pc.decrease(PokeyController.AUDF + 0, 0x01);
+		case POKEY_AUDF0_DECREASE_BY_10 -> pc.decrease(PokeyController.AUDF + 0, 0x10);
+		case POKEY_AUDC0_INCREASE_BY_01 -> pc.increase(PokeyController.AUDC + 0, 0x01);
+		case POKEY_AUDC0_INCREASE_BY_10 -> pc.increase(PokeyController.AUDC + 0, 0x10);
+		case POKEY_AUDC0_DECREASE_BY_01 -> pc.decrease(PokeyController.AUDC + 0, 0x01);
+		case POKEY_AUDC0_DECREASE_BY_10 -> pc.decrease(PokeyController.AUDC + 0, 0x10);
+		case POKEY_AUDF1_INCREASE_BY_01 -> pc.increase(PokeyController.AUDF + 1, 0x01);
+		case POKEY_AUDF1_INCREASE_BY_10 -> pc.increase(PokeyController.AUDF + 1, 0x10);
+		case POKEY_AUDF1_DECREASE_BY_01 -> pc.decrease(PokeyController.AUDF + 1, 0x01);
+		case POKEY_AUDF1_DECREASE_BY_10 -> pc.decrease(PokeyController.AUDF + 1, 0x10);
+		case POKEY_AUDC1_INCREASE_BY_01 -> pc.increase(PokeyController.AUDC + 1, 0x01);
+		case POKEY_AUDC1_INCREASE_BY_10 -> pc.increase(PokeyController.AUDC + 1, 0x10);
+		case POKEY_AUDC1_DECREASE_BY_01 -> pc.decrease(PokeyController.AUDC + 1, 0x01);
+		case POKEY_AUDC1_DECREASE_BY_10 -> pc.decrease(PokeyController.AUDC + 1, 0x10);
+		case POKEY_AUDF2_INCREASE_BY_01 -> pc.increase(PokeyController.AUDF + 2, 0x01);
+		case POKEY_AUDF2_INCREASE_BY_10 -> pc.increase(PokeyController.AUDF + 2, 0x10);
+		case POKEY_AUDF2_DECREASE_BY_01 -> pc.decrease(PokeyController.AUDF + 2, 0x01);
+		case POKEY_AUDF2_DECREASE_BY_10 -> pc.decrease(PokeyController.AUDF + 2, 0x10);
+		case POKEY_AUDC2_INCREASE_BY_01 -> pc.increase(PokeyController.AUDC + 2, 0x01);
+		case POKEY_AUDC2_INCREASE_BY_10 -> pc.increase(PokeyController.AUDC + 2, 0x10);
+		case POKEY_AUDC2_DECREASE_BY_01 -> pc.decrease(PokeyController.AUDC + 2, 0x01);
+		case POKEY_AUDC2_DECREASE_BY_10 -> pc.decrease(PokeyController.AUDC + 2, 0x10);
+		case POKEY_AUDF3_INCREASE_BY_01 -> pc.increase(PokeyController.AUDF + 3, 0x01);
+		case POKEY_AUDF3_INCREASE_BY_10 -> pc.increase(PokeyController.AUDF + 3, 0x10);
+		case POKEY_AUDF3_DECREASE_BY_01 -> pc.decrease(PokeyController.AUDF + 3, 0x01);
+		case POKEY_AUDF3_DECREASE_BY_10 -> pc.decrease(PokeyController.AUDF + 3, 0x10);
+		case POKEY_AUDC3_INCREASE_BY_01 -> pc.increase(PokeyController.AUDC + 3, 0x01);
+		case POKEY_AUDC3_INCREASE_BY_10 -> pc.increase(PokeyController.AUDC + 3, 0x10);
+		case POKEY_AUDC3_DECREASE_BY_01 -> pc.decrease(PokeyController.AUDC + 3, 0x01);
+		case POKEY_AUDC3_DECREASE_BY_10 -> pc.decrease(PokeyController.AUDC + 3, 0x10);
+		case POKEY_AUDCTL_BIT0 -> pc.toggleAUDCTLBit(0);
+		case POKEY_AUDCTL_BIT1 -> pc.toggleAUDCTLBit(1);
+		case POKEY_AUDCTL_BIT2 -> pc.toggleAUDCTLBit(2);
+		case POKEY_AUDCTL_BIT3 -> pc.toggleAUDCTLBit(3);
+		case POKEY_AUDCTL_BIT4 -> pc.toggleAUDCTLBit(4);
+		case POKEY_AUDCTL_BIT5 -> pc.toggleAUDCTLBit(5);
+		case POKEY_AUDCTL_BIT6 -> pc.toggleAUDCTLBit(6);
+		case POKEY_AUDCTL_BIT7 -> pc.toggleAUDCTLBit(7);
+		case POKEY_SKCTL_TWO_TONE_MODE -> pc.toggleTwoTone();
+		case POKEY_NEXTCHANNEL -> pc.nextChannel();
+		case POKEY_PREVIOUSCHANNEL -> pc.previousChannel();
+		case POKEY_DIVISOR_INCREASE_BY_01 -> pc.increaseDivisor(0.1);
+		case POKEY_DIVISOR_INCREASE_BY_1 -> pc.increaseDivisor(1.0);
+		case POKEY_DIVISOR_DECREASE_BY_01 -> pc.decreaseDivisor(0.1);
+		case POKEY_DIVISOR_DECREASE_BY_1 -> pc.decreaseDivisor(1.0);
+		default -> throw new IllegalArgumentException(id.name());
 		}
 	}
 
@@ -668,7 +722,7 @@ public final class RmtCommands {
 		case TRACK_SEARCHANDBUILDLOOP -> activeTrack >= 0 && session.tracks.getGoLine(activeTrack) < 0;
 		case TRACK_EXPANDLOOP -> activeTrack >= 0 && session.tracks.getGoLine(activeTrack) >= 0;
 		case BLOCK_RESTORE_FROM_BACKUP, BLOCK_CUT, BLOCK_DELETE, BLOCK_EXCHANGE, BLOCK_APPLY_EFFECTS, BLOCK_TRANSPOSE_NOTES_UP, BLOCK_TRANSPOSE_NOTES_DOWN, BLOCK_USE_PREVIOUS_INSTRUMENT, BLOCK_USE_NEXT_INSTRUMENT, BLOCK_INCREASE_VOLUME, BLOCK_DECREASE_VOLUME, BLOCK_TOGGLE_MODIFICATION_MODE, BLOCK_PLAY_AND_LOOP -> clipboard.isBlockSelected();
-		case POKEY_REGISTER_INCREASE_BY_01, POKEY_REGISTER_INCREASE_BY_10, POKEY_REGISTER_DECREASE_BY_01, POKEY_REGISTER_DECREASE_BY_10, POKEY_AUDCTL_BIT0, POKEY_AUDCTL_BIT1, POKEY_AUDCTL_BIT2, POKEY_AUDCTL_BIT3, POKEY_AUDCTL_BIT4, POKEY_AUDCTL_BIT5, POKEY_AUDCTL_BIT6, POKEY_AUDCTL_BIT7, POKEY_SKCTL_TWO_TONE_MODE, POKEY_NEXTCHANNEL, POKEY_PREVIOUSCHANNEL, POKEY_DIVISOR_INCREASE_BY_01, POKEY_DIVISOR_INCREASE_BY_1, POKEY_DIVISOR_DECREASE_BY_01, POKEY_DIVISOR_DECREASE_BY_1 -> false; // CPokeyController unported
+		case POKEY_AUDF0_INCREASE_BY_01, POKEY_AUDF0_INCREASE_BY_10, POKEY_AUDF0_DECREASE_BY_01, POKEY_AUDF0_DECREASE_BY_10, POKEY_AUDC0_INCREASE_BY_01, POKEY_AUDC0_INCREASE_BY_10, POKEY_AUDC0_DECREASE_BY_01, POKEY_AUDC0_DECREASE_BY_10, POKEY_AUDF1_INCREASE_BY_01, POKEY_AUDF1_INCREASE_BY_10, POKEY_AUDF1_DECREASE_BY_01, POKEY_AUDF1_DECREASE_BY_10, POKEY_AUDC1_INCREASE_BY_01, POKEY_AUDC1_INCREASE_BY_10, POKEY_AUDC1_DECREASE_BY_01, POKEY_AUDC1_DECREASE_BY_10, POKEY_AUDF2_INCREASE_BY_01, POKEY_AUDF2_INCREASE_BY_10, POKEY_AUDF2_DECREASE_BY_01, POKEY_AUDF2_DECREASE_BY_10, POKEY_AUDC2_INCREASE_BY_01, POKEY_AUDC2_INCREASE_BY_10, POKEY_AUDC2_DECREASE_BY_01, POKEY_AUDC2_DECREASE_BY_10, POKEY_AUDF3_INCREASE_BY_01, POKEY_AUDF3_INCREASE_BY_10, POKEY_AUDF3_DECREASE_BY_01, POKEY_AUDF3_DECREASE_BY_10, POKEY_AUDC3_INCREASE_BY_01, POKEY_AUDC3_INCREASE_BY_10, POKEY_AUDC3_DECREASE_BY_01, POKEY_AUDC3_DECREASE_BY_10, POKEY_AUDCTL_BIT0, POKEY_AUDCTL_BIT1, POKEY_AUDCTL_BIT2, POKEY_AUDCTL_BIT3, POKEY_AUDCTL_BIT4, POKEY_AUDCTL_BIT5, POKEY_AUDCTL_BIT6, POKEY_AUDCTL_BIT7, POKEY_SKCTL_TWO_TONE_MODE, POKEY_NEXTCHANNEL, POKEY_PREVIOUSCHANNEL, POKEY_DIVISOR_INCREASE_BY_01, POKEY_DIVISOR_INCREASE_BY_1, POKEY_DIVISOR_DECREASE_BY_01, POKEY_DIVISOR_DECREASE_BY_1 -> ui.editMode == EditMode.POKEY_EXPLORER_MODE; // the Pokey Explorer's operations
 		case MIDIONOFF -> session.midi.hasDevice(); // OnUpdateMidiOnOff: GetMidiDevId() >= 0
 		case TOOLS_OPEN_ASAP_FILE -> false; // no handler in C++ either - MFC greys out a menu item without one
 		default -> true;

@@ -171,6 +171,7 @@
     <ClCompile Include="SongEditingStub.cpp" />
     <!-- Test sources. -->
     <ClCompile Include="FractionTests.cpp" />
+    <ClCompile Include="PokeyControllerTests.cpp" />
     <ClCompile Include="MessagesTests.cpp" />
     <ClCompile Include="StringUtilityTests.cpp" />
     <ClCompile Include="NotesTests.cpp" />

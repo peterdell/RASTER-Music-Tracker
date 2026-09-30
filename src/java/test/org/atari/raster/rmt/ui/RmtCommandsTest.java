@@ -97,6 +97,30 @@ class RmtCommandsTest {
 	}
 
 	@Test
+	void thePokeyMenuWorksInTheExplorerModeOnly() {
+		byte[] memory = session.atari.getMemory();
+		memory[PokeyController.AUDF + 2] = 0x40;
+		assertFalse(commands.isEnabled(RmtCommandId.POKEY_AUDF2_INCREASE_BY_10));
+		commands.execute(RmtCommandId.POKEY_AUDF2_INCREASE_BY_10); // disabled: nothing
+		assertEquals(0x40, memory[PokeyController.AUDF + 2]);
+
+		commands.execute(RmtCommandId.EDIT_ACTIVATE_POKEY_EXPLORER_MODE);
+		assertTrue(commands.isEnabled(RmtCommandId.POKEY_AUDF2_INCREASE_BY_10));
+		commands.execute(RmtCommandId.POKEY_AUDF2_INCREASE_BY_10);
+		assertEquals(0x50, memory[PokeyController.AUDF + 2]);
+		commands.execute(RmtCommandId.POKEY_AUDC1_DECREASE_BY_01);
+		assertEquals((byte) 0xFF, memory[PokeyController.AUDC + 1]);
+		commands.execute(RmtCommandId.POKEY_AUDCTL_BIT4);
+		assertEquals(0x10, memory[PokeyController.AUDCTL]);
+		commands.execute(RmtCommandId.POKEY_SKCTL_TWO_TONE_MODE);
+		assertEquals((byte) 0x8B, memory[PokeyController.SKCTL]); // the driver's SKCTL $03 with the two-tone bits
+		commands.execute(RmtCommandId.POKEY_PREVIOUSCHANNEL);
+		assertEquals(3, session.pokeyController.getChannelIndex());
+		commands.execute(RmtCommandId.POKEY_DIVISOR_INCREASE_BY_1);
+		assertEquals(2.0, session.pokeyController.getDivisor(), 1e-9);
+	}
+
+	@Test
 	void theMidiToggleFollowsTheDevice() {
 		RmtMidiTest.FakeDevices devices = new RmtMidiTest.FakeDevices();
 		devices.names.add("Keys");
@@ -259,7 +283,7 @@ class RmtCommandsTest {
 		commands.execute(RmtCommandId.EDIT_ACTIVATE_POKEY_EXPLORER_MODE);
 		assertEquals(EditMode.POKEY_EXPLORER_MODE, session.uiState.editMode);
 		assertFalse(commands.isEnabled(RmtCommandId.EDIT_ACTIVATE_POKEY_EXPLORER_MODE));
-		assertFalse(commands.isEnabled(RmtCommandId.POKEY_AUDCTL_BIT0)); // unported controller
+		assertTrue(commands.isEnabled(RmtCommandId.POKEY_AUDCTL_BIT0)); // the Pokey menu works in the explorer mode
 	}
 
 	@Test

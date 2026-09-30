@@ -327,10 +327,10 @@ public final class MidiInput {
 
 	// ---- channel 16 (chn 15) control changes: the controller's keys, wheel, slider and knobs ----
 
-	private static final int AUDF = 0x3178; // the driver's shadow registers (PokeyController.h: AUDF 8 bytes, AUDC 8 bytes, AUDCTL, SKCTL)
-	private static final int AUDC = 0x3180;
-	private static final int AUDCTL = 0x3C69;
-	private static final int SKCTL = 0x3CD3;
+	private static final int AUDF = PokeyController.AUDF; // the driver's shadow registers, shared with the Pokey Explorer
+	private static final int AUDC = PokeyController.AUDC;
+	private static final int AUDCTL = PokeyController.AUDCTL;
+	private static final int SKCTL = PokeyController.SKCTL;
 
 	private void controlChangeCh15(int pr1, int pr2, byte[] memory) {
 		Song song = session.song;

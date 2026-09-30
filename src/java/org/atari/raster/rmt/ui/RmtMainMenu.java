@@ -286,20 +286,31 @@ public final class RmtMainMenu {
 		Action[] audf = { Actions.MainMenu_Pokey_AUDF0, Actions.MainMenu_Pokey_AUDF1, Actions.MainMenu_Pokey_AUDF2, Actions.MainMenu_Pokey_AUDF3 };
 		Action[] audc = { Actions.MainMenu_Pokey_AUDC0, Actions.MainMenu_Pokey_AUDC1, Actions.MainMenu_Pokey_AUDC2, Actions.MainMenu_Pokey_AUDC3 };
 		// IDR_POKEY_EXPLORER ACCELERATORS: per register, the digit increases and the letter decreases, Shift for the 0x10 steps -
-		// displayed as the C++ menu displays them (hint-only: the four shared commands are disabled until CPokeyController is ported)
+		// displayed as the C++ menu displays them (hints: PokeyController reads the keys itself, in the explorer mode); the letters are
+		// the QWERTY row under the digits, Q W E R T Y U I (the C++ menu said Z for AUDC2 until 2026-09-30 - a German keyboard's view)
 		int[] decreaseAudf = { java.awt.event.KeyEvent.VK_Q, java.awt.event.KeyEvent.VK_E, java.awt.event.KeyEvent.VK_T, java.awt.event.KeyEvent.VK_U };
-		int[] decreaseAudc = { java.awt.event.KeyEvent.VK_W, java.awt.event.KeyEvent.VK_R, java.awt.event.KeyEvent.VK_Z, java.awt.event.KeyEvent.VK_I };
+		int[] decreaseAudc = { java.awt.event.KeyEvent.VK_W, java.awt.event.KeyEvent.VK_R, java.awt.event.KeyEvent.VK_Y, java.awt.event.KeyEvent.VK_I };
+		RmtCommandId[][] registerCommands = { // [register = channel * 2 + (0 AUDF, 1 AUDC)][increase 01, increase 10, decrease 01, decrease 10]
+				{ RmtCommandId.POKEY_AUDF0_INCREASE_BY_01, RmtCommandId.POKEY_AUDF0_INCREASE_BY_10, RmtCommandId.POKEY_AUDF0_DECREASE_BY_01, RmtCommandId.POKEY_AUDF0_DECREASE_BY_10 },
+				{ RmtCommandId.POKEY_AUDC0_INCREASE_BY_01, RmtCommandId.POKEY_AUDC0_INCREASE_BY_10, RmtCommandId.POKEY_AUDC0_DECREASE_BY_01, RmtCommandId.POKEY_AUDC0_DECREASE_BY_10 },
+				{ RmtCommandId.POKEY_AUDF1_INCREASE_BY_01, RmtCommandId.POKEY_AUDF1_INCREASE_BY_10, RmtCommandId.POKEY_AUDF1_DECREASE_BY_01, RmtCommandId.POKEY_AUDF1_DECREASE_BY_10 },
+				{ RmtCommandId.POKEY_AUDC1_INCREASE_BY_01, RmtCommandId.POKEY_AUDC1_INCREASE_BY_10, RmtCommandId.POKEY_AUDC1_DECREASE_BY_01, RmtCommandId.POKEY_AUDC1_DECREASE_BY_10 },
+				{ RmtCommandId.POKEY_AUDF2_INCREASE_BY_01, RmtCommandId.POKEY_AUDF2_INCREASE_BY_10, RmtCommandId.POKEY_AUDF2_DECREASE_BY_01, RmtCommandId.POKEY_AUDF2_DECREASE_BY_10 },
+				{ RmtCommandId.POKEY_AUDC2_INCREASE_BY_01, RmtCommandId.POKEY_AUDC2_INCREASE_BY_10, RmtCommandId.POKEY_AUDC2_DECREASE_BY_01, RmtCommandId.POKEY_AUDC2_DECREASE_BY_10 },
+				{ RmtCommandId.POKEY_AUDF3_INCREASE_BY_01, RmtCommandId.POKEY_AUDF3_INCREASE_BY_10, RmtCommandId.POKEY_AUDF3_DECREASE_BY_01, RmtCommandId.POKEY_AUDF3_DECREASE_BY_10 },
+				{ RmtCommandId.POKEY_AUDC3_INCREASE_BY_01, RmtCommandId.POKEY_AUDC3_INCREASE_BY_10, RmtCommandId.POKEY_AUDC3_DECREASE_BY_01, RmtCommandId.POKEY_AUDC3_DECREASE_BY_10 } };
 		for (int c = 0; c < 4; c++) {
 			JMenu channel = submenu(menu, channels[c]);
 			for (int r = 0; r < 2; r++) {
 				Action register = r == 0 ? audf[c] : audc[c];
 				int increaseKey = java.awt.event.KeyEvent.VK_1 + 2 * c + r;
 				int decreaseKey = r == 0 ? decreaseAudf[c] : decreaseAudc[c];
+				RmtCommandId[] commands = registerCommands[c * 2 + r];
 				JMenu reg = submenu(channel, register);
-				item(reg, RmtCommandId.POKEY_REGISTER_INCREASE_BY_01).setAccelerator(KeyStroke.getKeyStroke(increaseKey, 0));
-				item(reg, RmtCommandId.POKEY_REGISTER_INCREASE_BY_10).setAccelerator(KeyStroke.getKeyStroke(increaseKey, java.awt.event.InputEvent.SHIFT_DOWN_MASK));
-				item(reg, RmtCommandId.POKEY_REGISTER_DECREASE_BY_01).setAccelerator(KeyStroke.getKeyStroke(decreaseKey, 0));
-				item(reg, RmtCommandId.POKEY_REGISTER_DECREASE_BY_10).setAccelerator(KeyStroke.getKeyStroke(decreaseKey, java.awt.event.InputEvent.SHIFT_DOWN_MASK));
+				item(reg, commands[0]).setAccelerator(KeyStroke.getKeyStroke(increaseKey, 0));
+				item(reg, commands[1]).setAccelerator(KeyStroke.getKeyStroke(increaseKey, java.awt.event.InputEvent.SHIFT_DOWN_MASK));
+				item(reg, commands[2]).setAccelerator(KeyStroke.getKeyStroke(decreaseKey, 0));
+				item(reg, commands[3]).setAccelerator(KeyStroke.getKeyStroke(decreaseKey, java.awt.event.InputEvent.SHIFT_DOWN_MASK));
 			}
 		}
 		JMenu audctl = submenu(menu, Actions.MainMenu_Pokey_AUDCTL);

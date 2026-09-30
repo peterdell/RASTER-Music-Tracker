@@ -1,6 +1,6 @@
 # Plan: the Pokey Explorer in the Java port (P1-P4)
 
-Status: proposal (2026-09-30). Nothing implemented yet.
+Status: DONE 2026-09-30 (P1-P4, the menu improved in both programs, the two fixes; the hint fix as plan 27 K3 defines it - `Y` for QWERTY).
 
 ## 1. What the C++ program does
 

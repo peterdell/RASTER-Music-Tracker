@@ -40,8 +40,7 @@ import org.atari.raster.rmt.model.UndoType;
  * {@code /SCRIPT}-style {@code FlaToCha} numpad remap of
  * {@code OnKeyDown}'s first lines (a scan-code workaround for
  * Shift+numpad on Windows; Swing already reports numpad keys by their own
- * codes), the Pokey Explorer branch of {@code ProveKey}
- * ({@code CPokeyController} is unported), and the two dialogs some keys
+ * codes), and the two dialogs some keys
  * open ({@code SongInsertCopyOrCloneOfSongLines} on Ctrl+O and
  * {@code BlockEffect} on Ctrl+F - B7).
  */
@@ -1226,7 +1225,7 @@ public final class SongInput {
 		int tracks4_8 = session.tracks4_8;
 
 		if (ui.editMode == EditMode.POKEY_EXPLORER_MODE) { // POKEY EXPLORER MODE: FULL CONTROL OVER THE POKEY (IGNORE RMT ROUTINES EXCEPT SETPOKEY)
-			return false; // B3/B8: m_PokeyController->OnKeyDown(vk, shift, control) - CPokeyController is unported
+			return session.pokeyController.onKeyDown(vk, shift, control);
 		}
 
 		int note = noteKey(vk);

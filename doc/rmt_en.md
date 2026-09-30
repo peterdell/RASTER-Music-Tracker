@@ -396,6 +396,34 @@ held on channels 2-16.
 Scripts can send MIDI messages with the `midi` command (see the scripting
 documentation).
 
+## Pokey Explorer
+
+A debugging mode for pitch calculations: Pokey > Activate Pokey Explorer
+Mode (Ctrl+Shift+F5) stops the RMT routines and lets the keys write the
+POKEY registers directly; the Edit/Jam mode toggle leaves the mode again.
+With View > Pokey Chip Registers on, three rows below the register dumps
+detail one channel: its AUDF and AUDC bytes, the first divisor of
+`AUDF + MODOFFSET` from 3 up ("MODULO"), the pitch formula's coarse divisor
+(28 at 64 kHz, 114 at 15 kHz, 1 at 1.79 MHz and for joined channels), the
+free divisor, the modulo offset (1, 4 at 1.79 MHz, 7 for joined channels)
+and the resulting pitch.
+
+The keys (the physical positions of the QWERTY layout):
+
+| Key | Function |
+|---|---|
+| `ENTER` / `BACKSPACE` | Next / previous channel (0-3). |
+| `+` / `-` | Divisor +0.1 / -0.1; with `SHIFT` +1.0 / -1.0 (1.0 to 10000.0). |
+| `1` `3` `5` `7` | AUDF0 to AUDF3 + 1; with `SHIFT` + $10. |
+| `Q` `E` `T` `U` | AUDF0 to AUDF3 - 1; with `SHIFT` - $10. |
+| `2` `4` `6` `8` | AUDC0 to AUDC3 + 1; with `SHIFT` + $10. |
+| `W` `R` `Y` `I` | AUDC0 to AUDC3 - 1; with `SHIFT` - $10. |
+| `C` `G` `F` `K` `J` `D` `A` `P` | Toggle AUDCTL bit 0 to 7 (15 kHz clock, the two high pass filters, the two 16-bit joins, the two 1.79 MHz clocks, 9-bit poly). |
+| `M` | Toggle the two-tone bits of SKCTL. |
+
+The Pokey menu offers the same operations as menu items; they work in the
+explorer mode only.
+
 ## Disclaimer
 
 RMT IS A SOFTWARE WITHOUT WARRANTY OF ANY KIND. THE AUTHOR DOES NOT WARRANT, GUARANTEE, OR MAKE ANY REPRESENTATIONS REGARDING THE USE, OR THE RESULTS OF USE OF THE SOFTWARE, OR WRITTEN MATERIALS, IN TERMS OF CORRECTNESS, ACCURACY, RELIABILITY, CURRENTNESS, OR OTHERWISE. THE ENTIRE RISK AS TO THE RESULTS AND PERFORMANCE OF THE SOFTWARE IS ASSUMED BY YOU.

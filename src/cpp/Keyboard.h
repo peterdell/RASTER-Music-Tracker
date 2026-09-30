@@ -1,6 +1,6 @@
 #pragma once
 
-static constexpr int VK_0 = '1';
+static constexpr int VK_0 = '0';
 static constexpr int VK_1 = '1';
 static constexpr int VK_2 = '2';
 static constexpr int VK_3 = '3';

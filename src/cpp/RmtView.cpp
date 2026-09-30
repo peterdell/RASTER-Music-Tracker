@@ -30,6 +30,7 @@
 #include "Keyboard2NoteMapping.h"
 #include "Rmt.h"
 #include "Song.h"
+#include "PokeyController.h"
 #include "SongUI.h"
 #include "Undo.h"
 
@@ -2818,6 +2819,30 @@ void CRmtView::OnUpdateEditSwitchEditMode(CCmdUI* pCmdUI)
 void CRmtView::OnEditActivatePokeyExplorerMode()
 {
     SetEditMode(EditMode::POKEY_EXPLORER_MODE);
+}
+
+// The Pokey menu's 50 explorer items (registers, AUDCTL bits, two-tone, channel, divisor) had no handlers until
+// 2026-09-30 - MFC greyed them permanently. They run the same CPokeyController operations as the keys, in the
+// explorer mode only (enabled there, greyed elsewhere).
+BOOL CRmtView::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo)
+{
+    if (CPokeyController::IsCommand(nID))
+    {
+        if (nCode == CN_COMMAND)
+        {
+            if (pHandlerInfo == NULL && IsEditMode(EditMode::POKEY_EXPLORER_MODE))
+            {
+                g_Song.m_PokeyController->OnCommand(nID);
+            }
+            return TRUE; // handled (or: there is a handler)
+        }
+        if (nCode == CN_UPDATE_COMMAND_UI && pHandlerInfo == NULL)
+        {
+            ((CCmdUI*)pExtra)->Enable(IsEditMode(EditMode::POKEY_EXPLORER_MODE));
+            return TRUE;
+        }
+    }
+    return CView::OnCmdMsg(nID, nCode, pExtra, pHandlerInfo);
 }
 
 

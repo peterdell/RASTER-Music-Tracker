@@ -130,8 +130,8 @@
 | Menu Pokey / Channel 3 / AUDF2 | Decrease By 0x10 | `Shift+T` |  |
 | Menu Pokey / Channel 3 / AUDC2 | Increase By 0x01 | `6` |  |
 | Menu Pokey / Channel 3 / AUDC2 | Increase By 0x10 | `Shift+6` |  |
-| Menu Pokey / Channel 3 / AUDC2 | Decrease By 0x01 | `Z` |  |
-| Menu Pokey / Channel 3 / AUDC2 | Decrease By 0x10 | `Shift+Z` |  |
+| Menu Pokey / Channel 3 / AUDC2 | Decrease By 0x01 | `Y` |  |
+| Menu Pokey / Channel 3 / AUDC2 | Decrease By 0x10 | `Shift+Y` |  |
 | Menu Pokey / Channel 4 / AUDF3 | Increase By 0x01 | `7` |  |
 | Menu Pokey / Channel 4 / AUDF3 | Increase By 0x10 | `Shift+7` |  |
 | Menu Pokey / Channel 4 / AUDF3 | Decrease By 0x01 | `U` |  |

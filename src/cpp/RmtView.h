@@ -141,6 +141,7 @@ protected:
 
     // Menu Edit
     afx_msg void OnEditActivatePokeyExplorerMode();
+    virtual BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo) override; // the Pokey menu's explorer items -> CPokeyController
     afx_msg void OnEditRedo();
     afx_msg void OnEditSwitchEditMode();
     afx_msg void OnEditUndo();

@@ -22,7 +22,6 @@ Changes in RMT 1.37 (Planned)
 -----------------------------
 
 - Have an additional ".ini" file as an intermediate step to the RMT file format version 2. There, the module-specific settings from the "RMT.ini" and "Tuning.ini" could be preserved. Also, the file's existence indicates it is an RMT in 1.34 format.
-- The Pokey Explorer in the Java port
 
 Changes in RMT 1.36 
 -------------------
@@ -38,6 +37,9 @@ Changes in RMT 1.36
 - Fixed: a MIDI note off received during follow-play was entered immediately instead of on the next line like a note on (the quantization test compared the speed with itself). (Build 2026-09-29)
 - Fixed: the controller knobs 71-78 on MIDI channel 16 (the "EXPLORER MODE (MIDI CH15)" POKEY knobs) wrote the POKEY registers in every mode; they were meant for, and now work only in, that mode. (Build 2026-09-30)
 - The manual has a "MIDI Input" section (the options, what each MIDI channel does); MIDI was not documented before. (Build 2026-09-30)
+- Fixed: in the Pokey Explorer mode, Backspace (previous channel) did nothing. (Build 2026-09-30)
+- The Pokey menu's items (the registers, the AUDCTL bits, two-tone, channel, divisor) work in the Pokey Explorer mode; they had no handlers and were always greyed. The hint for "Channel 3 > AUDC2 > Decrease" reads Y, the key that works (Z was the German keyboard's view of the same position). (Build 2026-09-30)
+- The manual has a "Pokey Explorer" section (the keys, the three rows of the register view). (Build 2026-09-30)
 - Menu labels corrected to the keys that actually work: Edit Tracks is F2, Edit Instruments F3, Edit Info Shift+F4 (the labels still said F1/F2/F3); Increase/Decrease Step Size are the numeric keypad's + and - (the labels said Ctrl++ and Ctrl+-); Pokey Explorer "Decrease By 0x11" is 0x10. The Help menu's entries now have their own descriptions in the status bar. (Build 2026-09-27)
 - Ctrl+Shift+S (Save As) and Alt+Enter (Properties) work as keys now; the menu had shown them without a key binding. (Build 2026-09-27)
 - The Windows standard keys: New is Ctrl+N (was Ctrl+W), Open is Ctrl+O (was Ctrl+L), Print is Ctrl+P, Help is F1 (the menu had shown F1 without a binding). The three editor functions that used those keys moved: "Insert new empty unused track" to Ctrl+T, "Insert copy or clone of song lines" to Ctrl+K, "Insert new line with unused empty tracks" to Ctrl+J. (Build 2026-09-28)

@@ -2,8 +2,213 @@
 #include "PokeyController.h"
 
 #include "Keyboard.h"
+#include "resource.h"
 
 CPokeyController::CPokeyController(CAtari* atari) : m_atari(atari), m_channel_index(0), m_divisor(1.0) {
+}
+
+// Whether id is one of the Pokey menu's explorer items.
+static bool OnCommandKnown(UINT id) {
+    switch (id) {
+    case ID_POKEY_AUDF0_INCREASE_BY_01:
+    case ID_POKEY_AUDF0_INCREASE_BY_10:
+    case ID_POKEY_AUDF0_DECREASE_BY_01:
+    case ID_POKEY_AUDF0_DECREASE_BY_10:
+    case ID_POKEY_AUDC0_INCREASE_BY_01:
+    case ID_POKEY_AUDC0_INCREASE_BY_10:
+    case ID_POKEY_AUDC0_DECREASE_BY_01:
+    case ID_POKEY_AUDC0_DECREASE_BY_10:
+    case ID_POKEY_AUDF1_INCREASE_BY_01:
+    case ID_POKEY_AUDF1_INCREASE_BY_10:
+    case ID_POKEY_AUDF1_DECREASE_BY_01:
+    case ID_POKEY_AUDF1_DECREASE_BY_10:
+    case ID_POKEY_AUDC1_INCREASE_BY_01:
+    case ID_POKEY_AUDC1_INCREASE_BY_10:
+    case ID_POKEY_AUDC1_DECREASE_BY_01:
+    case ID_POKEY_AUDC1_DECREASE_BY_10:
+    case ID_POKEY_AUDF2_INCREASE_BY_01:
+    case ID_POKEY_AUDF2_INCREASE_BY_10:
+    case ID_POKEY_AUDF2_DECREASE_BY_01:
+    case ID_POKEY_AUDF2_DECREASE_BY_10:
+    case ID_POKEY_AUDC2_INCREASE_BY_01:
+    case ID_POKEY_AUDC2_INCREASE_BY_10:
+    case ID_POKEY_AUDC2_DECREASE_BY_01:
+    case ID_POKEY_AUDC2_DECREASE_BY_10:
+    case ID_POKEY_AUDF3_INCREASE_BY_01:
+    case ID_POKEY_AUDF3_INCREASE_BY_10:
+    case ID_POKEY_AUDF3_DECREASE_BY_01:
+    case ID_POKEY_AUDF3_DECREASE_BY_10:
+    case ID_POKEY_AUDC3_INCREASE_BY_01:
+    case ID_POKEY_AUDC3_INCREASE_BY_10:
+    case ID_POKEY_AUDC3_DECREASE_BY_01:
+    case ID_POKEY_AUDC3_DECREASE_BY_10:
+    case ID_POKEY_AUDCTL_BIT0:
+    case ID_POKEY_AUDCTL_BIT1:
+    case ID_POKEY_AUDCTL_BIT2:
+    case ID_POKEY_AUDCTL_BIT3:
+    case ID_POKEY_AUDCTL_BIT4:
+    case ID_POKEY_AUDCTL_BIT5:
+    case ID_POKEY_AUDCTL_BIT6:
+    case ID_POKEY_AUDCTL_BIT7:
+    case ID_POKEY_SKCTL_TWO_TONE_MODE:
+    case ID_POKEY_NEXTCHANNEL:
+    case ID_POKEY_PREVIOUSCHANNEL:
+    case ID_POKEY_DIVISOR_INCREASE_BY_01:
+    case ID_POKEY_DIVISOR_INCREASE_BY_1:
+    case ID_POKEY_DIVISOR_DECREASE_BY_01:
+    case ID_POKEY_DIVISOR_DECREASE_BY_1:
+        return true;
+    default:
+        return false;
+    }
+}
+
+BOOL CPokeyController::OnCommand(UINT id) {
+    switch (id) {
+    case ID_POKEY_AUDF0_INCREASE_BY_01:
+        OnIncreaseAUDF0By01();
+        return TRUE;
+    case ID_POKEY_AUDF0_INCREASE_BY_10:
+        OnIncreaseAUDF0By10();
+        return TRUE;
+    case ID_POKEY_AUDF0_DECREASE_BY_01:
+        OnDecreaseAUDF0By01();
+        return TRUE;
+    case ID_POKEY_AUDF0_DECREASE_BY_10:
+        OnDecreaseAUDF0By10();
+        return TRUE;
+    case ID_POKEY_AUDC0_INCREASE_BY_01:
+        OnIncreaseAUDC0By01();
+        return TRUE;
+    case ID_POKEY_AUDC0_INCREASE_BY_10:
+        OnIncreaseAUDC0By10();
+        return TRUE;
+    case ID_POKEY_AUDC0_DECREASE_BY_01:
+        OnDecreaseAUDC0By01();
+        return TRUE;
+    case ID_POKEY_AUDC0_DECREASE_BY_10:
+        OnDecreaseAUDC0By10();
+        return TRUE;
+    case ID_POKEY_AUDF1_INCREASE_BY_01:
+        OnIncreaseAUDF1By01();
+        return TRUE;
+    case ID_POKEY_AUDF1_INCREASE_BY_10:
+        OnIncreaseAUDF1By10();
+        return TRUE;
+    case ID_POKEY_AUDF1_DECREASE_BY_01:
+        OnDecreaseAUDF1By01();
+        return TRUE;
+    case ID_POKEY_AUDF1_DECREASE_BY_10:
+        OnDecreaseAUDF1By10();
+        return TRUE;
+    case ID_POKEY_AUDC1_INCREASE_BY_01:
+        OnIncreaseAUDC1By01();
+        return TRUE;
+    case ID_POKEY_AUDC1_INCREASE_BY_10:
+        OnIncreaseAUDC1By10();
+        return TRUE;
+    case ID_POKEY_AUDC1_DECREASE_BY_01:
+        OnDecreaseAUDC1By01();
+        return TRUE;
+    case ID_POKEY_AUDC1_DECREASE_BY_10:
+        OnDecreaseAUDC1By10();
+        return TRUE;
+    case ID_POKEY_AUDF2_INCREASE_BY_01:
+        OnIncreaseAUDF2By01();
+        return TRUE;
+    case ID_POKEY_AUDF2_INCREASE_BY_10:
+        OnIncreaseAUDF2By10();
+        return TRUE;
+    case ID_POKEY_AUDF2_DECREASE_BY_01:
+        OnDecreaseAUDF2By01();
+        return TRUE;
+    case ID_POKEY_AUDF2_DECREASE_BY_10:
+        OnDecreaseAUDF2By10();
+        return TRUE;
+    case ID_POKEY_AUDC2_INCREASE_BY_01:
+        OnIncreaseAUDC2By01();
+        return TRUE;
+    case ID_POKEY_AUDC2_INCREASE_BY_10:
+        OnIncreaseAUDC2By10();
+        return TRUE;
+    case ID_POKEY_AUDC2_DECREASE_BY_01:
+        OnDecreaseAUDC2By01();
+        return TRUE;
+    case ID_POKEY_AUDC2_DECREASE_BY_10:
+        OnDecreaseAUDC2By10();
+        return TRUE;
+    case ID_POKEY_AUDF3_INCREASE_BY_01:
+        OnIncreaseAUDF3By01();
+        return TRUE;
+    case ID_POKEY_AUDF3_INCREASE_BY_10:
+        OnIncreaseAUDF3By10();
+        return TRUE;
+    case ID_POKEY_AUDF3_DECREASE_BY_01:
+        OnDecreaseAUDF3By01();
+        return TRUE;
+    case ID_POKEY_AUDF3_DECREASE_BY_10:
+        OnDecreaseAUDF3By10();
+        return TRUE;
+    case ID_POKEY_AUDC3_INCREASE_BY_01:
+        OnIncreaseAUDC3By01();
+        return TRUE;
+    case ID_POKEY_AUDC3_INCREASE_BY_10:
+        OnIncreaseAUDC3By10();
+        return TRUE;
+    case ID_POKEY_AUDC3_DECREASE_BY_01:
+        OnDecreaseAUDC3By01();
+        return TRUE;
+    case ID_POKEY_AUDC3_DECREASE_BY_10:
+        OnDecreaseAUDC3By10();
+        return TRUE;
+    case ID_POKEY_AUDCTL_BIT0:
+        OnToggleAUDCTLBit0();
+        return TRUE;
+    case ID_POKEY_AUDCTL_BIT1:
+        OnToggleAUDCTLBit1();
+        return TRUE;
+    case ID_POKEY_AUDCTL_BIT2:
+        OnToggleAUDCTLBit2();
+        return TRUE;
+    case ID_POKEY_AUDCTL_BIT3:
+        OnToggleAUDCTLBit3();
+        return TRUE;
+    case ID_POKEY_AUDCTL_BIT4:
+        OnToggleAUDCTLBit4();
+        return TRUE;
+    case ID_POKEY_AUDCTL_BIT5:
+        OnToggleAUDCTLBit5();
+        return TRUE;
+    case ID_POKEY_AUDCTL_BIT6:
+        OnToggleAUDCTLBit6();
+        return TRUE;
+    case ID_POKEY_AUDCTL_BIT7:
+        OnToggleAUDCTLBit7();
+        return TRUE;
+    case ID_POKEY_SKCTL_TWO_TONE_MODE:
+        OnToggleTwoTone();
+        return TRUE;
+    case ID_POKEY_NEXTCHANNEL:
+        OnNextChannel();
+        return TRUE;
+    case ID_POKEY_PREVIOUSCHANNEL:
+        OnPreviousChannel();
+        return TRUE;
+    case ID_POKEY_DIVISOR_INCREASE_BY_01:
+        OnIncreaseDivisorBy01();
+        return TRUE;
+    case ID_POKEY_DIVISOR_INCREASE_BY_1:
+        OnIncreaseDivisorBy10();
+        return TRUE;
+    case ID_POKEY_DIVISOR_DECREASE_BY_01:
+        OnDecreaseDivisorBy01();
+        return TRUE;
+    case ID_POKEY_DIVISOR_DECREASE_BY_1:
+        OnDecreaseDivisorBy10();
+        return TRUE;
+    default:
+        return FALSE;
+    }
 }
 
 BOOL CPokeyController::OnKeyDown(int vk, int shift, int control) {
@@ -210,6 +415,10 @@ BOOL CPokeyController::OnKeyDown(int vk, int shift, int control) {
     return TRUE;
 }
 
+bool CPokeyController::IsCommand(UINT id) {
+    return OnCommandKnown(id);
+}
+
 int CPokeyController::GetChannelIndex() const {
     return m_channel_index;
 }
@@ -239,6 +448,7 @@ void CPokeyController::OnNextChannel() {
 }
 
 void CPokeyController::OnPreviousChannel() {
+    m_channel_index--; // missing until 2026-09-30: Backspace did nothing
     if (m_channel_index < 0) {
         m_channel_index = 3;
     }

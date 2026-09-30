@@ -199,7 +199,7 @@ public final class Actions extends NLS {
 	public static Action MainMenu_Pokey_Register_DecreaseBy01;
 	public static Action MainMenu_Pokey_Register_DecreaseBy10;
 	// The Pokey Explorer's keys (IDR_POKEY_EXPLORER ACCELERATORS and the menu labels' hints in Rmt.rc), displayed as the C++ menu displays them;
-	// hint-only until CPokeyController is ported (RmtCommandId), the register submenus' per-register keys are set by RmtMainMenu
+	// hints only (RmtCommandId): PokeyController reads the keys itself in the explorer mode; the register submenus' per-register keys are set by RmtMainMenu
 	public static Action MainMenu_Pokey_AUDCTL;
 	public static Action MainMenu_Pokey_AUDCTL_Bit0 = new Action(KeyEvent.VK_C, 0);
 	public static Action MainMenu_Pokey_AUDCTL_Bit1 = new Action(KeyEvent.VK_G, 0);

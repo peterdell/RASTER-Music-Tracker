@@ -38,7 +38,8 @@ class RmtMainMenuTest {
 		assertEquals(RmtCommandId.SONG_TOGGLE_NTSC, menu.lookupAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F12, com.wudsn.tools.base.gui.KeyStroke.M1)));
 		assertEquals(17 + 7 + 1, toolBars.mainToolBar.getComponentCount()); // 17 buttons, 7 separators, the combo box
 		assertEquals(10 + 3, toolBars.blockToolBar.getComponentCount());
-		assertEquals(8, menu.getButtons(RmtCommandId.POKEY_REGISTER_INCREASE_BY_01).size()); // the 8 register submenus share the 4 register commands
+		assertEquals(1, menu.getButtons(RmtCommandId.POKEY_AUDC2_DECREASE_BY_01).size()); // one command per register operation, as in C++ (since the Pokey Explorer port)
+		assertEquals(KeyStroke.getKeyStroke(KeyEvent.VK_Y, 0), ((javax.swing.JMenuItem) menu.getButtons(RmtCommandId.POKEY_AUDC2_DECREASE_BY_01).get(0)).getAccelerator()); // the QWERTY row under the digits: Y, not the German Z
 
 		menu.getButtons(RmtCommandId.FILE_EXIT).get(0).doClick();
 		assertEquals(List.of(RmtCommandId.FILE_EXIT), executed);

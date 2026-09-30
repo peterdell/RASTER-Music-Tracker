@@ -316,7 +316,7 @@ public final class SongUI {
 			if (DEBUG_POKEY) {
 				Canvas pokeyCanvas = new Canvas(canvasXY, POKEY_VIEW_X, POKEY_VIEW_Y);
 				PokeyView pokeyView = new PokeyView(pokeyCanvas);
-				pokeyView.draw(stereo, session.tuning, session.tuningSettings, session.options.notesPerOctave, session.atari);
+				pokeyView.draw(stereo, session.tuning, session.tuningSettings, session.options.notesPerOctave, session.atari, session.uiState.editMode == EditMode.POKEY_EXPLORER_MODE, session.pokeyController);
 			}
 
 			if (DEBUG_MEMORY) {
