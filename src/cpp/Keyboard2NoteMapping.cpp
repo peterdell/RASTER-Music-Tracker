@@ -305,11 +305,13 @@ void AppendLayout(std::string& out, const char* name, const unsigned char* table
 
 std::string NoteKeysTable() {
     std::string out;
+    // The order the Options dialog offers the layouts in (the Java port's
+    // KeyboardLayout sort key, 2026-10-01) - both programs write the same file.
     AppendLayout(out, "QWERTY", keynotes_QWERTY, KeyboardLayout::QWERTY);
     out += "\n";
-    AppendLayout(out, "AZERTY", keynotes_AZERTY, KeyboardLayout::AZERTY);
-    out += "\n";
     AppendLayout(out, "QWERTZ", keynotes_QWERTZ, KeyboardLayout::QWERTZ);
+    out += "\n";
+    AppendLayout(out, "AZERTY", keynotes_AZERTY, KeyboardLayout::AZERTY);
     return out;
 }
 

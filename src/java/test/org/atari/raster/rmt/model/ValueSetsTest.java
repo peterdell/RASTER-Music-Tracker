@@ -88,6 +88,28 @@ class ValueSetsTest {
 		assertEquals(List.of(AssemblerFormat.ATASM, AssemblerFormat.XASM), values);
 	}
 
+	/**
+	 * The keyboard layouts are shown QWERTY, QWERTZ, AZERTY - the sort key, not
+	 * the number (QWERTZ is 2 and AZERTY is 1, the values C++ and rmt.ini use).
+	 * The sort key is {@code ValueSet}'s third constructor argument; passing
+	 * something else there leaves the field in the number's order, silently.
+	 */
+	@Test
+	void theKeyboardLayoutsAreShownInTheirOwnOrderNotTheNumbers() {
+		List<KeyboardLayout> shown = List.of(KeyboardLayout.QWERTY, KeyboardLayout.QWERTZ, KeyboardLayout.AZERTY);
+		assertEquals(shown, ValueSet.getValues(KeyboardLayout.class), "what the Options dialog's field shows");
+		assertEquals(shown, KeyboardLayout.getValues(), "and the order the note key document is written in");
+		assertEquals(0, KeyboardLayout.QWERTY.getNumber());
+		assertEquals(1, KeyboardLayout.AZERTY.getNumber());
+		assertEquals(2, KeyboardLayout.QWERTZ.getNumber());
+	}
+
+	@Test
+	void theKeyboardLayoutsHaveTheirTexts() {
+		assertTextsAreLoaded(KeyboardLayout.getValues());
+		assertEquals("QWERTZ Layout", KeyboardLayout.QWERTZ.getText());
+	}
+
 	/** The two assembler keywords that used to be picked by a comparison at four sites. */
 	@Test
 	void eachAssemblerFormatCarriesItsDirectives() {

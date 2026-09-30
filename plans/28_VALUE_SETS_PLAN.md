@@ -219,7 +219,9 @@ and the dialog keeps showing nothing when the configured version is not
 one of them. `KeyboardLayout` also carries its two tables - the note each
 key plays and its keyboard's key rows - so `Keyboard2NoteMapping.noteKey`
 is a lookup and `NoteKeys` reads the rows from the layout; adding a
-layout can no longer forget one of them. The Java test for an unknown
+layout can no longer forget one of them. Its sort key is its own value
+(QWERTY, QWERTZ, AZERTY - the user's order of 2026-10-01), not its
+number, and both programs write the note key document in that order. The Java test for an unknown
 layout is gone, since a value set cannot represent one; it became the
 QWERTY-fallback test, and the C++ test of the same name stays (a cast can
 still make an invalid enum value there).

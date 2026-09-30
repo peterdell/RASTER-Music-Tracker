@@ -57,10 +57,12 @@ public final class NoteKeys {
 
 	public static String table() {
 		StringBuilder sb = new StringBuilder();
+		boolean first = true;
 		for (KeyboardLayout layout : KeyboardLayout.getValues()) {
-			if (layout != KeyboardLayout.QWERTY) {
+			if (!first) {
 				sb.append('\n');
 			}
+			first = false;
 			appendLayout(sb, layout);
 		}
 		return sb.toString();

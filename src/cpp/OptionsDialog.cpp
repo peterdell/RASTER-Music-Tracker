@@ -107,8 +107,8 @@ BOOL COptionsDialog::OnInitDialog()
     OnMidiTouchResponseClicked();
 
     m_keyboardLayoutComboBox.AddItem(KeyboardLayout::QWERTY, "QWERTY Layout");
-    m_keyboardLayoutComboBox.AddItem(KeyboardLayout::AZERTY, "AZERTY Layout");
     m_keyboardLayoutComboBox.AddItem(KeyboardLayout::QWERTZ, "QWERTZ Layout");
+    m_keyboardLayoutComboBox.AddItem(KeyboardLayout::AZERTY, "AZERTY Layout");
     m_keyboardLayoutComboBox.SetSelectedItem(m_keyboard_layout);
 
     m_trackerDriverVersionComboBox.AddItem(TrackerDriverVersion::UNPATCHED, "RMT 1.28 Unpatched by Raster");

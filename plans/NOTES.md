@@ -5173,3 +5173,22 @@ build clean and all 123 tests pass.
     green (646 tests), `compare_exports.ps1` identical, and the checked-in
     `doc/rmt_note_keys.md` and `doc/rmt_action_infos.md` match a fresh
     dump, which is what proves the layout tables survived the move.
+  - **2026-10-01**: the user reordered the `KeyboardLayout` declarations to
+    QWERTY, QWERTZ, AZERTY and added what they took for a sort key, but the
+    Options dialog kept the old order. Cause: `ValueSet`'s constructor is
+    `(id, text, sortKey)`, so the added string landed in `text` - where
+    `initializeClass` overwrote it from `ValueSets.properties` a moment
+    later, leaving no trace - and `number` landed in `sortKey`, which is
+    the old order (QWERTY 0, AZERTY 1, QWERTZ 2). Fixed with a real `int`
+    sort key as the third argument and the id as the text. The lesson for
+    the next value set: the sort key is the third argument, and a wrong
+    one fails silently, so `ValueSetsTest` now asserts the layouts' field
+    order against their numbers.
+    The user asked for both orders, so the note key document follows the
+    dialog: C++'s `NoteKeysTable()` writes QWERTZ before AZERTY too, the
+    C++ Options combo adds them in that order (its `CTypedComboBox` maps
+    item to value, so reordering `AddItem` is safe), `NoteKeys.table()`'s
+    separator no longer assumes QWERTY comes first, and
+    `doc/rmt_note_keys.md` was regenerated - both programs write it byte
+    for byte identically again, which `compare_exports.ps1` confirms.
+    Verified: 426 C++ tests, the Java suite, the export comparison.
