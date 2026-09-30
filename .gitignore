@@ -9,3 +9,6 @@ target/
 dependency-reduced-pom.xml
 /rmt.ini
 /tuning.ini
+
+# WinMerge project files
+*.WinMerge
