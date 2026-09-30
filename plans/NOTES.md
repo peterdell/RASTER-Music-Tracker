@@ -5001,3 +5001,30 @@ build clean and all 123 tests pass.
     Verified: Release build of `Rmt.sln` (416 C++ tests), `mvn -o clean
     package` (594 Java tests), `compare_exports.ps1` - every export
     identical, the `.rmw` files included.
+  - **2026-09-29**: `plans/25_JAVA_MIDI_PLAN.md` written (MIDI input for
+    the Java port, M0-M5, with the C++ handler `CSong::MidiEvent` analysed
+    channel by channel). The user: "apply the fix. The rest remains
+    deferred for now." Applied: (1) the Java quantization branch of
+    `Song.playVBI` (M0) - `SongInput.insertNote` had set the quantized note
+    since the UI port while `playVBI` still omitted the consuming branch
+    (its javadoc claimed no caller set it), so a note typed during
+    follow-play in the first half of a line was lost; now entered on the
+    next line with `respectVolume`/`undo` as explicit parameters from
+    `AudioEngine` (the dump passes `false` - `play()` clears the pending
+    note first), `-2` deletes the note and writes volume 0; four tests in
+    `SongEditingTest`. (2) The C++ `Midi_Song.cpp` note-off quantization
+    compared `m_speed` with itself (twice, always false): now `m_speeda`,
+    change history entry. M1-M5 (device, handler, controller mode, `midi`
+    script command, manual) deferred. Verified: `mvn -o clean package`
+    green, Release build of `Rmt.sln` + `RmtTests.exe` green.
+  - **2026-09-29**: the user: the Java toolbar icons do not look disabled
+    when disabled, unlike Rmt.exe. Cause: on a scaled (HiDPI) display the
+    buttons carry a `PixelIcon`, and Swing derives the grayed disabled icon
+    on its own only from an `ImageIcon` (`LookAndFeel.getDisabledIcon`), so
+    a disabled button painted its normal image; at 100% (ImageIcon) it was
+    grayed. `RmtToolBars` now sets the disabled (and disabled-selected)
+    icon explicitly: `disabledFace()` = `GrayFilter.createDisabledImage`
+    (Swing's standard disabled look, the one the 100% case already had),
+    wrapped in the same `icon()` (PixelIcon or ImageIcon). Two tests in
+    `RmtToolBarsTest`. No change-history entry: the 1.36 section lists
+    the Windows program's changes.

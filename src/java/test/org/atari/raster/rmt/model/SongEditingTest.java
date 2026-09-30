@@ -2107,8 +2107,86 @@ class SongEditingTest {
 		song.songSetPlayLine(0);
 		song.setPlayLine(5); // speeda defaults to 0, so "speeda--" makes the "too soon" check fail and it proceeds
 
-		assertTrue(song.playVBI(4, atariTrackerDriver));
+		assertTrue(song.playVBI(4, atariTrackerDriver, false, undo));
 		assertEquals(6, song.getPlayLine());
+	}
+
+	// The quantization branch (omitted until 2026-09-29 - a note typed during
+	// follow-play in the first half of a line was lost): the pending note is
+	// entered on the line the cursor follows the player to.
+
+	/** Track 5 in song line 0, follow-play, speed 8, the player about to step from line 2 to line 3. */
+	private Track followPlayAtLine2() {
+		song.getSong()[0][0] = 5;
+		song.songSetActiveLine(0);
+		song.songSetPlayLine(0);
+		song.setActiveColumn(0);
+		song.setPlayMode(PlayMode.PLAY_TRACK);
+		song.setFollowPlayMode(true);
+		song.setSpeed(8);
+		song.setSpeeda(1); // "speeda--" reaches 0: the next line is due and speeda is reloaded to speed
+		song.setPlayLine(2);
+		Track tr = tracks.getTrack(5);
+		tr.len = 8;
+		return tr;
+	}
+
+	@Test
+	void playVBIEntersTheQuantizedNoteOnTheNextLineDuringFollowPlay() {
+		Track tr = followPlayAtLine2();
+		song.setQuantization(20, 3, 9);
+
+		assertTrue(song.playVBI(4, atariTrackerDriver, false, undo));
+
+		assertEquals(3, song.getActiveLine()); // the cursor followed the player
+		assertEquals(20, tr.note[3]);
+		assertEquals(3, tr.instr[3]);
+		assertEquals(9, tr.volume[3]);
+		assertEquals(-1, tr.note[2]); // not on the line where it was typed
+
+		// the note is cancelled: another VBI at the next line enters nothing
+		song.setSpeeda(1);
+		assertTrue(song.playVBI(4, atariTrackerDriver, false, undo));
+		assertEquals(-1, tr.note[4]);
+	}
+
+	@Test
+	void playVBIKeepsTheLinesVolumeForTheQuantizedNoteWhenRespectingVolume() {
+		Track tr = followPlayAtLine2();
+		tr.volume[3] = 4;
+		song.setQuantization(20, 3, 9);
+
+		assertTrue(song.playVBI(4, atariTrackerDriver, true, undo));
+
+		assertEquals(20, tr.note[3]);
+		assertEquals(4, tr.volume[3]); // g_respectvolume: the line's volume wins over the typed one
+	}
+
+	@Test
+	void playVBIDeletesTheNoteAndWritesVolumeZeroForAQuantizedNoteOff() {
+		Track tr = followPlayAtLine2();
+		tr.note[3] = 30;
+		tr.instr[3] = 2;
+		tr.volume[3] = 12;
+		song.setQuantization(-2, -1, -1); // the MIDI note off
+
+		assertTrue(song.playVBI(4, atariTrackerDriver, false, undo));
+
+		assertEquals(-1, tr.note[3]);
+		assertEquals(-1, tr.instr[3]);
+		assertEquals(0, tr.volume[3]);
+	}
+
+	@Test
+	void playVBILeavesAQuantizedNoteAloneWithoutFollowPlay() {
+		Track tr = followPlayAtLine2();
+		song.setFollowPlayMode(false);
+		song.setQuantization(20, 3, 9);
+
+		assertTrue(song.playVBI(4, atariTrackerDriver, false, undo));
+
+		assertEquals(-1, tr.note[3]);
+		assertEquals(0, song.getActiveLine()); // the cursor did not follow
 	}
 
 	// --- dumpSongToPokeyStream ---

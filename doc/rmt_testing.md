@@ -23,3 +23,4 @@ These are some questions I have for the users to decide on the way forward.
 - Was the "Print" feature in the previous RMT versions good for anything? From what I see it was a side-effect of using the Microsoft Foundation Classes (MFC) document model. There is hardly a point in printing something that changes with 60 FPS. And from I saw, it never worked anyway.
 - Did you ever use the "Tuning" settings in RMT 1.34 to change the tuning? The problem with them is that without the "rmt.int" and the "tuning.ini" file, the ".rmt" file cannot be replayed correctly on any machine.
 - Do you need the Pokey Explorer and Debug Views marked in red? I would like to move them to separate (optional, separately moveable) windows, because I think you are not always required.<br>![](img/questions_screen_sections.png) 
+- Have you every used the Midi_input? I yes/now, why? 

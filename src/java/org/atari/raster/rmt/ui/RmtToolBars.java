@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
+import java.awt.Image;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
@@ -15,6 +16,7 @@ import java.util.function.Consumer;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractButton;
+import javax.swing.GrayFilter;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -129,7 +131,12 @@ public final class RmtToolBars {
 			}
 			AbstractButton button = id.checkable ? new JToggleButton() : new JButton();
 			BufferedImage face = strip.getSubimage(image * BUTTON_WIDTH, 0, BUTTON_WIDTH, BUTTON_HEIGHT);
-			button.setIcon(deviceScale != 1 ? new PixelIcon(face, deviceScale) : new ImageIcon(face));
+			button.setIcon(icon(face, deviceScale));
+			// Swing derives a grayed disabled icon on its own only from an ImageIcon, not from a PixelIcon - so on a HiDPI display
+			// disabled buttons looked enabled (the user, 2026-09-29); Rmt.exe's MFC toolbar grays them. Set explicitly for both.
+			Icon disabled = icon(disabledFace(face), deviceScale);
+			button.setDisabledIcon(disabled);
+			button.setDisabledSelectedIcon(disabled);
 			image++;
 			String toolTip = id.action.getToolTip();
 			button.setToolTipText(toolTip == null || toolTip.isEmpty() ? id.action.getLabelWithoutMnemonics() : toolTip);
@@ -138,6 +145,24 @@ public final class RmtToolBars {
 			menu.register(id, button);
 			toolBar.add(button);
 		}
+	}
+
+	/** The icon for a button face: drawn 1:1 in device pixels on a scaled display ({@link PixelIcon}), a plain {@link ImageIcon} at 100%. */
+	static Icon icon(BufferedImage face, double deviceScale) {
+		return deviceScale != 1 ? new PixelIcon(face, deviceScale) : new ImageIcon(face);
+	}
+
+	/** The grayed face of a disabled button - {@link GrayFilter}'s standard disabled look (the one Swing gives an {@link ImageIcon}), transparency kept. */
+	static BufferedImage disabledFace(BufferedImage face) {
+		Image gray = GrayFilter.createDisabledImage(face);
+		BufferedImage result = new BufferedImage(face.getWidth(), face.getHeight(), BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g = result.createGraphics();
+		try {
+			g.drawImage(gray, 0, 0, null);
+		} finally {
+			g.dispose();
+		}
+		return result;
 	}
 
 	/** Reads a strip next to this class and turns its button-face gray into transparency. */
