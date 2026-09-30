@@ -50,6 +50,8 @@ public final class RmtSession {
 	public final RmtOptions options = new RmtOptions();
 	/** The import/export dialogs' remembered choices ({@code g_rmtstripped_*}, {@code g_rmtmsxtext}, ...). */
 	public final ExportSettings exportSettings = new ExportSettings();
+	/** {@code g_Midi}: the MIDI IN device (its settings are in {@link #options}); the handler is {@link MidiInput}, created by the window or the script runner. */
+	public final RmtMidi midi = new RmtMidi(this);
 	/** The Effects/tools dialog's remembered effect and parameters ({@code g_effai}, {@code eff_ed}). */
 	public final org.atari.raster.rmt.model.BlockEffects.Settings blockEffectSettings = new org.atari.raster.rmt.model.BlockEffects.Settings();
 

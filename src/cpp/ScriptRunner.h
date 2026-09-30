@@ -67,6 +67,7 @@ private:
     void Export(const TScriptCommand& command);
     void Set(const TScriptCommand& command);
     void Dump(const TScriptCommand& command);
+    void Midi(const TScriptCommand& command);
 
     std::filesystem::path Resolve(const std::string& path) const;
     // An output file: relative to the output folder (created on demand), else the script's folder.

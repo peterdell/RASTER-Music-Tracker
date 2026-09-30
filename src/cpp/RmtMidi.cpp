@@ -26,7 +26,7 @@ void CALLBACK MidiInProc(
 	if (wMsg != MIM_DATA && wMsg != MIM_ERROR) {
 		return;
 	}
-	g_Song.MidiEvent(dwParam1);
+	g_Song.MidiEvent(dwParam1, g_RmtHasFocus != 0);
 }
 
 CRmtMidi::CRmtMidi() {

@@ -97,6 +97,26 @@ class RmtCommandsTest {
 	}
 
 	@Test
+	void theMidiToggleFollowsTheDevice() {
+		RmtMidiTest.FakeDevices devices = new RmtMidiTest.FakeDevices();
+		devices.names.add("Keys");
+		session.midi.setDevices(devices);
+		assertFalse(commands.isEnabled(RmtCommandId.MIDIONOFF), "OnUpdateMidiOnOff: no device");
+		assertFalse(commands.isChecked(RmtCommandId.MIDIONOFF));
+		commands.execute(RmtCommandId.MIDIONOFF); // disabled: nothing
+		assertFalse(session.midi.isOn());
+
+		session.options.midiDevice = "Keys";
+		session.midi.midiInit();
+		assertTrue(commands.isEnabled(RmtCommandId.MIDIONOFF));
+		commands.execute(RmtCommandId.MIDIONOFF); // OnMidiOnOff
+		assertTrue(session.midi.isOn());
+		assertTrue(commands.isChecked(RmtCommandId.MIDIONOFF));
+		commands.execute(RmtCommandId.MIDIONOFF);
+		assertFalse(session.midi.isOn());
+	}
+
+	@Test
 	void everyCommandHasALabelAndCanBeAskedForItsState() {
 		for (RmtCommandId id : RmtCommandId.values()) {
 			assertFalse(id.action.getLabel().isEmpty(), id + " has no label");
@@ -360,6 +380,9 @@ class RmtCommandsTest {
 		v.keyboardLayout = KeyboardLayout.AZERTY;
 		v.midiDevice = "Some device";
 		v.midiVolumeOffset = 7;
+		RmtMidiTest.FakeDevices devices = new RmtMidiTest.FakeDevices(); // applyOptions runs MidiInit, which clears an unknown device name
+		devices.names.add("Some device");
+		session.midi.setDevices(devices);
 		double basetuning = session.tuningSettings.basetuning;
 
 		commands.applyOptions(v);

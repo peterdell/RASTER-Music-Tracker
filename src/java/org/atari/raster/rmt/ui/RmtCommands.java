@@ -31,8 +31,9 @@ import org.atari.raster.rmt.model.UndoType;
  * handlers that open a dialog or a file chooser ({@code FileOpen}, the
  * export/import/renumber/change/order dialogs, About, Options) report
  * {@link Host#notAvailable} until their batch (B7); the printing
- * commands are MFC's own and stay unavailable; MIDI and the Pokey Explorer
- * commands are disabled (no MIDI, {@code CPokeyController} unported).
+ * commands are MFC's own and stay unavailable; the Pokey Explorer
+ * commands are disabled ({@code CPokeyController} unported); the MIDI
+ * toggle is {@link RmtSession#midi}'s.
  * Playback commands change the play state exactly as C++ does; the
  * {@link AudioEngine} thread makes it audible and advancing.
  */
@@ -209,8 +210,7 @@ public final class RmtCommands {
 	 * side effects C++ has on a change - the canvas rescaled, NTSC switched
 	 * through {@link RmtSession#setNTSC}, the driver reloaded, the sound
 	 * re-initialized on a sound-buffer change (the option itself has no
-	 * effect on the Java line); {@code g_Midi.MidiInit()} has no counterpart
-	 * (MIDI not ported).
+	 * effect on the Java line), {@code g_Midi.MidiInit()} for the MIDI device.
 	 */
 	public void applyOptions(OptionsValues dlg) {
 		RmtOptions o = session.options;
@@ -247,6 +247,7 @@ public final class RmtCommands {
 		o.midiTouchResponse = dlg.midiTouchResponse;
 		o.midiVolumeOffset = dlg.midiVolumeOffset;
 		o.midiNoteOff = dlg.midiNoteOff;
+		session.midi.midiInit();
 	}
 
 	/** Executes a command exactly as its {@code CRmtView::On...()} handler does; a disabled command does nothing (MFC never routes those). */
@@ -564,8 +565,12 @@ public final class RmtCommands {
 		case CONTEXT_HELP -> browse(ONLINE_HELP_URL);
 		case HELP_ABOUT_APP -> host.showAbout();
 
-		case MIDIONOFF -> {
-			// never enabled - no MIDI
+		case MIDIONOFF -> { // OnMidiOnOff
+			if (session.midi.isOn()) {
+				session.midi.midiOff();
+			} else {
+				session.midi.midiOn();
+			}
 		}
 		}
 	}
@@ -664,7 +669,7 @@ public final class RmtCommands {
 		case TRACK_EXPANDLOOP -> activeTrack >= 0 && session.tracks.getGoLine(activeTrack) >= 0;
 		case BLOCK_RESTORE_FROM_BACKUP, BLOCK_CUT, BLOCK_DELETE, BLOCK_EXCHANGE, BLOCK_APPLY_EFFECTS, BLOCK_TRANSPOSE_NOTES_UP, BLOCK_TRANSPOSE_NOTES_DOWN, BLOCK_USE_PREVIOUS_INSTRUMENT, BLOCK_USE_NEXT_INSTRUMENT, BLOCK_INCREASE_VOLUME, BLOCK_DECREASE_VOLUME, BLOCK_TOGGLE_MODIFICATION_MODE, BLOCK_PLAY_AND_LOOP -> clipboard.isBlockSelected();
 		case POKEY_REGISTER_INCREASE_BY_01, POKEY_REGISTER_INCREASE_BY_10, POKEY_REGISTER_DECREASE_BY_01, POKEY_REGISTER_DECREASE_BY_10, POKEY_AUDCTL_BIT0, POKEY_AUDCTL_BIT1, POKEY_AUDCTL_BIT2, POKEY_AUDCTL_BIT3, POKEY_AUDCTL_BIT4, POKEY_AUDCTL_BIT5, POKEY_AUDCTL_BIT6, POKEY_AUDCTL_BIT7, POKEY_SKCTL_TWO_TONE_MODE, POKEY_NEXTCHANNEL, POKEY_PREVIOUSCHANNEL, POKEY_DIVISOR_INCREASE_BY_01, POKEY_DIVISOR_INCREASE_BY_1, POKEY_DIVISOR_DECREASE_BY_01, POKEY_DIVISOR_DECREASE_BY_1 -> false; // CPokeyController unported
-		case MIDIONOFF -> false; // no MIDI
+		case MIDIONOFF -> session.midi.hasDevice(); // OnUpdateMidiOnOff: GetMidiDevId() >= 0
 		case TOOLS_OPEN_ASAP_FILE -> false; // no handler in C++ either - MFC greys out a menu item without one
 		default -> true;
 		};
@@ -681,6 +686,7 @@ public final class RmtCommands {
 		case PART_INFO -> ui.activePart == Part.PART_INFO;
 		case PART_SONG -> ui.activePart == Part.PART_SONG;
 		case TOOLBAR_SWITCH_EDIT_MODE -> ui.editMode.isProveMode();
+		case MIDIONOFF -> session.midi.isOn();
 		case VIEW_TOOLBAR -> view.mainToolbar;
 		case VIEW_BLOCKTOOLBAR -> view.blockToolbar;
 		case VIEW_STATUS_BAR -> view.statusBar;

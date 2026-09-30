@@ -5028,3 +5028,38 @@ build clean and all 123 tests pass.
     wrapped in the same `icon()` (PixelIcon or ImageIcon). Two tests in
     `RmtToolBarsTest`. No change-history entry: the 1.36 section lists
     the Windows program's changes.
+  - **2026-09-30**: plan 25 implemented (M1-M5, "implement the midi
+    plan"). Java: `MidiDevices` (Java Sound behind an interface, a fake in
+    tests), `RmtMidi` (the `CRmtMidi` life cycle: init looks the `rmt.ini`
+    name up and warns/clears when missing, on opens and resets the channel
+    arrays, off closes; owned by `RmtSession`), `MidiInput` (the
+    `CSong::MidiEvent` port beside `SongInput`, whose `blockDeselect`/
+    `trackDown`/`isPlayingAndFollowing`/`skipLines` became package-visible
+    for it; `hasFocus` an explicit parameter). Wiring: the window inits
+    and turns MIDI on in `show()`, off on close, a `FocusListener` on the
+    tracker panel is `g_RmtHasFocus`, the device's messages run under the
+    session lock and refresh the screen; `applyOptions` and
+    `resetRMTConfig` call `midiInit()`; the toolbar toggle is live; the
+    Options dialog lists `session.midi.deviceNames()`. Scripts: `midi
+    <status> <data1> [<data2>]` (hex bytes, focus counted as given) and
+    `set midi-touch-response|midi-volume-offset|midi-note-off` in both
+    programs; `test-resources/scripts/midi.rmtscript` records through
+    channel 1 (volume, touch response, note off), channel 11 program
+    change, channel 2 live play, a system reset, channel 16 with the mod
+    wheel, then saves .rmt/.txt/.rmw - byte-identical in both programs on
+    the first run. C++: `MidiEvent(DWORD, bool hasFocus)` (`MidiInProc`
+    passes `g_RmtHasFocus`), and one more fix: the CH16 knobs 71-78 had
+    their `case`s inside an `if (IsEditMode(MIDI_CH15_MODE))` that a
+    switch jump never evaluates, so they worked in every mode - now the
+    check precedes the switch (Java the same). Faithful oddities kept: a
+    program change on channel 1 is swallowed by `if (chn == 0)`; the REC
+    key (CC 118) goes through `SwitchEditMode`, i.e. edit -> jam -> (stereo
+    jam) -> explorer -> edit; a recorded note off deletes at the cursor,
+    which has already moved on. Docs: manual section "MIDI Input" (there
+    was none), scripting rows, change history, README. Tests:
+    `RmtMidiTest` (8), `MidiInputTest` (17), `RmtCommandsTest` toggle,
+    `ScriptRunnerTest` midi (2); `mvn -o clean package` green (630
+    tests), Release `Rmt.sln` + 416 C++ tests green, `compare_exports.ps1`
+    4 scripts identical. Not done: a real controller was not at hand -
+    the Java Sound device names and the open/close path on Windows need
+    the user's check.

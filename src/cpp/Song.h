@@ -45,7 +45,7 @@ public:
     // moving with the rest of ClearSong() into SongEditing.cpp.
     void SyncSkipLinesAfterNoteInsertComboBox();
 
-    void MidiEvent(DWORD dwParam);
+    void MidiEvent(DWORD dwParam, bool hasFocus); // hasFocus: g_RmtHasFocus from the MIDI callback, true from a script (the recording needs the focused window or a jam mode)
 
     BOOL InfoKey(int vk, int shift, int control);
     BOOL InfoCursorGotoSongname(int x);

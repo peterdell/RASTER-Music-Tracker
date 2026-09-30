@@ -80,6 +80,10 @@ Exit codes of the command line:
 | `set output <folder>` | Where later `save`/`export` commands write (relative to the script's folder; created when missing). Default: the script's folder. |
 | `set ntsc yes\|no` | The Options dialog's NTSC setting (the video standard: 60 or 50 frames per second, and the POKEY clock). |
 | `set driver <version>` | The Options dialog's tracker driver: `unpatched`, `unpatched-with-tuning`, `patch3`, `patch6`, `patch8`, `patch16` (the default), `patch-prince-of-persia`. |
+| `set midi-touch-response yes\|no` | The Options dialog's MIDI "Touch response" (the velocity becomes the volume). Default: `rmt.ini`'s. |
+| `set midi-volume-offset <0-15>` | The Options dialog's MIDI "Atari Volume Offset". Default: `rmt.ini`'s. |
+| `set midi-note-off yes\|no` | The Options dialog's MIDI "Record note off". Default: `rmt.ini`'s. |
+| `midi <status> <data1> [<data2>]` | Handles a MIDI message given as hex bytes exactly as one from the MIDI IN device would be (see the manual's "MIDI Input"): `midi 90 3C 64` is note on C-3, velocity 100, on channel 1 and records the note at the cursor; `midi CA 05` selects instrument 5. The window counts as focused. |
 | `dump actions <file>` | Writes the program's command table - every menu item, toolbar button and key with its description - as a Markdown table (`doc/rmt_action_infos.md` is made this way by the build). A row marked ERROR is an inconsistency in the program's resources and fails the command. |
 | `dump notekeys <file>` | Writes the note keys of the QWERTY and AZERTY keyboard layouts (which key plays which note) as Markdown tables (`doc/rmt_note_keys.md`). |
 | `echo <text ...>` | Prints the text. |
@@ -145,7 +149,9 @@ folders byte for byte (WAV files excepted: 8-bit in `Rmt.exe`, 16-bit in
 the Java port). `build/build_rmt-cpp-daily.bat` runs it after the release build
 when `target/rmt.jar` exists; the JUnit test `CrossProgramExportTest` runs
 the same comparison with every `mvn test` when `Rmt.exe` is built. A
-difference is a port bug in one of the two programs.
+difference is a port bug in one of the two programs. `midi.rmtscript`
+records notes through the `midi` command and saves the song, so the two
+MIDI handlers are compared the same way.
 
 ## Not available as script commands
 

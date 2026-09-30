@@ -13,7 +13,7 @@ extern CXPokey g_Pokey;
 extern CRmtMidi g_Midi;
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
-void CSong::MidiEvent(DWORD dwParam) {
+void CSong::MidiEvent(DWORD dwParam, bool hasFocus) {
     auto memory = g_AtariTrackerDriver->GetAtari()->GetMemoryAt(0);
     unsigned char chn, cmd, pr1, pr2;
     unsigned char* mv = (unsigned char*)&dwParam;
@@ -44,7 +44,7 @@ void CSong::MidiEvent(DWORD dwParam) {
         int atc = (chn - 1) % g_tracks4_8; //atari track 0-7 (resp. 0-3 in mono)
         int note, vol;
         if (cmd == 0x90) {
-            if (chn == 9) {
+            if (chn == 9) { //unreachable: this block is chn 1-8 (the Java port left it out)
                 //channel 10 (chn=9) ...drums channel
                 if (pr2 > 0) { //"note on" any non-zero volume
                     // planned
@@ -82,7 +82,7 @@ void CSong::MidiEvent(DWORD dwParam) {
         return; //END
     }
 
-    if (!g_RmtHasFocus && !IsProveMode()) {
+    if (!hasFocus && !IsProveMode()) {
         return; //when it has no focus and is not in prove mode, the MIDI input will be ignored, to avoid overwriting patterns accidentally
     }
 
@@ -91,6 +91,9 @@ void CSong::MidiEvent(DWORD dwParam) {
         //command buttons, while this would technically work from any MIDI channel, it is specifically mapped for CH15 in order to avoid conflicing code, as a temporary workaround
         if (cmd == 0xB0 && chn == 15) { //control change and key pressed
             int o = (m_ch_offset) ? 2 : 0;
+            if (pr1 >= 71 && pr1 <= 78 && !IsEditMode(EditMode::MIDI_CH15_MODE)) {
+                return; //the knobs are the SPECIAL MIDI CH15 MODE only (until 2026-09-29 the check was an "if" around their cases, which a switch jump never evaluates - they worked in every mode)
+            }
             switch (pr1) {
             case 1: //Modulation wheel
                 m_mod_wheel = (pr2 - 64) / 8;
@@ -144,8 +147,7 @@ void CSong::MidiEvent(DWORD dwParam) {
                 goto MIDISystemReset;
                 break;
 
-                //SPECIAL MIDI CH15 MODE
-                if (IsEditMode(EditMode::MIDI_CH15_MODE)) {
+                //SPECIAL MIDI CH15 MODE (the knobs 71-78, see the check above the switch)
                 case 71: //Knob C1, AUDF0/AUDF2 upper 4 bits
                     //memory[0xD200] &= 0x0F;
                     //memory[0xD200] |= pr2 << 4;
@@ -203,7 +205,6 @@ void CSong::MidiEvent(DWORD dwParam) {
                     memory[0x3181 + o] &= 0x0F;
                     memory[0x3181 + o] |= (pr2 * 2) << 4;
                     break;
-                }
 
             default:
                 //do nothing

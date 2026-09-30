@@ -168,6 +168,7 @@ public final class ScriptRunner {
 		case "export" -> export(command);
 		case "set" -> set(command);
 		case "dump" -> dump(command);
+		case "midi" -> midi(command);
 		case "echo" -> out.println(String.join(" ", command.arguments()));
 		case "quit" -> {
 			return false;
@@ -248,7 +249,54 @@ public final class ScriptRunner {
 				session.setTrackerDriverVersion(version);
 			}
 		}
-		default -> throw new ScriptException(command.line(), "Unknown setting '" + command.argument(0) + "'; one of overwrite, output, ntsc, driver.");
+		// the Options dialog's MIDI settings (for the midi command: the same recording rules as a real device)
+		case "midi-touch-response" -> session.options.midiTouchResponse = parseBoolean(command, "midi-touch-response", value);
+		case "midi-volume-offset" -> session.options.midiVolumeOffset = parseInt(command, "midi-volume-offset", value, 0, 15);
+		case "midi-note-off" -> session.options.midiNoteOff = parseBoolean(command, "midi-note-off", value);
+		default -> throw new ScriptException(command.line(), "Unknown setting '" + command.argument(0) + "'; one of overwrite, output, ntsc, driver, midi-touch-response, midi-volume-offset, midi-note-off.");
+		}
+	}
+
+	private org.atari.raster.rmt.ui.MidiInput midiInput;
+
+	/**
+	 * {@code midi <status> <data1> [<data2>]}: a MIDI message as hex bytes
+	 * (e.g. {@code midi 90 3C 64}, note on C-3 velocity 100 on channel 1),
+	 * handled exactly as one from the MIDI IN device ({@code CSong::MidiEvent}),
+	 * with the window counted as focused. The channel arrays start as after
+	 * the window's start-up {@code MidiOn()} (no device is opened).
+	 */
+	private void midi(ScriptCommand command) throws ScriptException {
+		if (command.arguments().size() < 2 || command.arguments().size() > 3) {
+			throw new ScriptException(command.line(), "Usage: midi <status> <data1> [<data2>] (hex bytes).");
+		}
+		requireNoOptions(command);
+		int status = parseMidiByte(command, command.argument(0));
+		int data1 = parseMidiByte(command, command.argument(1));
+		int data2 = command.arguments().size() > 2 ? parseMidiByte(command, command.argument(2)) : 0;
+		if (midiInput == null) {
+			midiInput = new org.atari.raster.rmt.ui.MidiInput(session, new org.atari.raster.rmt.ui.SongInput(session), session.midi);
+			session.midi.midiOn(); // resets the channel arrays as OnInitialUpdate's MidiOn() does; without a device nothing is opened
+		}
+		midiInput.midiEvent(status, data1, data2, true);
+	}
+
+	/** A MIDI byte: two hex digits (optionally with {@code $} or {@code 0x}). */
+	private static int parseMidiByte(ScriptCommand command, String value) throws ScriptException {
+		try {
+			String v = value.trim();
+			if (v.startsWith("$")) {
+				v = v.substring(1);
+			} else if (v.toLowerCase(Locale.ROOT).startsWith("0x")) {
+				v = v.substring(2);
+			}
+			int result = Integer.parseInt(v, 16);
+			if (v.isEmpty() || result < 0 || result > 0xFF) {
+				throw new NumberFormatException();
+			}
+			return result;
+		} catch (NumberFormatException e) {
+			throw new ScriptException(command.line(), "'" + value + "' is not a MIDI byte (two hex digits, 00 to FF).");
 		}
 	}
 

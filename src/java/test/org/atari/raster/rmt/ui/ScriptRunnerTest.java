@@ -53,6 +53,51 @@ class ScriptRunnerTest {
 		return err.toString(StandardCharsets.UTF_8);
 	}
 
+	// ---- midi ----
+
+	/** {@code midi} records like the MIDI IN device would, with the window counted as focused; the MIDI options are script settings. */
+	@Test
+	void midiMessagesRecordNotesAndTheMidiSettingsApply() throws IOException {
+		RmtSession session = new RmtSession();
+		Path script = dir.resolve("midi.rmtscript");
+		Files.write(script, List.of( //
+				"open " + delta.getFileName(), //
+				"midi 90 3C 64", // C-3 on channel 1 at the cursor
+				"midi CA 05", // instrument 5 (channel 11)
+				"set midi-touch-response yes", //
+				"set midi-volume-offset 3", //
+				"midi 90 3E 40", //
+				"set midi-note-off yes", //
+				"midi 80 3E 00"), StandardCharsets.UTF_8);
+		ScriptRunner runner = new ScriptRunner(session, new PrintStream(out, true, StandardCharsets.UTF_8), new PrintStream(err, true, StandardCharsets.UTF_8));
+
+		assertEquals(ScriptRunner.EXIT_OK, runner.run(script), err());
+
+		int track = session.song.getSong()[0][0];
+		org.atari.raster.rmt.model.Track tr = session.tracks.getTrack(track);
+		assertEquals(24, tr.note[0]);
+		assertEquals(5, session.song.getActiveInstr());
+		assertEquals(26, tr.note[1]);
+		assertEquals(5, tr.instr[1]);
+		assertEquals(11, tr.volume[1]); // 3 + 64 / 8
+		assertTrue(session.options.midiTouchResponse && session.options.midiNoteOff);
+		assertEquals(3, session.options.midiVolumeOffset);
+		assertEquals(0, tr.volume[2], "the release deleted the note at the cursor and wrote volume 0");
+		assertEquals(3, session.song.getActiveLine());
+	}
+
+	@Test
+	void midiRejectsBadBytes() throws IOException {
+		assertEquals(ScriptRunner.EXIT_COMMAND_FAILED, run("midi 90"));
+		assertTrue(err().contains("Usage: midi <status> <data1> [<data2>]"), err());
+		err.reset();
+		assertEquals(ScriptRunner.EXIT_COMMAND_FAILED, run("midi 90 ZZ"));
+		assertTrue(err().contains("'ZZ' is not a MIDI byte"), err());
+		err.reset();
+		assertEquals(ScriptRunner.EXIT_COMMAND_FAILED, run("set midi-volume-offset 16"));
+		assertTrue(err().contains("must be a number from 0 to 15"), err());
+	}
+
 	private String out() {
 		return out.toString(StandardCharsets.UTF_8);
 	}

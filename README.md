@@ -36,7 +36,7 @@ Technical Documentation
 
 This repository also contains a Java/Swing port of RMT 1.36 (`src/java`), developed side by side with the C++ program so RMT can run on Windows, Linux and macOS.
 The port covers the tracker, the editors, the import/export formats and real-time sound; the emulated 6502 and POKEY come from [ASAP](https://asap.sourceforge.net).
-Not ported: printing, MIDI input and the Pokey Explorer.
+Not ported: printing and the Pokey Explorer.
 
 - Build and test: `mvn package` from the repository root (needs Java 21, Maven and the [WUDSN Base](https://github.com/wudsn/wudsn-base) libraries installed with `mvn install`).
   The result is the runnable `target/rmt.jar`; `mvn test` runs the tests alone.

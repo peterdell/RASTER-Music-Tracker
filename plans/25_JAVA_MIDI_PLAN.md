@@ -1,6 +1,6 @@
 # Plan: MIDI input for the Java port (M0-M5)
 
-Status: proposal (2026-09-29). Done so far: M0 and the C++ fix of 1.4 (2026-09-29, the user: "apply the fix, the rest remains deferred"). M1-M5 deferred.
+Status: DONE 2026-09-30 (M0 and the C++ fix on 2026-09-29, M1-M5 on 2026-09-30 - "implement the midi plan"). The CH16/CH10 controller mode (M3) ported faithfully, with one more C++ fix: the knobs 71-78 worked in every mode (their `case`s sat inside an `if` a switch jump never evaluates); now `MIDI_CH15_MODE` only, in both programs.
 
 ## 1. What the C++ program does
 

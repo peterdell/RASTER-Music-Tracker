@@ -1,11 +1,7 @@
 package org.atari.raster.rmt.ui;
 
 import java.awt.BorderLayout;
-import java.util.ArrayList;
-import java.util.List;
 
-import javax.sound.midi.MidiDevice;
-import javax.sound.midi.MidiSystem;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -29,9 +25,8 @@ import org.atari.raster.rmt.model.TrackerDriverVersion;
  * {@link OptionsValues}; {@link RmtCommands#applyOptions} applies the
  * result.
  *
- * <p>The MIDI device list is "None" plus the MIDI input devices Java Sound
- * reports ({@code midiInGetDevCaps} in C++); MIDI input itself is not
- * ported, the choice is only stored.
+ * <p>The MIDI device list is "None" plus the MIDI input devices
+ * {@link RmtMidi#deviceNames()} reports ({@code midiInGetDevCaps} in C++).
  */
 final class OptionsDialog extends ModalDialog {
 
@@ -113,7 +108,7 @@ final class OptionsDialog extends ModalDialog {
 		DialogSupport.add(midi, offset, 1, 1, 2, false);
 		DialogSupport.add(midi, midiNoteOffBox, 0, 2, 1, false);
 		midiDeviceCombo.addItem(Texts.OptionsDialog_MidiDeviceNone); // id=0
-		for (String name : listMidiInputDevices()) {
+		for (String name : session.midi.deviceNames()) {
 			midiDeviceCombo.addItem(name);
 		}
 		midiTouchResponseBox.addActionListener(e -> onMidiTouchResponseClicked());
@@ -132,26 +127,6 @@ final class OptionsDialog extends ModalDialog {
 		tuning.addActionListener(e -> onClickedOptionsTuning());
 		addButtonBarButton(tuning); // inserted at the front each time, so add in reverse order
 		addButtonBarButton(paths);
-	}
-
-	/** The MIDI input devices' names ({@code midiInGetDevCaps}): Java Sound's devices that transmit. */
-	static List<String> listMidiInputDevices() {
-		List<String> names = new ArrayList<>();
-		try {
-			for (MidiDevice.Info info : MidiSystem.getMidiDeviceInfo()) {
-				try {
-					MidiDevice device = MidiSystem.getMidiDevice(info);
-					if (device.getMaxTransmitters() != 0 && !(device instanceof javax.sound.midi.Sequencer) && !(device instanceof javax.sound.midi.Synthesizer)) {
-						names.add(info.getName());
-					}
-				} catch (Exception ex) {
-					// a device that can't be queried is not offered
-				}
-			}
-		} catch (Exception ex) {
-			// no MIDI subsystem at all: only "None"
-		}
-		return names;
 	}
 
 	/** {@code OnMidiTouchResponseClicked()}: the volume offset is only editable with touch response on. */

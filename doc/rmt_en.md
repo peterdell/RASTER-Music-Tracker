@@ -365,6 +365,37 @@ MUSIC SPEED: AA/MM/S
 Navigation is identical in TRACKS and SONG areas, but editing is disabled, and replaced with tonekeys always playing notes.
 INSTRUMENTS and INFO areas will still behave the same as they are in EDIT MODE, simply hold SHIFT to test notes, except when the text is being edited.
 
+## MIDI Input
+
+RMT records and plays notes from a MIDI keyboard. The MIDI IN device is
+chosen in Tools > Options (MIDI group); the toolbar button "Toggle MIDI
+on/off" switches the input on and off while a device is set. The Java port
+uses the same settings and the same rules.
+
+Options:
+
+| Option | Meaning |
+|---|---|
+| MIDI IN Device | The input device, or None. |
+| Touch response | The key velocity becomes the note volume: `Atari Volume Offset + velocity / 8`, limited to 1-15. Without it the current volume (as typed notes) is used. |
+| Atari Volume Offset | Added to the velocity volume, 0-15. |
+| Record note off | A released key (note off, or note on with velocity 0) deletes the note it played and writes volume 0. Without it releases are ignored. |
+
+The MIDI channels:
+
+| Channel | Function |
+|---|---|
+| 1 | Records notes at the cursor, like the note keys: MIDI note 36 (C-2 in MIDI terms) is RMT's lowest note, the note is written with the active instrument, the cursor moves down by the "skip lines" setting (not while following playback), the note is played. During playback with follow-play a note in the first half of a line is entered on the next line (quantized). Outside the TRACKS area, in a jam mode or with SHIFT or CONTROL held the note is only played. Recording needs the RMT window to have the focus (a jam mode plays without focus). |
+| 2 - 9 | Live play on the Atari tracks L1-L4, R1-R4 (channels 6-9 repeat L1-L4 on a mono song), never recorded and independent of the focus: the velocity is the volume (velocity / 8), a program change sets the channel's instrument, controller 123 (all notes off) stops the channel's note, controller 121 (reset all controllers) resets the RMT routines. |
+| 11 - 15 | A program change selects the active instrument. |
+| 16 and 10 | An experimental controller mapping, kept from the original: on channel 16 controller 1 (modulation wheel) shifts the recorded notes by up to 8 semitones (`(value - 64) / 8`), controller 7 sets the volume, controllers 115/116/117 are loop (play track), stop and play song, 118 steps through the edit modes like the Edit/Jam toggle (edit, jam, on a stereo song stereo jam, then "EXPLORER MODE (MIDI CH15)", then edit again), 123 stops and resets; notes on channel 16 record like channel 1 (spread over the tracks by the number of held keys). In the explorer mode the controllers 71-78 write the POKEY frequency, volume and distortion of two channels directly, the drum pads on channel 10 (notes 60, 62, 66, 70, 74, 69, 75, 73) toggle the POKEY AUDCTL/SKCTL bits, and notes on channel 16 sound directly from the driver's note tables. |
+
+A system reset message (FF) resets the RMT routines and forgets the notes
+held on channels 2-16.
+
+Scripts can send MIDI messages with the `midi` command (see the scripting
+documentation).
+
 ## Disclaimer
 
 RMT IS A SOFTWARE WITHOUT WARRANTY OF ANY KIND. THE AUTHOR DOES NOT WARRANT, GUARANTEE, OR MAKE ANY REPRESENTATIONS REGARDING THE USE, OR THE RESULTS OF USE OF THE SOFTWARE, OR WRITTEN MATERIALS, IN TERMS OF CORRECTNESS, ACCURACY, RELIABILITY, CURRENTNESS, OR OTHERWISE. THE ENTIRE RISK AS TO THE RESULTS AND PERFORMANCE OF THE SOFTWARE IS ASSUMED BY YOU.

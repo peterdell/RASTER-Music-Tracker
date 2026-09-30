@@ -74,6 +74,10 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 	private final RmtToolBars toolBars;
 	/** {@code g_SongTimer} + {@code g_Pokey}: the frame thread that plays and renders. */
 	private final AudioEngine audioEngine;
+	/** {@code CSong::MidiEvent}: what the MIDI IN device's messages do; fed by {@link RmtMidi} on the device's thread, under the session lock. */
+	private final MidiInput midiInput;
+	/** {@code g_RmtHasFocus}: {@code CRmtView::OnSetFocus}/{@code OnKillFocus} - MIDI recording needs the tracker panel focused (read on the MIDI thread). */
+	private volatile boolean trackerHasFocus;
 	private final JPanel toolBarPanel = new JPanel();
 	/** C++'s status bar shows the command prompts and {@code SetStatusBarText()} messages; a plain label until B9 decides on WUDSN's {@code StatusBar}. */
 	private final JLabel statusLine = new JLabel(" ");
@@ -90,6 +94,22 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 		trackerPanel.getSongInput().setBlockEffectAction(songDialogs::blockEffectFromKey);
 		this.mainMenu = new RmtMainMenu(this::executeCommand);
 		this.toolBars = new RmtToolBars(mainMenu, this::executeCommand, this::skipLinesSelected);
+		this.midiInput = new MidiInput(session, trackerPanel.getSongInput(), session.midi);
+		session.midi.setListener((status, data1, data2) -> {
+			session.locked(() -> midiInput.midiEvent(status, data1, data2, trackerHasFocus));
+			trackerPanel.refreshScreen(); // repaint() is thread-safe; the display timer paints
+		});
+		trackerPanel.addFocusListener(new java.awt.event.FocusAdapter() {
+			@Override
+			public void focusGained(java.awt.event.FocusEvent e) {
+				trackerHasFocus = true; // RMT main window has focus
+			}
+
+			@Override
+			public void focusLost(java.awt.event.FocusEvent e) {
+				trackerHasFocus = false; // RMT main window does not have focus
+			}
+		});
 
 		this.audioEngine = new AudioEngine(session);
 
@@ -106,6 +126,7 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 			@Override
 			public void windowClosed(WindowEvent e) {
 				audioEngine.stop(); // CRmtApp::ExitInstance -> StopTimer + DeInitSound
+				session.midi.midiOff(); // ~CRmtMidi
 				trackerPanel.stopDisplayTimer();
 				System.exit(0);
 			}
@@ -475,6 +496,9 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 		trackerPanel.requestFocusInWindow();
 		trackerPanel.startDisplayTimer();
 		audioEngine.start();
+		// Initialise MIDI (OnInitialUpdate)
+		session.midi.midiInit();
+		session.midi.midiOn();
 	}
 
 	public AudioEngine getAudioEngine() {

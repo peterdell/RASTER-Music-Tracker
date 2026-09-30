@@ -56,7 +56,7 @@ public final class RmtOptions {
 	/** {@code g_keyboard_askwhencontrol_s} - Ctrl+S asks before overwriting the file. */
 	public boolean keyboardAskWhenControlS = true;
 
-	// MIDI ({@code CMidi}'s persisted members; the MIDI input itself is not ported)
+	// MIDI ({@code CRmtMidi}'s persisted members; the device is {@link RmtMidi}, the input {@link MidiInput})
 	/** {@code CMidi::GetMidiDevName()} - the MIDI IN device's name, "" for none. */
 	public String midiDevice = "";
 	/** {@code CMidi::m_TouchResponse}. */

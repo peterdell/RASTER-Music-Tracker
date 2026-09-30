@@ -221,12 +221,13 @@ public final class RmtConfig {
 	 * {@code SetNTSC(false)} (the view's, which rescales the base tuning even
 	 * when the song already is PAL - harmless at start-up, where
 	 * {@link #readTuningConfig} follows and overwrites it), and the file
-	 * written so it exists next time. {@code g_Midi.MidiInit()} has nothing
-	 * to do here (MIDI is not ported).
+	 * written so it exists next time, and {@code g_Midi.MidiInit()} (no
+	 * device after the reset, so MIDI goes off).
 	 */
 	public void resetRMTConfig(RmtSession session) {
 		session.options.reset();
 		session.setNTSC(false); // NTSC (60Hz)
+		session.midi.midiInit(); // MIDI must be initialised just in case
 		writeRMTConfig(session); // Write the default configuration file
 	}
 

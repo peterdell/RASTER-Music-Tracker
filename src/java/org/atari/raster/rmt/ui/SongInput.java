@@ -92,7 +92,7 @@ public final class SongInput {
 		return session.clipboard.isBlockSelected();
 	}
 
-	private void blockDeselect() {
+	void blockDeselect() { // package-visible: MidiInput records notes the way TrackKey does
 		session.song.blockDeselect(session.clipboard);
 	}
 
@@ -113,11 +113,11 @@ public final class SongInput {
 		}
 	}
 
-	private boolean isPlayingAndFollowing() {
+	boolean isPlayingAndFollowing() {
 		return session.song.getPlayMode() != PlayMode.PLAY_STOP && session.song.getFollowPlayMode();
 	}
 
-	private int skipLines() {
+	int skipLines() {
 		return session.options.skipLinesAfterNoteInsert;
 	}
 
@@ -132,7 +132,7 @@ public final class SongInput {
 	 * otherwise; the Java model method is void, so the same conditions are
 	 * evaluated here for the one caller that needs the result (Enter).
 	 */
-	private boolean trackDown(int lines, boolean stopOnLastLine) {
+	boolean trackDown(int lines, boolean stopOnLastLine) {
 		Song song = session.song;
 		boolean moves = !isPlayingAndFollowing() && !(!session.options.keyboardUpDownContinue && stopOnLastLine && song.getActiveLine() + lines > song.trackGetLastLine());
 		song.trackDown(lines, stopOnLastLine, session.tracks4_8, session.options.keyboardUpDownContinue, session.undo, session.clipboard);

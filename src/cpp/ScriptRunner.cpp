@@ -10,6 +10,7 @@
 #include "Keyboard2NoteMapping.h"
 #include "Messages.h"
 #include "RmtExporter.h"
+#include "RmtMidi.h"
 #include "SAPFile.h"
 #include "SAPFileExporter.h"
 #include "Song.h"
@@ -26,6 +27,7 @@
 #include <sstream>
 
 extern CXPokey g_Pokey;
+extern CRmtMidi g_Midi;
 extern CAtari g_Atari;
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
 extern TrackerDriverVersion g_trackerDriverVersion;
@@ -354,6 +356,8 @@ bool CScriptRunner::Execute(const TScriptCommand& command) {
         Set(command);
     } else if (command.name == "dump") {
         Dump(command);
+    } else if (command.name == "midi") {
+        Midi(command);
     } else if (command.name == "echo") {
         Out(Join(command.arguments, " "));
     } else if (command.name == "quit") {
@@ -647,9 +651,45 @@ void CScriptRunner::Set(const TScriptCommand& command) {
             g_Atari.Init(m_song.IsNTSC());
             g_AtariTrackerDriver->LoadRMTRoutines(g_trackerDriverVersion);
         }
+    } else if (name == "midi-touch-response") {
+        // the Options dialog's MIDI settings (for the midi command: the same recording rules as a real device)
+        g_Midi.m_TouchResponse = ParseBoolean(command, "midi-touch-response", value);
+    } else if (name == "midi-volume-offset") {
+        g_Midi.m_VolumeOffset = ParseInt(command, "midi-volume-offset", value, 0, 15);
+    } else if (name == "midi-note-off") {
+        g_Midi.m_NoteOff = ParseBoolean(command, "midi-note-off", value);
     } else {
-        throw CScriptError(command.line, "Unknown setting '" + command.GetArgument(0) + "'; one of overwrite, output, ntsc, driver.");
+        throw CScriptError(command.line, "Unknown setting '" + command.GetArgument(0) + "'; one of overwrite, output, ntsc, driver, midi-touch-response, midi-volume-offset, midi-note-off.");
     }
+}
+
+// A MIDI byte: two hex digits (optionally with $ or 0x).
+static int ParseMidiByte(const TScriptCommand& c, const std::string& value) {
+    std::string v = value;
+    if (!v.empty() && v[0] == '$') {
+        v = v.substr(1);
+    } else if (v.size() > 2 && v[0] == '0' && (v[1] == 'x' || v[1] == 'X')) {
+        v = v.substr(2);
+    }
+    char* end = nullptr;
+    long result = v.empty() ? -1 : strtol(v.c_str(), &end, 16);
+    if (v.empty() || *end != 0 || result < 0 || result > 0xFF) {
+        throw CScriptError(c.line, "'" + value + "' is not a MIDI byte (two hex digits, 00 to FF).");
+    }
+    return (int)result;
+}
+
+// midi <status> <data1> [<data2>]: a MIDI message as hex bytes (e.g. "midi 90 3C 64", note on C-3 velocity 100 on
+// channel 1), handled exactly as one from the MIDI IN device (CSong::MidiEvent), with the window counted as focused.
+void CScriptRunner::Midi(const TScriptCommand& command) {
+    if (command.arguments.size() < 2 || command.arguments.size() > 3) {
+        throw CScriptError(command.line, "Usage: midi <status> <data1> [<data2>] (hex bytes).");
+    }
+    RequireNoOptions(command);
+    DWORD status = ParseMidiByte(command, command.GetArgument(0));
+    DWORD data1 = ParseMidiByte(command, command.GetArgument(1));
+    DWORD data2 = command.arguments.size() > 2 ? ParseMidiByte(command, command.GetArgument(2)) : 0;
+    m_song.MidiEvent(status | (data1 << 8) | (data2 << 16), true);
 }
 
 void CScriptRunner::Dump(const TScriptCommand& command) {

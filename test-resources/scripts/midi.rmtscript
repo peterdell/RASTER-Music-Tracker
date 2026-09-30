@@ -1,0 +1,45 @@
+# Cross-program comparison script (see plans/25_JAVA_MIDI_PLAN.md): MIDI
+# messages through the "midi" command, recorded into the mono reference song
+# by Rmt.exe and by rmt.jar; the saved songs must match byte for byte. The
+# cursor is at song line 0, column 0, track line 0 after the open.
+set output out/midi
+set overwrite yes
+open ../ui-reference/song1-mono/Delta.rmt
+
+# channel 1 records at the cursor with the current volume; the cursor moves down
+midi 90 3C 64
+midi 90 3E 64
+# a release is ignored without "Record note off"
+midi 80 3E 40
+# a program change on channel 1 is swallowed (the original's behaviour), one on channel 11 selects the instrument
+midi C0 07
+midi CA 05
+midi 90 40 7F
+
+# touch response: the velocity is the volume, plus the offset, 1-15
+set midi-touch-response yes
+set midi-volume-offset 2
+midi 90 43 40
+midi 90 45 0A
+midi 90 47 7F
+
+# "Record note off": the release of the last note deletes the note at the cursor and writes volume 0
+set midi-note-off yes
+midi 90 48 60
+midi 80 48 00
+
+# channel 2 plays live and records nothing; a system reset forgets it
+midi 91 3C 64
+midi C1 03
+midi B1 7B 00
+midi FF 00
+
+# channel 16: the modulation wheel (72: +1) shifts the recorded notes by a semitone
+midi BF 01 48
+midi 9F 3C 64
+midi 8F 3C 00
+
+save midi.rmt
+save midi.txt
+save midi.rmw
+echo midi done
