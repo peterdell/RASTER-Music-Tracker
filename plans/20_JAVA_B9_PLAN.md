@@ -128,7 +128,8 @@ the image's `app/` holds the jar next to `resources/`, `docs/`, `rmt.ini`
 (the program folder). Windows icon `src/cpp/res/application.ico`, Linux
 `application.png`, none on macOS (no `.icns` yet). Assets
 `rmt-java-windows-x64.zip`, `rmt-java-linux-x64.tar.gz`,
-`rmt-java-macos.tar.gz`; version = the tag without `v`, default `1.35.0`
+`rmt-java-macos.tar.gz` (six assets named `rmt-java-<platform>-<arch>`
+since 2026-10-01, see the workflow); version = the tag without `v`, default `1.35.0`
 (decision 2). Local dry run on Windows: the staged layout + `jpackage`
 (157 MB image) - `rmt.exe` run from a foreign folder plays Delta.rmt, About
 shows the build date, `app/rmt.ini` is written on exit. CI itself not run

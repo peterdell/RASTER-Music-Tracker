@@ -5192,3 +5192,20 @@ build clean and all 123 tests pass.
     `doc/rmt_note_keys.md` was regenerated - both programs write it byte
     for byte identically again, which `compare_exports.ps1` confirms.
     Verified: 426 C++ tests, the Java suite, the export comparison.
+  - **2026-10-01**: the release workflow builds six assets instead of
+    three - every operating system on x64 and on ARM64, named
+    `rmt-java-<platform>-<arch>`. jpackage bundles the runner's own
+    runtime and there is no cross compilation, so each architecture needs
+    its own runner: `windows-latest`/`windows-11-arm`,
+    `ubuntu-latest`/`ubuntu-24.04-arm`, `macos-15-intel`/`macos-latest`.
+    The macOS asset had been ARM-only since GitHub moved `macos-latest` to
+    Apple Silicon in 2024, while its name said nothing - hence the rename.
+    Checked before writing the matrix rather than assumed: Temurin 21
+    exists for all four new combinations (Adoptium API), and the runner
+    labels are the current ones (actions/runner-images README) - `macos-13`
+    has been retired, `macos-14` is deprecated, so the Intel image is
+    `macos-15-intel`. The artifact upload name had to gain the
+    architecture too: upload-artifact v4 fails when two parallel jobs use
+    one name. Not verifiable here: only an actual workflow run proves the
+    three new runners build; the two ARM runners are free for public
+    repositories but not for private ones.

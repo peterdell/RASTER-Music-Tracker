@@ -1,11 +1,29 @@
 name: Release (Java port)
 
-# Builds a portable, no-install-needed app image of the Java port for
-# Windows, Linux and macOS via jpackage (bundling the JVM, so end users need
-# no Java install of their own) and publishes them as assets on a GitHub
-# Release. Same shape as dis6502's release workflow; the RMT specifics are
-# the rmt/ distribution layout staged next to the jar (see
-# build/stage_java_release.sh) and the WUDSN Base dependency built first.
+# Builds a portable, no-install-needed app image of the Java port via
+# jpackage (bundling the JVM, so end users need no Java install of their
+# own) and publishes them as assets on a GitHub Release. Same shape as
+# dis6502's release workflow; the RMT specifics are the rmt/ distribution
+# layout staged next to the jar (see build/stage_java_release.sh) and the
+# WUDSN Base dependency built first.
+#
+# One asset per operating system and processor, named
+# rmt-java-<platform>-<arch>: jpackage bundles the runner's own Java
+# runtime, so an image runs only on the architecture it was built on.
+# There is no cross compilation - each architecture needs its own runner:
+#
+#   windows  x64      windows-latest
+#   windows  aarch64  windows-11-arm
+#   linux    x64      ubuntu-latest
+#   linux    aarch64  ubuntu-24.04-arm
+#   macos    x64      macos-15-intel  (macos-13 was retired; macos-14 is
+#                                    deprecated, so 15 is the oldest Intel
+#                                    image still offered)
+#   macos    aarch64  macos-latest    (Apple Silicon)
+#
+# macos-latest has been Apple Silicon since 2024, so the macOS asset was
+# ARM-only while its name said nothing; it is rmt-java-macos-aarch64 now
+# and Intel Macs have their own (2026-10-01).
 #
 # Trigger: push a tag matching v*, e.g. `git tag v1.36.0 && git push origin v1.36.0`
 # (the Java port ships as the same 1.36 line the C++ program is at; the
@@ -37,13 +55,28 @@ jobs:
         include:
           - os: windows-latest
             platform: windows
+            arch: x64
             icon: RASTER-Music-Tracker/src/cpp/res/application.ico
-          - os: macos-latest
-            platform: macos
-            icon: ""
+          - os: windows-11-arm
+            platform: windows
+            arch: aarch64
+            icon: RASTER-Music-Tracker/src/cpp/res/application.ico
           - os: ubuntu-latest
             platform: linux
+            arch: x64
             icon: RASTER-Music-Tracker/src/java/org/atari/raster/rmt/ui/application.png
+          - os: ubuntu-24.04-arm
+            platform: linux
+            arch: aarch64
+            icon: RASTER-Music-Tracker/src/java/org/atari/raster/rmt/ui/application.png
+          - os: macos-15-intel
+            platform: macos
+            arch: x64
+            icon: ""
+          - os: macos-latest
+            platform: macos
+            arch: aarch64
+            icon: ""
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout RASTER Music Tracker
@@ -119,23 +152,25 @@ jobs:
       - name: Archive app image (Windows)
         if: matrix.platform == 'windows'
         shell: pwsh
-        run: Compress-Archive -Path dist/rmt -DestinationPath rmt-java-windows-x64.zip
+        run: Compress-Archive -Path dist/rmt -DestinationPath rmt-java-windows-${{ matrix.arch }}.zip
 
       - name: Archive app image (Linux)
         if: matrix.platform == 'linux'
         shell: bash
-        run: tar czf rmt-java-linux-x64.tar.gz -C dist rmt
+        run: tar czf rmt-java-linux-${{ matrix.arch }}.tar.gz -C dist rmt
 
       - name: Archive app image (macOS)
         if: matrix.platform == 'macos'
         shell: bash
-        run: tar czf rmt-java-macos.tar.gz -C dist rmt.app
+        run: tar czf rmt-java-macos-${{ matrix.arch }}.tar.gz -C dist rmt.app
 
+      # The artifact name must be unique per job: upload-artifact v4 fails
+      # on a name a parallel job already used.
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: rmt-java-${{ matrix.platform }}
-          path: rmt-java-${{ matrix.platform }}*.*
+          name: rmt-java-${{ matrix.platform }}-${{ matrix.arch }}
+          path: rmt-java-${{ matrix.platform }}-${{ matrix.arch }}.*
           if-no-files-found: error
 
   release:
