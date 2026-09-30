@@ -1,4 +1,4 @@
-name: Release (Java port)
+name: Release (Java)
 
 # Builds a portable, no-install-needed app image of the Java port via
 # jpackage (bundling the JVM, so end users need no Java install of their
