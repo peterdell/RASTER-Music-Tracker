@@ -425,7 +425,7 @@ public final class SongFiles {
 		UiState ui = session.uiState;
 		RmtOptions o = session.options;
 		return new int[] { ui.activePart.ordinal(), ui.activeTi.ordinal(), ui.editMode.ordinal(), ui.respectVolume ? 1 : 0, o.trackLinePrimaryHighlight, o.trackLineAltNumbering ? 1 : 0, o.displayFlatNotes ? 1 : 0, o.useGermanNotation ? 1 : 0, ui.cursorActView,
-				o.keyboardLayout, o.keyboardEscResetAtariSound ? 1 : 0, o.keyboardSwapEnter ? 1 : 0, 1, o.keyboardUpDownContinue ? 1 : 0, o.keyboardRememberOctavesAndVolumes ? 1 : 0, o.keyboardEscResetAtariSound ? 1 : 0 };
+				o.keyboardLayout.getNumber(), o.keyboardEscResetAtariSound ? 1 : 0, o.keyboardSwapEnter ? 1 : 0, 1, o.keyboardUpDownContinue ? 1 : 0, o.keyboardRememberOctavesAndVolumes ? 1 : 0, o.keyboardEscResetAtariSound ? 1 : 0 };
 	}
 
 	/** {@code LoadRMW}'s side of the same 16 settings: C++ reads them straight into its globals. Out-of-range enum values are left alone. */
@@ -447,7 +447,7 @@ public final class SongFiles {
 		o.displayFlatNotes = p[6] != 0;
 		o.useGermanNotation = p[7] != 0;
 		ui.cursorActView = p[8];
-		o.keyboardLayout = p[9];
+		o.keyboardLayout = org.atari.raster.rmt.model.KeyboardLayout.getInstance(p[9]); // an unknown number falls back to QWERTY
 		o.keyboardEscResetAtariSound = p[10] != 0;
 		o.keyboardSwapEnter = p[11] != 0;
 		// p[12]: g_keyboard_playautofollow, no Java counterpart

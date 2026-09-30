@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 
 import org.atari.raster.rmt.model.Fraction;
 import org.atari.raster.rmt.model.RmtVersion;
+import org.atari.raster.rmt.model.KeyboardLayout;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
 import org.atari.raster.rmt.model.TuningRatios;
 import org.atari.raster.rmt.model.TuningSettings;
@@ -56,14 +57,14 @@ public final class RmtConfig {
 
 	private final Path folder;
 	/** The keyboard layout of a first start (no rmt.ini): the system's keyboard language - German QWERTZ, French AZERTY, else QWERTY; tests inject a fixed one. */
-	private java.util.function.IntSupplier defaultKeyboardLayout = RmtConfig::systemKeyboardLayout;
+	private java.util.function.Supplier<KeyboardLayout> defaultKeyboardLayout = RmtConfig::systemKeyboardLayout;
 
-	public void setDefaultKeyboardLayout(java.util.function.IntSupplier defaultKeyboardLayout) {
+	public void setDefaultKeyboardLayout(java.util.function.Supplier<KeyboardLayout> defaultKeyboardLayout) {
 		this.defaultKeyboardLayout = defaultKeyboardLayout;
 	}
 
 	/** {@link KeyboardLayout#forLanguage} of the input method's locale (the keyboard language), else of the default locale. */
-	static int systemKeyboardLayout() {
+	static KeyboardLayout systemKeyboardLayout() {
 		String language = null;
 		try {
 			if (!java.awt.GraphicsEnvironment.isHeadless()) {
@@ -78,7 +79,7 @@ public final class RmtConfig {
 		if (language == null) {
 			language = java.util.Locale.getDefault().getLanguage();
 		}
-		return org.atari.raster.rmt.model.KeyboardLayout.forLanguage(language);
+		return KeyboardLayout.forLanguage(language);
 	}
 
 	public RmtConfig(Path folder) {
@@ -142,14 +143,13 @@ public final class RmtConfig {
 			// TODO: Tracker must be in the module instead
 			case "NTSC_SYSTEM" -> session.song.setNTSC(atoi(value) != 0);
 			case "TRACKERDRIVERVERSION" -> {
-				int ordinal = atoi(value);
-				TrackerDriverVersion[] versions = TrackerDriverVersion.values();
-				if (ordinal >= 0 && ordinal < versions.length) {
-					o.trackerDriverVersion = versions[ordinal];
+				TrackerDriverVersion version = TrackerDriverVersion.getInstance(atoi(value));
+				if (version != null) { // a number outside the range keeps the current value
+					o.trackerDriverVersion = version;
 				}
 			}
 			// KEYBOARD
-			case "KEYBOARD_LAYOUT" -> o.keyboardLayout = atoi(value);
+			case "KEYBOARD_LAYOUT" -> o.keyboardLayout = KeyboardLayout.getInstance(atoi(value)); // an unknown number falls back to QWERTY
 			case "KEYBOARD_UPDOWNCONTINUE" -> o.keyboardUpDownContinue = atoi(value) != 0;
 			case "KEYBOARD_REMEMBEROCTAVESANDVOLUMES" -> o.keyboardRememberOctavesAndVolumes = atoi(value) != 0;
 			case "KEYBOARD_ESCRESETATARISOUND" -> o.keyboardEscResetAtariSound = atoi(value) != 0;
@@ -205,10 +205,10 @@ public final class RmtConfig {
 		line(ou, "USEGERMANNOTATION", o.useGermanNotation);
 		line(ou, "NTSC_SYSTEM", session.song.isNTSC());
 		line(ou, "NOHWSOUNDBUFFER", o.noHwSoundBuffer);
-		line(ou, "TRACKERDRIVERVERSION", o.trackerDriverVersion.ordinal());
+		line(ou, "TRACKERDRIVERVERSION", o.trackerDriverVersion.getNumber());
 
 		ou.append("\n# KEYBOARD\n\n");
-		line(ou, "KEYBOARD_LAYOUT", o.keyboardLayout);
+		line(ou, "KEYBOARD_LAYOUT", o.keyboardLayout.getNumber());
 		line(ou, "KEYBOARD_UPDOWNCONTINUE", o.keyboardUpDownContinue);
 		line(ou, "KEYBOARD_REMEMBEROCTAVESANDVOLUMES", o.keyboardRememberOctavesAndVolumes);
 		line(ou, "KEYBOARD_ESCRESETATARISOUND", o.keyboardEscResetAtariSound);
@@ -251,7 +251,7 @@ public final class RmtConfig {
 	 */
 	public void resetRMTConfig(RmtSession session) {
 		session.options.reset();
-		session.options.keyboardLayout = defaultKeyboardLayout.getAsInt(); // the first start: the system's keyboard language (since 2026-09-30)
+		session.options.keyboardLayout = defaultKeyboardLayout.get(); // the first start: the system's keyboard language (since 2026-09-30)
 		session.setNTSC(false); // NTSC (60Hz)
 		session.midi.midiInit(); // MIDI must be initialised just in case
 		writeRMTConfig(session); // Write the default configuration file

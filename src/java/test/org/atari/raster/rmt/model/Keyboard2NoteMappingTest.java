@@ -1,6 +1,7 @@
 package org.atari.raster.rmt.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -44,9 +45,18 @@ class Keyboard2NoteMappingTest {
 			assertEquals(Keyboard2NoteMapping.noteKey('Q', KeyboardLayout.QWERTY), Keyboard2NoteMapping.noteKey('Q', KeyboardLayout.QWERTZ)); // the rest as QWERTY
 		}
 
+		/**
+		 * A layout is a value set since 2026-10-01, so an unknown one cannot reach
+		 * {@code noteKey} at all: a number no layout has falls back to QWERTY where
+		 * it enters the program (rmt.ini, the RMW parameters). C++ keeps its
+		 * NoteKeyReturnsMinusOneForUnknownLayout test, where a cast can still make
+		 * an invalid enum value and no key then plays a note.
+		 */
 		@Test
-		void returnsMinusOneForUnknownLayout() {
-			assertEquals((byte) -1, Keyboard2NoteMapping.noteKey(0x5A, 3)); // none of the three layouts
+		void anUnknownLayoutNumberFallsBackToQwerty() {
+			assertSame(KeyboardLayout.QWERTY, KeyboardLayout.getInstance(3));
+			assertSame(KeyboardLayout.QWERTY, KeyboardLayout.getInstance(-1));
+			assertSame(KeyboardLayout.QWERTZ, KeyboardLayout.getInstance(2));
 		}
 	}
 

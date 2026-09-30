@@ -1,7 +1,7 @@
 # Plan: WUDSN Base value sets for the Java port's enumerations (V1-V5)
 
-Status: V1 and V2 DONE 2026-10-01 (the container and `AssemblerFormat`,
-including the directive attributes); V3-V5 open. The user's
+Status: DONE 2026-10-01 - V1-V5 (the container, `AssemblerFormat` including
+the directive attributes, `TrackerDriverVersion`, `KeyboardLayout`), the convention in CLAUDE.md. The user's
 question: what would be required to turn `KeyboardLayout` into a WUDSN
 Base value set, so the texts live outside the code in the standard way and
 `ValueSetField` can be used.
@@ -174,7 +174,7 @@ working on the instances (`getInstance(id)` for the script). The eight
 spellings become attributes if decision 6.2 says so. Tests: the two
 dialog tests, `ScriptRunnerTest`.
 
-### V3 - `TrackerDriverVersion`
+### V3 - `TrackerDriverVersion` - DONE 2026-10-01
 
 Ids as today, sort keys the C++ order, texts the six display names plus
 one for `NONE`/`UNPATCHED_WITH_TUNING` (they exist but are not offered).
@@ -189,7 +189,7 @@ the same numeric attribute instead of `ordinal()` - the binaries on disk
 (`rmt_driver_v0.obx` ...) keep their names, so the numbers must stay what
 the ordinals are today.
 
-### V4 - `KeyboardLayout`
+### V4 - `KeyboardLayout` - DONE 2026-10-01
 
 Ids `QWERTY`/`AZERTY`/`QWERTZ`, sort keys 0/1/2, an `int` attribute for
 the ini value and `getInstance(int)` **falling back to QWERTY** for an
@@ -202,7 +202,7 @@ a lookup without the if-chain - the same for `NoteKeys`'s rows. The
 dialog uses `ValueSetField<KeyboardLayout>` with the class constructor.
 `DataTypes.OptionsDialog_KeyboardLayout` gets `KeyboardLayout.class`.
 
-### V5 - documentation and bookkeeping
+### V5 - documentation and bookkeeping - DONE 2026-10-01
 
 `plans/README.md`, `NOTES.md`; a paragraph in `CLAUDE.md` or the port plan
 on the convention (value sets in the model package, texts in
@@ -210,6 +210,19 @@ on the convention (value sets in the model package, texts in
 follow it; the two library suggestions of section 3 recorded for WUDSN
 Base. No user-visible change at all (decision 6.1: no German texts), so
 no `doc/rmt_changes.md` entry.
+
+**As built (V3/V4, 2026-10-01).** Both carry their C++ number as
+`getNumber()`, with `getInstance(int)`; the driver's unknown number is
+ignored as before, an unknown layout number falls back to QWERTY. The
+driver's `getSelectableValues()` is the dialog's six, in the C++ order,
+and the dialog keeps showing nothing when the configured version is not
+one of them. `KeyboardLayout` also carries its two tables - the note each
+key plays and its keyboard's key rows - so `Keyboard2NoteMapping.noteKey`
+is a lookup and `NoteKeys` reads the rows from the layout; adding a
+layout can no longer forget one of them. The Java test for an unknown
+layout is gone, since a value set cannot represent one; it became the
+QWERTY-fallback test, and the C++ test of the same name stays (a cast can
+still make an invalid enum value there).
 
 ## 6. Decisions for the user
 

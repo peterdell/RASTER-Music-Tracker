@@ -24,8 +24,8 @@ public final class DataTypes extends NLS {
 	public static DataType OptionsDialog_NoHwSoundBuffer = new DataType(Boolean.class);
 	public static DataType OptionsDialog_DebugDisplay = new DataType(Boolean.class);
 	public static DataType OptionsDialog_NTSC = new DataType(Boolean.class);
-	public static DataType OptionsDialog_TrackerDriverVersion = new DataType(String.class);
-	public static DataType OptionsDialog_KeyboardLayout = new DataType(String.class);
+	public static DataType OptionsDialog_TrackerDriverVersion = new DataType(org.atari.raster.rmt.model.TrackerDriverVersion.class);
+	public static DataType OptionsDialog_KeyboardLayout = new DataType(org.atari.raster.rmt.model.KeyboardLayout.class);
 	public static DataType OptionsDialog_KeyboardUpDownContinue = new DataType(Boolean.class);
 	public static DataType OptionsDialog_KeyboardRememberOctavesAndVolumes = new DataType(Boolean.class);
 	public static DataType OptionsDialog_KeyboardEscResetAtariSound = new DataType(Boolean.class);

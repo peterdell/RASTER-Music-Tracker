@@ -28,7 +28,7 @@ public final class OptionsValues {
 	public TrackerDriverVersion trackerDriverVersion;
 
 	// KEYBOARD
-	public int keyboardLayout;
+	public org.atari.raster.rmt.model.KeyboardLayout keyboardLayout;
 	public boolean keyboardEscResetAtariSound;
 	public boolean keyboardUpDownContinue;
 	public boolean keyboardRememberOctavesAndVolumes;

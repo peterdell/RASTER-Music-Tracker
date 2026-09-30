@@ -26,7 +26,7 @@ public final class RmtAtariBinaries {
 
 	/** The driver binary's raw bytes, or {@code null} if no matching file exists (mirrors C++'s {@code bool} success/failure return). */
 	public static byte[] getTrackerDriverBinary(TrackerDriverVersion trackerDriverVersion) {
-		Path path = ProgramFolder.getResourceFilePath(Path.of("resources", "drivers"), "rmt_driver_v" + trackerDriverVersion.ordinal() + ".obx");
+		Path path = ProgramFolder.getResourceFilePath(Path.of("resources", "drivers"), "rmt_driver_v" + trackerDriverVersion.getNumber() + ".obx");
 		try {
 			return Files.readAllBytes(path);
 		} catch (IOException e) {

@@ -33,6 +33,18 @@ Java port, side by side:
   Workspace", select the repository root. m2e resolves the same
   dependencies from `pom.xml`.
 
+  An enumeration whose values are shown to the user is a WUDSN Base
+  `ValueSet` (`AssemblerFormat`, `TrackerDriverVersion`,
+  `KeyboardLayout`), not a Java `enum`: the instances are created in a
+  static block, their display texts live in
+  `src/java/org/atari/raster/rmt/model/ValueSets.properties` (keyed
+  `<ClassName>_<id>`, English only) and dialogs show them through a
+  `ValueSetField`, which holds the instance rather than an index. A
+  value C++ stores as a number carries it as an explicit attribute,
+  since a value set has no `ordinal()`. See
+  `plans/28_VALUE_SETS_PLAN.md`; a missing text is only logged by the
+  library, so `ValueSetsTest` asserts them.
+
 Documentation in `doc/`.
 
 ## Plan files

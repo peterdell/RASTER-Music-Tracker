@@ -44,7 +44,7 @@ public final class RmtOptions {
 
 	// KEYBOARD
 	/** {@code g_keyboard_layout} - which key-to-note table {@code NoteKey()} uses ({@link KeyboardLayout}). */
-	public int keyboardLayout = KeyboardLayout.QWERTY;
+	public KeyboardLayout keyboardLayout = KeyboardLayout.QWERTY;
 	/** {@code g_keyboard_updowncontinue} - Up/Down past a pattern's end continue into the previous/next songline. */
 	public boolean keyboardUpDownContinue = true;
 	/** {@code g_keyboard_swapenter} - swap the roles of Enter and Ctrl+Enter in the tracks ("probably not needed anymore but will be kept for now"); not in {@code rmt.ini}. */

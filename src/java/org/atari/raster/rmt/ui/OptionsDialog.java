@@ -13,6 +13,7 @@ import javax.swing.JTextField;
 
 import com.wudsn.tools.base.gui.ElementFactory;
 import com.wudsn.tools.base.gui.ModalDialog;
+import com.wudsn.tools.base.gui.ValueSetField;
 import org.atari.raster.rmt.model.KeyboardLayout;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
 
@@ -32,12 +33,7 @@ final class OptionsDialog extends ModalDialog {
 
 	private static final long serialVersionUID = 1L;
 
-	/** {@code m_keyboardLayoutComboBox}'s entries, index = {@link KeyboardLayout} constant. */
-	static final String[] KEYBOARD_LAYOUTS = { "QWERTY Layout", "AZERTY Layout", "QWERTZ Layout" };
 
-	/** {@code m_trackerDriverVersionComboBox}'s entries, in C++'s order (not every enum value is offered). */
-	static final TrackerDriverVersion[] DRIVER_VERSIONS = { TrackerDriverVersion.UNPATCHED, TrackerDriverVersion.PATCH3, TrackerDriverVersion.PATCH6, TrackerDriverVersion.PATCH8, TrackerDriverVersion.PATCH16, TrackerDriverVersion.PATCH_PRINCE_OF_PERSIA };
-	static final String[] DRIVER_VERSION_NAMES = { "RMT 1.28 Unpatched by Raster", "RMT 1.25 Patch 3 by Analmux", "RMT 1.27 Patch 6 by Analmux", "RMT 1.28 Patch 8 by Analmux", "RMT 1.28 Patch 16 by VinsCool", "RMT 1.28 Patch Prince of Persia by VinsCool" };
 
 	private final RmtSession session;
 	private final OptionsValues values;
@@ -52,8 +48,10 @@ final class OptionsDialog extends ModalDialog {
 	private final JCheckBox noHwSoundBufferBox = ElementFactory.createCheckBox(DataTypes.OptionsDialog_NoHwSoundBuffer);
 	private final JCheckBox debugDisplayBox = ElementFactory.createCheckBox(DataTypes.OptionsDialog_DebugDisplay);
 	private final JCheckBox ntscBox = ElementFactory.createCheckBox(DataTypes.OptionsDialog_NTSC);
-	private final JComboBox<String> driverVersionCombo = new JComboBox<>(DRIVER_VERSION_NAMES);
-	private final JComboBox<String> keyboardLayoutCombo = new JComboBox<>(KEYBOARD_LAYOUTS);
+	/** {@code m_trackerDriverVersionComboBox}: the versions C++ offers, in its order (not every value is offered). */
+	private final ValueSetField<TrackerDriverVersion> driverVersionCombo = new ValueSetField<>(TrackerDriverVersion.getSelectableValues());
+	/** {@code m_keyboardLayoutComboBox}: every layout, in the order of its number. */
+	private final ValueSetField<KeyboardLayout> keyboardLayoutCombo = new ValueSetField<>(KeyboardLayout.class);
 	private final JCheckBox upDownContinueBox = ElementFactory.createCheckBox(DataTypes.OptionsDialog_KeyboardUpDownContinue);
 	private final JCheckBox rememberOctavesBox = ElementFactory.createCheckBox(DataTypes.OptionsDialog_KeyboardRememberOctavesAndVolumes);
 	private final JCheckBox escResetBox = ElementFactory.createCheckBox(DataTypes.OptionsDialog_KeyboardEscResetAtariSound);
@@ -156,15 +154,6 @@ final class OptionsDialog extends ModalDialog {
 		new TuningDialog((JFrame) getOwner(), session).showDialog();
 	}
 
-	private static int indexOf(TrackerDriverVersion version) {
-		for (int i = 0; i < DRIVER_VERSIONS.length; i++) {
-			if (DRIVER_VERSIONS[i] == version) {
-				return i;
-			}
-		}
-		return -1;
-	}
-
 	@Override
 	protected void dataToUi() {
 		if (filled) {
@@ -181,8 +170,12 @@ final class OptionsDialog extends ModalDialog {
 		noHwSoundBufferBox.setSelected(values.noHwSoundBuffer);
 		debugDisplayBox.setSelected(values.viewDebugDisplay);
 		ntscBox.setSelected(values.ntsc);
-		driverVersionCombo.setSelectedIndex(indexOf(values.trackerDriverVersion)); // -1 = nothing selected, like CComboBox for an unlisted item
-		keyboardLayoutCombo.setSelectedIndex(values.keyboardLayout >= 0 && values.keyboardLayout < KEYBOARD_LAYOUTS.length ? values.keyboardLayout : -1);
+		if (values.trackerDriverVersion.isSelectable()) {
+			driverVersionCombo.setValue(values.trackerDriverVersion);
+		} else {
+			driverVersionCombo.setSelectedIndex(-1); // nothing selected, like CComboBox for an unlisted item
+		}
+		keyboardLayoutCombo.setValue(values.keyboardLayout);
 		upDownContinueBox.setSelected(values.keyboardUpDownContinue);
 		rememberOctavesBox.setSelected(values.keyboardRememberOctavesAndVolumes);
 		escResetBox.setSelected(values.keyboardEscResetAtariSound);
@@ -216,10 +209,10 @@ final class OptionsDialog extends ModalDialog {
 		values.noHwSoundBuffer = noHwSoundBufferBox.isSelected();
 		values.viewDebugDisplay = debugDisplayBox.isSelected();
 		values.ntsc = ntscBox.isSelected();
-		int driver = driverVersionCombo.getSelectedIndex();
-		values.trackerDriverVersion = driver >= 0 ? DRIVER_VERSIONS[driver] : TrackerDriverVersion.NONE; // GetSelectedItem(TrackerDriverVersion::NONE)
-		int layout = keyboardLayoutCombo.getSelectedIndex();
-		values.keyboardLayout = layout >= 0 ? layout : KeyboardLayout.QWERTY; // GetSelectedItem(KeyboardLayout::QWERTY)
+		TrackerDriverVersion driver = driverVersionCombo.getValue();
+		values.trackerDriverVersion = driver != null ? driver : TrackerDriverVersion.NONE; // GetSelectedItem(TrackerDriverVersion::NONE)
+		KeyboardLayout layout = keyboardLayoutCombo.getValue();
+		values.keyboardLayout = layout != null ? layout : KeyboardLayout.QWERTY; // GetSelectedItem(KeyboardLayout::QWERTY)
 		values.keyboardUpDownContinue = upDownContinueBox.isSelected();
 		values.keyboardRememberOctavesAndVolumes = rememberOctavesBox.isSelected();
 		values.keyboardEscResetAtariSound = escResetBox.isSelected();

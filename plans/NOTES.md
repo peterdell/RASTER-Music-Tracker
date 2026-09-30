@@ -5146,3 +5146,30 @@ build clean and all 123 tests pass.
     `compare_exports.ps1` still reports every exported file identical -
     which covers both directives in both spellings (`d2.rmt`/`d2_player.asm`
     atasm, `d1.rmt`/`d3_player.asm` xasm).
+  - **2026-10-01**: plan 28 finished (V3-V5). `TrackerDriverVersion` and
+    `KeyboardLayout` are value sets too, each carrying C++'s number as
+    `getNumber()` with a `getInstance(int)`: the driver's number is both
+    the `rmt.ini` value and the number in `rmt_driver_v<n>.obx` (the files
+    on disk fix it), an unknown one is ignored as before; the layout's
+    number is the ini value and the RMW UI parameter, and an unknown one
+    falls back to QWERTY (the user's decision), where C++ casts it to an
+    invalid enum value and no key plays a note. The Options dialog's
+    driver box shows `getSelectableValues()` - the six C++ offers, in its
+    order - and still shows nothing when the configured version is not one
+    of them; the layout box shows all three. `KeyboardLayout` also carries
+    its note table and its keyboard's key rows, so
+    `Keyboard2NoteMapping.noteKey` is a lookup and `NoteKeys` reads the
+    rows from the layout (the row lists moved out of `NoteKeys`); adding a
+    layout cannot forget one of them any more. The Java test for an
+    unknown layout could not survive (a value set has no invalid value) and
+    became the QWERTY-fallback test; the C++ test of the same name stays.
+    V5: the convention is now in `CLAUDE.md` (value sets instead of enums
+    for user-visible enumerations, texts in `ValueSets.properties`,
+    `ValueSetField` in dialogs, an explicit attribute for a number C++
+    stores). Pitfalls this time: a heredoc with backslashes killed a
+    trim script and the patch script ran twice, duplicating a properties
+    block - check the file, not the script's output; three classes needed
+    an import the patch did not add. Verified: `mvn -o clean package`
+    green (646 tests), `compare_exports.ps1` identical, and the checked-in
+    `doc/rmt_note_keys.md` and `doc/rmt_action_infos.md` match a fresh
+    dump, which is what proves the layout tables survived the move.

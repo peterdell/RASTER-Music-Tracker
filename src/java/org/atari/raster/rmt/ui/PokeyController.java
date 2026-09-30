@@ -56,7 +56,7 @@ public final class PokeyController {
 	}
 
 	/** {@code OnKeyDown(vk, shift, control)}: true for a handled key; {@code keyboardLayout} makes the keys positional (the QWERTZ Z is the QWERTY Y). */
-	public boolean onKeyDown(int vk, boolean shift, boolean control, int keyboardLayout) {
+	public boolean onKeyDown(int vk, boolean shift, boolean control, org.atari.raster.rmt.model.KeyboardLayout keyboardLayout) {
 		switch (NoteKeys.toQwertyPosition(vk, keyboardLayout)) {
 		// General variables manipulation
 		case VK_RETURN -> nextChannel();

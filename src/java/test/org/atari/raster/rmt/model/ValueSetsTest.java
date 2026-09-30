@@ -49,6 +49,40 @@ class ValueSetsTest {
 	}
 
 	@Test
+	void theTrackerDriverVersionsHaveTheirTexts() {
+		assertTextsAreLoaded(TrackerDriverVersion.getValues());
+		assertEquals("RMT 1.28 Patch 16 by VinsCool", TrackerDriverVersion.PATCH16.getText());
+		assertEquals("None", TrackerDriverVersion.NONE.getText());
+	}
+
+	/** The number is C++'s enum value: the rmt.ini value and the number in rmt_driver_v&lt;n&gt;.obx. */
+	@Test
+	void everyTrackerDriverVersionKeepsItsNumber() {
+		assertEquals(0, TrackerDriverVersion.NONE.getNumber());
+		assertEquals(1, TrackerDriverVersion.UNPATCHED.getNumber());
+		assertEquals(2, TrackerDriverVersion.UNPATCHED_WITH_TUNING.getNumber());
+		assertEquals(6, TrackerDriverVersion.PATCH16.getNumber());
+		assertEquals(7, TrackerDriverVersion.PATCH_PRINCE_OF_PERSIA.getNumber());
+		assertSame(TrackerDriverVersion.PATCH16, TrackerDriverVersion.getInstance(6));
+		assertNull(TrackerDriverVersion.getInstance(99), "an unknown number is ignored by RmtConfig");
+		assertSame(TrackerDriverVersion.PATCH3, TrackerDriverVersion.getInstance("PATCH3"));
+	}
+
+	/** getValues() keeps the declaration order - the script's error message lists the names in it. */
+	@Test
+	void theTrackerDriverVersionsAreListedByNumberAndTheDialogShowsSixOfThem() {
+		List<TrackerDriverVersion> all = TrackerDriverVersion.getValues();
+		assertEquals(8, all.size());
+		for (int i = 0; i < all.size(); i++) {
+			assertEquals(i, all.get(i).getNumber());
+		}
+		assertEquals(List.of(TrackerDriverVersion.UNPATCHED, TrackerDriverVersion.PATCH3, TrackerDriverVersion.PATCH6, TrackerDriverVersion.PATCH8, TrackerDriverVersion.PATCH16,
+				TrackerDriverVersion.PATCH_PRINCE_OF_PERSIA), TrackerDriverVersion.getSelectableValues());
+		assertFalse(TrackerDriverVersion.NONE.isSelectable());
+		assertFalse(TrackerDriverVersion.UNPATCHED_WITH_TUNING.isSelectable());
+	}
+
+	@Test
 	void theValuesAreSortedForTheComboBoxByTheirSortKey() {
 		List<AssemblerFormat> values = ValueSet.getValues(AssemblerFormat.class); // what ValueSetField(Class) shows
 		assertEquals(List.of(AssemblerFormat.ATASM, AssemblerFormat.XASM), values);

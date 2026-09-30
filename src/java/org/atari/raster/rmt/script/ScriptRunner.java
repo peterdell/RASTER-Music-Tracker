@@ -343,14 +343,14 @@ public final class ScriptRunner {
 	private static TrackerDriverVersion parseDriverVersion(ScriptCommand command, String value) throws ScriptException {
 		String wanted = value.trim().toUpperCase(Locale.ROOT).replace('-', '_');
 		List<String> names = new ArrayList<>();
-		for (TrackerDriverVersion v : TrackerDriverVersion.values()) {
+		for (TrackerDriverVersion v : TrackerDriverVersion.getValues()) {
 			if (v == TrackerDriverVersion.NONE) {
 				continue;
 			}
-			if (v.name().equals(wanted)) {
+			if (v.getId().equals(wanted)) {
 				return v;
 			}
-			names.add(v.name().toLowerCase(Locale.ROOT).replace('_', '-'));
+			names.add(v.getId().toLowerCase(Locale.ROOT).replace('_', '-'));
 		}
 		throw new ScriptException(command.line(), "'driver' must be one of " + String.join(", ", names) + ", not '" + value + "'.");
 	}

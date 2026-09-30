@@ -24,8 +24,8 @@ public final class Keyboard2NoteMapping {
 	private Keyboard2NoteMapping() {
 	}
 
-	// QWERTY keys layout
-	private static final byte[] KEYNOTES_QWERTY = {
+	// QWERTY keys layout (package-visible: KeyboardLayout hands each layout its own table)
+	static final byte[] KEYNOTES_QWERTY = {
 			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -45,7 +45,7 @@ public final class Keyboard2NoteMapping {
 	};
 
 	// AZERTY keys layout
-	private static final byte[] KEYNOTES_AZERTY = {
+	static final byte[] KEYNOTES_AZERTY = {
 			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -104,7 +104,7 @@ public final class Keyboard2NoteMapping {
 
 	// QWERTZ keys layout: the QWERTY table by key position - Y and Z exchanged, the OEM keys moved to the German keys at the QWERTY
 	// positions (ü + for [ ], ö for ;, ´ for =, - for /; ß ä # < unmapped like -, ' and the keys QWERTY has not there)
-	private static final byte[] KEYNOTES_QWERTZ = qwertz();
+	static final byte[] KEYNOTES_QWERTZ = qwertz();
 
 	private static byte[] qwertz() {
 		byte[] keys = KEYNOTES_QWERTY.clone();
@@ -120,16 +120,8 @@ public final class Keyboard2NoteMapping {
 		return keys;
 	}
 
-	public static byte noteKey(int vk, int keyboardLayout) {
-		if (keyboardLayout == KeyboardLayout.QWERTY) {
-			return KEYNOTES_QWERTY[vk];
-		} else if (keyboardLayout == KeyboardLayout.AZERTY) {
-			return KEYNOTES_AZERTY[vk];
-		} else if (keyboardLayout == KeyboardLayout.QWERTZ) {
-			return KEYNOTES_QWERTZ[vk];
-		} else {
-			return -1;
-		}
+	public static byte noteKey(int vk, KeyboardLayout keyboardLayout) {
+		return keyboardLayout.getNoteKeys()[vk];
 	}
 
 	public static byte numbKey(int vk) {

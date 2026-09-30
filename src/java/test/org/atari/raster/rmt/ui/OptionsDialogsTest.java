@@ -79,8 +79,10 @@ class OptionsDialogsTest {
 		assertEquals(13, boxes.size());
 		List<JComboBox> combos = find(dialog, JComboBox.class);
 		assertEquals(3, combos.size());
-		assertEquals("RMT 1.28 Patch 8 by Analmux", combos.get(0).getSelectedItem());
-		assertEquals("AZERTY Layout", combos.get(1).getSelectedItem());
+		assertEquals(TrackerDriverVersion.PATCH8, combos.get(0).getSelectedItem()); // a value set field holds the instance; its text is what the box shows
+		assertEquals("RMT 1.28 Patch 8 by Analmux", combos.get(0).getSelectedItem().toString());
+		assertEquals(KeyboardLayout.AZERTY, combos.get(1).getSelectedItem()); // a value set field holds the instance
+		assertEquals("AZERTY Layout", combos.get(1).getSelectedItem().toString());
 		assertEquals("None", combos.get(2).getSelectedItem());
 		List<JTextField> fields = find(dialog, JTextField.class);
 		assertEquals(4, fields.size()); // scaling, primary, secondary, MIDI volume offset
@@ -179,6 +181,8 @@ class OptionsDialogsTest {
 		assertEquals("A-", TuningDialog.BASE_NOTES[3]); // the default basenote
 		assertEquals(30, TuningDialog.TEMPERAMENTS.length); // 0 equal + 28 presets + custom (TUNING_PRESETS = 29 is the custom index)
 		assertEquals(org.atari.raster.rmt.model.Tuning.TUNING_CUSTOM, TuningDialog.TEMPERAMENTS.length - 1);
-		assertEquals(OptionsDialog.DRIVER_VERSIONS.length, OptionsDialog.DRIVER_VERSION_NAMES.length);
+		// the driver versions are a value set now: the six the dialog offers, with their texts from ValueSets.properties
+		assertEquals(6, TrackerDriverVersion.getSelectableValues().size());
+		assertEquals("RMT 1.28 Unpatched by Raster", TrackerDriverVersion.getSelectableValues().get(0).getText());
 	}
 }
