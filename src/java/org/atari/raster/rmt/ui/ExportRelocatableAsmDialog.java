@@ -3,7 +3,6 @@ package org.atari.raster.rmt.ui;
 import java.awt.BorderLayout;
 
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -15,6 +14,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import com.wudsn.tools.base.gui.ModalDialog;
+import com.wudsn.tools.base.gui.ValueSetField;
 import org.atari.raster.rmt.model.AsmFileExporter;
 import org.atari.raster.rmt.model.AssemblerFormat;
 
@@ -41,7 +41,7 @@ final class ExportRelocatableAsmDialog extends ModalDialog {
 	private final JTextField tracksLabelField = new JTextField(16);
 	private final JCheckBox relocateSongLinesBox = new JCheckBox("Relocatable song lines to");
 	private final JTextField songLinesLabelField = new JTextField(16);
-	private final JComboBox<String> formatCombo = new JComboBox<>(ExportStrippedRmtDialog.ASM_FORMATS);
+	private final ValueSetField<AssemblerFormat> formatCombo = new ValueSetField<>(AssemblerFormat.class);
 	private final JCheckBox sfxBox = new JCheckBox("SFX support (also preserve unused tracks and instruments in module)");
 	private final JCheckBox gvfBox = new JCheckBox("GlobalVolumeFade support (RMTGLOBALVOLUMEFADE variable)");
 	private final JCheckBox nosBox = new JCheckBox("No songline start (always start from songline 0)");
@@ -64,7 +64,7 @@ final class ExportRelocatableAsmDialog extends ModalDialog {
 		relocateSongLinesBox.setSelected(es.asmWantRelocatableSongLines);
 		instrumentsLabelField.setText(es.asmInstrumentsLabel.isEmpty() ? "RMT_INSTRUMENT_DATA" : es.asmInstrumentsLabel);
 		relocateInstrumentsBox.setSelected(es.asmWantRelocatableInstruments);
-		formatCombo.setSelectedIndex(es.asmFormat.ordinal());
+		formatCombo.setValue(es.asmFormat);
 		sfxBox.setSelected(es.rmtStrippedSfx);
 		gvfBox.setSelected(es.rmtStrippedGlobalVolumeFade);
 		nosBox.setSelected(es.rmtStrippedNoStartingSongLine);
@@ -123,7 +123,7 @@ final class ExportRelocatableAsmDialog extends ModalDialog {
 	}
 
 	private AssemblerFormat getAssemblerFormat() {
-		return formatCombo.getSelectedIndex() == AssemblerFormat.ATASM.ordinal() ? AssemblerFormat.ATASM : AssemblerFormat.XASM;
+		return formatCombo.getValue();
 	}
 
 	/** The current field values as the exporter's parameter record. */

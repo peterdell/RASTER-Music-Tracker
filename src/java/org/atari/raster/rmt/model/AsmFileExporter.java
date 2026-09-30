@@ -521,7 +521,7 @@ public final class AsmFileExporter {
 	 */
 	public static String composeRMTFEATstring(Song song, Instruments instruments, Tracks tracks, int tracks4_8, String filename, byte[] instrumentSavedFlags, boolean soundFXSupport,
 			boolean globalVolumeFade, boolean noStartingSongLine, AssemblerFormat assemblerFormat) {
-		String equal = (assemblerFormat == AssemblerFormat.ATASM) ? "=" : "equ";
+		String equal = assemblerFormat.getEqualDirective();
 
 		StringBuilder dest = new StringBuilder(String.format(";* --------BEGIN--------\n;* %s\n", filename));
 

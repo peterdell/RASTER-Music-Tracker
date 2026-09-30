@@ -32,7 +32,7 @@ public final class AsmFileBuilder {
 		int sizeInstruments = 0;
 		if (!instrumentsLabel.isEmpty()) {
 			// Make the instruments relocatable
-			code.append(assemblerFormat == AssemblerFormat.ATASM ? "* = " + instrumentsLabel + "\n" : "org " + instrumentsLabel + "\n");
+			code.append(assemblerFormat.getOriginDirective() + instrumentsLabel + "\n");
 		}
 
 		for (int i = from, l = 0; i < to; i++, l++) {
@@ -60,7 +60,7 @@ public final class AsmFileBuilder {
 		int sizeTrack = 0;
 		if (!tracksLabel.isEmpty()) {
 			// Make the track data relocatable
-			code.append(assemblerFormat == AssemblerFormat.ATASM ? "\n* = " + tracksLabel + "\n" : "\norg " + tracksLabel + "\n");
+			code.append("\n" + assemblerFormat.getOriginDirective() + tracksLabel + "\n");
 		}
 		for (int i = from, l = 0; i < to; i++, l++) {
 			if (trackPos[i] != 0) {
@@ -90,7 +90,7 @@ public final class AsmFileBuilder {
 
 		int sizeSongLines = 0;
 		if (!songLinesLabel.isEmpty()) {
-			code.append(assemblerFormat == AssemblerFormat.ATASM ? "\n* = " + songLinesLabel + "\n" : "\norg " + songLinesLabel + "\n");
+			code.append("\n" + assemblerFormat.getOriginDirective() + songLinesLabel + "\n");
 		}
 
 		code.append("?SongData");

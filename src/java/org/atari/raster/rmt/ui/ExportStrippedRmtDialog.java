@@ -6,7 +6,6 @@ import java.awt.datatransfer.StringSelection;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -18,6 +17,7 @@ import javax.swing.event.DocumentListener;
 
 import com.wudsn.tools.base.gui.ElementFactory;
 import com.wudsn.tools.base.gui.ModalDialog;
+import com.wudsn.tools.base.gui.ValueSetField;
 import org.atari.raster.rmt.model.AsmFileExporter;
 import org.atari.raster.rmt.model.AssemblerFormat;
 
@@ -33,7 +33,6 @@ final class ExportStrippedRmtDialog extends ModalDialog {
 
 	private static final long serialVersionUID = 1L;
 
-	static final String[] ASM_FORMATS = { "Atasm", "Xasm" }; // index = AssemblerFormat.ordinal()
 
 	private final RmtSession session;
 	private final SongFiles.ModuleDescription stripped;
@@ -42,7 +41,7 @@ final class ExportStrippedRmtDialog extends ModalDialog {
 
 	private final JTextField addressField = new JTextField(5);
 	private final JLabel infoLabel = new JLabel();
-	private final JComboBox<String> formatCombo = new JComboBox<>(ASM_FORMATS);
+	private final ValueSetField<AssemblerFormat> formatCombo = new ValueSetField<>(AssemblerFormat.class);
 	private final JCheckBox sfxBox = new JCheckBox("SFX support (also preserve unused tracks and instruments in module)");
 	private final JCheckBox gvfBox = new JCheckBox("GlobalVolumeFade support (RMTGLOBALVOLUMEFADE variable)");
 	private final JCheckBox nosBox = new JCheckBox("No songline start (always start from songline 0)");
@@ -65,7 +64,7 @@ final class ExportStrippedRmtDialog extends ModalDialog {
 		gvfBox.setSelected(es.rmtStrippedGlobalVolumeFade);
 		nosBox.setSelected(es.rmtStrippedNoStartingSongLine);
 		addressField.setText(String.format("%04X", es.rmtStrippedAddress));
-		formatCombo.setSelectedIndex(es.asmFormat.ordinal());
+		formatCombo.setValue(es.asmFormat);
 		featArea.setEditable(false);
 		featArea.setFont(new java.awt.Font(java.awt.Font.MONOSPACED, java.awt.Font.PLAIN, featArea.getFont().getSize()));
 
@@ -113,7 +112,7 @@ final class ExportStrippedRmtDialog extends ModalDialog {
 	}
 
 	AssemblerFormat getAssemblerFormat() {
-		return formatCombo.getSelectedIndex() == AssemblerFormat.ATASM.ordinal() ? AssemblerFormat.ATASM : AssemblerFormat.XASM;
+		return formatCombo.getValue();
 	}
 
 	/** {@code strtoul(s, &end, 16)}: the leading hex digits, 0 for none. */

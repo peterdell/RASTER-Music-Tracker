@@ -41,3 +41,4 @@ look for what was done, why, and what was found).
 | 25 | [JAVA_MIDI_PLAN](25_JAVA_MIDI_PLAN.md) | MIDI input for the Java port: device lifecycle, the `CSong::MidiEvent` handler, the CH16/CH10 controller mode, a `midi` script command for the cross-program check (M0-M5) | Done 2026-09-30 |
 | 26 | [JAVA_POKEY_EXPLORER_PLAN](26_JAVA_POKEY_EXPLORER_PLAN.md) | The Pokey Explorer in the Java port: `CPokeyController`, the explorer rows of the POKEY view, the Pokey menu (P1-P4) | Done 2026-09-30 |
 | 27 | [QWERTZ_LAYOUT_PLAN](27_QWERTZ_LAYOUT_PLAN.md) | A QWERTZ (German) keyboard layout for the note keys in both programs, the explorer key row per layout, the OS-derived default (K1-K5) | Done 2026-09-30 |
+| 28 | [VALUE_SETS_PLAN](28_VALUE_SETS_PLAN.md) | WUDSN Base value sets for `KeyboardLayout`, `TrackerDriverVersion` and `AssemblerFormat`: texts in `ValueSets.properties`, `ValueSetField` in the dialogs (V1-V5) | Proposal 2026-10-01 |

@@ -5118,3 +5118,31 @@ build clean and all 123 tests pass.
     Verified: Release `Rmt.sln` + 426 C++ tests, `mvn -o clean package`
     (639 tests) green. Not verified: a real German keyboard in the Java
     port on Linux/macOS (K2's extended key codes).
+  - **2026-10-01**: `plans/28_VALUE_SETS_PLAN.md` written (the user's
+    question: what it takes to make `KeyboardLayout` a WUDSN Base
+    `ValueSet` so the texts live in a properties file and `ValueSetField`
+    can be used) and its first two batches implemented. Decisions the user
+    took: the model package may depend on WUDSN Base; an unknown keyboard
+    layout number falls back to QWERTY; no German texts for now; all three
+    enumerations are converted, `AssemblerFormat` first; the directive
+    attributes are done. A first draft of the plan claimed `switch`
+    statements over these enums - there are none; the plan's section 4 now
+    lists what is really there (eight `==` comparisons, which keep working
+    because `ValueSet.equals` is identity, and six uses of `ordinal()`/
+    `values()`/`name()`, which a value set does not have). V1: `ValueSets`
+    container class + `ValueSets.properties` in the model package (the key
+    is `<ClassName>_<id>`, the container's name gives the file - that is
+    `NLS.loadProperties`'s rule for value sets). V2: `AssemblerFormat` as
+    a value set with sort keys 0/1 and two instance attributes, the origin
+    directive (`"* = "` / `"org "`) and the assign directive (`"="` /
+    `"equ"`); the four sites that differed only in that one string
+    (`AsmFileBuilder` three times, `AsmFileExporter` once) read them now,
+    the other four comparisons branch on code structure and stay. The two
+    export dialogs use `ValueSetField<AssemblerFormat>` (it extends
+    `javax.swing.JComboBox`, so `DialogSupport` and the tests' component
+    search work unchanged) and lost `ASM_FORMATS` and the ordinal
+    arithmetic. `ValueSetsTest` asserts the texts, since `NLS` only logs a
+    missing key. Verified: `mvn -o clean package` green, and
+    `compare_exports.ps1` still reports every exported file identical -
+    which covers both directives in both spellings (`d2.rmt`/`d2_player.asm`
+    atasm, `d1.rmt`/`d3_player.asm` xasm).
