@@ -28,7 +28,7 @@ Changes in RMT 1.36
 -------------------
 
 - A Java port of RMT is developed side by side with the Windows program, so RMT can run on Windows, Linux and macOS (see the README). The changes below are changes of the Windows program Rmt.exe that came out of that work; the Java port has them as well (printing, MIDI input and the Pokey Explorer are not ported, so Print has no function there). Going forward, the C++ development will be phased out.
-- All CPU emulation and sound genration is not independent of the old libraries and based on ASAP.
+- All CPU emulation and sound genration is now independent of the old libraries and based on [ASAP](https://asap.sourceforge.net/).
 - Scripting: `Rmt.exe /SCRIPT:<file>` runs a script file that opens a song, sets what the export dialogs would ask, exports in any format and saves - for batch files, build scripts and repeated export sets. The messages go to the console (or to `<script>.log`), the exit code reports success. See the [scripting documentation](rmt_scripting.md). (Build 2026-09-27)
 - Tools > Run Script... runs a script file on the current session from the window (the same as "Rmt.exe /SCRIPT", with message boxes). (Build 2026-09-27)
 - Exports no longer redraw the screen while the song is recorded in quick mode (the display raced through the song up to 60 times a second); the status bar reports the progress instead, and the cursor position and the play time are unchanged after an export. The song timer is paused for the whole export, which also makes the exports faster. (Build 2026-09-28)
