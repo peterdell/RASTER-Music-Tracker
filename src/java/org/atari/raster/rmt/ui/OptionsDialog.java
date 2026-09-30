@@ -33,7 +33,7 @@ final class OptionsDialog extends ModalDialog {
 	private static final long serialVersionUID = 1L;
 
 	/** {@code m_keyboardLayoutComboBox}'s entries, index = {@link KeyboardLayout} constant. */
-	static final String[] KEYBOARD_LAYOUTS = { "QWERTY Layout", "AZERTY Layout" };
+	static final String[] KEYBOARD_LAYOUTS = { "QWERTY Layout", "AZERTY Layout", "QWERTZ Layout" };
 
 	/** {@code m_trackerDriverVersionComboBox}'s entries, in C++'s order (not every enum value is offered). */
 	static final TrackerDriverVersion[] DRIVER_VERSIONS = { TrackerDriverVersion.UNPATCHED, TrackerDriverVersion.PATCH3, TrackerDriverVersion.PATCH6, TrackerDriverVersion.PATCH8, TrackerDriverVersion.PATCH16, TrackerDriverVersion.PATCH_PRINCE_OF_PERSIA };

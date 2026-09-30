@@ -3,6 +3,7 @@ package org.atari.raster.rmt.ui;
 import static org.atari.raster.rmt.ui.VirtualKey.*;
 
 import org.atari.raster.rmt.model.Atari;
+import org.atari.raster.rmt.model.NoteKeys;
 
 /**
  * The port of {@code CPokeyController} ({@code PokeyController.h/.cpp}): the
@@ -13,8 +14,9 @@ import org.atari.raster.rmt.model.Atari;
  * "POKEY REGISTERS" view details one channel ({@link #getChannelIndex()})
  * with a free {@link #getDivisor() divisor} in its pitch formula.
  *
- * <p>Keys ({@link #onKeyDown}, the physical QWERTY positions as virtual
- * keys): Enter/Backspace next/previous channel; +/- the divisor by 0.1,
+ * <p>Keys ({@link #onKeyDown}, the physical QWERTY positions - on the
+ * AZERTY and QWERTZ layouts the keys at the same positions,
+ * {@link NoteKeys#toQwertyPosition}): Enter/Backspace next/previous channel; +/- the divisor by 0.1,
  * with Shift by 1.0; the digits 1 3 5 7 / 2 4 6 8 increase AUDF0-3 /
  * AUDC0-3 and the row below them Q E T U / W R Y I decrease them, by 1, with
  * Shift by $10 (byte arithmetic, wrapping); C G F K J D A P toggle the
@@ -53,9 +55,9 @@ public final class PokeyController {
 		return divisor;
 	}
 
-	/** {@code OnKeyDown(vk, shift, control)}: true for a handled key. */
-	public boolean onKeyDown(int vk, boolean shift, boolean control) {
-		switch (vk) {
+	/** {@code OnKeyDown(vk, shift, control)}: true for a handled key; {@code keyboardLayout} makes the keys positional (the QWERTZ Z is the QWERTY Y). */
+	public boolean onKeyDown(int vk, boolean shift, boolean control, int keyboardLayout) {
+		switch (NoteKeys.toQwertyPosition(vk, keyboardLayout)) {
 		// General variables manipulation
 		case VK_RETURN -> nextChannel();
 		case VK_BACK -> previousChannel();

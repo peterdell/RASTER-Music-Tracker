@@ -14,4 +14,17 @@ public final class KeyboardLayout {
 
 	public static final int QWERTY = 0;
 	public static final int AZERTY = 1;
+	/** The German keyboard (since 2026-09-30, plan 27): the QWERTY piano by key position, Y and Z exchanged, the OEM keys moved. */
+	public static final int QWERTZ = 2;
+
+	/** The layout of a keyboard language ({@link java.util.Locale#getLanguage()}): German QWERTZ, French AZERTY, else QWERTY - the first-start default. */
+	public static int forLanguage(String language) {
+		if ("de".equals(language)) {
+			return QWERTZ;
+		}
+		if ("fr".equals(language)) {
+			return AZERTY;
+		}
+		return QWERTY;
+	}
 }

@@ -1,8 +1,12 @@
 #include "Atari.h"
 #include "PokeyController.h"
 
+#include "General.h"
 #include "Keyboard.h"
+#include "Keyboard2NoteMapping.h"
 #include "resource.h"
+
+extern KeyboardLayout g_keyboard_layout;
 
 CPokeyController::CPokeyController(CAtari* atari) : m_atari(atari), m_channel_index(0), m_divisor(1.0) {
 }
@@ -212,7 +216,9 @@ BOOL CPokeyController::OnCommand(UINT id) {
 }
 
 BOOL CPokeyController::OnKeyDown(int vk, int shift, int control) {
-    switch (vk) {
+    // The keys are the physical positions of the QWERTY keyboard; on the AZERTY and QWERTZ layouts the keys at the same
+    // positions (plan 27, 2026-09-30: the German Z is the QWERTY Y)
+    switch (ToQwertyPosition(vk, g_keyboard_layout)) {
         //General variables manipulation
 
     case VK_RETURN:

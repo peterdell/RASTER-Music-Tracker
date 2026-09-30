@@ -46,6 +46,28 @@ const unsigned char keynotes_AZERTY[256] =
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
+//QWERTZ keys layout: the QWERTY table by key position - Y and Z exchanged, the OEM keys moved to the German keys at the QWERTY
+//positions (ü + for [ ], ö for ;, ´ for =, - for /; ß ä # < unmapped like -, ' and the keys QWERTY has not there)
+struct TQwertzTable {
+    unsigned char keys[256];
+    TQwertzTable() {
+        for (int i = 0; i < 256; i++) {
+            keys[i] = keynotes_QWERTY[i];
+        }
+        keys['Y'] = 0x00; // C-1, QWERTY Z (bottom left)
+        keys['Z'] = 0x15; // A-2, QWERTY Y (under the 6)
+        keys[0xBA] = 0x1D; // ü: F-3, QWERTY [
+        keys[0xBB] = 0x1F; // +: G-3, QWERTY ]
+        keys[0xBD] = 0x10; // -: E-2, QWERTY /
+        keys[0xBF] = 0xFF; // #: no QWERTY key there
+        keys[0xC0] = 0x0F; // ö: D#2, QWERTY ;
+        keys[0xDB] = 0xFF; // ß: QWERTY - (unmapped)
+        keys[0xDD] = 0x1E; // ´: F#3, QWERTY =
+    }
+};
+const TQwertzTable qwertzTable;
+const unsigned char* const keynotes_QWERTZ = qwertzTable.keys;
+
 /*
 const char keynotes[256] =
 {
@@ -135,6 +157,8 @@ char NoteKey(int vk) {
         return keynotes_QWERTY[vk];
     } else if (g_keyboard_layout == KeyboardLayout::AZERTY) {
         return keynotes_AZERTY[vk];
+    } else if (g_keyboard_layout == KeyboardLayout::QWERTZ) {
+        return keynotes_QWERTZ[vk];
     } else {
         return -1;
     }
@@ -160,6 +184,7 @@ namespace {
 // Shift level), and the OEM keys differ.
 std::string KeyLegend(int vk, KeyboardLayout layout) {
     bool azerty = layout == KeyboardLayout::AZERTY;
+    bool qwertz = layout == KeyboardLayout::QWERTZ; // the German keyboard: ü + ö ä # ß ´ ^ -
     if (vk >= '0' && vk <= '9') {
         static const char* azertyDigits[10] = { "\xC3\xA0", "&", "\xC3\xA9", "\"", "'", "(", "-", "\xC3\xA8", "_", "\xC3\xA7" }; // à & é " ' ( - è _ ç
         return azerty ? azertyDigits[vk - '0'] : std::string(1, (char)vk);
@@ -168,17 +193,17 @@ std::string KeyLegend(int vk, KeyboardLayout layout) {
         return std::string(1, (char)vk);
     }
     switch (vk) {
-    case 0xBA: return azerty ? "$" : ";"; // VK_OEM_1
-    case 0xBB: return "="; // VK_OEM_PLUS
+    case 0xBA: return azerty ? "$" : qwertz ? "\xC3\xBC" : ";"; // VK_OEM_1 (u umlaut, UTF-8)
+    case 0xBB: return qwertz ? "+" : "="; // VK_OEM_PLUS
     case 0xBC: return ","; // VK_OEM_COMMA
     case 0xBD: return "-"; // VK_OEM_MINUS
     case 0xBE: return azerty ? ";" : "."; // VK_OEM_PERIOD
-    case 0xBF: return azerty ? ":" : "/"; // VK_OEM_2
-    case 0xC0: return azerty ? "\xC3\xB9" : "`"; // VK_OEM_3 (u with grave accent, UTF-8)
-    case 0xDB: return azerty ? ")" : "["; // VK_OEM_4
-    case 0xDC: return azerty ? "*" : "\\"; // VK_OEM_5
-    case 0xDD: return azerty ? "^" : "]"; // VK_OEM_6
-    case 0xDE: return azerty ? "\xC2\xB2" : "'"; // VK_OEM_7 (superscript two, UTF-8)
+    case 0xBF: return azerty ? ":" : qwertz ? "#" : "/"; // VK_OEM_2
+    case 0xC0: return azerty ? "\xC3\xB9" : qwertz ? "\xC3\xB6" : "`"; // VK_OEM_3 (u with grave accent / o umlaut, UTF-8)
+    case 0xDB: return azerty ? ")" : qwertz ? "\xC3\x9F" : "["; // VK_OEM_4 (sharp s, UTF-8)
+    case 0xDC: return azerty ? "*" : qwertz ? "^" : "\\"; // VK_OEM_5
+    case 0xDD: return azerty ? "^" : qwertz ? "\xC2\xB4" : "]"; // VK_OEM_6 (acute accent, UTF-8)
+    case 0xDE: return azerty ? "\xC2\xB2" : qwertz ? "\xC3\xA4" : "'"; // VK_OEM_7 (superscript two / a umlaut, UTF-8)
     case 0xDF: return "!"; // VK_OEM_8
     case 0xE2: return "<"; // VK_OEM_102
     default:
@@ -204,7 +229,18 @@ const std::vector<std::vector<int>>& KeyboardRows(KeyboardLayout layout) {
         { 'Q', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 0xC0, 0xDC },
         { 0xE2, 'W', 'X', 'C', 'V', 'B', 'N', 0xBC, 0xBE, 0xBF, 0xDF },
     };
-    return layout == KeyboardLayout::AZERTY ? azerty : qwerty;
+    static const std::vector<std::vector<int>> qwertz = {
+        { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 0xDB, 0xDD },
+        { 'Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O', 'P', 0xBA, 0xBB },
+        { 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 0xC0, 0xDE, 0xBF },
+        { 0xE2, 'Y', 'X', 'C', 'V', 'B', 'N', 'M', 0xBC, 0xBE, 0xBD },
+    };
+    return layout == KeyboardLayout::AZERTY ? azerty : layout == KeyboardLayout::QWERTZ ? qwertz : qwerty;
+}
+
+// A row without its leading ISO "<" key, so the letter positions of the layouts align.
+std::vector<int> StripIsoKey(const std::vector<int>& row) {
+    return (!row.empty() && row[0] == 0xE2) ? std::vector<int>(row.begin() + 1, row.end()) : row;
 }
 
 // A UTF-8 string padded with blanks to width columns (one column per code point).
@@ -272,5 +308,25 @@ std::string NoteKeysTable() {
     AppendLayout(out, "QWERTY", keynotes_QWERTY, KeyboardLayout::QWERTY);
     out += "\n";
     AppendLayout(out, "AZERTY", keynotes_AZERTY, KeyboardLayout::AZERTY);
+    out += "\n";
+    AppendLayout(out, "QWERTZ", keynotes_QWERTZ, KeyboardLayout::QWERTZ);
     return out;
+}
+
+int ToQwertyPosition(int vk, KeyboardLayout layout) {
+    if (layout == KeyboardLayout::QWERTY || vk == 0xBB || vk == 0xBD) {
+        return vk;
+    }
+    const auto& rows = KeyboardRows(layout);
+    const auto& qwertyRows = KeyboardRows(KeyboardLayout::QWERTY);
+    for (size_t r = 1; r < 4; r++) {
+        const auto row = StripIsoKey(rows[r]);
+        const auto qwertyRow = StripIsoKey(qwertyRows[r]);
+        for (size_t i = 0; i < row.size() && i < qwertyRow.size(); i++) {
+            if (row[i] == vk) {
+                return qwertyRow[i];
+            }
+        }
+    }
+    return vk;
 }

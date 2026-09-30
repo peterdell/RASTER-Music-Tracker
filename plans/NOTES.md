@@ -5089,3 +5089,32 @@ build clean and all 123 tests pass.
     of both programs identical), Release `Rmt.sln` + 423 C++ tests green.
     Found on the way, not fixed: `Keyboard.h` defines `VK_0 = '1'` (a
     typo; nothing uses VK_0 in C++).
+  - **2026-09-30**: plan 27 implemented (K1-K5, "implement plan 27").
+    Both programs: `KeyboardLayout QWERTZ = 2`; the QWERTZ note table is
+    the QWERTY table by key position (Y/Z exchanged; ü + ö ´ - at the
+    places of [ ] ; = /; ß ä # < unmapped), built from the QWERTY table
+    at start-up in both languages; `KeyLegend`/`KeyboardRows` know the
+    German keys (UTF-8 legends), `dump notekeys` has the third picture,
+    the Options combo "QWERTZ Layout". K2: `VirtualKey.fromKeyEvent(
+    KeyEvent)` maps Swing's German key codes (VK_PLUS, VK_NUMBER_SIGN,
+    VK_LESS, VK_DEAD_ACUTE/CIRCUMFLEX) and the umlauts/ß via
+    `getExtendedKeyCode()` to the Windows OEM codes (`TrackerPanel` passes
+    the event now). K3: the Pokey Explorer's keys are positional through
+    the three letter rows (`ToQwertyPosition`/`NoteKeys.toQwertyPosition`,
+    the ISO key discounted, + and - excepted) - not only the decrease row
+    as planned, because on AZERTY the positional A would have collided
+    with the character-based A (AUDCTL bit 6); now A decreases AUDF0 and
+    Q toggles bit 6 there, "," is the two-tone key. K5: a first start (no
+    rmt.ini) takes the layout from the keyboard language - C++
+    `GetKeyboardLayout(0)` (`DefaultKeyboardLayout()` in RmtView.cpp),
+    Java `InputContext`/default locale through `KeyboardLayout.forLanguage`;
+    `RmtConfig.setDefaultKeyboardLayout` lets the missing-file test stay
+    QWERTY on a German machine. Docs: manual ("QWERTY, AZERTY or the
+    German QWERTZ", the explorer keys per layout), `doc/rmt_note_keys.md`
+    regenerated from Rmt.exe (the Java text identical - compare_exports),
+    scripting row, change history. Pitfalls: my QWERTZ table first landed
+    inside an old `/* ... */` block that comments out a stale table in
+    `Keyboard2NoteMapping.cpp`; the header needed `#include "General.h"`.
+    Verified: Release `Rmt.sln` + 426 C++ tests, `mvn -o clean package`
+    (639 tests) green. Not verified: a real German keyboard in the Java
+    port on Linux/macOS (K2's extended key codes).

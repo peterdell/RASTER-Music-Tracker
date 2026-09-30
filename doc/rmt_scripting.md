@@ -85,7 +85,7 @@ Exit codes of the command line:
 | `set midi-note-off yes\|no` | The Options dialog's MIDI "Record note off". Default: `rmt.ini`'s. |
 | `midi <status> <data1> [<data2>]` | Handles a MIDI message given as hex bytes exactly as one from the MIDI IN device would be (see the manual's "MIDI Input"): `midi 90 3C 64` is note on C-3, velocity 100, on channel 1 and records the note at the cursor; `midi CA 05` selects instrument 5. The window counts as focused. |
 | `dump actions <file>` | Writes the program's command table - every menu item, toolbar button and key with its description - as a Markdown table (`doc/rmt_action_infos.md` is made this way by the build). A row marked ERROR is an inconsistency in the program's resources and fails the command. |
-| `dump notekeys <file>` | Writes the note keys of the QWERTY and AZERTY keyboard layouts (which key plays which note) as Markdown tables (`doc/rmt_note_keys.md`). |
+| `dump notekeys <file>` | Writes the note keys of the QWERTY, AZERTY and QWERTZ keyboard layouts (which key plays which note) as keyboard pictures and Markdown tables (`doc/rmt_note_keys.md`). |
 | `echo <text ...>` | Prints the text. |
 | `quit` | Ends the script (implicit at its end). |
 

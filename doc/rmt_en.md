@@ -29,7 +29,8 @@ is always the current state of the program.
 The "tonekeys" of the hotkey tables below: two rows of the keyboard form a
 piano, the lower row from C-1 and the upper row from C-2, with the row above
 each as the black keys. The layout follows the "Keyboard layout" option
-(QWERTY or AZERTY). The pictures and tables are generated from the program
+(QWERTY, AZERTY or the German QWERTZ; a first start picks it from the
+keyboard language). The pictures and tables are generated from the program
 (the `dump notekeys` script command): each keyboard row as its keys print
 them, with the note every key plays underneath, then the same as a table by
 note.
@@ -408,7 +409,9 @@ detail one channel: its AUDF and AUDC bytes, the first divisor of
 free divisor, the modulo offset (1, 4 at 1.79 MHz, 7 for joined channels)
 and the resulting pitch.
 
-The keys (the physical positions of the QWERTY layout):
+The keys (the physical positions of the QWERTY layout; on the AZERTY and
+QWERTZ layouts the keys at the same positions, e.g. `Z` for `Y` on QWERTZ,
+`A` for `Q` on AZERTY - only `+` and `-` are the keys so labelled):
 
 | Key | Function |
 |---|---|

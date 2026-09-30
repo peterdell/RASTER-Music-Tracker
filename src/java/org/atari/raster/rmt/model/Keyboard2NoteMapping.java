@@ -102,11 +102,31 @@ public final class Keyboard2NoteMapping {
 			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 	};
 
+	// QWERTZ keys layout: the QWERTY table by key position - Y and Z exchanged, the OEM keys moved to the German keys at the QWERTY
+	// positions (ü + for [ ], ö for ;, ´ for =, - for /; ß ä # < unmapped like -, ' and the keys QWERTY has not there)
+	private static final byte[] KEYNOTES_QWERTZ = qwertz();
+
+	private static byte[] qwertz() {
+		byte[] keys = KEYNOTES_QWERTY.clone();
+		keys['Y'] = 0x00; // C-1, QWERTY Z (bottom left)
+		keys['Z'] = 0x15; // A-2, QWERTY Y (under the 6)
+		keys[0xBA] = 0x1D; // ü: F-3, QWERTY [
+		keys[0xBB] = 0x1F; // +: G-3, QWERTY ]
+		keys[0xBD] = 0x10; // -: E-2, QWERTY /
+		keys[0xBF] = -1; // #: no QWERTY key there
+		keys[0xC0] = 0x0F; // ö: D#2, QWERTY ;
+		keys[0xDB] = -1; // ß: QWERTY - (unmapped)
+		keys[0xDD] = 0x1E; // ´: F#3, QWERTY =
+		return keys;
+	}
+
 	public static byte noteKey(int vk, int keyboardLayout) {
 		if (keyboardLayout == KeyboardLayout.QWERTY) {
 			return KEYNOTES_QWERTY[vk];
 		} else if (keyboardLayout == KeyboardLayout.AZERTY) {
 			return KEYNOTES_AZERTY[vk];
+		} else if (keyboardLayout == KeyboardLayout.QWERTZ) {
+			return KEYNOTES_QWERTZ[vk];
 		} else {
 			return -1;
 		}

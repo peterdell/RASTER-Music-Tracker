@@ -641,6 +641,21 @@ void CRmtView::WriteRMTConfig()
     ou.close();
 }
 
+// The keyboard layout of a first start (no rmt.ini): the keyboard language of the thread's input locale.
+static KeyboardLayout DefaultKeyboardLayout()
+{
+    WORD language = PRIMARYLANGID(LOWORD((DWORD_PTR)GetKeyboardLayout(0)));
+    if (language == LANG_GERMAN)
+    {
+        return KeyboardLayout::QWERTZ;
+    }
+    if (language == LANG_FRENCH)
+    {
+        return KeyboardLayout::AZERTY;
+    }
+    return KeyboardLayout::QWERTY;
+}
+
 void CRmtView::ResetRMTConfig()
 {
     g_scaling_percentage = 100;					// RMT interface scaling (in percentage) 
@@ -672,7 +687,7 @@ void CRmtView::ResetRMTConfig()
     g_defaultTracksPath = "";					// Default path for tracks
 
     // TODO: Why is the default here different from Global.cpp
-    g_keyboard_layout = KeyboardLayout::QWERTY; // Keyboard layout used by RMT. eg: QWERTY, AZERTY, etc 
+    g_keyboard_layout = DefaultKeyboardLayout(); // the first start: the system's keyboard language (since 2026-09-30) - German QWERTZ, French AZERTY, else QWERTY
     g_keyboard_updowncontinue = 1;				// Scroll to the next/previous Songline when the Pattern limits are crossed 
     g_keyboard_RememberOctavesAndVolumes = 1;	// Remember the last octave and volume values used with an Instrument 
     g_keyboard_escresetatarisound = 1;			// Reset the RMT Atari routines if the ESC key is pressed 

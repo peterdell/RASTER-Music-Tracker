@@ -102,10 +102,49 @@ public final class VirtualKey {
 	public static final int VK_OEM_5 = 0xDC; // \|
 	public static final int VK_OEM_6 = 0xDD; // ]}
 	public static final int VK_OEM_7 = 0xDE; // '"
+	public static final int VK_OEM_8 = 0xDF; // ! on AZERTY
+	public static final int VK_OEM_102 = 0xE2; // the ISO < key
+
+	/**
+	 * The Windows virtual-key code for a Swing key event: by its key code, and
+	 * for the keys Swing has no key code for (the German ü ö ä ß arrive as
+	 * {@code VK_UNDEFINED}) by its extended key code, the key's character.
+	 */
+	public static int fromKeyEvent(java.awt.event.KeyEvent e) {
+		int vk = fromKeyEvent(e.getKeyCode());
+		if (vk >= 0) {
+			return vk;
+		}
+		int extended = e.getExtendedKeyCode();
+		if (extended == KeyEvent.getExtendedKeyCodeForChar('ü')) {
+			return VK_OEM_1;
+		}
+		if (extended == KeyEvent.getExtendedKeyCodeForChar('ö')) {
+			return VK_OEM_3;
+		}
+		if (extended == KeyEvent.getExtendedKeyCodeForChar('ä')) {
+			return VK_OEM_7;
+		}
+		if (extended == KeyEvent.getExtendedKeyCodeForChar('ß')) {
+			return VK_OEM_4;
+		}
+		return -1;
+	}
 
 	/** The Windows virtual-key code for a Swing key event's key code, or -1 for a key Windows has no code for in this table. */
 	public static int fromKeyEvent(int keyCode) {
 		switch (keyCode) {
+		// The German keyboard's own key codes (plan 27, K2): Swing names these keys by their character
+		case KeyEvent.VK_PLUS:
+			return VK_OEM_PLUS;
+		case KeyEvent.VK_NUMBER_SIGN:
+			return VK_OEM_2;
+		case KeyEvent.VK_LESS:
+			return VK_OEM_102;
+		case KeyEvent.VK_DEAD_ACUTE:
+			return VK_OEM_6;
+		case KeyEvent.VK_DEAD_CIRCUMFLEX:
+			return VK_OEM_5;
 		case KeyEvent.VK_ENTER:
 			return VK_RETURN;
 		case KeyEvent.VK_INSERT:

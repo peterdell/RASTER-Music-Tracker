@@ -211,7 +211,9 @@ class RmtConfigTest {
 		RecordingMessages messages = new RecordingMessages();
 		session.messages.setHandler(messages);
 
-		new RmtConfig(dir).readRMTConfig(session);
+		RmtConfig config = new RmtConfig(dir);
+		config.setDefaultKeyboardLayout(() -> org.atari.raster.rmt.model.KeyboardLayout.QWERTY); // the machine's keyboard language must not decide the test (German -> QWERTZ)
+		config.readRMTConfig(session);
 
 		assertEquals(1, messages.warnings.size());
 		assertTrue(messages.warnings.get(0).startsWith("RMT: Could not find: '" + dir.resolve("rmt.ini") + "'\n\nRMT will use the default configuration.\n"));

@@ -30,7 +30,8 @@ enum class EditMode : int {
 // Keyboard layouts that may be used with RMT for Notes input
 enum class KeyboardLayout : int {
     QWERTY = 0,
-    AZERTY = 1
+    AZERTY = 1,
+    QWERTZ = 2 // the German keyboard (2026-09-30, plan 27): the QWERTY piano by key position, Y and Z exchanged, the OEM keys moved
 };
 
 #define CONFIG_FILENAME "rmt.ini"

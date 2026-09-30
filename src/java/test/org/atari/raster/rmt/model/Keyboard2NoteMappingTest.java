@@ -31,8 +31,22 @@ class Keyboard2NoteMappingTest {
 		}
 
 		@Test
+		void qwertzIsQwertyByPosition() {
+			assertEquals((byte) 0x00, Keyboard2NoteMapping.noteKey('Y', KeyboardLayout.QWERTZ)); // C-1 bottom left
+			assertEquals((byte) 0x15, Keyboard2NoteMapping.noteKey('Z', KeyboardLayout.QWERTZ)); // A-2 under the 6
+			assertEquals((byte) 0x1D, Keyboard2NoteMapping.noteKey(0xBA, KeyboardLayout.QWERTZ)); // ü: F-3 (QWERTY [)
+			assertEquals((byte) 0x1F, Keyboard2NoteMapping.noteKey(0xBB, KeyboardLayout.QWERTZ)); // +: G-3 (QWERTY ])
+			assertEquals((byte) 0x0F, Keyboard2NoteMapping.noteKey(0xC0, KeyboardLayout.QWERTZ)); // ö: D#2 (QWERTY ;)
+			assertEquals((byte) 0x1E, Keyboard2NoteMapping.noteKey(0xDD, KeyboardLayout.QWERTZ)); // ´: F#3 (QWERTY =)
+			assertEquals((byte) 0x10, Keyboard2NoteMapping.noteKey(0xBD, KeyboardLayout.QWERTZ)); // -: E-2 (QWERTY /)
+			assertEquals((byte) -1, Keyboard2NoteMapping.noteKey(0xDB, KeyboardLayout.QWERTZ)); // ß: unmapped like QWERTY -
+			assertEquals((byte) -1, Keyboard2NoteMapping.noteKey(0xBF, KeyboardLayout.QWERTZ)); // #: no QWERTY key there
+			assertEquals(Keyboard2NoteMapping.noteKey('Q', KeyboardLayout.QWERTY), Keyboard2NoteMapping.noteKey('Q', KeyboardLayout.QWERTZ)); // the rest as QWERTY
+		}
+
+		@Test
 		void returnsMinusOneForUnknownLayout() {
-			assertEquals((byte) -1, Keyboard2NoteMapping.noteKey(0x5A, 2)); // neither QWERTY nor AZERTY
+			assertEquals((byte) -1, Keyboard2NoteMapping.noteKey(0x5A, 3)); // none of the three layouts
 		}
 	}
 

@@ -1,6 +1,6 @@
 # Plan: a QWERTZ keyboard layout in both programs (K1-K5)
 
-Status: proposal (2026-09-30). Nothing implemented yet. Grew out of plan
+Status: DONE 2026-09-30 (K1-K5; K3 with all explorer keys positional through the three letter rows, + and - excepted - the plain decrease row would have collided with the AZERTY A). Grew out of plan
 26's finding 1.5 (the Pokey Explorer's "Z" vs "Y" hint): the user's
 observation that the swap is the German versus the English keyboard, and
 the decision to solve it the way RMT already solves AZERTY - as a layout.

@@ -33,6 +33,43 @@ public final class NoteKeys {
 			List.of((int) 'Q', (int) 'S', (int) 'D', (int) 'F', (int) 'G', (int) 'H', (int) 'J', (int) 'K', (int) 'L', (int) 'M', 0xC0, 0xDC), //
 			List.of(0xE2, (int) 'W', (int) 'X', (int) 'C', (int) 'V', (int) 'B', (int) 'N', 0xBC, 0xBE, 0xBF, 0xDF));
 
+	private static final List<List<Integer>> QWERTZ_ROWS = List.of( //
+			List.of((int) '1', (int) '2', (int) '3', (int) '4', (int) '5', (int) '6', (int) '7', (int) '8', (int) '9', (int) '0', 0xDB, 0xDD), //
+			List.of((int) 'Q', (int) 'W', (int) 'E', (int) 'R', (int) 'T', (int) 'Z', (int) 'U', (int) 'I', (int) 'O', (int) 'P', 0xBA, 0xBB), //
+			List.of((int) 'A', (int) 'S', (int) 'D', (int) 'F', (int) 'G', (int) 'H', (int) 'J', (int) 'K', (int) 'L', 0xC0, 0xDE, 0xBF), //
+			List.of(0xE2, (int) 'Y', (int) 'X', (int) 'C', (int) 'V', (int) 'B', (int) 'N', (int) 'M', 0xBC, 0xBE, 0xBD));
+
+	/** The four key rows of a layout's keyboard, number row first, as virtual keys (the ISO {@code <} key, {@code 0xE2}, leads the bottom row where the keyboard has it). */
+	public static List<List<Integer>> rows(int layout) {
+		return layout == KeyboardLayout.AZERTY ? AZERTY_ROWS : layout == KeyboardLayout.QWERTZ ? QWERTZ_ROWS : QWERTY_ROWS;
+	}
+
+	/**
+	 * The QWERTY key at the position of {@code vk} on the layout's keyboard,
+	 * for keys that mean a position (the Pokey Explorer's): the three letter
+	 * rows, the ISO key discounted; {@code +}/{@code -} ({@code 0xBB}/{@code 0xBD})
+	 * and everything else stay themselves. On QWERTY {@code vk} itself.
+	 */
+	public static int toQwertyPosition(int vk, int layout) {
+		if (layout == KeyboardLayout.QWERTY || vk == 0xBB || vk == 0xBD) {
+			return vk;
+		}
+		List<List<Integer>> rows = rows(layout);
+		for (int r = 1; r < 4; r++) {
+			List<Integer> row = stripIsoKey(rows.get(r));
+			List<Integer> qwertyRow = stripIsoKey(QWERTY_ROWS.get(r));
+			int index = row.indexOf(vk);
+			if (index >= 0 && index < qwertyRow.size()) {
+				return qwertyRow.get(index);
+			}
+		}
+		return vk;
+	}
+
+	private static List<Integer> stripIsoKey(List<Integer> row) {
+		return !row.isEmpty() && row.get(0) == 0xE2 ? row.subList(1, row.size()) : row;
+	}
+
 	/** The French number row's legends for VK_0..VK_9 (the digits are its Shift level). */
 	private static final String[] AZERTY_DIGITS = { "à", "&", "é", "\"", "'", "(", "-", "è", "_", "ç" };
 
@@ -46,6 +83,8 @@ public final class NoteKeys {
 		appendLayout(sb, "QWERTY", KeyboardLayout.QWERTY);
 		sb.append('\n');
 		appendLayout(sb, "AZERTY", KeyboardLayout.AZERTY);
+		sb.append('\n');
+		appendLayout(sb, "QWERTZ", KeyboardLayout.QWERTZ);
 		return sb.toString();
 	}
 
@@ -70,7 +109,7 @@ public final class NoteKeys {
 	}
 
 	private static void appendKeyboard(StringBuilder sb, int layout) {
-		List<List<Integer>> rows = layout == KeyboardLayout.AZERTY ? AZERTY_ROWS : QWERTY_ROWS;
+		List<List<Integer>> rows = rows(layout);
 		sb.append("```\n");
 		for (int r = 0; r < rows.size(); r++) {
 			StringBuilder keys = new StringBuilder(" ".repeat(r * 2));
@@ -94,10 +133,11 @@ public final class NoteKeys {
 	 * The legend of a virtual key as the keyboard of the layout prints it:
 	 * the letters are the same physical keys in both layouts; the number row
 	 * of the French AZERTY keyboard prints & é " ' ( - è _ ç à, and the OEM
-	 * keys differ.
+	 * keys differ (the German QWERTZ keyboard: ü + ö ä # ß ´ ^ -).
 	 */
 	static String keyLegend(int vk, int layout) {
 		boolean azerty = layout == KeyboardLayout.AZERTY;
+		boolean qwertz = layout == KeyboardLayout.QWERTZ;
 		if (vk >= '0' && vk <= '9') {
 			return azerty ? AZERTY_DIGITS[vk - '0'] : String.valueOf((char) vk);
 		}
@@ -105,17 +145,17 @@ public final class NoteKeys {
 			return String.valueOf((char) vk);
 		}
 		return switch (vk) {
-		case 0xBA -> azerty ? "$" : ";"; // VK_OEM_1
-		case 0xBB -> "="; // VK_OEM_PLUS
+		case 0xBA -> azerty ? "$" : qwertz ? "ü" : ";"; // VK_OEM_1
+		case 0xBB -> qwertz ? "+" : "="; // VK_OEM_PLUS
 		case 0xBC -> ","; // VK_OEM_COMMA
 		case 0xBD -> "-"; // VK_OEM_MINUS
 		case 0xBE -> azerty ? ";" : "."; // VK_OEM_PERIOD
-		case 0xBF -> azerty ? ":" : "/"; // VK_OEM_2
-		case 0xC0 -> azerty ? "ù" : "`"; // VK_OEM_3
-		case 0xDB -> azerty ? ")" : "["; // VK_OEM_4
-		case 0xDC -> azerty ? "*" : "\\"; // VK_OEM_5
-		case 0xDD -> azerty ? "^" : "]"; // VK_OEM_6
-		case 0xDE -> azerty ? "²" : "'"; // VK_OEM_7
+		case 0xBF -> azerty ? ":" : qwertz ? "#" : "/"; // VK_OEM_2
+		case 0xC0 -> azerty ? "ù" : qwertz ? "ö" : "`"; // VK_OEM_3
+		case 0xDB -> azerty ? ")" : qwertz ? "ß" : "["; // VK_OEM_4
+		case 0xDC -> azerty ? "*" : qwertz ? "^" : "\\"; // VK_OEM_5
+		case 0xDD -> azerty ? "^" : qwertz ? "´" : "]"; // VK_OEM_6
+		case 0xDE -> azerty ? "²" : qwertz ? "ä" : "'"; // VK_OEM_7
 		case 0xDF -> "!"; // VK_OEM_8
 		case 0xE2 -> "<"; // VK_OEM_102
 		default -> String.format("VK_%02X", vk);

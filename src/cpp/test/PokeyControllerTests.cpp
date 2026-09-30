@@ -1,11 +1,13 @@
 #include "gtest/gtest.h"
 
 #include "Atari.h"
+#include "General.h"
 #include "Keyboard.h"
 #include "PokeyController.h"
 #include "resource.h"
 
 extern CAtari g_Atari;
+extern KeyboardLayout g_keyboard_layout;
 
 // The Pokey Explorer's controller: the same key table as the Java port's PokeyControllerTest.
 class PokeyControllerTest : public ::testing::Test {
@@ -23,8 +25,31 @@ class PokeyControllerTest : public ::testing::Test {
         memset(memory + AUDF, 0, 16);
         memory[AUDCTL] = 0;
         memory[SKCTL] = 0;
+        g_keyboard_layout = KeyboardLayout::QWERTY;
+    }
+
+    void TearDown() override {
+        g_keyboard_layout = KeyboardLayout::QWERTY;
     }
 };
+
+TEST_F(PokeyControllerTest, TheKeysArePositionsOnTheOtherLayouts) {
+    g_keyboard_layout = KeyboardLayout::QWERTZ;
+    memory[AUDC + 2] = 0x10;
+    EXPECT_TRUE(controller.OnKeyDown(VK_Z, 0, 0)); // the German Z sits where the QWERTY Y is
+    EXPECT_EQ(memory[AUDC + 2], 0x0F);
+    EXPECT_FALSE(controller.OnKeyDown(VK_Y, 0, 0)); // and the German Y where the QWERTY Z is - no explorer key
+    EXPECT_TRUE(controller.OnKeyDown(VK_OEM_MINUS, 0, 0)); // +/- stay themselves on every layout
+
+    g_keyboard_layout = KeyboardLayout::AZERTY;
+    memory[AUDF] = 0x10;
+    EXPECT_TRUE(controller.OnKeyDown(VK_A, 0, 0)); // the French A sits where the QWERTY Q is
+    EXPECT_EQ(memory[AUDF], 0x0F);
+    EXPECT_TRUE(controller.OnKeyDown(VK_Q, 0, 0)); // and the French Q where the QWERTY A is: AUDCTL bit 6
+    EXPECT_EQ(memory[AUDCTL], 0x40);
+    EXPECT_TRUE(controller.OnKeyDown(VK_OEM_COMMA, 0, 0)); // the French , where the QWERTY M is: two-tone
+    EXPECT_EQ(memory[SKCTL], 0x88);
+}
 
 TEST_F(PokeyControllerTest, TheDigitsIncreaseAndTheRowBelowDecreasesTheRegistersBy1OrWithShiftBy10) {
     const int increaseKeys[8] = { VK_1, VK_2, VK_3, VK_4, VK_5, VK_6, VK_7, VK_8 };

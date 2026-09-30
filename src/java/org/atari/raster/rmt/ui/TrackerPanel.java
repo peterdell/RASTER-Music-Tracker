@@ -97,7 +97,7 @@ public final class TrackerPanel extends JPanel {
 					refreshScreen();
 					return;
 				}
-				int vk = VirtualKey.fromKeyEvent(e.getKeyCode());
+				int vk = VirtualKey.fromKeyEvent(e);
 				if (vk < 0) {
 					return;
 				}
@@ -114,7 +114,7 @@ public final class TrackerPanel extends JPanel {
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				int vk = VirtualKey.fromKeyEvent(e.getKeyCode());
+				int vk = VirtualKey.fromKeyEvent(e);
 				if (vk >= 0) {
 					session.locked(() -> songInput.keyUp(vk));
 				}

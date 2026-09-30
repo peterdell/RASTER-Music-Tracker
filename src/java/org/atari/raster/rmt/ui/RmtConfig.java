@@ -55,6 +55,31 @@ public final class RmtConfig {
 	private static final Pattern ATOF = Pattern.compile("^\\s*([+-]?(?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][+-]?\\d+)?)");
 
 	private final Path folder;
+	/** The keyboard layout of a first start (no rmt.ini): the system's keyboard language - German QWERTZ, French AZERTY, else QWERTY; tests inject a fixed one. */
+	private java.util.function.IntSupplier defaultKeyboardLayout = RmtConfig::systemKeyboardLayout;
+
+	public void setDefaultKeyboardLayout(java.util.function.IntSupplier defaultKeyboardLayout) {
+		this.defaultKeyboardLayout = defaultKeyboardLayout;
+	}
+
+	/** {@link KeyboardLayout#forLanguage} of the input method's locale (the keyboard language), else of the default locale. */
+	static int systemKeyboardLayout() {
+		String language = null;
+		try {
+			if (!java.awt.GraphicsEnvironment.isHeadless()) {
+				java.util.Locale locale = java.awt.im.InputContext.getInstance().getLocale();
+				if (locale != null) {
+					language = locale.getLanguage();
+				}
+			}
+		} catch (RuntimeException e) {
+			// no input context: the default locale below
+		}
+		if (language == null) {
+			language = java.util.Locale.getDefault().getLanguage();
+		}
+		return org.atari.raster.rmt.model.KeyboardLayout.forLanguage(language);
+	}
 
 	public RmtConfig(Path folder) {
 		this.folder = folder;
@@ -226,6 +251,7 @@ public final class RmtConfig {
 	 */
 	public void resetRMTConfig(RmtSession session) {
 		session.options.reset();
+		session.options.keyboardLayout = defaultKeyboardLayout.getAsInt(); // the first start: the system's keyboard language (since 2026-09-30)
 		session.setNTSC(false); // NTSC (60Hz)
 		session.midi.midiInit(); // MIDI must be initialised just in case
 		writeRMTConfig(session); // Write the default configuration file

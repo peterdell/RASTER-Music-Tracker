@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.atari.raster.rmt.model.Atari;
+import org.atari.raster.rmt.model.KeyboardLayout;
 
 /** {@link PokeyController} against {@code CPokeyController}: the same key table as {@code PokeyControllerTests.cpp}. */
 class PokeyControllerTest {
@@ -35,13 +36,13 @@ class PokeyControllerTest {
 		for (int i = 0; i < 8; i++) {
 			int address = (i % 2 == 0 ? PokeyController.AUDF : PokeyController.AUDC) + i / 2; // 1 3 5 7 AUDF0-3, 2 4 6 8 AUDC0-3
 			memory[address] = 0x20;
-			assertTrue(controller.onKeyDown(increaseKeys[i], false, false));
+			assertTrue(controller.onKeyDown(increaseKeys[i], false, false, KeyboardLayout.QWERTY));
 			assertEquals(0x21, at(address), "key " + i + " +1");
-			assertTrue(controller.onKeyDown(increaseKeys[i], true, false));
+			assertTrue(controller.onKeyDown(increaseKeys[i], true, false, KeyboardLayout.QWERTY));
 			assertEquals(0x31, at(address), "key " + i + " +$10");
-			assertTrue(controller.onKeyDown(decreaseKeys[i], true, false));
+			assertTrue(controller.onKeyDown(decreaseKeys[i], true, false, KeyboardLayout.QWERTY));
 			assertEquals(0x21, at(address), "key " + i + " -$10");
-			assertTrue(controller.onKeyDown(decreaseKeys[i], false, false));
+			assertTrue(controller.onKeyDown(decreaseKeys[i], false, false, KeyboardLayout.QWERTY));
 			assertEquals(0x20, at(address), "key " + i + " -1");
 		}
 	}
@@ -49,12 +50,12 @@ class PokeyControllerTest {
 	@Test
 	void theRegisterBytesWrap() {
 		memory[PokeyController.AUDF] = (byte) 0xFF;
-		controller.onKeyDown(VK_1, false, false);
+		controller.onKeyDown(VK_1, false, false, KeyboardLayout.QWERTY);
 		assertEquals(0x00, at(PokeyController.AUDF));
-		controller.onKeyDown(VK_Q, false, false);
+		controller.onKeyDown(VK_Q, false, false, KeyboardLayout.QWERTY);
 		assertEquals(0xFF, at(PokeyController.AUDF));
 		memory[PokeyController.AUDC + 3] = (byte) 0xF8;
-		controller.onKeyDown(VK_8, true, false);
+		controller.onKeyDown(VK_8, true, false, KeyboardLayout.QWERTY);
 		assertEquals(0x08, at(PokeyController.AUDC + 3));
 	}
 
@@ -62,31 +63,31 @@ class PokeyControllerTest {
 	void theLettersToggleTheAudctlBitsAndMTheTwoTone() {
 		int[] keys = { VK_C, VK_G, VK_F, VK_K, VK_J, VK_D, VK_A, VK_P }; // bits 0..7
 		for (int bit = 0; bit < 8; bit++) {
-			assertTrue(controller.onKeyDown(keys[bit], false, false));
+			assertTrue(controller.onKeyDown(keys[bit], false, false, KeyboardLayout.QWERTY));
 			assertEquals(1 << bit, at(PokeyController.AUDCTL) & (1 << bit), "bit " + bit + " set");
-			assertTrue(controller.onKeyDown(keys[bit], true, true)); // Shift and Control change nothing here
+			assertTrue(controller.onKeyDown(keys[bit], true, true, KeyboardLayout.QWERTY)); // Shift and Control change nothing here
 			assertEquals(0, at(PokeyController.AUDCTL) & (1 << bit), "bit " + bit + " cleared");
 		}
 		memory[PokeyController.SKCTL] = 0x03;
-		assertTrue(controller.onKeyDown(VK_M, false, false));
+		assertTrue(controller.onKeyDown(VK_M, false, false, KeyboardLayout.QWERTY));
 		assertEquals(0x8B, at(PokeyController.SKCTL));
-		controller.onKeyDown(VK_M, false, false);
+		controller.onKeyDown(VK_M, false, false, KeyboardLayout.QWERTY);
 		assertEquals(0x03, at(PokeyController.SKCTL));
 	}
 
 	@Test
 	void theDivisorStepsBy01OrWithShiftBy1AndStaysBetween1And10000() {
 		assertEquals(1.0, controller.getDivisor());
-		controller.onKeyDown(VK_OEM_MINUS, false, false);
+		controller.onKeyDown(VK_OEM_MINUS, false, false, KeyboardLayout.QWERTY);
 		assertEquals(1.0, controller.getDivisor(), "not below 1");
-		controller.onKeyDown(VK_OEM_PLUS, false, false);
+		controller.onKeyDown(VK_OEM_PLUS, false, false, KeyboardLayout.QWERTY);
 		assertEquals(1.1, controller.getDivisor(), 1e-9);
-		controller.onKeyDown(VK_OEM_PLUS, true, false);
+		controller.onKeyDown(VK_OEM_PLUS, true, false, KeyboardLayout.QWERTY);
 		assertEquals(2.1, controller.getDivisor(), 1e-9);
-		controller.onKeyDown(VK_OEM_MINUS, true, false);
+		controller.onKeyDown(VK_OEM_MINUS, true, false, KeyboardLayout.QWERTY);
 		assertEquals(1.1, controller.getDivisor(), 1e-9);
 		for (int i = 0; i < 11000; i++) {
-			controller.onKeyDown(VK_OEM_PLUS, true, false);
+			controller.onKeyDown(VK_OEM_PLUS, true, false, KeyboardLayout.QWERTY);
 		}
 		assertEquals(10000.0, controller.getDivisor(), "not above 10000");
 	}
@@ -94,21 +95,38 @@ class PokeyControllerTest {
 	@Test
 	void enterAndBackspaceCycleTheChannel() {
 		assertEquals(0, controller.getChannelIndex());
-		controller.onKeyDown(VK_RETURN, false, false);
+		controller.onKeyDown(VK_RETURN, false, false, KeyboardLayout.QWERTY);
 		assertEquals(1, controller.getChannelIndex());
-		controller.onKeyDown(VK_BACK, false, false); // C++ had no decrement here until 2026-09-30
+		controller.onKeyDown(VK_BACK, false, false, KeyboardLayout.QWERTY); // C++ had no decrement here until 2026-09-30
 		assertEquals(0, controller.getChannelIndex());
-		controller.onKeyDown(VK_BACK, false, false);
+		controller.onKeyDown(VK_BACK, false, false, KeyboardLayout.QWERTY);
 		assertEquals(3, controller.getChannelIndex(), "wraps backwards");
-		controller.onKeyDown(VK_RETURN, false, false);
+		controller.onKeyDown(VK_RETURN, false, false, KeyboardLayout.QWERTY);
 		assertEquals(0, controller.getChannelIndex(), "wraps forwards");
+	}
+
+	@Test
+	void theKeysArePositionsOnTheOtherLayouts() {
+		memory[PokeyController.AUDC + 2] = 0x10;
+		assertTrue(controller.onKeyDown(VK_Z, false, false, KeyboardLayout.QWERTZ), "the German Z sits where the QWERTY Y is");
+		assertEquals(0x0F, at(PokeyController.AUDC + 2));
+		assertFalse(controller.onKeyDown(VK_Y, false, false, KeyboardLayout.QWERTZ), "and the German Y where the QWERTY Z is - no explorer key");
+		assertTrue(controller.onKeyDown(VK_OEM_MINUS, false, false, KeyboardLayout.QWERTZ), "+/- stay themselves on every layout");
+
+		memory[PokeyController.AUDF] = 0x10;
+		assertTrue(controller.onKeyDown(VK_A, false, false, KeyboardLayout.AZERTY), "the French A sits where the QWERTY Q is");
+		assertEquals(0x0F, at(PokeyController.AUDF));
+		assertTrue(controller.onKeyDown(VK_Q, false, false, KeyboardLayout.AZERTY), "and the French Q where the QWERTY A is: AUDCTL bit 6");
+		assertEquals(0x40, at(PokeyController.AUDCTL));
+		assertTrue(controller.onKeyDown(VK_OEM_COMMA, false, false, KeyboardLayout.AZERTY), "the French , where the QWERTY M is: two-tone");
+		assertEquals(0x88, at(PokeyController.SKCTL));
 	}
 
 	@Test
 	void anUnknownKeyIsNotHandledAndChangesNothing() {
 		memory[PokeyController.AUDF] = 0x11;
-		assertFalse(controller.onKeyDown(VK_Z, false, false)); // Z is not the explorer's key, Y is (the QWERTY row under the digits)
-		assertFalse(controller.onKeyDown(VK_SPACE, false, false));
+		assertFalse(controller.onKeyDown(VK_Z, false, false, KeyboardLayout.QWERTY)); // Z is not the explorer's key, Y is (the QWERTY row under the digits)
+		assertFalse(controller.onKeyDown(VK_SPACE, false, false, KeyboardLayout.QWERTY));
 		assertEquals(0x11, at(PokeyController.AUDF));
 		assertEquals(0, at(PokeyController.AUDCTL));
 	}
