@@ -5306,3 +5306,45 @@ build clean and all 123 tests pass.
     silent return and is not changed here.
     Lesson for the port: when a batch is reverted, re-read the prose it
     produced - the code came back but the sentences did not.
+
+  - **2026-10-02**: the same silent failure in the C++ program, which the
+    previous entry had left alone. `LoadRMTRoutines` returns 0 and all three
+    call sites ignored it, so a missing driver file meant no sound and quiet
+    exports with nothing said. `CAtariTrackerDriver` now keeps the state
+    under a name (`AreRoutinesLoaded`), `CRmtAtariBinaries` builds the file
+    path and the message in one place, and the three sites report: `Rmt.cpp`
+    at start-up, `RmtView.cpp` when the Options switch the version, and
+    `CScriptRunner` both on `set driver` and before an export that renders
+    sound. The export formats carry a `rendersSound` flag, because the three
+    data formats write the song itself and must keep working without a
+    driver; the Java port got the same flag, guard and test.
+    The start-up report is skipped for a script run on purpose: a modal box
+    there has nobody to dismiss it, and the export guard covers that case
+    with an exit code.
+
+    Two further defects fell out of verifying it, neither visible from
+    reading the code:
+
+    1. Every error and warning a script run produced was lost whenever the
+       output went to a log file instead of a console. RMT is a windowed
+       program, so it has no standard error stream, and `CScriptRunner::Err`
+       and the script-mode message boxes all wrote to one. Only the exit
+       code reported a failure - including the new driver message, which is
+       how this was noticed. They all go to stdout now. Checked with a
+       deliberately wrong export format: the line reaches the log.
+    2. Removing the old `_dup2` of stderr onto the log file - it looked
+       pointless once nothing of ours wrote there - hung the cross-program
+       test for five minutes. The LZSS exporter prints about 160 KB of
+       statistics to standard error, and with stderr left on the pipe the
+       test hands it and never reads, the pipe filled and the export
+       blocked. The `_dup2` is back, with a comment saying what it carries.
+       Lesson: a redirect with no apparent reader may still have one, and
+       the cross-program test is the only check here that runs the program
+       with pipes rather than a console.
+
+    Verified: Release build of both C++ targets, 430 C++ tests, 662 Java
+    tests, `compare_exports.ps1` identical for all four scripts, and a
+    packaged run with `rmt_driver_v6.obx` renamed aside - the script stops
+    at the first sound export, names the full path, and writes no file,
+    while `export asm` before it still succeeds.
+

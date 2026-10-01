@@ -15,11 +15,14 @@ int CAtariTrackerDriver::LoadRMTRoutines(const TrackerDriverVersion trackerDrive
     WORD min, max;
     WORD size;
     byte* bin;
+    m_routinesLoaded = false;
     if (!CRmtAtariBinaries::GetTrackerDriverBinary(trackerDriverVersion, bin, size)) {
         return 0;
     }
 
-    return CAtariIO::LoadDataAsBinaryFile(bin, size, m_atari->GetMemoryAt(0), min, max);
+    int bytesRead = CAtariIO::LoadDataAsBinaryFile(bin, size, m_atari->GetMemoryAt(0), min, max);
+    m_routinesLoaded = bytesRead > 0;
+    return bytesRead;
 }
 
 int CAtariTrackerDriver::Init() {

@@ -66,6 +66,14 @@ public final class ScriptRunner {
 			"rmtplayer-asm", Set.of("startlabel", "relocate", "instruments-label", "tracks-label", "songlines-label", "asmformat", "sfx", "gvf", "nos"), //
 			"wav", Set.of());
 
+	/**
+	 * The formats produced by running the song on the emulated Atari, which
+	 * needs the player routines: without them the POKEY stream these are built
+	 * from is silence. The other three write the song data itself and do not
+	 * care ({@code CScriptRunner}'s {@code rendersSound}).
+	 */
+	private static final Set<String> SOUND_FORMATS = Set.of("sapr", "lzss", "sap", "xex", "wav");
+
 	private final RmtSession session;
 	private final PrintStream out;
 	private final PrintStream err;
@@ -212,6 +220,11 @@ public final class ScriptRunner {
 		if (filterIndex == 0) {
 			throw new ScriptException(command.line(), "Unknown export format '" + command.argument(0) + "'; one of " + String.join(", ", EXPORT_FORMATS) + ".");
 		}
+		if (SOUND_FORMATS.contains(format) && !session.atariTrackerDriver.areRoutinesLoaded()) {
+			// The export would otherwise run to the end and write a quiet
+			// file, which looks like a tracker bug rather than a missing file.
+			throw new ScriptException(command.line(), missingTrackerDriverText());
+		}
 		Set<String> allowed = EXPORT_OPTIONS.get(format);
 		for (String option : command.options().keySet()) {
 			if (!allowed.contains(option)) {
@@ -227,6 +240,17 @@ public final class ScriptRunner {
 			throw new ScriptException(command.line(), "Exporting '" + file + "' as " + format + " failed." + problemText());
 		}
 		out.println("Exported " + file + " (" + (System.nanoTime() - started) / 1_000_000 + " ms)");
+	}
+
+	/**
+	 * The script's version of the warning
+	 * {@code RmtSession.loadTrackerDriver()} shows - one line, naming the file,
+	 * for a {@link ScriptException} rather than a message box.
+	 */
+	private String missingTrackerDriverText() {
+		return "The player routines were not loaded from '"
+				+ org.atari.raster.rmt.model.RmtAtariBinaries.getTrackerDriverPath(session.options.trackerDriverVersion)
+				+ "', so RMT is silent and would export no sound.";
 	}
 
 	private void set(ScriptCommand command) throws ScriptException {
@@ -247,6 +271,9 @@ public final class ScriptRunner {
 			TrackerDriverVersion version = parseDriverVersion(command, value);
 			if (session.options.trackerDriverVersion != version) {
 				session.setTrackerDriverVersion(version);
+				if (!session.atariTrackerDriver.areRoutinesLoaded()) {
+					throw new ScriptException(command.line(), missingTrackerDriverText());
+				}
 			}
 		}
 		// the Options dialog's MIDI settings (for the midi command: the same recording rules as a real device)

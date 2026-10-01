@@ -53,6 +53,47 @@ class ScriptRunnerTest {
 		return err.toString(StandardCharsets.UTF_8);
 	}
 
+	// ---- a missing player routine ----
+
+	/**
+	 * A sound export with no player routines loaded: the command fails and
+	 * names the file they are read from, instead of running to the end and
+	 * writing a quiet file - which looks like a tracker bug rather than a
+	 * missing file. The same guard as {@code CScriptRunner::Export()}.
+	 */
+	@Test
+	void aSoundExportWithoutThePlayerRoutinesFailsAndNamesTheFile() throws IOException {
+		Path programFolder = org.atari.raster.rmt.model.ProgramFolder.get();
+		try {
+			Files.createDirectories(dir.resolve("resources").resolve("drivers")); // the folder is there, the drivers are not
+			org.atari.raster.rmt.model.ProgramFolder.set(dir);
+
+			assertEquals(ScriptRunner.EXIT_COMMAND_FAILED, run("open " + delta.getFileName(), "export wav quiet.wav"));
+
+			assertTrue(err().contains("rmt_driver_v6.obx"), err());
+			assertTrue(err().contains("silent"), err());
+			assertFalse(Files.exists(dir.resolve("quiet.wav")), "no quiet file may be written");
+		} finally {
+			org.atari.raster.rmt.model.ProgramFolder.set(programFolder);
+		}
+	}
+
+	/** The data formats do not run the song on the Atari, so they are unaffected. */
+	@Test
+	void aDataExportWithoutThePlayerRoutinesStillWorks() throws IOException {
+		Path programFolder = org.atari.raster.rmt.model.ProgramFolder.get();
+		try {
+			Files.createDirectories(dir.resolve("resources").resolve("drivers"));
+			org.atari.raster.rmt.model.ProgramFolder.set(dir);
+
+			assertEquals(ScriptRunner.EXIT_OK, run("set overwrite yes", "open " + delta.getFileName(), "export asm d.asm"), err());
+
+			assertTrue(Files.size(dir.resolve("d.asm")) > 0);
+		} finally {
+			org.atari.raster.rmt.model.ProgramFolder.set(programFolder);
+		}
+	}
+
 	// ---- midi ----
 
 	/** {@code midi} records like the MIDI IN device would, with the window counted as focused; the MIDI options are script settings. */

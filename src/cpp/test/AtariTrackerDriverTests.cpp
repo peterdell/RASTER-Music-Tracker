@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 
+#include "AtariBinaries.h"
 #include "AtariTrackerDriver.h"
 #include "SongTypes.h"
 #include "General.h"
@@ -55,6 +56,44 @@ TEST_F(AtariTrackerDriverTest, LoadRMTRoutinesLoadsTheDefaultDriverBinaryIntoMem
 TEST_F(AtariTrackerDriverTest, LoadRMTRoutinesReturnsZeroForAMissingDriverVersion) {
     // TrackerDriverVersion::NONE has no matching rmt_driver_v0.obx file.
     EXPECT_EQ(driver.LoadRMTRoutines(TrackerDriverVersion::NONE), 0);
+}
+
+// --- AreRoutinesLoaded ---
+// The return value above was ignored by all three production call sites, so a
+// driver file that wasn't there left the emulated Atari playing silence and
+// every export quiet, with nothing said about it. The state is asked for by
+// name now, and reported (Rmt.cpp at start-up, RmtView.cpp when the Options
+// switch the version, CScriptRunner::Export() before it writes a sound file).
+
+TEST_F(AtariTrackerDriverTest, NoRoutinesAreLoadedBeforeTheFirstLoad) {
+    EXPECT_FALSE(driver.AreRoutinesLoaded());
+}
+
+TEST_F(AtariTrackerDriverTest, AreRoutinesLoadedFollowsTheLastLoad) {
+    EXPECT_GT(driver.LoadRMTRoutines(TrackerDriverVersion::PATCH16), 0);
+    EXPECT_TRUE(driver.AreRoutinesLoaded());
+
+    // Switching to a version whose file is missing clears it again - the case
+    // the Options dialog and the script's "set driver" now report.
+    EXPECT_EQ(driver.LoadRMTRoutines(TrackerDriverVersion::NONE), 0);
+    EXPECT_FALSE(driver.AreRoutinesLoaded());
+}
+
+// --- the driver's file path and the message naming it ---
+
+TEST(RmtAtariBinariesTest, TheDriverFilePathIsTheVersionsFileUnderResourcesDrivers) {
+    CString filePath = CRmtAtariBinaries::GetTrackerDriverFilePath(TrackerDriverVersion::PATCH16);
+
+    EXPECT_NE(filePath.Find("resources"), -1) << (LPCTSTR)filePath;
+    EXPECT_NE(filePath.Find("drivers"), -1) << (LPCTSTR)filePath;
+    EXPECT_NE(filePath.Find("rmt_driver_v6.obx"), -1) << (LPCTSTR)filePath;
+}
+
+TEST(RmtAtariBinariesTest, TheMessageNamesTheFileAndSaysWhatIsLost) {
+    CString message = CRmtAtariBinaries::GetMissingTrackerDriverMessage(TrackerDriverVersion::PATCH8);
+
+    EXPECT_NE(message.Find("rmt_driver_v5.obx"), -1) << (LPCTSTR)message;
+    EXPECT_NE(message.Find("silent"), -1) << (LPCTSTR)message;
 }
 
 // --- Init ---

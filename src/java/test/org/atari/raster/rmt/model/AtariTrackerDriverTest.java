@@ -1,6 +1,7 @@
 package org.atari.raster.rmt.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +41,24 @@ class AtariTrackerDriverTest {
 	void loadRMTRoutinesReturnsZeroForAMissingDriverVersion() {
 		// TrackerDriverVersion.NONE has no matching rmt_driver_v0.obx file.
 		assertEquals(0, driver.loadRMTRoutines(TrackerDriverVersion.NONE));
+	}
+
+	/**
+	 * The return value above was ignored by every caller in both programs, so
+	 * a driver file that was not there left the emulated Atari playing silence
+	 * and every export quiet, with nothing said about it. The state is asked
+	 * for by name now, and reported - at start-up, when the Options switch the
+	 * version, and by the script runner before it writes a sound file.
+	 */
+	@Test
+	void areRoutinesLoadedFollowsTheLastLoad() {
+		assertFalse(driver.areRoutinesLoaded(), "nothing is loaded before the first load");
+
+		assertTrue(driver.loadRMTRoutines(TrackerDriverVersion.PATCH16) > 0);
+		assertTrue(driver.areRoutinesLoaded());
+
+		assertEquals(0, driver.loadRMTRoutines(TrackerDriverVersion.NONE));
+		assertFalse(driver.areRoutinesLoaded(), "switching to a version without a file clears it again");
 	}
 
 	@Test

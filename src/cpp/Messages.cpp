@@ -45,11 +45,12 @@ void SendMessageBox(const char* logPrefix, const char* title, const char* messag
             g_scriptProblems += line + "\n"; // fails the command, in both script modes
         }
         if (!g_scriptInteractive) {
-            if (icon == MB_ICONINFORMATION) {
-                printf("%s\n", line.c_str());
-            } else {
-                fprintf(stderr, "%s\n", line.c_str());
-            }
+            // Every line through stdout, the informational ones and the
+            // problems alike. RMT is a GUI program and so has no stderr
+            // stream that can be redirected to the console or the log file
+            // (see RedirectScriptOutputToFile()), which used to drop every
+            // warning, error and question notice a script run produced.
+            printf("%s\n", line.c_str());
             return;
         }
         // interactive (Tools > Run Script): the box is shown as always
@@ -121,7 +122,7 @@ std::string GetScriptProblems() {
 
 MessageAnswer SendQuestionMessage(const char* title, const char* message, MessageButtons buttons) {
     if (g_scriptMessageMode && !g_scriptInteractive) {
-        fprintf(stderr, "%s (a script answers No)\n", OneLine(title, message).c_str());
+        printf("%s (a script answers No)\n", OneLine(title, message).c_str()); // stdout - see SendMessageBox()
         return buttons == MessageButtons::OkCancel ? MessageAnswer::Cancel : MessageAnswer::No;
     }
     if (g_statusBar == nullptr) {
