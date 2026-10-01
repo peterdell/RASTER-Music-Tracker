@@ -5284,7 +5284,7 @@ build clean and all 123 tests pass.
     is, that the folder must stay together, the macOS warning about
     dragging `rmt.app` out alone, and where a driver build goes for
     testing - with the path per platform, because it differs
-    (`rmtppesources\drivers`, `rmt/lib/app/...`,
+    (`rmt\app\resources\drivers`, `rmt/lib/app/...`,
     `rmt.app/Contents/app/...`). The manual gained a "Files and Folders"
     section naming the per-user folders of all three systems, and the
     1.36 change history an entry for the new download layout. Checked
