@@ -149,10 +149,10 @@ public final class SongExporter {
 		// Load VUPlayerLZSS to memory
 		byte[] vuPlayerData = RmtAtariBinaries.getVUPlayerBinary();
 		if (vuPlayerData == null) { // C++'s GetVUPlayerBinary() failure box
-			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + SapFileExporter.vuPlayerName() + "'.");
+			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + SapFileExporter.vuPlayerPath() + "'.");
 		}
 		if (AtariIO.loadBinaryFile(vuPlayerData, mem).bytesRead() <= 0) {
-			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + SapFileExporter.vuPlayerName() + "'.");
+			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + SapFileExporter.vuPlayerPath() + "'.");
 		}
 
 		CompressLzss lzssData = new CompressLzss();

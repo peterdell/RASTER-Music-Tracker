@@ -5241,3 +5241,18 @@ build clean and all 123 tests pass.
     reports every exported file identical (the driver bytes decide every
     export), and the jar alone in an empty folder ran the whole delta
     script, which needs the drivers and the VU player. D2-D4 open.
+  - **2026-10-01**: D1 reverted the same day it was written. I had read
+    the user's "they can be bundled with the binary" as "inside the jar";
+    they meant beside the jar, as files, and said so once they saw the
+    result ("I would prefer to have the resources besides the jar"). The
+    deciding argument against the jar was not robustness - the
+    application image carries the files when it is moved either way, which
+    was the only thing the jar added - but that replacing a driver in
+    place is how they test, and the download carried 48 KB twice.
+    `RmtAtariBinaries` keeps the better shape the batch introduced
+    (`getVUPlayerBinary()` beside `getTrackerDriverBinary()`, so both load
+    the same way) and `RmtAtariBinariesTest` now covers the replacement.
+    The macOS objection I had raised - the folder sits inside `rmt.app`
+    and writing there invalidates the ad-hoc signature - does not apply,
+    because they do not test replacements on macOS. Plan 30 records this
+    as decision 5.4 and D1 as dropped; D2-D4 are unchanged.

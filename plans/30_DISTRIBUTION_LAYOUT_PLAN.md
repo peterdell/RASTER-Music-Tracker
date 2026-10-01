@@ -1,7 +1,8 @@
 # Plan: the distribution layout of the Java port (D1-D4)
 
-Status: **D1 done 2026-10-01**, D2-D4 open; every decision settled
-(section 5).
+Status: D2-D4 open; every decision settled (section 5). D1 was done and
+then reverted on 2026-10-01 - see decision 5.4: the binaries stay beside
+the jar, as files.
 
 The user's problem with the jpackage releases: the content a user opens
 through a file chooser (songs, instruments) is buried inside the
@@ -10,9 +11,10 @@ folder is not a place a program may write. The user's two premises:
 
 - the content folders ship **as is in the download**, present the moment
   the archive is unpacked - nothing is copied at runtime;
-- the files under `resources/` are vital and hardly change, so they are
-  **bundled with the binary** - but it must stay possible to **drop in a
-  different driver binary by hand for testing**.
+- the files under `resources/` are vital and hardly change, so they
+  travel **with the application**, and it must stay possible to **drop in
+  a different driver binary by hand for testing** (decision 5.4: as files
+  beside the jar, not inside it).
 
 ## 1. Where things are today
 
@@ -47,30 +49,25 @@ help; it is 409 KB of generated HTML and images.
 
 | Layer | Content | Size | Why there |
 |---|---|---|---|
-| Inside `rmt.jar` | the 8 `.obx` files | 48 KB | the program cannot run without them; nothing to resolve, nothing to lose |
-| Inside the application image | the generated `docs/` | 409 KB | read-only, opened by the Help menu; a `file:` path into the bundle works on all three systems |
+| Inside the application image | the 8 `.obx` files under `resources/`, the generated `docs/` | 48 KB + 409 KB | read-only and vital; they travel with the application when it is moved, and a driver can still be replaced in place |
 | Beside the application | `songs/`, `instruments/`, `exports/`, `rmt.ini`, `tuning.ini` | 2.3 MB | the user's own content and settings: browsable, writable, unpacked as is |
 
 The result is the `rmt/` layout the C++ distribution already ships, with
 the application added beside it, so both programs' downloads look alike
 again.
 
-### 2.1 The driver override (the user's testing requirement)
+### 2.1 Replacing a driver by hand (the user's testing requirement)
 
-The jar is the guaranteed baseline, **not** the only source. Each of the
-eight files is looked up as:
+The binaries stay what they are today: files under `resources/drivers`
+and `resources/players` next to the jar, inside the application image.
+Replacing one means writing the file and starting the program; deleting
+it again restores the shipped one. That is exactly `Rmt.exe`'s
+mechanism, so the two programs keep one explanation.
 
-1. `resources/drivers/rmt_driver_v<n>.obx` (resp. `resources/players/`)
-   **relative to the content root**, if that file exists - the hand-dropped
-   one wins;
-2. otherwise the copy inside the jar.
-
-So testing a driver means dropping the file into `resources/drivers`
-beside the program, exactly as today, and deleting it restores the
-shipped one. The archive ships no `resources/` folder at all, so the
-override is empty until someone creates it; a short note in the read-me
-(D4) says so. The same two loaders serve both lookups, so there is one
-place that knows the rule.
+On macOS that folder sits inside `rmt.app`, reachable through Show
+Package Contents, and writing there invalidates the bundle's ad-hoc
+signature. The user does not test driver replacements on macOS
+(2026-10-01), so this does not weigh against the simpler arrangement.
 
 ### 2.2 Finding the content root
 
@@ -100,17 +97,16 @@ This is a fallback, not the normal path: nothing is ever copied there.
 
 ## 3. Batches
 
-### D1 - the binaries into the jar, with the file override - DONE 2026-10-01
+### D1 - (dropped)
 
-`pom.xml` gains `rmt/resources` as a second resource directory targeting
-`resources/` inside the jar (one copy in git, identical bytes in both
-programs). `RmtAtariBinaries.getTrackerDriverBinary` and
-`SapFileExporter.vuPlayerPath` get the two-step lookup of 2.1 - the
-second returns a path today, so it becomes a byte-array loader like the
-first, and `SongExporter`'s use follows. Tests: the override wins when
-the file exists, the jar answers when it does not, an unknown driver
-number still yields no binary. This batch alone already makes the
-program run from a moved bundle, and it does not depend on D2.
+The binaries were briefly copied into the jar, with the file next to the
+program kept as an override (commit "The Atari binaries travel in the
+jar"). Reverted the same day: the application image already carries them
+when it is moved, which was the only robustness the jar added, while
+in-place replacement became awkward on macOS and the download carried the
+48 KB twice. `RmtAtariBinaries` kept the tidier shape of that batch -
+`getVUPlayerBinary()` beside `getTrackerDriverBinary()`, so both load the
+same way - and `RmtAtariBinariesTest` now covers the replacement.
 
 ### D2 - the archive layout
 
@@ -160,6 +156,11 @@ existing configuration keeps working.
 3. **`docs/` stays inside the application image**, read-only like the
    drivers. The Help menu opens it by path, which works inside a macOS
    bundle, and a user never has to find it.
+4. **The `resources/` binaries stay beside the jar, as files** - not
+   inside it. The application image travels as a unit, so they survive a
+   move either way; keeping them as files preserves in-place replacement
+   on the platform the user tests on and keeps the mechanism identical to
+   `Rmt.exe`.
 
 ## 6. Verification
 

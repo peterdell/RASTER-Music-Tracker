@@ -49,8 +49,8 @@ public final class SapFileExporter {
 	// too - two different C++ loading mechanisms with no observable
 	// difference, so SongExporter reuses this same path/loading logic
 	// rather than duplicating a second one.
-	static String vuPlayerName() {
-		return RmtAtariBinaries.getResourceName(RmtAtariBinaries.VU_PLAYER_FOLDER, RmtAtariBinaries.VU_PLAYER_FILE);
+	static java.nio.file.Path vuPlayerPath() {
+		return RmtAtariBinaries.getPath(RmtAtariBinaries.VU_PLAYER_FOLDER, RmtAtariBinaries.VU_PLAYER_FILE);
 	}
 
 	/**
@@ -74,11 +74,11 @@ public final class SapFileExporter {
 		byte[] memory = new byte[Atari.MEMORY_SIZE];
 		byte[] vuPlayerData = RmtAtariBinaries.getVUPlayerBinary();
 		if (vuPlayerData == null) { // C++'s GetVUPlayerBinary() failure box
-			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + vuPlayerName() + "'.");
+			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + vuPlayerPath() + "'.");
 		}
 		AtariIO.Result loadResult = AtariIO.loadBinaryFile(vuPlayerData, memory);
 		if (loadResult.bytesRead() <= 0) {
-			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + vuPlayerName() + "'.");
+			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + vuPlayerPath() + "'.");
 		}
 
 		CompressLzss lzssData = new CompressLzss();

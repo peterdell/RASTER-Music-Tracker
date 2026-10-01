@@ -1,7 +1,6 @@
 package org.atari.raster.rmt.model;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,9 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * The Atari binaries come from inside the jar, and a file of the same name
- * next to the program overrides it - the way a driver is tested by hand
- * (plans/30_DISTRIBUTION_LAYOUT_PLAN.md, D1).
+ * The Atari binaries are files under {@code resources/} next to the
+ * program, so one can be replaced by hand to test a driver
+ * (plans/30_DISTRIBUTION_LAYOUT_PLAN.md, decision 5.4).
  */
 class RmtAtariBinariesTest {
 
@@ -29,16 +28,13 @@ class RmtAtariBinariesTest {
 	}
 
 	@Test
-	void everyShippedBinaryIsInTheJar() {
-		// The program folder of this test run has a resources folder (the checkout's rmt/), so
-		// point it at a folder that has none: what comes back can only be the bundled copy.
-		ProgramFolder.set(Path.of("target"));
+	void everyShippedDriverAndThePlayerAreFound() {
 		for (TrackerDriverVersion version : TrackerDriverVersion.getValues()) {
 			byte[] binary = RmtAtariBinaries.getTrackerDriverBinary(version);
 			if (version == TrackerDriverVersion.NONE) {
 				assertNull(binary, "there is no rmt_driver_v0.obx");
 			} else {
-				assertNotNull(binary, version.getId() + " is not bundled");
+				assertNotNull(binary, version.getId() + " was not found");
 				assertTrue(binary.length > 1000, version.getId() + " looks too small: " + binary.length);
 			}
 		}
@@ -46,48 +42,34 @@ class RmtAtariBinariesTest {
 	}
 
 	@Test
-	void theBundledBinaryIsTheCheckedInFile() throws IOException {
-		ProgramFolder.set(Path.of("target"));
-		byte[] bundled = RmtAtariBinaries.getTrackerDriverBinary(TrackerDriverVersion.PATCH16);
-		byte[] checkedIn = Files.readAllBytes(Path.of("rmt", "resources", "drivers", "rmt_driver_v6.obx"));
-		assertArrayEquals(checkedIn, bundled, "the jar must carry the same bytes Rmt.exe reads from disk");
+	void theBinaryIsTheCheckedInFileRmtExeAlsoReads() throws IOException {
+		assertArrayEquals(Files.readAllBytes(Path.of("rmt", "resources", "drivers", "rmt_driver_v6.obx")),
+				RmtAtariBinaries.getTrackerDriverBinary(TrackerDriverVersion.PATCH16));
+		assertArrayEquals(Files.readAllBytes(Path.of("rmt", "resources", "players", "vu_player_v2.obx")),
+				RmtAtariBinaries.getVUPlayerBinary());
 	}
 
+	/** Replacing a driver by hand: the file next to the program is what is loaded. */
 	@Test
-	void aFileNextToTheProgramOverridesTheBundledBinary(@TempDir Path dir) throws IOException {
+	void aDriverReplacedByHandIsTheOneThatLoads(@TempDir Path dir) throws IOException {
 		Path drivers = dir.resolve("resources").resolve("drivers");
 		Files.createDirectories(drivers);
 		byte[] own = new byte[] { (byte) 0xFF, (byte) 0xFF, 0x00, 0x20, 0x01, 0x20, 0x42, 0x43 };
 		Files.write(drivers.resolve("rmt_driver_v6.obx"), own);
 		ProgramFolder.set(dir);
 
-		assertArrayEquals(own, RmtAtariBinaries.getTrackerDriverBinary(TrackerDriverVersion.PATCH16), "the hand-dropped driver wins");
-		// its neighbours still come from the jar
-		byte[] patch8 = RmtAtariBinaries.getTrackerDriverBinary(TrackerDriverVersion.PATCH8);
-		assertNotNull(patch8);
-		assertFalse(java.util.Arrays.equals(own, patch8));
+		assertArrayEquals(own, RmtAtariBinaries.getTrackerDriverBinary(TrackerDriverVersion.PATCH16));
+		assertNull(RmtAtariBinaries.getTrackerDriverBinary(TrackerDriverVersion.PATCH8), "only the file that is there can be loaded");
 
-		Files.delete(drivers.resolve("rmt_driver_v6.obx")); // deleting it goes back to the shipped one
-		assertArrayEquals(Files.readAllBytes(Path.of("rmt", "resources", "drivers", "rmt_driver_v6.obx")),
-				RmtAtariBinaries.getTrackerDriverBinary(TrackerDriverVersion.PATCH16));
+		Files.delete(drivers.resolve("rmt_driver_v6.obx"));
+		assertNull(RmtAtariBinaries.getTrackerDriverBinary(TrackerDriverVersion.PATCH16));
 	}
 
+	/** The path an error message shows, which is also where a replacement goes. */
 	@Test
-	void theVuPlayerCanBeOverriddenTheSameWay(@TempDir Path dir) throws IOException {
-		Path players = dir.resolve("resources").resolve("players");
-		Files.createDirectories(players);
-		byte[] own = new byte[] { (byte) 0xFF, (byte) 0xFF, 0x00, 0x30, 0x03, 0x30, 1, 2, 3, 4 };
-		Files.write(players.resolve("vu_player_v2.obx"), own);
-		ProgramFolder.set(dir);
-
-		assertArrayEquals(own, RmtAtariBinaries.getVUPlayerBinary());
-	}
-
-	/** The name an error message shows, which is also where a replacement goes. */
-	@Test
-	void theResourceNameIsThePathBesideTheProgram() {
-		assertTrue(RmtAtariBinaries.getResourceName("drivers", "rmt_driver_v6.obx").equals("resources/drivers/rmt_driver_v6.obx"));
+	void thePathIsUnderResourcesNextToTheProgram() {
 		ProgramFolder.set(Path.of("some", "where"));
-		assertTrue(RmtAtariBinaries.getOverridePath("players", "vu_player_v2.obx").endsWith(Path.of("resources", "players", "vu_player_v2.obx")));
+		assertTrue(RmtAtariBinaries.getPath("players", "vu_player_v2.obx").endsWith(Path.of("resources", "players", "vu_player_v2.obx")));
+		assertTrue(RmtAtariBinaries.getPath("drivers", "rmt_driver_v6.obx").endsWith(Path.of("resources", "drivers", "rmt_driver_v6.obx")));
 	}
 }
