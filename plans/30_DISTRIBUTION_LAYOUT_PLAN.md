@@ -1,7 +1,7 @@
 # Plan: the distribution layout of the Java port (D1-D4)
 
-Status: proposal (2026-10-01), **every decision settled** (section 5).
-Nothing implemented yet.
+Status: **D1 done 2026-10-01**, D2-D4 open; every decision settled
+(section 5).
 
 The user's problem with the jpackage releases: the content a user opens
 through a file chooser (songs, instruments) is buried inside the
@@ -100,7 +100,7 @@ This is a fallback, not the normal path: nothing is ever copied there.
 
 ## 3. Batches
 
-### D1 - the binaries into the jar, with the file override
+### D1 - the binaries into the jar, with the file override - DONE 2026-10-01
 
 `pom.xml` gains `rmt/resources` as a second resource directory targeting
 `resources/` inside the jar (one copy in git, identical bytes in both

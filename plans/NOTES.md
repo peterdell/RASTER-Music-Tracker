@@ -5209,3 +5209,35 @@ build clean and all 123 tests pass.
     one name. Not verifiable here: only an actual workflow run proves the
     three new runners build; the two ARM runners are free for public
     repositories but not for private ones.
+  - **2026-10-01**: the menus were partly unreadable (the user's
+    screenshots: the accelerator touching the label, the last character
+    clipped, a wide empty gutter). Measured rather than guessed:
+    `ElementFactory.createMenuItem` called `setIconTextGap(0)`, and Swing
+    uses that one value as the gap in four places at once, including the
+    one between the label and the accelerator - every item came out 16
+    pixels narrower than the look and feel intends. The library's
+    compensation, three spaces appended to the label, only applied when
+    the accelerator came from the action, which is why the Pokey register
+    items (their accelerator is set by `RmtMainMenu` afterwards) showed no
+    gap at all, and three spaces recover only 10 of the 16 pixels anyway.
+    Fixed in WUDSN Base by dropping both the zero gap and the hack; the
+    check box variant never had them. The wide gutter is a different
+    thing and was left alone: the Windows look and feel reserves
+    `MenuItem.minimumTextOffset = 31` for the check column, which the
+    check items need.
+  - **2026-10-01**: `plans/30_DISTRIBUTION_LAYOUT_PLAN.md` written and D1
+    implemented. The user's problem: in the jpackage releases the songs
+    and instruments are buried inside the application image (verified
+    against the real artifacts) and `rmt.ini` is written there too, which
+    macOS and Windows both dislike. Their premises: the content ships
+    unpacked as is (no runtime copying), the `resources/` binaries travel
+    with the binary, but dropping in a driver by hand must keep working.
+    D1: the eight `.obx` files are copied into the jar by Maven from the
+    checked-in `rmt/resources` (one copy in git), and `RmtAtariBinaries`
+    looks up a file beside the program first and the jar second, so an
+    override still wins and deleting it goes back to the shipped one.
+    `SapFileExporter.vuPlayerPath()` became `getVUPlayerBinary()`, so both
+    binaries load the same way. Proven twice: `compare_exports.ps1` still
+    reports every exported file identical (the driver bytes decide every
+    export), and the jar alone in an empty folder ran the whole delta
+    script, which needs the drivers and the VU player. D2-D4 open.

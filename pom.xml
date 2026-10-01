@@ -63,6 +63,17 @@
 					<exclude>test/**</exclude>
 				</excludes>
 			</resource>
+			<!-- The Atari binaries the program cannot run without (7 tracker
+			     drivers and the VU player, 48 KB) travel inside the jar, so no
+			     path has to be resolved for them and a moved or incompletely
+			     unpacked installation still runs. The checked-in rmt/resources
+			     stays the single copy; a file of the same name next to the
+			     program still overrides the bundled one, for testing a driver
+			     by hand (RmtAtariBinaries, plans/30_DISTRIBUTION_LAYOUT_PLAN.md). -->
+			<resource>
+				<directory>rmt/resources</directory>
+				<targetPath>resources</targetPath>
+			</resource>
 		</resources>
 		<plugins>
 			<!-- src/java/test lives *inside* src/java (mirroring src/cpp/test's
