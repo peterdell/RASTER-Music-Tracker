@@ -24,8 +24,11 @@ Replacing an Atari driver for testing
 
 The player routines live inside the program, under resources/drivers and
 resources/players. To try a different build of a driver, put the file
-there under the same name and restart the program; delete it again to go
-back to the one that was shipped.
+there under the same name and restart the program.
+
+KEEP A COPY OF THE ORIGINAL FIRST. These are the files RMT ships, so
+writing over one replaces it, and deleting it leaves none - RMT then
+stays silent and exports no sound, and says so when it starts.
 
   Windows   rmt\app\resources\drivers
   Linux     rmt/lib/app/resources/drivers

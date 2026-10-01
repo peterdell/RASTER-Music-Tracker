@@ -454,8 +454,11 @@ one folder.
 
 To test a different build of an Atari player routine, put the file into
 `resources/drivers` or `resources/players` inside the program folder,
-under the same name, and restart RMT; deleting it again restores the one
-that was shipped.
+under the same name, and restart RMT. **Keep a copy of the original
+first**: these are the files RMT ships, so writing over one replaces it
+and deleting it leaves none. Without the file for the selected driver
+version RMT stays silent and exports no sound; it says so at start-up and
+when the version is switched in the Options.
 
 ## Disclaimer
 

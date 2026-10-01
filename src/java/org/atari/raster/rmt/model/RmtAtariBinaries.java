@@ -36,7 +36,16 @@ public final class RmtAtariBinaries {
 
 	/** The driver binary's raw bytes, or {@code null} if no matching file exists (mirrors C++'s {@code bool} success/failure return). */
 	public static byte[] getTrackerDriverBinary(TrackerDriverVersion trackerDriverVersion) {
-		return load(DRIVERS_FOLDER, "rmt_driver_v" + trackerDriverVersion.getNumber() + ".obx");
+		return load(DRIVERS_FOLDER, driverFileName(trackerDriverVersion));
+	}
+
+	/** The file a driver version is read from - named in a message when it cannot be loaded, and where a build to be tested goes. */
+	public static Path getTrackerDriverPath(TrackerDriverVersion trackerDriverVersion) {
+		return getPath(DRIVERS_FOLDER, driverFileName(trackerDriverVersion));
+	}
+
+	private static String driverFileName(TrackerDriverVersion trackerDriverVersion) {
+		return "rmt_driver_v" + trackerDriverVersion.getNumber() + ".obx";
 	}
 
 	/** {@code GetVUPlayerBinary()}: the VU player the LZSS/SAP exports patch, or {@code null}. */

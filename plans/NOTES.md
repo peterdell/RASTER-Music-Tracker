@@ -5289,3 +5289,20 @@ build clean and all 123 tests pass.
     section naming the per-user folders of all three systems, and the
     1.36 change history an entry for the new download layout. Checked
     that both reach the generated HTML the distribution ships.
+  - **2026-10-02**: the user read the manual sentence I had written for D4
+    and asked whether it was still correct: "deleting it again restores
+    the one that was shipped". It was not. That was true only while D1
+    kept a copy inside the jar; after the revert the file under
+    `resources/drivers` is the shipped one, so replacing it overwrites
+    the original and deleting it leaves none. Checking what actually
+    happens turned up something worse than the wrong sentence: a missing
+    driver was silent. `loadRMTRoutines` returns 0, every caller ignored
+    it, and the export script then ran to completion and wrote quiet
+    files - a file name typed wrong while testing a driver build would
+    have looked like a tracker bug. `RmtSession` now warns, naming the
+    file, at start-up and when the Options switch the version; the
+    manual, the read-me beside the application and the plan's section 2.1
+    say to keep a copy of the original first. The C++ program has the same
+    silent return and is not changed here.
+    Lesson for the port: when a batch is reverted, re-read the prose it
+    produced - the code came back but the sentences did not.

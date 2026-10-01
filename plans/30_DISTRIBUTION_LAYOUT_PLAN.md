@@ -60,9 +60,12 @@ again.
 
 The binaries stay what they are today: files under `resources/drivers`
 and `resources/players` next to the jar, inside the application image.
-Replacing one means writing the file and starting the program; deleting
-it again restores the shipped one. That is exactly `Rmt.exe`'s
-mechanism, so the two programs keep one explanation.
+Replacing one means writing the file and starting the program. There is
+no second copy to fall back on - these are the files RMT ships - so the
+original has to be kept by hand, and a driver that is not there is
+reported now, rather than leaving the program silent without a word.
+Reading the file from there is exactly `Rmt.exe`'s mechanism, so the two
+programs keep one explanation.
 
 On macOS that folder sits inside `rmt.app`, reachable through Show
 Package Contents, and writing there invalidates the bundle's ad-hoc

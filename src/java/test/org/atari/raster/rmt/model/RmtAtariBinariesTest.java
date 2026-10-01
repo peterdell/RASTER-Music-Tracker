@@ -1,5 +1,6 @@
 package org.atari.raster.rmt.model;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -71,5 +72,39 @@ class RmtAtariBinariesTest {
 		ProgramFolder.set(Path.of("some", "where"));
 		assertTrue(RmtAtariBinaries.getPath("players", "vu_player_v2.obx").endsWith(Path.of("resources", "players", "vu_player_v2.obx")));
 		assertTrue(RmtAtariBinaries.getPath("drivers", "rmt_driver_v6.obx").endsWith(Path.of("resources", "drivers", "rmt_driver_v6.obx")));
+	}
+
+	/** A driver that is not there must be reported, not played as silence. */
+	@Test
+	void aMissingDriverIsReportedWhenTheVersionIsSwitched(@TempDir Path dir) throws IOException {
+		org.atari.raster.rmt.ui.RmtSession session = new org.atari.raster.rmt.ui.RmtSession();
+		java.util.List<String> warnings = new java.util.ArrayList<>();
+		session.messages.setHandler(new Messages.Handler() {
+			@Override
+			public void showError(String title, String message) {
+			}
+
+			@Override
+			public void showWarning(String title, String message) {
+				warnings.add(message);
+			}
+
+			@Override
+			public void showInformation(String title, String message) {
+			}
+
+			@Override
+			public MessageAnswer askQuestion(String title, String message, MessageButtons buttons) {
+				return MessageAnswer.YES;
+			}
+		});
+
+		Files.createDirectories(dir.resolve("resources").resolve("drivers")); // the folder is there, the driver is not
+		ProgramFolder.set(dir);
+		session.setTrackerDriverVersion(TrackerDriverVersion.PATCH8);
+
+		assertEquals(1, warnings.size(), "the silent failure must be reported");
+		assertTrue(warnings.get(0).contains("rmt_driver_v5.obx"), warnings.get(0));
+		assertTrue(warnings.get(0).contains("silent"), warnings.get(0));
 	}
 }
