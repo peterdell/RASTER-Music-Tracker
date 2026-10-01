@@ -43,3 +43,4 @@ look for what was done, why, and what was found).
 | 27 | [QWERTZ_LAYOUT_PLAN](27_QWERTZ_LAYOUT_PLAN.md) | A QWERTZ (German) keyboard layout for the note keys in both programs, the explorer key row per layout, the OS-derived default (K1-K5) | Done 2026-09-30 |
 | 28 | [VALUE_SETS_PLAN](28_VALUE_SETS_PLAN.md) | WUDSN Base value sets for `KeyboardLayout`, `TrackerDriverVersion` and `AssemblerFormat`: texts in `ValueSets.properties`, `ValueSetField` in the dialogs (V1-V5) | Done 2026-10-01 |
 | 29 | [POKEY_WINDOW_PLAN](29_POKEY_WINDOW_PLAN.md) | The POKEY registers view and the Pokey Explorer in a separate modeless window (W1-W6) | Out of scope 2026-10-01 |
+| 30 | [DISTRIBUTION_LAYOUT_PLAN](30_DISTRIBUTION_LAYOUT_PLAN.md) | The jpackage releases: the Atari binaries into the jar (with a file override for testing), the user content beside the application, the config folder (D1-D4) | Proposal 2026-10-01 |
