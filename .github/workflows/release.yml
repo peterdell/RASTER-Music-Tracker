@@ -139,7 +139,7 @@ jobs:
           jpackage \
             --type app-image \
             --name rmt \
-            --input stage \
+            --input stage/app \
             --main-jar rmt.jar \
             --main-class org.atari.raster.rmt.ui.RmtApplication \
             --app-version "${{ steps.version.outputs.version }}" \
@@ -148,6 +148,21 @@ jobs:
             --add-modules ALL-MODULE-PATH \
             "${ICON_ARGS[@]}" \
             --dest dist
+
+      # The songs, instruments, exports and the two ini files go NEXT TO the
+      # application, not inside it: a file chooser can reach them there and
+      # the program may write there, neither of which holds inside a macOS
+      # bundle or a Program Files install. All three archives therefore
+      # unpack to one folder "rmt" holding the application and that content.
+      - name: Put the user content next to the application
+        shell: bash
+        run: |
+          if [[ "${{ matrix.platform }}" == "macos" ]]; then
+            mkdir -p dist/rmt
+            mv dist/rmt.app dist/rmt/
+          fi
+          cp -r stage/content/. dist/rmt/
+          ls -l dist/rmt
 
       - name: Archive app image (Windows)
         if: matrix.platform == 'windows'
@@ -162,7 +177,7 @@ jobs:
       - name: Archive app image (macOS)
         if: matrix.platform == 'macos'
         shell: bash
-        run: tar czf rmt-java-macos-${{ matrix.arch }}.tar.gz -C dist rmt.app
+        run: tar czf rmt-java-macos-${{ matrix.arch }}.tar.gz -C dist rmt
 
       # The artifact name must be unique per job: upload-artifact v4 fails
       # on a name a parallel job already used.

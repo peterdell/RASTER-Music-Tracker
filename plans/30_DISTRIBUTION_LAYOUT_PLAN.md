@@ -1,6 +1,6 @@
 # Plan: the distribution layout of the Java port (D1-D4)
 
-Status: D2-D4 open; every decision settled (section 5). D1 was done and
+Status: D2 done 2026-10-01, D3-D4 open; every decision settled (section 5). D1 was done and
 then reverted on 2026-10-01 - see decision 5.4: the binaries stay beside
 the jar, as files.
 
@@ -108,7 +108,7 @@ in-place replacement became awkward on macOS and the download carried the
 `getVUPlayerBinary()` beside `getTrackerDriverBinary()`, so both load the
 same way - and `RmtAtariBinariesTest` now covers the replacement.
 
-### D2 - the archive layout
+### D2 - the archive layout - DONE 2026-10-01
 
 `build/stage_java_release.sh` splits into what goes into `--input` (the
 jar, `docs/`) and what goes beside the application (`songs/`,
