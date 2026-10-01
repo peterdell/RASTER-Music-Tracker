@@ -366,6 +366,10 @@ public final class RmtConfig {
 
 	private void write(Path path, String text, RmtSession session, String consequence) {
 		try {
+			Path parent = path.getParent();
+			if (parent != null) {
+				Files.createDirectories(parent); // the per-user configuration folder does not exist on a first start
+			}
 			Files.writeString(path, text.replace("\n", System.lineSeparator()), CHARSET);
 		} catch (IOException ex) {
 			session.messages.sendWarningMessage("RMT", "Could not create: '" + path + "'\n\n" + consequence + "\n");

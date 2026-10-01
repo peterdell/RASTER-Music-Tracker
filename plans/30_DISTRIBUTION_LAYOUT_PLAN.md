@@ -1,6 +1,6 @@
 # Plan: the distribution layout of the Java port (D1-D4)
 
-Status: D2 done 2026-10-01, D3-D4 open; every decision settled (section 5). D1 was done and
+Status: D2 done 2026-10-01, D3 done 2026-10-02, D4 open; every decision settled (section 5). D1 was done and
 then reverted on 2026-10-01 - see decision 5.4: the binaries stay beside
 the jar, as files.
 
@@ -117,7 +117,7 @@ steps copy the latter next to the produced image before packing: into the
 image folder on Windows and Linux, beside `rmt.app` on macOS, where
 nothing may enter the bundle. The six assets keep their names.
 
-### D3 - the content root and the fallback
+### D3 - the content root and the fallback - DONE 2026-10-02
 
 `ProgramFolder` gains the walk of 2.2 and a configuration root; `RmtConfig`
 resolves the two ini files from the latter, `SongFiles`'s default song and

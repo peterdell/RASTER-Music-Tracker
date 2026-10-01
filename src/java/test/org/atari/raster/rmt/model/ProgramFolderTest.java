@@ -1,6 +1,7 @@
 package org.atari.raster.rmt.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -61,5 +62,98 @@ class ProgramFolderTest {
 		} finally {
 			ProgramFolder.set(original);
 		}
+	}
+	// --- the content root: the user's own material, next to the application ---
+	// (plans/30_DISTRIBUTION_LAYOUT_PLAN.md - the jar sits one level below it on
+	// Windows, two on Linux and three out of a macOS bundle)
+
+	/** Builds an unpacked distribution whose jar sits at {@code jarPath} below the archive root, and points the program folder there. */
+	private static Path distribution(Path dir, String jarPath) throws IOException {
+		Path archiveRoot = dir.resolve("rmt-java");
+		Path appFolder = archiveRoot.resolve(jarPath);
+		Files.createDirectories(appFolder.resolve("resources").resolve("drivers"));
+		Files.createDirectories(archiveRoot.resolve("songs"));
+		Files.createDirectories(archiveRoot.resolve("instruments"));
+		Files.writeString(archiveRoot.resolve("rmt.ini"), "# RMT CONFIGURATION FILE");
+		ProgramFolder.set(appFolder);
+		ProgramFolder.setInstallFolder(appFolder);
+		return archiveRoot;
+	}
+
+	@Test
+	void theContentRootIsFoundAboveTheJarOnWindows(@TempDir Path dir) throws IOException {
+		Path original = ProgramFolder.get();
+		try {
+			Path archiveRoot = distribution(dir, "app"); // rmt/app/rmt.jar
+			assertEquals(archiveRoot, ProgramFolder.getContentRoot());
+			assertEquals(archiveRoot, ProgramFolder.getConfigFolder(), "the settings stay next to the program");
+			assertTrue(ProgramFolder.getResourceRoot().endsWith("app"), "the Atari binaries stay inside the application image");
+		} finally {
+			ProgramFolder.set(original);
+			ProgramFolder.setInstallFolder(null);
+		}
+	}
+
+	@Test
+	void theContentRootIsFoundTwoLevelsAboveTheJarOnLinux(@TempDir Path dir) throws IOException {
+		Path original = ProgramFolder.get();
+		try {
+			Path archiveRoot = distribution(dir, "lib/app"); // rmt/lib/app/rmt.jar
+			assertEquals(archiveRoot, ProgramFolder.getContentRoot());
+		} finally {
+			ProgramFolder.set(original);
+			ProgramFolder.setInstallFolder(null);
+		}
+	}
+
+	@Test
+	void theContentRootIsFoundOutsideAMacOsBundle(@TempDir Path dir) throws IOException {
+		Path original = ProgramFolder.get();
+		try {
+			Path archiveRoot = distribution(dir, "rmt.app/Contents/app");
+			assertEquals(archiveRoot, ProgramFolder.getContentRoot(), "three levels out of the bundle");
+		} finally {
+			ProgramFolder.set(original);
+			ProgramFolder.setInstallFolder(null);
+		}
+	}
+
+	/** An rmt.app dragged to Applications leaves its content behind: the program still runs, the settings go per user. */
+	@Test
+	void withoutAContentRootTheSettingsGoToTheUserFolder(@TempDir Path dir) throws IOException {
+		Path original = ProgramFolder.get();
+		try {
+			Path appFolder = dir.resolve("Applications").resolve("rmt.app").resolve("Contents").resolve("app");
+			Files.createDirectories(appFolder.resolve("resources").resolve("drivers"));
+			ProgramFolder.set(appFolder);
+			ProgramFolder.setInstallFolder(appFolder);
+
+			assertNull(ProgramFolder.getContentRoot(), "nothing beside the bundle");
+			assertEquals(ProgramFolder.getUserConfigFolder(), ProgramFolder.getConfigFolder());
+			assertTrue(ProgramFolder.getResourceRoot().endsWith("app"), "the binaries still resolve, so the program runs");
+		} finally {
+			ProgramFolder.set(original);
+			ProgramFolder.setInstallFolder(null);
+		}
+	}
+
+	@Test
+	void theUserConfigFolderFollowsTheOperatingSystem() {
+		Path folder = ProgramFolder.getUserConfigFolder();
+		assertTrue(folder.isAbsolute(), folder.toString());
+		String os = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT);
+		if (os.contains("win")) {
+			assertTrue(folder.endsWith("RMT"), folder.toString());
+		} else if (os.contains("mac")) {
+			assertTrue(folder.endsWith(Path.of("Library", "Application Support", "RMT")), folder.toString());
+		} else {
+			assertTrue(folder.endsWith("rmt"), folder.toString());
+		}
+	}
+
+	@Test
+	void aCheckoutFindsItsContentInTheRmtFolder() {
+		// the tests run from the repository root, where rmt/songs and rmt/rmt.ini exist
+		assertEquals(Path.of("rmt").toAbsolutePath(), ProgramFolder.getContentRoot());
 	}
 }

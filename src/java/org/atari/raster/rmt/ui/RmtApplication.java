@@ -59,7 +59,7 @@ public final class RmtApplication {
 			ProgramFolder.set(programFolder); // g_prgpath
 			ProgramFolder.setInstallFolder(getInstallFolder());
 			RmtSession session = new RmtSession();
-			RmtConfig config = new RmtConfig(programFolder);
+			RmtConfig config = new RmtConfig(ProgramFolder.getConfigFolder());
 			RmtMainWindow window = new RmtMainWindow(session, config, RmtWindowPreferences.forUser());
 
 			if (commandLine.file() != null) {
@@ -113,7 +113,7 @@ public final class RmtApplication {
 		ProgramFolder.setInstallFolder(getInstallFolder());
 		RmtSession session = new RmtSession();
 		org.atari.raster.rmt.script.ScriptRunner runner = new org.atari.raster.rmt.script.ScriptRunner(session, System.out, System.err);
-		RmtConfig config = new RmtConfig(programFolder);
+		RmtConfig config = new RmtConfig(ProgramFolder.getConfigFolder());
 		config.readRMTConfig(session);
 		config.readTuningConfig(session);
 		String outputOverride = System.getenv(SCRIPT_OUTPUT_VARIABLE);

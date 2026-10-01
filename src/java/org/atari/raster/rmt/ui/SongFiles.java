@@ -195,12 +195,34 @@ public final class SongFiles {
 
 	private String songsInitialDir() {
 		RmtOptions o = session.options;
-		return !o.lastSongsPath.isEmpty() ? o.lastSongsPath : o.defaultSongsPath;
+		return !o.lastSongsPath.isEmpty() ? o.lastSongsPath : contentFolderOr(o.defaultSongsPath, "songs");
 	}
 
 	private String instrumentsInitialDir() {
 		RmtOptions o = session.options;
-		return !o.lastInstrumentsPath.isEmpty() ? o.lastInstrumentsPath : o.defaultInstrumentsPath;
+		return !o.lastInstrumentsPath.isEmpty() ? o.lastInstrumentsPath : contentFolderOr(o.defaultInstrumentsPath, "instruments");
+	}
+
+	/**
+	 * The configured default path, or - when none is set, which is the
+	 * default of a fresh {@code rmt.ini} - the named folder next to the
+	 * application, where the distribution unpacks it
+	 * (plans/30_DISTRIBUTION_LAYOUT_PLAN.md). Neither replaces the other in
+	 * {@code rmt.ini}: the option stays empty, so the two programs keep
+	 * writing the same file.
+	 */
+	private static String contentFolderOr(String configured, String folderName) {
+		if (!configured.isEmpty()) {
+			return configured;
+		}
+		java.nio.file.Path contentRoot = org.atari.raster.rmt.model.ProgramFolder.getContentRoot();
+		if (contentRoot != null) {
+			java.nio.file.Path folder = contentRoot.resolve(folderName);
+			if (java.nio.file.Files.isDirectory(folder)) {
+				return folder.toString();
+			}
+		}
+		return "";
 	}
 
 	private String tracksInitialDir() {

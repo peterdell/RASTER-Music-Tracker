@@ -5256,3 +5256,26 @@ build clean and all 123 tests pass.
     and writing there invalidates the ad-hoc signature - does not apply,
     because they do not test replacements on macOS. Plan 30 records this
     as decision 5.4 and D1 as dropped; D2-D4 are unchanged.
+  - **2026-10-02**: plan 30 D2 and D3. The staging script now produces two
+    trees - `app/` for `jpackage --input` (jar, `resources/`, `docs/`) and
+    `content/` (songs, instruments, exports, the two ini files) - and the
+    workflow copies the second next to the produced image, so all three
+    archives unpack to one folder holding the application and the content
+    beside it. `ProgramFolder` gained `getContentRoot()`, which walks up
+    from the program and install folder (four levels, each also as its
+    `rmt/` sub-folder) looking for `songs` first and `rmt.ini` only
+    afterwards, and `getConfigFolder()`, which is the content root when
+    there is one and otherwise the per-user folder of the system.
+    Two things the tests caught that I had wrong: the working directory
+    must not be searched at all (a program started from a folder that
+    happens to hold songs would adopt it), and a stray `rmt.ini` at the
+    repository root - gitignored, left by running the app from there -
+    outranked the real `rmt/` folder until `songs` became the primary
+    marker. One thing only the packaged run caught: nothing created the
+    per-user folder, so the first start without a content folder reported
+    "Could not create" - `RmtConfig.write` creates the parent now.
+    Verified by building the real Windows image with jpackage: the ini is
+    read and written beside the application and never inside `app/`, and
+    an application copied away from its content still runs and keeps its
+    settings in `%APPDATA%\RMT`. The About box names both folders
+    (decision 5.2). D4, the read-me, is left.
