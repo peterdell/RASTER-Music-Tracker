@@ -1,6 +1,6 @@
 # Plan: the distribution layout of the Java port (D1-D4)
 
-Status: D2 done 2026-10-01, D3 done 2026-10-02, D4 open; every decision settled (section 5). D1 was done and
+Status: DONE 2026-10-02 (D2-D4; D1 dropped, see decision 5.4); every decision settled (section 5). D1 was done and
 then reverted on 2026-10-01 - see decision 5.4: the binaries stay beside
 the jar, as files.
 
@@ -126,12 +126,14 @@ three bundle depths (simulated with temporary folders) and for the
 fallback. The ini **content** does not change, so `RmtConfigTest` and the
 cross-program comparison stay as they are.
 
-### D4 - documentation
+### D4 - documentation - DONE 2026-10-02
 
-A short `README.txt` in the archive root: keep the folder together, run
-the program from it, and `resources/drivers` overrides a bundled driver.
-The manual's section on the program folder, `doc/rmt_changes.md`,
-`plans/README.md`, `NOTES.md`.
+`build/release-README.txt`, staged as `README.txt` beside the
+application: keep the folder together, what each folder is, the macOS
+warning about dragging `rmt.app` out alone, and where to put a driver
+build for testing (per platform, since the path into the application
+image differs). The manual gained a "Files and Folders" section, and
+`doc/rmt_changes.md` a 1.36 entry; `plans/README.md`, `NOTES.md`.
 
 ## 4. What this does not change
 

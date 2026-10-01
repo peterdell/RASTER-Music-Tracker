@@ -5279,3 +5279,13 @@ build clean and all 123 tests pass.
     an application copied away from its content still runs and keeps its
     settings in `%APPDATA%\RMT`. The About box names both folders
     (decision 5.2). D4, the read-me, is left.
+  - **2026-10-02**: plan 30 finished with D4. `build/release-README.txt`
+    is staged as `README.txt` beside the application: what each folder
+    is, that the folder must stay together, the macOS warning about
+    dragging `rmt.app` out alone, and where a driver build goes for
+    testing - with the path per platform, because it differs
+    (`rmtppesources\drivers`, `rmt/lib/app/...`,
+    `rmt.app/Contents/app/...`). The manual gained a "Files and Folders"
+    section naming the per-user folders of all three systems, and the
+    1.36 change history an entry for the new download layout. Checked
+    that both reach the generated HTML the distribution ships.

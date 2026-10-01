@@ -36,6 +36,7 @@ for folder in exports instruments songs; do
 	cp -r "$ROOT/rmt/$folder" "$STAGE/content/"
 done
 cp "$ROOT/rmt/rmt.ini" "$ROOT/rmt/tuning.ini" "$STAGE/content/"
+cp "$ROOT/build/release-README.txt" "$STAGE/content/README.txt"
 # The HTML documentation from doc/*.md (plus the manuals and images as they are)
 java -cp "$ROOT/target/rmt.jar" org.atari.raster.rmt.doc.DocGenerator "$ROOT/doc" "$STAGE/app/docs"
 echo "Staged the Java port's distribution layout in $STAGE: app/ for jpackage --input, content/ to be placed next to the application"

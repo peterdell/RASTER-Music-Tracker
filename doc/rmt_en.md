@@ -427,6 +427,36 @@ QWERTZ layouts the keys at the same positions, e.g. `Z` for `Y` on QWERTZ,
 The Pokey menu offers the same operations as menu items; they work in the
 explorer mode only.
 
+## Files and Folders
+
+RMT needs no installation. Everything it needs is in one folder, which
+can be moved anywhere, including onto a USB stick.
+
+| Folder or file | What it is |
+|---|---|
+| `rmt.exe`, `rmt` or `rmt.app` | the program, with its own Java runtime, the Atari player routines under `resources/` and the documentation under `docs/` |
+| `songs` | the example songs, and where File > Open and File > Save as start |
+| `instruments` | the instruments, and where the instrument load and save start |
+| `exports` | finished tunes exported by older RMT versions |
+| `rmt.ini`, `tuning.ini` | the settings, written when they are changed |
+
+The settings are kept next to the program, so they travel with the
+folder. If the program is started without that folder - on macOS, when
+`rmt.app` alone is dragged to Applications - it still runs, but the songs
+and instruments are no longer there and the settings move to the
+operating system's own place for them: `%APPDATA%\RMT` on Windows,
+`~/Library/Application Support/RMT` on macOS,
+`$XDG_CONFIG_HOME/rmt` or `~/.config/rmt` on Linux. Help > About always
+shows the two folders actually in use.
+
+The Windows program `Rmt.exe` uses the same layout, so the two can share
+one folder.
+
+To test a different build of an Atari player routine, put the file into
+`resources/drivers` or `resources/players` inside the program folder,
+under the same name, and restart RMT; deleting it again restores the one
+that was shipped.
+
 ## Disclaimer
 
 RMT IS A SOFTWARE WITHOUT WARRANTY OF ANY KIND. THE AUTHOR DOES NOT WARRANT, GUARANTEE, OR MAKE ANY REPRESENTATIONS REGARDING THE USE, OR THE RESULTS OF USE OF THE SOFTWARE, OR WRITTEN MATERIALS, IN TERMS OF CORRECTNESS, ACCURACY, RELIABILITY, CURRENTNESS, OR OTHERWISE. THE ENTIRE RISK AS TO THE RESULTS AND PERFORMANCE OF THE SOFTWARE IS ASSUMED BY YOU.
