@@ -1,7 +1,7 @@
 # Plan 31: Contribute RMT's ASAP changes upstream
 
-Status: IN PROGRESS. A1-A4 done 2026-10-04; A5 (the merge request)
-and A6 (the RMT-mode block) open.
+Status: IN PROGRESS. A1-A5 done 2026-10-04, merge request #4 open
+upstream and awaiting review; A6 (the RMT-mode block) open.
 
 Offer the changes the Java port made to ASAP (Another Slight Atari Player)
 back to its author, Piotr Fusik ("Fox"), as merge requests on SourceForge,
@@ -134,8 +134,18 @@ The seven methods split into two groups.
     Lesson: a call into this library may matter for a side effect rather
     than for its name.
 
-- **A5** Push the branch to the fork and open the merge request from the
+- **A5** (DONE 2026-10-04) Push the branch to the fork and open the merge request from the
   fork's Git page against `master` in `p/asap/code`.
+  Done: branch `pokey-register-shadow` (`f4afcfd`, one commit over upstream
+  `28af663`, four files) is on `u/peterdell/asap`, and merge request #4 is
+  open against `master` of `p/asap/code`:
+  https://sourceforge.net/p/asap/code/merge-requests/4/
+
+  Its case rests on two independent users of the same two methods: the
+  asma.atari.org site's SAP-R dumps, and this port, which had been carrying
+  them as patches to generated code. If it is accepted, `lib/java/README.md`
+  should go back to naming a release rather than a branch of the fork.
+
 - **A6** Only once A1-A5 have landed or been answered, repeat for the
   RMT-mode set as a second, separate merge request.
 
