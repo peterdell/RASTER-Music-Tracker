@@ -44,3 +44,4 @@ look for what was done, why, and what was found).
 | 28 | [VALUE_SETS_PLAN](28_VALUE_SETS_PLAN.md) | WUDSN Base value sets for `KeyboardLayout`, `TrackerDriverVersion` and `AssemblerFormat`: texts in `ValueSets.properties`, `ValueSetField` in the dialogs (V1-V5) | Done 2026-10-01 |
 | 29 | [POKEY_WINDOW_PLAN](29_POKEY_WINDOW_PLAN.md) | The POKEY registers view and the Pokey Explorer in a separate modeless window (W1-W6) | Out of scope 2026-10-01 |
 | 30 | [DISTRIBUTION_LAYOUT_PLAN](30_DISTRIBUTION_LAYOUT_PLAN.md) | The jpackage releases: the Atari binaries into the jar (with a file override for testing), the user content beside the application, the config folder (D1-D4) | Done 2026-10-02 |
+| 31 | [ASAP_UPSTREAM_CONTRIBUTION_PLAN](31_ASAP_UPSTREAM_CONTRIBUTION_PLAN.md) | Offering the port's ASAP changes to its author: the two general-purpose methods re-expressed in the portable sources, the RMT-mode block separately (A1-A6) | A1 done 2026-10-04; A2-A6 open |
