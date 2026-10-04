@@ -21,6 +21,7 @@ Changes in RMT 2.00 (Planned)
 Changes in RMT 1.37 (Planned)
 -----------------------------
 
+- Use the larger 12x24 character set for the tracker display, so the screen is readable on today's high resolution monitors. The glyph sheet "gfx-12x24.bmp" is in the repository beside the 8x16 one the programs draw with today, but it holds a single row of 128 glyphs: the colour bands, the 8x8 miniature font and the small icons that the 8x16 sheet carries would have to be generated for it, and the drawing code takes the cell size from constants in two places.
 - Have an additional ".ini" file as an intermediate step to the RMT file format version 2. There, the module-specific settings from the "RMT.ini" and "Tuning.ini" could be preserved. Also, the file's existence indicates it is an RMT in 1.34 format.
 
 Changes in RMT 1.36 
