@@ -12,7 +12,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.AbstractButton;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
