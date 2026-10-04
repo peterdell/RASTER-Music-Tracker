@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Stages the Java port's distribution layout - the checked-in rmt/ folder as
-# Rmt.exe ships it (resources, instruments, songs, exports, rmt.ini,
-# tuning.ini), docs/ generated from doc/*.md by the jar's DocGenerator (as the
+# Rmt.exe ships it (resources, instruments, songs, exports), docs/ generated from doc/*.md by the jar's DocGenerator (as the
 # C++ pre-build does into the gitignored rmt/docs; plans/23_DOC_GENERATION_PLAN.md),
 # and target/rmt.jar - into the given folder (default:
 # target/stage). That folder is jpackage's --input, so the jar ends up next
@@ -35,7 +34,10 @@ mkdir -p "$STAGE/content"
 for folder in exports instruments songs; do
 	cp -r "$ROOT/rmt/$folder" "$STAGE/content/"
 done
-cp "$ROOT/rmt/rmt.ini" "$ROOT/rmt/tuning.ini" "$STAGE/content/"
+# No .ini files in the download: unpacking it over an existing folder would
+# overwrite the settings. build_rmt-cpp-daily.bat deletes them from the C++
+# archive for the same reason. Both programs write their defaults on first
+# start.
 cp "$ROOT/build/release-README.txt" "$STAGE/content/README.txt"
 # The HTML documentation from doc/*.md (plus the manuals and images as they are)
 java -cp "$ROOT/target/rmt.jar" org.atari.raster.rmt.doc.DocGenerator "$ROOT/doc" "$STAGE/app/docs"

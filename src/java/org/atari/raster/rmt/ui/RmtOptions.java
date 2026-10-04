@@ -22,7 +22,7 @@ public final class RmtOptions {
 
 	// GENERAL
 	/** {@code g_scaling_percentage} - how much RMT stretches its logical canvas onto the window, 100-300. */
-	public int scalingPercentage = 100;
+	public int scalingPercentage = 200;
 	/** {@code g_trackLinePrimaryHighlight} - every n-th track line is drawn cyan (and PgUp/PgDn jump by it). */
 	public int trackLinePrimaryHighlight = 8;
 	/** {@code g_trackLineSecondaryHighlight} - every n-th track line is drawn green. */
@@ -93,7 +93,7 @@ public final class RmtOptions {
 		public boolean pokeyRegisters = true;
 		public boolean instrumentEditHelp = true;
 		public boolean smoothScrolling = true;
-		public boolean debugDisplay = true;
+		public boolean debugDisplay = false;
 	}
 
 	/**
@@ -104,7 +104,7 @@ public final class RmtOptions {
 	 * {@link #keyboardSwapEnter} are untouched, as in C++.
 	 */
 	public void reset() {
-		scalingPercentage = 100; // RMT interface scaling (in percentage)
+		scalingPercentage = 200; // RMT interface scaling (in percentage)
 		trackLinePrimaryHighlight = 8; // Primary line highlighted every x lines
 		trackLineSecondaryHighlight = 4; // Secondary line highlighted every x lines
 		trackLineAltNumbering = false; // Alternative way of line numbering in tracks
@@ -122,7 +122,7 @@ public final class RmtOptions {
 		view.pokeyRegisters = true;
 		view.instrumentEditHelp = true;
 		view.smoothScrolling = true;
-		view.debugDisplay = true;
+		view.debugDisplay = false;
 
 		lastSongsPath = "";
 		lastInstrumentsPath = "";

@@ -28,7 +28,7 @@ artifacts of workflow run 36791292509:
 | Linux | `rmt/lib/app/` beside `rmt/bin/rmt` |
 | macOS | `rmt.app/Contents/app/`, in a bundle that also carries `_CodeSignature` |
 
-So `rmt.ini`, `tuning.ini`, `songs/`, `instruments/`, `exports/`,
+So the settings files, `songs/`, `instruments/`, `exports/`,
 `docs/` and `resources/` all sit in that one folder, which
 `RmtApplication.getInstallFolder()` returns and `ProgramFolder` resolves
 everything from.
@@ -50,7 +50,7 @@ help; it is 409 KB of generated HTML and images.
 | Layer | Content | Size | Why there |
 |---|---|---|---|
 | Inside the application image | the 8 `.obx` files under `resources/`, the generated `docs/` | 48 KB + 409 KB | read-only and vital; they travel with the application when it is moved, and a driver can still be replaced in place |
-| Beside the application | `songs/`, `instruments/`, `exports/`, `rmt.ini`, `tuning.ini` | 2.3 MB | the user's own content and settings: browsable, writable, unpacked as is |
+| Beside the application | `songs/`, `instruments/`, `exports/` | 2.3 MB | the user's own content: browsable, writable, unpacked as is. The settings files are **not** in the download - unpacking it over an existing folder would overwrite them, which is why `build_rmt-cpp-daily.bat` deletes them from the C++ archive too. Both programs write their defaults on first start, and that is where the settings then live. |
 
 The result is the `rmt/` layout the C++ distribution already ships, with
 the application added beside it, so both programs' downloads look alike

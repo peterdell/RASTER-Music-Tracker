@@ -32,7 +32,7 @@ class RmtConfigTest {
 
 			# GENERAL
 
-			SCALEPERCENTAGE = 100
+			SCALEPERCENTAGE = 200
 			TRACKLINEPRIMARYHIGHLIGHT = 8
 			TRACKLINESECONDARYHIGHLIGHT = 4
 			TRACKLINEALTNUMBERING = 0
@@ -76,7 +76,7 @@ class RmtConfigTest {
 			VIEW_POKEYCHIPREGISTERS = 1
 			VIEW_INSTRUMENTACTIVEHELP = 1
 			SMOOTH_SCROLL = 1
-			VIEW_DEBUGDISPLAY = 1
+			VIEW_DEBUGDISPLAY = 0
 			""";
 
 	/** The default tuning.ini - note the ratios as C++ writes them before Fraction's normalization (40/38 etc.); Java writes them reduced. */
@@ -206,7 +206,7 @@ class RmtConfigTest {
 	void aMissingRmtIniIsReportedAndTheDefaultsWritten(@TempDir Path dir) throws IOException {
 		RmtSession session = new RmtSession();
 		session.options.scalingPercentage = 250;
-		session.options.view.debugDisplay = false;
+		session.options.view.debugDisplay = true; // not the default, so the reset is visible
 		session.song.setNTSC(true);
 		RecordingMessages messages = new RecordingMessages();
 		session.messages.setHandler(messages);
@@ -217,8 +217,8 @@ class RmtConfigTest {
 
 		assertEquals(1, messages.warnings.size());
 		assertTrue(messages.warnings.get(0).startsWith("RMT: Could not find: '" + dir.resolve("rmt.ini") + "'\n\nRMT will use the default configuration.\n"));
-		assertEquals(100, session.options.scalingPercentage);
-		assertTrue(session.options.view.debugDisplay);
+		assertEquals(200, session.options.scalingPercentage);
+		assertFalse(session.options.view.debugDisplay);
 		assertFalse(session.song.isNTSC());
 		assertEquals(DEFAULT_RMT_INI, Files.readString(dir.resolve("rmt.ini"), RmtConfig.CHARSET).replace(System.lineSeparator(), "\n"));
 	}

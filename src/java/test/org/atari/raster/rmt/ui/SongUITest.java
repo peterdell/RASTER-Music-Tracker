@@ -51,6 +51,12 @@ class SongUITest {
 
 	/** The panel's paint path without the panel: layout for a 1278x654 client area at RMT 100%, then {@code drawAll()}. */
 	static BufferedImage renderFrame(RmtSession session) {
+		// The goldens are the reference layout at 100 % scaling with the debug
+		// information line on, neither of which is a default since 2026-10-05.
+		// These tests are about the drawing, so they ask for both rather than
+		// inherit them.
+		session.options.scalingPercentage = 100;
+		session.options.view.debugDisplay = true;
 		TrackerPanel.computeLayout(session.uiState, session.options, WIDTH, HEIGHT);
 		session.song.respectBoundaries(session.tracks4_8);
 

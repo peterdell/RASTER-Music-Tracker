@@ -659,7 +659,7 @@ static KeyboardLayout DefaultKeyboardLayout()
 
 void CRmtView::ResetRMTConfig()
 {
-    g_scaling_percentage = 100;					// RMT interface scaling (in percentage) 
+    g_scaling_percentage = 200;					// RMT interface scaling (in percentage) 
     g_trackLinePrimaryHighlight = 8;			// Primary line highlighted every x lines
     g_trackLineSecondaryHighlight = 4;			// Secondary line highlighted every x lines
     g_tracklinealtnumbering = 0;				// Alternative way of line numbering in tracks 
@@ -678,7 +678,7 @@ void CRmtView::ResetRMTConfig()
     g_view.pokeyRegisters = TRUE;					// Display the POKEY Registers (TODO: Move the Detailed Registers to its own entry) 
     g_view.instrumentEditHelp = TRUE;				// Display useful info when editing various parts of an instrument
     g_view.smoothScrolling = TRUE;				// Smoothly scroll the track and song line data is smooth during playback 
-    g_view.debugDisplay = TRUE;						// Debug display for a bunch of variables used for various tasks 
+    g_view.debugDisplay = FALSE;					// Debug display for a bunch of variables used for various tasks 
 
     g_lastLoadPath_Songs = "";					// Path of the last song loaded
     g_lastLoadPath_Instruments = "";			// Path of the last instrument loaded

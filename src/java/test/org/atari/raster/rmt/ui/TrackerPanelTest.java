@@ -25,6 +25,7 @@ class TrackerPanelTest {
 	void layoutAtScaling100IsOneToOne() {
 		UiState uiState = new UiState();
 		RmtOptions options = new RmtOptions();
+		options.scalingPercentage = 100; // not the default since 2026-10-05, and this test is about 100 %
 
 		TrackerPanel.computeLayout(uiState, options, 800, 600);
 

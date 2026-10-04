@@ -153,7 +153,7 @@ class ProgramFolderTest {
 
 	@Test
 	void aCheckoutFindsItsContentInTheRmtFolder() {
-		// the tests run from the repository root, where rmt/songs and rmt/rmt.ini exist
+		// the tests run from the repository root, where rmt/songs exists
 		assertEquals(Path.of("rmt").toAbsolutePath(), ProgramFolder.getContentRoot());
 	}
 }

@@ -396,7 +396,7 @@ class RmtCommandsTest {
 	@Test
 	void applyOptionsHasTheCppSideEffectsOnlyForChangedValues() {
 		OptionsValues v = OptionsValues.from(session);
-		v.scalingPercentage = 200;
+		v.scalingPercentage = 250; // must differ from the default, which is 200
 		v.ntsc = true;
 		v.trackerDriverVersion = TrackerDriverVersion.PATCH8;
 		v.trackLinePrimaryHighlight = 16;
@@ -412,7 +412,7 @@ class RmtCommandsTest {
 		commands.applyOptions(v);
 
 		assertEquals(List.of("rescale"), host.calls);
-		assertEquals(200, session.options.scalingPercentage);
+		assertEquals(250, session.options.scalingPercentage);
 		assertTrue(session.song.isNTSC());
 		assertEquals(basetuning * org.atari.raster.rmt.model.Atari.FREQ_17_NTSC / org.atari.raster.rmt.model.Atari.FREQ_17_PAL, session.tuningSettings.basetuning, 1e-9); // SetNTSC rescaled the tuning
 		assertEquals(TrackerDriverVersion.PATCH8, session.options.trackerDriverVersion);

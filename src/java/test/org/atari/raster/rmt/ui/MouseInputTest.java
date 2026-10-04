@@ -66,6 +66,7 @@ class MouseInputTest {
 	@BeforeEach
 	void setUp() {
 		session = new RmtSession(); // stereo, empty
+		session.options.scalingPercentage = 100; // the device coordinates below are the reference layout's, unscaled
 		for (int col = 0; col < 8; col++) {
 			session.song.getSong()[0][col] = col;
 			session.song.getSong()[1][col] = 8 + col;
