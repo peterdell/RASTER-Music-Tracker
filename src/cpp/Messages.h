@@ -50,10 +50,10 @@ extern MessageAnswer SendQuestionMessage(const char* title, const char* message,
 extern void SetTestQuestionAnswer(MessageAnswer answer);
 
 // Script mode (Rmt.exe /SCRIPT:<file>, see ScriptRunner.h): the message
-// boxes go to the console instead - errors and warnings to stderr,
-// information to stdout, questions answered No/Cancel with a note - and the
-// errors and warnings are collected so the script runner can fail the
-// current command on them.
+// boxes go to the console instead - all of them on stdout, since a GUI
+// program has no stderr stream to redirect, with questions answered
+// No/Cancel and a note saying so - and the errors and warnings are
+// collected so the script runner can fail the current command on them.
 extern void SetScriptMessageMode(bool enabled, bool interactive = false);
 extern void ClearScriptProblems();
 // The errors and warnings since ClearScriptProblems(), one line each; "" for none.

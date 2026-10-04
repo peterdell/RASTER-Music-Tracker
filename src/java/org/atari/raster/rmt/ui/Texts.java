@@ -42,6 +42,12 @@ public final class Texts extends NLS {
 	public static String AboutDialog_Repository;
 	public static String AboutDialog_PokeyEmulation;
 	public static String AboutDialog_Cpu6502Emulation;
+	/** The folder the songs, instruments and exports were found in, or the note that there is none. */
+	public static String AboutDialog_ContentFolder;
+	/** The folder rmt.ini and tuning.ini are read from and written to. */
+	public static String AboutDialog_SettingsFolder;
+	/** Shown instead of a content folder when the application was separated from it. */
+	public static String AboutDialog_ContentFolderMissing;
 
 	// Import dialogs (IDD_IMPORTMOD, IDD_IMPORTMODFINISHED, IDD_IMPORTTMC, IDD_IMPORTTMCFINISHED)
 	public static String ImportModDialog_Title;

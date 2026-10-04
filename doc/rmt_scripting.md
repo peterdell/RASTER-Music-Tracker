@@ -38,8 +38,10 @@ in both.
   `Start-Process Rmt.exe "/SCRIPT:build.rmtscript" -Wait`). The window is
   created but stays hidden. The messages go to the console the program was
   started from; when there is none (started from Explorer or a scheduler),
-  they go to `<script>.log` next to the script. The exit code is the same
-  as the Java port's (`%ERRORLEVEL%` after `start /wait`).
+  they go to `<script>.log` next to the script. All of them are written to
+  standard output, errors included, because a windowed program has no
+  standard error stream to write to. The exit code is the same as the Java
+  port's (`%ERRORLEVEL%` after `start /wait`).
 
 Exit codes of the command line:
 
@@ -110,6 +112,13 @@ when it is missing.
 
 Options that a format does not have, and values that are not valid, stop
 the script with a message naming the line.
+
+`sapr`, `lzss`, `sap`, `xex` and `wav` are produced by running the song on
+the emulated Atari, so they need the player routine of the selected driver
+version. If that file is missing, these exports stop the script with a
+message naming the file instead of writing a silent one; the three
+remaining formats write the song data itself and are unaffected. See
+"Files and Folders" in the manual for where the player routines live.
 
 ## Example
 

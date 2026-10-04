@@ -1,10 +1,7 @@
 package org.atari.raster.rmt.model;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 /**
  * Ported from CSAPFileExporter (src/cpp/SAPFileExporter.h,
@@ -52,8 +49,8 @@ public final class SapFileExporter {
 	// too - two different C++ loading mechanisms with no observable
 	// difference, so SongExporter reuses this same path/loading logic
 	// rather than duplicating a second one.
-	static Path vuPlayerPath() {
-		return ProgramFolder.getResourceFilePath(Path.of("resources", "players"), "vu_player_v2.obx");
+	static java.nio.file.Path vuPlayerPath() {
+		return RmtAtariBinaries.getPath(RmtAtariBinaries.VU_PLAYER_FOLDER, RmtAtariBinaries.VU_PLAYER_FILE);
 	}
 
 	/**
@@ -75,11 +72,9 @@ public final class SapFileExporter {
 	 */
 	public static byte[] exportSapBLzss(SapFile sapFile, Song song, int tracks4_8, PokeyStream pokeyStream) {
 		byte[] memory = new byte[Atari.MEMORY_SIZE];
-		byte[] vuPlayerData;
-		try {
-			vuPlayerData = Files.readAllBytes(vuPlayerPath());
-		} catch (IOException e) {
-			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + vuPlayerPath() + "'.", e); // C++'s GetVUPlayerBinary() failure box
+		byte[] vuPlayerData = RmtAtariBinaries.getVUPlayerBinary();
+		if (vuPlayerData == null) { // C++'s GetVUPlayerBinary() failure box
+			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + vuPlayerPath() + "'.");
 		}
 		AtariIO.Result loadResult = AtariIO.loadBinaryFile(vuPlayerData, memory);
 		if (loadResult.bytesRead() <= 0) {

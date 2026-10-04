@@ -14,8 +14,6 @@ class PokeyChannel
 	static final int MUTE_USER = 2;
 
 	static final int MUTE_SERIAL_INPUT = 4;
-
-	static final int MUTE_SONG_INIT = 8;
 	int mute;
 	private int out;
 	int delta;
@@ -27,14 +25,14 @@ class PokeyChannel
 		this.periodCycles = 28;
 		this.tickCycle = 8388608;
 		this.timerCycle = 8388608;
-		this.mute = 8;
+		this.mute = 0;
 		this.out = 0;
 		this.delta = 0;
 	}
 
 	private void addDelta(Pokey pokey, PokeyPair pokeys, int cycle, int delta)
 	{
-		pokey.addPokeyDelta(pokeys, cycle, delta, (this.mute & 10) != 0);
+		pokey.addDelta(pokeys, cycle, delta, (this.mute & 2) != 0);
 	}
 
 	private void slope(Pokey pokey, PokeyPair pokeys, int cycle)

@@ -1,9 +1,7 @@
 package org.atari.raster.rmt.model;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 
 /**
  * Ported from CSongExporter (src/cpp/SongExporter.h, SongExporterCore.cpp) -
@@ -149,11 +147,9 @@ public final class SongExporter {
 		byte[] mem = new byte[Atari.MEMORY_SIZE];
 
 		// Load VUPlayerLZSS to memory
-		byte[] vuPlayerData;
-		try {
-			vuPlayerData = Files.readAllBytes(SapFileExporter.vuPlayerPath());
-		} catch (IOException e) {
-			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + SapFileExporter.vuPlayerPath() + "'.", e); // C++'s GetVUPlayerBinary() failure box
+		byte[] vuPlayerData = RmtAtariBinaries.getVUPlayerBinary();
+		if (vuPlayerData == null) { // C++'s GetVUPlayerBinary() failure box
+			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + SapFileExporter.vuPlayerPath() + "'.");
 		}
 		if (AtariIO.loadBinaryFile(vuPlayerData, mem).bytesRead() <= 0) {
 			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + SapFileExporter.vuPlayerPath() + "'.");

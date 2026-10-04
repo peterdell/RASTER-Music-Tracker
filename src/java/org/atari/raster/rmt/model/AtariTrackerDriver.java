@@ -44,12 +44,27 @@ public final class AtariTrackerDriver {
 
 	/** Loads the given tracker driver version's binary from disk into the Atari's own memory, returning the number of bytes loaded (0 if no matching file exists). */
 	public int loadRMTRoutines(TrackerDriverVersion trackerDriverVersion) {
+		routinesLoaded = false;
 		byte[] bin = RmtAtariBinaries.getTrackerDriverBinary(trackerDriverVersion);
 		if (bin == null) {
 			return 0;
 		}
-		return AtariIO.loadDataAsBinaryFile(bin, atari.getMemory()).bytesRead();
+		int bytesRead = AtariIO.loadDataAsBinaryFile(bin, atari.getMemory()).bytesRead();
+		routinesLoaded = bytesRead > 0;
+		return bytesRead;
 	}
+
+	/**
+	 * Whether the last {@link #loadRMTRoutines} found its file and loaded it.
+	 * False means the emulated Atari holds no player routines, so it plays and
+	 * exports silence - which the caller is expected to report rather than
+	 * carry on quietly ({@code CAtariTrackerDriver::AreRoutinesLoaded}).
+	 */
+	public boolean areRoutinesLoaded() {
+		return routinesLoaded;
+	}
+
+	private boolean routinesLoaded;
 
 	// The RMT tracker driver's entry points (Atari.h / tracker_obx.h)
 	public static final int RMT_INIT = 0x3400;

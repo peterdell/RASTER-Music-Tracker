@@ -218,7 +218,7 @@ public class ASAPWriter
 		if (info.getPlayerRateScanlines() != (type == 'S' ? 78 : 312) || info.isNtsc())
 			writeDecSapTag("FASTPLAY ", info.getPlayerRateScanlines());
 		if (type == 'C')
-			writeHexSapTag("MUSIC ", info.getMusicAddress());
+			writeHexSapTag("MUSIC ", info.music);
 		writeHexSapTag("INIT ", this.init);
 		writeHexSapTag("PLAYER ", this.player);
 		writeHexSapTag("COVOX ", info.getCovoxAddress());
@@ -248,11 +248,10 @@ public class ASAPWriter
 		writeWord(4064);
 		writeWord(4080);
 		writeByte(72);
-		int music = info.getMusicAddress();
 		writeByte(162);
-		writeByte(music & 255);
+		writeByte(info.music & 255);
 		writeByte(160);
-		writeByte(music >> 8);
+		writeByte(info.music >> 8);
 		writeByte(169);
 		writeByte(112);
 		writeByte(32);
@@ -271,6 +270,50 @@ public class ASAPWriter
 		if (toSap)
 			writeSapHeader(info, type);
 		writeBytes(module, info.headerLen, moduleLen);
+	}
+
+	/**
+	 * Writes a native module, possibly extracting it from a SAP file.
+	 * @param info Source file information, optionally with the address changed.
+	 * @param module Contents of the source file.
+	 * @param moduleLen Length of the source file.
+	 */
+	private byte[] writeNative(ASAPInfo info, byte[] module, int moduleLen, boolean rmtNames) throws ASAPConversionException
+	{
+		final ASAPModuleTransfer trans = new ASAPModuleTransfer();
+		trans.source = module;
+		trans.output = this.output;
+		trans.outputOffset = this.outputLen;
+		switch (info.type) {
+		case SAP_B:
+		case SAP_C:
+		case SAP_D:
+			int offset = info.getRmtSapOffset(module, moduleLen);
+			if (offset > 0) {
+				trans.sourceOffset = offset - 2;
+				trans.transferModule(info, moduleLen, true, false);
+				break;
+			}
+			trans.sourceOffset = info.headerLen;
+			int blockLen = info.getFirstBlockLen(module);
+			if (blockLen < 7 || trans.sourceOffset + blockLen >= moduleLen)
+				throw new ASAPConversionException("Cannot extract module from SAP");
+			if (info.originalType == ASAPModuleType.FC)
+				trans.writeBytes(module, trans.sourceOffset + 6, blockLen - 6);
+			else
+				trans.transferModule(info, trans.sourceOffset + blockLen, true, false);
+			break;
+		case FC:
+		case D15:
+			trans.writeBytes(module, 0, moduleLen);
+			break;
+		default:
+			trans.sourceOffset = 0;
+			trans.transferModule(info, moduleLen, true, rmtNames);
+			break;
+		}
+		this.outputLen = trans.outputOffset;
+		return this.output;
 	}
 
 	private int writeExecutableHeaderForSongPos(boolean toSap, ASAPInfo info, int type, int player, int codeForOneSong, int codeForManySongs, int playerOffset) throws ASAPConversionException
@@ -294,11 +337,10 @@ public class ASAPWriter
 			writeBytes(info.songPos, 0, info.getSongs());
 			writeByte(72);
 		}
-		int music = info.getMusicAddress();
 		writeByte(160);
-		writeByte(music & 255);
+		writeByte(info.music & 255);
 		writeByte(162);
-		writeByte(music >> 8);
+		writeByte(info.music >> 8);
 		writeByte(169);
 		writeByte(0);
 		writeByte(32);
@@ -326,7 +368,7 @@ public class ASAPWriter
 		byte[] playerRoutine = ASAP6502.getPlayerRoutine(info);
 		int player = -1;
 		int playerLastByte = -1;
-		int music = info.getMusicAddress();
+		int music = info.music;
 		if (playerRoutine != null) {
 			player = ASAPInfo.getWord(playerRoutine, 2);
 			playerLastByte = ASAPInfo.getWord(playerRoutine, 4);
@@ -358,8 +400,7 @@ public class ASAPWriter
 			this.player = player;
 			if (toSap)
 				writeSapHeader(info, 'C');
-			writeWord(65535);
-			writeBytes(module, 2, moduleLen);
+			writeNative(info, module, moduleLen, false);
 			writeBytes(playerRoutine, 2, playerLastByte - player + 7);
 			if (!toSap)
 				writeCmcInit(info);
@@ -392,7 +433,7 @@ public class ASAPWriter
 			break;
 		case MPT:
 			startAddr = writeExecutableHeaderForSongPos(toSap, info, 'B', player, 13, 17, 3);
-			writeBytes(module, 0, moduleLen);
+			writeNative(info, module, moduleLen, false);
 			writeWord(startAddr);
 			writeWord(playerLastByte);
 			writeMptInit(info, player);
@@ -410,7 +451,7 @@ public class ASAPWriter
 			int samplesPage = (samples.content[0] & 0xff) - 1;
 			int codeForOneSong = info.type == ASAPModuleType.MD1 ? 29 : 27;
 			startAddr = writeExecutableHeaderForSongPos(toSap, info, 'D', player, codeForOneSong, codeForOneSong + 4, 3);
-			writeBytes(module, 0, moduleLen);
+			writeNative(info, module, moduleLen, false);
 			writeByte(224);
 			writeByte(samplesPage);
 			writeByte(255);
@@ -447,7 +488,7 @@ public class ASAPWriter
 			this.player = 1539;
 			if (toSap)
 				writeSapHeader(info, 'B');
-			writeBytes(module, 0, ASAPInfo.getWord(module, 4) - music + 7);
+			writeNative(info, module, moduleLen, false);
 			writeWord(3200);
 			if (info.getSongs() != 1) {
 				writeWord(3210 + info.getSongs());
@@ -478,7 +519,7 @@ public class ASAPWriter
 				this.init -= 3;
 			if (toSap)
 				writeSapHeader(info, 'B');
-			writeBytes(module, 0, moduleLen);
+			writeNative(info, module, moduleLen, false);
 			writeWord(this.init);
 			writeWord(playerLastByte);
 			if (info.getSongs() != 1)
@@ -542,7 +583,7 @@ public class ASAPWriter
 			this.player = 2051;
 			if (toSap)
 				writeSapHeader(info, 'B');
-			writeBytes(module, 0, moduleLen);
+			writeNative(info, module, moduleLen, false);
 			writeWord(4992);
 			if (info.getSongs() != 1) {
 				writeWord(5008);
@@ -680,49 +721,6 @@ public class ASAPWriter
 	}
 
 	/**
-	 * Writes the a native module, possibly extracting it from a SAP file.
-	 * @param info Source file information, optionally with the address changed.
-	 * @param module Contents of the source file.
-	 * @param moduleLen Length of the source file.
-	 */
-	public final byte[] writeNative(ASAPInfo info, byte[] module, int moduleLen) throws ASAPConversionException
-	{
-		final ASAPNativeModuleWriter nativeWriter = new ASAPNativeModuleWriter();
-		nativeWriter.writer = this;
-		nativeWriter.sourceModule = module;
-		this.outputLen = 0;
-		switch (info.type) {
-		case SAP_B:
-		case SAP_C:
-		case SAP_D:
-			int offset = info.getRmtSapOffset(module, moduleLen);
-			if (offset > 0) {
-				nativeWriter.sourceOffset = offset - 2;
-				nativeWriter.write(info, ASAPModuleType.RMT, moduleLen - offset + 2);
-				break;
-			}
-			nativeWriter.sourceOffset = info.headerLen;
-			int blockLen = nativeWriter.getWord(4) - nativeWriter.getWord(2) + 7;
-			if (blockLen < 7 || info.headerLen + blockLen >= moduleLen)
-				throw new ASAPConversionException("Cannot extract module from SAP");
-			if (info.originalType == ASAPModuleType.FC)
-				writeBytes(module, info.headerLen + 6, info.headerLen + blockLen);
-			else
-				nativeWriter.write(info, info.originalType, blockLen);
-			break;
-		case FC:
-		case D15:
-			writeBytes(module, 0, moduleLen);
-			break;
-		default:
-			nativeWriter.sourceOffset = 0;
-			nativeWriter.write(info, info.type, moduleLen);
-			break;
-		}
-		return this.output;
-	}
-
-	/**
 	 * Writes the given module in the SAP format.
 	 * @param info Source file information, with metadata updated for the output.
 	 * @param module Contents of the source file.
@@ -835,7 +833,8 @@ public class ASAPWriter
 			if (possibleExt != null) {
 				int packedPossibleExt = ASAPInfo.packExt(possibleExt);
 				if (destExt == packedPossibleExt || (destExt == 3698036 && packedPossibleExt == 6516084)) {
-					writeNative(info, module, moduleLen);
+					this.outputLen = 0;
+					writeNative(info, module, moduleLen, true);
 					save(targetFilename, this.output, 0, this.outputLen);
 					if (info.type == ASAPModuleType.SAP_D) {
 						switch (info.originalType) {

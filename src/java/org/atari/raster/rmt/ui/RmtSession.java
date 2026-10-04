@@ -153,7 +153,7 @@ public final class RmtSession {
 		tuning = new Tuning(atari.getClockFrequency());
 		pokeyController = new PokeyController(atari);
 		atariTrackerDriver = new AtariTrackerDriver(atari);
-		atariTrackerDriver.loadRMTRoutines(options.trackerDriverVersion); // g_trackerDriverVersion's default; InitInstance runs before rmt.ini is read
+		loadTrackerDriver(options.trackerDriverVersion); // g_trackerDriverVersion's default; InitInstance runs before rmt.ini is read
 		atariTrackerDriver.init();
 		// CInstruments::Update() also writes each instrument's Atari bytes
 		// to $4000 + instr * 256 for the driver (stereo = g_tracks4_8 == 8).
@@ -205,6 +205,20 @@ public final class RmtSession {
 	public void setTrackerDriverVersion(TrackerDriverVersion version) {
 		options.trackerDriverVersion = version;
 		atari.init(song.isNTSC(), tuningSettings, tuningRatios);
-		atariTrackerDriver.loadRMTRoutines(version);
+		loadTrackerDriver(version);
+	}
+
+	/**
+	 * Loads the player routines and says so when they are not there. Both
+	 * programs return 0 from {@code LoadRMTRoutines} and carry on, which
+	 * leaves the emulated Atari playing silence and every export quiet with
+	 * no indication why - a file name typed wrong while testing a driver
+	 * build is enough to cause it (plans/30_DISTRIBUTION_LAYOUT_PLAN.md).
+	 */
+	private void loadTrackerDriver(TrackerDriverVersion version) {
+		if (atariTrackerDriver.loadRMTRoutines(version) <= 0) {
+			messages.sendWarningMessage("RMT", "Could not load the player routines:\n'"
+					+ org.atari.raster.rmt.model.RmtAtariBinaries.getTrackerDriverPath(version) + "'\n\nRMT stays silent and exports no sound until that file is back.\n");
+		}
 	}
 }

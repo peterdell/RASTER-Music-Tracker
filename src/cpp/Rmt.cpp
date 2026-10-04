@@ -4,6 +4,7 @@
 //
 
 #include "AboutDialog.h"
+#include "AtariBinaries.h"
 #include "Commands.h"
 #include "Global.h"
 #include "MainFrm.h"
@@ -182,6 +183,17 @@ BOOL CRmtApp::InitInstance()
     case CCommandLineInfo::FileOpen:
         g_Song.FileOpen(cmdInfo.m_strFileName, FALSE);
         break;
+    }
+
+    // A driver file that is not there leaves the emulated Atari without player
+    // routines: it plays silence and every export is quiet, with nothing said
+    // about it - which one file name typed wrong while testing a driver build
+    // is enough to cause. A script run gets no message box, since nothing
+    // would be there to dismiss it; CScriptRunner::Export() fails the command
+    // instead.
+    if (!g_AtariTrackerDriver->AreRoutinesLoaded() && !cmdInfo.IsScriptFileSpecified()) {
+        CString message = CRmtAtariBinaries::GetMissingTrackerDriverMessage(g_trackerDriverVersion);
+        SendWarningMessage("RMT", (LPCTSTR)message);
     }
 
     // /SCRIPT:<file>: run the script (doc/rmt_scripting.md) and exit with its

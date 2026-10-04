@@ -5209,3 +5209,169 @@ build clean and all 123 tests pass.
     one name. Not verifiable here: only an actual workflow run proves the
     three new runners build; the two ARM runners are free for public
     repositories but not for private ones.
+  - **2026-10-01**: the menus were partly unreadable (the user's
+    screenshots: the accelerator touching the label, the last character
+    clipped, a wide empty gutter). Measured rather than guessed:
+    `ElementFactory.createMenuItem` called `setIconTextGap(0)`, and Swing
+    uses that one value as the gap in four places at once, including the
+    one between the label and the accelerator - every item came out 16
+    pixels narrower than the look and feel intends. The library's
+    compensation, three spaces appended to the label, only applied when
+    the accelerator came from the action, which is why the Pokey register
+    items (their accelerator is set by `RmtMainMenu` afterwards) showed no
+    gap at all, and three spaces recover only 10 of the 16 pixels anyway.
+    Fixed in WUDSN Base by dropping both the zero gap and the hack; the
+    check box variant never had them. The wide gutter is a different
+    thing and was left alone: the Windows look and feel reserves
+    `MenuItem.minimumTextOffset = 31` for the check column, which the
+    check items need.
+  - **2026-10-01**: `plans/30_DISTRIBUTION_LAYOUT_PLAN.md` written and D1
+    implemented. The user's problem: in the jpackage releases the songs
+    and instruments are buried inside the application image (verified
+    against the real artifacts) and `rmt.ini` is written there too, which
+    macOS and Windows both dislike. Their premises: the content ships
+    unpacked as is (no runtime copying), the `resources/` binaries travel
+    with the binary, but dropping in a driver by hand must keep working.
+    D1: the eight `.obx` files are copied into the jar by Maven from the
+    checked-in `rmt/resources` (one copy in git), and `RmtAtariBinaries`
+    looks up a file beside the program first and the jar second, so an
+    override still wins and deleting it goes back to the shipped one.
+    `SapFileExporter.vuPlayerPath()` became `getVUPlayerBinary()`, so both
+    binaries load the same way. Proven twice: `compare_exports.ps1` still
+    reports every exported file identical (the driver bytes decide every
+    export), and the jar alone in an empty folder ran the whole delta
+    script, which needs the drivers and the VU player. D2-D4 open.
+  - **2026-10-01**: D1 reverted the same day it was written. I had read
+    the user's "they can be bundled with the binary" as "inside the jar";
+    they meant beside the jar, as files, and said so once they saw the
+    result ("I would prefer to have the resources besides the jar"). The
+    deciding argument against the jar was not robustness - the
+    application image carries the files when it is moved either way, which
+    was the only thing the jar added - but that replacing a driver in
+    place is how they test, and the download carried 48 KB twice.
+    `RmtAtariBinaries` keeps the better shape the batch introduced
+    (`getVUPlayerBinary()` beside `getTrackerDriverBinary()`, so both load
+    the same way) and `RmtAtariBinariesTest` now covers the replacement.
+    The macOS objection I had raised - the folder sits inside `rmt.app`
+    and writing there invalidates the ad-hoc signature - does not apply,
+    because they do not test replacements on macOS. Plan 30 records this
+    as decision 5.4 and D1 as dropped; D2-D4 are unchanged.
+  - **2026-10-02**: plan 30 D2 and D3. The staging script now produces two
+    trees - `app/` for `jpackage --input` (jar, `resources/`, `docs/`) and
+    `content/` (songs, instruments, exports, the two ini files) - and the
+    workflow copies the second next to the produced image, so all three
+    archives unpack to one folder holding the application and the content
+    beside it. `ProgramFolder` gained `getContentRoot()`, which walks up
+    from the program and install folder (four levels, each also as its
+    `rmt/` sub-folder) looking for `songs` first and `rmt.ini` only
+    afterwards, and `getConfigFolder()`, which is the content root when
+    there is one and otherwise the per-user folder of the system.
+    Two things the tests caught that I had wrong: the working directory
+    must not be searched at all (a program started from a folder that
+    happens to hold songs would adopt it), and a stray `rmt.ini` at the
+    repository root - gitignored, left by running the app from there -
+    outranked the real `rmt/` folder until `songs` became the primary
+    marker. One thing only the packaged run caught: nothing created the
+    per-user folder, so the first start without a content folder reported
+    "Could not create" - `RmtConfig.write` creates the parent now.
+    Verified by building the real Windows image with jpackage: the ini is
+    read and written beside the application and never inside `app/`, and
+    an application copied away from its content still runs and keeps its
+    settings in `%APPDATA%\RMT`. The About box names both folders
+    (decision 5.2). D4, the read-me, is left.
+  - **2026-10-02**: plan 30 finished with D4. `build/release-README.txt`
+    is staged as `README.txt` beside the application: what each folder
+    is, that the folder must stay together, the macOS warning about
+    dragging `rmt.app` out alone, and where a driver build goes for
+    testing - with the path per platform, because it differs
+    (`rmt\app\resources\drivers`, `rmt/lib/app/...`,
+    `rmt.app/Contents/app/...`). The manual gained a "Files and Folders"
+    section naming the per-user folders of all three systems, and the
+    1.36 change history an entry for the new download layout. Checked
+    that both reach the generated HTML the distribution ships.
+  - **2026-10-02**: the user read the manual sentence I had written for D4
+    and asked whether it was still correct: "deleting it again restores
+    the one that was shipped". It was not. That was true only while D1
+    kept a copy inside the jar; after the revert the file under
+    `resources/drivers` is the shipped one, so replacing it overwrites
+    the original and deleting it leaves none. Checking what actually
+    happens turned up something worse than the wrong sentence: a missing
+    driver was silent. `loadRMTRoutines` returns 0, every caller ignored
+    it, and the export script then ran to completion and wrote quiet
+    files - a file name typed wrong while testing a driver build would
+    have looked like a tracker bug. `RmtSession` now warns, naming the
+    file, at start-up and when the Options switch the version; the
+    manual, the read-me beside the application and the plan's section 2.1
+    say to keep a copy of the original first. The C++ program has the same
+    silent return and is not changed here.
+    Lesson for the port: when a batch is reverted, re-read the prose it
+    produced - the code came back but the sentences did not.
+
+  - **2026-10-02**: the same silent failure in the C++ program, which the
+    previous entry had left alone. `LoadRMTRoutines` returns 0 and all three
+    call sites ignored it, so a missing driver file meant no sound and quiet
+    exports with nothing said. `CAtariTrackerDriver` now keeps the state
+    under a name (`AreRoutinesLoaded`), `CRmtAtariBinaries` builds the file
+    path and the message in one place, and the three sites report: `Rmt.cpp`
+    at start-up, `RmtView.cpp` when the Options switch the version, and
+    `CScriptRunner` both on `set driver` and before an export that renders
+    sound. The export formats carry a `rendersSound` flag, because the three
+    data formats write the song itself and must keep working without a
+    driver; the Java port got the same flag, guard and test.
+    The start-up report is skipped for a script run on purpose: a modal box
+    there has nobody to dismiss it, and the export guard covers that case
+    with an exit code.
+
+    Two further defects fell out of verifying it, neither visible from
+    reading the code:
+
+    1. Every error and warning a script run produced was lost whenever the
+       output went to a log file instead of a console. RMT is a windowed
+       program, so it has no standard error stream, and `CScriptRunner::Err`
+       and the script-mode message boxes all wrote to one. Only the exit
+       code reported a failure - including the new driver message, which is
+       how this was noticed. They all go to stdout now. Checked with a
+       deliberately wrong export format: the line reaches the log.
+    2. Removing the old `_dup2` of stderr onto the log file - it looked
+       pointless once nothing of ours wrote there - hung the cross-program
+       test for five minutes. The LZSS exporter prints about 160 KB of
+       statistics to standard error, and with stderr left on the pipe the
+       test hands it and never reads, the pipe filled and the export
+       blocked. The `_dup2` is back, with a comment saying what it carries.
+       Lesson: a redirect with no apparent reader may still have one, and
+       the cross-program test is the only check here that runs the program
+       with pipes rather than a console.
+
+    Verified: Release build of both C++ targets, 430 C++ tests, 662 Java
+    tests, `compare_exports.ps1` identical for all four scripts, and a
+    packaged run with `rmt_driver_v6.obx` renamed aside - the script stops
+    at the first sound export, names the full path, and writes no file,
+    while `export asm` before it still succeeds.
+
+  - **2026-10-04**: plan 31, steps A1-A4. The two general-purpose methods
+    the port had hand-added to ASAP are now expressed in ASAP's own
+    portable sources and generated, rather than patched into generated
+    Java: `stepFrame` and `getPokeyRegisterShadow`, plus the one word that
+    makes `Skctl` readable. Verifying that carried the port's ASAP from the
+    8.0.0 release to upstream `28af663`, 28 commits.
+
+    Two things only the real build could have told us. The transpiler
+    rejects an unchecked throw, so the accessor masks its offset the way
+    upstream's own channel-volume accessor does. And `Pokey.endSongInit()`,
+    which the RMT-mode block called, no longer exists; dropping the call
+    compiled cleanly and silenced the emulated POKEY. That call had never
+    been about the mute bit it names - `setMute(false, ...)` also takes a
+    channel off NEVER so it ticks at all, and upstream only reaches that
+    path when a player pokes SKCTL, which RMT mode never does because its
+    hardware pages are plain RAM.
+
+    The port now carries one hand addition instead of four: the RMT-mode
+    section and its two guards. 662 Java tests pass and
+    `compare_exports.ps1` still reports every exported file identical in
+    both programs, which is the real check that the regenerated emulation
+    produces the same register stream.
+
+    Also done: the six-platform release workflow was run for the first time
+    since the distribution layout changed (run 37193177257, all six green),
+    and both ASAP clones moved to the Fusion folder.
+

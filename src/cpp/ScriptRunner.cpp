@@ -3,6 +3,7 @@
 #include "ASMFileExporter.h"
 #include "AssemblerTypes.h"
 #include "Atari.h"
+#include "AtariBinaries.h"
 #include "AtariTrackerDriver.h"
 #include "Commands.h"
 #include "Global.h"
@@ -60,20 +61,32 @@ struct TExportFormat {
     const char* extension;
     SongIOType ioType;
     std::vector<std::string> options;
+    // Whether the format is produced by running the song on the emulated
+    // Atari, which needs the player routines: without them the POKEY stream
+    // these formats are built from is silence. The other three write the song
+    // data itself and do not care.
+    bool rendersSound;
 };
 
 const std::vector<TExportFormat>& ExportFormats() {
     static const std::vector<TExportFormat> formats = {
-        { "stripped-rmt", ".rmt", SongIOType::RMTSTRIPPED, { "address", "sfx", "gvf", "nos", "asmformat" } },
-        { "asm", ".asm", SongIOType::ASM, { "type", "notes", "durations", "prefix" } },
-        { "sapr", ".sapr", SongIOType::SAPR, { "author", "name", "date", "subsongs" } },
-        { "lzss", ".lzss", SongIOType::LZSS, {} },
-        { "sap", ".sap", SongIOType::LZSS_SAP, { "author", "name", "date", "subsongs" } },
-        { "xex", ".xex", SongIOType::LZSS_XEX, { "text", "rasterbar", "shuffle", "region-auto", "color" } },
-        { "rmtplayer-asm", ".asm", SongIOType::ASM_RMTPLAYER, { "startlabel", "relocate", "instruments-label", "tracks-label", "songlines-label", "asmformat", "sfx", "gvf", "nos" } },
-        { "wav", ".wav", SongIOType::WAV, {} },
+        { "stripped-rmt", ".rmt", SongIOType::RMTSTRIPPED, { "address", "sfx", "gvf", "nos", "asmformat" }, false },
+        { "asm", ".asm", SongIOType::ASM, { "type", "notes", "durations", "prefix" }, false },
+        { "sapr", ".sapr", SongIOType::SAPR, { "author", "name", "date", "subsongs" }, true },
+        { "lzss", ".lzss", SongIOType::LZSS, {}, true },
+        { "sap", ".sap", SongIOType::LZSS_SAP, { "author", "name", "date", "subsongs" }, true },
+        { "xex", ".xex", SongIOType::LZSS_XEX, { "text", "rasterbar", "shuffle", "region-auto", "color" }, true },
+        { "rmtplayer-asm", ".asm", SongIOType::ASM_RMTPLAYER, { "startlabel", "relocate", "instruments-label", "tracks-label", "songlines-label", "asmformat", "sfx", "gvf", "nos" }, false },
+        { "wav", ".wav", SongIOType::WAV, {}, true },
     };
     return formats;
+}
+
+// The script's version of CRmtAtariBinaries::GetMissingTrackerDriverMessage()
+// - one line, naming the file, for a CScriptError rather than a box.
+std::string MissingTrackerDriverText() {
+    CString filePath = CRmtAtariBinaries::GetTrackerDriverFilePath(g_trackerDriverVersion);
+    return "The player routines were not loaded from '" + std::string((LPCTSTR)filePath) + "', so RMT is silent and would export no sound.";
 }
 
 std::string Lower(std::string s) {
@@ -253,6 +266,12 @@ void RedirectScriptOutputToFile(const CString& logPath) {
     FILE* stream = nullptr;
     freopen_s(&stream, logPath, "w", stdout);
     setvbuf(stdout, nullptr, _IONBF, 0);
+    // The descriptor behind stderr has to follow, even though nothing of
+    // RMT's own is written through it any more (see CScriptRunner::Err()):
+    // the LZSS exporter prints its statistics to standard error, some 160 KB
+    // of them for one song. Left on the descriptor it inherited, that fills
+    // whatever is on the other end - a pipe nobody reads, in the
+    // cross-program test, which blocks the export and hangs the run.
     _dup2(_fileno(stdout), _fileno(stderr));
     setvbuf(stderr, nullptr, _IONBF, 0);
 }
@@ -263,7 +282,7 @@ CScriptRunner::CScriptRunner(CSong& song) : m_song(song) {
 int CScriptRunner::RunFile(const CString& scriptFilePath) {
     std::ifstream in(scriptFilePath, std::ios::binary);
     if (!in) {
-        fprintf(stderr, "The script file '%s' cannot be read.\n", (LPCTSTR)scriptFilePath);
+        printf("The script file '%s' cannot be read.\n", (LPCTSTR)scriptFilePath); // stdout - see Err()
         return EXIT_SCRIPT_INVALID;
     }
     std::stringstream buffer;
@@ -273,7 +292,7 @@ int CScriptRunner::RunFile(const CString& scriptFilePath) {
         commands = CScriptParser::Parse(CScriptParser::SplitLines(buffer.str()));
     } catch (const CScriptError& e) {
         std::filesystem::path p((LPCTSTR)scriptFilePath);
-        fprintf(stderr, "%s: %s\n", p.filename().string().c_str(), e.GetLocatedMessage().c_str());
+        printf("%s: %s\n", p.filename().string().c_str(), e.GetLocatedMessage().c_str()); // stdout - see Err()
         return EXIT_SCRIPT_INVALID;
     }
     std::filesystem::path folder = std::filesystem::absolute(std::filesystem::path((LPCTSTR)scriptFilePath)).parent_path();
@@ -313,7 +332,13 @@ void CScriptRunner::Out(const std::string& line) {
 }
 
 void CScriptRunner::Err(const std::string& line) {
-    fprintf(stderr, "%s\n", line.c_str());
+    // stdout, not stderr. RMT is a GUI program, so it starts with no stderr
+    // stream, and neither freopen() nor _dup2() makes one: every error line
+    // written there was dropped, and a failed command left nothing behind but
+    // the exit code - not in the console, and not in the log the
+    // cross-program comparison prints when a run fails. The script's output
+    // is one merged stream either way, so there is nothing to keep apart.
+    printf("%s\n", line.c_str());
     if (m_capture != nullptr) {
         *m_capture += line + "\n";
     }
@@ -449,6 +474,11 @@ void CScriptRunner::Export(const TScriptCommand& command) {
     }
     if (format == nullptr) {
         throw CScriptError(command.line, "Unknown export format '" + command.GetArgument(0) + "'; one of " + Join(formatNames, ", ") + ".");
+    }
+    if (format->rendersSound && !g_AtariTrackerDriver->AreRoutinesLoaded()) {
+        // The export would otherwise run to the end and write a quiet file,
+        // which looks like a tracker bug rather than a missing file.
+        throw CScriptError(command.line, MissingTrackerDriverText());
     }
     for (const auto& option : command.options) {
         bool known = false;
@@ -650,6 +680,9 @@ void CScriptRunner::Set(const TScriptCommand& command) {
             g_trackerDriverVersion = version;
             g_Atari.Init(m_song.IsNTSC());
             g_AtariTrackerDriver->LoadRMTRoutines(g_trackerDriverVersion);
+            if (!g_AtariTrackerDriver->AreRoutinesLoaded()) {
+                throw CScriptError(command.line, MissingTrackerDriverText());
+            }
         }
     } else if (name == "midi-touch-response") {
         // the Options dialog's MIDI settings (for the midi command: the same recording rules as a real device)

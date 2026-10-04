@@ -25,6 +25,8 @@ import com.wudsn.tools.base.Actions;
 import com.wudsn.tools.base.gui.Desktop;
 import com.wudsn.tools.base.gui.ElementFactory;
 
+import org.atari.raster.rmt.model.ProgramFolder;
+
 import net.sf.asap.ASAPInfo;
 
 /**
@@ -67,7 +69,7 @@ final class AboutDialog extends JDialog {
 		}
 		c.gridx = 0;
 		c.gridy = 0;
-		c.gridheight = 3;
+		c.gridheight = 5;
 		c.anchor = GridBagConstraints.NORTHWEST;
 		c.fill = GridBagConstraints.NONE;
 		content.add(icon, c);
@@ -81,15 +83,24 @@ final class AboutDialog extends JDialog {
 		c.gridy = 2;
 		content.add(createLinkLabel(Texts.AboutDialog_Repository), c);
 
+		// Where the program found its content and where it keeps its settings.
+		// An application separated from its content still runs - the Atari
+		// binaries travel inside it - so this is the only place that says so
+		// (plans/30_DISTRIBUTION_LAYOUT_PLAN.md, decision 5.2).
+		c.gridy = 3;
+		content.add(new JLabel(Texts.AboutDialog_ContentFolder + " " + contentFolderText()), c);
+		c.gridy = 4;
+		content.add(new JLabel(Texts.AboutDialog_SettingsFolder + " " + ProgramFolder.getConfigFolder()), c);
+
 		c.gridx = 0;
 		c.gridwidth = 2;
-		c.gridy = 3;
-		content.add(new JLabel(Texts.AboutDialog_PokeyEmulation), c);
-		c.gridy = 4;
-		content.add(createTextBox(asapAbout("POKEY emulation")), c);
 		c.gridy = 5;
-		content.add(new JLabel(Texts.AboutDialog_Cpu6502Emulation), c);
+		content.add(new JLabel(Texts.AboutDialog_PokeyEmulation), c);
 		c.gridy = 6;
+		content.add(createTextBox(asapAbout("POKEY emulation")), c);
+		c.gridy = 7;
+		content.add(new JLabel(Texts.AboutDialog_Cpu6502Emulation), c);
+		c.gridy = 8;
 		content.add(createTextBox(asapAbout("6502 emulation")), c);
 
 		JButton okButton = ElementFactory.createButton(Actions.ButtonBar_OK, false);
@@ -113,6 +124,15 @@ final class AboutDialog extends JDialog {
 		JTextArea area = new JTextArea(text, 3, 60);
 		area.setEditable(false);
 		return new JScrollPane(area);
+	}
+
+	/** The content folder, or the note that the application was separated from it. */
+	private static String contentFolderText() {
+		java.nio.file.Path contentRoot = ProgramFolder.getContentRoot();
+		if (contentRoot != null) {
+			return contentRoot.toString();
+		}
+		return java.text.MessageFormat.format(Texts.AboutDialog_ContentFolderMissing, ProgramFolder.get());
 	}
 
 	/** {@code ON_STN_CLICKED(IDC_RMT_REPOSITORY)} -> {@code CShell::OpenFile(url)}. */
