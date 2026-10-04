@@ -5375,3 +5375,32 @@ build clean and all 123 tests pass.
     since the distribution layout changed (run 37193177257, all six green),
     and both ASAP clones moved to the Fusion folder.
 
+  - **2026-10-04**: plan 24 finished. E2, the C++ progress dialog with
+    Cancel, was ruled out by the user: the C++ program is being phased out,
+    so a dialog only it would ever show is not worth building. E1's own
+    numbers agreed - the longest export measured was under two seconds.
+
+    E3 moved the Java export off the event thread. The work was less about
+    threading than about where to cut: the format dialogs are opened from
+    inside the export, so the export could not simply be handed to a worker
+    whole. `SongFiles.fileExportAs()` is now a prepare step that keeps the
+    file chooser on the event thread and a run step that does the dump and
+    the writing; `fileExportAs()` still calls both, so scripts and tests did
+    not change. The window runs the run step in a `SwingWorker` holding the
+    session lock, and the host shows the format dialogs on the event thread
+    through an `onEdt` helper, as `SwingMessages` already did.
+
+    Two choices worth remembering. Cancellation is a flag the worker sets,
+    not `SwingWorker.cancel`: `cancel(false)` does not take effect on a task
+    that is already running, and `cancel(true)` would interrupt a thread
+    holding the session lock mid-write. And a cancelled dump leaves an
+    incomplete stream, so the export is treated as failed and the file
+    deleted - but without the "Export aborted" warning, since the user asked
+    for it.
+
+    666 tests pass. One run of `CrossProgramExportTest` failed on the way
+    with an access violation in `Rmt.exe` on the MIDI script (0xc0000005);
+    three standalone runs of the same script and two further runs of the
+    test were clean, so it is recorded as an intermittent crash rather than
+    chased, in a program that is being retired.
+

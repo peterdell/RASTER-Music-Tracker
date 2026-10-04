@@ -66,6 +66,19 @@ public final class RmtCommands {
 		/** {@code CRmtApp::OnHelpAboutApp()}: the About dialog. */
 		void showAbout();
 
+		/**
+		 * Runs the slow part of an export off the event thread, reporting its
+		 * progress and offering a way to stop it
+		 * (plans/24_EXPORT_SCREEN_UPDATES_PLAN.md, batch E3). The window stays
+		 * responsive while it runs; a second export is refused until it ends.
+		 * <p>The default runs the export where it stands, which is what a host
+		 * without a worker thread wants: the tests, and anything driving the
+		 * commands headlessly.
+		 */
+		default void runExport(String name, java.util.function.Function<org.atari.raster.rmt.model.ExportProgress, Boolean> work) {
+			work.apply(org.atari.raster.rmt.model.ExportProgress.NONE);
+		}
+
 		/** Tools > Run Script...: the script file to run, {@code null} if cancelled. */
 		java.nio.file.Path chooseScriptFile();
 	}
@@ -270,7 +283,14 @@ public final class RmtCommands {
 		case FILE_SAVE -> onFileSave();
 		case FILE_SAVE_AS -> songFiles.fileSaveAs();
 		case FILE_IMPORT -> songFiles.fileImport();
-		case FILE_EXPORT -> songFiles.fileExportAs();
+		case FILE_EXPORT -> {
+			// The file name is asked for here, on the event thread; the dump and
+			// the writing go to a worker (plan 24, E3).
+			SongFiles.ExportRequest request = songFiles.prepareExportAs();
+			if (request != null) {
+				host.runExport(request.file().getFileName().toString(), progress -> songFiles.runExportAs(request, progress));
+			}
+		}
 		case FILE_PRINT, FILE_PRINT_PREVIEW, FILE_PRINT_SETUP, FILE_PROPERTIES -> host.notAvailable("Printing");
 		case FILE_EXIT -> host.exit();
 

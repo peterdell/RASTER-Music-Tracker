@@ -435,4 +435,22 @@ class RmtCommandsTest {
 		assertEquals("Track: 05\nUsing in song:\nL1: 0   L2: 0   L3: 2   L4: 0   R1: 0   R2: 1   R3: 0   R4: 0   \nUsed in 3 songlines, globally 3 times.", commands.trackInfoText(5));
 		assertNull(commands.getLabel(RmtCommandId.TRACK_INFOABOUTUSINGOFACTUALTRACK));
 	}
+
+	/**
+	 * File > Export now asks for the file name and then hands the slow part to
+	 * the host (plans/24_EXPORT_SCREEN_UPDATES_PLAN.md, batch E3). A host
+	 * without a worker thread, like this one, runs it where it stands, so the
+	 * command still writes the file by the time it returns.
+	 */
+	@Test
+	void theExportCommandAsksForTheFileAndThenRunsTheExport() throws java.io.IOException {
+		java.nio.file.Path out = java.nio.file.Files.createTempDirectory("rmt-export").resolve("song.rmt");
+		filesHost.answer(out, 1); // stripped RMT, whose dialog the stub answers
+		filesHost.nextStrippedRmt = new SongFiles.StrippedRmtChoice(0x4000, org.atari.raster.rmt.model.AssemblerFormat.XASM, false, false, false);
+
+		commands.execute(RmtCommandId.FILE_EXPORT);
+
+		assertTrue(java.nio.file.Files.exists(out), "the export command wrote nothing");
+		assertTrue(java.nio.file.Files.size(out) > 0);
+	}
 }

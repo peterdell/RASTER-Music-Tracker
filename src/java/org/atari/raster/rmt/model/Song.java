@@ -4056,6 +4056,16 @@ public final class Song {
 	 * registers stay zero, as in the C++ test build.
 	 */
 	public void dumpSongToPokeyStream(PokeyStream pokeyStream, PlayMode initialPlayMode, int songLine, int trackLine, int tracks4_8, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
+		dumpSongToPokeyStream(pokeyStream, initialPlayMode, songLine, trackLine, tracks4_8, atariTrackerDriver, channelControl, clipboard, undo, ExportProgress.NONE);
+	}
+
+	/**
+	 * The same dump, reporting its frame count and stopping when the progress
+	 * asks it to (plans/24_EXPORT_SCREEN_UPDATES_PLAN.md, batch E3). A dump
+	 * that was cancelled leaves an incomplete stream behind, so the caller
+	 * must check {@link ExportProgress#isCancelled()} before using it.
+	 */
+	public void dumpSongToPokeyStream(PokeyStream pokeyStream, PlayMode initialPlayMode, int songLine, int trackLine, int tracks4_8, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo, ExportProgress progress) {
 		int savedSongActiveLine = songActiveLine; // the dump plays from its own start line and must not move the cursor (as C++ since 2026-09-28)
 		int savedTrackActiveLine = trackActiveLine;
 		stop(undo); // Make sure RMT is stopped
@@ -4072,7 +4082,15 @@ public final class Song {
 		trackActiveLine = trackLine;
 		play(initialPlayMode, followplay, 0, undo, tracks4_8, atariTrackerDriver, clipboard, pokeyStream);
 
+		// The frame count goes out about four times a second, by wall clock, as
+		// the C++ status text does - not once per frame, which would cost more
+		// than the dump itself.
+		long lastReport = System.nanoTime();
 		while (playMode != PlayMode.PLAY_STOP) {
+			if (progress.isCancelled()) {
+				break;
+			}
+
 			// 1 VBI of module playback (play() above cleared any pending quantized note, so the volume rule cannot matter here - false)
 			playVBI(tracks4_8, atariTrackerDriver, pokeyStream, false, undo);
 
@@ -4082,6 +4100,12 @@ public final class Song {
 				atariTrackerDriver.play();
 				// Transfer from memory to POKEY buffer
 				pokeyStream.record();
+			}
+
+			long now = System.nanoTime();
+			if (now - lastReport >= 250_000_000L) {
+				lastReport = now;
+				progress.framesRecorded(pokeyStream.getCurrentFrame());
 			}
 		}
 		atariTrackerDriver.init(); // Reset the RMT routines

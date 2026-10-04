@@ -2,7 +2,9 @@
 
 Status: **approved 2026-09-28** (decisions 1-3 as recommended, D and E
 later); **E1 DONE 2026-09-28** - A, B and C as proposed, measured
-(section 6). Origin: the user's
+(section 6); **E2 RULED OUT 2026-10-04**; **E3 DONE 2026-10-04**
+(section 7).
+Origin: the user's
 observation that the C++ program updates the screen during exports,
 "probably due to reusing the UI logic/timer", which creates visual noise
 and slows the export down.
@@ -137,8 +139,14 @@ but it is a Java-only improvement and a separate batch.
   the Java port gets C (no traces) so both dumps stay comparable
   (`CrossProgramExportTest` must stay byte-identical - the export data does
   not depend on any of this); NOTES with the measured numbers.
-- **E2** (optional, later): D for the C++ program.
-- **E3** (optional, later): E for the Java port.
+- **E2** ~~D for the C++ program~~ - **RULED OUT 2026-10-04**. The C++
+  program is being phased out and will be removed once the Java port has
+  taken over, so a new dialog that only it would ever show is not worth
+  building. E1's own measurements argue the same way: the longest export
+  measured was 1.98 seconds, and a Cancel button for two seconds of work
+  is machinery nobody would use. The status text E1 added stays as the
+  whole of the C++ progress display.
+- **E3** (DONE 2026-10-04): E for the Java port - see section 7.
 
 ## 5. Decisions requested
 
@@ -150,9 +158,10 @@ but it is a Java-only improvement and a separate batch.
    moves today.
 4. **D** Cancel support: now, later, or not at all. *Recommended: later*
    (E2), once A shows how long the exports really take without the
-   redraws.
+   redraws. **Decided 2026-10-04: not at all** - see E2 in section 4.
 5. **E** the Java port's export on a worker thread with progress. *Later*
-   (E3), if the frozen window during long exports bothers.
+   (E3), if the frozen window during long exports bothers. **Done
+   2026-10-04**, see section 7.
 
 ## 6. E1 as built, and what the measurement showed
 
@@ -196,3 +205,40 @@ but it is a Java-only improvement and a separate batch.
   `g_playtime`; the Java dump restores the active lines and
   `SongFiles.fileExportAs` the UI's play time. Tests in both programs.
 
+## 7. E3 as built
+
+The export is split in two. `SongFiles.prepareExportAs()` keeps what belongs
+on the event thread - stopping playback, checking the module, asking for the
+file name, creating the file - and returns an `ExportRequest`, or null when
+the user cancelled. `SongFiles.runExportAs(request, progress)` does the slow
+part: the format's own dialog, the register dump and the writing.
+`fileExportAs()` still calls both in order, so every script and every test is
+unchanged and runs on whatever thread it was on.
+
+`RmtMainWindow` runs the slow part in a `SwingWorker` that holds
+`RmtSession.lock` for its whole run, so the audio thread waits for it instead
+of racing it - the same guarantee the C++ program gets by stopping its song
+timer. The window stays responsive, and the status line counts the frames.
+The format dialogs are Swing components, so the host now shows them on the
+event thread through an `onEdt` helper, the way `SwingMessages` already
+showed the message boxes.
+
+Progress and cancellation travel through `ExportProgress` (in the model, so
+the dump stays free of any UI): `framesRecorded` about four times a second by
+wall clock, as the C++ status text does, and `isCancelled` polled once per
+frame. Cancelling is a flag the worker sets, not an interrupt, since
+interrupting would leave the lock and a half-written file in an unclear
+state. A cancelled dump leaves an incomplete stream, so `runExportAs` treats
+it as a failure and deletes the file - without the "Export aborted" warning,
+because the user asked for it. A Cancel button appears beside the status line
+while an export runs, and a second export is refused until the first ends.
+
+Note that the Cancel the C++ program will never get (E2) comes to the Java
+port for free here: the worker needs a cancellation path anyway.
+
+Verified: 666 tests pass, including three new ones - the two-phase export
+writes exactly what the single call writes, a cancelled export leaves no file
+and no warning, and the frame count never goes backwards - plus one that the
+File > Export command still writes its file through the new split. The
+cross-program comparison still reports every exported file identical in both
+programs, and the window was started to confirm the status bar's new layout.

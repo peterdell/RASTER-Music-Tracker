@@ -16,7 +16,9 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.SwingWorker;
 import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -81,6 +83,10 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 	private final JPanel toolBarPanel = new JPanel();
 	/** C++'s status bar shows the command prompts and {@code SetStatusBarText()} messages; a plain label until B9 decides on WUDSN's {@code StatusBar}. */
 	private final JLabel statusLine = new JLabel(" ");
+	/** The status line and, while an export runs, its Cancel button (plan 24, E3). */
+	private final JPanel statusPanel = new JPanel();
+	private final JButton cancelExport = new JButton("Cancel");
+	private ExportTask exportTask;
 
 	public RmtMainWindow(RmtSession session, RmtConfig config, RmtWindowPreferences preferences) {
 		this.session = session;
@@ -148,7 +154,17 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 		frame.setLayout(new BorderLayout());
 		frame.add(toolBarPanel, BorderLayout.NORTH);
 		frame.add(trackerPanel, BorderLayout.CENTER);
-		frame.add(statusLine, BorderLayout.SOUTH);
+		statusPanel.setLayout(new BorderLayout());
+		statusPanel.add(statusLine, BorderLayout.CENTER);
+		cancelExport.setVisible(false);
+		cancelExport.setFocusable(false);
+		cancelExport.addActionListener(e -> {
+			if (exportTask != null) {
+				exportTask.requestCancel();
+			}
+		});
+		statusPanel.add(cancelExport, BorderLayout.EAST);
+		frame.add(statusPanel, BorderLayout.SOUTH);
 		frame.pack();
 		frame.setLocationRelativeTo(null);
 		// CMainFrame::PreCreateWindow: "only restore if there is a previously saved position"
@@ -248,7 +264,7 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 		toolBars.mainToolBar.setVisible(view.mainToolbar);
 		toolBars.blockToolBar.setVisible(view.blockToolbar);
 		toolBarPanel.setVisible(view.mainToolbar || view.blockToolbar);
-		statusLine.setVisible(view.statusBar);
+		statusPanel.setVisible(view.statusBar);
 		getFrame().revalidate();
 	}
 
@@ -425,27 +441,27 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 
 	@Override
 	public SongFiles.StrippedRmtChoice showExportStrippedRmt(SongFiles.ModuleDescription stripped, SongFiles.ModuleDescription withSfx, String filename) {
-		return session.unlocked(() -> new ExportStrippedRmtDialog(getFrame(), session, stripped, withSfx, filename).showDialog());
+		return session.unlocked(() -> onEdt(() -> new ExportStrippedRmtDialog(getFrame(), session, stripped, withSfx, filename).showDialog()));
 	}
 
 	@Override
 	public SongFiles.AsmChoice showExportAsm() {
-		return session.unlocked(() -> new ExportAsmDialog(getFrame(), session.exportSettings.prefixForAllAsmLabels).showDialog());
+		return session.unlocked(() -> onEdt(() -> new ExportAsmDialog(getFrame(), session.exportSettings.prefixForAllAsmLabels).showDialog()));
 	}
 
 	@Override
 	public org.atari.raster.rmt.model.AsmFileExporter.RelocatableAsmExportParams showExportRelocatableAsm(SongFiles.ModuleDescription stripped, SongFiles.ModuleDescription withSfx) {
-		return session.unlocked(() -> new ExportRelocatableAsmDialog(getFrame(), session, stripped, withSfx).showDialog());
+		return session.unlocked(() -> onEdt(() -> new ExportRelocatableAsmDialog(getFrame(), session, stripped, withSfx).showDialog()));
 	}
 
 	@Override
 	public SongFiles.SapChoice showExportSap(org.atari.raster.rmt.model.SapFile sapFile, String subsongs) {
-		return session.unlocked(() -> new ExportSapDialog(getFrame(), sapFile, subsongs).showDialog());
+		return session.unlocked(() -> onEdt(() -> new ExportSapDialog(getFrame(), sapFile, subsongs).showDialog()));
 	}
 
 	@Override
 	public SongFiles.XexChoice showExportXex(String text, String speedInfo) {
-		return session.unlocked(() -> new ExportXexDialog(getFrame(), session.exportSettings, text, speedInfo).showDialog());
+		return session.unlocked(() -> onEdt(() -> new ExportXexDialog(getFrame(), session.exportSettings, text, speedInfo).showDialog()));
 	}
 
 	// ---- SongDialogs.Host: the editing dialogs ----
@@ -503,5 +519,100 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 
 	public AudioEngine getAudioEngine() {
 		return audioEngine;
+	}
+
+	/**
+	 * Runs {@code action} on the event thread and returns its result,
+	 * whichever thread asks. Needed since the export moved to a worker
+	 * (plan 24, E3): the format dialogs it opens are Swing components, and
+	 * only the event thread may touch those. {@link SwingMessages} does the
+	 * same for the message boxes.
+	 */
+	private <T> T onEdt(java.util.function.Supplier<T> action) {
+		if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+			return action.get();
+		}
+		java.util.concurrent.atomic.AtomicReference<T> result = new java.util.concurrent.atomic.AtomicReference<>();
+		try {
+			javax.swing.SwingUtilities.invokeAndWait(() -> result.set(action.get()));
+		} catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+		} catch (java.lang.reflect.InvocationTargetException ex) {
+			throw new IllegalStateException(ex.getCause());
+		}
+		return result.get();
+	}
+
+	@Override
+	public void runExport(String name, java.util.function.Function<org.atari.raster.rmt.model.ExportProgress, Boolean> work) {
+		if (exportTask != null && !exportTask.isDone()) {
+			session.messages.sendWarningMessage("Export", "An export is already running.");
+			return;
+		}
+		exportTask = new ExportTask(name, work);
+		cancelExport.setVisible(true);
+		statusLine.setText("Exporting " + name + "...");
+		exportTask.execute();
+	}
+
+	/**
+	 * An export on a worker thread (plan 24, E3). It holds the session lock
+	 * for its whole run, so the audio thread waits for it instead of racing
+	 * it - the same guarantee the C++ program gets by stopping its song timer
+	 * for the export. Cancelling sets a flag the dump loop polls; the
+	 * worker is never interrupted, because that would leave the lock and the
+	 * half-written file in an unclear state.
+	 */
+	private final class ExportTask extends SwingWorker<Boolean, Integer> {
+
+		private final String name;
+		private final java.util.function.Function<org.atari.raster.rmt.model.ExportProgress, Boolean> work;
+		private volatile boolean cancelRequested;
+
+		private final org.atari.raster.rmt.model.ExportProgress progress = new org.atari.raster.rmt.model.ExportProgress() {
+			@Override
+			public void framesRecorded(int frames) {
+				publish(frames);
+			}
+
+			@Override
+			public boolean isCancelled() {
+				return cancelRequested;
+			}
+		};
+
+		ExportTask(String name, java.util.function.Function<org.atari.raster.rmt.model.ExportProgress, Boolean> work) {
+			this.name = name;
+			this.work = work;
+		}
+
+		void requestCancel() {
+			cancelRequested = true;
+		}
+
+		@Override
+		protected Boolean doInBackground() {
+			return session.locked(() -> work.apply(progress));
+		}
+
+		@Override
+		protected void process(java.util.List<Integer> frames) {
+			statusLine.setText("Exporting " + name + "... " + frames.get(frames.size() - 1) + " frames recorded");
+		}
+
+		@Override
+		protected void done() {
+			cancelExport.setVisible(false);
+			boolean written = false;
+			try {
+				written = get();
+			} catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+			} catch (java.util.concurrent.ExecutionException ex) {
+				session.messages.sendErrorMessage("Export error", String.valueOf(ex.getCause()));
+			}
+			statusLine.setText(cancelRequested ? "Export of " + name + " cancelled." : written ? "Exported " + name + "." : " ");
+			trackerPanel.refreshScreen(); // the export moved the play state about; show the song as it is now
+		}
 	}
 }
