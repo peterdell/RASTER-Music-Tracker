@@ -238,6 +238,7 @@ public final class PokeyView {
 					if (SAWTOOTH && !SAWTOOTH_INVERTED) {
 						canvas.printMini("CH1: HIGH PASS FILTER, SAWTOOTH");
 					} else {
+						// TODO: Dead code?
 						if (SAWTOOTH && SAWTOOTH_INVERTED) {
 							canvas.printMini("CH1: HIGH PASS FILTER, SAWTOOTH (INVERTED)");
 						} else {
