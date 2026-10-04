@@ -1,6 +1,7 @@
 # Plan 31: Contribute RMT's ASAP changes upstream
 
-Status: IN PROGRESS. A1 done 2026-10-04; A2-A6 open.
+Status: IN PROGRESS. A1-A4 done 2026-10-04; A5 (the merge request)
+and A6 (the RMT-mode block) open.
 
 Offer the changes the Java port made to ASAP (Another Slight Atari Player)
 back to its author, Piotr Fusik ("Fox"), as merge requests on SourceForge,
@@ -92,17 +93,47 @@ The seven methods split into two groups.
   passphrase protected, selected through a `~/.ssh/config` host block).
   A successful connection answers "Interactive git shell is not enabled",
   which is `git-shell` refusing a login, not a failure.
-- **A2** Re-express `stepFrame` and `getPokeyRegisterShadow` in `asap.fu`.
+- **A2** (DONE 2026-10-04) Re-express `stepFrame` and `getPokeyRegisterShadow` in `asap.fu`.
   The first is a one-line wrapper. The second reads the channel and control
   fields directly. The `skctl` widening then disappears: the transpiler
   decides generated visibility, so a correctly placed accessor needs no
   hand edit.
-- **A3** Regenerate and commit `asap.c`/`asap.h` alongside the sources.
-- **A4** Verify against this repository before sending anything: build
+- **A3** (DONE 2026-10-04) Regenerate and commit `asap.c`/`asap.h` alongside the sources.
+- **A4** (DONE 2026-10-04) Verify against this repository before sending anything: build
   `java/asap.jar` from the regenerated sources, drop it into the port in
   place of the patched copy, and run the suite. `LivePlaybackTest`, which
   plays an exported module against ASAP's independent emulation, is the
   test that would catch a translation slip.
+  What A2-A4 turned up, all of it worth knowing before A6:
+
+  - The transpiler enforces checked exceptions, so throwing for a bad
+    register offset would have put `throws ASAPArgumentException` on the
+    signature and on every caller. Upstream's comparable accessor,
+    `GetPokeyChannelVolume`, validates nothing and masks its index; the
+    contribution does the same. The port's own version threw
+    `IllegalArgumentException`, which no caller relied on.
+  - `Skctl` lacked `internal` in `pokey.fu`, so widening it did not
+    disappear as expected - it moved from a hand edit in generated Java to
+    one word in the portable source, which is the right place for it.
+  - Regenerating needs `xasm` on the path, from
+    `C:\jac\system\Atari800\Tools\ASM\XASM`: the 6502 player routines are
+    not tracked and are assembled from source as a prerequisite of
+    `asap.c`.
+  - Verifying meant carrying the port's ASAP from the 8.0.0 release to
+    upstream `28af663`, 28 commits. `ASAPNativeModuleWriter` is gone and
+    `ASAPModuleTransfer` takes its place; nothing in RMT referenced the
+    former.
+  - `Pokey.endSongInit()` no longer exists, and the RMT-mode block called
+    it. Removing the call compiled but silenced the emulated POKEY,
+    failing `AtariCpuTest`. The call had never really been about the mute
+    bit: `setMute(false, ...)` also takes a channel's `tickCycle` off
+    NEVER, which is what lets it tick at all. Upstream reaches that path
+    when a player pokes SKCTL, which RMT mode never does, since its
+    hardware pages are plain RAM. The block now calls
+    `setMute(false, PokeyChannel.MUTE_INIT, 0)` on all eight channels.
+    Lesson: a call into this library may matter for a side effect rather
+    than for its name.
+
 - **A5** Push the branch to the fork and open the merge request from the
   fork's Git page against `master` in `p/asap/code`.
 - **A6** Only once A1-A5 have landed or been answered, repeat for the

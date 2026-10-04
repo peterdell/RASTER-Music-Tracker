@@ -1,12 +1,12 @@
-// Generated automatically with "fut". Do not edit,
-// EXCEPT for the RMT-specific additions - the two methods appended after
-// the upstream code (stepFrame/getPokeyRegisterShadow), the "RMT mode"
-// section after them (rmt* methods: RMT's own tracker driver run on this
-// CPU with plain-RAM hardware pages and a directly fed POKEY pair), and
-// the two rmtMode checks at the top of peekHardware/pokeHardware that
-// section needs - see their own javadoc. Everything else in this file
-// (and every other file in this package) is vendored, unmodified, from
-// asap-8.0.0-java-src.zip (see lib/java/README.md).
+// Generated automatically with "fut". Do not edit, EXCEPT for the RMT-specific
+// additions: the "RMT mode" section appended after the upstream code (rmt*
+// methods: RMT's own tracker driver run on this CPU with plain-RAM hardware
+// pages and a directly fed POKEY pair) and the two rmtMode checks at the top
+// of peekHardware/pokeHardware that it needs - see their own javadoc.
+// stepFrame() and getPokeyRegisterShadow() used to be hand-added here too;
+// they are generated now, from the portable sources (plans/31).
+// Everything else in this file, and every other file in this package, is
+// generated from ASAP's own .fu sources (see lib/java/README.md).
 package net.sf.asap;
 import java.util.Arrays;
 
@@ -228,14 +228,14 @@ public class ASAP
 			break;
 		case TMC:
 			if (--this.tmcPerFrameCounter <= 0) {
-				this.tmcPerFrameCounter = this.cpu.memory[this.moduleInfo.getMusicAddress() + 31] & 0xff;
+				this.tmcPerFrameCounter = this.cpu.memory[this.moduleInfo.music + 31] & 0xff;
 				call6502(player + 3);
 			}
 			else
 				call6502(player + 6);
 			break;
 		case D15:
-			if (this.cpu.cycle < 1254 || this.mptSamplesCurrentAddress >> 8 >= (this.cpu.memory[this.moduleInfo.getMusicAddress() + 16 + this.currentSong] & 0xff))
+			if (this.cpu.cycle < 1254 || this.mptSamplesCurrentAddress >> 8 >= (this.cpu.memory[this.moduleInfo.music + 16 + this.currentSong] & 0xff))
 				break;
 			int b = this.cpu.memory[this.mptSamplesCurrentAddress] & 0xff;
 			if (this.mptSamplesSecondNibble) {
@@ -337,39 +337,45 @@ public class ASAP
 	public final void loadWithExtraFiles(String filename, byte[] module, int moduleLen, ASAPFileLoader loader) throws ASAPFormatException
 	{
 		this.moduleInfo.load(filename, module, moduleLen);
+		Arrays.fill(this.cpu.memory, (byte) 0);
+		int music = this.moduleInfo.music;
+		if (this.moduleInfo.type == ASAPModuleType.D15) {
+			System.arraycopy(module, 0, this.cpu.memory, music, moduleLen);
+			return;
+		}
 		byte[] playerRoutine = ASAP6502.getPlayerRoutine(this.moduleInfo);
 		if (playerRoutine != null) {
 			int player = ASAPInfo.getWord(playerRoutine, 2);
-			int playerLastByte = ASAPInfo.getWord(playerRoutine, 4);
-			int music = this.moduleInfo.getMusicAddress();
-			if (music <= playerLastByte)
-				throw new ASAPFormatException("Module address conflicts with the player routine");
-			if (this.moduleInfo.type == ASAPModuleType.MD1 || this.moduleInfo.type == ASAPModuleType.MD2) {
-				if (loader == null)
-					throw new ASAPFormatException("MD1/MD2 not supported in this ASAP port");
-				final ASAPMptSamples samples = new ASAPMptSamples();
-				if (!samples.load(loader, filename))
-					throw new ASAPFormatException("Missing D15/D8 file");
-				samples.relocate(music, music + moduleLen - 5);
-				this.mptSamplesPage = samples.content[0] & 0xff;
-				this.mptSamples15kHz = samples.is15kHz;
-				System.arraycopy(samples.content, 0, this.cpu.memory, (this.mptSamplesPage << 8) - 32, samples.contentLength);
-			}
-			this.cpu.memory[19456] = 0;
 			if (this.moduleInfo.type == ASAPModuleType.FC)
 				System.arraycopy(module, 0, this.cpu.memory, music, moduleLen);
-			else
-				System.arraycopy(module, 6, this.cpu.memory, music, moduleLen - 6);
+			else {
+				int musicLow = this.moduleInfo.type == ASAPModuleType.TM2 ? 5120 : 4096;
+				if (music < musicLow)
+					this.moduleInfo.music = music = musicLow;
+				if (this.moduleInfo.type == ASAPModuleType.MD1 || this.moduleInfo.type == ASAPModuleType.MD2) {
+					if (loader == null)
+						throw new ASAPFormatException("MD1/MD2 not supported in this ASAP port");
+					final ASAPMptSamples samples = new ASAPMptSamples();
+					if (!samples.load(loader, filename))
+						throw new ASAPFormatException("Missing D15/D8 file");
+					samples.relocate(music, music + moduleLen - 5);
+					this.mptSamplesPage = samples.content[0] & 0xff;
+					this.mptSamples15kHz = samples.is15kHz;
+					System.arraycopy(samples.content, 0, this.cpu.memory, (this.mptSamplesPage << 8) - 32, samples.contentLength);
+				}
+				final ASAPModuleTransfer trans = new ASAPModuleTransfer();
+				trans.source = module;
+				trans.sourceOffset = 0;
+				trans.output = this.cpu.memory;
+				trans.outputOffset = music;
+				trans.transferModule(this.moduleInfo, moduleLen, false, false);
+			}
+			int playerLastByte = ASAPInfo.getWord(playerRoutine, 4);
 			System.arraycopy(playerRoutine, 6, this.cpu.memory, player, playerLastByte + 1 - player);
 			if (this.moduleInfo.player < 0)
 				this.moduleInfo.player = player;
 			return;
 		}
-		if (this.moduleInfo.type == ASAPModuleType.D15) {
-			System.arraycopy(module, 0, this.cpu.memory, this.moduleInfo.getMusicAddress(), moduleLen);
-			return;
-		}
-		Arrays.fill(this.cpu.memory, (byte) 0);
 		int moduleIndex = this.moduleInfo.headerLen + 2;
 		while (moduleIndex + 5 <= moduleLen) {
 			int startAddr = ASAPInfo.getWord(module, moduleIndex);
@@ -413,7 +419,17 @@ public class ASAP
 		throw new ASAPFormatException("INIT routine didn't return");
 	}
 
-	private void restartSong() throws ASAPFormatException
+	/**
+	 * Mutes the selected POKEY channels.
+	 * @param mask An 8-bit mask which selects POKEY channels to be muted.
+	 */
+	public final void mutePokeyChannels(int mask)
+	{
+		this.pokeys.basePokey.mute(mask);
+		this.pokeys.extraPokey.mute(mask >> 4);
+	}
+
+	private void restartSong(int muteMask) throws ASAPFormatException
 	{
 		this.nextPlayerCycle = 8388608;
 		this.blocksPlayed = 0;
@@ -426,8 +442,9 @@ public class ASAP
 		this.covox[2] = (byte) 128;
 		this.covox[3] = (byte) 128;
 		this.pokeys.initialize(this.moduleInfo.isNtsc(), this.moduleInfo.getChannels() > 1, this.currentSampleRate);
+		mutePokeyChannels(255);
 		int player = this.moduleInfo.player;
-		int music = this.moduleInfo.getMusicAddress();
+		int music = this.moduleInfo.music;
 		switch (this.moduleInfo.type) {
 		case SAP_B:
 			do6502Init(this.moduleInfo.getInitAddress(), this.currentSong, 0, 0);
@@ -478,14 +495,13 @@ public class ASAP
 			do6502Init(player, this.currentSong, 0, 0);
 			break;
 		case D15:
-			this.mptSamplesCurrentAddress = (this.cpu.memory[this.moduleInfo.getMusicAddress() + this.currentSong] & 0xff) << 8;
+			this.mptSamplesCurrentAddress = (this.cpu.memory[this.moduleInfo.music + this.currentSong] & 0xff) << 8;
 			this.mptSamplesSecondNibble = false;
 			this.cpu.memory[53760] = (byte) 210;
 			this.cpu.pc = 53760;
 			break;
 		}
-		this.pokeys.basePokey.endSongInit();
-		this.pokeys.extraPokey.endSongInit();
+		mutePokeyChannels(muteMask);
 		this.nextPlayerCycle = 0;
 	}
 
@@ -500,17 +516,7 @@ public class ASAP
 			throw new ASAPArgumentException("Song number out of range");
 		this.currentSong = song;
 		this.currentDuration = duration;
-		restartSong();
-	}
-
-	/**
-	 * Mutes the selected POKEY channels.
-	 * @param mask An 8-bit mask which selects POKEY channels to be muted.
-	 */
-	public final void mutePokeyChannels(int mask)
-	{
-		this.pokeys.basePokey.mute(mask);
-		this.pokeys.extraPokey.mute(mask >> 4);
+		restartSong(0);
 	}
 
 	/**
@@ -543,7 +549,7 @@ public class ASAP
 	public final void seekSample(int block) throws ASAPFormatException
 	{
 		if (block < this.blocksPlayed)
-			restartSong();
+			restartSong(this.pokeys.basePokey.getMute() | this.pokeys.extraPokey.getMute() << 4);
 		while (this.blocksPlayed + this.pokeys.readySamplesEnd < block) {
 			this.blocksPlayed += this.pokeys.readySamplesEnd;
 			doFrame();
@@ -699,15 +705,11 @@ public class ASAP
 	}
 
 	/**
-	 * RMT extension (not part of upstream ASAP - see this file's header
-	 * comment). Advances the emulation by exactly one video frame (one
-	 * player-routine call plus its POKEY cycles), producing no audio.
-	 * Exposes the otherwise-private {@code doFrame()} for frame-accurate
-	 * POKEY register capture (see {@link #getPokeyRegisterShadow}) - RMT's
-	 * SAP-R-style per-frame export needs exact frame boundaries, which the
-	 * public {@link #generate} API cannot guarantee (its own frame stepping
-	 * is an internal buffering detail, not aligned 1:1 with the bytes
-	 * requested). Call {@link #playSong} first.
+	 * Emulates one video frame, so that the POKEY registers can be read
+	 * between frames with <code>GetPokeyRegisterShadow</code>.
+	 * <code>Generate</code> steps frames too, but as an internal detail of filling the
+	 * requested number of bytes, not aligned with frame boundaries.
+	 * Call <code>PlaySong</code> first.
 	 */
 	public final void stepFrame()
 	{
@@ -715,46 +717,26 @@ public class ASAP
 	}
 
 	/**
-	 * RMT extension (not part of upstream ASAP - see this file's header
-	 * comment). Returns the raw byte most recently written to a POKEY audio
-	 * register (AUDF1..AUDF4/AUDC1..AUDC4/AUDCTL) - the write-only "shadow"
-	 * value RMT's own SAP-R-style per-frame register dump needs (matching
-	 * {@code CPokeyStream::Record()}'s exact byte layout in the original
-	 * C++), not a simulated hardware read-back (real POKEY audio registers
-	 * cannot be read back at all - unlike {@link #getPokeyChannelVolume},
-	 * which already exposes a derived, readable value).
-	 * @param chip 0 for the base POKEY, 1 for the second POKEY (stereo only).
-	 * @param offset 0-8: AUDF1, AUDC1, AUDF2, AUDC2, AUDF3, AUDC3, AUDF4,
-	 * AUDC4, AUDCTL. 15: SKCTL (not part of the 9-byte SAP-R frame layout
-	 * itself, but needed by callers replicating {@code CPokeyStream::Record()}'s
-	 * own "is Two-Tone mode active" check against $D20F/$D21F).
+	 * Returns the byte last written to a POKEY audio register.
+	 * These registers are write-only in the hardware, so there is no
+	 * read-back to emulate; this reports what the player poked, which is what
+	 * a per-frame register dump records.
+	 * @param chip 0 for the base POKEY, 1 for the second POKEY of a stereo tune.
+	 * @param offset 0 to 7 for AUDF1, AUDC1, AUDF2, AUDC2, AUDF3, AUDC3, AUDF4, AUDC4;
+	 * 8 for AUDCTL and 15 for SKCTL. Any other value is masked into the
+	 * channel registers, as in <code>GetPokeyChannelVolume</code>.
 	 */
 	public final int getPokeyRegisterShadow(int chip, int offset)
 	{
 		Pokey pokey = chip == 0 ? this.pokeys.basePokey : this.pokeys.extraPokey;
 		switch (offset) {
-		case 0:
-			return pokey.channels[0].audf & 0xff;
-		case 1:
-			return pokey.channels[0].audc & 0xff;
-		case 2:
-			return pokey.channels[1].audf & 0xff;
-		case 3:
-			return pokey.channels[1].audc & 0xff;
-		case 4:
-			return pokey.channels[2].audf & 0xff;
-		case 5:
-			return pokey.channels[2].audc & 0xff;
-		case 6:
-			return pokey.channels[3].audf & 0xff;
-		case 7:
-			return pokey.channels[3].audc & 0xff;
 		case 8:
-			return pokey.audctl & 0xff;
+			return pokey.audctl & 255;
 		case 15:
-			return pokey.skctl & 0xff;
+			return pokey.skctl & 255;
 		default:
-			throw new IllegalArgumentException("offset");
+			PokeyChannel channel = pokey.channels[offset >> 1 & 3];
+			return ((offset & 1) == 0 ? channel.audf : channel.audc) & 255;
 		}
 	}
 
@@ -787,10 +769,17 @@ public class ASAP
 		this.nextPlayerCycle = 8388608;
 		this.nextScanlineCycle = 1 << 30;
 		this.pokeys.initialize(ntsc, stereo, sampleRate);
-		// initialize() leaves every channel muted with MUTE_SONG_INIT, which
-		// ASAP clears once a SAP's INIT routine has run; RMT has no such phase.
-		this.pokeys.basePokey.endSongInit();
-		this.pokeys.extraPokey.endSongInit();
+		// initialize() leaves every channel with tickCycle at NEVER, so no
+		// channel ticks and the POKEY pair stays silent. Upstream takes them
+		// off NEVER through setMute(false, ...), reached when a player pokes
+		// SKCTL; in RMT mode the hardware pages are plain RAM, so no poke
+		// ever gets there and this has to be done directly. Up to ASAP 8.0.0
+		// the same thing was done by Pokey.endSongInit(), which cleared the
+		// MUTE_SONG_INIT bit that release still had.
+		for (int i = 0; i < 4; i++) {
+			this.pokeys.basePokey.channels[i].setMute(false, PokeyChannel.MUTE_INIT, 0);
+			this.pokeys.extraPokey.channels[i].setMute(false, PokeyChannel.MUTE_INIT, 0);
+		}
 		this.pokeys.startFrame();
 	}
 

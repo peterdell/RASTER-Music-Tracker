@@ -5348,3 +5348,30 @@ build clean and all 123 tests pass.
     at the first sound export, names the full path, and writes no file,
     while `export asm` before it still succeeds.
 
+  - **2026-10-04**: plan 31, steps A1-A4. The two general-purpose methods
+    the port had hand-added to ASAP are now expressed in ASAP's own
+    portable sources and generated, rather than patched into generated
+    Java: `stepFrame` and `getPokeyRegisterShadow`, plus the one word that
+    makes `Skctl` readable. Verifying that carried the port's ASAP from the
+    8.0.0 release to upstream `28af663`, 28 commits.
+
+    Two things only the real build could have told us. The transpiler
+    rejects an unchecked throw, so the accessor masks its offset the way
+    upstream's own channel-volume accessor does. And `Pokey.endSongInit()`,
+    which the RMT-mode block called, no longer exists; dropping the call
+    compiled cleanly and silenced the emulated POKEY. That call had never
+    been about the mute bit it names - `setMute(false, ...)` also takes a
+    channel off NEVER so it ticks at all, and upstream only reaches that
+    path when a player pokes SKCTL, which RMT mode never does because its
+    hardware pages are plain RAM.
+
+    The port now carries one hand addition instead of four: the RMT-mode
+    section and its two guards. 662 Java tests pass and
+    `compare_exports.ps1` still reports every exported file identical in
+    both programs, which is the real check that the regenerated emulation
+    produces the same register stream.
+
+    Also done: the six-platform release workflow was run for the first time
+    since the distribution layout changed (run 37193177257, all six green),
+    and both ASAP clones moved to the Fusion folder.
+

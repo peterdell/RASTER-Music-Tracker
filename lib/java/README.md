@@ -42,19 +42,25 @@ port's CPU and POKEY in two roles:
   WAV export used it until B8c; it now replays the recorded register
   stream through the POKEY pair, as C++ does.)
 
-**Vendored as source, not as this pre-built jar**: the actual, patched
-integration lives in `src/java/net/sf/asap/` (copied from this folder's
-`asap-8.0.0-java-src.zip`, plus its `.obx` player-routine resources
-extracted from `asap.jar`), compiled as ordinary project sources via
-`pom.xml`'s existing `src/java` resource rule - not this jar, which stays
-here only as the untouched reference copy. Clearly-marked RMT additions on
-top of the otherwise-unmodified generated source (mirroring
-`src/cpp/asap/asap-patch.h`/`.cpp`'s same extension-point pattern for this
-same upstream library, see `ASAP.java`'s own header comment for the exact
-list): `ASAP.stepFrame()` (exact single-frame stepping) and
-`ASAP.getPokeyRegisterShadow(chip, offset)` (the raw last-poked register
-byte, which the public API has no way to read since real POKEY audio
-registers are hardware write-only) for the module player, the "RMT mode"
-section (`rmtInitialize`/`rmtMemory`/`rmtJsr`/`rmtPokeRegister`/
-`rmtRender`, plus the RMT-mode checks at the top of `peekHardware`/
-`pokeHardware`), and `Pokey.skctl` widened to package-private.
+**Vendored as source, not as this pre-built jar**: the integration lives in
+`src/java/net/sf/asap/`, compiled as ordinary project sources via `pom.xml`'s
+existing `src/java` resource rule. The jar and source archive beside this
+file stay only as the untouched reference copy of the 8.0.0 release.
+
+Those sources are no longer that release. They are generated from ASAP's
+own `.fu` sources by `make java/asap.jar` in the development clone
+(`C:\jac\system\Fusion\Programming\Repositories\Tools\asap`), currently
+from commit `f4afcfd` - upstream `28af663` of 2026-09-22 plus the two methods
+offered back to ASAP's author (`plans/31_ASAP_UPSTREAM_CONTRIBUTION_PLAN.md`,
+step A2). `ASAP.stepFrame()` and `ASAP.getPokeyRegisterShadow(chip, offset)`
+and the package-private `Pokey.skctl` therefore come out of the generator now
+and are no longer hand edits. Regenerating needs `fut` and, for the player
+routines, `xasm` on the path (`C:\jac\system\Atari800\Tools\ASM\XASM`).
+
+What is still added by hand, and only in `ASAP.java`: the "RMT mode" section
+(`rmtInitialize`/`rmtMemory`/`rmtJsr`/`rmtPokeRegister`/`rmtRender`, running
+RMT's own tracker driver on this CPU with plain-RAM hardware pages and a
+directly fed POKEY pair) and the two `rmtMode` checks at the top of
+`peekHardware`/`pokeHardware` that it needs. See that file's header comment.
+This mirrors `src/cpp/asap/asap-patch.h`/`.cpp`, the same extension-point
+pattern for the C build of the same library.

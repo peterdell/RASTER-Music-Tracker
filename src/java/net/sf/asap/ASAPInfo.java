@@ -75,11 +75,12 @@ public class ASAPInfo
 	ASAPModuleType type;
 	ASAPModuleType originalType;
 	private int fastplay;
-	private int music;
+	int music;
 	private int init;
 	int player;
 	private int covoxAddr;
 	int headerLen;
+	int mptSongBugExtra;
 	final byte[] songPos = new byte[32];
 
 	private static boolean isValidChar(int c)
@@ -304,9 +305,30 @@ public class ASAPInfo
 			throw new ASAPFormatException("No songs found");
 	}
 
+	private static int getMptTrackAddress(byte[] module, int ch)
+	{
+		return (module[454 + ch] & 0xff) + ((module[458 + ch] & 0xff) << 8);
+	}
+
+	private static int getMptFirstInstrOrPatternAddr(byte[] module)
+	{
+		for (int offset = 6; offset < 198; offset += 2) {
+			int addr = getWord(module, offset);
+			if (addr != 0)
+				return addr;
+		}
+		return getWord(module, 4) + 1;
+	}
+
+	private static int getMptTrackLen(byte[] module, int ch)
+	{
+		int endAddr = ch == 3 ? getMptFirstInstrOrPatternAddr(module) : getMptTrackAddress(module, ch + 1);
+		return endAddr - getMptTrackAddress(module, ch);
+	}
+
 	private void parseMptSong(byte[] module, boolean[] globalSeen, int songLen, int pos)
 	{
-		int addrToOffset = getWord(module, 2) - 6;
+		int addrToOffset = getWord(module, 2) - 6 - this.mptSongBugExtra;
 		int tempo = module[463] & 0xff;
 		int playerCalls = 0;
 		final byte[] seen = new byte[256];
@@ -321,19 +343,21 @@ public class ASAPInfo
 			}
 			seen[pos] = 1;
 			globalSeen[pos] = true;
-			int i = module[464 + pos * 2] & 0xff;
+			int i = module[464 + (pos << 1)] & 0xff;
 			if (i == 255) {
-				pos = module[465 + pos * 2] & 0xff;
+				pos = module[465 + (pos << 1)] & 0xff;
 				continue;
 			}
 			int ch;
 			for (ch = 3; ch >= 0; ch--) {
-				i = (module[454 + ch] & 0xff) + ((module[458 + ch] & 0xff) << 8) - addrToOffset;
-				i = module[i + pos * 2] & 0xff;
+				if (this.mptSongBugExtra == 0)
+					i = getMptTrackAddress(module, ch) - addrToOffset;
+				else
+					i = 464 + ch * getMptTrackLen(module, 0);
+				i = module[i + (pos << 1)] & 0xff;
 				if (i >= 64)
 					break;
-				i <<= 1;
-				i = getWord(module, 70 + i);
+				i = getWord(module, 70 + (i << 1));
 				patternOffset[ch] = i == 0 ? 0 : i - addrToOffset;
 				blankRowsCounter[ch] = 0;
 			}
@@ -381,11 +405,17 @@ public class ASAPInfo
 		if (moduleLen < 464)
 			throw new ASAPFormatException("Module too short");
 		this.originalType = this.type = type;
+		int track0Len = getMptTrackLen(module, 0);
+		if (7 + getWord(module, 4) - getWord(module, 2) == moduleLen)
+			this.mptSongBugExtra = 0;
+		else {
+			this.mptSongBugExtra = 3 * track0Len + getMptTrackAddress(module, 1) - getMptFirstInstrOrPatternAddr(module);
+			moduleLen -= this.mptSongBugExtra;
+		}
 		parseModule(module, moduleLen);
-		int track0Addr = getWord(module, 2) + 458;
-		if ((module[454] & 0xff) + ((module[458] & 0xff) << 8) != track0Addr)
+		if (getMptTrackAddress(module, 0) != getWord(module, 2) + 458)
 			throw new ASAPFormatException("Invalid address of the first track");
-		int songLen = ((module[455] & 0xff) + ((module[459] & 0xff) << 8) - track0Addr) >> 1;
+		int songLen = track0Len >> 1;
 		if (songLen > 254)
 			throw new ASAPFormatException("Song too long");
 		final boolean[] globalSeen = new boolean[256];
@@ -1104,13 +1134,18 @@ public class ASAPInfo
 		return moduleLen >= 30 && hasStringAt(module, 0, "SAP\r\n");
 	}
 
+	final int getFirstBlockLen(byte[] module)
+	{
+		return getWord(module, this.headerLen + 4) - getWord(module, this.headerLen + 2) + 7;
+	}
+
 	static final int RMT_INIT = 3200;
 
 	final int getRmtSapOffset(byte[] module, int moduleLen)
 	{
 		if (this.player != 13315)
 			return -1;
-		int offset = this.headerLen + getWord(module, this.headerLen + 4) - getWord(module, this.headerLen + 2) + 7;
+		int offset = this.headerLen + getFirstBlockLen(module);
 		if (offset + 6 >= moduleLen || module[offset + 4] != 'R' || module[offset + 5] != 'M' || module[offset + 6] != 'T')
 			return -1;
 		return offset;

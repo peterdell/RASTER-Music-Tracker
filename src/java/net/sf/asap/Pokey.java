@@ -1,7 +1,4 @@
-// Generated automatically with "fut". Do not edit,
-// EXCEPT for widening "skctl" from private to package-private below (an RMT
-// addition - see ASAP.java's header comment and its getPokeyRegisterShadow()
-// method, which needs to read this field from the same package).
+// Generated automatically with "fut". Do not edit.
 package net.sf.asap;
 import java.util.Arrays;
 
@@ -77,7 +74,17 @@ class Pokey
 		initialize(44100);
 	}
 
-	private void addDelta(PokeyPair pokeys, int cycle, int delta)
+	final void addDelta(PokeyPair pokeys, int cycle, int delta, boolean muted)
+	{
+		this.sumDACInputs += delta;
+		if (muted)
+			return;
+		int newOutput = COMPRESSED_SUMS[this.sumDACInputs] << 16;
+		addExternalDelta(pokeys, cycle, newOutput - this.sumDACOutputs);
+		this.sumDACOutputs = newOutput;
+	}
+
+	final void addExternalDelta(PokeyPair pokeys, int cycle, int delta)
 	{
 		if (delta == 0)
 			return;
@@ -87,22 +94,6 @@ class Pokey
 		delta >>= 14;
 		for (int j = 0; j < 32; j++)
 			this.deltaBuffer[i + j] += delta * pokeys.sincLookup[fraction][j];
-	}
-
-	final void addPokeyDelta(PokeyPair pokeys, int cycle, int delta, boolean muted)
-	{
-		this.sumDACInputs += delta;
-		if (muted)
-			return;
-		int newOutput = COMPRESSED_SUMS[this.sumDACInputs] << 16;
-		addDelta(pokeys, cycle, newOutput - this.sumDACOutputs);
-		this.sumDACOutputs = newOutput;
-	}
-
-	final void addExternalDelta(PokeyPair pokeys, int cycle, int delta)
-	{
-		if ((this.channels[0].mute & 8) == 0)
-			addDelta(pokeys, cycle, delta);
 	}
 
 	/**
@@ -168,16 +159,19 @@ class Pokey
 		return true;
 	}
 
+	final int getMute()
+	{
+		int mask = 0;
+		for (int i = 0; i < 4; i++)
+			if ((this.channels[i].mute & 2) != 0)
+				mask |= 1 << i;
+		return mask;
+	}
+
 	final void mute(int mask)
 	{
 		for (int i = 0; i < 4; i++)
 			this.channels[i].setMute((mask & 1 << i) != 0, 2, 0);
-	}
-
-	final void endSongInit()
-	{
-		for (PokeyChannel channel : this.channels)
-			channel.setMute(false, 8, 0);
 	}
 
 	private void initMute(int cycle)
