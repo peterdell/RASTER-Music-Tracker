@@ -122,10 +122,21 @@ jobs:
             TAG="${RELEASE_TAG_INPUT}"
           fi
           if [[ -n "${TAG:-}" ]]; then
-            echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+            # Strip the leading v in either case: a tag written V1.36.0 used to
+            # reach jpackage as "V1.36.0", which it rejects on Windows and
+            # macOS while Linux builds it happily.
+            VERSION="${TAG#[vV]}"
           else
-            echo "version=1.36.0" >> "$GITHUB_OUTPUT"
+            VERSION="1.36.0"
           fi
+          # jpackage takes one to three integers separated by dots and nothing
+          # else. Say so here rather than let every platform job run for two
+          # minutes and fail inside the bundler.
+          if [[ ! "${VERSION}" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]]; then
+            echo "::error::'${TAG:-${VERSION}}' gives the app version '${VERSION}', which jpackage will not accept. It takes one to three integers separated by dots, so tag the release v1.36.0 or 1.36.0."
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Build portable app image with jpackage
         shell: bash
