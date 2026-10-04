@@ -21,6 +21,14 @@ name: Release (Java)
 #                                    image still offered)
 #   macos    aarch64  macos-latest    (Apple Silicon)
 #
+# A seventh asset, rmt-java-portable, carries no Java runtime: the jar, the
+# Atari binaries, the documentation and the user content, about 4 MB against
+# 57 for a bundled image. It runs wherever a Java 21 runtime is installed,
+# which is how the systems without a GitHub runner are served - FreeBSD above
+# all, where OpenJDK is in ports and a system package would depend on it
+# rather than bundle one. The Linux x64 job builds it, since it has staged
+# those pieces already.
+#
 # macos-latest has been Apple Silicon since 2024, so the macOS asset was
 # ARM-only while its name said nothing; it is rmt-java-macos-aarch64 now
 # and Intel Macs have their own (2026-10-01).
@@ -174,6 +182,37 @@ jobs:
           fi
           cp -r stage/content/. dist/rmt/
           ls -l dist/rmt
+
+      # One runtime-free archive, built by the Linux x64 job because it has
+      # already staged exactly these pieces. It is the same folder as the
+      # platform archives minus the bundled Java runtime and the launcher, so
+      # it runs wherever a Java 21 runtime exists - FreeBSD and the other
+      # systems GitHub has no runner for, and any processor. About 4 MB
+      # against 57 for a bundled image; the user supplies the runtime.
+      - name: Assemble the runtime-free archive
+        if: matrix.platform == 'linux' && matrix.arch == 'x64'
+        shell: bash
+        run: |
+          mkdir -p portable/rmt
+          cp -r stage/app/. portable/rmt/
+          cp -r stage/content/. portable/rmt/
+          cat > portable/rmt/rmt.sh <<'LAUNCHER'
+          #!/bin/sh
+          # Starts RMT with the Java runtime of this system (21 or newer).
+          cd "$(dirname "$0")" || exit 1
+          exec java -jar rmt.jar "$@"
+          LAUNCHER
+          chmod +x portable/rmt/rmt.sh
+          tar czf rmt-java-portable.tar.gz -C portable rmt
+          ls -l portable/rmt
+
+      - name: Upload the runtime-free archive
+        if: matrix.platform == 'linux' && matrix.arch == 'x64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rmt-java-portable
+          path: rmt-java-portable.tar.gz
+          if-no-files-found: error
 
       - name: Archive app image (Windows)
         if: matrix.platform == 'windows'

@@ -7,11 +7,28 @@ Keep this folder together and start the program from it.
   songs                     the example songs, and where your own go
   instruments               the instruments
   exports                   finished tunes exported by older RMT versions
-  rmt.ini, tuning.ini       your settings, written when you change them
+  rmt.ini, tuning.ini       your settings, written on the first start
 
 The program needs no installation and no Java: everything it needs is in
 this folder. Move the whole folder wherever you like, including onto a
 USB stick.
+
+The runtime-free download
+-------------------------
+
+The archive named "portable" is for systems this project has no build
+for - FreeBSD and the other Unixes, and processors not listed. It holds
+the same folder without the bundled Java runtime, so it needs Java 21 or
+newer installed, and starts with
+
+  ./rmt.sh
+
+or, which is the same thing,
+
+  java -jar rmt.jar
+
+Everything below applies to it as well, except that it has rmt.jar and
+rmt.sh where the others have the program.
 
 macOS: do not drag rmt.app out of this folder on its own. It would still
 start, but it would leave your songs, instruments and settings behind,
