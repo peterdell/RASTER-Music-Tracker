@@ -55,3 +55,9 @@ already exist. Batch plans carry a two-digit prefix in creation order (`23_DOC_G
 a new plan takes the next free number and gets a row in `plans/README.md`, the index with
 each plan's purpose and status. `CPP_RULES.md`, `OVERALL_PLAN.md` and `NOTES.md` are the
 standing documents and stay unnumbered.
+
+The rules for using WUDSN Base in the Java port - the repository/`Action`/
+`ElementFactory` pattern, `ModalDialog` for OK/Cancel dialogs, `MRUMenu` -
+are shared with DIS6502 and live in WUDSN Base:
+[`plans/RULES_WUDSN_BASE.md`](https://github.com/wudsn/wudsn-base/blob/master/plans/RULES_WUDSN_BASE.md)
+(local: `C:\jac\system\Java\Programming\Repositories\WUDSN-Base\plans\RULES_WUDSN_BASE.md`).
