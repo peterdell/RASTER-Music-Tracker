@@ -13,17 +13,13 @@ import java.io.InputStream;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.KeyStroke;
 
-import com.wudsn.tools.base.Actions;
 import com.wudsn.tools.base.gui.Desktop;
-import com.wudsn.tools.base.gui.ElementFactory;
+import com.wudsn.tools.base.gui.ModalDialog;
 
 import org.atari.raster.rmt.model.ProgramFolder;
 
@@ -36,9 +32,10 @@ import net.sf.asap.ASAPInfo;
  * emulation. C++ fills those from the Altirra DLLs' {@code GetAbout()}
  * texts; the Java port's emulation is ASAP's, so its version and credits
  * stand there (the plan's B7 decision). Built like dis6502's
- * {@code AboutDialog}: a plain modal {@link JDialog} with one OK button.
+ * {@code AboutDialog}: a WUDSN Base {@link ModalDialog} with OK only, whose
+ * button bar, Escape and close box replace the dialog's own OK button.
  */
-final class AboutDialog extends JDialog {
+final class AboutDialog extends ModalDialog {
 
 	private static final long serialVersionUID = 1L;
 
@@ -49,8 +46,7 @@ final class AboutDialog extends JDialog {
 	}
 
 	AboutDialog(Frame owner) {
-		super(owner, Texts.AboutDialog_Title, true);
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		super(owner, Texts.AboutDialog_Title, false);
 
 		JPanel content = new JPanel(new GridBagLayout());
 		content.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 8, 8, 8));
@@ -103,20 +99,16 @@ final class AboutDialog extends JDialog {
 		c.gridy = 8;
 		content.add(createTextBox(asapAbout("6502 emulation")), c);
 
-		JButton okButton = ElementFactory.createButton(Actions.ButtonBar_OK, false);
-		okButton.addActionListener(e -> setVisible(false));
-		JPanel buttonPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
-		buttonPanel.add(okButton);
-
-		getContentPane().setLayout(new BorderLayout());
 		getContentPane().add(content, BorderLayout.CENTER);
-		getContentPane().add(buttonPanel, BorderLayout.SOUTH);
-		getRootPane().setDefaultButton(okButton);
-		getRootPane().registerKeyboardAction(e -> setVisible(false), KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW);
-
-		pack();
 		setResizable(false);
-		setLocationRelativeTo(owner);
+	}
+
+	/**
+	 * Shows the dialog until the user closes it. Not {@code show()}: that would
+	 * override AWT's {@code Dialog.show()}, which {@code setVisible(true)} calls.
+	 */
+	void showDialog() {
+		showModal(getOKButton());
 	}
 
 	/** {@code EDITTEXT ... ES_MULTILINE | ES_READONLY}. */

@@ -314,7 +314,7 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 
 	@Override
 	public void showAbout() {
-		session.unlocked(() -> new AboutDialog(getFrame()).setVisible(true));
+		session.unlocked(() -> new AboutDialog(getFrame()).showDialog());
 	}
 
 	// ---- SongFiles.Host: CFileDialog and the two small dialogs ----
