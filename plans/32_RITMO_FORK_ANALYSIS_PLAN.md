@@ -1,6 +1,7 @@
 # Plan 32: What the RITMO fork did, and what of it this project wants
 
-Status: PLANNED 2026-10-08.
+Status: IN PROGRESS. R1 done 2026-10-08; R2 done 2026-10-08 except two
+checks (TXT line ends in Java, channels after each export); R3/R4 open.
 
 [RITMO Music Tracker](https://github.com/gianlucarenzi/RITMO-Music-Tracker)
 is Gianluca Renzi's fork of this repository: the C++ program ported from
@@ -111,3 +112,36 @@ The usual gates per R3 fix: the new test fails before and passes after,
 touched, `compare_exports.ps1` identical in both programs. R1/R2 produce
 no code, so their verification is the table itself: every one of the 150
 commits appears exactly once.
+
+## 6. R1 as measured, R2 as verified (2026-10-08)
+
+The 150 commits classify as: 48 Qt port, 32 build and CI, 21 core+Qt mixed
+(mostly the port phases and renames), 19 documentation and data, 14 release
+notes and packaging, 13 core-only, 3 explicitly importing our 1.36 work.
+The verdicts on everything that looked like a candidate:
+
+| theirs | subject | verdict here |
+|---|---|---|
+| `b243f10` | SAP type B export with VU-Player V2 | **CONFIRMED BUG HERE, both programs**: our freshly exported `d1.sap` fails in ASAP with "INIT routine didn't return", while a checked-in SAP plays (mean sample level 1729). Their diagnosis: the export writes the old player's blocks ($1900-$27FF) while `vu_player_v2.obx` lives at $0C1B-$1F3F, so INIT jumps into bytes the file does not contain. Every SAP this project has ever exported from the 1.36 line is unplayable. |
+| `60743c3` | WAV at instrument speeds 2-4 | **CONFIRMED BUG HERE, both programs**: the stereo reference song is 24,325 SAP-R frames at FASTPLAY 78 = 121.6 s; our exported WAV is 487.8 s - each driver call rendered as a whole VBI, 4x too slow at speed 4. Invisible to `compare_exports.ps1`, which excludes the WAV bytes by design. |
+| `e732254` | stereo: each POKEY its own AUDCTL | **CONFIRMED BUG HERE, C++ only**: our loop is already right, but the AUDCTL tail writes the second chip's value to register 8 again instead of $18 (`PokeyRendererCore.cpp`), so in live stereo playback the base POKEY gets the right chip's AUDCTL and the second chip gets none. The Java port (`AudioEngine.copyAtariMemoryToPokey`) is correct, so the two programs render stereo differently live - which nothing compares. |
+| `dcd62bd` | channels on again after a dump | partially ours already: C++ restores them in the LZSS path and the WAV exporter; the Java dump documents not restoring. **Open check**: export each sound format in each program and assert the channels end on. |
+| `4e8b1f2` | TXT songs/instruments with LF line ends | C++ still has one raw one-byte read (`IO_Instruments.cpp:234`); the Java loader works on whole lines. **Open check**: load an LF-only .txt in both. |
+| `2724160` | stripped RMT end address (inclusive) | already fixed here: `RmtExporterCore.cpp` saves `firstByteAfterModule - 1`. |
+| `b94585a` | fix the WAV export | their MMIO shim for Qt; not applicable - different subsystem here. |
+| `ed3dd98` | timer runs again after an export | their own regression in their timer port; our `CExportSection` re-arm was measured working in plan 24 E1. |
+| `4747de2` | unsigned-char platforms (ARM, RISC-V, PPC) | not our platforms: MSVC keeps `char` signed on x64 and ARM64, and Java bytes are signed. Idea note only. |
+| `964d2a1` | ask to open AUTOFILTER songs with the Unpatched driver | a genuine compatibility feature (Patch16 keeps the filter channels in phase); new capability, so Java-only if wanted - a decision, not a bug. |
+| `1050c05` | stereo SAP/XEX size message | our 1.36 fixed the crash; their message naming both sizes is a nicety. Their small `StereoShort.rmt` test song is a good idea for the comparison scripts. |
+| `ab338c1` | warning sweep | hygiene in a retiring C++ program; mine only if a warning marks a real bug. |
+| `186d6c1`, `68cdd37`, `d1257b7`, `1d42af9` | window-fits-screen, audio buffer setting, cheaper redraw, audio diagnostics | Qt-specific; idea notes. The first is worth remembering for the Java port now that 200 % scaling is the default. |
+
+So R3 has three confirmed fixes to port - the SAP type B player blocks
+(both programs), the WAV speed (both programs), the C++ stereo AUDCTL
+line - plus the two open checks that may add the channel restoration and
+the LF tolerance. The two headline bugs shared one lesson: byte-identical
+cross-program comparison proves the programs agree, not that they are
+right - both inherited the same defects, and the WAV is excluded from
+comparison entirely. R3 therefore adds at least one *external* check: the
+exported SAP must play in ASAP.
+
