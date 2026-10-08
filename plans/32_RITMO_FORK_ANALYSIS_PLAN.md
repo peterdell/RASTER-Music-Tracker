@@ -1,6 +1,7 @@
 # Plan 32: What the RITMO fork did, and what of it this project wants
 
-Status: DONE 2026-10-08. R1-R3 done; R4 decided: no explicit note to the
+Status: DONE 2026-10-08 (code); section 7's addendum on the non-code
+areas adds three follow-ups, open. R1-R3 done; R4 decided: no explicit note to the
 fork - its maintainer monitors this repository, so the commits and
 change-history entries crediting his commits ARE the communication. The
 two open checks are closed: an LF-only .txt loads identically in both
@@ -151,4 +152,51 @@ cross-program comparison proves the programs agree, not that they are
 right - both inherited the same defects, and the WAV is excluded from
 comparison entirely. R3 therefore adds at least one *external* check: the
 exported SAP must play in ASAP.
+
+## 7. The non-code areas (addendum, 2026-10-08)
+
+The first pass classified the fork's documentation, assembler and data
+commits but did not mine them. This pass does, area by area:
+
+- **asm/ - the one substantial find.** `2e18376` is a complete conversion
+  of the 6502 sources to ca65 (the cc65 toolchain): a
+  `scripts/mads2ca65.py` translator, a Makefile, and - the part that
+  makes it credible - `make check` proving that `rmt_driver_v1.obx` and
+  `rmt_driver_v6.obx` assemble **byte for byte** identical to the shipped
+  binaries, plus a POKEY-register check of the player SAP against the
+  Patch16 driver. Today this repository can only rebuild the drivers with
+  MADS/XASM on Windows; cc65 runs everywhere the Java port does. Worth
+  adopting if the drivers are ever to be built from source in CI instead
+  of trusted as checked-in binaries. **Follow-up, decision wanted.**
+
+- **doc/ - one stale page of ours found through their fixes.** Their
+  `c2c03c7` rewrote the emulation chapter because it still described the
+  sound as requiring the external DLLs. Our `doc/rmt_tracker.md` line 53
+  still says exactly that - but the correction needs its own fact-check
+  first, because our C++ program is in between: live playback moved to
+  ASAP, while the WAV render path still drives `sa_pokey.dll`. The page
+  must describe each program's real architecture, not the fork's (which
+  removed the DLLs entirely). **Follow-up.** Their other documentation
+  work - the LaTeX manual with per-architecture installation chapters,
+  per-release notes files, the anchor rewriting - belongs to their book
+  pipeline and packaging, not here.
+
+- **test-resources/ - one good idea.** `StereoShort.rmt`, a 6 KB stereo
+  song, joined their reference songs so stereo SAP exports (with
+  subsongs) are tested without dumping the 24,000-frame reference song.
+  Our new SAP tests run on mono Delta; a small stereo song would close
+  that gap cheaply. It appears derived from the stereo reference song,
+  so the music's own provenance should be settled before copying it -
+  or an equally small song made here. **Follow-up, decision wanted.**
+
+- **rmt/ and scripts/ - noted, not wanted.** The 436 `rmt/` file changes
+  are the RITMO rename (`ritmo.ini`, headers, screenshots) plus
+  `axel_f.mod` as a MOD-import sample - a copyrighted tune, not something
+  to adopt. The 27 `scripts/` commits are packaging (AppImage, .deb,
+  installers) for the retiring C++ line, their `check-sap.py` (this
+  repository's `SapPlayabilityTest` covers the same ground from inside
+  the test suite), and `test-endian.sh` for their big-endian port - the
+  Java port is endian-safe by language. `legacy/` had no commits at all
+  since the fork point; its 279 changed files are the initial cleanup
+  before it.
 
