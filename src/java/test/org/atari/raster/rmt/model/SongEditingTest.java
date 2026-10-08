@@ -2382,8 +2382,6 @@ class SongEditingTest {
 
 		useRealAtari();
 		ChannelControl channelControl = new ChannelControl(4);
-		PokeyStream pokeyStream = new PokeyStream();
-		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
 
 		SapFile sapFile = new SapFile();
 		sapFile.setType("B");
@@ -2391,7 +2389,8 @@ class SongEditingTest {
 		sapFile.setName("RSong");
 		sapFile.setDate("01/01/2000");
 
-		byte[] out = SapFileExporter.exportSapBLzss(sapFile, song, 4, pokeyStream);
+		// The exporter dumps the song itself now, one dump per subtune, as the XEX export does
+		byte[] out = SapFileExporter.exportSapBLzss(sapFile, song, 4, atariTrackerDriver, channelControl, clipboard, undo);
 
 		String header = new String(out, 0, Math.min(out.length, 200), java.nio.charset.StandardCharsets.US_ASCII);
 		assertTrue(header.contains("TYPE B"));
@@ -2444,6 +2443,46 @@ class SongEditingTest {
 			anyNonZero |= out[i] != 0;
 		}
 		assertTrue(anyNonZero, "audible samples");
+	}
+
+	/**
+	 * At instrument speed 4 the dump records four frames per video frame, so
+	 * one stream frame is a QUARTER of a video frame of sound. The export
+	 * rendered a whole video frame per stream frame, which made every WAV at
+	 * speeds 2-4 proportionally too long and too slow - 487.8 s for the
+	 * 121.6 s stereo reference song, two octaves down (ported from the RITMO
+	 * fork's 60743c3; plans/32_RITMO_FORK_ANALYSIS_PLAN.md).
+	 */
+	@Test
+	void exportWavAtInstrumentSpeed4RendersAQuarterOfAVideoFramePerStreamFrame() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 4;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+		Track tr = tracks.getTrack(5);
+		tr.len = 2;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+		tr.volume[0] = 10;
+		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10;
+		song.getSongGo()[1] = 0; // guarantees a fast loop
+
+		useRealAtari();
+		ChannelControl channelControl = new ChannelControl(4);
+		PokeyStream pokeyStream = new PokeyStream();
+		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
+
+		byte[] out = WaveFileExporter.exportWav(pokeyStream, false, false, song.getInstrumentSpeed());
+
+		int frames = pokeyStream.getFirstCountPoint();
+		int dataLength = (out[40] & 0xFF) | (out[41] & 0xFF) << 8 | (out[42] & 0xFF) << 16 | (out[43] & 0xFF) << 24;
+		// a quarter of the ~884 blocks of a PAL video frame per stream frame
+		// (every whole group of four still sums to one full video frame)
+		assertTrue(dataLength >= frames / 4 * 880 * 4 && dataLength <= (frames / 4 + 1) * 888 * 4,
+				"data bytes for " + frames + " quarter frames: " + dataLength);
 	}
 
 	@Test

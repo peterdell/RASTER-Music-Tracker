@@ -128,15 +128,22 @@ public final class SongExporter {
 	 * {@code false}, matching this port's established "fatal precondition
 	 * becomes an exception" idiom.
 	 */
-	public static byte[] exportXexLzss(Song song, int tracks4_8, XexFile xexFile, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
-		Song.SubsongParts subsongParts = song.getSubsongParts(tracks4_8);
-		int subsongs = subsongParts.count();
-		String parts = subsongParts.parts();
-		int[] subtune = new int[subsongs];
-		for (int i = 0; i < subsongs; i++) {
-			subtune[i] = Integer.parseInt(parts.substring(i * 3, i * 3 + 2), 16);
-		}
+	/** The result of {@link #buildLzssSubtunes}: the first address after the last stream, and the frames of all subtunes up to their loop points. */
+	public record LzssSubtunes(int lzssTotal, int framesCount) {
+	}
 
+	/**
+	 * Dumps, compresses and lays out the subtunes the way VU-Player V2 reads
+	 * them: per subtune an entry in the song index (the address of its
+	 * section list and of its sequence list), the timers, and the intro and
+	 * loop LZSS streams from {@link VUPlayer#SONGDATA} on. {@code mem} is the
+	 * Atari memory with the VU-Player already loaded. Shared by the XEX and
+	 * the SAP type B exports - the SAP export used to write the memory blocks
+	 * of the old VU-Player instead, which made every exported SAP unplayable
+	 * (ported from the RITMO fork's b243f10;
+	 * plans/32_RITMO_FORK_ANALYSIS_PLAN.md).
+	 */
+	public static LzssSubtunes buildLzssSubtunes(Song song, int tracks4_8, int[] subtune, byte[] mem, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
 		int lzssChunk = 0; // Subtune size will be added to be used as the offset to the next one
 		int lzssTotal = 0; // Final offset for LZSS bytes to export
 		int framesCount = 0;
@@ -144,20 +151,9 @@ public final class SongExporter {
 		int section = VUPlayer.SECTION;
 		int sequence = VUPlayer.SEQUENCE;
 
-		byte[] mem = new byte[Atari.MEMORY_SIZE];
-
-		// Load VUPlayerLZSS to memory
-		byte[] vuPlayerData = RmtAtariBinaries.getVUPlayerBinary();
-		if (vuPlayerData == null) { // C++'s GetVUPlayerBinary() failure box
-			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + SapFileExporter.vuPlayerPath() + "'.");
-		}
-		if (AtariIO.loadBinaryFile(vuPlayerData, mem).bytesRead() <= 0) {
-			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + SapFileExporter.vuPlayerPath() + "'.");
-		}
-
 		CompressLzss lzssData = new CompressLzss();
 
-		for (int count = 0; count < subsongs; count++) {
+		for (int count = 0; count < subtune.length; count++) {
 			// a LZSS export will typically make use of intro and loop only, unless specified otherwise
 			byte[] buf2 = new byte[0];
 			byte[] buf3 = new byte[0];
@@ -242,6 +238,32 @@ public final class SongExporter {
 			// Update the subtune offsets to export the next one
 			lzssTotal = lzssEndAddress;
 		}
+		return new LzssSubtunes(lzssTotal, framesCount);
+	}
+
+	public static byte[] exportXexLzss(Song song, int tracks4_8, XexFile xexFile, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
+		Song.SubsongParts subsongParts = song.getSubsongParts(tracks4_8);
+		int subsongs = subsongParts.count();
+		String parts = subsongParts.parts();
+		int[] subtune = new int[subsongs];
+		for (int i = 0; i < subsongs; i++) {
+			subtune[i] = Integer.parseInt(parts.substring(i * 3, i * 3 + 2), 16);
+		}
+
+		byte[] mem = new byte[Atari.MEMORY_SIZE];
+
+		// Load VUPlayerLZSS to memory
+		byte[] vuPlayerData = RmtAtariBinaries.getVUPlayerBinary();
+		if (vuPlayerData == null) { // C++'s GetVUPlayerBinary() failure box
+			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + SapFileExporter.vuPlayerPath() + "'.");
+		}
+		if (AtariIO.loadBinaryFile(vuPlayerData, mem).bytesRead() <= 0) {
+			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + SapFileExporter.vuPlayerPath() + "'.");
+		}
+
+		LzssSubtunes built = buildLzssSubtunes(song, tracks4_8, subtune, mem, atariTrackerDriver, channelControl, clipboard, undo);
+		int lzssTotal = built.lzssTotal();
+		int framesCount = built.framesCount();
 
 		// Write the Atari Video text to memory, for 5 lines of 40 characters
 		System.arraycopy(xexFile.atariText, 0, mem, VUPlayer.LINE_1, XexFile.ATARI_TEXT_SIZE);

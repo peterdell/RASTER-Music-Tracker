@@ -93,27 +93,17 @@ int CXPokey::GetLatencySize() const {
 
 // Initial WAV recorder process
 // NOTE: This does NOT work with the Altirra plugin due to it hijacking the soundbuffer with its own thing...
-void CXPokey::RenderSoundV2(int instrspeed, BYTE* buffer, int& length) {
-    int rendersize = GetChunkSize();
-    int renderpartsize = 0;
-    int renderoffset = 0;
+void CXPokey::RenderPartV2(int size, BYTE* buffer, int& length) {
+    g_AtariTrackerDriver->SetPokey();
+    CopyAtariMemoryToPokey();
+    length = 0;
 
-    for (; instrspeed > 0; instrspeed--) {
-        g_AtariTrackerDriver->SetPokey();
-        CopyAtariMemoryToPokey();
-        renderpartsize = (rendersize / instrspeed) & 0xfffe;
-
-        switch (GetSoundDriver()) {
-        case CPokey::SoundDriver::SA_POKEY:
-            Pokey_Process(buffer + renderoffset, (unsigned short)renderpartsize);
-            rendersize -= renderpartsize;
-            renderoffset += renderpartsize;
-            break;
-        }
+    switch (GetSoundDriver()) {
+    case CPokey::SoundDriver::SA_POKEY:
+        Pokey_Process(buffer, (unsigned short)size);
+        length = size;
+        break;
     }
-
-    // Copy the actually generated sample data to buffer
-    length = renderoffset;
 }
 
 /// <summary>
@@ -136,9 +126,9 @@ void CXPokey::CopyAtariMemoryToPokey() {
         }
     }
 
-    // AUDCTL
+    // AUDCTL - each POKEY gets its own: $D208 into register 8, $D218 into $18.
     m_pokey.PutByte(0x08, g_AtariTrackerDriver->GetAtari()->GetByteAt(0xd208));
     if (stereo) {
-        m_pokey.PutByte(0x08, g_AtariTrackerDriver->GetAtari()->GetByteAt(0xd218));
+        m_pokey.PutByte(0x18, g_AtariTrackerDriver->GetAtari()->GetByteAt(0xd218));
     }
 }

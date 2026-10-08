@@ -609,7 +609,9 @@ void CScriptRunner::Export(const TScriptCommand& command) {
             sapFile.SetAuthor(ToCString(c.GetOption("author", (LPCTSTR)sapFile.GetAuthor())));
             sapFile.SetName(ToCString(c.GetOption("name", (LPCTSTR)sapFile.GetName())));
             sapFile.SetDate(ToCString(c.GetOption("date", (LPCTSTR)sapFile.GetDate())));
-            sapFile.SetSongs(CSAPFile::ParseSubsongs(ToCString(c.GetOption("subsongs", (LPCTSTR)subsongs))));
+            std::vector<int> positions;
+            sapFile.SetSongs(CSAPFile::ParseSubsongs(ToCString(c.GetOption("subsongs", (LPCTSTR)subsongs)), &positions));
+            sapFile.SetSubsongPositions(positions);
             exportResult = format->ioType == SongIOType::SAPR ? CSAPFileExporter::ExportSAP_R(songExport, sapFile, out) : CSAPFileExporter::ExportSAP_B_LZSS(songExport, sapFile, out);
             break;
         }

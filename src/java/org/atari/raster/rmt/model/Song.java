@@ -4115,6 +4115,14 @@ public final class Song {
 		songActiveLine = savedSongActiveLine;
 		trackActiveLine = savedTrackActiveLine;
 
+		// The dump switched every channel off to record; switch them back on
+		// here, where they were switched off. Nothing else reliably did:
+		// after any sound export the tracker stayed muted until something
+		// else happened to restore them (the RITMO fork's dcd62bd found the
+		// same hole around its exports; ChannelsAfterExportTest covers every
+		// format here; plans/32_RITMO_FORK_ANALYSIS_PLAN.md).
+		channelControl.setAllChannelsOn();
+
 		// Deliberately NOT calling pokeyStream.finishedRecording() here, matching
 		// C++ exactly: CSong::DumpSongToPokeyStream() never calls
 		// CPokeyStream::FinishedRecording() itself (which is what frees the

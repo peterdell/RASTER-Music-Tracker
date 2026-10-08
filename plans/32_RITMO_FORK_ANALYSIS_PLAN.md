@@ -1,7 +1,12 @@
 # Plan 32: What the RITMO fork did, and what of it this project wants
 
-Status: IN PROGRESS. R1 done 2026-10-08; R2 done 2026-10-08 except two
-checks (TXT line ends in Java, channels after each export); R3/R4 open.
+Status: DONE 2026-10-08. R1-R3 done; R4 decided: no explicit note to the
+fork - its maintainer monitors this repository, so the commits and
+change-history entries crediting his commits ARE the communication. The
+two open checks are closed: an LF-only .txt loads identically in both
+programs (no change needed), and the channels check found a fourth real
+bug - every sound export left the tracker muted - fixed in both programs
+with a per-format test (ChannelsAfterExportTest).
 
 [RITMO Music Tracker](https://github.com/gianlucarenzi/RITMO-Music-Tracker)
 is Gianluca Renzi's fork of this repository: the C++ program ported from
@@ -101,6 +106,8 @@ form; each fix still lands through this project's own conventions
 2. **Reciprocity**: tell the fork what was taken and what they are
    missing, e.g. one issue over there with the tally? *Recommended: yes -
    the fork credits RMT openly and already ports our fixes by hand.*
+   **Decided 2026-10-08: no explicit note.** The maintainer monitors this
+   repository's branch, so the documented changes reach him as they are.
 3. **Reference clone**: keep a persistent clone (beside the other
    third-party checkouts) for the duration of the analysis, or re-clone
    per session? The analysis only reads it.

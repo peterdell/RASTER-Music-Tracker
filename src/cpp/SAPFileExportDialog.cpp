@@ -56,7 +56,9 @@ bool CSAPFileExportDialog::Show(const CSong& song, CSAPFile& sapFile) {
     sapFile.SetName(dlg.m_name);
     sapFile.SetDate(dlg.m_date);
 
-    sapFile.SetSongs(CSAPFile::ParseSubsongs(dlg.m_subsongs)); // Parses the "Subsongs" line
+    std::vector<int> positions;
+    sapFile.SetSongs(CSAPFile::ParseSubsongs(dlg.m_subsongs, &positions)); // Parses the "Subsongs" line
+    sapFile.SetSubsongPositions(positions);
     return true;
 }
 

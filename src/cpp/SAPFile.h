@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Song.h"
+
+#include <vector>
 #include "Memory.h"
 
 class CSAPFile {
@@ -45,7 +47,10 @@ public:
     // The "Subsongs" line of the export dialog (hex songline numbers separated by
     // anything else) counted as SetSongs() wants it - shared by the dialog and
     // the script runner.
-    static int ParseSubsongs(const CString& subsongs);
+    static int ParseSubsongs(const CString& subsongs, std::vector<int>* positions = nullptr);
+    // The songline each subsong starts from, for the type B export (empty: the song from its start)
+    const std::vector<int>& GetSubsongPositions() const;
+    void SetSubsongPositions(const std::vector<int>& positions);
     void Normalize();
     // Takes std::ostream (not just std::ofstream) so tests can capture the
     // output with a std::ostringstream instead of writing a real file. Not
@@ -66,6 +71,7 @@ private:
     CString m_type;
     MemoryAddress m_init;
     MemoryAddress m_player;
+    std::vector<int> m_subsongPositions;
 
     static void Normalize(CString& string);
     static CString FormatMemoryAddress(MemoryAddress address);

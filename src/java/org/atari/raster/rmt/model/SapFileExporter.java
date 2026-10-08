@@ -54,23 +54,21 @@ public final class SapFileExporter {
 	}
 
 	/**
-	 * Compresses the recorded PokeyStream's intro/loop sections, patches
-	 * them into a loaded VUPlayer binary image (see {@link VUPlayer}), and
-	 * writes the SAP-B header (caller must have already set {@code sapFile}'s
-	 * type to {@code "B"}, matching the real dialog's own responsibility)
-	 * followed by the patched memory's three binary blocks - mirrors
-	 * {@code CSAPFileExporter::ExportSAP_B_LZSS} exactly, including its own
-	 * dead {@code full} computation being dropped (the C++ source computes
-	 * it but never reads the result - see {@code PatchMemoryForSAP_B}'s own
-	 * commented-out {@code buff1} use).
+	 * {@code CSAPFileExporter::ExportSAP_B_LZSS()}: the SAP text header (the
+	 * caller sets the type to {@code "B"}), then the VU-Player and the song
+	 * data as two binary blocks. The subtunes are dumped, compressed and laid
+	 * out by {@link SongExporter#buildLzssSubtunes}, exactly as the XEX
+	 * export does for the same player - the export used to write the memory
+	 * blocks of the old VU-Player ($1900-$27FF) while vu_player_v2.obx lives
+	 * at $0C1B-$1F3F: INIT jumped into bytes the file did not hold, and no
+	 * player could run any SAP this program exported (ported from the RITMO
+	 * fork's b243f10; plans/32_RITMO_FORK_ANALYSIS_PLAN.md).
 	 *
 	 * @throws IllegalStateException if {@code vu_player_v2.obx} can't be
-	 * loaded, or the patched LZSS data doesn't fit in memory - both
-	 * guard-only C++ error paths that show a {@code MessageBox} and return
-	 * {@code false}, matching this port's established "fatal precondition
-	 * becomes an exception" idiom (see e.g. {@link SapFile#export}).
+	 * loaded, or the LZSS data doesn't fit in memory - both guard-only C++
+	 * error paths that show a {@code MessageBox} and return {@code false}.
 	 */
-	public static byte[] exportSapBLzss(SapFile sapFile, Song song, int tracks4_8, PokeyStream pokeyStream) {
+	public static byte[] exportSapBLzss(SapFile sapFile, Song song, int tracks4_8, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
 		byte[] memory = new byte[Atari.MEMORY_SIZE];
 		byte[] vuPlayerData = RmtAtariBinaries.getVUPlayerBinary();
 		if (vuPlayerData == null) { // C++'s GetVUPlayerBinary() failure box
@@ -81,38 +79,26 @@ public final class SapFileExporter {
 			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + vuPlayerPath() + "'.");
 		}
 
-		CompressLzss lzssData = new CompressLzss();
-		byte[] buf2 = compressOrEmpty(lzssData, pokeyStream.getFrameBytes(pokeyStream.getThirdCountPoint(), 0));
-		byte[] buf3 = compressOrEmpty(lzssData, pokeyStream.getFrameBytes(pokeyStream.getSecondCountPoint(), pokeyStream.getFirstCountPoint()));
-		int intro = buf2.length;
-		int loop = buf3.length;
-
-		int targetAddrOfModule = VUPlayer.SONGDATA;
-		int lzssOffset = (intro > 16) ? targetAddrOfModule + intro : targetAddrOfModule;
-		int lzssEnd = lzssOffset + loop;
-
-		if (lzssEnd > 0xBFFF) { // RAM_MAX_ADDRESS
-			throw new IllegalStateException("Error, LZSS data is too big to fit in memory!\n\n"
-					+ "High Instrument Speed and/or Stereo greatly inflate memory usage, even when data is compressed");
+		// The subtunes: the songlines the SAP file's subsongs start from, else the song from its start
+		int[] subtunes = sapFile.getSubsongPositions();
+		if (subtunes.length == 0) {
+			subtunes = new int[] { 0 };
 		}
+		SongExporter.LzssSubtunes built = SongExporter.buildLzssSubtunes(song, tracks4_8, subtunes, memory, atariTrackerDriver, channelControl, clipboard, undo);
 
+		sapFile.setSongs(subtunes.length);
 		sapFile.setInitAddress(VUPlayer.INIT_SAP);
 		sapFile.setPlayerAddress(VUPlayer.DO_PLAY_ADDR);
+		VUPlayer.patchMemoryForSapB(memory, song, tracks4_8, subtunes.length);
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		out.writeBytes(sapFile.export().getBytes(StandardCharsets.US_ASCII));
 
-		VUPlayer.patchMemoryForSapB(memory, song, tracks4_8, buf2, buf3, intro, loop, targetAddrOfModule, lzssOffset, lzssEnd);
-
-		out.writeBytes(AtariIO.saveBinaryBlock(memory, 0x1900, 0x1EFF, true)); // LZSS Driver, and some free bytes for later if needed
-		out.writeBytes(AtariIO.saveBinaryBlock(memory, 0x2000, 0x27FF, false)); // VUPlayer only
-		out.writeBytes(AtariIO.saveBinaryBlock(memory, VUPlayer.LZSS_POINTER, lzssEnd, false)); // subtunes index + the actual LZSS streams
+		// The binary: the LZSS driver and the player, then the song index, lists and streams until the end of the data
+		out.writeBytes(AtariIO.saveBinaryBlock(memory, VUPlayer.PLAYLZ16BEGIN, VUPlayer.LZSS_POINTER - 1, true));
+		out.writeBytes(AtariIO.saveBinaryBlock(memory, VUPlayer.LZSS_POINTER, built.lzssTotal() - 1, false));
 
 		return out.toByteArray();
 	}
 
-	/** {@code src.length == 0} (a section with zero frames) is skipped rather than handed to {@link CompressLzss#compress} - see {@code SongExporter#compressSection}'s own javadoc for why. Unlike that method, no {@code > 16} clamping here: C++'s {@code ExportSAP_B_LZSS} always uses whatever {@code LZSS_SAP} returns, never dropping a small section. */
-	private static byte[] compressOrEmpty(CompressLzss lzssData, byte[] src) {
-		return src.length == 0 ? new byte[0] : lzssData.compress(src, SapROptimization.AUDC);
-	}
 }

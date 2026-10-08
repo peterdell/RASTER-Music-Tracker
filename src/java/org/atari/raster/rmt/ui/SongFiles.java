@@ -1044,7 +1044,7 @@ public final class SongFiles {
 				return false;
 			}
 			try {
-				Files.write(fn, SapFileExporter.exportSapBLzss(sapFile, song, session.tracks4_8, generatePokeyStream()));
+				Files.write(fn, SapFileExporter.exportSapBLzss(sapFile, song, session.tracks4_8, session.atariTrackerDriver, session.channelControl, session.clipboard, session.undo));
 			} catch (IllegalStateException ex) { // the driver file missing, or the LZSS data too big for memory - C++'s two error boxes
 				session.messages.sendErrorMessage("Export aborted", ex.getMessage());
 				return false;
@@ -1070,7 +1070,9 @@ public final class SongFiles {
 			session.atariTrackerDriver.init(); // Reset the Atari memory
 			session.channelControl.setAllChannelsOn();
 			Files.write(fn, WaveFileExporter.exportWav(pokeyStream, song.isNTSC(), song.isStereo(session.tracks4_8), song.getInstrumentSpeed()));
-			session.channelControl.setAllChannelsOff(); // as C++ ("TODO: Set channels on again?")
+			// The closing mute that C++ carried with a doubting TODO is gone
+			// in both programs: it left the tracker silent after a WAV
+			// export (plans/32_RITMO_FORK_ANALYSIS_PLAN.md).
 			return true;
 		}
 		default -> {
@@ -1090,7 +1092,9 @@ public final class SongFiles {
 		sapFile.setAuthor(dlg.author());
 		sapFile.setName(dlg.name());
 		sapFile.setDate(dlg.date());
-		sapFile.setSongs(parseSubsongs(dlg.subsongs()));
+		java.util.List<Integer> positions = new java.util.ArrayList<>();
+		sapFile.setSongs(parseSubsongs(dlg.subsongs(), positions));
+		sapFile.setSubsongPositions(positions.stream().mapToInt(Integer::intValue).toArray());
 		return true;
 	}
 
@@ -1101,14 +1105,28 @@ public final class SongFiles {
 
 	/** The "Subsongs" line: hexadecimal numbers separated by anything else; how many there are (at most {@link SapFile#MAXSUBSONGS}). */
 	static int parseSubsongs(String subsongs) {
+		return parseSubsongs(subsongs, null);
+	}
+
+	/** As {@link #parseSubsongs(String)}; the songline numbers themselves go to {@code positions} when given - the type B export lays its subtunes out from them. */
+	static int parseSubsongs(String subsongs, java.util.List<Integer> positions) {
 		String str = subsongs.toUpperCase(Locale.ROOT) + " "; // Add space after the last character for parsing
 		int count = 0;
+		int n = 0;
 		boolean isn = false;
+		if (positions != null) {
+			positions.clear();
+		}
 		for (int i = 0; i < str.length(); i++) {
 			char a = str.charAt(i);
 			if ((a >= '0' && a <= '9') || (a >= 'A' && a <= 'F')) {
+				n = ((n << 4) + (a <= '9' ? a - '0' : a - 'A' + 10)) & 0xFF;
 				isn = true;
 			} else if (isn) {
+				if (positions != null) {
+					positions.add(n);
+				}
+				n = 0; // the digits of the next number start from zero again
 				count++;
 				if (count >= SapFile.MAXSUBSONGS) {
 					break;

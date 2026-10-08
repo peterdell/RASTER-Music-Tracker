@@ -5404,3 +5404,51 @@ build clean and all 123 tests pass.
     test were clean, so it is recorded as an intermittent crash rather than
     chased, in a program that is being retired.
 
+  - **2026-10-08**: plan 32, R3 - the three bugs the RITMO fork pointed at,
+    fixed in both programs and verified externally.
+
+    The SAP type B export now lays its player out the way the XEX export
+    always did: the subtune loop moved out of `ExportXEX_LZSS` into a
+    shared `BuildLzssSubtunes` (the extraction proven byte-neutral by
+    comparing the refactored C++ XEX against the still-unchanged jar),
+    `PatchMemoryForSAP_B` lost its eight dead writes to one address - the
+    fossil of the never-written song index - and the saved blocks are the
+    player as it sits in memory, not the old player's addresses. The
+    "Subsongs" line now produces real subtunes, as in the XEX. The new
+    `SapPlayabilityTest` plays every exported SAP (one and two subtunes)
+    through the vendored ASAP and requires audible energy - the external
+    check the byte-identical comparison could never be.
+
+    The WAV export renders one driver call's share of a video frame per
+    stream frame, not a whole frame: the stereo reference song dropped
+    from 487.8 s to 121.6 s (C++) / 121.9 s (Java), its true length, and
+    Delta's WAVs are byte-identical before and after, which pins the fix
+    to instrument speeds 2-4. C++ grew `RenderPartV2` (one caller, so the
+    old whole-frame `RenderSoundV2` is gone); the Java loop re-poked the
+    same registers once per sub-frame and now pokes each stream frame's.
+
+    The C++ stereo AUDCTL tail writes $D218 to register $18, not 8 again.
+
+    Everything imported from the fork is credited to its commits
+    (b243f10, 60743c3, e732254) in the code and the change history; both
+    repositories are GPL-3. 670 Java and 430 C++ tests pass, and the
+    cross-program comparison stays identical on every non-WAV export.
+
+  - **2026-10-08**: plan 32 closed. The two open checks resolved: an
+    LF-only .txt round-trips byte-identically in both programs, so the
+    fork's line-ending fix addressed code this repository no longer has.
+    The channels check found the fourth real bug: the register dump
+    switches every channel off to record, and after a sound export nothing
+    reliably switched them back on - the new ChannelsAfterExportTest
+    failed for all five sound formats. The Java WAV branch even re-muted
+    them deliberately, faithfully porting the C++ exporter's closing mute
+    complete with its "TODO: Set channels on again?" - characterisation
+    kept the bug alive exactly as designed, and both programs now lose it
+    together: the dump restores the channels itself, at the same place it
+    switched them off.
+
+    R4 by decision: no note to the fork - its maintainer monitors this
+    repository, so the credited commits and the change history are the
+    message. 675 Java and 430 C++ tests pass; the cross-program comparison
+    is identical on every non-WAV export.
+

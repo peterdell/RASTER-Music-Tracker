@@ -27,5 +27,10 @@ public:
 
     static constexpr MemoryAddress SOUNGTIMER = LZSSP_SONGTIMERCOUNT;
 
-    static void PatchMemoryForSAP_B(byte* memory, const CSong& song, byte* buf2, byte* buf3, int intro, int loop, int targetAddrOfModule, int lzss_offset, int lzss_loop);
+    // The patches that turn the loaded VU-Player into a SAP type B player:
+    // INIT takes the subtune in A, PLAYER loops forever. The song index and
+    // the LZSS streams come from CSongExporter::BuildLzssSubtunes(), which
+    // the former nine-parameter version half-duplicated with dead writes
+    // (all its "pointer" stores hit the same address).
+    static void PatchMemoryForSAP_B(byte* memory, const CSong& song, int subsongs);
 };

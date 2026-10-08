@@ -2,7 +2,7 @@
 #include "AtariIO.h"
 #include "Song.h"
 
-void VUPlayer::PatchMemoryForSAP_B(byte* memory, const CSong& song, byte* buff2, byte* buff3, int intro, int loop, int targetAddrOfModule, int lzss_offset, int lzss_end) {
+void VUPlayer::PatchMemoryForSAP_B(byte* memory, const CSong& song, int subsongs) {
 
     // Patch: change a JMP [label] to a RTS with 2 NOPs
     byte saprtsnop[3] = {0x60, 0xEA, 0xEA};
@@ -13,7 +13,7 @@ void VUPlayer::PatchMemoryForSAP_B(byte* memory, const CSong& song, byte* buff2,
     // Patch: change a $00 to $FF to force the LOOP flag to be infinite
     memory[VUPlayer::LOOP_FLAG] = 0xFF;
 
-    // SAP initialisation patch, running from address 0x3080 in Atari executable
+    // SAP initialisation patch: the SAP player calls INIT with the subtune number in A
     byte sapbytes[14] =
         {
             0x8D, LZSSP_SONGIDX & 0xff, LZSSP_SONGIDX >> 8, // STA SongIdx
@@ -26,26 +26,5 @@ void VUPlayer::PatchMemoryForSAP_B(byte* memory, const CSong& song, byte* buff2,
 
     memory[VUPlayer::SONG_SPEED] = song.GetInstrumentSpeed(); // Song speed
     memory[VUPlayer::STEREO_FLAG] = song.IsStereo() ? 0xFF : 0x00; // Is the song stereo?
-
-    // SongStart pointers
-    // TODO: Why same address?
-    memory[VUPlayer::LZSS_POINTER] = targetAddrOfModule >> 8; // SongsSHIPtrs
-    memory[VUPlayer::LZSS_POINTER] = lzss_offset >> 8; // SongsIndexEnd
-    memory[VUPlayer::LZSS_POINTER] = targetAddrOfModule & 0xFF; // SongsSLOPtrs
-    memory[VUPlayer::LZSS_POINTER] = lzss_offset & 0xFF; // SongsDummyEnd
-
-    // SongEnd pointers
-    // TODO: Why same address?
-    memory[VUPlayer::LZSS_POINTER] = lzss_offset >> 8; // LoopsIndexStart
-    memory[VUPlayer::LZSS_POINTER] = lzss_end >> 8; // LoopsIndexEnd
-    memory[VUPlayer::LZSS_POINTER] = lzss_offset & 0xFF; // LoopsSLOPtrs
-    memory[VUPlayer::LZSS_POINTER] = lzss_end & 0xFF; // LoopsDummyEnd
-
-    if (intro > 16) {
-        memcpy(memory + targetAddrOfModule, buff2, intro);
-        memcpy(memory + lzss_offset, buff3, loop);
-    } else {
-        //memcpy(mem + targetAddrOfModule, buff1, full);
-        memcpy(memory + lzss_offset, buff3, loop);
-    }
+    memory[VUPlayer::SONGTOTAL] = subsongs; // Total number of subtunes
 }

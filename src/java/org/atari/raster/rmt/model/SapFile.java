@@ -92,6 +92,17 @@ public final class SapFile {
 		return songs;
 	}
 
+	/** The songline each subsong starts from, for the type B export (empty: the song from its start). */
+	public int[] getSubsongPositions() {
+		return subsongPositions.clone();
+	}
+
+	public void setSubsongPositions(int[] positions) {
+		subsongPositions = positions.clone();
+	}
+
+	private int[] subsongPositions = {};
+
 	public void setSongs(int songs) {
 		this.songs = songs;
 	}
