@@ -127,6 +127,10 @@ void CXPokey::CopyAtariMemoryToPokey() {
     }
 
     // AUDCTL - each POKEY gets its own: $D208 into register 8, $D218 into $18.
+    // The $18 write used to go to register 8 again, so in live stereo
+    // playback the base POKEY got the right chip's AUDCTL and the second
+    // chip got none (fixed per the RITMO fork's e732254;
+    // plans/32_RITMO_FORK_ANALYSIS_PLAN.md).
     m_pokey.PutByte(0x08, g_AtariTrackerDriver->GetAtari()->GetByteAt(0xd208));
     if (stereo) {
         m_pokey.PutByte(0x18, g_AtariTrackerDriver->GetAtari()->GetByteAt(0xd218));
