@@ -16,8 +16,12 @@
 
 ; Export format, Atari Executable (XEX/OBX) or SAP
 
+.ifndef EXPORTXEX		; defaults: build.cmd overrides them with -d: for the SAP build
 EXPORTXEX	equ 1
+.endif
+.ifndef EXPORTSAP
 EXPORTSAP	equ 0
+.endif
 
 	ERT [EXPORTXEX+EXPORTSAP]=0	;* No format defined!
 	ERT [EXPORTXEX+EXPORTSAP]=2	;* Only 1 format can be defined!

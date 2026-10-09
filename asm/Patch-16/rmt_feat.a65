@@ -8,10 +8,14 @@
 ;* PATCH16 ADDITIONS BY VINSCOOL, USE ONLY IF YOU KNOW WHAT YOU ARE DOING!
 
 ;* enable ONLY if the target output is the actual RMT driver binary (tracker.obx), There are few specific changes involved!
+.ifndef FEAT_IS_TRACKER	;* a default: build.cmd overrides it with -d: for the Simple RMT Player
 FEAT_IS_TRACKER 	equ 1
+.endif
 
 ;* Simple RMT Player is a simple recreation of the original .xex export player from RMT, enable for few bonus features
+.ifndef FEAT_IS_SIMPLEP	;* a default: build.cmd overrides it with -d: for the Simple RMT Player
 FEAT_IS_SIMPLEP 	equ 0
+.endif
 
 			ERT [FEAT_IS_TRACKER+FEAT_IS_SIMPLEP]=0	;* The RMT driver has no driver parameter defined!
 			ERT [FEAT_IS_TRACKER+FEAT_IS_SIMPLEP]=2	;* The RMT driver could not have more than 1 driver parameter defined!
