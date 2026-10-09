@@ -1,9 +1,9 @@
 # Plan 32: What the RITMO fork did, and what of it this project wants
 
 Status: DONE 2026-10-08 (code); section 7's addendum on the non-code
-areas added three follow-ups: the stereo test coverage and the stale
-emulation doc page are closed (2026-10-09, see below), the ca65 driver
-builds remain open. R1-R3 done; R4 decided: no explicit note to the
+areas added three follow-ups, all closed 2026-10-09 (see section 7): the
+stereo test coverage, the stale emulation doc page, and the ca65 driver
+builds (not adopted - MADS alone proves the drivers). R1-R3 done; R4 decided: no explicit note to the
 fork - its maintainer monitors this repository, so the commits and
 change-history entries crediting his commits ARE the communication. The
 two open checks are closed: an LF-only .txt loads identically in both
@@ -166,10 +166,20 @@ commits but did not mine them. This pass does, area by area:
   makes it credible - `make check` proving that `rmt_driver_v1.obx` and
   `rmt_driver_v6.obx` assemble **byte for byte** identical to the shipped
   binaries, plus a POKEY-register check of the player SAP against the
-  Patch16 driver. Today this repository can only rebuild the drivers with
-  MADS/XASM on Windows; cc65 runs everywhere the Java port does. Worth
-  adopting if the drivers are ever to be built from source in CI instead
-  of trusted as checked-in binaries. **Follow-up, decision wanted.**
+  Patch16 driver. **Closed 2026-10-09, not adopted** - the goal (the
+  shipped drivers proven against their sources in CI) was reached
+  without it, because the premise "only on Windows" no longer holds:
+  MADS ships binaries for Linux/Windows/macOS, and measured here, MADS
+  alone reproduces BOTH drivers byte for byte from the unmodified
+  sources - `rmt_driver_v6.obx` from `asm/Patch-16/rmtplayr.a65` and,
+  MADS being an XASM superset, also the XASM-era `rmt_driver_v1.obx`
+  from `asm/Legacy/rmt_ata.a65` (verified with MADS 2.1.7 and 2.1.9).
+  So instead of their 12.5k generated lines, translator and third
+  assembler syntax: `build/check_drivers.sh` + the vendored, pinned
+  MADS 2.1.9 (`lib/mads/`, README documents origin/update) + the
+  `check-drivers.yml` workflow running it on every push. Same proof
+  standard, original sources untouched. Unchanged either way: v2-v5,
+  v7 and VUPlayer have no sources here and stay unchecked.**
 
 - **doc/ - one stale page of ours found through their fixes.** Their
   `c2c03c7` rewrote the emulation chapter because it still described the

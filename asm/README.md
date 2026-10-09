@@ -26,6 +26,11 @@ All of the following will be written with the assumption Patch-16 is the RMT dri
 
 Sources can be assembled using XASM or MADS, and can output the following:
 
+(The two drivers RMT ships, rmt_driver_v1.obx from Legacy/rmt_ata.a65 and rmt_driver_v6.obx from
+Patch-16/rmtplayr.a65, are proven byte-identical to these sources on every push: `build/check_drivers.sh`
+assembles them with the vendored, pinned MADS - see `lib/mads/README.md` - and compares. It runs locally
+in Git Bash too: `sh build/check_drivers.sh`.)
+
 - tracker.obx driver binary (for use with Rmt.exe) using FEAT_IS_TRACKER definition.
 - XEX/SAP binaries as standalone player exports* using the FEAT_IS_SIMPLEP, EXPORTXEX or EXPORTSAP definitions.
 - Any project that makes use of RMT may also use this version, assuming the memory/CPU usage may handle it with no issues.

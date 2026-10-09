@@ -1,0 +1,21 @@
+name: Check drivers
+
+# Proves that the shipped driver binaries in rmt/resources/drivers are
+# byte for byte what their 6502 sources in asm/ assemble to, using the
+# vendored, pinned MADS (lib/mads - see its README.md for why pinned and
+# how to update). The check takes seconds, so it runs on every push.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assemble the driver sources and compare with the shipped binaries
+        run: |
+          chmod +x lib/mads/linux_x86_64/mads
+          sh build/check_drivers.sh
