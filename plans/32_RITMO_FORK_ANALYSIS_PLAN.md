@@ -1,7 +1,8 @@
 # Plan 32: What the RITMO fork did, and what of it this project wants
 
 Status: DONE 2026-10-08 (code); section 7's addendum on the non-code
-areas adds three follow-ups, open. R1-R3 done; R4 decided: no explicit note to the
+areas added three follow-ups: the stereo test coverage is closed
+(2026-10-09, see below), two remain open. R1-R3 done; R4 decided: no explicit note to the
 fork - its maintainer monitors this repository, so the commits and
 change-history entries crediting his commits ARE the communication. The
 two open checks are closed: an LF-only .txt loads identically in both
@@ -181,13 +182,19 @@ commits but did not mine them. This pass does, area by area:
   per-release notes files, the anchor rewriting - belongs to their book
   pipeline and packaging, not here.
 
-- **test-resources/ - one good idea.** `StereoShort.rmt`, a 6 KB stereo
-  song, joined their reference songs so stereo SAP exports (with
-  subsongs) are tested without dumping the 24,000-frame reference song.
-  Our new SAP tests run on mono Delta; a small stereo song would close
-  that gap cheaply. It appears derived from the stereo reference song,
-  so the music's own provenance should be settled before copying it -
-  or an equally small song made here. **Follow-up, decision wanted.**
+- **test-resources/ - one good idea, taken without the file.**
+  `StereoShort.rmt`, a 6 KB stereo song, joined their reference songs so
+  stereo SAP exports are tested without dumping the 24,000-frame
+  reference song - the full song cannot become a SAP at all, its LZSS
+  streams outgrow the player's memory window, so a cut is unavoidable.
+  Our SAP tests ran on mono Delta only. **Closed 2026-10-09:** instead
+  of copying their derived file (unsettled provenance), the new
+  `SapPlayabilityTest.aStereoSapPlaysOnBothChannels` makes the cut
+  in-memory on our own stereo reference song: it plants a goto at
+  songline 5 - the same "first five songlines" their file freezes - so
+  the dump ends there, then asserts STEREO in the header, two channels
+  in ASAP, and audible energy on BOTH channels (the coverage the AUDCTL
+  bug wanted). No new test resource, no provenance question.
 
 - **rmt/ and scripts/ - noted, not wanted.** The 436 `rmt/` file changes
   are the RITMO rename (`ritmo.ini`, headers, screenshots) plus
