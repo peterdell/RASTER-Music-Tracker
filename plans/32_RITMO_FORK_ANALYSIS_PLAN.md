@@ -1,8 +1,9 @@
 # Plan 32: What the RITMO fork did, and what of it this project wants
 
 Status: DONE 2026-10-08 (code); section 7's addendum on the non-code
-areas added three follow-ups: the stereo test coverage is closed
-(2026-10-09, see below), two remain open. R1-R3 done; R4 decided: no explicit note to the
+areas added three follow-ups: the stereo test coverage and the stale
+emulation doc page are closed (2026-10-09, see below), the ca65 driver
+builds remain open. R1-R3 done; R4 decided: no explicit note to the
 fork - its maintainer monitors this repository, so the commits and
 change-history entries crediting his commits ARE the communication. The
 two open checks are closed: an LF-only .txt loads identically in both
@@ -172,12 +173,19 @@ commits but did not mine them. This pass does, area by area:
 
 - **doc/ - one stale page of ours found through their fixes.** Their
   `c2c03c7` rewrote the emulation chapter because it still described the
-  sound as requiring the external DLLs. Our `doc/rmt_tracker.md` line 53
-  still says exactly that - but the correction needs its own fact-check
-  first, because our C++ program is in between: live playback moved to
-  ASAP, while the WAV render path still drives `sa_pokey.dll`. The page
-  must describe each program's real architecture, not the fork's (which
-  removed the DLLs entirely). **Follow-up.** Their other documentation
+  sound as requiring the external DLLs. Our `doc/rmt_tracker.md` said
+  exactly that. **Closed 2026-10-09**, after the fact-check the note
+  asked for - which also corrected the note's own guess ("live playback
+  moved to ASAP"): the C++ program's live playback AND WAV render both
+  still run through the runtime-loaded DLLs (`apokeysnd.dll` preferred
+  when present, the shipped `sa_pokey.dll` as fallback, `sa_c6502.dll`
+  for the CPU); the vendored ASAP C sources in `src/cpp/asap/` compile
+  into `Rmt.exe` but serve no feature yet (the "Tools > Open ASAP File"
+  menu entry exists unwired). The rewritten page now describes each
+  program: the C++ one with its shipped DLLs and the warning-and-silence
+  behavior when they are missing, the Java one with ASAP's emulation
+  vendored as source (`src/java/net/sf/asap`, "RMT mode") and no
+  external libraries at all. Their other documentation
   work - the LaTeX manual with per-architecture installation chapters,
   per-release notes files, the anchor rewriting - belongs to their book
   pipeline and packaging, not here.

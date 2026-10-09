@@ -50,20 +50,32 @@ The Atari 8-bit emulation consists of two parts
 
 ### Current Situation
 
-The Pokey sound emulation and Atari 6502 processor emulation aren't built-in components of RMT. If the sound output is needed, the external dynamic DLL libraries with the following functions are required.  If you run RMT without this way described DLLs ( `sa_c6502.dll`, `apokeysnd.dll` or `sa_pokey.dll`), RMT will work, but there won't be any Pokey sound output and Atari sound routines won't be executed.
+The two programs obtain the emulation differently.
 
-#### CPU Emulation (C++/Windows)
+#### C++ Program (Windows)
 
-Contained in `sa_c6502.dll` from [Altirra](https://www.virtualdub.org/altirra.html) by Avery Lee
+The Pokey sound emulation and Atari 6502 processor emulation aren't compiled into `Rmt.exe`. They are loaded at startup from external dynamic DLL libraries located next to the program, and the release ships the required DLLs (`sa_c6502.dll`, `sa_pokey.dll`), so sound works out of the box. If the DLLs are removed, RMT will work, but there won't be any Pokey sound output and the Atari sound routines won't be executed; a warning reports each missing library.
+
+##### CPU Emulation
+
+Contained in `sa_c6502.dll` from [Altirra](https://www.virtualdub.org/altirra.html) by Avery Lee.
 Procedures
 - `void C6502_Initialise(BYTE* memory);`
 - `int C6502_JSR(WORD* addr, BYTE* areg, BYTE* xreg, BYTE* yreg, int* maxcycles);`
 - `void C6502_About(char** name, char** author, char** description)`;
 
+##### Pokey Emulation
 
-#### Pokey Emulation  (C++/Windows)
+Two libraries are supported and tried in this order:
 
-Contained in `sa_pokey.dll` [Altirra](https://www.virtualdub.org/altirra.html) by Avery Lee
+`apokeysnd.dll` from [ASAP](https://asap.sourceforge.net/) by Piotr Fusik is loaded first, if present. It is not part of the release.
+- `void APokeySound_Initialize(abool stereo);`
+- `void APokeySound_PutByte(int addr, int data);`
+- `int APokeySound_GetRandom(int addr, int cycle);`
+- `int APokeySound_Generate(int cycles, byte buffer[], ASAP_SampleFormat format);`
+- `void APokeySound_About(const char **name, const char **author, const char **description);`
+
+`sa_pokey.dll` from [Altirra](https://www.virtualdub.org/altirra.html) by Avery Lee is the fallback and is part of the release.
 - `void Pokey_Initialise(int *argc, char *argv[]);`
 - `void Pokey_SoundInit(uint32 freq17, uint16 playback_freq, uint8 num_pokeys);`
 - `void Pokey_Process(uint8 * sndbuffer, const uint16 sndn);`
@@ -71,23 +83,21 @@ Contained in `sa_pokey.dll` [Altirra](https://www.virtualdub.org/altirra.html) b
 - `void Pokey_PutByte(UWORD addr, UBYTE byte);`
 - `void Pokey_About(char** name, char** author, char** description);`
 
-or in `apokeysnd.dll` from [ASAP](http://asap.sourceforge.net/apokeysnd.dll) by Piotr Fusik
-- `void APokeySound_Initialize(abool stereo);`
-- `void APokeySound_PutByte(int addr, int data);`
-- `int APokeySound_GetRandom(int addr, int cycle);`
-- `int APokeySound_Generate(int cycles, byte buffer[], ASAP_SampleFormat format);`
-- `void APokeySound_About(const char **name, const char **author, const char **description);`
+In addition, the C sources of ASAP itself are compiled into `Rmt.exe` (`src/cpp/asap/`), but they do not serve any feature yet. They are groundwork for playing `.sap` and other Atari sound module files directly ("Tools > Open ASAP File", a prepared but not yet functional menu entry).
 
+#### Java Program (all platforms)
+
+The Java program needs no external libraries for the emulation. ASAP's pure-Java 6502 CPU and dual-POKEY emulation - the same emulation `apokeysnd.dll` is built from - is vendored as source in `src/java/net/sf/asap`, extended with an "RMT mode" for the tracker (see `lib/java/README.md`), and compiled into the program. Sound therefore always works; the only thing that silences the Java program is a missing tracker driver file (`resources/drivers/*.obx`), which is reported with a warning.
 
 ### Known Issues
 
 Issues are tracked on the GitHub issue tracker:
 https://github.com/raster-atari-org/RASTER-Music-Tracker/issues
 
-The following general maintainer issues are already known:
-- The code still heavily uses macros and global variables. It is not testable.
-- The DLL loading and initialization is broken and uses workaround to detect frequencies and PAL/NTSC somehow correct
-- Different path in the code to do the same thing (e.g. toggle PAL/NTSC) are copy/past coding, but slightly different.
+The following general maintainer issues concern the C++ program, which the Java port is replacing:
+- The code still heavily uses macros and global variables. The testable halves have been split out into `...Core.cpp` files and are covered by the GoogleTest suite in `src/cpp/test/`, but the UI- and hardware-facing halves remain untested.
+- The DLL loading and initialization is brittle and uses workarounds to detect the frequencies and PAL/NTSC.
+- Different paths in the code do the same thing (e.g. toggle PAL/NTSC) as copy/paste coding, but slightly different.
 
 ### Future Plans
 

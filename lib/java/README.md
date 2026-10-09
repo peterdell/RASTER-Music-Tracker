@@ -16,8 +16,9 @@ its full generated Java source, copied from
 `asap.txt`: built via `make java/asap.jar` from ASAP's upstream `.fu`
 ("fut"-language) portable source - the same multi-language-codegen
 approach that produces `src/cpp/asap/asap.c`/`.h`, this repo's own
-already-vendored C build of the same library, used today only by
-`RmtTest.cpp`'s developer-only `/TEST` verification utility).
+already-vendored C build of the same library, which compiles into
+`Rmt.exe` but serves no feature yet - its `/TEST` verification utility
+was removed, and "Tools > Open ASAP File" is not wired up).
 
 **Used in the Java port** (`plans/16_JAVA_PORT_NEXT_STEPS_PLAN.md`'s Phase A,
 items 2-3 - DONE 2026-09-26; `plans/19_JAVA_AUDIO_PLAN.md` - B8, 2026-09-27):
