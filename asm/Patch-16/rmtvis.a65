@@ -18,6 +18,12 @@ STEREOMODE	equ 0	; 0 => compile RMTplayer for 4 tracks Mono
 			; 3 => compile RMTplayer for 4 tracks Stereo L1 L2 R3 R4 --Visualizer broken
 			; 4 => compile RMTplayer for 8 tracks Dual Mono LR1 LR2 LR3 LR4
 
+; the player is assembled as for the Simple RMT Player: in rmt_feat.a65 FEAT_IS_TRACKER equ 0 and FEAT_IS_SIMPLEP equ 1
+; no XEX/SAP export hacks in the player: its XEX hack changes the rasterbar colour at loop+1, here loop is not that
+
+EXPORTXEX	equ 0
+EXPORTSAP	equ 0
+
 ; playback speed will be adjusted accordingly in the other region
 
 REGIONPLAYBACK  equ 0   ; 0 => PAL
@@ -58,7 +64,8 @@ VISDATA equ $9000       ; all the data like text strings, lookup tables for note
 ;* initialisation and clear memory before executing the next parts *;
 ;*******************************************************************;
 
-	icl "hw.asm"                        ; a8 hardware registers
+	; (the file was always hw.a65; "hw.asm" never existed, so this did not assemble)
+	icl "hw.a65"                        ; a8 hardware registers
 	icl "rmtplayr.a65"	            ; include RMT player routines
       
         org $8000                           ; RMT Visualizer address, this leaves 16k for the RMT module, should be plenty for most cases
@@ -344,7 +351,25 @@ play_loop
 	sta rWSYNC                      ; wait for horizontal sync
 	sta rCOLBK                      ; background colour
         jsr rmt_play                    ; setpokey then 1 play
-	;mva v_colour2 rCOLBK            ; random colour 2 for background 
+
+; songline position (pattern order) for the display and the timer, as the player computes it for the Simple RMT Player:
+; (ptrSongLines - song start) / TRACKS, minus 1 because after rmt_play ptrSongLines points to the next songline
+
+	lda ptrSongLines
+	sub MODUL+14
+	sta v_ord
+	lda ptrSongLines+1
+	sbc MODUL+15
+	lsr @
+	ror v_ord
+	lsr @
+	ror v_ord
+	IFT TRACKS>4
+	lsr @
+	ror v_ord
+	EIF
+	dec v_ord
+	;mva v_colour2 rCOLBK            ; random colour 2 for background
 	lda #0                          ; black colour
 	sta rWSYNC                      ; wait for horizontal sync
 	sta rCOLBK                      ; background colour
@@ -467,7 +492,7 @@ print_order
 	jsr printhex
 	
 print_row
-	ldy v_abeat
+	ldy smc_abeat
 	cpy old_abeat
 	beq print_speed
 	sty old_abeat
@@ -478,7 +503,7 @@ print_row
 ; print SPEED
 
 print_speed
-	ldy v_speed
+	ldy smc_speed
 	cpy old_speed
 	beq print_skctl
 	sty old_speed
@@ -1029,7 +1054,7 @@ print_joined_corners
 timecounterstart
         ldx v_frame            ; load the frame count
         ldy #0                 ; initialisation of timer, both for checks and reset of timer when needed
-        cpy v_abeat            ; are we on row 0?
+        cpy smc_abeat            ; are we on row 0?
         bne secondcounter      ; no, continue counting time
         cpy v_ord              ; are we on pattern order 0? This is assumed to be song start
         beq timecountereset    ; yes, reset the entire timer, else, continue counting time
@@ -1273,7 +1298,7 @@ txt_notes_oct5
 ; lookup table for identifying AUDF values and its matching note to display, each dta line is 64 bytes long
 ; notes and frequencies are in reverse order, so 00 is the highest frequency, but also the lowest note, usually C-1 in RMT
 
-        org VISDATA+$300
+        org VISDATA+$400		; a new page after the text above (it no longer fits in $300 bytes)
 
 txt_dist_2_179mhz_freqs	
         
@@ -1382,6 +1407,15 @@ tabpp  		dta 156,78,52,39,19,9,4		; line counter spacing table for instrument sp
 
 oldvbi	
         dta a(0)
+
+; song timer, songline position and channel volumes of the current frame (before old_memory, which start_flush fills)
+
+v_frame		org *+1
+v_second	org *+1
+v_minute	org *+1
+v_region	org *+1
+v_ord		org *+1
+v_volume	org *+TRACKS
 
 old_memory
 

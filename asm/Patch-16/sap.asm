@@ -63,7 +63,7 @@ INIT	dta c"INIT "		; SAP init address, very important to have set up correctly, 
 	dta a(SPACING)
 	
 PLAYER_	dta c"PLAYER "		; rmtplay jump address
-	dta c"3403"
+	dta c"3103"		; rmt_play = PLAYER+3, PLAYER is $3100 for the Simple RMT Player (FEAT_IS_SIMPLEP; RITMO 96321b1)
 	dta a(SPACING)
 	
 TIME	;dta c"TIME "		; optional argument

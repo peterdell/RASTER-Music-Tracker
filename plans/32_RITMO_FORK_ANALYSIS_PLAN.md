@@ -181,6 +181,24 @@ commits but did not mine them. This pass does, area by area:
   standard, original sources untouched. Unchanged either way: v2-v5,
   v7 and VUPlayer have no sources here and stay unchecked.**
 
+  A second look at the same series (2026-10-10) found a sibling commit
+  the ca65 headline had eclipsed: `96321b1` repairs bit-rot in the
+  Patch-16 wrappers - `rmtplayer.a65` (Simple RMT Player) and
+  `rmtvis.a65` (RMT Visualizer) still used the driver's pre-rename
+  labels (`p_song`, `v_abeat`, ...) and no longer assembled against
+  today's `rmtplayr.a65`; `sap.asm`'s PLAYER was the old $3403. Our
+  copies were identical, rot included (proven: MADS fails on exactly
+  those labels). **Ported 2026-10-10**, plus one fix of ours the fork
+  did not need: `rmtvis.a65` included "hw.asm", a file that never
+  existed (the file is `hw.a65`) - their ca65 translator papered over
+  it, MADS cannot. Verified with the vendored MADS (rmt_feat.a65
+  flipped to FEAT_IS_SIMPLEP in a scratch copy, per the documented
+  workflow): the player assembles as XEX and as SAP (header PLAYER
+  3103), the visualizer assembles, and the driver check stays green.
+  The lesson is R1's in another form: reading a commit series tells
+  you what it is, only assembling tells you whether your own copy
+  still works.
+
 - **doc/ - one stale page of ours found through their fixes.** Their
   `c2c03c7` rewrote the emulation chapter because it still described the
   sound as requiring the external DLLs. Our `doc/rmt_tracker.md` said

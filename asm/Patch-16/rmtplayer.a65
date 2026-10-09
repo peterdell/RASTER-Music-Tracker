@@ -7,6 +7,9 @@
 ;* Version 5, 25-02-2022                        *;
 ;************************************************;
 
+; The driver labels follow the current rmtplayr.a65 (adapted per the RITMO fork's 96321b1;
+; plans/32_RITMO_FORK_ANALYSIS_PLAN.md) - the old names no longer assembled.
+
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
 ;* start of dasmplayer definitions...
@@ -108,7 +111,7 @@ FONT    equ $bc00       	; custom font location
 
 ; assemble rmtplayr here... 
 
-	icl 'rmtplayr.a65'	; execution address is $3400
+	icl 'rmtplayr.a65'	; execution address is $3100 (PLAYER with FEAT_IS_SIMPLEP)
 
 ; assemble SAP init here... used for region adjustment, seems exclusive to hardware(?) and Altirra emulator for now
 
@@ -160,7 +163,7 @@ subtune
 	
 ; assemble rmtplayr here... 
 
-	icl 'rmtplayr.a65'	; execution address is $3400
+	icl 'rmtplayr.a65'	; execution address is $3100 (PLAYER with FEAT_IS_SIMPLEP)
 	
 ;-----------------
 
@@ -197,8 +200,8 @@ adjust_check
 	bpl adjust_check_b	; Y = 1 to 127, however, 16 is the maximum supported
 adjust_check_a
 	ldy #1			; if Y is 0, nagative, or above 16, this will be bypassed!
-	sty v_instrspeed	; failsafe, instrument speed of 1 is forced
-	sty v_ainstrspeed 	; both values need to be overwritten for the fix to work correctly
+	sty smc_instrspeed	; failsafe, instrument speed of 1 is forced
+	sty smc_silence_instrspeed 	; both values need to be overwritten for the fix to work correctly
 adjust_check_b
 	cpy #17			; Y = 17?
 	bcs adjust_check_a	; everything equal or above 17 is invalid! 
@@ -546,7 +549,7 @@ stop_toggle
 	sty v_second			; reset the seconds counter
 	sty v_minute			; reset the minutes counter
 	sty v_ord			; reset the order counter
-	sty v_abeat 			; reset the rows counter
+	sty smc_abeat 			; reset the rows counter
 	lda framecount			; number of frames defined at initialisation  
 	sta v_frame			; reset the frames counter 
 	ldx #16				; offset by 16 for STOP characters
@@ -559,18 +562,18 @@ stop_toggle
 dec_songline_seek
 	ldy MODUL+15		; songline pointer MSB
 	ldx MODUL+14		; songline pointer LSB 
-	lda p_song
+	lda ptrSongLines
 	sub #TRACKS+TRACKS	; once -> same line plays again, so subtract twice this number!
-	sta p_song 
-	scs:dec p_song+1	; in case the boundary is crossed, the pointer MSB will increment as well
+	sta ptrSongLines 
+	scs:dec ptrSongLines+1	; in case the boundary is crossed, the pointer MSB will increment as well
 dec_songline_seek_a
-	cpy p_song+1		; compare the p_song MSB to the one from the module
+	cpy ptrSongLines+1		; compare the ptrSongLines MSB to the one from the module
 	bcs dec_songline_seek_b	; if the module value is lower, everything is mostly fine... do an extra check before!
-	sty p_song+1		; else, revert the changes to it 
+	sty ptrSongLines+1		; else, revert the changes to it 
 dec_songline_seek_b
-	cpx p_song		; compare the p_song LSB to the one from the module
+	cpx ptrSongLines		; compare the ptrSongLines LSB to the one from the module
 	bcc dec_songline_seek_c	; if the module value is lower, everything is fine
-	stx p_song 		; overwrite the earlier changes to it	
+	stx ptrSongLines 		; overwrite the earlier changes to it	
 dec_songline_seek_c
 	; uhhh..... extra check necessary here! Things appear to work ok but this is not perfect, it could jump to garbage! 
 inc_songline_seek
@@ -660,7 +663,7 @@ done_blink
 	IFT !FEAT_CONSTANTSPEED
 ; print speed
 	ldy #20
-	lda v_speed
+	lda smc_speed
 	jsr printhex_direct 
 	EIF
 
@@ -672,7 +675,7 @@ v_ord	equ *-1
 	
 ; print row
 	ldy #36
-	lda v_abeat
+	lda smc_abeat
 	jsr printhex_direct
 	
 	
