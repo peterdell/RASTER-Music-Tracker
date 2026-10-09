@@ -19,12 +19,18 @@ fork's ca65 conversion was considered and not adopted.
 
 - Upstream: [tebe6502/Mad-Assembler](https://github.com/tebe6502/Mad-Assembler)
   (Free Pascal sources and prebuilt binaries in its `bin/` folder).
-- Vendored version: **mads 2.1.9 (2026/10/05)**, taken from upstream
-  commit `7ced682fc5a5b8470ba67d182398ce02fdf303a7`.
-- `windows_x86_64/mads.exe` - the local check on Windows (Git Bash).
-- `linux_x86_64/mads` - the check on CI (ubuntu runner). Statically
-  linked; its executable bit is kept in the git index
-  (`git update-index --chmod=+x`).
+- Both taken from upstream commit
+  `7ced682fc5a5b8470ba67d182398ce02fdf303a7`. One commit does NOT mean
+  one version: upstream rebuilds the `bin/` platforms at different
+  times, so the version is a property of each binary (the first line
+  `mads` prints, also echoed by the check script).
+- `windows_x86_64/mads.exe` - **mads 2.1.9 (2026/10/05)** - the local
+  check on Windows (Git Bash).
+- `linux_x86_64/mads` - **mads 2.1.7 (2025/02/02)** - the check on CI
+  (ubuntu runner). Statically linked; its executable bit is kept in the
+  git index (`git update-index --chmod=+x`).
+- Both versions are verified: each reproduces both drivers byte for
+  byte (2.1.9 locally, 2.1.7 locally and on CI).
 - Upstream also ships `bin/macos_aarch64` and `bin/macos_x86_64`; they
   are not vendored. If a macOS check is ever wanted, vendor them the
   same way and extend the `uname` switch in `build/check_drivers.sh`.
@@ -41,9 +47,9 @@ availability.
 
 ## How to update them
 
-1. Pick the upstream commit to update to and note its `mads` version.
-2. Download both binaries **from that same commit**, so the pair stays
-   one version:
+1. Pick the upstream commit to update to.
+2. Download both binaries **from that same commit** (and note the
+   version each one reports when run - they can differ, see above):
    `https://raw.githubusercontent.com/tebe6502/Mad-Assembler/<commit>/bin/windows_x86_64/mads.exe`
    `https://raw.githubusercontent.com/tebe6502/Mad-Assembler/<commit>/bin/linux_x86_64/mads`
 3. Run `build/check_drivers.sh` locally: both drivers must still come
@@ -52,7 +58,7 @@ availability.
    regenerating the shipped drivers must be settled first - which would
    change `rmt/resources/drivers/`, a release-relevant decision, not an
    update side effect).
-4. Update the version and commit in this README.
+4. Update the versions and the commit in this README.
 5. Re-add the executable bit on the Linux binary if git lost it:
    `git update-index --chmod=+x lib/mads/linux_x86_64/mads`.
 6. Push; the CI run re-proves the same with the Linux binary.
