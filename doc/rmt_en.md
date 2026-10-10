@@ -2,9 +2,9 @@
 
 # RASTER Music Tracker (RMT) - Manual
 
-For RMT 1.31.01 and higher by Vin Samuel (VinsCool) and Peter Dell, 2021-2026.
+For RMT 1.31.01 and higher by Vin Samuel (VinsCool) and Peter Dell (JAC!), 2021-2026.
 
-For RMT 1.28, see the [RMT 1.28 Manual](rmt_en_128.html) by Radek Štěrba, RASTER/C.P.U. 2002-2009.
+For RMT 1.28, see the [RMT 1.28 Manual](rmt_en_128.html) by Radek Štěrba (Raster), 2002-2009.
 
 Most of the shortcuts were changed compared to RMT 1.28 to be closer to the ones used in other music trackers, e.g., [Famitracker](http://famitracker.com/).
 
@@ -43,7 +43,7 @@ note.
 
 | Key | Action |
 |---|---|
-| `ESC` | Stop playing song, mute all sounds. With the option "ESC resets Atari sound" (on by default) the sound routines are reinitialised as well. |
+| `ESC` | Stop playing song, mute all sounds. With the option "ESC resets Atari sound" (on by default) the sound routines are reinitialized as well. |
 | `F2` | Switch to TRACK EDIT. |
 | `F3` | Switch to INSTRUMENT EDIT. |
 | `SHIFT+F4` | Go to INFO EDIT. |
@@ -239,16 +239,16 @@ NNN TT vV FSS
 
 ### Sound Type (DISTORTION Parameter)
 
-| Value | Meaning |
-|---|---|
-| 0 | Distortion 0, white noise. (AUDC $0v, Poly5+17/9) |
-| 2 | Distortion 2, square-ish tones. (AUDC $2v, Poly5) |
-| 4 | Distortion 4, no note table yet, Pure Table by default. (AUDC $4v, Poly4+5) |
-| 6 | Distortion C, fallback setting, buzzy bass tones. (AUDC $Cv, Poly4) |
-| 8 | Distortion 8, white noise. (AUDC $8v, Poly17/9) |
-| A | Distortion A, pure tones. (AUDC $Av) |
-| C | Distortion C, buzzy bass tones. (AUDC $Cv, Poly4) |
-| E | Distortion C, gritty bass tones. (AUDC $Cv, Poly4) |
+| Value | Distortion | Variant                                  | AUDC | Poly       |
+|-------|------------|------------------------------------------|------|------------|
+| 0     | 0          | white noise                              | $0v  | Poly5+17/9 |
+| 2     | 2          | square-ish tones                         | $2v  | Poly5      |
+| 4     | 4          | no note table yet, pure table by default | $4v  | Poly4+5    |
+| 6     | C          | fallback setting, buzzy bass tones       | $Cv  | Poly4      |
+| 8     | 8          | white noise                              | $8v  | Poly17/9   |
+| A     | A          | pure tones                               | $Av  | None       |
+| C     | C          | buzzy bass tones                         | $Cv  | Poly4      |
+| E     | C          | gritty bass tones                        | $Cv  | Poly4      |
 
 ### Envelope command (COMMAND parameter)
 
@@ -324,7 +324,7 @@ MUSIC SPEED: AA/MM/S
 |---|---|
 | AA | Current song speed, from $01 to $FF. |
 | MM | Main speed, from $01 to $FF. By default the main speed is used when a song plays from the beginning. |
-| S | Engine speed, from $1 to $8. (X player calls per frame.) Technically, speed above 4 is unsupported in the exported formats. |
+| S | Engine speed, from $1 to $8. (S player calls per frame.) Technically, speed above 4 is unsupported in the exported formats. |
 
 ### Hotkeys
 

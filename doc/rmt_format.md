@@ -6,14 +6,13 @@ As of 2026-01-06, there is only one version of the RMT module file format.
 It is the RMT module file format [version "1"](#rmt1) and uses the default file extension ".rmt".
 This document contains the official description of that file format.
 
-This document also contains the draft of what I (JAC!) intend to introduce
-as a new, extended RMT module file format [version "2"](#rmt2). It is the result of many months of considering the different goals to be achieved to overcome the problems of the original format in the context of RMT, ASAP, ASMA, and the time I had to invest to create working SillyPacks with music.
+This document also contains the draft of what I, Peter Dell (JAC!), intend to introduce as a new, extended RMT module file format [version "2"](#rmt2). It is the result of many months of considering the goals to overcome the original format's problems in the context of RMT, ASAP, ASMA, and the time I had to invest in creating working SillyPacks with music.
 
-The related description for the related RMT tracker can be found [here](./rmt_tracker.md).
+The related description for the RMT tracker can be found [here](./rmt_tracker.md).
 
 I'm happy to receive feedback on my proposals, ideally via a [personal message on Atariage](https://forums.atariage.com/messenger/compose/?to=17404).
 
-The latest version of this document and the related documents are located at [Github](https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_format.md). So before sending feedback, please check the latest version. The [history](https://github.com/peterdell/RASTER-Music-Tracker/commits/dev/doc) also shows past changes.
+The latest version of this document and the related documents are located at [GitHub](https://github.com/peterdell/RASTER-Music-Tracker/blob/dev/doc/rmt_format.md). So, before sending feedback, please check the latest version. The [history](https://github.com/peterdell/RASTER-Music-Tracker/commits/dev/doc) also shows past changes.
 
 
 RMT Module Format Version "1"<a id='rmt1'></a>
@@ -36,10 +35,10 @@ RMT module files are regular multi-segment binary load files. They start with a 
 >
 	Offset	Type	Description
 	------	----	-----------
-	$00	WORD	Header string "RMT4" for mono or "RMT8" for stereo modules
+	$00	BYTE[4]	Header string "RMT4" for mono or "RMT8" for stereo modules
 	$04	BYTE	Track length ($00 means 256)
-	$05	BYTE	Song speed
-	$06	BYTE	Replay frequency
+	$05	BYTE	Song speed (number of frame before the next song line is played)
+	$06	BYTE	Engine speed / Instrument speed (player calls per frame)
 	$07	BYTE	Format version number ($01 for player routine 1.x compatible format $02 for 2.x)
 	$08	WORD	Address of the instruments table
 	$0a	WORD 	Address of the low-byte table of the track addresses
@@ -72,7 +71,7 @@ RMT module files are regular multi-segment binary load files. They start with a 
 >
 	Type	Description
 	----	-----------
-	BYTE	Note or frequency (according to the ttype)
+	BYTE	Note or frequency (according to the type)
 
 
 ###  Envelope Struct
@@ -110,7 +109,7 @@ RMT module files are regular multi-segment binary load files. They start with a 
 
 	if note is $3f:
 		if bit 6-7 is zero:	next byte speed $01-$ff
-		if bit 6 is zero, 7 is set up:	next byte is track jump pointer (go to $00-$ff from the begin of track data)
+		if bit 6 is zero, 7 is set up:	next byte is track jump pointer (go to $00-$ff from the beginning of track data)
 		if bit 6-7 is set up:	END of track
 
 ### Instruments Table
@@ -165,9 +164,9 @@ This new version has the following design goals:
 
 - `G1 Compatibility`
 
-  Meaning: The format shall be as compatible to the version "1" as possible.
-  I don't want to reinvent the wheel, but fix problems.
-  In particular the problem with RMT 1.34 is the LZSS export. It is nice, flexible and fast, but it has also severe restrictions that prevent its use in many cases:
+  Meaning: The format shall be as compatible with version "1" as possible.
+  I don't want to reinvent the wheel, but I do want to fix problems.
+  In particular, the problem with RMT 1.34 is the LZSS export. It is nice, flexible, and fast, but it has also severe restrictions that prevent its use in many cases:
     - No metadata about the song name and instruments (relevant for archiving, e.g. on ASMA)
 	- No way to re-create an editable version of the module (relevant for updates, remixing, learning)
 	- No size-optimized replay (relevant for certain demo categories)
@@ -177,52 +176,52 @@ This new version has the following design goals:
 - `G2 Distinguishability`
   
   Meaning: The format shall be distinguishable for players, even if the file extension is still ".rmt".
-  This is the main problem with all RMT tracker versions after RMT 1.28. They all use the same file extension and file content, but render the sound differently because they use patched replay routines and possibly changed a tuning. Without this information, the RMT module file is incomplete and cannot be replayed correctly. And you don't even know you are playing it incorrectly.
+  This is the main problem with all RMT tracker versions after RMT 1.28. They all use the same file extension and file content, but render the sound differently because they use patched replay routines and possibly changed tuning. Without this information, the RMT module file is incomplete and cannot be replayed correctly. And you don't even know you are playing it incorrectly.
 
 - `G3 Completeness`
 
-   Meaning: The format shall contain all missing information that is today provided by the composer, but is not stored in the module file itself. This shall include:
+   Meaning: The format shall include all missing information that is currently provided by the composer but is not stored in the module file itself. This shall include:
   
-  - The author of the song in a human readable format and optionally in a machine readable format (e.g. ASMA "Composer/...") path.
-  - Any additional information about the composition that is today contained in the "STIL.txt" database of ASMA. This includes information about the original composition, usages in software and rankings in competitions.
-  - The description (today 5 lines of width 40 characters) to be displayed during replay. This information is today encoded in the ".xex" export. This includes the ability to toggle the display of the lines using the SHIFT key. By default, SHIFT activates the display of line 5 instead of line 4.
+  - The author of the song in a human-readable format and optionally in a machine-readable format (e.g., ASMA "Composer/...") path.
+  - Any additional information about the composition that is currently contained in the "STIL.txt" database of ASMA. This includes information about the original composition, software usage, and competition rankings.
+  - The description (today 5 lines of width 40 characters) to be displayed during replay. This information is currently encoded in the ".xex" export. This includes the ability to toggle line display using the SHIFT key. By default, SHIFT displays line 5 instead of line 4.
 
 - `G4 Extensibility`
- Meaning: The format shall be extendable with new features and data in a compatible way that will not break existing players and tools. This includes that players and tools shall by default ignore sections that they do not understand.
+ Meaning: The format shall be extensible with new features and data in a compatible way that will not break existing players and tools. This includes that players and tools shall, by default, ignore sections that they do not understand.
 
 - `G5 Replayability`
-   Meaning: The format shall be usable on the original hardware (Atari 400/800/XL/XE) including generic RMT players. This means that the file must be easily readable for replay by machines with only 48k of RAM, no matter how much additional metadata is additionally included. The pattern to include the replay routine itself in binary is a proven way to achieve this. It is applied today in ".sap" (Atari 8-bit) and ".sid" (C64) files.
+   Meaning: The format shall be usable on the original hardware (Atari 400/800/XL/XE) including generic RMT players. This means that the file must be easily readable for replay by machines with only 48k of RAM, no matter how much additional metadata is included. Including the replay routine itself in the binary is a proven way to achieve this. It is applied today in ".sap" (Atari 8-bit) and ".sid" (C64) files.
 	
 
 ### Design Decisions
 
-The files of format version "2" structure is as follows:
+The file format version "2" structure is as follows:
 
 - The file format will use the file extension '.rmt'.
-  The original RMT module files format already contains an internal version indicator. Existing players, if implemented correctly, should correctly reject modules with versions other than `$01`. Hence there is no need to use different file extensions.
+  The original RMT module file format already contains an internal version indicator. Existing players, if implemented correctly, should correctly reject modules with versions other than `$01`. Hence, there is no need to use different file extensions.
 
   Supported Goals: `G1`.
   
-  One could rightfully argue that using a different file extension would be even beneficial for `G2` and would be more obvious for the end users. But the goal `G2` is defined with the player software in mind. End users would rather be confused and existing software that relies on the file extension would no longer work. Instead the software, e.g. the ASAP file explorer plugin, shall be enhanced to also display the module file version as a separate attribute. 
+  One could rightfully argue that a different file extension would be even more beneficial for `G2` and more obvious to end users. But `G2` is defined with the player software in mind. End users would rather be confused than have existing software that relies on the file extension stop working. Instead, the software (e.g., the ASAP file explorer plugin) shall be enhanced to display the module file version as a separate attribute. 
 
 - The file is a binary load file with one or more segments.
  
   Supported Goals: `G1`, `G4`, `G5`
 
-- The first segment is mandatory and will be identical to format version "1", except that the format version at offset `$07` in the module header struct will contain the value `$02` instead of the value `$01`. The default start address of the segment is `$4000`, but it can also be different.
+- The first segment is mandatory and will be identical to format version "1", except that the format version at offset `$07` in the module header struct will contain the value `$02` instead of the value `$01`. The segment's default start address is `$4000`, but it can be different.
 
   Supported Goals: `G1`, `G2`, `G5`
 
-- All additional segments are optional. If they are not present the file shall be treated as a regular version "1" file for RMT 1.28.
+- All additional segments are optional. If they are not present, the file shall be treated as a regular version "1" file for RMT 1.28.
 
   Supported Goals: `G1`, `G5`
 
-- The second segment is a metadata segment and has the **fixed start** address `$2000`. The second segment must not overlap the first segment. It contains human readable metadata in text form, similar to [SAP format]((https://www.example.com)). 
+- The second segment is a metadata segment and has the **fixed start** address `$2000`. The second segment must not overlap the first segment. It contains human-readable metadata in text form, similar to the [SAP format](https://asap.sourceforge.net/sap-format.html). 
   The following things are different compared to the SAP format:
 	- The line separator character is EOL (`$9b`) instead of CR/LF (`$0d/ $0a`) to allow direct output via the "E:" handler.
 	- The text termination character is `$00` instead of the `$ff` from the executable header to simplify the code.
-	- The starting line begins with segment type marker "RMX" instead of "SAP" and is followed by a one digit segment version character. There is currently only version `1`.
-	- Additional tags that do not yet exist in the SAP format will be allowed, for example to include the information from the "STIL.txt".
+	- The starting line begins with segment type marker "RMX" instead of "SAP" and is followed by a one-digit segment version character. There is currently only version `1`.
+	- Additional tags that do not yet exist in the SAP format will be allowed, for example, to include the information from "STIL.txt".
 
 	Supported Goals: `G3`, `G5`
 	```
@@ -247,18 +246,18 @@ The files of format version "2" structure is as follows:
 		$02		WORD	End address, must end before the start address of the first segment 
 		$04		BYTE	'R'
 		$05		BYTE	'M'
-		$06		BYTE	'T'
+		$06		BYTE	'X'
 		$07		BYTE	'1' Segment version in ASCII digit format.
 		$08		BYTE	$9b EOL
-		$09		BYTE	Human readable text in ATASCII format, see above.
+		$09		BYTE	Human-readable text in ATASCII format, see above.
 		...
 		nnnn		BYTE	$9b EOL
 		nnnn+1	BYTE	End marker of the text information, must be $00
-		nnnn+2	BYTE	Display routine that prints the text starting at address $2009 and waits for a keypress. The routine can assume an open "E:" and "K:" handler. The routine must use the CIOV vector and must end with an "RTS". The routine can choose to not display all tags. The routine must not have other side effects and must not set the "I" flag. 
+		nnnn+2	BYTE	Display routine that prints the text starting at address $2009 and waits for a keypress. The routine can assume an open "E:" and "K:" handler. The routine must use the CIOV vector and must end with an "RTS". The routine may choose not to display all tags. The routine must not have other side effects and must not set the "I" flag. 
 	>
 
 
-- The third segment is mandatory, if the second segment is present. It is a run address segment to start the display routine loaded via the second segment, when the file is loaded directly from a DOS or in an emulator.
+- The third segment is mandatory if the second segment is present. It is a run address segment that starts the display routine loaded via the second segment when the file is loaded directly from DOS or in an emulator.
 
 	Supported Goals: `G3`, `G5`
 	>
@@ -268,8 +267,8 @@ The files of format version "2" structure is as follows:
 		$02		WORD	End address, must be $02e1
 		$04		WORD	Address nnnn+2 of the display routine from the second segment.
 	>
-- Additional segments are optional and can contain up to 16k of data per segment that cannot reasonably be represented as short text in the second segment. The segment layout follows the pattern used for the second segment. They use the fixed start address `$e000` and can have an end address up to `$ffff`. This address choice is in the OS ROM area of all original Atari 8-bit machines. Loading to that area does not have any side effects, except for the time it takes. Every segment starts with a three-letter uppercase ASCII type code followed by a version digit. To avoid confusion regarding the segment types, 'RMT' is reserved for the first segment. The following segment types are in draft:
-	- `PLR` Relocatable 6502 object code file containing the player. The calling convention for the player will be the same as it was for the RMT 1.x players.
+- Additional segments are optional and can contain up to 16k of data per segment that cannot reasonably be represented as short text in the second segment. The segment layout follows the pattern used for the second segment. They use the fixed start address `$e000` and can have an end address up to `$ffff`. This address range falls within the OS ROM area of all original Atari 8-bit machines. Loading to that area has no side effects, except for the time it takes. Every segment starts with a three-letter uppercase ASCII type code followed by a version digit. To avoid confusion regarding the segment types, 'RMT' is reserved for the first segment. The following segment types are in draft:
+	- `PLR` Relocatable 6502 object code file containing the player. The player calling convention will be the same as for RMT 1.x players.
 	- `TUN` Tuning information
 
 	Supported Goals: `G3`, `G4`

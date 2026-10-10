@@ -6,7 +6,7 @@ A tracker driver is part of the tracker that generates the actual sound from the
 
 A tracker driver version is a variant of the tracker driver that interprets the data and user input differently. For example, different tracker driver versions have a distinct feature set or tuning. A correct replay of the music requires using the same tracker driver version that was used to create it.
 
-The original tracker driver version is the one by Raster in RMT 1.28. Many people modified the driver code and data to yield new effects. All known older versions are preserved for compatibility.
+The original tracker driver version is the one by Radek Štěrba (Raster) in RMT 1.28. Many people modified the driver code and data to yield new effects. All known older versions are preserved for compatibility.
 
 Tracker driver versions are identified in different ways.
 For inclusion into RMT, the tracker driver versions are numbered starting from 1. 
@@ -25,13 +25,13 @@ Additionally, they have a readable name for users and a constant name when used 
 
 ## RMT 1.28 Unpatched by Raster
 
-The original RMT driver version that set the standard for many years with Atari 8-bit music. This version was mainly used with RMT 1.28, as well as the unofficial RMT 1.30 by Rudla.
+The original RMT driver version that set the standard for many years with Atari 8-bit music. This version was mainly used with RMT 1.28, as well as the unofficial RMT 1.30 by Rudla Kuda (Rudla).
 
 ## RMT 1.28 With Tuning by Vin Samuel (VinsCool)
 
 This driver version was never completed and is no longer included in the program. It is only mentioned here to explain the gap between versions 1 and 3.
 
-## RMT 1.25 Patch 3 by Analmux
+## RMT 1.25 Patch 3 by Bernhard Pos (Analmux)
 
 Adapted from Analmux's original post on [AtariAge](https://forums.atariage.com/topic/228757-instrumentarium-final-release-links-summary/): 
 > The music track "Instrumentarium" is composed, tracked, and RMT-patched by me: ANALogue MUltipleXer. I used a patch to change some RMT possibilities: f.e, I added sawtooth wave (ringmod), triangle wave (linear subharmonic), clarinet (16-bit), distortion guitar (16-bit), and sync modes (2-tone filter & 16-bit). At the end of 2009, this tune was named "Instrumentarium Remix 1"; it's the same tune. I was using exotic undocumented POKEY features. It takes almost no CPU time.
