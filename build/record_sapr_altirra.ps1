@@ -33,6 +33,12 @@ $ErrorActionPreference = "Stop"
 
 $Xex = (Resolve-Path $Xex).Path
 $OutFile = [System.IO.Path]::GetFullPath($OutFile)
+# A register dump is ".sapr", not ".sap": ASAP and ASMA keep SAP type R
+# apart from the playable SAP types, despite one format specification.
+if ([System.IO.Path]::GetExtension($OutFile) -ne ".sapr") {
+    $OutFile = [System.IO.Path]::ChangeExtension($OutFile, "sapr")
+    Write-Host "Output renamed to $OutFile (SAP-R files carry the .sapr extension)"
+}
 if (Test-Path $OutFile) { Remove-Item $OutFile -Force }
 
 # The private portable copy of Altirra.
@@ -95,7 +101,16 @@ for ($i = 0; $i -lt 40; $i++) {
     Start-Sleep -Milliseconds 500
     if ($shell.AppActivate("Record SAP type R music file")) {
         Start-Sleep -Milliseconds 500
-        [System.Windows.Forms.SendKeys]::SendWait("`"$OutFile`"{ENTER}")
+        # Paste the name instead of typing it: the complete path appears at
+        # once (typed keystrokes show a half-finished name in the dialog).
+        Set-Clipboard -Value $OutFile
+        [System.Windows.Forms.SendKeys]::SendWait("^a^v{ENTER}")
+        # If the dialog asks about overwriting (it remembers the last file
+        # name, which can collide), answer Yes.
+        Start-Sleep -Milliseconds 700
+        if ($shell.AppActivate("Confirm Save As")) {
+            [System.Windows.Forms.SendKeys]::SendWait("%y")
+        }
         $answered = $true
         break
     }
