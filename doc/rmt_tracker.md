@@ -23,7 +23,7 @@ Glossary
 The following terms are used in the documentation. Outside of this documentation, they are sometimes used interchangeably when the distinction is not relevant. For example, people will use "song" when they refer to either the "song", the "module", or the "module file". This documentation will use the terms only as defined below.
 
 - Tracker - An editor program to create music and save it as a file that can be opened for editing again.
-- Tracker Driver - A part of the tracker that generates the actual sound from the tracker data and user input. In the case of RMT, the tracker diver is a piece of MOS 6502 code that runs on an emulated Atari 8-bit computer. See [Tracker Drivers](rmt_tracker_drivers.md) for details.
+- Tracker Driver - A part of the tracker that generates the actual sound from the tracker data and user input. In the case of RMT, the tracker driver is a piece of MOS 6502 code that runs on an emulated Atari 8-bit computer. See [Tracker Drivers](rmt_tracker_drivers.md) for details.
 - Tracker Driver Version - A variant of the tracker driver that interprets the tracker data and user input differently. For example, different tracker driver versions have a distinct feature set or tuning. A correct replay of the music requires using the same tracker driver version that was used to create it. See [Tracker Drivers](rmt_tracker_drivers.md) for details.
 - Instrument - A logical device to create a characteristic sound at different pitches.
 - Pattern - A sequence of notes and their attributes (e.g., length, effects, ...) to be played on an instrument.
@@ -101,8 +101,8 @@ The following general maintainer issues concern the C++ program, which the Java 
 
 ### Future Plans
 
-- Replace the usage of the external DLLs (for which maintenance is either unclear, or nor guaranteed/officially supported) by the C-version of ASAP by Fox. There is not reason why a different engine should be used in the tracker that is used during the replay.
+- The Java port already uses ASAP for the CPU and POKEY emulation, so the tracker and the replay share one engine there. The C++ program keeps the external DLLs (for which maintenance is either unclear or not guaranteed/officially supported) until the C++ parts are deleted; replacing them is not planned.
 - The Atari binary code for the different patches of the player code are currently included in the C-code as source code. This makes it hard to replace them and check/update/version their content. Instead all Atari binary code should be 
 	- present as source code
 	- compatible as part of the build
-	- included are binaries in the distribution, similar to for the ".prf" files are distributed and loaded in DIS602
+	- included are binaries in the distribution, similar to for the ".prf" files are distributed and loaded in DIS6502
