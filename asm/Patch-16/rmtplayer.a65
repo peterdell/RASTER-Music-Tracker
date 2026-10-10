@@ -32,12 +32,16 @@ STARTLINE	equ 0
 
 ; playback speed will be adjusted accordingly in the other region
 
-REGIONPLAYBACK	equ 1		; 0 => PAL
+.ifndef REGIONPLAYBACK		; a default: override with -d:REGIONPLAYBACK=1 for an NTSC tune
+REGIONPLAYBACK	equ 0		; 0 => PAL - the bundled music.rmt (Captain Future Theme by Buddy) is a PAL tune
 				; 1 => NTSC
+.endif
 
 ; Stereo mode must be defined here instead of 'rmt_feat.a65'
 
-STEREOMODE	equ 0
+.ifndef STEREOMODE		; a default: the bundled music.rmt is an RMT8 stereo module
+STEREOMODE	equ 1
+.endif
 				;* 0 => compile RMTplayer for 4 tracks mono
 				;* 1 => compile RMTplayer for 8 tracks stereo
 				;* 2 => compile RMTplayer for 4 tracks stereo L1 R2 R3 L4

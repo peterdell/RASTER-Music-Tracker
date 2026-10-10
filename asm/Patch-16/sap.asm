@@ -21,15 +21,15 @@ SAP	dta c"SAP"		; SAP are the characters used to define the format at the start 
 ; if text needs to be inside quotation marks, the ' character will be used for delimiting
 
 AUTHOR	dta c"AUTHOR "
-	dta c'"Raster"'
+	dta c'"Christian Duesterhoeft (Buddy)"'
 	dta a(SPACING)
 	
 NAME	dta c"NAME "
-	dta c'"Im sure"'
+	dta c'"Captain Future Theme"'
 	dta a(SPACING)
 	
 DATE	dta c"DATE "
-	dta c'"Converted 05/10/2021"'
+	dta c'"13/08/2024"'
 	dta a(SPACING)
 	
 SONGS	;dta c"SONGS "		; optional argument

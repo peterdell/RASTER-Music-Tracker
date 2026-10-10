@@ -12,6 +12,8 @@ STARTLINE	equ 0
 
 ; Stereo mode, copied over from 'rmtplayr.a65' for easier access during edit
 
+; NOTE: music.rmt is an RMT8 stereo module (Captain Future Theme), but the Visualizer's stereo
+; modes are broken (see below) - to use the Visualizer, point the ins at an RMT4 mono module.
 STEREOMODE	equ 0	; 0 => compile RMTplayer for 4 tracks Mono
 			; 1 => compile RMTplayer for 8 tracks Stereo --Visualizer broken (temporarily)
 			; 2 => compile RMTplayer for 4 tracks Stereo L1 R2 R3 L4 --Visualizer broken
