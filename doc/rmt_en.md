@@ -6,7 +6,7 @@ For RMT 1.31.01 and higher by Vin Samuel and Peter Dell, 2021-2026.
 
 For RMT 1.28, see the [RMT 1.28 Manual](rmt_en_128.html) by Radek Štěrba, RASTER/C.P.U. 2002-2009.
 
-Most the shortcuts were changed compared to RMT 1.28 to be closer to the ones used in other music trackers, e.g., [Famitracker](http://famitracker.com/).
+Most of the shortcuts were changed compared to RMT 1.28 to be closer to the ones used in other music trackers, e.g., [Famitracker](http://famitracker.com/).
 
 The UI of RMT is in one of these edit modes:
 
@@ -98,8 +98,8 @@ NNN TT vV FSS
 | Field | Meaning |
 |---|---|
 | NNN | Notes, from C-1 to C-6. |
-| TT | Instrument number, from $00 to $3F. If no note exists in highligthed row, the instrument column will behave like a note column instead. |
-| vV | Volume, from $0 to $F Could also be used without a note or an instrument. "v" is simply added to clearly distinguish the volume value between the other columns. |
+| TT | Instrument number, from $00 to $3F. If no note exists in highlighted row, the instrument column will behave like a note column instead. |
+| vV | Volume, from $0 to $F. Could also be used without a note or an instrument. "v" is simply added to clearly distinguish the volume value between the other columns. |
 | FSS | Speed, from $01 to $FF. Fxx is intended to be a speed command, this is currently placeholder strings. |
 
 ### Hotkeys
@@ -109,13 +109,13 @@ NNN TT vV FSS
 | `UP`, `DOWN`, `LEFT`, `RIGHT`, `TAB`, `CTRL+TAB`, `SHIFT+TAB`, `PAGE UP`, `PAGE DOWN` | Move cursor. |
 | `CONTROL+UP`, `CONTROL+DOWN` | Go to next/previous SONG line. |
 | `CONTROL+PAGE UP`, `CONTROL+PAGE DOWN` | Go to next/previous SONG line (the same as `CONTROL+UP`, `CONTROL+DOWN`). |
-| `CONTROL+LEFT`, `CONTROL+RIGHT` | Change track pattern number at current possition. |
+| `CONTROL+LEFT`, `CONTROL+RIGHT` | Change track pattern number at current position. |
 | `HOME` | Move cursor to the start of current pattern track, or the start of a "wise loop". |
 | `CONTROL+HOME` | Set/clear the start position of a "wise loop". |
 | `END` | Move cursor to the end of current pattern track, or the end of a "wise loop". |
 | `CONTROL+END` | Set/clear the end line of a pattern track. |
 | `SHIFT+CONTROL+ENTER` | Set/clear the end line of a pattern track (the same as `CONTROL+END`). |
-| `ENTER` | Play note at the cursor position. Every new ENTER hotkeys will also loop inside a selection block, if it exists. |
+| `ENTER` | Play note at the cursor position. Every new ENTER hotkey will also loop inside a selection block, if it exists. |
 | `SHIFT+ENTER` | Play note at the cursor position and fetch its instrument and volume values, then become the active instrument. |
 | `CONTROL+ENTER` | Play all notes at the currently edited line. (The option "Swap ENTER and CONTROL+ENTER" exchanges the two.) |
 | `CONTROL+D` | Duplicate the current pattern track, and put it at the same place. (Note: If the pattern track is only used once in song, a messagebox asking for confirmation will appear.) |
@@ -204,7 +204,7 @@ NNN TT vV FSS
 | VOL MIN | Minimal volume value reached by FADEOUT parameter. |
 | TABLE LENGTH | Length of the table, from $01 to $20 steps (i.e. 32 max.). |
 | TABLE GOTO | Jump to given table position when the table end is reached. |
-| TABLE SPEED | Speed for the each table step, from $01 to $40 vbi. |
+| TABLE SPEED | Speed for each table step, from $01 to $40 vbi. |
 | TABLE TYPE | Table type. 0 = notes, 1 = frequencies |
 | TABLE MODE | Table mode. 0 (SET) = add note (or frequency) to base note, 1 (ADD) = add note (or frequency) to the last calculated note (or frequency). Note: If the resulting note is outside of the C-1 to C-6 range (hex values $00 to $3D), the output volume will be zero. Frequency additions are not limited however. |
 | EFFECT DELAY | Delay before the start of VIBRATO and FREQSHIFT effects by $01 to $FF vbi, $00 = no effects. |
@@ -233,7 +233,7 @@ NNN TT vV FSS
 | VOLUME L | Volume values from $0 to $F used in tracks L1 to L4. |
 | DISTORTION | POKEY AUDC Distortion values, from $0 to $E. Only even values can be used, otherwise Volume Only output would occur. |
 | COMMAND | Envelope command, from $0 to $7. |
-| X, Y | Both parameters make use of values from $0 to $F for effect commands. They can be used as a two separate parameters, or as one 8-bit hexadecimal value $XY. |
+| X, Y | Both parameters make use of values from $0 to $F for effect commands. They can be used as two separate parameters, or as one 8-bit hexadecimal value $XY. |
 | AUTOFILTER | Automatic High Pass Filter envelope effect. $0 = not active, $1 = active. It will only work with channels 1 or 2. This effect automatically enables the AUDCTL High Pass Filter bits for each channel, where HPF 1+3 or HPF 2+4 may be output. It has higher priority over non filtered voices, and will hijack them while the required conditions are met. If the resulting volume is zero, filtering won't be enabled, and won't take priority over other channels. Channels 3 and 4 won't be muted, so the resulting sound could be modulated into a richer tone if desired. |
 | PORTAMENTO | Portamento. $0 = not active, $1 = active. If active, the "Portamento volatile frequency" is used instead of the current frequency. Portamento is mostly useful for producing pitch bending effects. |
 
@@ -331,7 +331,7 @@ MUSIC SPEED: AA/MM/S
 | Key | Action |
 |---|---|
 | `LEFT`, `RIGHT`, `TAB` | Move cursor. |
-| `SHIFT+TAB` | Move cursor song name line. |
+| `SHIFT+TAB` | Move cursor to the song name line. |
 | `0-F`, `CONTROL+LEFT`, `CONTROL+UP`, `CONTROL+RIGHT`, `CONTROL+DOWN` | Change parameter values (in valid ranges only). |
 | `ENTER` | Return from INFO EDIT to the currently active screen (Tracks or Instruments edit). |
 
@@ -341,7 +341,7 @@ MUSIC SPEED: AA/MM/S
 
 | Key | Action |
 |---|---|
-| `LeftMouseButton` | Toggle or prompt dialog boxes for each elements, then apply changes to the song. |
+| `LeftMouseButton` | Toggle or prompt dialog boxes for each element, then apply changes to the song. |
 
 ## SONG EDIT
 

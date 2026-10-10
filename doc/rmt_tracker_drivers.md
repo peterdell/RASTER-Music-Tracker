@@ -1,6 +1,6 @@
 # Tracker Drivers
 
-A tracker driver is part of the tracker that generates the actual sound from the tracker data and user input. In the case of RMT, the tracker diver is a piece of MOS 6502 code that runs on an emulated Atari 8-bit computer.
+A tracker driver is part of the tracker that generates the actual sound from the tracker data and user input. In the case of RMT, the tracker driver is a piece of MOS 6502 code that runs on an emulated Atari 8-bit computer.
 
 # Tracker Driver Versions
 
@@ -25,7 +25,7 @@ Additionally, they have a readable name for users and a constant name when used 
 
 ## RMT 1.28 Unpatched by Raster
 
-The original RMT driver version that set the standard for many years with Atari 8-bit music. This version was mainly with RMT 1.28, as well as the unofficial RMT 1.30 by Rudla.
+The original RMT driver version that set the standard for many years with Atari 8-bit music. This version was mainly used with RMT 1.28, as well as the unofficial RMT 1.30 by Rudla.
 
 ## RMT 1.28 With Tuning by VinsCool
 

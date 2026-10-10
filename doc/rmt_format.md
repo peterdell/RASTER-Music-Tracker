@@ -120,7 +120,7 @@ RMT module files are regular multi-segment binary load files. They start with a 
 	----	-----------
 	WORD	ptr_instr0
 	WORD	ptr_instr1
-	WORD	ptr_instr3
+	WORD	ptr_instr2
 	...
 
 ### Track Addresses Table
@@ -198,14 +198,14 @@ This new version has the following design goals:
 
 The files of format version "2" structure is as follows:
 
-- - The file format will use the file extension '.rmt'.
+- The file format will use the file extension '.rmt'.
   The original RMT module files format already contains an internal version indicator. Existing players, if implemented correctly, should correctly reject modules with versions other than `$01`. Hence there is no need to use different file extensions.
 
   Supported Goals: `G1`.
   
   One could rightfully argue that using a different file extension would be even beneficial for `G2` and would be more obvious for the end users. But the goal `G2` is defined with the player software in mind. End users would rather be confused and existing software that relies on the file extension would no longer work. Instead the software, e.g. the ASAP file explorer plugin, shall be enhanced to also display the module file version as a separate attribute. 
 
-- The file is a binary load file with one of more segements.
+- The file is a binary load file with one or more segments.
  
   Supported Goals: `G1`, `G4`, `G5`
 
@@ -219,7 +219,7 @@ The files of format version "2" structure is as follows:
 
 - The second segment is a metadata segment and has the **fixed start** address `$2000`. The second segment must not overlap the first segment. It contains human readable metadata in text form, similar to [SAP format]((https://www.example.com)). 
   The following things are different compared to the SAP format:
-	- The line separator character is EOL (`$9b`) instead CR/LF (`$0d/ $0a`) to allow direct output via the "E:" handler.
+	- The line separator character is EOL (`$9b`) instead of CR/LF (`$0d/ $0a`) to allow direct output via the "E:" handler.
 	- The text termination character is `$00` instead of the `$ff` from the executable header to simplify the code.
 	- The starting line begins with segment type marker "RMX" instead of "SAP" and is followed by a one digit segment version character. There is currently only version `1`.
 	- Additional tags that do not yet exist in the SAP format will be allowed, for example to include the information from the "STIL.txt".
@@ -253,7 +253,7 @@ The files of format version "2" structure is as follows:
 		$09		BYTE	Human readable text in ATASCII format, see above.
 		...
 		nnnn		BYTE	$9b EOL
-		nnnn+1	BYTE	End marker fo the text information, must be $00
+		nnnn+1	BYTE	End marker of the text information, must be $00
 		nnnn+2	BYTE	Display routine that prints the text starting at address $2009 and waits for a keypress. The routine can assume an open "E:" and "K:" handler. The routine must use the CIOV vector and must end with an "RTS". The routine can choose to not display all tags. The routine must not have other side effects and must not set the "I" flag. 
 	>
 
@@ -265,10 +265,10 @@ The files of format version "2" structure is as follows:
 		Offset	Type	Description
 		------	----	-----------
 		$00		WORD	Start address, must be $02e0
-		$02		WORD	End address, must $02e1
-		$04		WORD	Address nnnn+2 the display routine from the second segment.
+		$02		WORD	End address, must be $02e1
+		$04		WORD	Address nnnn+2 of the display routine from the second segment.
 	>
-- Additional segments are optional and can contain up to 16k of data per segment that cannot reasonably be represented as short text in the second segment. The segment layout follows the pattern used for the second segment. They use the fixed start address `$e000` and can have an end address up to `$ffff`. This address choice is in the OS ROM area of all original Atari-8 bit machines. Loading to that area does not have any side effects, except for the time it takes. Every segment starts with a three-letter ASCII uppercase letters type code followed by a version digit. To avoid confusion regarding the segment types, 'RMT' is reserved for the first segment. The following segment types are in draft:
+- Additional segments are optional and can contain up to 16k of data per segment that cannot reasonably be represented as short text in the second segment. The segment layout follows the pattern used for the second segment. They use the fixed start address `$e000` and can have an end address up to `$ffff`. This address choice is in the OS ROM area of all original Atari 8-bit machines. Loading to that area does not have any side effects, except for the time it takes. Every segment starts with a three-letter uppercase ASCII type code followed by a version digit. To avoid confusion regarding the segment types, 'RMT' is reserved for the first segment. The following segment types are in draft:
 	- `PLR` Relocatable 6502 object code file containing the player. The calling convention for the player will be the same as it was for the RMT 1.x players.
 	- `TUN` Tuning information
 
@@ -278,9 +278,9 @@ The files of format version "2" structure is as follows:
 		------	----	-----------
 		$00		WORD	Start address, must be $e000
 		$02		WORD	End address, must end before the start address of the first segment 
-		$04		BYTE	First letter of type segment type code, e.g. 'T'
-		$05		BYTE	Second letter of type segment type code, e.g. 'U'
-		$06		BYTE	Third letter of type segment type code, e.g. 'N'
+		$04		BYTE	First letter of the segment type code, e.g. 'T'
+		$05		BYTE	Second letter of the segment type code, e.g. 'U'
+		$06		BYTE	Third letter of the segment type code, e.g. 'N'
 		$07		BYTE	Segment version in ASCII digit format, default '1'
 		$08		BYTE	First byte of the segment content.
 	    
