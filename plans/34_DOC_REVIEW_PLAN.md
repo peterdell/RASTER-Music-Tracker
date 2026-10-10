@@ -2,7 +2,10 @@
 
 Status: ANALYZED 2026-10-10; D1 done 2026-10-10 (40 fixes, plus one
 found while fixing: rmt_testing.md 25 "you are not always required" ->
-they), D2-D3 open.
+they), D2 done 2026-10-10 (the binaries bullet was rewritten with the
+current facts: resources extraction and the driver byte-check exist,
+the remaining sources stay open; rmt_tracker_usage.md stays a
+decision), D3 open except the first item.
 
 All eleven `doc/*.md` files were read in full (2822 lines). Scope rules
 applied:

@@ -97,10 +97,10 @@ NNN TT vV FSS
 
 | Field | Meaning |
 |---|---|
-| NNN | Notes, from C-1 to C-6. |
-| TT | Instrument number, from $00 to $3F. If no note exists in highlighted row, the instrument column will behave like a note column instead. |
-| vV | Volume, from $0 to $F. Could also be used without a note or an instrument. "v" is simply added to clearly distinguish the volume value between the other columns. |
-| FSS | Speed, from $01 to $FF. Fxx is intended to be a speed command, this is currently placeholder strings. |
+| NNN | Note NNN, from C-1 to C-6. |
+| TT | Instrument number TT, from $00 to $3F. If no note exists in highlighted row, the instrument column will behave like a note column instead. |
+| vV | Volume V, from $0 to $F. Could also be used without a note or an instrument. "v" is simply added to clearly distinguish the volume value between the other columns. |
+| FSS | Speed SS, from $01 to $FF. "F" is intended to become a speed command; currently it is a placeholder. |
 
 ### Hotkeys
 
@@ -175,7 +175,7 @@ NNN TT vV FSS
 
 | Key | Action |
 |---|---|
-| `SHIFT+CONTROL+A` | Block modifications mode. All changes are provided either on each line of the block, or only on lines with instrument number equal to active instrument. |
+| `SHIFT+CONTROL+A` | Block modifications mode. All changes are applied either to each line of the block, or only to lines whose instrument number equals the active instrument. |
 | `CONTROL+F2`, `CONTROL+F1` | Transpose note up / down by semitones (5 octaves max). If no selection exists, the data at cursor position will be taken. |
 | `CONTROL+F4`, `CONTROL+F3` | Transpose note up / down by octaves (5 octaves max). If no selection exists, the data at cursor position will be taken. |
 | `SHIFT+CONTROL+LEFT`, `SHIFT+CONTROL+RIGHT` | Change instrument values, from $00 to $3F max. If no selection exists, the data at cursor position will be taken. |
@@ -184,7 +184,7 @@ NNN TT vV FSS
 
 ### Mouse control
 
-### Tracks top area (Shown as TRACK L1 to TRACK R4 above pattern tracks)
+#### Tracks top area (Shown as TRACK L1 to TRACK R4 above pattern tracks)
 
 | Key | Action |
 |---|---|
@@ -223,7 +223,7 @@ NNN TT vV FSS
 
 | Field | Meaning |
 |---|---|
-| TABLE $00-$1F | From 1 to 32 steps per table. Values can be either notes (in semitones), or frequencies, based on the TABLE TYPE value. Values can range from positive ($00 to $7F) or negative ($FF to $80) numbers. |
+| TABLE $00-$1F | From 1 to 32 steps per table. Values can be either notes (in semitones), or frequencies, based on the TABLE TYPE value. Values can be positive ($00 to $7F) or negative ($FF to $80). |
 
 ### Envelope
 
@@ -303,7 +303,7 @@ NNN TT vV FSS
 
 ### Mouse control
 
-### Volume Envelope Area
+#### Volume Envelope Area
 
 | Key | Action |
 |---|---|
@@ -337,7 +337,7 @@ MUSIC SPEED: AA/MM/S
 
 ### Mouse control
 
-### MAXTRACKLENGTH, MONO/STEREO, PAL/NTSC
+#### MAXTRACKLENGTH, MONO/STEREO, PAL/NTSC
 
 | Key | Action |
 |---|---|

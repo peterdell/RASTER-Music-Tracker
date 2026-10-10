@@ -209,7 +209,7 @@ The files of format version "2" structure is as follows:
  
   Supported Goals: `G1`, `G4`, `G5`
 
-- The first segment is mandatory and will be identical to format version "1", except that the format version at offset `$07` in the module header struct, which will contain the value `$02` instead of the value `$01`. The default start address of the segment is `$4000`, but it can also be different.
+- The first segment is mandatory and will be identical to format version "1", except that the format version at offset `$07` in the module header struct will contain the value `$02` instead of the value `$01`. The default start address of the segment is `$4000`, but it can also be different.
 
   Supported Goals: `G1`, `G2`, `G5`
 

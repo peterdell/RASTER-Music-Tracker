@@ -30,7 +30,7 @@ The following terms are used in the documentation. Outside of this documentation
 - Track - A logical voice. Patterns can be assigned to tracks for replay.
 - Channel - A physical output to create sound. Tracks can be assigned to channels for replay.
 - Mono - Mono indicates that all channels are combined into a single output.
-- Stereo - Stereo indicates that all channels are combined into two different outputs called "left" and "right".
+- Stereo - Stereo indicates that the channels are split between two different outputs called "left" and "right".
 - Song - A piece of music created in a tracker. It consists of a sequence of patterns.
 - Module - A data structure with one or more songs.
 - Module File - A file storing the module.
@@ -44,7 +44,7 @@ RMT Tracker 2.0 (DRAFT 2026-01-06)<a id='rmt1'></a>
 Atari 8-bit Emulation
 ---------------------
 
-The Atari 8-bit emulation consists of two parts
+The Atari 8-bit emulation consists of two parts:
 - The emulation of the [MOS Technology 6502 CPU](https://en.wikipedia.org/wiki/MOS_Technology_6502)
 - The emulation of one or two [Atari POKEY sound chips](https://en.wikipedia.org/wiki/POKEY).  
 
@@ -102,7 +102,4 @@ The following general maintainer issues concern the C++ program, which the Java 
 ### Future Plans
 
 - The Java port already uses ASAP for the CPU and POKEY emulation, so the tracker and the replay share one engine there. The C++ program keeps the external DLLs (for which maintenance is either unclear or not guaranteed/officially supported) until the C++ parts are deleted; replacing them is not planned.
-- The Atari binary code for the different patches of the player code are currently included in the C-code as source code. This makes it hard to replace them and check/update/version their content. Instead all Atari binary code should be 
-	- present as source code
-	- compatible as part of the build
-	- included are binaries in the distribution, similar to for the ".prf" files are distributed and loaded in DIS6502
+- All Atari binary code should be present as source code, assembled as part of the build, and included as binary files in the distribution - similar to how the ".prf" files are distributed and loaded in DIS6502. The first steps exist: the tracker drivers and players are no longer embedded in the C code but ship as files under "resources/", and two drivers (versions 1 and 6) are proven byte-identical to their sources on every push ("build/check_drivers.sh"). Open are the sources of the remaining driver versions and of the VU-Player, and assembling all of them as part of the build.
