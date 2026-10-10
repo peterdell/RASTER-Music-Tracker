@@ -1,8 +1,8 @@
 # Plan 33: The player's replay proven on emulated hardware, headlessly
 
 Status: DONE 2026-10-10 (written retroactively - the work grew out of plan
-32's player repairs before it had a plan file). Follow-ups V5-V6 wait on
-the upstream pull request.
+32's player repairs before it had a plan file). PR #96 was reviewed and
+merged upstream the same day; V5 is done, V6 stays a judgment call.
 
 The question this answers: does the Simple RMT Player (asm/Patch-16's
 rmtplayer.a65, repaired under plan 32 and bundled with Captain Future
@@ -65,15 +65,19 @@ and verified locally (windows-sdl-release preset,
 -DALTIRRA_BRIDGE_SERVER=ON; patched server in C:\TEMP\claude\asdl):
 with FRAME 1 + POKEY + POKEY 2 pipelined, both chips record in one
 pass - 7524 of 7524 full 18-byte stereo frames identical to RMT's
-dump, in 2.9 s. The complete stereo replay is proven.
+dump, in 2.9 s. The complete stereo replay is proven. ilmenit reviewed
+and merged the PR the same day (381df2d9), fixing a timing race in the
+integration test (CONFIG stereo cold-resets, so the test pauses first)
+and extending its coverage, and published fresh nightlies.
 
 ## Follow-ups
 
-- **V5 (open, waits on PR #96):** when merged and a new bridge nightly
-  exists, update the installed AltirraSDL and give
-  build/record_sapr_bridge.py a both-chips mode (the proof script's
-  FRAME 1 + POKEY + POKEY 2 loop shows how); drop its docstring's
-  single-chip limitation note.
+- **V5 (DONE 2026-10-10):** the installed AltirraSDL nightly is the
+  merge commit (381df2d9), and build/record_sapr_bridge.py records both
+  chips with --stereo (FRAME 1 + POKEY + POKEY 2 pipelined, 18-byte
+  frames, STEREO in the header); the comparison handles both chip
+  orders and stereo-vs-mono references. Verified against the released
+  server: 7524 of 7524 full stereo frames identical, in 3.1 s.
 - **V6 (open):** nothing runs this verification automatically. If the
   drivers or the player sources change more often than expected, a CI
   job could run the recorder against a committed reference .sapr -

@@ -15,12 +15,12 @@ exactly one full, non-repeating pass by construction), the recording
 length is the reference's frame count plus margin, and the two streams
 are compared register by register after alignment.
 
-Limitation: the bridge's POKEY command exposes the primary chip only,
-so a stereo module is recorded and compared on its first POKEY
-(9 bytes/frame). The second chip runs the identical player code path
-and is covered audibly by SapPlayabilityTest; recording it here too
-awaits a small upstream patch (a chip index on the bridge's POKEY
-command, bridge_commands_state.cpp in ilmenit/AltirraSDL).
+With --stereo, BOTH chips are recorded per frame (POKEY and POKEY 2,
+18 bytes per SAP-R frame, STEREO in the header) - the chip index went
+upstream as github.com/ilmenit/AltirraSDL pull request 96, merged
+2026-10-10, so the installed bridge nightly must be 381df2d9 or newer.
+The player's physical chip order may be swapped relative to the dump
+layout; the comparison tries both orders and reports which matched.
 
 Example:
   python build/record_sapr_bridge.py --xex asm/Patch-16/out/rmtplayer.xex \
@@ -56,7 +56,7 @@ def main():
     parser.add_argument("--reference", help="RMT's SAP-R export of the module: sets the length, enables the comparison")
     parser.add_argument("--frames", type=int, default=1500, help="frames to record without --reference")
     parser.add_argument("--region", choices=["pal", "ntsc"], default="pal")
-    parser.add_argument("--stereo", action="store_true", help="dual-POKEY machine (recording stays first-chip, see above)")
+    parser.add_argument("--stereo", action="store_true", help="dual-POKEY machine: both chips are recorded (18 bytes/frame)")
     parser.add_argument("--warmup", type=int, default=60, help="boot/init frames before the recording starts (low enough to catch the music's first frame; leading silence is skipped by the alignment)")
     parser.add_argument("--server-dir", default=ALTIRRA_SDL_DIR)
     args = parser.parse_args()
@@ -109,6 +109,8 @@ def main():
             # (~16 ms). So the FRAME 1 / POKEY pairs are PIPELINED on the
             # raw socket in batches: many commands land in one tick, and
             # the responses are read back in bulk.
+            chips = 2 if args.stereo else 1
+            commands = b"FRAME 1\nPOKEY\n" if chips == 1 else b"FRAME 1\nPOKEY\nPOKEY 2\n"
             recorded = bytearray()
             started = time.time()
             sock = bridge._sock
@@ -117,14 +119,15 @@ def main():
             done = 0
             while done < frames_wanted:
                 n = min(batch, frames_wanted - done)
-                sock.sendall(b"FRAME 1\nPOKEY\n" * n)
+                sock.sendall(commands * n)
                 for _ in range(n):
                     if not json.loads(reader.readline())["ok"]:
                         raise RuntimeError("FRAME failed")
-                    state = json.loads(reader.readline())
-                    if not state["ok"]:
-                        raise RuntimeError("POKEY failed")
-                    recorded += bytes(int(state[r].lstrip("$"), 16) for r in REGISTERS)
+                    for _chip in range(chips):
+                        state = json.loads(reader.readline())
+                        if not state["ok"]:
+                            raise RuntimeError(state.get("error", "POKEY failed"))
+                        recorded += bytes(int(state[r].lstrip("$"), 16) for r in REGISTERS)
                 done += n
             print(f"Recorded {frames_wanted} frames in {time.time() - started:.1f} s host time")
             bridge.quit()
@@ -134,26 +137,36 @@ def main():
         except subprocess.TimeoutExpired:
             server.kill()
 
+    frame_size = 18 if args.stereo else 9
     header = ("SAP\r\n"
               'AUTHOR "???"\r\n'
               f'NAME "{os.path.splitext(os.path.basename(args.xex))[0]}"\r\n'
               'DATE "???"\r\n'
               "TYPE R\r\n"
-              "\r\n").encode("ascii")
+              + ("STEREO\r\n" if args.stereo else "")
+              + "\r\n").encode("ascii")
     with open(args.out, "wb") as f:
         f.write(header + recorded)
-    print(f"Wrote {args.out} ({len(recorded) // 9} frames, first POKEY)")
+    print(f"Wrote {args.out} ({len(recorded) // frame_size} frames, {'both POKEYs' if args.stereo else 'one POKEY'})")
 
     if reference:
-        rec = [bytes(recorded[i * 9:(i + 1) * 9]) for i in range(len(recorded) // 9)]
-        # The recording holds ONE chip; a stereo reference holds two. The
-        # player and the dump may order the chips differently (measured:
-        # the player's first POKEY carries the dump's second half), so
-        # both halves are candidates, aligned by a mid-stream probe.
+        rec = [bytes(recorded[i * frame_size:(i + 1) * frame_size])
+               for i in range(len(recorded) // frame_size)]
+        # The player and the dump may order the chips differently
+        # (measured: the player's first POKEY carries the dump's second
+        # half), so both orders - or against a stereo reference with a
+        # mono recording, both halves - are candidates.
         bytes_per_ref = len(reference[0])
-        halves = [("first POKEY", [f[:9] for f in reference])]
-        if bytes_per_ref == 18:
-            halves.append(("second POKEY", [f[9:] for f in reference]))
+        if bytes_per_ref == frame_size:
+            halves = [("as recorded", reference)]
+            if frame_size == 18:
+                halves.append(("chips swapped", [f[9:] + f[:9] for f in reference]))
+        elif bytes_per_ref == 18 and frame_size == 9:
+            halves = [("first POKEY", [f[:9] for f in reference]),
+                      ("second POKEY", [f[9:] for f in reference])]
+        else:
+            print("COMPARISON FAILED: a mono reference cannot cover a stereo recording")
+            return 1
         def score(ref, offset):
             agree = 0
             for k in range(len(ref)):
