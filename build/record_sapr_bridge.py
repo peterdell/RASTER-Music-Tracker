@@ -17,8 +17,10 @@ are compared register by register after alignment.
 
 Limitation: the bridge's POKEY command exposes the primary chip only,
 so a stereo module is recorded and compared on its first POKEY
-(9 bytes/frame). build/record_sapr_altirra.ps1 records both chips
-through the Windows Altirra UI when the full stereo stream is needed.
+(9 bytes/frame). The second chip runs the identical player code path
+and is covered audibly by SapPlayabilityTest; recording it here too
+awaits a small upstream patch (a chip index on the bridge's POKEY
+command, bridge_commands_state.cpp in ilmenit/AltirraSDL).
 
 Example:
   python build/record_sapr_bridge.py --xex asm/Patch-16/out/rmtplayer.xex \
