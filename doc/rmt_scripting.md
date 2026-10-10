@@ -139,8 +139,8 @@ java -jar rmt.jar /SCRIPT:Delta\build.rmtscript
 
 ## Environment variables
 
-Two variables let a build script run one and the same script file with
-different outputs, without editing it:
+These variables let a build script control a run of one and the same
+script file without editing it:
 
 | Variable | Programs | Meaning |
 |---|---|---|
