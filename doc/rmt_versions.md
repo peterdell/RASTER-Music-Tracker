@@ -30,13 +30,13 @@ They are listed here only for documentation and preservation purposes and should
 | 2021-12-30 | RMT 1.31.22      | [rmt131.22.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt131.22.zip) | n/a                                                                        | Version by [VinsCool](https://github.com/VinsCool). |
 | 2021-12-27 | RMT 1.31.21      | [rmt131.21.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt131.21.zip) | n/a                                                                        | Version by [VinsCool](https://github.com/VinsCool). |
 | 2016-07-31 | RMT 1.30         | [rmt130.zip](https://www.wudsn.com/productions/windows/rastermusictracker/rmt130.zip)       | [1.30](https://github.com/raster-atari-org/RASTER-Music-Tracker/tree/1.30) | Version by [Rudla Kuda](https://github.com/rudla). Requires [MFC](https://www.microsoft.com/de-DE/download/details.aspx?id=26999)|
-| 2010-11-15 | RMT 1.29         | n/a                                                                                         | [1.29](https://github.com/raster-atari-org/RASTER-Music-Tracker/tree/1.29) | Last official version by Radek Štěrba                                                                |
+| 2010-11-15 | RMT 1.29         | n/a                                                                                         | [1.29](https://github.com/raster-atari-org/RASTER-Music-Tracker/tree/1.29) | Last version by Radek Štěrba (source code only, never released as binary)                                                                |
           
 
 
 ## Historic Versions
 
-Radek Štěrba created these versions before RMT 1.28, which was the de facto standard from 2008 to 2021.
+Radek Štěrba created these versions before RMT 1.28, which was the de facto standard from 2009 to 2021.
 They are listed here only for documentation and preservation purposes and should not be used.
 
 | Date    | Version       | Binaries                                                             | Source Code |
