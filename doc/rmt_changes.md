@@ -15,7 +15,7 @@ Changes in RMT 2.00 (Planned)
 - New extended file format
 - New version of RMTPL107.XEX => Where is the source code?
 - Include the export settings in the file format instead of repeating the dialogs for user input on every export.
-- Always export in all formats (RMT, stripped RMT, XEX, LZSS, VU-Player...), which were set to "active" in the song settings, with one key stroke without further user input at that point. Because the LZSS compression needs to be done only once in this case, saving in all formats comes at practically no cost. Exported files will be placed in a folder named ".exports" and will be named in the format "-VU-Player_V1.xex".
+- Always export in all formats (RMT, stripped RMT, XEX, LZSS, VU-Player...), which were set to "active" in the song settings, with one key stroke without further user input at that point. Because the LZSS compression needs to be done only once in this case, saving in all formats comes at practically no cost. Exported files will be placed in a folder named ".exports" and will be named in the format "<module name>-VU-Player_V1.xex".
 
 
 Changes in RMT 1.37 (Planned)
