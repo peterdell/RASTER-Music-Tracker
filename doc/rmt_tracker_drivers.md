@@ -27,7 +27,7 @@ Additionally, they have a readable name for users and a constant name when used 
 
 The original RMT driver version that set the standard for many years with Atari 8-bit music. This version was mainly used with RMT 1.28, as well as the unofficial RMT 1.30 by Rudla.
 
-## RMT 1.28 With Tuning by VinsCool
+## RMT 1.28 With Tuning by Vin Samuel (VinsCool)
 
 This driver version was never completed and is no longer included in the program. It is only mentioned here to explain the gap between versions 1 and 3.
 

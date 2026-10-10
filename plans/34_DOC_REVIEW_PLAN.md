@@ -3,9 +3,13 @@
 Status: ANALYZED 2026-10-10; D1 done 2026-10-10 (40 fixes, plus one
 found while fixing: rmt_testing.md 25 "you are not always required" ->
 they), D2 done 2026-10-10 (the binaries bullet was rewritten with the
-current facts: resources extraction and the driver byte-check exist,
-the remaining sources stay open; rmt_tracker_usage.md stays a
-decision), D3 open except the first item.
+current facts; rmt_tracker_usage.md was folded into the manual as the
+"GO TO LINE and Subsongs" section and deleted, per the user's call).
+D3: the naming convention (first mention "Vin Samuel (VinsCool)", then
+the handle) and the current-version baseline wording are applied; the
+batch of eight mechanical D3 items awaits the user's per-item judgment
+with file/line context; "wise loop" is kept - it is the program's own
+term (ClipboardCore.cpp, the rebuild-loops message box).
 
 All eleven `doc/*.md` files were read in full (2822 lines). Scope rules
 applied:

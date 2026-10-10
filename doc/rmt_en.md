@@ -2,7 +2,7 @@
 
 # RASTER Music Tracker (RMT) - Manual
 
-For RMT 1.31.01 and higher by Vin Samuel and Peter Dell, 2021-2026.
+For RMT 1.31.01 and higher by Vin Samuel (VinsCool) and Peter Dell, 2021-2026.
 
 For RMT 1.28, see the [RMT 1.28 Manual](rmt_en_128.html) by Radek Štěrba, RASTER/C.P.U. 2002-2009.
 
@@ -360,6 +360,25 @@ MUSIC SPEED: AA/MM/S
 | `CONTROL+K` | Insert copy or clone of song line(s). |
 | `CONTROL+J` | Prepare song line with unused empty tracks. |
 | `ENTER` | Return from SONG EDIT to the currently active screen (Tracks or Instruments edit). |
+
+## GO TO LINE and Subsongs
+
+The "GO TO LINE" command (`CONTROL+G`) creates multiple subsongs in one
+module:
+
+- The songline below a "go to line" is assumed to be the start of the
+  next subsong.
+- When a subsong is built from several "go to line" commands, the last
+  one defines its loop point.
+- The subsongs are identified at export time by analyzing where the
+  "go to line" commands split the song.
+
+A trick: a "go to line" on songline 00 chooses which subsong plays
+first. For example, a go to line 06 plays the subsong starting there
+first, and the subsong starting on songline 01 is indexed as the next
+one.
+
+![Song "GO TO LINE" Example](img/song-go-to-line.png)
 
 ## PROVE (JAM) MODE
 

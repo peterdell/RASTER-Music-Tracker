@@ -694,9 +694,6 @@
     <None Include="res\cursor_set_position.cur">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\..\doc\rmt_tracker_usage.md">
-      <Filter>Documentation Files</Filter>
-    </None>
     <None Include="..\..\doc\rmt_action_infos.md">
       <Filter>Documentation Files</Filter>
     </None>
