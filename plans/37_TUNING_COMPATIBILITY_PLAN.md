@@ -139,9 +139,11 @@ remain:
   F2 comparison. Acceptance: the +-1 remap residue is ZERO - the
   streams are byte-identical modulo the documented LZSS
   normalization and the stale-state intro, nothing else.
-  Known knock-on effects to handle in the same step: the committed
-  Captain_Future_Theme.sapr reference was dumped with the static
-  tables and CHANGES once T2 lands (regenerate and recommit it);
+  Known knock-on effects to handle in the same step: DONE
+  2026-10-11 - the committed Captain_Future_Theme.sapr reference is
+  regenerated with the fixed export (header and 7524-frame length
+  unchanged, 3727 AUDF bytes moved by exactly one step, body
+  byte-identical to the dump verified against the party stream);
   plan 33's Simple RMT Player comparison then needs the player
   bundle's tables aligned too, since the standalone player XEX
   carries the static obx tables. Delta and the other v1-family

@@ -17,7 +17,14 @@ register dump of one full, non-repeating pass (7524 stereo frames),
 which build/record_sapr_bridge.py compares the Simple RMT Player's
 replay against (plans/33_ALTIRRA_REPLAY_VERIFICATION_PLAN.md).
 Regenerate it with an rmtscript: open the .rmt, then
+set driver patch16, then
 export sapr Captain_Future_Theme.sapr date="13/08/2024".
+Regenerated 2026-10-11 with the GENERATED tuning tables (plan 37:
+the tables now win over the driver obx's static copy, as in RMT
+1.34) - 3727 AUDF bytes moved by one step against the first dump.
+Until the obx's static page is aligned, the Simple RMT Player
+bundle still plays the static tables, so the plan 33 comparison
+shows exactly those one-step differences.
 
 Captain_Future_Theme-original-SV2k24SE.xex is the composer's own
 release build ("Buddy - Captain Future (for SV24se) (Stereo-Pokey)
