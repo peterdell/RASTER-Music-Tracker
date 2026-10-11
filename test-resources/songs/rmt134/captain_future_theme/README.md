@@ -1,0 +1,20 @@
+File Name:      Captain_Future_Theme.rmt
+Title:          Captain Future Theme
+Author:         Christian Duesterhoeft (Buddy)
+Date:           13/08/2024
+RMT Version:    RMT 1.34
+Tracker Driver: Patch16
+Source:         ASMA submission "Buddy - Captain Future (for SV24se) (Stereo-Pokey)"
+
+The master tune of the Simple RMT Player: an RMT8 stereo module for the
+Patch16 driver. Three byte-identical copies exist, guarded by a test
+(TestSongsTest): this one, the example song
+rmt/songs/rmt134/buddy/Captain_Future_Theme.rmt, and the player bundle
+asm/Patch-16/music.rmt.
+
+Captain_Future_Theme.sapr is the permanent SAP-R reference: RMT's own
+register dump of one full, non-repeating pass (7524 stereo frames),
+which build/record_sapr_bridge.py compares the Simple RMT Player's
+replay against (plans/33_ALTIRRA_REPLAY_VERIFICATION_PLAN.md).
+Regenerate it with an rmtscript: open the .rmt, then
+export sapr Captain_Future_Theme.sapr date="13/08/2024".

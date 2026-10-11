@@ -20,6 +20,11 @@ final class TestSongs {
 	static final Path WHY_DO_YOU_DANCE_WITH_ME = ROOT.resolve("rmt134").resolve("why_do_you_dance_with_me")
 			.resolve("Why_Do_You_Dance_With_Me.rmt");
 
+	/** Captain Future Theme by Christian Duesterhoeft (Buddy), 13/08/2024, stereo, Patch16
+	 * - the Simple RMT Player's master tune; see its README.md for the copies and the .sapr reference. */
+	static final Path CAPTAIN_FUTURE_THEME = ROOT.resolve("rmt134").resolve("captain_future_theme")
+			.resolve("Captain_Future_Theme.rmt");
+
 	private TestSongs() {
 	}
 }

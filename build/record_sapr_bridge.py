@@ -25,7 +25,7 @@ layout; the comparison tries both orders and reports which matched.
 Example (the committed reference beside the master tune):
   python build/record_sapr_bridge.py --xex asm/Patch-16/out/rmtplayer.xex \
       --out captain_bridge.sapr --region pal --stereo \
-      --reference rmt/songs/rmt134/buddy/Captain_Future_Theme.sapr
+      --reference test-resources/songs/rmt134/captain_future_theme/Captain_Future_Theme.sapr
 """
 
 import argparse
