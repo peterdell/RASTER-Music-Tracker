@@ -1,15 +1,16 @@
 # Plan 37: Tuning compatibility with RMT 1.34 - existing tunes must sound correct in 1.36
 
-Status: IN PROGRESS 2026-10-12. Everything but T5 is DONE - the
-cause was neither of the two proposed candidates but a third: a 1.36
-initialization-order regression (see the T1 result below). Reviewing
-T2 raised the two later steps, both now carried out: the generated
-page had a 128-byte gap that T2's reordering turned into a regression
-in the Java port (T6), and the driver's own table page is aligned
-with the generated defaults after all, so a module assembled with the
-standalone player sounds as it did in RMT - the decision T2 left open
-was settled the other way (T7). T5, the tuning provenance line per
-fixture, is the only step left.
+Status: DONE 2026-10-12, T1-T7. The cause was neither of the two
+proposed candidates but a third: a 1.36 initialization-order
+regression (see the T1 result below), fixed in both programs and
+verified against the composer's own export. Reviewing T2 raised two
+further steps, both carried out: the generated page had a 128-byte
+gap that T2's reordering turned into a regression in the Java port
+(T6), and the driver's own table page is aligned with the generated
+defaults after all, so a module assembled with the standalone player
+sounds as it did in RMT - the decision T2 left open was settled the
+other way (T7). The three findings under "Separate findings" below
+are left to their own plans.
 
 Because the inventory below describes the state before T7, the
 numbers in it are now history: the shipped driver's page and the
@@ -186,12 +187,22 @@ inventory reproduces both counts exactly.
   the static obx tables - T7 removes that difference at its source.
   Delta and the other v1-family tunes are unaffected (no $B000
   read).
-- **T5. Record tuning provenance per tune.** Add a "Tuning:" line to
+- **T5. Record tuning provenance per tune. DONE 2026-10-12.** Add a
+  "Tuning:" line to
   the fixture metadata sheets (test-resources/songs READMEs), stating
   the settings the anchoring confirmed (expected: "RMT 1.34
   defaults" once T4 passes). This is the manual stand-in until a
   format carries tuning (the RMX TUN segment - out of scope, plan
-  36).
+  36). All three sheets now carry the line, and the three answers
+  differ in kind, which is the point of recording them: Captain
+  Future Theme has the expected "RMT 1.34 defaults" with the four
+  values spelled out and the anchoring that confirmed them; Delta
+  has none to record, because the v1-family driver's tables are
+  assembled into the binary at $31c0-$32ff and no tuning setting can
+  reach them; Why Do You Dance With Me has custom tuning that RMT's
+  settings cannot express at all, since the composer's own player
+  carries retuned tables in that same region, which is why plan 36's
+  F3 could not byte-anchor it.
 - **T6. Complete the generated table page. DONE 2026-10-12.** The
   generator writes
   $B000-$B4FF (all five distortion pages, distortion 4 included) and

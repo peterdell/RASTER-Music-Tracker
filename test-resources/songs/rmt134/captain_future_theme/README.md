@@ -4,6 +4,13 @@ Author:         Christian Duesterhoeft (Buddy)
 Date:           13/08/2024
 RMT Version:    RMT 1.34
 Tracker Driver: Patch16
+Tuning:         RMT 1.34 defaults - PAL, base tuning 440.83751645933 Hz,
+                base note 3, equal temperament (temperament 0). Confirmed
+                against the composer's own export: at these settings RMT
+                1.36 generates byte-identical tables to the RMT 1.34.00
+                release, and the +-1 AUDF remap the first comparison
+                showed came from a 1.36 initialization-order bug, not from
+                a settings difference (plan 36 F2, plan 37 T1-T4).
 Source:         ASMA submission "Buddy - Captain Future (for SV24se) (Stereo-Pokey)"
 
 The master tune of the Simple RMT Player: an RMT8 stereo module for the

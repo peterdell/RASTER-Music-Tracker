@@ -4,6 +4,13 @@ Author:         Radek Sterba (Raster)
 Date:           01/2003 (DATE in delta.sap, unchanged in all releases since RMT 1.00 beta)
 RMT Version:    RMT 1.00b
 Tracker Driver: RMT 1.28
+Tuning:         Fixed, none to record - the v1-family driver's frequency
+                tables are assembled into the driver binary itself (at
+                $31c0-$32ff, below the player at $3400), and RMT writes
+                its generated tables to $b000, which this driver never
+                reads. No tuning setting can change how this tune sounds.
+                Confirmed by plan 36's F1 anchor against the composer's
+                own export.
 Source:         https://asma.atari.org/asma/Composers/Sterba_Radek/Delta.sap
 
 Original exports by the composer (the anchor for plan 36; both differ,
