@@ -1,15 +1,14 @@
 # Plan 34: Review of the doc/ pages - typos, grammar, wording, consistency
 
-Status: ANALYZED 2026-10-10; D1 done 2026-10-10 (40 fixes, plus one
-found while fixing: rmt_testing.md 25 "you are not always required" ->
-they), D2 done 2026-10-10 (the binaries bullet was rewritten with the
-current facts; rmt_tracker_usage.md was folded into the manual as the
-"GO TO LINE and Subsongs" section and deleted, per the user's call).
-D3: the naming convention (first mention "Vin Samuel (VinsCool)", then
-the handle) and the current-version baseline wording are applied; the
-batch of eight mechanical D3 items awaits the user's per-item judgment
-with file/line context; "wise loop" is kept - it is the program's own
-term (ClipboardCore.cpp, the rebuild-loops message box).
+Status: DONE 2026-10-11. D1 (the mechanical fixes), D2 (the rewrites,
+with rmt_tracker_usage.md folded into the manual), and all of D3 are
+applied and were reviewed by the user. The naming convention grew to
+six people - first mention per page "Full Name (Handle)", then the
+handle: Radek Štěrba (Raster), Vin Samuel (VinsCool), Peter Dell
+(JAC!), Bernhard Pos (Analmux), Piotr Fusik (Fox), Rudla Kuda (Rudla).
+The manual's 28 tables are aligned with a 20-character column cap, the
+last column's separator ending at the header row's end. "Wise loop"
+stays - the program's own term.
 
 All eleven `doc/*.md` files were read in full (2822 lines). Scope rules
 applied:
