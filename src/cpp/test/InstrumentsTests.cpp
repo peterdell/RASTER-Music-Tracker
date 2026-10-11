@@ -576,13 +576,20 @@ TEST_F(InstrumentsCoreTest, GetNoteReturnsMinusOneForInvalidShiftedNote) {
 
 class InstrumentFrequencyTest : public InstrumentsCoreTest {
   protected:
+    // The table addresses this fixture writes to, and clears again so that
+    // g_Atari's memory stays clean for any test running after it in the same
+    // process.
+    static constexpr MemoryAddress kTables[] = {
+        RMTPLAYR_FRQTABPOLY5_64KHZ, RMTPLAYR_FRQTABDIST4_64KHZ, RMTPLAYR_FRQTABPURE_64KHZ,
+        RMTPLAYR_FRQTABBUZZY_64KHZ, RMTPLAYR_FRQTABGRITTY_64KHZ, RMTPLAYR_FRQTABPURE_15KHZ,
+        RMTPLAYR_FRQTABBUZZY_15KHZ};
+
     void TearDown() override {
         InstrumentsCoreTest::TearDown();
-        // Leave g_Atari's memory clean for any other test that might run
-        // after this one in the same process.
-        g_Atari.SetByteAt(RMT_FRQTABLES + 64, 0);
-        g_Atari.SetByteAt(RMT_FRQTABLES + 128, 0);
-        g_Atari.SetByteAt(RMT_FRQTABLES + 192, 0);
+        for (MemoryAddress table : kTables) {
+            g_Atari.SetByteAt(table + 5, 0);
+            g_Atari.SetByteAt(table + 10, 0);
+        }
     }
 };
 
@@ -599,41 +606,66 @@ TEST_F(InstrumentFrequencyTest, ReturnsMinusOneForOutOfRangeNote) {
     EXPECT_EQ(instruments.GetFrequency(kInstr, CNotes::NOTESNUM), -1);
 }
 
-TEST_F(InstrumentFrequencyTest, ReadsFromOffsetSixtyFourForDistortion0x0C) {
+// Each distortion reads the 64 kHz table of its own page, as the player's
+// TABLES_MSB dispatch does. Until plan 38 these offsets were 64/128/192 from
+// $B000 - the RMT 1.28 one-page layout, which in the Patch 16 six-page layout
+// all land inside the Poly5 page, so every distortion returned a Poly5 value.
+TEST_F(InstrumentFrequencyTest, ReadsEachDistortionsOwnSixtyFourKhzTable) {
     TInstrument* ai = instruments.GetInstrument(kInstr);
     ai->parameters[PAR_TBL_TYPE] = 1; // no shift
-    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x0C;
-    g_Atari.SetByteAt(RMT_FRQTABLES + 64 + 5, 77);
+    g_Atari.SetByteAt(RMTPLAYR_FRQTABPOLY5_64KHZ + 5, 11);
+    g_Atari.SetByteAt(RMTPLAYR_FRQTABDIST4_64KHZ + 5, 22);
+    g_Atari.SetByteAt(RMTPLAYR_FRQTABPURE_64KHZ + 5, 33);
+    g_Atari.SetByteAt(RMTPLAYR_FRQTABBUZZY_64KHZ + 5, 44);
+    g_Atari.SetByteAt(RMTPLAYR_FRQTABGRITTY_64KHZ + 5, 55);
 
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x02;
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 11);
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x04;
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 22);
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x0C;
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 44);
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x0E;
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 55);
+
+    // Distortions 0, 8 and A share the pure page.
+    for (int distortion : {0x00, 0x08, 0x0A}) {
+        ai->envelope[0][EnvelopeParameter::DISTORTION] = distortion;
+        EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 33) << "distortion " << distortion;
+    }
+}
+
+TEST_F(InstrumentFrequencyTest, ReadsTheFifteenKhzTableWhenTheInstrumentSetsThatAudctlBit) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_TBL_TYPE] = 1;
+    ai->parameters[PAR_AUDCTL_15KHZ] = 1;
+    g_Atari.SetByteAt(RMTPLAYR_FRQTABPURE_15KHZ + 5, 66);
+    g_Atari.SetByteAt(RMTPLAYR_FRQTABBUZZY_15KHZ + 5, 77);
+
+    // check_15khz: distortion C and above take the buzzy table.
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x00;
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 66);
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x0C;
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 77);
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x0E;
     EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 77);
 }
 
-TEST_F(InstrumentFrequencyTest, ReadsFromOffsetOneTwentyEightForDistortionSixOrE) {
+TEST_F(InstrumentFrequencyTest, ReturnsMinusOneForDistortionSixBecauseItPlaysSixteenBit) {
     TInstrument* ai = instruments.GetInstrument(kInstr);
     ai->parameters[PAR_TBL_TYPE] = 1;
     ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x06;
-    g_Atari.SetByteAt(RMT_FRQTABLES + 128 + 5, 88);
-    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 88);
 
-    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x0E;
-    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 88); // same offset for 0x0E
-}
-
-TEST_F(InstrumentFrequencyTest, ReadsFromOffsetOneNinetyTwoForAnyOtherDistortion) {
-    TInstrument* ai = instruments.GetInstrument(kInstr);
-    ai->parameters[PAR_TBL_TYPE] = 1;
-    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x00;
-    g_Atari.SetByteAt(RMT_FRQTABLES + 192 + 5, 99);
-
-    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 99);
+    // BASS16: a 16-bit frequency, which no single AUDF byte describes.
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), -1);
 }
 
 TEST_F(InstrumentFrequencyTest, ShiftsNoteByNoteTableZeroWhenTableTypeIsZero) {
     TInstrument* ai = instruments.GetInstrument(kInstr);
     ai->parameters[PAR_TBL_TYPE] = 0;
     ai->noteTable[0] = 5;
-    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x00; // default -> offset 192
-    g_Atari.SetByteAt(RMT_FRQTABLES + 192 + 10, 42); // note 5 shifted by 5 -> 10
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x00; // the pure page
+    g_Atari.SetByteAt(RMTPLAYR_FRQTABPURE_64KHZ + 10, 42); // note 5 shifted by 5 -> 10
 
     EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 42);
 }

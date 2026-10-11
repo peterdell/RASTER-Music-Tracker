@@ -54,6 +54,18 @@ public final class Atari {
 	// Matches RMT_FRQTABLES (Atari.h): RMTPLAYR_PAGE_DISTORTION_2 (tracker_obx.h).
 	public static final int RMT_FRQTABLES = 0xB000;
 
+	// The 64 kHz table of each distortion's own page, and the two 15 kHz
+	// tables in PAGE_EXTRA_0 - the addresses tracker_obx.h generates from
+	// asm/Patch-16/rmtdata.a65 as RMTPLAYR_FRQTAB*. Every page also holds the
+	// same timbre's 1.79 MHz table at +$40 and its 16-bit one at +$80.
+	public static final int RMT_FRQTAB_POLY5_64KHZ = 0xB000;
+	public static final int RMT_FRQTAB_DIST4_64KHZ = 0xB100;
+	public static final int RMT_FRQTAB_PURE_64KHZ = 0xB200;
+	public static final int RMT_FRQTAB_BUZZY_64KHZ = 0xB300;
+	public static final int RMT_FRQTAB_GRITTY_64KHZ = 0xB400;
+	public static final int RMT_FRQTAB_PURE_15KHZ = 0xB580;
+	public static final int RMT_FRQTAB_BUZZY_15KHZ = 0xB5C0;
+
 	public static int getClockFrequency(boolean ntsc) {
 		return ntsc ? FREQ_17_NTSC : FREQ_17_PAL;
 	}

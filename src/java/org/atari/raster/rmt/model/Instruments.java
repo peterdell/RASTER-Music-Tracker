@@ -322,16 +322,42 @@ public final class Instruments {
 			return -1;
 		}
 
-		// IMPORTANT NOTE: Tables are not set to a constant location!
-		// The function technically returns valid data, otherwise
-		switch (tt.envelope[0][EnvelopeParameter.DISTORTION]) {
+		// The player picks the table in two steps (rmtplayr.a65: the
+		// TABLES_MSB dispatch table, then store_tables_lsb): the distortion
+		// selects one of the five 256-byte pages, and the channel's clock
+		// selects a 64-byte slice inside it - 64 kHz at +$00, 1.79 MHz at
+		// +$40, 16-bit at +$80 - while the two 15 kHz tables sit apart in
+		// PAGE_EXTRA_0. Only the distortion and the instrument's own 15 kHz
+		// bit can be answered here: 1.79 MHz and the 16-bit joins are per
+		// channel, and a track has no channel until the song assigns it to a
+		// column, so the 64 kHz table is the answer for every other case -
+		// which is also all a single AUDF byte can carry.
+		int distortion = tt.envelope[0][EnvelopeParameter.DISTORTION];
+
+		if (distortion == 0x06) {
+			// Distortion 6 is BASS16: the player forces 16-bit mode on
+			// whichever channel it plays (do_bass16), so the frequency is a
+			// 16-bit value and no single AUDF byte describes it.
+			return -1;
+		}
+
+		if (tt.parameters[Instrument.PAR_AUDCTL_15KHZ] != 0) {
+			// check_15khz: distortion C and E take the buzzy table, the rest the pure one.
+			return unsignedByte(atariMemory, (distortion >= 0x0C ? Atari.RMT_FRQTAB_BUZZY_15KHZ : Atari.RMT_FRQTAB_PURE_15KHZ) + note);
+		}
+
+		switch (distortion) {
+		case 0x02:
+			return unsignedByte(atariMemory, Atari.RMT_FRQTAB_POLY5_64KHZ + note);
+		case 0x04:
+			return unsignedByte(atariMemory, Atari.RMT_FRQTAB_DIST4_64KHZ + note);
 		case 0x0C:
-			return unsignedByte(atariMemory, Atari.RMT_FRQTABLES + 64 + note);
-		case 0x06:
+			return unsignedByte(atariMemory, Atari.RMT_FRQTAB_BUZZY_64KHZ + note);
 		case 0x0E:
-			return unsignedByte(atariMemory, Atari.RMT_FRQTABLES + 128 + note);
+			return unsignedByte(atariMemory, Atari.RMT_FRQTAB_GRITTY_64KHZ + note);
 		default:
-			return unsignedByte(atariMemory, Atari.RMT_FRQTABLES + 192 + note);
+			// Distortions 0, 8 and A all play from the pure page.
+			return unsignedByte(atariMemory, Atari.RMT_FRQTAB_PURE_64KHZ + note);
 		}
 	}
 

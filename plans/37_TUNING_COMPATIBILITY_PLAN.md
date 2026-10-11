@@ -350,6 +350,8 @@ not folded in here:
   plan, because the right table now depends on the channel's clock
   and 16-bit flags as well as the distortion - which is why the code
   carries the comment "Tables are not set to a constant location!".
+  Taken up and fixed as plan 38, which also found the same mistake in
+  the MIDI input path with the RMT 1.34 five-page addresses.
 - Let the composer's tuning travel with the module: an option on the
   rmtplayer-asm export that emits the current tuning tables as a dta
   block the coder assembles over rmtdata.a65's page. That fixes the
