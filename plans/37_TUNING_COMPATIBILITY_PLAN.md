@@ -1,13 +1,13 @@
 # Plan 37: Tuning compatibility with RMT 1.34 - existing tunes must sound correct in 1.36
 
-Status: IN PROGRESS 2026-10-12. T1, T2, T3 and T4 are DONE - the
+Status: IN PROGRESS 2026-10-12. T1, T2, T3, T4 and T6 are DONE - the
 cause was neither of the two proposed candidates but a third: a 1.36
-initialization-order regression (see the T1 result below). T5 is
-open. Reviewing T2 raised two further steps: the generated page has a
-128-byte gap that T2's reordering turned into a regression in the
-Java port (T6), and the driver's static page is to be aligned with
-the generated defaults after all - the decision T2 left open is now
-settled the other way (T7).
+initialization-order regression (see the T1 result below). Open are
+T5 and T7. Reviewing T2 raised the two later steps: the generated
+page had a 128-byte gap that T2's reordering turned into a regression
+in the Java port (T6, fixed), and the driver's static page is to be
+aligned with the generated defaults after all - the decision T2 left
+open is now settled the other way (T7, which T6 unblocks).
 
 ## Goal
 
@@ -182,7 +182,8 @@ inventory reproduces both counts exactly.
   defaults" once T4 passes). This is the manual stand-in until a
   format carries tuning (the RMX TUN segment - out of scope, plan
   36).
-- **T6. Complete the generated table page.** The generator writes
+- **T6. Complete the generated table page. DONE 2026-10-12.** The
+  generator writes
   $B000-$B4FF (all five distortion pages, distortion 4 included) and
   $B580/$B5C0 (the pure and buzzy 15 kHz tables). It never writes
   $B500-$B57F, the two hand-made sawtooth tables
@@ -211,7 +212,20 @@ inventory reproduces both counts exactly.
   that closes the chain rmtdata.a65 -> obx -> generator constants.
   Writing in place instead would also work today, but keeps
   correctness resting on an invariant spread over three places - the
-  one T2 broke.
+  one T2 broke. Done as described: sawtooth_tables[128] in
+  TuningTables.cpp written by memcpy at the end of InitTuning(),
+  SAWTOOTH_TABLES in Tuning.java written by the mirroring loop, both
+  extracted from rmtdata.a65 mechanically rather than retyped. The
+  pin compares against the shipped binary itself, by loading
+  rmt_driver_v6.obx a second time into a plain buffer and comparing
+  all 128 bytes (AtariTrackerDriverTests.cpp and TuningTest.java).
+  680 Java and 432 C++ tests green. Verified end to end: after
+  loadRMTRoutines(PATCH16), $B500 reads E4 DE D7 D1 ... both before
+  AND after initTuning(), where it used to go to zeros, and the
+  generated page now differs from the obx in 238 bytes instead of
+  366 - the 128 sawtooth bytes have left the inventory above, so
+  what remains for T7 is the distortion-4 placeholder plus the 65
+  tuning entries.
 - **T7. Align the driver's static page with the generated defaults.**
   A composer hears RMT's generated tables, but a coder who takes the
   .rmt and assembles it with the Patch-16 player gets rmtdata.a65's

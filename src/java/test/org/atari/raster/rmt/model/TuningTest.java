@@ -2,6 +2,7 @@ package org.atari.raster.rmt.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -274,6 +275,25 @@ class TuningTest {
 		void populatesTheFifteenKhzBuzzyCTableAtOffsetFiveC0() {
 			assertEquals((byte) 188, memory[0x5C0]);
 			assertEquals((byte) 178, memory[0x5C1]);
+		}
+
+		@Test
+		void writesTheSawtoothTablesTheDriverBinaryShipsAtOffsetFiveHundred() {
+			// These two tables are hand-made, so the generator copies them
+			// instead of computing them (see Tuning.SAWTOOTH_TABLES) - which
+			// only works as long as the copy still equals what
+			// rmt_driver_v6.obx holds at $B500. That closes the chain
+			// rmtdata.a65 -> obx -> these constants, with check-drivers.yml
+			// pinning the first link. Before plan 37's T6 this range stayed
+			// zero, and the 0x600-byte copy into the Atari's memory wiped the
+			// driver's own copy after every load.
+			Atari atari = new Atari();
+			assertTrue(new AtariTrackerDriver(atari).loadRMTRoutines(TrackerDriverVersion.PATCH16) > 0);
+			for (int i = 0; i < 0x80; i++) {
+				int offset = 0x500 + i;
+				assertEquals(atari.getByteAt(Atari.RMT_FRQTABLES + offset), memory[offset] & 0xFF,
+						() -> String.format("offset $%03X", offset));
+			}
 		}
 
 		@Test

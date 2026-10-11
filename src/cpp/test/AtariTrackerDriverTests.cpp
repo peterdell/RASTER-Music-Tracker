@@ -1,10 +1,13 @@
 #include "gtest/gtest.h"
 
 #include "AtariBinaries.h"
+#include "AtariIO.h"
 #include "AtariTrackerDriver.h"
 #include "SongTypes.h"
 #include "General.h"
 #include "TuningTypes.h"
+
+#include <vector>
 
 // See plans/04_BROADER_SURVEY_PLAN.md's "AtariTrackerDriver.cpp remainder"
 // candidate: LoadRMTRoutines()/Init()/Play()/SetPokey()/Silence() only need
@@ -77,6 +80,29 @@ TEST_F(AtariTrackerDriverTest, LoadRMTRoutinesRegeneratesTheTuningTablesOverTheD
     // The regeneration after the load must win, as it did in RMT 1.34.00.
     EXPECT_GT(driver.LoadRMTRoutines(TrackerDriverVersion::PATCH16), 0);
     EXPECT_EQ(driver.GetByteAt(RMT_FRQTABLES + 0x040), 0xD6);
+}
+
+TEST_F(AtariTrackerDriverTest, TheRegeneratedSawtoothTablesStillMatchTheDriverBinarysOwnCopy) {
+    // The two sawtooth tables at $B500/$B540 are hand-made, so InitTuning()
+    // copies them instead of computing them (TuningTables.cpp's
+    // sawtooth_tables) - which only holds as long as the copy equals what
+    // rmt_driver_v6.obx ships there. Comparing against the binary itself
+    // closes the chain rmtdata.a65 -> obx -> the constants, with
+    // check-drivers.yml pinning the first link. Before plan 37's T6 the
+    // generator skipped this range entirely, so its content depended on the
+    // load order (plans/37_TUNING_COMPATIBILITY_PLAN.md, T6).
+    byte* bin;
+    WORD size;
+    ASSERT_TRUE(CRmtAtariBinaries::GetTrackerDriverBinary(TrackerDriverVersion::PATCH16, bin, size));
+    std::vector<byte> shipped(0x10000, 0);
+    WORD min, max;
+    ASSERT_GT(CAtariIO::LoadDataAsBinaryFile(bin, size, shipped.data(), min, max), 0);
+
+    EXPECT_GT(driver.LoadRMTRoutines(TrackerDriverVersion::PATCH16), 0);
+
+    for (int offset = 0x500; offset < 0x580; offset++) {
+        EXPECT_EQ(driver.GetByteAt(RMT_FRQTABLES + offset), shipped[RMT_FRQTABLES + offset]) << "offset " << offset;
+    }
 }
 
 // --- AreRoutinesLoaded ---
