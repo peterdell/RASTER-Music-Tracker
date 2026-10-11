@@ -12,3 +12,11 @@ Delta-original-rmt10b.xex:  from Raster's rmt10b.zip (same build in
                             rmt102b.zip) - pre-3.2.2003 frequency tables.
 Delta-original-rmt128.xex:  from Raster's rmt110.zip through rmt128.zip
                             (one unchanged build) - the definitive export.
+
+Delta.sapr is the permanent SAP-R reference: RMT's register dump of one
+full pass with the unpatched (classic) driver - the stream the plan 36
+anchoring matched against Raster's own rmt128 XEX export (3750 of 3840
+frames identical, every difference inside the ~115-frame intro).
+Regenerate it with an rmtscript: open the .rmt, then
+set driver unpatched
+export sapr Delta.sapr author="Radek Sterba (Raster)" name="Delta" date="01/2003"
