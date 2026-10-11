@@ -1,6 +1,8 @@
 # Plan 37: Tuning compatibility with RMT 1.34 - existing tunes must sound correct in 1.36
 
-Status: PROPOSED 2026-10-11.
+Status: IN PROGRESS 2026-10-11. T1 is DONE - the cause is neither of
+the two proposed candidates but a third: a 1.36 initialization-order
+regression (see the T1 result below).
 
 ## Goal
 
@@ -53,26 +55,74 @@ remain:
 
 ## Proposed steps
 
-- **T1. Diagnose the remap - settings or algorithm?** Obtain the RMT
-  1.34.00 release source (VinsCool's repository, release tag) and
-  compare its table generation against ours at identical settings,
-  table by table (timbre x clock x AUDCTL). Independently, scan the
-  basetuning/temperament space with OUR generator and test whether
-  any setting reproduces the measured 35-pair remap from F2. The two
-  probes together separate (a) from (b).
-- **T2. Byte-compatibility at equal settings.** Whatever T1 finds,
-  pin the contract: for identical settings, 1.36 generates tables
-  byte-identical to the 1.34.00 release build. Capture the 1.34.00
-  tables as golden-master test fixtures; fix any drift in BOTH
-  programs (standing rule), with the characterization tests keeping
-  C++ and Java locked together.
-- **T3. Default compatibility.** Prove our defaults equal the
-  1.34.00 release defaults for PAL and NTSC - a default-tuned 1.34
-  tune must sound right in a fresh 1.36 install with no user action.
+- **T1. Diagnose the remap - settings or algorithm? DONE
+  2026-10-11: it is NEITHER - it is an initialization-order
+  regression in 1.36.** The chain of evidence:
+  1. The 1.34.00 release source (tag v1.34.00, commit 3838559,
+     2024-07-03 - Buddy's export is 2024-08-13) was fetched and its
+     generator replicated numerically. At identical default
+     settings, its tables are BYTE-IDENTICAL to our generator's for
+     every shared table (bell 2, pure A, buzzy/gritty C, all
+     clocks; the layouts differ per driver generation, the content
+     does not). Candidate (b), generation drift, is refuted - and
+     1.34.00's defaults equal ours exactly (global.h:
+     440.83751645933 PAL / 444.895778867913 NTSC, basenote 3,
+     temperament 0), settling T3 at source level.
+  2. Candidate (a), composer settings, is refuted on first
+     principles: the measured remap lives ONLY in the bell-1.79 and
+     15 kHz tables (classified per differing byte by unnormalized
+     AUDC distortion and AUDCTL clock mode), while the dominant
+     pure-A 64 kHz/1.79 tables match perfectly - but ANY settings
+     change moves every table. A basetuning scan (400-480 Hz)
+     reproduces no part of the remap either.
+  3. The real cause: the 1.34.00 driver binary (tracker.obx) ships
+     a STATIC $B000-$B510 table segment, and our rmt_driver_v6.obx
+     ships the same static values ($B000-$B5FF). These static
+     tables differ from the generated ones in exactly 9 bell-1.79
+     and 5 pure-A-15kHz entries - exactly the measured remap (the
+     extra 15 kHz pairs are vibrato offsets riding on note 0). Our
+     chain PLAYED THE STATIC VALUES; Buddy's 1.34.00 played the
+     GENERATED ones.
+  4. Why: in 1.34.00, init_tuning() is called inside
+     Atari_InitRMTRoutine() (Atari6502.cpp:93) - i.e. AFTER
+     Atari_LoadRMTRoutines() on every driver reset, so the
+     generated tables always overwrite the obx's static page. In
+     1.36 the regeneration moved into CAtari::Init()/Atari.init(),
+     which runs BEFORE LoadRMTRoutines() at every call site
+     (Rmt.cpp:124-128, RmtView.cpp:871-872, ScriptRunner.cpp:
+     683-684; Java RmtSession constructor and
+     setTrackerDriverVersion) - the obx load clobbers the generated
+     page with the static one. Both programs share the regression
+     identically (which is why compare_exports stays byte-identical
+     between them). Worse, paths that re-init WITHOUT a driver
+     reload (reInitSound, stereo/NTSC switches) leave the GENERATED
+     tables active - so which tables play today depends on the last
+     UI action.
+- **T2. Fix the initialization order in BOTH programs.** Restore the
+  1.34.00 semantics: the tuning tables are regenerated AFTER the
+  driver binary is loaded, at every driver load/reset path (the
+  C++ call sites above and the Java RmtSession constructor /
+  setTrackerDriverVersion), so the generated tables always win and
+  custom tuning settings actually reach the driver. Decide
+  separately whether the obx files' static $B000 segment should
+  also be rebuilt to the generated defaults (it keeps standalone
+  XEX exports and the Simple RMT Player consistent), or stay
+  untouched as shipped binaries - check-drivers.yml pins their
+  bytes.
+- **T3. Default compatibility. DONE 2026-10-11 at source level
+  (see T1):** 1.34.00's defaults equal ours for PAL and NTSC. The
+  runtime proof comes free with T4.
 - **T4. Verify against the composer's artifact.** Re-run the plan 36
   F2 comparison. Acceptance: the +-1 remap residue is ZERO - the
   streams are byte-identical modulo the documented LZSS
   normalization and the stale-state intro, nothing else.
+  Known knock-on effects to handle in the same step: the committed
+  Captain_Future_Theme.sapr reference was dumped with the static
+  tables and CHANGES once T2 lands (regenerate and recommit it);
+  plan 33's Simple RMT Player comparison then needs the player
+  bundle's tables aligned too, since the standalone player XEX
+  carries the static obx tables. Delta and the other v1-family
+  tunes are unaffected (no $B000 read).
 - **T5. Record tuning provenance per tune.** Add a "Tuning:" line to
   the fixture metadata sheets (test-resources/songs READMEs), stating
   the settings the anchoring confirmed (expected: "RMT 1.34
