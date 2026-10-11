@@ -219,6 +219,15 @@ public final class RmtSession {
 		if (atariTrackerDriver.loadRMTRoutines(version) <= 0) {
 			messages.sendWarningMessage("RMT", "Could not load the player routines:\n'"
 					+ org.atari.raster.rmt.model.RmtAtariBinaries.getTrackerDriverPath(version) + "'\n\nRMT stays silent and exports no sound until that file is back.\n");
+		} else {
+			// The driver binary ships a static copy of the frequency tables
+			// in its RMT_FRQTABLES segment, which the load just wrote over
+			// the generated ones - and the two differ in the bell-1.79 and
+			// 15 kHz tables. Regenerate so the tuning settings always win;
+			// RMT 1.34.00 did the same in Atari_InitRMTRoutine() after every
+			// load, and C++ does it inside LoadRMTRoutines()
+			// (plans/37_TUNING_COMPATIBILITY_PLAN.md, T2).
+			atari.initTuning(tuningSettings, tuningRatios);
 		}
 	}
 }

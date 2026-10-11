@@ -5,6 +5,10 @@
 
 #include "Global.h"
 
+#include "Tuning.h"
+
+extern CTuning g_Tuning;
+
 // CAtariTrackerDriver's constructor, GetAtari(), SetTrackNoteInstrumentVolume(),
 // SetTrackVolume(), InstrumentTurnOff(), and GetByteAt() are implemented in
 // AtariTrackerDriverCore.cpp (only need g_rmtinstr and CAtari::JSR(), which
@@ -22,6 +26,15 @@ int CAtariTrackerDriver::LoadRMTRoutines(const TrackerDriverVersion trackerDrive
 
     int bytesRead = CAtariIO::LoadDataAsBinaryFile(bin, size, m_atari->GetMemoryAt(0), min, max);
     m_routinesLoaded = bytesRead > 0;
+    if (m_routinesLoaded) {
+        // The driver binary ships a static copy of the frequency tables in
+        // its RMT_FRQTABLES segment, which this load just wrote over the
+        // generated ones - and the two differ in the bell-1.79 and 15 kHz
+        // tables. Regenerate so the tuning settings always win; RMT 1.34.00
+        // did the same in Atari_InitRMTRoutine() after every load
+        // (plans/37_TUNING_COMPATIBILITY_PLAN.md, T2).
+        g_Tuning.InitTuning(m_atari->GetClockFrequency(), m_atari->GetMemoryAt(RMT_FRQTABLES));
+    }
     return bytesRead;
 }
 

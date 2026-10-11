@@ -135,6 +135,18 @@ public final class Atari {
 		if (cpu != null && cpu.isNTSC() != ntsc) {
 			cpu.initialize(ntsc, cpu.isStereo()); // the POKEY pair's clock follows the video standard
 		}
+		initTuning(tuningSettings, tuningRatios);
+	}
+
+	/**
+	 * {@code CTuning::InitTuning(clockFrequency, table_memory)}: regenerates
+	 * the POKEY frequency tables into this Atari's memory at
+	 * {@link #RMT_FRQTABLES}. Also called on its own after a tracker driver
+	 * load, because the driver binary ships a static copy of the tables in
+	 * that very segment which must not win over the generated ones
+	 * (plans/37_TUNING_COMPATIBILITY_PLAN.md, T2).
+	 */
+	public void initTuning(TuningSettings tuningSettings, TuningRatios tuningRatios) {
 		Tuning tuning = new Tuning(getClockFrequency());
 		byte[] tableBuffer = new byte[0x600]; // exactly the table region InitTuning() writes
 		tuning.initTuning(tableBuffer, tuningSettings, tuningRatios);

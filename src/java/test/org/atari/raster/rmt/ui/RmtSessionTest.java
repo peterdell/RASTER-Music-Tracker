@@ -15,6 +15,26 @@ import org.atari.raster.rmt.model.SongIOType;
 
 class RmtSessionTest {
 
+	/**
+	 * The driver binary ships a static copy of the frequency tables in its
+	 * RMT_FRQTABLES segment; after a driver load the session regenerates the
+	 * tables so the tuning settings win (plan 37, T2). The bell-1.79 table's
+	 * first byte is the tell: the obx's static copy starts $D7, the generated
+	 * PAL-default value is $D6 (mirrors the C++ test in
+	 * AtariTrackerDriverTests.cpp, where the regeneration sits inside
+	 * LoadRMTRoutines itself).
+	 */
+	@Test
+	void driverLoadRegeneratesTheTuningTablesOverTheDriversStaticCopy() {
+		RmtSession session = new RmtSession();
+		assertEquals(0xD6, session.atari.getByteAt(org.atari.raster.rmt.model.Atari.RMT_FRQTABLES + 0x040));
+
+		// The same holds after a driver switch (the Options dialog's path,
+		// and the rmtscript "set driver" command).
+		session.setTrackerDriverVersion(session.options.trackerDriverVersion);
+		assertEquals(0xD6, session.atari.getByteAt(org.atari.raster.rmt.model.Atari.RMT_FRQTABLES + 0x040));
+	}
+
 	@Test
 	void startsLikeRmtExeWithAnEmptyStereoSongAndAllChannelsOn() {
 		RmtSession session = new RmtSession();

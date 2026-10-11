@@ -98,17 +98,40 @@ remain:
      reload (reInitSound, stereo/NTSC switches) leave the GENERATED
      tables active - so which tables play today depends on the last
      UI action.
-- **T2. Fix the initialization order in BOTH programs.** Restore the
-  1.34.00 semantics: the tuning tables are regenerated AFTER the
-  driver binary is loaded, at every driver load/reset path (the
-  C++ call sites above and the Java RmtSession constructor /
-  setTrackerDriverVersion), so the generated tables always win and
-  custom tuning settings actually reach the driver. Decide
+- **T2. Fix the initialization order in BOTH programs. CODE DONE
+  2026-10-11; the C++ cross-check is blocked by a disk problem (see
+  below).** The regeneration now happens where the clobbering
+  happens: C++ inside CAtariTrackerDriver::LoadRMTRoutines() (after
+  a successful load - covers Rmt.cpp, RmtView.cpp and
+  ScriptRunner.cpp without touching their call order), Java in
+  RmtSession.loadTrackerDriver()'s success path via the new
+  Atari.initTuning() (split out of Atari.init(); the model-level
+  AtariTrackerDriver deliberately has no tuning settings). Each
+  program gains a regression test asserting the generated PAL
+  bell-1.79 first byte ($D6) wins over the obx's static copy ($D7)
+  after a load: AtariTrackerDriverTests.cpp (whose fixture now
+  initializes the tuning globals, as AtariTests.cpp does, because
+  InitTuning exits on an uninitialized basetuning) and
+  RmtSessionTest.java (construction and the driver-switch path).
+  679 Java and 431 C++ tests green. Verification against the anchor
+  (T4's criterion, run ahead): the fixed rmt.jar's export now
+  matches the recorded party stream in 6948 of 7524 frames after
+  the documented AUDC_AUDF normalization - the +-1 remap is GONE;
+  what remains is exactly the stale-state intro AUDCTL (573 bytes)
+  and the 6 transition bytes at frame 576, both artifacts of the
+  composer's own dump. OPEN in T2: Rmt.exe could not be rebuilt -
+  rmt/docs/rmt_scripting.html is corrupted at the NTFS level
+  (error 1392 on read and delete, even via \\?\; it is a GENERATED,
+  gitignored file), which fails the pre-build DocGenerator step; so
+  build/compare_exports.ps1 against the fixed C++ build is pending
+  until the user runs chkdsk or removes the file/folder. Decide
   separately whether the obx files' static $B000 segment should
   also be rebuilt to the generated defaults (it keeps standalone
   XEX exports and the Simple RMT Player consistent), or stay
   untouched as shipped binaries - check-drivers.yml pins their
-  bytes.
+  bytes. Until that decision and the fixture regeneration land,
+  the committed Captain_Future_Theme.sapr still holds the OLD
+  static-table dump.
 - **T3. Default compatibility. DONE 2026-10-11 at source level
   (see T1):** 1.34.00's defaults equal ours for PAL and NTSC. The
   runtime proof comes free with T4.

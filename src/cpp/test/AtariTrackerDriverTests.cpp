@@ -4,6 +4,7 @@
 #include "AtariTrackerDriver.h"
 #include "SongTypes.h"
 #include "General.h"
+#include "TuningTypes.h"
 
 // See plans/04_BROADER_SURVEY_PLAN.md's "AtariTrackerDriver.cpp remainder"
 // candidate: LoadRMTRoutines()/Init()/Play()/SetPokey()/Silence() only need
@@ -28,12 +29,23 @@
 
 extern int g_rmtinstr[SONGTRACKS];
 extern EditMode volatile g_prove;
+extern TTuningSettings g_tuning;
+extern TTuningRatios g_tuningRatios;
 
 namespace {
 class AtariTrackerDriverTest : public ::testing::Test {
   protected:
     CAtari atari;
     CAtariTrackerDriver driver{atari};
+
+    // LoadRMTRoutines() regenerates the tuning tables after the load (the
+    // driver binary carries a static copy it must not win with - plan 37,
+    // T2), and CTuning::InitTuning() exits the process on an uninitialized
+    // basetuning, so the tuning globals are set up like AtariTests.cpp does.
+    void SetUp() override {
+        g_tuning.Initialize(false); // PAL
+        g_tuningRatios.Initialize();
+    }
 
     void TearDown() override {
         g_prove = EditMode::EDIT_MODE;
@@ -56,6 +68,15 @@ TEST_F(AtariTrackerDriverTest, LoadRMTRoutinesLoadsTheDefaultDriverBinaryIntoMem
 TEST_F(AtariTrackerDriverTest, LoadRMTRoutinesReturnsZeroForAMissingDriverVersion) {
     // TrackerDriverVersion::NONE has no matching rmt_driver_v0.obx file.
     EXPECT_EQ(driver.LoadRMTRoutines(TrackerDriverVersion::NONE), 0);
+}
+
+TEST_F(AtariTrackerDriverTest, LoadRMTRoutinesRegeneratesTheTuningTablesOverTheDriversStaticCopy) {
+    // rmt_driver_v6.obx ships a static $B000-$B5FF table segment whose
+    // bell-1.79 table starts $D7 - the generated PAL-default value is $D6
+    // (plan 37, T1: the +-1 remap against the composers' 1.34 exports).
+    // The regeneration after the load must win, as it did in RMT 1.34.00.
+    EXPECT_GT(driver.LoadRMTRoutines(TrackerDriverVersion::PATCH16), 0);
+    EXPECT_EQ(driver.GetByteAt(RMT_FRQTABLES + 0x040), 0xD6);
 }
 
 // --- AreRoutinesLoaded ---
