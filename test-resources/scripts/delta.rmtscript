@@ -6,7 +6,7 @@
 # enters the files; 01/2003 is Delta's real date (Raster's own SAP header).
 set output out/delta
 set overwrite yes
-open ../ui-reference/song1-mono/Delta.rmt
+open ../songs/rmt128/delta/Delta.rmt
 
 # saves
 save delta.rmt

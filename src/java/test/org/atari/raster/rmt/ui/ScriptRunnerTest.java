@@ -39,7 +39,7 @@ class ScriptRunnerTest {
 		out = new ByteArrayOutputStream();
 		err = new ByteArrayOutputStream();
 		delta = dir.resolve("Delta.rmt");
-		Files.copy(ReferenceScreenshot.ROOT.resolve("song1-mono").resolve("Delta.rmt"), delta);
+		Files.copy(TestSongs.DELTA, delta);
 	}
 
 	private int run(String... lines) throws IOException {

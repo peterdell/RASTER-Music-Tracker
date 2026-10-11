@@ -324,7 +324,7 @@ class RmtCommandsTest {
 	@Test
 	void runScriptRunsTheChosenScriptOnTheLiveSessionAndReportsOnce(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) throws java.io.IOException {
 		java.nio.file.Path script = dir.resolve("open.rmtscript");
-		java.nio.file.Files.write(script, List.of("open \"" + ReferenceScreenshot.ROOT.resolve("song1-mono").resolve("Delta.rmt").toAbsolutePath().toString().replace("\\", "\\\\") + "\"", "echo hello"));
+		java.nio.file.Files.write(script, List.of("open \"" + TestSongs.DELTA.toAbsolutePath().toString().replace("\\", "\\\\") + "\"", "echo hello"));
 		List<String> boxes = new ArrayList<>();
 		session.messages.setHandler(new org.atari.raster.rmt.model.Messages.Handler() {
 			@Override

@@ -29,7 +29,7 @@ class RmtSessionTest {
 	@Test
 	void openingAMonoRmtSwitchesToFourTracks() throws IOException {
 		RmtSession session = new RmtSession();
-		Path path = ReferenceScreenshot.ROOT.resolve("song1-mono").resolve("Delta.rmt");
+		Path path = TestSongs.DELTA;
 
 		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(path, false));
 
@@ -42,14 +42,14 @@ class RmtSessionTest {
 	@Test
 	void openingAStereoRmtKeepsEightTracks() throws IOException {
 		RmtSession session = new RmtSession();
-		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(ReferenceScreenshot.ROOT.resolve("song2-stereo").resolve("Why_Do_You_Dance_With_Me.rmt"), false));
+		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(TestSongs.WHY_DO_YOU_DANCE_WITH_ME, false));
 		assertEquals(8, session.tracks4_8);
 	}
 
 	@Test
 	void aFileThatIsNotAnRmtModuleLeavesAClearedSong(@TempDir Path dir) throws IOException {
 		RmtSession session = new RmtSession();
-		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(ReferenceScreenshot.ROOT.resolve("song1-mono").resolve("Delta.rmt"), false));
+		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(TestSongs.DELTA, false));
 		Path junk = dir.resolve("junk.rmt");
 		Files.write(junk, new byte[] { 1, 2, 3, 4 });
 

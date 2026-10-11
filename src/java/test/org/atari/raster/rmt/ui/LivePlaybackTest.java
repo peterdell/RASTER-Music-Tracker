@@ -30,7 +30,7 @@ import net.sf.asap.ASAPFormatException;
  */
 class LivePlaybackTest {
 
-	private static final Path DELTA = ReferenceScreenshot.ROOT.resolve("song1-mono").resolve("Delta.rmt");
+	private static final Path DELTA = TestSongs.DELTA;
 
 	private static final int AUDCTL = 8;
 

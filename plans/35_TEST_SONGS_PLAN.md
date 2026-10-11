@@ -1,6 +1,9 @@
 # Plan 35: The test songs and their reference exports in test-resources/songs
 
-Status: OPEN 2026-10-11.
+Status: DONE 2026-10-11. T1-T4 executed the same day: both songs and their
+READMEs moved, the Java tests go through the new TestSongs helper, the
+three scripts and the ui-reference README follow; 676 Java tests green,
+all four comparison scripts byte-identical in both programs.
 
 ## Reasoning
 
