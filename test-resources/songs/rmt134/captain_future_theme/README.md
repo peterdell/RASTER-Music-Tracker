@@ -29,4 +29,7 @@ reference once the LZSS export's audibility-neutral normalization
 (CCompressLzss::Optimise_AUDC/AUDF in src/cpp/lzss_sap.cpp, the
 AUDC_AUDF level) is applied; what remains is a +-1 AUDF tuning-table
 remap (RMT 1.34's generated tables versus 1.36's fixed tables) and
-one AUDCTL $20 bit in the 573 intro frames - see plan 36, F2.
+one AUDCTL $20 bit in the 573 intro frames - stale state from the
+composer's own export session, baked into the dump by RMT 1.34's
+LZSS export; our clean-init rendering is the correct one. See plan
+36, F2.

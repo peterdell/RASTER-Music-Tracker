@@ -63,14 +63,22 @@ anchoring F1-F3 ran. Results:
     is the expected signature. F2 is therefore the same provenance
     gap as F3: the stream the composer shipped was rendered with
     tables the .rmt does not carry.
-  - **One AUDCTL bit in the intro:** chip 2 AUDCTL is $27 in the XEX
-    stream but $07 in ours for exactly frames 0-572. The extra $20
-    (ch3 1.79 MHz clock) sits on a MUTED channel, but $07 carries the
-    high-pass-filter 1+3 bit, so ch3's clock feeds ch1's filter -
-    potentially audible, and NOT optimizer work (the optimizer only
-    clears bits, and its own guard forbids touching $20 while the
-    filter bit is set). A genuine 1.34-vs-1.36 driver difference to
-    chase separately.
+  - **One AUDCTL bit in the intro - RESOLVED (2026-10-11): stale
+    export-session state in the party dump, not a driver
+    difference.** Chip 2 AUDCTL is $27 in the XEX stream but $07 in
+    ours for exactly frames 0-572. The two AUDCTL timelines are
+    otherwise transition-for-transition identical (all 1454
+    transitions on this chip, all 1125 on the other) - only the
+    STARTING value differs, and the difference dies at frame 573,
+    the first in-tune Command 7 on the stale channel. The driver
+    keeps each channel's CMD7-set AUDCTL until overwritten
+    (trackn_audctl in asm/Patch-16/rmtplayr.a65, OR-combined per
+    chip), and the tune ENDS at $21 - whose $20 bit, OR-ed with the
+    fresh $07, is exactly the observed $27. So RMT 1.34's LZSS
+    export dumped without reinitializing the per-channel AUDCTL
+    state, and the composer had played the tune (to its end) before
+    exporting; the XEX carries his session's leftover for one
+    section. Our clean-init rendering is the correct one.
   - 6 outlier bytes (chip 2 AUDF2/AUDF4, 3 frames each at the
     frame-576 section change) - transition-frame detail, negligible.
   The earlier "audible channels differ in 1862 of 7524 frames" was,
@@ -202,9 +210,9 @@ sheet ("Tracker Driver:" line) stays the manual stand-in.
    `AUDC_AUDF` level, and it accounts for every AUDC and
    silent-channel diff. Remaining, documented in F2: a +-1 AUDF
    tuning-table remap (1.34's generated tables vs 1.36's fixed
-   tables) and one AUDCTL $20 bit in the 573 intro frames (a driver
-   difference feeding ch1's high-pass filter clock - the one residual
-   worth its own follow-up).
+   tables) and one AUDCTL $20 bit in the 573 intro frames - resolved
+   the same day as stale export-session state baked into the party
+   dump (see F2), not a driver difference.
 3. F3 follow-up: a byte-level verdict for FASTPLAY (instrument speed
    > 1) tunes needs tick-accurate recording - e.g. sub-frame stepping
    in AltirraBridge (an upstream follow-up in the spirit of PR #96),
