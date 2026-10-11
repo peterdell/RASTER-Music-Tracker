@@ -278,21 +278,22 @@ class TuningTest {
 		}
 
 		@Test
-		void writesTheSawtoothTablesTheDriverBinaryShipsAtOffsetFiveHundred() {
-			// These two tables are hand-made, so the generator copies them
-			// instead of computing them (see Tuning.SAWTOOTH_TABLES) - which
-			// only works as long as the copy still equals what
-			// rmt_driver_v6.obx holds at $B500. That closes the chain
-			// rmtdata.a65 -> obx -> these constants, with check-drivers.yml
-			// pinning the first link. Before plan 37's T6 this range stayed
-			// zero, and the 0x600-byte copy into the Atari's memory wiped the
-			// driver's own copy after every load.
+		void generatesExactlyThePageTheDriverBinaryShips() {
+			// asm/Patch-16/rmtdata.a65's page is kept equal to what this
+			// generator produces for the PAL defaults, so that a module
+			// assembled with the standalone player sounds as it did to the
+			// composer in RMT (plan 37, T7). Comparing against the shipped
+			// binary, which check-drivers.yml pins to the assembler source,
+			// closes the chain rmtdata.a65 -> obx -> generator. The sawtooth
+			// range ($500-$57F) is the one part no formula produces: it is
+			// held as constants and copied (T6), and before T6 the generator
+			// left it zero.
 			Atari atari = new Atari();
 			assertTrue(new AtariTrackerDriver(atari).loadRMTRoutines(TrackerDriverVersion.PATCH16) > 0);
-			for (int i = 0; i < 0x80; i++) {
-				int offset = 0x500 + i;
-				assertEquals(atari.getByteAt(Atari.RMT_FRQTABLES + offset), memory[offset] & 0xFF,
-						() -> String.format("offset $%03X", offset));
+			for (int offset = 0x000; offset < 0x600; offset++) {
+				int at = offset;
+				assertEquals(atari.getByteAt(Atari.RMT_FRQTABLES + at), memory[at] & 0xFF,
+						() -> String.format("offset $%03X", at));
 			}
 		}
 

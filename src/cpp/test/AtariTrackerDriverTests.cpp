@@ -74,23 +74,28 @@ TEST_F(AtariTrackerDriverTest, LoadRMTRoutinesReturnsZeroForAMissingDriverVersio
 }
 
 TEST_F(AtariTrackerDriverTest, LoadRMTRoutinesRegeneratesTheTuningTablesOverTheDriversStaticCopy) {
-    // rmt_driver_v6.obx ships a static $B000-$B5FF table segment whose
-    // bell-1.79 table starts $D7 - the generated PAL-default value is $D6
-    // (plan 37, T1: the +-1 remap against the composers' 1.34 exports).
-    // The regeneration after the load must win, as it did in RMT 1.34.00.
+    // The driver binary ships its own copy of the table page, and the load
+    // writes it into the Atari's memory - so the regeneration after the load
+    // must win, as it did in RMT 1.34.00 (plan 37, T1/T2). The two copies are
+    // deliberately equal at the default settings (T7), which makes a changed
+    // setting the only tell: doubling the base tuning halves every frequency,
+    // taking the bell-1.79 table's first byte from the shipped $D6 to $69.
+    g_tuning.basetuning *= 2;
+
     EXPECT_GT(driver.LoadRMTRoutines(TrackerDriverVersion::PATCH16), 0);
-    EXPECT_EQ(driver.GetByteAt(RMT_FRQTABLES + 0x040), 0xD6);
+
+    EXPECT_EQ(driver.GetByteAt(RMT_FRQTABLES + 0x040), 0x69);
 }
 
-TEST_F(AtariTrackerDriverTest, TheRegeneratedSawtoothTablesStillMatchTheDriverBinarysOwnCopy) {
-    // The two sawtooth tables at $B500/$B540 are hand-made, so InitTuning()
-    // copies them instead of computing them (TuningTables.cpp's
-    // sawtooth_tables) - which only holds as long as the copy equals what
-    // rmt_driver_v6.obx ships there. Comparing against the binary itself
-    // closes the chain rmtdata.a65 -> obx -> the constants, with
-    // check-drivers.yml pinning the first link. Before plan 37's T6 the
-    // generator skipped this range entirely, so its content depended on the
-    // load order (plans/37_TUNING_COMPATIBILITY_PLAN.md, T6).
+TEST_F(AtariTrackerDriverTest, TheRegeneratedPageMatchesTheDriverBinarysOwnCopyAtTheDefaultSettings) {
+    // asm/Patch-16/rmtdata.a65's page is kept equal to what the generator
+    // produces for the PAL defaults, so that a module assembled with the
+    // standalone player sounds as it did to the composer in RMT (plan 37,
+    // T7). This compares against the shipped binary itself, and
+    // check-drivers.yml pins that binary to the assembler source, which
+    // closes the chain rmtdata.a65 -> obx -> generator. The sawtooth range
+    // ($B500-$B57F) is the one part no formula produces: the generator holds
+    // those bytes as constants and copies them (T6).
     byte* bin;
     WORD size;
     ASSERT_TRUE(CRmtAtariBinaries::GetTrackerDriverBinary(TrackerDriverVersion::PATCH16, bin, size));
@@ -100,7 +105,7 @@ TEST_F(AtariTrackerDriverTest, TheRegeneratedSawtoothTablesStillMatchTheDriverBi
 
     EXPECT_GT(driver.LoadRMTRoutines(TrackerDriverVersion::PATCH16), 0);
 
-    for (int offset = 0x500; offset < 0x580; offset++) {
+    for (int offset = 0x000; offset < 0x600; offset++) {
         EXPECT_EQ(driver.GetByteAt(RMT_FRQTABLES + offset), shipped[RMT_FRQTABLES + offset]) << "offset " << offset;
     }
 }

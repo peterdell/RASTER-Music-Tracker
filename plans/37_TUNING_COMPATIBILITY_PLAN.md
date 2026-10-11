@@ -1,13 +1,20 @@
 # Plan 37: Tuning compatibility with RMT 1.34 - existing tunes must sound correct in 1.36
 
-Status: IN PROGRESS 2026-10-12. T1, T2, T3, T4 and T6 are DONE - the
+Status: IN PROGRESS 2026-10-12. Everything but T5 is DONE - the
 cause was neither of the two proposed candidates but a third: a 1.36
-initialization-order regression (see the T1 result below). Open are
-T5 and T7. Reviewing T2 raised the two later steps: the generated
+initialization-order regression (see the T1 result below). Reviewing
+T2 raised the two later steps, both now carried out: the generated
 page had a 128-byte gap that T2's reordering turned into a regression
-in the Java port (T6, fixed), and the driver's static page is to be
-aligned with the generated defaults after all - the decision T2 left
-open is now settled the other way (T7, which T6 unblocks).
+in the Java port (T6), and the driver's own table page is aligned
+with the generated defaults after all, so a module assembled with the
+standalone player sounds as it did in RMT - the decision T2 left open
+was settled the other way (T7). T5, the tuning provenance line per
+fixture, is the only step left.
+
+Because the inventory below describes the state before T7, the
+numbers in it are now history: the shipped driver's page and the
+generated PAL defaults are equal in all 1536 bytes, asserted from
+both programs.
 
 ## Goal
 
@@ -60,11 +67,14 @@ remained at proposal time - T1 below refuted both:
   algorithm difference than like a shifted base frequency (which
   would push all values the same way).
 
-## The static page against the generated one (measured 2026-10-12)
+## The static page against the generated one (measured 2026-10-12, before T7)
 
 Over the whole 1536-byte region - rmt_driver_v6.obx's $B000-$B5FF
-segment against our generated PAL defaults - 366 bytes differ, in
-three groups that need different treatment:
+segment against our generated PAL defaults - 366 bytes differed, in
+three groups that needed different treatment. T6 closed the second
+group and T7 the other two, so all three are now equal; the
+inventory is kept because it is what those two steps were sized
+against:
 
 | Group                              | Bytes | Static            | Generated   | What it is |
 | ---------------------------------- | ----- | ----------------- | ----------- | ---------- |
@@ -226,7 +236,8 @@ inventory reproduces both counts exactly.
   366 - the 128 sawtooth bytes have left the inventory above, so
   what remains for T7 is the distortion-4 placeholder plus the 65
   tuning entries.
-- **T7. Align the driver's static page with the generated defaults.**
+- **T7. Align the driver's static page with the generated defaults.
+  DONE 2026-10-12.**
   A composer hears RMT's generated tables, but a coder who takes the
   .rmt and assembles it with the Patch-16 player gets rmtdata.a65's
   static page: it is included unconditionally (rmtplayr.a65:2294)
@@ -259,7 +270,26 @@ inventory reproduces both counts exactly.
   Simple RMT Player has its own region switch. Plan 33's Simple RMT
   Player comparison and the Captain Future fixture README then lose
   their "known +-1" caveat, and doc/rmt_tracker_drivers.md's
-  static-versus-generated rule needs rewording.
+  static-versus-generated rule needs rewording. Done as described.
+  The 39 rewritten dta lines were produced from the generated page
+  mechanically, preserving each table's labels, comments, row shape
+  and indentation, so the diff is hex digits only and the sawtooth
+  block is provably untouched. Results: the reassembled driver's
+  $B000-$B5FF segment equals the generated PAL defaults in all 1536
+  bytes, and the only bytes that changed in the whole 4465-byte
+  binary are those 238 - the player code is bit-for-bit the same.
+  build/check_drivers.sh passes, so asm and obx still agree.
+  asm/Patch-16/out/rmtplayer.xex, rebuilt by build.cmd, carries the
+  generated page in all 1536 bytes too, which is the actual goal:
+  the standalone player now plays what the composer heard. The two
+  regeneration tests were re-anchored as foreseen - doubling the base
+  tuning halves every frequency and takes $B040 from the shipped $D6
+  to $69 - and the page pins widened from the sawtooth range to all
+  1536 bytes. 680 Java and 432 C++ tests green, compare_exports
+  reports every exported file of all four scripts identical between
+  the programs, and re-exporting Captain_Future_Theme.sapr after the
+  change reproduces the committed fixture byte for byte, which is the
+  proof that RMT's own output never depended on these bytes.
 
 ## Opinion
 

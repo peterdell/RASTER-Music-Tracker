@@ -16,23 +16,27 @@ import org.atari.raster.rmt.model.SongIOType;
 class RmtSessionTest {
 
 	/**
-	 * The driver binary ships a static copy of the frequency tables in its
-	 * RMT_FRQTABLES segment; after a driver load the session regenerates the
-	 * tables so the tuning settings win (plan 37, T2). The bell-1.79 table's
-	 * first byte is the tell: the obx's static copy starts $D7, the generated
-	 * PAL-default value is $D6 (mirrors the C++ test in
+	 * The driver binary ships its own copy of the frequency tables in its
+	 * RMT_FRQTABLES segment, and loading it writes that copy into the Atari's
+	 * memory; the session regenerates the tables afterwards so the tuning
+	 * settings win (plan 37, T2). Both copies are deliberately equal at the
+	 * default settings (T7), so a changed setting is the only tell: doubling
+	 * the base tuning halves every frequency, taking the bell-1.79 table's
+	 * first byte from the shipped $D6 to $69. Mirrors the C++ test in
 	 * AtariTrackerDriverTests.cpp, where the regeneration sits inside
-	 * LoadRMTRoutines itself).
+	 * LoadRMTRoutines itself.
 	 */
 	@Test
 	void driverLoadRegeneratesTheTuningTablesOverTheDriversStaticCopy() {
 		RmtSession session = new RmtSession();
 		assertEquals(0xD6, session.atari.getByteAt(org.atari.raster.rmt.model.Atari.RMT_FRQTABLES + 0x040));
 
-		// The same holds after a driver switch (the Options dialog's path,
-		// and the rmtscript "set driver" command).
+		session.tuningSettings.basetuning *= 2;
+		// The driver switch is the Options dialog's path and the rmtscript
+		// "set driver" command; it loads the binary again, so the
+		// regeneration has to run again after it.
 		session.setTrackerDriverVersion(session.options.trackerDriverVersion);
-		assertEquals(0xD6, session.atari.getByteAt(org.atari.raster.rmt.model.Atari.RMT_FRQTABLES + 0x040));
+		assertEquals(0x69, session.atari.getByteAt(org.atari.raster.rmt.model.Atari.RMT_FRQTABLES + 0x040));
 	}
 
 	@Test

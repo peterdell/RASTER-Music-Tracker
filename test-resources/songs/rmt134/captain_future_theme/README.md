@@ -20,11 +20,13 @@ Regenerate it with an rmtscript: open the .rmt, then
 set driver patch16, then
 export sapr Captain_Future_Theme.sapr date="13/08/2024".
 Regenerated 2026-10-11 with the GENERATED tuning tables (plan 37:
-the tables now win over the driver obx's static copy, as in RMT
+the tables now win over the driver obx's own copy, as in RMT
 1.34) - 3727 AUDF bytes moved by one step against the first dump.
-Until the obx's static page is aligned, the Simple RMT Player
-bundle still plays the static tables, so the plan 33 comparison
-shows exactly those one-step differences.
+The driver's baked-in page was then aligned with the generated
+defaults (plan 37, T7), so the Simple RMT Player bundle plays the
+same tables and the plan 33 comparison needs no allowance for them;
+re-exporting this file after that change reproduces it byte for
+byte, since RMT regenerates the page either way.
 
 Captain_Future_Theme-original-SV2k24SE.xex is the composer's own
 release build ("Buddy - Captain Future (for SV24se) (Stereo-Pokey)

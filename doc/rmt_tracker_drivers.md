@@ -101,27 +101,40 @@ in PAGE_EXTRA_0 are selected separately, by the channel's clock and
 the sawtooth feature.
 
 The content of the block is assembled into the driver binary
-byte-for-byte from the data statements in `asm/Patch-16/rmtdata.a65`.
-The numbers predate VinsCool's public source code repository (July
-2022): they are a frozen snapshot of an older version of his tuning
-calculations, and no current tuning setting reproduces them exactly.
-The two "Croissant Sawtooth" tables are hand-crafted and have no
-generator at all. The Patch 16 build shipped with RMT 1.34 still
-used a five-page layout without the Distortion 4 page, so its pages
-from the pure page upward sit $100 lower - relevant when comparing
-driver builds extracted from older executables.
+byte-for-byte from the data statements in `asm/Patch-16/rmtdata.a65`,
+and those statements hold exactly what RMT's own tuning system
+generates for its default settings: PAL, base tuning 440.83751645933
+Hz, base note 3, equal temperament. Tests on both the C++ and the
+Java side assert that equality, so the two cannot drift apart
+unnoticed. The two "Croissant Sawtooth" tables are the exception:
+they are hand-crafted, no formula produces them, and RMT carries the
+same bytes as constants so that it writes the page complete. The
+Patch 16 build shipped with RMT 1.34 still used a five-page layout
+without the Distortion 4 page, so its pages from the pure page
+upward sit $100 lower - relevant when comparing driver builds
+extracted from older executables.
 
-The static copy exists so the driver is self-contained wherever no
-tracker is present to compute anything: in XEX and SAP exports and
-in standalone players, the baked-in tables are what plays. Inside
-the tracker, the tuning system regenerates the five distortion pages
-and the two 15 kHz tables from the tuning settings after every
-driver load, so those settings always win; only the sawtooth tables
-stay as authored. RMT 1.34 behaved this way, and RMT 1.36 does
-again - intermediate development builds reloaded the driver after
-generating the tables, which silently put the static snapshot back
-in control, audible as AUDF deviations of one step in the Poly5
+The baked-in copy exists so the driver is self-contained wherever no
+tracker is present to compute anything: in the Simple RMT Player,
+and in any project that assembles this driver with its own module,
+these tables are what plays. The tracker's own XEX and SAP exports
+carry no frequency tables at all - they are compressed register
+streams next to VUPlayer, recorded from RMT's emulated POKEY. Inside
+the tracker, the tuning system regenerates the whole page from the
+current tuning settings after every driver load, so those settings
+always win. RMT 1.34 behaved this way, and RMT 1.36 does again -
+intermediate development builds reloaded the driver after generating
+the tables, which silently put the baked-in snapshot back in
+control, audible as AUDF deviations of one step in the Poly5
 1.79 MHz and the 15 kHz tables.
+
+Before RMT 1.36 these numbers were a frozen snapshot of an older
+version of the tuning calculations, and the Distortion 4 page was an
+all-zero placeholder, so a tune using that distortion fell silent
+once assembled into a standalone build. Both are fixed by matching
+the generated defaults. A composer who changes any tuning setting
+still has to carry their own tables into such a build, since the
+shipped driver can only hold one configuration.
 
 ## RMT 1.28 Patch Prince of Persia by VinsCool
 
