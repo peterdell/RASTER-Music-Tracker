@@ -98,9 +98,8 @@ remain:
      reload (reInitSound, stereo/NTSC switches) leave the GENERATED
      tables active - so which tables play today depends on the last
      UI action.
-- **T2. Fix the initialization order in BOTH programs. CODE DONE
-  2026-10-11; the C++ cross-check is blocked by a disk problem (see
-  below).** The regeneration now happens where the clobbering
+- **T2. Fix the initialization order in BOTH programs. DONE
+  2026-10-11.** The regeneration now happens where the clobbering
   happens: C++ inside CAtariTrackerDriver::LoadRMTRoutines() (after
   a successful load - covers Rmt.cpp, RmtView.cpp and
   ScriptRunner.cpp without touching their call order), Java in
@@ -119,12 +118,13 @@ remain:
   the documented AUDC_AUDF normalization - the +-1 remap is GONE;
   what remains is exactly the stale-state intro AUDCTL (573 bytes)
   and the 6 transition bytes at frame 576, both artifacts of the
-  composer's own dump. OPEN in T2: Rmt.exe could not be rebuilt -
-  rmt/docs/rmt_scripting.html is corrupted at the NTFS level
-  (error 1392 on read and delete, even via \\?\; it is a GENERATED,
-  gitignored file), which fails the pre-build DocGenerator step; so
-  build/compare_exports.ps1 against the fixed C++ build is pending
-  until the user runs chkdsk or removes the file/folder. Decide
+  composer's own dump. The C++ cross-check was briefly blocked by
+  an NTFS-corrupted generated doc file (rmt/docs/rmt_scripting.html,
+  error 1392 even on delete); the user repaired it the same day,
+  Rmt.exe rebuilt cleanly, 431 C++ tests green on the fresh build,
+  and build/compare_exports.ps1 reports every exported file of all
+  four scripts byte-identical between the fixed Rmt.exe and
+  rmt.jar. Decide
   separately whether the obx files' static $B000 segment should
   also be rebuilt to the generated defaults (it keeps standalone
   XEX exports and the Simple RMT Player consistent), or stay
