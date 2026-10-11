@@ -18,3 +18,9 @@ which build/record_sapr_bridge.py compares the Simple RMT Player's
 replay against (plans/33_ALTIRRA_REPLAY_VERIFICATION_PLAN.md).
 Regenerate it with an rmtscript: open the .rmt, then
 export sapr Captain_Future_Theme.sapr date="13/08/2024".
+
+Captain_Future_Theme-original-SV2k24SE.xex is the composer's own
+release build ("Buddy - Captain Future (for SV24se) (Stereo-Pokey)
+.xex", RMT 1.34 export, Silly Venture 2k24 SE, 15-18 August 2024) -
+the plan 36 anchor. Its register stream
+differs from the current chain in envelope detail; see the plan.
