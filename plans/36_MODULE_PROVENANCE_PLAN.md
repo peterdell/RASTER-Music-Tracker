@@ -24,6 +24,15 @@ anchoring F1-F3 ran. Results:
   The 2024 export player generation and our Patch16 chain disagree
   beyond register hygiene - which side matches the composer's ear is
   by definition the XEX. Needs a follow-up diagnosis.
+  **Working hypothesis (user, 2026-10-11):** the XEX is an LZSS
+  stream player, and the observed mismatches are the optimizations
+  RMT 1.34's LZSS export performs to improve compression: it
+  normalizes the register output where the change makes no audible
+  difference (zeroed silent channels, canonicalized AUDCTL bits and
+  the like). Under that hypothesis the divergence sits in the
+  DUMPER's normalization, not in driver behavior - the diagnosis is
+  to confirm the player type and account for each normalization
+  rule.
 - **F3 Why Do You Dance With Me - NOT YET byte-anchored (a method
   limit, see the correction below).** The party XEX embeds the
   byte-identical module, but plays it through a 1.32-era player with
@@ -143,10 +152,15 @@ sheet ("Tracker Driver:" line) stays the manual stand-in.
 
 1. DONE 2026-10-11: the original XEXs are committed into the fixture
    folders (user-approved; for Delta both the 1.0b and 1.28 builds).
-2. F2 follow-up: diagnose why the RMT 1.34 export player's envelope
+2. F2 follow-up: diagnose why the RMT 1.34 export player's register
    detail differs from the current chain (1862 of 7524 audible-state
-   frames).
+   frames). Working hypothesis: the LZSS export's audibility-neutral
+   normalization (see F2) - confirm the XEX is an LZSS stream player
+   and map the normalization rules.
 3. F3 follow-up: a byte-level verdict for FASTPLAY (instrument speed
    > 1) tunes needs tick-accurate recording - e.g. sub-frame stepping
    in AltirraBridge (an upstream follow-up in the spirit of PR #96),
    or sampling the POKEY shadow per driver call instead of per frame.
+   Scope note (user, 2026-10-11): the majority of RMT 1.34 modules
+   run at full framerate, so the frame-level method covers them; the
+   tooling gap only affects the instrument-speed > 1 minority.
