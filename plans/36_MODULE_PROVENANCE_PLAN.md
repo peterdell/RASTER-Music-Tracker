@@ -14,7 +14,9 @@ anchoring F1-F3 ran. Results:
   additionally plays AUDF2 an octave apart mid-tune: the frequency
   table reformat Raster logged on 3.2.2003. The tune body of our
   1.28 rendering is confirmed against the composer's own export.
-- **F2 Captain Future Theme - NOT byte-anchored.** Buddy's Silly Venture
+- **F2 Captain Future Theme - ANCHORED modulo documented LZSS
+  normalization and a +-1 tuning-table remap (see the diagnosis
+  below).** Buddy's Silly Venture
   2k24 SE XEX (RMT 1.34 export, Aug 2024) has the identical pass length
   (7524 frames, loop confirmed at exactly +7524) and an identical
   start, but then: silent channels keep AUDF/distortion latched in
@@ -23,7 +25,8 @@ anchoring F1-F3 ran. Results:
   (volume > 0) differ in 1862 of 7524 frames (envelope detail).
   The 2024 export player generation and our Patch16 chain disagree
   beyond register hygiene - which side matches the composer's ear is
-  by definition the XEX. Needs a follow-up diagnosis.
+  by definition the XEX. (This first reading is superseded by the
+  diagnosis below.)
   **Working hypothesis (user, 2026-10-11):** the XEX is an LZSS
   stream player, and the observed mismatches are the optimizations
   RMT 1.34's LZSS export performs to improve compression: it
@@ -33,6 +36,46 @@ anchoring F1-F3 ran. Results:
   DUMPER's normalization, not in driver behavior - the diagnosis is
   to confirm the player type and account for each normalization
   rule.
+  **Diagnosis (2026-10-11) - the hypothesis is CONFIRMED, with two
+  residuals.** The XEX's title screen identifies the player outright:
+  "VUPlayer-LZSS by VinsCool", "Welcome to VUPlayer 2.0", "7524
+  frames total" - Vin Samuel (VinsCool)'s LZSS stream player, holding
+  a 34,482-byte compressed register stream (25.5% of the raw 135,432
+  bytes), no RMT module inside. The normalization rules are not even
+  lost knowledge: they live in THIS repository's C++ source, in
+  `CCompressLzss::Optimise_AUDC/AUDCTL/AUDF` (src/cpp/lzss_sap.cpp,
+  inherited from the 1.34 line). Applying exactly the `AUDC_AUDF`
+  optimization level (AUDC: zero silent channels' AUDC, clear the
+  noise-type bit $40 when pure-tone $20 is set; AUDF: zero silent
+  channels' AUDF unless AUDCTL still couples the channel; AUDCTL
+  untouched) to our RMT 1.36 SAP-R reference turns the comparison
+  from 0 identical frames (27,539 differing bytes) into 4,329 of
+  7,524 identical frames - every AUDC diff and every silent-channel
+  diff is accounted for. Applying `Optimise_AUDCTL` as well makes the
+  match WORSE, so the party export did not use it - consistent with
+  the AUDCTL residual below. The residuals (4,282 bytes):
+  - **Tuning tables, the plan's own theme:** 3,703 AUDF bytes differ
+    by exactly +-1, and 35 of 36 (register, value) pairs map to ONE
+    recorded value ($9f->$a0, $ee->$ed, mixed directions) - a
+    consistent value remap, i.e. different frequency tables, not
+    timing. RMT 1.34 generates its tuning tables procedurally (the
+    tuning dialog); 1.36 uses Raster's fixed tables - +-1 rounding
+    is the expected signature. F2 is therefore the same provenance
+    gap as F3: the stream the composer shipped was rendered with
+    tables the .rmt does not carry.
+  - **One AUDCTL bit in the intro:** chip 2 AUDCTL is $27 in the XEX
+    stream but $07 in ours for exactly frames 0-572. The extra $20
+    (ch3 1.79 MHz clock) sits on a MUTED channel, but $07 carries the
+    high-pass-filter 1+3 bit, so ch3's clock feeds ch1's filter -
+    potentially audible, and NOT optimizer work (the optimizer only
+    clears bits, and its own guard forbids touching $20 while the
+    filter bit is set). A genuine 1.34-vs-1.36 driver difference to
+    chase separately.
+  - 6 outlier bytes (chip 2 AUDF2/AUDF4, 3 frames each at the
+    frame-576 section change) - transition-frame detail, negligible.
+  The earlier "audible channels differ in 1862 of 7524 frames" was,
+  as suspected, dominated by the inaudible normalization ($40
+  noise-type bit on pure tones) plus the +-1 tuning remap.
 - **F3 Why Do You Dance With Me - NOT YET byte-anchored (a method
   limit, see the correction below).** The party XEX embeds the
   byte-identical module, but plays it through a 1.32-era player with
@@ -152,11 +195,16 @@ sheet ("Tracker Driver:" line) stays the manual stand-in.
 
 1. DONE 2026-10-11: the original XEXs are committed into the fixture
    folders (user-approved; for Delta both the 1.0b and 1.28 builds).
-2. F2 follow-up: diagnose why the RMT 1.34 export player's register
-   detail differs from the current chain (1862 of 7524 audible-state
-   frames). Working hypothesis: the LZSS export's audibility-neutral
-   normalization (see F2) - confirm the XEX is an LZSS stream player
-   and map the normalization rules.
+2. DONE 2026-10-11: the F2 diagnosis confirmed the working
+   hypothesis. The XEX is VinsCool's VUPlayer 2.0 LZSS stream player;
+   the normalization is this repository's own
+   `CCompressLzss::Optimise_AUDC/AUDF` (lzss_sap.cpp) at the
+   `AUDC_AUDF` level, and it accounts for every AUDC and
+   silent-channel diff. Remaining, documented in F2: a +-1 AUDF
+   tuning-table remap (1.34's generated tables vs 1.36's fixed
+   tables) and one AUDCTL $20 bit in the 573 intro frames (a driver
+   difference feeding ch1's high-pass filter clock - the one residual
+   worth its own follow-up).
 3. F3 follow-up: a byte-level verdict for FASTPLAY (instrument speed
    > 1) tunes needs tick-accurate recording - e.g. sub-frame stepping
    in AltirraBridge (an upstream follow-up in the spirit of PR #96),
