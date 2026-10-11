@@ -24,19 +24,46 @@ anchoring F1-F3 ran. Results:
   The 2024 export player generation and our Patch16 chain disagree
   beyond register hygiene - which side matches the composer's ear is
   by definition the XEX. Needs a follow-up diagnosis.
-- **F3 Why Do You Dance With Me - UNANCHORABLE at byte level.** The
-  party XEX embeds the byte-identical module, but plays it through a
-  1.32-era player with its own frequency-table segments at $3e00 and
-  $3f00 - custom tuning. The streams differ pervasively (not even
-  the AUDC volume/distortion stream aligns on a 25-frame probe),
-  while tune and tempo match (20759 vs 20702 AUDC events over the
-  same ~24300 frames). This tune demonstrates BOTH missing
-  dimensions at once, driver generation and tuning. The "Patch16?"
-  driver question stays open - byte comparison cannot answer it.
+- **F3 Why Do You Dance With Me - NOT YET byte-anchored (a method
+  limit, see the correction below).** The party XEX embeds the
+  byte-identical module, but plays it through a 1.32-era player with
+  retuned frequency tables - custom tuning. (The $3e00/$3f00
+  segments first suspected as tables are display code and the title
+  text; the real tables sit inside the player segment.) This tune
+  demonstrates BOTH missing dimensions at once, driver generation
+  and tuning.
+  **Follow-up analysis of the XEX itself (2026-10-11):** the player
+  segment ($3182-$3a64) is the CLASSIC v1-family driver (the
+  v1/v2/v4 table layout, not Patch16) with RETUNED frequency
+  tables (the pure-tone table shifted 1-2 divisor steps sharper, a
+  64-byte table at $31c0 fully rebuilt), one distortion-table entry
+  changed at $3189 ($c0 -> $a0) and 11 extra code bytes at the tail.
+  The module is embedded byte-identically, and RMT 1.36's
+  decode/re-encode round-trips it losslessly (stripped-rmt export ==
+  file). So the "Patch16?" README question is ANSWERED: classic
+  driver family, custom tuning.
+  **The transplant experiment and the method correction
+  (2026-10-11):** transplanting first the tables, then the complete
+  original player into the export driver still produced no
+  byte alignment - and the reason turned out to be the COMPARISON,
+  not the rendering: the module has instrument speed 4, so RMT's
+  SAP-R export is TICK-level (FASTPLAY 78: 4 entries per video
+  frame; the tune is 6080 video frames = 121.6 s, not 24320), while
+  the bridge recording samples once per video frame. After
+  correcting for that, the attack grid aligns (every 10 video
+  frames in both) and with the transplanted player the start states
+  match exactly - but frame-boundary snapshots mostly fall between
+  tick states (the XEX spreads its four calls across the frame), so
+  a byte-level verdict for a FASTPLAY tune needs TICK-ACCURATE
+  recording, which the bridge cannot do today (FRAME 1 is its
+  finest step). The F1/F2 method and verdicts are unaffected
+  (instrument speed 1 there).
 
-Net: one of three tunes is anchored to its original. The two
-VinsCool-era tunes show real, reproducible divergence between their
-original players and the current chain.
+Net: one of three tunes is anchored to its original. Captain Future
+shows real divergence between its 1.34 export player and the current
+chain; Why Do You Dance With Me is reproduced down to the recovered
+driver and tables, but its byte-level verdict waits on tick-accurate
+recording (open decision 3).
 
 Scope: verification of the POKEY streams against the original XEX
 files, ONLY. Fixing the format gap itself (driver/tuning fields in a
@@ -114,5 +141,12 @@ sheet ("Tracker Driver:" line) stays the manual stand-in.
 
 ## Open decisions
 
-1. May the original party/ASMA XEXs be committed into the fixture
-   folders (F4)?
+1. DONE 2026-10-11: the original XEXs are committed into the fixture
+   folders (user-approved; for Delta both the 1.0b and 1.28 builds).
+2. F2 follow-up: diagnose why the RMT 1.34 export player's envelope
+   detail differs from the current chain (1862 of 7524 audible-state
+   frames).
+3. F3 follow-up: a byte-level verdict for FASTPLAY (instrument speed
+   > 1) tunes needs tick-accurate recording - e.g. sub-frame stepping
+   in AltirraBridge (an upstream follow-up in the spirit of PR #96),
+   or sampling the POKEY shadow per driver call instead of per frame.
