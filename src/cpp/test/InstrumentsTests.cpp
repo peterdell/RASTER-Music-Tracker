@@ -574,22 +574,36 @@ TEST_F(InstrumentsCoreTest, GetNoteReturnsMinusOneForInvalidShiftedNote) {
 // plain array accessors with no hazard of their own, so this needed no
 // special test-only seam, unlike CTuning::InitTuning()'s guarded globals.
 
+// GetFrequency() asks CFrequencyTables, which reads the page out of the
+// driver's own TABLES_MSB dispatch table, so these tests put a SYNTHETIC
+// dispatch table in g_Atari's memory - one that sends every distortion to a
+// different page - and then assert that GetFrequency follows it. That is the
+// property worth pinning here: it must read the driver's choice rather than a
+// map of its own. The real driver's mapping is pinned once, against the
+// shipped binary, in FrequencyTablesTests.cpp.
 class InstrumentFrequencyTest : public InstrumentsCoreTest {
   protected:
-    // The table addresses this fixture writes to, and clears again so that
-    // g_Atari's memory stays clean for any test running after it in the same
-    // process.
-    static constexpr MemoryAddress kTables[] = {
-        RMTPLAYR_FRQTABPOLY5_64KHZ, RMTPLAYR_FRQTABDIST4_64KHZ, RMTPLAYR_FRQTABPURE_64KHZ,
-        RMTPLAYR_FRQTABBUZZY_64KHZ, RMTPLAYR_FRQTABGRITTY_64KHZ, RMTPLAYR_FRQTABPURE_15KHZ,
-        RMTPLAYR_FRQTABBUZZY_15KHZ};
+    // Deliberately not the driver's own mapping: distortion $00 -> the gritty
+    // page, $02 -> buzzy, and so on backwards, so a hardcoded map could not
+    // pass these tests.
+    static constexpr byte kPageMsbs[8] = {0xB4, 0xB3, 0xB2, 0xB1, 0xB0, 0xB4, 0xB3, 0xB2};
+
+    void SetUp() override {
+        for (int i = 0; i < 8; i++) {
+            g_Atari.SetByteAt(RMTPLAYR_TABLES_MSB + i * 2, kPageMsbs[i]);
+            g_Atari.SetByteAt(RMTPLAYR_DISTORTIONS + i * 2, i * 2 * 0x10); // the AUDC half, unused here
+        }
+    }
 
     void TearDown() override {
         InstrumentsCoreTest::TearDown();
-        for (MemoryAddress table : kTables) {
-            g_Atari.SetByteAt(table + 5, 0);
-            g_Atari.SetByteAt(table + 10, 0);
-        }
+        // g_Atari is shared with the other fixtures that use it, so leave no
+        // dispatch table and no table bytes behind.
+        g_Atari.ClearMemory();
+    }
+
+    MemoryAddress Table(int distortion) const {
+        return (MemoryAddress)(kPageMsbs[distortion >> 1] << 8);
     }
 };
 
@@ -606,33 +620,34 @@ TEST_F(InstrumentFrequencyTest, ReturnsMinusOneForOutOfRangeNote) {
     EXPECT_EQ(instruments.GetFrequency(kInstr, CNotes::NOTESNUM), -1);
 }
 
-// Each distortion reads the 64 kHz table of its own page, as the player's
-// TABLES_MSB dispatch does. Until plan 38 these offsets were 64/128/192 from
-// $B000 - the RMT 1.28 one-page layout, which in the Patch 16 six-page layout
-// all land inside the Poly5 page, so every distortion returned a Poly5 value.
-TEST_F(InstrumentFrequencyTest, ReadsEachDistortionsOwnSixtyFourKhzTable) {
+// Each distortion reads the 64 kHz table of the page the driver's dispatch
+// table names for it. Until plan 38 these offsets were 64/128/192 from $B000 -
+// the RMT 1.28 one-page layout, which in the Patch 16 six-page layout all land
+// inside the Poly5 page, so every distortion returned a Poly5 value.
+TEST_F(InstrumentFrequencyTest, ReadsTheSixtyFourKhzTableOfThePageTheDriverNamesForTheDistortion) {
     TInstrument* ai = instruments.GetInstrument(kInstr);
     ai->parameters[PAR_TBL_TYPE] = 1; // no shift
-    g_Atari.SetByteAt(RMTPLAYR_FRQTABPOLY5_64KHZ + 5, 11);
-    g_Atari.SetByteAt(RMTPLAYR_FRQTABDIST4_64KHZ + 5, 22);
-    g_Atari.SetByteAt(RMTPLAYR_FRQTABPURE_64KHZ + 5, 33);
-    g_Atari.SetByteAt(RMTPLAYR_FRQTABBUZZY_64KHZ + 5, 44);
-    g_Atari.SetByteAt(RMTPLAYR_FRQTABGRITTY_64KHZ + 5, 55);
 
-    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x02;
-    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 11);
-    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x04;
-    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 22);
-    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x0C;
-    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 44);
-    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x0E;
-    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 55);
+    for (int distortion = 0x00; distortion <= 0x0E; distortion += 2) {
+        if (distortion == 0x06) {
+            continue; // 16-bit, covered by its own test below
+        }
+        const byte expected = (byte)(0x10 + distortion);
+        g_Atari.SetByteAt(Table(distortion) + 5, expected);
 
-    // Distortions 0, 8 and A share the pure page.
-    for (int distortion : {0x00, 0x08, 0x0A}) {
         ai->envelope[0][EnvelopeParameter::DISTORTION] = distortion;
-        EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 33) << "distortion " << distortion;
+
+        EXPECT_EQ(instruments.GetFrequency(kInstr, 5), expected) << "distortion " << distortion;
     }
+}
+
+TEST_F(InstrumentFrequencyTest, ReturnsMinusOneWhenNoDriverSuppliesADispatchTable) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_TBL_TYPE] = 1;
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x0A;
+    g_Atari.ClearMemory(); // no driver loaded: no table to read
+
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), -1);
 }
 
 TEST_F(InstrumentFrequencyTest, ReadsTheFifteenKhzTableWhenTheInstrumentSetsThatAudctlBit) {
@@ -664,8 +679,8 @@ TEST_F(InstrumentFrequencyTest, ShiftsNoteByNoteTableZeroWhenTableTypeIsZero) {
     TInstrument* ai = instruments.GetInstrument(kInstr);
     ai->parameters[PAR_TBL_TYPE] = 0;
     ai->noteTable[0] = 5;
-    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x00; // the pure page
-    g_Atari.SetByteAt(RMTPLAYR_FRQTABPURE_64KHZ + 10, 42); // note 5 shifted by 5 -> 10
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x00;
+    g_Atari.SetByteAt(Table(0x00) + 10, 42); // note 5 shifted by 5 -> 10
 
     EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 42);
 }

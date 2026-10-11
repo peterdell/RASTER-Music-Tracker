@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 
 #include "Atari.h"
+#include "FrequencyTables.h"
 #include "Instruments.h"
 #include "Notes.h"
 
@@ -212,11 +213,8 @@ int CInstruments::GetFrequency(int instr, int note) {
         return -1;
     }
 
-    // The player picks the table in two steps (rmtplayr.a65: the TABLES_MSB
-    // dispatch table, then store_tables_lsb): the distortion selects one of
-    // the five 256-byte pages, and the channel's clock selects a 64-byte
-    // slice inside it - 64 kHz at +$00, 1.79 MHz at +$40, 16-bit at +$80 -
-    // while the two 15 kHz tables sit apart in PAGE_EXTRA_0. Only the
+    // Which table the player would read is CFrequencyTables' job, including
+    // reading the page out of the driver's own dispatch table. Only the
     // distortion and the instrument's own 15 kHz bit can be answered here:
     // 1.79 MHz and the 16-bit joins are per channel, and a track has no
     // channel until the song assigns it to a column, so the 64 kHz table is
@@ -231,22 +229,10 @@ int CInstruments::GetFrequency(int instr, int note) {
         return -1;
     }
 
-    if (tt->parameters[PAR_AUDCTL_15KHZ]) {
-        // check_15khz: distortion C and E take the buzzy table, the rest the pure one.
-        return g_Atari.GetByteAt((distortion >= 0x0C ? RMTPLAYR_FRQTABBUZZY_15KHZ : RMTPLAYR_FRQTABPURE_15KHZ) + note);
+    const auto mode = tt->parameters[PAR_AUDCTL_15KHZ] ? CFrequencyTables::Mode::Clock15kHz : CFrequencyTables::Mode::Clock64kHz;
+    const MemoryAddress table = CFrequencyTables::GetTableAddress(g_Atari.GetConstMemoryAt(0), distortion, mode);
+    if (!table) {
+        return -1; // no Patch 16 driver loaded, so no table to read
     }
-
-    switch (distortion) {
-    case 0x02:
-        return g_Atari.GetByteAt(RMTPLAYR_FRQTABPOLY5_64KHZ + note);
-    case 0x04:
-        return g_Atari.GetByteAt(RMTPLAYR_FRQTABDIST4_64KHZ + note);
-    case 0x0C:
-        return g_Atari.GetByteAt(RMTPLAYR_FRQTABBUZZY_64KHZ + note);
-    case 0x0E:
-        return g_Atari.GetByteAt(RMTPLAYR_FRQTABGRITTY_64KHZ + note);
-    default:
-        // Distortions 0, 8 and A all play from the pure page.
-        return g_Atari.GetByteAt(RMTPLAYR_FRQTABPURE_64KHZ + note);
-    }
+    return g_Atari.GetByteAt(table + note);
 }

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -125,6 +125,7 @@
     <ClCompile Include="..\IO_Tracks.cpp" />
     <ClCompile Include="..\IOHelpers.cpp" />
     <ClCompile Include="..\InstrumentsCore.cpp" />
+    <ClCompile Include="..\FrequencyTables.cpp" />
     <ClCompile Include="..\InstrumentsAtaFormat.cpp" />
     <ClCompile Include="..\IO_Instruments.cpp" />
     <ClCompile Include="..\Instruments.cpp" />
@@ -180,6 +181,7 @@
     <ClCompile Include="LzssTests.cpp" />
     <ClCompile Include="TracksTests.cpp" />
     <ClCompile Include="InstrumentsTests.cpp" />
+    <ClCompile Include="FrequencyTablesTests.cpp" />
     <ClCompile Include="SAPFileTests.cpp" />
     <ClCompile Include="Keyboard2NoteMappingTests.cpp" />
     <ClCompile Include="ASMFileBuilderTests.cpp" />
@@ -195,6 +197,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Fraction.h" />
+    <ClInclude Include="..\FrequencyTables.h" />
     <ClInclude Include="..\StringUtility.h" />
     <ClInclude Include="..\Notes.h" />
     <ClInclude Include="..\StdAfx.h" />

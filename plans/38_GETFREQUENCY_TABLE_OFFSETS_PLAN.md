@@ -119,3 +119,8 @@ it does have the channel context that GetFrequency lacks, so its
 1.79 MHz and 16-bit handling can be made right rather than
 side-stepped. Worth doing as its own change, with a note that MIDI
 input is interactive and has no automated coverage today.
+
+Taken up as plan 39, which also removes the private copy of the
+mapping that made this possible three times over: the page comes from
+the driver's own `TABLES_MSB` dispatch table and the sub-table rule
+becomes one shared helper, which `GetFrequency` then moves onto.

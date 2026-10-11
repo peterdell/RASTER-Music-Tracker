@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -219,6 +219,7 @@
     <ClCompile Include="Commands.cpp" />
     <ClCompile Include="StringUtility.cpp" />
     <ClCompile Include="Fraction.cpp" />
+    <ClCompile Include="FrequencyTables.cpp" />
     <ClCompile Include="ChannelControl.cpp" />
     <ClCompile Include="Clipboard.cpp" />
     <ClCompile Include="ClipboardCore.cpp" />
@@ -400,6 +401,7 @@
     <ClInclude Include="Commands.h" />
     <ClInclude Include="StringUtility.h" />
     <ClInclude Include="Fraction.h" />
+    <ClInclude Include="FrequencyTables.h" />
     <ClInclude Include="Clipboard.h" />
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="Messages.h" />

@@ -605,16 +605,37 @@ class InstrumentsTest {
 	}
 
 	// --- getFrequency ---
-	// Reads a byte from the given emulated-Atari-memory buffer at an offset
-	// selected by the instrument's envelope[0] distortion value.
+	// Reads a byte from the given emulated-Atari-memory buffer, from the table
+	// FrequencyTables names for the instrument's distortion and clock. That
+	// helper reads the page out of the driver's own TABLES_MSB dispatch table,
+	// so these tests install a SYNTHETIC dispatch table - one that sends every
+	// distortion to a different page - and assert that getFrequency follows
+	// it. That is the property worth pinning here: it must read the driver's
+	// choice rather than a map of its own. The real driver's mapping is pinned
+	// once, against the shipped binary, in FrequencyTablesTest.
 	@Nested
 	class GetFrequencyTest {
+
+		/**
+		 * Deliberately not the driver's own mapping: distortion $00 -> the
+		 * gritty page, $02 -> buzzy, and so on backwards, so a hardcoded map
+		 * could not pass these tests.
+		 */
+		private static final int[] PAGE_MSBS = { 0xB4, 0xB3, 0xB2, 0xB1, 0xB0, 0xB4, 0xB3, 0xB2 };
 
 		private byte[] atariMemory;
 
 		@BeforeEach
 		void setUpMemory() {
 			atariMemory = new byte[0x10000];
+			for (int i = 0; i < 8; i++) {
+				atariMemory[FrequencyTables.RMT_TABLES_MSB + i * 2] = (byte) PAGE_MSBS[i];
+				atariMemory[FrequencyTables.RMT_TABLES_MSB + i * 2 + 1] = (byte) (i * 2 * 0x10); // the AUDC half, unused here
+			}
+		}
+
+		private int table(int distortion) {
+			return PAGE_MSBS[distortion >> 1] << 8;
 		}
 
 		@Test
@@ -633,36 +654,39 @@ class InstrumentsTest {
 		}
 
 		/**
-		 * Each distortion reads the 64 kHz table of its own page, as the
-		 * player's TABLES_MSB dispatch does. Until plan 38 these offsets were
+		 * Each distortion reads the 64 kHz table of the page the driver's
+		 * dispatch table names for it. Until plan 38 these offsets were
 		 * 64/128/192 from $B000 - the RMT 1.28 one-page layout, which in the
 		 * Patch 16 six-page layout all land inside the Poly5 page, so every
 		 * distortion returned a Poly5 value.
 		 */
 		@Test
-		void readsEachDistortionsOwnSixtyFourKhzTable() {
+		void readsTheSixtyFourKhzTableOfThePageTheDriverNamesForTheDistortion() {
 			Instrument ai = instruments.getInstrument(INSTR);
 			ai.parameters[Instrument.PAR_TBL_TYPE] = 1; // no shift
-			atariMemory[Atari.RMT_FRQTAB_POLY5_64KHZ + 5] = 11;
-			atariMemory[Atari.RMT_FRQTAB_DIST4_64KHZ + 5] = 22;
-			atariMemory[Atari.RMT_FRQTAB_PURE_64KHZ + 5] = 33;
-			atariMemory[Atari.RMT_FRQTAB_BUZZY_64KHZ + 5] = 44;
-			atariMemory[Atari.RMT_FRQTAB_GRITTY_64KHZ + 5] = 55;
 
-			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x02;
-			assertEquals(11, instruments.getFrequency(INSTR, 5, atariMemory));
-			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x04;
-			assertEquals(22, instruments.getFrequency(INSTR, 5, atariMemory));
-			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x0C;
-			assertEquals(44, instruments.getFrequency(INSTR, 5, atariMemory));
-			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x0E;
-			assertEquals(55, instruments.getFrequency(INSTR, 5, atariMemory));
+			for (int distortion = 0x00; distortion <= 0x0E; distortion += 2) {
+				if (distortion == 0x06) {
+					continue; // 16-bit, covered by its own test below
+				}
+				int expected = 0x10 + distortion;
+				atariMemory[table(distortion) + 5] = (byte) expected;
 
-			// Distortions 0, 8 and A share the pure page.
-			for (int distortion : new int[] { 0x00, 0x08, 0x0A }) {
 				ai.envelope[0][EnvelopeParameter.DISTORTION] = distortion;
-				assertEquals(33, instruments.getFrequency(INSTR, 5, atariMemory));
+
+				int at = distortion;
+				assertEquals(expected, instruments.getFrequency(INSTR, 5, atariMemory),
+						() -> String.format("distortion $%02X", at));
 			}
+		}
+
+		@Test
+		void returnsMinusOneWhenNoDriverSuppliesADispatchTable() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_TBL_TYPE] = 1;
+			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x0A;
+
+			assertEquals(-1, instruments.getFrequency(INSTR, 5, new byte[0x10000]));
 		}
 
 		@Test
@@ -697,8 +721,8 @@ class InstrumentsTest {
 			Instrument ai = instruments.getInstrument(INSTR);
 			ai.parameters[Instrument.PAR_TBL_TYPE] = 0;
 			ai.noteTable[0] = 5;
-			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x00; // the pure page
-			atariMemory[Atari.RMT_FRQTAB_PURE_64KHZ + 10] = 42; // note 5 shifted by 5 -> 10
+			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x00;
+			atariMemory[table(0x00) + 10] = 42; // note 5 shifted by 5 -> 10
 
 			assertEquals(42, instruments.getFrequency(INSTR, 5, atariMemory));
 		}
