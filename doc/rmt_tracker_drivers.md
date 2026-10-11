@@ -70,6 +70,59 @@ Despite that, this is probably the most "feature-rich" version of the RMT driver
 All that came at the cost of extra memory usage and heavier CPU load, so this is no longer an "optimal" driver.
 This is currently the default RMT driver version included and used by RMT 1.34 and later.
 
+## The Frequency Table Page of Patch 16 at $B000
+
+Patch 16 is the only included tracker driver version that keeps its
+frequency tables in a dedicated memory block at $B000-$B5FF, called
+TABLES in the driver source. All older versions carry their tables
+inside the player code body instead. The block consists of six
+256-byte pages, one purpose each. A distortion page holds three
+tables: 64 bytes for the 64 kHz clock, 64 bytes for the 1.79 MHz
+clock, and 128 bytes for the 16-bit joined mode (64 words, low byte
+first). Every 64-byte table maps a note number from 0 to 63 to the
+AUDF divisor for that note.
+
+| Page  | Name              | Content                                  |
+|-------|-------------------|------------------------------------------|
+| $B000 | PAGE_DISTORTION_2 | Poly5 (Distortion 2)                     |
+| $B100 | PAGE_DISTORTION_4 | Distortion 4                             |
+| $B200 | PAGE_DISTORTION_A | Pure tones                               |
+| $B300 | PAGE_DISTORTION_C | Buzzy bass                               |
+| $B400 | PAGE_DISTORTION_E | Gritty (the Distortion C variant)        |
+| $B500 | PAGE_EXTRA_0      | Sawtooth ch1, ch3; pure and buzzy 15 kHz |
+
+The driver selects the page through a dispatch table that maps the
+instrument's RMT distortion to the page and the AUDC distortion bits
+written to POKEY: distortions 0, 6, 8 and A all play from the pure
+page (with AUDC $00, $A0, $80 and $A0 respectively), 2 from the
+Poly5 page, 4 from the Distortion 4 page, C from the buzzy page and
+E from the gritty page with AUDC $C0. The 15 kHz and sawtooth tables
+in PAGE_EXTRA_0 are selected separately, by the channel's clock and
+the sawtooth feature.
+
+The content of the block is assembled into the driver binary
+byte-for-byte from the data statements in `asm/Patch-16/rmtdata.a65`.
+The numbers predate VinsCool's public source code repository (July
+2022): they are a frozen snapshot of an older version of his tuning
+calculations, and no current tuning setting reproduces them exactly.
+The two "Croissant Sawtooth" tables are hand-crafted and have no
+generator at all. The Patch 16 build shipped with RMT 1.34 still
+used a five-page layout without the Distortion 4 page, so its pages
+from the pure page upward sit $100 lower - relevant when comparing
+driver builds extracted from older executables.
+
+The static copy exists so the driver is self-contained wherever no
+tracker is present to compute anything: in XEX and SAP exports and
+in standalone players, the baked-in tables are what plays. Inside
+the tracker, the tuning system regenerates the five distortion pages
+and the two 15 kHz tables from the tuning settings after every
+driver load, so those settings always win; only the sawtooth tables
+stay as authored. RMT 1.34 behaved this way, and RMT 1.36 does
+again - intermediate development builds reloaded the driver after
+generating the tables, which silently put the static snapshot back
+in control, audible as AUDF deviations of one step in the Poly5
+1.79 MHz and the 15 kHz tables.
+
 ## RMT 1.28 Patch Prince of Persia by VinsCool
 
 This driver version is an older patch based on the original RMT 1.28 Patch 8 by Analmux.
