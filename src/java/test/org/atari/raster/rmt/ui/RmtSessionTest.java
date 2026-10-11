@@ -42,7 +42,7 @@ class RmtSessionTest {
 	@Test
 	void openingAStereoRmtKeepsEightTracks() throws IOException {
 		RmtSession session = new RmtSession();
-		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(ReferenceScreenshot.ROOT.resolve("song2-stereo").resolve("Why_Do_You_Dance_With_Me-132-$4000.rmt"), false));
+		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(ReferenceScreenshot.ROOT.resolve("song2-stereo").resolve("Why_Do_You_Dance_With_Me.rmt"), false));
 		assertEquals(8, session.tracks4_8);
 	}
 

@@ -1,4 +1,4 @@
-File Name:      Why_Do_You_Dance_With_Me-132-$4000.rmt
+File Name:      Why_Do_You_Dance_With_Me.rmt
 Title:          Why Do You Dance With Me?
 Author:         Zdenek Eisenhammer (PG)
 Date:           10/12/2021   

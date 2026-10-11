@@ -2,7 +2,7 @@
 # stereo reference song through the saves and every export format.
 set output out/stereo
 set overwrite yes
-open "../ui-reference/song2-stereo/Why_Do_You_Dance_With_Me-132-$4000.rmt"
+open "../ui-reference/song2-stereo/Why_Do_You_Dance_With_Me.rmt"
 
 save stereo.rmt
 save stereo.txt

@@ -101,7 +101,7 @@ class SapPlayabilityTest {
 	 */
 	@Test
 	void aStereoSapPlaysOnBothChannels() throws Exception {
-		Path song = ReferenceScreenshot.ROOT.resolve("song2-stereo").resolve("Why_Do_You_Dance_With_Me-132-$4000.rmt");
+		Path song = ReferenceScreenshot.ROOT.resolve("song2-stereo").resolve("Why_Do_You_Dance_With_Me.rmt");
 		byte[] sap = export(song, "00", 5);
 		String header = new String(sap, 0, 200, java.nio.charset.StandardCharsets.US_ASCII);
 		assertTrue(header.contains("STEREO"), header);

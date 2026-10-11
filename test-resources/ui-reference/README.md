@@ -56,7 +56,7 @@ Every requested capture is present (the last five dialogs arrived on
 |---|---|---|
 | `song0-empty/` | none loaded | `tracks.png`, `instruments.png` (RMT 100%); `tracks-scale200.png`, `instruments-scale200.png` |
 | `song1-mono/` | `Delta.rmt` (`RMT4`, mono) | `tracks-scale200.png`, `instruments-scale200.png`, `tracks-playing-scale200.png`, `tracks-goto-scale200.png` |
-| `song2-stereo/` | `Why_Do_You_Dance_With_Me-132-$4000.rmt` (`RMT8`, stereo) | `tracks.png`, `instruments.png` (RMT 100%); `tracks-scale200.png`, `instruments-scale200.png`, `tracks-playing-scale200.png`, `tracks-jam-scale200.png` |
+| `song2-stereo/` | `Why_Do_You_Dance_With_Me.rmt` (`RMT8`, stereo) | `tracks.png`, `instruments.png` (RMT 100%); `tracks-scale200.png`, `instruments-scale200.png`, `tracks-playing-scale200.png`, `tracks-jam-scale200.png` |
 | `dialogs/` | - | see the table below |
 
 ## Dialogs - what each capture shows and how to open it
