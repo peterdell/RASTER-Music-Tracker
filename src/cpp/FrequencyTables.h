@@ -5,6 +5,7 @@
 #include "Memory.h"
 #include "TrackerDriverVersion.h"
 #include "tracker_obx.h"
+#include "legacy_obx.h" // The v1 family's generated C header file
 
 // Which of the loaded player's AUDF tables a note is read from, and where that
 // table is.
@@ -55,8 +56,13 @@ public:
     // the offset being a byte offset into the frqtab page: the player loads
     // `>frqtab` as the pointer's high byte and the offset as its low byte, so
     // the table's address is simply LEGACY_FRQTAB + offset.
-    static constexpr MemoryAddress LEGACY_TABBEGANDDISTOR = 0x3182;
-    static constexpr MemoryAddress LEGACY_FRQTAB = 0x3200;
+    //
+    // Both come from legacy_obx.h, the header MADS generates from
+    // asm/Legacy/rmt_ata.a65 (prefix RMT_ATA_ after its file name), so they
+    // follow the 6502 source the way the PATCH16 addresses above do.
+    // build/check_drivers.sh pins both headers to today's sources.
+    static constexpr MemoryAddress LEGACY_TABBEGANDDISTOR = RMT_ATA_TABBEGANDDISTOR;
+    static constexpr MemoryAddress LEGACY_FRQTAB = RMT_ATA_FRQTAB;
 
     /// <summary> Whether the driver in `memory` really carries the table this version's layout reads </summary>
     /// <remarks>

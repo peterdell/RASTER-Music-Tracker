@@ -451,6 +451,7 @@
     <ClInclude Include="TextColors.h" />
     <ClInclude Include="TrackerDriverVersion.h" />
     <ClInclude Include="tracker_obx.h" />
+    <ClInclude Include="legacy_obx.h" />
     <ClInclude Include="Tracks.h" />
     <ClInclude Include="TracksControl.h" />
     <ClInclude Include="TracksTypes.h" />

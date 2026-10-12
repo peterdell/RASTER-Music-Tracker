@@ -39,7 +39,16 @@ package org.atari.raster.rmt.model;
  */
 public final class FrequencyTables {
 
-	/** {@code RMTPLAYR_TABLES_MSB}: eight (page MSB, AUDC) pairs, indexed by distortion / 2. */
+	/**
+	 * {@code RMTPLAYR_TABLES_MSB}: eight (page MSB, AUDC) pairs, indexed by
+	 * distortion / 2.
+	 *
+	 * <p>C++ takes this from src/cpp/tracker_obx.h, the header MADS generates
+	 * from asm/Patch-16/rmtplayr.a65; the port has no generated header, so
+	 * {@code GeneratedHeaderTest} asserts this constant against that file
+	 * instead. Same for the two v1-family addresses below and
+	 * {@link Atari}'s frequency-table addresses.
+	 */
 	public static final int RMT_TABLES_MSB = 0x3208;
 
 	/**
@@ -51,7 +60,9 @@ public final class FrequencyTables {
 	 *
 	 * <p>Both addresses are fixed by an {@code org} relative to PLAYER
 	 * ($3400), so they hold for every driver built from that source, whatever
-	 * its feature flags.
+	 * its feature flags. C++ names them through src/cpp/legacy_obx.h, the
+	 * header MADS generates from asm/Legacy/rmt_ata.a65, as
+	 * {@code RMT_ATA_TABBEGANDDISTOR} and {@code RMT_ATA_FRQTAB}.
 	 */
 	public static final int LEGACY_TABBEGANDDISTOR = 0x3182;
 

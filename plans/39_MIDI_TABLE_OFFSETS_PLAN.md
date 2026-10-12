@@ -261,7 +261,7 @@ joined-channel AUDCTL through the MIDI handler today.
   today's `rmtplayr.a65` - many labels renamed, some entries missing.
   `RMTPLAYR_TABLES_MSB`, `RMTPLAYR_DISTORTIONS` and
   `RMTPLAYR_V_AUDCTL` were verified against a freshly generated header
-  for this plan, but refreshing that file is its own change. Picked up by [plan 42](42_TRACKER_OBX_HEADER_REFRESH_PLAN.md), which measures the drift: 34 defines gone, 24 new, and none of the 20 names the code uses affected.
+  for this plan, but refreshing that file is its own change. Done by [plan 42](42_TRACKER_OBX_HEADER_REFRESH_PLAN.md): the drift was 34 defines gone and 24 new, with none of the 20 names the code uses affected, and `check_drivers.sh` now compares the header on every run, so verifying one by hand is no longer necessary.
 - The v1-family drivers' own tables, and anything about which driver
   the MIDI path should assume. Picked up by
   [plan 40](40_DRIVER_TABLE_LAYOUTS_PLAN.md) and done: the helper now

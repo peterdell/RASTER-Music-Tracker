@@ -173,4 +173,4 @@ fails the other's, and a test asserts exactly that.
 - `src/cpp/tracker_obx.h` being stale against today's `rmtplayr.a65`
   (plan 39, out of scope) - still its own change, and the Legacy
   sources have never had the generated-header treatment at all, which
-  is why $3182 and $3200 are written out in `FrequencyTables` instead. Picked up by [plan 42](42_TRACKER_OBX_HEADER_REFRESH_PLAN.md), which measures the drift: 34 defines gone, 24 new, and none of the 20 names the code uses affected. The Legacy header is its H4.
+  is why $3182 and $3200 are written out in `FrequencyTables` instead. Done by [plan 42](42_TRACKER_OBX_HEADER_REFRESH_PLAN.md): the drift was 34 defines gone and 24 new, with none of the 20 names the code uses affected, and its H4 gave the Legacy sources their first generated header - so these two literals are now `RMT_ATA_TABBEGANDDISTOR` and `RMT_ATA_FRQTAB`.

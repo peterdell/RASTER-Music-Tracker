@@ -509,6 +509,9 @@
     <ClInclude Include="tracker_obx.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
+    <ClInclude Include="legacy_obx.h">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClInclude>
     <ClInclude Include="C6502.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
