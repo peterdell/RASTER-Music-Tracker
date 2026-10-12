@@ -41,4 +41,25 @@ public:
     /// little-endian words.
     /// </returns>
     static MemoryAddress GetTableAddress(const byte* memory, int distortion, Mode mode);
+
+    /// <summary> Which clock or width a channel plays at, from the AUDCTL the driver is about to write </summary>
+    /// <param name="audctl"> the AUDCTL value, as in the driver's v_audctl </param>
+    /// <param name="track"> the POKEY channel, 0-3 for the first chip and 4-7 for the second </param>
+    /// <remarks>
+    /// Only channels 1 and 3 of each chip can run at 1.79 MHz (tracks 0/4 and
+    /// 2/6), and a 16-bit pair is addressed through its high byte, which is
+    /// the channel above (tracks 1/5 and 3/7) - so the same AUDCTL means
+    /// different things to different channels. 1.79 MHz and 16-bit both
+    /// override the 15 kHz clock, as they do in the player.
+    /// </remarks>
+    static Mode GetModeForChannel(int audctl, int track);
+
+    /// <summary> The AUDC distortion bits the player writes to POKEY for this distortion </summary>
+    /// <returns>
+    /// The AUDC value, or -1 when the loaded driver has no dispatch table.
+    /// Read from that table rather than computed, because it is not simply
+    /// the distortion shifted up: distortion $06 plays with AUDC $A0 and
+    /// $0E with $C0.
+    /// </returns>
+    static int GetDistortionAudc(const byte* memory, int distortion);
 };

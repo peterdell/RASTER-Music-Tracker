@@ -38,3 +38,33 @@ MemoryAddress CFrequencyTables::GetTableAddress(const byte* memory, int distorti
         return page;
     }
 }
+
+CFrequencyTables::Mode CFrequencyTables::GetModeForChannel(int audctl, int track) {
+    const bool clock15 = (audctl & 0x01) != 0;
+    const bool join34 = (audctl & 0x08) != 0;
+    const bool join12 = (audctl & 0x10) != 0;
+    const bool ch3_179 = (audctl & 0x20) != 0;
+    const bool ch1_179 = (audctl & 0x40) != 0;
+
+    // A joined pair is addressed through its high byte, the channel above the
+    // 1.79 MHz one.
+    if ((join12 && ch1_179 && (track == 1 || track == 5)) || (join34 && ch3_179 && (track == 3 || track == 7))) {
+        return Mode::Join16Bit;
+    }
+    if ((ch1_179 && (track == 0 || track == 4)) || (ch3_179 && (track == 2 || track == 6))) {
+        return Mode::Clock179MHz;
+    }
+    return clock15 ? Mode::Clock15kHz : Mode::Clock64kHz;
+}
+
+int CFrequencyTables::GetDistortionAudc(const byte* memory, int distortion) {
+    // $00 is a valid AUDC, so the entry's own bytes cannot tell a missing
+    // dispatch table from distortion 0 - the page MSB beside it can, and
+    // GetTableAddress() already checks it.
+    if (!GetTableAddress(memory, distortion, Mode::Clock64kHz)) {
+        return -1;
+    }
+
+    // DISTORTIONS is the second byte of each TABLES_MSB pair.
+    return memory[RMTPLAYR_DISTORTIONS + (distortion >> 1) * 2];
+}

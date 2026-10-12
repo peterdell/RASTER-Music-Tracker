@@ -67,6 +67,59 @@ TEST_F(FrequencyTablesTest, FifteenKhzComesFromPageExtraZeroAndNotFromTheDispatc
     EXPECT_EQ(CFrequencyTables::GetTableAddress(Memory(), 0x0E, CFrequencyTables::Mode::Clock15kHz), RMTPLAYR_FRQTABBUZZY_15KHZ);
 }
 
+TEST_F(FrequencyTablesTest, EveryDistortionTakesTheAudcTheDriverDispatchesWithIt) {
+    // distortion -> AUDC, the second byte of each TABLES_MSB pair. Not simply
+    // the distortion shifted up: $06 plays with $A0 and $0E with $C0, which is
+    // why the MIDI path used to get those two wrong.
+    const int expected[8] = {0x00, 0x20, 0x40, 0xA0, 0x80, 0xA0, 0xC0, 0xC0};
+
+    for (int i = 0; i < 8; i++) {
+        const int distortion = i * 2;
+        EXPECT_EQ(CFrequencyTables::GetDistortionAudc(Memory(), distortion), expected[i]) << "distortion " << distortion;
+    }
+}
+
+TEST_F(FrequencyTablesTest, ThereIsNoAudcForADistortionOutsideZeroToEOrWithoutADriver) {
+    EXPECT_EQ(CFrequencyTables::GetDistortionAudc(Memory(), -1), -1);
+    EXPECT_EQ(CFrequencyTables::GetDistortionAudc(Memory(), 0x10), -1);
+
+    atari.ClearMemory();
+    EXPECT_EQ(CFrequencyTables::GetDistortionAudc(Memory(), 0x0A), -1);
+}
+
+TEST_F(FrequencyTablesTest, TheChannelDecidesWhatTheAudctlBitsMean) {
+    // Only channels 1 and 3 of each chip can run at 1.79 MHz, and a 16-bit
+    // pair is addressed through its high byte, the channel above.
+    EXPECT_EQ(CFrequencyTables::GetModeForChannel(0x00, 0), CFrequencyTables::Mode::Clock64kHz);
+    EXPECT_EQ(CFrequencyTables::GetModeForChannel(0x01, 0), CFrequencyTables::Mode::Clock15kHz);
+
+    for (int track : {0, 4}) {
+        EXPECT_EQ(CFrequencyTables::GetModeForChannel(0x40, track), CFrequencyTables::Mode::Clock179MHz) << "track " << track;
+    }
+    for (int track : {1, 2, 3, 5, 6, 7}) {
+        EXPECT_EQ(CFrequencyTables::GetModeForChannel(0x40, track), CFrequencyTables::Mode::Clock64kHz) << "track " << track;
+    }
+    for (int track : {2, 6}) {
+        EXPECT_EQ(CFrequencyTables::GetModeForChannel(0x20, track), CFrequencyTables::Mode::Clock179MHz) << "track " << track;
+    }
+
+    // join 1+2 with channel 1 at 1.79 MHz: the pair answers on channel 2.
+    EXPECT_EQ(CFrequencyTables::GetModeForChannel(0x50, 1), CFrequencyTables::Mode::Join16Bit);
+    EXPECT_EQ(CFrequencyTables::GetModeForChannel(0x50, 5), CFrequencyTables::Mode::Join16Bit);
+    EXPECT_EQ(CFrequencyTables::GetModeForChannel(0x50, 0), CFrequencyTables::Mode::Clock179MHz);
+    // join 3+4 with channel 3 at 1.79 MHz: on channel 4.
+    EXPECT_EQ(CFrequencyTables::GetModeForChannel(0x28, 3), CFrequencyTables::Mode::Join16Bit);
+    EXPECT_EQ(CFrequencyTables::GetModeForChannel(0x28, 7), CFrequencyTables::Mode::Join16Bit);
+    EXPECT_EQ(CFrequencyTables::GetModeForChannel(0x28, 2), CFrequencyTables::Mode::Clock179MHz);
+}
+
+TEST_F(FrequencyTablesTest, OneSeventyNineAndSixteenBitOverrideTheFifteenKhzClock) {
+    EXPECT_EQ(CFrequencyTables::GetModeForChannel(0x41, 0), CFrequencyTables::Mode::Clock179MHz);
+    EXPECT_EQ(CFrequencyTables::GetModeForChannel(0x51, 1), CFrequencyTables::Mode::Join16Bit);
+    // ...but a channel that cannot do either keeps the 15 kHz clock.
+    EXPECT_EQ(CFrequencyTables::GetModeForChannel(0x41, 3), CFrequencyTables::Mode::Clock15kHz);
+}
+
 TEST_F(FrequencyTablesTest, ThereIsNoTableForADistortionOutsideZeroToE) {
     EXPECT_EQ(CFrequencyTables::GetTableAddress(Memory(), -1, CFrequencyTables::Mode::Clock64kHz), 0);
     EXPECT_EQ(CFrequencyTables::GetTableAddress(Memory(), 0x10, CFrequencyTables::Mode::Clock64kHz), 0);

@@ -100,6 +100,18 @@ E from the gritty page with AUDC $C0. The 15 kHz and sawtooth tables
 in PAGE_EXTRA_0 are selected separately, by the channel's clock and
 the sawtooth feature.
 
+That dispatch table is part of the driver's interface to the tracker,
+not just to the player: it sits at a known address, so the tracker
+reads the page and the AUDC bits straight out of the loaded driver
+wherever it needs to know what a note would sound like - the
+assembler export's frequency mode and MIDI note input both do. The
+mapping is therefore defined once, by the driver, and a future
+reshuffle of the pages reaches the tracker without anything being
+edited there. Both of those places used to keep their own copy of the
+addresses, and both had fallen a page behind: one still assumed the
+single-page layout of RMT 1.28, the other the five-page layout from
+before the Distortion 4 page was added.
+
 The content of the block is assembled into the driver binary
 byte-for-byte from the data statements in `asm/Patch-16/rmtdata.a65`,
 and those statements hold exactly what RMT's own tuning system

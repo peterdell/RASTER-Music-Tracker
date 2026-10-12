@@ -64,6 +64,64 @@ class FrequencyTablesTest {
 	}
 
 	@Test
+	void everyDistortionTakesTheAudcTheDriverDispatchesWithIt() {
+		// distortion -> AUDC, the second byte of each TABLES_MSB pair. Not
+		// simply the distortion shifted up: $06 plays with $A0 and $0E with
+		// $C0, which is why the MIDI path used to get those two wrong.
+		int[] expected = { 0x00, 0x20, 0x40, 0xA0, 0x80, 0xA0, 0xC0, 0xC0 };
+
+		for (int i = 0; i < 8; i++) {
+			int distortion = i * 2;
+			assertEquals(expected[i], FrequencyTables.getDistortionAudc(memory, distortion),
+					() -> String.format("distortion $%02X", distortion));
+		}
+	}
+
+	@Test
+	void thereIsNoAudcForADistortionOutsideZeroToEOrWithoutADriver() {
+		assertEquals(-1, FrequencyTables.getDistortionAudc(memory, -1));
+		assertEquals(-1, FrequencyTables.getDistortionAudc(memory, 0x10));
+
+		atari.clearMemory();
+		assertEquals(-1, FrequencyTables.getDistortionAudc(memory, 0x0A));
+	}
+
+	@Test
+	void theChannelDecidesWhatTheAudctlBitsMean() {
+		// Only channels 1 and 3 of each chip can run at 1.79 MHz, and a 16-bit
+		// pair is addressed through its high byte, the channel above.
+		assertEquals(FrequencyTables.Mode.CLOCK_64KHZ, FrequencyTables.getModeForChannel(0x00, 0));
+		assertEquals(FrequencyTables.Mode.CLOCK_15KHZ, FrequencyTables.getModeForChannel(0x01, 0));
+
+		for (int track : new int[] { 0, 4 }) {
+			assertEquals(FrequencyTables.Mode.CLOCK_179MHZ, FrequencyTables.getModeForChannel(0x40, track));
+		}
+		for (int track : new int[] { 1, 2, 3, 5, 6, 7 }) {
+			assertEquals(FrequencyTables.Mode.CLOCK_64KHZ, FrequencyTables.getModeForChannel(0x40, track));
+		}
+		for (int track : new int[] { 2, 6 }) {
+			assertEquals(FrequencyTables.Mode.CLOCK_179MHZ, FrequencyTables.getModeForChannel(0x20, track));
+		}
+
+		// join 1+2 with channel 1 at 1.79 MHz: the pair answers on channel 2.
+		assertEquals(FrequencyTables.Mode.JOIN_16BIT, FrequencyTables.getModeForChannel(0x50, 1));
+		assertEquals(FrequencyTables.Mode.JOIN_16BIT, FrequencyTables.getModeForChannel(0x50, 5));
+		assertEquals(FrequencyTables.Mode.CLOCK_179MHZ, FrequencyTables.getModeForChannel(0x50, 0));
+		// join 3+4 with channel 3 at 1.79 MHz: on channel 4.
+		assertEquals(FrequencyTables.Mode.JOIN_16BIT, FrequencyTables.getModeForChannel(0x28, 3));
+		assertEquals(FrequencyTables.Mode.JOIN_16BIT, FrequencyTables.getModeForChannel(0x28, 7));
+		assertEquals(FrequencyTables.Mode.CLOCK_179MHZ, FrequencyTables.getModeForChannel(0x28, 2));
+	}
+
+	@Test
+	void oneSeventyNineAndSixteenBitOverrideTheFifteenKhzClock() {
+		assertEquals(FrequencyTables.Mode.CLOCK_179MHZ, FrequencyTables.getModeForChannel(0x41, 0));
+		assertEquals(FrequencyTables.Mode.JOIN_16BIT, FrequencyTables.getModeForChannel(0x51, 1));
+		// ...but a channel that cannot do either keeps the 15 kHz clock.
+		assertEquals(FrequencyTables.Mode.CLOCK_15KHZ, FrequencyTables.getModeForChannel(0x41, 3));
+	}
+
+	@Test
 	void thereIsNoTableForADistortionOutsideZeroToE() {
 		assertEquals(0, FrequencyTables.getTableAddress(memory, -1, FrequencyTables.Mode.CLOCK_64KHZ));
 		assertEquals(0, FrequencyTables.getTableAddress(memory, 0x10, FrequencyTables.Mode.CLOCK_64KHZ));

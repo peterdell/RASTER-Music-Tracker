@@ -1,10 +1,12 @@
 # Plan 39: The MIDI input path reads the RMT 1.34 table layout
 
-Status: IN PROGRESS 2026-10-12. M1 and M2 are DONE - the shared helper
-exists in both programs and `GetFrequency` reads through it. M3 to M5,
-the MIDI side itself, are open. Plan 38 fixed `GetFrequency`; this is
-the same defect one driver generation later, plus the de-duplication
-that keeps the two from drifting apart again.
+Status: DONE 2026-10-12. M1, M2, M4 and M5 are done; M3 was dropped as
+written, for the reasons under it. Plan 38 fixed `GetFrequency`; this
+was the same defect one driver generation later, plus the
+de-duplication that keeps the two from drifting apart again: the page
+mapping and the AUDC bits now come from the driver's own dispatch
+table in both programs, and the clock rule lives in one tested helper
+per program instead of twice.
 
 ## The defect
 
@@ -160,24 +162,62 @@ assumption visible instead of hidden.
   is byte-identical to the plan 38 build's, CrossProgramExportTest
   passes with the refactored Java against the unrefactored Rmt.exe,
   and compare_exports reports all four scripts identical.
-- **M3. Make the MIDI handler testable.** Extract the note-to-POKEY
+- **M3. Make the MIDI handler testable. DROPPED as written, 2026-10-12,
+  on two findings.** Extract the note-to-POKEY
   decision - note, instrument/distortion, channel and AUDCTL in, AUDC
   plus AUDF (plus the 16-bit high byte) out - as a pure function on
   the model side, leaving the handler to do MIDI message plumbing and
   memory writes. MIDI input has no automated coverage at all today,
   and this is the only way the fix gets a regression fence; it is also
   what makes M4 reviewable.
-- **M4. Fix the MIDI table selection.** Use the helper, so the
+  That premise was simply false: the Java port has `MidiInputTest`,
+  17 tests, and one of them -
+  `aChannel16NoteInTheExplorerModeSoundsDirectlyFromTheDriversNoteTable`
+  - covers this exact path and asserts the table a note sounds from.
+  It failed the moment M4 landed, naming the distortion-4 page, which
+  is precisely the regression fence M3 was meant to build. The second
+  finding is that the block is scaffolding its own author marked as
+  such ("TESTING HARDCODED DATA, THIS MUST NOT BE THE WAY TO GO!
+  COMMENT THIS ENTIRE BLOCK OUT ONCE A PROPER INPUT HANDLER IS
+  ADDED"), so a new model class and test suite around it would be
+  structure spent on code slated for replacement. What the extraction
+  was really for - getting the tricky, duplicated logic under test -
+  was had by moving it into the shared helper instead: the AUDCTL and
+  channel-pairing rule became `GetModeForChannel` and the AUDC bits
+  `GetDistortionAudc`, both tested in both programs, and the handler
+  shrank to picking a mode and reading a byte. The handler's own
+  plumbing - channel allocation, held-key bookkeeping, the volume
+  merge - was left untouched.
+- **M4. Fix the MIDI table selection. DONE 2026-10-12.** Use the
+  helper, so the
   addresses come from the driver; route distortion 4 to its own page;
   settle `$60` the way the dispatch table does; use `Join16Bit` where
   `join16bit` is true and write the word's two bytes; replace
   `memory[0x3C69]` with the named constant. Each of these gets a test
   from M3.
-- **M5. Documentation.** The Java comment above the switch is a
+  Done, and the AUDC bits now come from the dispatch table too, which
+  settles more than `$60`: the `$E0` case had to special-case itself
+  back to AUDC `$C0` by hand, and that special case is gone because
+  the driver's own table says `$C0`. 16-bit mode selects the 16-bit
+  table for the first time and writes the pair's low byte to the
+  channel below. A missing dispatch table (no Patch 16 driver) now
+  means the note is not played rather than a read from whatever
+  happens to be at those addresses. While in that file, all 26
+  remaining bare driver addresses became named constants
+  (`RMTPLAYR_TRACKN_AUDF`/`_AUDC`, `RMTPLAYR_V_AUDCTL`,
+  `RMTPLAYR_V_SKCTL`) - the Java port already used names there, so
+  this only closes the gap between the two.
+- **M5. Documentation. DONE 2026-10-12.** The Java comment above the
+  switch is a
   description of the old layout and must go; doc/rmt_tracker_drivers.md
   gains one sentence that the page mapping is read from the driver's
   own dispatch table rather than copied, since that is now a fact
   about the driver's interface to the tracker.
+  The stale comment went with the switch it described. The driver page
+  gained a paragraph: the dispatch table is part of the driver's
+  interface to the tracker, both readers take the mapping from it, and
+  both used to keep a copy that had fallen a page behind - one from
+  RMT 1.28, one from the five-page layout.
 
 ## Verification
 
@@ -191,6 +231,20 @@ assumption visible instead of hidden.
 - MIDI itself stays a manual check (one note per distortion, 15 kHz
   and 1.79 MHz on and off, against the tracker's own playback of the
   same instrument) - the automated part is M3's pure function.
+
+Done: 690 Java and 442 C++ tests green, compare_exports identical for
+all four scripts, the `notes=freq` export unmoved, check_drivers.sh
+still green. `MidiInputTest` carries the corrected expectations and
+says in place what they were before and why.
+
+What is NOT covered automatically, and should be the manual check: the
+C++ `CSong::MidiEvent` has no test of its own - it is MFC- and
+global-bound, and there is no C++ counterpart to `MidiInputTest`. Its
+correctness here rests on being a line-by-line mirror of the Java
+handler, which is tested, plus the shared helper's own tests, which
+are the same code path in both programs. The 16-bit case is
+untested in either program for the same reason: nothing drives a
+joined-channel AUDCTL through the MIDI handler today.
 
 ## Out of scope
 

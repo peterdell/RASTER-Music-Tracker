@@ -81,4 +81,53 @@ public final class FrequencyTables {
 			return page;
 		}
 	}
+
+	/**
+	 * Which clock or width a channel plays at, from the AUDCTL the driver is
+	 * about to write.
+	 *
+	 * <p>Only channels 1 and 3 of each chip can run at 1.79 MHz (tracks 0/4
+	 * and 2/6), and a 16-bit pair is addressed through its high byte, which is
+	 * the channel above (tracks 1/5 and 3/7) - so the same AUDCTL means
+	 * different things to different channels. 1.79 MHz and 16-bit both
+	 * override the 15 kHz clock, as they do in the player.
+	 *
+	 * @param audctl the AUDCTL value, as in the driver's {@code v_audctl}
+	 * @param track the POKEY channel, 0-3 for the first chip and 4-7 for the second
+	 */
+	public static Mode getModeForChannel(int audctl, int track) {
+		boolean clock15 = (audctl & 0x01) != 0;
+		boolean join34 = (audctl & 0x08) != 0;
+		boolean join12 = (audctl & 0x10) != 0;
+		boolean ch3_179 = (audctl & 0x20) != 0;
+		boolean ch1_179 = (audctl & 0x40) != 0;
+
+		// A joined pair is addressed through its high byte, the channel above
+		// the 1.79 MHz one.
+		if ((join12 && ch1_179 && (track == 1 || track == 5)) || (join34 && ch3_179 && (track == 3 || track == 7))) {
+			return Mode.JOIN_16BIT;
+		}
+		if ((ch1_179 && (track == 0 || track == 4)) || (ch3_179 && (track == 2 || track == 6))) {
+			return Mode.CLOCK_179MHZ;
+		}
+		return clock15 ? Mode.CLOCK_15KHZ : Mode.CLOCK_64KHZ;
+	}
+
+	/**
+	 * The AUDC distortion bits the player writes to POKEY for this distortion,
+	 * or -1 when the loaded driver has no dispatch table. Read from that table
+	 * rather than computed, because it is not simply the distortion shifted
+	 * up: distortion $06 plays with AUDC $A0 and $0E with $C0.
+	 */
+	public static int getDistortionAudc(byte[] atariMemory, int distortion) {
+		// $00 is a valid AUDC, so the entry's own bytes cannot tell a missing
+		// dispatch table from distortion 0 - the page MSB beside it can, and
+		// getTableAddress() already checks it.
+		if (getTableAddress(atariMemory, distortion, Mode.CLOCK_64KHZ) == 0) {
+			return -1;
+		}
+
+		// DISTORTIONS is the second byte of each TABLES_MSB pair.
+		return atariMemory[RMT_TABLES_MSB + 1 + (distortion >> 1) * 2] & 0xFF;
+	}
 }
