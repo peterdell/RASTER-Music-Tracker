@@ -38,7 +38,13 @@ public:
     // writes the confirmed value back to that global before calling this).
     // Takes std::ostream& rather than std::ofstream& for the same reason as
     // CRmtExporter::ExportAsRMT() (see test/SongEditingTests.cpp).
-    static bool ExportAsAsmApply(const CSong& song, std::ostream& ou, int exportType, int notesIndexOrFreq, int durationsType);
+    // trackerDriverVersion decides which of the two frequency-table layouts
+    // notesIndexOrFreq == 2 reads (plans/40_DRIVER_TABLE_LAYOUTS_PLAN.md). It
+    // is a parameter rather than a read of g_trackerDriverVersion because this
+    // half of the class is linked into the test project, which does not link
+    // Global.cpp.
+    static bool ExportAsAsmApply(const CSong& song, std::ostream& ou, TrackerDriverVersion trackerDriverVersion, int exportType,
+                                 int notesIndexOrFreq, int durationsType);
 
     /// <summary>
     /// Export the RMT data for the RMTPlayer assembler player.

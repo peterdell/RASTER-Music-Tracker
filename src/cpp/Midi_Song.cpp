@@ -473,16 +473,18 @@ void CSong::MidiEvent(DWORD dwParam, bool hasFocus) {
             }
 
             const auto mode = CFrequencyTables::GetModeForChannel(midi_audctl & 0xFF, track);
-            const MemoryAddress table = CFrequencyTables::GetTableAddress(memory, midi_distortion, mode);
-            const int distortionAudc = CFrequencyTables::GetDistortionAudc(memory, midi_distortion);
+            const MemoryAddress table = CFrequencyTables::GetTableAddress(memory, g_trackerDriverVersion, midi_distortion, mode);
+            const int distortionAudc = CFrequencyTables::GetDistortionAudc(memory, g_trackerDriverVersion, midi_distortion);
             if (!table || distortionAudc < 0) {
-                return; //no Patch 16 driver loaded, so there is nothing to play from
+                return; //no driver loaded whose tables this layout can find
             }
 
             midi_audc |= (char)distortionAudc; //the Distortion bits the player would write
             if (mode == CFrequencyTables::Mode::Join16Bit) {
                 //The joined pair's table holds little-endian words, and `track`
                 //is its high byte - so the low byte belongs to the channel below.
+                //Only the Patch 16 layout answers at all in this mode, so the
+                //interleaving is the only one that can be meant here.
                 midi_audf = memory[table + note * 2 + 1];
                 memory[RMTPLAYR_TRACKN_AUDF + track - 1] = memory[table + note * 2];
             } else {

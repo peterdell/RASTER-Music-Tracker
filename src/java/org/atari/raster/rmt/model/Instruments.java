@@ -303,9 +303,10 @@ public final class Instruments {
 	 * @param instr instrument number
 	 * @param note which note
 	 * @param atariMemory the emulated Atari memory to read the frequency table from (C++ reads this from the g_Atari global instead)
+	 * @param trackerDriverVersion which driver is loaded, and so which table layout to read
 	 * @return the frequency, or -1 if instr/the resulting note is invalid
 	 */
-	public int getFrequency(int instr, int note, byte[] atariMemory) {
+	public int getFrequency(int instr, int note, byte[] atariMemory, TrackerDriverVersion trackerDriverVersion) {
 		Instrument tt = getInstrument(instr);
 		if (tt == null) {
 			return -1;
@@ -339,9 +340,9 @@ public final class Instruments {
 		}
 
 		FrequencyTables.Mode mode = tt.parameters[Instrument.PAR_AUDCTL_15KHZ] != 0 ? FrequencyTables.Mode.CLOCK_15KHZ : FrequencyTables.Mode.CLOCK_64KHZ;
-		int table = FrequencyTables.getTableAddress(atariMemory, distortion, mode);
+		int table = FrequencyTables.getTableAddress(atariMemory, trackerDriverVersion, distortion, mode);
 		if (table == 0) {
-			return -1; // no Patch 16 driver loaded, so no table to read
+			return -1; // no driver loaded whose tables this layout can find
 		}
 		return unsignedByte(atariMemory, table + note);
 	}

@@ -2,6 +2,10 @@
 #include "ASMFile.h"
 #include "ASMFileExporter.h"
 #include "ASMFileBuilder.h"
+#include "Atari.h"
+#include "FrequencyTables.h"
+#include "Messages.h"
+#include "TrackerDriverVersion.h"
 
 // The CASMFileExporter methods here have no dialog/hazard of their own -
 // confirmed by reading each one for globals/dialogs and finding only
@@ -12,13 +16,29 @@
 // here - same pattern as Song.cpp/SongEditing.cpp etc.
 
 extern CInstruments g_Instruments;
+extern CAtari g_Atari; // only read from, and only to see whether the loaded driver has frequency tables
 
 CString g_PrefixForAllAsmLabels; //label prefix for export ASM simple notation
 
 /// <summary>
 /// Export the RMT module as assembler
 /// </summary>
-bool CASMFileExporter::ExportAsAsmApply(const CSong& song, std::ostream& ou, int exportType, int notesIndexOrFreq, int durationsType) {
+bool CASMFileExporter::ExportAsAsmApply(const CSong& song, std::ostream& ou, TrackerDriverVersion trackerDriverVersion, int exportType,
+                                        int notesIndexOrFreq, int durationsType) {
+    if (notesIndexOrFreq == 2 /* frequencies */ &&
+        !CFrequencyTables::HasDispatchTable(g_Atari.GetConstMemoryAt(0), trackerDriverVersion)) {
+        // Every value would come out of the loaded player's own frequency
+        // tables, so without them the whole export is a file of XXX - which
+        // looks like a tracker bug rather than a missing driver file. Plan 30
+        // settled that a missing driver must not produce a silent export; this
+        // is the same rule for a silent one
+        // (plans/40_DRIVER_TABLE_LAYOUTS_PLAN.md, L4).
+        SendErrorMessage("Export as ASM",
+                         "The player routines for the selected tracker driver are not loaded, so there are no frequency tables to "
+                         "read.\n\nExport the notes as indices instead, or restore the driver file and reopen the module.");
+        return false;
+    }
+
     CString s, snot;
     int maxova = 16; // maximal amount of data per line
 
@@ -67,7 +87,7 @@ bool CASMFileExporter::ExportAsAsmApply(const CSong& song, std::ostream& ou, int
                     if (notesIndexOrFreq == 1) { //notes
                         note = g_Instruments.GetNote(instrumentNr, note);
                     } else { //frequencies
-                        note = g_Instruments.GetFrequency(instrumentNr, note);
+                        note = g_Instruments.GetFrequency(instrumentNr, note, trackerDriverVersion);
                     }
                 }
                 if (note >= 0) {
@@ -201,7 +221,7 @@ bool CASMFileExporter::ExportAsAsmApply(const CSong& song, std::ostream& ou, int
                         if (notesIndexOrFreq == 1) { //notes
                             anot = g_Instruments.GetNote(ins, anot);
                         } else { //frequencies
-                            anot = g_Instruments.GetFrequency(ins, anot);
+                            anot = g_Instruments.GetFrequency(ins, anot, trackerDriverVersion);
                         }
                     }
                     if (anot >= 0) {

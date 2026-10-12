@@ -263,4 +263,7 @@ joined-channel AUDCTL through the MIDI handler today.
   `RMTPLAYR_V_AUDCTL` were verified against a freshly generated header
   for this plan, but refreshing that file is its own change.
 - The v1-family drivers' own tables, and anything about which driver
-  the MIDI path should assume.
+  the MIDI path should assume. Picked up by
+  [plan 40](40_DRIVER_TABLE_LAYOUTS_PLAN.md) and done: the helper now
+  takes the driver version, and both the ASM export and MIDI input
+  read whichever of the two layouts that version uses.

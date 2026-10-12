@@ -1709,11 +1709,32 @@ TEST_F(SongEditingTest, ExportAsAsmApplyWritesTracksOnlyOutput) {
     tr->instr[0] = 2;
 
     std::ostringstream out;
-    EXPECT_TRUE(CASMFileExporter::ExportAsAsmApply(song, out, 1 /* Tracks only */, 1 /* notes */, 1 /* notes only */));
+    EXPECT_TRUE(CASMFileExporter::ExportAsAsmApply(song, out, TrackerDriverVersion::PATCH16, 1 /* Tracks only */, 1 /* notes */, 1 /* notes only */));
 
     std::string text = out.str();
     EXPECT_NE(text.find(";ASM notation source"), std::string::npos);
     EXPECT_NE(text.find(";Track $05"), std::string::npos);
+}
+
+// notes=freq reads every value out of the loaded player's own frequency
+// tables, so with no driver loaded the export would be a file of XXX. Plan 30
+// settled that a missing driver must not produce a silent export; plan 40's L4
+// applies the same rule here, so this refuses and writes nothing. notes=index
+// needs no driver and keeps working.
+TEST_F(SongEditingTest, ExportAsAsmApplyRefusesFrequenciesWithoutTheDriversTables) {
+    (*song.GetSong())[0][0] = 5;
+    TTrack* tr = g_Tracks.GetTrack(5);
+    tr->len = 2;
+    tr->note[0] = 10;
+    tr->instr[0] = 2;
+
+    std::ostringstream freq;
+    EXPECT_FALSE(CASMFileExporter::ExportAsAsmApply(song, freq, TrackerDriverVersion::PATCH16, 1, 2 /* frequencies */, 1));
+    EXPECT_TRUE(freq.str().empty());
+
+    std::ostringstream index;
+    EXPECT_TRUE(CASMFileExporter::ExportAsAsmApply(song, index, TrackerDriverVersion::PATCH16, 1, 1 /* indices */, 1));
+    EXPECT_FALSE(index.str().empty());
 }
 
 // --- CASMFileExporter::BuildRelocatableAsm ---

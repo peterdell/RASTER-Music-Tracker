@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "Atari.h"
+#include "FrequencyTables.h"
 #include "Instruments.h"
 #include "Notes.h"
 
@@ -574,13 +575,13 @@ TEST_F(InstrumentsCoreTest, GetNoteReturnsMinusOneForInvalidShiftedNote) {
 // plain array accessors with no hazard of their own, so this needed no
 // special test-only seam, unlike CTuning::InitTuning()'s guarded globals.
 
-// GetFrequency() asks CFrequencyTables, which reads the page out of the
-// driver's own TABLES_MSB dispatch table, so these tests put a SYNTHETIC
-// dispatch table in g_Atari's memory - one that sends every distortion to a
-// different page - and then assert that GetFrequency follows it. That is the
+// GetFrequency() asks CFrequencyTables, which reads the table out of the
+// driver's own dispatch table, so these tests put a SYNTHETIC dispatch table in
+// g_Atari's memory - one that sends every distortion somewhere else than the
+// real driver does - and then assert that GetFrequency follows it. That is the
 // property worth pinning here: it must read the driver's choice rather than a
-// map of its own. The real driver's mapping is pinned once, against the
-// shipped binary, in FrequencyTablesTests.cpp.
+// map of its own. The real drivers' mappings are pinned once, against the
+// shipped binaries, in FrequencyTablesTests.cpp.
 class InstrumentFrequencyTest : public InstrumentsCoreTest {
   protected:
     // Deliberately not the driver's own mapping: distortion $00 -> the gritty
@@ -608,16 +609,16 @@ class InstrumentFrequencyTest : public InstrumentsCoreTest {
 };
 
 TEST_F(InstrumentFrequencyTest, ReturnsMinusOneForOutOfRangeIndex) {
-    EXPECT_EQ(instruments.GetFrequency(-1, 0), -1);
-    EXPECT_EQ(instruments.GetFrequency(INSTRSNUM, 0), -1);
+    EXPECT_EQ(instruments.GetFrequency(-1, 0, TrackerDriverVersion::PATCH16), -1);
+    EXPECT_EQ(instruments.GetFrequency(INSTRSNUM, 0, TrackerDriverVersion::PATCH16), -1);
 }
 
 TEST_F(InstrumentFrequencyTest, ReturnsMinusOneForOutOfRangeNote) {
     TInstrument* ai = instruments.GetInstrument(kInstr);
     ai->parameters[PAR_TBL_TYPE] = 1; // no shift
 
-    EXPECT_EQ(instruments.GetFrequency(kInstr, -1), -1);
-    EXPECT_EQ(instruments.GetFrequency(kInstr, CNotes::NOTESNUM), -1);
+    EXPECT_EQ(instruments.GetFrequency(kInstr, -1, TrackerDriverVersion::PATCH16), -1);
+    EXPECT_EQ(instruments.GetFrequency(kInstr, CNotes::NOTESNUM, TrackerDriverVersion::PATCH16), -1);
 }
 
 // Each distortion reads the 64 kHz table of the page the driver's dispatch
@@ -637,7 +638,7 @@ TEST_F(InstrumentFrequencyTest, ReadsTheSixtyFourKhzTableOfThePageTheDriverNames
 
         ai->envelope[0][EnvelopeParameter::DISTORTION] = distortion;
 
-        EXPECT_EQ(instruments.GetFrequency(kInstr, 5), expected) << "distortion " << distortion;
+        EXPECT_EQ(instruments.GetFrequency(kInstr, 5, TrackerDriverVersion::PATCH16), expected) << "distortion " << distortion;
     }
 }
 
@@ -647,7 +648,7 @@ TEST_F(InstrumentFrequencyTest, ReturnsMinusOneWhenNoDriverSuppliesADispatchTabl
     ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x0A;
     g_Atari.ClearMemory(); // no driver loaded: no table to read
 
-    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), -1);
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5, TrackerDriverVersion::PATCH16), -1);
 }
 
 TEST_F(InstrumentFrequencyTest, ReadsTheFifteenKhzTableWhenTheInstrumentSetsThatAudctlBit) {
@@ -659,11 +660,11 @@ TEST_F(InstrumentFrequencyTest, ReadsTheFifteenKhzTableWhenTheInstrumentSetsThat
 
     // check_15khz: distortion C and above take the buzzy table.
     ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x00;
-    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 66);
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5, TrackerDriverVersion::PATCH16), 66);
     ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x0C;
-    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 77);
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5, TrackerDriverVersion::PATCH16), 77);
     ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x0E;
-    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 77);
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5, TrackerDriverVersion::PATCH16), 77);
 }
 
 TEST_F(InstrumentFrequencyTest, ReturnsMinusOneForDistortionSixBecauseItPlaysSixteenBit) {
@@ -672,7 +673,28 @@ TEST_F(InstrumentFrequencyTest, ReturnsMinusOneForDistortionSixBecauseItPlaysSix
     ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x06;
 
     // BASS16: a 16-bit frequency, which no single AUDF byte describes.
-    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), -1);
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5, TrackerDriverVersion::PATCH16), -1);
+}
+
+// The version, not the bytes, picks the layout: the same note, the same
+// distortion and two dispatch tables in memory at once give two answers.
+TEST_F(InstrumentFrequencyTest, TheDriverVersionDecidesWhichLayoutIsRead) {
+    TInstrument* ai = instruments.GetInstrument(kInstr);
+    ai->parameters[PAR_TBL_TYPE] = 1; // no shift
+    ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x0A;
+
+    // A synthetic v1-family table beside the Patch 16 one SetUp() installed,
+    // sending distortion $0A to frqtab+$40 rather than the real +$80.
+    for (int i = 0; i < 8; i++) {
+        g_Atari.SetByteAt(CFrequencyTables::LEGACY_TABBEGANDDISTOR + i * 2, 0x40);
+        g_Atari.SetByteAt(CFrequencyTables::LEGACY_TABBEGANDDISTOR + 1 + i * 2, 0xA0);
+    }
+    g_Atari.SetByteAt(CFrequencyTables::LEGACY_FRQTAB + 0x40 + 5, 99);
+    g_Atari.SetByteAt(Table(0x0A) + 5, 11);
+
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5, TrackerDriverVersion::PATCH16), 11);
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5, TrackerDriverVersion::UNPATCHED), 99);
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5, TrackerDriverVersion::NONE), -1);
 }
 
 TEST_F(InstrumentFrequencyTest, ShiftsNoteByNoteTableZeroWhenTableTypeIsZero) {
@@ -682,5 +704,5 @@ TEST_F(InstrumentFrequencyTest, ShiftsNoteByNoteTableZeroWhenTableTypeIsZero) {
     ai->envelope[0][EnvelopeParameter::DISTORTION] = 0x00;
     g_Atari.SetByteAt(Table(0x00) + 10, 42); // note 5 shifted by 5 -> 10
 
-    EXPECT_EQ(instruments.GetFrequency(kInstr, 5), 42);
+    EXPECT_EQ(instruments.GetFrequency(kInstr, 5, TrackerDriverVersion::PATCH16), 42);
 }

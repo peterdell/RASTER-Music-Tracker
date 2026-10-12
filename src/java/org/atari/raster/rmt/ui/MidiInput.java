@@ -7,6 +7,7 @@ import org.atari.raster.rmt.model.Notes;
 import org.atari.raster.rmt.model.Part;
 import org.atari.raster.rmt.model.PlayMode;
 import org.atari.raster.rmt.model.Song;
+import org.atari.raster.rmt.model.TrackerDriverVersion;
 import org.atari.raster.rmt.model.Tracks;
 
 /**
@@ -531,17 +532,20 @@ public final class MidiInput {
 			}
 		}
 
+		TrackerDriverVersion version = session.options.trackerDriverVersion;
 		FrequencyTables.Mode mode = FrequencyTables.getModeForChannel(midiAudctl, track);
-		int table = FrequencyTables.getTableAddress(memory, midiDistortionOnChannel, mode);
-		int distortionAudc = FrequencyTables.getDistortionAudc(memory, midiDistortionOnChannel);
+		int table = FrequencyTables.getTableAddress(memory, version, midiDistortionOnChannel, mode);
+		int distortionAudc = FrequencyTables.getDistortionAudc(memory, version, midiDistortionOnChannel);
 		if (table == 0 || distortionAudc < 0) {
-			return; // no Patch 16 driver loaded, so there is nothing to play from
+			return; // no driver loaded whose tables this layout can find
 		}
 
 		midiAudc |= distortionAudc; // the Distortion bits the player would write
 		if (mode == FrequencyTables.Mode.JOIN_16BIT) {
 			// The joined pair's table holds little-endian words, and `track` is
 			// its high byte - so the low byte belongs to the channel below.
+			// Only the Patch 16 layout answers at all in this mode, so the
+			// interleaving is the only one that can be meant here.
 			midiAudf = memory[table + note * 2 + 1] & 0xFF;
 			memory[AUDF + track - 1] = memory[table + note * 2];
 		} else {

@@ -541,7 +541,7 @@ void CScriptRunner::Export(const TScriptCommand& command) {
             int notesIndexOrFreq = ParseChoice(c, "notes", c.GetOption("notes", "index"), { "index", "freq" });
             int durationsType = ParseChoice(c, "durations", c.GetOption("durations", "notes"), { "notes", "note-duration", "duration-note" });
             g_PrefixForAllAsmLabels = ToCString(c.GetOption("prefix", (LPCTSTR)g_PrefixForAllAsmLabels));
-            exportResult = CASMFileExporter::ExportAsAsmApply(m_song, out, exportType, notesIndexOrFreq, durationsType);
+            exportResult = CASMFileExporter::ExportAsAsmApply(m_song, out, g_trackerDriverVersion, exportType, notesIndexOrFreq, durationsType);
             break;
         }
         case SongIOType::ASM_RMTPLAYER: {

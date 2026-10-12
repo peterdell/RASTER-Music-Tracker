@@ -3,6 +3,8 @@
 #include "ASMFileExporter.h"
 #include "ExportDlgs.h"
 
+extern TrackerDriverVersion g_trackerDriverVersion; //which driver's frequency-table layout ExportAsAsmApply() is to read
+
 extern BOOL g_rmtstripped_sfx; //sfx offshoot RMT stripped file
 extern BOOL g_rmtstripped_gvf; //gvs GlobalVolumeFade for feat
 extern BOOL g_rmtstripped_nos; //nos NoStartingSongline for feat
@@ -39,7 +41,7 @@ bool CASMFileExporter::ExportAsAsm(const CSong& song, std::ofstream& ou, TExport
     // Save for future ASM exports
     g_PrefixForAllAsmLabels = dlg.m_prefixForAllAsmLabels;
 
-    return ExportAsAsmApply(song, ou, dlg.m_exportType, dlg.m_notesIndexOrFreq, dlg.m_durationsType);
+    return ExportAsAsmApply(song, ou, g_trackerDriverVersion, dlg.m_exportType, dlg.m_notesIndexOrFreq, dlg.m_durationsType);
 }
 
 // CASMFileExporter::ExportAsAsmApply() is implemented in ASMFileExporterCore.cpp.

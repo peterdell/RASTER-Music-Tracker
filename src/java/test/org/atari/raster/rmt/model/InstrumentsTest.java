@@ -607,12 +607,13 @@ class InstrumentsTest {
 	// --- getFrequency ---
 	// Reads a byte from the given emulated-Atari-memory buffer, from the table
 	// FrequencyTables names for the instrument's distortion and clock. That
-	// helper reads the page out of the driver's own TABLES_MSB dispatch table,
-	// so these tests install a SYNTHETIC dispatch table - one that sends every
-	// distortion to a different page - and assert that getFrequency follows
-	// it. That is the property worth pinning here: it must read the driver's
-	// choice rather than a map of its own. The real driver's mapping is pinned
-	// once, against the shipped binary, in FrequencyTablesTest.
+	// helper reads the table out of the driver's own dispatch table, so these
+	// tests install a SYNTHETIC dispatch table - one that sends every
+	// distortion somewhere else than the real driver does - and assert that
+	// getFrequency follows it. That is the property worth pinning here: it must
+	// read the driver's choice rather than a map of its own. The real drivers'
+	// mappings are pinned once, against the shipped binaries, in
+	// FrequencyTablesTest.
 	@Nested
 	class GetFrequencyTest {
 
@@ -640,8 +641,8 @@ class InstrumentsTest {
 
 		@Test
 		void returnsMinusOneForOutOfRangeIndex() {
-			assertEquals(-1, instruments.getFrequency(-1, 0, atariMemory));
-			assertEquals(-1, instruments.getFrequency(Instruments.INSTRSNUM, 0, atariMemory));
+			assertEquals(-1, instruments.getFrequency(-1, 0, atariMemory, TrackerDriverVersion.PATCH16));
+			assertEquals(-1, instruments.getFrequency(Instruments.INSTRSNUM, 0, atariMemory, TrackerDriverVersion.PATCH16));
 		}
 
 		@Test
@@ -649,8 +650,8 @@ class InstrumentsTest {
 			Instrument ai = instruments.getInstrument(INSTR);
 			ai.parameters[Instrument.PAR_TBL_TYPE] = 1; // no shift
 
-			assertEquals(-1, instruments.getFrequency(INSTR, -1, atariMemory));
-			assertEquals(-1, instruments.getFrequency(INSTR, Notes.NOTESNUM, atariMemory));
+			assertEquals(-1, instruments.getFrequency(INSTR, -1, atariMemory, TrackerDriverVersion.PATCH16));
+			assertEquals(-1, instruments.getFrequency(INSTR, Notes.NOTESNUM, atariMemory, TrackerDriverVersion.PATCH16));
 		}
 
 		/**
@@ -675,7 +676,7 @@ class InstrumentsTest {
 				ai.envelope[0][EnvelopeParameter.DISTORTION] = distortion;
 
 				int at = distortion;
-				assertEquals(expected, instruments.getFrequency(INSTR, 5, atariMemory),
+				assertEquals(expected, instruments.getFrequency(INSTR, 5, atariMemory, TrackerDriverVersion.PATCH16),
 						() -> String.format("distortion $%02X", at));
 			}
 		}
@@ -686,7 +687,7 @@ class InstrumentsTest {
 			ai.parameters[Instrument.PAR_TBL_TYPE] = 1;
 			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x0A;
 
-			assertEquals(-1, instruments.getFrequency(INSTR, 5, new byte[0x10000]));
+			assertEquals(-1, instruments.getFrequency(INSTR, 5, new byte[0x10000], TrackerDriverVersion.PATCH16));
 		}
 
 		@Test
@@ -699,11 +700,11 @@ class InstrumentsTest {
 
 			// check_15khz: distortion C and above take the buzzy table.
 			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x00;
-			assertEquals(66, instruments.getFrequency(INSTR, 5, atariMemory));
+			assertEquals(66, instruments.getFrequency(INSTR, 5, atariMemory, TrackerDriverVersion.PATCH16));
 			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x0C;
-			assertEquals(77, instruments.getFrequency(INSTR, 5, atariMemory));
+			assertEquals(77, instruments.getFrequency(INSTR, 5, atariMemory, TrackerDriverVersion.PATCH16));
 			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x0E;
-			assertEquals(77, instruments.getFrequency(INSTR, 5, atariMemory));
+			assertEquals(77, instruments.getFrequency(INSTR, 5, atariMemory, TrackerDriverVersion.PATCH16));
 		}
 
 		@Test
@@ -713,7 +714,33 @@ class InstrumentsTest {
 			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x06;
 
 			// BASS16: a 16-bit frequency, which no single AUDF byte describes.
-			assertEquals(-1, instruments.getFrequency(INSTR, 5, atariMemory));
+			assertEquals(-1, instruments.getFrequency(INSTR, 5, atariMemory, TrackerDriverVersion.PATCH16));
+		}
+
+		/**
+		 * The version, not the bytes, picks the layout: the same note, the
+		 * same distortion and two dispatch tables in memory at once give two
+		 * answers.
+		 */
+		@Test
+		void theDriverVersionDecidesWhichLayoutIsRead() {
+			Instrument ai = instruments.getInstrument(INSTR);
+			ai.parameters[Instrument.PAR_TBL_TYPE] = 1; // no shift
+			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x0A;
+
+			// A synthetic v1-family table beside the Patch 16 one setUpMemory()
+			// installed, sending distortion $0A to frqtab+$40 rather than the
+			// real +$80.
+			for (int i = 0; i < 8; i++) {
+				atariMemory[FrequencyTables.LEGACY_TABBEGANDDISTOR + i * 2] = 0x40;
+				atariMemory[FrequencyTables.LEGACY_TABBEGANDDISTOR + 1 + i * 2] = (byte) 0xA0;
+			}
+			atariMemory[FrequencyTables.LEGACY_FRQTAB + 0x40 + 5] = 99;
+			atariMemory[table(0x0A) + 5] = 11;
+
+			assertEquals(11, instruments.getFrequency(INSTR, 5, atariMemory, TrackerDriverVersion.PATCH16));
+			assertEquals(99, instruments.getFrequency(INSTR, 5, atariMemory, TrackerDriverVersion.UNPATCHED));
+			assertEquals(-1, instruments.getFrequency(INSTR, 5, atariMemory, TrackerDriverVersion.NONE));
 		}
 
 		@Test
@@ -724,7 +751,7 @@ class InstrumentsTest {
 			ai.envelope[0][EnvelopeParameter.DISTORTION] = 0x00;
 			atariMemory[table(0x00) + 10] = 42; // note 5 shifted by 5 -> 10
 
-			assertEquals(42, instruments.getFrequency(INSTR, 5, atariMemory));
+			assertEquals(42, instruments.getFrequency(INSTR, 5, atariMemory, TrackerDriverVersion.PATCH16));
 		}
 	}
 }

@@ -110,7 +110,10 @@ reshuffle of the pages reaches the tracker without anything being
 edited there. Both of those places used to keep their own copy of the
 addresses, and both had fallen a page behind: one still assumed the
 single-page layout of RMT 1.28, the other the five-page layout from
-before the Distortion 4 page was added.
+before the Distortion 4 page was added. Every other driver version
+has a dispatch table of its own, in a different shape and at a
+different address, and the tracker reads that one the same way - see
+the last section of this page.
 
 The content of the block is assembled into the driver binary
 byte-for-byte from the data statements in `asm/Patch-16/rmtdata.a65`,
@@ -153,3 +156,40 @@ shipped driver can only hold one configuration.
 This driver version is an older patch based on the original RMT 1.28 Patch 8 by Analmux.
 This version was created exclusively for the Prince of Persia soundtrack.
 It was thus never really used outside of a very few test tunes that used some of the sounds.
+
+## The Frequency Tables of the Other Drivers
+
+Every driver but Patch 16 keeps its frequency tables inside the
+player instead, in the page below it, and has only four of them
+rather than Patch 16's eighteen:
+
+| Address | Table        | Used for                     |
+| ------- | ------------ | ---------------------------- |
+| $31C0   | frqtabbasslo | 16-bit bass, the low bytes   |
+| $3200   | frqtabbass1  | Distortions 6 and C          |
+| $3240   | frqtabbass2  | Distortion E                 |
+| $3280   | frqtabpure   | Distortions 0, 2, 4, 8 and A |
+| $32C0   | frqtabbasshi | 16-bit bass, the high bytes  |
+
+The dispatch table sits at $3182 and names, per distortion, an offset
+into the $3200 page and the AUDC bits - the same two answers Patch 16's
+gives, in a different shape. There are no clock variants at all: a
+channel running at 1.79 MHz or 15 kHz reads the very same table, which
+is why those two clocks play out of tune on these drivers rather than
+playing nothing.
+
+These tables are assembled into each binary, and the tuning system
+cannot reach them: it only ever writes the $B000 page. They are
+therefore exactly what those drivers play, whatever the tuning dialog
+says - a reason to prefer Patch 16 for anything that is to be tuned.
+
+Only the unpatched driver's source is in this repository, and the five
+patched binaries each changed the table's contents: Patch 6 plays
+distortion 6 with AUDC $A0 where the unpatched driver plays it with
+$C0, and Patch 8 and Patch Prince of Persia do not even keep their
+tables on $40 boundaries any more. So the tracker reads this layout
+from the loaded driver too, rather than assuming the original numbers,
+and the assembler export's frequency mode and MIDI note input work with
+every driver version. The one thing it will not read is the 16-bit
+bass, whose two tables lie a page apart and cannot be identified with
+confidence in binaries that have no source to check against.

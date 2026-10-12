@@ -195,8 +195,10 @@ int CInstruments::GetNote(int instr, int note) {
 /// </summary>
 /// <param name="instr">Instrument #</param>
 /// <param name="note">which note</param>
+/// <param name="trackerDriverVersion">which driver is loaded, and so which table layout to read. Passed in rather
+/// than read from g_trackerDriverVersion, to keep this file free of Global.h (see the comment at the top).</param>
 /// <returns>frequency</returns>
-int CInstruments::GetFrequency(int instr, int note) {
+int CInstruments::GetFrequency(int instr, int note, TrackerDriverVersion trackerDriverVersion) {
     TInstrument* tt = GetInstrument(instr);
     if (!tt) {
         return -1;
@@ -230,9 +232,9 @@ int CInstruments::GetFrequency(int instr, int note) {
     }
 
     const auto mode = tt->parameters[PAR_AUDCTL_15KHZ] ? CFrequencyTables::Mode::Clock15kHz : CFrequencyTables::Mode::Clock64kHz;
-    const MemoryAddress table = CFrequencyTables::GetTableAddress(g_Atari.GetConstMemoryAt(0), distortion, mode);
+    const MemoryAddress table = CFrequencyTables::GetTableAddress(g_Atari.GetConstMemoryAt(0), trackerDriverVersion, distortion, mode);
     if (!table) {
-        return -1; // no Patch 16 driver loaded, so no table to read
+        return -1; // no driver loaded whose tables this layout can find
     }
     return g_Atari.GetByteAt(table + note);
 }

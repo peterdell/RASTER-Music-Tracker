@@ -3,6 +3,8 @@ package org.atari.raster.rmt.model;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -1780,10 +1782,33 @@ class SongEditingTest {
 		tr.note[0] = 10;
 		tr.instr[0] = 2;
 
-		String out = AsmFileExporter.exportAsAsmApply(song, instruments, tracks, new byte[Atari.MEMORY_SIZE], "", 4, 1 /* Tracks only */, 1 /* notes */, 1 /* notes only */);
+		String out = AsmFileExporter.exportAsAsmApply(song, instruments, tracks, new byte[Atari.MEMORY_SIZE], TrackerDriverVersion.PATCH16, messages, "",
+				4, 1 /* Tracks only */, 1 /* notes */, 1 /* notes only */);
 
 		assertTrue(out.contains(";ASM notation source"));
 		assertTrue(out.contains(";Track $05"));
+	}
+
+	/**
+	 * notes=freq reads every value out of the loaded player's own frequency
+	 * tables, so with no driver loaded the export would be a file of XXX. Plan
+	 * 30 settled that a missing driver must not produce a silent export; plan
+	 * 40's L4 applies the same rule here, so this refuses and renders nothing.
+	 * notes=index needs no driver and keeps working.
+	 */
+	@Test
+	void exportAsAsmApplyRefusesFrequenciesWithoutTheDriversTables() {
+		song.getSong()[0][0] = 5;
+		Track tr = tracks.getTrack(5);
+		tr.len = 2;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+		byte[] noDriver = new byte[Atari.MEMORY_SIZE];
+
+		assertNull(AsmFileExporter.exportAsAsmApply(song, instruments, tracks, noDriver, TrackerDriverVersion.PATCH16, messages, "", 4, 1,
+				2 /* frequencies */, 1));
+		assertNotNull(AsmFileExporter.exportAsAsmApply(song, instruments, tracks, noDriver, TrackerDriverVersion.PATCH16, messages, "", 4, 1,
+				1 /* indices */, 1));
 	}
 
 	// --- AsmFileExporter.buildRelocatableAsm ---
