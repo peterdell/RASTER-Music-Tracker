@@ -32,6 +32,17 @@ public:
         Join16Bit,
     };
 
+    /// <summary> Whether the driver in `memory` carries the dispatch table these methods read </summary>
+    /// <remarks>
+    /// True only for the Patch 16 driver: it is the one with the $B000 table
+    /// pages, while the v1-family drivers keep their tables inside the player
+    /// at $31c0-$32ff and never read that region. Everything below answers 0
+    /// or -1 when this is false, so the caller reports "no frequency" rather
+    /// than inventing one - which is correct but not yet the whole truth,
+    /// since those drivers' own tables could be read instead (plan 40).
+    /// </remarks>
+    static bool HasDispatchTable(const byte* memory);
+
     /// <summary> The address of the AUDF table the player reads for this distortion and mode </summary>
     /// <param name="memory"> the emulated Atari's memory, with a Patch 16 driver loaded </param>
     /// <param name="distortion"> the instrument's RMT distortion, $00 to $0E </param>

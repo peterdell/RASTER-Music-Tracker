@@ -2,6 +2,28 @@
 
 #include "FrequencyTables.h"
 
+bool CFrequencyTables::HasDispatchTable(const byte* memory) {
+    // Checks the whole table, not just the entry about to be read: every page
+    // MSB must name one of the five distortion pages, and every AUDC must
+    // carry distortion bits only, the volume nibble being the player's to
+    // fill in. Of the seven drivers RMT ships, only rmt_driver_v6.obx passes;
+    // in the other six these bytes are their own frequency-table data, which
+    // lies far outside $B0-$B4. It stays a plausibility check rather than a
+    // driver-version test, though - see plan 40 for giving this the version
+    // and a second layout to answer with.
+    for (int i = 0; i < 8; i++) {
+        const byte pageMsb = memory[RMTPLAYR_TABLES_MSB + i * 2];
+        const byte audc = memory[RMTPLAYR_DISTORTIONS + i * 2];
+        if (pageMsb < (RMTPLAYR_PAGE_DISTORTION_2 >> 8) || pageMsb > (RMTPLAYR_PAGE_DISTORTION_E >> 8)) {
+            return false;
+        }
+        if ((audc & 0x0F) != 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
 MemoryAddress CFrequencyTables::GetTableAddress(const byte* memory, int distortion, Mode mode) {
     if (distortion < 0x00 || distortion > 0x0E) {
         return 0;
@@ -14,21 +36,14 @@ MemoryAddress CFrequencyTables::GetTableAddress(const byte* memory, int distorti
         return distortion >= 0x0C ? RMTPLAYR_FRQTABBUZZY_15KHZ : RMTPLAYR_FRQTABPURE_15KHZ;
     }
 
-    // TABLES_MSB holds eight (page MSB, AUDC) pairs, indexed by distortion/2;
-    // only the page MSB is of interest here, the AUDC the player writes to
-    // POKEY is the caller's own business.
-    const byte pageMsb = memory[RMTPLAYR_TABLES_MSB + (distortion >> 1) * 2];
-
-    // A sanity check on the loaded driver, not a driver-version test: the
-    // five distortion pages are the only ones the dispatch table can name, so
-    // anything else means these bytes are not that table (no Patch 16 driver
-    // loaded - the v1-family drivers keep their tables inside the player and
-    // never read this region at all).
-    if (pageMsb < (RMTPLAYR_PAGE_DISTORTION_2 >> 8) || pageMsb > (RMTPLAYR_PAGE_DISTORTION_E >> 8)) {
+    if (!HasDispatchTable(memory)) {
         return 0;
     }
 
-    MemoryAddress page = (MemoryAddress)(pageMsb << 8);
+    // TABLES_MSB holds eight (page MSB, AUDC) pairs, indexed by distortion/2;
+    // only the page MSB is of interest here, the AUDC the player writes to
+    // POKEY is the caller's own business.
+    MemoryAddress page = (MemoryAddress)(memory[RMTPLAYR_TABLES_MSB + (distortion >> 1) * 2] << 8);
     switch (mode) {
     case Mode::Clock179MHz:
         return page + 0x40;

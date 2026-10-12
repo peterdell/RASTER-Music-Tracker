@@ -128,6 +128,26 @@ class FrequencyTablesTest {
 	}
 
 	@Test
+	void onlyThePatchSixteenDriverIsAcceptedAsCarryingADispatchTable() {
+		// The check is a plausibility test on the bytes, not a version test,
+		// so the thing worth asserting is that it separates the drivers RMT
+		// really ships: in the other six, $3208 holds their own
+		// frequency-table data, far outside the $B0-$B4 the pages need. Each
+		// version gets its own Atari so no earlier load can leave bytes
+		// behind.
+		for (TrackerDriverVersion version : TrackerDriverVersion.getValues()) {
+			Atari own = new Atari();
+			boolean loaded = new AtariTrackerDriver(own).loadRMTRoutines(version) > 0;
+			if (!loaded) {
+				continue; // TrackerDriverVersion.NONE has no binary
+			}
+
+			assertEquals(version == TrackerDriverVersion.PATCH16, FrequencyTables.hasDispatchTable(own.getMemory()),
+					() -> "driver " + version.getId());
+		}
+	}
+
+	@Test
 	void thereIsNoTableWithoutADriverThatHasADispatchTable() {
 		// The v1-family drivers keep their tables inside the player and never
 		// read this region, so nothing writes a dispatch table for them. The

@@ -37,6 +37,38 @@ public final class FrequencyTables {
 	}
 
 	/**
+	 * Whether the driver in {@code atariMemory} carries the dispatch table
+	 * these methods read - true only for the Patch 16 driver, which is the one
+	 * with the $B000 table pages. The v1-family drivers keep their tables
+	 * inside the player at $31c0-$32ff and never read that region, so
+	 * everything below answers 0 or -1 for them and the caller reports "no
+	 * frequency" rather than inventing one. That is correct but not yet the
+	 * whole truth, since those drivers' own tables could be read instead
+	 * (plans/40_DRIVER_TABLE_LAYOUTS_PLAN.md).
+	 *
+	 * <p>The check covers the whole table, not just the entry about to be
+	 * read: every page MSB must name one of the five distortion pages, and
+	 * every AUDC must carry distortion bits only, the volume nibble being the
+	 * player's to fill in. Of the seven drivers RMT ships, only
+	 * rmt_driver_v6.obx passes; in the other six these bytes are their own
+	 * frequency-table data, which lies far outside $B0-$B4. It remains a
+	 * plausibility check rather than a driver-version test.
+	 */
+	public static boolean hasDispatchTable(byte[] atariMemory) {
+		for (int i = 0; i < 8; i++) {
+			int pageMsb = atariMemory[RMT_TABLES_MSB + i * 2] & 0xFF;
+			int audc = atariMemory[RMT_TABLES_MSB + 1 + i * 2] & 0xFF;
+			if (pageMsb < (Atari.RMT_FRQTAB_POLY5_64KHZ >> 8) || pageMsb > (Atari.RMT_FRQTAB_GRITTY_64KHZ >> 8)) {
+				return false;
+			}
+			if ((audc & 0x0F) != 0) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * The address of the AUDF table the player reads for this distortion and
 	 * mode. The table holds 64 bytes, except in {@link Mode#JOIN_16BIT} mode,
 	 * where it holds 64 little-endian words.
@@ -58,20 +90,13 @@ public final class FrequencyTables {
 			return distortion >= 0x0C ? Atari.RMT_FRQTAB_BUZZY_15KHZ : Atari.RMT_FRQTAB_PURE_15KHZ;
 		}
 
-		// Only the page MSB is of interest here; the AUDC the player writes to
-		// POKEY is the caller's own business.
-		int pageMsb = atariMemory[RMT_TABLES_MSB + (distortion >> 1) * 2] & 0xFF;
-
-		// A sanity check on the loaded driver, not a driver-version test: the
-		// five distortion pages are the only ones the dispatch table can name,
-		// so anything else means these bytes are not that table (no Patch 16
-		// driver loaded - the v1-family drivers keep their tables inside the
-		// player and never read this region at all).
-		if (pageMsb < (Atari.RMT_FRQTAB_POLY5_64KHZ >> 8) || pageMsb > (Atari.RMT_FRQTAB_GRITTY_64KHZ >> 8)) {
+		if (!hasDispatchTable(atariMemory)) {
 			return 0;
 		}
 
-		int page = pageMsb << 8;
+		// Only the page MSB is of interest here; the AUDC the player writes to
+		// POKEY is the caller's own business.
+		int page = (atariMemory[RMT_TABLES_MSB + (distortion >> 1) * 2] & 0xFF) << 8;
 		switch (mode) {
 		case CLOCK_179MHZ:
 			return page + 0x40;

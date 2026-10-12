@@ -125,6 +125,25 @@ TEST_F(FrequencyTablesTest, ThereIsNoTableForADistortionOutsideZeroToE) {
     EXPECT_EQ(CFrequencyTables::GetTableAddress(Memory(), 0x10, CFrequencyTables::Mode::Clock64kHz), 0);
 }
 
+TEST_F(FrequencyTablesTest, OnlyThePatchSixteenDriverIsAcceptedAsCarryingADispatchTable) {
+    // The check is a plausibility test on the bytes, not a version test, so
+    // the thing worth asserting is that it separates the drivers RMT really
+    // ships: in the other six, $3208 holds their own frequency-table data, far
+    // outside the $B0-$B4 the pages need. Each version gets its own CAtari so
+    // no earlier load can leave bytes behind.
+    for (TrackerDriverVersion version : {TrackerDriverVersion::UNPATCHED, TrackerDriverVersion::UNPATCHED_WITH_TUNING,
+                                         TrackerDriverVersion::PATCH3, TrackerDriverVersion::PATCH6,
+                                         TrackerDriverVersion::PATCH8, TrackerDriverVersion::PATCH16,
+                                         TrackerDriverVersion::PATCH_PRINCE_OF_PERSIA}) {
+        CAtari own;
+        CAtariTrackerDriver ownDriver{own};
+        ASSERT_GT(ownDriver.LoadRMTRoutines(version), 0) << "driver " << (int)version;
+
+        EXPECT_EQ(CFrequencyTables::HasDispatchTable(own.GetConstMemoryAt(0)), version == TrackerDriverVersion::PATCH16)
+            << "driver " << (int)version;
+    }
+}
+
 TEST_F(FrequencyTablesTest, ThereIsNoTableWithoutADriverThatHasADispatchTable) {
     // The v1-family drivers keep their tables inside the player and never
     // read this region, so nothing writes a dispatch table for them. The

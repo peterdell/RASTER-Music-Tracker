@@ -116,6 +116,15 @@ assume Patch 16 today. Returning 0 for a driver without the dispatch
 table, and leaving the callers to report "no frequency", keeps that
 assumption visible instead of hidden.
 
+That is where this plan stops, and it is not the whole answer: with
+any of the other six drivers selected, the ASM export now writes `XXX`
+for every note and MIDI plays nothing, although those drivers carry
+their own tables in memory. `HasDispatchTable()` checks all eight
+dispatch entries rather than the one being read - a test asserts that
+only rmt_driver_v6.obx passes, of the seven RMT ships - but it stays a
+plausibility check on the bytes rather than a test of the loaded
+version. Both are taken up by plan 40.
+
 ## Steps
 
 - **M1. The shared helper. DONE 2026-10-12.** `FrequencyTables` in
