@@ -125,7 +125,7 @@ BOOL CRmtApp::InitInstance()
 
     // Initialize Atari RMT routines.
     g_AtariTrackerDriver = new CAtariTrackerDriver(g_Atari);
-    g_AtariTrackerDriver->LoadRMTRoutines(g_trackerDriverVersion);
+    g_AtariTrackerDriver->LoadRMTRoutines(g_Song.GetTrackerDriverVersion());
     g_AtariTrackerDriver->Init();
 
 
@@ -192,7 +192,7 @@ BOOL CRmtApp::InitInstance()
     // would be there to dismiss it; CScriptRunner::Export() fails the command
     // instead.
     if (!g_AtariTrackerDriver->AreRoutinesLoaded() && !cmdInfo.IsScriptFileSpecified()) {
-        CString message = CRmtAtariBinaries::GetMissingTrackerDriverMessage(g_trackerDriverVersion);
+        CString message = CRmtAtariBinaries::GetMissingTrackerDriverMessage(g_Song.GetTrackerDriverVersion());
         SendWarningMessage("RMT", (LPCTSTR)message);
     }
 

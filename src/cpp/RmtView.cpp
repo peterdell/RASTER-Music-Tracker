@@ -544,7 +544,7 @@ void CRmtView::ReadRMTConfig()
 
         // TODO: Tracker must be in the module instead
         if (NAME("NTSC_SYSTEM")) { g_Song.SetNTSC(atoi(value)); continue; }
-        if (NAME("TRACKERDRIVERVERSION")) { g_trackerDriverVersion = (TrackerDriverVersion)atoi(value); continue; }
+        if (NAME("TRACKERDRIVERVERSION")) { g_Song.SetTrackerDriverVersion((TrackerDriverVersion)atoi(value)); continue; }
 
         // KEYBOARD
         if (NAME("KEYBOARD_LAYOUT")) { g_keyboard_layout = (KeyboardLayout)atoi(value); continue; }
@@ -605,7 +605,7 @@ void CRmtView::WriteRMTConfig()
     ou << "USEGERMANNOTATION = " << g_usegermannotation << std::endl;
     ou << "NTSC_SYSTEM = " << g_Song.IsNTSC() << std::endl;
     ou << "NOHWSOUNDBUFFER = " << g_nohwsoundbuffer << std::endl;
-    ou << "TRACKERDRIVERVERSION = " << (int)g_trackerDriverVersion << std::endl;
+    ou << "TRACKERDRIVERVERSION = " << (int)g_Song.GetTrackerDriverVersion() << std::endl;
 
     ou << "\n# KEYBOARD\n" << std::endl;
     ou << "KEYBOARD_LAYOUT = " << (int)g_keyboard_layout << std::endl;
@@ -666,7 +666,7 @@ void CRmtView::ResetRMTConfig()
     g_SkipLinesAfterNoteInsert = 1;							// Number of lines to scroll after inserting a note 
     SetNTSC(false);								// NTSC (60Hz)
     g_nohwsoundbuffer = 0;						// Don't use hardware soundbuffer
-    g_trackerDriverVersion = TrackerDriverVersion::PATCH16; // Tracker driver version
+    g_Song.SetTrackerDriverVersion(TrackerDriverVersion::PATCH16); // Tracker driver version
     g_displayflatnotes = 0;						// Display accidentals as Flats instead of Sharps
     g_usegermannotation = 0;					// Display H notes instead of B
 
@@ -827,8 +827,7 @@ void CRmtView::OnToolsOptions()
     dlg.m_doSmoothScrolling = g_view.smoothScrolling;
     dlg.m_viewDebugDisplay = g_view.debugDisplay;
 
-    // TODO: Module
-    dlg.m_trackerDriverVersion = g_trackerDriverVersion;
+    dlg.m_trackerDriverVersion = g_Song.GetTrackerDriverVersion();
 
     // KEYBOARD
     dlg.m_keyboard_layout = g_keyboard_layout;
@@ -864,20 +863,19 @@ void CRmtView::OnToolsOptions()
             SetNTSC(dlg.m_ntsc);
         }
 
-        if (g_trackerDriverVersion != dlg.m_trackerDriverVersion)
+        if (g_Song.GetTrackerDriverVersion() != dlg.m_trackerDriverVersion)
         {
             // Something here to reset the thing
-            g_trackerDriverVersion = dlg.m_trackerDriverVersion;
+            g_Song.SetTrackerDriverVersion(dlg.m_trackerDriverVersion);
             g_Atari.Init(g_Song.IsNTSC()); // TODO: This is done serveral times. We need something like "beginUpdate"
-            g_AtariTrackerDriver->LoadRMTRoutines(g_trackerDriverVersion);
+            g_AtariTrackerDriver->LoadRMTRoutines(dlg.m_trackerDriverVersion);
             if (!g_AtariTrackerDriver->AreRoutinesLoaded()) {
                 // Switching to a version whose file is missing: say so rather
                 // than leave the program silent without a word.
-                CString message = CRmtAtariBinaries::GetMissingTrackerDriverMessage(g_trackerDriverVersion);
+                CString message = CRmtAtariBinaries::GetMissingTrackerDriverMessage(dlg.m_trackerDriverVersion);
                 SendWarningMessage("RMT", (LPCTSTR)message);
             }
         }
-        g_trackerDriverVersion = dlg.m_trackerDriverVersion;
 
         g_view.smoothScrolling = dlg.m_doSmoothScrolling;
         g_view.debugDisplay = dlg.m_viewDebugDisplay;

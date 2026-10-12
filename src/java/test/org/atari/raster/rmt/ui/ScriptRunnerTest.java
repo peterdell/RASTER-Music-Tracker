@@ -257,7 +257,7 @@ class ScriptRunnerTest {
 		assertEquals(ScriptRunner.EXIT_OK, new ScriptRunner(session, new PrintStream(out), new PrintStream(err)).run(script), err());
 		assertTrue(session.song.isNTSC());
 		assertTrue(session.atari.getCpu().isNTSC(), "ReInitSound() followed");
-		assertEquals(org.atari.raster.rmt.model.TrackerDriverVersion.UNPATCHED_WITH_TUNING, session.options.trackerDriverVersion);
+		assertEquals(org.atari.raster.rmt.model.TrackerDriverVersion.UNPATCHED_WITH_TUNING, session.song.getTrackerDriverVersion());
 		long ntscSize = Files.size(dir.resolve("ntsc.wav"));
 
 		assertEquals(ScriptRunner.EXIT_OK, run("open Delta.rmt", "export wav pal.wav"), err());

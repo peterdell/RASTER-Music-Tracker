@@ -113,7 +113,6 @@ struct TViewState {
 
 extern TViewState g_view;
 
-extern TrackerDriverVersion g_trackerDriverVersion;
 extern int g_timerGlobalCount; // Initialised once, ticking forever
 extern long g_playtime; //1 yes, 0 no
 

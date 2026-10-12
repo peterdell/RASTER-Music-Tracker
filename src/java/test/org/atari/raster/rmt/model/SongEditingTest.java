@@ -1228,6 +1228,25 @@ class SongEditingTest {
 		assertEquals(4, song.setTracks(4));
 	}
 
+	// --- getTrackerDriverVersion / setTrackerDriverVersion ---
+	// A song-scoped setting like isNTSC(), not an option: the exporters and
+	// the MIDI path read it off the song they already have
+	// (plans/41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md). A plain accessor
+	// pair, so there is nothing to test but that it is one - which is worth
+	// pinning, because the default is what the program runs with before
+	// rmt.ini is read, and a module load must not reset it.
+
+	@Test
+	void theTrackerDriverVersionDefaultsToPatchSixteenAndKeepsWhatItIsGiven() {
+		assertEquals(TrackerDriverVersion.PATCH16, song.getTrackerDriverVersion());
+
+		song.setTrackerDriverVersion(TrackerDriverVersion.UNPATCHED);
+		assertEquals(TrackerDriverVersion.UNPATCHED, song.getTrackerDriverVersion());
+
+		song.clearSong(4, undo); // loading or clearing a module leaves it alone, as it does isNTSC()
+		assertEquals(TrackerDriverVersion.UNPATCHED, song.getTrackerDriverVersion());
+	}
+
 	// --- resetTuningVariables ---
 
 	@Test
@@ -1782,7 +1801,7 @@ class SongEditingTest {
 		tr.note[0] = 10;
 		tr.instr[0] = 2;
 
-		String out = AsmFileExporter.exportAsAsmApply(song, instruments, tracks, new byte[Atari.MEMORY_SIZE], TrackerDriverVersion.PATCH16, messages, "",
+		String out = AsmFileExporter.exportAsAsmApply(song, instruments, tracks, new byte[Atari.MEMORY_SIZE], messages, "",
 				4, 1 /* Tracks only */, 1 /* notes */, 1 /* notes only */);
 
 		assertTrue(out.contains(";ASM notation source"));
@@ -1805,9 +1824,9 @@ class SongEditingTest {
 		tr.instr[0] = 2;
 		byte[] noDriver = new byte[Atari.MEMORY_SIZE];
 
-		assertNull(AsmFileExporter.exportAsAsmApply(song, instruments, tracks, noDriver, TrackerDriverVersion.PATCH16, messages, "", 4, 1,
+		assertNull(AsmFileExporter.exportAsAsmApply(song, instruments, tracks, noDriver, messages, "", 4, 1,
 				2 /* frequencies */, 1));
-		assertNotNull(AsmFileExporter.exportAsAsmApply(song, instruments, tracks, noDriver, TrackerDriverVersion.PATCH16, messages, "", 4, 1,
+		assertNotNull(AsmFileExporter.exportAsAsmApply(song, instruments, tracks, noDriver, messages, "", 4, 1,
 				1 /* indices */, 1));
 	}
 

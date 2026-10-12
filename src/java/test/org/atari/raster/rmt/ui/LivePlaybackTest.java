@@ -78,7 +78,7 @@ class LivePlaybackTest {
 	@Test
 	void theDefaultPatchedDriverDiffersFromAsapsPlayerOnlyInFrequencyBytes() throws IOException {
 		RmtSession session = open();
-		assertEquals(TrackerDriverVersion.PATCH16, session.options.trackerDriverVersion);
+		assertEquals(TrackerDriverVersion.PATCH16, session.song.getTrackerDriverVersion());
 		byte[] dump = dump(session);
 		byte[] asap = asapReference(session, dump.length / 9);
 

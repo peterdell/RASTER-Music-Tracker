@@ -31,7 +31,6 @@ extern CXPokey g_Pokey;
 extern CRmtMidi g_Midi;
 extern CAtari g_Atari;
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
-extern TrackerDriverVersion g_trackerDriverVersion;
 extern CString g_lastLoadPath_Songs;
 
 extern WORD g_rmtstripped_adr_module;
@@ -84,8 +83,8 @@ const std::vector<TExportFormat>& ExportFormats() {
 
 // The script's version of CRmtAtariBinaries::GetMissingTrackerDriverMessage()
 // - one line, naming the file, for a CScriptError rather than a box.
-std::string MissingTrackerDriverText() {
-    CString filePath = CRmtAtariBinaries::GetTrackerDriverFilePath(g_trackerDriverVersion);
+std::string MissingTrackerDriverText(TrackerDriverVersion trackerDriverVersion) {
+    CString filePath = CRmtAtariBinaries::GetTrackerDriverFilePath(trackerDriverVersion);
     return "The player routines were not loaded from '" + std::string((LPCTSTR)filePath) + "', so RMT is silent and would export no sound.";
 }
 
@@ -478,7 +477,7 @@ void CScriptRunner::Export(const TScriptCommand& command) {
     if (format->rendersSound && !g_AtariTrackerDriver->AreRoutinesLoaded()) {
         // The export would otherwise run to the end and write a quiet file,
         // which looks like a tracker bug rather than a missing file.
-        throw CScriptError(command.line, MissingTrackerDriverText());
+        throw CScriptError(command.line, MissingTrackerDriverText(m_song.GetTrackerDriverVersion()));
     }
     for (const auto& option : command.options) {
         bool known = false;
@@ -541,7 +540,7 @@ void CScriptRunner::Export(const TScriptCommand& command) {
             int notesIndexOrFreq = ParseChoice(c, "notes", c.GetOption("notes", "index"), { "index", "freq" });
             int durationsType = ParseChoice(c, "durations", c.GetOption("durations", "notes"), { "notes", "note-duration", "duration-note" });
             g_PrefixForAllAsmLabels = ToCString(c.GetOption("prefix", (LPCTSTR)g_PrefixForAllAsmLabels));
-            exportResult = CASMFileExporter::ExportAsAsmApply(m_song, out, g_trackerDriverVersion, exportType, notesIndexOrFreq, durationsType);
+            exportResult = CASMFileExporter::ExportAsAsmApply(m_song, out, exportType, notesIndexOrFreq, durationsType);
             break;
         }
         case SongIOType::ASM_RMTPLAYER: {
@@ -678,12 +677,12 @@ void CScriptRunner::Set(const TScriptCommand& command) {
     } else if (name == "driver") {
         // CRmtView::OnToolsOptions()'s driver-version branch
         TrackerDriverVersion version = ParseDriverVersion(command, value);
-        if (g_trackerDriverVersion != version) {
-            g_trackerDriverVersion = version;
+        if (m_song.GetTrackerDriverVersion() != version) {
+            m_song.SetTrackerDriverVersion(version);
             g_Atari.Init(m_song.IsNTSC());
-            g_AtariTrackerDriver->LoadRMTRoutines(g_trackerDriverVersion);
+            g_AtariTrackerDriver->LoadRMTRoutines(version);
             if (!g_AtariTrackerDriver->AreRoutinesLoaded()) {
-                throw CScriptError(command.line, MissingTrackerDriverText());
+                throw CScriptError(command.line, MissingTrackerDriverText(version));
             }
         }
     } else if (name == "midi-touch-response") {

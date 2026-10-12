@@ -63,8 +63,13 @@ public final class AsmFileExporter {
 	 *         C++'s {@code false} return, with the reason sent to
 	 *         {@code messages} the same way
 	 */
-	public static String exportAsAsmApply(Song song, Instruments instruments, Tracks tracks, byte[] atariMemory, TrackerDriverVersion trackerDriverVersion,
-			Messages messages, String prefixForAllAsmLabels, int tracks4_8, int exportType, int notesIndexOrFreq, int durationsType) {
+	public static String exportAsAsmApply(Song song, Instruments instruments, Tracks tracks, byte[] atariMemory, Messages messages,
+			String prefixForAllAsmLabels, int tracks4_8, int exportType, int notesIndexOrFreq, int durationsType) {
+		// Which player's tables a frequency comes from is the song's own
+		// setting, the same way its region is
+		// (plans/41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md).
+		TrackerDriverVersion trackerDriverVersion = song.getTrackerDriverVersion();
+
 		if (notesIndexOrFreq == 2 /* frequencies */ && !FrequencyTables.hasDispatchTable(atariMemory, trackerDriverVersion)) {
 			// Every value would come out of the loaded player's own frequency
 			// tables, so without them the whole export is a file of XXX -

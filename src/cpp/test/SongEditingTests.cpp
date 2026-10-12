@@ -1048,6 +1048,23 @@ TEST_F(SongEditingTest, SetTracksLeavesTheGlobalTrackCountUnchangedWhenSame) {
     EXPECT_EQ(g_tracks4_8, 4);
 }
 
+// --- GetTrackerDriverVersion / SetTrackerDriverVersion ---
+// A song-scoped setting like IsNTSC(), not a global: the exporters and the
+// MIDI path read it off the song they already have
+// (plans/41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md). A plain accessor
+// pair, so there is nothing to test but that it is one - which is worth
+// pinning, because the default is what the program runs with before rmt.ini
+// is read, and a module load must not reset it.
+TEST_F(SongEditingTest, TheTrackerDriverVersionDefaultsToPatchSixteenAndKeepsWhatItIsGiven) {
+    EXPECT_EQ(song.GetTrackerDriverVersion(), TrackerDriverVersion::PATCH16);
+
+    song.SetTrackerDriverVersion(TrackerDriverVersion::UNPATCHED);
+    EXPECT_EQ(song.GetTrackerDriverVersion(), TrackerDriverVersion::UNPATCHED);
+
+    song.ClearSong(4); // loading or clearing a module leaves it alone, as it does IsNTSC()
+    EXPECT_EQ(song.GetTrackerDriverVersion(), TrackerDriverVersion::UNPATCHED);
+}
+
 // --- ResetTuningVariables ---
 
 TEST_F(SongEditingTest, ResetTuningVariablesUsesTheNtscOrPalBaseTuning) {
@@ -1709,7 +1726,7 @@ TEST_F(SongEditingTest, ExportAsAsmApplyWritesTracksOnlyOutput) {
     tr->instr[0] = 2;
 
     std::ostringstream out;
-    EXPECT_TRUE(CASMFileExporter::ExportAsAsmApply(song, out, TrackerDriverVersion::PATCH16, 1 /* Tracks only */, 1 /* notes */, 1 /* notes only */));
+    EXPECT_TRUE(CASMFileExporter::ExportAsAsmApply(song, out, 1 /* Tracks only */, 1 /* notes */, 1 /* notes only */));
 
     std::string text = out.str();
     EXPECT_NE(text.find(";ASM notation source"), std::string::npos);
@@ -1728,12 +1745,14 @@ TEST_F(SongEditingTest, ExportAsAsmApplyRefusesFrequenciesWithoutTheDriversTable
     tr->note[0] = 10;
     tr->instr[0] = 2;
 
+    ASSERT_EQ(song.GetTrackerDriverVersion(), TrackerDriverVersion::PATCH16); // the default, and the version with a $B000 layout
+
     std::ostringstream freq;
-    EXPECT_FALSE(CASMFileExporter::ExportAsAsmApply(song, freq, TrackerDriverVersion::PATCH16, 1, 2 /* frequencies */, 1));
+    EXPECT_FALSE(CASMFileExporter::ExportAsAsmApply(song, freq, 1, 2 /* frequencies */, 1));
     EXPECT_TRUE(freq.str().empty());
 
     std::ostringstream index;
-    EXPECT_TRUE(CASMFileExporter::ExportAsAsmApply(song, index, TrackerDriverVersion::PATCH16, 1, 1 /* indices */, 1));
+    EXPECT_TRUE(CASMFileExporter::ExportAsAsmApply(song, index, 1, 1 /* indices */, 1));
     EXPECT_FALSE(index.str().empty());
 }
 

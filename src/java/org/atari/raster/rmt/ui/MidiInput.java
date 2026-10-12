@@ -532,7 +532,7 @@ public final class MidiInput {
 			}
 		}
 
-		TrackerDriverVersion version = session.options.trackerDriverVersion;
+		TrackerDriverVersion version = song.getTrackerDriverVersion(); // this song's own driver setting
 		FrequencyTables.Mode mode = FrequencyTables.getModeForChannel(midiAudctl, track);
 		int table = FrequencyTables.getTableAddress(memory, version, midiDistortionOnChannel, mode);
 		int distortionAudc = FrequencyTables.getDistortionAudc(memory, version, midiDistortionOnChannel);

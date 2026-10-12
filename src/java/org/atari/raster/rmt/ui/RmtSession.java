@@ -153,7 +153,7 @@ public final class RmtSession {
 		tuning = new Tuning(atari.getClockFrequency());
 		pokeyController = new PokeyController(atari);
 		atariTrackerDriver = new AtariTrackerDriver(atari);
-		loadTrackerDriver(options.trackerDriverVersion); // g_trackerDriverVersion's default; InitInstance runs before rmt.ini is read
+		loadTrackerDriver(song.getTrackerDriverVersion()); // the song's default; InitInstance runs before rmt.ini is read
 		atariTrackerDriver.init();
 		// CInstruments::Update() also writes each instrument's Atari bytes
 		// to $4000 + instr * 256 for the driver (stereo = g_tracks4_8 == 8).
@@ -203,7 +203,7 @@ public final class RmtSession {
 	 * times") and loads that version's player routines.
 	 */
 	public void setTrackerDriverVersion(TrackerDriverVersion version) {
-		options.trackerDriverVersion = version;
+		song.setTrackerDriverVersion(version);
 		atari.init(song.isNTSC(), tuningSettings, tuningRatios);
 		loadTrackerDriver(version);
 	}

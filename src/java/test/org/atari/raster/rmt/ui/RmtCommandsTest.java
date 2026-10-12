@@ -415,7 +415,7 @@ class RmtCommandsTest {
 		assertEquals(250, session.options.scalingPercentage);
 		assertTrue(session.song.isNTSC());
 		assertEquals(basetuning * org.atari.raster.rmt.model.Atari.FREQ_17_NTSC / org.atari.raster.rmt.model.Atari.FREQ_17_PAL, session.tuningSettings.basetuning, 1e-9); // SetNTSC rescaled the tuning
-		assertEquals(TrackerDriverVersion.PATCH8, session.options.trackerDriverVersion);
+		assertEquals(TrackerDriverVersion.PATCH8, session.song.getTrackerDriverVersion());
 		assertEquals(16, session.options.trackLinePrimaryHighlight);
 		assertTrue(session.options.useGermanNotation);
 		assertEquals(KeyboardLayout.AZERTY, session.options.keyboardLayout);

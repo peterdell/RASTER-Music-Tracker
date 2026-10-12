@@ -240,7 +240,7 @@ public final class RmtCommands {
 		if (session.song.isNTSC() != dlg.ntsc) {
 			session.setNTSC(dlg.ntsc);
 		}
-		if (o.trackerDriverVersion != dlg.trackerDriverVersion) {
+		if (session.song.getTrackerDriverVersion() != dlg.trackerDriverVersion) {
 			session.setTrackerDriverVersion(dlg.trackerDriverVersion);
 		}
 		o.view.smoothScrolling = dlg.doSmoothScrolling;

@@ -195,8 +195,9 @@ int CInstruments::GetNote(int instr, int note) {
 /// </summary>
 /// <param name="instr">Instrument #</param>
 /// <param name="note">which note</param>
-/// <param name="trackerDriverVersion">which driver is loaded, and so which table layout to read. Passed in rather
-/// than read from g_trackerDriverVersion, to keep this file free of Global.h (see the comment at the top).</param>
+/// <param name="trackerDriverVersion">which driver the song is composed against, and so which table layout to read.
+/// A parameter because CInstruments has no song of its own; the callers read it from theirs
+/// (plans/41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md).</param>
 /// <returns>frequency</returns>
 int CInstruments::GetFrequency(int instr, int note, TrackerDriverVersion trackerDriverVersion) {
     TInstrument* tt = GetInstrument(instr);

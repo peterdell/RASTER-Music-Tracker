@@ -23,8 +23,11 @@ CString g_PrefixForAllAsmLabels; //label prefix for export ASM simple notation
 /// <summary>
 /// Export the RMT module as assembler
 /// </summary>
-bool CASMFileExporter::ExportAsAsmApply(const CSong& song, std::ostream& ou, TrackerDriverVersion trackerDriverVersion, int exportType,
-                                        int notesIndexOrFreq, int durationsType) {
+bool CASMFileExporter::ExportAsAsmApply(const CSong& song, std::ostream& ou, int exportType, int notesIndexOrFreq, int durationsType) {
+    // Which player's tables a frequency comes from is the song's own setting,
+    // the same way its region is (plans/41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md).
+    const TrackerDriverVersion trackerDriverVersion = song.GetTrackerDriverVersion();
+
     if (notesIndexOrFreq == 2 /* frequencies */ &&
         !CFrequencyTables::HasDispatchTable(g_Atari.GetConstMemoryAt(0), trackerDriverVersion)) {
         // Every value would come out of the loaded player's own frequency

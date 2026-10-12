@@ -472,9 +472,10 @@ void CSong::MidiEvent(DWORD dwParam, bool hasFocus) {
                 }
             }
 
+            const TrackerDriverVersion version = GetTrackerDriverVersion(); //this song's own driver setting
             const auto mode = CFrequencyTables::GetModeForChannel(midi_audctl & 0xFF, track);
-            const MemoryAddress table = CFrequencyTables::GetTableAddress(memory, g_trackerDriverVersion, midi_distortion, mode);
-            const int distortionAudc = CFrequencyTables::GetDistortionAudc(memory, g_trackerDriverVersion, midi_distortion);
+            const MemoryAddress table = CFrequencyTables::GetTableAddress(memory, version, midi_distortion, mode);
+            const int distortionAudc = CFrequencyTables::GetDistortionAudc(memory, version, midi_distortion);
             if (!table || distortionAudc < 0) {
                 return; //no driver loaded whose tables this layout can find
             }

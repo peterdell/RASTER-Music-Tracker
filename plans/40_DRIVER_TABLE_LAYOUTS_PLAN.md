@@ -114,6 +114,14 @@ fails the other's, and a test asserts exactly that.
   to link); and MIDI, where `Midi_Song.cpp` already has `Global.h` and
   `MidiInput` has the session. Java passes
   `session.options.trackerDriverVersion` from its two funnels.
+
+  Superseded in part by
+  [plan 41](41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md): the version
+  is now a property of the song, as the region already was, so
+  `ExportAsAsmApply` reads it from its own `song` argument and lost the
+  parameter again. `GetFrequency` keeps its one, because `CInstruments`
+  has no song. Needing a parameter in two places to escape a global was
+  the symptom; the global was the problem.
 - **L2. Add the v1-family layout.** DONE, as `$3200 +
   memory[$3182 + distortion]`, with the two addresses pinned against
   the shipped `rmt_driver_v1.obx` and the per-driver values of all six

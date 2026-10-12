@@ -24,7 +24,7 @@ public final class OptionsValues {
 	public boolean doSmoothScrolling;
 	public boolean viewDebugDisplay;
 
-	// TODO: Module
+	/** The song's own setting, like {@link #ntsc} (plans/41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md). */
 	public TrackerDriverVersion trackerDriverVersion;
 
 	// KEYBOARD
@@ -55,7 +55,7 @@ public final class OptionsValues {
 		v.doSmoothScrolling = o.view.smoothScrolling;
 		v.viewDebugDisplay = o.view.debugDisplay;
 
-		v.trackerDriverVersion = o.trackerDriverVersion;
+		v.trackerDriverVersion = session.song.getTrackerDriverVersion();
 
 		v.keyboardLayout = o.keyboardLayout;
 		v.keyboardEscResetAtariSound = o.keyboardEscResetAtariSound;

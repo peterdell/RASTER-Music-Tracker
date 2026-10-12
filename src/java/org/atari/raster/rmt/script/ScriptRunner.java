@@ -249,7 +249,7 @@ public final class ScriptRunner {
 	 */
 	private String missingTrackerDriverText() {
 		return "The player routines were not loaded from '"
-				+ org.atari.raster.rmt.model.RmtAtariBinaries.getTrackerDriverPath(session.options.trackerDriverVersion)
+				+ org.atari.raster.rmt.model.RmtAtariBinaries.getTrackerDriverPath(session.song.getTrackerDriverVersion())
 				+ "', so RMT is silent and would export no sound.";
 	}
 
@@ -269,7 +269,7 @@ public final class ScriptRunner {
 		}
 		case "driver" -> { // the Options dialog's tracker driver version
 			TrackerDriverVersion version = parseDriverVersion(command, value);
-			if (session.options.trackerDriverVersion != version) {
+			if (session.song.getTrackerDriverVersion() != version) {
 				session.setTrackerDriverVersion(version);
 				if (!session.atariTrackerDriver.areRoutinesLoaded()) {
 					throw new ScriptException(command.line(), missingTrackerDriverText());

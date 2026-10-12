@@ -101,6 +101,7 @@ public final class Song {
 	private int activeInstr;
 	private EditArea infoAct = EditArea.NAME;
 	private boolean ntsc;
+	private TrackerDriverVersion trackerDriverVersion = TrackerDriverVersion.PATCH16;
 	private int octave;
 	private int volume;
 	private boolean followplay;
@@ -160,6 +161,28 @@ public final class Song {
 
 	public boolean isNTSC() {
 		return ntsc;
+	}
+
+	/**
+	 * {@code CSong::GetTrackerDriverVersion()}: which build of the player
+	 * routines this module is composed against - a song-scoped setting like
+	 * {@link #isNTSC()}, persisted in {@code rmt.ini} and not in the module
+	 * (plans/41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md). It decides which
+	 * frequency tables exist at all, so everything that asks what a note would
+	 * sound like needs it.
+	 */
+	public TrackerDriverVersion getTrackerDriverVersion() {
+		return trackerDriverVersion;
+	}
+
+	/**
+	 * {@code CSong::SetTrackerDriverVersion()}. A plain accessor: loading the
+	 * new version's routines and reporting a missing file is
+	 * {@code RmtSession.setTrackerDriverVersion}'s job, as it is C++'s
+	 * callers'.
+	 */
+	public void setTrackerDriverVersion(TrackerDriverVersion trackerDriverVersion) {
+		this.trackerDriverVersion = trackerDriverVersion;
 	}
 
 	public int getInstrumentSpeed() {

@@ -22,13 +22,15 @@
 //
 // LoadRMTRoutinesReturnsZeroForAMissingDriverVersion below caught a real
 // bug while writing it: LoadRMTRoutines() used to ignore its own
-// trackerDriverVersion parameter entirely, always passing the global
+// trackerDriverVersion parameter entirely, always passing the then-global
 // g_trackerDriverVersion to GetTrackerDriverBinary() instead. Harmless in
-// today's production code (both real call sites, Rmt.cpp/RmtView.cpp,
-// always pass g_trackerDriverVersion as the argument anyway - so the bug
-// never changed observable behavior), but fixed outright in
-// AtariTrackerDriver.cpp since it made the parameter dead and the fix
-// changes nothing for any real caller.
+// the production code of the day (both real call sites, Rmt.cpp/RmtView.cpp,
+// always passed that same global as the argument - so the bug never changed
+// observable behavior), but fixed outright in AtariTrackerDriver.cpp since
+// it made the parameter dead and the fix changes nothing for any real
+// caller. The global has since moved onto CSong
+// (plans/41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md), which would have
+// turned that latent bug into a real one.
 
 extern int g_rmtinstr[SONGTRACKS];
 extern EditMode volatile g_prove;

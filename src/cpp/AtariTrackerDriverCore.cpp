@@ -9,8 +9,8 @@
 // comment: C6502::Init() would load a real DLL, a genuine hazard, but
 // JSR() itself is a harmless no-op stub) - unlike LoadRMTRoutines()/Init()/
 // Play()/SetPokey()/Silence(), which stay in AtariTrackerDriver.cpp: they
-// need g_trackerDriverVersion/CRmtAtariBinaries (real driver binary
-// loading) or IsSpecialProveMode() (via Global.h). Kept separate to keep
+// need CRmtAtariBinaries (real driver binary loading) or
+// IsSpecialProveMode() (via Global.h). Kept separate to keep
 // this half testable - same pattern as Song.cpp/SongCore.cpp etc.
 
 extern int g_rmtinstr[SONGTRACKS];

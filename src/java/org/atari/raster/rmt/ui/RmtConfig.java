@@ -145,7 +145,7 @@ public final class RmtConfig {
 			case "TRACKERDRIVERVERSION" -> {
 				TrackerDriverVersion version = TrackerDriverVersion.getInstance(atoi(value));
 				if (version != null) { // a number outside the range keeps the current value
-					o.trackerDriverVersion = version;
+					session.song.setTrackerDriverVersion(version);
 				}
 			}
 			// KEYBOARD
@@ -205,7 +205,7 @@ public final class RmtConfig {
 		line(ou, "USEGERMANNOTATION", o.useGermanNotation);
 		line(ou, "NTSC_SYSTEM", session.song.isNTSC());
 		line(ou, "NOHWSOUNDBUFFER", o.noHwSoundBuffer);
-		line(ou, "TRACKERDRIVERVERSION", o.trackerDriverVersion.getNumber());
+		line(ou, "TRACKERDRIVERVERSION", session.song.getTrackerDriverVersion().getNumber());
 
 		ou.append("\n# KEYBOARD\n\n");
 		line(ou, "KEYBOARD_LAYOUT", o.keyboardLayout.getNumber());
@@ -253,6 +253,7 @@ public final class RmtConfig {
 		session.options.reset();
 		session.options.keyboardLayout = defaultKeyboardLayout.get(); // the first start: the system's keyboard language (since 2026-09-30)
 		session.setNTSC(false); // NTSC (60Hz)
+		session.song.setTrackerDriverVersion(TrackerDriverVersion.PATCH16); // Tracker driver version
 		session.midi.midiInit(); // MIDI must be initialised just in case
 		writeRMTConfig(session); // Write the default configuration file
 	}

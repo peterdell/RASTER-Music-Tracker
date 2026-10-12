@@ -35,7 +35,7 @@ class RmtSessionTest {
 		// The driver switch is the Options dialog's path and the rmtscript
 		// "set driver" command; it loads the binary again, so the
 		// regeneration has to run again after it.
-		session.setTrackerDriverVersion(session.options.trackerDriverVersion);
+		session.setTrackerDriverVersion(session.song.getTrackerDriverVersion());
 		assertEquals(0x69, session.atari.getByteAt(org.atari.raster.rmt.model.Atari.RMT_FRQTABLES + 0x040));
 	}
 

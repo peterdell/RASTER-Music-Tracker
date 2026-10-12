@@ -9,6 +9,7 @@
 #include "Undo.h"
 
 #include "SongTypes.h"
+#include "TrackerDriverVersion.h"
 
 class CASMFileExporter;
 class CPokeyController;
@@ -29,6 +30,13 @@ public:
     void SetTracks(const int tracksNum);
     BOOL IsNTSC() const;
     void SetNTSC(const BOOL ntsc);
+    // Which build of the player routines this module is composed against -
+    // a song-scoped setting like IsNTSC(), persisted in rmt.ini and not in
+    // the module (plans/41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md). It
+    // decides which frequency tables exist at all, so everything that asks
+    // what a note would sound like needs it.
+    TrackerDriverVersion GetTrackerDriverVersion() const;
+    void SetTrackerDriverVersion(const TrackerDriverVersion trackerDriverVersion);
 
     void ReInitSound();
 
@@ -406,6 +414,7 @@ private:
     EditArea m_infoact = EditArea::NAME; // Which part of the info area is active for editing: 0 = name,
     char m_songname[SONG_NAME_MAX_LEN + 1] = {};
     BOOL m_ntsc = FALSE;
+    TrackerDriverVersion m_trackerDriverVersion = TrackerDriverVersion::PATCH16;
     int m_songnamecur = 0;
 
     TBookmark m_bookmark = {};

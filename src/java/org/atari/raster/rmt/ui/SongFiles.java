@@ -979,8 +979,8 @@ public final class SongFiles {
 				return false;
 			}
 			es.prefixForAllAsmLabels = dlg.prefixForAllAsmLabels();
-			String code = AsmFileExporter.exportAsAsmApply(song, session.instruments, session.tracks, session.atari.getMemory(), session.options.trackerDriverVersion,
-					session.messages, es.prefixForAllAsmLabels, session.tracks4_8, dlg.exportType(), dlg.notesIndexOrFreq(), dlg.durationsType());
+			String code = AsmFileExporter.exportAsAsmApply(song, session.instruments, session.tracks, session.atari.getMemory(), session.messages,
+					es.prefixForAllAsmLabels, session.tracks4_8, dlg.exportType(), dlg.notesIndexOrFreq(), dlg.durationsType());
 			if (code == null) {
 				return false; // the reason is already reported
 			}

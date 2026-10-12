@@ -149,7 +149,7 @@ class RmtConfigTest {
 		o.displayFlatNotes = true;
 		o.useGermanNotation = true;
 		o.noHwSoundBuffer = true;
-		o.trackerDriverVersion = TrackerDriverVersion.PATCH3;
+		written.song.setTrackerDriverVersion(TrackerDriverVersion.PATCH3); // the song's, like NTSC_SYSTEM
 		o.keyboardLayout = KeyboardLayout.AZERTY;
 		o.keyboardUpDownContinue = false;
 		o.keyboardRememberOctavesAndVolumes = false;
@@ -258,7 +258,7 @@ class RmtConfigTest {
 		assertEquals(150, o.scalingPercentage);
 		assertEquals(12, o.trackLinePrimaryHighlight);
 		assertEquals(0, o.trackLineSecondaryHighlight);
-		assertEquals(TrackerDriverVersion.PATCH16, o.trackerDriverVersion);
+		assertEquals(TrackerDriverVersion.PATCH16, session.song.getTrackerDriverVersion());
 		assertEquals(KeyboardLayout.QWERTY, o.keyboardLayout);
 		assertFalse(o.view.statusBar);
 		assertTrue(o.view.mainToolbar);

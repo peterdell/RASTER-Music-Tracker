@@ -1,7 +1,6 @@
 package org.atari.raster.rmt.ui;
 
 import org.atari.raster.rmt.model.KeyboardLayout;
-import org.atari.raster.rmt.model.TrackerDriverVersion;
 
 /**
  * The persisted user options that C++ keeps in {@code Global.h} globals and
@@ -37,8 +36,6 @@ public final class RmtOptions {
 	public boolean useGermanNotation;
 	/** {@code g_nohwsoundbuffer} - "Disable hardware soundbuffer"; only the POKEY renderer reads it (B8). */
 	public boolean noHwSoundBuffer;
-	/** {@code g_trackerDriverVersion} - which RMT player routine binary is loaded into the emulated Atari. */
-	public TrackerDriverVersion trackerDriverVersion = TrackerDriverVersion.PATCH16;
 	/** {@code g_notesperoctave} - 12; not in {@code rmt.ini}, but an option-like global the note display depends on. */
 	public int notesPerOctave = 12;
 
@@ -110,7 +107,6 @@ public final class RmtOptions {
 		trackLineAltNumbering = false; // Alternative way of line numbering in tracks
 		skipLinesAfterNoteInsert = 1; // Number of lines to scroll after inserting a note
 		noHwSoundBuffer = false; // Don't use hardware soundbuffer
-		trackerDriverVersion = TrackerDriverVersion.PATCH16; // Tracker driver version
 		displayFlatNotes = false; // Display accidentals as Flats instead of Sharps
 		useGermanNotation = false; // Display H notes instead of B
 
