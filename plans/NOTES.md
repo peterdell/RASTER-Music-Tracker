@@ -1,7 +1,13 @@
 # Notes for OVERALL_PLAN.md
 
-Running notes for the multi-session C++ -> Java port project. Update this file as work
-progresses so a new session can pick up context quickly.
+Running notes for the multi-session C++ -> Java port project.
+
+**Superseded as of 2026-10-10.** The last entry here is 2026-10-08. From
+plan 33 onwards each numbered plan carries its own narration - the status
+line, what was measured, what changed about the plan while it ran - so the
+account lives beside the work instead of in one growing file.
+`plans/README.md` is the index to read first; this file stays for the
+history of plans 01-32, which is not repeated anywhere else.
 
 ## Background read (2026-09-21)
 
@@ -11,9 +17,12 @@ Read `README.md` and the docs it links to that exist in this repo:
 full yet, only referenced.)
 
 Key facts:
-- RMT is a Windows MFC app for composing Atari XL/XE music, originally by Radek Sterba
-  (2002-2009), continued by Vin Samuel (2021-2024), now maintained by Peter Dell (JAC!).
-- Current dev version is 1.35 (daily), stable is 1.34.00. Module file format v1 is
+- RMT is a Windows MFC app for composing Atari XL/XE music, originally by Radek Štěrba
+  (Raster) (2002-2009), continued by Vin Samuel (VinsCool) (2021-2024), now maintained by
+  Peter Dell (JAC!).
+- Current dev version is 1.35 (daily), stable is 1.34.00. [Both moved since: 1.36.0 was
+  released on 2026-09-27 and 1.37 is the planned version - see doc/rmt_changes.md.]
+  Module file format v1 is
   documented in `doc/rmt_format.md`; a draft v2 format is also described there.
 - The tracker embeds two emulated pieces of hardware: a MOS 6502 CPU emulator and one/two
   POKEY sound chips, currently provided via external DLLs (`sa_c6502.dll`,

@@ -116,9 +116,14 @@ the script with a message naming the line.
 `sapr`, `lzss`, `sap`, `xex` and `wav` are produced by running the song on
 the emulated Atari, so they need the player routine of the selected driver
 version. If that file is missing, these exports stop the script with a
-message naming the file instead of writing a silent one; the three
-remaining formats write the song data itself and are unaffected. See
-"Files and Folders" in the manual for where the player routines live.
+message naming the file instead of writing a silent one.
+
+`asm` with `notes=freq` needs it too, for a different reason: the
+frequencies are read out of the loaded player's own tables, so without
+them every note would be written as `XXX`. That export stops the script
+as well rather than produce such a file. The remaining formats, and `asm`
+with `notes=index`, write the song data itself and need no player routine.
+See "Files and Folders" in the manual for where the player routines live.
 
 ## Example
 
