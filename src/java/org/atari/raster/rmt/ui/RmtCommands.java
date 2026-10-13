@@ -31,7 +31,7 @@ import org.atari.raster.rmt.model.UndoType;
  * handlers that open a dialog or a file chooser ({@code FileOpen}, the
  * export/import/renumber/change/order dialogs, About, Options) report
  * {@link Host#notAvailable} until their batch (B7); the printing
- * commands are MFC's own and stay unavailable; the Pokey menu's explorer
+ * commands are deliberately never implemented, see {@link #isEnabled}; the Pokey menu's explorer
  * commands run {@link PokeyController}'s operations in the explorer mode
  * (in C++ they had no handlers and were always greyed, until 2026-09-30);
  * the MIDI toggle is {@link RmtSession#midi}'s.
@@ -724,6 +724,15 @@ public final class RmtCommands {
 
 		return switch (id) {
 		case FILE_REOPEN -> songFiles.fileCanBeReloaded();
+		// Printing is intentionally not ported, and will not be: in C++ the
+		// three print commands are the generated MFC skeleton, which never drew
+		// anything for a printer page, and asked about it users replied they do
+		// not need printing. Every platform's own screenshot function already
+		// takes a picture of the window. See doc/rmt_changes.md, 1.36.
+		//
+		// File > Properties shares the case for a different reason: it is a
+		// menu entry and an accelerator in Rmt.rc with no handler behind it in
+		// either program, so it is greyed in C++ too.
 		case FILE_PRINT, FILE_PRINT_PREVIEW, FILE_PRINT_SETUP, FILE_PROPERTIES -> false;
 		case EDIT_UNDO -> session.undo.getUndoSteps() > 0;
 		case EDIT_REDO -> session.undo.getRedoSteps() > 0;

@@ -276,8 +276,6 @@ public:
     void MarkTF_USED(BYTE* arrayTRACKSNUM) const;
     void MarkTF_NOEMPTY(BYTE* arrayTRACKSNUM) const;
 
-    // int MakeTuningBlock(unsigned char* mem, int addr); // TODO: Unused
-    // int DecodeTuningBlock(unsigned char* mem, int fromAddr, int endAddr); // TODO: Unused
     void ResetTuningVariables();
 
     int MakeModule(unsigned char* mem, int adr, SongIOType iotype, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags);

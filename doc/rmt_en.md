@@ -79,7 +79,7 @@ note.
 | `CONTROL+SHIFT+S`    | Save RMT module under a new name. |
 | `ALT+ENTER`          | Open the song properties. |
 | `CONTROL+N`          | Create new RMT module. |
-| `CONTROL+P`          | Print.               |
+| `CONTROL+P`          | Print. Without function: printing is intentionally not implemented, see the [change log](rmt_changes.md). |
 | `CONTROL+Y`          | Redo last change.    |
 | `CONTROL+Z`          | Undo last change.    |
 | `SHIFT+LEFT`, `SHIFT+RIGHT` | Change active instrument. |

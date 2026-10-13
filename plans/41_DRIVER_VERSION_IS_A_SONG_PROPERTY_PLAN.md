@@ -55,16 +55,12 @@ It makes the version a **song-scoped program setting**, exactly what
 the region is. It does **not** make it a stored song property: nothing
 in the `.rmt` carries it, and nothing will after this plan.
 
-That distinction is worth being precise about, because the module
-format looks closer to ready than it is. `CSong::MakeTuningBlock` /
-`DecodeTuningBlock` (`Song.cpp:100`, `Song.cpp:152`) are a complete
-`0xF3` block that writes and reads region, base note, temperament and
-the two line-highlight settings, with a further 64 bytes of tuning
-ratios sketched behind a second `TODO`. Both are **dead**: their
-declarations in `Song.h:271-272` are commented out, nothing calls them,
-and the Java port never carried them at all. So the region's own
-"stored with the module" story does not exist either - `m_ntsc` is
-written only by `SetNTSC`, from `rmt.ini` and the Options dialog.
+That distinction is worth being precise about, because the region's own
+"stored with the module" story does not exist either: `m_ntsc` is
+written only by `SetNTSC`, from `rmt.ini` and the Options dialog. No
+released version of the `.rmt` format carries the region, the tuning or
+the driver version, and today's format is not going to learn to - that
+is RMT 2.0's work.
 
 A welcome consequence: because nothing loads either value from a
 module, opening a file does not reset them. The version will keep
@@ -148,11 +144,10 @@ behaving as the option it is today.
 
 ## Out of scope
 
-- Storing the version in the module. That is the `0xF3` block's
-  revival, together with plan 37's finding about carrying the
-  composer's tuning, and it is a file-format decision for the user -
-  including what an older RMT should do with a block it does not
-  understand.
+- Storing the version with the module. That belongs with plan 37's
+  finding about carrying the composer's tuning, and both are questions
+  for the per-module `.ini` and the RMT 2.0 format - see
+  [plan 44](44_SONG_PROPERTIES_DIALOG_PLAN.md).
 - `CAtariTrackerDriver` remembering which version it loaded. That is
   the more authoritative answer to "what layout do these bytes have?",
   and the two cannot diverge today because changing the option reloads

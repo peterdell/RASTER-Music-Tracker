@@ -159,9 +159,8 @@ int CSong::ImportMOD(std::ifstream& in) {
     BOOL x_optimizeloops = importdlg.m_check6;
     BOOL x_truncateunusedparts = importdlg.m_check7;
     // x_fourier (importdlg.m_check8) is captured by the original but only
-    // ever read inside a genuinely commented-out Fourier-transform block -
-    // dead code, same category as the already-found MakeTuningBlock/
-    // DecodeTuningBlock - so it's not passed through to Apply().
+    // ever read inside a genuinely commented-out Fourier-transform block,
+    // so it's dead and not passed through to Apply().
 
     TImportMODResult result;
     ImportMODApply(in, header, rmttype, trackorder, x_shiftdownoctave, x_portamento, x_fullvolumerange, x_volumeincrease, x_decreaseinstrument, x_optimizeloops, x_truncateunusedparts, result);
