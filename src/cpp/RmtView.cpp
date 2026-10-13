@@ -77,10 +77,13 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_FILE_SAVE_AS, OnFileSaveAs)
     ON_COMMAND(ID_FILE_IMPORT, OnFileImport)
     ON_COMMAND(ID_FILE_EXPORT, OnFileExport)
-    // Standard printing commands
-    ON_COMMAND(ID_FILE_PRINT, CView::OnFilePrint)
-    ON_COMMAND(ID_FILE_PRINT_DIRECT, CView::OnFilePrint)
-    ON_COMMAND(ID_FILE_PRINT_PREVIEW, CView::OnFilePrintPreview)
+    // Printing is intentionally not implemented, see doc/rmt_changes.md 1.36.
+    // These are MFC's standard printing commands, which routed the menu
+    // entries into CView's own implementation; the entries are gone, and
+    // ID_FILE_PRINT_DIRECT never had one.
+    // ON_COMMAND(ID_FILE_PRINT, CView::OnFilePrint)
+    // ON_COMMAND(ID_FILE_PRINT_DIRECT, CView::OnFilePrint)
+    // ON_COMMAND(ID_FILE_PRINT_PREVIEW, CView::OnFilePrintPreview)
     ON_COMMAND(ID_FILE_EXIT, OnFileExit)
 
     // Instruments
@@ -465,22 +468,27 @@ BOOL CRmtView::OnEraseBkgnd(CDC* pDC)
 
 /////////////////////////////////////////////////////////////////////////////
 // CRmtView printing
-
-BOOL CRmtView::OnPreparePrinting(CPrintInfo* pInfo)
-{
-    // default preparation
-    return DoPreparePrinting(pInfo);
-}
-
-void CRmtView::OnBeginPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
-{
-    // TODO: add extra initialization before printing
-}
-
-void CRmtView::OnEndPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
-{
-    // TODO: add cleanup after printing
-}
+//
+// Printing is intentionally not implemented, see doc/rmt_changes.md 1.36.
+// These three were the generated skeleton, never written for RMT: nothing
+// drew a printer page, so what came out was a blank sheet or a small image
+// in one corner. They are kept here as a comment so the next reader sees
+// the decision instead of wondering whether printing was forgotten.
+// CView's own virtuals remain, so nothing is overridden any more.
+//
+// BOOL CRmtView::OnPreparePrinting(CPrintInfo* pInfo)
+// {
+//     // default preparation
+//     return DoPreparePrinting(pInfo);
+// }
+//
+// void CRmtView::OnBeginPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
+// {
+// }
+//
+// void CRmtView::OnEndPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
+// {
+// }
 
 /////////////////////////////////////////////////////////////////////////////
 // CRmtView diagnostics

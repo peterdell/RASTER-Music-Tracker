@@ -77,9 +77,10 @@ public:
     virtual void OnInitialUpdate();
 
 protected:
-    virtual BOOL OnPreparePrinting(CPrintInfo* pInfo);
-    virtual void OnBeginPrinting(CDC* pDC, CPrintInfo* pInfo);
-    virtual void OnEndPrinting(CDC* pDC, CPrintInfo* pInfo);
+    // Printing is intentionally not implemented, see doc/rmt_changes.md 1.36.
+    // virtual BOOL OnPreparePrinting(CPrintInfo* pInfo);
+    // virtual void OnBeginPrinting(CDC* pDC, CPrintInfo* pInfo);
+    // virtual void OnEndPrinting(CDC* pDC, CPrintInfo* pInfo);
     //}}AFX_VIRTUAL
 
     // Implementation

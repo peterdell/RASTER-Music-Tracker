@@ -1184,10 +1184,6 @@ MENUITEM SEPARATOR
 MENUITEM "&Import...", ID_FILE_IMPORT
 MENUITEM "&Export", ID_FILE_EXPORT
 MENUITEM SEPARATOR
-MENUITEM "&Print...\tCtrl+P", ID_FILE_PRINT
-MENUITEM "Print Pre&view", ID_FILE_PRINT_PREVIEW
-MENUITEM "Prin&t Setup...", ID_FILE_PRINT_SETUP
-MENUITEM SEPARATOR
 MENUITEM "Properties\tAlt+Enter", ID_FILE_PROPERTIES
 MENUITEM SEPARATOR
 MENUITEM "E&xit\tAlt+F4", ID_FILE_EXIT
@@ -1522,7 +1518,6 @@ VK_SPACE, ID_EDIT_SWITCH_EDIT_MODE, VIRTKEY, CONTROL, NOINVERT
 "Z", ID_EDIT_UNDO, VIRTKEY, CONTROL, NOINVERT
 "N", ID_FILE_NEW, VIRTKEY, CONTROL, NOINVERT
 "O", ID_FILE_OPEN, VIRTKEY, CONTROL, NOINVERT
-"P", ID_FILE_PRINT, VIRTKEY, CONTROL, NOINVERT
 "R", ID_FILE_REOPEN, VIRTKEY, CONTROL, NOINVERT
 "S", ID_FILE_SAVE, VIRTKEY, CONTROL, NOINVERT
 "S", ID_FILE_SAVE_AS, VIRTKEY, SHIFT, CONTROL, NOINVERT
@@ -1688,9 +1683,6 @@ ID_FILE_NEW             "Create a new module\nNew (Ctrl+N)"
 ID_FILE_OPEN            "Open a module file\nOpen... (Ctrl+O)"
 ID_FILE_SAVE            "Save the module file\nSave (Ctrl+S)"
 ID_FILE_SAVE_AS         "Save the module file with a new filename\nSave As... (Ctrl+Shift+S)"
-ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup..."
-ID_FILE_PRINT           "Print the active view\nPrint... (Ctrl+P)"
-ID_FILE_PRINT_PREVIEW   "Preview the print version of the view"
 END
 
 STRINGTABLE

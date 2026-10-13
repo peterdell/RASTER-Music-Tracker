@@ -9,9 +9,6 @@
 | Menu File | Save As... | `Ctrl+Shift+S` | Save the module file with a new filename |
 | Menu File | Import... |  | Import a module from a file |
 | Menu File<br>Tool Bar Main | Export |  | Export the module file in different formats |
-| Menu File | Print... | `Ctrl+P` | Print the active view |
-| Menu File | Print Preview |  | Preview the print version of the view |
-| Menu File | Print Setup... |  | Change the printer and printing options |
 | Menu File | Properties | `Alt+Enter` |  |
 | Menu File | Exit | `Alt+F4` |  |
 | Menu Edit | Undo | `Ctrl+Z` | Undo the last action |

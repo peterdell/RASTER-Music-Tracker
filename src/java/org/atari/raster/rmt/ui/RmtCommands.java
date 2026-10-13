@@ -30,8 +30,7 @@ import org.atari.raster.rmt.model.UndoType;
  * <p>What a handler needs from the window goes through {@link Host}. The
  * handlers that open a dialog or a file chooser ({@code FileOpen}, the
  * export/import/renumber/change/order dialogs, About, Options) report
- * {@link Host#notAvailable} until their batch (B7); the printing
- * commands are deliberately never implemented, see {@link #isEnabled}; the Pokey menu's explorer
+ * {@link Host#notAvailable} until their batch (B7); the Pokey menu's explorer
  * commands run {@link PokeyController}'s operations in the explorer mode
  * (in C++ they had no handlers and were always greyed, until 2026-09-30);
  * the MIDI toggle is {@link RmtSession#midi}'s.
@@ -291,7 +290,7 @@ public final class RmtCommands {
 				host.runExport(request.file().getFileName().toString(), progress -> songFiles.runExportAs(request, progress));
 			}
 		}
-		case FILE_PRINT, FILE_PRINT_PREVIEW, FILE_PRINT_SETUP, FILE_PROPERTIES -> host.notAvailable("Printing");
+		case FILE_PROPERTIES -> host.notAvailable("Song properties");
 		case FILE_EXIT -> host.exit();
 
 		// --- Edit ---
@@ -724,16 +723,11 @@ public final class RmtCommands {
 
 		return switch (id) {
 		case FILE_REOPEN -> songFiles.fileCanBeReloaded();
-		// Printing is intentionally not ported, and will not be: in C++ the
-		// three print commands are the generated MFC skeleton, which never drew
-		// anything for a printer page, and asked about it users replied they do
-		// not need printing. Every platform's own screenshot function already
-		// takes a picture of the window. See doc/rmt_changes.md, 1.36.
-		//
-		// File > Properties shares the case for a different reason: it is a
-		// menu entry and an accelerator in Rmt.rc with no handler behind it in
-		// either program, so it is greyed in C++ too.
-		case FILE_PRINT, FILE_PRINT_PREVIEW, FILE_PRINT_SETUP, FILE_PROPERTIES -> false;
+		// File > Properties is a menu entry and an accelerator in Rmt.rc with
+		// no handler behind it in either program, so it is greyed in C++ too.
+		// The dialog behind it is plan 44's; the printing commands that used
+		// to share this case are gone (doc/rmt_changes.md, 1.36).
+		case FILE_PROPERTIES -> false;
 		case EDIT_UNDO -> session.undo.getUndoSteps() > 0;
 		case EDIT_REDO -> session.undo.getRedoSteps() > 0;
 		case EDIT_CLEAR_UNDO_REDO_HISTORY -> session.undo.getUndoSteps() > 0 || session.undo.getRedoSteps() > 0;

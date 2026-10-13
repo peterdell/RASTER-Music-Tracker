@@ -52,9 +52,7 @@ public final class Actions extends NLS {
 	public static Action MainMenu_File_SaveAs = new Action(KeyEvent.VK_S, KeyStroke.M1 | KeyStroke.M2);
 	public static Action MainMenu_File_Import;
 	public static Action MainMenu_File_Export;
-	public static Action MainMenu_File_Print = new Action(KeyEvent.VK_P, KeyStroke.M1);
-	public static Action MainMenu_File_PrintPreview;
-	public static Action MainMenu_File_PrintSetup;
+	// Print, Print Preview and Print Setup were here until 2026-10-13: printing is intentionally not implemented, see doc/rmt_changes.md 1.36. Ctrl+P is free.
 	public static Action MainMenu_File_Properties = new Action(KeyEvent.VK_ENTER, KeyStroke.M3);
 	public static Action MainMenu_File_Exit = new Action(KeyEvent.VK_F4, KeyStroke.M3);
 
@@ -105,7 +103,7 @@ public final class Actions extends NLS {
 	public static Action MainMenu_Song_ClearBookmark = new Action(KeyEvent.VK_F8, KeyStroke.M1);
 	public static Action MainMenu_Song_DeleteCurrentLine = new Action(KeyEvent.VK_U, KeyStroke.M1);
 	public static Action MainMenu_Song_InsertNewEmptyLine = new Action(KeyEvent.VK_I, KeyStroke.M1);
-	public static Action MainMenu_Song_InsertNewLineWithUnusedTracks = new Action(KeyEvent.VK_J, KeyStroke.M1); // Ctrl+J / Ctrl+K / Ctrl+T since 2026-09-28, their old keys went to Print, Open and New
+	public static Action MainMenu_Song_InsertNewLineWithUnusedTracks = new Action(KeyEvent.VK_J, KeyStroke.M1); // Ctrl+J / Ctrl+K / Ctrl+T since 2026-09-28, their old keys Ctrl+P / Ctrl+O / Ctrl+N went to Print, Open and New; Print is gone again since 2026-10-13, so Ctrl+P is unassigned
 	public static Action MainMenu_Song_InsertCopyOrCloneOfSongLines = new Action(KeyEvent.VK_K, KeyStroke.M1);
 	public static Action MainMenu_Song_PutNewEmptyUnusedTrack = new Action(KeyEvent.VK_T, KeyStroke.M1);
 	public static Action MainMenu_Song_MakeTracksDuplicate = new Action(KeyEvent.VK_D, KeyStroke.M1);
