@@ -6,13 +6,14 @@ import java.io.ByteArrayOutputStream;
  * Ported from CWaveFileExporter (src/cpp/WaveFileExporter.h/.cpp) -
  * {@code ExportWAV}: replays the recorded {@link PokeyStream}, frame by
  * frame up to its loop point, through the POKEY pair and returns the
- * samples as a WAV file. C++ writes each frame's register bytes into the
- * tracker driver's variables and lets {@code RMT_SETPOKEY} +
- * {@code CopyAtariMemoryToPokey} carry them to the POKEY once per
- * instrument-speed sub-frame ({@code RenderSoundV2}); here the bytes are
- * poked into the POKEY pair directly (all channels on, as C++ sets them
- * for the export) - the same registers by a shorter route - and the
- * sub-frame's share of the frame's cycles is rendered.
+ * samples as a WAV file. The bytes are poked into the POKEY pair directly
+ * (all channels on, as C++ sets them for the export) and the sub-frame's
+ * share of the frame's cycles is rendered. C++ used to write each frame
+ * into the Patch 16 driver's variables and let the loaded driver's
+ * {@code RMT_SETPOKEY} routine carry them to the POKEY - which, with a
+ * v1-family driver loaded, corrupted the player and rendered from stale
+ * state; since plan 46 it writes the $D200/$D210 shadows directly, the
+ * same route as here.
  *
  * <p>Output is 16-bit signed PCM, 44.1 kHz, 2 channels (C++: 8-bit); a mono
  * song's single POKEY is on both channels, as C++'s 2-channel output. Until

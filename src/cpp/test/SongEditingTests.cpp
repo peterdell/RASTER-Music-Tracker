@@ -2084,6 +2084,51 @@ TEST_F(SongEditingTest, ExportWAVWritesAValidRiffWaveHeaderWhenNoPokeyDriverIsLo
     std::filesystem::remove(wavPath);
 }
 
+// Plan 46's regression test: ExportWAV() used to write each frame's register
+// bytes into the Patch 16 driver's variables and run the loaded driver's
+// SetPokey routine - with a v1-family driver loaded, TRACKN_AUDC
+// ($3180-$3187) lies across the v1 dispatch table at $3182, so one WAV
+// export corrupted the player and the next frequency read refused it. The
+// export writes the $D200/$D210 shadows directly now (the Java port's route
+// from the start) and must leave the whole player region untouched.
+
+TEST_F(SongEditingTest, ExportWAVLeavesTheLoadedV1DriverUntouched) {
+    song.Stop();
+
+    g_Song.GetTuning().Initialize(false); // PAL - LoadRMTRoutines() regenerates the tuning tables
+    g_Song.GetTuningRatios().Initialize();
+    ASSERT_GT(g_AtariTrackerDriver->LoadRMTRoutines(TrackerDriverVersion::UNPATCHED), 0);
+
+    byte* memory = g_AtariTrackerDriver->GetAtari()->GetMemoryAt(0);
+    std::vector<byte> before(memory + 0x3000, memory + 0x4000); // dispatch table, frequency tables and player
+
+    TInfo info = {};
+    song.GetSongInfoPars(&info);
+    info.mainspeed = 6;
+    info.instrspeed = 1;
+    song.SetSongInfoPars(&info);
+    (*song.GetSong())[0][0] = 5;
+    g_Tracks.GetTrack(5)->len = 2;
+    g_Tracks.GetTrack(5)->note[0] = 10;
+    g_Tracks.GetTrack(5)->instr[0] = 2;
+    (*song.GetSongGo())[1] = 0;
+
+    CSongContainer container(song);
+    std::filesystem::path wavPath = std::filesystem::temp_directory_path() / "RmtTests_ExportWAV_v1.wav";
+    CString filePath(wavPath.string().c_str());
+    CSongExport songExport(container, filePath);
+    std::ofstream ou(wavPath, std::ios::binary);
+    ASSERT_TRUE(ou.is_open());
+
+    CXPokey pokey;
+    ASSERT_TRUE(CWaveFileExporter::ExportWAV(songExport, ou, pokey, memory));
+
+    EXPECT_EQ(memcmp(before.data(), memory + 0x3000, before.size()), 0)
+        << "the WAV export wrote into the loaded driver's memory";
+
+    std::filesystem::remove(wavPath);
+}
+
 // --- CSongExporter::ExportLZSS / ExportCompactLZSS ---
 // Both take no dialog input and only need songExport.GetPokeyStream()
 // (already established safe) plus CCompressLzss::LZSS_SAP() (already

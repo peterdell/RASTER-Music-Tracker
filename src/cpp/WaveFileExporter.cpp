@@ -55,35 +55,28 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
     memset(buffer, 0x80, bufferSize);
 
     while (frames < pokeyStream.GetFirstCountPoint()) {
-        // Copy the SAP-R bytes to memory for this frame
+        // Copy the SAP-R bytes of this frame straight to the POKEY shadows at
+        // $D200/$D210, where CopyAtariMemoryToPokey() reads them - the same
+        // direct route the Java port always used. Until plan 46 the bytes
+        // went into the Patch 16 driver's variables instead, and
+        // RenderPartV2() ran the loaded driver's SetPokey routine to carry
+        // them here: with a v1-family driver loaded, that clobbered the
+        // player (TRACKN_AUDC is $3180-$3187, across the v1 dispatch table
+        // at $3182) and rendered the WAV from the driver's own stale
+        // variables rather than the recorded stream. A SAP-R frame is the
+        // nine registers in $D200 order; in stereo the second POKEY's nine
+        // bytes come first in the stream (CPokeyStream::Record()).
         streambuffer = pokeyStream.GetStreamBuffer() + frames * frameSize;
 
-        //for (int i = 0; i < frameSize; i++)
-        //{
-        //	memory[0xd200 + i] = streambuffer[i];
-        //}
-
         if (frameSize == 18) {
-            // Stereo: CPokeyStream::Record() stores the second POKEY's 9 bytes first, then the first POKEY's
-            // ("1st POKEY is 2nd in the stream"). Tracks 4-7 / v_audctl2 are what SetPokey writes to $D210-$D218.
-            for (int i = 0; i < 4; i++) {
-                memory[RMTPLAYR_TRACKN_AUDF + i] = streambuffer[0x09 + i * 2];
-                memory[RMTPLAYR_TRACKN_AUDC + i] = streambuffer[0x0A + i * 2];
-                memory[RMTPLAYR_TRACKN_AUDF + 4 + i] = streambuffer[0x00 + i * 2];
-                memory[RMTPLAYR_TRACKN_AUDC + 4 + i] = streambuffer[0x01 + i * 2];
+            for (int i = 0; i < 9; i++) {
+                memory[0xd200 + i] = streambuffer[0x09 + i];
+                memory[0xd210 + i] = streambuffer[0x00 + i];
             }
-            memory[RMTPLAYR_V_AUDCTL] = streambuffer[0x11];
-            memory[RMTPLAYR_V_AUDCTL2] = streambuffer[0x08];
         } else {
-            memory[RMTPLAYR_TRACKN_AUDF + 0] = streambuffer[0x00];
-            memory[RMTPLAYR_TRACKN_AUDF + 1] = streambuffer[0x02];
-            memory[RMTPLAYR_TRACKN_AUDF + 2] = streambuffer[0x04];
-            memory[RMTPLAYR_TRACKN_AUDF + 3] = streambuffer[0x06];
-            memory[RMTPLAYR_TRACKN_AUDC + 0] = streambuffer[0x01];
-            memory[RMTPLAYR_TRACKN_AUDC + 1] = streambuffer[0x03];
-            memory[RMTPLAYR_TRACKN_AUDC + 2] = streambuffer[0x05];
-            memory[RMTPLAYR_TRACKN_AUDC + 3] = streambuffer[0x07];
-            memory[RMTPLAYR_V_AUDCTL] = streambuffer[0x08];
+            for (int i = 0; i < 9; i++) {
+                memory[0xd200 + i] = streambuffer[i];
+            }
         }
 
         // One stream frame is one driver call, 1/instrumentSpeed of a video

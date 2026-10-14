@@ -187,8 +187,9 @@ surfaced now because an earlier aborted script run left
 restores `patch16` on its last line, which an abort never reaches), and
 every later `delta` run then started on the v1 driver. The setting is
 restored; the WAV-export clobbering of a v1 driver's table is a real,
-state-dependent bug of its own, in both programs' ancestry, and is not
-this plan's to fix.
+state-dependent bug of its own, fixed by
+[plan 46](46_WAV_EXPORT_DRIVER_CORRUPTION_PLAN.md) - the Java port
+never had it.
 
 ## Outlook, deliberately not this plan
 
