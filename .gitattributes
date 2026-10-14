@@ -1,5 +1,42 @@
+# Line-ending normalization (plan 45's aftermath): everything git detects
+# as text is stored with LF in the repository, whatever tool wrote it;
+# the working copy follows core.autocrlf. Without this, the working tree
+# keeps whatever endings the last tool produced, and a mixed-endings file
+# is invisible to git.
+* text=auto
+
 # Shell scripts and workflow files must stay LF: they run on Linux/macOS
 # runners (a CRLF shebang breaks bash), whatever core.autocrlf says.
 *.sh text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
+
+# Windows batch files break without CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary formats, declared so a text-looking header can never get its
+# line endings rewritten. The SAP format is the reason this list exists:
+# its header is CRLF text by specification, followed by binary data.
+*.rmt -text
+*.rmw -text
+*.rti -text
+# (.erti, the instrument's text export, is text and stays auto-detected)
+*.sap -text
+*.sapr -text
+*.lzss -text
+*.obx -text
+*.xex -text
+*.wav -text
+*.mod -text
+*.tmc -text
+*.tm8 -text
+*.png -text
+*.bmp -text
+*.gif -text
+*.ico -text
+*.cur -text
+*.dll -text
+*.exe -text
+*.xls -text
+*.aps -text
