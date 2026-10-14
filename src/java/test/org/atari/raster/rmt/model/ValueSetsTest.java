@@ -82,6 +82,17 @@ class ValueSetsTest {
 		assertFalse(TrackerDriverVersion.UNPATCHED_WITH_TUNING.isSelectable());
 	}
 
+	/** Only Patch 16 reads its frequency tables from the $B000 page the tuning system writes, so it is the only version the tuning reaches. */
+	@Test
+	void onlyPatch16SupportsTuning() {
+		assertTrue(TrackerDriverVersion.PATCH16.isTuningSupported());
+		for (TrackerDriverVersion version : TrackerDriverVersion.getValues()) {
+			if (version != TrackerDriverVersion.PATCH16) {
+				assertFalse(version.isTuningSupported(), version.getId() + " keeps its tables inside the player");
+			}
+		}
+	}
+
 	@Test
 	void theValuesAreSortedForTheComboBoxByTheirSortKey() {
 		List<AssemblerFormat> values = ValueSet.getValues(AssemblerFormat.class); // what ValueSetField(Class) shows

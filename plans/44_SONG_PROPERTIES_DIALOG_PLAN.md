@@ -124,6 +124,12 @@ it did.
   `CModulePropertiesDialog`, `ModulePropertiesDialog`,
   `ModulePropertiesValues` - while the command keeps C++'s
   `ID_FILE_PROPERTIES` name.
+- **The driver version belongs in the dialog**, confirmed by the user on
+  2026-10-14. It decides which player a song is written for, which makes
+  it a property of the song in the same sense as the region and the
+  tuning - even though, unlike those two, changing it has an immediate
+  effect, because the tracker reloads the player's routines into Atari
+  memory on the spot.
 - **The track-line highlights did not move**, per this plan's own
   answer: they decide how a song is displayed, not how it sounds, so they
   stay in Options with the other view preferences.
@@ -154,12 +160,17 @@ it did.
 
 ## Open afterwards
 
-- **Does the driver version belong beside the other two?** It decides
-  which player a song is written for, so it is a property of the song in
-  the same sense - but unlike region and tuning it also decides what the
-  tracker loads into Atari memory, and changing it has an immediate
-  effect that region and tuning do not. It is in the dialog; whether it
-  should be is still the user's call.
+- **The Tuning... button acts outside the OK/Cancel round trip.** The
+  tuning dialog writes the song's tuning the moment it is confirmed, as
+  it did from the Options dialog, while the video standard and the
+  driver version are applied only when the module properties are
+  confirmed. Two consequences: Cancel does not take back a tuning edit,
+  and a tuning edited while Patch 16 was selected stays behind if the
+  version is then cancelled back to a driver that ignores it
+  (`IsTuningSupported()`). Making the tuning part of the round trip
+  would mean giving the tuning dialog a working copy of the song's
+  tuning and applying it with the rest - worth doing when the tuning
+  itself is next touched, not on its own.
 - The Title/Author/Date/Subsongs fields the reserved template had. An
   RMT module carries none of them today; if the RMT 2.0 format does,
   this dialog is where they belong.

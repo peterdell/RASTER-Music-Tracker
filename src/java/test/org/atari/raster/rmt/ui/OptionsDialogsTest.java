@@ -123,6 +123,10 @@ class OptionsDialogsTest {
 		assertEquals(TrackerDriverVersion.PATCH8, combos.get(0).getSelectedItem()); // a value set field holds the instance; its text is what the box shows
 		assertEquals("RMT 1.28 Patch 8 by Analmux", combos.get(0).getSelectedItem().toString());
 		assertEquals("Tuning...", button(dialog, "Tuning...").getText());
+		// The tuning only reaches Patch 16's tables, so the button follows the selected version
+		assertFalse(button(dialog, "Tuning...").isEnabled(), "Patch 8 plays its own tables");
+		combos.get(0).setSelectedItem(TrackerDriverVersion.PATCH16);
+		assertTrue(button(dialog, "Tuning...").isEnabled());
 
 		((JCheckBox) button(dialog, "Use NTSC System Speed (60Hz)")).setSelected(true);
 		combos.get(0).setSelectedIndex(0);

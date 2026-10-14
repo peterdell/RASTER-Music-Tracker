@@ -39,6 +39,7 @@ final class ModulePropertiesDialog extends ModalDialog {
 	private final JCheckBox ntscBox = ElementFactory.createCheckBox(DataTypes.ModulePropertiesDialog_NTSC);
 	/** {@code m_trackerDriverVersionComboBox}: the versions C++ offers, in its order (not every value is offered). */
 	private final ValueSetField<TrackerDriverVersion> driverVersionCombo = new ValueSetField<>(TrackerDriverVersion.getSelectableValues());
+	private final JButton tuningButton = ElementFactory.createButton(Actions.ModulePropertiesDialog_Tuning, true);
 	private boolean filled;
 
 	ModulePropertiesDialog(JFrame parent, RmtSession session, ModulePropertiesValues values) {
@@ -52,9 +53,20 @@ final class ModulePropertiesDialog extends ModalDialog {
 		DialogSupport.add(module, driverVersionCombo, 1, 1, 1, true);
 		getContentPane().add(module, BorderLayout.CENTER);
 
-		JButton tuning = ElementFactory.createButton(Actions.ModulePropertiesDialog_Tuning, true);
-		tuning.addActionListener(e -> onClickedTuning());
-		addButtonBarButton(tuning);
+		tuningButton.addActionListener(e -> onClickedTuning());
+		addButtonBarButton(tuningButton);
+		driverVersionCombo.addActionListener(e -> updateTuningButton());
+	}
+
+	/**
+	 * The tuning only reaches the Patch 16 driver's tables
+	 * ({@link TrackerDriverVersion#isTuningSupported()}), so the button follows
+	 * the version that is selected right now, not the one the song carried when
+	 * the dialog opened.
+	 */
+	private void updateTuningButton() {
+		TrackerDriverVersion selected = driverVersionCombo.getValue();
+		tuningButton.setEnabled(selected != null && selected.isTuningSupported());
 	}
 
 	/** {@code OnClickedOptionsTuning()}, from here now. */
@@ -74,6 +86,7 @@ final class ModulePropertiesDialog extends ModalDialog {
 		} else {
 			driverVersionCombo.setSelectedIndex(-1); // nothing selected, like CComboBox for an unlisted item
 		}
+		updateTuningButton();
 	}
 
 	@Override

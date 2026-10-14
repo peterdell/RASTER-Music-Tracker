@@ -51,5 +51,9 @@ protected:
     //}}AFX_MSG
 
     afx_msg void OnClickedModuleTuning();
+    afx_msg void OnTrackerDriverVersionChanged();
     DECLARE_MESSAGE_MAP()
+
+private:
+    void UpdateTuningButton();
 };

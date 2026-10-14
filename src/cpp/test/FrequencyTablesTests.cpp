@@ -48,6 +48,23 @@ class FrequencyTablesTest : public ::testing::Test {
 
 // --- the Patch 16 layout ---
 
+// --- IsTuningSupported ---
+// The tuning system only ever writes the $B000 page (RMT_FRQTABLES), which is
+// where Patch 16 keeps its tables; every other driver carries its own four
+// inside the player and plays those whatever the tuning says. The Java port's
+// TrackerDriverVersion.isTuningSupported() asserts the same list.
+
+TEST(TrackerDriverVersionTest, OnlyPatch16SupportsTuning) {
+    EXPECT_TRUE(IsTuningSupported(TrackerDriverVersion::PATCH16));
+    EXPECT_FALSE(IsTuningSupported(TrackerDriverVersion::NONE));
+    EXPECT_FALSE(IsTuningSupported(TrackerDriverVersion::UNPATCHED));
+    EXPECT_FALSE(IsTuningSupported(TrackerDriverVersion::UNPATCHED_WITH_TUNING));
+    EXPECT_FALSE(IsTuningSupported(TrackerDriverVersion::PATCH3));
+    EXPECT_FALSE(IsTuningSupported(TrackerDriverVersion::PATCH6));
+    EXPECT_FALSE(IsTuningSupported(TrackerDriverVersion::PATCH8));
+    EXPECT_FALSE(IsTuningSupported(TrackerDriverVersion::PATCH_PRINCE_OF_PERSIA));
+}
+
 TEST_F(FrequencyTablesTest, EveryDistortionTakesThePageTheDriverDispatchesItTo) {
     // distortion -> page, as asm/Patch-16/rmtplayr.a65's TABLES_MSB has it.
     const MemoryAddress expected[8] = {0xB200, 0xB000, 0xB100, 0xB200, 0xB200, 0xB200, 0xB300, 0xB400};

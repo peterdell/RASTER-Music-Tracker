@@ -38,6 +38,7 @@ void CModulePropertiesDialog::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CModulePropertiesDialog, CDialog)
     //{{AFX_MSG_MAP(CModulePropertiesDialog)
     ON_BN_CLICKED(ID_MODULE_TUNING, OnClickedModuleTuning)
+    ON_CBN_SELCHANGE(IDC_TRACKERDRIVERVERSION, OnTrackerDriverVersionChanged)
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -56,8 +57,25 @@ BOOL CModulePropertiesDialog::OnInitDialog()
     m_trackerDriverVersionComboBox.AddItem(TrackerDriverVersion::PATCH_PRINCE_OF_PERSIA, "RMT 1.28 Patch Prince of Persia by VinsCool");
 
     m_trackerDriverVersionComboBox.SetSelectedItem(m_trackerDriverVersion);
+    UpdateTuningButton();
 
     return TRUE;
+}
+
+/// <summary>
+/// The tuning only reaches the Patch 16 driver's tables, so the button
+/// follows the version that is selected right now, not the one the song
+/// carried when the dialog opened (IsTuningSupported()).
+/// </summary>
+void CModulePropertiesDialog::UpdateTuningButton()
+{
+    const TrackerDriverVersion selected = m_trackerDriverVersionComboBox.GetSelectedItem(TrackerDriverVersion::NONE);
+    GetDlgItem(ID_MODULE_TUNING)->EnableWindow(IsTuningSupported(selected));
+}
+
+void CModulePropertiesDialog::OnTrackerDriverVersionChanged()
+{
+    UpdateTuningButton();
 }
 
 /// <summary>

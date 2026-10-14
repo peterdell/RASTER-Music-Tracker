@@ -182,6 +182,8 @@ These tables are assembled into each binary, and the tuning system
 cannot reach them: it only ever writes the $B000 page. They are
 therefore exactly what those drivers play, whatever the tuning dialog
 says - a reason to prefer Patch 16 for anything that is to be tuned.
+The module properties dialog says so as well: with any other driver
+version selected, its "Tuning..." button is disabled.
 
 Only the unpatched driver's source is in this repository, and the five
 patched binaries each changed the table's contents: Patch 6 plays
