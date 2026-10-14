@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 
+import org.atari.raster.rmt.model.SongIO;
 import org.atari.raster.rmt.model.AsmFileExporter;
 import org.atari.raster.rmt.model.AssemblerFormat;
 import org.atari.raster.rmt.model.EditMode;
@@ -68,7 +69,7 @@ public final class SongFiles {
 	public record FileNewChoice(int maxTrackLength, boolean stereo) {
 	}
 
-	/** {@code TExportDescription}: a module built by {@link Song#makeModule} at {@code targetAddrOfModule}, ending before {@code firstByteAfterModule}. */
+	/** {@code TExportDescription}: a module built by {@link SongIO#makeModule} at {@code targetAddrOfModule}, ending before {@code firstByteAfterModule}. */
 	public record ModuleDescription(byte[] mem, int targetAddrOfModule, int firstByteAfterModule, byte[] instrumentSavedFlags, byte[] trackSavedFlags) {
 		public int length() {
 			return firstByteAfterModule - targetAddrOfModule;
@@ -349,7 +350,7 @@ public final class SongFiles {
 		SongIOType ioType;
 		switch (filterIndex) {
 		case FILTER_RMT -> {
-			Song.LoadRmtResult r = song.loadRMT(data);
+			SongIO.LoadRmtResult r = SongIO.loadRMT(song, data);
 			loadedOk = r.success();
 			if (loadedOk) {
 				session.setTracks4_8(r.tracks4_8());
@@ -358,12 +359,12 @@ public final class SongFiles {
 			ioType = SongIOType.RMT;
 		}
 		case FILTER_TXT -> {
-			session.setTracks4_8(song.loadTxt(new String(data, TEXT_CHARSET), session.undo).tracks4_8());
+			session.setTracks4_8(SongIO.loadTxt(song, new String(data, TEXT_CHARSET), session.undo).tracks4_8());
 			loadedOk = true; // LoadTxt "does not mean the resultant data is valid"
 			ioType = SongIOType.TXT;
 		}
 		default -> {
-			Song.LoadRmwResult r = song.loadRMW(data, session.undo);
+			SongIO.LoadRmwResult r = SongIO.loadRMW(song, data, session.undo);
 			loadedOk = r.success();
 			if (loadedOk) {
 				session.setTracks4_8(r.tracks4_8());
@@ -397,7 +398,7 @@ public final class SongFiles {
 		}
 
 		// If the RMT module hasn't met the conditions required to be valid, it won't be saved/overwritten
-		if (song.getIOType() == SongIOType.RMT && !song.testBeforeFileSave(session.tracks4_8, session.messages)) {
+		if (song.getIOType() == SongIOType.RMT && !SongIO.checkBeforeFileSave(song, session.tracks4_8, session.messages)) {
 			session.messages.sendWarningMessage("Warning", "Warning!\nNo data has been saved!");
 			host.songChanged();
 			return;
@@ -405,11 +406,11 @@ public final class SongFiles {
 
 		byte[] content = switch (song.getIOType()) {
 		case RMT -> saveRmtBytes();
-		case TXT -> textBytes(song.saveTxt(session.tracks4_8));
+		case TXT -> textBytes(SongIO.saveTxt(song, session.tracks4_8));
 		case RMW -> {
 			// Remembers the current octave and volume for the active instrument (for saving to RMW)
 			session.instruments.memorizeOctaveAndVolume(song.getActiveInstr(), song.getOctave(), song.getVolume(), session.options.keyboardRememberOctavesAndVolumes);
-			yield song.saveRMW(session.tracks4_8, rmwUiParams());
+			yield SongIO.saveRMW(song, session.tracks4_8, rmwUiParams());
 		}
 		default -> null;
 		};
@@ -440,7 +441,7 @@ public final class SongFiles {
 
 	/**
 	 * The 16 UI settings C++'s {@code DEFINE_MAINPARAMS} stores in an RMW
-	 * file (see {@link Song#saveRMW(int, int[])} for the list): the session's
+	 * file (see {@link SongIO#saveRMW(int, int[])} for the list): the session's
 	 * values in that order. {@code g_keyboard_playautofollow} has no Java
 	 * counterpart (the C++ global is never read) - written as its C++ default 1.
 	 */
@@ -485,7 +486,7 @@ public final class SongFiles {
 		int targetAddrOfModule = 0x4000; // Standard RMT modules are set to start @ $4000
 		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
-		int maxAddr = session.song.makeModule(mem, targetAddrOfModule, SongIOType.RMT, instrumentSavedFlags, trackSavedFlags, session.tracks4_8);
+		int maxAddr = SongIO.makeModule(session.song, mem, targetAddrOfModule, SongIOType.RMT, instrumentSavedFlags, trackSavedFlags, session.tracks4_8);
 		if (maxAddr < 0) {
 			return null; // If the module could not be created, the export process is immediately aborted
 		}
@@ -852,7 +853,7 @@ public final class SongFiles {
 		stop();
 
 		// Verify the integrity of the .rmt module to save first, so it won't be saved if it's not meeting the conditions for it
-		if (!song.testBeforeFileSave(session.tracks4_8, session.messages)) {
+		if (!SongIO.checkBeforeFileSave(song, session.tracks4_8, session.messages)) {
 			session.messages.sendWarningMessage("Warning", "Warning!\nNo data has been saved!");
 			return null;
 		}
@@ -927,7 +928,7 @@ public final class SongFiles {
 		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
 		int targetAddrOfModule = 0x4000; // Standard RMT modules are set to start @ $4000
-		int maxAddr = session.song.makeModule(mem, targetAddrOfModule, iotype, instrumentSavedFlags, trackSavedFlags, session.tracks4_8);
+		int maxAddr = SongIO.makeModule(session.song, mem, targetAddrOfModule, iotype, instrumentSavedFlags, trackSavedFlags, session.tracks4_8);
 		if (maxAddr < 0) {
 			return null;
 		}

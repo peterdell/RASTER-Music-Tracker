@@ -32,7 +32,7 @@ package org.atari.raster.rmt.model;
  * {@code unsigned char* buf = &exportDesc->mem[exportDesc->targetAddrOfModule];}
  * in {@link #buildRelocatableAsm} becomes a copied scratch buffer
  * ({@code Arrays.copyOfRange}), matching this project's established
- * treatment of the same pattern elsewhere (e.g. {@code Song#decodeModule}) -
+ * treatment of the same pattern elsewhere (e.g. {@code SongIO#decodeModule}) -
  * every offset C++ computes relative to {@code buf} (already relative to
  * {@code start}) stays numerically identical against the copy.
  */
@@ -303,11 +303,11 @@ public final class AsmFileExporter {
 
 	/**
 	 * Disassembles an already-built RMT module ({@code mem[targetAddrOfModule..firstByteAfterModule)},
-	 * from {@link Song#makeModule}) back into relocatable assembler source,
+	 * from {@link SongIO#makeModule}) back into relocatable assembler source,
 	 * based on the rmt2atasm tool. Fails ({@code success = false}) if the
 	 * module's internal pointer tables don't parse as expected - a
 	 * corruption/format-mismatch guard, not something any valid
-	 * {@link Song#makeModule} output should ever trigger.
+	 * {@link SongIO#makeModule} output should ever trigger.
 	 */
 	public static Result buildRelocatableAsm(Song song, Instruments instruments, Tracks tracks, int tracks4_8, byte[] mem, int targetAddrOfModule, int firstByteAfterModule,
 			byte[] instrumentSavedFlags, String strAsmStartLabel, String strTracksLabel, String strSongLinesLabel, String strInstrumentsLabel, AssemblerFormat assemblerFormat, boolean sfx,

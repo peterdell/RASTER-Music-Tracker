@@ -185,7 +185,7 @@ void CSong::FileSave() {
     }
 
     // If the RMT module hasn't met the conditions required to be valid, it won't be saved/overwritten
-    if (GetIOType() == SongIOType::RMT && !TestBeforeFileSave()) {
+    if (GetIOType() == SongIOType::RMT && !CheckBeforeFileSave()) {
         SendWarningMessage("Warning", "Warning!\nNo data has been saved!");
         SetRMTTitle();
         return;
@@ -443,7 +443,7 @@ void CSong::FileExportAs() {
     Stop();
 
     // Verify the integrity of the .rmt module to save first, so it won't be saved if it's not meeting the conditions for it
-    if (!TestBeforeFileSave()) {
+    if (!CheckBeforeFileSave()) {
         SendWarningMessage("Warning", "Warning!\nNo data has been saved!");
         return;
     }
@@ -786,23 +786,23 @@ void CSong::FileTrackLoad() {
     }
 }
 
-// CSong::SaveRMW() is implemented in SongEditing.cpp.
+// CSong::SaveRMW() is implemented in SongIO.cpp.
 
-// CSong::LoadRMW() is implemented in SongEditing.cpp.
+// CSong::LoadRMW() is implemented in SongIO.cpp.
 
 /// <summary>
 /// Save the song as a text file
 /// </summary>
 /// <param name="ou">Output stream</param>
 /// <returns></returns>
-// CSong::SaveTxt() is implemented in SongEditing.cpp.
+// CSong::SaveTxt() is implemented in SongIO.cpp.
 
 /// <summary>
 /// Load a text RMT file
 /// </summary>
 /// <param name="in">Input stream</param>
 /// <returns>Returns true if the file was loaded, does not mean the resultant data is valid</returns>
-// CSong::LoadTxt() is implemented in SongEditing.cpp.
+// CSong::LoadTxt() is implemented in SongIO.cpp.
 
 /// <summary>
 /// Validate the song data to make sure that
@@ -815,7 +815,7 @@ void CSong::FileTrackLoad() {
 /// - there is a goto at the end of the song, goto 0 is used by default [Warning]
 /// </summary>
 /// <returns>true if the song data is valid</returns>
-bool CSong::TestBeforeFileSave() {
+bool CSong::CheckBeforeFileSave() {
     // It is performed on Export (everything except RMW) before the target file is overwritten
     // So if it returns 0, the export is terminated and the file is not overwritten
 
@@ -921,4 +921,4 @@ bool CSong::TestBeforeFileSave() {
 /// </summary>
 /// <param name="in">Input stream</param>
 /// <returns>true if the load went ok</returns>
-// CSong::LoadRMT() is implemented in SongEditing.cpp.
+// CSong::LoadRMT() is implemented in SongIO.cpp.

@@ -1,5 +1,6 @@
 package org.atari.raster.rmt.ui;
 
+import org.atari.raster.rmt.model.IOHelpers;
 import org.atari.raster.rmt.model.Instruments;
 import org.atari.raster.rmt.model.MessageAnswer;
 import org.atari.raster.rmt.model.MessageButtons;
@@ -175,8 +176,8 @@ public final class SongDialogs {
 		}
 		session.undo.changeSong(song.songGetActiveLine(), song.getActiveColumn(), UndoType.UETYPE_SONGDATA, 1);
 
-		int f = Song.hexstr(dlg.songLineFrom(), 0, 2);
-		int t = Song.hexstr(dlg.songLineTo(), 0, 2);
+		int f = IOHelpers.hexstr(dlg.songLineFrom(), 0, 2);
+		int t = IOHelpers.hexstr(dlg.songLineTo(), 0, 2);
 		if (f < 0 || f >= Song.SONGLEN || t < 0 || t >= Song.SONGLEN || t < f) {
 			session.messages.sendErrorMessage("Error", "Bad songline (from-to) range.");
 			return;

@@ -19,7 +19,7 @@ package org.atari.raster.rmt.model;
  * format is binary) - matches {@code saveRMW}/{@code loadRMW}'s established
  * byte-array-over-stream idiom; {@code null} signals
  * {@link #exportAsStrippedRMTApply}'s one guard-only failure (a track too
- * event-dense for {@link Song#makeModule} to encode).
+ * event-dense for {@link SongIO#makeModule} to encode).
  */
 public final class RmtExporter {
 
@@ -28,7 +28,7 @@ public final class RmtExporter {
 
 	/**
 	 * Encodes {@code mem[targetAddrOfModule..firstByteAfterModule)} (already
-	 * built by {@link Song#makeModule}) as the RMT module's first data
+	 * built by {@link SongIO#makeModule}) as the RMT module's first data
 	 * block, followed by a second block holding the song name and each
 	 * saved instrument's name (null-terminated, in index order) - mirrors
 	 * C++'s two {@code CAtariIO::SaveBinaryBlock} calls exactly. Reuses
@@ -60,17 +60,17 @@ public final class RmtExporter {
 	}
 
 	/**
-	 * Builds a module (via {@link Song#makeModule}, freshly, into its own
+	 * Builds a module (via {@link SongIO#makeModule}, freshly, into its own
 	 * 64K scratch buffer) and encodes it as a single binary block - the
 	 * dialog-independent work {@code ExportAsStrippedRMT()} delegates to
 	 * once its target address/SFX-support parameters are confirmed.
-	 * Returns {@code null} if {@link Song#makeModule} fails.
+	 * Returns {@code null} if {@link SongIO#makeModule} fails.
 	 */
 	public static byte[] exportAsStrippedRMTApply(Song song, int targetAddrOfModule, boolean sfxSupport, int tracks4_8) {
 		byte[] mem = new byte[Atari.MEMORY_SIZE];
 		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
-		int firstByteAfterModule = song.makeModule(mem, targetAddrOfModule, sfxSupport ? SongIOType.RMTSTRIPPED : SongIOType.RMT, instrumentSavedFlags, trackSavedFlags, tracks4_8);
+		int firstByteAfterModule = SongIO.makeModule(song, mem, targetAddrOfModule, sfxSupport ? SongIOType.RMTSTRIPPED : SongIOType.RMT, instrumentSavedFlags, trackSavedFlags, tracks4_8);
 		if (firstByteAfterModule < 0) {
 			return null;
 		}

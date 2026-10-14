@@ -108,7 +108,7 @@ void CSong::SyncSkipLinesAfterNoteInsertComboBox() {
 /// <param name="instrumentSavedFlags"></param>
 /// <param name="trackSavedFlags"></param>
 /// <returns></returns>
-// CSong::MakeModule() is implemented in SongEditing.cpp.
+// CSong::MakeModule() is implemented in SongIO.cpp.
 
 /// <summary>
 /// Decode the RMT header
@@ -119,7 +119,7 @@ void CSong::SyncSkipLinesAfterNoteInsertComboBox() {
 /// <param name="instrumentLoadedFlags">64 byte memory buffer to indicate if a specific instrument was loaded</param>
 /// <param name="trackLoadedFlags"></param>
 /// <returns>0-If the module could not be loaded, version nr otherwise</returns>
-// CSong::DecodeModule() is implemented in SongEditing.cpp.
+// CSong::DecodeModule() is implemented in SongIO.cpp.
 
 //---
 

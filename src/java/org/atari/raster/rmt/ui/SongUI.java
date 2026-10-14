@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.util.Locale;
 
+import org.atari.raster.rmt.model.IOHelpers;
 import org.atari.raster.rmt.model.EditArea;
 import org.atari.raster.rmt.model.EditMode;
 import org.atari.raster.rmt.model.Instrument;
@@ -608,8 +609,8 @@ public final class SongUI {
 				s[0] = (stmp.charAt(1) == '1') ? stmp.charAt(0) : ' ';
 				s[1] = stmp.charAt(1);
 			} else {
-				s[0] = Song.charH4(line);
-				s[1] = Song.charL4(line);
+				s[0] = IOHelpers.charH4(line);
+				s[1] = IOHelpers.charL4(line);
 			}
 
 			if (isGoto) {

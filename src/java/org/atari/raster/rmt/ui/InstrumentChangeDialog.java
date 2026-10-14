@@ -12,6 +12,7 @@ import javax.swing.SwingConstants;
 
 import com.wudsn.tools.base.gui.ElementFactory;
 import com.wudsn.tools.base.gui.ModalDialog;
+import org.atari.raster.rmt.model.IOHelpers;
 import org.atari.raster.rmt.model.Instruments;
 import org.atari.raster.rmt.model.Notes;
 import org.atari.raster.rmt.model.Song;
@@ -403,8 +404,8 @@ final class InstrumentChangeDialog extends ModalDialog {
 		p.onlytrack = check4.isSelected() ? onlyTrack : -1;
 		p.onlychannels = check5.isSelected() ? onlyChannels : -1;
 		if (check6.isSelected()) {
-			p.onlysonglinefrom = Song.hexstr(edit1.getText().trim(), 0, 4);
-			p.onlysonglineto = Song.hexstr(edit2.getText().trim(), 0, 4);
+			p.onlysonglinefrom = IOHelpers.hexstr(edit1.getText().trim(), 0, 4);
+			p.onlysonglineto = IOHelpers.hexstr(edit2.getText().trim(), 0, 4);
 		} else {
 			p.onlysonglinefrom = -1;
 			p.onlysonglineto = -1;

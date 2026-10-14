@@ -499,7 +499,7 @@ void CScriptRunner::Export(const TScriptCommand& command) {
 
     // CSong::FileExportAs() without its dialogs
     m_song.Stop();
-    if (!m_song.TestBeforeFileSave()) {
+    if (!m_song.CheckBeforeFileSave()) {
         SendWarningMessage("Warning", "Warning!\nNo data has been saved!");
         throw CScriptError(command.line, "Exporting '" + file.string() + "' as " + formatName + " failed." + Problems());
     }

@@ -139,6 +139,57 @@ dependencies for the compiler, not only for the reader.
   3200 lines, and its javadoc's tier map is updated to say where the
   I/O went.
 
+## What came out
+
+- `Song.java` went from 4356 to 3340 lines. `SongIO.java` holds the
+  codec and the file formats in 991 lines, `IOHelpers.java` the shared
+  text and hex helpers in 71 - a find of the execution: `hexstr`,
+  `trimstr`, `readLine`, `nextSegment`, `charH4`/`charL4` were never
+  `Song`'s in C++, they are `IOHelpers.cpp`'s, used by the
+  `Instruments`/`Tracks` TXT formats and the UI's hex drawing too, so
+  they got the Java `IOHelpers` their originals always had instead of
+  moving into `SongIO`.
+- The `friend`: 20 declarations in `Song` are package-private now (the
+  song-line arrays, the name, the speeds, the cursor/play state the RMW
+  format round-trips, and `unsignedByte`, which turned out to serve only
+  the formats and moved on into `SongIO`). Everything else `SongIO`
+  reads goes through the existing public API.
+- `SongIOTest` carries the 13 moved I/O tests (bodies unchanged) and
+  five new ones for `checkBeforeFileSave`: the empty song, the two
+  errors, the appended final "go to line 0" after its information box,
+  and the warning question answered YES and NO - the branches no test
+  in either program had ever run.
+- **The C++ name was already reserved**, the way `IDD_FILE_PROPRTIES`
+  was for plan 44: `SongIO.h`/`SongIO.cpp` existed, the header holding
+  the file open/save/import/export dialog filter classes and an empty
+  `class SongIO`, the source being a one-line include of it - so
+  `Rmt.vcxproj` listed the file all along, and only the test project
+  needed the new entry. The moved bodies landed in that reserved file.
+- C++: `SongIO.cpp` now holds the nine moved bodies plus the
+  `DEFINE_MAINPARAMS` macro pair, which had to travel with `SaveRMW`/
+  `LoadRMW`; pointer comments in `SongCore.cpp`, `SongEditing.cpp`,
+  `Song.cpp` and `IO_Song.cpp` all name the new home. The rename landed
+  at all five `TestBeforeFileSave` sites.
+
+## Found while verifying, pre-existing and still open
+
+The cross-program comparison failed with the freshly built `Rmt.exe` and
+passed with the stale one - which looked like this plan's regression and
+is not: the same two commands fail at HEAD. `export wav` followed by
+`export asm notes=freq` refuses the frequency read whenever the loaded
+driver is of the v1 family, because the WAV exporter writes the POKEY
+register shadows to Patch 16's fixed addresses
+(`WaveFileExporter.cpp:70-82`), and `RMTPLAYR_TRACKN_AUDC` is $3180-$3187
+- right across the v1 family's dispatch table at $3182. Plan 40's
+plausibility check then correctly refuses the clobbered table. It only
+surfaced now because an earlier aborted script run left
+`TRACKERDRIVERVERSION = 1` in the test `rmt.ini` (`delta.rmtscript`
+restores `patch16` on its last line, which an abort never reaches), and
+every later `delta` run then started on the v1 driver. The setting is
+restored; the WAV-export clobbering of a v1 driver's table is a real,
+state-dependent bug of its own, in both programs' ancestry, and is not
+this plan's to fix.
+
 ## Outlook, deliberately not this plan
 
 If the cut proves itself, the same knife fits two more concerns later:
