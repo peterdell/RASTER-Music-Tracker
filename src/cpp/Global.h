@@ -31,6 +31,11 @@ extern int g_notesperoctave;
 
 extern int g_tracks4_8; // TODO Move out
 
+// A /SCRIPT: run is a job, not a session: it never writes rmt.ini or
+// tuning.ini (plans/47_SCRIPT_SETTINGS_ISOLATION_PLAN.md). Set once in
+// CRmtApp::InitInstance().
+extern bool g_isScriptRun;
+
 extern HWND g_hwnd;
 extern HWND g_viewhwnd;
 

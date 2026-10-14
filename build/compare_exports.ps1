@@ -42,6 +42,21 @@ if (Test-Path $workDir) {
 }
 New-Item -ItemType Directory -Force $workDir | Out-Null
 
+# Both programs run on a per-run copy of the program folder's
+# rmt.ini/tuning.ini (plan 47): the originals stay read-only inputs, and an
+# aborted run cannot poison the next one's settings. RMT_CONFIG_DIR is
+# config-only and honored by both programs; the Java -Drmt.config.dir stays
+# on the program folder, since it overrides resources too.
+$configDir = Join-Path $workDir "config"
+New-Item -ItemType Directory -Force $configDir | Out-Null
+foreach ($ini in @("rmt.ini", "tuning.ini")) {
+    $source = Join-Path (Split-Path -Parent $rmtExe) $ini
+    if (Test-Path $source) {
+        Copy-Item $source (Join-Path $configDir $ini)
+    }
+}
+$env:RMT_CONFIG_DIR = $configDir
+
 $differences = @()
 $infos = @()
 
@@ -113,7 +128,8 @@ foreach ($script in $scripts) {
     }
 }
 
-Remove-Item Env:RMT_SCRIPT_OUTPUT -ErrorAction SilentlyContinue
+Remove-Item Env:RMT_SCRIPT_OUTPUT
+Remove-Item Env:RMT_CONFIG_DIR -ErrorAction SilentlyContinue
 
 foreach ($info in $infos) {
     Write-Host "INFO: $info"

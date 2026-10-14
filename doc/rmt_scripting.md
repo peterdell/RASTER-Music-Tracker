@@ -80,8 +80,8 @@ Exit codes of the command line:
 | `export <format> <file> [name=value ...]` | Exports the module (as File > Export as). Formats and options below. |
 | `set overwrite yes\|no` | Whether later `save`/`export` commands may replace existing files. Default `no`. |
 | `set output <folder>` | Where later `save`/`export` commands write (relative to the script's folder; created when missing). Default: the script's folder. |
-| `set ntsc yes\|no` | The Options dialog's NTSC setting (the video standard: 60 or 50 frames per second, and the POKEY clock). |
-| `set driver <version>` | The Options dialog's tracker driver: `unpatched`, `unpatched-with-tuning`, `patch3`, `patch6`, `patch8`, `patch16` (the default), `patch-prince-of-persia`. |
+| `set ntsc yes\|no` | The module properties' NTSC setting (File > Properties...): the video standard, 60 or 50 frames per second, and the POKEY clock. |
+| `set driver <version>` | The module properties' tracker driver: `unpatched`, `unpatched-with-tuning`, `patch3`, `patch6`, `patch8`, `patch16` (the default), `patch-prince-of-persia`. |
 | `set midi-touch-response yes\|no` | The Options dialog's MIDI "Touch response" (the velocity becomes the volume). Default: `rmt.ini`'s. |
 | `set midi-volume-offset <0-15>` | The Options dialog's MIDI "Atari Volume Offset". Default: `rmt.ini`'s. |
 | `set midi-note-off yes\|no` | The Options dialog's MIDI "Record note off". Default: `rmt.ini`'s. |
@@ -90,6 +90,10 @@ Exit codes of the command line:
 | `dump notekeys <file>` | Writes the note keys of the QWERTY, AZERTY and QWERTZ keyboard layouts (which key plays which note) as keyboard pictures and Markdown tables (`doc/rmt_note_keys.md`). |
 | `echo <text ...>` | Prints the text. |
 | `quit` | Ends the script (implicit at its end). |
+
+A script run is a job, not a session: whatever `set` commands ran, it
+never writes `rmt.ini` or `tuning.ini`. Settings changed by a script
+live only for that run.
 
 ## Export formats and options
 
@@ -151,7 +155,8 @@ script file without editing it:
 |---|---|---|
 | `RMT_SCRIPT_OUTPUT=<folder>` | both | The output folder for every `save`/`export`; overrides the script's `set output`. |
 | `RMT_SCRIPT_LOG=<file>` | Windows | Writes the messages to this file instead of the console or `<script>.log`. |
-| `RMT_SCRIPT_SHOW_WINDOW=1` | Windows | Shows the window during the script run (normally it stays hidden), to watch what a script does. |
+| `RMT_SCRIPT_SHOW_WINDOW=1` | Windows | Shows the window during the script run (normally it stays hidden), to watch what a script does. |
+| `RMT_CONFIG_DIR=<folder>` | both | Reads `rmt.ini` and `tuning.ini` from this folder instead of the program folder - configuration only, unlike the Java port's `-Drmt.config.dir`, which moves the whole program folder, resources included. The cross-program comparison points both programs at a per-run copy of the settings. |
 
 ## Comparing the two programs
 

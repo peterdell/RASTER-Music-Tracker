@@ -147,7 +147,8 @@ BOOL CRmtApp::InitInstance()
     // while processing the shell command (CFrameWnd::ActivateFrame with
     // m_nCmdShow, which CMainFrame::PreCreateWindow sets from the saved
     // placement), so the decision is made here, before that, as m_nCmdShow.
-    bool showWindow = !cmdInfo.IsScriptFileSpecified();
+    g_isScriptRun = cmdInfo.IsScriptFileSpecified();
+    bool showWindow = !g_isScriptRun;
     if (!showWindow) {
         char* show = nullptr;
         size_t showLength = 0;

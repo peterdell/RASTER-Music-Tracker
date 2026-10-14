@@ -21,6 +21,8 @@ int g_scaling_percentage = 100;
 
 int g_notesperoctave = 12; // by default there are 12 notes per octave TODO: Today missing in CSong
 
+bool g_isScriptRun = false;
+
 HWND g_hwnd = NULL;
 HWND g_viewhwnd = NULL;
 
