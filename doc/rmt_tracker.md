@@ -31,8 +31,9 @@ The following terms are used in the documentation. Outside of this documentation
 - Channel - A physical output to create sound. Tracks can be assigned to channels for replay.
 - Mono - Mono indicates that all channels are combined into a single output.
 - Stereo - Stereo indicates that the channels are split between two different outputs called "left" and "right".
-- Song - A piece of music created in a tracker. It consists of a sequence of patterns.
-- Module - A data structure with one or more songs.
+- Song - A piece of music created in a tracker. It consists of a sequence of patterns and may be divided into subsongs. In RMT, the song is the sequence of tracks that is edited in the SONG EDIT screen; other trackers call that sequence the "order list".
+- Subsong - An independently playable part of a song. In RMT, subsongs are created with the "go to line" command and are identified by the song lines they loop back to; one of them is played first. The SAP format uses the same term: its "SONGS" tag counts the subsongs of a file and "DEFSONG" selects the one that is played first.
+- Module - A data structure holding one song together with its patterns and instruments.
 - Module File - A file storing the module.
 - Module File Extension - A file extension of the module files, indicating the type of module, e.g., ".rmt" or ".mod".
 - Module File Format - A layout that defines how the module is stored in the module file.
