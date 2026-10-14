@@ -19,12 +19,16 @@ import org.atari.raster.rmt.model.TrackerDriverVersion;
 
 /**
  * "Options" - the port of {@code COptionsDialog} ({@code IDD_OPTIONS}): the
- * four group boxes General / Module Defaults / Keyboard / MIDI, the
- * Paths... and Tuning... buttons opening {@link OptionsPathsDialog} and
- * {@link TuningDialog}, and the MFC validation ranges (interface size
+ * three group boxes General / Keyboard / MIDI, the Paths... button opening
+ * {@link OptionsPathsDialog}, and the MFC validation ranges (interface size
  * 100-300, highlight steps 2-256, MIDI volume offset 0-15). It edits an
  * {@link OptionsValues}; {@link RmtCommands#applyOptions} applies the
  * result.
+ *
+ * <p>The song's own settings - the video standard, the tracker driver version
+ * and the tuning - were a "Module Defaults" group and a Tuning... button here
+ * until plan 44 moved them into {@link ModulePropertiesDialog}, where they
+ * belong. This dialog is for the program's settings.
  *
  * <p>The MIDI device list is "None" plus the MIDI input devices
  * {@link RmtMidi#deviceNames()} reports ({@code midiInGetDevCaps} in C++).
@@ -47,9 +51,6 @@ final class OptionsDialog extends ModalDialog {
 	private final JCheckBox smoothScrollBox = ElementFactory.createCheckBox(DataTypes.OptionsDialog_SmoothScroll);
 	private final JCheckBox noHwSoundBufferBox = ElementFactory.createCheckBox(DataTypes.OptionsDialog_NoHwSoundBuffer);
 	private final JCheckBox debugDisplayBox = ElementFactory.createCheckBox(DataTypes.OptionsDialog_DebugDisplay);
-	private final JCheckBox ntscBox = ElementFactory.createCheckBox(DataTypes.OptionsDialog_NTSC);
-	/** {@code m_trackerDriverVersionComboBox}: the versions C++ offers, in its order (not every value is offered). */
-	private final ValueSetField<TrackerDriverVersion> driverVersionCombo = new ValueSetField<>(TrackerDriverVersion.getSelectableValues());
 	/** {@code m_keyboardLayoutComboBox}: every layout, in the order of its number. */
 	private final ValueSetField<KeyboardLayout> keyboardLayoutCombo = new ValueSetField<>(KeyboardLayout.class);
 	private final JCheckBox upDownContinueBox = ElementFactory.createCheckBox(DataTypes.OptionsDialog_KeyboardUpDownContinue);
@@ -83,11 +84,6 @@ final class OptionsDialog extends ModalDialog {
 		DialogSupport.add(general, noHwSoundBufferBox, 2, 3, 1, false);
 		DialogSupport.add(general, debugDisplayBox, 0, 4, 3, false);
 
-		JPanel module = DialogSupport.createGroup(Texts.OptionsDialog_GroupModuleDefaults);
-		DialogSupport.add(module, ntscBox, 0, 0, 2, false);
-		DialogSupport.add(module, ElementFactory.createLabel(DataTypes.OptionsDialog_TrackerDriverVersion, driverVersionCombo), 0, 1, 1, false);
-		DialogSupport.add(module, driverVersionCombo, 1, 1, 1, true);
-
 		JPanel keyboard = DialogSupport.createGroup(Texts.OptionsDialog_GroupKeyboard);
 		DialogSupport.add(keyboard, ElementFactory.createLabel(DataTypes.OptionsDialog_KeyboardLayout, keyboardLayoutCombo), 0, 0, 1, false);
 		DialogSupport.add(keyboard, keyboardLayoutCombo, 1, 0, 1, true);
@@ -114,16 +110,12 @@ final class OptionsDialog extends ModalDialog {
 		JPanel content = new JPanel();
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 		content.add(general);
-		content.add(module);
 		content.add(keyboard);
 		content.add(midi);
 		getContentPane().add(content, BorderLayout.CENTER);
 
 		JButton paths = ElementFactory.createButton(Actions.OptionsDialog_Paths, true);
 		paths.addActionListener(e -> onClickedOptionsPaths());
-		JButton tuning = ElementFactory.createButton(Actions.OptionsDialog_Tuning, true);
-		tuning.addActionListener(e -> onClickedOptionsTuning());
-		addButtonBarButton(tuning); // inserted at the front each time, so add in reverse order
 		addButtonBarButton(paths);
 	}
 
@@ -149,11 +141,6 @@ final class OptionsDialog extends ModalDialog {
 		}
 	}
 
-	/** {@code OnClickedOptionsTuning()}. */
-	private void onClickedOptionsTuning() {
-		new TuningDialog((JFrame) getOwner(), session).showDialog();
-	}
-
 	@Override
 	protected void dataToUi() {
 		if (filled) {
@@ -169,12 +156,6 @@ final class OptionsDialog extends ModalDialog {
 		smoothScrollBox.setSelected(values.doSmoothScrolling);
 		noHwSoundBufferBox.setSelected(values.noHwSoundBuffer);
 		debugDisplayBox.setSelected(values.viewDebugDisplay);
-		ntscBox.setSelected(values.ntsc);
-		if (values.trackerDriverVersion.isSelectable()) {
-			driverVersionCombo.setValue(values.trackerDriverVersion);
-		} else {
-			driverVersionCombo.setSelectedIndex(-1); // nothing selected, like CComboBox for an unlisted item
-		}
 		keyboardLayoutCombo.setValue(values.keyboardLayout);
 		upDownContinueBox.setSelected(values.keyboardUpDownContinue);
 		rememberOctavesBox.setSelected(values.keyboardRememberOctavesAndVolumes);
@@ -208,9 +189,6 @@ final class OptionsDialog extends ModalDialog {
 		values.doSmoothScrolling = smoothScrollBox.isSelected();
 		values.noHwSoundBuffer = noHwSoundBufferBox.isSelected();
 		values.viewDebugDisplay = debugDisplayBox.isSelected();
-		values.ntsc = ntscBox.isSelected();
-		TrackerDriverVersion driver = driverVersionCombo.getValue();
-		values.trackerDriverVersion = driver != null ? driver : TrackerDriverVersion.NONE; // GetSelectedItem(TrackerDriverVersion::NONE)
 		KeyboardLayout layout = keyboardLayoutCombo.getValue();
 		values.keyboardLayout = layout != null ? layout : KeyboardLayout.QWERTY; // GetSelectedItem(KeyboardLayout::QWERTY)
 		values.keyboardUpDownContinue = upDownContinueBox.isSelected();

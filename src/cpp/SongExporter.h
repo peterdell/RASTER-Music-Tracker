@@ -26,6 +26,17 @@ public:
 class CSongExporter {
 
 public:
+    // Dumps, compresses and lays out the subtunes the way VU-Player V2 reads
+    // them: per subtune an entry in the song index (the address of its
+    // section list and of its sequence list), the timers, and the intro and
+    // loop LZSS streams from VUPlayer::SONGDATA on. mem is the Atari memory
+    // with the VU-Player already loaded; lzss_total returns the first address
+    // after the last stream and framescount the frames of all subtunes up to
+    // their loop points. Shared by the XEX and the SAP type B exports - the
+    // SAP export used to write the memory blocks of the old VU-Player
+    // instead, which made every exported SAP unplayable (ported from the
+    // RITMO fork's b243f10; plans/32_RITMO_FORK_ANALYSIS_PLAN.md).
+    static bool BuildLzssSubtunes(CSongExport& songExport, const int* subtune, int subsongs, byte* mem, int& lzss_total, int& framescount);
     CSongExporter();
 
     /// <summary>
@@ -89,5 +100,6 @@ private:
 
     // A dumb SAP-R LZSS optimisations bruteforcer, returns the optimal value and buffer
     static int BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigned char* dst);
+
     static bool ShowXEXExportDialog(const CSong& song, CXEXFile& xexFile);
 };

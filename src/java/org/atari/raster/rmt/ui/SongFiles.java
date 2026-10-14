@@ -11,6 +11,7 @@ import java.util.Locale;
 import org.atari.raster.rmt.model.AsmFileExporter;
 import org.atari.raster.rmt.model.AssemblerFormat;
 import org.atari.raster.rmt.model.EditMode;
+import org.atari.raster.rmt.model.ExportProgress;
 import org.atari.raster.rmt.model.Instruments;
 import org.atari.raster.rmt.model.MessageAnswer;
 import org.atari.raster.rmt.model.MessageButtons;
@@ -821,22 +822,48 @@ public final class SongFiles {
 
 	/** {@code CSong::FileExportAs()}: validation, the format/file dialog, then {@link #exportV2}; a failed or cancelled export deletes the (already created) file, as C++ does. */
 	public void fileExportAs() {
+		ExportRequest request = prepareExportAs();
+		if (request != null) {
+			runExportAs(request, ExportProgress.NONE);
+		}
+	}
+
+	/**
+	 * An export the user has agreed to: the file to write and the format to
+	 * write it in. {@link #prepareExportAs()} produces one,
+	 * {@link #runExportAs} consumes it.
+	 */
+	public record ExportRequest(Path file, SongIOType ioType) {
+	}
+
+	/**
+	 * The part of an export that belongs on the event thread: stopping
+	 * playback, checking the module, asking for the file name and creating
+	 * the file. Returns null when the user cancelled or the file cannot be
+	 * created, in which case there is nothing further to do.
+	 *
+	 * <p>Split out of {@link #fileExportAs()} so the window can run the slow
+	 * part on a worker thread (plans/24_EXPORT_SCREEN_UPDATES_PLAN.md, batch
+	 * E3). Scripts and tests still call {@code fileExportAs()}, which does
+	 * both parts in order on whatever thread they are on.
+	 */
+	public ExportRequest prepareExportAs() {
 		Song song = session.song;
 		stop();
 
 		// Verify the integrity of the .rmt module to save first, so it won't be saved if it's not meeting the conditions for it
 		if (!song.testBeforeFileSave(session.tracks4_8, session.messages)) {
 			session.messages.sendWarningMessage("Warning", "Warning!\nNo data has been saved!");
-			return;
+			return null;
 		}
 
 		FileChoice choice = host.chooseSaveFile("Export song as...", EXPORT_FILTERS, songsInitialDir(), exportFilterIndexOf(song.getLastExportIOType()), "");
 		if (choice == null) {
-			return; // If not ok, nothing will be saved
+			return null; // If not ok, nothing will be saved
 		}
 		int filterIndex = choice.filterIndex();
 		if (!isValidFilterIndex(EXPORT_FILTERS, filterIndex)) {
-			return;
+			return null;
 		}
 		Path fn = ensureFileExtension(choice.path(), EXPORT_FILTERS, filterIndex);
 		session.options.lastSongsPath = folderOf(fn);
@@ -846,18 +873,37 @@ public final class SongFiles {
 			Files.write(fn, new byte[0]);
 		} catch (IOException ex) {
 			session.messages.sendErrorMessage("Export error", "Can't create this file: " + fn);
-			return;
+			return null;
 		}
 
 		song.setLastExportIOType(EXPORT_IO_TYPES[filterIndex - 1]);
+		return new ExportRequest(fn, song.getLastExportIOType());
+	}
+
+	/**
+	 * The slow part of an export: the format's own dialog, the register dump
+	 * and the writing. Returns whether the file was written; a failure, an
+	 * error and a cancelled dump all delete the partial file.
+	 *
+	 * <p>Safe to call from a worker thread as long as the caller holds
+	 * {@link RmtSession#lock}: the dialogs this reaches go through the host,
+	 * which shows them on the event thread.
+	 */
+	public boolean runExportAs(ExportRequest request, ExportProgress exportProgress) {
+		Path fn = request.file();
 		boolean exportResult;
 		int playTime = session.uiState.playTime; // the register dump plays the song (Play() resets the counter); an export leaves the play time as it was, as C++ does since 2026-09-28
+		this.progress = exportProgress;
 		try {
-			exportResult = exportV2(song.getLastExportIOType(), fn);
+			exportResult = exportV2(request.ioType(), fn);
 		} catch (IOException ex) {
 			exportResult = false;
 		} finally {
+			this.progress = ExportProgress.NONE;
 			session.uiState.playTime = playTime;
+		}
+		if (exportProgress.isCancelled()) {
+			exportResult = false; // an incomplete stream must not be written as if it were the whole song
 		}
 		if (!exportResult) {
 			try {
@@ -865,9 +911,15 @@ public final class SongFiles {
 			} catch (IOException ignored) {
 				// DeleteFile's failure is silent in C++ too
 			}
-			session.messages.sendWarningMessage("Export aborted", "Incomplete export file '" + fn + "' was deleted.");
+			if (!exportProgress.isCancelled()) {
+				session.messages.sendWarningMessage("Export aborted", "Incomplete export file '" + fn + "' was deleted.");
+			}
 		}
+		return exportResult;
 	}
+
+	/** The progress of the export currently running, read by {@link #generatePokeyStream()}; {@link ExportProgress#NONE} outside one. */
+	private ExportProgress progress = ExportProgress.NONE;
 
 	/** {@code MakeModule} into a fresh 64K image at $4000 for the given {@code iotype}; {@code null} if it fails. */
 	private ModuleDescription makeModule(SongIOType iotype) {
@@ -885,7 +937,7 @@ public final class SongFiles {
 	/** {@code CSongContainer::GetPokeyStream()}: the whole song recorded once from its start. */
 	private PokeyStream generatePokeyStream() {
 		PokeyStream pokeyStream = new PokeyStream();
-		session.song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, session.tracks4_8, session.atariTrackerDriver, session.channelControl, session.clipboard, session.undo);
+		session.song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, session.tracks4_8, session.atariTrackerDriver, session.channelControl, session.clipboard, session.undo, progress);
 		return pokeyStream;
 	}
 
@@ -927,7 +979,11 @@ public final class SongFiles {
 				return false;
 			}
 			es.prefixForAllAsmLabels = dlg.prefixForAllAsmLabels();
-			String code = AsmFileExporter.exportAsAsmApply(song, session.instruments, session.tracks, session.atari.getMemory(), es.prefixForAllAsmLabels, session.tracks4_8, dlg.exportType(), dlg.notesIndexOrFreq(), dlg.durationsType());
+			String code = AsmFileExporter.exportAsAsmApply(song, session.instruments, session.tracks, session.atari.getMemory(), session.messages,
+					es.prefixForAllAsmLabels, session.tracks4_8, dlg.exportType(), dlg.notesIndexOrFreq(), dlg.durationsType());
+			if (code == null) {
+				return false; // the reason is already reported
+			}
 			Files.write(fn, asmBytes(code));
 			return true;
 		}
@@ -992,7 +1048,7 @@ public final class SongFiles {
 				return false;
 			}
 			try {
-				Files.write(fn, SapFileExporter.exportSapBLzss(sapFile, song, session.tracks4_8, generatePokeyStream()));
+				Files.write(fn, SapFileExporter.exportSapBLzss(sapFile, song, session.tracks4_8, session.atariTrackerDriver, session.channelControl, session.clipboard, session.undo));
 			} catch (IllegalStateException ex) { // the driver file missing, or the LZSS data too big for memory - C++'s two error boxes
 				session.messages.sendErrorMessage("Export aborted", ex.getMessage());
 				return false;
@@ -1018,7 +1074,9 @@ public final class SongFiles {
 			session.atariTrackerDriver.init(); // Reset the Atari memory
 			session.channelControl.setAllChannelsOn();
 			Files.write(fn, WaveFileExporter.exportWav(pokeyStream, song.isNTSC(), song.isStereo(session.tracks4_8), song.getInstrumentSpeed()));
-			session.channelControl.setAllChannelsOff(); // as C++ ("TODO: Set channels on again?")
+			// The closing mute that C++ carried with a doubting TODO is gone
+			// in both programs: it left the tracker silent after a WAV
+			// export (plans/32_RITMO_FORK_ANALYSIS_PLAN.md).
 			return true;
 		}
 		default -> {
@@ -1038,7 +1096,9 @@ public final class SongFiles {
 		sapFile.setAuthor(dlg.author());
 		sapFile.setName(dlg.name());
 		sapFile.setDate(dlg.date());
-		sapFile.setSongs(parseSubsongs(dlg.subsongs()));
+		java.util.List<Integer> positions = new java.util.ArrayList<>();
+		sapFile.setSongs(parseSubsongs(dlg.subsongs(), positions));
+		sapFile.setSubsongPositions(positions.stream().mapToInt(Integer::intValue).toArray());
 		return true;
 	}
 
@@ -1049,14 +1109,28 @@ public final class SongFiles {
 
 	/** The "Subsongs" line: hexadecimal numbers separated by anything else; how many there are (at most {@link SapFile#MAXSUBSONGS}). */
 	static int parseSubsongs(String subsongs) {
+		return parseSubsongs(subsongs, null);
+	}
+
+	/** As {@link #parseSubsongs(String)}; the songline numbers themselves go to {@code positions} when given - the type B export lays its subtunes out from them. */
+	static int parseSubsongs(String subsongs, java.util.List<Integer> positions) {
 		String str = subsongs.toUpperCase(Locale.ROOT) + " "; // Add space after the last character for parsing
 		int count = 0;
+		int n = 0;
 		boolean isn = false;
+		if (positions != null) {
+			positions.clear();
+		}
 		for (int i = 0; i < str.length(); i++) {
 			char a = str.charAt(i);
 			if ((a >= '0' && a <= '9') || (a >= 'A' && a <= 'F')) {
+				n = ((n << 4) + (a <= '9' ? a - '0' : a - 'A' + 10)) & 0xFF;
 				isn = true;
 			} else if (isn) {
+				if (positions != null) {
+					positions.add(n);
+				}
+				n = 0; // the digits of the next number start from zero again
 				count++;
 				if (count >= SapFile.MAXSUBSONGS) {
 					break;

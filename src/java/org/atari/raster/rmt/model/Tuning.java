@@ -4,12 +4,12 @@ package org.atari.raster.rmt.model;
  * Ported from CTuning (src/cpp/Tuning.h/.cpp, src/cpp/TuningTables.cpp).
  *
  * <p>C++'s test-only constructor (which bypasses InitTuning()'s dependency on
- * global tuning state) becomes the only constructor here. generateTable()/
- * initTuning() take {@link TuningSettings}/{@link TuningRatios} as explicit
- * parameters instead of reading C++'s g_tuning/g_tuningRatios globals, since
- * no Java global-state architecture exists yet - a deliberate, idiomatic
+ * the tuning state it does not get passed) becomes the only constructor here.
+ * generateTable()/initTuning() take {@link TuningSettings}/{@link TuningRatios}
+ * as explicit parameters instead of reaching for the song that owns them, as
+ * C++ does with g_Song.GetTuning()/GetTuningRatios() - a deliberate, idiomatic
  * substitution (same judgment call as Fraction's immutability), not a
- * behavior change: every value production reads from those globals is still
+ * behavior change: every value production reads there is still
  * supplied by the caller here, just explicitly. Their C++ MessageBox+exit(1)
  * guard (basetuning == 0) becomes an IllegalStateException, matching
  * Fraction's own precedent for translating a fatal C++ precondition into a
@@ -36,6 +36,33 @@ public final class Tuning {
 	private static final TuningTable DIST_A_PURE = new TuningTable(4, 2, 9, 2);
 	private static final TuningTable DIST_C_BUZZY = new TuningTable(2, 1, 7, 2);
 	private static final TuningTable DIST_C_GRITTY = new TuningTable(1, 0, 6, 2);
+
+	/**
+	 * The two sawtooth tables of PAGE_EXTRA_0 ($B500 for channel 1, $B540 for
+	 * channel 3), copied verbatim from {@code asm/Patch-16/rmtdata.a65}, which
+	 * stays their source of truth. No formula produces them: the values are
+	 * hand-picked and non-monotonic, two channels beating against each other
+	 * rather than a scale. {@link #initTuning} writes them alongside the
+	 * generated tables so that the whole $B000-$B5FF region is a pure function
+	 * of the tuning settings - it must not depend on a driver binary having
+	 * been loaded over it first
+	 * (plans/37_TUNING_COMPATIBILITY_PLAN.md, T6).
+	 */
+	// clang-format off
+	private static final int[] SAWTOOTH_TABLES = {
+		0xE4, 0xDE, 0xD7, 0xD1, 0xCB, 0xC5, 0xBF, 0xBA, 0xB4, 0xAF, 0xAA, 0xA5,
+		0xA0, 0x9B, 0x97, 0x92, 0x8E, 0x8A, 0x86, 0x82, 0x7E, 0x7A, 0x77, 0x73,
+		0x70, 0x6D, 0x69, 0x66, 0x63, 0x60, 0x5D, 0x81, 0x58, 0x7A, 0x76, 0x50,
+		0x4E, 0x6C, 0x69, 0x47, 0x45, 0x43, 0x5D, 0x5A, 0x57, 0x3B, 0x52, 0x62,
+		0x4D, 0x34, 0x68, 0x31, 0x62, 0x42, 0x5C, 0x2B, 0x6A, 0x67, 0x6C, 0x58,
+		0x35, 0x4A, 0x32, 0x4E,
+		0xE5, 0xDF, 0xD8, 0xD2, 0xCC, 0xC6, 0xC0, 0xBB, 0xB5, 0xB0, 0xAB, 0xA6,
+		0xA1, 0x9C, 0x98, 0x93, 0x8F, 0x8B, 0x87, 0x83, 0x7F, 0x7B, 0x78, 0x74,
+		0x71, 0x6E, 0x6A, 0x67, 0x64, 0x61, 0x5E, 0x83, 0x59, 0x7C, 0x78, 0x51,
+		0x4F, 0x6E, 0x6B, 0x48, 0x46, 0x44, 0x5F, 0x5C, 0x59, 0x3C, 0x54, 0x65,
+		0x4F, 0x35, 0x6C, 0x32, 0x66, 0x44, 0x60, 0x2C, 0x70, 0x6D, 0x73, 0x5D,
+		0x37, 0x4E, 0x34, 0x53};
+	// clang-format on
 
 	// clang-format off
 	private static final double[][] TEMPERAMENT_PRESETS = {
@@ -518,6 +545,12 @@ public final class Tuning {
 		generateTable(tableMemory, 0x400, 64, DIST_C_GRITTY.table64khz() * notesPerOctave, Timbre.GRITTY_C, 0x00, tuningSettings);
 		generateTable(tableMemory, 0x440, 64, DIST_C_GRITTY.table179mhz() * notesPerOctave, Timbre.GRITTY_C, 0x40, tuningSettings);
 		generateTable(tableMemory, 0x480, 64, DIST_C_GRITTY.table16bit() * notesPerOctave, Timbre.GRITTY_C, 0x50, tuningSettings);
+		// no 15kHz table...
+
+		// Sawtooth, at 0xB500 and 0xB540 - hand-made, not generated (see SAWTOOTH_TABLES)
+		for (int i = 0; i < SAWTOOTH_TABLES.length; i++) {
+			tableMemory[0x500 + i] = (byte) SAWTOOTH_TABLES[i];
+		}
 	}
 
 	/**

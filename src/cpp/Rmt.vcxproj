@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -219,10 +219,12 @@
     <ClCompile Include="Commands.cpp" />
     <ClCompile Include="StringUtility.cpp" />
     <ClCompile Include="Fraction.cpp" />
+    <ClCompile Include="FrequencyTables.cpp" />
     <ClCompile Include="ChannelControl.cpp" />
     <ClCompile Include="Clipboard.cpp" />
     <ClCompile Include="ClipboardCore.cpp" />
     <ClCompile Include="Messages.cpp" />
+    <ClCompile Include="ModulePropertiesDialog.cpp" />
     <ClCompile Include="OptionsDialog.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
@@ -400,9 +402,11 @@
     <ClInclude Include="Commands.h" />
     <ClInclude Include="StringUtility.h" />
     <ClInclude Include="Fraction.h" />
+    <ClInclude Include="FrequencyTables.h" />
     <ClInclude Include="Clipboard.h" />
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="Messages.h" />
+    <ClInclude Include="ModulePropertiesDialog.h" />
     <ClInclude Include="OptionsDialog.h" />
     <ClInclude Include="InstrumentTypes.h" />
     <ClInclude Include="LZSSFile.h" />
@@ -449,6 +453,7 @@
     <ClInclude Include="TextColors.h" />
     <ClInclude Include="TrackerDriverVersion.h" />
     <ClInclude Include="tracker_obx.h" />
+    <ClInclude Include="legacy_obx.h" />
     <ClInclude Include="Tracks.h" />
     <ClInclude Include="TracksControl.h" />
     <ClInclude Include="TracksTypes.h" />
@@ -487,7 +492,6 @@
     <None Include="..\..\doc\rmt_en_128.html" />
     <None Include="..\..\doc\rmt_tracker.md" />
     <None Include="..\..\doc\rmt_tracker_drivers.md" />
-    <None Include="..\..\doc\rmt_tracker_usage.md" />
     <None Include="..\..\doc\rmt_versions.md" />
     <CopyFileToFolders Include="..\..\lib\x64\mfc140.dll">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

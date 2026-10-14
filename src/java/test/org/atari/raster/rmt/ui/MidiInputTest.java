@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.atari.raster.rmt.model.Atari;
 import org.atari.raster.rmt.model.EditMode;
 import org.atari.raster.rmt.model.Part;
 import org.atari.raster.rmt.model.PlayMode;
@@ -313,14 +314,19 @@ class MidiInputTest {
 
 		event(0x9F, 40, 100);
 
-		assertEquals(memory[0xB100 + 40], memory[AUDF], "distortion 4 (the default table), 64 kHz");
+		// Distortion $00 plays from the pure page, which is what the driver's
+		// own dispatch table says (plan 39). Until then these two assertions
+		// read $B100 and $B200 - the RMT 1.34 five-page layout, a whole page
+		// too low ever since the Distortion 4 page was added in 2022, so a
+		// MIDI-played pure tone sounded from the Distortion 4 table.
+		assertEquals(memory[Atari.RMT_FRQTAB_PURE_64KHZ + 40], memory[AUDF], "distortion $00: the pure page, 64 kHz");
 		assertEquals(12, memory[AUDC], "no distortion set, the current volume");
 		assertEquals(40, session.midi.lastNoteOnChannel[0]);
 		assertEquals(-1, track0.note[0], "nothing recorded");
 
 		event(0xCF, 6, 0); // program change: distortion 6 * 2 = C
 		event(0x9F, 42, 100); // the next free track slot is 1
-		assertEquals(memory[0xB200 + 42], memory[AUDF + 1]);
+		assertEquals(memory[Atari.RMT_FRQTAB_BUZZY_64KHZ + 42], memory[AUDF + 1], "distortion $0C: the buzzy page");
 		assertEquals((byte) 0xCC, memory[AUDC + 1]);
 
 		event(0x8F, 40, 0); // release of the first note frees slot 0

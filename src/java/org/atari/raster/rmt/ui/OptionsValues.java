@@ -1,7 +1,5 @@
 package org.atari.raster.rmt.ui;
 
-import org.atari.raster.rmt.model.TrackerDriverVersion;
-
 /**
  * The Options dialog's data - {@code COptionsDialog}'s {@code m_*} members
  * as a plain holder, so that {@code CRmtView::OnToolsOptions()}'s two
@@ -19,13 +17,9 @@ public final class OptionsValues {
 	public boolean trackLineAltNumbering;
 	public boolean displayFlatNotes;
 	public boolean useGermanNotation;
-	public boolean ntsc;
 	public boolean noHwSoundBuffer;
 	public boolean doSmoothScrolling;
 	public boolean viewDebugDisplay;
-
-	// TODO: Module
-	public TrackerDriverVersion trackerDriverVersion;
 
 	// KEYBOARD
 	public org.atari.raster.rmt.model.KeyboardLayout keyboardLayout;
@@ -50,12 +44,9 @@ public final class OptionsValues {
 		v.trackLineAltNumbering = o.trackLineAltNumbering;
 		v.displayFlatNotes = o.displayFlatNotes;
 		v.useGermanNotation = o.useGermanNotation;
-		v.ntsc = session.song.isNTSC();
 		v.noHwSoundBuffer = o.noHwSoundBuffer;
 		v.doSmoothScrolling = o.view.smoothScrolling;
 		v.viewDebugDisplay = o.view.debugDisplay;
-
-		v.trackerDriverVersion = o.trackerDriverVersion;
 
 		v.keyboardLayout = o.keyboardLayout;
 		v.keyboardEscResetAtariSound = o.keyboardEscResetAtariSound;

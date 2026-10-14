@@ -22,8 +22,6 @@ extern CTracks g_Tracks;
 extern CInstruments g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 extern CSong g_Song;
-extern TTuningSettings g_tuning;
-extern TTuningRatios g_tuningRatios;
 extern int g_rmtinstr[SONGTRACKS];
 extern BOOL volatile g_respectvolume;
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
@@ -1048,18 +1046,38 @@ TEST_F(SongEditingTest, SetTracksLeavesTheGlobalTrackCountUnchangedWhenSame) {
     EXPECT_EQ(g_tracks4_8, 4);
 }
 
+// --- GetTrackerDriverVersion / SetTrackerDriverVersion ---
+// A song-scoped setting like IsNTSC(), not a global: the exporters and the
+// MIDI path read it off the song they already have
+// (plans/41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md). A plain accessor
+// pair, so there is nothing to test but that it is one - which is worth
+// pinning, because the default is what the program runs with before rmt.ini
+// is read, and a module load must not reset it.
+TEST_F(SongEditingTest, TheTrackerDriverVersionDefaultsToPatchSixteenAndKeepsWhatItIsGiven) {
+    EXPECT_EQ(song.GetTrackerDriverVersion(), TrackerDriverVersion::PATCH16);
+
+    song.SetTrackerDriverVersion(TrackerDriverVersion::UNPATCHED);
+    EXPECT_EQ(song.GetTrackerDriverVersion(), TrackerDriverVersion::UNPATCHED);
+
+    song.ClearSong(4); // loading or clearing a module leaves it alone, as it does IsNTSC()
+    EXPECT_EQ(song.GetTrackerDriverVersion(), TrackerDriverVersion::UNPATCHED);
+}
+
 // --- ResetTuningVariables ---
 
+// The tuning belongs to the song it is reset on, so the assertions read it
+// off this fixture's own instance - before plan 44 it was a global, and the
+// test could read it anywhere.
 TEST_F(SongEditingTest, ResetTuningVariablesUsesTheNtscOrPalBaseTuning) {
     song.SetNTSC(TRUE);
     song.ResetTuningVariables();
-    EXPECT_DOUBLE_EQ(g_tuning.basetuning, 444.895778867913);
-    EXPECT_EQ(g_tuning.basenote, 3);
-    EXPECT_EQ(g_tuning.temperament, 0);
+    EXPECT_DOUBLE_EQ(song.GetTuning().basetuning, 444.895778867913);
+    EXPECT_EQ(song.GetTuning().basenote, 3);
+    EXPECT_EQ(song.GetTuning().temperament, 0);
 
     song.SetNTSC(FALSE);
     song.ResetTuningVariables();
-    EXPECT_DOUBLE_EQ(g_tuning.basetuning, 440.83751645933);
+    EXPECT_DOUBLE_EQ(song.GetTuning().basetuning, 440.83751645933);
 }
 
 // --- InstrInfo ---
@@ -1714,6 +1732,29 @@ TEST_F(SongEditingTest, ExportAsAsmApplyWritesTracksOnlyOutput) {
     std::string text = out.str();
     EXPECT_NE(text.find(";ASM notation source"), std::string::npos);
     EXPECT_NE(text.find(";Track $05"), std::string::npos);
+}
+
+// notes=freq reads every value out of the loaded player's own frequency
+// tables, so with no driver loaded the export would be a file of XXX. Plan 30
+// settled that a missing driver must not produce a silent export; plan 40's L4
+// applies the same rule here, so this refuses and writes nothing. notes=index
+// needs no driver and keeps working.
+TEST_F(SongEditingTest, ExportAsAsmApplyRefusesFrequenciesWithoutTheDriversTables) {
+    (*song.GetSong())[0][0] = 5;
+    TTrack* tr = g_Tracks.GetTrack(5);
+    tr->len = 2;
+    tr->note[0] = 10;
+    tr->instr[0] = 2;
+
+    ASSERT_EQ(song.GetTrackerDriverVersion(), TrackerDriverVersion::PATCH16); // the default, and the version with a $B000 layout
+
+    std::ostringstream freq;
+    EXPECT_FALSE(CASMFileExporter::ExportAsAsmApply(song, freq, 1, 2 /* frequencies */, 1));
+    EXPECT_TRUE(freq.str().empty());
+
+    std::ostringstream index;
+    EXPECT_TRUE(CASMFileExporter::ExportAsAsmApply(song, index, 1, 1 /* indices */, 1));
+    EXPECT_FALSE(index.str().empty());
 }
 
 // --- CASMFileExporter::BuildRelocatableAsm ---

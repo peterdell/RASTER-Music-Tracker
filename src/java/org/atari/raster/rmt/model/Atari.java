@@ -17,8 +17,9 @@ import java.util.Arrays;
  * const/non-const pair.
  *
  * <p>{@link #init} takes {@link TuningSettings}/{@link TuningRatios} as
- * explicit parameters instead of reading C++'s g_tuning/g_tuningRatios
- * globals (same pattern as {@link Tuning}), and constructs its own
+ * explicit parameters instead of reaching for the song that owns them, as
+ * C++ does with g_Song.GetTuning()/GetTuningRatios() (same pattern as
+ * {@link Tuning}), and constructs its own
  * short-lived {@link Tuning} instance to compute the tables - C++'s global
  * {@code g_Tuning} has no Java equivalent yet, and none is needed here,
  * since nothing outside this call uses the temporary instance afterward.
@@ -53,6 +54,18 @@ public final class Atari {
 
 	// Matches RMT_FRQTABLES (Atari.h): RMTPLAYR_PAGE_DISTORTION_2 (tracker_obx.h).
 	public static final int RMT_FRQTABLES = 0xB000;
+
+	// The 64 kHz table of each distortion's own page, and the two 15 kHz
+	// tables in PAGE_EXTRA_0 - the addresses tracker_obx.h generates from
+	// asm/Patch-16/rmtdata.a65 as RMTPLAYR_FRQTAB*. Every page also holds the
+	// same timbre's 1.79 MHz table at +$40 and its 16-bit one at +$80.
+	public static final int RMT_FRQTAB_POLY5_64KHZ = 0xB000;
+	public static final int RMT_FRQTAB_DIST4_64KHZ = 0xB100;
+	public static final int RMT_FRQTAB_PURE_64KHZ = 0xB200;
+	public static final int RMT_FRQTAB_BUZZY_64KHZ = 0xB300;
+	public static final int RMT_FRQTAB_GRITTY_64KHZ = 0xB400;
+	public static final int RMT_FRQTAB_PURE_15KHZ = 0xB580;
+	public static final int RMT_FRQTAB_BUZZY_15KHZ = 0xB5C0;
 
 	public static int getClockFrequency(boolean ntsc) {
 		return ntsc ? FREQ_17_NTSC : FREQ_17_PAL;
@@ -127,14 +140,26 @@ public final class Atari {
 	 * Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into this instance's own memory.
 	 *
 	 * @param ntsc whether this is an NTSC (vs. PAL) machine
-	 * @param tuningSettings the base tuning/temperament/basenote to generate the tables from (C++ reads these from the g_tuning global instead)
-	 * @param tuningRatios the custom-temperament ratios to generate the tables from (C++ reads these from the g_tuningRatios global instead)
+	 * @param tuningSettings the base tuning/temperament/basenote to generate the tables from (C++ reads these off g_Song instead)
+	 * @param tuningRatios the custom-temperament ratios to generate the tables from (C++ reads these off g_Song instead)
 	 */
 	public void init(boolean ntsc, TuningSettings tuningSettings, TuningRatios tuningRatios) {
 		this.ntsc = ntsc;
 		if (cpu != null && cpu.isNTSC() != ntsc) {
 			cpu.initialize(ntsc, cpu.isStereo()); // the POKEY pair's clock follows the video standard
 		}
+		initTuning(tuningSettings, tuningRatios);
+	}
+
+	/**
+	 * {@code CTuning::InitTuning(clockFrequency, table_memory)}: regenerates
+	 * the POKEY frequency tables into this Atari's memory at
+	 * {@link #RMT_FRQTABLES}. Also called on its own after a tracker driver
+	 * load, because the driver binary ships a static copy of the tables in
+	 * that very segment which must not win over the generated ones
+	 * (plans/37_TUNING_COMPATIBILITY_PLAN.md, T2).
+	 */
+	public void initTuning(TuningSettings tuningSettings, TuningRatios tuningRatios) {
 		Tuning tuning = new Tuning(getClockFrequency());
 		byte[] tableBuffer = new byte[0x600]; // exactly the table region InitTuning() writes
 		tuning.initTuning(tableBuffer, tuningSettings, tuningRatios);

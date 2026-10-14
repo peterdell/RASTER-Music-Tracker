@@ -56,26 +56,38 @@ public final class WaveFileExporter {
 		ByteArrayOutputStream samples = new ByteArrayOutputStream(frames * 900 * CHANNELS * 2);
 		byte[] rendered = new byte[8192];
 		byte[] output = new byte[8192];
+		// One stream frame is one driver call: the SAP-R dump records
+		// instrumentSpeed frames per video frame, so each frame is
+		// 1/instrumentSpeed of a video frame of sound. Rendering a whole
+		// video frame for each - the former inner loop re-poked the same
+		// registers subFrames times - made a WAV at speed 4 four times too
+		// long: 487.8 s for the 121.6 s stereo reference song (ported from
+		// the RITMO fork's 60743c3; plans/32_RITMO_FORK_ANALYSIS_PLAN.md).
+		// The rounding rests are spread over each video frame's group of
+		// frames, so every group still sums to exactly frameCycles.
+		int remainingCycles = 0;
+		int partGroup = 0;
 		for (int frame = 0; frame < frames; frame++) {
 			int offset = frame * frameSize;
-			int remainingCycles = frameCycles;
-			for (int i = subFrames; i > 0; i--) {
-				// RenderSoundV2: SetPokey + CopyAtariMemoryToPokey per sub-frame, then the sub-frame's share of the chunk
-				int first = stereo ? offset + 9 : offset;
-				for (int r = 0; r < 9; r++) {
-					cpu.pokeRegister(r, stream[first + r] & 0xFF);
-				}
-				if (stereo) {
-					for (int r = 0; r < 9; r++) {
-						cpu.pokeRegister(16 + r, stream[offset + r] & 0xFF);
-					}
-				}
-				int cycles = remainingCycles / i;
-				remainingCycles -= cycles;
-				int blocks = cpu.render(cycles, rendered, 0);
-				int n = AtariCpu.toTwoChannels(rendered, blocks, cpu.getBlockSize(), output, 0);
-				samples.write(output, 0, n);
+			int first = stereo ? offset + 9 : offset;
+			for (int r = 0; r < 9; r++) {
+				cpu.pokeRegister(r, stream[first + r] & 0xFF);
 			}
+			if (stereo) {
+				for (int r = 0; r < 9; r++) {
+					cpu.pokeRegister(16 + r, stream[offset + r] & 0xFF);
+				}
+			}
+			if (partGroup == 0) {
+				remainingCycles = frameCycles;
+				partGroup = subFrames;
+			}
+			int cycles = remainingCycles / partGroup;
+			remainingCycles -= cycles;
+			partGroup--;
+			int blocks = cpu.render(cycles, rendered, 0);
+			int n = AtariCpu.toTwoChannels(rendered, blocks, cpu.getBlockSize(), output, 0);
+			samples.write(output, 0, n);
 		}
 
 		byte[] data = samples.toByteArray();

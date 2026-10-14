@@ -51,6 +51,12 @@ class SongUITest {
 
 	/** The panel's paint path without the panel: layout for a 1278x654 client area at RMT 100%, then {@code drawAll()}. */
 	static BufferedImage renderFrame(RmtSession session) {
+		// The goldens are the reference layout at 100 % scaling with the debug
+		// information line on, neither of which is a default since 2026-10-05.
+		// These tests are about the drawing, so they ask for both rather than
+		// inherit them.
+		session.options.scalingPercentage = 100;
+		session.options.view.debugDisplay = true;
 		TrackerPanel.computeLayout(session.uiState, session.options, WIDTH, HEIGHT);
 		session.song.respectBoundaries(session.tracks4_8);
 
@@ -64,9 +70,9 @@ class SongUITest {
 		return frame;
 	}
 
-	private static RmtSession openReference(String scenario, String rmtName) throws IOException {
+	private static RmtSession openReference(java.nio.file.Path song) throws IOException {
 		RmtSession session = new RmtSession();
-		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(ReferenceScreenshot.ROOT.resolve(scenario).resolve(rmtName), false));
+		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(song, false));
 		return session;
 	}
 
@@ -78,7 +84,7 @@ class SongUITest {
 
 	@Test
 	void song1MonoTracksScreenMatchesRmtExe() throws IOException {
-		RmtSession session = openReference("song1-mono", "Delta.rmt");
+		RmtSession session = openReference(TestSongs.DELTA);
 		// The capture's own debug line: PX=0632 PY=0279 (the mouse position is part of the frame)
 		session.uiState.mouseX = 632;
 		session.uiState.mouseY = 279;
@@ -117,7 +123,7 @@ class SongUITest {
 	 */
 	@Test
 	void song1MonoGotoLineWhilePlayingMatchesRmtExe() throws IOException {
-		RmtSession session = openReference("song1-mono", "Delta.rmt");
+		RmtSession session = openReference(TestSongs.DELTA);
 		session.song.songSetActiveLine(5);
 		session.song.songSetPlayLine(5);
 		session.song.setActiveLine(0x3C);
@@ -153,7 +159,7 @@ class SongUITest {
 
 	@Test
 	void song1MonoInstrumentScreenMatchesRmtExe() throws IOException {
-		RmtSession session = openReference("song1-mono", "Delta.rmt");
+		RmtSession session = openReference(TestSongs.DELTA);
 		session.uiState.activeTi = Part.PART_INSTRUMENTS;
 		session.uiState.activePart = Part.PART_INSTRUMENTS;
 
@@ -171,7 +177,7 @@ class SongUITest {
 
 	@Test
 	void song1MonoFirstFrameMatchesGolden() throws IOException {
-		RmtSession session = openReference("song1-mono", "Delta.rmt");
+		RmtSession session = openReference(TestSongs.DELTA);
 		assertGolden(renderFrame(session), "song1-mono-tracks");
 	}
 
@@ -182,7 +188,7 @@ class SongUITest {
 
 	@Test
 	void song1MonoInstrumentFrameMatchesGolden() throws IOException {
-		RmtSession session = openReference("song1-mono", "Delta.rmt");
+		RmtSession session = openReference(TestSongs.DELTA);
 		session.uiState.activeTi = Part.PART_INSTRUMENTS;
 		session.uiState.activePart = Part.PART_INSTRUMENTS;
 		assertGolden(renderFrame(session), "song1-mono-instruments");

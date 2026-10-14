@@ -1,7 +1,6 @@
 package org.atari.raster.rmt.ui;
 
 import org.atari.raster.rmt.model.KeyboardLayout;
-import org.atari.raster.rmt.model.TrackerDriverVersion;
 
 /**
  * The persisted user options that C++ keeps in {@code Global.h} globals and
@@ -22,7 +21,7 @@ public final class RmtOptions {
 
 	// GENERAL
 	/** {@code g_scaling_percentage} - how much RMT stretches its logical canvas onto the window, 100-300. */
-	public int scalingPercentage = 100;
+	public int scalingPercentage = 200;
 	/** {@code g_trackLinePrimaryHighlight} - every n-th track line is drawn cyan (and PgUp/PgDn jump by it). */
 	public int trackLinePrimaryHighlight = 8;
 	/** {@code g_trackLineSecondaryHighlight} - every n-th track line is drawn green. */
@@ -37,8 +36,6 @@ public final class RmtOptions {
 	public boolean useGermanNotation;
 	/** {@code g_nohwsoundbuffer} - "Disable hardware soundbuffer"; only the POKEY renderer reads it (B8). */
 	public boolean noHwSoundBuffer;
-	/** {@code g_trackerDriverVersion} - which RMT player routine binary is loaded into the emulated Atari. */
-	public TrackerDriverVersion trackerDriverVersion = TrackerDriverVersion.PATCH16;
 	/** {@code g_notesperoctave} - 12; not in {@code rmt.ini}, but an option-like global the note display depends on. */
 	public int notesPerOctave = 12;
 
@@ -93,7 +90,7 @@ public final class RmtOptions {
 		public boolean pokeyRegisters = true;
 		public boolean instrumentEditHelp = true;
 		public boolean smoothScrolling = true;
-		public boolean debugDisplay = true;
+		public boolean debugDisplay = false;
 	}
 
 	/**
@@ -104,13 +101,12 @@ public final class RmtOptions {
 	 * {@link #keyboardSwapEnter} are untouched, as in C++.
 	 */
 	public void reset() {
-		scalingPercentage = 100; // RMT interface scaling (in percentage)
+		scalingPercentage = 200; // RMT interface scaling (in percentage)
 		trackLinePrimaryHighlight = 8; // Primary line highlighted every x lines
 		trackLineSecondaryHighlight = 4; // Secondary line highlighted every x lines
 		trackLineAltNumbering = false; // Alternative way of line numbering in tracks
 		skipLinesAfterNoteInsert = 1; // Number of lines to scroll after inserting a note
 		noHwSoundBuffer = false; // Don't use hardware soundbuffer
-		trackerDriverVersion = TrackerDriverVersion.PATCH16; // Tracker driver version
 		displayFlatNotes = false; // Display accidentals as Flats instead of Sharps
 		useGermanNotation = false; // Display H notes instead of B
 
@@ -122,7 +118,7 @@ public final class RmtOptions {
 		view.pokeyRegisters = true;
 		view.instrumentEditHelp = true;
 		view.smoothScrolling = true;
-		view.debugDisplay = true;
+		view.debugDisplay = false;
 
 		lastSongsPath = "";
 		lastInstrumentsPath = "";

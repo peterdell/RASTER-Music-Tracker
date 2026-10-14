@@ -83,47 +83,24 @@ int CSongExporter::BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigne
     return result;
 }
 
-bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, CXEXFile xexFile, std::ostream& ou) {
-    CString s, t;
-
-    int subsongs = songExport.GetSong().GetSubsongParts(t);
+bool CSongExporter::BuildLzssSubtunes(CSongExport& songExport, const int* subtune, int subsongs, byte* mem, int& lzss_total, int& framescount) {
     int count = 0;
-
-    int subtune[256]{};
-
     int lzss_chunk = 0; // Subtune size will be added to be used as the offset to the next one
-    int lzss_total = 0; // Final offset for LZSS bytes to export
-    int framescount = 0;
+    lzss_total = 0; // Final offset for LZSS bytes to export
+    framescount = 0;
 
     const int frameSize = CLZSSFile::GetFrameSize(songExport.GetSong());
     int section = VUPlayer::SECTION;
     int sequence = VUPlayer::SEQUENCE;
 
-    byte mem[RAM_SIZE]{}; // Default RAM size for most 800xl/xe machines
-
-    // GetSubsongParts returns a CString, so the values must be converted back to int first, FIXME
-    for (int i = 0; i < subsongs; i++) {
-        char c[3]{t[i * 3], t[i * 3 + 1], '\0'};
-        subtune[i] = strtoul(c, NULL, 16);
-    }
-
-    // Load VUPlayerLZSS to memory
-    MemoryAddress addressFrom, addressTo;
-    WORD size;
-    byte* bin;
-
-    if (!CRmtAtariBinaries::GetVUPlayerBinary(bin, size)) {
-        return false;
-    }
-    if (!CAtariIO::LoadDataAsBinaryFile(bin, size, mem, addressFrom, addressTo)) {
-        return false;
-    }
-
-    // LZSS buffers for each ones of the tune parts being reconstructed.
-    // Because the buffers are large, they are allocated on hte heap instead of the stack.
+    // LZSS buffers for each of the tune parts being reconstructed. Large and
+    // on the heap (std::vector also releases them on the early error return,
+    // which the former new[] did not, and was freed with the wrong delete).
     const size_t LZSS_BUFFER_SIZE = 0xFFFFF;
-    byte* buff2 = new byte[LZSS_BUFFER_SIZE]{};
-    byte* buff3 = new byte[LZSS_BUFFER_SIZE]{};
+    std::vector<byte> buff2Storage(LZSS_BUFFER_SIZE);
+    std::vector<byte> buff3Storage(LZSS_BUFFER_SIZE);
+    byte* buff2 = buff2Storage.data();
+    byte* buff3 = buff3Storage.data();
 
     while (count < subsongs) {
         // a LZSS export will typically make use of intro and loop only, unless specified otherwise
@@ -217,10 +194,41 @@ bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, CXEXFile xexFile, st
         lzss_total = lzss_endAddress;
         count++;
     }
+    return true;
+}
 
-    // Delete buffers on heap
-    delete buff2;
-    delete buff3;
+bool CSongExporter::ExportXEX_LZSS(CSongExport& songExport, CXEXFile xexFile, std::ostream& ou) {
+    CString s, t;
+
+    int subsongs = songExport.GetSong().GetSubsongParts(t);
+
+    int subtune[256]{};
+
+    byte mem[RAM_SIZE]{}; // Default RAM size for most 800xl/xe machines
+
+    // GetSubsongParts returns a CString, so the values must be converted back to int first, FIXME
+    for (int i = 0; i < subsongs; i++) {
+        char c[3]{t[i * 3], t[i * 3 + 1], '\0'};
+        subtune[i] = strtoul(c, NULL, 16);
+    }
+
+    // Load VUPlayerLZSS to memory
+    MemoryAddress addressFrom, addressTo;
+    WORD size;
+    byte* bin;
+
+    if (!CRmtAtariBinaries::GetVUPlayerBinary(bin, size)) {
+        return false;
+    }
+    if (!CAtariIO::LoadDataAsBinaryFile(bin, size, mem, addressFrom, addressTo)) {
+        return false;
+    }
+
+    int lzss_total = 0;
+    int framescount = 0;
+    if (!BuildLzssSubtunes(songExport, subtune, subsongs, mem, lzss_total, framescount)) {
+        return false;
+    }
 
     // Write the Atari Video text to memory, for 5 lines of 40 characters
     memcpy(&mem[LZSSP_LINE_1], xexFile.atariText, CXEXFile::ATARI_TEXT_SIZE);

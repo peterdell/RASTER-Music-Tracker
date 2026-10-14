@@ -58,9 +58,31 @@ public final class AsmFileExporter {
 	 * {@code exportType == 1} (each used track, independently) or
 	 * {@code exportType == 2} (each song column, line by line, following
 	 * goto lines).
+	 *
+	 * @return the assembler text, or {@code null} when it cannot be rendered -
+	 *         C++'s {@code false} return, with the reason sent to
+	 *         {@code messages} the same way
 	 */
-	public static String exportAsAsmApply(Song song, Instruments instruments, Tracks tracks, byte[] atariMemory, String prefixForAllAsmLabels, int tracks4_8, int exportType,
-			int notesIndexOrFreq, int durationsType) {
+	public static String exportAsAsmApply(Song song, Instruments instruments, Tracks tracks, byte[] atariMemory, Messages messages,
+			String prefixForAllAsmLabels, int tracks4_8, int exportType, int notesIndexOrFreq, int durationsType) {
+		// Which player's tables a frequency comes from is the song's own
+		// setting, the same way its region is
+		// (plans/41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md).
+		TrackerDriverVersion trackerDriverVersion = song.getTrackerDriverVersion();
+
+		if (notesIndexOrFreq == 2 /* frequencies */ && !FrequencyTables.hasDispatchTable(atariMemory, trackerDriverVersion)) {
+			// Every value would come out of the loaded player's own frequency
+			// tables, so without them the whole export is a file of XXX -
+			// which looks like a tracker bug rather than a missing driver
+			// file. Plan 30 settled that a missing driver must not produce a
+			// silent export; this is the same rule for a silent one
+			// (plans/40_DRIVER_TABLE_LAYOUTS_PLAN.md, L4).
+			messages.sendErrorMessage("Export as ASM",
+					"The player routines for the selected tracker driver are not loaded, so there are no frequency tables to read."
+							+ "\n\nExport the notes as indices instead, or restore the driver file and reopen the module.");
+			return null;
+		}
+
 		StringBuilder ou = new StringBuilder();
 		int maxova = 16; // maximal amount of data per line
 
@@ -97,7 +119,7 @@ public final class AsmFileExporter {
 					int note = tempTrack.note[idx];
 					if (note >= 0) {
 						int instrumentNr = tempTrack.instr[idx];
-						note = (notesIndexOrFreq == 1) ? instruments.getNote(instrumentNr, note) : instruments.getFrequency(instrumentNr, note, atariMemory);
+						note = (notesIndexOrFreq == 1) ? instruments.getNote(instrumentNr, note) : instruments.getFrequency(instrumentNr, note, atariMemory, trackerDriverVersion);
 					}
 					String snot = (note >= 0) ? String.format("$%02X", note) : "XXX";
 
@@ -209,7 +231,7 @@ public final class AsmFileExporter {
 						int anot = tempTrack.note[i];
 						if (anot >= 0) {
 							int ins = tempTrack.instr[i];
-							anot = (notesIndexOrFreq == 1) ? instruments.getNote(ins, anot) : instruments.getFrequency(ins, anot, atariMemory);
+							anot = (notesIndexOrFreq == 1) ? instruments.getNote(ins, anot) : instruments.getFrequency(ins, anot, atariMemory, trackerDriverVersion);
 						}
 						String snot = (anot >= 0) ? String.format("$%02X", anot) : "XXX";
 

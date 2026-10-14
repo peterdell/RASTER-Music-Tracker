@@ -16,6 +16,9 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
     BYTE* streambuffer = NULL;
     const WAVEFORMATEX* wfm = NULL;
     int length = 0, frames = 0, offset = 0;
+    const int instrumentSpeed = songExport.GetSong().GetInstrumentSpeed();
+    int chunkRemaining = 0;
+    int partGroup = 0;
     const int frameSize = CLZSSFile::GetFrameSize(songExport.GetSong());
 
     ou.close(); // hack, just to be able to actually use the filename for now...
@@ -83,8 +86,17 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
             memory[RMTPLAYR_V_AUDCTL] = streambuffer[0x08];
         }
 
-        // Fill the POKEY buffer with 1 rendered chunk
-        pokey.RenderSoundV2(songExport.GetSong().GetInstrumentSpeed(), buffer, length);
+        // One stream frame is one driver call, 1/instrumentSpeed of a video
+        // frame of sound - the rounding rests are spread over the video
+        // frame's group so every group still sums to a whole chunk.
+        if (partGroup == 0) {
+            chunkRemaining = pokey.GetChunkSize();
+            partGroup = instrumentSpeed;
+        }
+        int partSize = (chunkRemaining / partGroup) & 0xfffe;
+        chunkRemaining -= partSize;
+        partGroup--;
+        pokey.RenderPartV2(partSize, buffer, length);
 
         // Write the buffer to WAV file
         wavefile.WriteWave(buffer, length);
@@ -93,14 +105,11 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
         frames++;
     }
 
-    g_ChannelControl.SetAllChannelsOff();
-
     // Finished doing WAV things...
     wavefile.CloseFile();
 
     // Also make sure to delete the buffer once it's no longer needed
     delete buffer;
 
-    // TODO: Set channels on again?
     return true;
 }

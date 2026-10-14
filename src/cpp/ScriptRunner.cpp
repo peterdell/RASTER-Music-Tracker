@@ -31,7 +31,6 @@ extern CXPokey g_Pokey;
 extern CRmtMidi g_Midi;
 extern CAtari g_Atari;
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
-extern TrackerDriverVersion g_trackerDriverVersion;
 extern CString g_lastLoadPath_Songs;
 
 extern WORD g_rmtstripped_adr_module;
@@ -84,8 +83,8 @@ const std::vector<TExportFormat>& ExportFormats() {
 
 // The script's version of CRmtAtariBinaries::GetMissingTrackerDriverMessage()
 // - one line, naming the file, for a CScriptError rather than a box.
-std::string MissingTrackerDriverText() {
-    CString filePath = CRmtAtariBinaries::GetTrackerDriverFilePath(g_trackerDriverVersion);
+std::string MissingTrackerDriverText(TrackerDriverVersion trackerDriverVersion) {
+    CString filePath = CRmtAtariBinaries::GetTrackerDriverFilePath(trackerDriverVersion);
     return "The player routines were not loaded from '" + std::string((LPCTSTR)filePath) + "', so RMT is silent and would export no sound.";
 }
 
@@ -478,7 +477,7 @@ void CScriptRunner::Export(const TScriptCommand& command) {
     if (format->rendersSound && !g_AtariTrackerDriver->AreRoutinesLoaded()) {
         // The export would otherwise run to the end and write a quiet file,
         // which looks like a tracker bug rather than a missing file.
-        throw CScriptError(command.line, MissingTrackerDriverText());
+        throw CScriptError(command.line, MissingTrackerDriverText(m_song.GetTrackerDriverVersion()));
     }
     for (const auto& option : command.options) {
         bool known = false;
@@ -609,7 +608,9 @@ void CScriptRunner::Export(const TScriptCommand& command) {
             sapFile.SetAuthor(ToCString(c.GetOption("author", (LPCTSTR)sapFile.GetAuthor())));
             sapFile.SetName(ToCString(c.GetOption("name", (LPCTSTR)sapFile.GetName())));
             sapFile.SetDate(ToCString(c.GetOption("date", (LPCTSTR)sapFile.GetDate())));
-            sapFile.SetSongs(CSAPFile::ParseSubsongs(ToCString(c.GetOption("subsongs", (LPCTSTR)subsongs))));
+            std::vector<int> positions;
+            sapFile.SetSongs(CSAPFile::ParseSubsongs(ToCString(c.GetOption("subsongs", (LPCTSTR)subsongs)), &positions));
+            sapFile.SetSubsongPositions(positions);
             exportResult = format->ioType == SongIOType::SAPR ? CSAPFileExporter::ExportSAP_R(songExport, sapFile, out) : CSAPFileExporter::ExportSAP_B_LZSS(songExport, sapFile, out);
             break;
         }
@@ -670,18 +671,18 @@ void CScriptRunner::Set(const TScriptCommand& command) {
         // CRmtView::SetNTSC (the Options dialog's NTSC box)
         bool ntsc = ParseBoolean(command, "ntsc", value);
         if ((m_song.IsNTSC() != 0) != ntsc) {
-            g_tuning.basetuning = (ntsc) ? (g_tuning.basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_tuning.basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
+            m_song.GetTuning().basetuning = (ntsc) ? (m_song.GetTuning().basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (m_song.GetTuning().basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
             m_song.SetNTSC(ntsc);
         }
     } else if (name == "driver") {
         // CRmtView::OnToolsOptions()'s driver-version branch
         TrackerDriverVersion version = ParseDriverVersion(command, value);
-        if (g_trackerDriverVersion != version) {
-            g_trackerDriverVersion = version;
+        if (m_song.GetTrackerDriverVersion() != version) {
+            m_song.SetTrackerDriverVersion(version);
             g_Atari.Init(m_song.IsNTSC());
-            g_AtariTrackerDriver->LoadRMTRoutines(g_trackerDriverVersion);
+            g_AtariTrackerDriver->LoadRMTRoutines(version);
             if (!g_AtariTrackerDriver->AreRoutinesLoaded()) {
-                throw CScriptError(command.line, MissingTrackerDriverText());
+                throw CScriptError(command.line, MissingTrackerDriverText(version));
             }
         }
     } else if (name == "midi-touch-response") {

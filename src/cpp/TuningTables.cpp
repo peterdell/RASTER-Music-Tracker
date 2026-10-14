@@ -3,9 +3,9 @@
 // Based on the code originally used for the Pitch Calculations in Raster Music Tracker 1.31+
 // Backported to RMT with additional improvements
 //
-// The two methods here are the only parts of CTuning that read global tuning
-// state (g_tuning/g_tuningRatios/g_notesperoctave) and the emulated Atari
-// memory, so they're kept in a separate translation unit from the rest of
+// The two methods here are the only parts of CTuning that read the song's
+// tuning (g_Song.GetTuning()/GetTuningRatios()), g_notesperoctave and the
+// emulated Atari memory, so they're kept in a separate translation unit from the rest of
 // CTuning's pure pitch-math methods (Tuning.cpp) — that lets tests link
 // against the pure math without pulling in Global.h's much larger dependency
 // graph.
@@ -13,6 +13,8 @@
 #include "Global.h"
 #include "Tuning.h"
 #include "Messages.h"
+
+extern CSong g_Song;
 
 /// <summary> Generate a POKEY Frequencies lookup table using the given parameters </summary>
 /// <param name = "table"> Memory address the table will be written to, typically the emulated Atari memory </param>
@@ -128,7 +130,7 @@ void CTuning::GenerateTable(byte* table, int length, int semitone, Timbre timbre
         auto note = i + semitone;
 
         //calculate the reference pitch using the semitone as an offset
-        auto pitch = GetTruePitch(g_tuning.basetuning, g_tuning.temperament, g_tuning.basenote, note);
+        auto pitch = GetTruePitch(g_Song.GetTuning().basetuning, g_Song.GetTuning().temperament, g_Song.GetTuning().basenote, note);
 
         //get the nearest POKEY frequency using the reference pitch
         auto audf = GetAUDF(pitch, coarse_divisor, divisor, cycle);
@@ -209,18 +211,39 @@ void CTuning::GenerateTable(byte* table, int length, int semitone, Timbre timbre
     }
 }
 
+// The two sawtooth tables of PAGE_EXTRA_0 ($B500 for channel 1, $B540 for
+// channel 3), copied verbatim from asm/Patch-16/rmtdata.a65, which stays
+// their source of truth. No formula produces them: the values are hand-picked
+// and non-monotonic, two channels beating against each other rather than a
+// scale. InitTuning() writes them alongside the generated tables so that the
+// whole $B000-$B5FF region is a pure function of the tuning settings - it
+// must not depend on a driver binary having been loaded over it first
+// (plans/37_TUNING_COMPATIBILITY_PLAN.md, T6).
+static const byte sawtooth_tables[128] = {
+    0xE4, 0xDE, 0xD7, 0xD1, 0xCB, 0xC5, 0xBF, 0xBA, 0xB4, 0xAF, 0xAA, 0xA5,
+    0xA0, 0x9B, 0x97, 0x92, 0x8E, 0x8A, 0x86, 0x82, 0x7E, 0x7A, 0x77, 0x73,
+    0x70, 0x6D, 0x69, 0x66, 0x63, 0x60, 0x5D, 0x81, 0x58, 0x7A, 0x76, 0x50,
+    0x4E, 0x6C, 0x69, 0x47, 0x45, 0x43, 0x5D, 0x5A, 0x57, 0x3B, 0x52, 0x62,
+    0x4D, 0x34, 0x68, 0x31, 0x62, 0x42, 0x5C, 0x2B, 0x6A, 0x67, 0x6C, 0x58,
+    0x35, 0x4A, 0x32, 0x4E, 0xE5, 0xDF, 0xD8, 0xD2, 0xCC, 0xC6, 0xC0, 0xBB,
+    0xB5, 0xB0, 0xAB, 0xA6, 0xA1, 0x9C, 0x98, 0x93, 0x8F, 0x8B, 0x87, 0x83,
+    0x7F, 0x7B, 0x78, 0x74, 0x71, 0x6E, 0x6A, 0x67, 0x64, 0x61, 0x5E, 0x83,
+    0x59, 0x7C, 0x78, 0x51, 0x4F, 0x6E, 0x6B, 0x48, 0x46, 0x44, 0x5F, 0x5C,
+    0x59, 0x3C, 0x54, 0x65, 0x4F, 0x35, 0x6C, 0x32, 0x66, 0x44, 0x60, 0x2C,
+    0x70, 0x6D, 0x73, 0x5D, 0x37, 0x4E, 0x34, 0x53};
+
 /// <summary> Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into the emulated Atari memory </summary>
 void CTuning::InitTuning() {
-    if (!g_tuning.basetuning) { //if base tuning is 0.0, make sure to reset it, else the program could crash!
+    if (!g_Song.GetTuning().basetuning) { //if base tuning is 0.0, make sure to reset it, else the program could crash!
         SendErrorMessage("Program error", "An invalid tuning has been detected!\n\nBasetuning is zero. ");
         exit(1);
     }
 
     g_notesperoctave = 12; //by default, an octave uses 12 semitones...
 
-    if (g_tuning.temperament > NO_TEMPERAMENT && g_tuning.temperament < TUNING_CUSTOM) { //...unless it is specified otherwise in the Temperament presets
+    if (g_Song.GetTuning().temperament > NO_TEMPERAMENT && g_Song.GetTuning().temperament < TUNING_CUSTOM) { //...unless it is specified otherwise in the Temperament presets
         for (int i = 0; i < PRESETS_LENGTH; i++) {
-            if (temperament_preset[g_tuning.temperament][i]) {
+            if (temperament_preset[g_Song.GetTuning().temperament][i]) {
                 continue;
             }
             g_notesperoctave = i - 1;
@@ -231,19 +254,19 @@ void CTuning::InitTuning() {
     // calculate the custom ratio used for each semitone
     //TODO: restructure this to something much better, and flexible
     //these individual variables are just too uncomfortable to use that way
-    CUSTOM[0] = (double)g_tuningRatios.UNISON;
-    CUSTOM[1] = (double)g_tuningRatios.MIN_2ND;
-    CUSTOM[2] = (double)g_tuningRatios.MAJ_2ND;
-    CUSTOM[3] = (double)g_tuningRatios.MIN_3RD;
-    CUSTOM[4] = (double)g_tuningRatios.MAJ_3RD;
-    CUSTOM[5] = (double)g_tuningRatios.PERF_4TH;
-    CUSTOM[6] = (double)g_tuningRatios.TRITONE;
-    CUSTOM[7] = (double)g_tuningRatios.PERF_5TH;
-    CUSTOM[8] = (double)g_tuningRatios.MIN_6TH;
-    CUSTOM[9] = (double)g_tuningRatios.MAJ_6TH;
-    CUSTOM[10] = (double)g_tuningRatios.MIN_7TH;
-    CUSTOM[11] = (double)g_tuningRatios.MAJ_7TH;
-    CUSTOM[12] = (double)g_tuningRatios.OCTAVE;
+    CUSTOM[0] = (double)g_Song.GetTuningRatios().UNISON;
+    CUSTOM[1] = (double)g_Song.GetTuningRatios().MIN_2ND;
+    CUSTOM[2] = (double)g_Song.GetTuningRatios().MAJ_2ND;
+    CUSTOM[3] = (double)g_Song.GetTuningRatios().MIN_3RD;
+    CUSTOM[4] = (double)g_Song.GetTuningRatios().MAJ_3RD;
+    CUSTOM[5] = (double)g_Song.GetTuningRatios().PERF_4TH;
+    CUSTOM[6] = (double)g_Song.GetTuningRatios().TRITONE;
+    CUSTOM[7] = (double)g_Song.GetTuningRatios().PERF_5TH;
+    CUSTOM[8] = (double)g_Song.GetTuningRatios().MIN_6TH;
+    CUSTOM[9] = (double)g_Song.GetTuningRatios().MAJ_6TH;
+    CUSTOM[10] = (double)g_Song.GetTuningRatios().MIN_7TH;
+    CUSTOM[11] = (double)g_Song.GetTuningRatios().MAJ_7TH;
+    CUSTOM[12] = (double)g_Song.GetTuningRatios().OCTAVE;
 
     //Generate all lookup tables used by the RMT driver for tuning purposes
     //TODO: optimise this procedure, even if right now this is much better than what it used to be
@@ -277,4 +300,7 @@ void CTuning::InitTuning() {
     GenerateTable(m_table_memory + 0x440, 64, dist_c_gritty.table_179mhz * g_notesperoctave, Timbre::GRITTY_C, 0x40);
     GenerateTable(m_table_memory + 0x480, 64, dist_c_gritty.table_16bit * g_notesperoctave, Timbre::GRITTY_C, 0x50);
     //no 15kHz table...
+
+    //Sawtooth, at 0xB500 and 0xB540 - hand-made, not generated (see sawtooth_tables above)
+    memcpy(m_table_memory + 0x500, sawtooth_tables, sizeof(sawtooth_tables));
 }

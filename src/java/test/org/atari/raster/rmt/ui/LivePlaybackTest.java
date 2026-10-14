@@ -30,7 +30,7 @@ import net.sf.asap.ASAPFormatException;
  */
 class LivePlaybackTest {
 
-	private static final Path DELTA = ReferenceScreenshot.ROOT.resolve("song1-mono").resolve("Delta.rmt");
+	private static final Path DELTA = TestSongs.DELTA;
 
 	private static final int AUDCTL = 8;
 
@@ -78,7 +78,7 @@ class LivePlaybackTest {
 	@Test
 	void theDefaultPatchedDriverDiffersFromAsapsPlayerOnlyInFrequencyBytes() throws IOException {
 		RmtSession session = open();
-		assertEquals(TrackerDriverVersion.PATCH16, session.options.trackerDriverVersion);
+		assertEquals(TrackerDriverVersion.PATCH16, session.song.getTrackerDriverVersion());
 		byte[] dump = dump(session);
 		byte[] asap = asapReference(session, dump.length / 9);
 

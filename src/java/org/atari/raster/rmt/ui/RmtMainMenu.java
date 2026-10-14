@@ -107,10 +107,6 @@ public final class RmtMainMenu {
 		item(menu, RmtCommandId.FILE_IMPORT);
 		item(menu, RmtCommandId.FILE_EXPORT);
 		menu.addSeparator();
-		item(menu, RmtCommandId.FILE_PRINT);
-		item(menu, RmtCommandId.FILE_PRINT_PREVIEW);
-		item(menu, RmtCommandId.FILE_PRINT_SETUP);
-		menu.addSeparator();
 		item(menu, RmtCommandId.FILE_PROPERTIES);
 		menu.addSeparator();
 		item(menu, RmtCommandId.FILE_EXIT);

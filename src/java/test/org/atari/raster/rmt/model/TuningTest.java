@@ -2,6 +2,7 @@ package org.atari.raster.rmt.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -274,6 +275,26 @@ class TuningTest {
 		void populatesTheFifteenKhzBuzzyCTableAtOffsetFiveC0() {
 			assertEquals((byte) 188, memory[0x5C0]);
 			assertEquals((byte) 178, memory[0x5C1]);
+		}
+
+		@Test
+		void generatesExactlyThePageTheDriverBinaryShips() {
+			// asm/Patch-16/rmtdata.a65's page is kept equal to what this
+			// generator produces for the PAL defaults, so that a module
+			// assembled with the standalone player sounds as it did to the
+			// composer in RMT (plan 37, T7). Comparing against the shipped
+			// binary, which check-drivers.yml pins to the assembler source,
+			// closes the chain rmtdata.a65 -> obx -> generator. The sawtooth
+			// range ($500-$57F) is the one part no formula produces: it is
+			// held as constants and copied (T6), and before T6 the generator
+			// left it zero.
+			Atari atari = new Atari();
+			assertTrue(new AtariTrackerDriver(atari).loadRMTRoutines(TrackerDriverVersion.PATCH16) > 0);
+			for (int offset = 0x000; offset < 0x600; offset++) {
+				int at = offset;
+				assertEquals(atari.getByteAt(Atari.RMT_FRQTABLES + at), memory[at] & 0xFF,
+						() -> String.format("offset $%03X", at));
+			}
 		}
 
 		@Test

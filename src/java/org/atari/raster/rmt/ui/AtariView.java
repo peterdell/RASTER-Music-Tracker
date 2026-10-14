@@ -27,7 +27,9 @@ public final class AtariView {
 	}
 
 	public void draw(Atari atari) {
-		final int ADDRESS = 0x3000; // RMTPLAYR_TABLES;
+		// The player's own area, not RMTPLAYR_TABLES ($B000) as the comment
+		// here used to say: this view shows the driver's code and variables.
+		final int ADDRESS = 0x3000;
 		final int BPL = 32;
 		final int BLOCK = 8;
 

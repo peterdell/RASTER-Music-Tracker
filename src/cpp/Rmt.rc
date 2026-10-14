@@ -181,7 +181,7 @@ LTEXT           "&Author", IDC_STATIC, 7, 32, 80, 8
 EDITTEXT        IDC_AUTHOR, 7, 41, 266, 12, ES_AUTOHSCROLL
 LTEXT           "&Date", IDC_STATIC, 7, 58, 80, 8
 EDITTEXT        IDC_DATE, 7, 67, 50, 12, ES_AUTOHSCROLL
-LTEXT           "&Subsongs (hexadecimal song line number for each subsong, first is default song):", IDC_STATIC, 7, 82, 270, 8
+LTEXT           "&Subsongs (hexadecimal song line number for each subsong, first is the default subsong):", IDC_STATIC, 7, 82, 270, 8
 EDITTEXT        IDC_SUBSONGS, 7, 91, 266, 12, ES_AUTOHSCROLL
 DEFPUSHBUTTON   "&OK", IDOK, 169, 110, 50, 14
 PUSHBUTTON      "&Cancel", IDCANCEL, 223, 110, 50, 14
@@ -235,7 +235,7 @@ DEFPUSHBUTTON   "&OK", IDOK, 170, 210, 50, 14
 PUSHBUTTON      "&Cancel", IDCANCEL, 224, 210, 50, 14
 END
 
-IDD_OPTIONS DIALOGEX 0, 0, 257, 276
+IDD_OPTIONS DIALOGEX 0, 0, 257, 233
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Options"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
@@ -257,31 +257,26 @@ CONTROL         "Disable hardware soundbuffer", IDC_NOHWSOUNDBUFFER,
 "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 122, 53, 122, 10
 CONTROL         "Smooth scroll during playback", IDC_SMOOTH_SCROLL, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 14, 53, 105, 10
 CONTROL         "Move to previous/next song line while track boundaries are crossed", IDC_KEYBOARD_UPDOWNCONTINUE,
-"Button", BS_AUTOCHECKBOX | WS_TABSTOP, 13, 151, 229, 10
+"Button", BS_AUTOCHECKBOX | WS_TABSTOP, 13, 108, 229, 10
 CONTROL         "Remember octaves and volumes separately for each instrument", IDC_KEYBOARD_REMEMBEROCTAVESANDVOLUMES,
-"Button", BS_AUTOCHECKBOX | WS_TABSTOP, 13, 162, 224, 10
+"Button", BS_AUTOCHECKBOX | WS_TABSTOP, 13, 119, 224, 10
 CONTROL         "Reset the Atari sound routines each time ESC is pressed", IDC_KEYBOARD_ESCRESETATARISOUND,
-"Button", BS_AUTOCHECKBOX | WS_TABSTOP, 13, 173, 193, 10
+"Button", BS_AUTOCHECKBOX | WS_TABSTOP, 13, 130, 193, 10
 CONTROL         "Prompt a save dialog box each time Ctrl+S is pressed", IDC_KEYBOARD_ASKWHENCONTROL_S,
-"Button", BS_AUTOCHECKBOX | WS_TABSTOP, 13, 184, 191, 10
-COMBOBOX        IDC_MIDI_DEVICE, 82, 209, 155, 59, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-CONTROL         "Touch response", IDC_MIDI_TR, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 13, 226, 70, 10
-EDITTEXT        IDC_MIDI_VOLUMEOFFSET, 204, 228, 15, 12, ES_NUMBER
-CONTROL         "Record note off", IDC_MIDI_NOTEOFF, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 13, 238, 67, 10
-LTEXT           "Atari Volume Offset:", IDC_STATIC, 126, 228, 74, 8
-GROUPBOX        "Module &Defaults", IDC_STATIC, 6, 82, 246, 43
-CONTROL         "Use NTSC System Speed (60Hz)", IDC_NTSC, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 13, 95, 118, 10
-LTEXT           "RMT Driver Version:", IDC_STATIC, 13, 110, 66, 8
-COMBOBOX        IDC_TRACKERDRIVERVERSION, 82, 108, 156, 55, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-GROUPBOX        "&Keyboard", IDC_STATIC, 7, 125, 245, 72
-LTEXT           "Keyboard Layout:", IDC_STATIC, 13, 138, 68, 8
-COMBOBOX        IDC_KEYBOARD_LAYOUT, 82, 136, 156, 55, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-GROUPBOX        "&MIDI", IDC_STATIC, 7, 199, 245, 53
-LTEXT           "MIDI IN Device:", IDC_STATIC, 13, 211, 52, 8
-PUSHBUTTON      "&Paths...", IDC_OPTIONS_PATHS, 12, 258, 48, 14
-PUSHBUTTON      "&Tuning...", IDC_OPTIONS_TUNING, 66, 258, 49, 14
-DEFPUSHBUTTON   "&OK", IDOK, 144, 258, 50, 14
-PUSHBUTTON      "&Cancel", IDCANCEL, 198, 258, 50, 14
+"Button", BS_AUTOCHECKBOX | WS_TABSTOP, 13, 141, 191, 10
+COMBOBOX        IDC_MIDI_DEVICE, 82, 166, 155, 59, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+CONTROL         "Touch response", IDC_MIDI_TR, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 13, 183, 70, 10
+EDITTEXT        IDC_MIDI_VOLUMEOFFSET, 204, 185, 15, 12, ES_NUMBER
+CONTROL         "Record note off", IDC_MIDI_NOTEOFF, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 13, 195, 67, 10
+LTEXT           "Atari Volume Offset:", IDC_STATIC, 126, 185, 74, 8
+GROUPBOX        "&Keyboard", IDC_STATIC, 7, 82, 245, 72
+LTEXT           "Keyboard Layout:", IDC_STATIC, 13, 95, 68, 8
+COMBOBOX        IDC_KEYBOARD_LAYOUT, 82, 93, 156, 55, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+GROUPBOX        "&MIDI", IDC_STATIC, 7, 156, 245, 53
+LTEXT           "MIDI IN Device:", IDC_STATIC, 13, 168, 52, 8
+PUSHBUTTON      "&Paths...", IDC_OPTIONS_PATHS, 12, 215, 48, 14
+DEFPUSHBUTTON   "&OK", IDOK, 144, 215, 50, 14
+PUSHBUTTON      "&Cancel", IDCANCEL, 198, 215, 50, 14
 END
 
 IDD_EFFECTS DIALOG 0, 0, 280, 156
@@ -723,9 +718,9 @@ CONTROL         "No songline start (always start from songline 0)", IDC_NOSTARTI
 DEFPUSHBUTTON   "OK", IDOK, 162, 262, 50, 14
 PUSHBUTTON      "Cancel", IDCANCEL, 216, 262, 50, 14
 EDITTEXT        IDC_RMTFEAT, 4, 153, 266, 106, ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
-LTEXT           "The RMT song will be exported as byte definitions with specific labels.\r\nThe code is fully relocatable and can be split over various locations in memory!", IDC_STATIC, 4, 4, 269, 17
+LTEXT           "The RMT module will be exported as byte definitions with specific labels.\r\nThe code is fully relocatable and can be split over various locations in memory!", IDC_STATIC, 4, 4, 269, 17
 CTEXT           "Static", IDC_INFO, 4, 139, 269, 11
-LTEXT           "ASM Label for start of song data:", IDC_STATIC, 4, 29, 108, 8
+LTEXT           "ASM Label for start of module data:", IDC_STATIC, 4, 29, 108, 8
 RTEXT           "ASM Tracks Label:", IDC_STATIC, 109, 59, 64, 8
 RTEXT           "ASM Song Label:", IDC_STATIC, 112, 74, 61, 8
 RTEXT           "ASM Instruments Label:", IDC_STATIC, 94, 45, 79, 8
@@ -748,25 +743,18 @@ LTEXT           "External Atari 6502 processor emulation provided by:", IDC_STAT
 EDITTEXT        IDC_ABOUT6502, 7, 97, 329, 32, ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
 END
 
-IDD_FILE_PROPRTIES DIALOGEX 0, 0, 287, 270
+IDD_FILE_PROPERTIES DIALOGEX 0, 0, 257, 76
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Module Properties"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-CONTROL         "Use NTSC system speed (60Hz)", IDC_NTSC, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 13, 83, 118, 10
-DEFPUSHBUTTON   "OK", IDOK, 139, 252, 50, 14
-PUSHBUTTON      "Cancel", IDCANCEL, 194, 252, 50, 14
-COMBOBOX        IDC_TRACKERDRIVERVERSION, 81, 98, 156, 55, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-LTEXT           "RMT Driver Version:", IDC_STATIC, 12, 100, 66, 8
-LTEXT           "Title", IDC_STATIC, 13, 3, 80, 8
-EDITTEXT        IDC_NAME, 13, 12, 266, 12, ES_AUTOHSCROLL
-LTEXT           "Author", IDC_STATIC, 13, 28, 80, 8
-EDITTEXT        IDC_AUTHOR, 13, 37, 266, 12, ES_AUTOHSCROLL
-LTEXT           "Date", IDC_STATIC, 13, 54, 80, 8
-EDITTEXT        IDC_DATE, 13, 63, 50, 12, ES_AUTOHSCROLL
-EDITTEXT        IDC_SUBSONGS, 11, 146, 266, 12, ES_AUTOHSCROLL
-LTEXT           "Subsongs (hexadecimal song line number for each subsong, first is default song):", IDC_STATIC, 12, 136, 270, 8
-DEFPUSHBUTTON   "Tuning...", ID_MODULE_TUNING, 6, 252, 50, 14
+GROUPBOX        "&Module", IDC_STATIC, 7, 7, 243, 43
+CONTROL         "Use &NTSC System Speed (60Hz)", IDC_NTSC, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 14, 20, 118, 10
+LTEXT           "RMT Dr&iver Version:", IDC_STATIC, 14, 35, 66, 8
+COMBOBOX        IDC_TRACKERDRIVERVERSION, 83, 33, 156, 55, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+PUSHBUTTON      "&Tuning...", ID_MODULE_TUNING, 7, 56, 50, 14
+DEFPUSHBUTTON   "OK", IDOK, 142, 56, 50, 14
+PUSHBUTTON      "Cancel", IDCANCEL, 196, 56, 50, 14
 END
 
 
@@ -994,8 +982,8 @@ END
 
 IDD_OPTIONS, DIALOG
 BEGIN
-BOTTOMMARGIN, 271
-HORZGUIDE, 265
+BOTTOMMARGIN, 228
+HORZGUIDE, 222
 END
 
 IDD_EFFECTS, DIALOG
@@ -1095,10 +1083,10 @@ TOPMARGIN, 7
 BOTTOMMARGIN, 145
 END
 
-IDD_FILE_PROPRTIES, DIALOG
+IDD_FILE_PROPERTIES, DIALOG
 BEGIN
-RIGHTMARGIN, 108
-BOTTOMMARGIN, 265
+RIGHTMARGIN, 250
+BOTTOMMARGIN, 70
 END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1149,7 +1137,7 @@ BEGIN
 0
 END
 
-IDD_FILE_PROPRTIES AFX_DIALOG_LAYOUT
+IDD_FILE_PROPERTIES AFX_DIALOG_LAYOUT
 BEGIN
 0
 END
@@ -1184,11 +1172,7 @@ MENUITEM SEPARATOR
 MENUITEM "&Import...", ID_FILE_IMPORT
 MENUITEM "&Export", ID_FILE_EXPORT
 MENUITEM SEPARATOR
-MENUITEM "&Print...\tCtrl+P", ID_FILE_PRINT
-MENUITEM "Print Pre&view", ID_FILE_PRINT_PREVIEW
-MENUITEM "Prin&t Setup...", ID_FILE_PRINT_SETUP
-MENUITEM SEPARATOR
-MENUITEM "Properties\tAlt+Enter", ID_FILE_PROPERTIES
+MENUITEM "P&roperties...\tAlt+Enter", ID_FILE_PROPERTIES
 MENUITEM SEPARATOR
 MENUITEM "E&xit\tAlt+F4", ID_FILE_EXIT
 END
@@ -1522,7 +1506,6 @@ VK_SPACE, ID_EDIT_SWITCH_EDIT_MODE, VIRTKEY, CONTROL, NOINVERT
 "Z", ID_EDIT_UNDO, VIRTKEY, CONTROL, NOINVERT
 "N", ID_FILE_NEW, VIRTKEY, CONTROL, NOINVERT
 "O", ID_FILE_OPEN, VIRTKEY, CONTROL, NOINVERT
-"P", ID_FILE_PRINT, VIRTKEY, CONTROL, NOINVERT
 "R", ID_FILE_REOPEN, VIRTKEY, CONTROL, NOINVERT
 "S", ID_FILE_SAVE, VIRTKEY, CONTROL, NOINVERT
 "S", ID_FILE_SAVE_AS, VIRTKEY, SHIFT, CONTROL, NOINVERT
@@ -1638,6 +1621,7 @@ ID_TOOLBAR_SWITCH_EDIT_MODE
 ID_TOOLS_OPEN_ASAP_FILE "Open an .SAP or other Atari Sound Module File"
 ID_TOOLS_OPEN_ASMA      "Open the Atari Sound Music Archive Website"
 ID_TOOLS_OPTIONS        "Open the application options dialog"
+ID_FILE_PROPERTIES      "Open the module properties dialog"
 ID_TOOLS_RUN_SCRIPT     "Run an RMT script file (open, export, save) on the current session\nRun Script..."
 END
 
@@ -1688,9 +1672,6 @@ ID_FILE_NEW             "Create a new module\nNew (Ctrl+N)"
 ID_FILE_OPEN            "Open a module file\nOpen... (Ctrl+O)"
 ID_FILE_SAVE            "Save the module file\nSave (Ctrl+S)"
 ID_FILE_SAVE_AS         "Save the module file with a new filename\nSave As... (Ctrl+Shift+S)"
-ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup..."
-ID_FILE_PRINT           "Print the active view\nPrint... (Ctrl+P)"
-ID_FILE_PRINT_PREVIEW   "Preview the print version of the view"
 END
 
 STRINGTABLE

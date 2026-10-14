@@ -23,7 +23,7 @@ import org.atari.raster.rmt.model.SongIOType;
 /** The file flows of IO_Song.cpp, headless: the dialogs are a scripted stub, the message boxes a recorder. */
 class SongFilesTest {
 
-	static final Path DELTA = ReferenceScreenshot.ROOT.resolve("song1-mono").resolve("Delta.rmt");
+	static final Path DELTA = TestSongs.DELTA;
 
 	private static final class RecordingMessages implements Messages.Handler {
 		final List<String> log = new ArrayList<>();

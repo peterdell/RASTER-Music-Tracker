@@ -69,40 +69,32 @@ class OptionsDialogsTest {
 	void optionsDialogShowsTheValuesAndReadsThemBack() {
 		OptionsValues values = OptionsValues.from(session);
 		values.scalingPercentage = 150;
-		values.trackerDriverVersion = TrackerDriverVersion.PATCH8;
 		values.keyboardLayout = KeyboardLayout.AZERTY;
 		values.midiTouchResponse = false;
 		OptionsDialog dialog = new OptionsDialog(null, session, values);
 		dialog.dataToUi();
 
 		List<JCheckBox> boxes = find(dialog, JCheckBox.class);
-		assertEquals(13, boxes.size());
+		assertEquals(12, boxes.size()); // the NTSC box is the song's, in the Module Properties dialog since plan 44
 		List<JComboBox> combos = find(dialog, JComboBox.class);
-		assertEquals(3, combos.size());
-		assertEquals(TrackerDriverVersion.PATCH8, combos.get(0).getSelectedItem()); // a value set field holds the instance; its text is what the box shows
-		assertEquals("RMT 1.28 Patch 8 by Analmux", combos.get(0).getSelectedItem().toString());
-		assertEquals(KeyboardLayout.AZERTY, combos.get(1).getSelectedItem()); // a value set field holds the instance
-		assertEquals("AZERTY Layout", combos.get(1).getSelectedItem().toString());
-		assertEquals("None", combos.get(2).getSelectedItem());
+		assertEquals(2, combos.size()); // the driver version combo went with it
+		assertEquals(KeyboardLayout.AZERTY, combos.get(0).getSelectedItem()); // a value set field holds the instance
+		assertEquals("AZERTY Layout", combos.get(0).getSelectedItem().toString());
+		assertEquals("None", combos.get(1).getSelectedItem());
 		List<JTextField> fields = find(dialog, JTextField.class);
 		assertEquals(4, fields.size()); // scaling, primary, secondary, MIDI volume offset
 		assertEquals("150", fields.get(0).getText());
 		assertFalse(fields.get(3).isEnabled()); // OnMidiTouchResponseClicked: no touch response, no offset
 		assertEquals("Paths...", button(dialog, "Paths...").getText());
-		assertEquals("Tuning...", button(dialog, "Tuning...").getText());
 
 		fields.get(0).setText("300");
 		fields.get(1).setText("16");
-		((JCheckBox) button(dialog, "Use NTSC System Speed (60Hz)")).setSelected(true);
 		((JCheckBox) button(dialog, "Touch response")).doClick();
 		assertTrue(fields.get(3).isEnabled());
-		combos.get(0).setSelectedIndex(0);
 		dialog.dataFromUi();
 		assertEquals(300, values.scalingPercentage);
 		assertEquals(16, values.trackLinePrimaryHighlight);
-		assertTrue(values.ntsc);
 		assertTrue(values.midiTouchResponse);
-		assertEquals(TrackerDriverVersion.UNPATCHED, values.trackerDriverVersion);
 		assertEquals("", values.midiDevice);
 		assertTrue(dialog.validateOK());
 
@@ -115,11 +107,40 @@ class OptionsDialogsTest {
 		assertFalse(dialog.validateOK());
 	}
 
+	/** The Module Properties dialog (plan 44): the two controls that were the Options dialog's "Module Defaults" group, and the Tuning... button that was in its button bar. */
+	@Test
+	void modulePropertiesDialogShowsTheValuesAndReadsThemBack() {
+		ModulePropertiesValues values = ModulePropertiesValues.from(session);
+		values.ntsc = false;
+		values.trackerDriverVersion = TrackerDriverVersion.PATCH8;
+		ModulePropertiesDialog dialog = new ModulePropertiesDialog(null, session, values);
+		dialog.dataToUi();
+
+		List<JCheckBox> boxes = find(dialog, JCheckBox.class);
+		assertEquals(1, boxes.size());
+		List<JComboBox> combos = find(dialog, JComboBox.class);
+		assertEquals(1, combos.size());
+		assertEquals(TrackerDriverVersion.PATCH8, combos.get(0).getSelectedItem()); // a value set field holds the instance; its text is what the box shows
+		assertEquals("RMT 1.28 Patch 8 by Analmux", combos.get(0).getSelectedItem().toString());
+		assertEquals("Tuning...", button(dialog, "Tuning...").getText());
+		// The tuning only reaches Patch 16's tables, so the button follows the selected version
+		assertFalse(button(dialog, "Tuning...").isEnabled(), "Patch 8 plays its own tables");
+		combos.get(0).setSelectedItem(TrackerDriverVersion.PATCH16);
+		assertTrue(button(dialog, "Tuning...").isEnabled());
+
+		((JCheckBox) button(dialog, "Use NTSC System Speed (60Hz)")).setSelected(true);
+		combos.get(0).setSelectedIndex(0);
+		dialog.dataFromUi();
+		assertTrue(values.ntsc);
+		assertEquals(TrackerDriverVersion.UNPATCHED, values.trackerDriverVersion);
+		assertFalse(session.song.isNTSC()); // not applied here: RmtCommands.applyModuleProperties does that on OK
+	}
+
 	@Test
 	void tuningDialogRoundTripsAndOnlyTestOrOKReachTheSession() {
-		session.tuningSettings.basetuning = 432;
-		session.tuningSettings.temperament = 29;
-		session.tuningRatios.maj7th = new Fraction(243, 128);
+		session.song.getTuning().basetuning = 432;
+		session.song.getTuning().temperament = 29;
+		session.song.getTuningRatios().maj7th = new Fraction(243, 128);
 		TuningDialog dialog = new TuningDialog(null, session);
 		dialog.dataToUi();
 
@@ -138,15 +159,15 @@ class OptionsDialogsTest {
 		dialog.dataFromUi();
 		assertEquals(440, dialog.settings.basetuning);
 		assertEquals(new Fraction(4, 1), dialog.ratios.octave);
-		assertEquals(432, session.tuningSettings.basetuning); // not applied yet
+		assertEquals(432, session.song.getTuning().basetuning); // not applied yet
 
 		button(dialog, "Test").doClick();
-		assertEquals(440, session.tuningSettings.basetuning);
-		assertEquals(new Fraction(4, 1), session.tuningRatios.octave);
+		assertEquals(440, session.song.getTuning().basetuning);
+		assertEquals(new Fraction(4, 1), session.song.getTuningRatios().octave);
 
 		button(dialog, "Reset").doClick();
-		assertEquals(432, session.tuningSettings.basetuning); // the backup
-		assertEquals(new Fraction(2, 1), session.tuningRatios.octave);
+		assertEquals(432, session.song.getTuning().basetuning); // the backup
+		assertEquals(new Fraction(2, 1), session.song.getTuningRatios().octave);
 		assertEquals("440", fields.get(0).getText()); // the fields keep what was typed, as in C++
 
 		fields.get(0).setText("5"); // DDV_MinMaxDouble 6.875..7040

@@ -83,6 +83,14 @@ void CSong::DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, 
         m_trackactiveline = savedTrackActiveLine;
         g_playtime = savedPlayTime;
 
+        // The dump switched every channel off to record; switch them back on
+        // here, where they were switched off. Only some exports restored
+        // them through CPokeyStream::FinishedRecording(), and the WAV
+        // exporter even switched them off again at its end - after the other
+        // exports the tracker could stay muted (the RITMO fork's dcd62bd;
+        // plans/32_RITMO_FORK_ANALYSIS_PLAN.md).
+        g_ChannelControl.SetAllChannelsOn();
+
         statusBarLog.Format("Done... %i frames recorded in total, Loop point found at frame %i", pokeyStream.GetCurrentFrame(), pokeyStream.GetFirstCountPoint());
         SetStatusBarText(statusBarLog);
     }

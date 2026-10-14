@@ -101,6 +101,11 @@ class RmtMainMenuTest {
 			}
 
 			@Override
+			public boolean editModuleProperties(ModulePropertiesValues values) {
+				return false;
+			}
+
+			@Override
 			public void rescale() {
 			}
 

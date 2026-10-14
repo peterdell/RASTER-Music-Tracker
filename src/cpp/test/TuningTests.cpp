@@ -2,13 +2,13 @@
 
 #include "Tuning.h"
 #include "TuningTypes.h"
+#include "Song.h"
 
 #include <vector>
 
 // Real, linked globals (see TuningTablesStub.cpp/SongEditingStub.cpp) -
 // GenerateTable()/InitTuning() read these directly, matching production.
-extern TTuningSettings g_tuning;
-extern TTuningRatios g_tuningRatios;
+extern CSong g_Song;
 
 // CTuning::GetPitch()/GetAUDF()/GetPOKEYPitch() are pure functions of their
 // parameters and the object's m_clockFrequency. The test-only constructor
@@ -148,17 +148,17 @@ TEST_F(TuningPitchTest, CalculateDeltaAUDFDistortionCInvalidTimbreReturnsZero) {
     EXPECT_EQ(tuning.CalculateDeltaAUDF(313.55144978783591, 100, 28, 7.5, 1, static_cast<Timbre>(0xC5)), 0);
 }
 
-// GenerateTable() reads g_tuning directly (see TuningTables.cpp's own header
+// GenerateTable() reads g_Song.GetTuning() directly (see TuningTables.cpp's own header
 // comment for why); it's genuinely coupled to that global, not just
 // private-but-pure like GetTruePitch()/CalculateDeltaAUDF() above. As long as
-// g_tuning.basetuning is set to something nonzero before calling it (as
+// g_Song.GetTuning().basetuning is set to something nonzero before calling it (as
 // production does via Options), this is perfectly safe to call directly -
 // same technique SongEditingTests.cpp already uses.
 class TuningGenerateTableTest : public ::testing::Test {
   protected:
     CTuning tuning{PAL_CLOCK};
     void SetUp() override {
-        g_tuning.Initialize(false); // PAL
+        g_Song.GetTuning().Initialize(false); // PAL
     }
 };
 
@@ -202,7 +202,7 @@ TEST_F(TuningGenerateTableTest, GeneratesASixteenBitJoinedTableUsingTwoBytesPerE
 
 // InitTuning() orchestrates GenerateTable() across all 13 lookup tables. Its
 // MessageBox+exit(1) guard (basetuning == 0) is never reached here because
-// SetUp() always initializes g_tuning/g_tuningRatios first - deliberately
+// SetUp() always initializes g_Song.GetTuning()/g_Song.GetTuningRatios() first - deliberately
 // not characterized directly since that would terminate the whole test
 // process (same hazard already documented in AtariStub.cpp/13_JAVA_PORT_PLAN.md
 // for CAtari::Init(bool)).
@@ -211,8 +211,8 @@ class TuningInitTuningTest : public ::testing::Test {
     CTuning tuning{PAL_CLOCK};
     std::vector<byte> memory = std::vector<byte>(0x600, 0);
     void SetUp() override {
-        g_tuning.Initialize(false); // PAL
-        g_tuningRatios.Initialize();
+        g_Song.GetTuning().Initialize(false); // PAL
+        g_Song.GetTuningRatios().Initialize();
         tuning.InitTuning(PAL_CLOCK, memory.data());
     }
 };
@@ -258,7 +258,7 @@ TEST_F(TuningInitTuningTest, PopulatesTheFifteenKhzBuzzyCTableAtOffsetFiveC0) {
 
 TEST_F(TuningInitTuningTest, GetTruePitchCustomTemperamentUsesRatiosPopulatedByInitTuning) {
     // TUNING_CUSTOM reads CTuning's private CUSTOM[] array, only ever
-    // populated as a side effect of InitTuning() (from g_tuningRatios) -
+    // populated as a side effect of InitTuning() (from g_Song.GetTuningRatios()) -
     // there's no public setter, so this can only be characterized here,
     // after SetUp()'s InitTuning() call.
     EXPECT_DOUBLE_EQ(tuning.GetTruePitch(440.83751645933, CTuning::TUNING_CUSTOM, 3, 0), 8.1036308172670957);

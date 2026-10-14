@@ -3,9 +3,9 @@
 Reference screenshots of the real `Rmt.exe` (the C++ app), used by the
 Java UI port's golden-image tests to check that the Java rendering matches
 today's Windows UI pixel for pixel (see `plans/18_JAVA_UI_PORT_PLAN.md`,
-decision 6 and batches B1/B2). Each scenario is one self-contained folder
-holding the `.rmt` it shows (so the Java test can load the same module)
-and its screenshots.
+decision 6 and batches B1/B2). Each scenario is one folder of screenshots;
+the module it shows lives in `test-resources/songs` (plan 35), so the
+Java test loads the same song the capture was made with.
 
 ## Two different scalings - read this first
 
@@ -55,8 +55,8 @@ Every requested capture is present (the last five dialogs arrived on
 | Folder | Module | Captures |
 |---|---|---|
 | `song0-empty/` | none loaded | `tracks.png`, `instruments.png` (RMT 100%); `tracks-scale200.png`, `instruments-scale200.png` |
-| `song1-mono/` | `Delta.rmt` (`RMT4`, mono) | `tracks-scale200.png`, `instruments-scale200.png`, `tracks-playing-scale200.png`, `tracks-goto-scale200.png` |
-| `song2-stereo/` | `Why_Do_You_Dance_With_Me-132-$4000.rmt` (`RMT8`, stereo) | `tracks.png`, `instruments.png` (RMT 100%); `tracks-scale200.png`, `instruments-scale200.png`, `tracks-playing-scale200.png`, `tracks-jam-scale200.png` |
+| `song1-mono/` | `../songs/rmt128/delta/Delta.rmt` (`RMT4`, mono) | `tracks-scale200.png`, `instruments-scale200.png`, `tracks-playing-scale200.png`, `tracks-goto-scale200.png` |
+| `song2-stereo/` | `../songs/rmt134/why_do_you_dance_with_me/Why_Do_You_Dance_With_Me.rmt` (`RMT8`, stereo) | `tracks.png`, `instruments.png` (RMT 100%); `tracks-scale200.png`, `instruments-scale200.png`, `tracks-playing-scale200.png`, `tracks-jam-scale200.png` |
 | `dialogs/` | - | see the table below |
 
 ## Dialogs - what each capture shows and how to open it

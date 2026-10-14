@@ -1,6 +1,8 @@
 package org.atari.raster.rmt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -18,6 +20,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.atari.raster.rmt.model.AsmFileExporter;
 import org.atari.raster.rmt.model.AssemblerFormat;
 import org.atari.raster.rmt.model.AtariIO;
+import org.atari.raster.rmt.model.ExportProgress;
 import org.atari.raster.rmt.model.MessageAnswer;
 import org.atari.raster.rmt.model.MessageButtons;
 import org.atari.raster.rmt.model.Messages;
@@ -308,5 +311,67 @@ class ImportExportTest {
 		assertEquals(SongFiles.EXPORT_FILTERS.size(), SongFiles.EXPORT_IO_TYPES.length);
 		assertEquals(Path.of("a.sapr"), SongFiles.ensureFileExtension(Path.of("a"), SongFiles.EXPORT_FILTERS, 3));
 		assertNull(host.nextStrippedRmt);
+	}
+
+	// ---- the export in two phases (plans/24_EXPORT_SCREEN_UPDATES_PLAN.md, batch E3) ----
+	// The window asks for the file name on the event thread and runs the dump
+	// and the writing on a worker. Scripts and tests keep calling
+	// fileExportAs(), so both paths have to produce the same file.
+
+	@Test
+	void theTwoPhaseExportWritesWhatTheSingleCallWrites() throws IOException {
+		openDelta();
+		host.nextSap = new SongFiles.SapChoice("Me", "Delta", "01/01/2026", "00 05");
+		byte[] expected = Files.readAllBytes(export("one", 3));
+
+		host.nextSap = new SongFiles.SapChoice("Me", "Delta", "01/01/2026", "00 05");
+		host.answer(dir.resolve("two"), 3);
+		SongFiles.ExportRequest request = files.prepareExportAs();
+		assertNotNull(request);
+		assertTrue(files.runExportAs(request, ExportProgress.NONE));
+
+		assertArrayEquals(expected, Files.readAllBytes(request.file()));
+	}
+
+	/** Cancelling leaves no file: an incomplete register dump must not be written as if it were the song. */
+	@Test
+	void aCancelledExportLeavesNoFileBehind() throws IOException {
+		openDelta();
+		host.nextSap = new SongFiles.SapChoice("Me", "Delta", "01/01/2026", "00 05");
+		host.answer(dir.resolve("cancelled"), 3);
+		SongFiles.ExportRequest request = files.prepareExportAs();
+		assertNotNull(request);
+		assertTrue(Files.exists(request.file()), "the empty file is created before the format dialog");
+		messages.log.clear();
+
+		assertFalse(files.runExportAs(request, new ExportProgress() {
+			@Override
+			public boolean isCancelled() {
+				return true;
+			}
+		}));
+
+		assertFalse(Files.exists(request.file()));
+		assertEquals(List.of(), messages.log, "a cancelled export is not a failure to warn about");
+	}
+
+	/** The dump reports its frame count; the count is the stream's own, so it only ever grows. */
+	@Test
+	void theDumpReportsFramesWhileItRuns() {
+		openDelta();
+		List<Integer> reported = new ArrayList<>();
+		org.atari.raster.rmt.model.PokeyStream stream = new org.atari.raster.rmt.model.PokeyStream();
+		session.song.dumpSongToPokeyStream(stream, org.atari.raster.rmt.model.PlayMode.PLAY_SONG, 0, 0, session.tracks4_8,
+			session.atariTrackerDriver, session.channelControl, session.clipboard, session.undo, new ExportProgress() {
+				@Override
+				public void framesRecorded(int frames) {
+					reported.add(frames);
+				}
+			});
+
+		assertTrue(stream.getCurrentFrame() > 0);
+		for (int i = 1; i < reported.size(); i++) {
+			assertTrue(reported.get(i) >= reported.get(i - 1), "the frame count must not go backwards");
+		}
 	}
 }

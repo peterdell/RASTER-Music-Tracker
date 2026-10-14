@@ -1,5 +1,6 @@
 #include "AtariTrackerDriver.h"
 #include "Clipboard.h"
+#include "FrequencyTables.h"
 #include "Global.h"
 #include "Instruments.h"
 #include "PokeyRenderer.h"
@@ -151,8 +152,8 @@ void CSong::MidiEvent(DWORD dwParam, bool hasFocus) {
                 case 71: //Knob C1, AUDF0/AUDF2 upper 4 bits
                     //memory[0xD200] &= 0x0F;
                     //memory[0xD200] |= pr2 << 4;
-                    memory[0x3178 + o] &= 0x0F;
-                    memory[0x3178 + o] |= pr2 << 4;
+                    memory[RMTPLAYR_TRACKN_AUDF + o] &= 0x0F;
+                    memory[RMTPLAYR_TRACKN_AUDF + o] |= pr2 << 4;
 
                     //g_pokey.MemToPokey(g_tracks4_8);
                     break;
@@ -160,50 +161,50 @@ void CSong::MidiEvent(DWORD dwParam, bool hasFocus) {
                 case 72: //Knob C2, AUDF1/AUDF3 upper 4 bits
                     //memory[0xD202] &= 0x0F;
                     //memory[0xD202] |= pr2 << 4;
-                    memory[0x3179 + o] &= 0x0F;
-                    memory[0x3179 + o] |= pr2 << 4;
+                    memory[RMTPLAYR_TRACKN_AUDF + 1 + o] &= 0x0F;
+                    memory[RMTPLAYR_TRACKN_AUDF + 1 + o] |= pr2 << 4;
                     break;
 
                 case 73: //Knob C3, AUDC0/AUDC2 volume
                     //memory[0xD201] &= 0xF0;
                     //memory[0xD201] |= pr2;
-                    memory[0x3180 + o] &= 0xF0;
-                    memory[0x3180 + o] |= pr2;
+                    memory[RMTPLAYR_TRACKN_AUDC + o] &= 0xF0;
+                    memory[RMTPLAYR_TRACKN_AUDC + o] |= pr2;
                     break;
 
                 case 74: //Knob C4, AUDC1/AUDC3 volume
                     //memory[0xD203] &= 0xF0;
                     //memory[0xD203] |= pr2;
-                    memory[0x3181 + o] &= 0xF0;
-                    memory[0x3181 + o] |= pr2;
+                    memory[RMTPLAYR_TRACKN_AUDC + 1 + o] &= 0xF0;
+                    memory[RMTPLAYR_TRACKN_AUDC + 1 + o] |= pr2;
                     break;
 
                 case 75: //Knob C5, AUDF0/AUDF2 lower 4 bits
                     //memory[0xD200] &= 0xF0;
                     //memory[0xD200] |= pr2;
-                    memory[0x3178 + o] &= 0xF0;
-                    memory[0x3178 + o] |= pr2;
+                    memory[RMTPLAYR_TRACKN_AUDF + o] &= 0xF0;
+                    memory[RMTPLAYR_TRACKN_AUDF + o] |= pr2;
                     break;
 
                 case 76: //Knob C6, AUDF1/AUDF3 lower 4 bits
                     //memory[0xD202] &= 0xF0;
                     //memory[0xD202] |= pr2;
-                    memory[0x3179 + o] &= 0xF0;
-                    memory[0x3179 + o] |= pr2;
+                    memory[RMTPLAYR_TRACKN_AUDF + 1 + o] &= 0xF0;
+                    memory[RMTPLAYR_TRACKN_AUDF + 1 + o] |= pr2;
                     break;
 
                 case 77: //Knob C7, AUDC0/AUDC2 distortion
                     //memory[0xD201] &= 0x0F;
                     //memory[0xD201] |= (pr2 * 2) << 4;
-                    memory[0x3180 + o] &= 0x0F;
-                    memory[0x3180 + o] |= (pr2 * 2) << 4;
+                    memory[RMTPLAYR_TRACKN_AUDC + o] &= 0x0F;
+                    memory[RMTPLAYR_TRACKN_AUDC + o] |= (pr2 * 2) << 4;
                     break;
 
                 case 78: //Knob C8, AUDC1/AUDC3 distortion
                     //memory[0xD203] &= 0x0F;
                     //memory[0xD203] |= (pr2 * 2) << 4;
-                    memory[0x3181 + o] &= 0x0F;
-                    memory[0x3181 + o] |= (pr2 * 2) << 4;
+                    memory[RMTPLAYR_TRACKN_AUDC + 1 + o] &= 0x0F;
+                    memory[RMTPLAYR_TRACKN_AUDC + 1 + o] |= (pr2 * 2) << 4;
                     break;
 
             default:
@@ -219,28 +220,28 @@ void CSong::MidiEvent(DWORD dwParam, bool hasFocus) {
                 if (!pr2) {
                     break; //no key press
                 }
-                memory[0x3C69] ^= 0x04;
+                memory[RMTPLAYR_V_AUDCTL] ^= 0x04;
                 break;
 
             case 62: //drumpad 2, toggle High Pass Filter in ch2+4
                 if (!pr2) {
                     break; //no key press
                 }
-                memory[0x3C69] ^= 0x02;
+                memory[RMTPLAYR_V_AUDCTL] ^= 0x02;
                 break;
 
             case 66: //drumpad 3, toggle 1.79mHz mode in the respective channels
                 if (!pr2) {
                     break; //no key press
                 }
-                memory[0x3C69] ^= (m_ch_offset) ? 0x20 : 0x40;
+                memory[RMTPLAYR_V_AUDCTL] ^= (m_ch_offset) ? 0x20 : 0x40;
                 break;
 
             case 70: //drumpad 4, toggle Join 16-bit mode in the respective channels
                 if (!pr2) {
                     break; //no key press
                 }
-                memory[0x3C69] ^= (m_ch_offset) ? 0x08 : 0x10;
+                memory[RMTPLAYR_V_AUDCTL] ^= (m_ch_offset) ? 0x08 : 0x10;
                 break;
 
             case 74: //drumpad 5, select the POKEY channels 1 and 2 or 3 and 4
@@ -258,18 +259,18 @@ void CSong::MidiEvent(DWORD dwParam, bool hasFocus) {
                 if (!pr2) {
                     break; //no key press
                 }
-                memory[0x3CD3] = 0x03; //SKCTL
-                memory[0x3C69] = 0x00; //AUDCTL
+                memory[RMTPLAYR_V_SKCTL] = 0x03; //SKCTL
+                memory[RMTPLAYR_V_AUDCTL] = 0x00; //AUDCTL
                 break;
 
             case 75: //drumpad 7, toggle Two-Tone filter
                 if (!pr2) {
                     break; //no key press
                 }
-                if (memory[0x3CD3] == 0x03) {
-                    memory[0x3CD3] = 0x8B;
+                if (memory[RMTPLAYR_V_SKCTL] == 0x03) {
+                    memory[RMTPLAYR_V_SKCTL] = 0x8B;
                 } else {
-                    memory[0x3CD3] = 0x03;
+                    memory[RMTPLAYR_V_SKCTL] = 0x03;
                 }
                 break;
 
@@ -277,7 +278,7 @@ void CSong::MidiEvent(DWORD dwParam, bool hasFocus) {
                 if (!pr2) {
                     break; //no key press
                 }
-                memory[0x3C69] ^= 0x01;
+                memory[RMTPLAYR_V_AUDCTL] ^= 0x01;
                 break;
 
             default:
@@ -450,27 +451,17 @@ void CSong::MidiEvent(DWORD dwParam, bool hasFocus) {
             //TESTING HARDCODED DATA, THIS MUST NOT BE THE WAY TO GO!
             //COMMENT THIS ENTIRE BLOCK OUT ONCE A PROPER INPUT HANDLER IS ADDED TO TAKE ALL THE PARAMETERS INTO ACCOUNT
             //
+            //...the frequency tables at least are no longer hardcoded here: the
+            //distortion's page, the AUDC bits that go with it and the clock each
+            //come from the driver itself through CFrequencyTables, so this cannot
+            //drift away from the player again - it had, by a whole page, ever
+            //since the Distortion 4 page was added in 2022
+            //(plans/39_MIDI_TABLE_OFFSETS_PLAN.md).
+            const int midi_distortion = g_Midi.m_InstrumentOnChannel[track];
+            midi_audctl = memory[RMTPLAYR_V_AUDCTL];
 
-            //midi_audf = memory[0xB100 + note];		//Distortion A 64khz frequency directly loaded from the generated table in memory
-            midi_audc |= g_Midi.m_InstrumentOnChannel[track] << 4; //force Distortion based on instrument to AUDC
-            midi_audctl = memory[0x3C69];
-
-            bool CLOCK_15 = midi_audctl & 0x01;
-            bool HPF_CH24 = midi_audctl & 0x02;
-            bool HPF_CH13 = midi_audctl & 0x04;
-            bool JOIN_34 = midi_audctl & 0x08;
-            bool JOIN_12 = midi_audctl & 0x10;
-            bool CH3_179 = midi_audctl & 0x20;
-            bool CH1_179 = midi_audctl & 0x40;
-            bool POLY9 = midi_audctl & 0x80;
-            //bool TWO_TONE = (skctl == 0x8B) ? 1 : 0;
-
-            //combined modes for some special output...
-            bool JOIN_16BIT = ((JOIN_12 && CH1_179 && (track == 1 || track == 5)) || (JOIN_34 && CH3_179 && (track == 3 || track == 7))) ? 1 : 0;
-            bool CLOCK_179 = ((CH1_179 && (track == 0 || track == 4)) || (CH3_179 && (track == 2 || track == 6))) ? 1 : 0;
-            if (JOIN_16BIT || CLOCK_179) {
-                CLOCK_15 = 0; //override, these 2 take priority over 15khz mode
-            }
+            const bool CH3_179 = (midi_audctl & 0x20) != 0;
+            const bool CH1_179 = (midi_audctl & 0x40) != 0;
 
             if (CH1_179 && CH3_179) {
                 //force only valid 1.79mhz channels even if the current track doesn't support it, if both are enabled but not in the right channel
@@ -479,74 +470,33 @@ void CSong::MidiEvent(DWORD dwParam, bool hasFocus) {
                 } else if (track > 2) {
                     track = 0;
                 }
-                CLOCK_179 = 1;
             }
 
-            //what is the distortion? must be known to set the right note table
-            switch (midi_audc & 0xF0) {
-            case 0x00:
-                goto case_default;
-                break;
+            const TrackerDriverVersion version = GetTrackerDriverVersion(); //this song's own driver setting
+            const auto mode = CFrequencyTables::GetModeForChannel(midi_audctl & 0xFF, track);
+            const MemoryAddress table = CFrequencyTables::GetTableAddress(memory, version, midi_distortion, mode);
+            const int distortionAudc = CFrequencyTables::GetDistortionAudc(memory, version, midi_distortion);
+            if (!table || distortionAudc < 0) {
+                return; //no driver loaded whose tables this layout can find
+            }
 
-            case 0x20:
-            case 0x60:
-                if (CLOCK_179) {
-                    midi_audf = memory[0xB040 + note];
-                } else if (CLOCK_15) {
-                    goto case_default;
-                } else {
-                    midi_audf = memory[0xB000 + note];
-                }
-                break;
-
-            case 0x40:
-                goto case_default;
-                break;
-
-            case 0x80:
-                goto case_default;
-                break;
-
-            case 0xC0:
-                if (CLOCK_179) {
-                    midi_audf = memory[0xB240 + note];
-                } else if (CLOCK_15) { //PAGE_EXTRA_0 => Address 0xB400, 0xB480 for 15khz Pure and 0xB4C0 for 15khz Buzzy
-                    midi_audf = memory[0xB4C0 + note];
-                } else {
-                    midi_audf = memory[0xB200 + note];
-                }
-                break;
-
-            case 0xE0:
-                midi_audc = (char)0xC0; //Distortion C bass E
-                if (CLOCK_179) {
-                    midi_audf = memory[0xB340 + note];
-                } else if (CLOCK_15) { //PAGE_EXTRA_0 => Address 0xB400, 0xB480 for 15khz Pure and 0xB4C0 for 15khz Buzzy
-                    midi_audf = memory[0xB4C0 + note];
-                } else {
-                    midi_audf = memory[0xB300 + note];
-                }
-                break;
-
-            case 0xA0:
-            default:
-            case_default:
-                if (CLOCK_179) {
-                    midi_audf = memory[0xB140 + note];
-                } else if (CLOCK_15) { //PAGE_EXTRA_0 => Address 0xB400, 0xB480 for 15khz Pure and 0xB4C0 for 15khz Buzzy
-                    midi_audf = memory[0xB480 + note];
-                } else {
-                    midi_audf = memory[0xB100 + note];
-                }
-                break;
+            midi_audc |= (char)distortionAudc; //the Distortion bits the player would write
+            if (mode == CFrequencyTables::Mode::Join16Bit) {
+                //The joined pair's table holds little-endian words, and `track`
+                //is its high byte - so the low byte belongs to the channel below.
+                //Only the Patch 16 layout answers at all in this mode, so the
+                //interleaving is the only one that can be meant here.
+                midi_audf = memory[table + note * 2 + 1];
+                memory[RMTPLAYR_TRACKN_AUDF + track - 1] = memory[table + note * 2];
+            } else {
+                midi_audf = memory[table + note];
             }
 
             midi_audc |= g_Midi.m_NoteVolumeOnChannel[track]; //also merge the volume into it
 
             //DIRECT MEMORY WRITE
-            //memory[0x3C69] = midi_audctl;				//AUDCTL address used by SetPokey
-            memory[0x3178 + track] = midi_audf; //AUDF address + offset used by SetPokey
-            memory[0x3180 + track] = midi_audc; //AUDC address + offset used by SetPokey
+            memory[RMTPLAYR_TRACKN_AUDF + track] = midi_audf; //AUDF address + offset used by SetPokey
+            memory[RMTPLAYR_TRACKN_AUDC + track] = midi_audc; //AUDC address + offset used by SetPokey
 
             //
             //END OF HARDCODED TEST

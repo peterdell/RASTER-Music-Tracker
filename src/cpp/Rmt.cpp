@@ -46,8 +46,10 @@ BEGIN_MESSAGE_MAP(CRmtApp, CWinApp)
     // Standard file based document commands
     ON_COMMAND(ID_FILE_NEW, CWinApp::OnFileNew)
     ON_COMMAND(ID_FILE_OPEN, CWinApp::OnFileOpen)
-    // Standard print setup command
-    ON_COMMAND(ID_FILE_PRINT_SETUP, CWinApp::OnFilePrintSetup)
+    // Printing is intentionally not implemented, see doc/rmt_changes.md 1.36:
+    // the entry is gone from the File menu, so MFC's standard print setup
+    // command has nothing to reach it from.
+    // ON_COMMAND(ID_FILE_PRINT_SETUP, CWinApp::OnFilePrintSetup)
     ON_COMMAND(ID_HELP_HELP_TOPICS, CRmtApp::OnHelp)
     ON_COMMAND(ID_HELP_ONLINE_HELP, CRmtApp::OnHelpOnlineHelp) // TODO: Should be real context help instead
     ON_COMMAND(ID_HELP_ABOUT_APP, CRmtApp::OnHelpAboutApp)
@@ -117,15 +119,15 @@ BOOL CRmtApp::InitInstance()
     }
 
 
-    g_tuning.Initialize(g_Song.IsNTSC());
-    g_tuningRatios.Initialize();
+    g_Song.GetTuning().Initialize(g_Song.IsNTSC());
+    g_Song.GetTuningRatios().Initialize();
 
     // Intitilaize the Atari computer.
     g_Atari.Init(g_Song.IsNTSC());
 
     // Initialize Atari RMT routines.
     g_AtariTrackerDriver = new CAtariTrackerDriver(g_Atari);
-    g_AtariTrackerDriver->LoadRMTRoutines(g_trackerDriverVersion);
+    g_AtariTrackerDriver->LoadRMTRoutines(g_Song.GetTrackerDriverVersion());
     g_AtariTrackerDriver->Init();
 
 
@@ -192,7 +194,7 @@ BOOL CRmtApp::InitInstance()
     // would be there to dismiss it; CScriptRunner::Export() fails the command
     // instead.
     if (!g_AtariTrackerDriver->AreRoutinesLoaded() && !cmdInfo.IsScriptFileSpecified()) {
-        CString message = CRmtAtariBinaries::GetMissingTrackerDriverMessage(g_trackerDriverVersion);
+        CString message = CRmtAtariBinaries::GetMissingTrackerDriverMessage(g_Song.GetTrackerDriverVersion());
         SendWarningMessage("RMT", (LPCTSTR)message);
     }
 

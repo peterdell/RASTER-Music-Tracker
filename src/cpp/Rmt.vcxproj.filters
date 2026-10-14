@@ -321,6 +321,9 @@
     <ClCompile Include="asap\wasap.c">
       <Filter>Source Files\ASAP</Filter>
     </ClCompile>
+    <ClCompile Include="ModulePropertiesDialog.cpp">
+      <Filter>Source Files\Options</Filter>
+    </ClCompile>
     <ClCompile Include="OptionsDialog.cpp">
       <Filter>Source Files\Options</Filter>
     </ClCompile>
@@ -509,6 +512,9 @@
     <ClInclude Include="tracker_obx.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
+    <ClInclude Include="legacy_obx.h">
+      <Filter>Source Files\Atari Sound Generator</Filter>
+    </ClInclude>
     <ClInclude Include="C6502.h">
       <Filter>Source Files\Atari Sound Generator</Filter>
     </ClInclude>
@@ -589,6 +595,9 @@
     </ClInclude>
     <ClInclude Include="asap\wasap.h">
       <Filter>Source Files\ASAP</Filter>
+    </ClInclude>
+    <ClInclude Include="ModulePropertiesDialog.h">
+      <Filter>Source Files\Options</Filter>
     </ClInclude>
     <ClInclude Include="OptionsDialog.h">
       <Filter>Source Files\Options</Filter>
@@ -693,9 +702,6 @@
     </None>
     <None Include="res\cursor_set_position.cur">
       <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\..\doc\rmt_tracker_usage.md">
-      <Filter>Documentation Files</Filter>
     </None>
     <None Include="..\..\doc\rmt_action_infos.md">
       <Filter>Documentation Files</Filter>

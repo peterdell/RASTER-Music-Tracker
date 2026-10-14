@@ -27,7 +27,7 @@
 #define IDD_EXPORT_SAP_TYPE_R           116
 #define IDD_EXPORT_STRIPPED_RMT         117
 #define IDD_FILE_NEW                    120
-#define IDD_FILE_PROPRTIES              121
+#define IDD_FILE_PROPERTIES             121
 #define IDD_IMPORTMOD                   122
 #define IDD_IMPORTMODFINISHED           123
 #define IDD_IMPORTTMC                   124

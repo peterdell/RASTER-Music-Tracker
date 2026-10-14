@@ -101,6 +101,9 @@ public final class Song {
 	private int activeInstr;
 	private EditArea infoAct = EditArea.NAME;
 	private boolean ntsc;
+	private TrackerDriverVersion trackerDriverVersion = TrackerDriverVersion.PATCH16;
+	private final TuningSettings tuningSettings = new TuningSettings();
+	private final TuningRatios tuningRatios = new TuningRatios();
 	private int octave;
 	private int volume;
 	private boolean followplay;
@@ -160,6 +163,45 @@ public final class Song {
 
 	public boolean isNTSC() {
 		return ntsc;
+	}
+
+	/**
+	 * {@code CSong::GetTrackerDriverVersion()}: which build of the player
+	 * routines this module is composed against - a song-scoped setting like
+	 * {@link #isNTSC()}, persisted in {@code rmt.ini} and not in the module
+	 * (plans/41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md). It decides which
+	 * frequency tables exist at all, so everything that asks what a note would
+	 * sound like needs it.
+	 */
+	public TrackerDriverVersion getTrackerDriverVersion() {
+		return trackerDriverVersion;
+	}
+
+	/**
+	 * {@code CSong::SetTrackerDriverVersion()}. A plain accessor: loading the
+	 * new version's routines and reporting a missing file is
+	 * {@code RmtSession.setTrackerDriverVersion}'s job, as it is C++'s
+	 * callers'.
+	 */
+	public void setTrackerDriverVersion(TrackerDriverVersion trackerDriverVersion) {
+		this.trackerDriverVersion = trackerDriverVersion;
+	}
+
+	/**
+	 * {@code CSong::GetTuning()}: how the notes of this module are tuned - the
+	 * base tuning, the base note, the temperament. Song-scoped like
+	 * {@link #isNTSC()} and the driver version, persisted in {@code tuning.ini}
+	 * and not in the module (plans/44_SONG_PROPERTIES_DIALOG_PLAN.md). The
+	 * instance is the song's own and is mutated in place, as C++ mutates the
+	 * struct it hands out by reference.
+	 */
+	public TuningSettings getTuning() {
+		return tuningSettings;
+	}
+
+	/** {@code CSong::GetTuningRatios()}: the interval ratios of a custom temperament, see {@link #getTuning()}. */
+	public TuningRatios getTuningRatios() {
+		return tuningRatios;
 	}
 
 	public int getInstrumentSpeed() {
@@ -2573,8 +2615,8 @@ public final class Song {
 		return tracks4_8;
 	}
 
-	public void resetTuningVariables(TuningSettings tuning, TuningRatios tuningRatios) {
-		tuning.initialize(isNTSC());
+	public void resetTuningVariables() {
+		tuningSettings.initialize(isNTSC());
 		tuningRatios.initialize();
 	}
 
@@ -4056,6 +4098,16 @@ public final class Song {
 	 * registers stay zero, as in the C++ test build.
 	 */
 	public void dumpSongToPokeyStream(PokeyStream pokeyStream, PlayMode initialPlayMode, int songLine, int trackLine, int tracks4_8, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
+		dumpSongToPokeyStream(pokeyStream, initialPlayMode, songLine, trackLine, tracks4_8, atariTrackerDriver, channelControl, clipboard, undo, ExportProgress.NONE);
+	}
+
+	/**
+	 * The same dump, reporting its frame count and stopping when the progress
+	 * asks it to (plans/24_EXPORT_SCREEN_UPDATES_PLAN.md, batch E3). A dump
+	 * that was cancelled leaves an incomplete stream behind, so the caller
+	 * must check {@link ExportProgress#isCancelled()} before using it.
+	 */
+	public void dumpSongToPokeyStream(PokeyStream pokeyStream, PlayMode initialPlayMode, int songLine, int trackLine, int tracks4_8, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo, ExportProgress progress) {
 		int savedSongActiveLine = songActiveLine; // the dump plays from its own start line and must not move the cursor (as C++ since 2026-09-28)
 		int savedTrackActiveLine = trackActiveLine;
 		stop(undo); // Make sure RMT is stopped
@@ -4072,7 +4124,15 @@ public final class Song {
 		trackActiveLine = trackLine;
 		play(initialPlayMode, followplay, 0, undo, tracks4_8, atariTrackerDriver, clipboard, pokeyStream);
 
+		// The frame count goes out about four times a second, by wall clock, as
+		// the C++ status text does - not once per frame, which would cost more
+		// than the dump itself.
+		long lastReport = System.nanoTime();
 		while (playMode != PlayMode.PLAY_STOP) {
+			if (progress.isCancelled()) {
+				break;
+			}
+
 			// 1 VBI of module playback (play() above cleared any pending quantized note, so the volume rule cannot matter here - false)
 			playVBI(tracks4_8, atariTrackerDriver, pokeyStream, false, undo);
 
@@ -4083,6 +4143,12 @@ public final class Song {
 				// Transfer from memory to POKEY buffer
 				pokeyStream.record();
 			}
+
+			long now = System.nanoTime();
+			if (now - lastReport >= 250_000_000L) {
+				lastReport = now;
+				progress.framesRecorded(pokeyStream.getCurrentFrame());
+			}
 		}
 		atariTrackerDriver.init(); // Reset the RMT routines
 
@@ -4090,6 +4156,14 @@ public final class Song {
 		stop(undo);
 		songActiveLine = savedSongActiveLine;
 		trackActiveLine = savedTrackActiveLine;
+
+		// The dump switched every channel off to record; switch them back on
+		// here, where they were switched off. Nothing else reliably did:
+		// after any sound export the tracker stayed muted until something
+		// else happened to restore them (the RITMO fork's dcd62bd found the
+		// same hole around its exports; ChannelsAfterExportTest covers every
+		// format here; plans/32_RITMO_FORK_ANALYSIS_PLAN.md).
+		channelControl.setAllChannelsOn();
 
 		// Deliberately NOT calling pokeyStream.finishedRecording() here, matching
 		// C++ exactly: CSong::DumpSongToPokeyStream() never calls

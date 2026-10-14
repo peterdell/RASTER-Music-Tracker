@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 
 #include "Atari.h"
+#include "FrequencyTables.h"
 #include "Instruments.h"
 #include "Notes.h"
 
@@ -194,8 +195,11 @@ int CInstruments::GetNote(int instr, int note) {
 /// </summary>
 /// <param name="instr">Instrument #</param>
 /// <param name="note">which note</param>
+/// <param name="trackerDriverVersion">which driver the song is composed against, and so which table layout to read.
+/// A parameter because CInstruments has no song of its own; the callers read it from theirs
+/// (plans/41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md).</param>
 /// <returns>frequency</returns>
-int CInstruments::GetFrequency(int instr, int note) {
+int CInstruments::GetFrequency(int instr, int note, TrackerDriverVersion trackerDriverVersion) {
     TInstrument* tt = GetInstrument(instr);
     if (!tt) {
         return -1;
@@ -212,15 +216,26 @@ int CInstruments::GetFrequency(int instr, int note) {
         return -1;
     }
 
-    // IMPORTANT NOTE: Tables are not set to a constant location!
-    // The function technically returns valid data, otherwise
-    switch (tt->envelope[0][EnvelopeParameter::DISTORTION]) {
-    case 0x0C:
-        return g_Atari.GetByteAt(RMT_FRQTABLES + 64 + note);
-    case 0x06:
-    case 0x0E:
-        return g_Atari.GetByteAt(RMT_FRQTABLES + 128 + note);
-    default:
-        return g_Atari.GetByteAt(RMT_FRQTABLES + 192 + note);
+    // Which table the player would read is CFrequencyTables' job, including
+    // reading the page out of the driver's own dispatch table. Only the
+    // distortion and the instrument's own 15 kHz bit can be answered here:
+    // 1.79 MHz and the 16-bit joins are per channel, and a track has no
+    // channel until the song assigns it to a column, so the 64 kHz table is
+    // the answer for every other case - which is also all a single AUDF byte
+    // can carry.
+    const int distortion = tt->envelope[0][EnvelopeParameter::DISTORTION];
+
+    if (distortion == 0x06) {
+        // Distortion 6 is BASS16: the player forces 16-bit mode on whichever
+        // channel it plays (do_bass16), so the frequency is a 16-bit value
+        // and no single AUDF byte describes it.
+        return -1;
     }
+
+    const auto mode = tt->parameters[PAR_AUDCTL_15KHZ] ? CFrequencyTables::Mode::Clock15kHz : CFrequencyTables::Mode::Clock64kHz;
+    const MemoryAddress table = CFrequencyTables::GetTableAddress(g_Atari.GetConstMemoryAt(0), trackerDriverVersion, distortion, mode);
+    if (!table) {
+        return -1; // no driver loaded whose tables this layout can find
+    }
+    return g_Atari.GetByteAt(table + note);
 }

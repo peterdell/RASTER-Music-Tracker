@@ -32,7 +32,7 @@ class RmtConfigTest {
 
 			# GENERAL
 
-			SCALEPERCENTAGE = 100
+			SCALEPERCENTAGE = 200
 			TRACKLINEPRIMARYHIGHLIGHT = 8
 			TRACKLINESECONDARYHIGHLIGHT = 4
 			TRACKLINEALTNUMBERING = 0
@@ -76,7 +76,7 @@ class RmtConfigTest {
 			VIEW_POKEYCHIPREGISTERS = 1
 			VIEW_INSTRUMENTACTIVEHELP = 1
 			SMOOTH_SCROLL = 1
-			VIEW_DEBUGDISPLAY = 1
+			VIEW_DEBUGDISPLAY = 0
 			""";
 
 	/** The default tuning.ini - note the ratios as C++ writes them before Fraction's normalization (40/38 etc.); Java writes them reduced. */
@@ -135,7 +135,7 @@ class RmtConfigTest {
 	void theDefaultsFormatExactlyAsRmtExeWritesThem() {
 		RmtSession session = new RmtSession();
 		assertEquals(DEFAULT_RMT_INI, RmtConfig.formatRMTConfig(session));
-		assertEquals(DEFAULT_TUNING_INI, RmtConfig.formatTuningConfig(session.tuningSettings, session.tuningRatios));
+		assertEquals(DEFAULT_TUNING_INI, RmtConfig.formatTuningConfig(session.song.getTuning(), session.song.getTuningRatios()));
 	}
 
 	@Test
@@ -149,7 +149,7 @@ class RmtConfigTest {
 		o.displayFlatNotes = true;
 		o.useGermanNotation = true;
 		o.noHwSoundBuffer = true;
-		o.trackerDriverVersion = TrackerDriverVersion.PATCH3;
+		written.song.setTrackerDriverVersion(TrackerDriverVersion.PATCH3); // the song's, like NTSC_SYSTEM
 		o.keyboardLayout = KeyboardLayout.AZERTY;
 		o.keyboardUpDownContinue = false;
 		o.keyboardRememberOctavesAndVolumes = false;
@@ -175,11 +175,11 @@ class RmtConfigTest {
 		o.view.smoothScrolling = false;
 		o.view.debugDisplay = false;
 		written.song.setNTSC(true);
-		written.tuningSettings.basetuning = 432.5;
-		written.tuningSettings.basenote = 7;
-		written.tuningSettings.temperament = 29;
-		written.tuningRatios.maj7th = new Fraction(243, 128);
-		written.tuningRatios.octave = new Fraction(4, 2);
+		written.song.getTuning().basetuning = 432.5;
+		written.song.getTuning().basenote = 7;
+		written.song.getTuning().temperament = 29;
+		written.song.getTuningRatios().maj7th = new Fraction(243, 128);
+		written.song.getTuningRatios().octave = new Fraction(4, 2);
 
 		RmtConfig config = new RmtConfig(dir);
 		config.writeRMTConfig(written);
@@ -195,18 +195,18 @@ class RmtConfigTest {
 		assertTrue(messages.warnings.isEmpty());
 
 		assertEquals(RmtConfig.formatRMTConfig(written), RmtConfig.formatRMTConfig(read));
-		assertEquals(RmtConfig.formatTuningConfig(written.tuningSettings, written.tuningRatios), RmtConfig.formatTuningConfig(read.tuningSettings, read.tuningRatios));
+		assertEquals(RmtConfig.formatTuningConfig(written.song.getTuning(), written.song.getTuningRatios()), RmtConfig.formatTuningConfig(read.song.getTuning(), read.song.getTuningRatios()));
 		assertTrue(read.song.isNTSC());
 		assertEquals("C:\\Music\\Songs = mine", read.options.defaultSongsPath); // only the first '=' splits
-		assertEquals(new Fraction(243, 128), read.tuningRatios.maj7th); // MAJ_7TH is read back (C++ 1.35 only wrote it)
-		assertEquals(2, read.tuningRatios.octave.numerator); // normalized by Fraction
+		assertEquals(new Fraction(243, 128), read.song.getTuningRatios().maj7th); // MAJ_7TH is read back (C++ 1.35 only wrote it)
+		assertEquals(2, read.song.getTuningRatios().octave.numerator); // normalized by Fraction
 	}
 
 	@Test
 	void aMissingRmtIniIsReportedAndTheDefaultsWritten(@TempDir Path dir) throws IOException {
 		RmtSession session = new RmtSession();
 		session.options.scalingPercentage = 250;
-		session.options.view.debugDisplay = false;
+		session.options.view.debugDisplay = true; // not the default, so the reset is visible
 		session.song.setNTSC(true);
 		RecordingMessages messages = new RecordingMessages();
 		session.messages.setHandler(messages);
@@ -217,8 +217,8 @@ class RmtConfigTest {
 
 		assertEquals(1, messages.warnings.size());
 		assertTrue(messages.warnings.get(0).startsWith("RMT: Could not find: '" + dir.resolve("rmt.ini") + "'\n\nRMT will use the default configuration.\n"));
-		assertEquals(100, session.options.scalingPercentage);
-		assertTrue(session.options.view.debugDisplay);
+		assertEquals(200, session.options.scalingPercentage);
+		assertFalse(session.options.view.debugDisplay);
 		assertFalse(session.song.isNTSC());
 		assertEquals(DEFAULT_RMT_INI, Files.readString(dir.resolve("rmt.ini"), RmtConfig.CHARSET).replace(System.lineSeparator(), "\n"));
 	}
@@ -226,8 +226,8 @@ class RmtConfigTest {
 	@Test
 	void aMissingTuningIniResetsTheTuningAndWritesTheDefaults(@TempDir Path dir) throws IOException {
 		RmtSession session = new RmtSession();
-		session.tuningSettings.basetuning = 999;
-		session.tuningRatios.octave = new Fraction(3, 1);
+		session.song.getTuning().basetuning = 999;
+		session.song.getTuningRatios().octave = new Fraction(3, 1);
 		RecordingMessages messages = new RecordingMessages();
 		session.messages.setHandler(messages);
 
@@ -235,8 +235,8 @@ class RmtConfigTest {
 
 		assertEquals(1, messages.warnings.size());
 		assertTrue(messages.warnings.get(0).contains("RMT will use the default Tuning parameters."));
-		assertEquals(440.83751645933, session.tuningSettings.basetuning);
-		assertEquals(new Fraction(2, 1), session.tuningRatios.octave);
+		assertEquals(440.83751645933, session.song.getTuning().basetuning);
+		assertEquals(new Fraction(2, 1), session.song.getTuningRatios().octave);
 		assertEquals(DEFAULT_TUNING_INI, Files.readString(dir.resolve("tuning.ini"), RmtConfig.CHARSET).replace(System.lineSeparator(), "\n"));
 	}
 
@@ -258,7 +258,7 @@ class RmtConfigTest {
 		assertEquals(150, o.scalingPercentage);
 		assertEquals(12, o.trackLinePrimaryHighlight);
 		assertEquals(0, o.trackLineSecondaryHighlight);
-		assertEquals(TrackerDriverVersion.PATCH16, o.trackerDriverVersion);
+		assertEquals(TrackerDriverVersion.PATCH16, session.song.getTrackerDriverVersion());
 		assertEquals(KeyboardLayout.QWERTY, o.keyboardLayout);
 		assertFalse(o.view.statusBar);
 		assertTrue(o.view.mainToolbar);

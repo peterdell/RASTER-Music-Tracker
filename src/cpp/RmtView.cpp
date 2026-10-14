@@ -12,6 +12,7 @@
 #include "Fraction.h"
 #include "MainFrm.h"
 #include "OptionsDialog.h"
+#include "ModulePropertiesDialog.h"
 #include "PokeyRenderer.h"
 #include "RmtDoc.h"
 #include "RmtMidi.h"
@@ -77,10 +78,14 @@ BEGIN_MESSAGE_MAP(CRmtView, CView)
     ON_COMMAND(ID_FILE_SAVE_AS, OnFileSaveAs)
     ON_COMMAND(ID_FILE_IMPORT, OnFileImport)
     ON_COMMAND(ID_FILE_EXPORT, OnFileExport)
-    // Standard printing commands
-    ON_COMMAND(ID_FILE_PRINT, CView::OnFilePrint)
-    ON_COMMAND(ID_FILE_PRINT_DIRECT, CView::OnFilePrint)
-    ON_COMMAND(ID_FILE_PRINT_PREVIEW, CView::OnFilePrintPreview)
+    ON_COMMAND(ID_FILE_PROPERTIES, OnFileProperties)
+    // Printing is intentionally not implemented, see doc/rmt_changes.md 1.36.
+    // These are MFC's standard printing commands, which routed the menu
+    // entries into CView's own implementation; the entries are gone, and
+    // ID_FILE_PRINT_DIRECT never had one.
+    // ON_COMMAND(ID_FILE_PRINT, CView::OnFilePrint)
+    // ON_COMMAND(ID_FILE_PRINT_DIRECT, CView::OnFilePrint)
+    // ON_COMMAND(ID_FILE_PRINT_PREVIEW, CView::OnFilePrintPreview)
     ON_COMMAND(ID_FILE_EXIT, OnFileExit)
 
     // Instruments
@@ -465,22 +470,27 @@ BOOL CRmtView::OnEraseBkgnd(CDC* pDC)
 
 /////////////////////////////////////////////////////////////////////////////
 // CRmtView printing
-
-BOOL CRmtView::OnPreparePrinting(CPrintInfo* pInfo)
-{
-    // default preparation
-    return DoPreparePrinting(pInfo);
-}
-
-void CRmtView::OnBeginPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
-{
-    // TODO: add extra initialization before printing
-}
-
-void CRmtView::OnEndPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
-{
-    // TODO: add cleanup after printing
-}
+//
+// Printing is intentionally not implemented, see doc/rmt_changes.md 1.36.
+// These three were the generated skeleton, never written for RMT: nothing
+// drew a printer page, so what came out was a blank sheet or a small image
+// in one corner. They are kept here as a comment so the next reader sees
+// the decision instead of wondering whether printing was forgotten.
+// CView's own virtuals remain, so nothing is overridden any more.
+//
+// BOOL CRmtView::OnPreparePrinting(CPrintInfo* pInfo)
+// {
+//     // default preparation
+//     return DoPreparePrinting(pInfo);
+// }
+//
+// void CRmtView::OnBeginPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
+// {
+// }
+//
+// void CRmtView::OnEndPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
+// {
+// }
 
 /////////////////////////////////////////////////////////////////////////////
 // CRmtView diagnostics
@@ -544,7 +554,7 @@ void CRmtView::ReadRMTConfig()
 
         // TODO: Tracker must be in the module instead
         if (NAME("NTSC_SYSTEM")) { g_Song.SetNTSC(atoi(value)); continue; }
-        if (NAME("TRACKERDRIVERVERSION")) { g_trackerDriverVersion = (TrackerDriverVersion)atoi(value); continue; }
+        if (NAME("TRACKERDRIVERVERSION")) { g_Song.SetTrackerDriverVersion((TrackerDriverVersion)atoi(value)); continue; }
 
         // KEYBOARD
         if (NAME("KEYBOARD_LAYOUT")) { g_keyboard_layout = (KeyboardLayout)atoi(value); continue; }
@@ -605,7 +615,7 @@ void CRmtView::WriteRMTConfig()
     ou << "USEGERMANNOTATION = " << g_usegermannotation << std::endl;
     ou << "NTSC_SYSTEM = " << g_Song.IsNTSC() << std::endl;
     ou << "NOHWSOUNDBUFFER = " << g_nohwsoundbuffer << std::endl;
-    ou << "TRACKERDRIVERVERSION = " << (int)g_trackerDriverVersion << std::endl;
+    ou << "TRACKERDRIVERVERSION = " << (int)g_Song.GetTrackerDriverVersion() << std::endl;
 
     ou << "\n# KEYBOARD\n" << std::endl;
     ou << "KEYBOARD_LAYOUT = " << (int)g_keyboard_layout << std::endl;
@@ -659,14 +669,14 @@ static KeyboardLayout DefaultKeyboardLayout()
 
 void CRmtView::ResetRMTConfig()
 {
-    g_scaling_percentage = 100;					// RMT interface scaling (in percentage) 
+    g_scaling_percentage = 200;					// RMT interface scaling (in percentage) 
     g_trackLinePrimaryHighlight = 8;			// Primary line highlighted every x lines
     g_trackLineSecondaryHighlight = 4;			// Secondary line highlighted every x lines
     g_tracklinealtnumbering = 0;				// Alternative way of line numbering in tracks 
     g_SkipLinesAfterNoteInsert = 1;							// Number of lines to scroll after inserting a note 
     SetNTSC(false);								// NTSC (60Hz)
     g_nohwsoundbuffer = 0;						// Don't use hardware soundbuffer
-    g_trackerDriverVersion = TrackerDriverVersion::PATCH16; // Tracker driver version
+    g_Song.SetTrackerDriverVersion(TrackerDriverVersion::PATCH16); // Tracker driver version
     g_displayflatnotes = 0;						// Display accidentals as Flats instead of Sharps
     g_usegermannotation = 0;					// Display H notes instead of B
 
@@ -678,7 +688,7 @@ void CRmtView::ResetRMTConfig()
     g_view.pokeyRegisters = TRUE;					// Display the POKEY Registers (TODO: Move the Detailed Registers to its own entry) 
     g_view.instrumentEditHelp = TRUE;				// Display useful info when editing various parts of an instrument
     g_view.smoothScrolling = TRUE;				// Smoothly scroll the track and song line data is smooth during playback 
-    g_view.debugDisplay = TRUE;						// Debug display for a bunch of variables used for various tasks 
+    g_view.debugDisplay = FALSE;					// Debug display for a bunch of variables used for various tasks 
 
     g_lastLoadPath_Songs = "";					// Path of the last song loaded
     g_lastLoadPath_Instruments = "";			// Path of the last instrument loaded
@@ -746,24 +756,24 @@ void CRmtView::ReadTuningConfig()
         }
 
         // TUNING 
-        if (NAME("TUNING")) { g_tuning.basetuning = atof(value); continue; }
-        if (NAME("BASENOTE")) { g_tuning.basenote = atoi(value); continue; }
-        if (NAME("TEMPERAMENT")) { g_tuning.temperament = atoi(value); continue; }
+        if (NAME("TUNING")) { g_Song.GetTuning().basetuning = atof(value); continue; }
+        if (NAME("BASENOTE")) { g_Song.GetTuning().basenote = atoi(value); continue; }
+        if (NAME("TEMPERAMENT")) { g_Song.GetTuning().temperament = atoi(value); continue; }
 
         // RATIOS
-        if (ReadFraction(name, value, value2, "UNISON", g_tuningRatios.UNISON)) { continue; }
-        if (ReadFraction(name, value, value2, "MIN_2ND", g_tuningRatios.MIN_2ND)) { continue; }
-        if (ReadFraction(name, value, value2, "MAJ_2ND", g_tuningRatios.MAJ_2ND)) { continue; }
-        if (ReadFraction(name, value, value2, "MIN_3RD", g_tuningRatios.MIN_3RD)) { continue; }
-        if (ReadFraction(name, value, value2, "MAJ_3RD", g_tuningRatios.MAJ_3RD)) { continue; }
-        if (ReadFraction(name, value, value2, "PERF_4TH", g_tuningRatios.PERF_4TH)) { continue; }
-        if (ReadFraction(name, value, value2, "TRITONE", g_tuningRatios.TRITONE)) { continue; }
-        if (ReadFraction(name, value, value2, "PERF_5TH", g_tuningRatios.PERF_5TH)) { continue; }
-        if (ReadFraction(name, value, value2, "MIN_6TH", g_tuningRatios.MIN_6TH)) { continue; }
-        if (ReadFraction(name, value, value2, "MAJ_6TH", g_tuningRatios.MAJ_6TH)) { continue; }
-        if (ReadFraction(name, value, value2, "MIN_7TH", g_tuningRatios.MIN_7TH)) { continue; }
-        if (ReadFraction(name, value, value2, "MAJ_7TH", g_tuningRatios.MAJ_7TH)) { continue; }
-        if (ReadFraction(name, value, value2, "OCTAVE", g_tuningRatios.OCTAVE)) { continue; }
+        if (ReadFraction(name, value, value2, "UNISON", g_Song.GetTuningRatios().UNISON)) { continue; }
+        if (ReadFraction(name, value, value2, "MIN_2ND", g_Song.GetTuningRatios().MIN_2ND)) { continue; }
+        if (ReadFraction(name, value, value2, "MAJ_2ND", g_Song.GetTuningRatios().MAJ_2ND)) { continue; }
+        if (ReadFraction(name, value, value2, "MIN_3RD", g_Song.GetTuningRatios().MIN_3RD)) { continue; }
+        if (ReadFraction(name, value, value2, "MAJ_3RD", g_Song.GetTuningRatios().MAJ_3RD)) { continue; }
+        if (ReadFraction(name, value, value2, "PERF_4TH", g_Song.GetTuningRatios().PERF_4TH)) { continue; }
+        if (ReadFraction(name, value, value2, "TRITONE", g_Song.GetTuningRatios().TRITONE)) { continue; }
+        if (ReadFraction(name, value, value2, "PERF_5TH", g_Song.GetTuningRatios().PERF_5TH)) { continue; }
+        if (ReadFraction(name, value, value2, "MIN_6TH", g_Song.GetTuningRatios().MIN_6TH)) { continue; }
+        if (ReadFraction(name, value, value2, "MAJ_6TH", g_Song.GetTuningRatios().MAJ_6TH)) { continue; }
+        if (ReadFraction(name, value, value2, "MIN_7TH", g_Song.GetTuningRatios().MIN_7TH)) { continue; }
+        if (ReadFraction(name, value, value2, "MAJ_7TH", g_Song.GetTuningRatios().MAJ_7TH)) { continue; }
+        if (ReadFraction(name, value, value2, "OCTAVE", g_Song.GetTuningRatios().OCTAVE)) { continue; }
 
     }
     in.close();
@@ -789,24 +799,24 @@ void CRmtView::WriteTuningConfig()
     os << std::setprecision(16);
 
     os << "\n# TUNING\n" << std::endl;
-    os << "TUNING = " << g_tuning.basetuning << std::endl;
-    os << "BASENOTE = " << g_tuning.basenote << std::endl;
-    os << "TEMPERAMENT = " << g_tuning.temperament << std::endl;
+    os << "TUNING = " << g_Song.GetTuning().basetuning << std::endl;
+    os << "BASENOTE = " << g_Song.GetTuning().basenote << std::endl;
+    os << "TEMPERAMENT = " << g_Song.GetTuning().temperament << std::endl;
 
     os << "\n# RATIOS\n" << std::endl;
-    WriteFraction(os, "UNISON", g_tuningRatios.UNISON);
-    WriteFraction(os, "MIN_2ND", g_tuningRatios.MIN_2ND);
-    WriteFraction(os, "MAJ_2ND", g_tuningRatios.MAJ_2ND);
-    WriteFraction(os, "MIN_3RD", g_tuningRatios.MIN_3RD);
-    WriteFraction(os, "MAJ_3RD", g_tuningRatios.MAJ_3RD);
-    WriteFraction(os, "PERF_4TH", g_tuningRatios.PERF_4TH);
-    WriteFraction(os, "TRITONE", g_tuningRatios.TRITONE);
-    WriteFraction(os, "PERF_5TH", g_tuningRatios.PERF_5TH);
-    WriteFraction(os, "MIN_6TH", g_tuningRatios.MIN_6TH);
-    WriteFraction(os, "MAJ_6TH", g_tuningRatios.MAJ_6TH);
-    WriteFraction(os, "MIN_7TH", g_tuningRatios.MIN_7TH);
-    WriteFraction(os, "MAJ_7TH", g_tuningRatios.MAJ_7TH);
-    WriteFraction(os, "OCTAVE", g_tuningRatios.OCTAVE);
+    WriteFraction(os, "UNISON", g_Song.GetTuningRatios().UNISON);
+    WriteFraction(os, "MIN_2ND", g_Song.GetTuningRatios().MIN_2ND);
+    WriteFraction(os, "MAJ_2ND", g_Song.GetTuningRatios().MAJ_2ND);
+    WriteFraction(os, "MIN_3RD", g_Song.GetTuningRatios().MIN_3RD);
+    WriteFraction(os, "MAJ_3RD", g_Song.GetTuningRatios().MAJ_3RD);
+    WriteFraction(os, "PERF_4TH", g_Song.GetTuningRatios().PERF_4TH);
+    WriteFraction(os, "TRITONE", g_Song.GetTuningRatios().TRITONE);
+    WriteFraction(os, "PERF_5TH", g_Song.GetTuningRatios().PERF_5TH);
+    WriteFraction(os, "MIN_6TH", g_Song.GetTuningRatios().MIN_6TH);
+    WriteFraction(os, "MAJ_6TH", g_Song.GetTuningRatios().MAJ_6TH);
+    WriteFraction(os, "MIN_7TH", g_Song.GetTuningRatios().MIN_7TH);
+    WriteFraction(os, "MAJ_7TH", g_Song.GetTuningRatios().MAJ_7TH);
+    WriteFraction(os, "OCTAVE", g_Song.GetTuningRatios().OCTAVE);
 
     os.close();
 }
@@ -822,13 +832,9 @@ void CRmtView::OnToolsOptions()
     dlg.m_tracklinealtnumbering = g_tracklinealtnumbering;
     dlg.m_displayflatnotes = g_displayflatnotes;
     dlg.m_usegermannotation = g_usegermannotation;
-    dlg.m_ntsc = g_Song.IsNTSC();
     dlg.m_nohwsoundbuffer = g_nohwsoundbuffer;
     dlg.m_doSmoothScrolling = g_view.smoothScrolling;
     dlg.m_viewDebugDisplay = g_view.debugDisplay;
-
-    // TODO: Module
-    dlg.m_trackerDriverVersion = g_trackerDriverVersion;
 
     // KEYBOARD
     dlg.m_keyboard_layout = g_keyboard_layout;
@@ -859,26 +865,6 @@ void CRmtView::OnToolsOptions()
         }
         g_nohwsoundbuffer = dlg.m_nohwsoundbuffer;
 
-        if (g_Song.IsNTSC() != dlg.m_ntsc)
-        {
-            SetNTSC(dlg.m_ntsc);
-        }
-
-        if (g_trackerDriverVersion != dlg.m_trackerDriverVersion)
-        {
-            // Something here to reset the thing
-            g_trackerDriverVersion = dlg.m_trackerDriverVersion;
-            g_Atari.Init(g_Song.IsNTSC()); // TODO: This is done serveral times. We need something like "beginUpdate"
-            g_AtariTrackerDriver->LoadRMTRoutines(g_trackerDriverVersion);
-            if (!g_AtariTrackerDriver->AreRoutinesLoaded()) {
-                // Switching to a version whose file is missing: say so rather
-                // than leave the program silent without a word.
-                CString message = CRmtAtariBinaries::GetMissingTrackerDriverMessage(g_trackerDriverVersion);
-                SendWarningMessage("RMT", (LPCTSTR)message);
-            }
-        }
-        g_trackerDriverVersion = dlg.m_trackerDriverVersion;
-
         g_view.smoothScrolling = dlg.m_doSmoothScrolling;
         g_view.debugDisplay = dlg.m_viewDebugDisplay;
 
@@ -908,6 +894,42 @@ void CRmtView::OnToolsOptions()
         g_Midi.m_VolumeOffset = dlg.m_midi_VolumeOffset;
         g_Midi.m_NoteOff = dlg.m_midi_NoteOff;
         g_Midi.MidiInit();
+    }
+}
+
+/// <summary>
+/// File > Properties... and Alt+Enter: the properties of the module being
+/// edited. The two settings here were the Options dialog's "Module Defaults"
+/// group until plan 44 - they are the song's, not the program's - and the
+/// Tuning... button inside the dialog is the Options dialog's old one.
+/// </summary>
+void CRmtView::OnFileProperties()
+{
+    CModulePropertiesDialog dlg;
+
+    dlg.m_ntsc = g_Song.IsNTSC();
+    dlg.m_trackerDriverVersion = g_Song.GetTrackerDriverVersion();
+
+    if (dlg.DoModal() == IDOK)
+    {
+        if (g_Song.IsNTSC() != dlg.m_ntsc)
+        {
+            SetNTSC(dlg.m_ntsc);
+        }
+
+        if (g_Song.GetTrackerDriverVersion() != dlg.m_trackerDriverVersion)
+        {
+            // Something here to reset the thing
+            g_Song.SetTrackerDriverVersion(dlg.m_trackerDriverVersion);
+            g_Atari.Init(g_Song.IsNTSC()); // TODO: This is done serveral times. We need something like "beginUpdate"
+            g_AtariTrackerDriver->LoadRMTRoutines(dlg.m_trackerDriverVersion);
+            if (!g_AtariTrackerDriver->AreRoutinesLoaded()) {
+                // Switching to a version whose file is missing: say so rather
+                // than leave the program silent without a word.
+                CString message = CRmtAtariBinaries::GetMissingTrackerDriverMessage(dlg.m_trackerDriverVersion);
+                SendWarningMessage("RMT", (LPCTSTR)message);
+            }
+        }
     }
 }
 
@@ -1553,7 +1575,7 @@ const char FlaToCha[] = { 0x67,0x68,0x69,109,0x64,0x65,0x66,107,0x61,0x62,0x63,0
 
 void CRmtView::SetNTSC(const bool ntsc) {
     // TODO  code... well 3 times..
-    g_tuning.basetuning = (ntsc) ? (g_tuning.basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_tuning.basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
+    g_Song.GetTuning().basetuning = (ntsc) ? (g_Song.GetTuning().basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_Song.GetTuning().basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
     g_Song.SetNTSC(ntsc);
 
 }

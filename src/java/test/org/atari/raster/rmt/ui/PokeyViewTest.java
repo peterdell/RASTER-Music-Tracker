@@ -60,7 +60,7 @@ class PokeyViewTest {
 		BufferedImage image = new BufferedImage(700, 220, BufferedImage.TYPE_INT_RGB);
 		CanvasXY canvasXY = new CanvasXY(sheet, session.uiState);
 		canvasXY.setTarget(image);
-		new PokeyView(new Canvas(canvasXY, 0, 0)).draw(true, session.tuning, session.tuningSettings, session.options.notesPerOctave, session.atari, explorerMode, session.pokeyController);
+		new PokeyView(new Canvas(canvasXY, 0, 0)).draw(true, session.tuning, session.song.getTuning(), session.options.notesPerOctave, session.atari, explorerMode, session.pokeyController);
 		return image;
 	}
 

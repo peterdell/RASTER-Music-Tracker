@@ -303,9 +303,10 @@ public final class Instruments {
 	 * @param instr instrument number
 	 * @param note which note
 	 * @param atariMemory the emulated Atari memory to read the frequency table from (C++ reads this from the g_Atari global instead)
+	 * @param trackerDriverVersion which driver is loaded, and so which table layout to read
 	 * @return the frequency, or -1 if instr/the resulting note is invalid
 	 */
-	public int getFrequency(int instr, int note, byte[] atariMemory) {
+	public int getFrequency(int instr, int note, byte[] atariMemory, TrackerDriverVersion trackerDriverVersion) {
 		Instrument tt = getInstrument(instr);
 		if (tt == null) {
 			return -1;
@@ -322,17 +323,28 @@ public final class Instruments {
 			return -1;
 		}
 
-		// IMPORTANT NOTE: Tables are not set to a constant location!
-		// The function technically returns valid data, otherwise
-		switch (tt.envelope[0][EnvelopeParameter.DISTORTION]) {
-		case 0x0C:
-			return unsignedByte(atariMemory, Atari.RMT_FRQTABLES + 64 + note);
-		case 0x06:
-		case 0x0E:
-			return unsignedByte(atariMemory, Atari.RMT_FRQTABLES + 128 + note);
-		default:
-			return unsignedByte(atariMemory, Atari.RMT_FRQTABLES + 192 + note);
+		// Which table the player would read is {@link FrequencyTables}' job,
+		// including reading the page out of the driver's own dispatch table.
+		// Only the distortion and the instrument's own 15 kHz bit can be
+		// answered here: 1.79 MHz and the 16-bit joins are per channel, and a
+		// track has no channel until the song assigns it to a column, so the
+		// 64 kHz table is the answer for every other case - which is also all
+		// a single AUDF byte can carry.
+		int distortion = tt.envelope[0][EnvelopeParameter.DISTORTION];
+
+		if (distortion == 0x06) {
+			// Distortion 6 is BASS16: the player forces 16-bit mode on
+			// whichever channel it plays (do_bass16), so the frequency is a
+			// 16-bit value and no single AUDF byte describes it.
+			return -1;
 		}
+
+		FrequencyTables.Mode mode = tt.parameters[Instrument.PAR_AUDCTL_15KHZ] != 0 ? FrequencyTables.Mode.CLOCK_15KHZ : FrequencyTables.Mode.CLOCK_64KHZ;
+		int table = FrequencyTables.getTableAddress(atariMemory, trackerDriverVersion, distortion, mode);
+		if (table == 0) {
+			return -1; // no driver loaded whose tables this layout can find
+		}
+		return unsignedByte(atariMemory, table + note);
 	}
 
 	/**

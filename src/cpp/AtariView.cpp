@@ -25,7 +25,9 @@ const char* CAtariView::GetAtariMemoryHexString(const byte* memory, const Memory
 
 void CAtariView::Draw(const CAtari& atari) {
 
-    static constexpr int ADDRESS = 0x3000; // RMTPLAYR_TABLES;
+    // The player's own area, not RMTPLAYR_TABLES ($B000) as the comment here
+    // used to say: this view shows the driver's code and variables.
+    static constexpr int ADDRESS = 0x3000;
     static constexpr int BPL = 32;
     static constexpr int BLOCK = 8;
 

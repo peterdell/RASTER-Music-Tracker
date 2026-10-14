@@ -21,15 +21,15 @@ SAP	dta c"SAP"		; SAP are the characters used to define the format at the start 
 ; if text needs to be inside quotation marks, the ' character will be used for delimiting
 
 AUTHOR	dta c"AUTHOR "
-	dta c'"Raster"'
+	dta c'"Christian Duesterhoeft (Buddy)"'
 	dta a(SPACING)
 	
 NAME	dta c"NAME "
-	dta c'"Im sure"'
+	dta c'"Captain Future Theme"'
 	dta a(SPACING)
 	
 DATE	dta c"DATE "
-	dta c'"Converted 05/10/2021"'
+	dta c'"13/08/2024"'
 	dta a(SPACING)
 	
 SONGS	;dta c"SONGS "		; optional argument
@@ -63,7 +63,7 @@ INIT	dta c"INIT "		; SAP init address, very important to have set up correctly, 
 	dta a(SPACING)
 	
 PLAYER_	dta c"PLAYER "		; rmtplay jump address
-	dta c"3403"
+	dta c"3103"		; rmt_play = PLAYER+3, PLAYER is $3100 for the Simple RMT Player (FEAT_IS_SIMPLEP; RITMO 96321b1)
 	dta a(SPACING)
 	
 TIME	;dta c"TIME "		; optional argument

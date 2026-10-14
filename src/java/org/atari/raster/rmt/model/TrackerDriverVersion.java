@@ -50,28 +50,30 @@ public final class TrackerDriverVersion extends ValueSet {
 	// Instance attributes
 	private final int number;
 	private final boolean selectable;
+	private final boolean tuningSupported;
 
 	static {
 		values = new LinkedHashMap<String, TrackerDriverVersion>();
-		NONE = add("NONE", 0, false);
-		UNPATCHED = add("UNPATCHED", 1, true);
-		UNPATCHED_WITH_TUNING = add("UNPATCHED_WITH_TUNING", 2, false);
-		PATCH3 = add("PATCH3", 3, true);
-		PATCH6 = add("PATCH6", 4, true);
-		PATCH8 = add("PATCH8", 5, true);
-		PATCH16 = add("PATCH16", 6, true);
-		PATCH_PRINCE_OF_PERSIA = add("PATCH_PRINCE_OF_PERSIA", 7, true);
+		NONE = add("NONE", 0, false, false);
+		UNPATCHED = add("UNPATCHED", 1, true, false);
+		UNPATCHED_WITH_TUNING = add("UNPATCHED_WITH_TUNING", 2, false, false);
+		PATCH3 = add("PATCH3", 3, true, false);
+		PATCH6 = add("PATCH6", 4, true, false);
+		PATCH8 = add("PATCH8", 5, true, false);
+		PATCH16 = add("PATCH16", 6, true, true);
+		PATCH_PRINCE_OF_PERSIA = add("PATCH_PRINCE_OF_PERSIA", 7, true, false);
 		initializeClass(TrackerDriverVersion.class, ValueSets.class);
 	}
 
-	private TrackerDriverVersion(String id, int number, boolean selectable) {
+	private TrackerDriverVersion(String id, int number, boolean selectable, boolean tuningSupported) {
 		super(id, id, number);
 		this.number = number;
 		this.selectable = selectable;
+		this.tuningSupported = tuningSupported;
 	}
 
-	private static TrackerDriverVersion add(String id, int number, boolean selectable) {
-		TrackerDriverVersion result = new TrackerDriverVersion(id, number, selectable);
+	private static TrackerDriverVersion add(String id, int number, boolean selectable, boolean tuningSupported) {
+		TrackerDriverVersion result = new TrackerDriverVersion(id, number, selectable, tuningSupported);
 		values.put(result.getId(), result);
 		return result;
 	}
@@ -118,5 +120,21 @@ public final class TrackerDriverVersion extends ValueSet {
 	/** Whether the Options dialog offers this version. */
 	public boolean isSelectable() {
 		return selectable;
+	}
+
+	/**
+	 * {@code IsTuningSupported()}: whether the tuning settings reach this
+	 * driver's frequency tables.
+	 *
+	 * <p>Only Patch 16 keeps its tables in the $B000 page, which is the only
+	 * page the tuning system writes. Every other driver carries its four
+	 * tables inside the player, assembled into the binary, and plays exactly
+	 * those whatever the tuning dialog says - see doc/rmt_tracker_drivers.md,
+	 * "The Frequency Tables of the Other Drivers". So with those versions the
+	 * tuning is not merely approximate, it has no effect at all, and the
+	 * module properties dialog says so by disabling it.
+	 */
+	public boolean isTuningSupported() {
+		return tuningSupported;
 	}
 }

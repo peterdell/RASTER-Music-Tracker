@@ -286,9 +286,10 @@ public final class PokeyStream {
 	 * Resets recording state and releases the stream buffer - mirrors C++'s
 	 * {@code FinishedRecording()} minus its {@code g_AtariTrackerDriver->Init()}/
 	 * {@code g_ChannelControl.SetAllChannelsOn()} calls, which are the
-	 * caller's own collaborators (see {@link Song#dumpSongToPokeyStream},
-	 * which calls both explicitly itself, matching this port's established
-	 * "no stored globals" idiom).
+	 * caller's own collaborators: {@link Song#dumpSongToPokeyStream} calls
+	 * both itself at its end (the channel restore since 2026-10-08 - before
+	 * that nothing restored them and every sound export left the tracker
+	 * muted), matching this port's established "no stored globals" idiom.
 	 */
 	public void finishedRecording() {
 		recordState = StreamState.STOP; // Reset the SAPR dump flag now it is done

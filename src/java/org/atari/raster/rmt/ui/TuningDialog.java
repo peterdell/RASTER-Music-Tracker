@@ -69,12 +69,12 @@ final class TuningDialog extends ModalDialog {
 	TuningDialog(JFrame parent, RmtSession session) {
 		super(parent, Texts.TuningDialog_Title);
 		this.session = session;
-		// OnClickedOptionsTuning: dlg.m_tuningSettings = g_tuning; dlg.m_tuningRatios = g_tuningRatios
-		copy(session.tuningSettings, settings);
-		copy(session.tuningRatios, ratios);
+		// OnClickedOptionsTuning: dlg.m_tuningSettings = g_Song.GetTuning(); dlg.m_tuningRatios = g_Song.GetTuningRatios()
+		copy(session.song.getTuning(), settings);
+		copy(session.song.getTuningRatios(), ratios);
 		// OnInitDialog: backup all current values first
-		copy(session.tuningSettings, settingsBackup);
-		copy(session.tuningRatios, ratiosBackup);
+		copy(session.song.getTuning(), settingsBackup);
+		copy(session.song.getTuningRatios(), ratiosBackup);
 
 		JPanel general = DialogSupport.createGroup(Texts.TuningDialog_GroupGeneral);
 		DialogSupport.add(general, ElementFactory.createLabel(DataTypes.TuningDialog_BaseTuning, baseTuningField), 0, 0, 1, false);
@@ -234,8 +234,8 @@ final class TuningDialog extends ModalDialog {
 
 	private void apply() {
 		session.locked(() -> {
-			copy(settings, session.tuningSettings);
-			copy(ratios, session.tuningRatios);
+			copy(settings, session.song.getTuning());
+			copy(ratios, session.song.getTuningRatios());
 			session.initTuning();
 		});
 	}
@@ -243,8 +243,8 @@ final class TuningDialog extends ModalDialog {
 	/** {@code OnTuningReset()}: the backup into the session and {@code InitTuning()} - the fields are left alone, as in C++. */
 	private void onTuningReset() {
 		session.locked(() -> {
-			copy(settingsBackup, session.tuningSettings);
-			copy(ratiosBackup, session.tuningRatios);
+			copy(settingsBackup, session.song.getTuning());
+			copy(ratiosBackup, session.song.getTuningRatios());
 			session.initTuning();
 		});
 	}

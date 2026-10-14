@@ -1,11 +1,13 @@
 package org.atari.raster.rmt.ui;
 
 import org.atari.raster.rmt.model.EditMode;
+import org.atari.raster.rmt.model.FrequencyTables;
 import org.atari.raster.rmt.model.Instruments;
 import org.atari.raster.rmt.model.Notes;
 import org.atari.raster.rmt.model.Part;
 import org.atari.raster.rmt.model.PlayMode;
 import org.atari.raster.rmt.model.Song;
+import org.atari.raster.rmt.model.TrackerDriverVersion;
 import org.atari.raster.rmt.model.Tracks;
 
 /**
@@ -509,21 +511,17 @@ public final class MidiInput {
 			}
 		}
 
-		midiAudc |= (midi.instrumentOnChannel[track] << 4) & 0xFF; // force Distortion based on instrument to AUDC
+		// The frequency tables are no longer hardcoded here: the distortion's
+		// page, the AUDC bits that go with it and the clock each come from the
+		// driver itself through FrequencyTables, so this cannot drift away from
+		// the player again - it had, by a whole page, ever since the
+		// Distortion 4 page was added in 2022
+		// (plans/39_MIDI_TABLE_OFFSETS_PLAN.md).
+		int midiDistortionOnChannel = midi.instrumentOnChannel[track];
 		midiAudctl = memory[AUDCTL] & 0xFF;
 
-		boolean clock15 = (midiAudctl & 0x01) != 0;
-		boolean join34 = (midiAudctl & 0x08) != 0;
-		boolean join12 = (midiAudctl & 0x10) != 0;
 		boolean ch3_179 = (midiAudctl & 0x20) != 0;
 		boolean ch1_179 = (midiAudctl & 0x40) != 0;
-
-		// combined modes for some special output...
-		boolean join16bit = (join12 && ch1_179 && (track == 1 || track == 5)) || (join34 && ch3_179 && (track == 3 || track == 7));
-		boolean clock179 = (ch1_179 && (track == 0 || track == 4)) || (ch3_179 && (track == 2 || track == 6));
-		if (join16bit || clock179) {
-			clock15 = false; // override, these 2 take priority over 15khz mode
-		}
 
 		if (ch1_179 && ch3_179) {
 			// force only valid 1.79mhz channels even if the current track doesn't support it, if both are enabled but not in the right channel
@@ -532,52 +530,26 @@ public final class MidiInput {
 			} else if (track > 2) {
 				track = 0;
 			}
-			clock179 = true;
 		}
 
-		// what is the distortion? must be known to set the right note table
-		// (the 64 kHz tables of the driver: $B000 distortion 2, $B100 distortion 4 (and the default), $B200 distortion A/C, $B300 distortion C bass;
-		// +$40 the 1.79 MHz tables; $B480/$B4C0 the 15 kHz tables - PAGE_EXTRA_0)
-		switch (midiAudc & 0xF0) {
-		case 0x20:
-		case 0x60:
-			if (clock179) {
-				midiAudf = memory[0xB040 + note];
-			} else if (clock15) {
-				midiAudf = defaultTableNote(memory, note, clock179, clock15);
-			} else {
-				midiAudf = memory[0xB000 + note];
-			}
-			break;
+		TrackerDriverVersion version = song.getTrackerDriverVersion(); // this song's own driver setting
+		FrequencyTables.Mode mode = FrequencyTables.getModeForChannel(midiAudctl, track);
+		int table = FrequencyTables.getTableAddress(memory, version, midiDistortionOnChannel, mode);
+		int distortionAudc = FrequencyTables.getDistortionAudc(memory, version, midiDistortionOnChannel);
+		if (table == 0 || distortionAudc < 0) {
+			return; // no driver loaded whose tables this layout can find
+		}
 
-		case 0xC0:
-			if (clock179) {
-				midiAudf = memory[0xB240 + note];
-			} else if (clock15) {
-				midiAudf = memory[0xB4C0 + note];
-			} else {
-				midiAudf = memory[0xB200 + note];
-			}
-			break;
-
-		case 0xE0:
-			midiAudc = 0xC0; // Distortion C bass E
-			if (clock179) {
-				midiAudf = memory[0xB340 + note];
-			} else if (clock15) {
-				midiAudf = memory[0xB4C0 + note];
-			} else {
-				midiAudf = memory[0xB300 + note];
-			}
-			break;
-
-		case 0x00:
-		case 0x40:
-		case 0x80:
-		case 0xA0:
-		default:
-			midiAudf = defaultTableNote(memory, note, clock179, clock15);
-			break;
+		midiAudc |= distortionAudc; // the Distortion bits the player would write
+		if (mode == FrequencyTables.Mode.JOIN_16BIT) {
+			// The joined pair's table holds little-endian words, and `track` is
+			// its high byte - so the low byte belongs to the channel below.
+			// Only the Patch 16 layout answers at all in this mode, so the
+			// interleaving is the only one that can be meant here.
+			midiAudf = memory[table + note * 2 + 1] & 0xFF;
+			memory[AUDF + track - 1] = memory[table + note * 2];
+		} else {
+			midiAudf = memory[table + note] & 0xFF;
 		}
 
 		midiAudc |= midi.noteVolumeOnChannel[track]; // also merge the volume into it
@@ -587,14 +559,4 @@ public final class MidiInput {
 		memory[AUDC + track] = (byte) midiAudc; // AUDC address + offset used by SetPokey
 	}
 
-	/** The {@code case_default:} table (distortion 4 and every unlisted one): $B140 at 1.79 MHz, $B480 at 15 kHz, else $B100. */
-	private static int defaultTableNote(byte[] memory, int note, boolean clock179, boolean clock15) {
-		if (clock179) {
-			return memory[0xB140 + note];
-		} else if (clock15) {
-			return memory[0xB480 + note];
-		} else {
-			return memory[0xB100 + note];
-		}
-	}
 }

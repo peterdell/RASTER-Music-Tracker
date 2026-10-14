@@ -9,6 +9,8 @@
 
 #include "InstrumentTypes.h"
 
+#include "TrackerDriverVersion.h"
+
 extern const Tshpar shpar[NUMBER_OF_PARAMS];
 
 extern const Tshenv shenv[ENVROWS];
@@ -27,7 +29,7 @@ public:
     void RecalculateFlag(int instr);
     BOOL CalculateNotEmpty(int instr);
     void SetEnvelopeVolume(int instr, BOOL right, int px, int py);
-    int GetFrequency(int instr, int note);
+    int GetFrequency(int instr, int note, TrackerDriverVersion trackerDriverVersion);
     int GetNote(int instr, int note);
     void MemorizeOctaveAndVolume(int instr, int oct, int vol);
     void RememberOctaveAndVolume(int instr, int& oct, int& vol);

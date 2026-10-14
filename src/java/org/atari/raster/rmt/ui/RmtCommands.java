@@ -30,8 +30,7 @@ import org.atari.raster.rmt.model.UndoType;
  * <p>What a handler needs from the window goes through {@link Host}. The
  * handlers that open a dialog or a file chooser ({@code FileOpen}, the
  * export/import/renumber/change/order dialogs, About, Options) report
- * {@link Host#notAvailable} until their batch (B7); the printing
- * commands are MFC's own and stay unavailable; the Pokey menu's explorer
+ * {@link Host#notAvailable} until their batch (B7); the Pokey menu's explorer
  * commands run {@link PokeyController}'s operations in the explorer mode
  * (in C++ they had no handlers and were always greyed, until 2026-09-30);
  * the MIDI toggle is {@link RmtSession#midi}'s.
@@ -60,11 +59,27 @@ public final class RmtCommands {
 		/** {@code OnToolsOptions()}'s dialog part: edit the values (Options dialog), returning whether OK was pressed. */
 		boolean editOptions(OptionsValues values);
 
+		/** File &gt; Properties...: edit the song's own properties (Module Properties dialog), returning whether OK was pressed. */
+		boolean editModuleProperties(ModulePropertiesValues values);
+
 		/** {@code m_width = m_height = 0; Resize()}: the scaling option changed, redo the canvas without waiting for a window resize. */
 		void rescale();
 
 		/** {@code CRmtApp::OnHelpAboutApp()}: the About dialog. */
 		void showAbout();
+
+		/**
+		 * Runs the slow part of an export off the event thread, reporting its
+		 * progress and offering a way to stop it
+		 * (plans/24_EXPORT_SCREEN_UPDATES_PLAN.md, batch E3). The window stays
+		 * responsive while it runs; a second export is refused until it ends.
+		 * <p>The default runs the export where it stands, which is what a host
+		 * without a worker thread wants: the tests, and anything driving the
+		 * commands headlessly.
+		 */
+		default void runExport(String name, java.util.function.Function<org.atari.raster.rmt.model.ExportProgress, Boolean> work) {
+			work.apply(org.atari.raster.rmt.model.ExportProgress.NONE);
+		}
 
 		/** Tools > Run Script...: the script file to run, {@code null} if cancelled. */
 		java.nio.file.Path chooseScriptFile();
@@ -224,12 +239,6 @@ public final class RmtCommands {
 			session.reInitSound(); // Justified for testing, but this might be a little redundant
 		}
 		o.noHwSoundBuffer = dlg.noHwSoundBuffer;
-		if (session.song.isNTSC() != dlg.ntsc) {
-			session.setNTSC(dlg.ntsc);
-		}
-		if (o.trackerDriverVersion != dlg.trackerDriverVersion) {
-			session.setTrackerDriverVersion(dlg.trackerDriverVersion);
-		}
 		o.view.smoothScrolling = dlg.doSmoothScrolling;
 		o.view.debugDisplay = dlg.viewDebugDisplay;
 		o.trackLinePrimaryHighlight = dlg.trackLinePrimaryHighlight;
@@ -251,6 +260,21 @@ public final class RmtCommands {
 		session.midi.midiInit();
 	}
 
+	/**
+	 * The Module Properties dialog's epilogue, the two steps that were
+	 * {@link #applyOptions}'s until plan 44. Both setters do more than store
+	 * the value: the video standard rescales the tuning and re-initializes the
+	 * sound, the driver version loads the player's routines.
+	 */
+	public void applyModuleProperties(ModulePropertiesValues dlg) {
+		if (session.song.isNTSC() != dlg.ntsc) {
+			session.setNTSC(dlg.ntsc);
+		}
+		if (session.song.getTrackerDriverVersion() != dlg.trackerDriverVersion) {
+			session.setTrackerDriverVersion(dlg.trackerDriverVersion);
+		}
+	}
+
 	/** Executes a command exactly as its {@code CRmtView::On...()} handler does; a disabled command does nothing (MFC never routes those). */
 	public void execute(RmtCommandId id) {
 		if (!isEnabled(id)) {
@@ -270,8 +294,20 @@ public final class RmtCommands {
 		case FILE_SAVE -> onFileSave();
 		case FILE_SAVE_AS -> songFiles.fileSaveAs();
 		case FILE_IMPORT -> songFiles.fileImport();
-		case FILE_EXPORT -> songFiles.fileExportAs();
-		case FILE_PRINT, FILE_PRINT_PREVIEW, FILE_PRINT_SETUP, FILE_PROPERTIES -> host.notAvailable("Printing");
+		case FILE_EXPORT -> {
+			// The file name is asked for here, on the event thread; the dump and
+			// the writing go to a worker (plan 24, E3).
+			SongFiles.ExportRequest request = songFiles.prepareExportAs();
+			if (request != null) {
+				host.runExport(request.file().getFileName().toString(), progress -> songFiles.runExportAs(request, progress));
+			}
+		}
+		case FILE_PROPERTIES -> {
+			ModulePropertiesValues properties = ModulePropertiesValues.from(session);
+			if (host.editModuleProperties(properties)) {
+				applyModuleProperties(properties);
+			}
+		}
 		case FILE_EXIT -> host.exit();
 
 		// --- Edit ---
@@ -704,7 +740,6 @@ public final class RmtCommands {
 
 		return switch (id) {
 		case FILE_REOPEN -> songFiles.fileCanBeReloaded();
-		case FILE_PRINT, FILE_PRINT_PREVIEW, FILE_PRINT_SETUP, FILE_PROPERTIES -> false;
 		case EDIT_UNDO -> session.undo.getUndoSteps() > 0;
 		case EDIT_REDO -> session.undo.getRedoSteps() > 0;
 		case EDIT_CLEAR_UNDO_REDO_HISTORY -> session.undo.getUndoSteps() > 0 || session.undo.getRedoSteps() > 0;

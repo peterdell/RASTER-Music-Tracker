@@ -27,7 +27,14 @@ public:
     BOOL RenderSound1_50(int instrspeed);
 
     // Called by WaveFileExporter
-    void RenderSoundV2(int instrspeed, BYTE* buffer, int& length);
+    // One driver call's share of a video frame: SetPokey and the registers
+    // once, then size bytes of sound. The SAP-R stream holds one frame per
+    // driver call - instrument speeds 2-4 have several per video frame - and
+    // the former RenderSoundV2() rendered a whole frame of sound for each,
+    // so a WAV at speed 4 came out four times too long (ported from the
+    // RITMO fork's 60743c3; plans/32_RITMO_FORK_ANALYSIS_PLAN.md).
+    int GetChunkSize() const; // the bytes of one whole video frame of sound
+    void RenderPartV2(int size, BYTE* buffer, int& length);
 
 private:
     CPokey m_pokey;
@@ -59,7 +66,7 @@ private:
     BOOL InitSoundInternal(const bool ntsc, const bool stereo, const WORD channels, const DWORD samplesPerSec, const WORD bitsPerSample);
 
     WORD GetChannels() const;
-    int GetChunkSize() const;
+
     int GetLatencySize() const;
 
     CPokey::SoundDriver GetSoundDriver() const;

@@ -9,6 +9,8 @@
 #include "Undo.h"
 
 #include "SongTypes.h"
+#include "TrackerDriverVersion.h"
+#include "TuningTypes.h"
 
 class CASMFileExporter;
 class CPokeyController;
@@ -29,6 +31,23 @@ public:
     void SetTracks(const int tracksNum);
     BOOL IsNTSC() const;
     void SetNTSC(const BOOL ntsc);
+    // Which build of the player routines this module is composed against -
+    // a song-scoped setting like IsNTSC(), persisted in rmt.ini and not in
+    // the module (plans/41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md). It
+    // decides which frequency tables exist at all, so everything that asks
+    // what a note would sound like needs it.
+    TrackerDriverVersion GetTrackerDriverVersion() const;
+    void SetTrackerDriverVersion(const TrackerDriverVersion trackerDriverVersion);
+    // How the notes of this module are tuned: the base tuning, the base note,
+    // the temperament and the interval ratios of a custom one. Song-scoped
+    // like IsNTSC() and the driver version, persisted in tuning.ini and not
+    // in the module (plans/44_SONG_PROPERTIES_DIALOG_PLAN.md). Everything
+    // that turns a note into a POKEY frequency reads them, so they are
+    // handed out by reference the way the global they replaced was used.
+    TTuningSettings& GetTuning();
+    const TTuningSettings& GetTuning() const;
+    TTuningRatios& GetTuningRatios();
+    const TTuningRatios& GetTuningRatios() const;
 
     void ReInitSound();
 
@@ -268,8 +287,6 @@ public:
     void MarkTF_USED(BYTE* arrayTRACKSNUM) const;
     void MarkTF_NOEMPTY(BYTE* arrayTRACKSNUM) const;
 
-    // int MakeTuningBlock(unsigned char* mem, int addr); // TODO: Unused
-    // int DecodeTuningBlock(unsigned char* mem, int fromAddr, int endAddr); // TODO: Unused
     void ResetTuningVariables();
 
     int MakeModule(unsigned char* mem, int adr, SongIOType iotype, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags);
@@ -406,6 +423,9 @@ private:
     EditArea m_infoact = EditArea::NAME; // Which part of the info area is active for editing: 0 = name,
     char m_songname[SONG_NAME_MAX_LEN + 1] = {};
     BOOL m_ntsc = FALSE;
+    TrackerDriverVersion m_trackerDriverVersion = TrackerDriverVersion::PATCH16;
+    TTuningSettings m_tuning = {};
+    TTuningRatios m_tuningRatios = {};
     int m_songnamecur = 0;
 
     TBookmark m_bookmark = {};

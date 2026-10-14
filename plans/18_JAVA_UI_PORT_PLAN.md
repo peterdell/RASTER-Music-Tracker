@@ -105,6 +105,10 @@ state (`g_activepart`/`g_active_ti`, modifier-key flags, `g_mouse`,
 `g_notesperoctave`, `TViewState g_view` - 9 view toggles, 7
 `g_keyboard_*` flags + `g_keyboard_layout`, `g_SkipLinesAfterNoteInsert`,
 default/last-used folder paths, `g_trackerDriverVersion`, NTSC).
+This list already groups the driver version with NTSC, which is where
+[plan 41](41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md) later put it: both
+are persisted options that live on `CSong`/`Song`, not globals, so neither
+belongs in `RmtOptions`.
 Persistence is a **plain `rmt.ini` text file** (`# comment` / `NAME = value`
 lines, written by `WriteRMTConfig()` next to the program), *not* the
 registry - only the frame position/size uses `GetProfileInt` (registry).

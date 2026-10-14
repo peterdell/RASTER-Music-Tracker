@@ -3,10 +3,10 @@
 # defaults, then with every option set. Run through Rmt.exe and rmt.jar; the
 # two output folders must match byte for byte (except the WAV, whose sample
 # format differs by design). Dates and texts are fixed so today's date never
-# enters the files.
+# enters the files; 01/2003 is Delta's real date (Raster's own SAP header).
 set output out/delta
 set overwrite yes
-open ../ui-reference/song1-mono/Delta.rmt
+open ../songs/rmt128/delta/Delta.rmt
 
 # saves
 save delta.rmt
@@ -16,10 +16,10 @@ save delta.rmw
 # the eight formats with the dialogs' defaults
 export stripped-rmt d1.rmt
 export asm d1.asm
-export sapr d1.sapr date="01/01/2026"
+export sapr d1.sapr date="01/2003"
 export lzss d1.lzss
-export sap d1.sap date="01/01/2026"
-export xex d1.xex text="DELTA\nBY RASTER\n01/01/2026\nLINE FOUR\nLINE FIVE"
+export sap d1.sap date="01/2003"
+export xex d1.xex text="DELTA\nBY RASTER\n01/2003\nLINE FOUR\nLINE FIVE"
 export rmtplayer-asm d1_player.asm
 export wav d1.wav
 
@@ -35,11 +35,11 @@ export rmtplayer-asm d3_player.asm relocate=none asmformat=xasm sfx=no gvf=no no
 
 # the settings
 set ntsc yes
-export sapr d3.sapr date="01/01/2026"
+export sapr d3.sapr date="01/2003"
 export xex d3.xex text="NTSC"
 export wav d2.wav
 set ntsc no
 set driver unpatched
-export sapr d4.sapr date="01/01/2026"
+export sapr d4.sapr date="01/2003"
 set driver patch16
 echo delta done

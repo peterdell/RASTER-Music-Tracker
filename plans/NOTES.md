@@ -1,7 +1,13 @@
 # Notes for OVERALL_PLAN.md
 
-Running notes for the multi-session C++ -> Java port project. Update this file as work
-progresses so a new session can pick up context quickly.
+Running notes for the multi-session C++ -> Java port project.
+
+**Superseded as of 2026-10-10.** The last entry here is 2026-10-08. From
+plan 33 onwards each numbered plan carries its own narration - the status
+line, what was measured, what changed about the plan while it ran - so the
+account lives beside the work instead of in one growing file.
+`plans/README.md` is the index to read first; this file stays for the
+history of plans 01-32, which is not repeated anywhere else.
 
 ## Background read (2026-09-21)
 
@@ -11,9 +17,12 @@ Read `README.md` and the docs it links to that exist in this repo:
 full yet, only referenced.)
 
 Key facts:
-- RMT is a Windows MFC app for composing Atari XL/XE music, originally by Radek Sterba
-  (2002-2009), continued by Vin Samuel (2021-2024), now maintained by Peter Dell (JAC!).
-- Current dev version is 1.35 (daily), stable is 1.34.00. Module file format v1 is
+- RMT is a Windows MFC app for composing Atari XL/XE music, originally by Radek Štěrba
+  (Raster) (2002-2009), continued by Vin Samuel (VinsCool) (2021-2024), now maintained by
+  Peter Dell (JAC!).
+- Current dev version is 1.35 (daily), stable is 1.34.00. [Both moved since: 1.36.0 was
+  released on 2026-09-27 and 1.37 is the planned version - see doc/rmt_changes.md.]
+  Module file format v1 is
   documented in `doc/rmt_format.md`; a draft v2 format is also described there.
 - The tracker embeds two emulated pieces of hardware: a MOS 6502 CPU emulator and one/two
   POKEY sound chips, currently provided via external DLLs (`sa_c6502.dll`,
@@ -5374,4 +5383,81 @@ build clean and all 123 tests pass.
     Also done: the six-platform release workflow was run for the first time
     since the distribution layout changed (run 37193177257, all six green),
     and both ASAP clones moved to the Fusion folder.
+
+  - **2026-10-04**: plan 24 finished. E2, the C++ progress dialog with
+    Cancel, was ruled out by the user: the C++ program is being phased out,
+    so a dialog only it would ever show is not worth building. E1's own
+    numbers agreed - the longest export measured was under two seconds.
+
+    E3 moved the Java export off the event thread. The work was less about
+    threading than about where to cut: the format dialogs are opened from
+    inside the export, so the export could not simply be handed to a worker
+    whole. `SongFiles.fileExportAs()` is now a prepare step that keeps the
+    file chooser on the event thread and a run step that does the dump and
+    the writing; `fileExportAs()` still calls both, so scripts and tests did
+    not change. The window runs the run step in a `SwingWorker` holding the
+    session lock, and the host shows the format dialogs on the event thread
+    through an `onEdt` helper, as `SwingMessages` already did.
+
+    Two choices worth remembering. Cancellation is a flag the worker sets,
+    not `SwingWorker.cancel`: `cancel(false)` does not take effect on a task
+    that is already running, and `cancel(true)` would interrupt a thread
+    holding the session lock mid-write. And a cancelled dump leaves an
+    incomplete stream, so the export is treated as failed and the file
+    deleted - but without the "Export aborted" warning, since the user asked
+    for it.
+
+    666 tests pass. One run of `CrossProgramExportTest` failed on the way
+    with an access violation in `Rmt.exe` on the MIDI script (0xc0000005);
+    three standalone runs of the same script and two further runs of the
+    test were clean, so it is recorded as an intermittent crash rather than
+    chased, in a program that is being retired.
+
+  - **2026-10-08**: plan 32, R3 - the three bugs the RITMO fork pointed at,
+    fixed in both programs and verified externally.
+
+    The SAP type B export now lays its player out the way the XEX export
+    always did: the subtune loop moved out of `ExportXEX_LZSS` into a
+    shared `BuildLzssSubtunes` (the extraction proven byte-neutral by
+    comparing the refactored C++ XEX against the still-unchanged jar),
+    `PatchMemoryForSAP_B` lost its eight dead writes to one address - the
+    fossil of the never-written song index - and the saved blocks are the
+    player as it sits in memory, not the old player's addresses. The
+    "Subsongs" line now produces real subtunes, as in the XEX. The new
+    `SapPlayabilityTest` plays every exported SAP (one and two subtunes)
+    through the vendored ASAP and requires audible energy - the external
+    check the byte-identical comparison could never be.
+
+    The WAV export renders one driver call's share of a video frame per
+    stream frame, not a whole frame: the stereo reference song dropped
+    from 487.8 s to 121.6 s (C++) / 121.9 s (Java), its true length, and
+    Delta's WAVs are byte-identical before and after, which pins the fix
+    to instrument speeds 2-4. C++ grew `RenderPartV2` (one caller, so the
+    old whole-frame `RenderSoundV2` is gone); the Java loop re-poked the
+    same registers once per sub-frame and now pokes each stream frame's.
+
+    The C++ stereo AUDCTL tail writes $D218 to register $18, not 8 again.
+
+    Everything imported from the fork is credited to its commits
+    (b243f10, 60743c3, e732254) in the code and the change history; both
+    repositories are GPL-3. 670 Java and 430 C++ tests pass, and the
+    cross-program comparison stays identical on every non-WAV export.
+
+  - **2026-10-08**: plan 32 closed. The two open checks resolved: an
+    LF-only .txt round-trips byte-identically in both programs, so the
+    fork's line-ending fix addressed code this repository no longer has.
+    The channels check found the fourth real bug: the register dump
+    switches every channel off to record, and after a sound export nothing
+    reliably switched them back on - the new ChannelsAfterExportTest
+    failed for all five sound formats. The Java WAV branch even re-muted
+    them deliberately, faithfully porting the C++ exporter's closing mute
+    complete with its "TODO: Set channels on again?" - characterisation
+    kept the bug alive exactly as designed, and both programs now lose it
+    together: the dump restores the channels itself, at the same place it
+    switched them off.
+
+    R4 by decision: no note to the fork - its maintainer monitors this
+    repository, so the credited commits and the change history are the
+    message. 675 Java and 430 C++ tests pass; the cross-program comparison
+    is identical on every non-WAV export.
 

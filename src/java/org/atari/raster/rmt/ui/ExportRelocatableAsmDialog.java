@@ -73,8 +73,8 @@ final class ExportRelocatableAsmDialog extends ModalDialog {
 
 		JPanel grid = new JPanel(new java.awt.GridBagLayout());
 		int row = 0;
-		DialogSupport.add(grid, new JLabel("<html>The RMT song will be exported as byte definitions with specific labels.<br>The code is fully relocatable and can be split over various locations in memory!</html>"), 0, row++, 3, true);
-		DialogSupport.add(grid, new JLabel("ASM Label for start of song data:"), 0, row, 1, false);
+		DialogSupport.add(grid, new JLabel("<html>The RMT module will be exported as byte definitions with specific labels.<br>The code is fully relocatable and can be split over various locations in memory!</html>"), 0, row++, 3, true);
+		DialogSupport.add(grid, new JLabel("ASM Label for start of module data:"), 0, row, 1, false);
 		DialogSupport.add(grid, startLabelField, 1, row++, 2, true);
 		DialogSupport.add(grid, relocateInstrumentsBox, 0, row, 1, false);
 		DialogSupport.add(grid, new JLabel("ASM Instruments Label:", SwingConstants.RIGHT), 1, row, 1, true);

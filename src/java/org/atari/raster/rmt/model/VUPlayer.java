@@ -10,15 +10,12 @@ package org.atari.raster.rmt.model;
  * entirely unrelated to the SAP-B/XEX export paths these classes exist
  * for.
  *
- * <p><b>A pre-existing C++ oddity preserved as-is, not fixed</b>:
- * {@link #patchMemoryForSapB} writes to {@code memory[LZSS_POINTER]} eight
- * times in a row (four for the "song start" pointers, four for the
- * "song end" pointers) - only the last write actually survives, since it's
- * the same single address every time. The original C++ source already
- * flags this itself with two {@code // TODO: Why same address?} comments,
- * so this is a known, already-acknowledged-but-unresolved oddity in
- * already-C++-characterized, low-priority ("hacked up") code - not a
- * provable bug this port should unilaterally fix.
+ * <p>The former eight dead writes to {@code memory[LZSS_POINTER]} (the C++
+ * source's own "Why same address?" puzzle) are gone: the song index that
+ * address holds is built by {@link SongExporter#buildLzssSubtunes} now, the
+ * same way the XEX export always built it. The dead writes were the fossil
+ * of that never-written index - and the reason every exported SAP was
+ * unplayable (plans/32_RITMO_FORK_ANALYSIS_PLAN.md).
  */
 public final class VUPlayer {
 
@@ -66,7 +63,7 @@ public final class VUPlayer {
 	 * {@code VUPlayer::PatchMemoryForSAP_B} exactly, including the
 	 * repeated-write oddity documented in this class's own javadoc.
 	 */
-	public static void patchMemoryForSapB(byte[] memory, Song song, int tracks4_8, byte[] buf2, byte[] buf3, int intro, int loop, int targetAddrOfModule, int lzssOffset, int lzssEnd) {
+	public static void patchMemoryForSapB(byte[] memory, Song song, int tracks4_8, int subsongs) {
 		// Patch: change a JMP [label] to a RTS with 2 NOPs
 		memory[RTS_NOP] = (byte) 0x60;
 		memory[RTS_NOP + 1] = (byte) 0xEA;
@@ -75,7 +72,7 @@ public final class VUPlayer {
 		// Patch: change a $00 to $FF to force the LOOP flag to be infinite
 		memory[LOOP_FLAG] = (byte) 0xFF;
 
-		// SAP initialisation patch, running from address 0x3080 in Atari executable
+		// SAP initialisation patch: the SAP player calls INIT with the subtune number in A
 		byte[] sapBytes = {
 				(byte) 0x8D, (byte) (SONGIDX & 0xff), (byte) (SONGIDX >> 8), // STA SongIdx
 				(byte) 0xA2, (byte) 0x00, // LDX #0
@@ -87,26 +84,6 @@ public final class VUPlayer {
 
 		memory[SONG_SPEED] = (byte) song.getInstrumentSpeed(); // Song speed
 		memory[STEREO_FLAG] = (byte) (song.isStereo(tracks4_8) ? 0xFF : 0x00); // Is the song stereo?
-
-		// SongStart pointers
-		// TODO: Why same address? (see class javadoc)
-		memory[LZSS_POINTER] = (byte) (targetAddrOfModule >> 8); // SongsSHIPtrs
-		memory[LZSS_POINTER] = (byte) (lzssOffset >> 8); // SongsIndexEnd
-		memory[LZSS_POINTER] = (byte) (targetAddrOfModule & 0xFF); // SongsSLOPtrs
-		memory[LZSS_POINTER] = (byte) (lzssOffset & 0xFF); // SongsDummyEnd
-
-		// SongEnd pointers
-		// TODO: Why same address? (see class javadoc)
-		memory[LZSS_POINTER] = (byte) (lzssOffset >> 8); // LoopsIndexStart
-		memory[LZSS_POINTER] = (byte) (lzssEnd >> 8); // LoopsIndexEnd
-		memory[LZSS_POINTER] = (byte) (lzssOffset & 0xFF); // LoopsSLOPtrs
-		memory[LZSS_POINTER] = (byte) (lzssEnd & 0xFF); // LoopsDummyEnd
-
-		if (intro > 16) {
-			System.arraycopy(buf2, 0, memory, targetAddrOfModule, intro);
-			System.arraycopy(buf3, 0, memory, lzssOffset, loop);
-		} else {
-			System.arraycopy(buf3, 0, memory, lzssOffset, loop);
-		}
+		memory[SONGTOTAL] = (byte) subsongs; // Total number of subtunes
 	}
 }

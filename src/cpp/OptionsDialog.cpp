@@ -4,7 +4,6 @@
 #include "Global.h"
 #include "OptionsDialog.h"
 #include "StdAfx.h"
-#include "TuningDialog.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -24,7 +23,6 @@ COptionsDialog::COptionsDialog(CWnd* pParent /*=NULL*/)
     m_trackLinePrimaryHighlight = 0;
     m_trackLineSecondaryHighlight = 0;
     m_scaling_percentage = 100;
-    m_ntsc = FALSE;
     m_doSmoothScrolling = TRUE;
     m_displayflatnotes = FALSE;
     m_usegermannotation = FALSE;
@@ -36,7 +34,6 @@ COptionsDialog::COptionsDialog(CWnd* pParent /*=NULL*/)
     m_keyboard_escresetatarisound = FALSE;
     m_keyboard_askwhencontrol_s = FALSE;
     m_viewDebugDisplay = FALSE;
-    m_trackerDriverVersion = TrackerDriverVersion::NONE;
     //}}AFX_DATA_INIT
 }
 
@@ -57,7 +54,6 @@ void COptionsDialog::DoDataExchange(CDataExchange* pDX)
     DDV_MinMaxInt(pDX, m_scaling_percentage, 100, 300);
     DDX_Check(pDX, IDC_DISPLAYFLATNOTES, m_displayflatnotes);
     DDX_Check(pDX, IDC_USEGERMANNOTATION, m_usegermannotation);
-    DDX_Check(pDX, IDC_NTSC, m_ntsc);
     DDX_Check(pDX, IDC_SMOOTH_SCROLL, m_doSmoothScrolling);
     DDX_Check(pDX, IDC_MIDI_NOTEOFF, m_midi_NoteOff);
     DDX_Check(pDX, IDC_KEYBOARD_UPDOWNCONTINUE, m_keyboard_updowncontinue);
@@ -67,7 +63,6 @@ void COptionsDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_KEYBOARD_ESCRESETATARISOUND, m_keyboard_escresetatarisound);
     DDX_Check(pDX, IDC_KEYBOARD_ASKWHENCONTROL_S, m_keyboard_askwhencontrol_s);
     DDX_Check(pDX, IDC_DEBUGDISPLAY, m_viewDebugDisplay);
-    DDX_Control(pDX, IDC_TRACKERDRIVERVERSION, m_trackerDriverVersionComboBox);
     //}}AFX_DATA_MAP
 }
 
@@ -75,7 +70,6 @@ BEGIN_MESSAGE_MAP(COptionsDialog, CDialog)
     //{{AFX_MSG_MAP(COptionsDialog)
     ON_BN_CLICKED(IDC_MIDI_TR, OnMidiTouchResponseClicked)
     ON_BN_CLICKED(IDC_OPTIONS_PATHS, OnClickedOptionsPaths)
-    ON_BN_CLICKED(IDC_OPTIONS_TUNING, OnClickedOptionsTuning)
     //}}AFX_MSG_MAP
 
 END_MESSAGE_MAP()
@@ -111,15 +105,6 @@ BOOL COptionsDialog::OnInitDialog()
     m_keyboardLayoutComboBox.AddItem(KeyboardLayout::AZERTY, "AZERTY Layout");
     m_keyboardLayoutComboBox.SetSelectedItem(m_keyboard_layout);
 
-    m_trackerDriverVersionComboBox.AddItem(TrackerDriverVersion::UNPATCHED, "RMT 1.28 Unpatched by Raster");
-    m_trackerDriverVersionComboBox.AddItem(TrackerDriverVersion::PATCH3, "RMT 1.25 Patch 3 by Analmux");
-    m_trackerDriverVersionComboBox.AddItem(TrackerDriverVersion::PATCH6, "RMT 1.27 Patch 6 by Analmux");
-    m_trackerDriverVersionComboBox.AddItem(TrackerDriverVersion::PATCH8, "RMT 1.28 Patch 8 by Analmux");
-    m_trackerDriverVersionComboBox.AddItem(TrackerDriverVersion::PATCH16, "RMT 1.28 Patch 16 by VinsCool");
-    m_trackerDriverVersionComboBox.AddItem(TrackerDriverVersion::PATCH_PRINCE_OF_PERSIA, "RMT 1.28 Patch Prince of Persia by VinsCool");
-
-    m_trackerDriverVersionComboBox.SetSelectedItem(m_trackerDriverVersion);
-
     return TRUE;
 }
 
@@ -149,17 +134,6 @@ void COptionsDialog::OnClickedOptionsPaths()
     }
 }
 
-void COptionsDialog::OnClickedOptionsTuning()
-{
-    TuningDlg dlg;
-    dlg.m_tuningSettings = g_tuning;
-    dlg.m_tuningRatios = g_tuningRatios;
-
-    dlg.DoModal();
-}
-
-
-
 /// <summary>
 /// Apply the configuration changes not handled by the DoDataExchange function
 /// MIDI device combo
@@ -169,7 +143,6 @@ void COptionsDialog::OnOK()
 {
     m_midi_device = m_midi_c_device.GetCurSel() - 1;
     m_keyboard_layout = m_keyboardLayoutComboBox.GetSelectedItem(KeyboardLayout::QWERTY);
-    m_trackerDriverVersion = m_trackerDriverVersionComboBox.GetSelectedItem(TrackerDriverVersion::NONE);
     CDialog::OnOK();
 }
 

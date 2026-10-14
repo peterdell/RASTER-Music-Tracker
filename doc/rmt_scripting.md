@@ -1,7 +1,7 @@
 # RMT Scripting
 
 Both RASTER Music Tracker programs - the Windows `Rmt.exe` and the Java
-port - can run a script file: open a song, set what the export dialogs
+port - can run a script file: open a module file, set what the export dialogs
 would ask, export in any format, save. This is meant for batch files, build
 scripts and CI, where the SAP, XEX, WAV and ASM files of a song are produced
 from its `.rmt` source reproducibly, for repeated export sets while
@@ -65,7 +65,7 @@ Exit codes of the command line:
   values (texts, labels, file names) keep their case.
 - Yes/no options accept `yes`, `no`, `true`, `false`, `on`, `off`, `1`, `0`.
 - Relative file names are relative to the script file's folder, so a
-  script travels with its songs. Output files (`save`, `export`) go to the
+  script travels with its module files. Output files (`save`, `export`) go to the
   folder of `set output` instead when the script gave one; the folder is
   created when it is missing.
 - An output file that exists already is an error, unless the script says
@@ -75,9 +75,9 @@ Exit codes of the command line:
 
 | Command | Meaning |
 |---|---|
-| `open <file>` | Opens a song. The format follows the extension: `.rmt`, `.txt` or `.rmw` (as File > Open). |
-| `save <file>` | Saves the song as `.rmt`, `.txt` or `.rmw` by extension (as File > Save as). The RMT format's integrity check applies. |
-| `export <format> <file> [name=value ...]` | Exports the song (as File > Export as). Formats and options below. |
+| `open <file>` | Opens a module file. The format follows the extension: `.rmt`, `.txt` or `.rmw` (as File > Open). |
+| `save <file>` | Saves the module as `.rmt`, `.txt` or `.rmw` by extension (as File > Save as). The RMT format's integrity check applies. |
+| `export <format> <file> [name=value ...]` | Exports the module (as File > Export as). Formats and options below. |
 | `set overwrite yes\|no` | Whether later `save`/`export` commands may replace existing files. Default `no`. |
 | `set output <folder>` | Where later `save`/`export` commands write (relative to the script's folder; created when missing). Default: the script's folder. |
 | `set ntsc yes\|no` | The Options dialog's NTSC setting (the video standard: 60 or 50 frames per second, and the POKEY clock). |
@@ -116,9 +116,14 @@ the script with a message naming the line.
 `sapr`, `lzss`, `sap`, `xex` and `wav` are produced by running the song on
 the emulated Atari, so they need the player routine of the selected driver
 version. If that file is missing, these exports stop the script with a
-message naming the file instead of writing a silent one; the three
-remaining formats write the song data itself and are unaffected. See
-"Files and Folders" in the manual for where the player routines live.
+message naming the file instead of writing a silent one.
+
+`asm` with `notes=freq` needs it too, for a different reason: the
+frequencies are read out of the loaded player's own tables, so without
+them every note would be written as `XXX`. That export stops the script
+as well rather than produce such a file. The remaining formats, and `asm`
+with `notes=index`, write the song data itself and need no player routine.
+See "Files and Folders" in the manual for where the player routines live.
 
 ## Example
 
@@ -139,8 +144,8 @@ java -jar rmt.jar /SCRIPT:Delta\build.rmtscript
 
 ## Environment variables
 
-Two variables let a build script run one and the same script file with
-different outputs, without editing it:
+These variables let a build script control a run of one and the same
+script file without editing it:
 
 | Variable | Programs | Meaning |
 |---|---|---|

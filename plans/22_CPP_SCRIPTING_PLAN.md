@@ -164,7 +164,10 @@ Same as Java, same names, same defaults (`doc/rmt_scripting.md` becomes
 the document for both programs, with a "Windows" paragraph on
 `start /wait` and the `.log` fallback). `set driver` maps to
 `g_trackerDriverVersion` + `g_Atari.Init` + `LoadRMTRoutines` as the
-options dialog; `set ntsc` to `SetNTSC`.
+options dialog; `set ntsc` to `SetNTSC`. (The global became
+`CSong::SetTrackerDriverVersion()` in
+[plan 41](41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md), for the reason
+`set ntsc` already went to the song; the rest of the mapping stands.)
 
 ## 4. The cross-program comparison
 

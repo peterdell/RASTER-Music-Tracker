@@ -3,6 +3,8 @@ package org.atari.raster.rmt.model;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -1226,21 +1228,39 @@ class SongEditingTest {
 		assertEquals(4, song.setTracks(4));
 	}
 
+	// --- getTrackerDriverVersion / setTrackerDriverVersion ---
+	// A song-scoped setting like isNTSC(), not an option: the exporters and
+	// the MIDI path read it off the song they already have
+	// (plans/41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md). A plain accessor
+	// pair, so there is nothing to test but that it is one - which is worth
+	// pinning, because the default is what the program runs with before
+	// rmt.ini is read, and a module load must not reset it.
+
+	@Test
+	void theTrackerDriverVersionDefaultsToPatchSixteenAndKeepsWhatItIsGiven() {
+		assertEquals(TrackerDriverVersion.PATCH16, song.getTrackerDriverVersion());
+
+		song.setTrackerDriverVersion(TrackerDriverVersion.UNPATCHED);
+		assertEquals(TrackerDriverVersion.UNPATCHED, song.getTrackerDriverVersion());
+
+		song.clearSong(4, undo); // loading or clearing a module leaves it alone, as it does isNTSC()
+		assertEquals(TrackerDriverVersion.UNPATCHED, song.getTrackerDriverVersion());
+	}
+
 	// --- resetTuningVariables ---
 
 	@Test
 	void resetTuningVariablesUsesTheNtscOrPalBaseTuning() {
-		TuningSettings tuning = new TuningSettings();
-		TuningRatios tuningRatios = new TuningRatios();
+		TuningSettings tuning = song.getTuning();
 
 		song.setNTSC(true);
-		song.resetTuningVariables(tuning, tuningRatios);
+		song.resetTuningVariables();
 		assertEquals(444.895778867913, tuning.basetuning, 0.0);
 		assertEquals(3, tuning.basenote);
 		assertEquals(0, tuning.temperament);
 
 		song.setNTSC(false);
-		song.resetTuningVariables(tuning, tuningRatios);
+		song.resetTuningVariables();
 		assertEquals(440.83751645933, tuning.basetuning, 0.0);
 	}
 
@@ -1780,10 +1800,33 @@ class SongEditingTest {
 		tr.note[0] = 10;
 		tr.instr[0] = 2;
 
-		String out = AsmFileExporter.exportAsAsmApply(song, instruments, tracks, new byte[Atari.MEMORY_SIZE], "", 4, 1 /* Tracks only */, 1 /* notes */, 1 /* notes only */);
+		String out = AsmFileExporter.exportAsAsmApply(song, instruments, tracks, new byte[Atari.MEMORY_SIZE], messages, "",
+				4, 1 /* Tracks only */, 1 /* notes */, 1 /* notes only */);
 
 		assertTrue(out.contains(";ASM notation source"));
 		assertTrue(out.contains(";Track $05"));
+	}
+
+	/**
+	 * notes=freq reads every value out of the loaded player's own frequency
+	 * tables, so with no driver loaded the export would be a file of XXX. Plan
+	 * 30 settled that a missing driver must not produce a silent export; plan
+	 * 40's L4 applies the same rule here, so this refuses and renders nothing.
+	 * notes=index needs no driver and keeps working.
+	 */
+	@Test
+	void exportAsAsmApplyRefusesFrequenciesWithoutTheDriversTables() {
+		song.getSong()[0][0] = 5;
+		Track tr = tracks.getTrack(5);
+		tr.len = 2;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+		byte[] noDriver = new byte[Atari.MEMORY_SIZE];
+
+		assertNull(AsmFileExporter.exportAsAsmApply(song, instruments, tracks, noDriver, messages, "", 4, 1,
+				2 /* frequencies */, 1));
+		assertNotNull(AsmFileExporter.exportAsAsmApply(song, instruments, tracks, noDriver, messages, "", 4, 1,
+				1 /* indices */, 1));
 	}
 
 	// --- AsmFileExporter.buildRelocatableAsm ---
@@ -2382,8 +2425,6 @@ class SongEditingTest {
 
 		useRealAtari();
 		ChannelControl channelControl = new ChannelControl(4);
-		PokeyStream pokeyStream = new PokeyStream();
-		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
 
 		SapFile sapFile = new SapFile();
 		sapFile.setType("B");
@@ -2391,7 +2432,8 @@ class SongEditingTest {
 		sapFile.setName("RSong");
 		sapFile.setDate("01/01/2000");
 
-		byte[] out = SapFileExporter.exportSapBLzss(sapFile, song, 4, pokeyStream);
+		// The exporter dumps the song itself now, one dump per subtune, as the XEX export does
+		byte[] out = SapFileExporter.exportSapBLzss(sapFile, song, 4, atariTrackerDriver, channelControl, clipboard, undo);
 
 		String header = new String(out, 0, Math.min(out.length, 200), java.nio.charset.StandardCharsets.US_ASCII);
 		assertTrue(header.contains("TYPE B"));
@@ -2444,6 +2486,46 @@ class SongEditingTest {
 			anyNonZero |= out[i] != 0;
 		}
 		assertTrue(anyNonZero, "audible samples");
+	}
+
+	/**
+	 * At instrument speed 4 the dump records four frames per video frame, so
+	 * one stream frame is a QUARTER of a video frame of sound. The export
+	 * rendered a whole video frame per stream frame, which made every WAV at
+	 * speeds 2-4 proportionally too long and too slow - 487.8 s for the
+	 * 121.6 s stereo reference song, two octaves down (ported from the RITMO
+	 * fork's 60743c3; plans/32_RITMO_FORK_ANALYSIS_PLAN.md).
+	 */
+	@Test
+	void exportWavAtInstrumentSpeed4RendersAQuarterOfAVideoFramePerStreamFrame() {
+		SongInfo info = new SongInfo();
+		song.getSongInfoPars(info);
+		info.mainSpeed = 6;
+		info.instrumentSpeed = 4;
+		song.setSongInfoPars(info);
+
+		song.getSong()[0][0] = 5;
+		Track tr = tracks.getTrack(5);
+		tr.len = 2;
+		tr.note[0] = 10;
+		tr.instr[0] = 2;
+		tr.volume[0] = 10;
+		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10;
+		song.getSongGo()[1] = 0; // guarantees a fast loop
+
+		useRealAtari();
+		ChannelControl channelControl = new ChannelControl(4);
+		PokeyStream pokeyStream = new PokeyStream();
+		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
+
+		byte[] out = WaveFileExporter.exportWav(pokeyStream, false, false, song.getInstrumentSpeed());
+
+		int frames = pokeyStream.getFirstCountPoint();
+		int dataLength = (out[40] & 0xFF) | (out[41] & 0xFF) << 8 | (out[42] & 0xFF) << 16 | (out[43] & 0xFF) << 24;
+		// a quarter of the ~884 blocks of a PAL video frame per stream frame
+		// (every whole group of four still sums to one full video frame)
+		assertTrue(dataLength >= frames / 4 * 880 * 4 && dataLength <= (frames / 4 + 1) * 888 * 4,
+				"data bytes for " + frames + " quarter frames: " + dataLength);
 	}
 
 	@Test

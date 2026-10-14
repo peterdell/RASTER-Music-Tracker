@@ -4,7 +4,7 @@
 # cursor is at song line 0, column 0, track line 0 after the open.
 set output out/midi
 set overwrite yes
-open ../ui-reference/song1-mono/Delta.rmt
+open ../songs/rmt128/delta/Delta.rmt
 
 # channel 1 records at the cursor with the current volume; the cursor moves down
 midi 90 3C 64

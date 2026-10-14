@@ -1,0 +1,30 @@
+package org.atari.raster.rmt.ui;
+
+import java.nio.file.Path;
+
+/**
+ * The test songs in {@code test-resources/songs} (plan 35): the shared inputs
+ * the session, audio, playability, script and UI tests open. Each song folder
+ * holds the module, its README metadata sheet and any committed reference
+ * exports; the golden screenshots stay in {@code test-resources/ui-reference}
+ * ({@link ReferenceScreenshot}).
+ */
+final class TestSongs {
+
+	static final Path ROOT = Path.of("test-resources", "songs");
+
+	/** Delta by Radek Sterba (Raster), 01/2003, mono, RMT 1.28 compatible. */
+	static final Path DELTA = ROOT.resolve("rmt128").resolve("delta").resolve("Delta.rmt");
+
+	/** Why Do You Dance With Me? by Zdenek Eisenhammer (PG), 2021, stereo. */
+	static final Path WHY_DO_YOU_DANCE_WITH_ME = ROOT.resolve("rmt134").resolve("why_do_you_dance_with_me")
+			.resolve("Why_Do_You_Dance_With_Me.rmt");
+
+	/** Captain Future Theme by Christian Duesterhoeft (Buddy), 13/08/2024, stereo, Patch16
+	 * - the Simple RMT Player's master tune; see its README.md for the copies and the .sapr reference. */
+	static final Path CAPTAIN_FUTURE_THEME = ROOT.resolve("rmt134").resolve("captain_future_theme")
+			.resolve("Captain_Future_Theme.rmt");
+
+	private TestSongs() {
+	}
+}

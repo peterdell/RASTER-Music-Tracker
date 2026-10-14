@@ -15,6 +15,30 @@ import org.atari.raster.rmt.model.SongIOType;
 
 class RmtSessionTest {
 
+	/**
+	 * The driver binary ships its own copy of the frequency tables in its
+	 * RMT_FRQTABLES segment, and loading it writes that copy into the Atari's
+	 * memory; the session regenerates the tables afterwards so the tuning
+	 * settings win (plan 37, T2). Both copies are deliberately equal at the
+	 * default settings (T7), so a changed setting is the only tell: doubling
+	 * the base tuning halves every frequency, taking the bell-1.79 table's
+	 * first byte from the shipped $D6 to $69. Mirrors the C++ test in
+	 * AtariTrackerDriverTests.cpp, where the regeneration sits inside
+	 * LoadRMTRoutines itself.
+	 */
+	@Test
+	void driverLoadRegeneratesTheTuningTablesOverTheDriversStaticCopy() {
+		RmtSession session = new RmtSession();
+		assertEquals(0xD6, session.atari.getByteAt(org.atari.raster.rmt.model.Atari.RMT_FRQTABLES + 0x040));
+
+		session.song.getTuning().basetuning *= 2;
+		// The driver switch is the Options dialog's path and the rmtscript
+		// "set driver" command; it loads the binary again, so the
+		// regeneration has to run again after it.
+		session.setTrackerDriverVersion(session.song.getTrackerDriverVersion());
+		assertEquals(0x69, session.atari.getByteAt(org.atari.raster.rmt.model.Atari.RMT_FRQTABLES + 0x040));
+	}
+
 	@Test
 	void startsLikeRmtExeWithAnEmptyStereoSongAndAllChannelsOn() {
 		RmtSession session = new RmtSession();
@@ -29,7 +53,7 @@ class RmtSessionTest {
 	@Test
 	void openingAMonoRmtSwitchesToFourTracks() throws IOException {
 		RmtSession session = new RmtSession();
-		Path path = ReferenceScreenshot.ROOT.resolve("song1-mono").resolve("Delta.rmt");
+		Path path = TestSongs.DELTA;
 
 		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(path, false));
 
@@ -42,14 +66,14 @@ class RmtSessionTest {
 	@Test
 	void openingAStereoRmtKeepsEightTracks() throws IOException {
 		RmtSession session = new RmtSession();
-		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(ReferenceScreenshot.ROOT.resolve("song2-stereo").resolve("Why_Do_You_Dance_With_Me-132-$4000.rmt"), false));
+		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(TestSongs.WHY_DO_YOU_DANCE_WITH_ME, false));
 		assertEquals(8, session.tracks4_8);
 	}
 
 	@Test
 	void aFileThatIsNotAnRmtModuleLeavesAClearedSong(@TempDir Path dir) throws IOException {
 		RmtSession session = new RmtSession();
-		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(ReferenceScreenshot.ROOT.resolve("song1-mono").resolve("Delta.rmt"), false));
+		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(TestSongs.DELTA, false));
 		Path junk = dir.resolve("junk.rmt");
 		Files.write(junk, new byte[] { 1, 2, 3, 4 });
 

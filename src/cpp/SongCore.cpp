@@ -56,6 +56,34 @@ BOOL CSong::IsNTSC() const {
     return m_ntsc;
 }
 
+TrackerDriverVersion CSong::GetTrackerDriverVersion() const {
+    return m_trackerDriverVersion;
+}
+
+// A plain accessor, unlike SetNTSC(), which calls ReInitSound(): loading the
+// new version's routines needs g_AtariTrackerDriver and the missing-file
+// report around it, which is the Global.h dependency this file exists
+// without - and both callers that change the version already do that.
+void CSong::SetTrackerDriverVersion(const TrackerDriverVersion trackerDriverVersion) {
+    m_trackerDriverVersion = trackerDriverVersion;
+}
+
+TTuningSettings& CSong::GetTuning() {
+    return m_tuning;
+}
+
+const TTuningSettings& CSong::GetTuning() const {
+    return m_tuning;
+}
+
+TTuningRatios& CSong::GetTuningRatios() {
+    return m_tuningRatios;
+}
+
+const TTuningRatios& CSong::GetTuningRatios() const {
+    return m_tuningRatios;
+}
+
 int CSong::GetInstrumentSpeed() const {
     return m_instrumentSpeed;
 }

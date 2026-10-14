@@ -7,6 +7,14 @@ CSAPFile::CSAPFile() {
     Clear();
 }
 
+const std::vector<int>& CSAPFile::GetSubsongPositions() const {
+    return m_subsongPositions;
+}
+
+void CSAPFile::SetSubsongPositions(const std::vector<int>& positions) {
+    m_subsongPositions = positions;
+}
+
 void CSAPFile::Clear() {
     m_author = "";
     m_name = "";
@@ -101,13 +109,14 @@ void CSAPFile::SetPlayerAddress(MemoryAddress player) {
     m_player = player;
 }
 
-int CSAPFile::ParseSubsongs(const CString& subsongs) {
+int CSAPFile::ParseSubsongs(const CString& subsongs, std::vector<int>* positions) {
     CString str = subsongs + " "; // Add space after the last character for parsing
     str.MakeUpper();
     int count = 0;
-    byte subpos[MAXSUBSONGS]{};
-    subpos[0] = 0; // Start at songline 0 by default
     byte n = 0, isn = 0;
+    if (positions != nullptr) {
+        positions->clear();
+    }
 
     for (int i = 0; i < str.GetLength(); i++) {
         char a = str.GetAt(i);
@@ -119,7 +128,10 @@ int CSAPFile::ParseSubsongs(const CString& subsongs) {
             isn = 1;
         } else {
             if (isn) {
-                subpos[count] = n;
+                if (positions != nullptr) {
+                    positions->push_back(n);
+                }
+                n = 0; // the digits of the next number start from zero again
                 count++;
                 if (count >= MAXSUBSONGS) {
                     break;
