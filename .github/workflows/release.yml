@@ -262,12 +262,28 @@ jobs:
             echo "tag=${RELEASE_TAG_INPUT}" >> "$GITHUB_OUTPUT"
           fi
 
+      # Generated notes only when the release does not exist yet: updating an
+      # existing release with generate_release_notes appends the same
+      # generated section to its body again on every rerun (observed on
+      # v1.36.0), so a republish must leave the notes alone.
+      - name: Check whether the release already exists
+        id: existing
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${{ steps.tag.outputs.tag }}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       # tag_name targets an existing release/tag when republishing via
-      # release_tag - the action updates that release's assets/notes in
-      # place rather than creating a new one, and does not move the git tag.
+      # release_tag - the action updates that release's assets in place
+      # rather than creating a new one, and does not move the git tag.
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           files: artifacts/*/*
-          generate_release_notes: true
+          generate_release_notes: ${{ steps.existing.outputs.exists == 'false' }}
