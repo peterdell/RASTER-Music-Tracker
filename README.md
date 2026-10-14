@@ -65,9 +65,9 @@ Note that this is as of RMT 1.28 and not accurate for 1.34 and later!
 * Up to 256 lines for song (with "goto line" support).
 * Beat speed 1 to 255 (1/50 to 255/50 sec).
 * Instrument speed from 1 to 4 per screen (up to 1/200 sec).
-* Main input/output song file format: RMT song files (*.rmt).
+* Main input/output module file format: RMT module files (*.rmt).
 * Input/output instrument file format: RMT instrument files (*.rti).
-* Export formats: RMT stripped song file (*.rmt), SAP file (*.sap),
+* Export formats: RMT stripped module file (*.rmt), SAP file (*.sap),
   XEX Atari executable MSX file (*.xex), ASM simple notation source (*.asm).
 * Import formats: ProTracker modules (*.mod), Atari XE/XL Theta Music Composer songs (*.tmc)
 * Support for speed/size optimizations of RMT assembler player routine 

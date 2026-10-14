@@ -1,7 +1,7 @@
 # RMT Scripting
 
 Both RASTER Music Tracker programs - the Windows `Rmt.exe` and the Java
-port - can run a script file: open a song, set what the export dialogs
+port - can run a script file: open a module file, set what the export dialogs
 would ask, export in any format, save. This is meant for batch files, build
 scripts and CI, where the SAP, XEX, WAV and ASM files of a song are produced
 from its `.rmt` source reproducibly, for repeated export sets while
@@ -65,7 +65,7 @@ Exit codes of the command line:
   values (texts, labels, file names) keep their case.
 - Yes/no options accept `yes`, `no`, `true`, `false`, `on`, `off`, `1`, `0`.
 - Relative file names are relative to the script file's folder, so a
-  script travels with its songs. Output files (`save`, `export`) go to the
+  script travels with its module files. Output files (`save`, `export`) go to the
   folder of `set output` instead when the script gave one; the folder is
   created when it is missing.
 - An output file that exists already is an error, unless the script says
@@ -75,9 +75,9 @@ Exit codes of the command line:
 
 | Command | Meaning |
 |---|---|
-| `open <file>` | Opens a song. The format follows the extension: `.rmt`, `.txt` or `.rmw` (as File > Open). |
-| `save <file>` | Saves the song as `.rmt`, `.txt` or `.rmw` by extension (as File > Save as). The RMT format's integrity check applies. |
-| `export <format> <file> [name=value ...]` | Exports the song (as File > Export as). Formats and options below. |
+| `open <file>` | Opens a module file. The format follows the extension: `.rmt`, `.txt` or `.rmw` (as File > Open). |
+| `save <file>` | Saves the module as `.rmt`, `.txt` or `.rmw` by extension (as File > Save as). The RMT format's integrity check applies. |
+| `export <format> <file> [name=value ...]` | Exports the module (as File > Export as). Formats and options below. |
 | `set overwrite yes\|no` | Whether later `save`/`export` commands may replace existing files. Default `no`. |
 | `set output <folder>` | Where later `save`/`export` commands write (relative to the script's folder; created when missing). Default: the script's folder. |
 | `set ntsc yes\|no` | The Options dialog's NTSC setting (the video standard: 60 or 50 frames per second, and the POKEY clock). |

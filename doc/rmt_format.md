@@ -170,7 +170,7 @@ This new version has the following design goals:
     - No metadata about the song name and instruments (relevant for archiving, e.g. on ASMA)
 	- No way to re-create an editable version of the module (relevant for updates, remixing, learning)
 	- No size-optimized replay (relevant for certain demo categories)
-	- Only one song per module (often required in games)
+	- Only one subsong per module (several are often required in games)
 	- No ability to play effect instruments individually while the main music is playing (often required in games)
 
 - `G2 Distinguishability`

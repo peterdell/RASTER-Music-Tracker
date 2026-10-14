@@ -181,7 +181,7 @@ LTEXT           "&Author", IDC_STATIC, 7, 32, 80, 8
 EDITTEXT        IDC_AUTHOR, 7, 41, 266, 12, ES_AUTOHSCROLL
 LTEXT           "&Date", IDC_STATIC, 7, 58, 80, 8
 EDITTEXT        IDC_DATE, 7, 67, 50, 12, ES_AUTOHSCROLL
-LTEXT           "&Subsongs (hexadecimal song line number for each subsong, first is default song):", IDC_STATIC, 7, 82, 270, 8
+LTEXT           "&Subsongs (hexadecimal song line number for each subsong, first is the default subsong):", IDC_STATIC, 7, 82, 270, 8
 EDITTEXT        IDC_SUBSONGS, 7, 91, 266, 12, ES_AUTOHSCROLL
 DEFPUSHBUTTON   "&OK", IDOK, 169, 110, 50, 14
 PUSHBUTTON      "&Cancel", IDCANCEL, 223, 110, 50, 14
@@ -718,9 +718,9 @@ CONTROL         "No songline start (always start from songline 0)", IDC_NOSTARTI
 DEFPUSHBUTTON   "OK", IDOK, 162, 262, 50, 14
 PUSHBUTTON      "Cancel", IDCANCEL, 216, 262, 50, 14
 EDITTEXT        IDC_RMTFEAT, 4, 153, 266, 106, ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
-LTEXT           "The RMT song will be exported as byte definitions with specific labels.\r\nThe code is fully relocatable and can be split over various locations in memory!", IDC_STATIC, 4, 4, 269, 17
+LTEXT           "The RMT module will be exported as byte definitions with specific labels.\r\nThe code is fully relocatable and can be split over various locations in memory!", IDC_STATIC, 4, 4, 269, 17
 CTEXT           "Static", IDC_INFO, 4, 139, 269, 11
-LTEXT           "ASM Label for start of song data:", IDC_STATIC, 4, 29, 108, 8
+LTEXT           "ASM Label for start of module data:", IDC_STATIC, 4, 29, 108, 8
 RTEXT           "ASM Tracks Label:", IDC_STATIC, 109, 59, 64, 8
 RTEXT           "ASM Song Label:", IDC_STATIC, 112, 74, 61, 8
 RTEXT           "ASM Instruments Label:", IDC_STATIC, 94, 45, 79, 8

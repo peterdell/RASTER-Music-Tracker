@@ -20,7 +20,7 @@ The latest version of this document and the related documents are located at [Gi
 Glossary
 ---------
 
-The following terms are used in the documentation. Outside of this documentation, they are sometimes used interchangeably when the distinction is not relevant. For example, people will use "song" when they refer to either the "song", the "module", or the "module file". This documentation will use the terms only as defined below.
+The following terms are used in the documentation. Outside of this documentation, they are sometimes used interchangeably when the distinction is not relevant. For example, people will use "song" when they refer to either the "song", one of its "subsongs", the "module", or the "module file". This documentation will use the terms only as defined below.
 
 - Tracker - An editor program to create music and save it as a file that can be opened for editing again.
 - Tracker Driver - A part of the tracker that generates the actual sound from the tracker data and user input. In the case of RMT, the tracker driver is a piece of MOS 6502 code that runs on an emulated Atari 8-bit computer. See [Tracker Drivers](rmt_tracker_drivers.md) for details.
