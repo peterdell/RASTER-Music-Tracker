@@ -60,8 +60,6 @@ CSong g_Song;
 // MakeModule()/DecodeModule() (see SongEditing.cpp) - both structs are
 // already globals-free and tested (TuningTypesTests.cpp), so real instances
 // are safe to link directly.
-TTuningSettings g_tuning;
-TTuningRatios g_tuningRatios;
 
 // Real HWND global for CSong::MakeModule()/InstrInfo() (see SongEditing.cpp) -
 // both only ever pass it to a MessageBox() call on a guard branch tests

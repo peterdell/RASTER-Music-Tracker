@@ -6,6 +6,7 @@
 #include "SongTypes.h"
 #include "General.h"
 #include "TuningTypes.h"
+#include "Song.h"
 
 #include <vector>
 
@@ -34,8 +35,7 @@
 
 extern int g_rmtinstr[SONGTRACKS];
 extern EditMode volatile g_prove;
-extern TTuningSettings g_tuning;
-extern TTuningRatios g_tuningRatios;
+extern CSong g_Song;
 
 namespace {
 class AtariTrackerDriverTest : public ::testing::Test {
@@ -48,8 +48,8 @@ class AtariTrackerDriverTest : public ::testing::Test {
     // T2), and CTuning::InitTuning() exits the process on an uninitialized
     // basetuning, so the tuning globals are set up like AtariTests.cpp does.
     void SetUp() override {
-        g_tuning.Initialize(false); // PAL
-        g_tuningRatios.Initialize();
+        g_Song.GetTuning().Initialize(false); // PAL
+        g_Song.GetTuningRatios().Initialize();
     }
 
     void TearDown() override {
@@ -82,7 +82,7 @@ TEST_F(AtariTrackerDriverTest, LoadRMTRoutinesRegeneratesTheTuningTablesOverTheD
     // deliberately equal at the default settings (T7), which makes a changed
     // setting the only tell: doubling the base tuning halves every frequency,
     // taking the bell-1.79 table's first byte from the shipped $D6 to $69.
-    g_tuning.basetuning *= 2;
+    g_Song.GetTuning().basetuning *= 2;
 
     EXPECT_GT(driver.LoadRMTRoutines(TrackerDriverVersion::PATCH16), 0);
 

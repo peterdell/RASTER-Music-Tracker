@@ -135,7 +135,7 @@ class RmtConfigTest {
 	void theDefaultsFormatExactlyAsRmtExeWritesThem() {
 		RmtSession session = new RmtSession();
 		assertEquals(DEFAULT_RMT_INI, RmtConfig.formatRMTConfig(session));
-		assertEquals(DEFAULT_TUNING_INI, RmtConfig.formatTuningConfig(session.tuningSettings, session.tuningRatios));
+		assertEquals(DEFAULT_TUNING_INI, RmtConfig.formatTuningConfig(session.song.getTuning(), session.song.getTuningRatios()));
 	}
 
 	@Test
@@ -175,11 +175,11 @@ class RmtConfigTest {
 		o.view.smoothScrolling = false;
 		o.view.debugDisplay = false;
 		written.song.setNTSC(true);
-		written.tuningSettings.basetuning = 432.5;
-		written.tuningSettings.basenote = 7;
-		written.tuningSettings.temperament = 29;
-		written.tuningRatios.maj7th = new Fraction(243, 128);
-		written.tuningRatios.octave = new Fraction(4, 2);
+		written.song.getTuning().basetuning = 432.5;
+		written.song.getTuning().basenote = 7;
+		written.song.getTuning().temperament = 29;
+		written.song.getTuningRatios().maj7th = new Fraction(243, 128);
+		written.song.getTuningRatios().octave = new Fraction(4, 2);
 
 		RmtConfig config = new RmtConfig(dir);
 		config.writeRMTConfig(written);
@@ -195,11 +195,11 @@ class RmtConfigTest {
 		assertTrue(messages.warnings.isEmpty());
 
 		assertEquals(RmtConfig.formatRMTConfig(written), RmtConfig.formatRMTConfig(read));
-		assertEquals(RmtConfig.formatTuningConfig(written.tuningSettings, written.tuningRatios), RmtConfig.formatTuningConfig(read.tuningSettings, read.tuningRatios));
+		assertEquals(RmtConfig.formatTuningConfig(written.song.getTuning(), written.song.getTuningRatios()), RmtConfig.formatTuningConfig(read.song.getTuning(), read.song.getTuningRatios()));
 		assertTrue(read.song.isNTSC());
 		assertEquals("C:\\Music\\Songs = mine", read.options.defaultSongsPath); // only the first '=' splits
-		assertEquals(new Fraction(243, 128), read.tuningRatios.maj7th); // MAJ_7TH is read back (C++ 1.35 only wrote it)
-		assertEquals(2, read.tuningRatios.octave.numerator); // normalized by Fraction
+		assertEquals(new Fraction(243, 128), read.song.getTuningRatios().maj7th); // MAJ_7TH is read back (C++ 1.35 only wrote it)
+		assertEquals(2, read.song.getTuningRatios().octave.numerator); // normalized by Fraction
 	}
 
 	@Test
@@ -226,8 +226,8 @@ class RmtConfigTest {
 	@Test
 	void aMissingTuningIniResetsTheTuningAndWritesTheDefaults(@TempDir Path dir) throws IOException {
 		RmtSession session = new RmtSession();
-		session.tuningSettings.basetuning = 999;
-		session.tuningRatios.octave = new Fraction(3, 1);
+		session.song.getTuning().basetuning = 999;
+		session.song.getTuningRatios().octave = new Fraction(3, 1);
 		RecordingMessages messages = new RecordingMessages();
 		session.messages.setHandler(messages);
 
@@ -235,8 +235,8 @@ class RmtConfigTest {
 
 		assertEquals(1, messages.warnings.size());
 		assertTrue(messages.warnings.get(0).contains("RMT will use the default Tuning parameters."));
-		assertEquals(440.83751645933, session.tuningSettings.basetuning);
-		assertEquals(new Fraction(2, 1), session.tuningRatios.octave);
+		assertEquals(440.83751645933, session.song.getTuning().basetuning);
+		assertEquals(new Fraction(2, 1), session.song.getTuningRatios().octave);
 		assertEquals(DEFAULT_TUNING_INI, Files.readString(dir.resolve("tuning.ini"), RmtConfig.CHARSET).replace(System.lineSeparator(), "\n"));
 	}
 

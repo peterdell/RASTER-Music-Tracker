@@ -17,8 +17,9 @@ import java.util.Arrays;
  * const/non-const pair.
  *
  * <p>{@link #init} takes {@link TuningSettings}/{@link TuningRatios} as
- * explicit parameters instead of reading C++'s g_tuning/g_tuningRatios
- * globals (same pattern as {@link Tuning}), and constructs its own
+ * explicit parameters instead of reaching for the song that owns them, as
+ * C++ does with g_Song.GetTuning()/GetTuningRatios() (same pattern as
+ * {@link Tuning}), and constructs its own
  * short-lived {@link Tuning} instance to compute the tables - C++'s global
  * {@code g_Tuning} has no Java equivalent yet, and none is needed here,
  * since nothing outside this call uses the temporary instance afterward.
@@ -139,8 +140,8 @@ public final class Atari {
 	 * Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into this instance's own memory.
 	 *
 	 * @param ntsc whether this is an NTSC (vs. PAL) machine
-	 * @param tuningSettings the base tuning/temperament/basenote to generate the tables from (C++ reads these from the g_tuning global instead)
-	 * @param tuningRatios the custom-temperament ratios to generate the tables from (C++ reads these from the g_tuningRatios global instead)
+	 * @param tuningSettings the base tuning/temperament/basenote to generate the tables from (C++ reads these off g_Song instead)
+	 * @param tuningRatios the custom-temperament ratios to generate the tables from (C++ reads these off g_Song instead)
 	 */
 	public void init(boolean ntsc, TuningSettings tuningSettings, TuningRatios tuningRatios) {
 		this.ntsc = ntsc;

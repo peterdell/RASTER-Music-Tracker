@@ -238,7 +238,7 @@ public final class Actions extends NLS {
 
 	// Dialog buttons (IDD_OPTIONS, IDD_OPTIONS_FILE_PATHS, IDD_TUNING)
 	public static Action OptionsDialog_Paths;
-	public static Action OptionsDialog_Tuning;
+	public static Action ModulePropertiesDialog_Tuning;
 	public static Action OptionsPathsDialog_Browse;
 	public static Action TuningDialog_Test;
 	public static Action TuningDialog_Reset;

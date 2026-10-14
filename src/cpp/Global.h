@@ -29,8 +29,6 @@ extern int g_scaling_percentage;
 
 extern int g_notesperoctave;
 
-extern TTuningSettings g_tuning;
-extern TTuningRatios g_tuningRatios;
 extern int g_tracks4_8; // TODO Move out
 
 extern HWND g_hwnd;

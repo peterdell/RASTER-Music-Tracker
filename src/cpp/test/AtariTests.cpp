@@ -2,14 +2,14 @@
 
 #include "Atari.h"
 #include "TuningTypes.h"
+#include "Song.h"
 
 // CAtari::Init()/DeInit()/JSR() (real 6502 DLL interop, see AtariStub.cpp)
 // are avoided here - genuinely hazardous, real native DLL/hardware access.
 // Everything else, including Init(bool) (see below), is safe and cheap to
 // exercise directly.
 
-extern TTuningSettings g_tuning;
-extern TTuningRatios g_tuningRatios;
+extern CSong g_Song;
 
 TEST(AtariTest, NewInstanceHasZeroedMemoryAndIsNotNtsc) {
     CAtari atari;
@@ -62,7 +62,7 @@ TEST(AtariTest, InstanceClockAndCycleCountFollowIsNtscDefaultingToPal) {
 
 // CAtari::Init(bool) calls g_Tuning.InitTuning() to populate *this
 // instance's own* memory (via GetMemoryAt(), not the shared g_Atari global)
-// with pitch tables - safe as long as g_tuning.basetuning is set first (the
+// with pitch tables - safe as long as g_Song.GetTuning().basetuning is set first (the
 // same guard already characterized in TuningTests.cpp). These reuse the
 // exact golden-master byte values already captured there for the
 // Distortion-2 (Bell) table at RMT_FRQTABLES+0x000/0x001, since the point
@@ -70,8 +70,8 @@ TEST(AtariTest, InstanceClockAndCycleCountFollowIsNtscDefaultingToPal) {
 // instance, right memory offset) - InitTuning()'s arithmetic itself is
 // already covered.
 TEST(AtariTest, InitPalPopulatesOwnMemoryWithTuningTables) {
-    g_tuning.Initialize(false); // PAL
-    g_tuningRatios.Initialize();
+    g_Song.GetTuning().Initialize(false); // PAL
+    g_Song.GetTuningRatios().Initialize();
 
     CAtari atari;
     atari.Init(false);
@@ -83,8 +83,8 @@ TEST(AtariTest, InitPalPopulatesOwnMemoryWithTuningTables) {
 }
 
 TEST(AtariTest, InitNtscPopulatesOwnMemoryWithTuningTables) {
-    g_tuning.Initialize(true); // NTSC
-    g_tuningRatios.Initialize();
+    g_Song.GetTuning().Initialize(true); // NTSC
+    g_Song.GetTuningRatios().Initialize();
 
     CAtari atari;
     atari.Init(true);

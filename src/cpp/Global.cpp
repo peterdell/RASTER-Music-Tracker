@@ -21,10 +21,6 @@ int g_scaling_percentage = 100;
 
 int g_notesperoctave = 12; // by default there are 12 notes per octave TODO: Today missing in CSong
 
-TTuningSettings g_tuning;
-
-TTuningRatios g_tuningRatios;
-
 HWND g_hwnd = NULL;
 HWND g_viewhwnd = NULL;
 

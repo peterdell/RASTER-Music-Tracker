@@ -59,6 +59,15 @@ class RmtCommandsTest {
 			return okPressed;
 		}
 
+		ModulePropertiesValues editedProperties;
+
+		@Override
+		public boolean editModuleProperties(ModulePropertiesValues values) {
+			calls.add("editModuleProperties");
+			editedProperties = values;
+			return okPressed;
+		}
+
 		@Override
 		public void rescale() {
 			calls.add("rescale");
@@ -397,8 +406,6 @@ class RmtCommandsTest {
 	void applyOptionsHasTheCppSideEffectsOnlyForChangedValues() {
 		OptionsValues v = OptionsValues.from(session);
 		v.scalingPercentage = 250; // must differ from the default, which is 200
-		v.ntsc = true;
-		v.trackerDriverVersion = TrackerDriverVersion.PATCH8;
 		v.trackLinePrimaryHighlight = 16;
 		v.useGermanNotation = true;
 		v.keyboardLayout = KeyboardLayout.AZERTY;
@@ -407,15 +414,11 @@ class RmtCommandsTest {
 		RmtMidiTest.FakeDevices devices = new RmtMidiTest.FakeDevices(); // applyOptions runs MidiInit, which clears an unknown device name
 		devices.names.add("Some device");
 		session.midi.setDevices(devices);
-		double basetuning = session.tuningSettings.basetuning;
 
 		commands.applyOptions(v);
 
 		assertEquals(List.of("rescale"), host.calls);
 		assertEquals(250, session.options.scalingPercentage);
-		assertTrue(session.song.isNTSC());
-		assertEquals(basetuning * org.atari.raster.rmt.model.Atari.FREQ_17_NTSC / org.atari.raster.rmt.model.Atari.FREQ_17_PAL, session.tuningSettings.basetuning, 1e-9); // SetNTSC rescaled the tuning
-		assertEquals(TrackerDriverVersion.PATCH8, session.song.getTrackerDriverVersion());
 		assertEquals(16, session.options.trackLinePrimaryHighlight);
 		assertTrue(session.options.useGermanNotation);
 		assertEquals(KeyboardLayout.AZERTY, session.options.keyboardLayout);
@@ -424,6 +427,37 @@ class RmtCommandsTest {
 
 		host.calls.clear();
 		commands.applyOptions(v); // applying the same values again changes nothing
+		assertTrue(host.calls.isEmpty());
+	}
+
+	/** File > Properties..., the song's own settings - out of the Options dialog since plan 44. */
+	@Test
+	void modulePropertiesCommandEditsACopyAndAppliesItOnlyOnOK() {
+		assertTrue(commands.isEnabled(RmtCommandId.FILE_PROPERTIES)); // greyed in C++ until it had a dialog
+		host.okPressed = false;
+		commands.execute(RmtCommandId.FILE_PROPERTIES);
+		assertEquals(List.of("editModuleProperties"), host.calls);
+		assertFalse(host.editedProperties.ntsc);
+		assertEquals(TrackerDriverVersion.PATCH16, host.editedProperties.trackerDriverVersion);
+		host.editedProperties.ntsc = true; // a cancelled dialog leaves the song alone
+		assertFalse(session.song.isNTSC());
+	}
+
+	@Test
+	void applyModulePropertiesHasTheCppSideEffectsOnlyForChangedValues() {
+		ModulePropertiesValues v = ModulePropertiesValues.from(session);
+		v.ntsc = true;
+		v.trackerDriverVersion = TrackerDriverVersion.PATCH8;
+		double basetuning = session.song.getTuning().basetuning;
+
+		commands.applyModuleProperties(v);
+
+		assertTrue(session.song.isNTSC());
+		assertEquals(basetuning * org.atari.raster.rmt.model.Atari.FREQ_17_NTSC / org.atari.raster.rmt.model.Atari.FREQ_17_PAL, session.song.getTuning().basetuning, 1e-9); // SetNTSC rescaled the song's tuning
+		assertEquals(TrackerDriverVersion.PATCH8, session.song.getTrackerDriverVersion());
+
+		host.calls.clear();
+		commands.applyModuleProperties(v); // applying the same values again changes nothing
 		assertTrue(host.calls.isEmpty());
 		assertTrue(session.song.isNTSC());
 	}

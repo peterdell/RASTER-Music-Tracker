@@ -31,7 +31,7 @@ class RmtSessionTest {
 		RmtSession session = new RmtSession();
 		assertEquals(0xD6, session.atari.getByteAt(org.atari.raster.rmt.model.Atari.RMT_FRQTABLES + 0x040));
 
-		session.tuningSettings.basetuning *= 2;
+		session.song.getTuning().basetuning *= 2;
 		// The driver switch is the Options dialog's path and the rmtscript
 		// "set driver" command; it loads the binary again, so the
 		// regeneration has to run again after it.

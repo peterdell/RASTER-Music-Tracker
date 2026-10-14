@@ -4,12 +4,12 @@ package org.atari.raster.rmt.model;
  * Ported from CTuning (src/cpp/Tuning.h/.cpp, src/cpp/TuningTables.cpp).
  *
  * <p>C++'s test-only constructor (which bypasses InitTuning()'s dependency on
- * global tuning state) becomes the only constructor here. generateTable()/
- * initTuning() take {@link TuningSettings}/{@link TuningRatios} as explicit
- * parameters instead of reading C++'s g_tuning/g_tuningRatios globals, since
- * no Java global-state architecture exists yet - a deliberate, idiomatic
+ * the tuning state it does not get passed) becomes the only constructor here.
+ * generateTable()/initTuning() take {@link TuningSettings}/{@link TuningRatios}
+ * as explicit parameters instead of reaching for the song that owns them, as
+ * C++ does with g_Song.GetTuning()/GetTuningRatios() - a deliberate, idiomatic
  * substitution (same judgment call as Fraction's immutability), not a
- * behavior change: every value production reads from those globals is still
+ * behavior change: every value production reads there is still
  * supplied by the caller here, just explicitly. Their C++ MessageBox+exit(1)
  * guard (basetuning == 0) becomes an IllegalStateException, matching
  * Fraction's own precedent for translating a fatal C++ precondition into a

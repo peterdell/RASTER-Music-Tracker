@@ -102,6 +102,8 @@ public final class Song {
 	private EditArea infoAct = EditArea.NAME;
 	private boolean ntsc;
 	private TrackerDriverVersion trackerDriverVersion = TrackerDriverVersion.PATCH16;
+	private final TuningSettings tuningSettings = new TuningSettings();
+	private final TuningRatios tuningRatios = new TuningRatios();
 	private int octave;
 	private int volume;
 	private boolean followplay;
@@ -183,6 +185,23 @@ public final class Song {
 	 */
 	public void setTrackerDriverVersion(TrackerDriverVersion trackerDriverVersion) {
 		this.trackerDriverVersion = trackerDriverVersion;
+	}
+
+	/**
+	 * {@code CSong::GetTuning()}: how the notes of this module are tuned - the
+	 * base tuning, the base note, the temperament. Song-scoped like
+	 * {@link #isNTSC()} and the driver version, persisted in {@code tuning.ini}
+	 * and not in the module (plans/44_SONG_PROPERTIES_DIALOG_PLAN.md). The
+	 * instance is the song's own and is mutated in place, as C++ mutates the
+	 * struct it hands out by reference.
+	 */
+	public TuningSettings getTuning() {
+		return tuningSettings;
+	}
+
+	/** {@code CSong::GetTuningRatios()}: the interval ratios of a custom temperament, see {@link #getTuning()}. */
+	public TuningRatios getTuningRatios() {
+		return tuningRatios;
 	}
 
 	public int getInstrumentSpeed() {
@@ -2596,8 +2615,8 @@ public final class Song {
 		return tracks4_8;
 	}
 
-	public void resetTuningVariables(TuningSettings tuning, TuningRatios tuningRatios) {
-		tuning.initialize(isNTSC());
+	public void resetTuningVariables() {
+		tuningSettings.initialize(isNTSC());
 		tuningRatios.initialize();
 	}
 

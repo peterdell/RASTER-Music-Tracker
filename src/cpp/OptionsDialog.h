@@ -8,7 +8,6 @@
 #include "resource.h"
 
 #include "General.h"
-#include "TrackerDriverVersion.h"
 #include "TypedComboBox.h"
 
 extern CString g_defaultSongsPath; // Default path for songs
@@ -32,14 +31,11 @@ public:
     enum { IDD = IDD_OPTIONS };
     CTypedComboBox<KeyboardLayout> m_keyboardLayoutComboBox;
     CComboBox m_midi_c_device;
-    CTypedComboBox<TrackerDriverVersion> m_trackerDriverVersionComboBox;
     BOOL m_midi_TouchResponse;
     int m_midi_VolumeOffset;
     int m_trackLinePrimaryHighlight;
     int m_trackLineSecondaryHighlight;
     int m_scaling_percentage;
-    TrackerDriverVersion m_trackerDriverVersion;
-    BOOL m_ntsc;
     BOOL m_doSmoothScrolling;
     BOOL m_displayflatnotes;
     BOOL m_usegermannotation;
@@ -74,7 +70,6 @@ protected:
     //}}AFX_MSG
 
     afx_msg void OnClickedOptionsPaths();
-    afx_msg void OnClickedOptionsTuning();
     DECLARE_MESSAGE_MAP()
 };
 

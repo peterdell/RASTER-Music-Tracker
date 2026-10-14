@@ -53,9 +53,9 @@ public:
     CTuning() = default;
 
     // Test-only seam: lets tests exercise GetPitch()/GetAUDF()/GetPOKEYPitch()
-    // directly without going through InitTuning(), which reads global tuning
-    // state (g_tuning/g_tuningRatios) and can terminate the process via a
-    // MessageBox+exit(1) guard if that state hasn't been set up yet.
+    // directly without going through InitTuning(), which reads the song's
+    // tuning (g_Song.GetTuning()/GetTuningRatios()) and can terminate the
+    // process via a MessageBox+exit(1) guard if it hasn't been set up yet.
     explicit CTuning(const C6502::ClockFrequency clockFrequency) : m_clockFrequency(clockFrequency) {}
 
     void InitTuning(const C6502::ClockFrequency clockFrequency, byte* table_memory);

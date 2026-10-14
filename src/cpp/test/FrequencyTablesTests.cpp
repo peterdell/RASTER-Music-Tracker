@@ -4,9 +4,9 @@
 #include "AtariTrackerDriver.h"
 #include "FrequencyTables.h"
 #include "TuningTypes.h"
+#include "Song.h"
 
-extern TTuningSettings g_tuning;
-extern TTuningRatios g_tuningRatios;
+extern CSong g_Song;
 
 // CFrequencyTables reads both halves of its answer out of the driver's own
 // dispatch table, so these tests run against really loaded driver binaries -
@@ -35,8 +35,8 @@ class FrequencyTablesTest : public ::testing::Test {
         // The load regenerates the tuning tables (plan 37, T2), and
         // CTuning::InitTuning() exits the process on an uninitialized
         // basetuning, so the tuning globals are set up as AtariTests.cpp does.
-        g_tuning.Initialize(false); // PAL
-        g_tuningRatios.Initialize();
+        g_Song.GetTuning().Initialize(false); // PAL
+        g_Song.GetTuningRatios().Initialize();
         ASSERT_GT(driver.LoadRMTRoutines(TrackerDriverVersion::PATCH16), 0);
     }
 

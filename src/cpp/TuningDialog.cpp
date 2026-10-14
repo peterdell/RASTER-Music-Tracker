@@ -9,6 +9,8 @@
 // TODO Make parameter
 #include "Global.h"
 
+extern CSong g_Song;
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -80,8 +82,8 @@ BOOL TuningDlg::OnInitDialog()
     CDialog::OnInitDialog();
 
     // Backup all current values first
-    m_tuningSettingsBackup = g_tuning;
-    m_tuningRatiosBackup = g_tuningRatios;
+    m_tuningSettingsBackup = g_Song.GetTuning();
+    m_tuningRatiosBackup = g_Song.GetTuningRatios();
 
     return TRUE;  // return TRUE unless you set the focus to a control
     // EXCEPTION: OCX Property Pages should return FALSE
@@ -100,8 +102,8 @@ void TuningDlg::OnTuningTest()
     // Get current screen values.
     TuningDlg::UpdateData();
 
-    g_tuning = m_tuningSettings;
-    g_tuningRatios = m_tuningRatios;
+    g_Song.GetTuning() = m_tuningSettings;
+    g_Song.GetTuningRatios() = m_tuningRatios;
 
     g_Tuning.InitTuning();
 }
@@ -109,8 +111,8 @@ void TuningDlg::OnTuningTest()
 void TuningDlg::OnTuningReset()
 {
     // Retrieve the last backed up values.
-    g_tuning = m_tuningSettingsBackup;
-    g_tuningRatios = m_tuningRatiosBackup;
+    g_Song.GetTuning() = m_tuningSettingsBackup;
+    g_Song.GetTuningRatios() = m_tuningRatiosBackup;
 
     g_Tuning.InitTuning();
 }

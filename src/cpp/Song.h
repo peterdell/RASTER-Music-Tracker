@@ -10,6 +10,7 @@
 
 #include "SongTypes.h"
 #include "TrackerDriverVersion.h"
+#include "TuningTypes.h"
 
 class CASMFileExporter;
 class CPokeyController;
@@ -37,6 +38,16 @@ public:
     // what a note would sound like needs it.
     TrackerDriverVersion GetTrackerDriverVersion() const;
     void SetTrackerDriverVersion(const TrackerDriverVersion trackerDriverVersion);
+    // How the notes of this module are tuned: the base tuning, the base note,
+    // the temperament and the interval ratios of a custom one. Song-scoped
+    // like IsNTSC() and the driver version, persisted in tuning.ini and not
+    // in the module (plans/44_SONG_PROPERTIES_DIALOG_PLAN.md). Everything
+    // that turns a note into a POKEY frequency reads them, so they are
+    // handed out by reference the way the global they replaced was used.
+    TTuningSettings& GetTuning();
+    const TTuningSettings& GetTuning() const;
+    TTuningRatios& GetTuningRatios();
+    const TTuningRatios& GetTuningRatios() const;
 
     void ReInitSound();
 
@@ -413,6 +424,8 @@ private:
     char m_songname[SONG_NAME_MAX_LEN + 1] = {};
     BOOL m_ntsc = FALSE;
     TrackerDriverVersion m_trackerDriverVersion = TrackerDriverVersion::PATCH16;
+    TTuningSettings m_tuning = {};
+    TTuningRatios m_tuningRatios = {};
     int m_songnamecur = 0;
 
     TBookmark m_bookmark = {};

@@ -14,11 +14,14 @@ public final class Texts extends NLS {
 	// OptionsDialog (IDD_OPTIONS)
 	public static String OptionsDialog_Title;
 	public static String OptionsDialog_GroupGeneral;
-	public static String OptionsDialog_GroupModuleDefaults;
 	public static String OptionsDialog_GroupKeyboard;
 	public static String OptionsDialog_GroupMidi;
 	/** The MIDI device combo box's first entry, {@code "None"} (id 0 in C++, device -1). */
 	public static String OptionsDialog_MidiDeviceNone;
+
+	// ModulePropertiesDialog (IDD_FILE_PROPERTIES) - the song's own settings, out of the Options dialog since plan 44
+	public static String ModulePropertiesDialog_Title;
+	public static String ModulePropertiesDialog_GroupModule;
 
 	// OptionsPathsDialog (IDD_OPTIONS_FILE_PATHS)
 	public static String OptionsPathsDialog_Title;

@@ -3,6 +3,8 @@
 #include "PokeyView.h"
 #include "StdAfx.h"
 
+extern CSong g_Song;
+
 static MemoryAddress POKEY_ADDRESS[2] = {0xd200, 0xd210};
 
 CPokeyView::CPokeyView(CCanvas& canvas) : canvas(&canvas) {
@@ -17,8 +19,8 @@ void CPokeyView::Draw(const CSong& song, const CTuning& tuning, const bool explo
     static constexpr int explorerRow = pokey2Row + pokeyRows;
 
     // Tuning
-    const double basetuning = g_tuning.basetuning;
-    const int basenote = g_tuning.basenote;
+    const double basetuning = g_Song.GetTuning().basetuning;
+    const int basenote = g_Song.GetTuning().basenote;
     const int reverse_basenote = (24 - basenote) % g_notesperoctave;
     canvas->ColorMini(TextMiniColor::GRAY).At(0, tuningRow).PrintMini("A- TUNING:       HZ, PAL  , FREQ:        HZ, CYCLES: ");
     canvas->PrintfMini(2, "%s", CNotes::GetNote(reverse_basenote)); //overwrite A- with the given basenote

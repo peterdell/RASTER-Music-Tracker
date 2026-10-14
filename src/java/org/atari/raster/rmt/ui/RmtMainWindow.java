@@ -307,6 +307,12 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 		return session.unlocked(() -> new OptionsDialog(getFrame(), session, values).showDialog());
 	}
 
+	/** File &gt; Properties...: {@code CModulePropertiesDialog dlg; ... dlg.DoModal() == IDOK}. */
+	@Override
+	public boolean editModuleProperties(ModulePropertiesValues values) {
+		return session.unlocked(() -> new ModulePropertiesDialog(getFrame(), session, values).showDialog());
+	}
+
 	@Override
 	public void rescale() {
 		trackerPanel.rescale();

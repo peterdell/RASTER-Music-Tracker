@@ -59,6 +59,9 @@ public final class RmtCommands {
 		/** {@code OnToolsOptions()}'s dialog part: edit the values (Options dialog), returning whether OK was pressed. */
 		boolean editOptions(OptionsValues values);
 
+		/** File &gt; Properties...: edit the song's own properties (Module Properties dialog), returning whether OK was pressed. */
+		boolean editModuleProperties(ModulePropertiesValues values);
+
 		/** {@code m_width = m_height = 0; Resize()}: the scaling option changed, redo the canvas without waiting for a window resize. */
 		void rescale();
 
@@ -236,12 +239,6 @@ public final class RmtCommands {
 			session.reInitSound(); // Justified for testing, but this might be a little redundant
 		}
 		o.noHwSoundBuffer = dlg.noHwSoundBuffer;
-		if (session.song.isNTSC() != dlg.ntsc) {
-			session.setNTSC(dlg.ntsc);
-		}
-		if (session.song.getTrackerDriverVersion() != dlg.trackerDriverVersion) {
-			session.setTrackerDriverVersion(dlg.trackerDriverVersion);
-		}
 		o.view.smoothScrolling = dlg.doSmoothScrolling;
 		o.view.debugDisplay = dlg.viewDebugDisplay;
 		o.trackLinePrimaryHighlight = dlg.trackLinePrimaryHighlight;
@@ -261,6 +258,21 @@ public final class RmtCommands {
 		o.midiVolumeOffset = dlg.midiVolumeOffset;
 		o.midiNoteOff = dlg.midiNoteOff;
 		session.midi.midiInit();
+	}
+
+	/**
+	 * The Module Properties dialog's epilogue, the two steps that were
+	 * {@link #applyOptions}'s until plan 44. Both setters do more than store
+	 * the value: the video standard rescales the tuning and re-initializes the
+	 * sound, the driver version loads the player's routines.
+	 */
+	public void applyModuleProperties(ModulePropertiesValues dlg) {
+		if (session.song.isNTSC() != dlg.ntsc) {
+			session.setNTSC(dlg.ntsc);
+		}
+		if (session.song.getTrackerDriverVersion() != dlg.trackerDriverVersion) {
+			session.setTrackerDriverVersion(dlg.trackerDriverVersion);
+		}
 	}
 
 	/** Executes a command exactly as its {@code CRmtView::On...()} handler does; a disabled command does nothing (MFC never routes those). */
@@ -290,7 +302,12 @@ public final class RmtCommands {
 				host.runExport(request.file().getFileName().toString(), progress -> songFiles.runExportAs(request, progress));
 			}
 		}
-		case FILE_PROPERTIES -> host.notAvailable("Song properties");
+		case FILE_PROPERTIES -> {
+			ModulePropertiesValues properties = ModulePropertiesValues.from(session);
+			if (host.editModuleProperties(properties)) {
+				applyModuleProperties(properties);
+			}
+		}
 		case FILE_EXIT -> host.exit();
 
 		// --- Edit ---
@@ -723,11 +740,6 @@ public final class RmtCommands {
 
 		return switch (id) {
 		case FILE_REOPEN -> songFiles.fileCanBeReloaded();
-		// File > Properties is a menu entry and an accelerator in Rmt.rc with
-		// no handler behind it in either program, so it is greyed in C++ too.
-		// The dialog behind it is plan 44's; the printing commands that used
-		// to share this case are gone (doc/rmt_changes.md, 1.36).
-		case FILE_PROPERTIES -> false;
 		case EDIT_UNDO -> session.undo.getUndoSteps() > 0;
 		case EDIT_REDO -> session.undo.getRedoSteps() > 0;
 		case EDIT_CLEAR_UNDO_REDO_HISTORY -> session.undo.getUndoSteps() > 0 || session.undo.getRedoSteps() > 0;

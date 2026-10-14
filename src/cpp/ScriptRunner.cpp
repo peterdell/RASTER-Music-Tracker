@@ -671,7 +671,7 @@ void CScriptRunner::Set(const TScriptCommand& command) {
         // CRmtView::SetNTSC (the Options dialog's NTSC box)
         bool ntsc = ParseBoolean(command, "ntsc", value);
         if ((m_song.IsNTSC() != 0) != ntsc) {
-            g_tuning.basetuning = (ntsc) ? (g_tuning.basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_tuning.basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
+            m_song.GetTuning().basetuning = (ntsc) ? (m_song.GetTuning().basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (m_song.GetTuning().basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
             m_song.SetNTSC(ntsc);
         }
     } else if (name == "driver") {

@@ -268,11 +268,11 @@ public final class RmtConfig {
 			lines = Files.readAllLines(path, CHARSET);
 		} catch (IOException ex) {
 			session.messages.sendWarningMessage("RMT", "Could not find: '" + path + "'\n\nRMT will use the default Tuning parameters.\n");
-			session.song.resetTuningVariables(session.tuningSettings, session.tuningRatios);
+			session.song.resetTuningVariables();
 			writeTuningConfig(session); // In order to save the default Tuning configuration file
 			return;
 		}
-		parseTuningConfig(lines, session.tuningSettings, session.tuningRatios);
+		parseTuningConfig(lines, session.song.getTuning(), session.song.getTuningRatios());
 	}
 
 	/** The parsing half of {@code ReadTuningConfig()}: {@code NAME = value} for the settings, {@code NAME = numerator / denominator} for the ratios. */
@@ -332,7 +332,7 @@ public final class RmtConfig {
 
 	/** {@code CRmtView::WriteTuningConfig()}. */
 	public void writeTuningConfig(RmtSession session) {
-		write(getTuningPath(), formatTuningConfig(session.tuningSettings, session.tuningRatios), session, "The Tuning parameters won't be saved.");
+		write(getTuningPath(), formatTuningConfig(session.song.getTuning(), session.song.getTuningRatios()), session, "The Tuning parameters won't be saved.");
 	}
 
 	/** The text {@code WriteTuningConfig()} produces, with {@code \n} line ends. */

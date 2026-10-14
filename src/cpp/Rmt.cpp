@@ -119,8 +119,8 @@ BOOL CRmtApp::InitInstance()
     }
 
 
-    g_tuning.Initialize(g_Song.IsNTSC());
-    g_tuningRatios.Initialize();
+    g_Song.GetTuning().Initialize(g_Song.IsNTSC());
+    g_Song.GetTuningRatios().Initialize();
 
     // Intitilaize the Atari computer.
     g_Atari.Init(g_Song.IsNTSC());

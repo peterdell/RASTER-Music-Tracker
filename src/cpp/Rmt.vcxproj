@@ -224,6 +224,7 @@
     <ClCompile Include="Clipboard.cpp" />
     <ClCompile Include="ClipboardCore.cpp" />
     <ClCompile Include="Messages.cpp" />
+    <ClCompile Include="ModulePropertiesDialog.cpp" />
     <ClCompile Include="OptionsDialog.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;WIN32;_WINDOWS;NO_CONSOL_SOUND;NO_VOL_ONLY;STEREO;_MBCS;_AFXDLL</PreprocessorDefinitions>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
@@ -405,6 +406,7 @@
     <ClInclude Include="Clipboard.h" />
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="Messages.h" />
+    <ClInclude Include="ModulePropertiesDialog.h" />
     <ClInclude Include="OptionsDialog.h" />
     <ClInclude Include="InstrumentTypes.h" />
     <ClInclude Include="LZSSFile.h" />

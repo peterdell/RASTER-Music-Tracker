@@ -3,9 +3,9 @@
 // Based on the code originally used for the Pitch Calculations in Raster Music Tracker 1.31+
 // Backported to RMT with additional improvements
 //
-// The two methods here are the only parts of CTuning that read global tuning
-// state (g_tuning/g_tuningRatios/g_notesperoctave) and the emulated Atari
-// memory, so they're kept in a separate translation unit from the rest of
+// The two methods here are the only parts of CTuning that read the song's
+// tuning (g_Song.GetTuning()/GetTuningRatios()), g_notesperoctave and the
+// emulated Atari memory, so they're kept in a separate translation unit from the rest of
 // CTuning's pure pitch-math methods (Tuning.cpp) — that lets tests link
 // against the pure math without pulling in Global.h's much larger dependency
 // graph.
@@ -13,6 +13,8 @@
 #include "Global.h"
 #include "Tuning.h"
 #include "Messages.h"
+
+extern CSong g_Song;
 
 /// <summary> Generate a POKEY Frequencies lookup table using the given parameters </summary>
 /// <param name = "table"> Memory address the table will be written to, typically the emulated Atari memory </param>
@@ -128,7 +130,7 @@ void CTuning::GenerateTable(byte* table, int length, int semitone, Timbre timbre
         auto note = i + semitone;
 
         //calculate the reference pitch using the semitone as an offset
-        auto pitch = GetTruePitch(g_tuning.basetuning, g_tuning.temperament, g_tuning.basenote, note);
+        auto pitch = GetTruePitch(g_Song.GetTuning().basetuning, g_Song.GetTuning().temperament, g_Song.GetTuning().basenote, note);
 
         //get the nearest POKEY frequency using the reference pitch
         auto audf = GetAUDF(pitch, coarse_divisor, divisor, cycle);
@@ -232,16 +234,16 @@ static const byte sawtooth_tables[128] = {
 
 /// <summary> Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into the emulated Atari memory </summary>
 void CTuning::InitTuning() {
-    if (!g_tuning.basetuning) { //if base tuning is 0.0, make sure to reset it, else the program could crash!
+    if (!g_Song.GetTuning().basetuning) { //if base tuning is 0.0, make sure to reset it, else the program could crash!
         SendErrorMessage("Program error", "An invalid tuning has been detected!\n\nBasetuning is zero. ");
         exit(1);
     }
 
     g_notesperoctave = 12; //by default, an octave uses 12 semitones...
 
-    if (g_tuning.temperament > NO_TEMPERAMENT && g_tuning.temperament < TUNING_CUSTOM) { //...unless it is specified otherwise in the Temperament presets
+    if (g_Song.GetTuning().temperament > NO_TEMPERAMENT && g_Song.GetTuning().temperament < TUNING_CUSTOM) { //...unless it is specified otherwise in the Temperament presets
         for (int i = 0; i < PRESETS_LENGTH; i++) {
-            if (temperament_preset[g_tuning.temperament][i]) {
+            if (temperament_preset[g_Song.GetTuning().temperament][i]) {
                 continue;
             }
             g_notesperoctave = i - 1;
@@ -252,19 +254,19 @@ void CTuning::InitTuning() {
     // calculate the custom ratio used for each semitone
     //TODO: restructure this to something much better, and flexible
     //these individual variables are just too uncomfortable to use that way
-    CUSTOM[0] = (double)g_tuningRatios.UNISON;
-    CUSTOM[1] = (double)g_tuningRatios.MIN_2ND;
-    CUSTOM[2] = (double)g_tuningRatios.MAJ_2ND;
-    CUSTOM[3] = (double)g_tuningRatios.MIN_3RD;
-    CUSTOM[4] = (double)g_tuningRatios.MAJ_3RD;
-    CUSTOM[5] = (double)g_tuningRatios.PERF_4TH;
-    CUSTOM[6] = (double)g_tuningRatios.TRITONE;
-    CUSTOM[7] = (double)g_tuningRatios.PERF_5TH;
-    CUSTOM[8] = (double)g_tuningRatios.MIN_6TH;
-    CUSTOM[9] = (double)g_tuningRatios.MAJ_6TH;
-    CUSTOM[10] = (double)g_tuningRatios.MIN_7TH;
-    CUSTOM[11] = (double)g_tuningRatios.MAJ_7TH;
-    CUSTOM[12] = (double)g_tuningRatios.OCTAVE;
+    CUSTOM[0] = (double)g_Song.GetTuningRatios().UNISON;
+    CUSTOM[1] = (double)g_Song.GetTuningRatios().MIN_2ND;
+    CUSTOM[2] = (double)g_Song.GetTuningRatios().MAJ_2ND;
+    CUSTOM[3] = (double)g_Song.GetTuningRatios().MIN_3RD;
+    CUSTOM[4] = (double)g_Song.GetTuningRatios().MAJ_3RD;
+    CUSTOM[5] = (double)g_Song.GetTuningRatios().PERF_4TH;
+    CUSTOM[6] = (double)g_Song.GetTuningRatios().TRITONE;
+    CUSTOM[7] = (double)g_Song.GetTuningRatios().PERF_5TH;
+    CUSTOM[8] = (double)g_Song.GetTuningRatios().MIN_6TH;
+    CUSTOM[9] = (double)g_Song.GetTuningRatios().MAJ_6TH;
+    CUSTOM[10] = (double)g_Song.GetTuningRatios().MIN_7TH;
+    CUSTOM[11] = (double)g_Song.GetTuningRatios().MAJ_7TH;
+    CUSTOM[12] = (double)g_Song.GetTuningRatios().OCTAVE;
 
     //Generate all lookup tables used by the RMT driver for tuning purposes
     //TODO: optimise this procedure, even if right now this is much better than what it used to be

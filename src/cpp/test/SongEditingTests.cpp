@@ -22,8 +22,6 @@ extern CTracks g_Tracks;
 extern CInstruments g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
 extern CSong g_Song;
-extern TTuningSettings g_tuning;
-extern TTuningRatios g_tuningRatios;
 extern int g_rmtinstr[SONGTRACKS];
 extern BOOL volatile g_respectvolume;
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
@@ -1067,16 +1065,19 @@ TEST_F(SongEditingTest, TheTrackerDriverVersionDefaultsToPatchSixteenAndKeepsWha
 
 // --- ResetTuningVariables ---
 
+// The tuning belongs to the song it is reset on, so the assertions read it
+// off this fixture's own instance - before plan 44 it was a global, and the
+// test could read it anywhere.
 TEST_F(SongEditingTest, ResetTuningVariablesUsesTheNtscOrPalBaseTuning) {
     song.SetNTSC(TRUE);
     song.ResetTuningVariables();
-    EXPECT_DOUBLE_EQ(g_tuning.basetuning, 444.895778867913);
-    EXPECT_EQ(g_tuning.basenote, 3);
-    EXPECT_EQ(g_tuning.temperament, 0);
+    EXPECT_DOUBLE_EQ(song.GetTuning().basetuning, 444.895778867913);
+    EXPECT_EQ(song.GetTuning().basenote, 3);
+    EXPECT_EQ(song.GetTuning().temperament, 0);
 
     song.SetNTSC(FALSE);
     song.ResetTuningVariables();
-    EXPECT_DOUBLE_EQ(g_tuning.basetuning, 440.83751645933);
+    EXPECT_DOUBLE_EQ(song.GetTuning().basetuning, 440.83751645933);
 }
 
 // --- InstrInfo ---

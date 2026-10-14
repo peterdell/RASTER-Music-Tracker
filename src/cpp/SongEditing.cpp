@@ -50,8 +50,6 @@
 extern CTrackClipboard g_TrackClipboard;
 extern CInstruments g_Instruments;
 extern int g_tracks4_8;
-extern TTuningSettings g_tuning;
-extern TTuningRatios g_tuningRatios;
 extern WORD g_rmtstripped_adr_module;
 extern BOOL volatile g_rmtroutine;
 extern BOOL g_rmtstripped_sfx;
@@ -1371,8 +1369,8 @@ void CSong::SetTracks(const int tracksNum) {
 
 void CSong::ResetTuningVariables() {
     // Reset all tuning variables
-    g_tuning.Initialize(IsNTSC());
-    g_tuningRatios.Initialize();
+    m_tuning.Initialize(IsNTSC());
+    m_tuningRatios.Initialize();
 }
 
 int CSong::MakeModule(unsigned char* mem, int addr, SongIOType iotype, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags) {

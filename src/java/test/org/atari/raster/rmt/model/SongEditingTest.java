@@ -1251,17 +1251,16 @@ class SongEditingTest {
 
 	@Test
 	void resetTuningVariablesUsesTheNtscOrPalBaseTuning() {
-		TuningSettings tuning = new TuningSettings();
-		TuningRatios tuningRatios = new TuningRatios();
+		TuningSettings tuning = song.getTuning();
 
 		song.setNTSC(true);
-		song.resetTuningVariables(tuning, tuningRatios);
+		song.resetTuningVariables();
 		assertEquals(444.895778867913, tuning.basetuning, 0.0);
 		assertEquals(3, tuning.basenote);
 		assertEquals(0, tuning.temperament);
 
 		song.setNTSC(false);
-		song.resetTuningVariables(tuning, tuningRatios);
+		song.resetTuningVariables();
 		assertEquals(440.83751645933, tuning.basetuning, 0.0);
 	}
 
