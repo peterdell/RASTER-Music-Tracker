@@ -516,11 +516,31 @@ CRmtDoc* CRmtView::GetDocument() // non-debug version is inline
 /////////////////////////////////////////////////////////////////////////////
 // CRmtView message handlers
 
+// rmt.ini and tuning.ini live in the program folder, or in RMT_CONFIG_DIR
+// when that is set - the C++ twin of the Java port's -Drmt.config.dir, so the
+// comparison harnesses can run on a per-run copy of the settings
+// (plans/47_SCRIPT_SETTINGS_ISOLATION_PLAN.md).
+static CString GetConfigFilePath(const CString& fileName)
+{
+    char* configDir = nullptr;
+    size_t configDirLength = 0;
+    if (_dupenv_s(&configDir, &configDirLength, "RMT_CONFIG_DIR") == 0 && configDir != nullptr) {
+        if (*configDir) {
+            std::filesystem::path path(configDir);
+            path.append(fileName.GetString());
+            free(configDir);
+            return path.c_str();
+        }
+        free(configDir);
+    }
+    return GetResourceFilePath(std::filesystem::path(""), fileName);
+}
+
 void CRmtView::ReadRMTConfig()
 {
 #define NAME(a)	(strcmp(a,name)==0)
 
-    auto filePath = GetResourceFilePath(std::filesystem::path(""), CONFIG_FILENAME);
+    auto filePath = GetConfigFilePath(CONFIG_FILENAME);
 
     char line[1024];
     char* tmp, * name, * value;
@@ -593,7 +613,10 @@ void CRmtView::ReadRMTConfig()
 
 void CRmtView::WriteRMTConfig()
 {
-    auto s = GetResourceFilePath(std::filesystem::path(""), CONFIG_FILENAME);
+    if (g_isScriptRun) {
+        return; // a /SCRIPT: run is a job, not a session - it leaves no settings behind (plan 47)
+    }
+    auto s = GetConfigFilePath(CONFIG_FILENAME);
     std::ofstream ou(s);
     if (!ou)
     {
@@ -727,7 +750,7 @@ void CRmtView::ReadTuningConfig()
 {
 #define NAME(a)	(strcmp(a,name)==0)
 
-    auto filePath = GetResourceFilePath(std::filesystem::path(""), TUNING_FILENAME);
+    auto filePath = GetConfigFilePath(TUNING_FILENAME);
     char line[1024];
     char* tmp, * div, * name, * value, * value2;
     std::ifstream in(filePath);
@@ -785,7 +808,10 @@ void WriteFraction(std::ostream& os, const char* id, const CFraction& fraction) 
 
 void CRmtView::WriteTuningConfig()
 {
-    auto filePath = GetResourceFilePath(std::filesystem::path(""), TUNING_FILENAME);
+    if (g_isScriptRun) {
+        return; // a /SCRIPT: run is a job, not a session - it leaves no settings behind (plan 47)
+    }
+    auto filePath = GetConfigFilePath(TUNING_FILENAME);
     std::ofstream os(filePath);
     if (!os)
     {

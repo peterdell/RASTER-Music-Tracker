@@ -878,13 +878,13 @@ public final class Tracks {
 	/** {@code CSong::FileTrackLoad()}'s first pass: how many {@code [TRACK]} sections a TXT file holds. */
 	public static int countTrackSectionsTxt(String text) {
 		int nt = 0;
-		int pos = Song.nextSegment(text, 0);
+		int pos = IOHelpers.nextSegment(text, 0);
 		while (pos < text.length()) { // will therefore look for the beginning of the next segment "["
-			Song.Line line = Song.readLine(text, pos);
-			if (Song.trimstr(line.content()).equals("TRACK]")) {
+			IOHelpers.Line line = IOHelpers.readLine(text, pos);
+			if (IOHelpers.trimstr(line.content()).equals("TRACK]")) {
 				nt++;
 			}
-			pos = Song.nextSegment(text, line.nextPos());
+			pos = IOHelpers.nextSegment(text, line.nextPos());
 		}
 		return nt;
 	}
@@ -903,11 +903,11 @@ public final class Tracks {
 	public LoadTracksTxtResult loadTracksTxt(String text, int firstTrack, boolean toOriginalPlaces) {
 		int track = firstTrack;
 		int nr = 0;
-		int pos = Song.nextSegment(text, 0); // Move after the first "["
+		int pos = IOHelpers.nextSegment(text, 0); // Move after the first "["
 		while (pos < text.length()) {
-			Song.Line line = Song.readLine(text, pos);
+			IOHelpers.Line line = IOHelpers.readLine(text, pos);
 			pos = line.nextPos();
-			if (Song.trimstr(line.content()).equals("TRACK]")) {
+			if (IOHelpers.trimstr(line.content()).equals("TRACK]")) {
 				int tt = toOriginalPlaces ? -1 : track;
 				pos = loadTrackTxt(tt, text, pos);
 				nr++; // number of tracks loaded (LoadTrack's TXT branch always returns 1)
@@ -918,13 +918,13 @@ public final class Tracks {
 					}
 				}
 			} else {
-				pos = Song.nextSegment(text, pos); // move to the next "["
+				pos = IOHelpers.nextSegment(text, pos); // move to the next "["
 			}
 		}
 		return new LoadTracksTxtResult(nr, false);
 	}
 
-	/** Encodes every non-empty track as TXT, concatenated (the {@code [TRACK]} sections {@link Song#saveTxt} appends). */
+	/** Encodes every non-empty track as TXT, concatenated (the {@code [TRACK]} sections {@link SongIO#saveTxt} appends). */
 	public String saveAllTxt() {
 		StringBuilder s = new StringBuilder();
 		for (int i = 0; i < TRACKSNUM; i++) {
@@ -938,7 +938,7 @@ public final class Tracks {
 	/**
 	 * Decodes one {@code [TRACK]} segment's TXT content (the track number is
 	 * parsed from the segment's own first line, matching C++'s
-	 * {@code LoadTrack(-1, ...)} convention - the only way {@link Song#loadTxt}
+	 * {@code LoadTrack(-1, ...)} convention - the only way {@link SongIO#loadTxt}
 	 * calls this), returning the position right after the next {@code '['}
 	 * (matching {@link Song#nextSegment}'s convention).
 	 *
@@ -959,23 +959,23 @@ public final class Tracks {
 	 * (-1) - the two ways {@code CSong::FileTrackLoad()} calls it.
 	 */
 	public int loadTrackTxt(int trackNumber, String text, int pos) {
-		Song.Line firstLine = Song.readLine(text, pos);
+		IOHelpers.Line firstLine = IOHelpers.readLine(text, pos);
 		pos = firstLine.nextPos();
 		String line = firstLine.content();
 
 		if (!isValidTrack(trackNumber)) {
-			trackNumber = Song.hexstr(line, 0, 2); // If the track is invalid, it is set to the value found in the text file
+			trackNumber = IOHelpers.hexstr(line, 0, 2); // If the track is invalid, it is set to the value found in the text file
 		}
 		if (!isValidTrack(trackNumber)) {
-			return Song.nextSegment(text, pos); // If the track is still invalid, it will be skipped
+			return IOHelpers.nextSegment(text, pos); // If the track is still invalid, it will be skipped
 		}
 
 		Track at = getTrack(trackNumber);
 		clearTrack(trackNumber);
 
-		int a = Song.hexstr(line, 4, 2);
+		int a = IOHelpers.hexstr(line, 4, 2);
 		at.len = (!isValidLength(a) || a > maxTrackLength) ? maxTrackLength : a;
-		a = Song.hexstr(line, 6, 2);
+		a = IOHelpers.hexstr(line, 6, 2);
 		at.go = (a > at.len) ? -1 : a;
 
 		int idx = 0;
@@ -986,10 +986,10 @@ public final class Tracks {
 				return pos; // end of track (beginning of something else)
 			}
 			if (b == '\n' || b == '\r' || idx >= Track.TRACKLEN) {
-				return Song.nextSegment(text, pos);
+				return IOHelpers.nextSegment(text, pos);
 			}
 
-			Song.Line rest = Song.readLine(text, pos);
+			IOHelpers.Line rest = IOHelpers.readLine(text, pos);
 			pos = rest.nextPos();
 			String content = b + rest.content();
 
@@ -1008,11 +1008,11 @@ public final class Tracks {
 			int note = (noteBase >= 0 && octaveChar >= '1' && octaveChar <= '6') ? noteBase + (octaveChar - '1') * 12 : noteBase;
 
 			at.note[idx] = isValidNote(note) ? note : -1;
-			int instrVal = Song.hexstr(content, 4, 2);
+			int instrVal = IOHelpers.hexstr(content, 4, 2);
 			at.instr[idx] = isValidInstrument(instrVal) ? instrVal : -1;
-			int volVal = Song.hexstr(content, 7, 1);
+			int volVal = IOHelpers.hexstr(content, 7, 1);
 			at.volume[idx] = isValidVolume(volVal) ? volVal : -1;
-			int speedVal = Song.hexstr(content, 8, 2);
+			int speedVal = IOHelpers.hexstr(content, 8, 2);
 			at.speed[idx] = isValidSpeed(speedVal) ? speedVal : -1;
 
 			if (at.note[idx] >= 0 && at.instr[idx] < 0) {

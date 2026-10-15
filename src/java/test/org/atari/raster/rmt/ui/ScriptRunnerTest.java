@@ -54,6 +54,35 @@ class ScriptRunnerTest {
 		return err.toString(StandardCharsets.UTF_8);
 	}
 
+	// ---- a script run is a job, not a session (plan 47) ----
+
+	/**
+	 * {@code set driver}/{@code set ntsc} change the song being scripted,
+	 * never the configuration files: the headless script path cannot write
+	 * them by construction (it never constructs the window that saves), and
+	 * the C++ program guards its writers the same way. This test is the
+	 * port's pin on that rule.
+	 */
+	@Test
+	void aScriptRunLeavesTheConfigurationFilesUntouched() throws IOException {
+		RmtSession session = new RmtSession();
+		RmtConfig config = new RmtConfig(dir);
+		config.writeRMTConfig(session);
+		config.writeTuningConfig(session);
+		byte[] rmtIni = Files.readAllBytes(dir.resolve("rmt.ini"));
+		byte[] tuningIni = Files.readAllBytes(dir.resolve("tuning.ini"));
+
+		RmtSession scripted = new RmtSession();
+		config.readRMTConfig(scripted);
+		config.readTuningConfig(scripted);
+		Path script = dir.resolve("job.rmtscript");
+		Files.write(script, List.of("open Delta.rmt", "set driver unpatched", "set ntsc yes", "echo job done"), StandardCharsets.UTF_8);
+		assertEquals(ScriptRunner.EXIT_OK, new ScriptRunner(scripted, new PrintStream(out, true, StandardCharsets.UTF_8), new PrintStream(err, true, StandardCharsets.UTF_8)).run(script), err());
+
+		assertArrayEquals(rmtIni, Files.readAllBytes(dir.resolve("rmt.ini")), "rmt.ini changed by a script run");
+		assertArrayEquals(tuningIni, Files.readAllBytes(dir.resolve("tuning.ini")), "tuning.ini changed by a script run");
+	}
+
 	// ---- a missing player routine ----
 
 	/**

@@ -3,7 +3,7 @@ package org.atari.raster.rmt.model;
 /**
  * Ported from CAtariIO (src/cpp/AtariIO.h/.cpp) - {@code LoadDataAsBinaryFile}
  * (exercised indirectly via {@link AtariTrackerDriver#loadRMTRoutines}),
- * {@code LoadBinaryBlock} (exercised indirectly via {@link Song#loadRMT}),
+ * {@code LoadBinaryBlock} (exercised indirectly via {@link SongIO#loadRMT}),
  * and {@link #loadBinaryFile} (exercised indirectly via
  * {@code SapFileExporter#exportSapBLzss}'s real on-disk
  * {@code vu_player_v2.obx} load). {@code LoadWord} has no direct Java

@@ -1,5 +1,6 @@
 package org.atari.raster.rmt.ui;
 
+import org.atari.raster.rmt.model.IOHelpers;
 import org.atari.raster.rmt.model.Notes;
 import org.atari.raster.rmt.model.Part;
 import org.atari.raster.rmt.model.Song;
@@ -90,21 +91,21 @@ public final class TracksControl {
 
 			// Instrument
 			if ((n = tt.instr[xline]) >= 0) {
-				s[5] = Song.charH4(n);
-				s[6] = Song.charL4(n);
+				s[5] = IOHelpers.charH4(n);
+				s[6] = IOHelpers.charL4(n);
 			}
 
 			// Volume
 			if ((n = tt.volume[xline]) >= 0) {
 				s[8] = 'v';
-				s[9] = Song.charL4(n);
+				s[9] = IOHelpers.charL4(n);
 			}
 
 			// Speed
 			if ((n = tt.speed[xline]) >= 0) {
 				s[11] = 'F'; // Fxx is for speed commands, but eventually, more commands could be used...
-				s[12] = Song.charH4(n);
-				s[13] = Song.charL4(n);
+				s[12] = IOHelpers.charH4(n);
+				s[13] = IOHelpers.charL4(n);
 			}
 
 			// Display the line highlight colors only in valid patterns

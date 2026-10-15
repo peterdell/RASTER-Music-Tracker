@@ -741,7 +741,7 @@ public final class Instruments {
 		for (int k = 0; k < Instrument.ENVROWS; k++) {
 			StringBuilder bf = new StringBuilder();
 			for (int j = 0; j <= ai.parameters[Instrument.PAR_ENV_LENGTH]; j++) {
-				bf.append(Song.charL4(ai.envelope[j][k]));
+				bf.append(IOHelpers.charL4(ai.envelope[j][k]));
 			}
 			s.append(String.format("%s %s\n", SHENV_FIELD_NAME[k], bf));
 		}
@@ -750,7 +750,7 @@ public final class Instruments {
 		return s.toString();
 	}
 
-	/** Encodes every non-empty instrument as TXT, concatenated (the {@code [INSTRUMENT]} sections {@link Song#saveTxt} appends). */
+	/** Encodes every non-empty instrument as TXT, concatenated (the {@code [INSTRUMENT]} sections {@link SongIO#saveTxt} appends). */
 	public String saveAllTxt() {
 		StringBuilder s = new StringBuilder();
 		for (int i = 0; i < INSTRSNUM; i++) {
@@ -765,24 +765,24 @@ public final class Instruments {
 	 * Decodes one {@code [INSTRUMENT]} segment's TXT content (the instrument
 	 * number is parsed from the segment's own first line, matching C++'s
 	 * {@code LoadInstrument(-1, ...)} convention - the only way
-	 * {@link Song#loadTxt} calls this), returning the position right after
+	 * {@link SongIO#loadTxt} calls this), returning the position right after
 	 * the next {@code '['} (matching {@link Song#nextSegment}'s convention,
 	 * ready for the caller's own segment-name read).
 	 */
 	public int loadInstrumentTxt(String text, int pos) {
-		Song.Line firstLine = Song.readLine(text, pos);
+		IOHelpers.Line firstLine = IOHelpers.readLine(text, pos);
 		pos = firstLine.nextPos();
-		int instr = Song.hexstr(firstLine.content(), 0, 2);
+		int instr = IOHelpers.hexstr(firstLine.content(), 0, 2);
 
 		if (instr < 0 || instr >= INSTRSNUM) {
-			return Song.nextSegment(text, pos);
+			return IOHelpers.nextSegment(text, pos);
 		}
 
 		clearInstrument(instr);
 		Instrument ai = getInstrument(instr);
 
 		String value = firstLine.content().length() > 4 ? firstLine.content().substring(4) : "";
-		value = Song.trimstr(value);
+		value = IOHelpers.trimstr(value);
 		java.util.Arrays.fill(ai.name, ' ');
 		int lname = Math.min(value.length(), Instrument.INSTRUMENT_NAME_MAX_LEN);
 		for (int c = 0; c < lname; c++) {
@@ -803,7 +803,7 @@ public final class Instruments {
 				continue;
 			}
 
-			Song.Line rest = Song.readLine(text, pos);
+			IOHelpers.Line rest = IOHelpers.readLine(text, pos);
 			pos = rest.nextPos();
 			String kvLine = b + rest.content();
 
@@ -817,7 +817,7 @@ public final class Instruments {
 			boolean matchedParam = false;
 			for (ShPar p : SHPAR) {
 				if (key.equals(p.fieldName())) {
-					int v = Song.hexstr(kvValue, 0, 2) - p.displayOffset();
+					int v = IOHelpers.hexstr(kvValue, 0, 2) - p.displayOffset();
 					if (v >= 0) {
 						v &= p.parameterAND();
 						if (v > p.maxParameterValue()) {
@@ -834,9 +834,9 @@ public final class Instruments {
 			}
 
 			if (key.equals("TABLE:")) {
-				String tableValue = Song.trimstr(kvValue);
+				String tableValue = IOHelpers.trimstr(kvValue);
 				for (int j = 0; j < tableValue.length(); j += 3) {
-					int v = Song.hexstr(tableValue, j, 2);
+					int v = IOHelpers.hexstr(tableValue, j, 2);
 					if (v < 0) {
 						break;
 					}
@@ -848,7 +848,7 @@ public final class Instruments {
 			for (int j = 0; j < Instrument.ENVROWS; j++) {
 				if (key.equals(SHENV_FIELD_NAME[j])) {
 					for (int k = 0; k < kvValue.length() && k < Instrument.ENVELOPE_MAX_COLUMNS; k++) {
-						int v = Song.hexstr(kvValue, k, 1);
+						int v = IOHelpers.hexstr(kvValue, k, 1);
 						if (v < 0) {
 							break;
 						}

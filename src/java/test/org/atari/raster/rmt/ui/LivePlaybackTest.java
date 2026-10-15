@@ -10,6 +10,7 @@ import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
 
+import org.atari.raster.rmt.model.SongIO;
 import org.atari.raster.rmt.model.Atari;
 import org.atari.raster.rmt.model.AtariTrackerDriver;
 import org.atari.raster.rmt.model.Instruments;
@@ -119,7 +120,7 @@ class LivePlaybackTest {
 		byte[] mem = new byte[Atari.MEMORY_SIZE];
 		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
-		int end = session.song.makeModule(mem, 0x4000, SongIOType.RMT, instrumentSavedFlags, trackSavedFlags, session.tracks4_8);
+		int end = SongIO.makeModule(session.song, mem, 0x4000, SongIOType.RMT, instrumentSavedFlags, trackSavedFlags, session.tracks4_8);
 		byte[] module = RmtExporter.exportAsRMT(session.song, session.instruments, mem, 0x4000, end, instrumentSavedFlags);
 		ASAP asap = new ASAP();
 		try {

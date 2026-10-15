@@ -281,7 +281,7 @@ public:
 
     void DumpSongToPokeyStream(CPokeyStream& pokeyStream, PlayMode playMode, int songline, int trackline);
 
-    bool TestBeforeFileSave();
+    bool CheckBeforeFileSave();
     int GetSubsongParts(CString& resultstr) const;
 
     void MarkTF_USED(BYTE* arrayTRACKSNUM) const;

@@ -153,6 +153,7 @@
     <ClCompile Include="..\AtariTrackerDriver.cpp" />
     <ClCompile Include="..\SongCore.cpp" />
     <ClCompile Include="..\PokeyController.cpp" />
+    <ClCompile Include="..\SongIO.cpp" />
     <ClCompile Include="..\SongEditing.cpp" />
     <ClCompile Include="..\ClipboardCore.cpp" />
     <ClCompile Include="..\AtariIO.cpp" />

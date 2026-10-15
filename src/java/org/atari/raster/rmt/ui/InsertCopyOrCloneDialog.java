@@ -13,6 +13,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import com.wudsn.tools.base.gui.ModalDialog;
+import org.atari.raster.rmt.model.IOHelpers;
 import org.atari.raster.rmt.model.Song;
 
 /**
@@ -94,7 +95,7 @@ final class InsertCopyOrCloneDialog extends ModalDialog {
 
 	/** {@code Hexstr(s, 4)}: -1 if the text doesn't start with a hex digit. */
 	private static int hex(JTextField field) {
-		return Song.hexstr(field.getText().trim(), 0, 4);
+		return IOHelpers.hexstr(field.getText().trim(), 0, 4);
 	}
 
 	private static int atoi(JTextField field) {

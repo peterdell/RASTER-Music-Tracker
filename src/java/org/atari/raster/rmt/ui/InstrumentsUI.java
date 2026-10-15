@@ -3,6 +3,7 @@ package org.atari.raster.rmt.ui;
 import java.awt.Color;
 import java.util.Locale;
 
+import org.atari.raster.rmt.model.IOHelpers;
 import org.atari.raster.rmt.model.EnvelopeParameter;
 import org.atari.raster.rmt.model.Instrument;
 import org.atari.raster.rmt.model.InstrumentSection;
@@ -629,7 +630,7 @@ public final class InstrumentsUI {
 					c = 8; // Character in the envelope
 				}
 			} else {
-				c = Song.charL4(in.envelope[e][j]);
+				c = IOHelpers.charL4(in.envelope[e][j]);
 			}
 
 			if (j == ay && session.uiState.activePart == Part.PART_INSTRUMENTS) {

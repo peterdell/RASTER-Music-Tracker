@@ -40,9 +40,27 @@ class CrossProgramExportTest {
 	@TempDir
 	Path work;
 
+	/**
+	 * Both programs run on a per-run copy of the program folder's
+	 * rmt.ini/tuning.ini (plan 47): the originals are read-only inputs no run
+	 * can corrupt, and an aborted run cannot poison the next one's settings.
+	 */
+	private Path configCopy() throws IOException {
+		Path config = work.resolve("config");
+		Files.createDirectories(config);
+		for (String name : new String[] { "rmt.ini", "tuning.ini" }) {
+			Path source = RMT_EXE.getParent().resolve(name);
+			if (Files.isRegularFile(source)) {
+				Files.copy(source, config.resolve(name));
+			}
+		}
+		return config;
+	}
+
 	@Test
 	void everyScriptProducesTheSameFilesInBothPrograms() throws IOException, InterruptedException {
 		Assumptions.assumeTrue(Files.isRegularFile(RMT_EXE), "needs the C++ build: " + RMT_EXE.toAbsolutePath());
+		Path config = configCopy();
 		List<Path> scripts;
 		try (Stream<Path> files = Files.list(SCRIPTS)) {
 			scripts = files.filter(p -> p.getFileName().toString().endsWith(".rmtscript")).sorted().toList();
@@ -56,8 +74,8 @@ class CrossProgramExportTest {
 			Path cppOut = work.resolve("cpp").resolve(name);
 			Path javaOut = work.resolve("java").resolve(name);
 
-			runCpp(script, cppOut);
-			runJava(script, javaOut);
+			runCpp(script, cppOut, config);
+			runJava(script, javaOut, config);
 
 			TreeSet<String> names = new TreeSet<>();
 			try (Stream<Path> files = Files.list(cppOut)) {
@@ -91,13 +109,14 @@ class CrossProgramExportTest {
 		}
 	}
 
-	/** {@code Rmt.exe /SCRIPT:<script>} with {@code RMT_SCRIPT_OUTPUT} pointing at {@code out}; the C++ program reads its own rmt.ini/tuning.ini next to itself. */
-	private static void runCpp(Path script, Path out) throws IOException, InterruptedException {
+	/** {@code Rmt.exe /SCRIPT:<script>} with {@code RMT_SCRIPT_OUTPUT} pointing at {@code out} and {@code RMT_CONFIG_DIR} at the per-run settings copy. */
+	private static void runCpp(Path script, Path out, Path config) throws IOException, InterruptedException {
 		Files.createDirectories(out);
 		Path log = out.getParent().resolve(out.getFileName() + ".cpp.log");
 		ProcessBuilder pb = new ProcessBuilder(RMT_EXE.toAbsolutePath().toString(), "/SCRIPT:" + script.toAbsolutePath());
 		pb.environment().put(RmtApplication.SCRIPT_OUTPUT_VARIABLE, out.toAbsolutePath().toString());
 		pb.environment().put("RMT_SCRIPT_LOG", log.toAbsolutePath().toString()); // the C++ program's console output, whatever console the test runner has
+		pb.environment().put("RMT_CONFIG_DIR", config.toAbsolutePath().toString());
 		pb.redirectErrorStream(true);
 		Process process = pb.start();
 		if (!process.waitFor(5, TimeUnit.MINUTES)) {
@@ -108,10 +127,10 @@ class CrossProgramExportTest {
 		assertEquals(0, process.exitValue(), "Rmt.exe exit code for " + script.getFileName() + " (0x" + Integer.toHexString(process.exitValue()) + ")\n" + logText);
 	}
 
-	/** The same script through this port, with the same rmt.ini/tuning.ini the C++ program used (its program folder's). */
-	private static void runJava(Path script, Path out) throws IOException {
+	/** The same script through this port, with the same per-run rmt.ini/tuning.ini copy the C++ program used. */
+	private static void runJava(Path script, Path out, Path configDir) throws IOException {
 		RmtSession session = new RmtSession();
-		RmtConfig config = new RmtConfig(RMT_EXE.getParent());
+		RmtConfig config = new RmtConfig(configDir);
 		config.readRMTConfig(session);
 		config.readTuningConfig(session);
 		ScriptRunner runner = new ScriptRunner(session, new PrintStream(new java.io.ByteArrayOutputStream()), System.err);

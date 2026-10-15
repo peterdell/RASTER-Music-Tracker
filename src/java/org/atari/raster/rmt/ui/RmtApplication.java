@@ -39,6 +39,25 @@ public final class RmtApplication {
 	/** Environment variable naming the output folder of a {@code /SCRIPT} run (both programs honour it; it overrides the script's {@code set output}). */
 	public static final String SCRIPT_OUTPUT_VARIABLE = "RMT_SCRIPT_OUTPUT";
 
+	/**
+	 * Reads {@code rmt.ini}/{@code tuning.ini} from this folder instead of
+	 * {@link ProgramFolder#getConfigFolder()} - the same variable the C++
+	 * program honors, configuration only, unlike {@code -Drmt.config.dir},
+	 * which overrides the whole program folder (resources included). The
+	 * comparison harnesses point both programs at a per-run copy of the
+	 * settings with it (plans/47_SCRIPT_SETTINGS_ISOLATION_PLAN.md).
+	 */
+	public static final String CONFIG_DIR_VARIABLE = "RMT_CONFIG_DIR";
+
+	/** The folder {@code rmt.ini}/{@code tuning.ini} are read and written in: {@link #CONFIG_DIR_VARIABLE} when set, else the program's own. */
+	public static Path getConfigFolder() {
+		String override = System.getenv(CONFIG_DIR_VARIABLE);
+		if (override != null && !override.isEmpty()) {
+			return Path.of(override);
+		}
+		return ProgramFolder.getConfigFolder();
+	}
+
 	private RmtApplication() {
 	}
 
@@ -59,7 +78,7 @@ public final class RmtApplication {
 			ProgramFolder.set(programFolder); // g_prgpath
 			ProgramFolder.setInstallFolder(getInstallFolder());
 			RmtSession session = new RmtSession();
-			RmtConfig config = new RmtConfig(ProgramFolder.getConfigFolder());
+			RmtConfig config = new RmtConfig(getConfigFolder());
 			RmtMainWindow window = new RmtMainWindow(session, config, RmtWindowPreferences.forUser());
 
 			if (commandLine.file() != null) {
@@ -113,7 +132,7 @@ public final class RmtApplication {
 		ProgramFolder.setInstallFolder(getInstallFolder());
 		RmtSession session = new RmtSession();
 		org.atari.raster.rmt.script.ScriptRunner runner = new org.atari.raster.rmt.script.ScriptRunner(session, System.out, System.err);
-		RmtConfig config = new RmtConfig(ProgramFolder.getConfigFolder());
+		RmtConfig config = new RmtConfig(getConfigFolder());
 		config.readRMTConfig(session);
 		config.readTuningConfig(session);
 		String outputOverride = System.getenv(SCRIPT_OUTPUT_VARIABLE);
