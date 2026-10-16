@@ -12,8 +12,8 @@ class TuningSettingsTest {
 		TuningSettings settings = new TuningSettings();
 		settings.initialize(false);
 		assertEquals(440.83751645933, settings.basetuning);
-		assertEquals(3, settings.basenote);
-		assertEquals(0, settings.temperament);
+		assertEquals(BaseNote.A, settings.basenote);
+		assertEquals(Temperament.EQUAL, settings.temperament);
 	}
 
 	@Test
@@ -21,7 +21,7 @@ class TuningSettingsTest {
 		TuningSettings settings = new TuningSettings();
 		settings.initialize(true);
 		assertEquals(444.895778867913, settings.basetuning);
-		assertEquals(3, settings.basenote);
-		assertEquals(0, settings.temperament);
+		assertEquals(BaseNote.A, settings.basenote);
+		assertEquals(Temperament.EQUAL, settings.temperament);
 	}
 }

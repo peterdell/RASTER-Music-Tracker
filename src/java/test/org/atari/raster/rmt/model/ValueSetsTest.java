@@ -129,4 +129,51 @@ class ValueSetsTest {
 		assertEquals("=", AssemblerFormat.ATASM.getEqualDirective());
 		assertEquals("equ", AssemblerFormat.XASM.getEqualDirective());
 	}
+
+	/** The 30 entries of the C++ IDC_TEMPERAMENT combo (Rmt.rc's DLGINIT), number = combo index = ini value. */
+	@Test
+	void theTemperamentsHaveTheirTextsAndNumbers() {
+		List<Temperament> all = Temperament.getValues();
+		assertTextsAreLoaded(all);
+		assertEquals(Tuning.TUNING_CUSTOM + 1, all.size());
+		for (int i = 0; i < all.size(); i++) {
+			assertEquals(i, all.get(i).getNumber(), "getValues() keeps the number order");
+		}
+		assertEquals("Equal Temperament (Default)", Temperament.EQUAL.getText());
+		assertEquals("Tempérament Égal a Quintes Justes", Temperament.EGAL_QUINTES_JUSTES.getText());
+		assertEquals("Custom Temperament with RA/TIO", Temperament.CUSTOM.getText());
+		assertSame(Temperament.WERCKMEISTER_III, Temperament.getInstance(4));
+		assertSame(Temperament.BACH, Temperament.getInstance("BACH"));
+		assertTrue(Temperament.CUSTOM.isCustom());
+		assertFalse(Temperament.EQUAL.isCustom());
+	}
+
+	/** A number nobody owns maps per C++'s semantic (&gt;= 29 is custom) or to a guard value. */
+	@Test
+	void strayTemperamentAndBaseNoteNumbersFallBack() {
+		assertSame(Temperament.CUSTOM, Temperament.getInstanceWithFallback(29));
+		assertSame(Temperament.CUSTOM, Temperament.getInstanceWithFallback(35));
+		assertSame(Temperament.EQUAL, Temperament.getInstanceWithFallback(-1));
+		assertSame(Temperament.BAILEY, Temperament.getInstanceWithFallback(10));
+		assertNull(Temperament.getInstance(30));
+		assertSame(BaseNote.A, BaseNote.getInstanceWithFallback(99));
+		assertSame(BaseNote.A, BaseNote.getInstanceWithFallback(-1));
+		assertSame(BaseNote.C_SHARP, BaseNote.getInstanceWithFallback(11));
+	}
+
+	/** The 12 entries of the C++ IDC_BASENOTE combo, descending from C- (0) to C# (11); the default 3 is A-. */
+	@Test
+	void theBaseNotesHaveTheirTextsAndNumbers() {
+		List<BaseNote> all = BaseNote.getValues();
+		assertTextsAreLoaded(all);
+		assertEquals(12, all.size());
+		for (int i = 0; i < all.size(); i++) {
+			assertEquals(i, all.get(i).getNumber(), "getValues() keeps the number order");
+		}
+		assertEquals("C-", BaseNote.C.getText());
+		assertEquals("A-", BaseNote.A.getText());
+		assertEquals("C#", BaseNote.C_SHARP.getText());
+		assertSame(BaseNote.A, BaseNote.getInstance(3));
+		assertSame(BaseNote.G_SHARP, BaseNote.getInstance("G_SHARP"));
+	}
 }

@@ -401,7 +401,7 @@ public final class Tuning {
 		// TuningTables.cpp's GenerateTable() before omitting.
 		for (int i = 0; i < length; i++) {
 			int note = i + semitone;
-			double pitch = getTruePitch(tuningSettings.basetuning, tuningSettings.temperament, tuningSettings.basenote, note);
+			double pitch = getTruePitch(tuningSettings.basetuning, tuningSettings.temperament.getNumber(), tuningSettings.basenote.getNumber(), note);
 			int audf = getAUDF(pitch, coarseDivisor, divisor, cycle);
 
 			boolean mod3 = (audf + cycle) % 3 == 0;
@@ -495,9 +495,9 @@ public final class Tuning {
 		}
 
 		int notesPerOctave = 12; // by default, an octave uses 12 semitones...
-		if (tuningSettings.temperament > NO_TEMPERAMENT && tuningSettings.temperament < TUNING_CUSTOM) {
+		if (tuningSettings.temperament != Temperament.EQUAL && !tuningSettings.temperament.isCustom()) {
 			// ...unless it is specified otherwise in the Temperament presets
-			notesPerOctave = computeNotesPerOctave(tuningSettings.temperament);
+			notesPerOctave = computeNotesPerOctave(tuningSettings.temperament.getNumber());
 		}
 
 		// calculate the custom ratio used for each semitone

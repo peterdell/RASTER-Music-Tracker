@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -12,8 +11,10 @@ import javax.swing.JTextField;
 
 import com.wudsn.tools.base.gui.ElementFactory;
 import com.wudsn.tools.base.gui.ModalDialog;
+import com.wudsn.tools.base.gui.ValueSetField;
+import org.atari.raster.rmt.model.BaseNote;
 import org.atari.raster.rmt.model.IntegerFraction;
-import org.atari.raster.rmt.model.Tuning;
+import org.atari.raster.rmt.model.Temperament;
 import org.atari.raster.rmt.model.TuningRatios;
 import org.atari.raster.rmt.model.TuningSettings;
 
@@ -37,21 +38,8 @@ final class TuningDialog extends ModalDialog {
 
 	private static final long serialVersionUID = 1L;
 
-	/** {@code IDC_BASENOTE}'s entries (Rmt.rc's DLGINIT), index = {@code basenote}; the default 3 is A. */
-	static final String[] BASE_NOTES = { "C-", "B-", "A#", "A-", "G#", "G-", "F#", "F-", "E-", "D#", "D-", "C#" };
-
-	/** {@code IDC_TEMPERAMENT}'s entries, index = {@code temperament}: 0 equal, 1-28 the presets of {@code CTuning}, 29 the custom ratios below. */
-	static final String[] TEMPERAMENTS = { "Equal Temperament (Default)", "Thomas Young 1799's Well Temperament no.1", "Thomas Young 1799's Well Temperament no.2", "Thomas Young 1807's Well Temperament", "Andreas Werckmeister's Temperament III (1681)", "Tempérament Égal a Quintes Justes",
-			"d'Alembert and Rousseau Tempérament Ordinaire (1752/1767)", "Aron - Neidhardt Equal Beating Well Temperament", "Atom Schisma Scale", "12-TET Approximation with Minimal Order 17 Beats", "Paul Bailey's Modern Well Temperament (2002)", "John Barnes' Temperament (1977) Made After Analysis of Wohltemperierte Klavier",
-			"Bethisy Tempérament Ordinaire", "Big Gulp", "12 Tone Scale by Bohlen Generated from the 4:7 : 10 Triad, Acustica 39/2/1978", "This Scale May Also be Called the \"Wedding Cake\"", "Upside Down Wedding Cake (Divorce Cake)", "12 Tone Pythagorean Scale", "Robert Schneider, Scale of Log(4) ..Log(16)",
-			"Zarlino Tempérament Extraordinaire", "Fokker's 7-Limit 12-Tone Just Scale", "Bach Temperament, A- = 400hz", "Vallotti & Young Scale (Vallotti Version), Also Known as Tartini-Vallotti (1754)", "Vallotti-Young and Werckmeister III, 10 Cents 5-Limit Lesfip Scale", "Optimally Consonant Major Pentatonic, John deLaubenfels (2001)",
-			"Ancient Greek Aeolic, Also Tritriaic Scale of the 54:64 : 81 Triad", "African Bapare Xylophone (Idiophone, Loose Log)", "African Yaswa Xylophone (Idiophone, Calbas Resonators with Membrane)", "19-EDO Generated Using Scale Workshop", "Custom Temperament with RA/TIO" };
-
 	/** The ratio rows' labels, in {@link TuningRatios}' field order. */
 	static final String[] RATIO_NAMES = { "Unison", "Minor 2nd", "Major 2nd", "Minor 3rd", "Major 3rd", "Perfect 4th", "Tritone", "Perfect 5th", "Minor 6th", "Major 6th", "Minor 7th", "Major 7th", "Octave" };
-
-	static final double BASE_TUNING_MIN = 6.875;
-	static final double BASE_TUNING_MAX = 7040;
 
 	private final RmtSession session;
 	/** {@code m_tuningSettings}/{@code m_tuningRatios}: the dialog's working copy. */
@@ -62,8 +50,9 @@ final class TuningDialog extends ModalDialog {
 	private final TuningRatios ratiosBackup = new TuningRatios();
 
 	private final JTextField baseTuningField = new JTextField(12);
-	private final JComboBox<String> baseNoteCombo = new JComboBox<>(BASE_NOTES);
-	private final JComboBox<String> temperamentCombo = new JComboBox<>(TEMPERAMENTS);
+	/** {@code IDC_BASENOTE}/{@code IDC_TEMPERAMENT}, holding the {@link BaseNote}/{@link Temperament} instances rather than combo indexes. */
+	private final ValueSetField<BaseNote> baseNoteCombo = new ValueSetField<>(BaseNote.getValues());
+	private final ValueSetField<Temperament> temperamentCombo = new ValueSetField<>(Temperament.getValues());
 	private final JTextField[] numeratorFields = new JTextField[RATIO_NAMES.length];
 	private final JTextField[] denominatorFields = new JTextField[RATIO_NAMES.length];
 	private boolean filled;
@@ -163,8 +152,8 @@ final class TuningDialog extends ModalDialog {
 		}
 		filled = true;
 		baseTuningField.setText(RmtConfig.formatDouble(settings.basetuning));
-		baseNoteCombo.setSelectedIndex(Math.max(0, Math.min(BASE_NOTES.length - 1, settings.basenote)));
-		temperamentCombo.setSelectedIndex(Math.max(0, Math.min(TEMPERAMENTS.length - 1, settings.temperament)));
+		baseNoteCombo.setValue(settings.basenote); // always a valid instance - the config read already mapped stray numbers
+		temperamentCombo.setValue(settings.temperament);
 		IntegerFraction[] f = toArray(ratios);
 		for (int i = 0; i < f.length; i++) {
 			numeratorFields[i].setText(Integer.toString(f[i].numerator));
@@ -175,7 +164,8 @@ final class TuningDialog extends ModalDialog {
 
 	/** Only the custom temperament plays the ratio fields, so they are only enabled there. */
 	private void updateRatioFieldsEnabled() {
-		boolean enabled = temperamentCombo.getSelectedIndex() == Tuning.TUNING_CUSTOM;
+		Temperament temperament = temperamentCombo.getValue();
+		boolean enabled = temperament != null && temperament.isCustom();
 		for (int i = 0; i < numeratorFields.length; i++) {
 			numeratorFields[i].setEnabled(enabled);
 			denominatorFields[i].setEnabled(enabled);
@@ -189,8 +179,8 @@ final class TuningDialog extends ModalDialog {
 			return;
 		}
 		settings.basetuning = DialogSupport.parseDouble(baseTuningField);
-		settings.basenote = baseNoteCombo.getSelectedIndex();
-		settings.temperament = temperamentCombo.getSelectedIndex();
+		settings.basenote = baseNoteCombo.getValue();
+		settings.temperament = temperamentCombo.getValue();
 		IntegerFraction[] f = new IntegerFraction[RATIO_NAMES.length];
 		for (int i = 0; i < f.length; i++) {
 			f[i] = new IntegerFraction(DialogSupport.parseInt(numeratorFields[i]), DialogSupport.parseInt(denominatorFields[i]));
@@ -201,7 +191,7 @@ final class TuningDialog extends ModalDialog {
 	/** The DDV checks, silently. */
 	private boolean fieldsValid() {
 		Double tuning = DialogSupport.parseDouble(baseTuningField);
-		if (tuning == null || tuning.isNaN() || tuning < BASE_TUNING_MIN || tuning > BASE_TUNING_MAX) {
+		if (tuning == null || tuning.isNaN() || tuning < TuningSettings.BASETUNING_MIN || tuning > TuningSettings.BASETUNING_MAX) {
 			return false;
 		}
 		for (int i = 0; i < RATIO_NAMES.length; i++) {
@@ -218,7 +208,7 @@ final class TuningDialog extends ModalDialog {
 
 	/** The DDV checks with MFC's prompts. */
 	private boolean validateFields() {
-		if (!DialogSupport.validateDouble(this, baseTuningField, BASE_TUNING_MIN, BASE_TUNING_MAX)) {
+		if (!DialogSupport.validateDouble(this, baseTuningField, TuningSettings.BASETUNING_MIN, TuningSettings.BASETUNING_MAX)) {
 			return false;
 		}
 		for (int i = 0; i < RATIO_NAMES.length; i++) {

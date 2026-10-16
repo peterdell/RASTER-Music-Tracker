@@ -54,8 +54,8 @@ public final class DataTypes extends NLS {
 
 	// TuningDialog (IDD_TUNING)
 	public static DataType TuningDialog_BaseTuning = new DataType(Double.class);
-	public static DataType TuningDialog_BaseNote = new DataType(String.class);
-	public static DataType TuningDialog_Temperament = new DataType(String.class);
+	public static DataType TuningDialog_BaseNote = new DataType(org.atari.raster.rmt.model.BaseNote.class);
+	public static DataType TuningDialog_Temperament = new DataType(org.atari.raster.rmt.model.Temperament.class);
 
 	static {
 		initializeClass(DataTypes.class, null);

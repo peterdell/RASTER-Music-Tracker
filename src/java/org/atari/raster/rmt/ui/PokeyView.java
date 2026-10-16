@@ -73,7 +73,7 @@ public final class PokeyView {
 
 		// Tuning
 		final double basetuning = tuningSettings.basetuning;
-		final int basenote = tuningSettings.basenote;
+		final int basenote = tuningSettings.basenote.getNumber();
 		final int reverseBasenote = (24 - basenote) % notesPerOctave;
 		canvas.colorMini(TextMiniColor.GRAY).at(0, tuningRow).printMini("A- TUNING:       HZ, PAL  , FREQ:        HZ, CYCLES: ");
 		canvas.printfMini(2, "%s", Notes.getNote(reverseBasenote)); // overwrite A- with the given basenote

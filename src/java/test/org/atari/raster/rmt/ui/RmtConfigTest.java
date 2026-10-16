@@ -13,9 +13,11 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import org.atari.raster.rmt.model.BaseNote;
 import org.atari.raster.rmt.model.IntegerFraction;
 import org.atari.raster.rmt.model.KeyboardLayout;
 import org.atari.raster.rmt.model.MessageAnswer;
+import org.atari.raster.rmt.model.Temperament;
 import org.atari.raster.rmt.model.MessageButtons;
 import org.atari.raster.rmt.model.Messages;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
@@ -176,8 +178,8 @@ class RmtConfigTest {
 		o.view.debugDisplay = false;
 		written.song.setNTSC(true);
 		written.song.getTuning().basetuning = 432.5;
-		written.song.getTuning().basenote = 7;
-		written.song.getTuning().temperament = 29;
+		written.song.getTuning().basenote = BaseNote.F;
+		written.song.getTuning().temperament = Temperament.CUSTOM;
 		written.song.getTuningRatios().maj7th = new IntegerFraction(243, 128);
 		written.song.getTuningRatios().octave = new IntegerFraction(4, 2);
 
@@ -276,13 +278,29 @@ class RmtConfigTest {
 				"MAJ_3RD = 5", // no '/': C++'s value2 is unset; treated as 0 -> 1/1
 				"MIN_2ND = 40 / 38"), tuning, ratios);
 		assertEquals(432.5, tuning.basetuning);
-		assertEquals(9, tuning.basenote);
-		assertEquals(29, tuning.temperament);
+		assertEquals(BaseNote.D_SHARP, tuning.basenote); // number 9
+		assertEquals(Temperament.CUSTOM, tuning.temperament); // number 29
 		assertEquals(new IntegerFraction(3, 2), ratios.perf5th);
 		assertEquals(new IntegerFraction(1, 1), ratios.octave);
 		assertEquals(new IntegerFraction(1, 1), ratios.maj3rd);
 		assertEquals(new IntegerFraction(20, 19), ratios.min2nd);
 		assertEquals(new IntegerFraction(10, 9), ratios.maj2nd); // untouched
+	}
+
+	/** The ini file can carry any number; the mapping guards where C++ reads out of bounds (plans/48_TUNING_VALUE_SETS_PLAN.md). */
+	@Test
+	void strayTuningNumbersMapToCustomEqualAndTheDefaultBaseNote() {
+		TuningSettings tuning = new TuningSettings();
+		TuningRatios ratios = new TuningRatios();
+		ratios.initialize();
+		RmtConfig.parseTuningConfig(List.of(
+				"BASENOTE = 99", // unknown -> the default A
+				"TEMPERAMENT = 35"), tuning, ratios); // >= 29 is custom, C++'s own semantic
+		assertEquals(BaseNote.A, tuning.basenote);
+		assertEquals(Temperament.CUSTOM, tuning.temperament);
+
+		RmtConfig.parseTuningConfig(List.of("TEMPERAMENT = -1"), tuning, ratios); // a guard, C++ reads its preset table out of bounds
+		assertEquals(Temperament.EQUAL, tuning.temperament);
 	}
 
 	@Test

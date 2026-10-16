@@ -21,8 +21,9 @@ import org.junit.jupiter.api.Test;
 
 import org.atari.raster.rmt.model.IntegerFraction;
 import org.atari.raster.rmt.model.KeyboardLayout;
+import org.atari.raster.rmt.model.BaseNote;
+import org.atari.raster.rmt.model.Temperament;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
-import org.atari.raster.rmt.model.Tuning;
 
 /**
  * The three B6 dialogs' data binding and validation, driven through their
@@ -140,7 +141,7 @@ class OptionsDialogsTest {
 	@Test
 	void tuningDialogRoundTripsAndOnlyTestOrOKReachTheSession() {
 		session.song.getTuning().basetuning = 432;
-		session.song.getTuning().temperament = 29;
+		session.song.getTuning().temperament = Temperament.CUSTOM;
 		session.song.getTuningRatios().maj7th = new IntegerFraction(243, 128);
 		TuningDialog dialog = new TuningDialog(null, session);
 		dialog.dataToUi();
@@ -149,8 +150,9 @@ class OptionsDialogsTest {
 		assertEquals(1 + 2 * 13, fields.size());
 		assertEquals("432", fields.get(0).getText());
 		List<JComboBox> combos = find(dialog, JComboBox.class);
-		assertEquals("A-", combos.get(0).getSelectedItem());
-		assertEquals("Custom Temperament with RA/TIO", combos.get(1).getSelectedItem());
+		assertEquals(BaseNote.A, combos.get(0).getSelectedItem());
+		assertEquals(Temperament.CUSTOM, combos.get(1).getSelectedItem());
+		assertEquals("Custom Temperament with RA/TIO", combos.get(1).getSelectedItem().toString()); // a combo box shows toString()
 		assertEquals("243", fields.get(1 + 2 * 11).getText()); // Major 7th numerator
 		assertEquals("128", fields.get(2 + 2 * 11).getText());
 		assertEquals("2", fields.get(1 + 2 * 12).getText()); // Octave
@@ -182,7 +184,7 @@ class OptionsDialogsTest {
 
 	@Test
 	void tuningDialogEnablesTheRatioFieldsOnlyForTheCustomTemperament() {
-		session.song.getTuning().temperament = 0; // Equal Temperament (Default)
+		session.song.getTuning().temperament = Temperament.EQUAL;
 		TuningDialog dialog = new TuningDialog(null, session);
 		dialog.dataToUi();
 
@@ -193,12 +195,12 @@ class OptionsDialogsTest {
 		}
 
 		List<JComboBox> combos = find(dialog, JComboBox.class);
-		combos.get(1).setSelectedIndex(Tuning.TUNING_CUSTOM);
+		combos.get(1).setSelectedItem(Temperament.CUSTOM);
 		for (int i = 1; i < fields.size(); i++) {
 			assertTrue(fields.get(i).isEnabled(), "the custom temperament is played from the ratios");
 		}
 
-		combos.get(1).setSelectedIndex(4); // Werckmeister III
+		combos.get(1).setSelectedItem(Temperament.WERCKMEISTER_III);
 		for (int i = 1; i < fields.size(); i++) {
 			assertFalse(fields.get(i).isEnabled());
 		}
@@ -223,10 +225,10 @@ class OptionsDialogsTest {
 
 	@Test
 	void theComboEntriesMatchTheCppResources() {
-		assertEquals(12, TuningDialog.BASE_NOTES.length);
-		assertEquals("A-", TuningDialog.BASE_NOTES[3]); // the default basenote
-		assertEquals(30, TuningDialog.TEMPERAMENTS.length); // 0 equal + 28 presets + custom (TUNING_PRESETS = 29 is the custom index)
-		assertEquals(org.atari.raster.rmt.model.Tuning.TUNING_CUSTOM, TuningDialog.TEMPERAMENTS.length - 1);
+		assertEquals(12, BaseNote.getValues().size());
+		assertEquals("A-", BaseNote.getInstance(3).getText()); // the default basenote
+		assertEquals(30, Temperament.getValues().size()); // 0 equal + 28 presets + custom (TUNING_PRESETS = 29 is the custom index)
+		assertEquals(org.atari.raster.rmt.model.Tuning.TUNING_CUSTOM, Temperament.CUSTOM.getNumber());
 		// the driver versions are a value set now: the six the dialog offers, with their texts from ValueSets.properties
 		assertEquals(6, TrackerDriverVersion.getSelectableValues().size());
 		assertEquals("RMT 1.28 Unpatched by Raster", TrackerDriverVersion.getSelectableValues().get(0).getText());

@@ -1256,8 +1256,8 @@ class SongEditingTest {
 		song.setNTSC(true);
 		song.resetTuningVariables();
 		assertEquals(444.895778867913, tuning.basetuning, 0.0);
-		assertEquals(3, tuning.basenote);
-		assertEquals(0, tuning.temperament);
+		assertEquals(BaseNote.A, tuning.basenote);
+		assertEquals(Temperament.EQUAL, tuning.temperament);
 
 		song.setNTSC(false);
 		song.resetTuningVariables();

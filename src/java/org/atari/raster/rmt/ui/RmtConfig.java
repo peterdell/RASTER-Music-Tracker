@@ -10,9 +10,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.atari.raster.rmt.model.BaseNote;
 import org.atari.raster.rmt.model.IntegerFraction;
 import org.atari.raster.rmt.model.RmtVersion;
 import org.atari.raster.rmt.model.KeyboardLayout;
+import org.atari.raster.rmt.model.Temperament;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
 import org.atari.raster.rmt.model.TuningRatios;
 import org.atari.raster.rmt.model.TuningSettings;
@@ -297,8 +299,8 @@ public final class RmtConfig {
 			switch (name) {
 			// TUNING
 			case "TUNING" -> tuning.basetuning = atof(value);
-			case "BASENOTE" -> tuning.basenote = atoi(value);
-			case "TEMPERAMENT" -> tuning.temperament = atoi(value);
+			case "BASENOTE" -> tuning.basenote = BaseNote.getInstanceWithFallback(atoi(value));
+			case "TEMPERAMENT" -> tuning.temperament = Temperament.getInstanceWithFallback(atoi(value));
 			// RATIOS
 			case "UNISON" -> ratios.unison = readIntegerFraction(value, value2);
 			case "MIN_2ND" -> ratios.min2nd = readIntegerFraction(value, value2);
@@ -343,8 +345,8 @@ public final class RmtConfig {
 
 		os.append("\n# TUNING\n\n");
 		os.append("TUNING = ").append(formatDouble(tuning.basetuning)).append('\n');
-		line(os, "BASENOTE", tuning.basenote);
-		line(os, "TEMPERAMENT", tuning.temperament);
+		line(os, "BASENOTE", tuning.basenote.getNumber());
+		line(os, "TEMPERAMENT", tuning.temperament.getNumber());
 
 		os.append("\n# RATIOS\n\n");
 		writeIntegerFraction(os, "UNISON", ratios.unison);
