@@ -48,8 +48,7 @@ class AtariTrackerDriverTest : public ::testing::Test {
     // T2), and CTuning::InitTuning() exits the process on an uninitialized
     // basetuning, so the tuning globals are set up like AtariTests.cpp does.
     void SetUp() override {
-        g_Song.GetTuning().Initialize(false); // PAL
-        g_Song.GetTuningRatios().Initialize();
+        g_Song.GetTuningSettings().Initialize(false); // PAL
     }
 
     void TearDown() override {
@@ -82,7 +81,7 @@ TEST_F(AtariTrackerDriverTest, LoadRMTRoutinesRegeneratesTheTuningTablesOverTheD
     // deliberately equal at the default settings (T7), which makes a changed
     // setting the only tell: doubling the base tuning halves every frequency,
     // taking the bell-1.79 table's first byte from the shipped $D6 to $69.
-    g_Song.GetTuning().basetuning *= 2;
+    g_Song.GetTuningSettings().basetuning *= 2;
 
     EXPECT_GT(driver.LoadRMTRoutines(TrackerDriverVersion::PATCH16), 0);
 

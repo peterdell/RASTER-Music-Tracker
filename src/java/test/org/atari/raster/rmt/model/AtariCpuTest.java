@@ -45,10 +45,8 @@ class AtariCpuTest {
 		AtariCpu cpu = new AtariCpu(false, false);
 		Atari atari = new Atari(cpu);
 		TuningSettings tuning = new TuningSettings();
-		tuning.initialize(false);
-		TuningRatios ratios = new TuningRatios();
-		ratios.initialize();
-		atari.init(false, tuning, ratios);
+		tuning.initialize(false); // the ratios inside included
+		atari.init(false, tuning);
 		AtariTrackerDriver driver = new AtariTrackerDriver(atari);
 		assertTrue(driver.loadRMTRoutines(TrackerDriverVersion.PATCH16) > 0);
 		Instruments instruments = new Instruments();

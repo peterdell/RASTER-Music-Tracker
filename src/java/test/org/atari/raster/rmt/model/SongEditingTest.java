@@ -1251,7 +1251,7 @@ class SongEditingTest {
 
 	@Test
 	void resetTuningVariablesUsesTheNtscOrPalBaseTuning() {
-		TuningSettings tuning = song.getTuning();
+		TuningSettings tuning = song.getTuningSettings();
 
 		song.setNTSC(true);
 		song.resetTuningVariables();
@@ -1888,10 +1888,8 @@ class SongEditingTest {
 	private void useRealAtari(boolean stereo) {
 		Atari atari = new Atari(new AtariCpu(false, stereo));
 		TuningSettings tuningSettings = new TuningSettings();
-		tuningSettings.initialize(false);
-		TuningRatios tuningRatios = new TuningRatios();
-		tuningRatios.initialize();
-		atari.init(false, tuningSettings, tuningRatios);
+		tuningSettings.initialize(false); // the ratios inside included
+		atari.init(false, tuningSettings);
 		atariTrackerDriver = new AtariTrackerDriver(atari);
 		assertTrue(atariTrackerDriver.loadRMTRoutines(TrackerDriverVersion.PATCH16) > 0);
 		instruments.attachAtari(atari, () -> stereo);

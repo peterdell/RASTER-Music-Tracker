@@ -25,7 +25,6 @@ TuningDlg::TuningDlg(CWnd* pParent /*=nullptr*/)
 {
 
     m_tuningSettings = {};
-    m_tuningRatios = {};
 }
 
 void TuningDlg::Show(const BOOL test) {
@@ -41,33 +40,33 @@ void TuningDlg::DoDataExchange(CDataExchange* pDX)
     DDX_CBIndex(pDX, IDC_BASENOTE, m_tuningSettings.basenote);
     DDX_CBIndex(pDX, IDC_TEMPERAMENT, m_tuningSettings.temperament);
     // numerator values
-    DDX_Text(pDX, IDC_UNISON_L, m_tuningRatios.UNISON.numerator);
-    DDX_Text(pDX, IDC_MINOR_2ND_L, m_tuningRatios.MIN_2ND.numerator);
-    DDX_Text(pDX, IDC_MAJOR_2ND_L, m_tuningRatios.MAJ_2ND.numerator);
-    DDX_Text(pDX, IDC_MINOR_3RD_L, m_tuningRatios.MIN_3RD.numerator);
-    DDX_Text(pDX, IDC_MAJOR_3RD_L, m_tuningRatios.MAJ_3RD.numerator);
-    DDX_Text(pDX, IDC_PERFECT_4TH_L, m_tuningRatios.PERF_4TH.numerator);
-    DDX_Text(pDX, IDC_TRITONE_L, m_tuningRatios.TRITONE.numerator);
-    DDX_Text(pDX, IDC_PERFECT_5TH_L, m_tuningRatios.PERF_5TH.numerator);
-    DDX_Text(pDX, IDC_MINOR_6TH_L, m_tuningRatios.MIN_6TH.numerator);
-    DDX_Text(pDX, IDC_MAJOR_6TH_L, m_tuningRatios.MAJ_6TH.numerator);
-    DDX_Text(pDX, IDC_MINOR_7TH_L, m_tuningRatios.MIN_7TH.numerator);
-    DDX_Text(pDX, IDC_MAJOR_7TH_L, m_tuningRatios.MAJ_7TH.numerator);
-    DDX_Text(pDX, IDC_OCTAVE_L, m_tuningRatios.OCTAVE.numerator);
+    DDX_Text(pDX, IDC_UNISON_L, m_tuningSettings.ratios.UNISON.numerator);
+    DDX_Text(pDX, IDC_MINOR_2ND_L, m_tuningSettings.ratios.MIN_2ND.numerator);
+    DDX_Text(pDX, IDC_MAJOR_2ND_L, m_tuningSettings.ratios.MAJ_2ND.numerator);
+    DDX_Text(pDX, IDC_MINOR_3RD_L, m_tuningSettings.ratios.MIN_3RD.numerator);
+    DDX_Text(pDX, IDC_MAJOR_3RD_L, m_tuningSettings.ratios.MAJ_3RD.numerator);
+    DDX_Text(pDX, IDC_PERFECT_4TH_L, m_tuningSettings.ratios.PERF_4TH.numerator);
+    DDX_Text(pDX, IDC_TRITONE_L, m_tuningSettings.ratios.TRITONE.numerator);
+    DDX_Text(pDX, IDC_PERFECT_5TH_L, m_tuningSettings.ratios.PERF_5TH.numerator);
+    DDX_Text(pDX, IDC_MINOR_6TH_L, m_tuningSettings.ratios.MIN_6TH.numerator);
+    DDX_Text(pDX, IDC_MAJOR_6TH_L, m_tuningSettings.ratios.MAJ_6TH.numerator);
+    DDX_Text(pDX, IDC_MINOR_7TH_L, m_tuningSettings.ratios.MIN_7TH.numerator);
+    DDX_Text(pDX, IDC_MAJOR_7TH_L, m_tuningSettings.ratios.MAJ_7TH.numerator);
+    DDX_Text(pDX, IDC_OCTAVE_L, m_tuningSettings.ratios.OCTAVE.numerator);
     // denominator values
-    DDX_Text(pDX, IDC_UNISON_R, m_tuningRatios.UNISON.denominator);
-    DDX_Text(pDX, IDC_MINOR_2ND_R, m_tuningRatios.MIN_2ND.denominator);
-    DDX_Text(pDX, IDC_MAJOR_2ND_R, m_tuningRatios.MAJ_2ND.denominator);
-    DDX_Text(pDX, IDC_MINOR_3RD_R, m_tuningRatios.MIN_3RD.denominator);
-    DDX_Text(pDX, IDC_MAJOR_3RD_R, m_tuningRatios.MAJ_3RD.denominator);
-    DDX_Text(pDX, IDC_PERFECT_4TH_R, m_tuningRatios.PERF_4TH.denominator);
-    DDX_Text(pDX, IDC_TRITONE_R, m_tuningRatios.TRITONE.denominator);
-    DDX_Text(pDX, IDC_PERFECT_5TH_R, m_tuningRatios.PERF_5TH.denominator);
-    DDX_Text(pDX, IDC_MINOR_6TH_R, m_tuningRatios.MIN_6TH.denominator);
-    DDX_Text(pDX, IDC_MAJOR_6TH_R, m_tuningRatios.MAJ_6TH.denominator);
-    DDX_Text(pDX, IDC_MINOR_7TH_R, m_tuningRatios.MIN_7TH.denominator);
-    DDX_Text(pDX, IDC_MAJOR_7TH_R, m_tuningRatios.MAJ_7TH.denominator);
-    DDX_Text(pDX, IDC_OCTAVE_R, m_tuningRatios.OCTAVE.denominator);
+    DDX_Text(pDX, IDC_UNISON_R, m_tuningSettings.ratios.UNISON.denominator);
+    DDX_Text(pDX, IDC_MINOR_2ND_R, m_tuningSettings.ratios.MIN_2ND.denominator);
+    DDX_Text(pDX, IDC_MAJOR_2ND_R, m_tuningSettings.ratios.MAJ_2ND.denominator);
+    DDX_Text(pDX, IDC_MINOR_3RD_R, m_tuningSettings.ratios.MIN_3RD.denominator);
+    DDX_Text(pDX, IDC_MAJOR_3RD_R, m_tuningSettings.ratios.MAJ_3RD.denominator);
+    DDX_Text(pDX, IDC_PERFECT_4TH_R, m_tuningSettings.ratios.PERF_4TH.denominator);
+    DDX_Text(pDX, IDC_TRITONE_R, m_tuningSettings.ratios.TRITONE.denominator);
+    DDX_Text(pDX, IDC_PERFECT_5TH_R, m_tuningSettings.ratios.PERF_5TH.denominator);
+    DDX_Text(pDX, IDC_MINOR_6TH_R, m_tuningSettings.ratios.MIN_6TH.denominator);
+    DDX_Text(pDX, IDC_MAJOR_6TH_R, m_tuningSettings.ratios.MAJ_6TH.denominator);
+    DDX_Text(pDX, IDC_MINOR_7TH_R, m_tuningSettings.ratios.MIN_7TH.denominator);
+    DDX_Text(pDX, IDC_MAJOR_7TH_R, m_tuningSettings.ratios.MAJ_7TH.denominator);
+    DDX_Text(pDX, IDC_OCTAVE_R, m_tuningSettings.ratios.OCTAVE.denominator);
 }
 
 BEGIN_MESSAGE_MAP(TuningDlg, CDialog)
@@ -83,8 +82,7 @@ BOOL TuningDlg::OnInitDialog()
     CDialog::OnInitDialog();
 
     // Backup all current values first
-    m_tuningSettingsBackup = g_Song.GetTuning();
-    m_tuningRatiosBackup = g_Song.GetTuningRatios();
+    m_tuningSettingsBackup = g_Song.GetTuningSettings();
 
     // The combo selection was set by the first DoDataExchange above
     OnTemperamentChanged();
@@ -106,8 +104,7 @@ void TuningDlg::OnTuningTest()
     // Get current screen values.
     TuningDlg::UpdateData();
 
-    g_Song.GetTuning() = m_tuningSettings;
-    g_Song.GetTuningRatios() = m_tuningRatios;
+    g_Song.GetTuningSettings() = m_tuningSettings;
 
     g_Tuning.InitTuning();
 }
@@ -115,8 +112,7 @@ void TuningDlg::OnTuningTest()
 void TuningDlg::OnTuningReset()
 {
     // Retrieve the last backed up values.
-    g_Song.GetTuning() = m_tuningSettingsBackup;
-    g_Song.GetTuningRatios() = m_tuningRatiosBackup;
+    g_Song.GetTuningSettings() = m_tuningSettingsBackup;
 
     g_Tuning.InitTuning();
 }

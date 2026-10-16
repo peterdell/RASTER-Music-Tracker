@@ -448,12 +448,12 @@ class RmtCommandsTest {
 		ModulePropertiesValues v = ModulePropertiesValues.from(session);
 		v.ntsc = true;
 		v.trackerDriverVersion = TrackerDriverVersion.PATCH8;
-		double basetuning = session.song.getTuning().basetuning;
+		double basetuning = session.song.getTuningSettings().basetuning;
 
 		commands.applyModuleProperties(v);
 
 		assertTrue(session.song.isNTSC());
-		assertEquals(basetuning * org.atari.raster.rmt.model.Atari.FREQ_17_NTSC / org.atari.raster.rmt.model.Atari.FREQ_17_PAL, session.song.getTuning().basetuning, 1e-9); // SetNTSC rescaled the song's tuning
+		assertEquals(basetuning * org.atari.raster.rmt.model.Atari.FREQ_17_NTSC / org.atari.raster.rmt.model.Atari.FREQ_17_PAL, session.song.getTuningSettings().basetuning, 1e-9); // SetNTSC rescaled the song's tuning
 		assertEquals(TrackerDriverVersion.PATCH8, session.song.getTrackerDriverVersion());
 
 		host.calls.clear();

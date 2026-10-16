@@ -42,12 +42,10 @@ final class TuningDialog extends ModalDialog {
 	static final String[] RATIO_NAMES = { "Unison", "Minor 2nd", "Major 2nd", "Minor 3rd", "Major 3rd", "Perfect 4th", "Tritone", "Perfect 5th", "Minor 6th", "Major 6th", "Minor 7th", "Major 7th", "Octave" };
 
 	private final RmtSession session;
-	/** {@code m_tuningSettings}/{@code m_tuningRatios}: the dialog's working copy. */
+	/** {@code m_tuningSettings} (with {@code m_tuningRatios} inside): the dialog's working copy. */
 	final TuningSettings settings = new TuningSettings();
-	final TuningRatios ratios = new TuningRatios();
 	/** {@code m_tuningSettingsBackup}/{@code m_tuningRatiosBackup}: what Reset restores. */
 	private final TuningSettings settingsBackup = new TuningSettings();
-	private final TuningRatios ratiosBackup = new TuningRatios();
 
 	private final JTextField baseTuningField = new JTextField(12);
 	/** {@code IDC_BASENOTE}/{@code IDC_TEMPERAMENT}, holding the {@link BaseNote}/{@link Temperament} instances rather than combo indexes. */
@@ -60,12 +58,10 @@ final class TuningDialog extends ModalDialog {
 	TuningDialog(JFrame parent, RmtSession session) {
 		super(parent, Texts.TuningDialog_Title);
 		this.session = session;
-		// OnClickedOptionsTuning: dlg.m_tuningSettings = g_Song.GetTuning(); dlg.m_tuningRatios = g_Song.GetTuningRatios()
-		copy(session.song.getTuning(), settings);
-		copy(session.song.getTuningRatios(), ratios);
+		// OnClickedModuleTuning: dlg.m_tuningSettings = g_Song.GetTuningSettings()
+		copy(session.song.getTuningSettings(), settings);
 		// OnInitDialog: backup all current values first
-		copy(session.song.getTuning(), settingsBackup);
-		copy(session.song.getTuningRatios(), ratiosBackup);
+		copy(session.song.getTuningSettings(), settingsBackup);
 
 		JPanel general = DialogSupport.createGroup(Texts.TuningDialog_GroupGeneral);
 		DialogSupport.add(general, ElementFactory.createLabel(DataTypes.TuningDialog_BaseTuning, baseTuningField), 0, 0, 1, false);
@@ -107,6 +103,7 @@ final class TuningDialog extends ModalDialog {
 		to.basetuning = from.basetuning;
 		to.basenote = from.basenote;
 		to.temperament = from.temperament;
+		copy(from.ratios, to.ratios);
 	}
 
 	static void copy(TuningRatios from, TuningRatios to) {
@@ -154,7 +151,7 @@ final class TuningDialog extends ModalDialog {
 		baseTuningField.setText(RmtConfig.formatDouble(settings.basetuning));
 		baseNoteCombo.setValue(settings.basenote); // always a valid instance - the config read already mapped stray numbers
 		temperamentCombo.setValue(settings.temperament);
-		IntegerFraction[] f = toArray(ratios);
+		IntegerFraction[] f = toArray(settings.ratios);
 		for (int i = 0; i < f.length; i++) {
 			numeratorFields[i].setText(Integer.toString(f[i].numerator));
 			denominatorFields[i].setText(Integer.toString(f[i].denominator));
@@ -185,7 +182,7 @@ final class TuningDialog extends ModalDialog {
 		for (int i = 0; i < f.length; i++) {
 			f[i] = new IntegerFraction(DialogSupport.parseInt(numeratorFields[i]), DialogSupport.parseInt(denominatorFields[i]));
 		}
-		fromArray(f, ratios);
+		fromArray(f, settings.ratios);
 	}
 
 	/** The DDV checks, silently. */
@@ -238,8 +235,7 @@ final class TuningDialog extends ModalDialog {
 
 	private void apply() {
 		session.locked(() -> {
-			copy(settings, session.song.getTuning());
-			copy(ratios, session.song.getTuningRatios());
+			copy(settings, session.song.getTuningSettings());
 			session.initTuning();
 		});
 	}
@@ -247,8 +243,7 @@ final class TuningDialog extends ModalDialog {
 	/** {@code OnTuningReset()}: the backup into the session and {@code InitTuning()} - the fields are left alone, as in C++. */
 	private void onTuningReset() {
 		session.locked(() -> {
-			copy(settingsBackup, session.song.getTuning());
-			copy(ratiosBackup, session.song.getTuningRatios());
+			copy(settingsBackup, session.song.getTuningSettings());
 			session.initTuning();
 		});
 	}

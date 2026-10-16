@@ -16,9 +16,9 @@ import java.util.Arrays;
  * there's no need for an offset-pointer equivalent or a separate
  * const/non-const pair.
  *
- * <p>{@link #init} takes {@link TuningSettings}/{@link TuningRatios} as
+ * <p>{@link #init} takes {@link TuningSettings} as
  * explicit parameters instead of reaching for the song that owns them, as
- * C++ does with g_Song.GetTuning()/GetTuningRatios() (same pattern as
+ * C++ does with g_Song.GetTuningSettings() (same pattern as
  * {@link Tuning}), and constructs its own
  * short-lived {@link Tuning} instance to compute the tables - C++'s global
  * {@code g_Tuning} has no Java equivalent yet, and none is needed here,
@@ -140,15 +140,14 @@ public final class Atari {
 	 * Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into this instance's own memory.
 	 *
 	 * @param ntsc whether this is an NTSC (vs. PAL) machine
-	 * @param tuningSettings the base tuning/temperament/basenote to generate the tables from (C++ reads these off g_Song instead)
-	 * @param tuningRatios the custom-temperament ratios to generate the tables from (C++ reads these off g_Song instead)
+	 * @param tuningSettings the base tuning/temperament/basenote and the custom-temperament ratios to generate the tables from (C++ reads these off g_Song instead)
 	 */
-	public void init(boolean ntsc, TuningSettings tuningSettings, TuningRatios tuningRatios) {
+	public void init(boolean ntsc, TuningSettings tuningSettings) {
 		this.ntsc = ntsc;
 		if (cpu != null && cpu.isNTSC() != ntsc) {
 			cpu.initialize(ntsc, cpu.isStereo()); // the POKEY pair's clock follows the video standard
 		}
-		initTuning(tuningSettings, tuningRatios);
+		initTuning(tuningSettings);
 	}
 
 	/**
@@ -159,10 +158,10 @@ public final class Atari {
 	 * that very segment which must not win over the generated ones
 	 * (plans/37_TUNING_COMPATIBILITY_PLAN.md, T2).
 	 */
-	public void initTuning(TuningSettings tuningSettings, TuningRatios tuningRatios) {
+	public void initTuning(TuningSettings tuningSettings) {
 		Tuning tuning = new Tuning(getClockFrequency());
 		byte[] tableBuffer = new byte[0x600]; // exactly the table region InitTuning() writes
-		tuning.initTuning(tableBuffer, tuningSettings, tuningRatios);
+		tuning.initTuning(tableBuffer, tuningSettings);
 		System.arraycopy(tableBuffer, 0, memory, RMT_FRQTABLES, tableBuffer.length);
 	}
 }

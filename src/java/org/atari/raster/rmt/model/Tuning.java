@@ -5,9 +5,9 @@ package org.atari.raster.rmt.model;
  *
  * <p>C++'s test-only constructor (which bypasses InitTuning()'s dependency on
  * the tuning state it does not get passed) becomes the only constructor here.
- * generateTable()/initTuning() take {@link TuningSettings}/{@link TuningRatios}
+ * generateTable()/initTuning() take {@link TuningSettings}
  * as explicit parameters instead of reaching for the song that owns them, as
- * C++ does with g_Song.GetTuning()/GetTuningRatios() - a deliberate, idiomatic
+ * C++ does with g_Song.GetTuningSettings() - a deliberate, idiomatic
  * substitution (same judgment call as IntegerFraction's immutability), not a
  * behavior change: every value production reads there is still
  * supplied by the caller here, just explicitly. Their C++ MessageBox+exit(1)
@@ -483,10 +483,9 @@ public final class Tuning {
 	 * Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into the given memory buffer.
 	 *
 	 * @param tableMemory buffer to write the lookup tables into, typically the emulated Atari memory (at least 0x600 bytes)
-	 * @param tuningSettings the base tuning/temperament/basenote to generate the tables from (C++ reads these from the g_tuning global instead)
-	 * @param tuningRatios the custom-temperament ratios to generate the tables from (C++ reads these from the g_tuningRatios global instead)
+	 * @param tuningSettings the base tuning/temperament/basenote and the custom-temperament ratios to generate the tables from (C++ reads these from the g_tuning/g_tuningRatios globals instead)
 	 */
-	public void initTuning(byte[] tableMemory, TuningSettings tuningSettings, TuningRatios tuningRatios) {
+	public void initTuning(byte[] tableMemory, TuningSettings tuningSettings) {
 		if (tuningSettings.basetuning == 0) {
 			// if base tuning is 0.0, the C++ original shows a MessageBox and
 			// calls exit(1) to avoid crashing later - not appropriate for a
@@ -501,19 +500,19 @@ public final class Tuning {
 		}
 
 		// calculate the custom ratio used for each semitone
-		custom[0] = tuningRatios.unison.doubleValue();
-		custom[1] = tuningRatios.min2nd.doubleValue();
-		custom[2] = tuningRatios.maj2nd.doubleValue();
-		custom[3] = tuningRatios.min3rd.doubleValue();
-		custom[4] = tuningRatios.maj3rd.doubleValue();
-		custom[5] = tuningRatios.perf4th.doubleValue();
-		custom[6] = tuningRatios.tritone.doubleValue();
-		custom[7] = tuningRatios.perf5th.doubleValue();
-		custom[8] = tuningRatios.min6th.doubleValue();
-		custom[9] = tuningRatios.maj6th.doubleValue();
-		custom[10] = tuningRatios.min7th.doubleValue();
-		custom[11] = tuningRatios.maj7th.doubleValue();
-		custom[12] = tuningRatios.octave.doubleValue();
+		custom[0] = tuningSettings.ratios.unison.doubleValue();
+		custom[1] = tuningSettings.ratios.min2nd.doubleValue();
+		custom[2] = tuningSettings.ratios.maj2nd.doubleValue();
+		custom[3] = tuningSettings.ratios.min3rd.doubleValue();
+		custom[4] = tuningSettings.ratios.maj3rd.doubleValue();
+		custom[5] = tuningSettings.ratios.perf4th.doubleValue();
+		custom[6] = tuningSettings.ratios.tritone.doubleValue();
+		custom[7] = tuningSettings.ratios.perf5th.doubleValue();
+		custom[8] = tuningSettings.ratios.min6th.doubleValue();
+		custom[9] = tuningSettings.ratios.maj6th.doubleValue();
+		custom[10] = tuningSettings.ratios.min7th.doubleValue();
+		custom[11] = tuningSettings.ratios.maj7th.doubleValue();
+		custom[12] = tuningSettings.ratios.octave.doubleValue();
 
 		// Generate all lookup tables used by the RMT driver for tuning purposes.
 

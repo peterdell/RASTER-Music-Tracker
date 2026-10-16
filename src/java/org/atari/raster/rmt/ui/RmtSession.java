@@ -39,7 +39,7 @@ public final class RmtSession {
 	public final Atari atari;
 	public final AtariTrackerDriver atariTrackerDriver;
 	public final ChannelControl channelControl;
-	/** {@code g_Tuning}: the table generator. The tuning settings it reads are the song's ({@link Song#getTuning()}), as C++'s are since plan 44. */
+	/** {@code g_Tuning}: the table generator. The tuning settings it reads are the song's ({@link Song#getTuningSettings()}), as C++'s are since plan 44. */
 	public final Tuning tuning;
 
 	public final UiState uiState = new UiState();
@@ -138,14 +138,13 @@ public final class RmtSession {
 		messages = new Messages();
 		channelControl = new ChannelControl(Song.SONGTRACKS);
 
-		song.getTuning().initialize(song.isNTSC());
-		song.getTuningRatios().initialize();
+		song.getTuningSettings().initialize(song.isNTSC());
 		// The emulated 6502 + POKEY pair the tracker driver runs on (C++'s
 		// C6502/CAtari + the POKEY DLL); the Atari's 64K is the CPU's memory.
 		// ClearSong(8) below makes the song stereo, so the POKEY pair starts
 		// stereo and follows g_tracks4_8 from then on (AudioEngine, B8b).
 		atari = new Atari(new AtariCpu(song.isNTSC(), true));
-		atari.init(song.isNTSC(), song.getTuning(), song.getTuningRatios());
+		atari.init(song.isNTSC(), song.getTuningSettings());
 		tuning = new Tuning(atari.getClockFrequency());
 		pokeyController = new PokeyController(atari);
 		atariTrackerDriver = new AtariTrackerDriver(atari);
@@ -163,7 +162,7 @@ public final class RmtSession {
 
 	/** {@code CRmtView::SetNTSC()}: rescales the base tuning between the two clocks and switches the song ("TODO code... well 3 times.." in C++); {@code CSong::SetNTSC()} re-initializes the sound on a change. */
 	public void setNTSC(boolean ntsc) {
-		song.getTuning().basetuning = ntsc ? (song.getTuning().basetuning * Atari.FREQ_17_NTSC) / Atari.FREQ_17_PAL : (song.getTuning().basetuning * Atari.FREQ_17_PAL) / Atari.FREQ_17_NTSC;
+		song.getTuningSettings().basetuning = ntsc ? (song.getTuningSettings().basetuning * Atari.FREQ_17_NTSC) / Atari.FREQ_17_PAL : (song.getTuningSettings().basetuning * Atari.FREQ_17_PAL) / Atari.FREQ_17_NTSC;
 		boolean changed = song.isNTSC() != ntsc;
 		song.setNTSC(ntsc);
 		if (changed) {
@@ -184,13 +183,13 @@ public final class RmtSession {
 	 */
 	public void reInitSound() {
 		atari.getCpu().initialize(song.isNTSC(), song.isStereo(tracks4_8));
-		atari.init(song.isNTSC(), song.getTuning(), song.getTuningRatios());
+		atari.init(song.isNTSC(), song.getTuningSettings());
 		atariTrackerDriver.init();
 	}
 
-	/** {@code g_Tuning.InitTuning()}: regenerates the POKEY frequency tables in the Atari's memory from the song's current {@link Song#getTuning()}/{@link Song#getTuningRatios()}. */
+	/** {@code g_Tuning.InitTuning()}: regenerates the POKEY frequency tables in the Atari's memory from the song's current {@link Song#getTuningSettings()}. */
 	public void initTuning() {
-		atari.init(song.isNTSC(), song.getTuning(), song.getTuningRatios());
+		atari.init(song.isNTSC(), song.getTuningSettings());
 	}
 
 	/**
@@ -200,7 +199,7 @@ public final class RmtSession {
 	 */
 	public void setTrackerDriverVersion(TrackerDriverVersion version) {
 		song.setTrackerDriverVersion(version);
-		atari.init(song.isNTSC(), song.getTuning(), song.getTuningRatios());
+		atari.init(song.isNTSC(), song.getTuningSettings());
 		loadTrackerDriver(version);
 	}
 
@@ -223,7 +222,7 @@ public final class RmtSession {
 			// RMT 1.34.00 did the same in Atari_InitRMTRoutine() after every
 			// load, and C++ does it inside LoadRMTRoutines()
 			// (plans/37_TUNING_COMPATIBILITY_PLAN.md, T2).
-			atari.initTuning(song.getTuning(), song.getTuningRatios());
+			atari.initTuning(song.getTuningSettings());
 		}
 	}
 }

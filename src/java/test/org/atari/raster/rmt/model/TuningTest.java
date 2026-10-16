@@ -218,17 +218,14 @@ class TuningTest {
 	class InitTuningTest {
 
 		private TuningSettings tuningSettings;
-		private TuningRatios tuningRatios;
 		private byte[] memory;
 
 		@BeforeEach
 		void setUp() {
 			tuningSettings = new TuningSettings();
-			tuningSettings.initialize(false); // PAL
-			tuningRatios = new TuningRatios();
-			tuningRatios.initialize();
+			tuningSettings.initialize(false); // PAL, the ratios inside included
 			memory = new byte[0x600];
-			tuning.initTuning(memory, tuningSettings, tuningRatios);
+			tuning.initTuning(memory, tuningSettings);
 		}
 
 		@Test
@@ -300,7 +297,7 @@ class TuningTest {
 		@Test
 		void getTruePitchCustomTemperamentUsesRatiosPopulatedByInitTuning() {
 			// TUNING_CUSTOM reads Tuning's private custom[] array, only ever
-			// populated as a side effect of initTuning() (from tuningRatios) -
+			// populated as a side effect of initTuning() (from the settings' ratios) -
 			// there's no public setter, so this can only be characterized
 			// here, after setUp()'s initTuning() call.
 			assertEquals(8.1036308172670957, tuning.getTruePitch(440.83751645933, Tuning.TUNING_CUSTOM, 3, 0));
@@ -308,7 +305,7 @@ class TuningTest {
 
 		@Test
 		void initTuningThrowsWhenBasetuningIsZero() {
-			assertThrows(IllegalStateException.class, () -> tuning.initTuning(memory, new TuningSettings(), new TuningRatios()));
+			assertThrows(IllegalStateException.class, () -> tuning.initTuning(memory, new TuningSettings()));
 		}
 	}
 }

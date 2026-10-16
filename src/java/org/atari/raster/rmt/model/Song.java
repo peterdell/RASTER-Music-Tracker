@@ -112,7 +112,6 @@ public final class Song {
 	private boolean ntsc;
 	private TrackerDriverVersion trackerDriverVersion = TrackerDriverVersion.PATCH16;
 	private final TuningSettings tuningSettings = new TuningSettings();
-	private final TuningRatios tuningRatios = new TuningRatios();
 	int octave; // package-private for SongIO (plan 45) - the Java spelling of a C++ friend
 	int volume; // package-private for SongIO (plan 45) - the Java spelling of a C++ friend
 	private boolean followplay;
@@ -197,20 +196,16 @@ public final class Song {
 	}
 
 	/**
-	 * {@code CSong::GetTuning()}: how the notes of this module are tuned - the
-	 * base tuning, the base note, the temperament. Song-scoped like
-	 * {@link #isNTSC()} and the driver version, persisted in {@code tuning.ini}
-	 * and not in the module (plans/44_SONG_PROPERTIES_DIALOG_PLAN.md). The
-	 * instance is the song's own and is mutated in place, as C++ mutates the
-	 * struct it hands out by reference.
+	 * {@code CSong::GetTuningSettings()}: how the notes of this module are
+	 * tuned - the base tuning, the base note, the temperament and the custom
+	 * temperament's interval ratios. Song-scoped like {@link #isNTSC()} and
+	 * the driver version, persisted in {@code tuning.ini} and not in the
+	 * module (plans/44_SONG_PROPERTIES_DIALOG_PLAN.md). The instance is the
+	 * song's own and is mutated in place, as C++ mutates the struct it hands
+	 * out by reference.
 	 */
-	public TuningSettings getTuning() {
+	public TuningSettings getTuningSettings() {
 		return tuningSettings;
-	}
-
-	/** {@code CSong::GetTuningRatios()}: the interval ratios of a custom temperament, see {@link #getTuning()}. */
-	public TuningRatios getTuningRatios() {
-		return tuningRatios;
 	}
 
 	public int getInstrumentSpeed() {
@@ -2443,7 +2438,6 @@ public final class Song {
 
 	public void resetTuningVariables() {
 		tuningSettings.initialize(isNTSC());
-		tuningRatios.initialize();
 	}
 
 	// --- SongEditing.cpp sub-batch 9 (navigation/playback) ---

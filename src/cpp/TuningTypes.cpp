@@ -1,7 +1,10 @@
 #include "TuningTypes.h"
 
 void TTuningSettings::Initialize(bool ntsc) {
-    *this = {ntsc ? 444.895778867913 : 440.83751645933, 3, 0};
+    basetuning = ntsc ? 444.895778867913 : 440.83751645933;
+    basenote = 3;
+    temperament = 0;
+    ratios.Initialize();
 }
 
 void TTuningRatios::Initialize() {

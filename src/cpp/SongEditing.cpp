@@ -1368,9 +1368,8 @@ void CSong::SetTracks(const int tracksNum) {
 }
 
 void CSong::ResetTuningVariables() {
-    // Reset all tuning variables
+    // Reset all tuning variables (the ratios inside included)
     m_tuning.Initialize(IsNTSC());
-    m_tuningRatios.Initialize();
 }
 
 // CSong::MakeModule() is implemented in SongIO.cpp.

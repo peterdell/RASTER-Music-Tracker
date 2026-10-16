@@ -35,8 +35,7 @@ class FrequencyTablesTest : public ::testing::Test {
         // The load regenerates the tuning tables (plan 37, T2), and
         // CTuning::InitTuning() exits the process on an uninitialized
         // basetuning, so the tuning globals are set up as AtariTests.cpp does.
-        g_Song.GetTuning().Initialize(false); // PAL
-        g_Song.GetTuningRatios().Initialize();
+        g_Song.GetTuningSettings().Initialize(false); // PAL
         ASSERT_GT(driver.LoadRMTRoutines(TrackerDriverVersion::PATCH16), 0);
     }
 

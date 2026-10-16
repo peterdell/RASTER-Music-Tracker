@@ -44,10 +44,8 @@ public:
     // in the module (plans/44_SONG_PROPERTIES_DIALOG_PLAN.md). Everything
     // that turns a note into a POKEY frequency reads them, so they are
     // handed out by reference the way the global they replaced was used.
-    TTuningSettings& GetTuning();
-    const TTuningSettings& GetTuning() const;
-    TTuningRatios& GetTuningRatios();
-    const TTuningRatios& GetTuningRatios() const;
+    TTuningSettings& GetTuningSettings();
+    const TTuningSettings& GetTuningSettings() const;
 
     void ReInitSound();
 
@@ -425,7 +423,6 @@ private:
     BOOL m_ntsc = FALSE;
     TrackerDriverVersion m_trackerDriverVersion = TrackerDriverVersion::PATCH16;
     TTuningSettings m_tuning = {};
-    TTuningRatios m_tuningRatios = {};
     int m_songnamecur = 0;
 
     TBookmark m_bookmark = {};

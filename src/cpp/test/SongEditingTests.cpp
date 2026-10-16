@@ -1071,13 +1071,13 @@ TEST_F(SongEditingTest, TheTrackerDriverVersionDefaultsToPatchSixteenAndKeepsWha
 TEST_F(SongEditingTest, ResetTuningVariablesUsesTheNtscOrPalBaseTuning) {
     song.SetNTSC(TRUE);
     song.ResetTuningVariables();
-    EXPECT_DOUBLE_EQ(song.GetTuning().basetuning, 444.895778867913);
-    EXPECT_EQ(song.GetTuning().basenote, 3);
-    EXPECT_EQ(song.GetTuning().temperament, 0);
+    EXPECT_DOUBLE_EQ(song.GetTuningSettings().basetuning, 444.895778867913);
+    EXPECT_EQ(song.GetTuningSettings().basenote, 3);
+    EXPECT_EQ(song.GetTuningSettings().temperament, 0);
 
     song.SetNTSC(FALSE);
     song.ResetTuningVariables();
-    EXPECT_DOUBLE_EQ(song.GetTuning().basetuning, 440.83751645933);
+    EXPECT_DOUBLE_EQ(song.GetTuningSettings().basetuning, 440.83751645933);
 }
 
 // --- InstrInfo ---
@@ -2095,8 +2095,7 @@ TEST_F(SongEditingTest, ExportWAVWritesAValidRiffWaveHeaderWhenNoPokeyDriverIsLo
 TEST_F(SongEditingTest, ExportWAVLeavesTheLoadedV1DriverUntouched) {
     song.Stop();
 
-    g_Song.GetTuning().Initialize(false); // PAL - LoadRMTRoutines() regenerates the tuning tables
-    g_Song.GetTuningRatios().Initialize();
+    g_Song.GetTuningSettings().Initialize(false); // PAL - LoadRMTRoutines() regenerates the tuning tables
     ASSERT_GT(g_AtariTrackerDriver->LoadRMTRoutines(TrackerDriverVersion::UNPATCHED), 0);
 
     byte* memory = g_AtariTrackerDriver->GetAtari()->GetMemoryAt(0);

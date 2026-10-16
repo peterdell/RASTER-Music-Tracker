@@ -78,12 +78,10 @@ class AtariTest {
 	@Test
 	void initPalPopulatesOwnMemoryWithTuningTables() {
 		TuningSettings tuningSettings = new TuningSettings();
-		tuningSettings.initialize(false); // PAL
-		TuningRatios tuningRatios = new TuningRatios();
-		tuningRatios.initialize();
+		tuningSettings.initialize(false); // PAL, the ratios inside included
 
 		Atari atari = new Atari();
-		atari.init(false, tuningSettings, tuningRatios);
+		atari.init(false, tuningSettings);
 
 		assertFalse(atari.isNTSC());
 		assertEquals(Atari.FREQ_17_PAL, atari.getClockFrequency());
@@ -94,12 +92,10 @@ class AtariTest {
 	@Test
 	void initNtscPopulatesOwnMemoryWithTuningTables() {
 		TuningSettings tuningSettings = new TuningSettings();
-		tuningSettings.initialize(true); // NTSC
-		TuningRatios tuningRatios = new TuningRatios();
-		tuningRatios.initialize();
+		tuningSettings.initialize(true); // NTSC, the ratios inside included
 
 		Atari atari = new Atari();
-		atari.init(true, tuningSettings, tuningRatios);
+		atari.init(true, tuningSettings);
 
 		assertTrue(atari.isNTSC());
 		assertEquals(Atari.FREQ_17_NTSC, atari.getClockFrequency());

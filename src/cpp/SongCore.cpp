@@ -68,20 +68,12 @@ void CSong::SetTrackerDriverVersion(const TrackerDriverVersion trackerDriverVers
     m_trackerDriverVersion = trackerDriverVersion;
 }
 
-TTuningSettings& CSong::GetTuning() {
+TTuningSettings& CSong::GetTuningSettings() {
     return m_tuning;
 }
 
-const TTuningSettings& CSong::GetTuning() const {
+const TTuningSettings& CSong::GetTuningSettings() const {
     return m_tuning;
-}
-
-TTuningRatios& CSong::GetTuningRatios() {
-    return m_tuningRatios;
-}
-
-const TTuningRatios& CSong::GetTuningRatios() const {
-    return m_tuningRatios;
 }
 
 int CSong::GetInstrumentSpeed() const {

@@ -14,7 +14,7 @@
 // the tracker driver version and, through the Tuning... button, how its notes
 // are tuned. All three were in the Options dialog's "Module Defaults" group
 // until plan 44; they belong to the song (CSong::IsNTSC(),
-// GetTrackerDriverVersion(), GetTuning()), not to the program. They left the
+// GetTrackerDriverVersion(), GetTuningSettings()), not to the program. They left the
 // Options dialog as they arrived here, so there is still exactly one control
 // for each. Where they are persisted is unchanged (rmt.ini and tuning.ini).
 //

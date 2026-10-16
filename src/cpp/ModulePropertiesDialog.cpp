@@ -86,8 +86,7 @@ void CModulePropertiesDialog::OnTrackerDriverVersionChanged()
 void CModulePropertiesDialog::OnClickedModuleTuning()
 {
     TuningDlg dlg;
-    dlg.m_tuningSettings = g_Song.GetTuning();
-    dlg.m_tuningRatios = g_Song.GetTuningRatios();
+    dlg.m_tuningSettings = g_Song.GetTuningSettings(); // the ratios inside included
 
     dlg.DoModal();
 }

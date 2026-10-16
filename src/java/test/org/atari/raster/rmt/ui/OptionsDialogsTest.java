@@ -140,9 +140,9 @@ class OptionsDialogsTest {
 
 	@Test
 	void tuningDialogRoundTripsAndOnlyTestOrOKReachTheSession() {
-		session.song.getTuning().basetuning = 432;
-		session.song.getTuning().temperament = Temperament.CUSTOM;
-		session.song.getTuningRatios().maj7th = new IntegerFraction(243, 128);
+		session.song.getTuningSettings().basetuning = 432;
+		session.song.getTuningSettings().temperament = Temperament.CUSTOM;
+		session.song.getTuningSettings().ratios.maj7th = new IntegerFraction(243, 128);
 		TuningDialog dialog = new TuningDialog(null, session);
 		dialog.dataToUi();
 
@@ -161,16 +161,16 @@ class OptionsDialogsTest {
 		fields.get(1 + 2 * 12).setText("4"); // Octave 4/1
 		dialog.dataFromUi();
 		assertEquals(440, dialog.settings.basetuning);
-		assertEquals(new IntegerFraction(4, 1), dialog.ratios.octave);
-		assertEquals(432, session.song.getTuning().basetuning); // not applied yet
+		assertEquals(new IntegerFraction(4, 1), dialog.settings.ratios.octave);
+		assertEquals(432, session.song.getTuningSettings().basetuning); // not applied yet
 
 		button(dialog, "Test").doClick();
-		assertEquals(440, session.song.getTuning().basetuning);
-		assertEquals(new IntegerFraction(4, 1), session.song.getTuningRatios().octave);
+		assertEquals(440, session.song.getTuningSettings().basetuning);
+		assertEquals(new IntegerFraction(4, 1), session.song.getTuningSettings().ratios.octave);
 
 		button(dialog, "Reset").doClick();
-		assertEquals(432, session.song.getTuning().basetuning); // the backup
-		assertEquals(new IntegerFraction(2, 1), session.song.getTuningRatios().octave);
+		assertEquals(432, session.song.getTuningSettings().basetuning); // the backup
+		assertEquals(new IntegerFraction(2, 1), session.song.getTuningSettings().ratios.octave);
 		assertEquals("440", fields.get(0).getText()); // the fields keep what was typed, as in C++
 
 		fields.get(0).setText("5"); // DDV_MinMaxDouble 6.875..7040
@@ -184,7 +184,7 @@ class OptionsDialogsTest {
 
 	@Test
 	void tuningDialogEnablesTheRatioFieldsOnlyForTheCustomTemperament() {
-		session.song.getTuning().temperament = Temperament.EQUAL;
+		session.song.getTuningSettings().temperament = Temperament.EQUAL;
 		TuningDialog dialog = new TuningDialog(null, session);
 		dialog.dataToUi();
 

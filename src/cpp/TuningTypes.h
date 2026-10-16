@@ -2,15 +2,6 @@
 
 #include "IntegerFraction.h"
 
-struct TTuningSettings {
-
-    double basetuning;
-    int basenote; // 3 = A-
-    int temperament = 0; // each preset is assigned to a number. 0 means no Temperament, any value that is not assigned defaults to custom
-
-    void Initialize(bool ntsc);
-};
-
 // ratio used for each note => NOTE_L / NOTE_R, must be treated as doubles!!!
 struct TTuningRatios {
     CIntegerFraction UNISON;
@@ -28,4 +19,14 @@ struct TTuningRatios {
     CIntegerFraction OCTAVE;
 
     void Initialize();
+};
+
+struct TTuningSettings {
+
+    double basetuning;
+    int basenote; // 3 = A-
+    int temperament = 0; // each preset is assigned to a number. 0 means no Temperament, any value that is not assigned defaults to custom
+    TTuningRatios ratios; // the interval ratios the custom temperament is played from - part of the tuning settings, not a sibling of them
+
+    void Initialize(bool ntsc);
 };

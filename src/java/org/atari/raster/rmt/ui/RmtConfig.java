@@ -274,11 +274,12 @@ public final class RmtConfig {
 			writeTuningConfig(session); // In order to save the default Tuning configuration file
 			return;
 		}
-		parseTuningConfig(lines, session.song.getTuning(), session.song.getTuningRatios());
+		parseTuningConfig(lines, session.song.getTuningSettings());
 	}
 
 	/** The parsing half of {@code ReadTuningConfig()}: {@code NAME = value} for the settings, {@code NAME = numerator / denominator} for the ratios. */
-	static void parseTuningConfig(List<String> lines, TuningSettings tuning, TuningRatios ratios) {
+	static void parseTuningConfig(List<String> lines, TuningSettings tuning) {
+		TuningRatios ratios = tuning.ratios;
 		for (String line : lines) {
 			int eq = line.indexOf('=');
 			if (eq < 0) {
@@ -334,11 +335,12 @@ public final class RmtConfig {
 
 	/** {@code CRmtView::WriteTuningConfig()}. */
 	public void writeTuningConfig(RmtSession session) {
-		write(getTuningPath(), formatTuningConfig(session.song.getTuning(), session.song.getTuningRatios()), session, "The Tuning parameters won't be saved.");
+		write(getTuningPath(), formatTuningConfig(session.song.getTuningSettings()), session, "The Tuning parameters won't be saved.");
 	}
 
 	/** The text {@code WriteTuningConfig()} produces, with {@code \n} line ends. */
-	static String formatTuningConfig(TuningSettings tuning, TuningRatios ratios) {
+	static String formatTuningConfig(TuningSettings tuning) {
+		TuningRatios ratios = tuning.ratios;
 		StringBuilder os = new StringBuilder();
 		os.append("# RMT CONFIGURATION FILE\n");
 		os.append("# ").append(RmtVersion.RMT_VERSION_STRING).append('\n');

@@ -12,8 +12,7 @@ public:
     // Dialog Data
     enum { IDD = IDD_TUNING };
 
-    TTuningSettings m_tuningSettings;
-    TTuningRatios m_tuningRatios;
+    TTuningSettings m_tuningSettings; // the ratios inside included
 
     // Show the dialog
     void Show(const BOOL test);
@@ -27,7 +26,6 @@ protected:
 
     // backup values loaded during initialisation, which can then be retrieved in case the dialog was canceled
     TTuningSettings m_tuningSettingsBackup;
-    TTuningRatios m_tuningRatiosBackup;
 
     // Implementation
 protected:
