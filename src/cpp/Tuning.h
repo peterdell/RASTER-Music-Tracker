@@ -54,7 +54,7 @@ public:
 
     // Test-only seam: lets tests exercise GetPitch()/GetAUDF()/GetPOKEYPitch()
     // directly without going through InitTuning(), which reads the song's
-    // tuning (g_Song.GetTuningSettings()/GetTuningSettings().ratios) and can terminate the
+    // tuning (g_Song.GetTuningSettings(), the ratios inside included) and can terminate the
     // process via a MessageBox+exit(1) guard if it hasn't been set up yet.
     explicit CTuning(const C6502::ClockFrequency clockFrequency) : m_clockFrequency(clockFrequency) {}
 
