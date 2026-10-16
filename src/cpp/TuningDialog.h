@@ -38,4 +38,5 @@ public:
     afx_msg void OnTuningTest();
     afx_msg void OnTuningReset();
     afx_msg void OnCancel();
+    afx_msg void OnTemperamentChanged();
 };

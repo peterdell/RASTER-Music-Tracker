@@ -12,14 +12,16 @@ import javax.swing.JTextField;
 
 import com.wudsn.tools.base.gui.ElementFactory;
 import com.wudsn.tools.base.gui.ModalDialog;
-import org.atari.raster.rmt.model.Fraction;
+import org.atari.raster.rmt.model.IntegerFraction;
+import org.atari.raster.rmt.model.Tuning;
 import org.atari.raster.rmt.model.TuningRatios;
 import org.atari.raster.rmt.model.TuningSettings;
 
 /**
  * "Tuning" - the port of {@code TuningDlg} ({@code IDD_TUNING}): the base
  * tuning, base note and temperament, and the 13 custom-temperament ratios
- * as numerator/denominator pairs. Its button semantics are C++'s: Test
+ * as numerator/denominator pairs, enabled only while the custom
+ * temperament is selected (a preset plays its own table). Its button semantics are C++'s: Test
  * applies the fields to the session and regenerates the frequency tables
  * ({@code g_Tuning.InitTuning()}), Reset restores the values the dialog was
  * opened with (into the session only - the fields keep what was typed, as
@@ -28,7 +30,7 @@ import org.atari.raster.rmt.model.TuningSettings;
  *
  * <p>Validation: the base tuning must be 6.875-7040 ({@code
  * DDV_MinMaxDouble}); a denominator of 0 is rejected here where C++
- * accepted it and divided by zero later ({@link Fraction} refuses to be
+ * accepted it and divided by zero later ({@link IntegerFraction} refuses to be
  * built with one).
  */
 final class TuningDialog extends ModalDialog {
@@ -95,6 +97,8 @@ final class TuningDialog extends ModalDialog {
 			DialogSupport.add(ratioGroup, new JLabel("/"), 2, i, 1, false);
 			DialogSupport.add(ratioGroup, denominatorFields[i], 3, i, 1, false);
 		}
+		temperamentCombo.addActionListener(e -> updateRatioFieldsEnabled());
+		updateRatioFieldsEnabled();
 
 		JPanel content = new JPanel();
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
@@ -132,11 +136,11 @@ final class TuningDialog extends ModalDialog {
 		to.octave = from.octave;
 	}
 
-	private static Fraction[] toArray(TuningRatios r) {
-		return new Fraction[] { r.unison, r.min2nd, r.maj2nd, r.min3rd, r.maj3rd, r.perf4th, r.tritone, r.perf5th, r.min6th, r.maj6th, r.min7th, r.maj7th, r.octave };
+	private static IntegerFraction[] toArray(TuningRatios r) {
+		return new IntegerFraction[] { r.unison, r.min2nd, r.maj2nd, r.min3rd, r.maj3rd, r.perf4th, r.tritone, r.perf5th, r.min6th, r.maj6th, r.min7th, r.maj7th, r.octave };
 	}
 
-	private static void fromArray(Fraction[] f, TuningRatios r) {
+	private static void fromArray(IntegerFraction[] f, TuningRatios r) {
 		r.unison = f[0];
 		r.min2nd = f[1];
 		r.maj2nd = f[2];
@@ -161,10 +165,20 @@ final class TuningDialog extends ModalDialog {
 		baseTuningField.setText(RmtConfig.formatDouble(settings.basetuning));
 		baseNoteCombo.setSelectedIndex(Math.max(0, Math.min(BASE_NOTES.length - 1, settings.basenote)));
 		temperamentCombo.setSelectedIndex(Math.max(0, Math.min(TEMPERAMENTS.length - 1, settings.temperament)));
-		Fraction[] f = toArray(ratios);
+		IntegerFraction[] f = toArray(ratios);
 		for (int i = 0; i < f.length; i++) {
 			numeratorFields[i].setText(Integer.toString(f[i].numerator));
 			denominatorFields[i].setText(Integer.toString(f[i].denominator));
+		}
+		updateRatioFieldsEnabled(); // setSelectedIndex above fires no event when the selection did not change
+	}
+
+	/** Only the custom temperament plays the ratio fields, so they are only enabled there. */
+	private void updateRatioFieldsEnabled() {
+		boolean enabled = temperamentCombo.getSelectedIndex() == Tuning.TUNING_CUSTOM;
+		for (int i = 0; i < numeratorFields.length; i++) {
+			numeratorFields[i].setEnabled(enabled);
+			denominatorFields[i].setEnabled(enabled);
 		}
 	}
 
@@ -177,9 +191,9 @@ final class TuningDialog extends ModalDialog {
 		settings.basetuning = DialogSupport.parseDouble(baseTuningField);
 		settings.basenote = baseNoteCombo.getSelectedIndex();
 		settings.temperament = temperamentCombo.getSelectedIndex();
-		Fraction[] f = new Fraction[RATIO_NAMES.length];
+		IntegerFraction[] f = new IntegerFraction[RATIO_NAMES.length];
 		for (int i = 0; i < f.length; i++) {
-			f[i] = new Fraction(DialogSupport.parseInt(numeratorFields[i]), DialogSupport.parseInt(denominatorFields[i]));
+			f[i] = new IntegerFraction(DialogSupport.parseInt(numeratorFields[i]), DialogSupport.parseInt(denominatorFields[i]));
 		}
 		fromArray(f, ratios);
 	}

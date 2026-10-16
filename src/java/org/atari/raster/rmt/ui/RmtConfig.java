@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.atari.raster.rmt.model.Fraction;
+import org.atari.raster.rmt.model.IntegerFraction;
 import org.atari.raster.rmt.model.RmtVersion;
 import org.atari.raster.rmt.model.KeyboardLayout;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
@@ -38,7 +38,7 @@ import org.atari.raster.rmt.model.TuningSettings;
  * <p>Deviations, all documented in {@code plans/NOTES.md} (B6): the
  * {@code MAJ_7TH} ratio is read back (C++ 1.35 wrote it but never read it -
  * fixed in both languages); a tuning ratio is stored normalized by
- * {@link Fraction} (C++ writes {@code 40 / 38} where Java writes
+ * {@link IntegerFraction} (C++ writes {@code 40 / 38} where Java writes
  * {@code 20 / 19} - the same ratio); a driver version number outside the
  * enum is ignored where C++ casts it to an invalid enum value.
  */
@@ -300,19 +300,19 @@ public final class RmtConfig {
 			case "BASENOTE" -> tuning.basenote = atoi(value);
 			case "TEMPERAMENT" -> tuning.temperament = atoi(value);
 			// RATIOS
-			case "UNISON" -> ratios.unison = readFraction(value, value2);
-			case "MIN_2ND" -> ratios.min2nd = readFraction(value, value2);
-			case "MAJ_2ND" -> ratios.maj2nd = readFraction(value, value2);
-			case "MIN_3RD" -> ratios.min3rd = readFraction(value, value2);
-			case "MAJ_3RD" -> ratios.maj3rd = readFraction(value, value2);
-			case "PERF_4TH" -> ratios.perf4th = readFraction(value, value2);
-			case "TRITONE" -> ratios.tritone = readFraction(value, value2);
-			case "PERF_5TH" -> ratios.perf5th = readFraction(value, value2);
-			case "MIN_6TH" -> ratios.min6th = readFraction(value, value2);
-			case "MAJ_6TH" -> ratios.maj6th = readFraction(value, value2);
-			case "MIN_7TH" -> ratios.min7th = readFraction(value, value2);
-			case "MAJ_7TH" -> ratios.maj7th = readFraction(value, value2); // missing from C++ 1.35's read list although written - fixed in both
-			case "OCTAVE" -> ratios.octave = readFraction(value, value2);
+			case "UNISON" -> ratios.unison = readIntegerFraction(value, value2);
+			case "MIN_2ND" -> ratios.min2nd = readIntegerFraction(value, value2);
+			case "MAJ_2ND" -> ratios.maj2nd = readIntegerFraction(value, value2);
+			case "MIN_3RD" -> ratios.min3rd = readIntegerFraction(value, value2);
+			case "MAJ_3RD" -> ratios.maj3rd = readIntegerFraction(value, value2);
+			case "PERF_4TH" -> ratios.perf4th = readIntegerFraction(value, value2);
+			case "TRITONE" -> ratios.tritone = readIntegerFraction(value, value2);
+			case "PERF_5TH" -> ratios.perf5th = readIntegerFraction(value, value2);
+			case "MIN_6TH" -> ratios.min6th = readIntegerFraction(value, value2);
+			case "MAJ_6TH" -> ratios.maj6th = readIntegerFraction(value, value2);
+			case "MIN_7TH" -> ratios.min7th = readIntegerFraction(value, value2);
+			case "MAJ_7TH" -> ratios.maj7th = readIntegerFraction(value, value2); // missing from C++ 1.35's read list although written - fixed in both
+			case "OCTAVE" -> ratios.octave = readIntegerFraction(value, value2);
 			default -> {
 				// unknown names are skipped, as in C++
 			}
@@ -320,14 +320,14 @@ public final class RmtConfig {
 		}
 	}
 
-	/** {@code ReadFraction()}: a zero denominator becomes 1/1. */
-	private static Fraction readFraction(String value, String value2) {
+	/** {@code ReadIntegerFraction()}: a zero denominator becomes 1/1. */
+	private static IntegerFraction readIntegerFraction(String value, String value2) {
 		int numerator = atoi(value);
 		int denominator = atoi(value2);
 		if (denominator == 0) {
-			return new Fraction(1, 1);
+			return new IntegerFraction(1, 1);
 		}
-		return new Fraction(numerator, denominator);
+		return new IntegerFraction(numerator, denominator);
 	}
 
 	/** {@code CRmtView::WriteTuningConfig()}. */
@@ -347,19 +347,19 @@ public final class RmtConfig {
 		line(os, "TEMPERAMENT", tuning.temperament);
 
 		os.append("\n# RATIOS\n\n");
-		fraction(os, "UNISON", ratios.unison);
-		fraction(os, "MIN_2ND", ratios.min2nd);
-		fraction(os, "MAJ_2ND", ratios.maj2nd);
-		fraction(os, "MIN_3RD", ratios.min3rd);
-		fraction(os, "MAJ_3RD", ratios.maj3rd);
-		fraction(os, "PERF_4TH", ratios.perf4th);
-		fraction(os, "TRITONE", ratios.tritone);
-		fraction(os, "PERF_5TH", ratios.perf5th);
-		fraction(os, "MIN_6TH", ratios.min6th);
-		fraction(os, "MAJ_6TH", ratios.maj6th);
-		fraction(os, "MIN_7TH", ratios.min7th);
-		fraction(os, "MAJ_7TH", ratios.maj7th);
-		fraction(os, "OCTAVE", ratios.octave);
+		writeIntegerFraction(os, "UNISON", ratios.unison);
+		writeIntegerFraction(os, "MIN_2ND", ratios.min2nd);
+		writeIntegerFraction(os, "MAJ_2ND", ratios.maj2nd);
+		writeIntegerFraction(os, "MIN_3RD", ratios.min3rd);
+		writeIntegerFraction(os, "MAJ_3RD", ratios.maj3rd);
+		writeIntegerFraction(os, "PERF_4TH", ratios.perf4th);
+		writeIntegerFraction(os, "TRITONE", ratios.tritone);
+		writeIntegerFraction(os, "PERF_5TH", ratios.perf5th);
+		writeIntegerFraction(os, "MIN_6TH", ratios.min6th);
+		writeIntegerFraction(os, "MAJ_6TH", ratios.maj6th);
+		writeIntegerFraction(os, "MIN_7TH", ratios.min7th);
+		writeIntegerFraction(os, "MAJ_7TH", ratios.maj7th);
+		writeIntegerFraction(os, "OCTAVE", ratios.octave);
 		return os.toString();
 	}
 
@@ -399,8 +399,8 @@ public final class RmtConfig {
 		out.append(name).append(" = ").append(value).append('\n');
 	}
 
-	/** {@code WriteFraction()}. */
-	private static void fraction(StringBuilder out, String name, Fraction f) {
+	/** {@code WriteIntegerFraction()}. */
+	private static void writeIntegerFraction(StringBuilder out, String name, IntegerFraction f) {
 		out.append(name).append(" = ").append(f.numerator).append(" / ").append(f.denominator).append('\n');
 	}
 

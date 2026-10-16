@@ -30,6 +30,11 @@ Changes in RMT 1.36
 - A Java port of RMT is developed side by side with the Windows program, so RMT can run on Windows, Linux and macOS (see the README). The changes below are changes of the Windows program Rmt.exe that came out of that work; the Java port has them as well (printing is intentionally not ported, see below). Going forward, the C++ development will be phased out.
 - Java port: all CPU emulation and sound generation is independent of the old DLL libraries and based on [ASAP](https://asap.sourceforge.net/). The Windows program keeps its DLLs until the C++ parts are deleted.
 
+### Changes since 2026-10-16
+
+**User Interface**
+- The tuning dialog's ratio fields (the 13 numerator/denominator pairs) are only enabled when the custom temperament is selected - every other temperament plays its own preset table, so typing ratios had no effect there. (Build 2026-10-17)
+
 ### Changes from 2026-10-05 to 2026-10-15
 
 **User Interface**

@@ -218,7 +218,7 @@
     <ClCompile Include="CanvasXY.cpp" />
     <ClCompile Include="Commands.cpp" />
     <ClCompile Include="StringUtility.cpp" />
-    <ClCompile Include="Fraction.cpp" />
+    <ClCompile Include="IntegerFraction.cpp" />
     <ClCompile Include="FrequencyTables.cpp" />
     <ClCompile Include="ChannelControl.cpp" />
     <ClCompile Include="Clipboard.cpp" />
@@ -401,7 +401,7 @@
     <ClInclude Include="CanvasXY.h" />
     <ClInclude Include="Commands.h" />
     <ClInclude Include="StringUtility.h" />
-    <ClInclude Include="Fraction.h" />
+    <ClInclude Include="IntegerFraction.h" />
     <ClInclude Include="FrequencyTables.h" />
     <ClInclude Include="Clipboard.h" />
     <ClInclude Include="Keyboard.h" />

@@ -7,7 +7,7 @@ package org.atari.raster.rmt.model;
  *
  * <p><b>{@link #isValidNote} has a known off-by-one bug, deliberately
  * preserved, not fixed</b>: NOTESNUM is documented as "Notes 0-60 inclusive"
- * (61 values), but the check accepts note == 61 too. Unlike Fraction's dead
+ * (61 values), but the check accepts note == 61 too. Unlike IntegerFraction's dead
  * {@code operator==} bug, this predicate is live production logic (called
  * from Tracks.cpp/InstrumentsCore.cpp/IO_Tracks.cpp/SongEditing.cpp via
  * CTracks::IsValidNote's delegation), so fixing it would be a real behavior

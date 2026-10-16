@@ -109,7 +109,7 @@
     <ClCompile Include="googletest\src\gtest-all.cc" />
     <ClCompile Include="googletest\src\gtest_main.cc" />
     <!-- Production sources under test, compiled directly into the test binary. -->
-    <ClCompile Include="..\Fraction.cpp" />
+    <ClCompile Include="..\IntegerFraction.cpp" />
     <ClCompile Include="..\StringUtility.cpp" />
     <ClCompile Include="..\Notes.cpp" />
     <ClCompile Include="..\TuningTypes.cpp" />
@@ -172,7 +172,7 @@
     <ClCompile Include="UndoStub.cpp" />
     <ClCompile Include="SongEditingStub.cpp" />
     <!-- Test sources. -->
-    <ClCompile Include="FractionTests.cpp" />
+    <ClCompile Include="IntegerFractionTests.cpp" />
     <ClCompile Include="PokeyControllerTests.cpp" />
     <ClCompile Include="MessagesTests.cpp" />
     <ClCompile Include="StringUtilityTests.cpp" />
@@ -197,7 +197,7 @@
     <ClCompile Include="AtariTrackerDriverTests.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Fraction.h" />
+    <ClInclude Include="..\IntegerFraction.h" />
     <ClInclude Include="..\FrequencyTables.h" />
     <ClInclude Include="..\StringUtility.h" />
     <ClInclude Include="..\Notes.h" />

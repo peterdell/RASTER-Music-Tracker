@@ -25,7 +25,7 @@ class TuningRatiosTest {
 	}
 
 	// Characterization test: the literal for min2nd is written as 40/38 in
-	// TuningTypes.cpp, but Fraction's constructor always reduces to lowest
+	// TuningTypes.cpp, but IntegerFraction's constructor always reduces to lowest
 	// terms, so the stored value is actually 20/19.
 	@Test
 	void minorSecondIsStoredReduced() {

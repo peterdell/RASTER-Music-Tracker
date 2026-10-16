@@ -74,6 +74,7 @@ BEGIN_MESSAGE_MAP(TuningDlg, CDialog)
     ON_BN_CLICKED(ID_TUNING_TEST, OnTuningTest)
     ON_BN_CLICKED(ID_TUNING_RESET, OnTuningReset)
     ON_BN_CLICKED(IDCANCEL, OnCancel)
+    ON_CBN_SELCHANGE(IDC_TEMPERAMENT, OnTemperamentChanged)
 END_MESSAGE_MAP()
 
 // TuningDlg message handlers
@@ -84,6 +85,9 @@ BOOL TuningDlg::OnInitDialog()
     // Backup all current values first
     m_tuningSettingsBackup = g_Song.GetTuning();
     m_tuningRatiosBackup = g_Song.GetTuningRatios();
+
+    // The combo selection was set by the first DoDataExchange above
+    OnTemperamentChanged();
 
     return TRUE;  // return TRUE unless you set the focus to a control
     // EXCEPTION: OCX Property Pages should return FALSE
@@ -115,6 +119,21 @@ void TuningDlg::OnTuningReset()
     g_Song.GetTuningRatios() = m_tuningRatiosBackup;
 
     g_Tuning.InitTuning();
+}
+
+void TuningDlg::OnTemperamentChanged()
+{
+    // Only the custom temperament plays the ratio fields, so they are only enabled there
+    static const int ratioFieldIds[] = {
+        IDC_UNISON_L, IDC_MINOR_2ND_L, IDC_MAJOR_2ND_L, IDC_MINOR_3RD_L, IDC_MAJOR_3RD_L, IDC_PERFECT_4TH_L, IDC_TRITONE_L,
+        IDC_PERFECT_5TH_L, IDC_MINOR_6TH_L, IDC_MAJOR_6TH_L, IDC_MINOR_7TH_L, IDC_MAJOR_7TH_L, IDC_OCTAVE_L,
+        IDC_UNISON_R, IDC_MINOR_2ND_R, IDC_MAJOR_2ND_R, IDC_MINOR_3RD_R, IDC_MAJOR_3RD_R, IDC_PERFECT_4TH_R, IDC_TRITONE_R,
+        IDC_PERFECT_5TH_R, IDC_MINOR_6TH_R, IDC_MAJOR_6TH_R, IDC_MINOR_7TH_R, IDC_MAJOR_7TH_R, IDC_OCTAVE_R
+    };
+    BOOL enable = ((CComboBox*)GetDlgItem(IDC_TEMPERAMENT))->GetCurSel() == CTuning::TUNING_CUSTOM;
+    for (int id : ratioFieldIds) {
+        GetDlgItem(id)->EnableWindow(enable);
+    }
 }
 
 void TuningDlg::OnCancel()

@@ -19,9 +19,10 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.atari.raster.rmt.model.Fraction;
+import org.atari.raster.rmt.model.IntegerFraction;
 import org.atari.raster.rmt.model.KeyboardLayout;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
+import org.atari.raster.rmt.model.Tuning;
 
 /**
  * The three B6 dialogs' data binding and validation, driven through their
@@ -140,7 +141,7 @@ class OptionsDialogsTest {
 	void tuningDialogRoundTripsAndOnlyTestOrOKReachTheSession() {
 		session.song.getTuning().basetuning = 432;
 		session.song.getTuning().temperament = 29;
-		session.song.getTuningRatios().maj7th = new Fraction(243, 128);
+		session.song.getTuningRatios().maj7th = new IntegerFraction(243, 128);
 		TuningDialog dialog = new TuningDialog(null, session);
 		dialog.dataToUi();
 
@@ -158,16 +159,16 @@ class OptionsDialogsTest {
 		fields.get(1 + 2 * 12).setText("4"); // Octave 4/1
 		dialog.dataFromUi();
 		assertEquals(440, dialog.settings.basetuning);
-		assertEquals(new Fraction(4, 1), dialog.ratios.octave);
+		assertEquals(new IntegerFraction(4, 1), dialog.ratios.octave);
 		assertEquals(432, session.song.getTuning().basetuning); // not applied yet
 
 		button(dialog, "Test").doClick();
 		assertEquals(440, session.song.getTuning().basetuning);
-		assertEquals(new Fraction(4, 1), session.song.getTuningRatios().octave);
+		assertEquals(new IntegerFraction(4, 1), session.song.getTuningRatios().octave);
 
 		button(dialog, "Reset").doClick();
 		assertEquals(432, session.song.getTuning().basetuning); // the backup
-		assertEquals(new Fraction(2, 1), session.song.getTuningRatios().octave);
+		assertEquals(new IntegerFraction(2, 1), session.song.getTuningRatios().octave);
 		assertEquals("440", fields.get(0).getText()); // the fields keep what was typed, as in C++
 
 		fields.get(0).setText("5"); // DDV_MinMaxDouble 6.875..7040
@@ -177,6 +178,30 @@ class OptionsDialogsTest {
 		assertFalse(dialog.validateOK());
 		fields.get(2 + 2 * 12).setText("1");
 		assertTrue(dialog.validateOK());
+	}
+
+	@Test
+	void tuningDialogEnablesTheRatioFieldsOnlyForTheCustomTemperament() {
+		session.song.getTuning().temperament = 0; // Equal Temperament (Default)
+		TuningDialog dialog = new TuningDialog(null, session);
+		dialog.dataToUi();
+
+		List<JTextField> fields = find(dialog, JTextField.class);
+		assertTrue(fields.get(0).isEnabled()); // the base tuning is independent of the temperament
+		for (int i = 1; i < fields.size(); i++) {
+			assertFalse(fields.get(i).isEnabled(), "a preset plays its own table, the ratios are not used");
+		}
+
+		List<JComboBox> combos = find(dialog, JComboBox.class);
+		combos.get(1).setSelectedIndex(Tuning.TUNING_CUSTOM);
+		for (int i = 1; i < fields.size(); i++) {
+			assertTrue(fields.get(i).isEnabled(), "the custom temperament is played from the ratios");
+		}
+
+		combos.get(1).setSelectedIndex(4); // Werckmeister III
+		for (int i = 1; i < fields.size(); i++) {
+			assertFalse(fields.get(i).isEnabled());
+		}
 	}
 
 	@Test

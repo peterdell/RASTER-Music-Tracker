@@ -34,7 +34,7 @@ TEST_F(TuningRatiosTest, UnisonAndOctaveAreWholeNumberRatios) {
 }
 
 // Characterization test: the literal for MIN_2ND is written as 40/38 in
-// TuningTypes.cpp, but CFraction's constructor always reduces to lowest
+// TuningTypes.cpp, but CIntegerFraction's constructor always reduces to lowest
 // terms, so the stored value is actually 20/19.
 TEST_F(TuningRatiosTest, MinorSecondIsStoredReduced) {
     EXPECT_EQ(ratios.MIN_2ND.numerator, 20);

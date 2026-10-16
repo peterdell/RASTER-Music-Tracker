@@ -9,7 +9,7 @@
 #include "Clipboard.h"
 #include "EffectsDlg.h"
 #include "FileNewDlg.h"
-#include "Fraction.h"
+#include "IntegerFraction.h"
 #include "MainFrm.h"
 #include "OptionsDialog.h"
 #include "ModulePropertiesDialog.h"
@@ -734,7 +734,7 @@ void CRmtView::ResetRMTConfig()
     WriteRMTConfig();							// Write the default configuration file 
 }
 
-boolean ReadFraction(const char* name, const char* value, const char* value2, const char* wantedName, CFraction& fraction) {
+boolean ReadIntegerFraction(const char* name, const char* value, const char* value2, const char* wantedName, CIntegerFraction& fraction) {
     if (strcmp(wantedName, name) == 0) {
         fraction.numerator = atoi(value);  fraction.denominator = atoi(value2);
         if (fraction.denominator == 0) {
@@ -784,25 +784,25 @@ void CRmtView::ReadTuningConfig()
         if (NAME("TEMPERAMENT")) { g_Song.GetTuning().temperament = atoi(value); continue; }
 
         // RATIOS
-        if (ReadFraction(name, value, value2, "UNISON", g_Song.GetTuningRatios().UNISON)) { continue; }
-        if (ReadFraction(name, value, value2, "MIN_2ND", g_Song.GetTuningRatios().MIN_2ND)) { continue; }
-        if (ReadFraction(name, value, value2, "MAJ_2ND", g_Song.GetTuningRatios().MAJ_2ND)) { continue; }
-        if (ReadFraction(name, value, value2, "MIN_3RD", g_Song.GetTuningRatios().MIN_3RD)) { continue; }
-        if (ReadFraction(name, value, value2, "MAJ_3RD", g_Song.GetTuningRatios().MAJ_3RD)) { continue; }
-        if (ReadFraction(name, value, value2, "PERF_4TH", g_Song.GetTuningRatios().PERF_4TH)) { continue; }
-        if (ReadFraction(name, value, value2, "TRITONE", g_Song.GetTuningRatios().TRITONE)) { continue; }
-        if (ReadFraction(name, value, value2, "PERF_5TH", g_Song.GetTuningRatios().PERF_5TH)) { continue; }
-        if (ReadFraction(name, value, value2, "MIN_6TH", g_Song.GetTuningRatios().MIN_6TH)) { continue; }
-        if (ReadFraction(name, value, value2, "MAJ_6TH", g_Song.GetTuningRatios().MAJ_6TH)) { continue; }
-        if (ReadFraction(name, value, value2, "MIN_7TH", g_Song.GetTuningRatios().MIN_7TH)) { continue; }
-        if (ReadFraction(name, value, value2, "MAJ_7TH", g_Song.GetTuningRatios().MAJ_7TH)) { continue; }
-        if (ReadFraction(name, value, value2, "OCTAVE", g_Song.GetTuningRatios().OCTAVE)) { continue; }
+        if (ReadIntegerFraction(name, value, value2, "UNISON", g_Song.GetTuningRatios().UNISON)) { continue; }
+        if (ReadIntegerFraction(name, value, value2, "MIN_2ND", g_Song.GetTuningRatios().MIN_2ND)) { continue; }
+        if (ReadIntegerFraction(name, value, value2, "MAJ_2ND", g_Song.GetTuningRatios().MAJ_2ND)) { continue; }
+        if (ReadIntegerFraction(name, value, value2, "MIN_3RD", g_Song.GetTuningRatios().MIN_3RD)) { continue; }
+        if (ReadIntegerFraction(name, value, value2, "MAJ_3RD", g_Song.GetTuningRatios().MAJ_3RD)) { continue; }
+        if (ReadIntegerFraction(name, value, value2, "PERF_4TH", g_Song.GetTuningRatios().PERF_4TH)) { continue; }
+        if (ReadIntegerFraction(name, value, value2, "TRITONE", g_Song.GetTuningRatios().TRITONE)) { continue; }
+        if (ReadIntegerFraction(name, value, value2, "PERF_5TH", g_Song.GetTuningRatios().PERF_5TH)) { continue; }
+        if (ReadIntegerFraction(name, value, value2, "MIN_6TH", g_Song.GetTuningRatios().MIN_6TH)) { continue; }
+        if (ReadIntegerFraction(name, value, value2, "MAJ_6TH", g_Song.GetTuningRatios().MAJ_6TH)) { continue; }
+        if (ReadIntegerFraction(name, value, value2, "MIN_7TH", g_Song.GetTuningRatios().MIN_7TH)) { continue; }
+        if (ReadIntegerFraction(name, value, value2, "MAJ_7TH", g_Song.GetTuningRatios().MAJ_7TH)) { continue; }
+        if (ReadIntegerFraction(name, value, value2, "OCTAVE", g_Song.GetTuningRatios().OCTAVE)) { continue; }
 
     }
     in.close();
 }
 
-void WriteFraction(std::ostream& os, const char* id, const CFraction& fraction) {
+void WriteIntegerFraction(std::ostream& os, const char* id, const CIntegerFraction& fraction) {
     os << id << " = " << fraction.numerator << " / " << fraction.denominator << std::endl;
 }
 
@@ -830,19 +830,19 @@ void CRmtView::WriteTuningConfig()
     os << "TEMPERAMENT = " << g_Song.GetTuning().temperament << std::endl;
 
     os << "\n# RATIOS\n" << std::endl;
-    WriteFraction(os, "UNISON", g_Song.GetTuningRatios().UNISON);
-    WriteFraction(os, "MIN_2ND", g_Song.GetTuningRatios().MIN_2ND);
-    WriteFraction(os, "MAJ_2ND", g_Song.GetTuningRatios().MAJ_2ND);
-    WriteFraction(os, "MIN_3RD", g_Song.GetTuningRatios().MIN_3RD);
-    WriteFraction(os, "MAJ_3RD", g_Song.GetTuningRatios().MAJ_3RD);
-    WriteFraction(os, "PERF_4TH", g_Song.GetTuningRatios().PERF_4TH);
-    WriteFraction(os, "TRITONE", g_Song.GetTuningRatios().TRITONE);
-    WriteFraction(os, "PERF_5TH", g_Song.GetTuningRatios().PERF_5TH);
-    WriteFraction(os, "MIN_6TH", g_Song.GetTuningRatios().MIN_6TH);
-    WriteFraction(os, "MAJ_6TH", g_Song.GetTuningRatios().MAJ_6TH);
-    WriteFraction(os, "MIN_7TH", g_Song.GetTuningRatios().MIN_7TH);
-    WriteFraction(os, "MAJ_7TH", g_Song.GetTuningRatios().MAJ_7TH);
-    WriteFraction(os, "OCTAVE", g_Song.GetTuningRatios().OCTAVE);
+    WriteIntegerFraction(os, "UNISON", g_Song.GetTuningRatios().UNISON);
+    WriteIntegerFraction(os, "MIN_2ND", g_Song.GetTuningRatios().MIN_2ND);
+    WriteIntegerFraction(os, "MAJ_2ND", g_Song.GetTuningRatios().MAJ_2ND);
+    WriteIntegerFraction(os, "MIN_3RD", g_Song.GetTuningRatios().MIN_3RD);
+    WriteIntegerFraction(os, "MAJ_3RD", g_Song.GetTuningRatios().MAJ_3RD);
+    WriteIntegerFraction(os, "PERF_4TH", g_Song.GetTuningRatios().PERF_4TH);
+    WriteIntegerFraction(os, "TRITONE", g_Song.GetTuningRatios().TRITONE);
+    WriteIntegerFraction(os, "PERF_5TH", g_Song.GetTuningRatios().PERF_5TH);
+    WriteIntegerFraction(os, "MIN_6TH", g_Song.GetTuningRatios().MIN_6TH);
+    WriteIntegerFraction(os, "MAJ_6TH", g_Song.GetTuningRatios().MAJ_6TH);
+    WriteIntegerFraction(os, "MIN_7TH", g_Song.GetTuningRatios().MIN_7TH);
+    WriteIntegerFraction(os, "MAJ_7TH", g_Song.GetTuningRatios().MAJ_7TH);
+    WriteIntegerFraction(os, "OCTAVE", g_Song.GetTuningRatios().OCTAVE);
 
     os.close();
 }

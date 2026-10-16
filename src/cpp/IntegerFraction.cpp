@@ -1,16 +1,16 @@
-#include "Fraction.h"
+#include "IntegerFraction.h"
 
 #include <stdexcept>
 
 using std::invalid_argument;
 
-CFraction::CFraction() : CFraction(0, 1) {
+CIntegerFraction::CIntegerFraction() : CIntegerFraction(0, 1) {
 }
 
-CFraction::CFraction(int n) : CFraction(n, 1) {
+CIntegerFraction::CIntegerFraction(int n) : CIntegerFraction(n, 1) {
 }
 
-CFraction::CFraction(int n, int d) {
+CIntegerFraction::CIntegerFraction(int n, int d) {
     if (d == 0) {
         throw invalid_argument("d");
     }
@@ -19,63 +19,63 @@ CFraction::CFraction(int n, int d) {
     simplify();
 }
 
-CFraction::~CFraction() {
+CIntegerFraction::~CIntegerFraction() {
 }
 
-CFraction CFraction::operator+(const CFraction& f) {
+CIntegerFraction CIntegerFraction::operator+(const CIntegerFraction& f) {
     int n = numerator * f.denominator + f.numerator * denominator;
     int d = denominator * f.denominator;
 
-    CFraction ff(n, d);
+    CIntegerFraction ff(n, d);
     return ff;
 }
 
-CFraction CFraction::operator-(const CFraction& f) {
+CIntegerFraction CIntegerFraction::operator-(const CIntegerFraction& f) {
     int n = numerator * f.denominator - f.numerator * denominator;
     int d = denominator * f.denominator;
 
-    CFraction ff(n, d);
+    CIntegerFraction ff(n, d);
     return ff;
 }
 
-CFraction CFraction::operator*(const CFraction& f) {
+CIntegerFraction CIntegerFraction::operator*(const CIntegerFraction& f) {
     int n = numerator * f.numerator;
     int d = denominator * f.denominator;
 
-    CFraction ff(n, d);
+    CIntegerFraction ff(n, d);
     return ff;
 }
 
-CFraction CFraction::operator/(const CFraction& f) {
+CIntegerFraction CIntegerFraction::operator/(const CIntegerFraction& f) {
     int n = numerator * f.denominator;
     int d = denominator * f.numerator;
 
-    CFraction ff(n, d);
+    CIntegerFraction ff(n, d);
     return ff;
 }
 
-CFraction CFraction::operator+=(const CFraction& f) {
+CIntegerFraction CIntegerFraction::operator+=(const CIntegerFraction& f) {
     numerator = numerator * f.denominator + f.numerator * denominator;
     denominator = denominator * f.denominator;
     simplify();
 
-    CFraction ff(numerator, denominator);
+    CIntegerFraction ff(numerator, denominator);
     return ff;
 }
 
-CFraction CFraction::operator++() {
-    CFraction f(1, 1);
+CIntegerFraction CIntegerFraction::operator++() {
+    CIntegerFraction f(1, 1);
     numerator = numerator * f.denominator + f.numerator * denominator;
     denominator = denominator * f.denominator;
     simplify();
 
-    CFraction ff(numerator, denominator);
+    CIntegerFraction ff(numerator, denominator);
     return ff;
 }
 
-CFraction CFraction::operator++(int) {
-    CFraction ff(numerator, denominator);
-    CFraction f(1, 1);
+CIntegerFraction CIntegerFraction::operator++(int) {
+    CIntegerFraction ff(numerator, denominator);
+    CIntegerFraction f(1, 1);
     numerator = numerator * f.denominator + f.numerator * denominator;
     denominator = denominator * f.denominator;
     simplify();
@@ -83,41 +83,41 @@ CFraction CFraction::operator++(int) {
     return ff;
 }
 
-bool CFraction::operator>(const CFraction& f) {
+bool CIntegerFraction::operator>(const CIntegerFraction& f) {
     int n = numerator * f.denominator - f.numerator * denominator;
     int d = denominator * f.denominator;
 
-    CFraction ff(n, d);
+    CIntegerFraction ff(n, d);
     return ff.numerator > 0;
 }
 
-bool CFraction::operator==(const CFraction& f) {
+bool CIntegerFraction::operator==(const CIntegerFraction& f) {
     int n = numerator * f.denominator - f.numerator * denominator;
     int d = denominator * f.denominator;
 
-    CFraction ff(n, d);
+    CIntegerFraction ff(n, d);
     return ff.numerator == 0;
 }
 
-CFraction::operator double() {
+CIntegerFraction::operator double() {
     return (double)numerator / denominator;
 }
 
-void CFraction::simplify() {
+void CIntegerFraction::simplify() {
     reduction();
     fix_sign();
 }
-void CFraction::fix_sign() {
+void CIntegerFraction::fix_sign() {
     if (denominator < 0) {
         denominator = -denominator;
         numerator = -numerator;
     }
 }
-void CFraction::reduction() {
+void CIntegerFraction::reduction() {
     int common = gcd(numerator, denominator);
     numerator /= common;
     denominator /= common;
 }
-int CFraction::gcd(int x, int y) {
+int CIntegerFraction::gcd(int x, int y) {
     return y == 0 ? x : gcd(y, x % y);
 }

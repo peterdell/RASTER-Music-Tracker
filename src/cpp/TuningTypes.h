@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Fraction.h"
+#include "IntegerFraction.h"
 
 struct TTuningSettings {
 
@@ -13,19 +13,19 @@ struct TTuningSettings {
 
 // ratio used for each note => NOTE_L / NOTE_R, must be treated as doubles!!!
 struct TTuningRatios {
-    CFraction UNISON;
-    CFraction MIN_2ND;
-    CFraction MAJ_2ND;
-    CFraction MIN_3RD;
-    CFraction MAJ_3RD;
-    CFraction PERF_4TH;
-    CFraction TRITONE;
-    CFraction PERF_5TH;
-    CFraction MIN_6TH;
-    CFraction MAJ_6TH;
-    CFraction MIN_7TH;
-    CFraction MAJ_7TH;
-    CFraction OCTAVE;
+    CIntegerFraction UNISON;
+    CIntegerFraction MIN_2ND;
+    CIntegerFraction MAJ_2ND;
+    CIntegerFraction MIN_3RD;
+    CIntegerFraction MAJ_3RD;
+    CIntegerFraction PERF_4TH;
+    CIntegerFraction TRITONE;
+    CIntegerFraction PERF_5TH;
+    CIntegerFraction MIN_6TH;
+    CIntegerFraction MAJ_6TH;
+    CIntegerFraction MIN_7TH;
+    CIntegerFraction MAJ_7TH;
+    CIntegerFraction OCTAVE;
 
     void Initialize();
 };

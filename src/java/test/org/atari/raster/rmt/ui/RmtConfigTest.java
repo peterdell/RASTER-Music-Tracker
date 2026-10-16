@@ -13,7 +13,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import org.atari.raster.rmt.model.Fraction;
+import org.atari.raster.rmt.model.IntegerFraction;
 import org.atari.raster.rmt.model.KeyboardLayout;
 import org.atari.raster.rmt.model.MessageAnswer;
 import org.atari.raster.rmt.model.MessageButtons;
@@ -79,7 +79,7 @@ class RmtConfigTest {
 			VIEW_DEBUGDISPLAY = 0
 			""";
 
-	/** The default tuning.ini - note the ratios as C++ writes them before Fraction's normalization (40/38 etc.); Java writes them reduced. */
+	/** The default tuning.ini - note the ratios as C++ writes them before IntegerFraction's normalization (40/38 etc.); Java writes them reduced. */
 	static final String DEFAULT_TUNING_INI = """
 			# RMT CONFIGURATION FILE
 			# RASTER Music Tracker 1.36
@@ -178,8 +178,8 @@ class RmtConfigTest {
 		written.song.getTuning().basetuning = 432.5;
 		written.song.getTuning().basenote = 7;
 		written.song.getTuning().temperament = 29;
-		written.song.getTuningRatios().maj7th = new Fraction(243, 128);
-		written.song.getTuningRatios().octave = new Fraction(4, 2);
+		written.song.getTuningRatios().maj7th = new IntegerFraction(243, 128);
+		written.song.getTuningRatios().octave = new IntegerFraction(4, 2);
 
 		RmtConfig config = new RmtConfig(dir);
 		config.writeRMTConfig(written);
@@ -198,8 +198,8 @@ class RmtConfigTest {
 		assertEquals(RmtConfig.formatTuningConfig(written.song.getTuning(), written.song.getTuningRatios()), RmtConfig.formatTuningConfig(read.song.getTuning(), read.song.getTuningRatios()));
 		assertTrue(read.song.isNTSC());
 		assertEquals("C:\\Music\\Songs = mine", read.options.defaultSongsPath); // only the first '=' splits
-		assertEquals(new Fraction(243, 128), read.song.getTuningRatios().maj7th); // MAJ_7TH is read back (C++ 1.35 only wrote it)
-		assertEquals(2, read.song.getTuningRatios().octave.numerator); // normalized by Fraction
+		assertEquals(new IntegerFraction(243, 128), read.song.getTuningRatios().maj7th); // MAJ_7TH is read back (C++ 1.35 only wrote it)
+		assertEquals(2, read.song.getTuningRatios().octave.numerator); // normalized by IntegerFraction
 	}
 
 	@Test
@@ -227,7 +227,7 @@ class RmtConfigTest {
 	void aMissingTuningIniResetsTheTuningAndWritesTheDefaults(@TempDir Path dir) throws IOException {
 		RmtSession session = new RmtSession();
 		session.song.getTuning().basetuning = 999;
-		session.song.getTuningRatios().octave = new Fraction(3, 1);
+		session.song.getTuningRatios().octave = new IntegerFraction(3, 1);
 		RecordingMessages messages = new RecordingMessages();
 		session.messages.setHandler(messages);
 
@@ -236,7 +236,7 @@ class RmtConfigTest {
 		assertEquals(1, messages.warnings.size());
 		assertTrue(messages.warnings.get(0).contains("RMT will use the default Tuning parameters."));
 		assertEquals(440.83751645933, session.song.getTuning().basetuning);
-		assertEquals(new Fraction(2, 1), session.song.getTuningRatios().octave);
+		assertEquals(new IntegerFraction(2, 1), session.song.getTuningRatios().octave);
 		assertEquals(DEFAULT_TUNING_INI, Files.readString(dir.resolve("tuning.ini"), RmtConfig.CHARSET).replace(System.lineSeparator(), "\n"));
 	}
 
@@ -278,11 +278,11 @@ class RmtConfigTest {
 		assertEquals(432.5, tuning.basetuning);
 		assertEquals(9, tuning.basenote);
 		assertEquals(29, tuning.temperament);
-		assertEquals(new Fraction(3, 2), ratios.perf5th);
-		assertEquals(new Fraction(1, 1), ratios.octave);
-		assertEquals(new Fraction(1, 1), ratios.maj3rd);
-		assertEquals(new Fraction(20, 19), ratios.min2nd);
-		assertEquals(new Fraction(10, 9), ratios.maj2nd); // untouched
+		assertEquals(new IntegerFraction(3, 2), ratios.perf5th);
+		assertEquals(new IntegerFraction(1, 1), ratios.octave);
+		assertEquals(new IntegerFraction(1, 1), ratios.maj3rd);
+		assertEquals(new IntegerFraction(20, 19), ratios.min2nd);
+		assertEquals(new IntegerFraction(10, 9), ratios.maj2nd); // untouched
 	}
 
 	@Test

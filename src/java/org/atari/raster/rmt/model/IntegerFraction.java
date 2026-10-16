@@ -1,29 +1,29 @@
 package org.atari.raster.rmt.model;
 
 /**
- * Ported from CFraction (src/cpp/Fraction.h/.cpp). C++ operator overloads
+ * Ported from CIntegerFraction (src/cpp/IntegerFraction.h/.cpp). C++ operator overloads
  * become named methods since Java has no user-defined operator overloading;
  * the mutating operators (operator+=, operator++) become methods returning a
- * new Fraction, leaving this class immutable rather than replicating C++'s
+ * new IntegerFraction, leaving this class immutable rather than replicating C++'s
  * in-place mutation - simpler and safer, with no behavioral difference for
  * any caller that uses the returned value (as every one already does).
  */
-public final class Fraction {
+public final class IntegerFraction {
 
 	public final int numerator;
 	public final int denominator;
 
-	public Fraction() {
+	public IntegerFraction() {
 		this(0, 1);
 	}
 
-	public Fraction(int n) {
+	public IntegerFraction(int n) {
 		this(n, 1);
 	}
 
-	public Fraction(int n, int d) {
+	public IntegerFraction(int n, int d) {
 		if (d == 0) {
-			throw new IllegalArgumentException("d");
+			throw new IllegalArgumentException("The denominator must not be 0.");
 		}
 		int common = gcd(n, d);
 		n /= common;
@@ -36,28 +36,28 @@ public final class Fraction {
 		denominator = d;
 	}
 
-	public Fraction add(Fraction f) {
-		return new Fraction(numerator * f.denominator + f.numerator * denominator, denominator * f.denominator);
+	public IntegerFraction add(IntegerFraction f) {
+		return new IntegerFraction(numerator * f.denominator + f.numerator * denominator, denominator * f.denominator);
 	}
 
-	public Fraction subtract(Fraction f) {
-		return new Fraction(numerator * f.denominator - f.numerator * denominator, denominator * f.denominator);
+	public IntegerFraction subtract(IntegerFraction f) {
+		return new IntegerFraction(numerator * f.denominator - f.numerator * denominator, denominator * f.denominator);
 	}
 
-	public Fraction multiply(Fraction f) {
-		return new Fraction(numerator * f.numerator, denominator * f.denominator);
+	public IntegerFraction multiply(IntegerFraction f) {
+		return new IntegerFraction(numerator * f.numerator, denominator * f.denominator);
 	}
 
-	public Fraction divide(Fraction f) {
-		return new Fraction(numerator * f.denominator, denominator * f.numerator);
+	public IntegerFraction divide(IntegerFraction f) {
+		return new IntegerFraction(numerator * f.denominator, denominator * f.numerator);
 	}
 
-	/** C++'s operator++ (both pre- and post-increment become this, since Fraction is immutable - see the caller for which value it keeps). */
-	public Fraction increment() {
-		return add(new Fraction(1, 1));
+	/** C++'s operator++ (both pre- and post-increment become this, since IntegerFraction is immutable - see the caller for which value it keeps). */
+	public IntegerFraction increment() {
+		return add(new IntegerFraction(1, 1));
 	}
 
-	public boolean greaterThan(Fraction f) {
+	public boolean greaterThan(IntegerFraction f) {
 		return numerator * f.denominator - f.numerator * denominator > 0;
 	}
 
@@ -67,16 +67,16 @@ public final class Fraction {
 	 * constructor's own reduction always leaves a non-zero denominator, so
 	 * it evaluated to false for every pair of operands, including two
 	 * fractions representing the same value. No production code relied on
-	 * it (verified by repo-wide search) - fixed here and in Fraction.cpp's
+	 * it (verified by repo-wide search) - fixed here and in IntegerFraction.cpp's
 	 * operator==, per the user's explicit decision to fix this bug in both
 	 * languages rather than port it faithfully.
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (!(obj instanceof Fraction)) {
+		if (!(obj instanceof IntegerFraction)) {
 			return false;
 		}
-		Fraction f = (Fraction) obj;
+		IntegerFraction f = (IntegerFraction) obj;
 		return numerator * f.denominator - f.numerator * denominator == 0;
 	}
 

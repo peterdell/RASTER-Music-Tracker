@@ -273,7 +273,7 @@
     <ClCompile Include="Notes.cpp">
       <Filter>Source Files\Model</Filter>
     </ClCompile>
-    <ClCompile Include="Fraction.cpp">
+    <ClCompile Include="IntegerFraction.cpp">
       <Filter>Source Files\Common</Filter>
     </ClCompile>
     <ClCompile Include="TuningTypes.cpp">
@@ -539,7 +539,7 @@
     <ClInclude Include="Notes.h">
       <Filter>Source Files\Model</Filter>
     </ClInclude>
-    <ClInclude Include="Fraction.h">
+    <ClInclude Include="IntegerFraction.h">
       <Filter>Source Files\Common</Filter>
     </ClInclude>
     <ClInclude Include="TuningTypes.h">
