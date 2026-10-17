@@ -20,7 +20,7 @@ public:
     CIntegerFraction operator++(int);
     bool operator>(const CIntegerFraction& f);
     bool operator==(const CIntegerFraction& f);
-    operator double();
+    operator double() const;
 
 private:
     void simplify();

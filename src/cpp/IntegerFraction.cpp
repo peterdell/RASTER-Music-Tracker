@@ -99,7 +99,7 @@ bool CIntegerFraction::operator==(const CIntegerFraction& f) {
     return ff.numerator == 0;
 }
 
-CIntegerFraction::operator double() {
+CIntegerFraction::operator double() const {
     return (double)numerator / denominator;
 }
 

@@ -236,7 +236,7 @@ static const byte sawtooth_tables[128] = {
 
 /// <summary> Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into the emulated Atari memory </summary>
 void CTuning::InitTuning() {
-    TTuningSettings& tuning = g_Song.GetTuningSettings();
+    const TTuningSettings& tuning = g_Song.GetTuningSettings();
     if (!tuning.basetuning) { //if base tuning is 0.0, make sure to reset it, else the program could crash!
         SendErrorMessage("Program error", "An invalid tuning has been detected!\n\nBasetuning is zero. ");
         exit(1);
