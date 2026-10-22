@@ -1,7 +1,7 @@
 # Plan 49: Answer Fox's review of ASAP merge request #4 and re-submit on GitHub
 
-Status: DONE 2026-10-22, except the SourceForge closing comment (B7),
-which is a browser step for the user. The re-submission is
+Status: DONE 2026-10-22, including B7 - the user closed SourceForge
+MR #4 with the pointer to the GitHub PR. The re-submission is
 https://github.com/pfusik/asap/pull/1 (branch `pokey-register-shadow`,
 commit `1530dc7`, one commit over 8.0.1).
 
@@ -174,6 +174,7 @@ becomes dormant.
   SourceForge has no CLI, so this is a browser step for the user unless
   an Allura API token is set up. Update plan 31 (A5's follow-through
   now tracked here) and this plan's status plus the README row.
+  (Done 2026-10-22: the user closed the MR in the browser.)
 
 ## 3. Why answer R1 with code instead of a caveat
 
