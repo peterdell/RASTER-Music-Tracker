@@ -1,7 +1,8 @@
 # Plan 31: Contribute RMT's ASAP changes upstream
 
-Status: IN PROGRESS. A1-A5 done 2026-10-04, merge request #4 open
-upstream and awaiting review; A6 (the RMT-mode block) open.
+Status: IN PROGRESS. A1-A5 done 2026-10-04; Fox reviewed merge request #4
+on 2026-10-20 and moved the repo to GitHub - the response and re-submission
+are plan 49. A6 (the RMT-mode block) open.
 
 Offer the changes the Java port made to ASAP (Another Slight Atari Player)
 back to its author, Piotr Fusik ("Fox"), as merge requests on SourceForge,
