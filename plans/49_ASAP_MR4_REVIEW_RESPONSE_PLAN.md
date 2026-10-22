@@ -18,8 +18,11 @@ What execution decided beyond the plan:
 - fut 3.3.9 (released 2026-10-22) regenerates pristine 8.0.1
   byte-identically, so the generator matches Fox's - the R3 parity
   check passed outright. The 3.3.9 binary ran from the extracted MSI in
-  the session scratchpad; the proper MSI install into
-  `C:\jac\system\Windows\Tools\FUT` is still for the user to run.
+  the session scratchpad; the proper MSI install is done -
+  `C:\jac\system\Fusion\Tools\Fusion\fut.exe` (uninstalled/reinstalled
+  there on 2026-10-22, replacing `C:\jac\system\Windows\Tools\FUT`; the
+  MSI manages its machine-PATH entry itself, so uninstall+reinstall
+  moved the PATH along).
 - The R1 teeth: `LivePlaybackTest.aDoubleSpeedSongStepsAsapOncePer`
   `DriverTickNotPerVideoFrame` plays Delta at instrument speed 2 and
   fails against per-video-frame stepping (verified by reverting the
@@ -132,7 +135,9 @@ becomes dormant.
   which is on the user PATH); the 3.3.9 MSI has the same one-file
   `Fusion\fut.exe` layout, so choosing the same target directory keeps
   the PATH valid - letting it default to Program Files would strand the
-  PATH entry. `xasm` stays on the path
+  PATH entry. (Done; later moved - the install now lives at
+  `C:\jac\system\Fusion\Tools\Fusion`, see above.) `xasm` stays on the
+  path
   (`C:\jac\system\Atari800\Tools\ASM\XASM`) - the 6502 player binaries
   are assembled as a prerequisite of `asap.c`.
 - **B2 - new baseline.** In the clone
