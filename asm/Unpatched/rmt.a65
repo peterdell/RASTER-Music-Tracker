@@ -17,27 +17,28 @@
 ;* 3. Because of RMTplayer provides a lot of effects, it spent a lot of CPU time.
 ;*
 ; 10.12.2002
-; - speed-change fix - A changed speed is written to v_speed only after all 4 (resp. 8) tracks are done.
-;   i.e. if the change is in the first row of a track and a goto moves it to the first row,
-;   but the second track has an end (=> all actions
-;   in this row are invalid and the next song line is taken), then even the speed change from the first
-;   row of the first track does not take effect
+; - speed-change fix - A changed speed is written to v_speed only after all 4 (resp. 8)
+;   tracks are done. i.e. if the change is in the first row of a track and a goto moves it
+;   to the first row, but the second track has an end (=> all actions in this row are
+;   invalid and the next song line is taken), then even the speed change from the first row
+;   of the first track does not take effect
 
 ; 14.12.2002
-; - more tracks - Instead of the original tracks 0-$7f extended to 0-$fd ($fe is jump, $ff empty track)
-;   the module header gained 2 bytes - it now holds a pointer to the array of low bytes of the track pointers and (in addition) a pointer to the array
-;   of high bytes of the track pointers
+; - more tracks - Instead of the original tracks 0-$7f extended to 0-$fd ($fe is jump, $ff
+;   empty track) the module header gained 2 bytes - it now holds a pointer to the array of
+;   low bytes of the track pointers and (in addition) a pointer to the array of high bytes
+;   of the track pointers
 
 ; 14.12.2002
-; - filter and 16-bit bass rework - If a track's resulting volume is 0 (no noise component), neither filtering
-;   nor 16-bit bass is applied for that generator => the other generator is not blocked (for the filter or for the low byte of the 16-bit bass)
-;   and it can play its own content normally, as its track says
-;   (note: this cost 56 bytes of code (stereo 56=8x7 bytes, mono 28=4x7 bytes))
+; - filter and 16-bit bass rework - If a track's resulting volume is 0 (no noise component),
+;   neither filtering nor 16-bit bass is applied for that generator => the other generator
+;   is not blocked (for the filter or for the low byte of the 16-bit bass) and it can play
+;   its own content normally, as its track says (note: this cost 56 bytes of code (stereo
+;   56=8x7 bytes, mono 28=4x7 bytes))
 
 ; 14.12.2002
-; - basstab1 shift - shifted by 8 tones and the lowest 8 filled in with ones an octave higher
-;   this tunes bass 1 to everything else
-;   (note: bass 2 is correct as it is)
+; - basstab1 shift - shifted by 8 tones and the lowest 8 filled in with ones an octave
+;   higher this tunes bass 1 to everything else (note: bass 2 is correct as it is)
 
 ; 21.12.2002
 ; - command 2 fixed - frequency shift (the bug: it had no effect combined with table shifts)
@@ -53,12 +54,14 @@
 ;	p_song				org *+2		;209-210
 
 ; 28.12.2002
-; - extended pause specification. If the top two bits are 00 it behaves as before
-;   and the pause is given by the next byte; if those two bits are >00 they directly give a pause of 1, 2 or 3 rows and the next
-;   byte is not used (=> considerable size saving in the resulting RMT files!!!)
+; - extended pause specification. If the top two bits are 00 it behaves as before and the
+;   pause is given by the next byte; if those two bits are >00 they directly give a pause of
+;   1, 2 or 3 rows and the next byte is not used (=> considerable size saving in the
+;   resulting RMT files!!!)
 
 ; 14.01.2003
-; - song line number definition fixed (it multiplied by *4 even for STEREO, now MONO is *4, STEREO *8)
+; - song line number definition fixed (it multiplied by *4 even for STEREO, now MONO is *4,
+;   STEREO *8)
 
 ; 18.01.2003
 ; - envelope command $7 added - BaseNote = $XY
@@ -67,51 +70,56 @@
 ; - formatting of the frq and volume tables reworked
 
 ; 08.02.2003
-; - PLAYER ROUTINE MODIFICATION - INSTRUMENT VERSION 1
-;   support for longer tables, longer envelopes, full AUDCTL control
-;   various optimizations happened along the way => 52 bytes shorter!!!
+; - PLAYER ROUTINE MODIFICATION - INSTRUMENT VERSION 1 support for longer tables, longer
+;   envelopes, full AUDCTL control various optimizations happened along the way => 52 bytes
+;   shorter!!!
 
 ; 12.02.2003
-; - RMT BUG FIX - table speed (the first table element played 1/50 shorter => shifted the rest by 1/50 too)
-;   optimized while fixing => 3 bytes shorter!
+; - RMT BUG FIX - table speed (the first table element played 1/50 shorter => shifted the
+;   rest by 1/50 too) optimized while fixing => 3 bytes shorter!
 
 ; 22.02.2003
 ; - command $7 variation added. If the parameter is $80, the "volume only" mode is used.
 
 ; 17.04.2003
-; - attempt to fix the bug of one skipped envelope processing at the start (17.04.2003)
-;   did not help, so commented out again (jsr rmt_p3)
+; - attempt to fix the bug of one skipped envelope processing at the start (17.04.2003) did
+;   not help, so commented out again (jsr rmt_p3)
 
 ; 27.04.2003
-; - another fix attempt (see 17.04.2003), again by adding that jsr rmt_p3 (uncommenting it)
+; - another fix attempt (see 17.04.2003), again by adding that jsr rmt_p3 (uncommenting it).
 ;   OK! It works, but a related fix had to be made in RMTracker too
 
 ; 19.01.2004
 ; - added the options 4 TRACKS STEREO L1 R2 R3 L4 and 4 TRACKS STEREO L1 L2 R3 R4
 
 ; 31.01.2004
-; - fixed an addition bug (carry into the high byte) when starting the song from the N-th songline.
+; - fixed an addition bug (carry into the high byte) when starting the song from the N-th
+;   songline.
 ; - fixed STEREOMODE 2 and 3 so filters and 16-bit bass work correctly there too
 
 ; 11.02.2004
-; - added FEAT_VOLUMEMIN and improved FEAT_AUDCTLMANUALSET (by 2 cycles) on every SetUpInstrumentY2
+; - added FEAT_VOLUMEMIN and improved FEAT_AUDCTLMANUALSET (by 2 cycles) on every
+;   SetUpInstrumentY2
 ; - added FEAT_TABLEGO
 
 ; 15.02.2004
 ; - various speed/size optimizations (22 bytes saved)
 
 ; 16.02.2004-21.02.2004
-; - various speed/size optimizations following Jaskier's advice + some further brutally hard optimizations of my own :-)
+; - various speed/size optimizations following Jaskier's advice + some further brutally hard
+;   optimizations of my own :-)
 ; - another 40 (!) bytes saved compared to 15.02.2004
 
 ; 13.04.2005
 ; - reworked the check whether the table is to be used
 
 ; 26.12.2005
-; - FEAT_INSTRSPEED	  (=0 => for modules with varying instr. speed 1 to 4; otherwise hardcoded for one instr. speed only)
-; - FEAT_CONSTANTSPEED  (if there is _NO_ speed command at all, it is nonzero and holds the main, constant speed)
-; - improvement via self-modifying variables
-;   ( v_instrspeed, v_maxtracklen, v_audctl, v_audctl2, v_bspeed )
+; - FEAT_INSTRSPEED   (=0 => for modules with varying instr. speed 1 to 4; otherwise
+;   hardcoded for one instr. speed only)
+; - FEAT_CONSTANTSPEED  (if there is _NO_ speed command at all, it is nonzero and holds the
+;   main, constant speed)
+; - improvement via self-modifying variables ( v_instrspeed, v_maxtracklen, v_audctl,
+;   v_audctl2, v_bspeed )
 
 ; 17.02.2006
 ; - FEAT_SFX
@@ -126,7 +134,8 @@
 ; - fixed the FEAT optimization for Command5 combined with portamento unused anywhere
 ; - fixed the FEAT optimization for Command6 combined with the filter unused anywhere
 ; - ultra-brutal size and speed FEAT optimization of the dispatch by command number
-; - improved optimization - sometimes trackn_command is not compiled/initialized at all for every command!
+; - improved optimization - sometimes trackn_command is not compiled/initialized at all for
+;   every command!
 
 ; 30.08.2008
 ; - support for FEAT_GLOBALVOLUMEFADE for RMTGLOBALVOLUMEFADE
