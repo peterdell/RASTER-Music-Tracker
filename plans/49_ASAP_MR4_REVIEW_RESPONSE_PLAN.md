@@ -139,6 +139,8 @@ becomes dormant.
   (`C:\jac\system\Fusion\Programming\Repositories\Tools\asap`): add a
   `github` remote for `pfusik/asap`, fetch, rebase
   `pokey-register-shadow` (one commit, `f4afcfd`) onto its `master`.
+  (The clone's remotes were later normalized to the usual convention:
+  `origin` = `peterdell/asap`, `upstream` = `pfusik/asap`.)
   Then the R3 parity check: regenerate from pristine sources and diff
   against upstream's committed `asap.c`/`asap.h`.
 - **B3 - rework the commit.** Apply R1 (player-call stepping, the
