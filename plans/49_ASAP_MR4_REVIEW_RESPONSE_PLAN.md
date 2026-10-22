@@ -1,6 +1,33 @@
 # Plan 49: Answer Fox's review of ASAP merge request #4 and re-submit on GitHub
 
-Status: OPEN.
+Status: DONE 2026-10-22, except the SourceForge closing comment (B7),
+which is a browser step for the user. The re-submission is
+https://github.com/pfusik/asap/pull/1 (branch `pokey-register-shadow`,
+commit `ec43b1b`, one commit over 8.0.1).
+
+What execution decided beyond the plan:
+
+- The step is named `StepPlayer`, not `StepFrame`: the user found
+  "DoFrame does cycles" and SAP-R's row-"frame" inconsistent with the
+  Atari video frame, so the public step joins ASAP's existing player
+  vocabulary (`Call6502Player`, `NextPlayerCycle`,
+  `GetPlayerRateScanlines`), and the internal `DoFrame`/`Do6502Frame`,
+  which now take their cycle window as a parameter, became
+  `DoCycles`/`Do6502Cycles` - "frame" in identifiers stays reserved for
+  the video frame (`GetFrameCycles`, `Pokeys.StartFrame`/`EndFrame`).
+- fut 3.3.9 (released 2026-10-22) regenerates pristine 8.0.1
+  byte-identically, so the generator matches Fox's - the R3 parity
+  check passed outright. The 3.3.9 binary ran from the extracted MSI in
+  the session scratchpad; the proper MSI install into
+  `C:\jac\system\Windows\Tools\FUT` is still for the user to run.
+- The R1 teeth: `LivePlaybackTest.aDoubleSpeedSongStepsAsapOncePer`
+  `DriverTickNotPerVideoFrame` plays Delta at instrument speed 2 and
+  fails against per-video-frame stepping (verified by reverting the
+  step), passes with `stepPlayer`. 718 Java tests green,
+  `compare_exports` identical.
+- The NMIST concern resolved benignly: between direct player calls the
+  CPU sits at the escape address (`Call6502Player`), so nothing polls
+  NMIST at sub-frame cadence in any tune the API targets.
 
 Fox (Piotr Fusik) reviewed merge request #4
 (https://sourceforge.net/p/asap/code/merge-requests/4/, opened by plan 31

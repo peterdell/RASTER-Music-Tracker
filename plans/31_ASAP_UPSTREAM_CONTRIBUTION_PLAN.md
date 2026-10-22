@@ -2,7 +2,9 @@
 
 Status: IN PROGRESS. A1-A5 done 2026-10-04; Fox reviewed merge request #4
 on 2026-10-20 and moved the repo to GitHub - the response and re-submission
-are plan 49. A6 (the RMT-mode block) open.
+are plan 49, done 2026-10-22 as https://github.com/pfusik/asap/pull/1
+(StepFrame became StepPlayer: one step is one player call, not one video
+frame). A6 (the RMT-mode block) open, now targeting the GitHub repo.
 
 Offer the changes the Java port made to ASAP (Another Slight Atari Player)
 back to its author, Piotr Fusik ("Fox"), as merge requests on SourceForge,
