@@ -113,6 +113,17 @@ void CXPokey::RenderPartV2(int size, BYTE* buffer, int& length) {
 /// Transfer 9/18 Pokey registers values into the sound driver.
 /// Mono: D200-D208
 /// Stereo: D200-D208 and D210-D218
+///
+/// SKCTL ($D20F/$D21F) is deliberately absent, and these PutBytes are
+/// not the register path at all: the shipped sa_pokey.dll/sa_c6502.dll
+/// are Avery Lee's AltirraRMT plugin pair (Altirra src/AltirraRMT*),
+/// which link to each other - the CPU traps every $D2xx write and
+/// hands it, cycle-stamped, to the full Altirra POKEY, SKCTL and the
+/// Two-Tone filter included. In that linked mode Pokey_PutByte only
+/// fills the plugin's channel-mute shadow (the AUDC volume nibbles;
+/// a zero here mutes the channel), so adding SKCTL would write a byte
+/// nothing reads. The Java port has no such link - its renderer feeds
+/// ASAP's POKEY pair from the shadows, SKCTL included (plans/50, T1).
 /// </summary>
 void CXPokey::CopyAtariMemoryToPokey() {
     // Write bytes 0-7. Write 0x00 if the channel is inactive.

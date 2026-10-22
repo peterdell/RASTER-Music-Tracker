@@ -87,12 +87,13 @@ class AudioEngineTest {
 	}
 
 	/**
-	 * The Two-Tone filter (SKCTL $8B) must reach the POKEY pair - C++'s
-	 * {@code CopyAtariMemoryToPokey()} never copied SKCTL, so the filter was
-	 * silent in live playback while every export carried it (issue #30). Two
-	 * identical sessions play the same pressed tones; one switches the filter
-	 * on. SKCTL is the only difference in the register shadow, so different
-	 * samples prove the engine forwards it.
+	 * The Two-Tone filter (SKCTL $8B) must reach the POKEY pair - this
+	 * renderer is the port's only register path (C++ gets SKCTL through its
+	 * AltirraRMT CPU-to-POKEY link instead), and without the SKCTL copy the
+	 * filter was silent in live playback while every export carried it
+	 * (issue #30). Two identical sessions play the same pressed tones; one
+	 * switches the filter on. SKCTL is the only difference in the register
+	 * shadow, so different samples prove the engine forwards it.
 	 */
 	@Test
 	void theTwoToneFilterReachesThePokeyPair() throws IOException {

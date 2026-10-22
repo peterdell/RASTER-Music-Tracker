@@ -1,7 +1,9 @@
 # Plan 50: The Two-Tone filter audible everywhere it is recorded
 
-Status: T1 DONE 2026-10-22 (Java live playback); T2 (C++ live playback)
-and T3 (WAV export, both languages) open.
+Status: T1 DONE 2026-10-22 (Java live playback); T2 DONE 2026-10-22
+(C++ live playback was never broken - verified against the AltirraRMT
+plugin sources and documented, no code change); T3 (WAV export) open,
+rescoped to Java by T2's findings.
 
 GitHub issue #30: the Two-Tone filter (the envelope editor's $7FE/$7FD
 command, SKCTL=$8B) is inaudible in the Java version's live playback,
@@ -25,15 +27,26 @@ Vin's two hypotheses on the issue were "not emulated with ASAP" and
   set while $D20F reads $8B, PokeyStream.record), and the SAP/XEX
   exports' LZSS player turns that bit back into an SKCTL write
   (lzssp.h: CHECKFORTWOTONEBIT/NOTWOTONE/SETTWOTONE).
-- But the one bridge between the shadow and the audible POKEY pair -
-  CopyAtariMemoryToPokey, in both languages - copied only the nine
-  AUDF/AUDC/AUDCTL bytes. SKCTL never reached the pair, so live
-  playback ran every Two-Tone song with the filter off. The gap is
-  inherited: in this repository's whole C++ history (back through the
-  1.31-1.34 VinsCool import, XPokey.cpp's register loop `0-7 + 8audctl`)
-  SKCTL was never written to the sound DLL. "Works in daily 1.35" on
-  the issue therefore cannot be this codebase; the working reference
-  was presumably a build line with a different sound path.
+- The Java port's renderer is the port's ONLY path from the shadow to
+  the audible POKEY pair, and it copied just the nine
+  AUDF/AUDC/AUDCTL bytes - SKCTL never reached the pair, so live
+  playback ran every Two-Tone song with the filter off.
+- C++ was never broken, although its CopyAtariMemoryToPokey has the
+  same nine-byte loop (so T1's first write-up wrongly blamed it too,
+  corrected by T2). The shipped sa_pokey.dll/sa_c6502.dll are Avery
+  Lee's AltirraRMT plugin pair (Altirra src/AltirraRMTPOKEY and
+  src/AltirraRMTC6502; local checkouts in
+  C:\jac\system\Windows\Programming\Repositories\Tools\Altirra-440 and
+  ...\AltirraSDL, sources identical): on load they link to each other
+  (AltirraRMT_LinkFromCPU/LinkFromPOKEY), the CPU maps the whole $D2xx
+  page (SetHandlers(0xD2, ...)) and hands every write, cycle-stamped,
+  to the full Altirra POKEY - SKCTL and the Two-Tone filter included.
+  "Works in daily 1.35" on the issue is exactly this mechanism. In
+  linked mode Pokey_PutByte - all CopyAtariMemoryToPokey does - never
+  touches the POKEY: it fills the plugin's channel-mute shadow, of
+  which only the AUDC volume nibbles are read (zero there mutes the
+  channel with hysteresis). An SKCTL PutByte would be a byte nothing
+  reads, which is why T2 landed as documentation, not code.
 
 ## 2. Steps
 
@@ -50,35 +63,47 @@ Vin's two hypotheses on the issue were "not emulated with ASAP" and
   during real live playback. TestSongs.MAKARY_TWO_TONE_FILTER added.
   720 tests green.
 
-- **T2 - C++ live playback (open).** The same two PutByte calls in
-  CXPokey::CopyAtariMemoryToPokey (PokeyRendererCore.cpp): register
-  0x0F from $D20F, and 0x1F from $D21F in stereo. Shared-behavior
-  work, not C++-only: it is the C++ half of T1. To verify, the sound
-  DLLs must accept the offset: apokeysnd.dll is ASAP's generated
-  PokeySound (case 15 exists); sa_pokey.dll needs a check that
-  Pokey_PutByte(0x0F, ...) reaches its SKCTL - if it does not, the fix
-  only helps the apokeysnd path and the limitation is documented.
-  Changelog entry required (the Windows program changes audibly).
+- **T2 - C++ live playback (DONE 2026-10-22, no code change).**
+  Planned as the C++ twin of T1; investigation showed it is not
+  needed (section 1, last bullet). Probed empirically first: a
+  standalone harness driving sa_pokey.dll alone, and then the DLL
+  pair with a 6502 routine doing the STA $D2xx writes, always rendered
+  flat 0x80 - which exposed that Pokey_Process fills RMT's buffer with
+  silence BY DESIGN and the plugin plays audio through its own native
+  output (ATCreateAudioOutput), RMT's DirectSound buffer carries
+  nothing. The AltirraRMT plugin sources then confirmed the bypass
+  link carries every register. Landed as comments: the C++
+  CopyAtariMemoryToPokey documents the linked-mode reality (and why
+  SKCTL is deliberately absent there), and the Java-side comments from
+  T1 no longer claim C++ shared the bug. No changelog entry - the
+  Windows program's behavior is unchanged.
 
-- **T3 - WAV export, both languages (open).** The WAV exporter replays
-  the recorded SAP-R stream, in which Two-Tone is encoded as AUDC1
-  bit 4 - straight into AUDC1, which a POKEY reads as volume-only, and
-  it never rebuilds SKCTL. A Two-Tone song's WAV is therefore doubly
+- **T3 - WAV export (open, Java).** The Java WAV exporter replays the
+  recorded SAP-R stream, in which Two-Tone is encoded as AUDC1 bit 4 -
+  straight into AUDC1, which a POKEY reads as volume-only, and it
+  never rebuilds SKCTL. A Two-Tone song's WAV is therefore doubly
   wrong (filter off AND channel 1 forced volume-only). Fix like the
   LZSS player: per frame, SKCTL = (AUDC1 & 0x10) ? $8B : $03 into the
   pair, and write AUDC1 with bit 4 cleared. First confirm against the
   LZSS player's actual code whether it clears the bit before storing
   AUDC1 (expected: yes, otherwise its own playback would be
-  volume-only too). Java: WaveFileExporter.exportWav; C++:
-  CWaveFileExporter::ExportWAV (it routes through
-  CopyAtariMemoryToPokey reading the $D200 shadows, so T2's SKCTL copy
-  plus writing the translated SKCTL/AUDC1 into the shadows covers it).
-  Test: a WAV of the Makary example differs between SKCTL $8B and $03
-  frames, and no frame plays channel 1 volume-only unless the module
-  says so.
+  volume-only too). Test: a WAV of the Makary example differs between
+  SKCTL $8B and $03 frames, and no frame plays channel 1 volume-only
+  unless the module says so.
 
-Each step is its own commit; T2 and T3 can land independently of each
-other.
+  The C++ half dissolved under T2's findings: with the shipped
+  AltirraRMT pair, CWaveFileExporter::ExportWAV writes WAVs of pure
+  digital silence - RenderPartV2's Pokey_Process returns the 0x80-
+  filled buffer regardless of any register writes, since the plugin
+  routes audio to its own output. The Two-Tone translation is moot on
+  a silent file; the real C++ WAV defect is "the export records
+  nothing", a pre-existing problem of the Altirra-plugin era that
+  build/compare_exports.ps1 never caught because it deliberately skips
+  .wav files. Under the C++ phase-out rule this is documented here
+  (and worth a GitHub issue), not fixed; the Java exporter is the one
+  that renders real samples.
+
+T1/T2/T3 are each their own commit.
 
 ## 3. Notes
 
@@ -87,5 +112,10 @@ other.
   the LZSS player, T3's replay) shares that assumption; nothing new to
   invent, just mirror it.
 - The PokeyController "M" toggle (Pokey menu, SKCTL two-tone bits) was
-  equally inaudible before T1 - it eors the driver's SKCTL variable,
-  which only ever reached the PokeyView display. T1 makes it audible.
+  inaudible in the Java port before T1 - it eors the driver's SKCTL
+  variable, which only reached the PokeyView display. T1 makes it
+  audible. (In C++ it was always audible, through the bypass link.)
+- The T2 probe harness lives in the session scratchpad
+  (sapokey-skctl/probe.c, probe2.c): LoadLibrary + the Pokey_*/C6502_*
+  exports, MSVC-built. Useful again if the DLL contract is ever in
+  question.
