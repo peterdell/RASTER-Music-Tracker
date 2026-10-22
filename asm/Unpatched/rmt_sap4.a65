@@ -1,26 +1,26 @@
 ;
 ;	RMT_SAP4
 ;
-STEREOMODE	equ 0				;aby zkompiloval RMT pro 4 tracky mono
+STEREOMODE	equ 0				;to assemble RMT for 4 tracks mono
 	icl "rmt.a65"
 	
 MODUL equ $4000
 ;
 	org $394e		;$3961	;$3965		;$395f		;$3987		;$399d		;$39a0
 start
-	ert start!=RMTPLAYEREND ;SAP4 inicializacni rutina nenavazuje presne za RMT rutinou
-	;NUTNO OPRAVIT A POZOR - START ADRESA SAP RUTINY JE UVEDENA V Ccku UVNITR RMT TRACKERU
+	ert start!=RMTPLAYEREND ;the SAP4 init routine does not follow immediately after the RMT routine
+	;MUST FIX, AND CAUTION - THE SAP ROUTINE'S START ADDRESS IS STATED IN THE C CODE INSIDE RMT TRACKER
 ;
-	tax												;POZOR: Prvni 4 byty prepisuje tracker instrukcemi
-	lda subsongs,x			;radek v songu 0-255	;NOP NOP LDA#hodnota     pokud neni vice subsonguu
+	tax												;CAUTION: the tracker overwrites the first 4 bytes with instructions
+	lda subsongs,x			;song line 0-255	;NOP NOP LDA#value     if there are no multiple subsongs
 	ldx #<MODUL
 	ldy #>MODUL
 	jmp RASTERMUSICTRACKER	;jsrrts!
-	;sta vbinspeed			;kolikrat volat behem 1 vbi
+	;sta vbinspeed			;how many times to call per 1 vbi
 	;rts
 ;
 subsongs
-;POZOR: sem pripisuje tracker eventualni pozice subsonguu
-;takze pokud se zmeni delka teto rutiny, je nutno upravit v trackeru
-;na zacatku rutiny int CSong::Export hodnotu
+;CAUTION: the tracker appends the possible subsong positions here
+;so if this routine's length changes, the tracker must be adjusted:
+;at the start of the routine int CSong::Export the value
 ;int adr_subsongs = adr_init+11;

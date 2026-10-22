@@ -5,21 +5,21 @@ STEREOMODE	equ 1
 
 ;3d00		a=note0-63,x=trackindex0-7,y=instrument0-63
 	org $3d00
-	sta trackn_note,x		;nastavi trackn_note
+	sta trackn_note,x		;sets trackn_note
 	IFT FEAT_BASS16	
-	sta trackn_outnote,x	;(pokud by ji uz nicim nezmenil, zustane stejna jako note)
+	sta trackn_outnote,x	;(if nothing changes it anymore, it stays the same as note)
 	EIF
 	tya
 	asl @
 	sta trackn_instrx2,x
-	bmi usi1				;je-li cislo instrumentu*2 >127 => neprovede nastaveni instrumentu (kvuli kompatibilite s rutinou)
+	bmi usi1				;if the instrument number *2 is >127 => the instrument setup is skipped (for compatibility with the routine)
 	tay
-	jmp SetUpInstrumentY2	;v y je cislo instrumentu *2, v x je cislo tracku
+	jmp SetUpInstrumentY2	;Y holds the instrument number *2, X the track number
 	;jsr-rts
 usi1
 	rts
 	
-	org xata_rtshere		;prepsani kodu RMT rutiny tak aby se SetUpInstrumentY2 dal volat jako podprogram
+	org xata_rtshere		;patches the RMT routine's code so SetUpInstrumentY2 can be called as a subroutine
 	rts
 
 
@@ -29,19 +29,19 @@ usi1
 	asl @
 	asl @
 	asl @
-	sta trackn_volume,x		;nastavi volume
+	sta trackn_volume,x		;sets the volume
 	rts
 
 ;3e80		x=trackindex0-7
 	org $3e80
 	lda #0
-	sta trackn_volume,x		;vynuluje volume
-	sta trackn_instrhb,x	;vynuluje HB instrumentu => vypne provadeni instrumentu
-	sta trackn_instrdb,x	;vynuluje i DB (navic, jen aby nezustaval nenulovy, ale neni to potreba)
-	sta trackn_audc,x		;ztisi prislusny sound generator
+	sta trackn_volume,x		;zeroes the volume
+	sta trackn_instrhb,x	;zeroes the instrument's HB => turns the instrument processing off
+	sta trackn_instrdb,x	;zeroes the DB too (extra, just so it does not stay nonzero; not required)
+	sta trackn_audc,x		;silences the respective sound generator
 	rts
 
-;modu 3f00
+;module 3f00
 	org $3f00
 ;
 INSTR	equ $4000
@@ -59,7 +59,7 @@ MODUL
 	dta a(songaddr)					;2b
 ;									;======= 16b
 ;
-instrumentsaddr						;(pouzivaji se nejcasteji, tak aby co mozna nejmin lezly pres hranu stranky)
+instrumentsaddr						;(used most often, so they cross a page boundary as little as possible)
 	dta a(INSTR+$0000)
 	dta a(INSTR+$0100)
 	dta a(INSTR+$0200)

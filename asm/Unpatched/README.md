@@ -5,9 +5,13 @@ copied byte-identically from Raster's internal development tree in
 `asm/Legacy` (plans/51, U1). `rmt.a65` is the player core, revision
 1.20090108 with his full commentary - the ~800 working comments that
 `rmt_bez_poznamek.php` stripped from everything that ever shipped (see
-`asm/Legacy/README.md`). The next plan steps translate the Czech
-comments to English here (U2) and merge them into `asm/Patch-16` (U3);
-`asm/Legacy` itself stays byte-pristine as the historical artifact.
+`asm/Legacy/README.md`). The Czech comments were translated to English
+in place (U2, 2026-10-22: 630 comments; only text after `;` changed,
+the `;*`/`;` distinction kept, code proven byte-identical by a
+comment-stripped diff and by all four targets assembling to
+byte-identical binaries before and after). Raster's original wording
+remains in `asm/Legacy`, which stays byte-pristine as the historical
+artifact; U3 merges the comments into `asm/Patch-16`.
 
 Two proofs anchor the copy (2026-10-22):
 

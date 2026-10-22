@@ -1,6 +1,21 @@
 # Plan 51: Raster's player commentary, translated and merged into Patch-16
 
-Status: U1 DONE 2026-10-22; U2/U3 open.
+Status: U1 and U2 DONE 2026-10-22; U3 open.
+
+U2 results: 630 of the 916 plain comments translated in place (the
+rest are pure numbers, bit patterns, register names, commented-out
+code, or already English); both proofs green - the comment-stripped
+sources are byte-identical to before, and all four targets assemble to
+binaries byte-identical to the pre-translation baseline. Translation
+conventions: Czech "takt" is "row" in track context and "cycle" in CPU
+context; OPTIMALIZACE -> OPTIMIZATION; the `;*`/`;` prefixes kept.
+Lower-confidence renderings for review (no `;?` markers placed - each
+has a reasonable reading, listed instead): rmt.a65:78 and :583 ("o N
+taktu rychlejsi" read as CPU cycles), rmt.a65:706 (implicit subject,
+read as "the bmi below uses this"), rmt.a65:846-847 (Raster's cryptic
+carry bookkeeping, translated literally), rmt_ata.a65:44 ("modu 3f00"
+read as "module 3f00"), rmt_msx.a65:20 (colloquial "smankote" rendered
+"good grief").
 
 U1 results: all six .a65 copied byte-identically; the strip-diff
 reproduces the 1.28 distribution's rmtplayr.a65 byte for byte (one
