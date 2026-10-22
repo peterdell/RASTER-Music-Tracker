@@ -37,7 +37,7 @@ port's CPU and POKEY in two roles:
   and `Song.dumpSongToPokeyStream`'s SAP-R dump (through
   `AtariTrackerDriver.play()`), exactly as in C++.
 - **The module player** (unmodified upstream API: `load`/`playSong`, plus
-  the `stepFrame`/`getPokeyRegisterShadow` extensions): the
+  the `stepPlayer`/`getPokeyRegisterShadow` extensions): the
   `LivePlaybackTest` cross-check plays the exported module as an
   independent reference for the tracker driver's register output. (The
   WAV export used it until B8c; it now replays the recorded register
@@ -51,12 +51,15 @@ file stay only as the untouched reference copy of the 8.0.0 release.
 Those sources are no longer that release. They are generated from ASAP's
 own `.fu` sources by `make java/asap.jar` in the development clone
 (`C:\jac\system\Fusion\Programming\Repositories\Tools\asap`), currently
-from commit `f4afcfd` - upstream `28af663` of 2026-09-22 plus the two methods
-offered back to ASAP's author (`plans/31_ASAP_UPSTREAM_CONTRIBUTION_PLAN.md`,
-step A2). `ASAP.stepFrame()` and `ASAP.getPokeyRegisterShadow(chip, offset)`
+from commit `f0a927d` - upstream 8.0.1 (`5e03120` of 2026-10-20, now at
+https://github.com/pfusik/asap) plus the two methods offered back to ASAP's
+author (`plans/31_ASAP_UPSTREAM_CONTRIBUTION_PLAN.md`, reworked after Fox's
+review per `plans/49_ASAP_MR4_REVIEW_RESPONSE_PLAN.md`: `stepPlayer()` (renamed from `stepFrame`) steps
+one player call, not one video frame, so multi-speed songs dump every row).
+`ASAP.stepPlayer()` and `ASAP.getPokeyRegisterShadow(chip, offset)`
 and the package-private `Pokey.skctl` therefore come out of the generator now
-and are no longer hand edits. Regenerating needs `fut` and, for the player
-routines, `xasm` on the path (`C:\jac\system\Atari800\Tools\ASM\XASM`).
+and are no longer hand edits. Regenerating needs `fut` (3.3.9) and, for the
+player routines, `xasm` on the path (`C:\jac\system\Atari800\Tools\ASM\XASM`).
 
 What is still added by hand, and only in `ASAP.java`: the "RMT mode" section
 (`rmtInitialize`/`rmtMemory`/`rmtJsr`/`rmtPokeRegister`/`rmtRender`, running

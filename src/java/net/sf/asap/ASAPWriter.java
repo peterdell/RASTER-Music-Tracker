@@ -790,7 +790,7 @@ public class ASAPWriter
 			case MD2:
 				if (info.getPlayerRateScanlines() != 312)
 					throw new ASAPConversionException("Impossible conversion");
-				writeBytes(FuResource.getByteArray("xexd.obx", 114), 2, 114);
+				writeBytes(FuResource.getByteArray("xexd.obx", 120), 2, 114);
 				writeWord(this.init);
 				if (this.player < 0) {
 					writeByte(96);
@@ -806,7 +806,7 @@ public class ASAPWriter
 			case SAP_S:
 				throw new ASAPConversionException("Impossible conversion");
 			default:
-				writeBytes(FuResource.getByteArray("xexb.obx", 183), 2, 183);
+				writeBytes(FuResource.getByteArray("xexb.obx", 194), 2, 183);
 				writeWord(this.init);
 				writeByte(76);
 				writeWord(this.player);

@@ -3,8 +3,8 @@
 // methods: RMT's own tracker driver run on this CPU with plain-RAM hardware
 // pages and a directly fed POKEY pair) and the two rmtMode checks at the top
 // of peekHardware/pokeHardware that it needs - see their own javadoc.
-// stepFrame() and getPokeyRegisterShadow() used to be hand-added here too;
-// they are generated now, from the portable sources (plans/31).
+// stepPlayer() and getPokeyRegisterShadow() used to be hand-added here too
+// (as stepFrame); they are generated now, from the portable sources (plans/31).
 // Everything else in this file, and every other file in this package, is
 // generated from ASAP's own .fu sources (see lib/java/README.md).
 package net.sf.asap;
@@ -274,12 +274,16 @@ public class ASAP
 		this.nextEventCycle = nextEventCycle;
 	}
 
-	private int do6502Frame()
+	private int getFrameCycles()
+	{
+		return this.moduleInfo.isNtsc() ? 29868 : 35568;
+	}
+
+	private void do6502Cycles(int cycles)
 	{
 		this.nextEventCycle = 0;
 		this.nextScanlineCycle = 0;
 		this.nmist = this.nmist == NmiStatus.RESET ? NmiStatus.ON_V_BLANK : NmiStatus.WAS_V_BLANK;
-		int cycles = this.moduleInfo.isNtsc() ? 29868 : 35568;
 		this.cpu.doFrame(cycles);
 		this.cpu.cycle -= cycles;
 		if (this.nextPlayerCycle != 8388608)
@@ -290,14 +294,13 @@ public class ASAP
 			if (i == 0)
 				break;
 		}
-		return cycles;
 	}
 
-	private int doFrame()
+	private int doCycles(int cycles)
 	{
 		this.gtiaOrCovoxPlayedThisFrame = false;
 		this.pokeys.startFrame();
-		int cycles = do6502Frame();
+		do6502Cycles(cycles);
 		this.pokeys.endFrame(cycles);
 		return cycles;
 	}
@@ -412,7 +415,7 @@ public class ASAP
 		this.cpu.memory[511] = (byte) 209;
 		this.cpu.s = 253;
 		for (int frame = 0; frame < 50; frame++) {
-			do6502Frame();
+			do6502Cycles(getFrameCycles());
 			if (this.cpu.pc == 53760)
 				return;
 		}
@@ -552,7 +555,7 @@ public class ASAP
 			restartSong(this.pokeys.basePokey.getMute() | this.pokeys.extraPokey.getMute() << 4);
 		while (this.blocksPlayed + this.pokeys.readySamplesEnd < block) {
 			this.blocksPlayed += this.pokeys.readySamplesEnd;
-			doFrame();
+			doCycles(getFrameCycles());
 		}
 		this.pokeys.readySamplesStart = block - this.blocksPlayed;
 		this.blocksPlayed = block;
@@ -669,7 +672,7 @@ public class ASAP
 			block += blocks;
 			if (block >= bufferBlocks)
 				break;
-			int cycles = doFrame();
+			int cycles = doCycles(getFrameCycles());
 			if (this.silenceCycles > 0) {
 				if (this.pokeys.isSilent() && !this.gtiaOrCovoxPlayedThisFrame) {
 					this.silenceCyclesCounter -= cycles;
@@ -705,22 +708,25 @@ public class ASAP
 	}
 
 	/**
-	 * Emulates one video frame, so that the POKEY registers can be read
-	 * between frames with <code>GetPokeyRegisterShadow</code>.
-	 * <code>Generate</code> steps frames too, but as an internal detail of filling the
-	 * requested number of bytes, not aligned with frame boundaries.
-	 * Call <code>PlaySong</code> first.
+	 * Emulates up to the next call of the player routine, so that the POKEY
+	 * registers can be read between the calls with <code>GetPokeyRegisterShadow</code>.
+	 * For a player called once per video frame this is one video frame; a
+	 * faster player is stepped call by call, so a register dump gets every
+	 * row it would record, and a player slower than the frame rate advances
+	 * frame by frame. <code>Generate</code> steps the emulation too, but as an internal
+	 * detail of filling the requested number of bytes, not aligned with
+	 * player calls. Call <code>PlaySong</code> first.
 	 */
-	public final void stepFrame()
+	public final void stepPlayer()
 	{
-		doFrame();
+		doCycles(Math.min(114 * this.moduleInfo.getPlayerRateScanlines(), getFrameCycles()));
 	}
 
 	/**
 	 * Returns the byte last written to a POKEY audio register.
 	 * These registers are write-only in the hardware, so there is no
 	 * read-back to emulate; this reports what the player poked, which is what
-	 * a per-frame register dump records.
+	 * a register dump records, one row per player call.
 	 * @param chip 0 for the base POKEY, 1 for the second POKEY of a stereo tune.
 	 * @param offset 0 to 7 for AUDF1, AUDC1, AUDF2, AUDC2, AUDF3, AUDC3, AUDF4, AUDC4;
 	 * 8 for AUDCTL and 15 for SKCTL. Any other value is masked into the
@@ -731,12 +737,12 @@ public class ASAP
 		Pokey pokey = chip == 0 ? this.pokeys.basePokey : this.pokeys.extraPokey;
 		switch (offset) {
 		case 8:
-			return pokey.audctl & 255;
+			return pokey.audctl;
 		case 15:
-			return pokey.skctl & 255;
+			return pokey.skctl;
 		default:
 			PokeyChannel channel = pokey.channels[offset >> 1 & 3];
-			return ((offset & 1) == 0 ? channel.audf : channel.audc) & 255;
+			return (offset & 1) == 0 ? channel.audf : channel.audc;
 		}
 	}
 

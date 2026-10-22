@@ -76,6 +76,29 @@ class LivePlaybackTest {
 		}
 	}
 
+	/**
+	 * At instrument speed 2 the driver ticks twice per video frame, so ASAP's {@code stepPlayer} must step one
+	 * player call (fastplay 156), not one video frame - a video-frame step would skip every other row of the
+	 * dump. This is the case Fox raised on the upstream merge request ("player routines called multiple times
+	 * per frame").
+	 */
+	@Test
+	void aDoubleSpeedSongStepsAsapOncePerDriverTickNotPerVideoFrame() throws IOException {
+		RmtSession session = open();
+		session.atariTrackerDriver.loadRMTRoutines(TrackerDriverVersion.UNPATCHED);
+		session.song.setInstrumentSpeed(2);
+		byte[] dump = dump(session);
+		byte[] asap = asapReference(session, dump.length / 9);
+
+		for (int f = 0; f < dump.length / 9; f++) {
+			byte[] e = Arrays.copyOfRange(asap, f * 9, f * 9 + 9);
+			byte[] a = Arrays.copyOfRange(dump, f * 9, f * 9 + 9);
+			if (!Arrays.equals(e, a)) {
+				fail("tick " + f + ": ASAP " + hex(e) + " driver " + hex(a));
+			}
+		}
+	}
+
 	@Test
 	void theDefaultPatchedDriverDiffersFromAsapsPlayerOnlyInFrequencyBytes() throws IOException {
 		RmtSession session = open();
@@ -131,7 +154,7 @@ class LivePlaybackTest {
 		}
 		byte[] result = new byte[frames * 9];
 		for (int f = 0; f < frames; f++) {
-			asap.stepFrame();
+			asap.stepPlayer();
 			for (int r = 0; r < 9; r++) {
 				result[f * 9 + r] = (byte) asap.getPokeyRegisterShadow(0, r);
 			}

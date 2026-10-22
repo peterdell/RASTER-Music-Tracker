@@ -24,12 +24,12 @@ public class ASAPInfo
 	/**
 	 * ASAP version - micro part.
 	 */
-	public static final int VERSION_MICRO = 0;
+	public static final int VERSION_MICRO = 1;
 
 	/**
 	 * ASAP version as a string.
 	 */
-	public static final String VERSION = "8.0.0";
+	public static final String VERSION = "8.0.1";
 
 	/**
 	 * Years ASAP was created in.
