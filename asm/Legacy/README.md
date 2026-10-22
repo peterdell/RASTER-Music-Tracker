@@ -12,7 +12,17 @@ input: a line containing `;*` is kept unchanged (the public comments -
 the English warnings and the feature descriptions), a plain `;` comment
 is stripped (Raster's private working notes, mostly Czech) - `rmt.a65`
 has 40 `;*` and ~800 plain comments, the shipped `rmtplayr.a65` exactly
-those 40. The continuation of the distributed player
+those 40.
+
+That makes `rmt.a65` here the sole surviving source of Raster's own
+commentary: everything downstream descends from the stripped file - the
+distribution, Patch-16 (whose ~580 plain comments are VinsCool's
+2021-2022 annotations, written against the comment-less code; none of
+Raster's are among them) and ASAP's `rmt.asx`. Since `rmt.a65` is the
+same 1.20090108 revision the distribution was stripped from, it lines
+up essentially line for line with the `rmtplayr.a65` that Patch-16 grew
+out of - an uncommented passage in the Patch-16 player can be read next
+to Raster's explanation of the matching lines here (in Czech). The continuation of the distributed player
 lives in `asm/Patch-16`, still under the name `rmtplayr.a65`.
 
 The player core here is `rmt.a65`, with Raster's Czech comments. The
