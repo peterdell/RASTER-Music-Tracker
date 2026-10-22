@@ -7,7 +7,12 @@ same routine as `rmtplayr.a65`, produced from this tree by stripping
 the comments: `rmt_bez_poznamek.php` is Czech for "rmt without
 comments", and the RMT 1.28 distribution with the resulting
 `rmtplayr.a65` + `rmt_feat.a65` is preserved in `legacy/rmt_128/asm_src`
-at the repository root. The continuation of the distributed player
+at the repository root. The two comment prefixes are the script's
+input: a line containing `;*` is kept unchanged (the public comments -
+the English warnings and the feature descriptions), a plain `;` comment
+is stripped (Raster's private working notes, mostly Czech) - `rmt.a65`
+has 40 `;*` and ~800 plain comments, the shipped `rmtplayr.a65` exactly
+those 40. The continuation of the distributed player
 lives in `asm/Patch-16`, still under the name `rmtplayr.a65`.
 
 The player core here is `rmt.a65`, with Raster's Czech comments. The
