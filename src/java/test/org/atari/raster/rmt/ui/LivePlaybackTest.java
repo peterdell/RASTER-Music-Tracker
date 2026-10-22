@@ -77,16 +77,18 @@ class LivePlaybackTest {
 	}
 
 	/**
-	 * At instrument speed 2 the driver ticks twice per video frame, so ASAP's {@code stepPlayer} must step one
-	 * player call (fastplay 156), not one video frame - a video-frame step would skip every other row of the
-	 * dump. This is the case Fox raised on the upstream merge request ("player routines called multiple times
-	 * per frame").
+	 * RebbStars is a real multi-speed song (instrument speed 3, fastplay 104, straight from ASMA): the driver
+	 * ticks three times per video frame, so ASAP's {@code stepPlayer} must step one player call, not one video
+	 * frame - a video-frame step would skip two of every three rows of the dump. This is the case Fox raised
+	 * on the upstream merge request ("player routines called multiple times per frame").
 	 */
 	@Test
-	void aDoubleSpeedSongStepsAsapOncePerDriverTickNotPerVideoFrame() throws IOException {
-		RmtSession session = open();
+	void aTripleSpeedSongFromAsmaMatchesAsapTickForTick() throws IOException {
+		RmtSession session = new RmtSession();
+		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(TestSongs.REBB_STARS, false));
+		assertEquals(4, session.tracks4_8);
+		assertEquals(3, session.song.getInstrumentSpeed());
 		session.atariTrackerDriver.loadRMTRoutines(TrackerDriverVersion.UNPATCHED);
-		session.song.setInstrumentSpeed(2);
 		byte[] dump = dump(session);
 		byte[] asap = asapReference(session, dump.length / 9);
 

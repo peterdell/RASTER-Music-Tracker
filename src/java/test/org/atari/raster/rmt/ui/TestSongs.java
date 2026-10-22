@@ -16,6 +16,10 @@ final class TestSongs {
 	/** Delta by Radek Sterba (Raster), 01/2003, mono, RMT 1.28 compatible. */
 	static final Path DELTA = ROOT.resolve("rmt128").resolve("delta").resolve("Delta.rmt");
 
+	/** RebbStars by Teemu Pohjanlehto (Rebb), 20/04/2014, mono, RMT 1.28 compatible,
+	 * instrument speed 3 - the multi-speed counterpart to {@link #DELTA}. */
+	static final Path REBB_STARS = ROOT.resolve("rmt128").resolve("rebbstars").resolve("RebbStars.rmt");
+
 	/** Why Do You Dance With Me? by Zdenek Eisenhammer (PG), 2021, stereo. */
 	static final Path WHY_DO_YOU_DANCE_WITH_ME = ROOT.resolve("rmt134").resolve("why_do_you_dance_with_me")
 			.resolve("Why_Do_You_Dance_With_Me.rmt");

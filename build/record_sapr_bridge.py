@@ -15,6 +15,16 @@ exactly one full, non-repeating pass by construction), the recording
 length is the reference's frame count plus margin, and the two streams
 are compared register by register after alignment.
 
+With --tick-scanlines N, one row is recorded every N scanlines instead
+of every video frame, for multi-speed tunes whose player runs more than
+once per frame (RMT instrument speed 2..8: N = 312/speed on PAL, the
+SAP header's FASTPLAY). Sampling and player share the exact same
+period, so the sample's phase within the player interval is constant;
+if it lands inside the player routine's write burst, every row mixes
+two ticks and the comparison fails loudly - shift the start with
+--phase (e.g. half the interval) and re-run. Needs an AltirraBridge
+build with the SCANLINES command (nightly 2026-10-13 or newer).
+
 With --stereo, BOTH chips are recorded per frame (POKEY and POKEY 2,
 18 bytes per SAP-R frame, STEREO in the header) - the chip index went
 upstream as github.com/ilmenit/AltirraSDL pull request 96, merged
@@ -58,6 +68,8 @@ def main():
     parser.add_argument("--frames", type=int, default=1500, help="frames to record without --reference")
     parser.add_argument("--region", choices=["pal", "ntsc"], default="pal")
     parser.add_argument("--stereo", action="store_true", help="dual-POKEY machine: both chips are recorded (18 bytes/frame)")
+    parser.add_argument("--tick-scanlines", type=int, help="scanlines per row (the SAP FASTPLAY): records per player tick instead of per video frame")
+    parser.add_argument("--phase", type=int, default=0, help="with --tick-scanlines: scanlines to advance once before recording, to move the sample point out of the player's write burst")
     parser.add_argument("--warmup", type=int, default=60, help="boot/init frames before the recording starts (low enough to catch the music's first frame; leading silence is skipped by the alignment)")
     parser.add_argument("--server-dir", default=ALTIRRA_SDL_DIR)
     args = parser.parse_args()
@@ -74,7 +86,9 @@ def main():
         ref_stereo = b"\r\nSTEREO\r\n" in data[:300]
         reference = sapr_frames(args.reference, 18 if ref_stereo else 9)
         frames_wanted = len(reference) + 200
-        print(f"Reference: {len(reference)} frames = {len(reference) / (50 if args.region == 'pal' else 60):.1f} s; recording {frames_wanted} frames")
+        rows_per_second = (312.0 * 50 if args.region == "pal" else 262.0 * 60) / args.tick_scanlines if args.tick_scanlines \
+            else (50 if args.region == "pal" else 60)
+        print(f"Reference: {len(reference)} rows = {len(reference) / rows_per_second:.1f} s; recording {frames_wanted} rows")
 
     sys.path.insert(0, os.path.join(args.server_dir, "sdk", "python"))
     from altirra_bridge import AltirraBridge
@@ -104,6 +118,8 @@ def main():
                 bridge.config("stereo", "true")
             bridge.boot(os.path.abspath(args.xex))
             bridge.frame(args.warmup)
+            if args.phase:
+                bridge.scanlines(args.phase)
 
             # The emulation itself is near-free (FRAME 200 completes in
             # 0.05 s); each round trip costs a server main-loop tick
@@ -111,7 +127,8 @@ def main():
             # raw socket in batches: many commands land in one tick, and
             # the responses are read back in bulk.
             chips = 2 if args.stereo else 1
-            commands = b"FRAME 1\nPOKEY\n" if chips == 1 else b"FRAME 1\nPOKEY\nPOKEY 2\n"
+            step = (f"SCANLINES {args.tick_scanlines}" if args.tick_scanlines else "FRAME 1").encode("ascii")
+            commands = step + (b"\nPOKEY\n" if chips == 1 else b"\nPOKEY\nPOKEY 2\n")
             recorded = bytearray()
             started = time.time()
             sock = bridge._sock

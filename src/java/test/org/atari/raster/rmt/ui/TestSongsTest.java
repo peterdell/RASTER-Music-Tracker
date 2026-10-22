@@ -20,6 +20,7 @@ class TestSongsTest {
 	@Test
 	void everyTestSongExists() {
 		assertTrue(Files.isRegularFile(TestSongs.DELTA));
+		assertTrue(Files.isRegularFile(TestSongs.REBB_STARS));
 		assertTrue(Files.isRegularFile(TestSongs.WHY_DO_YOU_DANCE_WITH_ME));
 		assertTrue(Files.isRegularFile(TestSongs.CAPTAIN_FUTURE_THEME));
 	}

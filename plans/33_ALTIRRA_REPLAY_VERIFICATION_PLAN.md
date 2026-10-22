@@ -83,3 +83,16 @@ and extending its coverage, and published fresh nightlies.
   job could run the recorder against a committed reference .sapr -
   today the driver byte-check (check-drivers.yml) plus this on-demand
   tool are judged enough.
+- **V7 (DONE 2026-10-22):** multi-speed tunes. Upstream AltirraBridge
+  gained sub-frame stepping (CYCLES/SCANLINES/CLOCK and a POKEY_TRACE
+  write trace; PR #97, merged 2026-10-13 - newer than the installed
+  2026-10-10 nightly, so update the install to use it), and
+  record_sapr_bridge.py gained --tick-scanlines N (one row per player
+  tick, N = the SAP FASTPLAY) with --phase to move the sample point if
+  it ever lands inside the player's write burst. Verified with
+  RebbStars (rmt128, instrument speed 3, ASMA's own XEX): FULL PASS
+  IDENTICAL, 8064 of 8064 rows against RMT's committed
+  RebbStars.sapr, sampled every 104 scanlines, default phase. The
+  POKEY_TRACE reconstruction path stays unimplemented - latch sampling
+  sufficed; the trace is the escalation path if a mismatch ever needs
+  per-write diagnosis.
