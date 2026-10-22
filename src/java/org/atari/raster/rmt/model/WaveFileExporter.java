@@ -70,14 +70,9 @@ public final class WaveFileExporter {
 		int partGroup = 0;
 		for (int frame = 0; frame < frames; frame++) {
 			int offset = frame * frameSize;
-			int first = stereo ? offset + 9 : offset;
-			for (int r = 0; r < 9; r++) {
-				cpu.pokeRegister(r, stream[first + r] & 0xFF);
-			}
+			pokeChip(cpu, 0, stream, stereo ? offset + 9 : offset);
 			if (stereo) {
-				for (int r = 0; r < 9; r++) {
-					cpu.pokeRegister(16 + r, stream[offset + r] & 0xFF);
-				}
+				pokeChip(cpu, 16, stream, offset);
 			}
 			if (partGroup == 0) {
 				remainingCycles = frameCycles;
@@ -96,6 +91,29 @@ public final class WaveFileExporter {
 		writeHeader(wav, data.length);
 		System.arraycopy(data, 0, wav, HEADER_SIZE, data.length);
 		return wav;
+	}
+
+	/**
+	 * One chip's nine stream bytes into the POKEY pair, translating the SAP-R
+	 * Two-Tone convention exactly as the SAP/XEX exports' LZSS player does
+	 * (its CheckForTwoToneBit, vu_player_v2.obx $0EB8): AUDC1 bit 4 below $F0
+	 * means "SKCTL $8B this frame" ({@link PokeyStream#record} set it while
+	 * the driver's SKCTL shadow read $8B) and is cleared before the write -
+	 * passed through raw, a POKEY reads the bit as volume-only and the filter
+	 * is lost. $F0 and above is genuine volume-only and stays untouched
+	 * (plans/50 T3, issue #30).
+	 */
+	private static void pokeChip(AtariCpu cpu, int chipOffset, byte[] stream, int at) {
+		int audc1 = stream[at + 1] & 0xFF;
+		boolean twoTone = audc1 < 0xF0 && (audc1 & 0x10) != 0;
+		cpu.pokeRegister(chipOffset + 15, twoTone ? 0x8B : 0x03);
+		for (int r = 0; r < 9; r++) {
+			int value = stream[at + r] & 0xFF;
+			if (r == 1 && twoTone) {
+				value &= ~0x10;
+			}
+			cpu.pokeRegister(chipOffset + r, value);
+		}
 	}
 
 	/** The canonical 44-byte RIFF/WAVE PCM header ({@code CWaveFile::OpenFile}'s format: 44.1 kHz, 16-bit, 2 channels). */

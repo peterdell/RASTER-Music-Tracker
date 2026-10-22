@@ -1,9 +1,9 @@
 # Plan 50: The Two-Tone filter audible everywhere it is recorded
 
-Status: T1 DONE 2026-10-22 (Java live playback); T2 DONE 2026-10-22
-(C++ live playback was never broken - verified against the AltirraRMT
-plugin sources and documented, no code change); T3 (WAV export) open,
-rescoped to Java by T2's findings.
+Status: DONE 2026-10-22. T1 (Java live playback), T2 (C++ live
+playback was never broken - verified against the AltirraRMT plugin
+sources and documented, no code change) and T3 (Java WAV export,
+rescoped from "both languages" by T2's findings).
 
 GitHub issue #30: the Two-Tone filter (the envelope editor's $7FE/$7FD
 command, SKCTL=$8B) is inaudible in the Java version's live playback,
@@ -78,18 +78,20 @@ Vin's two hypotheses on the issue were "not emulated with ASAP" and
   T1 no longer claim C++ shared the bug. No changelog entry - the
   Windows program's behavior is unchanged.
 
-- **T3 - WAV export (open, Java).** The Java WAV exporter replays the
-  recorded SAP-R stream, in which Two-Tone is encoded as AUDC1 bit 4 -
-  straight into AUDC1, which a POKEY reads as volume-only, and it
-  never rebuilds SKCTL. A Two-Tone song's WAV is therefore doubly
-  wrong (filter off AND channel 1 forced volume-only). Fix like the
-  LZSS player: per frame, SKCTL = (AUDC1 & 0x10) ? $8B : $03 into the
-  pair, and write AUDC1 with bit 4 cleared. First confirm against the
-  LZSS player's actual code whether it clears the bit before storing
-  AUDC1 (expected: yes, otherwise its own playback would be
-  volume-only too). Test: a WAV of the Makary example differs between
-  SKCTL $8B and $03 frames, and no frame plays channel 1 volume-only
-  unless the module says so.
+- **T3 - WAV export (DONE 2026-10-22, Java).** The Java WAV exporter
+  replayed the recorded SAP-R stream, in which Two-Tone is encoded as
+  AUDC1 bit 4 - straight into AUDC1, which a POKEY reads as
+  volume-only, and it never rebuilt SKCTL: a Two-Tone song's WAV was
+  doubly wrong (filter off AND channel 1 forced volume-only). The
+  LZSS player's actual semantics, read from vu_player_v2.obx by
+  disassembling CheckForTwoToneBit at $0EB8: AUDC1 >= $F0 is exempt
+  (genuine volume-only, untouched, SKCTL $03); below that, bit 4 set
+  means SKCTL $8B and the bit is cleared (EOR #$10) before AUDC1 is
+  stored. WaveFileExporter.pokeChip now mirrors all three, per chip.
+  Test (WavExportTwoToneTest): the Makary example's dump carries the
+  convention, the WAV's samples equal a translated replay and differ
+  from the raw replay (the old behavior); verified to fail with the
+  translation disabled. 721 tests green.
 
   The C++ half dissolved under T2's findings: with the shipped
   AltirraRMT pair, CWaveFileExporter::ExportWAV writes WAVs of pure
