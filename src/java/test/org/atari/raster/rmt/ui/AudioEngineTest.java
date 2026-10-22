@@ -86,6 +86,51 @@ class AudioEngineTest {
 		assertNotEquals(0, cpu.getChannelVolume(sounding));
 	}
 
+	/**
+	 * The Two-Tone filter (SKCTL $8B) must reach the POKEY pair - C++'s
+	 * {@code CopyAtariMemoryToPokey()} never copied SKCTL, so the filter was
+	 * silent in live playback while every export carried it (issue #30). Two
+	 * identical sessions play the same pressed tones; one switches the filter
+	 * on. SKCTL is the only difference in the register shadow, so different
+	 * samples prove the engine forwards it.
+	 */
+	@Test
+	void theTwoToneFilterReachesThePokeyPair() throws IOException {
+		byte[][] plain = renderPressedTones(false);
+		byte[][] twoTone = renderPressedTones(true);
+		assertFalse(java.util.Arrays.deepEquals(plain, twoTone), "SKCTL $8B must change the rendered sound");
+	}
+
+	private static byte[][] renderPressedTones(boolean twoTone) throws IOException {
+		RmtSession session = openDelta();
+		AudioEngine engine = new AudioEngine(session);
+		if (twoTone) {
+			session.pokeyController.toggleTwoTone();
+		}
+		session.song.setPlayPressedTonesTNIV(0, 24, 0, 15); // channel 1 carries the Two-Tone output...
+		session.song.setPlayPressedTonesTNIV(1, 29, 0, 15); // ...channel 2's timer resyncs it
+		byte[][] frames = new byte[8][];
+		for (int f = 0; f < frames.length; f++) {
+			int n = engine.renderFrame();
+			frames[f] = java.util.Arrays.copyOf(engine.getFrameBuffer(), n);
+		}
+		assertEquals(twoTone ? 0x8B : 0x03, session.atari.getByteAt(0xD20F), "the driver's SKCTL shadow");
+		return frames;
+	}
+
+	/** The $7FE envelope command of Makary's example (issue #30) raises SKCTL to $8B during live playback. */
+	@Test
+	void theMakaryTwoToneSongRaisesSkctlDuringLivePlayback() throws IOException {
+		RmtSession session = new RmtSession();
+		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(TestSongs.MAKARY_TWO_TONE_FILTER, false));
+		AudioEngine engine = new AudioEngine(session);
+		session.song.play(PlayMode.PLAY_SONG, false, 0, session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard);
+		for (int f = 0; f < 100 && session.atari.getByteAt(0xD20F) != 0x8B; f++) {
+			engine.renderFrame();
+		}
+		assertEquals(0x8B, session.atari.getByteAt(0xD20F), "the Two-Tone filter engages");
+	}
+
 	@Test
 	void aPressedToneSoundsWithPlaybackStopped() throws IOException {
 		RmtSession session = openDelta();

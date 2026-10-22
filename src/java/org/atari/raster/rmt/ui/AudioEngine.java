@@ -184,7 +184,7 @@ public final class AudioEngine implements Runnable {
 		return frameBytes;
 	}
 
-	/** {@code CXPokey::CopyAtariMemoryToPokey()}: the 9/18 register bytes, a muted channel's AUDF/AUDC as 0. */
+	/** {@code CXPokey::CopyAtariMemoryToPokey()}: the 9/18 register bytes, a muted channel's AUDF/AUDC as 0 - plus SKCTL, which C++ never copied. */
 	private void copyAtariMemoryToPokey(AtariCpu cpu, boolean stereo) {
 		Atari atari = session.atari;
 		ChannelControl channelControl = session.channelControl;
@@ -199,6 +199,15 @@ public final class AudioEngine implements Runnable {
 		cpu.pokeRegister(8, atari.getByteAt(0xD208));
 		if (stereo) {
 			cpu.pokeRegister(8 + 16, atari.getByteAt(0xD218));
+		}
+		// SKCTL - the Two-Tone filter (the driver holds $8B here while the
+		// envelope editor's $7FE/$7FD command or the Pokey menu's toggle has
+		// it on). C++ never copied it, so the filter was silent in live
+		// playback while every export carried it (issue #30); the SAP-R
+		// convention for it is AUDC1 bit 4, see PokeyStream.record().
+		cpu.pokeRegister(15, atari.getByteAt(0xD20F));
+		if (stereo) {
+			cpu.pokeRegister(15 + 16, atari.getByteAt(0xD21F));
 		}
 	}
 

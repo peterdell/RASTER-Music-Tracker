@@ -835,7 +835,7 @@ public class ASAP
 	/**
 	 * RMT mode: one POKEY register write at the start of the current
 	 * sub-frame ({@code CXPokey::CopyAtariMemoryToPokey}'s {@code PutByte}).
-	 * @param offset 0-8 for the base POKEY's AUDF1..AUDCTL, 16-24 for the second POKEY's.
+	 * @param offset 0-8 for the base POKEY's AUDF1..AUDCTL and 15 for its SKCTL, 16-24/31 for the second POKEY's.
 	 */
 	public final void rmtPokeRegister(int offset, int data)
 	{

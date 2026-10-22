@@ -54,7 +54,7 @@ public final class AtariCpu {
 		return new Registers(r & 0xFF, (r >> 8) & 0xFF, (r >> 16) & 0xFF, (r & (1 << 24)) == 0);
 	}
 
-	/** {@code CPokey::PutByte(offset, value)}: 0-8 = AUDF1..AUDCTL of the base POKEY, 16-24 the second one's (stereo only). */
+	/** {@code CPokey::PutByte(offset, value)}: 0-8 = AUDF1..AUDCTL and 15 = SKCTL of the base POKEY, 16-24/31 the second one's (stereo only). */
 	public void pokeRegister(int offset, int data) {
 		asap.rmtPokeRegister(offset, data);
 	}

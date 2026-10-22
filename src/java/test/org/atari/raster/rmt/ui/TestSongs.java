@@ -29,6 +29,11 @@ final class TestSongs {
 	static final Path CAPTAIN_FUTURE_THEME = ROOT.resolve("rmt134").resolve("captain_future_theme")
 			.resolve("Captain_Future_Theme.rmt");
 
+	/** Makary's Two-Tone filter example (github issue #30), mono, instrument speed 2 - the
+	 * envelope editor's $7FE command drives SKCTL to $8B; see its README.md for the added pause. */
+	static final Path MAKARY_TWO_TONE_FILTER = ROOT.resolve("rmt134").resolve("makary_two_tone_filter")
+			.resolve("Makary_Two_Tone_Filter.rmt");
+
 	private TestSongs() {
 	}
 }
