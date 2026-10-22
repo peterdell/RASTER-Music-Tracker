@@ -30,7 +30,7 @@ other files are per-target harnesses that include it (`icl "rmt.a65"`):
 
 | File | Target |
 | --- | --- |
-| `rmt_ata.a65` | The tracker-driver build RMT itself runs on its emulated Atari: the `$3D00` entry points, `STEREOMODE equ 1` |
+| `rmt_ata.a65` | The tracker-driver build RMT itself runs on its emulated Atari: the `$3D00` entry points, `STEREOMODE equ 1`. Assembles byte-identically to `rmt/resources/drivers/rmt_driver_v1.obx` - the proven source of the unpatched driver (plans/51 U1; working copy in `asm/Unpatched`) |
 | `rmt_sap4.a65` | The SAP build, 4 tracks mono (`STEREOMODE equ 0`), with the SAP init routine appended after the player |
 | `rmt_sap8.a65` | The SAP build, 8 tracks stereo |
 | `rmt_msx.a65` | The standalone player-with-screen build (video memory, VCOUNT timing) |

@@ -1,6 +1,17 @@
 # Plan 51: Raster's player commentary, translated and merged into Patch-16
 
-Status: open.
+Status: U1 DONE 2026-10-22; U2/U3 open.
+
+U1 results: all six .a65 copied byte-identically; the strip-diff
+reproduces the 1.28 distribution's rmtplayr.a65 byte for byte (one
+subtlety: the php chop()s EVERY line, so trailing whitespace on kept
+`;*` lines is trimmed too); all four targets assemble cleanly with
+xasm, and rmt_ata.obx is BYTE-IDENTICAL to
+rmt/resources/drivers/rmt_driver_v1.obx (2488 bytes) - asm/Unpatched is
+the proven source of the unpatched driver binary. rmt_msx.a65 turned
+out to be the screen shell only (it calls a separately assembled player
+at $3400, no icl of rmt.a65). Recorded in asm/Unpatched/README.md and
+asm/Legacy/README.md.
 
 asm/Legacy/rmt.a65 is the sole surviving source of Raster's own
 commentary on the RMT player (plan 50's archaeology, recorded in
