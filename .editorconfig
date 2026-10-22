@@ -1,0 +1,8 @@
+# Raster's .a65 player sources were aligned with 4-column tabs (the
+# equ/comment columns in rmt_feat.a65 only line up at that width); this
+# makes editors and GitHub's code view render them as intended.
+root = true
+
+[*.a65]
+indent_style = tab
+tab_width = 4
