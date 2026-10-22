@@ -51,7 +51,7 @@ file stay only as the untouched reference copy of the 8.0.0 release.
 Those sources are no longer that release. They are generated from ASAP's
 own `.fu` sources by `make java/asap.jar` in the development clone
 (`C:\jac\system\Fusion\Programming\Repositories\Tools\asap`), currently
-from commit `f0a927d` - upstream 8.0.1 (`5e03120` of 2026-10-20, now at
+from commit `ec43b1b` - upstream 8.0.1 (`5e03120` of 2026-10-20, now at
 https://github.com/pfusik/asap) plus the two methods offered back to ASAP's
 author (`plans/31_ASAP_UPSTREAM_CONTRIBUTION_PLAN.md`, reworked after Fox's
 review per `plans/49_ASAP_MR4_REVIEW_RESPONSE_PLAN.md`: `stepPlayer()` (renamed from `stepFrame`) steps
