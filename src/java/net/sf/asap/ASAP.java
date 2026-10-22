@@ -296,6 +296,13 @@ public class ASAP
 		}
 	}
 
+	private int do6502Frame()
+	{
+		int cycles = getFrameCycles();
+		do6502Cycles(cycles);
+		return cycles;
+	}
+
 	private int doCycles(int cycles)
 	{
 		this.gtiaOrCovoxPlayedThisFrame = false;
@@ -303,6 +310,11 @@ public class ASAP
 		do6502Cycles(cycles);
 		this.pokeys.endFrame(cycles);
 		return cycles;
+	}
+
+	private int doFrame()
+	{
+		return doCycles(getFrameCycles());
 	}
 
 	/**
@@ -415,7 +427,7 @@ public class ASAP
 		this.cpu.memory[511] = (byte) 209;
 		this.cpu.s = 253;
 		for (int frame = 0; frame < 50; frame++) {
-			do6502Cycles(getFrameCycles());
+			do6502Frame();
 			if (this.cpu.pc == 53760)
 				return;
 		}
@@ -555,7 +567,7 @@ public class ASAP
 			restartSong(this.pokeys.basePokey.getMute() | this.pokeys.extraPokey.getMute() << 4);
 		while (this.blocksPlayed + this.pokeys.readySamplesEnd < block) {
 			this.blocksPlayed += this.pokeys.readySamplesEnd;
-			doCycles(getFrameCycles());
+			doFrame();
 		}
 		this.pokeys.readySamplesStart = block - this.blocksPlayed;
 		this.blocksPlayed = block;
@@ -672,7 +684,7 @@ public class ASAP
 			block += blocks;
 			if (block >= bufferBlocks)
 				break;
-			int cycles = doCycles(getFrameCycles());
+			int cycles = doFrame();
 			if (this.silenceCycles > 0) {
 				if (this.pokeys.isSilent() && !this.gtiaOrCovoxPlayedThisFrame) {
 					this.silenceCyclesCounter -= cycles;

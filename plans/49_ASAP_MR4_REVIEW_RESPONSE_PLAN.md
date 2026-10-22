@@ -3,7 +3,7 @@
 Status: DONE 2026-10-22, except the SourceForge closing comment (B7),
 which is a browser step for the user. The re-submission is
 https://github.com/pfusik/asap/pull/1 (branch `pokey-register-shadow`,
-commit `ec43b1b`, one commit over 8.0.1).
+commit `1530dc7`, one commit over 8.0.1).
 
 What execution decided beyond the plan:
 
@@ -28,6 +28,16 @@ What execution decided beyond the plan:
 - The NMIST concern resolved benignly: between direct player calls the
   CPU sits at the escape address (`Call6502Player`), so nothing polls
   NMIST at sub-frame cadence in any tune the API targets.
+- The first push broke upstream CI: `asapscan.c` compiles the generated
+  library into its own translation unit (`#include "asap-asapscan.c"`)
+  and calls the internal `ASAP_Do6502Frame` directly, so renaming it was
+  not internal after all. Resolution: `Do6502Frame`/`DoFrame` keep their
+  upstream names and semantics as wrappers over the new parameterized
+  `Do6502Cycles`/`DoCycles`, the three upstream call sites revert to
+  their original lines, and `asapscan.c` stays untouched - the diff is
+  nearly pure addition. Verified like CI does: asapscan compiled (MSVC)
+  against the regenerated `-D ASAPSCAN` sources and run on the 15 acid
+  test SAPs - 9 pass, exactly the "9 expected" of `test/test.mk`.
 
 Fox (Piotr Fusik) reviewed merge request #4
 (https://sourceforge.net/p/asap/code/merge-requests/4/, opened by plan 31
