@@ -98,12 +98,11 @@ Vin's two hypotheses on the issue were "not emulated with ASAP" and
   digital silence - RenderPartV2's Pokey_Process returns the 0x80-
   filled buffer regardless of any register writes, since the plugin
   routes audio to its own output. The Two-Tone translation is moot on
-  a silent file; the real C++ WAV defect is "the export records
-  nothing", a pre-existing problem of the Altirra-plugin era that
-  build/compare_exports.ps1 never caught because it deliberately skips
-  .wav files. Under the C++ phase-out rule this is documented here
-  (and worth a GitHub issue), not fixed; the Java exporter is the one
-  that renders real samples.
+  a silent file; the C++ WAV export recording nothing with the Altirra
+  plugin pair is a KNOWN, WONT-FIX limitation of the C++ program
+  (confirmed by the user 2026-10-22) - which is also why
+  build/compare_exports.ps1 deliberately skips .wav files. The Java
+  exporter is the one that renders real samples.
 
 T1/T2/T3 are each their own commit.
 
