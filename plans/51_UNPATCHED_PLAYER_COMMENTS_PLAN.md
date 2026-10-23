@@ -81,7 +81,12 @@ Principles:
 - Comments only, never code: each step carries a mechanical proof that
   the assembled bytes did not change.
 - Raster's `;*` (public) vs `;` (private) distinction is semantic
-  (rmt_bez_poznamek.php's keep-marker) and is preserved.
+  (rmt_bez_poznamek.php's keep-marker) and is preserved - in
+  asm/Legacy. (Relaxed for asm/Unpatched 2026-10-24, per the user: it
+  is the living English-commented source, the strip process does not
+  apply to it anymore, so `;*` markers there may be edited away; the
+  strip-diff proof anchors only the U1 import, the binding invariant
+  is assembled byte-identity.)
 
 ## U1 - asm/Unpatched: the copy
 

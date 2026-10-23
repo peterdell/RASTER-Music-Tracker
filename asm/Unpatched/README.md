@@ -13,17 +13,25 @@ byte-identical binaries before and after). Raster's original wording
 remains in `asm/Legacy`, which stays byte-pristine as the historical
 artifact; U3 merges the comments into `asm/Patch-16`.
 
-Two proofs anchor the copy (2026-10-22):
+This folder is the LIVING, readable source of the unpatched player:
+with all comments English, there is no reason to strip them anymore, so
+`rmt_bez_poznamek.php`'s strip process does not apply here and comments
+and formatting may be edited freely. The standing invariant, checked
+after every edit, is the assembled binary:
 
-- Stripping `rmt.a65` with the php script's exact algorithm (right-trim
-  every line, keep lines containing `;*`, truncate at plain `;`, drop
-  emptied lines) reproduces the RMT 1.28 distribution's `rmtplayr.a65`
-  (`legacy/rmt_128/asm_src`) byte for byte - this really is the
-  revision the distribution was stripped from.
 - Assembling `rmt_ata.a65` reproduces
   `rmt/resources/drivers/rmt_driver_v1.obx` byte for byte (2488 bytes):
   these files are the PROVEN SOURCE of the unpatched driver binary the
   tracker ships.
+
+A second proof anchored the initial import (U1, 2026-10-22, commit
+27ca1c8): stripping that revision of `rmt.a65` with the php script's
+exact algorithm (right-trim every line, keep lines containing `;*`,
+truncate at plain `;`, drop emptied lines) reproduces the RMT 1.28
+distribution's `rmtplayr.a65` (`legacy/rmt_128/asm_src`) byte for byte
+- this really is the revision the distribution was stripped from. That
+strip property is historical: it holds for the imported revision, not
+for the edited file.
 
 The targets, as in Raster's `rmt_ata_sap4_8_msx.bat`, each assembled
 with xasm (`C:\jac\system\Atari800\Tools\ASM\XASM\xasm.exe <target>.a65`

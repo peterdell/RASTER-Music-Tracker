@@ -16,6 +16,8 @@
 ;*
 ;* 3. Because of RMTplayer provides a lot of effects, it spent a lot of CPU time.
 ;*
+
+
 ; 10.12.2002
 ; - speed-change fix - A changed speed is written to v_speed only after all 4 (resp. 8)
 ;   tracks are done. i.e. if the change is in the first row of a track and a goto moves it
@@ -173,7 +175,7 @@ TRACKS		equ 8
 	ELS
 TRACKS		equ 4
 	EIF
-;*
+
 PLAYER		equ $3400					;start of the player (but memory before it is used, about $400 (1 KB))
 ;*
 ;* RMT FEATures definitions file
@@ -184,22 +186,23 @@ PLAYER		equ $3400					;start of the player (but memory before it is used, about 
 	org 203
 
 p_tis
-p_instrstable	org *+2		;203-4
-p_trackslbstable	org *+2		;205-6
-p_trackshbstable	org *+2		;207-8
-p_song			org *+2		;209-210
-;
-ns				org *+2		;211-12
-nr				org *+2		;213-14
-nt				org *+2		;215-16
-reg1			org *+1		;217
-reg2			org *+1		;218
-reg3			org *+1		;219
-tmp				org *+1		;220
+p_instrstable		org *+2		; ptr to Instrument table ptrs
+p_trackslbstable	org *+2		; ptr to low byte of track ptrs
+p_trackshbstable	org *+2		; ptr to high byte of track ptrs
+p_song				org *+2		; ptr to song data
+
+ns					org *+2
+nr					org *+2
+nt					org *+2
+reg1				org *+1
+reg2				org *+1
+reg3				org *+1
+tmp					org *+1
+
 	IFT FEAT_COMMAND2
-frqaddcmd2		org *+1		;221
+frqaddcmd2			org *+1
 	EIF
-;
+	
 
 	IFT TRACKS>4
 	org PLAYER-$400+$40				;$3040
@@ -208,57 +211,65 @@ frqaddcmd2		org *+1		;221
 	EIF
 
 track_variables
-trackn_db	org *+TRACKS			;db
-trackn_hb	org *+TRACKS			;hb
-trackn_idx	org *+TRACKS			;track index
-trackn_pause	org *+TRACKS		;track pause (in rows)
-trackn_note	org *+TRACKS			;0-59
-trackn_volume	org *+TRACKS		;vvvv0000
-trackn_distor 	org *+TRACKS		;dddd0000
+trackn_db				org *+TRACKS	; Low byte of address for each track's data
+trackn_hb				org *+TRACKS	; High byte of address to each track's data
+trackn_idx				org *+TRACKS	; Track index
+trackn_pause			org *+TRACKS	; Track pause (in rows). 1 = new note, 0 = nothing new
+trackn_note				org *+TRACKS	; 0-59
+trackn_volume			org *+TRACKS	; vvvv0000
+trackn_distor 			org *+TRACKS	; dddd0000
 trackn_shiftfrq	org *+TRACKS
-;
+
 	IFT FEAT_PORTAMENTO
-trackn_portafrqc org *+TRACKS		;target portamento frq
-trackn_portafrqa org *+TRACKS		;current portamento frq
-trackn_portaspeed org *+TRACKS		;portamento speed
-trackn_portaspeeda org *+TRACKS		;current portamento speed
-trackn_portadepth org *+TRACKS		;portamento depth
+trackn_portafrqc		org *+TRACKS		; Target portamento frequency
+trackn_portafrqa		org *+TRACKS		; Current portamento frequency
+trackn_portaspeed		org *+TRACKS		;portamento speed
+trackn_portaspeeda		org *+TRACKS		;current portamento speed
+trackn_portadepth		org *+TRACKS		;portamento depth
 	EIF
-trackn_instrx2	org *+TRACKS		;xiii iii0 ; x=$80 (do not set)
-trackn_instrdb	org *+TRACKS
-trackn_instrhb	org *+TRACKS
-trackn_instridx	org *+TRACKS		;0,3,6,..,45  (3*16-3)
-;
-trackn_instrlen	org *+TRACKS		;instrument length
-trackn_instrlop	org *+TRACKS		;the repeat starts there
+trackn_instrx2			org *+TRACKS	; Bit pattern "xiiiiii0" for the instrument. With "x=0", a new instrument is set and initialized. With "x=0", no new instrument is set.
+trackn_instrdb			org *+TRACKS
+trackn_instrhb			org *+TRACKS
+trackn_instridx			org *+TRACKS		;0,3,6,..,45  (3*16-3)
+trackn_instrlen			org *+TRACKS		;instrument length
+trackn_instrlop			org *+TRACKS		;the repeat starts there
 trackn_instrreachend	org *+TRACKS		;set to $80 when the instrument end is first reached (volume decays from then on)
 trackn_volumeslidedepth org *+TRACKS		;volume decay
 trackn_volumeslidevalue org *+TRACKS		;current state of the volume decay
+
 	IFT FEAT_VOLUMEMIN
 trackn_volumemin		org *+TRACKS		;minimum volume value while decaying
 	EIF
+
 FEAT_EFFECTS equ FEAT_EFFECTVIBRATO||FEAT_EFFECTFSHIFT
 	IFT FEAT_EFFECTS
 trackn_effdelay			org *+TRACKS
 	EIF
+
 	IFT FEAT_EFFECTVIBRATO
 trackn_effvibratoa		org *+TRACKS		;current vibrato index
 	EIF
+
 	IFT FEAT_EFFECTFSHIFT
 trackn_effshift		org *+TRACKS
 	EIF
+
 trackn_tabletypespeed org *+TRACKS			;table type $00=notes,$80=frequencies ; 0-$3f table speed
+
 	IFT FEAT_TABLEMODE
 trackn_tablemode	org *+TRACKS			;table mode $00=set,$40=add
 	EIF
+
 trackn_tablenote	org *+TRACKS			;table note shift
 trackn_tablea		org *+TRACKS			;current index
 trackn_tableend		org *+TRACKS			;table length
+
 	IFT FEAT_TABLEGO
 trackn_tablelop		org *+TRACKS			;table repeat
 	EIF
+
 trackn_tablespeeda	org *+TRACKS			;current table speed
-;
+
 	IFT FEAT_FILTER||FEAT_BASS16
 trackn_command		org *+TRACKS			;the instrument command currently being executed
 	EIF
@@ -266,13 +277,13 @@ trackn_command		org *+TRACKS			;the instrument command currently being executed
 trackn_outnote		org *+TRACKS			;resulting note (after all shifts)
 	EIF
 	IFT FEAT_FILTER
-trackn_filter		org *+TRACKS			;frequency shift of the filtering generator
+trackn_filter		org *+TRACKS			; Frequency shift of the filtering generator.
 	EIF
-;
+
 trackn_audf	org *+TRACKS
 trackn_audc	org *+TRACKS
 	IFT FEAT_AUDCTLMANUALSET
-trackn_audctl	org *+TRACKS
+trackn_audctl		org *+TRACKS
 	EIF
 ;v_audctl		org *+1						;the lda #... parameter is overwritten directly in the code
 ;v_audctl2		org *+1						;the lda #... parameter is overwritten directly in the code
@@ -308,7 +319,8 @@ tabbeganddistor ;start offsets into tabfrq and distortion values for the individ
  dta frqtabbass2-frqtab,$c0				;bass tab2
 ;
 		IFT FEAT_EFFECTVIBRATO
-vibtabbeg dta 0,vib1-vib0,vib2-vib0,vib3-vib0
+vibtabbeg
+		dta 0,vib1-vib0,vib2-vib0,vib3-vib0
 vib0	dta 0						;no vibrato
 vib1	dta 1,-1,-1,1				;small vibrato
 vib2	dta 1,0,-1,-1,0,1			;middle vibrato
@@ -373,9 +385,8 @@ frqtabbasshi
 	dta $02,$02,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$00,$00
 	dta $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 	EIF
-;
-;
-		org PLAYER-$0100			;256 bytes before the player
+
+		org PLAYER-$0100		; 256 bytes before the player.
 
 ;volume conversion
 volumetab
@@ -395,13 +406,14 @@ volumetab
 	dta $00,$01,$02,$03,$03,$04,$05,$06,$07,$08,$09,$0A,$0A,$0B,$0C,$0D
 	dta $00,$01,$02,$03,$04,$05,$06,$07,$07,$08,$09,$0A,$0B,$0C,$0D,$0E
 	dta $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F
+
+; End of RMT data.
+;---------------------------------------------------------------------------------------------------------------------------------------------;
+
+	org PLAYER
 ;
+; Start of RMT jump table.
 ;
-;
-	org PLAYER			;$3400
-;*
-;* Set of RMT main vectors:
-;*
 RASTERMUSICTRACKER
 	jmp rmt_init		;x=db,y=hb,a=songline(0-255), returns the instrument speed (1=normal 1vbi, 2= 2xvbi, 3= 3xvbi,...)
 	jmp rmt_play		;every 1/50 sec, returns the actual instrument speed (1 for 1vbi, 2..1 for 2vbi, 3..2..1 for 3vbi,...)
@@ -412,16 +424,22 @@ RASTERMUSICTRACKER
 	jmp rmt_sfx			;* A=note(0,..,60),X=channel(0,..,3 or 0,..,7),Y=instrument*2(0,2,4,..,126)
 	EIF
 ;
-;
-;
+;---------------------------------------------------------------------------------------------------------------------------------------------;
+
+; Start of rmt_init code.
+; A = Starting song line
+; X = low byte of the RMT module
+; Y = High byte of the RMT module
+
 rmt_init
 	stx ns
 	sty ns+1
 	IFT FEAT_NOSTARTINGSONGLINE==0
-	pha					;song line					;PHA 1!!!
+		pha	; Push the start song line to the stack for now (PHA #1).
 	EIF
-;
-;zeroing the track_variables
+	
+; 	Clear the RMT variables
+;	Clear the track_variables
 	IFT track_endvariables-track_variables>255		;there are more than 255 trackn variables
 	ldy #0
 	tya
@@ -436,7 +454,8 @@ ri0	sta track_variables-1,y
 	dey
 	bne ri0				;shifted by 1, so n down to 1 suffices
 	EIF	
-;	
+	; Parse the RMT module data
+	; Track length is at offset +4
 	ldy #4
 	lda (ns),y
 	sta v_maxtracklen	;maximum track length
@@ -454,26 +473,37 @@ ri0	sta track_variables-1,y
 	lda #FEAT_INSTRSPEED
 	sta v_ainstrspeed
 	EIF
-	;#7 reserved
-	ldy #8
+
+	; Offset +7 is reserved.
+
+	; Copy 4 pointers starting at offset 8 (8,9 10,11 12,13 14,15)
+	; -> InstrumentPtrs[] 	2 bytes
+	; -> TracksPtrsLow[]	2 bytes
+	; -> TracksPtrsHi		2 bytes
+	; -> SongData			2 bytes
+
+	ldy #8							; Starting from offset 8
 ri1	lda (ns),y		;8,9 10,11 12,13 14,15
 	sta p_tis-8,y
 	iny
-	cpy #8+8		;8 bytes
+	cpy #8+8						; copy 2*4 = 8 bytes
 	bne ri1
 ;
 	IFT FEAT_NOSTARTINGSONGLINE==0
-	pla				;songline						;PLA 1!!!
-	pha												;PHA 2A/B!!!
+		; Set the starting song line by moving ptrSongLines forward
+		pla							; Pull the saved start song line from the stack (PLA #1).
+		pha							; Push the start song line on the stack (PHA #2A/B).
 	IFT TRACKS>4
-	asl @			;stereo 8 tracks => every song line has 8 bytes
+			; Stereo
+			; ptrSongLines += song_line * 8
+	asl @							; Stereo 8 tracks => every song line has 8 bytes
 	asl @
-	asl @			;=*8
+	asl @							;=*8
 	clc
-	adc p_song
+	adc p_song						; ptrSongLines += offset * 8 (low) part
 	sta p_song
-	pla												;PLA 2A!!!
-	php												;PHP 3A!!! (saves the carry)
+	pla								; Pull the saved start song line from the stack (PLA #2A). This keeps carry flag unchanged.
+	php								; Push the flags, we will need the carry flag later (#PHP 3A).
 	and #$e0		;top 3 bits
 	asl @			;into carry
 	rol @			;bit 1
@@ -508,14 +538,21 @@ ri1	lda (ns),y		;8,9 10,11 12,13 14,15
 ;	rts													;OPTIMIZATION: before the rts instruction.
 ;
 ;and continues
+
+;---------------------------------------------------------------------------------------------------------------------------------------------;
+	
+; RMT_SILENCE
+; Reset POKEY causes all sound to be stopped
+
 rmt_silence
+	; Reset POKEY
 	IFT STEREOMODE>0			;for 1, 2 and 3 alike
 	lda #0
-	sta $d208
-	sta $d218
-	ldy #3
-	sty $d20f
-	sty $d21f
+		sta $d208			; AUDCTL
+		sta $d218
+		ldy #3
+		sty $d20f			; SKCTL
+		sty $d21f
 	ldy #8
 si1	sta $d200,y
 	sta $d210,y
