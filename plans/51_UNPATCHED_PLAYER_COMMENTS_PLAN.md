@@ -1,6 +1,42 @@
 # Plan 51: Raster's player commentary, translated and merged into Patch-16
 
-Status: U1 and U2 DONE 2026-10-22; U3 open.
+Status: U1 and U2 DONE 2026-10-22; U3 mechanical pass DONE 2026-10-23,
+review pass open.
+
+U3 groundwork (the comparison the user asked for first): Patch-16 vs
+the stripped 1.28 rmtplayr.a65, normalized code diff - 69% of the
+original code survives verbatim (911 of 1324 lines); 279 lines replaced
+by 664, 300 inserted, 134 deleted, in 155 blocks. The big blocks are
+additive machinery under Patch-16's own flags (feat_full_16bit, the
+feat_two_tone/v_skctl block, the command-7/AUDCTL rework, the
+do_tuning_tables section); the genuinely reworked regions are the
+variable-area layout, the cmd0/cmd7 dispatch and the SetPokey/AUDCTL
+assembly area.
+
+U3 mechanical pass results: 328 comments merged into
+asm/Patch-16/rmtplayr.a65, marked `;R: ` (256 trailing on
+verbatim-surviving code lines that had no comment of Vin's, 72
+standalone prose lines inserted above their verbatim anchor). Proof:
+all three Patch-16 targets (tracker.obx = rmt_driver_v6.obx,
+rmtplayer.xex, rmtplayer.sap, built with the vendored MADS per
+build.cmd) are byte-identical before and after. The review list - 484
+items in the session scratchpad (u3-baseline/review.txt) - breaks down
+as: 202 anchored on changed/deleted code (the misleading-comment trap,
+one-by-one review), 113 file-header lines (RESOLVED 2026-10-23: the
+whole block - change history, priority/portamento notes, TODO - was
+carried over verbatim into Patch-16's header under one `;R: ----`
+provenance line, per the user; builds stayed byte-identical), 96
+commented-out-code lines (RESOLVED 2026-10-23: not taken over, per the
+user - they document disabled code that exists only in rmt.a65 and can
+be looked up there), 73 whose target line already carries a Vin comment
+(the two voices meet - manual placement; RESOLVED 2026-10-23: merged by
+the user in WinMerge against a generated proposal file in which each
+collision line carried Raster's comment in place of Vin's - taken with
+plain `;`, no `;R:` marker, and in many places rewritten to merge both
+voices into one text; all three targets rebuilt byte-identical
+afterwards). Remaining for review: the 202 changed-code anchors
+(reviewed the same way, against a regenerated proposal with `;R?: ...
+[was on: <original code>]` insertion lines at best-guess positions).
 
 U2 results: 630 of the 916 plain comments translated in place (the
 rest are pure numbers, bit patterns, register names, commented-out
