@@ -18,8 +18,12 @@ hand in both sources (2026-10-24).
 Plan 53 realigned the labels the same day: `rmtplayr.a65` (and the
 other Patch-16 files referencing these labels) use Raster's original
 names again, and Vin's name is kept as a `;V: <name>` comment at the
-defining location - the counterpart of the `;R:` convention that marks
-Raster's carried-over comments. The renames emit no bytes: all three
+defining location - the counterpart of the `;R:` marker on
+carried-over Raster comments. (Since the same day, `;R:` remains only
+where the comment text has no verbatim counterpart in asm/Unpatched
+anymore - where the text matched, the marker was the only difference
+between the two files and was stripped to keep the side-by-side
+comparison clean.) The renames emit no bytes: all three
 targets, the generated `tracker_obx.h` addresses and the whole
 feature-flag matrix are unchanged. Vin's labels that have no
 counterpart in Raster's source (`dodex`, `v_skctl`, the `do_*`

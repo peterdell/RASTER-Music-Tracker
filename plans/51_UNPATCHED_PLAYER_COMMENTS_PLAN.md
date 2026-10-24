@@ -151,7 +151,13 @@ next to VinsCool's existing annotations. The hard step - Patch-16 is
   comment merged automatically.
 - Provenance stays visible: Raster's merged comments are marked as his
   (suffix/prefix convention to be fixed in execution, e.g. `;R:`), so
-  the two voices never blur.
+  the two voices never blur. (Relaxed 2026-10-24, per the user: where
+  the comment text is verbatim in asm/Unpatched/rmt.a65, the `R:`
+  marker was the only difference between the two files and only added
+  noise to the side-by-side comparison - 317 markers stripped to plain
+  `;`, byte-identity re-proven. `;R:` remains on the 11 lines whose
+  text has no verbatim counterpart anymore, the header-block intro
+  among them.)
 - Anchors where Vin CHANGED the adjacent code are the trap - a correct
   comment on the old code misleads on the new. These are collected and
   reviewed one by one, not merged blindly; where the code diverged too
