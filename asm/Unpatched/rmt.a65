@@ -1,11 +1,11 @@
 ;*
 ;* Raster Music Tracker, RMT Atari routine version 1.20090108
-;* (c) Radek Sterba, Raster/C.P.U., 2002 - 2009
+;* (c) Radek Sterba (Raster/C.P.U.), 2002 - 2009
 ;* http://raster.atari.org
 ;*
-;* Warnings:
+;* Raster's Warnings:
 ;*
-;* 1. RMT player routine needs 19 itself reserved bytes in zero page (no accessed
+;* 1. RMT player routine needs 19 reserved bytes in the zero page that are not accessed
 ;*    from any other routines) as well as cca 1KB of memory before the "PLAYER" 
 ;*    address for frequency tables and functionary variables. It's:
 ;*	  a) from PLAYER-$03c0 to PLAYER for stereo RMTplayer 
@@ -17,7 +17,7 @@
 ;* 3. Because of RMTplayer provides a lot of effects, it can spend a lot of CPU time.
 ;*
 
-
+; Raster's change history
 ; 10.12.2002
 ; - speed-change fix - A changed speed is written to v_speed only after all 4 (resp. 8)
 ;   tracks are done. i.e. if the change is in the first row of a track and a goto moves it
@@ -144,26 +144,21 @@
 
 ; 08.01.2009
 ; - label for RMTSFXVOLUME (idea by Tebe)
-
-;filters take priority over 16-bit bass, or over another track
-;e.g. a) if filtering crossed the lower generator of a pair joined for 16-bit bass,
-;then filtering is used and plain 8-bit bass plays instead of the 16-bit bass
-;e.g. b) if filtering is on in g0, g3 is overwritten with the filtered frequency (and g3's volume is zeroed)
-
-;16-bit bass takes priority over another track (except a filtered one, see above)
-;e.g. if g1 uses 16-bit bass, it overwrites g0 with the low byte of the 16-bit frequency (and zeroes g0's volume)
-
-;the portamento effect uses a transitional frequency
-;between the source and the target tone + effvibrato/shift
-;(but not the tablenote/shift offsets, except for the setportamento 00 command, where tablenote/shift is added when computing the target portamento frequency)
-
-
-;TODO
-;(ok) * frequencies for note 0 and the top notes 61-63 (60 is the last - for noise =0)
-;(ok) * uninitialized instruments at the start of an empty track (instrument hb==0 ? skip the instrument)
-;(ok) * initialization of all track variables to 0
-;(ok) * initial speed in the module header (instead of the default #8)
-;(ok) * bits $80 and $01 for AUDCTL
+; - filters take priority over 16-bit bass, or over another track
+;    e.g. a) if filtering crossed the lower generator of a pair joined for 16-bit bass,
+;             then filtering is used and plain 8-bit bass plays instead of the 16-bit bass
+;    e.g. b) if filtering is on in g0, g3 is overwritten with the filtered frequency (and g3's volume is zeroed)
+; - 16-bit bass takes priority over another track (except a filtered one, see above)
+;   e.g. if g1 uses 16-bit bass, it overwrites g0 with the low byte of the 16-bit frequency (and zeroes g0's volume)
+; -  The portamento effect uses a transitional frequency between the source and the target tone + effvibrato/shift
+;    (but not the tablenote/shift offsets, except for the setportamento 00 command,
+;    where tablenote/shift is added when computing the target portamento frequency)
+; - Completed
+;   - Define frequencies for note 0 and the top notes 61-63 (60 is the last - for noise =0)
+;   - Handle uninitialized instruments at the start of an empty track (instrument hb==0 ? skip the instrument)
+;   - Initialization of all track variables to 0
+;   - Have initial speed in the module header (instead of the default #8)
+;   - Handle bit 7 ($80) and 0 ($01= for AUDCTL
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
@@ -186,7 +181,7 @@ TRACKS		equ 8
 TRACKS		equ 4
 	EIF
 
-PLAYER			equ $3400	; Start of the standard player, also used for "tracker.obx ". Beware that the memory before it is used, about $400 (1 KB).
+PLAYER			equ $3400	; Start of the standard player, also used for "tracker.obx". Beware that the memory before it is used, about $400 (1 KB).
 INSTRPAR	equ 12				; Number of the instrument's "main" parameters => the table starts at byte 12, the envelope after the table end
 
 ;* RMT ZeroPage addresses
@@ -223,7 +218,7 @@ trackn_idx				org *+TRACKS	; Track index
 trackn_pause			org *+TRACKS	; Track pause (in rows). 1 = new note, 0 = nothing new
 trackn_note				org *+TRACKS	; 0-59
 trackn_volume			org *+TRACKS	; vvvv0000
-trackn_distor 			org *+TRACKS	; dddd0000, Unpached-only and unused in V1.28
+trackn_distor 			org *+TRACKS	; dddd0000, Unpatched-only and unused in V1.28
 trackn_shiftfrq			org *+TRACKS
 
 	IFT FEAT_PORTAMENTO
@@ -314,10 +309,12 @@ track_endvariables
 	
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
+; Start of the RMT data
+
 		org PLAYER-$100-$140-$40+2
 
 
-tabbeganddistor ;start offsets into tabfrq and distortion values for the individual instrument distortions
+tabbeganddistor ; The start offsets into "tabfrq" and distortion values for the individual instrument distortions
  dta frqtabpure-frqtab,$00				;noise 0
  dta frqtabpure-frqtab,$20				;noise 2
  dta frqtabpure-frqtab,$40				;noise 4
@@ -326,7 +323,7 @@ tabbeganddistor ;start offsets into tabfrq and distortion values for the individ
  dta frqtabpure-frqtab,$a0				;pure tones
  dta frqtabbass1-frqtab,$c0				;bass tab1
  dta frqtabbass2-frqtab,$c0				;bass tab2
-;
+
 		IFT FEAT_EFFECTVIBRATO
 vibtabbeg
 		dta 0,vib1-vib0,vib2-vib0,vib3-vib0
@@ -339,13 +336,8 @@ vibtabnext
 		dta vib1-vib0+1,vib1-vib0+2,vib1-vib0+3,vib1-vib0+0
 		dta vib2-vib0+1,vib2-vib0+2,vib2-vib0+3,vib2-vib0+4,vib2-vib0+5,vib2-vib0+0
 		dta vib3-vib0+1,vib3-vib0+2,vib3-vib0+3,vib3-vib0+4,vib3-vib0+5,vib3-vib0+6,vib3-vib0+7,vib3-vib0+8,vib3-vib0+9,vib3-vib0+0
-;		
 		EIF
-;
-;emptytrack											;OPTIMIZATION: the empty track is not used
-;	dta 62,0			;pause, infinite pause		;OPTIMIZATION: the empty track is not used
-;
-;
+
 		org PLAYER-$100-$140		;5 tables*$40 = $140
 ;
 ;the regular notes are 0-59
@@ -421,19 +413,62 @@ volumetab
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
 	org PLAYER
+
 ;
 ; Start of the RMT jump table.
 ;
 RASTERMUSICTRACKER
-	jmp rmt_init		;x=db,y=hb,a=songline(0-255), returns the instrument speed (1=normal 1vbi, 2= 2xvbi, 3= 3xvbi,...)
-	jmp rmt_play		;every 1/50 sec, returns the actual instrument speed (1 for 1vbi, 2..1 for 2vbi, 3..2..1 for 3vbi,...)
-	jmp rmt_p3			;(without SetPokey, Song and Track handling) from the instrument processing on
-	jmp rmt_silence		;silence
+	; Initialize
+	;
+	; Must be run first, to clear memory and initialise the player.
+	; Once this is done, run rmt_play afterwards, or Set_Pokey if you want to manually time certain things.
+	; IN:  <X>=module address low byte, Y=module address high byte, <A>=starting song line(0-255)
+	; OUT: <A>=the instrument speed (1= 1 time per VBI (normal), 2 = 2 times per VBI, 3 = 3 times per VBI, ...
+	jmp rmt_init			;* 
+
+	; Play
+	;
+	; "SetPokey" is called first, then all the play code is ran once. 
+	; V: Must be called multiple times per frame if the instrument speed is > 1.
+	; R: every 1/50 sec, returns the actual instrument speed
+	; IN:  n/a
+	; OUT: <A>=the current the instrument speed. TODO: JAC! Really? This was in Raster's comment.
+	; TODO: JAC! How does this relate to rmt_p3? Rasters original comment clearly states that "rmt_play" is per frame.
+	; So it would make sense that rmt_p3 is to be called within a frame to update only the instruments.
+	jmp rmt_play
+
+	; Play3
+	; R: ;(without SetPokey, Song and Track handling) from the instrument processing on
+	; Similar to rmt_play, but will also skip SetPokey and the instruments/songlines/tracklines initialisation.
+	jmp rmt_p3
+
+	; Set Silence
+	;
+	; Sets all Pokey registers to their initial values.
+	; This is also last part of "rmt_init".
+	; IN:  n/a
+	; OUT: n/a
+	jmp rmt_silence
+
+	; Set Pokey Registers
+	;
+	; Copies the contents of the shadow Pokey registers (v_audctl, v_skctl, trackn_audf,x etc) into the hardware registers.
+	; This is call as the first step in "rmt_play".
+	; IN:  n/a
+	; OUT: n/a
 	jmp SetPokey
+
 	IFT FEAT_SFX
-	jmp rmt_sfx			;* A=note(0,..,60),X=channel(0,..,3 or 0,..,7),Y=instrument*2(0,2,4,..,126)
+	; Play Sound Effect
+	;
+	; Plays a note with a given instrument on a given channel.
+	; This overrides the instrument played by the song.
+	; IN: <A>=note(0,..,60), <X>=channel(0,..,3 in mono or 0,..,7 in stereo), <Y>=instrument*2 (0,2,4,..,126) 
+	jmp rmt_sfx	
 	EIF
-;
+	
+; End of the RMT jump table.
+
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
 ; Start of rmt_init code.
@@ -460,7 +495,7 @@ ri0	sta track_variables,y
 	bne ri0
 	ELS
 		; Clear from the back  |----<|
-		ldy #track_endvariables-track_variables	; Number ofbytes to clear
+		ldy #track_endvariables-track_variables	; Number of bytes to clear
 	lda #0
 ri0		sta track_variables-1,y		; Shifted down by 1, so n down to 1 suffices and bne can be used
 	dey
@@ -473,7 +508,7 @@ ri0		sta track_variables-1,y		; Shifted down by 1, so n down to 1 suffices and b
 	lda (ns),y
 	sta v_maxtracklen	; Set the maximum track length.
 
-	; The song speed is at ofset +5
+	; The song speed is at offset +5
 	iny	
 	IFT FEAT_CONSTANTSPEED==0
 		lda (ns),y
@@ -545,18 +580,20 @@ ri1	lda (ns),y
 		adc p_song+1				;The carry flag was set by the low-byte addition.
 		sta p_song+1
 	EIF 							; End of IFT FEAT_NOSTARTINGSONGLINE==0
-;
+
 ;	jsr GetSongLine
 ;	jsr GetTrackLine
 ;	jsr InitOfNewSetInstrumentsOnly	;first-time instrument setup
 ;	jsr rmt_p3						;fix 27.04.2003 (first call of the p3 part was skipped => 1/50 shift at the start)
-	jsr GetSongLineTrackLineInitOfNewSetInstrumentsOnlyRmtp3
-;
-;	jsr rmt_silence										;OPTIMIZATION: continues directly into rmt_silence
-;	lda v_instrspeed			;instrument speed		;OPTIMIZATION: <--this load of the value is at the end of rmt_silence
-;	rts													;OPTIMIZATION: before the rts instruction.
-;
-;and continues
+
+	jsr GetSongLine					; Setup the first song line, track line, init new instruments and call rmt_play3.
+
+;	jsr rmt_silence				; OPTIMIZATION: continues directly into rmt_silence
+;	lda v_instrspeed			; OPTIMIZATION: <--this load of the value is at the end of rmt_silence
+;	rts							; OPTIMIZATION: before the rts instruction.
+
+; End of the rmt_init code.
+; Note: rmt_silence will always be executed next via fall-through.
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 	
@@ -588,130 +625,150 @@ si1		sta $d200,y
 		dey
 		bpl si1
 	EIF
-	IFT FEAT_INSTRSPEED==0
-	lda v_instrspeed			;instrument speed (meant for the return from rmt_init, but harmless after rmt_silence too)
+	IFT FEAT_INSTRSPEED==0			;Return the instrument speed for the fall-through from "rmt_init". Not relevant/guaranteed for "rmt_silence" itself.
+	lda v_instrspeed
 	ELS
 	lda #FEAT_INSTRSPEED
 	EIF
 	rts
-;
-;
-GetSongLineTrackLineInitOfNewSetInstrumentsOnlyRmtp3		;joined into one function
-GetSongLine						;does get songline, then get track line, then instrument init
-	ldx #0
-	stx v_abeat					;current beat
-nn0	;before jumping to nn0 from elsewhere, ldx #0 must be done
-;next line in the song
+
+; End of rmt_silence code.
+	
+;---------------------------------------------------------------------------------------------------------------------------------------------;
+
+GetSongLine		; Get songline, then get track line, then initialize new instruments
+	ldx #0							; Set the current beat in to 0.
+	stx v_abeat	
+nn0								; Before jumping to nn0 from elsewhere, ensure that <X>=0.
+;   Next line in the song
 ;	ldx #0						;must start at column 0 and continue 0->7, because a goto can be there
 ;   on the first pass (via GetSongLine...) x=0, jumping to nn0 from elsewhere requires ldx #0 before the jump
-nn1	txa
+
+nn1
+	txa							; Y:=A:=X 0,1,2,3
 	tay
-	lda (p_song),y
-	cmp #$fe					;>=$fe?
-	bcs nn2						;yes => branch
-;track number 0-fd
+	lda (p_song),y					; Get track info from the songline[y]
+	cmp #$fe						; #$FE = Goto songline, #$FF = Empty track
+	bcs nn2							; if A >= $FE, branch to nn2
+	; <A> = Real track number $00-$fd.
+
+	; Get the ptr to the track data and store it in p_trackslbstable
 	tay
-	lda (p_trackslbstable),y
+	lda (p_trackslbstable),y		; trackn_db[x] = p_trackslbstable[y]
 	sta trackn_db,x
-	lda (p_trackshbstable),y
-nn1a sta trackn_hb,x
+	lda (p_trackshbstable),y		; trackn_hb[x] = p_trackshbstable[y]
+	sta trackn_hb,x
+
 	lda #0
-	sta trackn_idx,x
+	sta trackn_idx,x				; Reset the track index to 0.
 	lda #1						
-nn1a2 sta trackn_pause,x		;OPTIMIZATION: so it can jump to nn1a2 for an empty track (i.e. must include the $80 -> instrx2,x below)
-	lda #$80					;initialization
-	sta trackn_instrx2,x		;if "note 0-60" does not change it, $80 stays there
+nn1a2 								; Init track,  #1 is a new track, #0 is no new track
+	sta trackn_pause,x				; OPTIMIZATION: So it can jump to nn1a2 for an empty track (i.e. must include the $80 -> instrx2,x below)
+	lda #$80						; Initialize as "no new instrument" ($80).
+	sta trackn_instrx2,x			; Note values "0-60" do not change it, $80 stays there.
 	inx
-xtracks01	cpx #TRACKS
+	cpx #TRACKS	
 	bne nn1
-	lda p_song
+
+	; Done with data points of a song line, move to the next line
+	lda p_song						; p_song += #TRACKS
 	clc
-xtracks02	adc #TRACKS
+	adc #TRACKS
 	sta p_song
-	bcc GetTrackLine			;nn1b	(can go straight to GetTrackLine)
+	bcc GetTrackLine				;Instead of "bcc nn1b", jump straight to GetTrackLine.
 	inc p_song+1
-nn1b
-;	rts							;END of GetSongLine
-	jmp GetTrackLine			;END of GetSongLine => falls through to GetTrackLine
-nn2
-;track number >=$fe
-;	cmp #$fe		;<---already done before jumping here
-	beq nn3			;yes, it is #$fe => branch
-;track number =ff (empty track)
-nn2a ;lda #<emptytrack			;OPTIMIZATION: instead of the empty track, sets trackn_pause directly to 0 (maximum pause)
-;	sta trackn_db,x				;OPTIMIZATION
-;	lda #>emptytrack			;OPTIMIZATION
-	lda #0						;0 is the maximum pause length (256)
-	beq nn1a2		;! jmp nn1a2
-nn3
-;track number =fe (jump)
-	ldy #2			;byte0=fe(go), byte1=line (unused), byte2=dbadr, byte3=hbadr
-	lda (p_song),y
+;nn1b
+;	rts								; The end of GetSongLine.
+	jmp GetTrackLine				; The end of GetSongLine. Continues to GetTrackLine to progress the next notes in the track.
+
+nn2									; Track number >= GOTO ($fe) or EMPTY TRACK ($ff)
+;	cmp #$fe						; Was already done before jumping here
+	beq nn3							; Yes, it is GOTO (#$fe) => branch
+
+nn2a								; Track number is EMPTY TRACK ($ff).
+	lda #0							; 0 is the maximum pause length (256).
+	beq nn1a2						; Unconditional jump to nn1a2.
+
+nn3									; Track number is GOTO ($fe).
+									; Data format: $fe, unused ($00), low/high byte of pointer to the next song line.
+	ldy #2
+	lda (p_song),y					; lo = p_song[2]
 	tax
 	iny
-	lda (p_song),y
+	lda (p_song),y					; hi = ptrSongLinex[3]
 	sta p_song+1
-	stx p_song
-	ldx #0			;x must be 0 before jumping to nn0, to process the new song line from #0 (up to 7)
-	beq nn0			;! jmp nn0			;again to the next song line
-;
-;
+	stx p_song						; (p_song) = p_song[2,3]
+	ldx #0							; <X> must be 0 before jumping to nn0, to process the new song line from #0 (up to 7)
+	beq nn0							; Unconditional jump to the next song line.
+
+; Process one line of a track
 GetTrackLine		;does get trackline (calling GetSongline back if needed), then instrument init
 ;next row in the tracks
-oo0
-oo0a
+
 	IFT FEAT_CONSTANTSPEED==0
-	lda #$ff			;speed (the parameter is self-modified)
+		lda #$ff					; The speed as immediate operand is is changed by the code.
 v_speed equ *-1
-	sta v_bspeed		;into the buffer speed
+		sta v_bspeed				; Store a copy as the buffer speed.
 	EIF
-;
-	ldx #-1				;must run from 0 to TRACKS (not the other way), because speeds on the same trackline overwrite each other
-						;and because ENDofTRACK can stop it in any column, so the opposite side would get executed
+
+	ldx #-1							; Must run from 0 to TRACKS (not the other way), because speeds on the same trackline overwrite each other.
+									; And because ENDofTRACK can stop it in any column, so the opposite side would get executed.
 oo1
-	inx					;x=0 to TRACKS-1
-;	lda trackn_pause,x								;OPTIMIZATION: if it was 0, it will count down from 255 to 1
-;	beq oo1x			;=0 => infinite pause		;OPTIMIZATION: which works out the same as an infinite pause, because the longest track can have 256 rows
+	inx								; <X>=0 to TRACKS-1
+;	lda trackn_pause,x				; OPTIMIZATION: If it was 0, is would be an infinite pause. With these lines commented out it will count down from 255 to 1.
+;	beq oo1x						; OPTIMIZATION: This works out the same as an infinite pause, because the longest track can have 256 rows
 	dec trackn_pause,x
-	bne oo1x			;>0 => pause 1-255
+	bne oo1x						; >0 => pause is 1-255.
+
 ;OPTIMIZATION:	inc trackn_pause,x	;trackn_pause=1
 ;OPTIMIZATION: 1 cycle faster than via lda #1 sta...
 ;OPTIMIZATION: and moved to run only for a note or a volume change (when volume is set)
 ;	lda #1
 ;	sta trackn_pause,x	
+
+	; Setup the pointer to the track data.
 oo1b
-	lda trackn_db,x
+	lda trackn_db,x					; (ns) = trackn_db/hi[x]
 	sta ns
 	lda trackn_hb,x
 	sta ns+1
 oo1i
-	ldy trackn_idx,x		;34             12
-	inc trackn_idx,x		;for next time
-	lda (ns),y				;vvnnnnnn iiiiiivv		(v=volume,n=note,i=instrument)
+	ldy trackn_idx,x				; <Y> = current index into track data (34 ... 12).
+	inc trackn_idx,x				; Increment the track index for next call.
+
+	; Get a track data point
+	; 0 - 60 = Note, instr and volume data
+	; 61 - Volume only
+	; 62 = Pause/empty line
+	; 63 - Speed, go loop or end
+	lda (ns),y						;vvnnnnnn iiiiiivv		(v=volume,n=note,i=instrument)
 	sta reg1
-	and #$3f
+	and #$3f						; 0-63
 	cmp #61
-	beq oo1a				;=61 => empty note (does not set note and instrument, only volume)
-	bcs oo2					;>61
-;note 0-60
-	sta trackn_note,x		;sets trackn_note
+	beq oo1a						;=61 => empty note (does not set note and instrument, only volume)
+	bcs oo2							;>61
+
+	; Not a command so store the note (0-60).
+	sta trackn_note,x				; Set the track note.
 	IFT FEAT_BASS16	
-	sta trackn_outnote,x	;(if nothing changes it anymore, it stays the same as note)
+	sta trackn_outnote,x			;(if nothing changes it anymore, it stays the same as note)
 	EIF
+
+	; Process the instrument #
 	iny
 	lda (ns),y
 ;	sta reg2
-;	lda reg2				;iiiiiiXX
-	lsr @					;0iiiiiiX
-	and #$3f*2				;0iiiiii0
-	sta trackn_instrx2,x	;sets the instrument
-;
-oo1a
-	lda #1					;after a note (or a volume change) there is a pause of 1 row
+;	lda reg2						; iiiiiiXX
+	lsr @							; 0iiiiiiX
+	and #$3f*2						; 0iiiiii0
+	sta trackn_instrx2,x			; Set the track instrument.
+
+oo1a								; Process volume data
+	lda #1							; After a note (or a volume change) there is a pause of 1 row
 	sta trackn_pause,x		;
 	ldy trackn_idx,x
 	inc trackn_idx,x
-;	lda reg2				;iiiiiivv
+;	lda reg2						;iiiiiivv
 	lda (ns),y
 	lsr @
 	ror reg1
@@ -793,8 +850,6 @@ oo63_1X
 	jmp oo1i		;immediately continues to the next pair in the track
 oo63_11
 ;note=63 (top two bits 11) (=>byte1=255)
-;	jsr GetSongLine		;next line in the song
-;	jmp oo0				;back to the track processing
 	jmp GetSongLine
 ;
 ;
@@ -1022,7 +1077,7 @@ p2o3
 ;;	jsr GetSongLine		;next line in the song (v_abeat is initialized there)
 ;	jsr GetSongLineTrackLineInitOfNewSetInstrumentsOnly
 ;	jmp rmt_p3
-	jmp GetSongLineTrackLineInitOfNewSetInstrumentsOnlyRmtp3
+	jmp GetSongLine				; Get song line, track line, init new instruments and continue to rmt_p3.
 ;
 ;
 ;
