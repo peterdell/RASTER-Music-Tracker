@@ -180,7 +180,9 @@ check)
     if [ ! -f "$MANIFEST" ]; then
         echo "FAIL build/feat_matrix.sha256 is missing - run: sh build/check_feat_matrix.sh update" >&2
         failed=1
-    elif ! diff -u "$MANIFEST" "$GEN"; then
+    # Compare with the CRs removed: on Windows the checked-out manifest may
+    # carry CRLF endings (same normalization as check_drivers.sh's headers).
+    elif ! tr -d '\r' <"$MANIFEST" | diff -u - "$GEN"; then
         echo "FAIL the feature-flag matrix differs from build/feat_matrix.sha256." >&2
         echo "A comment-only change must not get here. For an intentional code change," >&2
         echo "regenerate with: sh build/check_feat_matrix.sh update" >&2
