@@ -19,3 +19,10 @@ jobs:
         run: |
           chmod +x lib/mads/linux_x86_64/mads
           sh build/check_drivers.sh
+
+      # Assembles asm/Unpatched and asm/Patch-16 with every feature flag of
+      # rmt_feat.a65 toggled once and compares the outputs against the
+      # checked-in manifest - covers the IFT branches the default
+      # configuration leaves unassembled (plans/52_FEAT_MATRIX_PLAN.md).
+      - name: Assemble the players with every feature flag toggled once
+        run: sh build/check_feat_matrix.sh
