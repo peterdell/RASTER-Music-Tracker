@@ -1,5 +1,6 @@
 ;*
-;* Raster Music Tracker, RMT Atari routine version Patch16-3.2
+;* Raster Music Tracker, RMT Atari routine version Patch16-3.2, based on
+;* Raster Music Tracker, RMT Atari routine version 1.20090108
 ;* (c) Radek Sterba, Raster/C.P.U., 2002 - 2009
 ;* http://raster.atari.org
 ;*
@@ -12,7 +13,7 @@
 ;* I apologise for the inconvenience, I am doing my best to clean everything to make sense again.
 ;*
 
-;R: ---- Raster's change history and notes, carried over from asm/Unpatched/rmt.a65 (plans/51 U3) ----
+; Raster's change history and notes, carried over from asm/Unpatched/rmt.a65 (plans/51 U3) ----
 ; 10.12.2002
 ; - speed-change fix - A changed speed is written to v_speed only after all 4 (resp. 8)
 ;   tracks are done. i.e. if the change is in the first row of a track and a goto moves it
@@ -162,36 +163,42 @@
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
+;* STEREOMODE	equ 0..3			;0 => compile RMTplayer for 4 tracks mono
+;*									;1 => compile RMTplayer for 8 tracks stereo
+;*									;2 => compile RMTplayer for 4 tracks stereo L1 R2 R3 L4
+;*									;3 => compile RMTplayer for 4 tracks stereo L1 L2 R3 R4
+;*
+
 ;* RMT FEATures definitions file
-	icl "rmt_feat.a65"
-	
 ;* For optimizations of RMT player routine to concrete RMT module only!
+	icl "rmt_feat.a65"
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
-;* start of RMT definitions...
-
-	IFT FEAT_IS_SIMPLEP
-PLAYER			equ $3100	; VUPlayer export driver
-	ELS
-PLAYER			equ $3400	; Start of the standard player, also used for " tracker.obx ". Beware that then memory before it is used, about $400 (1 KB).
-	EIF
-
+;* Start of RMT definitions.
 	IFT STEREOMODE==1
 TRACKS			equ 8
 	ELS
 TRACKS			equ 4
 	EIF
 
+
+	IFT FEAT_IS_SIMPLEP
+PLAYER			equ $3100	; VUPlayer export driver
+	ELS
+PLAYER			equ $3400	; Start of the standard player, also used for "tracker.obx ". Beware that the memory before it is used, about $400 (1 KB).
+	EIF
+
+
 TABLES			equ $B000	; This may be moved elsewhere if necessary 
 
-INSTRPAR		equ 12
+INSTRPAR		equ 12		; Number of the instrument's "main" parameters => the table starts at byte 12, the envelope after the table end
 
 ;* RMT ZeroPage addresses
 	org 203
 	
 p_tis
-p_instrstable		org *+2		; ptr to Instrument table ptrs
+p_instrstable		org *+2		; ptr to instrument table ptrs
 p_trackslbstable	org *+2		; ptr to low byte of track ptrs
 p_trackshbstable	org *+2		; ptr to high byte of track ptrs
 p_song				org *+2		; ptr to song data
@@ -208,9 +215,6 @@ tmp					org *+1
 frqaddcmd2			org *+1
 	EIF
 	
-;* possible improvement: setting variables after the RMT driver itself? 
-;* That would make adjustments easier to manage, if this works as I expect...
-
 	IFT TRACKS>4			
 	org PLAYER-$400+$40	;$3040
 	ELS
@@ -224,9 +228,9 @@ trackn_idx				org *+TRACKS		; Track index
 trackn_pause			org *+TRACKS		; Track pause (in rows). 1 = new note, 0 = nothing new
 trackn_note				org *+TRACKS	;0-59
 trackn_volume			org *+TRACKS	;vvvv0000
-trackn_volumeenvelope	org *+TRACKS
-trackn_command			org *+TRACKS
-trackn_effectparameter	org *+TRACKS
+trackn_volumeenvelope	org *+TRACKS	; Patch16-only
+trackn_command			org *+TRACKS	; Patch16-only
+trackn_effectparameter	org *+TRACKS	; Patch16-only
 trackn_shiftfrq			org *+TRACKS
 
 	IFT FEAT_PORTAMENTO
@@ -236,7 +240,7 @@ trackn_portaspeed 	org *+TRACKS	;portamento speed
 trackn_portaspeeda 	org *+TRACKS	;current portamento speed
 trackn_portadepth 	org *+TRACKS	;portamento depth
 	EIF
-	
+
 trackn_instrx2			org *+TRACKS	; Bit pattern "xiiiiii0" for the instrument. With "x=0", a new instrument is set and initialized. With "x=0", no new instrument is set.
 trackn_instrdb			org *+TRACKS
 trackn_instrhb			org *+TRACKS
@@ -308,7 +312,7 @@ v_aspeed		org *+1
 ;;the parameter of lda #$ff is overwritten directly in the code
 track_endvariables
 
-;* end of RMT definitions...
+;* End of RMT definitions.
 	
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
@@ -353,8 +357,9 @@ vibtabnext
 		dta vib3-vib0+1,vib3-vib0+2,vib3-vib0+3,vib3-vib0+4,vib3-vib0+5,vib3-vib0+6,vib3-vib0+7,vib3-vib0+8,vib3-vib0+9,vib3-vib0+0
 	EIF	
 	
-	org PLAYER-$0100	; 256 bytes before the player. It may be possible to reduce this table by half the size it is... this was something I did for the older RMT Patch16 code, so the option is still valuable...
-;volume conversion
+	org PLAYER-$0100	; 256 bytes before the player.
+
+; Volume conversion
 volumetab
 	dta $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 	dta $00,$00,$00,$00,$00,$00,$00,$00,$01,$01,$01,$01,$01,$01,$01,$01
@@ -373,16 +378,19 @@ volumetab
 	dta $00,$01,$02,$03,$04,$05,$06,$07,$07,$08,$09,$0A,$0B,$0C,$0D,$0E
 	dta $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F
 
-; End of RMT data.
-	
+; End of the RMT data.
+
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
-;* start of RMT jump table...
+        org PLAYER
 
-        org PLAYER			;* Possible improvement: give proper labels to each JMPs below... to avoid confusion, and also make things easier to map in memory, unless the destination is being JSR'ed directly...
+;
+; Start of the RMT jump table.
+;
+;V: Possible improvement: give proper labels to each JMPs below... to avoid confusion, and also make things easier to map in memory, unless the destination is being JSR'ed directly...
 
 RASTERMUSICTRACKER
-	; Initilization
+	; Initialization
 	; Must be run first, to clear memory and initialise the player... Once this is done, run rmt_play afterwards, or Set_Pokey if you want to manually time certain things.
 	; IN:  <X>=module address low byte, Y=module address high byte, <A>=start songline(0-255)
 	; OUT: <A>=the instrument speed (1= 1 time per VBI (normal), 2 = 2 times per VBI, 3 = 3 times per VBI, ...
@@ -402,9 +410,8 @@ RASTERMUSICTRACKER
 
 	; Set Silence
 	; Sets all POKEY registers to their initial values. This is also last part of "rmt_init.
-	; OUT: <A>=the instrument speed (1= 1 time per VBI (normal), 2 = 2 times per VBI, 3 = 3 times per VBI, ...
+	; OUT: n/a
 	jmp rmt_silence
-
 
 	; Set POKEY Registers
 	jmp SetPokey			;* Copy the contents of the shadow POKEY registers (v_audctl, v_skctl, trackn_audf,x etc) into the real ones. Called as first step in "rmt_play".
@@ -422,6 +429,7 @@ RASTERMUSICTRACKER
 ; A = Starting song line
 ; X = low byte of the RMT module
 ; Y = High byte of the RMT module
+
 rmt_init
 	stx ns
 	sty ns+1
@@ -430,61 +438,59 @@ rmt_init
 			; TODO: V: I wonder if I could just use tmp in zeropage instead...
 	EIF
 	
-	; Clear the RMT variables
-;R: zeroing the track_variables
-	IFT track_endvariables-track_variables>255	;there are more than 255 trackn variables
-		; more than 255 bytes in variables memory...
-		; so clear from the front and 256 bytes from the end |>--->----|
+;	Clear the track_variables
+	IFT [track_endvariables-track_variables]>255
+		; There are more than 255 trackn variables, but less than 513.
+		; So clear from the front and 256 bytes from the end |>--->----|
 		ldy #0
 		tya
-ri0		;V: ri_clear_loop
-		sta track_variables,y
+ri0		sta track_variables,y
 		sta track_endvariables-$100,y
 		iny
 		bne ri0
 	ELS
 		; Clear from the back  |----<|
-		ldy #track_endvariables-track_variables	; How many bytes to clear
+		ldy #track_endvariables-track_variables	; Number ofbytes to clear
 		lda #0
-ri0		;V: ri_clear_loop
-		sta track_variables-1,y
+ri0		sta track_variables-1,y		; Shifted down by 1, so n down to 1 suffices and bne can be used
 		dey
 		bne ri0
 	EIF
 	
 	; Parse the RMT module data
-	; Track length: +4
+	; The track length is at offset +4
 	ldy #4
 	lda (ns),y
-	sta v_maxtracklen				; Change the code to store the track length
+	sta v_maxtracklen	; Set the maximum track length.
 
-	; Song speed: +5
-	iny	;#5
+	; The song speed is at ofset +5
+	iny	
 	IFT FEAT_CONSTANTSPEED==0
 		lda (ns),y
-		sta v_speed				; Change the code to store the song speed
+		sta v_speed			; Set the default track speed
 	EIF
 	
-	; Instrument speed: +6
+	; The instrument speed is at offset +6
 	IFT FEAT_INSTRSPEED==0
 		iny	;#6
 		lda (ns),y
-		sta v_instrspeed			; Change the code to store the instrument speed
+		sta v_instrspeed		;Set the instrument speed
 		sta v_ainstrspeed
 	ELI FEAT_INSTRSPEED>1
 		lda #FEAT_INSTRSPEED
 		sta v_ainstrspeed
 	EIF
 
-	; Copy 4 pointers: +8
+	; The offset +7 is reserved.
+
+	; Copy 4 pointers starting at offset 8, i.e. offsets 8,9; 10,11; 12,13; 14,15.
 	; -> InstrumentPtrs[] 	2 bytes
 	; -> TracksPtrsLow[]	2 bytes
 	; -> TracksPtrsHi		2 bytes
 	; -> SongData			2 bytes
-;R: #7 reserved
-	ldy #8							; starting from offset 8
-ri1		;V: ri_copy_loop
-	lda (ns),y
+
+	ldy #8							; Starting from offset 8
+ri1	lda (ns),y
 	sta p_tis-8,y
 	iny
 	cpy #8+8						; copy 2*4 = 8 bytes
@@ -505,11 +511,11 @@ ri1		;V: ri_copy_loop
 			sta p_song
 			pla						; Pull the saved start song line from the stack (PLA #2A). This keeps carry flag unchanged.
 			php						; Push the flags, we will need the carry flag later (#PHP 3A).
-			and #$e0	;top 3 bits
-			asl @	;into carry
-			rol @	;bit 1
-			rol @	;bit 2
-			rol @	;bit 3
+			and #$e0				;top 3 bits
+			asl @					;into carry
+			rol @					;bit 1
+			rol @					;bit 2
+			rol @					;bit 3
 		ELS
 			; Mono
 			; p_song += song_line * 4
@@ -518,17 +524,17 @@ ri1		;V: ri_copy_loop
 			clc
 			adc p_song
 			sta p_song
-			pla	;PLA 2B!!!
-			php	;PHP 3B!!! (saves the carry)
-			and #$c0	;top 2 bits
-			asl @	;into carry
-			rol @	;bit 1
-			rol @	;bit 2
+			pla						;PLA 2B!!!
+			php						;PHP 3B!!! (saves the carry)
+			and #$c0				;top 2 bits
+			asl @					;into carry
+			rol @					;bit 1
+			rol @					;bit 2
 		EIF
 		plp							; Pull the saved flags, we need the carry flag (PLP #3A/B).
-		adc p_song+1
+		adc p_song+1				;The carry flag was set by the low-byte addition.
 		sta p_song+1
-	EIF
+	EIF								; End of IFT FEAT_NOSTARTINGSONGLINE==0
 	jsr GetSongLine					; Setup the first song line
 	
 ;* end of rmt_init code... rmt_silence will always be executed after the JSR above.
@@ -547,10 +553,9 @@ rmt_silence
 		ldy #3
 		sty $d20f			; SKCTL
 		sty $d21f
-		; Clear AUDFx & AUDCx
-		ldy #8
-si1		;V: silence_loop
-		sta $d200,y
+
+		ldy #8				; Clear AUDFx & AUDCx
+si1		sta $d200,y
 		sta $d210,y
 		dey
 		bpl si1
@@ -560,27 +565,26 @@ si1		;V: silence_loop
 		ldy #3
 		sty $d20f
 		ldy #8
-si1		;V: silence_loop
-		sta $d200,y	
+si1		sta $d200,y	
 		dey
 		bpl si1
 	EIF
 	
-	IFT FEAT_IS_TRACKER 		; reset the tables pointers 
-	lda #<frqtabsawtooth_ch1	; reset the Sawtooth table inversion
+	IFT FEAT_IS_TRACKER 		; Reset the tables pointers 
+	lda #<frqtabsawtooth_ch1	; Reset the Sawtooth table inversion
 	sta saw_ch1
 	lda #<frqtabsawtooth_ch3
 	sta saw_ch3	
-	lda #$0A			; reset the Distortion 6 16-bit pointer
+	lda #$0A					; Reset the Distortion 6 16-bit pointer
 	sta bass16_pointer 
-	lda #3				; reset the SKCTL state to normal
+	lda #3						; Reset the SKCTL state to normal
 	sta v_skctl
 	sta v_skctl2	
 	EIF	
 
 	IFT FEAT_INSTRSPEED==0
 		lda #$ff
-v_ainstrspeed equ *-1			; return instrument speed, does not seem to matter after rmt_init?	;V: smc_silence_instrspeed
+v_ainstrspeed equ *-1			; return instrument speed, does not seem to matter after rmt_init?
 	ELS
 		lda #FEAT_INSTRSPEED
 	EIF
@@ -1492,10 +1496,11 @@ ei4
 ;are there any commands other than COMMAND 0 at all?
 ;yes, there are!
 		lda reg2
-		and #$70	;command 0ccc 0000
+		and #$70					; Mask out non-relevent bits for command "0ccc 0000".
 		IFT 1==[FEAT_COMMAND1+FEAT_COMMAND2+FEAT_COMMAND3+FEAT_COMMAND4+FEAT_COMMAND5+FEAT_COMMAND6+FEAT_COMMAND7]	
-;there is exactly one command other than command 0
+		; There is exactly one command other than command 0
 			beq cmd0		;if it is zero after and #$70, cmd0 is handled (which sits after all the commands)
+					;and after this, only that single command present gets compiled (the only one other than command 0)
 		ELS	;there are two or more commands besides command 0 (i.e. 3 or more in total)
 			lsr @
 			lsr @	;/4 (=>0,4,8,...)
@@ -1531,11 +1536,12 @@ jmx			bcc *
 		EIF
 	EIF	;</1>
 	
-;* end of instruments effects code...
+; End of instruments effects code.
 	
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
-;* start of instruments commands code... this is a direct followup of the instruments effects code.
+; Start of the instruments commands code.
+; Note: The instrument effects code falls through to this.
 	
 ;cmd0 comes last of the commands as an optimization, so it can continue straight to pp9
 cmd1	;play FRQ n
@@ -1547,6 +1553,7 @@ cmd1	;play FRQ n
 			jmp cmd0c	;OPTIMIZATION: after cmd0c it does sta trackn_audf,x and continues straight on without the jump to pp9
 		EIF
 	EIF
+
 cmd2	;play NOTE + FRQ_n		[+shiftfrq]
 	IFT FEAT_COMMAND2
 		lda reg3
@@ -1554,6 +1561,7 @@ cmd2	;play NOTE + FRQ_n		[+shiftfrq]
 		lda trackn_note,x
 		jmp cmd0a
 	EIF
+
 cmd3	;NOTE = NOTE + NOTE_n	;play CMD 0 00
 	IFT FEAT_COMMAND3
 		lda trackn_note,x
@@ -1562,6 +1570,7 @@ cmd3	;NOTE = NOTE + NOTE_n	;play CMD 0 00
 		sta trackn_note,x
 		jmp cmd0a
 	EIF
+
 cmd4	;shiftfrq = shiftfrq + FRQ_n	;play CMD 0 00
 	IFT FEAT_COMMAND4
 		lda trackn_shiftfrq,x
@@ -1571,6 +1580,7 @@ cmd4	;shiftfrq = shiftfrq + FRQ_n	;play CMD 0 00
 		lda trackn_note,x
 		jmp cmd0a
 	EIF
+
 cmd5	;set destination portamento XY (X-speed, Y-depth), XY==00 =>set actual_portamento_frq=destination_portamento_frq
 	IFT FEAT_COMMAND5&&FEAT_PORTAMENTO
 		IFT FEAT_TABLETYPE
@@ -1588,12 +1598,8 @@ cmd5	;set destination portamento XY (X-speed, Y-depth), XY==00 =>set actual_port
 			EIF
 
 cmd5a0
-;			lda (nr),y						; actual note from table
-;			clc								; clear carry flag	
-;			adc trackn_tablenote,x			; frequency from table-- FIXME: might overflow!
-
-			lda (nr),y						; this is the actual note base frequency, or AUDF 
-			clc								; clear carry 
+			lda (nr),y						; This is the actual note base frequency, or AUDF.
+			clc								; Clear carry flag.
 			bpl cmd5a0b						; if the value is positive, branch and finish there
 cmd5a0a
 			adc trackn_tablenote,x	;here as a frequency
@@ -2353,15 +2359,17 @@ bass16_pointer equ *-1
 
 ;* end of BASS16 code...
 
-;---------------------------------------------------------------------------------------------------------------------------------------------;
-	
-;* start of the SetPokey routines...
 
-;END
+;	END
+;==========================================================================================
+	
+;* Start of the SetPokey routine.
 SetPokey
+
 	ldy #0
 v_audctl equ *-1			; left POKEY AUDCTL is loaded as the very first thing, for all STEREOMODE variations
 	IFT STEREOMODE==1		;* L1 L2 L3 L4 R1 R2 R3 R4
+;write to the two POKEYs, stereo (always the right register first, then immediately the left)
 ;AUDF0
 		lda trackn_audf+0+4
 		ldx trackn_audf+0
@@ -2402,6 +2410,7 @@ v_audctl equ *-1			; left POKEY AUDCTL is loaded as the very first thing, for al
 		ldx trackn_audc+3
 		sta $d217
 		stx $d207
+;AUDCTL
 		lda #0
 v_audctl2 equ *-1
 		sta $d218
