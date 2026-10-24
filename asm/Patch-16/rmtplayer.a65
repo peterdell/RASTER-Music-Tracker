@@ -208,8 +208,8 @@ adjust_check
 	bpl adjust_check_b	; Y = 1 to 127, however, 16 is the maximum supported
 adjust_check_a
 	ldy #1			; if Y is 0, nagative, or above 16, this will be bypassed!
-	sty smc_instrspeed	; failsafe, instrument speed of 1 is forced
-	sty smc_silence_instrspeed 	; both values need to be overwritten for the fix to work correctly
+	sty v_instrspeed	; failsafe, instrument speed of 1 is forced
+	sty v_ainstrspeed 	; both values need to be overwritten for the fix to work correctly
 adjust_check_b
 	cpy #17			; Y = 17?
 	bcs adjust_check_a	; everything equal or above 17 is invalid! 
@@ -557,7 +557,7 @@ stop_toggle
 	sty v_second			; reset the seconds counter
 	sty v_minute			; reset the minutes counter
 	sty v_ord			; reset the order counter
-	sty smc_abeat 			; reset the rows counter
+	sty v_abeat 			; reset the rows counter
 	lda framecount			; number of frames defined at initialisation  
 	sta v_frame			; reset the frames counter 
 	ldx #16				; offset by 16 for STOP characters
@@ -570,18 +570,18 @@ stop_toggle
 dec_songline_seek
 	ldy MODUL+15		; songline pointer MSB
 	ldx MODUL+14		; songline pointer LSB 
-	lda ptrSongLines
+	lda p_song
 	sub #TRACKS+TRACKS	; once -> same line plays again, so subtract twice this number!
-	sta ptrSongLines 
-	scs:dec ptrSongLines+1	; in case the boundary is crossed, the pointer MSB will increment as well
+	sta p_song 
+	scs:dec p_song+1	; in case the boundary is crossed, the pointer MSB will increment as well
 dec_songline_seek_a
-	cpy ptrSongLines+1		; compare the ptrSongLines MSB to the one from the module
+	cpy p_song+1		; compare the p_song MSB to the one from the module
 	bcs dec_songline_seek_b	; if the module value is lower, everything is mostly fine... do an extra check before!
-	sty ptrSongLines+1		; else, revert the changes to it 
+	sty p_song+1		; else, revert the changes to it 
 dec_songline_seek_b
-	cpx ptrSongLines		; compare the ptrSongLines LSB to the one from the module
+	cpx p_song		; compare the p_song LSB to the one from the module
 	bcc dec_songline_seek_c	; if the module value is lower, everything is fine
-	stx ptrSongLines 		; overwrite the earlier changes to it	
+	stx p_song 		; overwrite the earlier changes to it	
 dec_songline_seek_c
 	; uhhh..... extra check necessary here! Things appear to work ok but this is not perfect, it could jump to garbage! 
 inc_songline_seek
@@ -671,7 +671,7 @@ done_blink
 	IFT !FEAT_CONSTANTSPEED
 ; print speed
 	ldy #20
-	lda smc_speed
+	lda v_speed
 	jsr printhex_direct 
 	EIF
 
@@ -683,7 +683,7 @@ v_ord	equ *-1
 	
 ; print row
 	ldy #36
-	lda smc_abeat
+	lda v_abeat
 	jsr printhex_direct
 	
 	

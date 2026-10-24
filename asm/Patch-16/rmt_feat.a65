@@ -64,7 +64,7 @@ FEAT_COMMAND6		equ 1			;* cca 15 bytes
 FEAT_COMMAND7		equ 1			;* patch16 addition by Vin, valid values are from $00 to $FC included 
 
 ;* COMMAND7 Volume Only mode (command 7 with parameter == $FF)
-FEAT_VOLUME_ONLY	equ 1			;* patch16 change by Vin, unsure how many bytes are involved
+FEAT_COMMAND7VOLUMEONLY	equ 1			;* patch16 change by Vin, unsure how many bytes are involved	;V: FEAT_VOLUME_ONLY
 
 ;* COMMAND7 Two-Tone Filter toggle (command 7 with parameter == $FE to enable, $FD to disable) 
 FEAT_TWO_TONE		equ 1			;* patch16 change by Vin, unsure how many bytes are involved

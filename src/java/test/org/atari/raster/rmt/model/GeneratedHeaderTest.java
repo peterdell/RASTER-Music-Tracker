@@ -96,7 +96,7 @@ class GeneratedHeaderTest {
 	 */
 	@Test
 	void frequencyTableDispatchAddressesMatchBothDriverHeaders() throws IOException {
-		assertAddress(defines(TRACKER_OBX_H), "RMTPLAYR_TABLES_MSB", FrequencyTables.RMT_TABLES_MSB);
+		assertAddress(defines(TRACKER_OBX_H), "RMTPLAYR_TABBEGANDDISTOR", FrequencyTables.PATCH16_TABBEGANDDISTOR);
 
 		Map<String, Integer> legacy = defines(LEGACY_OBX_H);
 		assertAddress(legacy, "RMT_ATA_TABBEGANDDISTOR", FrequencyTables.LEGACY_TABBEGANDDISTOR);

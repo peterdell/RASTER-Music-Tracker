@@ -65,7 +65,7 @@ TEST(TrackerDriverVersionTest, OnlyPatch16SupportsTuning) {
 }
 
 TEST_F(FrequencyTablesTest, EveryDistortionTakesThePageTheDriverDispatchesItTo) {
-    // distortion -> page, as asm/Patch-16/rmtplayr.a65's TABLES_MSB has it.
+    // distortion -> page, as asm/Patch-16/rmtplayr.a65's tabbeganddistor has it.
     const MemoryAddress expected[8] = {0xB200, 0xB000, 0xB100, 0xB200, 0xB200, 0xB200, 0xB300, 0xB400};
 
     for (int i = 0; i < 8; i++) {
@@ -101,7 +101,7 @@ TEST_F(FrequencyTablesTest, FifteenKhzComesFromPageExtraZeroAndNotFromTheDispatc
 }
 
 TEST_F(FrequencyTablesTest, EveryDistortionTakesTheAudcTheDriverDispatchesWithIt) {
-    // distortion -> AUDC, the second byte of each TABLES_MSB pair. Not simply
+    // distortion -> AUDC, the second byte of each tabbeganddistor pair. Not simply
     // the distortion shifted up: $06 plays with $A0 and $0E with $C0, which is
     // why the MIDI path used to get those two wrong.
     const int expected[8] = {0x00, 0x20, 0x40, 0xA0, 0x80, 0xA0, 0xC0, 0xC0};

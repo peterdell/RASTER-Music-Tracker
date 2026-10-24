@@ -10,16 +10,26 @@ every push).
 Patch-16 grew out of Raster's unpatched player (`asm/Unpatched/rmt.a65`
 is the living, commented source of that one; plan 51 merges Raster's
 commentary into this file). Vin renamed a number of labels along the
-way, which makes reading the two sources side by side difficult - the
-tables below map them. Detected mechanically (code lines aligned with
+way, which made reading the two sources side by side difficult. The
+tables below map them; detected mechanically (code lines aligned with
 all identifiers blanked, substitutions voted on), each pair verified by
 hand in both sources (2026-10-24).
 
-## Renamed labels
+Plan 53 realigned the labels the same day: `rmtplayr.a65` (and the
+other Patch-16 files referencing these labels) use Raster's original
+names again, and Vin's name is kept as a `;V: <name>` comment at the
+defining location - the counterpart of the `;R:` convention that marks
+Raster's carried-over comments. The renames emit no bytes: all three
+targets, the generated `tracker_obx.h` addresses and the whole
+feature-flag matrix are unchanged. Vin's labels that have no
+counterpart in Raster's source (`dodex`, `v_skctl`, the `do_*`
+routines, ...) keep their names.
+
+## Realigned labels (left: the name in use; right: Vin's name, kept as `;V:`)
 
 Variables and pointers:
 
-| Raster (asm/Unpatched/rmt.a65) | Patch-16 (rmtplayr.a65) | Role |
+| Name (both sources) | Vin's former name | Role |
 | --- | --- | --- |
 | `p_instrstable` | `ptrInstrumentTbl` | zero-page ptr to the instrument table ptrs |
 | `p_trackslbstable` | `ptrTracksTblLo` | zero-page ptr to the track ptrs, low bytes |
@@ -37,7 +47,7 @@ Variables and pointers:
 
 Code labels:
 
-| Raster | Patch-16 | Role |
+| Name (both sources) | Vin's former name | Role |
 | --- | --- | --- |
 | `ri0` | `ri_clear_loop` | rmt_init: clear the track variables (both IFT variants) |
 | `ri1` | `ri_copy_loop` | rmt_init: copy the four module header pointers |
@@ -55,7 +65,7 @@ Code labels:
 
 FEAT flags (`rmt_feat.a65`):
 
-| Raster | Patch-16 | Role |
+| Name (both sources) | Vin's former name | Role |
 | --- | --- | --- |
 | `FEAT_COMMAND7VOLUMEONLY` | `FEAT_VOLUME_ONLY` | command 7 >= $80: volume-only mode |
 

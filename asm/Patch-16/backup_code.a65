@@ -835,7 +835,7 @@ valid_16bit_a
 	sta pointer16bitlo  	; 16-bit lo LSB
 	lda #0			; no volume output, Distortion won't matter
 	sta trackn_audc-1,x	; process the next channel's AUDC early, no sound is wanted  
-	lda TABLES_MSB,y
+	lda tabbeganddistor,y
 	sta pointer16bitlo+1	; 16-bit lo MSB
 	bne store_tables_lsb_a	; unconditional, finish in the middle of the 64khz/1.79mhz branch
 	EIF
@@ -848,7 +848,7 @@ hellno				; Invalid 16-bit flag!
 	EIF
 store_tables_lsb
 	sta nr			; tables LSB pointer, divided in slices of 64 bytes each
-	lda TABLES_MSB,y
+	lda tabbeganddistor,y
 store_tables_lsb_a
 	sta nr+1		; tables MSB pointer, which is the memory page used for tables divided based on their Distortion
 store_tables_lsb_b

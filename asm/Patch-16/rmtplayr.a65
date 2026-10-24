@@ -191,10 +191,10 @@ INSTRPAR		equ 12
 	org 203	     	;* org $CB
 	
 p_tis
-ptrInstrumentTbl	org *+2			; ptr to Instrument table ptrs
-ptrTracksTblLo		org *+2			; ptr to low byte of track ptrs
-ptrTracksTblHi		org *+2			; ptr to high byte of track ptrs
-ptrSongLines		org *+2			; ptr to song data
+p_instrstable	org *+2			; ptr to Instrument table ptrs	;V: ptrInstrumentTbl
+p_trackslbstable		org *+2			; ptr to low byte of track ptrs	;V: ptrTracksTblLo
+p_trackshbstable		org *+2			; ptr to high byte of track ptrs	;V: ptrTracksTblHi
+p_song		org *+2			; ptr to song data	;V: ptrSongLines
 ns					org *+2	;R: 211-12
 nr					org *+2	;R: 213-14
 nt					org *+2	;R: 215-16
@@ -218,8 +218,8 @@ frqaddcmd2			org *+1	;R: 221
 	
 track_variables
 
-trackn_TblLo			org *+TRACKS		; Low byte of ptrs to each track's data
-trackn_TblHi			org *+TRACKS		; Hi byte of ptrs to each track's data
+trackn_db			org *+TRACKS		; Low byte of ptrs to each track's data	;V: trackn_TblLo
+trackn_hb			org *+TRACKS		; Hi byte of ptrs to each track's data	;V: trackn_TblHi
 trackn_idx				org *+TRACKS		; Track index
 trackn_pause			org *+TRACKS		; Track pause (in rows). 1 = new note, 0 = nothing new
 trackn_note				org *+TRACKS	;R: 0-59
@@ -328,7 +328,7 @@ HPF_CH2	dta $02	; bit 1
 CLOCK15	dta $01	; bit 0
 	EIF	
 	
-TABLES_MSB
+tabbeganddistor	;V: TABLES_MSB
 DISTORTIONS equ *+1
 	dta >PAGE_DISTORTION_A,$00
 	dta >PAGE_DISTORTION_2,$20
@@ -438,43 +438,43 @@ rmt_init
 		; so clear from the front and 256 bytes from the end |>--->----|
 		ldy #0
 		tya
-ri_clear_loop	
+ri0		;V: ri_clear_loop
 		sta track_variables,y
 		sta track_endvariables-$100,y
 		iny
-		bne ri_clear_loop
+		bne ri0
 	ELS
 		; Clear from the back  |----<|
 		ldy #track_endvariables-track_variables	; How many bytes to clear
 		lda #0
-ri_clear_loop	
+ri0		;V: ri_clear_loop
 		sta track_variables-1,y
 		dey
-		bne ri_clear_loop
+		bne ri0
 	EIF
 	
 	; Parse the RMT module data
 	; Track length: +4
 	ldy #4
 	lda (ns),y
-	sta smc_maxtracklen				; Change the code to store the track length
+	sta v_maxtracklen				; Change the code to store the track length
 
 	; Song speed: +5
 	iny	;R: #5
 	IFT FEAT_CONSTANTSPEED==0
 		lda (ns),y
-		sta smc_speed				; Change the code to store the song speed
+		sta v_speed				; Change the code to store the song speed
 	EIF
 	
 	; Instrument speed: +6
 	IFT FEAT_INSTRSPEED==0
 		iny	;R: #6
 		lda (ns),y
-		sta smc_instrspeed			; Change the code to store the instrument speed
-		sta smc_silence_instrspeed
+		sta v_instrspeed			; Change the code to store the instrument speed
+		sta v_ainstrspeed
 	ELI FEAT_INSTRSPEED>1
 		lda #FEAT_INSTRSPEED
-		sta smc_silence_instrspeed
+		sta v_ainstrspeed
 	EIF
 
 	; Copy 4 pointers: +8
@@ -484,26 +484,26 @@ ri_clear_loop
 	; -> SongData			2 bytes
 ;R: #7 reserved
 	ldy #8							; starting from offset 8
-ri_copy_loop	
+ri1		;V: ri_copy_loop
 	lda (ns),y
 	sta p_tis-8,y
 	iny
 	cpy #8+8						; copy 2*4 = 8 bytes
-	bne ri_copy_loop
+	bne ri1
 
 	IFT FEAT_NOSTARTINGSONGLINE==0
-		; Set the starting song line by moving ptrSongLines forward
+		; Set the starting song line by moving p_song forward
 		pla							; Pull the saved start song line from the stack (PLA #1).
 		pha							; Push the start song line on the stack (PHA #2A/B).
 		IFT TRACKS>4
 			; Stereo
-			; ptrSongLines += song_line * 8
+			; p_song += song_line * 8
 			asl @					;stereo 8 tracks => every song line has 8 bytes
 			asl @
 			asl @	;R: =*8
 			clc
-			adc ptrSongLines				; ptrSongLines += offset * 8 (low) part
-			sta ptrSongLines
+			adc p_song				; p_song += offset * 8 (low) part
+			sta p_song
 			pla						; Pull the saved start song line from the stack (PLA #2A). This keeps carry flag unchanged.
 			php						; Push the flags, we will need the carry flag later (#PHP 3A).
 			and #$e0	;R: top 3 bits
@@ -513,12 +513,12 @@ ri_copy_loop
 			rol @	;R: bit 3
 		ELS
 			; Mono
-			; ptrSongLines += song_line * 4
+			; p_song += song_line * 4
 			asl @	;R: mono 4 tracks => every song line has 4 bytes
 			asl @	;R: =*4
 			clc
-			adc ptrSongLines
-			sta ptrSongLines
+			adc p_song
+			sta p_song
 			pla	;R: PLA 2B!!!
 			php	;R: PHP 3B!!! (saves the carry)
 			and #$c0	;R: top 2 bits
@@ -527,8 +527,8 @@ ri_copy_loop
 			rol @	;R: bit 2
 		EIF
 		plp							; Pull the saved flags, we need the carry flag (PLP #3A/B).
-		adc ptrSongLines+1
-		sta ptrSongLines+1
+		adc p_song+1
+		sta p_song+1
 	EIF
 	jsr GetSongLine					; Setup the first song line
 	
@@ -550,21 +550,21 @@ rmt_silence
 		sty $d21f
 		; Clear AUDFx & AUDCx
 		ldy #8
-silence_loop	
+si1		;V: silence_loop
 		sta $d200,y
 		sta $d210,y
 		dey
-		bpl silence_loop
+		bpl si1
 	ELS
 		lda #0
 		sta $d208
 		ldy #3
 		sty $d20f
 		ldy #8
-silence_loop	
+si1		;V: silence_loop
 		sta $d200,y	
 		dey
-		bpl silence_loop
+		bpl si1
 	EIF
 	
 	IFT FEAT_IS_TRACKER 		; reset the tables pointers 
@@ -581,7 +581,7 @@ silence_loop
 
 	IFT FEAT_INSTRSPEED==0
 		lda #$ff
-smc_silence_instrspeed equ *-1			; return instrument speed, does not seem to matter after rmt_init?
+v_ainstrspeed equ *-1			; return instrument speed, does not seem to matter after rmt_init?	;V: smc_silence_instrspeed
 	ELS
 		lda #FEAT_INSTRSPEED
 	EIF
@@ -595,17 +595,17 @@ smc_silence_instrspeed equ *-1			; return instrument speed, does not seem to mat
 	
 GetSongLine	;R: does get songline, then get track line, then instrument init
 	ldx #0
-	stx smc_abeat						; set the pattern row to 0 for the new songline... This could be exploited with an effect command related to premature pattern end, or pattern goto...
-gsl_continueProcessing
+	stx v_abeat						; set the pattern row to 0 for the new songline... This could be exploited with an effect command related to premature pattern end, or pattern goto...
+nn0	;V: gsl_continueProcessing
 	IFT FEAT_IS_SIMPLEP
 		IFT EXPORTXEX					; Simple RMT Player hack for colour cycling, change the rasterbar colour every new pattern played
 			lda loop+1					; the #RASTERBAR colour defined will be loaded there specifically
 			add #16						; offset the value by #$10 for a simple colour shuffle
 			sta loop+1   				; store back where it was loaded, overwriting the previous value
-			lda ptrSongLines					; calculate the songline position below, this is done once every new songline
+			lda p_song					; calculate the songline position below, this is done once every new songline
 			sub MODUL+14 				; TODO: relocate this code elsewhere, so toggling it would be easier
 			sta v_ord 
-			lda ptrSongLines+1
+			lda p_song+1
 			sbc MODUL+15
 			lsr @
 			ror v_ord
@@ -618,78 +618,78 @@ gsl_continueProcessing
 		EIF 
 	EIF
 	
-gsl_nextSongLine	
+nn1		;V: gsl_nextSongLine
 	txa								; A = X = Y = 0,1,2,3
 	tay
-	lda (ptrSongLines),y			; Get track info from the songline[y]
+	lda (p_song),y			; Get track info from the songline[y]
 	cmp #$fe						; #$FE = Goto songline, #$FF = Empty track
-	bcs gsl_GotoOrEmpty				; if A >= $FE --> gsl_GotoOrEmpty
+	bcs nn2				; if A >= $FE --> nn2
 	; (A) = Real track #
-	; Get the ptr to the track data and store it in ptrTracksTblLo
+	; Get the ptr to the track data and store it in p_trackslbstable
 	tay
-	lda (ptrTracksTblLo),y			; trackn_TblLo[x] = ptrTracksTblLo[y]
-	sta trackn_TblLo,x
-	lda (ptrTracksTblHi),y			; trackn_TblHi[x] = ptrTracksTblHi[y]
-	sta trackn_TblHi,x
+	lda (p_trackslbstable),y			; trackn_db[x] = p_trackslbstable[y]
+	sta trackn_db,x
+	lda (p_trackshbstable),y			; trackn_hb[x] = p_trackshbstable[y]
+	sta trackn_hb,x
 
 	lda #0
 	sta trackn_idx,x				; reset the track index to 0 trackn_idx[x] = 0
 
 	lda #1
-gsl_initTrack 	
+nn1a2 		;V: gsl_initTrack
 	sta trackn_pause,x				; #1 is a new track, #0 is no new track
 	lda #$80						; Initialize as "no new instrument" ($80).
 	sta trackn_instrx2,x			; Values "note 0-60" does not change it, $80 stays there.
 	inx								; ++x
-	cpx #TRACKS						; if x < TRACKS --> gsl_nextSongLine
-	bne gsl_nextSongLine
+	cpx #TRACKS						; if x < TRACKS --> nn1
+	bne nn1
 
 	; Done with data points of a song line, move to the next line
-	lda ptrSongLines				; ptrSontLines += #TRACKS (4 or 8)
+	lda p_song				; ptrSontLines += #TRACKS (4 or 8)
 	clc	
 	adc #TRACKS
-	sta ptrSongLines
+	sta p_song
 	bcc GetTrackLine	;R: nn1b	(can go straight to GetTrackLine)
-	inc ptrSongLines+1
+	inc p_song+1
 	
 	jmp GetTrackLine				; The end of GetSongLine. Falls through to GetTrackLine to progress the next notes in the track.
 
-gsl_GotoOrEmpty
-	beq gsl_thisIsAGoto				; branch if equal to #$FE, this is a Goto songline command
+nn2	;V: gsl_GotoOrEmpty
+	beq nn3				; branch if equal to #$FE, this is a Goto songline command
 
 	lda #0							; 0 is the maximum track pause length (256).
-	beq gsl_initTrack				; unconditional
+	beq nn1a2				; unconditional
 
-gsl_thisIsAGoto
+nn3	;V: gsl_thisIsAGoto
 	; Data format: 0xFE, 0x00, low, high bytes of ptr to next song line
 ;R: track number =fe (jump)
 	ldy #2	;R: byte0=fe(go), byte1=line (unused), byte2=dbadr, byte3=hbadr
-	lda (ptrSongLines),y			; lo = ptrSongLines[2]
+	lda (p_song),y			; lo = p_song[2]
 	tax
 	iny
-	lda (ptrSongLines),y			; hi = ptrSongLinex[3]
-	sta ptrSongLines+1
-	stx ptrSongLines				; (ptrSongLines) = ptrSongLines[2,3]
+	lda (p_song),y			; hi = ptrSongLinex[3]
+	sta p_song+1
+	stx p_song				; (p_song) = p_song[2,3]
 	ldx #0	;R: x must be 0 before jumping to nn0, to process the new song line from #0 (up to 7)
-	beq gsl_continueProcessing
+	beq nn0
 
 ; Process one line of a track
 GetTrackLine	;R: does get trackline (calling GetSongline back if needed), then instrument init
 	IFT FEAT_CONSTANTSPEED==0
 		lda #$ff					; The speed as immediate operand is is changed by the code.
-smc_speed equ *-1					; ptr to #$ff location in the code
-		sta smc_bspeed
+v_speed equ *-1					; ptr to #$ff location in the code	;V: smc_speed
+		sta v_bspeed
 	EIF
 	ldx #$ff						;-1 track data index
-gtl_loopTracks
+oo1	;V: gtl_loopTracks
 	inx								; <X>=0,1, .. TRACKS-1
 	dec trackn_pause,x				; --trackn_pause[x]
-	bne gtl_checkEndOfLoop			; if trackn_pause[x] != 0 --> gtl_checkEndOfLoop
+	bne oo1x			; if trackn_pause[x] != 0 --> oo1x
 
 	; Setup ptr to track data
-	lda trackn_TblLo,x				; (ns) = trackn_TblLo/hi[x]
+	lda trackn_db,x				; (ns) = trackn_db/hi[x]
 	sta ns
-	lda trackn_TblHi,x
+	lda trackn_hb,x
 	sta ns+1
 oo1i
 	ldy trackn_idx,x				; <Y> = current index into track data
@@ -703,8 +703,8 @@ oo1i
 	sta reg1
 	and #$3f						; 0-63
 	cmp #61							; 61 = Volume only
-	beq gtl_ProcessVolumeData
-	bcs gtl_Is62or63
+	beq oo1a
+	bcs oo2
 	; Not a command so store the note
 ;R: note 0-60
 	sta trackn_note,x				; Set the track note.
@@ -716,7 +716,7 @@ oo1i
 	and #$3f*2	;R: 0iiiiii0
 	sta trackn_instrx2,x			; Set the track instrument as trackn_instrx2[x] = instrument * 2
 
-gtl_ProcessVolumeData
+oo1a	;V: gtl_ProcessVolumeData
 	lda #1	;R: after a note (or a volume change) there is a pause of 1 row
 	sta trackn_pause,x				; got a note
 
@@ -739,14 +739,14 @@ voig
 	EIF
 	and #$f0	;R: vvvv0000
 	sta trackn_volume,x	;R: sets the volume
-gtl_checkEndOfLoop	
+oo1x		;V: gtl_checkEndOfLoop
 	cpx #TRACKS-1
-	bne gtl_loopTracks
+	bne oo1
 
 	IFT FEAT_CONSTANTSPEED==0
 		lda #$ff					; The song/buffer speed as immediate operand is is changed by the code.
-smc_bspeed equ *-1					; ptr to #$ff location in the code
-		sta smc_speed
+v_bspeed equ *-1					; ptr to #$ff location in the code	;V: smc_bspeed
+		sta v_speed
 	ELS
 		lda #FEAT_CONSTANTSPEED
 	EIF
@@ -755,7 +755,7 @@ smc_bspeed equ *-1					; ptr to #$ff location in the code
 ;R: X = #TRACKS - 1 !
 	jmp InitOfNewSetInstrumentsOnly	;R: X must equal #TRACKS-1
 	
-gtl_Is62or63
+oo2	;V: gtl_Is62or63
 ;R: note>61
 	cmp #63
 	beq oo63	;R: =63 => branch
@@ -767,13 +767,13 @@ gtl_Is62or63
 	rol @	;R: C y0000000 => C 0000000x
 	rol @	;R: C 0000000x => 000000xy
 	sta trackn_pause,x
-	jmp gtl_checkEndOfLoop
+	jmp oo1x
 oo62_b
 	iny
 	lda (ns),y
 	sta trackn_pause,x
 	inc trackn_idx,x	;R: for next time
-	jmp gtl_checkEndOfLoop
+	jmp oo1x
 oo63
 	lda reg1
 	IFT FEAT_CONSTANTSPEED==0
@@ -782,7 +782,7 @@ oo63
 ;R: note=63 (+top bit 0) (speed, byte)
 		iny
 		lda (ns),y
-		sta smc_bspeed				; Set the song speed
+		sta v_bspeed				; Set the song speed
 		inc trackn_idx,x	;R: for next time
 		jmp oo1i	;R: immediately continues to the next pair in the track
 oo63_1X
@@ -831,11 +831,11 @@ RMTSFXVOLUME equ *-1		;* label for sfx note volume parameter overwriting
 	
 ;R: it is inlined right here
 SetUpInstrumentY2	;R: Y holds the instrument number *2, X the track number
-	lda (ptrInstrumentTbl),y
+	lda (p_instrstable),y
 	sta trackn_instrdb,x	;R: sets the instrument
 	sta nt
 	iny
-	lda (ptrInstrumentTbl),y
+	lda (p_instrstable),y
 	sta trackn_instrhb,x
 	sta nt+1
 	
@@ -968,30 +968,30 @@ rmt_p0
 rmt_p1
 ;R: instruments running faster than VBI
 	IFT FEAT_INSTRSPEED==0||FEAT_INSTRSPEED>1
-		dec smc_silence_instrspeed
+		dec v_ainstrspeed
 		bne rmt_p3	;R: continue to the instrument envelope processing
 ;R: (skipping the classic track processing)
 	EIF
 	IFT FEAT_INSTRSPEED==0
 		lda #$ff	;R: the parameter is self-modified
-smc_instrspeed	equ *-1				; ptr to #$ff location in the code
-		sta smc_silence_instrspeed
+v_instrspeed	equ *-1				; ptr to #$ff location in the code	;V: smc_instrspeed
+		sta v_ainstrspeed
 	ELI FEAT_INSTRSPEED>1
 		lda #FEAT_INSTRSPEED
-		sta smc_silence_instrspeed
+		sta v_ainstrspeed
 	EIF
 	
 rmt_p2
 ;R: track processing
 	dec v_aspeed
 	bne rmt_p3	;R: jump (past the initialization of newly set instruments)
-	inc smc_abeat					; ++smc_abeat
+	inc v_abeat					; ++v_abeat
 
-;	if (smc_abeat == smc_maxtracklen) then GetSongLine else GetTrackLine
+;	if (v_abeat == v_maxtracklen) then GetSongLine else GetTrackLine
 	lda #$ff						; The copy of v_abeat as immediate operand is is changed by the code.
-smc_abeat equ *-1					; smc_abeat is the index into the track
+v_abeat equ *-1					; v_abeat is the index into the track	;V: smc_abeat
 	cmp #$ff	;R: is it the maximum track length?
-smc_maxtracklen equ *-1
+v_maxtracklen equ *-1	;V: smc_maxtracklen
 	beq p2o3	;R: yes => branch
 ;R: no, so continue to the next track line
 ;R: p2o2
@@ -1170,9 +1170,9 @@ pp1					; copying the values to the zeropage to make things faster... but not al
 ;* OPTIMISATION: reg1 is now free to use for a different purpose! 
 
 	lda trackn_instrhb,x
-	bne pp1_b			; continue if not equal 
+	bne pp1b			; continue if not equal 
 	jmp ppnext			; skip this channel and process the next one
-pp1_b
+pp1b	;V: pp1_b
 	lda g_flag,x			; AUDCTL flags
 	sta reg1			; backup to the zeropage for quicker accesses
 	lda trackn_command,x		; command and distortion byte
@@ -1367,7 +1367,7 @@ get_16bit_flag
 	
 store_tables_lsb
 	sta nr			; tables LSB pointer, divided in slices of 64 bytes each	
-	lda TABLES_MSB,y	; 64khz, 1.79mhz and 16-bit all use their flag directly, #$00, #$40 and #$80 are valid pointers! 
+	lda tabbeganddistor,y	; 64khz, 1.79mhz and 16-bit all use their flag directly, #$00, #$40 and #$80 are valid pointers! 
 	
 store_tables_lsb_a
 	sta nr+1		; tables MSB pointer, which is the memory page used for tables divided based on their Distortion
@@ -1678,7 +1678,7 @@ cmd6	;R: filtershiftfrq = filtershiftfrq + FRQ_n
 
 cmd7	;R: NOTE = NOTE_n		;play CMD 0 00
 	IFT FEAT_COMMAND7
-		IFT FEAT_TWO_TONE||FEAT_VOLUME_ONLY
+		IFT FEAT_TWO_TONE||FEAT_COMMAND7VOLUMEONLY
 			IFT FEAT_TWO_TONE
 				lda reg3
 				cmp #$FD		; #$FD toggles Two-Tone off
@@ -1686,7 +1686,7 @@ cmd7	;R: NOTE = NOTE_n		;play CMD 0 00
 				beq cmd7b		; turn off the Two-Tone Filter if equal
 				cmp #$FE		; #$FE toggles Two-Tone on
 				beq cmd7c		; turn on the Two-Tone Filter if equal
-				IFT FEAT_VOLUME_ONLY	
+				IFT FEAT_COMMAND7VOLUMEONLY	
 					bne cmd7a		; #$FF sets volume only mode, and will always be that value here, unconditional branching
 				ELS
 					bne cmd7f		; skip ahead, and don't set volume only mode either
@@ -1706,7 +1706,7 @@ cmd7d
 cmd7e
 				sta v_skctl		; SKCTL, Left POKEY
 			ELS
-				IFT FEAT_VOLUME_ONLY	
+				IFT FEAT_COMMAND7VOLUMEONLY	
 					lda reg3
 					cmp #$FF
 					beq cmd7a		; set volume only mode if equal
@@ -1716,7 +1716,7 @@ cmd7f
 			lda trackn_note,x	; this is the expected variable in memory
 			jmp cmd0a 
 cmd7a
-			IFT FEAT_VOLUME_ONLY
+			IFT FEAT_COMMAND7VOLUMEONLY
 				lda trackn_audc,x
 				ora #$f0	;R: 111 1 vvvv
 				sta trackn_audc,x

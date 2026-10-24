@@ -355,12 +355,12 @@ play_loop
         jsr rmt_play                    ; setpokey then 1 play
 
 ; songline position (pattern order) for the display and the timer, as the player computes it for the Simple RMT Player:
-; (ptrSongLines - song start) / TRACKS, minus 1 because after rmt_play ptrSongLines points to the next songline
+; (p_song - song start) / TRACKS, minus 1 because after rmt_play p_song points to the next songline
 
-	lda ptrSongLines
+	lda p_song
 	sub MODUL+14
 	sta v_ord
-	lda ptrSongLines+1
+	lda p_song+1
 	sbc MODUL+15
 	lsr @
 	ror v_ord
@@ -494,7 +494,7 @@ print_order
 	jsr printhex
 	
 print_row
-	ldy smc_abeat
+	ldy v_abeat
 	cpy old_abeat
 	beq print_speed
 	sty old_abeat
@@ -505,7 +505,7 @@ print_row
 ; print SPEED
 
 print_speed
-	ldy smc_speed
+	ldy v_speed
 	cpy old_speed
 	beq print_skctl
 	sty old_speed
@@ -1056,7 +1056,7 @@ print_joined_corners
 timecounterstart
         ldx v_frame            ; load the frame count
         ldy #0                 ; initialisation of timer, both for checks and reset of timer when needed
-        cpy smc_abeat            ; are we on row 0?
+        cpy v_abeat            ; are we on row 0?
         bne secondcounter      ; no, continue counting time
         cpy v_ord              ; are we on pattern order 0? This is assumed to be song start
         beq timecountereset    ; yes, reset the entire timer, else, continue counting time

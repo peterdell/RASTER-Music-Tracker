@@ -13,7 +13,7 @@
 // There are two layouts, because there are two generations of driver, and the
 // version decides which one to read (plans/40_DRIVER_TABLE_LAYOUTS_PLAN.md):
 //
-// PATCH16 (asm/Patch-16/rmtplayr.a65) chooses in two steps: its TABLES_MSB
+// PATCH16 (asm/Patch-16/rmtplayr.a65) chooses in two steps: its tabbeganddistor (named TABLES_MSB by Patch16 before plans/53 realigned the labels)
 // dispatch table maps the distortion to one of the five 256-byte pages at
 // $B000, then store_tables_lsb picks a 64-byte slice by the channel's clock -
 // 64 kHz at +$00, 1.79 MHz at +$40, 16-bit at +$80 - while check_15khz takes
