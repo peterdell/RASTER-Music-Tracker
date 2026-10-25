@@ -1470,6 +1470,10 @@ cmd0b1
 ; ~~~~~~~~ CAUTION! not terminated, continues on (the jmp pp9 was removed)
 cmd0c
 	sta trackn_audf,x			; Store into audf
+
+; End of instruments commands code,
+	
+;---------------------------------------------------------------------------------------------------------------------------------------------;
 ; and continues on
 pp9
 ; Portamento effect processing
@@ -1484,42 +1488,53 @@ pp9
 		cmp trackn_portafrqc,x		; Compare current portamento frequency to target frequency
 		beq pp10					; If equal, portamento is done and can be skipped
 		bcs pps1					; If the current portamento pitch is higher, branch to pps1
-; Current portamento frq < target
-	adc trackn_portadepth,x			; Current porta frq += depth
-	bcs pps8						; The addition overflowed past 255 => branch
-	cmp trackn_portafrqc,x			; Compare with the target porta frq
-	bcs pps8						; After the addition it is already >= => branch
-	jmp pps9						; After the addition it is still smaller
+
+; Current portamento frequency < target frequency
+		adc trackn_portadepth,x		; Add the portamento frequency offset to it.
+		bcs pps8					; Overflow? Branch if the carry flag is set.
+		cmp trackn_portafrqc,x		; Compare to the target portamento frequency.
+		bcs pps8					; Equal or above means it was reached.
+		jmp pps9					; Otherwise, it was not reached yet.
+
 pps1
-; Current porta frq > target
-	sbc trackn_portadepth,x			; Current porta frq -= depth
-	bcc pps8						; The subtraction underflowed below 0 => branch
-	cmp trackn_portafrqc,x			; Compare with the target porta frq
-	bcs pps9						; After the subtraction it is still >=
+; Current portamento frequency > target frequency
+		sbc trackn_portadepth,x		; Subtract the portamento frequency offset from it.
+		bcc pps8					; Underflow? Branch if the carry flag is cleared.
+		cmp trackn_portafrqc,x		; Compare to the target portamento frequency.
+		bcs pps9					; Equal or above means it was not yet reached.
+
 									; After the subtraction it is already smaller
 pps8
-	lda trackn_portafrqc,x
+		lda trackn_portafrqc,x		; The target pitch was reached, load it in memory
 pps9
-	sta trackn_portafrqa,x
+		sta trackn_portafrqa,x		; Update the current portamento pitch with the new pitch
 pp10
-;
-	lda reg2
-	and #$01						; Portamento bit 0000 000s
-	beq pp11						; =0 => branch
-	lda trackn_portafrqa,x
-	clc
-	adc trackn_shiftfrq,x			; Portamento is affected by shifting too
-	sta trackn_audf,x
+		lda reg2					; Get instrument command and distortion.
+		and #$01					; Portamento is bit 0 in "0000 000s".
+		beq pp11					; If $00, the flag is not set and portamento will be skipped
+
+		lda trackn_portafrqa,x
+		clc
+		adc trackn_shiftfrq,x		; Portamento is affected by shifting too
+pp10d
+
+		sta trackn_audf,x			; Update the channel AUDF with the new value if portamento was processed.
 pp11
 	EIF
-;
+
+; End of Portamento code.
+
+;---------------------------------------------------------------------------------------------------------------------------------------------;
+
 ppnext								; Jumped to when the instrument is not initialized
 	dex								; OPTIMIZATION (x--)
 	bmi rmt_p4						; OPTIMIZATION
 	jmp pp1
 
+;---------------------------------------------------------------------
+
+
 rmt_p4
-;------------------------------------------------------------------------------------------
 ; First puts the AUDCTL together
 	IFT FEAT_AUDCTLMANUALSET
 	lda trackn_audctl+0		; Always only TRACKS 0-3 (for POKEY 1)
@@ -1561,34 +1576,37 @@ qq1a
 
 qq2
 	IFT FEAT_FILTERG1L
-	lda trackn_command+1	; track1
-	bpl qq3					; Top bit==0 => no filtering
-	lda trackn_audc+1		; Take audc
-	and #$0f				; Volume 0-15 only
-	beq qq3					; Zero => no filtering
-	; With filtering
-	lda trackn_audf+1		; Frequency of g1
-	clc
-	adc trackn_filter+1		; Shift for filtering
-	sta trackn_audf+3		; g1 is filtered through g3
-	IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG3L	
-	lda trackn_audc+3		; g3 volume state?
-	and #$10				; Volume only?
-	bne qq2a				; Yes => branch
-	EIF
-	lda #0
-	sta trackn_audc+3		; g3 gets zero volume
+		lda trackn_command+1	; track1
+		bpl qq3					; Top bit==0 => no filtering
+		lda trackn_audc+1		; Take audc
+		and #$0f				; Volume 0-15 only
+		beq qq3					; Zero => no filtering
+		; With filtering
+		lda trackn_audf+1		; Frequency of g1
+		clc
+		adc trackn_filter+1		; Shift for filtering
+		sta trackn_audf+3		; g1 is filtered through g3
+		IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG3L	
+			lda trackn_audc+3	; g3 volume state?
+			and #$10			; Volume only?
+			bne qq2a			; Yes => branch
+		EIF
+			lda #0
+			sta trackn_audc+3	; g3 gets zero volume
 qq2a
-	txa
-	ora #2					; bit1 audctl (filter g1-g3)
-	tax
+		txa
+		ora #2					; bit1 audctl (filter g1-g3)
+		tax
+
 	EIF		; FEAT_FILTERG1L
 qq3
+
 	IFT FEAT_FILTERG0L||FEAT_FILTERG1L
 	cpx v_audctl			; Did it change? (is filter g0-g2 or g1-g3 active)?
 	bne qq5					; Yes => branch (no 16-bit bass then)
 	EIF
 	EIF		; FEAT_FILTER
+
 ; 16-bit bass
 	IFT FEAT_BASS16
 	IFT FEAT_BASS16G1L	
@@ -1617,6 +1635,7 @@ qq3a
 	tax
 	EIF		; FEAT_BASS16G1L
 qq4
+
 	IFT FEAT_BASS16G3L
 	lda trackn_command+3	; track3
 	and #$0e				; 0000 ddd0
@@ -1794,60 +1813,61 @@ v_ainstrspeed equ *-1
 ;
 ;
 ;==========================================================================================
+	
+; Start of the rmt_set_pokey routine to update the POKEY hardware registers.
 rmt_set_pokey
-;
+
 	IFT STEREOMODE==1		; L1 L2 L3 L4 R1 R2 R3 R4
 ; Write to the two POKEYs, stereo (always the right register first, then immediately the left)
 	ldy #$ff				; The parameter is self-modified
 v_audctl2 equ *-1
-; AUDF0
-	lda trackn_audf+0+4
+
+	lda trackn_audf+0+4		; AUDF0
 	ldx trackn_audf+0
 	sta $d210
 	stx $d200
-; AUDC0
-	lda trackn_audc+0+4
+	lda trackn_audc+0+4		; AUDC0
 	ldx trackn_audc+0
 	sta $d211
 	stx $d201
-; AUDF1
-	lda trackn_audf+1+4
+
+	lda trackn_audf+1+4		; AUDF1
 	ldx trackn_audf+1
 	sta $d212
 	stx $d202
-; AUDC1
-	lda trackn_audc+1+4
+
+	lda trackn_audc+1+4		; AUDC1
 	ldx trackn_audc+1
 	sta $d213
 	stx $d203
-; AUDF2
-	lda trackn_audf+2+4
+
+	lda trackn_audf+2+4		; AUDF2
 	ldx trackn_audf+2
 	sta $d214
 	stx $d204
-; AUDC2
-	lda trackn_audc+2+4
+
+	lda trackn_audc+2+4		; AUDC2
 	ldx trackn_audc+2
 	sta $d215
 	stx $d205
-; AUDF3
-	lda trackn_audf+3+4
+
+	lda trackn_audf+3+4		; AUDF3
 	ldx trackn_audf+3
 	sta $d216
 	stx $d206
-; AUDC3
-	lda trackn_audc+3+4
+
+	lda trackn_audc+3+4		; AUDC3
 	ldx trackn_audc+3
 	sta $d217
 	stx $d207
-; AUDCTL
-	lda #$ff				; The parameter is self-modified
+
+	lda #$ff				; AUDCTL
 v_audctl equ *-1
-	sty $d218				; Y was set a while above
+	sty $d218				; <Y> was set above.
 	sta $d208
-;
+
 	ELI STEREOMODE==0		; L1 L2 L3 L4
-; Write to the POKEY, mono - left side only
+; Write to POKEY, mono - left side only
 ;
 	ldy #$ff				; The parameter is self-modified
 v_audctl equ *-1
@@ -1856,24 +1876,24 @@ v_audctl equ *-1
 	ldx trackn_audc+0
 	sta $d200
 	stx $d201
-;
+
 	lda trackn_audf+1
 	ldx trackn_audc+1
 	sta $d200+2
 	stx $d201+2
-;
+
 	lda trackn_audf+2
 	ldx trackn_audc+2
 	sta $d200+4
 	stx $d201+4
-;
+
 	lda trackn_audf+3
 	ldx trackn_audc+3
 	sta $d200+6
 	stx $d201+6
-;
+
 	sty $d208
-;
+
 	ELI STEREOMODE==2		; L1 R2 R3 L4
 
 	ldy #$ff				; The parameter is self-modified
@@ -1939,6 +1959,8 @@ v_audctl equ *-1
 	EIF
 
 	rts
+
+; End of the rmt_set_pokey routine.
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 

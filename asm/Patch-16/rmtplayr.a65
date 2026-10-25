@@ -2043,7 +2043,7 @@ cmd0b3c
 ; ~~~~~~~~ CAUTION! not terminated, continues on (the jmp pp9 was removed)
 cmd0c
 	sta trackn_audf,x	; Store into audf
-	
+
 ; End of instruments commands code,
 	
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
@@ -2068,34 +2068,34 @@ pp9
 		cmp trackn_portafrqc,x		; Compare current portamento frequency to target frequency
 		beq pp10					; If equal, portamento is done and can be skipped
 		bcs pps1					; If the current portamento pitch is higher, branch to pps1
-	
-pps0 ; else, it is below the target pitch here
-; Current portamento frq < target
-		adc trackn_portadepth,x		; Add the portamento frequency offset to it
-		bcs pps8					; Overflow? Branch if the carry flag is set
-		cmp trackn_portafrqc,x		; Compare to the target portamento frequency
-		bcs pps8					; Equal or above means it was reached
-		jmp pps9					; Otherwise, it is not reached yet
-	
-pps1 ; Current pitch is higher than the target pitch here
-; Current porta frq > target
-		sbc trackn_portadepth,x		; Subtract the portamento frequency offset from it
-		bcc pps8					; Underflow? Branch if the carry flag is clear
-		cmp trackn_portafrqc,x		; Compare to the target portamento frequency
-		bcs pps9					; Equal or above means it was not yet reached
+
+; Current portamento frequency < target frequency
+		adc trackn_portadepth,x		; Add the portamento frequency offset to it.
+		bcs pps8					; Overflow? Branch if the carry flag is set.
+		cmp trackn_portafrqc,x		; Compare to the target portamento frequency.
+		bcs pps8					; Equal or above means it was reached.
+		jmp pps9					; Otherwise, it was not reached yet.
+
+pps1
+; Current portamento frequency > target frequency
+		sbc trackn_portadepth,x		; Subtract the portamento frequency offset from it.
+		bcc pps8					; Underflow? Branch if the carry flag is cleared.
+		cmp trackn_portafrqc,x		; Compare to the target portamento frequency.
+		bcs pps9					; Equal or above means it was not yet reached.
+
 ; After the subtraction it is already smaller
 pps8
 		lda trackn_portafrqc,x		; The target pitch was reached, load it in memory
 pps9
 		sta trackn_portafrqa,x		; Update the current portamento pitch with the new pitch
 pp10
-		lda reg2					; Instrument commands and distortion
-		and #$01					; Portamento is bit 0 in "0000 000s"
+		lda reg2					; Get instrument command and distortion.
+		and #$01					; Portamento is bit 0 in "0000 000s".
 		beq pp11					; If $00, the flag is not set and portamento will be skipped
 	
 pp10a
-;		lda trackn_portafrqa,x		; load the current portamento frequency in memory
-;		clc							; clear the carry flag 
+;		lda trackn_portafrqa,x		; Load the current portamento frequency in memory
+;		clc							; Clear the carry flag 
 ;		adc trackn_shiftfrq,x		; add to it the shiftfrq/vibrato pitch
 
 	; TODO: add support for CMD2 offset, and fix vibrato when TableFreq is also involved, they have been ignored here!
@@ -2122,13 +2122,13 @@ pp10c
 		bvs pp10d
 		bpl pp10d
 		lda #0						; If overflow, force #$00! 
-	
 pp10d
-		sta trackn_audf,x			; Update the channel AUDF with the new value if Portamento was processed 
+
+		sta trackn_audf,x			; Update the channel AUDF with the new value if portamento was processed.
 pp11
 	EIF
 
-; End of Portamento code...
+; End of Portamento code.
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 	
@@ -2138,6 +2138,10 @@ ppnext			; Jumped to when the instrument is not initialized
 	dex			; OPTIMIZATION (x--)
 	bmi rmt_p4	; OPTIMIZATION
 	jmp pp1
+
+;---------------------------------------------------------------------
+
+
 rmt_p4
 	ldy #0					; Will be used to mute channels and reset the flags
 
@@ -2251,7 +2255,7 @@ qq2c
 			txa
 			ora #2	; bit1 audctl (filter g1-g3)
 			tax
-			
+
 		EIF	; FEAT_FILTERG1L
 qq3
 		stx v_audctl
@@ -2451,58 +2455,58 @@ bass16_pointer equ *-1
 ;	END
 ;==========================================================================================
 	
-; Start of the rmt_set_pokey routine.
+; Start of the rmt_set_pokey routine to update the POKEY hardware registers.
 rmt_set_pokey
 
 	ldy #0
 v_audctl equ *-1			; Left POKEY AUDCTL is loaded as the very first thing, for all STEREOMODE variations
 	IFT STEREOMODE==1		; L1 L2 L3 L4 R1 R2 R3 R4
 ; Write to the two POKEYs, stereo (always the right register first, then immediately the left)
-; AUDF0
-		lda trackn_audf+0+4
+
+	lda trackn_audf+0+4		; AUDF0
 		ldx trackn_audf+0
 		sta $d210
 		stx $d200
-; AUDC0
-		lda trackn_audc+0+4
+		lda trackn_audc+0+4		; AUDC0
 		ldx trackn_audc+0
 		sta $d211
 		stx $d201
-; AUDF1
-		lda trackn_audf+1+4
+
+	lda trackn_audf+1+4		; AUDF1
 		ldx trackn_audf+1
 		sta $d212
 		stx $d202
-; AUDC1
-		lda trackn_audc+1+4
+
+	lda trackn_audc+1+4		; AUDC1
 		ldx trackn_audc+1
 		sta $d213
 		stx $d203
-; AUDF2
-		lda trackn_audf+2+4
+
+	lda trackn_audf+2+4		; AUDF2
 		ldx trackn_audf+2
 		sta $d214
 		stx $d204
-; AUDC2
-		lda trackn_audc+2+4
+
+	lda trackn_audc+2+4		; AUDC2
 		ldx trackn_audc+2
 		sta $d215
 		stx $d205
-; AUDF3
-		lda trackn_audf+3+4
+
+	lda trackn_audf+3+4		; AUDF3
 		ldx trackn_audf+3
 		sta $d216
 		stx $d206
-; AUDC3
-		lda trackn_audc+3+4
+
+	lda trackn_audc+3+4		; AUDC3
 		ldx trackn_audc+3
 		sta $d217
 		stx $d207
-; AUDCTL
-		lda #0
+
+		lda #$00			; AUDCTL
 v_audctl2 equ *-1
 		sta $d218
-		sty $d208
+		sty $d208				; <Y> was set above.
+
 		IFT FEAT_TWO_TONE
 			lda #$03
 v_skctl equ *-1	
@@ -2516,19 +2520,24 @@ v_skctl2 equ *-1
 		ldx trackn_audc+0
 		sta $d200
 		stx $d201
+
 		lda trackn_audf+1
 		ldx trackn_audc+1
 		sta $d200+2
 		stx $d201+2
+
 		lda trackn_audf+2
 		ldx trackn_audc+2
 		sta $d200+4
 		stx $d201+4
+
 		lda trackn_audf+3
 		ldx trackn_audc+3
 		sta $d200+6
 		stx $d201+6
+
 		sty $d208
+
 		IFT FEAT_TWO_TONE
 			lda #$03
 v_skctl equ *-1	
@@ -2540,20 +2549,24 @@ v_skctl equ *-1
 		sta $d200
 		stx $d201
 		sta $d210	; The frequency into the right one too (in case R2 plays 16-bit bass 2+1)
+
 		lda trackn_audf+1
 		ldx trackn_audc+1
 		sta $d210+2
 		stx $d211+2
+
 		lda trackn_audf+2
 		ldx trackn_audc+2
 		sta $d210+4
 		stx $d211+4
 		sta $d200+4	; The frequency into the left one too (in case L1 plays filter 1+3 or L4 plays 16-bit bass 4+3)
+
 		lda trackn_audf+3
 		ldx trackn_audc+3
 		sta $d200+6
 		stx $d201+6
 		sta $d210+6	; The frequency into the right one too (in case R2 plays filter 2+4)
+
 		sty $d218
 		sty $d208
 		IFT FEAT_TWO_TONE
@@ -2643,7 +2656,7 @@ RMTPLAYEREND
 
 ; Let's not forget the tables and other RMT data!
 	icl "rmtdata.a65"
-	
+
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 	
 ; The workaround code is mandatory in order to avoid many things breaking in RMT!
