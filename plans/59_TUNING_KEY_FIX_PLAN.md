@@ -1,6 +1,9 @@
 # Plan 59: Tuning by key - fix the temperament definition, logic and dialog
 
-Status: OPEN (2026-10-25). Direction decided in the AtariAge conversation
+Status: PAUSED (2026-10-25) - awaiting ivop's feedback before the open
+decisions are settled and implementation starts. The K2 preset inventory
+is already done (see "Preset inventory" below).
+Direction decided in the AtariAge conversation
 "RMT Tuning" (JAC!, ivop, VinsCool, 2026-10-15 to 10-23; prints, ivop's
 proof of concept `tuning_poc.c` and the full extract `tuning_poc.md` are
 archived locally in the untracked `others/Ivop/` folder).
@@ -90,6 +93,26 @@ frequencies):
 All three lists in the poc contain an "Equal Temperament" entry, which
 makes the equivalence testable: `{1.0, 1.0595...}`, `{0, 100, ..., 1100}`
 and `{0, 0, ..., 0}` must produce the identical frequency table.
+
+## Preset inventory (K2 fact-finding, done 2026-10-25)
+
+Of the 28 presets in `TEMPERAMENT_PRESETS` (index 0 is the empty
+"No Temperament" slot), seven do not fit the 12-multiplier/2:1-octave
+model:
+
+- **More than 12 notes**: 19-EDO (19 notes).
+- **Octave not 2:1**: Bohlen 4:7:10 (octave 3, a tritave), African Bapare
+  xylophone (2.7384), African Yaswa xylophones (3.22098), Temperament
+  Egal a Quintes Justes (2.003875).
+- **Fewer than 12 notes, 2:1 octave - mappable per the poc**: Optimally
+  consonant major pentatonic (5 notes -> 12-TET slots 0, 2, 4, 7, 9) and
+  Ancient Greek Aeolic (7 notes -> slots 0, 2, 3, 5, 7, 8, 10, the minor
+  scale).
+
+The remaining 21 presets are plain 12-note, 2:1-octave rows. Persistence:
+`Tuning.ini` (`BASENOTE` stored as number, C = 0 counting downward, A = 3 -
+the number that doubles as the C-notation offset 3; read/written by
+`RmtView.cpp` and `RmtConfig.java`).
 
 ## Steps
 
