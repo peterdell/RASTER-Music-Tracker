@@ -27,7 +27,7 @@ public:
     BOOL RenderSound1_50(int instrspeed);
 
     // Called by WaveFileExporter
-    // One driver call's share of a video frame: SetPokey and the registers
+    // One driver call's share of a video frame: rmt_set_pokey and the registers
     // once, then size bytes of sound. The SAP-R stream holds one frame per
     // driver call - instrument speeds 2-4 have several per video frame - and
     // the former RenderSoundV2() rendered a whole frame of sound for each,

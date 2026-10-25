@@ -71,7 +71,7 @@ public final class AtariTrackerDriver {
 	public static final int RMT_PLAY = RMT_INIT + 3;
 	public static final int RMT_P3 = RMT_INIT + 6;
 	public static final int RMT_SILENCE = RMT_INIT + 9;
-	public static final int RMT_SETPOKEY = RMT_INIT + 12;
+	public static final int RMT_SET_POKEY = RMT_INIT + 12;
 	public static final int RMT_ATA_SETNOTEINSTR = 0x3D00;
 	public static final int RMT_ATA_SETVOLUME = 0x3E00;
 	public static final int RMT_ATA_INSTROFF = 0x3E80;
@@ -85,22 +85,22 @@ public final class AtariTrackerDriver {
 		return r.a();
 	}
 
-	/** {@code Play()} outside the special prove mode: one run of the RMT routine from {@code RMT_P3} (wrap processing), then {@code RMT_SETPOKEY}. */
+	/** {@code Play()} outside the special prove mode: one run of the RMT routine from {@code RMT_P3} (wrap processing), then {@code RMT_SET_POKEY}. */
 	public void play() {
 		play(false);
 	}
 
-	/** {@code Play()}: in the special prove mode only {@code RMT_SETPOKEY} runs (the notes are set directly), otherwise {@code RMT_P3} first. */
+	/** {@code Play()}: in the special prove mode only {@code RMT_SET_POKEY} runs (the notes are set directly), otherwise {@code RMT_P3} first. */
 	public void play(boolean specialProveMode) {
 		if (!specialProveMode) {
 			atari.jsr(RMT_P3, 0, 0, 0);
 		}
-		atari.jsr(RMT_SETPOKEY, 0, 0, 0);
+		atari.jsr(RMT_SET_POKEY, 0, 0, 0);
 	}
 
 	/** {@code SetPokey()}: the driver stores its POKEY registers into the shadow at $D200/$D210. */
 	public void setPokey() {
-		atari.jsr(RMT_SETPOKEY, 0, 0, 0);
+		atari.jsr(RMT_SET_POKEY, 0, 0, 0);
 	}
 
 	/** {@code Silence()}. */

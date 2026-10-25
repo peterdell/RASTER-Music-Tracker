@@ -18,7 +18,7 @@ static constexpr MemoryAddress RMT_INIT = RMTPLAYR_RASTERMUSICTRACKER;
 static constexpr MemoryAddress RMT_PLAY = RMTPLAYR_RASTERMUSICTRACKER + 3;
 static constexpr MemoryAddress RMT_P3 = RMTPLAYR_RASTERMUSICTRACKER + 6;
 static constexpr MemoryAddress RMT_SILENCE = RMTPLAYR_RASTERMUSICTRACKER + 9;
-static constexpr MemoryAddress RMT_SETPOKEY = RMTPLAYR_RASTERMUSICTRACKER + 12;
+static constexpr MemoryAddress RMT_SET_POKEY = RMTPLAYR_RASTERMUSICTRACKER + 12;
 
 static constexpr MemoryAddress RMT_ATA_SETNOTEINSTR = RMTPLAYR_GETINSTRUMENTY2;
 static constexpr MemoryAddress RMT_ATA_SETVOLUME = RMTPLAYR_SETINSTRUMENTVOLUME;

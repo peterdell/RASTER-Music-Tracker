@@ -430,7 +430,7 @@ rasterbar_toggler equ *-1
 	sty COLBK		; background color
 	sty COLPF2		; playfield color 2
 do_rmtplay
-	jsr rmt_play		; setpokey + 1 play
+	jsr rmt_play		; rmt_set_pokey + 1 play
 	ldy #$00		; black color value
 	sty WSYNC		; horizontal sync
 	sty COLBK		; background color

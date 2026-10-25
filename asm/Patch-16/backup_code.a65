@@ -855,7 +855,7 @@ store_tables_lsb_b
 	lda tmp			; volume value backup
 	ora DISTORTIONS,y	; merge the Distortion and Volume values
 store_tables_lsb_c
-	sta trackn_audc,x	; update the channel's AUDC for the next SetPokey subroutine call
+	sta trackn_audc,x	; update the channel's AUDC for the next rmt_set_pokey subroutine call
 	
 ; End of tuning tables code...
 

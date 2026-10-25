@@ -59,7 +59,7 @@ bool CWaveFileExporter::ExportWAV(CSongExport& songExport, std::ofstream& ou, CX
         // $D200/$D210, where CopyAtariMemoryToPokey() reads them - the same
         // direct route the Java port always used. Until plan 46 the bytes
         // went into the Patch 16 driver's variables instead, and
-        // RenderPartV2() ran the loaded driver's SetPokey routine to carry
+        // RenderPartV2() ran the loaded driver's rmt_set_pokey routine to carry
         // them here: with a v1-family driver loaded, that clobbered the
         // player (TRACKN_AUDC is $3180-$3187, across the v1 dispatch table
         // at $3182) and rendered the WAV from the driver's own stale

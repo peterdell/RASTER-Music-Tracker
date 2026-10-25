@@ -2086,7 +2086,7 @@ TEST_F(SongEditingTest, ExportWAVWritesAValidRiffWaveHeaderWhenNoPokeyDriverIsLo
 
 // Plan 46's regression test: ExportWAV() used to write each frame's register
 // bytes into the Patch 16 driver's variables and run the loaded driver's
-// SetPokey routine - with a v1-family driver loaded, TRACKN_AUDC
+// rmt_set_pokey routine - with a v1-family driver loaded, TRACKN_AUDC
 // ($3180-$3187) lies across the v1 dispatch table at $3182, so one WAV
 // export corrupted the player and the next frequency read refused it. The
 // export writes the $D200/$D210 shadows directly now (the Java port's route

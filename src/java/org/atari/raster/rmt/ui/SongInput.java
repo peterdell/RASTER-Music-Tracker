@@ -1224,7 +1224,7 @@ public final class SongInput {
 		Tracks tracks = session.tracks;
 		int tracks4_8 = session.tracks4_8;
 
-		if (ui.editMode == EditMode.POKEY_EXPLORER_MODE) { // POKEY EXPLORER MODE: FULL CONTROL OVER THE POKEY (IGNORE RMT ROUTINES EXCEPT SETPOKEY)
+		if (ui.editMode == EditMode.POKEY_EXPLORER_MODE) { // POKEY EXPLORER MODE: FULL CONTROL OVER THE POKEY (IGNORE RMT ROUTINES EXCEPT RMT_SET_POKEY)
 			return session.pokeyController.onKeyDown(vk, shift, control, session.options.keyboardLayout);
 		}
 

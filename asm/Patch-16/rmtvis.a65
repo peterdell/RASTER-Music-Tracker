@@ -352,7 +352,7 @@ play_loop
 	lda #$69                        ; a nice purpleish pink
 	sta rWSYNC                      ; wait for horizontal sync
 	sta rCOLBK                      ; background color
-        jsr rmt_play                    ; setpokey then 1 play
+        jsr rmt_play                    ; rmt_set_pokey then 1 play
 
 ; songline position (pattern order) for the display and the timer, as the player computes it for the Simple RMT Player:
 ; (p_song - song start) / TRACKS, minus 1 because after rmt_play p_song points to the next songline

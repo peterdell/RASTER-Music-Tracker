@@ -555,8 +555,8 @@ public final class MidiInput {
 		midiAudc |= midi.noteVolumeOnChannel[track]; // also merge the volume into it
 
 		// DIRECT MEMORY WRITE
-		memory[AUDF + track] = (byte) midiAudf; // AUDF address + offset used by SetPokey
-		memory[AUDC + track] = (byte) midiAudc; // AUDC address + offset used by SetPokey
+		memory[AUDF + track] = (byte) midiAudf; // AUDF address + offset used by rmt_set_pokey
+		memory[AUDC + track] = (byte) midiAudc; // AUDC address + offset used by rmt_set_pokey
 	}
 
 }

@@ -95,7 +95,7 @@ int CXPokey::GetLatencySize() const {
 // NOTE: This does NOT work with the Altirra plugin due to it hijacking the soundbuffer with its own thing...
 // Renders from the $D200/$D210 shadows, which its one caller
 // (CWaveFileExporter::ExportWAV) fills per frame. It used to run the loaded
-// driver's SetPokey routine first - see plan 46 for why that was wrong with
+// driver's rmt_set_pokey routine first - see plan 46 for why that was wrong with
 // any driver but Patch 16.
 void CXPokey::RenderPartV2(int size, BYTE* buffer, int& length) {
     CopyAtariMemoryToPokey();

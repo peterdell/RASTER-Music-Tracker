@@ -10,7 +10,7 @@ import org.atari.raster.rmt.model.NoteKeys;
  * Pokey Explorer mode's controller. With the RMT routines switched off
  * ({@code EditMode.POKEY_EXPLORER_MODE}, see {@code AudioEngine}) the keys
  * write the driver's POKEY shadow registers directly - the tracker driver's
- * {@code SetPokey} copies them to {@code $D200} every frame - and the
+ * {@code rmt_set_pokey} copies them to {@code $D200} every frame - and the
  * "POKEY REGISTERS" view details one channel ({@link #getChannelIndex()})
  * with a free {@link #getDivisor() divisor} in its pitch formula.
  *

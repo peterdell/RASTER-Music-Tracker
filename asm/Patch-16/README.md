@@ -114,7 +114,7 @@ FEAT flags (`rmt_feat.a65`):
   arrays `trackn_volumeenvelope`/`trackn_command`/`trackn_effectparameter`
   instead. The main pass (`pp0`/`pp1`/`pp2`/`ppnext`) survives with its
   old names.
-- The SetPokey / filter / 16-bit bass / AUDCTL assembly area (Raster's
+- The rmt_set_pokey / filter / 16-bit bass / AUDCTL assembly area (Raster's
   `qq*`/`qs*` labels) is fully reworked in Patch-16; some old names
   reappear there on different code, so no label-to-label mapping holds.
   Read the two implementations side by side instead.

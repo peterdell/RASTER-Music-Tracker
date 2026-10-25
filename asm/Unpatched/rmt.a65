@@ -46,7 +46,7 @@
 ; - command 2 fixed - frequency shift (the bug: it had no effect combined with table shifts)
 
 ; 21.12.2002
-; - the SetPokey routine reworked separately for stereo and for mono
+; - the rmt_set_pokey routine reworked separately for stereo and for mono
 
 ; 25.12.2002
 ; - parameter order in the header changed:
@@ -421,14 +421,14 @@ RASTERMUSICTRACKER
 	; Initialize
 	;
 	; Must be run first, to clear memory and initialize the player.
-	; Once this is done, run rmt_play afterwards, or Set_Pokey if you want to manually time certain things.
+	; Once this is done, run rmt_play afterwards, or rmt_set_pokey if you want to manually time certain things.
 	; IN:  <X>=module address low byte, Y=module address high byte, <A>=starting song line(0-255)
 	; OUT: <A>=the instrument speed (1= 1 time per VBI (normal), 2 = 2 times per VBI, 3 = 3 times per VBI, ...
 	jmp rmt_init			;
 
 	; Play
 	;
-	; "SetPokey" is called first, then all the play code is ran once. 
+	; "rmt_set_pokey" is called first, then all the play code is ran once. 
 	; V: Must be called multiple times per frame if the instrument speed is > 1.
 	; R: every 1/50 sec, returns the actual instrument speed
 	; IN:  n/a
@@ -438,8 +438,8 @@ RASTERMUSICTRACKER
 	jmp rmt_play
 
 	; Play3
-	; R: ;(without SetPokey, Song and Track handling) from the instrument processing on
-	; Similar to rmt_play, but will also skip SetPokey and the instruments/songlines/tracklines initialization.
+	; R: ;(without rmt_set_pokey, Song and Track handling) from the instrument processing on
+	; Similar to rmt_play, but will also skip rmt_set_pokey and the instruments/songlines/tracklines initialization.
 	jmp rmt_p3
 
 	; Set Silence
@@ -456,7 +456,7 @@ RASTERMUSICTRACKER
 	; This is call as the first step in "rmt_play".
 	; IN:  n/a
 	; OUT: n/a
-	jmp SetPokey
+	jmp rmt_set_pokey
 
 	IFT FEAT_SFX
 	; Play Sound Effect
@@ -1016,7 +1016,7 @@ rmt_p0
 ;------------------------------------------------------------------------------------------
 ; Setting the POKEY registers
 
-	jsr SetPokey
+	jsr rmt_set_pokey
 
 rmt_p1
 ;------------------------------------------------------------------------------------------
@@ -1789,7 +1789,7 @@ v_ainstrspeed equ *-1
 ;
 ;
 ;==========================================================================================
-SetPokey
+rmt_set_pokey
 ;
 	IFT STEREOMODE==1		; L1 L2 L3 L4 R1 R2 R3 R4
 ; Write to the two POKEYs, stereo (always the right register first, then immediately the left)

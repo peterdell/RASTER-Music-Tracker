@@ -10,7 +10,7 @@ import java.io.ByteArrayOutputStream;
  * (all channels on, as C++ sets them for the export) and the sub-frame's
  * share of the frame's cycles is rendered. C++ used to write each frame
  * into the Patch 16 driver's variables and let the loaded driver's
- * {@code RMT_SETPOKEY} routine carry them to the POKEY - which, with a
+ * {@code RMT_SET_POKEY} routine carry them to the POKEY - which, with a
  * v1-family driver loaded, corrupted the player and rendered from stale
  * state; since plan 46 it writes the $D200/$D210 shadows directly, the
  * same route as here.

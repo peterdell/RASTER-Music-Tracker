@@ -1035,7 +1035,7 @@ BOOL CSong::CursorToSpeedColumn() {
 
 BOOL CSong::ProveKey(int vk, int shift, int control) {
 
-    if (IsEditMode(EditMode::POKEY_EXPLORER_MODE)) { //POKEY EXPLORER MODE: FULL CONTROL OVER THE POKEY (IGNORE RMT ROUTINES EXCEPT SETPOKEY)
+    if (IsEditMode(EditMode::POKEY_EXPLORER_MODE)) { //POKEY EXPLORER MODE: FULL CONTROL OVER THE POKEY (IGNORE RMT ROUTINES EXCEPT RMT_SET_POKEY)
 
         return m_PokeyController->OnKeyDown(vk, shift, control);
     }

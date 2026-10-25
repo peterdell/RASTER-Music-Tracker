@@ -11,7 +11,7 @@ import java.util.Arrays;
  * {@link #record}/{@link #finishedRecording}'s real bodies. As in C++,
  * {@link #record} reads the POKEY register shadow at $D200/$D210 of the
  * {@link AtariTrackerDriver}'s Atari, which the driver's
- * {@code RMT_SETPOKEY} fills on every {@link AtariTrackerDriver#play}.
+ * {@code RMT_SET_POKEY} fills on every {@link AtariTrackerDriver#play}.
  *
  * <p><b>{@code WriteToFile} redesigned as {@link #getFrameBytes}</b>:
  * C++'s {@code std::ostream&}-writing method becomes a returned {@code byte[]}

@@ -3052,7 +3052,7 @@ public final class Song {
 	// Ported from CSong::DumpSongToPokeyStream(): the same tight
 	// PlayVBI()-driven loop as C++, running the tracker driver loaded into
 	// the Atari's memory (atariTrackerDriver.play() = JSR RMT_P3 +
-	// RMT_SETPOKEY on the AtariCpu) and recording the POKEY register shadow
+	// RMT_SET_POKEY on the AtariCpu) and recording the POKEY register shadow
 	// at $D200/$D210 after every call - exactly what the C++ program does.
 	// Until the audio batch (B8) made the JSR real, this method exported the
 	// song as a module and played it through ASAP's own RMT player instead;

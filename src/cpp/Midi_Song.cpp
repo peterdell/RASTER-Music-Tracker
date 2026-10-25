@@ -495,8 +495,8 @@ void CSong::MidiEvent(DWORD dwParam, bool hasFocus) {
             midi_audc |= g_Midi.m_NoteVolumeOnChannel[track]; //also merge the volume into it
 
             //DIRECT MEMORY WRITE
-            memory[RMTPLAYR_TRACKN_AUDF + track] = midi_audf; //AUDF address + offset used by SetPokey
-            memory[RMTPLAYR_TRACKN_AUDC + track] = midi_audc; //AUDC address + offset used by SetPokey
+            memory[RMTPLAYR_TRACKN_AUDF + track] = midi_audf; //AUDF address + offset used by rmt_set_pokey
+            memory[RMTPLAYR_TRACKN_AUDC + track] = midi_audc; //AUDC address + offset used by rmt_set_pokey
 
             //
             //END OF HARDCODED TEST
