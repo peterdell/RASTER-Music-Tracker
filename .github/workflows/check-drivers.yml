@@ -26,3 +26,16 @@ jobs:
       # configuration leaves unassembled (plans/52_FEAT_MATRIX_PLAN.md).
       - name: Assemble the players with every feature flag toggled once
         run: sh build/check_feat_matrix.sh
+
+      # Assembles the xasm-compatible sources (asm/Unpatched, and the
+      # Patch-16 tracker driver per plan 54) with the vendored, pinned xasm
+      # (lib/xasm) and byte-compares the outputs - xasm swallows some
+      # MADS-only constructs silently, so only a byte comparison catches
+      # them (plans/55_XASM_COMPATIBILITY_GUARD_PLAN.md). xasm
+      # compatibility is required for including the player source in ASAP
+      # (https://github.com/pfusik/asap/), whose 6502 players are built
+      # with xasm.
+      - name: Prove the player sources stay xasm-compatible
+        run: |
+          chmod +x lib/xasm/linux_x86_64/xasm
+          sh build/check_xasm_compatibility.sh

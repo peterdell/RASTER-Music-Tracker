@@ -34,8 +34,11 @@ strip property is historical: it holds for the imported revision, not
 for the edited file.
 
 The targets, as in Raster's `rmt_ata_sap4_8_msx.bat`, each assembled
-with xasm (`C:\jac\system\Atari800\Tools\ASM\XASM\xasm.exe <target>.a65`
-in this folder; the .obx outputs are not committed):
+with xasm (the vendored `lib/xasm`, `xasm <target>.a65` in this folder;
+the .obx outputs are not committed). `build/check_xasm_compatibility.sh`
+proves on every push that all four stay xasm-compatible byte for byte - xasm
+swallows some MADS-only constructs silently, so only a byte comparison
+catches them:
 
 | File | Target |
 | --- | --- |

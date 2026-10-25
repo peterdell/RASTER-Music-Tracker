@@ -14,8 +14,10 @@ driver also assembles with xasm, byte-identical:
 
     xasm rmtplayr.a65 /d:FEAT_IS_TRACKER=1 /d:FEAT_IS_SIMPLEP=0 /o:tracker.obx
 
-The Simple RMT Player targets (`rmtplayer.a65`) remain MADS-only:
-their XEX/SAP/region/stereo defaults still use `.ifndef`.
+`build/check_xasm_compatibility.sh` proves this on every push with the
+vendored, pinned xasm (`lib/xasm`). The Simple RMT Player targets
+(`rmtplayer.a65`) remain MADS-only: their XEX/SAP/region/stereo
+defaults still use `.ifndef`.
 
 Patch-16 grew out of Raster's unpatched player (`asm/Unpatched/rmt.a65`
 is the living, commented source of that one; plan 51 merges Raster's
