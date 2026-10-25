@@ -318,7 +318,9 @@ track_endvariables
 		org PLAYER-$100-$140-$40+2
 
 
-tabbeganddistor							; The start offsets into "frqtab" and distortion values for the individual instrument distortions
+;tabbeganddistor						; The start offsets into "frqtab" and distortion values for the individual instrument distortions
+frqtab_lo_tab							; The low-bytes of the frequency tables.
+distortion_tab equ *+1					; The POKEY distortion values for the instrument distortion values.
 	dta frqtabpure-frqtab,$00			; Noise 0
 	dta frqtabpure-frqtab,$20			; Noise 2
 	dta frqtabpure-frqtab,$40			; Noise 4
@@ -1125,10 +1127,10 @@ pp2s
 	lda reg2
 	and #$0e				; Distortion 0000 ddd0
 	tay						; Even values
-	lda tabbeganddistor,y	; Offset into the frqtab table: 0,64,128,192
+	lda frqtab_lo_tab,y		; Offset into the frqtab table: 0,64,128,192
 	sta p_nr				; Low byte for setting the frequency from the table
 	lda tmp					; Takes from tmp (final volume 0-15) (faster than PHA and then PLA)
-	ora tabbeganddistor+1,y	; Noise value for the respective instrument distortion $00,$20,$..
+	ora distortion_tab,y	; Noise value for the respective instrument distortion $00,$20,$..
 	sta trackn_audc,x
 ;
 ;	jmp InstrumentsEffects

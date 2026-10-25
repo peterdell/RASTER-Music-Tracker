@@ -59,7 +59,7 @@ Variables and pointers:
 | `v_maxtracklen` | `smc_maxtracklen` | self-modified operand: maximum track length |
 | `v_instrspeed` | `smc_instrspeed` | self-modified operand: instrument speed |
 | `v_ainstrspeed` | `smc_silence_instrspeed` | self-modified operand: actual instrument speed countdown |
-| `tabbeganddistor` | `TABLES_MSB` | per-distortion offsets into the frequency tables |
+| `frqtab_hi_tab` + `distortion_tab` | `TABLES_MSB` + `DISTORTIONS` | per-distortion frequency-table pages and AUDC values (one `tabbeganddistor` until 2026-10-25) |
 
 Code labels:
 

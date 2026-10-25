@@ -732,8 +732,8 @@ class InstrumentsTest {
 			// installed, sending distortion $0A to frqtab+$40 rather than the
 			// real +$80.
 			for (int i = 0; i < 8; i++) {
-				atariMemory[FrequencyTables.LEGACY_TABBEGANDDISTOR + i * 2] = 0x40;
-				atariMemory[FrequencyTables.LEGACY_TABBEGANDDISTOR + 1 + i * 2] = (byte) 0xA0;
+				atariMemory[FrequencyTables.LEGACY_FRQTAB_LO_TAB + i * 2] = 0x40;
+				atariMemory[FrequencyTables.LEGACY_DISTORTION_TAB + i * 2] = (byte) 0xA0;
 			}
 			atariMemory[FrequencyTables.LEGACY_FRQTAB + 0x40 + 5] = 99;
 			atariMemory[table(0x0A) + 5] = 11;

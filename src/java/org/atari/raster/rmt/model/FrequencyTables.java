@@ -18,7 +18,8 @@ package org.atari.raster.rmt.model;
  *
  * <p>The v1 family - every other driver RMT ships (asm/Legacy/rmt.a65) - has
  * one page of 64-byte tables below the player instead, and its
- * {@code tabbeganddistor} maps the distortion to a byte offset into that page.
+ * {@code frqtab_lo_tab} ({@code tabbeganddistor} until 2026-10-25) maps the
+ * distortion to a byte offset into that page.
  * It has no clock variants at all: a 1.79 MHz or 15 kHz channel reads the very
  * same table, which is why those two clocks play out of tune on those drivers
  * rather than playing nothing.
@@ -55,7 +56,7 @@ public final class FrequencyTables {
 	public static final int PATCH16_DISTORTION_TAB = PATCH16_FRQTAB_HI_TAB + 1;
 
 	/**
-	 * {@code tabbeganddistor}: the v1-family layout's eight (offset, AUDC)
+	 * {@code frqtab_lo_tab}: the v1-family layout's eight (offset, AUDC)
 	 * pairs, indexed by distortion / 2, from asm/Legacy/rmt.a65. The offset is
 	 * a byte offset into the {@link #LEGACY_FRQTAB} page: the player loads
 	 * {@code >frqtab} as the pointer's high byte and the offset as its low
@@ -65,11 +66,16 @@ public final class FrequencyTables {
 	 * ($3400), so they hold for every driver built from that source, whatever
 	 * its feature flags. C++ names them through src/cpp/legacy_obx.h, the
 	 * header MADS generates from asm/Legacy/rmt_ata.a65, as
-	 * {@code RMT_ATA_TABBEGANDDISTOR} and {@code RMT_ATA_FRQTAB}.
+	 * {@code RMT_ATA_TABBEGANDDISTOR} and {@code RMT_ATA_FRQTAB} - asm/Legacy
+	 * keeps the old label name, the living asm/Unpatched source renamed it
+	 * ({@code tabbeganddistor} until 2026-10-25).
 	 */
-	public static final int LEGACY_TABBEGANDDISTOR = 0x3182;
+	public static final int LEGACY_FRQTAB_LO_TAB = 0x3182;
 
-	/** {@code frqtab}: the page the {@link #LEGACY_TABBEGANDDISTOR} offsets are into. */
+	/** {@code distortion_tab}: the AUDC half of the pairs, at the odd bytes. */
+	public static final int LEGACY_DISTORTION_TAB = LEGACY_FRQTAB_LO_TAB + 1;
+
+	/** {@code frqtab}: the page the {@link #LEGACY_FRQTAB_LO_TAB} offsets are into. */
 	public static final int LEGACY_FRQTAB = 0x3200;
 
 	public enum Mode {
@@ -85,7 +91,7 @@ public final class FrequencyTables {
 	/**
 	 * Whether this version's player is one of the v1 family, i.e. everything
 	 * but the Patch 16 driver. They differ in plenty of other ways, but all of
-	 * them read their note tables through {@code tabbeganddistor}.
+	 * them read their note tables through {@code frqtab_lo_tab}.
 	 */
 	private static boolean isLegacyLayout(TrackerDriverVersion version) {
 		return version == TrackerDriverVersion.UNPATCHED || version == TrackerDriverVersion.UNPATCHED_WITH_TUNING
@@ -135,8 +141,8 @@ public final class FrequencyTables {
 			// one table.
 			boolean anySet = false;
 			for (int i = 0; i < 8; i++) {
-				int offset = atariMemory[LEGACY_TABBEGANDDISTOR + i * 2] & 0xFF;
-				int audc = atariMemory[LEGACY_TABBEGANDDISTOR + 1 + i * 2] & 0xFF;
+				int offset = atariMemory[LEGACY_FRQTAB_LO_TAB + i * 2] & 0xFF;
+				int audc = atariMemory[LEGACY_DISTORTION_TAB + i * 2] & 0xFF;
 				if ((audc & 0x0F) != 0) {
 					return false;
 				}
@@ -207,9 +213,9 @@ public final class FrequencyTables {
 
 			// Every other mode reads the same table, because that player has
 			// no clock variants: it builds its pointer from `>frqtab` and the
-			// offset in tabbeganddistor and indexes it by the note, whatever
+			// offset in frqtab_lo_tab and indexes it by the note, whatever
 			// clock the channel is running at.
-			return LEGACY_FRQTAB + (atariMemory[LEGACY_TABBEGANDDISTOR + (distortion >> 1) * 2] & 0xFF);
+			return LEGACY_FRQTAB + (atariMemory[LEGACY_FRQTAB_LO_TAB + (distortion >> 1) * 2] & 0xFF);
 		}
 
 		return 0;
@@ -265,7 +271,7 @@ public final class FrequencyTables {
 		}
 
 		// Both layouts keep the AUDC in the second byte of each pair.
-		int table = version == TrackerDriverVersion.PATCH16 ? PATCH16_FRQTAB_HI_TAB : LEGACY_TABBEGANDDISTOR;
-		return atariMemory[table + 1 + (distortion >> 1) * 2] & 0xFF;
+		int table = version == TrackerDriverVersion.PATCH16 ? PATCH16_DISTORTION_TAB : LEGACY_DISTORTION_TAB;
+		return atariMemory[table + (distortion >> 1) * 2] & 0xFF;
 	}
 }

@@ -686,8 +686,8 @@ TEST_F(InstrumentFrequencyTest, TheDriverVersionDecidesWhichLayoutIsRead) {
     // A synthetic v1-family table beside the Patch 16 one SetUp() installed,
     // sending distortion $0A to frqtab+$40 rather than the real +$80.
     for (int i = 0; i < 8; i++) {
-        g_Atari.SetByteAt(CFrequencyTables::LEGACY_TABBEGANDDISTOR + i * 2, 0x40);
-        g_Atari.SetByteAt(CFrequencyTables::LEGACY_TABBEGANDDISTOR + 1 + i * 2, 0xA0);
+        g_Atari.SetByteAt(CFrequencyTables::LEGACY_FRQTAB_LO_TAB + i * 2, 0x40);
+        g_Atari.SetByteAt(CFrequencyTables::LEGACY_DISTORTION_TAB + i * 2, 0xA0);
     }
     g_Atari.SetByteAt(CFrequencyTables::LEGACY_FRQTAB + 0x40 + 5, 99);
     g_Atari.SetByteAt(Table(0x0A) + 5, 11);

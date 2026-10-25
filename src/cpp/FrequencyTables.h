@@ -13,15 +13,15 @@
 // There are two layouts, because there are two generations of driver, and the
 // version decides which one to read (plans/40_DRIVER_TABLE_LAYOUTS_PLAN.md):
 //
-// PATCH16 (asm/Patch-16/rmtplayr.a65) chooses in two steps: its tabbeganddistor (named TABLES_MSB by Patch16 before plans/53 realigned the labels)
+// PATCH16 (asm/Patch-16/rmtplayr.a65) chooses in two steps: its frqtab_hi_tab (named TABLES_MSB by Patch16 before plans/53 realigned the labels, tabbeganddistor until 2026-10-25)
 // dispatch table maps the distortion to one of the five 256-byte pages at
 // $B000, then store_tables_lsb picks a 64-byte slice by the channel's clock -
 // 64 kHz at +$00, 1.79 MHz at +$40, 16-bit at +$80 - while check_15khz takes
 // the two 15 kHz tables from PAGE_EXTRA_0 instead.
 //
 // The v1 family - every other driver RMT ships (asm/Legacy/rmt.a65) - has one
-// page of 64-byte tables below the player instead, and its tabbeganddistor
-// maps the distortion to a byte offset into that page. It has no clock
+// page of 64-byte tables below the player instead, and its frqtab_lo_tab
+// (tabbeganddistor until 2026-10-25) maps the distortion to a byte offset into that page. It has no clock
 // variants at all: a 1.79 MHz or 15 kHz channel reads the very same table,
 // which is why those two clocks play out of tune on those drivers rather than
 // playing nothing.
@@ -52,7 +52,8 @@ public:
     // by an `org` relative to PLAYER ($3400), so they hold for every driver
     // built from that source, whatever its feature flags.
     //
-    // tabbeganddistor is eight (offset, AUDC) pairs indexed by distortion / 2,
+    // frqtab_lo_tab/distortion_tab are eight (offset, AUDC) pairs indexed by
+    // distortion / 2,
     // the offset being a byte offset into the frqtab page: the player loads
     // `>frqtab` as the pointer's high byte and the offset as its low byte, so
     // the table's address is simply LEGACY_FRQTAB + offset.
@@ -61,7 +62,8 @@ public:
     // asm/Legacy/rmt_ata.a65 (prefix RMT_ATA_ after its file name), so they
     // follow the 6502 source the way the PATCH16 addresses above do.
     // build/check_drivers.sh pins both headers to today's sources.
-    static constexpr MemoryAddress LEGACY_TABBEGANDDISTOR = RMT_ATA_TABBEGANDDISTOR;
+    static constexpr MemoryAddress LEGACY_FRQTAB_LO_TAB = RMT_ATA_TABBEGANDDISTOR;
+    static constexpr MemoryAddress LEGACY_DISTORTION_TAB = RMT_ATA_TABBEGANDDISTOR + 1;
     static constexpr MemoryAddress LEGACY_FRQTAB = RMT_ATA_FRQTAB;
 
     /// <summary> Whether the driver in `memory` really carries the table this version's layout reads </summary>

@@ -6,7 +6,7 @@ namespace {
 
 // Whether this version's player is one of the v1 family, i.e. everything but
 // the Patch 16 driver. They differ in plenty of other ways, but all of them
-// read their note tables through tabbeganddistor.
+// read their note tables through frqtab_lo_tab.
 bool IsLegacyLayout(TrackerDriverVersion version) {
     switch (version) {
     case TrackerDriverVersion::UNPATCHED:
@@ -54,8 +54,8 @@ bool CFrequencyTables::HasDispatchTable(const byte* memory, TrackerDriverVersion
         // every distortion as POKEY distortion 0 out of one table.
         bool anySet = false;
         for (int i = 0; i < 8; i++) {
-            const byte offset = memory[LEGACY_TABBEGANDDISTOR + i * 2];
-            const byte audc = memory[LEGACY_TABBEGANDDISTOR + 1 + i * 2];
+            const byte offset = memory[LEGACY_FRQTAB_LO_TAB + i * 2];
+            const byte audc = memory[LEGACY_DISTORTION_TAB + i * 2];
             if ((audc & 0x0F) != 0) {
                 return false;
             }
@@ -112,9 +112,9 @@ MemoryAddress CFrequencyTables::GetTableAddress(const byte* memory, TrackerDrive
 
         // Every other mode reads the same table, because that player has no
         // clock variants: it builds its pointer from `>frqtab` and the offset
-        // in tabbeganddistor and indexes it by the note, whatever clock the
+        // in frqtab_lo_tab and indexes it by the note, whatever clock the
         // channel is running at.
-        return (MemoryAddress)(LEGACY_FRQTAB + memory[LEGACY_TABBEGANDDISTOR + (distortion >> 1) * 2]);
+        return (MemoryAddress)(LEGACY_FRQTAB + memory[LEGACY_FRQTAB_LO_TAB + (distortion >> 1) * 2]);
     }
 
     return 0;
@@ -148,6 +148,6 @@ int CFrequencyTables::GetDistortionAudc(const byte* memory, TrackerDriverVersion
     }
 
     // Both layouts keep the AUDC in the second byte of each pair.
-    const MemoryAddress table = version == TrackerDriverVersion::PATCH16 ? RMTPLAYR_DISTORTION_TAB : (MemoryAddress)(LEGACY_TABBEGANDDISTOR + 1);
+    const MemoryAddress table = version == TrackerDriverVersion::PATCH16 ? (MemoryAddress)RMTPLAYR_DISTORTION_TAB : LEGACY_DISTORTION_TAB;
     return memory[table + (distortion >> 1) * 2];
 }

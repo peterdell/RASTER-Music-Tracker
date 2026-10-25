@@ -101,14 +101,14 @@ class GeneratedHeaderTest {
 		assertAddress(tracker, "RMTPLAYR_DISTORTION_TAB", FrequencyTables.PATCH16_DISTORTION_TAB);
 
 		Map<String, Integer> legacy = defines(LEGACY_OBX_H);
-		assertAddress(legacy, "RMT_ATA_TABBEGANDDISTOR", FrequencyTables.LEGACY_TABBEGANDDISTOR);
+		assertAddress(legacy, "RMT_ATA_TABBEGANDDISTOR", FrequencyTables.LEGACY_FRQTAB_LO_TAB);
 		assertAddress(legacy, "RMT_ATA_FRQTAB", FrequencyTables.LEGACY_FRQTAB);
 	}
 
 	/**
 	 * The v1 family's other frequency tables, which no code addresses but
 	 * doc/rmt_tracker_drivers.md documents: the page they live in is the one
-	 * the offsets in tabbeganddistor are into, so the documented addresses and
+	 * the offsets in frqtab_lo_tab are into, so the documented addresses and
 	 * the dispatch table have to agree about where that page starts.
 	 */
 	@Test
@@ -122,7 +122,7 @@ class GeneratedHeaderTest {
 		assertAddress(legacy, "RMT_ATA_FRQTABBASSHI", 0x32C0);
 
 		// The player loads >frqtab as the pointer's high byte, so every table a
-		// tabbeganddistor offset can reach has to sit in that one page.
+		// frqtab_lo_tab offset can reach has to sit in that one page.
 		// frqtabbasslo is deliberately not among them: it is the low half of
 		// the 16-bit bass pair, which the player addresses a page below
 		// frqtabbasshi rather than through the dispatch table.
