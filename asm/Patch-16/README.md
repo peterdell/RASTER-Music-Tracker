@@ -7,6 +7,16 @@ to `out/tracker.obx`, byte-identical to
 as XEX and SAP (`build/check_drivers.sh` proves the driver bytes on
 every push).
 
+The target selectors `FEAT_IS_TRACKER`/`FEAT_IS_SIMPLEP` are defined on
+the command line (there are no `.ifndef` defaults in `rmt_feat.a65`
+anymore - xasm cannot express an overridable default), so the tracker
+driver also assembles with xasm, byte-identical:
+
+    xasm rmtplayr.a65 /d:FEAT_IS_TRACKER=1 /d:FEAT_IS_SIMPLEP=0 /o:tracker.obx
+
+The Simple RMT Player targets (`rmtplayer.a65`) remain MADS-only:
+their XEX/SAP/region/stereo defaults still use `.ifndef`.
+
 Patch-16 grew out of Raster's unpatched player (`asm/Unpatched/rmt.a65`
 is the living, commented source of that one; plan 51 merges Raster's
 commentary into this file). Vin renamed a number of labels along the

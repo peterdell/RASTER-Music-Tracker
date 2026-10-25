@@ -17,8 +17,10 @@
 # with one flag's 0/1 inverted, written into a temp copy of the folder.
 # (".ifndef plus -d:" was rejected: MADS-only syntax, and asm/Unpatched
 # stays xasm-compatible.) Patch-16's FEAT_IS_TRACKER/FEAT_IS_SIMPLEP are
-# not flipped - they select the target, the ERT guards reject the other
-# combinations, and the three targets exercise them already.
+# not flipped - they select the target (defined on the command line, not
+# in rmt_feat.a65, so rmtplayr.a65 assembles with xasm too), the ERT
+# guards reject the other combinations, and the three targets exercise
+# them already.
 #
 # A variant that does not assemble is recorded as ASSEMBLY-ERROR: a
 # documented known-broken toggle rather than a silent skip, and a newly
@@ -155,7 +157,7 @@ setup_patch16() {
 }
 
 targets_patch16() {
-    record "$1" "$2" rmtplayr.a65 "$3" "$1-tracker.obx"
+    record "$1" "$2" rmtplayr.a65 "$3" "$1-tracker.obx" -d:FEAT_IS_TRACKER=1 -d:FEAT_IS_SIMPLEP=0
     record "$1" "$2" rmtplayer.a65 "$3" "$1-rmtplayer.xex" -d:FEAT_IS_TRACKER=0 -d:FEAT_IS_SIMPLEP=1
     record "$1" "$2" rmtplayer.a65 "$3" "$1-rmtplayer.sap" -d:FEAT_IS_TRACKER=0 -d:FEAT_IS_SIMPLEP=1 -d:EXPORTXEX=0 -d:EXPORTSAP=1
     if [ "$2" = DEFAULT ]; then

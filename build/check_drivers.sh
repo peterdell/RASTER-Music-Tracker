@@ -58,15 +58,20 @@ winpath() {
 
 failed=0
 
-# check <source dir under asm/> <source file> <shipped file under rmt/resources/drivers/> <header under src/cpp/>
+# check <source dir under asm/> <source file> <shipped file under rmt/resources/drivers/> <header under src/cpp/> [extra MADS options]
 check() {
     out="$TMP/$3"
     hdr="$TMP/$4"
+    # Extra MADS options (one word-split string, e.g. Patch-16's -d: target
+    # selectors, which live on the command line so rmt_feat.a65 stays
+    # xasm-compatible).
+    extra="${5:-}"
     # One MADS run produces both artefacts: -hc: writes the header and leaves
     # the object file untouched, so the binary this compares is still the
     # plain assembly of the source. cd to the source's folder - the sources
     # icl/ins their includes by relative path.
-    if ! (cd "$ROOT/asm/$1" && "$MADS" "-o:$(winpath "$out")" "-hc:$(winpath "$hdr")" "$2" >"$TMP/$3.log" 2>&1); then
+    # shellcheck disable=SC2086
+    if ! (cd "$ROOT/asm/$1" && "$MADS" $extra "-o:$(winpath "$out")" "-hc:$(winpath "$hdr")" "$2" >"$TMP/$3.log" 2>&1); then
         echo "FAIL $3: MADS could not assemble asm/$1/$2:" >&2
         cat "$TMP/$3.log" >&2
         failed=1
@@ -101,6 +106,6 @@ check() {
 
 echo "Driver check with $("$MADS" 2>/dev/null | head -n 1 || true)"
 check Legacy rmt_ata.a65 rmt_driver_v1.obx legacy_obx.h
-check Patch-16 rmtplayr.a65 rmt_driver_v6.obx tracker_obx.h
+check Patch-16 rmtplayr.a65 rmt_driver_v6.obx tracker_obx.h "-d:FEAT_IS_TRACKER=1 -d:FEAT_IS_SIMPLEP=0"
 
 exit "$failed"

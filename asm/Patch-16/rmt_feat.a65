@@ -7,15 +7,12 @@
 
 ;* PATCH16 ADDITIONS BY VINSCOOL, USE ONLY IF YOU KNOW WHAT YOU ARE DOING!
 
-;* enable ONLY if the target output is the actual RMT driver binary (tracker.obx), There are few specific changes involved!
-.ifndef FEAT_IS_TRACKER	;* a default: build.cmd overrides it with -d: for the Simple RMT Player
-FEAT_IS_TRACKER 	equ 1
-.endif
-
-;* Simple RMT Player is a simple recreation of the original .xex export player from RMT, enable for few bonus features
-.ifndef FEAT_IS_SIMPLEP	;* a default: build.cmd overrides it with -d: for the Simple RMT Player
-FEAT_IS_SIMPLEP 	equ 0
-.endif
+;* The target selectors FEAT_IS_TRACKER and FEAT_IS_SIMPLEP are defined on the command line, not here,
+;* so this file stays xasm-compatible (xasm has no .ifndef to express an overridable default):
+;* - FEAT_IS_TRACKER=1 FEAT_IS_SIMPLEP=0 if the target output is the actual RMT driver binary (tracker.obx)
+;* - FEAT_IS_TRACKER=0 FEAT_IS_SIMPLEP=1 for the Simple RMT Player, a simple recreation of the original
+;*   .xex export player from RMT, with few bonus features
+;* build.cmd passes them with -d: (MADS); for xasm the same values are /d:FEAT_IS_TRACKER=1 /d:FEAT_IS_SIMPLEP=0.
 
 			ERT [FEAT_IS_TRACKER+FEAT_IS_SIMPLEP]=0	;* The RMT driver has no driver parameter defined!
 			ERT [FEAT_IS_TRACKER+FEAT_IS_SIMPLEP]=2	;* The RMT driver could not have more than 1 driver parameter defined!
@@ -73,7 +70,7 @@ FEAT_TWO_TONE		equ 1			;* patch16 change by Vin, unsure how many bytes are invol
 FEAT_PORTAMENTO		equ 1			;* cca 138 bytes and quicker whole RMT routine
 
 ;* FILTER
-FEAT_FILTER		equ 1			;* cca 179 bytes and quicker whole RMT routine
+FEAT_FILTER			equ 1			;* cca 179 bytes and quicker whole RMT routine
 FEAT_FILTERG0L		equ 1			;* (cca 38 bytes for each)
 FEAT_FILTERG1L		equ 1
 FEAT_FILTERG0R		equ 1
@@ -82,7 +79,7 @@ FEAT_FILTERG1R		equ 1
 ;* New 16-bit code, for full 16-bit support
 FEAT_FULL_16BIT		equ 1			;* patch16 addition by Vin, unsure how many bytes are involved
 
-;* Alternative 16-bit method, which simplifies the old BASS16 method, can be used to output 16-bit frequencies using Distortion 6
+;* Alternative 16-bit method, which simplifies the old BASS16 method, can be used to output 16-bit frequencies using distortion 6
 FEAT_BASS16		equ 1			;* patch16 addition by Vin, unsure how many bytes are involved
 
 ;* New Sawtooth code, output the Sawtooth waveform, or Triangle
@@ -112,4 +109,3 @@ FEAT_EFFECTFSHIFT	equ 1			;* cca 11 bytes and quicker whole RMT routine
 FEAT_TABLE_MANUAL	equ 0			;* patch16 addition by Vin, unsure how many bytes are involved
 
 ;* --------END--------
-

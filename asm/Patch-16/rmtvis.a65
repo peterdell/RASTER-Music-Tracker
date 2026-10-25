@@ -20,7 +20,7 @@ STEREOMODE	equ 0	; 0 => compile RMTplayer for 4 tracks Mono
 			; 3 => compile RMTplayer for 4 tracks Stereo L1 L2 R3 R4 --Visualizer broken
 			; 4 => compile RMTplayer for 8 tracks Dual Mono LR1 LR2 LR3 LR4
 
-; the player is assembled as for the Simple RMT Player: in rmt_feat.a65 FEAT_IS_TRACKER equ 0 and FEAT_IS_SIMPLEP equ 1
+; the player is assembled as for the Simple RMT Player: -d:FEAT_IS_TRACKER=0 -d:FEAT_IS_SIMPLEP=1 on the command line
 ; no XEX/SAP export hacks in the player: its XEX hack changes the rasterbar colour at loop+1, here loop is not that
 
 EXPORTXEX	equ 0
