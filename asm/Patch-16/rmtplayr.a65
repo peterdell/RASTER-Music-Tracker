@@ -1,12 +1,13 @@
 ;*
 ;* Raster Music Tracker, RMT Atari routine version Patch16-3.2
-;* (c) by Vin Samuel (VinsCool), 2021 - 2022, Peter Dell (JAC!) 2026, based on
+;* (c) Vin Samuel (VinsCool), 2021 - 2022
+;* (c) Peter Dell (JAC!) 2026, based on
 ;* Raster Music Tracker, RMT Atari routine version 1.20090108
 ;* (c) Radek Sterba (Raster/C.P.U.), 2002 - 2009
 ;* http://raster.atari.org
 ;*
 ;*
-;* TO DO: A lot... So much to re-order and cleanup...
+;* V: TODO: A lot... So much to re-order and cleanup...
 ;* I must recalculate everything, once the full code cleanup and optimization is done.
 ;* Currently, all infos are incorrect due to the massive amount of changes I have done into the code.
 ;* I apologise for the inconvenience, I am doing my best to clean everything to make sense again.
@@ -26,7 +27,7 @@
 ;* 3. Because of RMTplayer provides a lot of effects, it can spend a lot of CPU time.
 ;*
 
-; Raster's change history, carried over from asm/Unpatched/rmt.a65 (plans/51 U3) ----
+; Raster's change history: carried over from asm/Unpatched/rmt.a65 (plans/51 U3)
 ; 10.12.2002
 ; - speed-change fix - A changed speed is written to v_speed only after all 4 (resp. 8)
 ;   tracks are done. i.e. if the change is in the first row of a track and a goto moves it
@@ -290,7 +291,7 @@ trackn_tableend		org *+TRACKS	;table length
 trackn_tablelop		org *+TRACKS	;table repeat
 	EIF
 	
-trackn_tablespeeda	org *+TRACKS	;current table speed
+trackn_tablespeeda	org *+TRACKS	; The current table speed
 
 	IFT FEAT_FILTER
 trackn_filter		org *+TRACKS		; Frequency shift of the filtering generator. POTENTIAL OPTIMIZATION: it is NOT necessary to use all tracks... only channel 1 and 2 will use it to offset the other...
@@ -720,7 +721,7 @@ nn3									; Track number is GOTO ($fe).
 	ldx #0							; <X> must be 0 before jumping to nn0, to process the new song line from #0 (up to 7)
 	beq nn0							; Unconditional jump to the next song line.
 
-; Process one line of a track
+; Process the next line of a track for all tracks.
 GetTrackLine	;does get trackline (calling GetSongline back if needed), then instrument init
 	IFT FEAT_CONSTANTSPEED==0
 		lda #$ff					; The speed as immediate operand is is changed by the code.
@@ -755,26 +756,26 @@ oo1i
 	lda (ns),y						; vvnnnnnn iiiiiivv		(v=volume,n=note,i=instrument)
 	sta reg1
 	and #$3f						; 0-63
-	cmp #61							; 61 = Volume only
-	beq oo1a
+	cmp #61							; 61-63 are special notes.
+	beq oo1a						; =61, this is the empty note. It only sets the volumne bit not the note and instrument.
 	bcs oo2							;>61
 	; Not a command so store the note (0-60).
 	sta trackn_note,x				; Set the track note.
 
-	; Process the instrument #
+	; Get the instrument number, multiplied by 2.
 	iny
-	lda (ns),y						; instr = (data & 0xfc) >> 1
+	lda (ns),y						; instrx2 = (data & 0xfc) >> 1
 	lsr @							; 0iiiiiiX
 	and #$3f*2						; 0iiiiii0
 	sta trackn_instrx2,x			; Set the track instrument.
 
 oo1a								; Process volume data
 	lda #1							; After a note (or a volume change) there is a pause of 1 row
-	sta trackn_pause,x				; got a note
+	sta trackn_pause,x				; Got a note.
 
 	; Get the volume
 	ldy trackn_idx,x				; <Y> := track index
-	inc trackn_idx,x				; move to the next data point in the track
+	inc trackn_idx,x				; Move to the next data point in the track
 	lda (ns),y
 	lsr @
 	ror reg1
@@ -790,10 +791,10 @@ RMTGLOBALVOLUMEFADE equ *-1
 voig
 	EIF
 	and #$f0	;vvvv0000
-	sta trackn_volume,x	;sets the volume
-oo1x		;V: gtl_checkEndOfLoop
+	sta trackn_volume,x		; Sets the volume.
+oo1x
 	cpx #TRACKS-1
-	bne oo1
+	bne oo1 				;X stays at #TRACKS-1, which is used below
 
 	IFT FEAT_CONSTANTSPEED==0
 		lda #$ff					; The song/buffer speed as immediate operand is is changed by the code.
@@ -803,23 +804,24 @@ v_bspeed equ *-1					; ptr to #$ff location in the code	;V: smc_bspeed
 		lda #FEAT_CONSTANTSPEED
 	EIF
 	sta v_aspeed	;and to the current one too
-;END of GetTrackLine => falls through to the instrument initialization
-;X = #TRACKS - 1 !
-	jmp InitOfNewSetInstrumentsOnly	;X must equal #TRACKS-1
-	
-oo2	;V: gtl_Is62or63
-;note>61
+
+	;END of GetTrackLine => falls through to the instrument initialization with X = #TRACKS - 1 !
+	jmp InitOfNewSetInstrumentsOnly		;X must be equal to #TRACKS-1
+
+oo2										; Note/command is 62 or 63.
 	cmp #63
 	beq oo63	;=63 => branch
-;note=62 (00pause, byte ; or 01pause =1 row, 10pause =2 rows, 11pause =3 rows )
-	lda reg1
+
+	lda reg1				;note=62 (00pause, byte ; or 01pause =1 row, 10pause =2 rows, 11pause =3 rows )
 	and #$c0	;top two bits
 	beq oo62_b	;zero => the next byte is the pause size => branch
+
 	asl @	;xy000000 => C y0000000
 	rol @	;C y0000000 => C 0000000x
 	rol @	;C 0000000x => 000000xy
 	sta trackn_pause,x
 	jmp oo1x
+
 oo62_b
 	iny
 	lda (ns),y
@@ -834,14 +836,14 @@ oo63
 ;note=63 (+top bit 0) (speed, byte)
 		iny
 		lda (ns),y
-		sta v_bspeed				; Set the song speed
+		sta v_bspeed				; Set the song speed to the buffered speed.
 		inc trackn_idx,x	;for next time
 		jmp oo1i	;immediately continues to the next pair in the track
 oo63_1X
 	EIF
 	cmp #255	;192+63(go) => 255 (=END, ends all tracks and advances in the song)
 	beq oo63_11
-;oo63_10
+
 ;note=63 (top two bits 10)
 	iny
 	lda (ns),y

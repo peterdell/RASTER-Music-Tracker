@@ -17,7 +17,7 @@
 ;* 3. Because of RMTplayer provides a lot of effects, it can spend a lot of CPU time.
 ;*
 
-; Raster's change history
+; Raster's change history:
 ; 10.12.2002
 ; - speed-change fix - A changed speed is written to v_speed only after all 4 (resp. 8)
 ;   tracks are done. i.e. if the change is in the first row of a track and a goto moves it
@@ -270,10 +270,10 @@ trackn_tableend		org *+TRACKS			;table length
 trackn_tablelop		org *+TRACKS			;table repeat
 	EIF
 
-trackn_tablespeeda	org *+TRACKS			;current table speed
+trackn_tablespeeda	org *+TRACKS			; The current table speed
 
 	IFT FEAT_FILTER||FEAT_BASS16
-trackn_command		org *+TRACKS			;the instrument command currently being executed
+trackn_command		org *+TRACKS			; The instrument command currently being executed
 	EIF
 	IFT FEAT_BASS16
 trackn_outnote		org *+TRACKS			;resulting note (after all shifts)
@@ -340,8 +340,8 @@ vibtabnext
 
 		org PLAYER-$100-$140		;5 tables*$40 = $140
 ;
-;the regular notes are 0-59
-;notes 60,61,62,63 use note 63's frequency but VOLUME=0 => inaudible
+;		The regular notes are 0-59.
+;		The notes 60,61,62,63 use note 63's frequency but VOLUME=0, sot they are inaudible.
 ;
 ;
 	IFT FEAT_BASS16
@@ -661,6 +661,7 @@ nn1
 
 	lda #0
 	sta trackn_idx,x				; Reset the track index to 0.
+
 	lda #1						
 nn1a2 								; Init track,  #1 is a new track, #0 is no new track
 	sta trackn_pause,x				; OPTIMIZATION: So it can jump to nn1a2 for an empty track (i.e. must include the $80 -> instrx2,x below)
@@ -701,9 +702,8 @@ nn3									; Track number is GOTO ($fe).
 	ldx #0							; <X> must be 0 before jumping to nn0, to process the new song line from #0 (up to 7)
 	beq nn0							; Unconditional jump to the next song line.
 
-; Process one line of a track
+; Process the next line of a track for all tracks.
 GetTrackLine		;does get trackline (calling GetSongline back if needed), then instrument init
-;next row in the tracks
 
 	IFT FEAT_CONSTANTSPEED==0
 		lda #$ff					; The speed as immediate operand is is changed by the code.
@@ -741,12 +741,12 @@ oo1i
 	; 61 - Volume only
 	; 62 = Pause/empty line
 	; 63 - Speed, go loop or end
-	lda (ns),y						;vvnnnnnn iiiiiivv		(v=volume,n=note,i=instrument)
+	lda (ns),y						; vvnnnnnn iiiiiivv		(v=volume,n=note,i=instrument)
 	sta reg1
 	and #$3f						; 0-63
-	cmp #61
-	beq oo1a						;=61 => empty note (does not set note and instrument, only volume)
-	bcs oo2							;>61
+	cmp #61							; 61-63 are special notes, i.e. commands.
+	beq oo1a						; =61, this is the empty note. It only sets the volumne bit not the note and instrument.
+	bcs oo2							; >61
 
 	; Not a command so store the note (0-60).
 	sta trackn_note,x				; Set the track note.
@@ -754,21 +754,20 @@ oo1i
 	sta trackn_outnote,x			;(if nothing changes it anymore, it stays the same as note)
 	EIF
 
-	; Process the instrument #
+	; Get the instrument number, multiplied by 2.
 	iny
-	lda (ns),y
-;	sta reg2
-;	lda reg2						; iiiiiiXX
+	lda (ns),y						; instrx2 = (data & 0xfc) >> 1
 	lsr @							; 0iiiiiiX
 	and #$3f*2						; 0iiiiii0
 	sta trackn_instrx2,x			; Set the track instrument.
 
 oo1a								; Process volume data
 	lda #1							; After a note (or a volume change) there is a pause of 1 row
-	sta trackn_pause,x		;
-	ldy trackn_idx,x
-	inc trackn_idx,x
-;	lda reg2						;iiiiiivv
+	sta trackn_pause,x				; Got a note.
+
+	; Get the volume
+	ldy trackn_idx,x				; <Y> := track index
+	inc trackn_idx,x				; Move to the next data point in the track
 	lda (ns),y
 	lsr @
 	ror reg1
@@ -777,19 +776,18 @@ oo1a								; Process volume data
 	lda reg1
 	IFT FEAT_GLOBALVOLUMEFADE
 	sec
-	sbc #$00				;self-modified parameter
+	sbc #$00				; self-modified parameter
 RMTGLOBALVOLUMEFADE equ *-1
 	bcs voig	;>=0
 	lda #0		;<0 => must zero it
 voig
 	EIF
-	and #$f0				;vvvv0000
-	sta trackn_volume,x		;sets the volume
+	and #$f0				; vvvv0000
+	sta trackn_volume,x		; Sets the volume.
 oo1x
-;	inx						;moved up (X is initialized to -1, then always inx first and only then the work for X (i.e. X=0 to TRACKS-1)
-xtracks03sub1	cpx #TRACKS-1
-	;X stays at #TRACKS-1, which is used below
-	bne oo1
+	cpx #TRACKS-1
+	bne oo1 				;X stays at #TRACKS-1, which is used below
+
 	IFT FEAT_CONSTANTSPEED==0
 	lda #$ff			;speed from the buffer (the parameter is self-modified)
 v_bspeed equ *-1	;the parameter is self-modified
@@ -798,28 +796,25 @@ v_bspeed equ *-1	;the parameter is self-modified
 	lda #FEAT_CONSTANTSPEED
 	EIF
 	sta v_aspeed			;and to the current one too
-;	rts						;END of GetTrackLine
-	;END of GetTrackLine => falls through to the instrument initialization
-;xtracks04sub1	ldx #TRACKS-1	;this must be set before jumping to InitOfNewSetInstrumentsOnly
-	;X = #TRACKS - 1 !
-	jmp InitOfNewSetInstrumentsOnly		;X must equal #TRACKS-1
-oo2
-;note>61
+
+	;END of GetTrackLine => falls through to the instrument initialization with X = #TRACKS - 1 !
+	jmp InitOfNewSetInstrumentsOnly		;X must be equal to #TRACKS-1
+
+oo2										; Note/command is 62 or 63.
 	cmp #63
 	beq oo63				;=63 => branch
-;note=62 (00pause, byte ; or 01pause =1 row, 10pause =2 rows, 11pause =3 rows )
-	lda reg1
+
+	lda reg1				;note=62 (00pause, byte ; or 01pause =1 row, 10pause =2 rows, 11pause =3 rows )
 	and #$c0				;top two bits
 	beq oo62_b				;zero => the next byte is the pause size => branch
-;	clc						;not needed, a few lines back cmp #63 sets C=0 for 62
+
 	asl @					;xy000000 => C y0000000
 	rol @					;C y0000000 => C 0000000x
 	rol @					;C 0000000x => 000000xy
 	sta trackn_pause,x
-;	dec trackn_idx,x		;the second byte is not used (idx was already advanced by 2, so now 1 back)
 	jmp oo1x
+
 oo62_b
-;	lda reg2
 	iny
 	lda (ns),y
 	sta trackn_pause,x
@@ -831,19 +826,17 @@ oo63
 	bmi oo63_1X
 ;oo63_0X
 ;note=63 (+top bit 0) (speed, byte)
-;	lda reg2		;takes the new speed
 	iny
 	lda (ns),y
-	sta v_bspeed	;the new speed only into the buffer
-	inc trackn_idx,x		;for next time
-	jmp oo1i	;immediately continues to the next pair in the track
+		sta v_bspeed				; Set the song speed to the buffered speed.
+	inc trackn_idx,x			;for next time
+	jmp oo1i					;immediately continues to the next pair in the track
 oo63_1X
 	EIF
 	cmp #255		;192+63(go) => 255 (=END, ends all tracks and advances in the song)
 	beq oo63_11
-;oo63_10
+
 ;note=63 (top two bits 10)
-;	lda reg2		;go byte
 	iny
 	lda (ns),y
 	sta trackn_idx,x
