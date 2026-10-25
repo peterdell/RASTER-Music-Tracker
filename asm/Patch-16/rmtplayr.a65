@@ -723,6 +723,7 @@ nn3									; Track number is GOTO ($fe).
 
 ; Process the next line of a track for all tracks.
 GetTrackLine	;does get trackline (calling GetSongline back if needed), then instrument init
+
 	IFT FEAT_CONSTANTSPEED==0
 		lda #$ff					; The speed as immediate operand is is changed by the code.
 v_speed equ *-1
@@ -756,9 +757,10 @@ oo1i
 	lda (ns),y						; vvnnnnnn iiiiiivv		(v=volume,n=note,i=instrument)
 	sta reg1
 	and #$3f						; 0-63
-	cmp #61							; 61-63 are special notes.
+	cmp #61							; 61-63 are special notes, i.e. commands.
 	beq oo1a						; =61, this is the empty note. It only sets the volumne bit not the note and instrument.
 	bcs oo2							;>61
+
 	; Not a command so store the note (0-60).
 	sta trackn_note,x				; Set the track note.
 
@@ -852,62 +854,62 @@ oo63_1X
 oo63_11
 ;note=63 (top two bits 11) (=>byte1=255)
 	jmp GetSongLine
-	
-p2xrmtp3	
+
+p2xrmtp3			; The bmi p2xrmt_p3 a bit below makes use of this
 	jmp rmt_p3
-p2x0 	
+
+p2x0				; Jumped-to only on the next pass of the <X> loop from 7->0
 	dex
-	bmi p2xrmtp3	;END of the InitOfNewSetInstrumentsOnly part => falls through to rmt_p3
+	bmi p2xrmtp3	; Loop ended, X=-11
+
+	;END of the InitOfNewSetInstrumentsOnly part => falls through to rmt_p3
 	
-InitOfNewSetInstrumentsOnly	;CAUTION! Before jumping to InitOfNewSetInstrumentsOnly, ldx #TRACKS-1 must be loaded
+InitOfNewSetInstrumentsOnly		; CAUTION! Before jumping to InitOfNewSetInstrumentsOnly, ldx #TRACKS-1 must be loaded
 p2x1 	
-	ldy trackn_instrx2,x
-	bmi p2x0		; If bit 7 i set, there is no new instrument to initialize for this channel
+	ldy trackn_instrx2,x		; Get the instrument number*2 in the current track.
+	bmi p2x0					; If bit 7 is set, there is no new instrument to initialize. Process withthe next track.
 	
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
-;* start of RMT_SFX code...
+; Start of the RMT_SFX code.
 	
 	IFT FEAT_SFX
 	jsr SetUpInstrumentY2
 	jmp p2x0
+
 rmt_sfx
-	sta trackn_note,x	;sets trackn_note
+		sta trackn_note,x		; Set trackn_note.
 	lda #$f0		;* sfx note volume*16
 RMTSFXVOLUME equ *-1		;* label for sfx note volume parameter overwriting
-	sta trackn_volume,x	;sets the volume
-;continues...
-	EIF
+	sta trackn_volume,x		; Sets the volume
+	EIF						; Fall-though to SetUpInstrumentY2 with <Y> = instrument number *2, <X> = track number
 	
-;* end of RMT_SFX code...
+; End of RMT_SFX code.
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 	
 ;it is inlined right here
-SetUpInstrumentY2	;Y holds the instrument number *2, X the track number
+SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track number
 	lda (p_instrstable),y
-	sta trackn_instrdb,x	;sets the instrument
+	sta trackn_instrdb,x		; Set the instrument table pointer.
 	sta nt
 	iny
 	lda (p_instrstable),y
 	sta trackn_instrhb,x
 	sta nt+1
 	
-;----------OPTIMIZATION--- this block moved a bit lower where A=0 and C=1 remain, usable for Y=0 via TAY, and the carry for the addition
-;y=0
-;y=0 still
 	IFT FEAT_FILTER
-;		lda #1		; This is the RMT 1.28 value.
-	lda #0			;* V: EXPERIMENTAL approach for more precise manipulation of the PWM
-	sta trackn_filter,x	; Set the filtering offset value on new notes.
-	ora #1			; the value of 1 is expected here, so just provide it I guess
+;		lda #1					; This is the RMT 1.28 value.
+		lda #0					;* V: EXPERIMENTAL approach for more precise manipulation of the PWM
+		sta trackn_filter,x		; Set the filtering offset value on new notes.
+		ora #1					; The value of 1 is expected here, so just provide it I guess
 	EIF
 	
-	IFT FEAT_TABLEGO	;TABLEGO
+	IFT FEAT_TABLEGO			; TABLEGO
 	IFT FEAT_FILTER
-	tay	;y=1		;with FEAT_FILTER, reuses A=1 via TAY (=> Y=1)
+	tay	;y=1					;with FEAT_FILTER, reuses A=1 via TAY (=> Y=1)
 	ELS
-	ldy #1	;y=1		;without FEAT_FILTER, must do ldy #1
+	ldy #1	;y=1				;without FEAT_FILTER, must do ldy #1
 	EIF
 	lda (nt),y
 	sta trackn_tablelop,x
@@ -932,14 +934,14 @@ SetUpInstrumentY2	;Y holds the instrument number *2, X the track number
 	sta trackn_tablespeeda,x
 	IFT FEAT_TABLEMODE
 	lda (nt),y
-	and #$40	;0m00 0000 (mode only)
+	and #$40					;0m00 0000 (mode only)
 	sta trackn_tablemode,x
 	EIF
 ;y=4
 	IFT FEAT_AUDCTLMANUALSET
 	iny	;#5
 	lda (nt),y
-	sta trackn_audctl,x	;audctl
+	sta trackn_audctl,x			;audctl
 	iny	;#6
 	ELS
 	ldy #6
@@ -951,6 +953,7 @@ SetUpInstrumentY2	;Y holds the instrument number *2, X the track number
 	IFT FEAT_VOLUMEMIN
 	iny	;#7
 	lda (nt),y	;mmmm 0000 volume minimum for the volume decay
+;	and #$f0								; Not required bits are already 0.
 	sta trackn_volumemin,x
 	IFT FEAT_EFFECTS
 	iny	;#8
@@ -967,6 +970,7 @@ SetUpInstrumentY2	;Y holds the instrument number *2, X the track number
 	IFT FEAT_EFFECTVIBRATO
 	iny	;#9
 	lda (nt),y	;effvibrato  0000 00vv  ($0-$3)
+;	and #$03								; Not required bits are already 0.
 	tay
 	lda vibtabbeg,y
 	sta trackn_effvibratoa,x
@@ -976,27 +980,36 @@ SetUpInstrumentY2	;Y holds the instrument number *2, X the track number
 	lda (nt),y	;effshift
 	sta trackn_effshift,x
 	EIF	;/FEAT_EFFECTFSHIFT
-	EIF
+	EIF ; /FEAT_EFFECTS
+
+;	Note: byte 11 was free in Unpatched and is used in Patch16.
 	IFT FEAT_TABLE_MANUAL	; Manual tuning table loaded from instruments, based on the unused 12th byte, this is not yet fully implemented into RMT
-	ldy #11
-	lda (nt),y
-	sta trackn_pointertable,x	
-	EIF	;/FEAT_EFFECTS
-;by now Y holds who-knows-what ;-)
-;note: byte 11 is free, reserved for future extensions
-	lda #128	;the volume decay is "rounded" (i.e. it starts from +128/256)
+		ldy #11
+		lda (nt),y
+		sta trackn_pointertable,x
+	EIF	;
+
+;	By now Y holds who-knows-what ;-)
+
+	lda #128						;the volume decay is "rounded" (i.e. it starts from +128/256)
 	sta trackn_volumeslidevalue,x
-	sta trackn_instrx2,x	;OPTIMIZATION: the instrument was just set up, so $80 is raised again to avoid repeated setup
-	asl @	;OPTIMIZATION: a=0 (it was a=128 before, asl turns that into 0)
-	sta trackn_instrreachend,x	;then on the first instrument "go" it is set to $80 (volume starts decaying from then on)
+;	lda #$80						;OPTIMIZATION: moved here from below, because A=128 = $80 right now!
+	sta trackn_instrx2,x			;OPTIMIZATION: the instrument was just set up, so $80 is raised again to avoid repeated setup
+;	lda #0							;OPTIMIZATION
+	asl @							;OPTIMIZATION: <A>=$00 (it was $80 before, asl turns that into $00)
+	sta trackn_instrreachend,x		;then on the first instrument "go" it is set to $80 (volume starts decaying from then on)
 	sta trackn_shiftfrq,x
 ;carry is now always C=1 (after asl of the value 128)
-	tay	;y=0	     (carry stays C=1)
+
+	tay								;<Y>:=<A>=$00, carry stays C=1
 ;y=0
-	lda (nt),y	;(carry stays C=1)
-	sta trackn_tableend,x	;(carry stays C=1)
-	adc #0	;a=a+1 (carry stays C=1)		;this used to be clc and adc #1
-	sta trackn_instridx,x	;the envelope starts 1 byte after the table
+	lda (nt),y			    		; Carry stays C=1.
+	sta trackn_tableend,x   		; Carry stays C=1.
+;	clc								; Carry stays C=1. Saves 2 cycles compared to "clc:adc #1"
+	adc #0							; <A>:=<A>+1 because C=1.
+	sta trackn_instridx,x			; The envelope starts 1 byte after the table
+;
+;and now the remaining parameters
 	lda #INSTRPAR	;12
 	sta trackn_tablea,x	;starts from table entry 0 (=byte 12)
 	tay	;ldy #INSTRPAR
@@ -1004,13 +1017,17 @@ SetUpInstrumentY2	;Y holds the instrument number *2, X the track number
 	sta trackn_tablenote,x	;if tableend=0 => only this ever remains
 
 	IFT FEAT_SFX||FEAT_IS_TRACKER
-	rts 			
-;* a rts is mandatory for the 'tracker.obx' binary, else a lot of things break in RMT! 
-;* look inside 'rmtextra.a65' for the exclusive tracker.obx code
+		rts
+;	The "rts" is mandatory for the tracker binary, else a lot of things break in RMT! 
+;	Look inside 'rmtextra.a65' for the exclusive tracker.obx code
 	ELS
-	jmp p2x0		; go process the next channel's instrument
+		jmp p2x0		; Process the next channel's instrument.
 	EIF
 
+;---------------------------------------------------------------------------------------------------------------------------------------------;
+;
+; Start of "RMT_PLAY" code.
+;
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
 ;called every 1/50 sec.
@@ -1020,25 +1037,29 @@ rmt_p0
 	jsr SetPokey
 	
 rmt_p1
-;instruments running faster than VBI
+;------------------------------------------------------------------------------------------
+;	Are the instruments running faster than VBI?
+
 	IFT FEAT_INSTRSPEED==0||FEAT_INSTRSPEED>1
 		dec v_ainstrspeed
 		bne rmt_p3	;continue to the instrument envelope processing
 ;(skipping the classic track processing)
 	EIF
 	IFT FEAT_INSTRSPEED==0
-		lda #$ff	;the parameter is self-modified
-v_instrspeed	equ *-1				; ptr to #$ff location in the code	;V: smc_instrspeed
+		lda #$ff					;the parameter is self-modified
+v_instrspeed	equ *-1	
 		sta v_ainstrspeed
 	ELI FEAT_INSTRSPEED>1
 		lda #FEAT_INSTRSPEED
 		sta v_ainstrspeed
 	EIF
 	
-rmt_p2
-;track processing
+
+;------------------------------------------------------------------------------------------
+rmt_p2								; Track processing
 	dec v_aspeed
 	bne rmt_p3	;jump (past the initialization of newly set instruments)
+;
 	inc v_abeat					; ++v_abeat
 
 ;	if (v_abeat == v_maxtracklen) then GetSongLine else GetTrackLine
