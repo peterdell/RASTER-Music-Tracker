@@ -110,10 +110,12 @@ FEAT flags (`rmt_feat.a65`):
 
 - Instrument envelope fetch: Raster's `pp1` loop reads the three
   envelope bytes into `reg1`/`reg2`/`reg3`; Vin split a pre-pass out of
-  it (`dodex`/`dodex_a`/`dexnext`) that stores them into new per-track
-  arrays `trackn_volumeenvelope`/`trackn_command`/`trackn_effectparameter`
-  instead. The main pass (`pp0`/`pp1`/`pp2`/`ppnext`) survives with its
-  old names.
+  it (`dodex`/`dexnext`) that stores them into new per-track arrays
+  `trackn_volumeenvelope`/`trackn_command`/`trackn_effectparameter`
+  instead. The pre-pass's store point carries Raster's `pp2` name, as in
+  the unpatched player (it was Vin's `dodex_a`; Vin's unreferenced `pp2`
+  marker on the main pass's envelope code is gone). The main pass
+  (`pp0`/`pp1`/`ppnext`) survives with its old names.
 - The rmt_set_pokey / filter / 16-bit bass / AUDCTL assembly area (Raster's
   `qq*`/`qs*` labels) is fully reworked in Patch-16; some old names
   reappear there on different code, so no label-to-label mapping holds.

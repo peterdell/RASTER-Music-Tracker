@@ -338,11 +338,11 @@ vibtabnext
 		dta vib3-vib0+1,vib3-vib0+2,vib3-vib0+3,vib3-vib0+4,vib3-vib0+5,vib3-vib0+6,vib3-vib0+7,vib3-vib0+8,vib3-vib0+9,vib3-vib0+0
 		EIF
 
-		org PLAYER-$100-$140		; 5 tables*$40 = $140
+		org PLAYER-$100-$100-$40		; 1 table*$40 = $40
 ;
 ;		The regular notes are 0-59.
-;		The notes 60,61,62,63 use note 63's frequency but VOLUME=0, sot they are inaudible.
-;
+;		The notes 60,61,62,63 are actually commany.
+;		They use note 63's frequency but VOLUME=0, sot they are inaudible.
 ;
 	IFT FEAT_BASS16
 frqtabbasslo
@@ -350,29 +350,29 @@ frqtabbasslo
 	dta $95,$41,$F6,$B0,$6E,$30,$F6,$BB,$84,$52,$22,$F4,$C8,$A0,$7A,$55
 	dta $34,$14,$F5,$D8,$BD,$A4,$8D,$77,$60,$4E,$38,$27,$15,$06,$F7,$E8
 	dta $DB,$CF,$C3,$B8,$AC,$A2,$9A,$90,$88,$7F,$78,$70,$6A,$64,$5E,$00
-; The high bytes (basshi) come after the frqtab tables, so that frqtab sits on a page boundary
 	EIF
-;
+;	The high bytes (frqtabbasshi) come after the frqtab tables, so that frqtab sits on a page boundary
+
 		org PLAYER-$100-$100		; 4 tables*$40 = $100
 frqtab
 	ERT [<frqtab]!=0	; frqtab must begin at the memory page bound! (i.e. $..00 address)
-; BASS 1 (0c)
-; 8 extra tones an octave up, to align the tuning
+
+; BASS 1 (distortion 0c)
+; 8 extra tones an octave up, to align the tuning. The top 7 ($07..$00) were removed.
 frqtabbass1
 	dta $BF,$B6,$AA,$A1,$98,$8F,$89,$80,$F2,$E6,$DA,$CE,$BF,$B6,$AA,$A1
 	dta $98,$8F,$89,$80,$7A,$71,$6B,$65,$5F,$5C,$56,$50,$4D,$47,$44,$3E
 	dta $3C,$38,$35,$32,$2F,$2D,$2A,$28,$25,$23,$21,$1F,$1D,$1C,$1A,$18
 	dta $17,$16,$14,$13,$12,$11,$10,$0F,$0E,$0D,$0C,$0B,$0A,$09,$08,$07
-; And here the top 8 were removed
-;-------------------
-; BASS 2 (0e)
+
+; BASS 2 (distortion 0e)
 frqtabbass2
 	dta $FF,$F1,$E4,$D8,$CA,$C0,$B5,$AB,$A2,$99,$8E,$87,$7F,$79,$73,$70
 	dta $66,$61,$5A,$55,$52,$4B,$48,$43,$3F,$3C,$39,$37,$33,$30,$2D,$2A
 	dta $28,$25,$24,$21,$1F,$1E,$1C,$1B,$19,$17,$16,$15,$13,$12,$11,$10
 	dta $0F,$0E,$0D,$0C,$0B,$0A,$09,$08,$07,$06,$05,$04,$03,$02,$01,$00
 ;
-; Pure tones (0a) and for noise 0,2,4,8
+; Pure tones (distortion 0a) and noise (distortion 00,02,04,08)
 frqtabpure
 	dta $F3,$E6,$D9,$CC,$C1,$B5,$AD,$A2,$99,$90,$88,$80,$79,$72,$6C,$66
 	dta $60,$5B,$55,$51,$4C,$48,$44,$40,$3C,$39,$35,$32,$2F,$2D,$2A,$28
@@ -415,15 +415,18 @@ volumetab
 	org PLAYER
 
 ;
-; Start of the RMT jump table.
+; Start of the RMT jump table with official vectors to call.
+; The naming follows the Atari OS naming with "v" suffix, for official vectors, e.g. "ciov".
 ;
 RASTERMUSICTRACKER
+
 	; Initialize
 	;
 	; Must be run first, to clear memory and initialize the player.
 	; Once this is done, run rmt_play afterwards, or rmt_set_pokey if you want to manually time certain things.
 	; IN:  <X>=module address low byte, Y=module address high byte, <A>=starting song line(0-255)
 	; OUT: <A>=the instrument speed (1= 1 time per VBI (normal), 2 = 2 times per VBI, 3 = 3 times per VBI, ...
+rmt_initv
 	jmp rmt_init			;
 
 	; Play
@@ -435,13 +438,16 @@ RASTERMUSICTRACKER
 	; OUT: <A>=the current the instrument speed. TODO: JAC! Really? This was in Raster's comment.
 	; TODO: JAC! How does this relate to rmt_p3? Rasters original comment clearly states that "rmt_play" is per frame.
 	; So it would make sense that rmt_p3 is to be called within a frame to update only the instruments.
+rmt_playv
 	jmp rmt_play
 
 	; Play3
 	; R: ;(without rmt_set_pokey, Song and Track handling) from the instrument processing on
 	; Similar to rmt_play, but will also skip rmt_set_pokey and the instruments/songlines/tracklines initialization.
+rmt_play3v
 	jmp rmt_p3
 
+rmt_silencev
 	; Set Silence
 	;
 	; Sets all POKEY registers to their initial values.
@@ -451,6 +457,7 @@ RASTERMUSICTRACKER
 	jmp rmt_silence
 
 	; Set POKEY Registers
+rmt_set_pokeyv
 	;
 	; Copies the contents of the shadow POKEY registers (v_audctl, v_skctl, trackn_audf,x etc) into the hardware registers.
 	; This is call as the first step in "rmt_play".
@@ -459,10 +466,10 @@ RASTERMUSICTRACKER
 	jmp rmt_set_pokey
 
 	IFT FEAT_SFX
-	; Play Sound Effect
+	; Activate Sound Effect
 	;
-	; Plays a note with a given instrument on a given channel.
-	; This overrides the instrument played by the song.
+	; Activates a note with a given instrument on a given channel.
+	; This overrides the instrument currently played by the song.
 	; IN: <A>=note(0,..,60), <X>=channel(0,..,3 in mono or 0,..,7 in stereo), <Y>=instrument*2 (0,2,4,..,126) 
 	jmp rmt_sfx	
 	EIF
@@ -632,7 +639,7 @@ si1		sta $d200,y
 	EIF
 	rts
 
-; End of rmt_silence code.
+; End of "rmt_silence" code.
 	
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
@@ -745,7 +752,7 @@ oo1i
 	; Not a command so store the note (0-60).
 	sta trackn_note,x				; Set the track note.
 	IFT FEAT_BASS16	
-	sta trackn_outnote,x			; (if nothing changes it anymore, it stays the same as note)
+	sta trackn_outnote,x			; If nothing changes it anymore, it stays the same as note.
 	EIF
 
 	; Get the instrument number, multiplied by 2.
@@ -891,17 +898,17 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 	EIF
 
 	IFT FEAT_TABLEGO			; TABLEGO
-	IFT FEAT_FILTER
-	tay		; y=1				;with FEAT_FILTER, reuses A=1 via TAY (=> Y=1)
-	ELS
-	ldy #1	; y=1				;without FEAT_FILTER, must do ldy #1
-	EIF
-	lda (p_nt),y
-	sta trackn_tablelop,x
-	iny ; #2
-	ELS	; /TABLEGO else
-	ldy #2
-	EIF					; /TABLEGO
+		IFT FEAT_FILTER
+			tay					; With FEAT_FILTER, reuses <A>=1 via "tay", so <Y>:=1.
+		ELS
+			ldy #1				; Without FEAT_FILTER, must do "ldy #1"
+		EIF
+		lda (p_nt),y
+		sta trackn_tablelop,x
+		iny	; #2
+	ELS	
+		ldy #2
+	EIF	
 ; y=2
 	lda (p_nt),y
 	sta trackn_instrlen,x
@@ -972,28 +979,28 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 
 	lda #128						; The volume decay is "rounded" (i.e. it starts from +128/256)
 	sta trackn_volumeslidevalue,x
-;	lda #$80						;OPTIMIZATION: moved here from below, because A=128 = $80 right now!
+;	lda #$80						; OPTIMIZATION: moved here from below, because A=128 = $80 right now!
 	sta trackn_instrx2,x			; OPTIMIZATION: the instrument was just set up, so $80 is raised again to avoid repeated setup
-;	lda #0							;OPTIMIZATION
+;	lda #0							; OPTIMIZATION
 	asl @							; OPTIMIZATION: <A>=$00 (it was $80 before, asl turns that into $00)
 	sta trackn_instrreachend,x		; Then on the first instrument "go" it is set to $80 (volume starts decaying from then on)
 	sta trackn_shiftfrq,x
 ; Carry is now always C=1 (after asl of the value 128)
 
-	tay								; <Y>:=<A>=$00, carry stays C=1
+	tay								; <Y>:=<A>=$00, carry stays C=1.
 ; y=0
-	lda (p_nt),y			    		; Carry stays C=1.
-	sta trackn_tableend,x				; Carry stays C=1.
+	lda (p_nt),y			    	; Carry stays C=1.
+	sta trackn_tableend,x			; Carry stays C=1.
 ;	clc								; Carry stays C=1. Saves 2 cycles compared to "clc:adc #1"
 	adc #0							; <A>:=<A>+1 because C=1.
 	sta trackn_instridx,x			; The envelope starts 1 byte after the table
 ;
 ; And now the remaining parameters
-	lda #INSTRPAR							; 12
-	sta trackn_tablea,x						; Starts from table entry 0 (=byte 12)
-	tay										; ldy #INSTRPAR	
-	lda (p_nt),y							; Note 0 of the instrument table	(=byte 12)
-	sta trackn_tablenote,x					; If tableend=0 => only this ever remains
+	lda #INSTRPAR
+	sta trackn_tablea,x				; Starts from table entry 0 (=byte 12)
+	tay								; ldy #INSTRPAR	
+	lda (p_nt),y					; Note 0 of the instrument table	(=byte 12)
+	sta trackn_tablenote,x			; If tableend=0 => only this ever remains
 
 xata_rtshere				; rmt_ata.a65 writes an "rts" instruction onto this label so that
 							; the JSR SetUpInstrumentY2 routine can be called as a subroutine.
@@ -1041,65 +1048,61 @@ rmt_p2								; Track processing
 	dec v_aspeed
 	bne rmt_p3			; Jump (past the initialization of newly set instruments)
 ;
-	inc v_abeat			; Current beat++
-	lda #$ff			; The parameter is self-modified   v_abeat
+	inc v_abeat			; Next beat in the track.
+
+	lda #$ff			; The copy of v_abeat as immediate operand is is changed by the code.
 v_abeat equ *-1
 	cmp #$ff			; Is it the maximum track length?
 v_maxtracklen equ *-1	; Parameter self-modification
 	beq p2o3			; Yes => branch
-; No, so continue to the next track line
-; p2o2
-	jmp GetTrackLine	; (which itself calls GetSongLine when needed)
+	jmp GetTrackLine	; No, so continue to the next track line. Itself calls GetSongLine when needed
 						; and then also calls InitOfNewSetInstrumentsOnly and continues to rmt_p3
+
 p2o3
 ; Yes => next song line
 ;;	jsr GetSongLine		;next line in the song (v_abeat is initialized there)
 ;	jsr GetSongLineTrackLineInitOfNewSetInstrumentsOnly
 ;	jmp rmt_p3
-	jmp GetSongLine				; Get song line, track line, init new instruments and continue to rmt_p3.
-;
-;
-;
-;
+	jmp GetSongLine		; Get song line, track line, init new instruments and continue to rmt_p3.
+
 go_ppnext	jmp ppnext	; Just a FAR jump for the beq a bit below whose branch is out of range
 ;
-rmt_p3
 ;------------------------------------------------------------------------------------------
-; Envelope processing
-	lda #>frqtab
+
+rmt_p3							; Envelope processing
+	lda #>frqtab				; Initialize pointer to frequency table.
 	sta p_nr+1
-;	ldx #0						;OPTIMIZATION from 0->7 (x++)
-xtracks05sub1	ldx #TRACKS-1	; OPTIMIZATION to 7->0 (x--)  ...for the envelope processing the order may be swapped
-;	stx p_nr			(the low byte is set during the envelope processing)
+	ldx #TRACKS-1				; OPTIMIZATION to 7->0 (x--)  ...for the envelope processing the order may be swapped
+;	stx p_nr					; (the low byte is set during the envelope processing)
 pp1
 	lda trackn_instrhb,x
-	beq go_ppnext						; A bit above is go_ppnext jmp ppnext
+	beq go_ppnext				; An empty instrument has high byte $00. Process the next channel's bytes immediately. A bit above is go_ppnext jmp ppnext
 	sta p_ns+1
 	lda trackn_instrdb,x
 	sta p_ns
 	ldy trackn_instridx,x
-	lda (p_ns),y
+	lda (p_ns),y					; Get volume byte
 	sta reg1
 	iny
-	lda (p_ns),y
+	lda (p_ns),y					; Get command and distortion byte
 	sta reg2
 	iny
-	lda (p_ns),y
+	lda (p_ns),y					; Get $XY parameter byte
 	sta reg3
 	iny
 	tya
 	cmp trackn_instrlen,x
 	bcc pp2
 	beq pp2
-	; An instrument goto is executed => sets trackn_instrreachend
-	lda #$80
+	lda #$80						; An instrument goto is executed => sets trackn_instrreachend
 	sta trackn_instrreachend,x	
 pp1b
 	lda trackn_instrlop,x	
-pp2	sta trackn_instridx,x
+pp2
+	sta trackn_instridx,x
+
 	lda reg1				; The instrument's volume envelope [rrrr llll] (R right, L left)
 	IFT TRACKS>4
-
 	cpx #4					; Is it channel 4-7?
 	bcc pp2s				; No, it is 0-3 => branch and use 0000 llll directly
 	lsr @					; Yes => shift rrrrllll
@@ -1463,6 +1466,7 @@ cmd0b1
 ;	sta trackn_audf,x			;OPTIMIZATION: moved a bit lower after cmd0c
 ;	jmp pp9						;OPTIMIZATION: continues straight on (through cmd0c)
 	EIF		; /FEAT_TABLETYPE
+
 ; ~~~~~~~~ CAUTION! not terminated, continues on (the jmp pp9 was removed)
 cmd0c
 	sta trackn_audf,x			; Store into audf

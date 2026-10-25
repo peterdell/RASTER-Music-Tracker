@@ -191,7 +191,6 @@ TRACKS			equ 8
 TRACKS			equ 4
 	EIF
 
-
 	IFT FEAT_IS_SIMPLEP
 PLAYER			equ $3100	; VUPlayer export driver
 	ELS
@@ -302,7 +301,7 @@ trackn_bass16		org *+TRACKS
 g_flag			org *+TRACKS
 	EIF
 	
-	IFT FEAT_TABLE_MANUAL
+	IFT FEAT_TABLE_MANUAL			; TODO: Patch16-only, never implemented in RMT
 trackn_pointertable	org *+TRACKS	
 	EIF
 	
@@ -312,10 +311,21 @@ trackn_audctl		org *+TRACKS
 	
 trackn_audf		org *+TRACKS
 trackn_audc		org *+TRACKS
-
+; v_audctl		org *+1						; The lda #... parameter is overwritten directly in the code
+; v_audctl2		org *+1						; The lda #... parameter is overwritten directly in the code
+;
+;	IFT FEAT_CONSTANTSPEED==0
+; v_speed			org *+1					; The parameter of lda #$ff is overwritten directly in the code
+;	EIF
 v_aspeed		org *+1
-
-;; The parameter of lda #$ff is overwritten directly in the code
+; v_bspeed		org *+1						; The buffer speed (until the changed speed is known to apply)
+;											; The parameter of lda #$ff is overwritten directly in the code
+;	IFT FEAT_INSTRSPEED==0||FEAT_INSTRSPEED>1
+; v_instrspeed	org *+1						; The parameter of lda #$ff is overwritten directly in the code
+; v_ainstrspeed	org *+1						; The parameter of lda #$ff is overwritten directly in the code
+;	EIF
+; v_maxtracklen	org *+1						; The parameter of cmp #$ff is overwritten directly in the code
+; v_abeat			org *+1					; The parameter of lda #$ff is overwritten directly in the code
 track_endvariables
 
 ; End of RMT definitions.
@@ -328,15 +338,15 @@ track_endvariables
 	org PLAYER-$0200	; I need to improve the label organization here as well, also do I really need to org there? my memory is hazy, why did even do this...?
 	
 	IFT FEAT_AUDCTLMANUALSET
-AUDCTLBITS		; Bits to test for AUDCTL lookup tables
-POLY9	dta $80	; Bit 7
-CH1_179	dta $40	; Bit 6
-CH3_179	dta $20	; Bit 5
-JOIN_12	dta $10	; Bit 4
-JOIN_34	dta $08	; Bit 3
-HPF_CH1	dta $04	; Bit 2
-HPF_CH2	dta $02	; Bit 1
-CLOCK15	dta $01	; Bit 0
+; Bit masks to test for AUDCTL lookup tables using the BIT instruction.
+AUDCTL_POLY9	dta $80	; Bit 7
+AUDCTL_CH1_179	dta $40	; Bit 6
+AUDCTL_CH3_179	dta $20	; Bit 5
+AUDCTL_JOIN_12	dta $10	; Bit 4
+AUDCTL_JOIN_34	dta $08	; Bit 3
+AUDCTL_HPF_CH1	dta $04	; Bit 2
+AUDCTL_HPF_CH2	dta $02	; Bit 1
+AUDCTL_CLOCK15	dta $01	; Bit 0
 	EIF	
 
 tabbeganddistor ; The start offsets into "tabfrq" and distortion values for the individual instrument distortions
@@ -393,17 +403,20 @@ volumetab
         org PLAYER
 
 ;
-; Start of the RMT jump table.
+; Start of the RMT jump table with official vectors to call.
+; The naming follows the Atari OS naming with "v" suffix, for official vectors, e.g. "ciov".
 ;
-; V: TODO: Possible improvement: give proper labels to each JMPs below... to avoid confusion, and also make things easier to map in memory, unless the destination is being JSR'ed directly...
+; TODO: Finalize the naming of the labels.
 
 RASTERMUSICTRACKER
+
 	; Initialize
 	;
 	; Must be run first, to clear memory and initialize the player.
 	; Once this is done, run rmt_play afterwards, or rmt_set_pokey if you want to manually time certain things.
 	; IN:  <X>=module address low byte, Y=module address high byte, <A>=starting song line(0-255)
 	; OUT: <A>=the instrument speed (1= 1 time per VBI (normal), 2 = 2 times per VBI, 3 = 3 times per VBI, ...
+rmt_initv
 	jmp rmt_init			;
 
 	; Play
@@ -415,13 +428,16 @@ RASTERMUSICTRACKER
 	; OUT: <A>=the current the instrument speed. TODO: JAC! Really? This was in Raster's comment.
 	; TODO: JAC! How does this relate to rmt_p3? Rasters original comment clearly states that "rmt_play" is per frame.
 	; So it would make sense that rmt_p3 is to be called within a frame to update only the instruments.
+rmt_playv
 	jmp rmt_play
 
 	; Play3
 	; R: ;(without rmt_set_pokey, Song and Track handling) from the instrument processing on
 	; Similar to rmt_play, but will also skip rmt_set_pokey and the instruments/songlines/tracklines initialization.
+rmt_play3v
 	jmp rmt_p3
 
+rmt_silencev
 	; Set Silence
 	;
 	; Sets all POKEY registers to their initial values.
@@ -431,6 +447,7 @@ RASTERMUSICTRACKER
 	jmp rmt_silence
 
 	; Set POKEY Registers
+rmt_set_pokeyv
 	;
 	; Copies the contents of the shadow POKEY registers (v_audctl, v_skctl, trackn_audf,x etc) into the hardware registers.
 	; This is call as the first step in "rmt_play".
@@ -439,10 +456,10 @@ RASTERMUSICTRACKER
 	jmp rmt_set_pokey
 
 	IFT FEAT_SFX
-	; Play Sound Effect
+	; Activate Sound Effect
 	;
-	; Plays a note with a given instrument on a given channel.
-	; This overrides the instrument played by the song.
+	; Activates a note with a given instrument on a given channel.
+	; This overrides the instrument currently played by the song.
 	; IN: <A>=note(0,..,60), <X>=channel(0,..,3 in mono or 0,..,7 in stereo), <Y>=instrument*2 (0,2,4,..,126) 
 	jmp rmt_sfx	
 	EIF
@@ -627,7 +644,7 @@ v_ainstrspeed equ *-1
 	EIF
 	rts
 	
-; End of rmt_silence code.
+; End of "rmt_silence" code.
 	
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
@@ -900,20 +917,21 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 		lda #0					; V: EXPERIMENTAL approach for more precise manipulation of the PWM
 		sta trackn_filter,x		; Set the filtering offset value on new notes.
 		ora #1					; The value of 1 is expected here, so just provide it I guess
+								; TODO: This does not save anything, see below. Rather have "ldy #1" below.
 	EIF
 	
 	IFT FEAT_TABLEGO			; TABLEGO
-	IFT FEAT_FILTER
-	tay	; y=1					;with FEAT_FILTER, reuses A=1 via TAY (=> Y=1)
-	ELS
-	ldy #1	; y=1				;without FEAT_FILTER, must do ldy #1
-	EIF
-	lda (p_nt),y
-	sta trackn_tablelop,x
-	iny	; #2
-	ELS	; /TABLEGO else
-	ldy #2
-	EIF	; /TABLEGO
+		IFT FEAT_FILTER
+			tay					; With FEAT_FILTER, reuses <A>=1 via "tay", so <Y>:=1.
+		ELS
+		ldy #1					; Without FEAT_FILTER, must do "ldy #1"
+		EIF
+		lda (p_nt),y
+		sta trackn_tablelop,x
+		iny	; #2
+	ELS	
+		ldy #2
+	EIF	
 ; y=2
 	lda (p_nt),y
 	sta trackn_instrlen,x
@@ -949,8 +967,8 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 ; y=6 still
 	IFT FEAT_VOLUMEMIN
 	iny	; #7
-	lda (p_nt),y	; mmmm 0000 volume minimum for the volume decay
-;	and #$f0								; Not required bits are already 0.
+	lda (p_nt),y					; mmmm 0000 volume minimum for the volume decay
+;	and #$f0						; Not required bits are already 0.
 	sta trackn_volumemin,x
 	IFT FEAT_EFFECTS
 	iny	; #8
@@ -967,7 +985,7 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 	IFT FEAT_EFFECTVIBRATO
 	iny	; #9
 	lda (p_nt),y	; effvibrato  0000 00vv  ($0-$3)
-;	and #$03								; Not required bits are already 0.
+;	and #$03						; Not required bits are already 0.
 	tay
 	lda vibtabbeg,y
 	sta trackn_effvibratoa,x
@@ -990,24 +1008,24 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 
 	lda #128						; The volume decay is "rounded" (i.e. it starts from +128/256)
 	sta trackn_volumeslidevalue,x
-;	lda #$80						;OPTIMIZATION: moved here from below, because A=128 = $80 right now!
+;	lda #$80						; OPTIMIZATION: moved here from below, because A=128 = $80 right now!
 	sta trackn_instrx2,x			; OPTIMIZATION: the instrument was just set up, so $80 is raised again to avoid repeated setup
-;	lda #0							;OPTIMIZATION
+;	lda #0							; OPTIMIZATION
 	asl @							; OPTIMIZATION: <A>=$00 (it was $80 before, asl turns that into $00)
 	sta trackn_instrreachend,x		; Then on the first instrument "go" it is set to $80 (volume starts decaying from then on)
 	sta trackn_shiftfrq,x
 ; Carry is now always C=1 (after asl of the value 128)
 
-	tay								; <Y>:=<A>=$00, carry stays C=1
+	tay								; <Y>:=<A>=$00, carry stays C=1.
 ; y=0
-	lda (p_nt),y			    		; Carry stays C=1.
-	sta trackn_tableend,x				; Carry stays C=1.
+	lda (p_nt),y			    	; Carry stays C=1.
+	sta trackn_tableend,x			; Carry stays C=1.
 ;	clc								; Carry stays C=1. Saves 2 cycles compared to "clc:adc #1"
 	adc #0							; <A>:=<A>+1 because C=1.
 	sta trackn_instridx,x			; The envelope starts 1 byte after the table
 ;
 ; And now the remaining parameters
-	lda #INSTRPAR			; 12
+	lda #INSTRPAR
 	sta trackn_tablea,x		; Starts from table entry 0 (=byte 12)
 	tay						; ldy #INSTRPAR
 	lda (p_nt),y			; Note 0 of the instrument table	(=byte 12)
@@ -1032,7 +1050,7 @@ rmt_play
 
 rmt_p0
 
-;	Set the POKEY registers
+;	Set the POKEY registers.
 	jsr rmt_set_pokey
 	
 rmt_p1
@@ -1059,29 +1077,31 @@ rmt_p2								; Track processing
 	dec v_aspeed
 	bne rmt_p3	; Jump (past the initialization of newly set instruments)
 ;
-	inc v_abeat					; ++v_abeat
+	inc v_abeat			; Next beat in the track.
 
-;	if (v_abeat == v_maxtracklen) then GetSongLine else GetTrackLine
 	lda #$ff			; The copy of v_abeat as immediate operand is is changed by the code.
-v_abeat equ *-1			; v_abeat is the index into the track	;V: smc_abeat
+v_abeat equ *-1	
 	cmp #$ff			; Is it the maximum track length?
-v_maxtracklen equ *-1	; V: smc_maxtracklen
+v_maxtracklen equ *-1	; Parameter self-modification
 	beq p2o3			; Yes => branch
-; No, so continue to the next track line
-; p2o2
-	jmp GetTrackLine	; (which itself calls GetSongLine when needed)
-p2o3
-	jmp GetSongLine
+	jmp GetTrackLine	; No, so continue to the next track line. Itself calls GetSongLine when needed
+						; and then also calls InitOfNewSetInstrumentsOnly and continues to rmt_p3
 
-rmt_p3	
-	ldx #TRACKS-1
+p2o3
+	jmp GetSongLine		; Get song line, track line, init new instruments and continue to rmt_p3.
+
+;------------------------------------------------------------------------------------------
+
+rmt_p3							; Envelope processing
+	ldx #TRACKS-1				; OPTIMIZATION to 7->0 (x--)  ...for the envelope processing the order may be swapped
+
 
 ;
-; Aggressive initialization every new player call here, the method was originally done to get the AUDCTL early, but many things can be exploited here the same way.
+; V: Aggressive initialization every new player call here, the method was originally done to get the AUDCTL early, but many things can be exploited here the same way.
 ; Combining the aggressive init and rmt_p3 in 1 thing, this is now an even more aggressive approach!
 ;
 ; POSSIBLE IMPROVEMENT: process ALL effect commands here instead... Meaning there won't be workarounds necessary later, for several commands.
-; Example: Get AUDCTL early, get Effect values early, process instrument accordingly afterwards.
+; Example: Get AUDCTL early, get effect values early, process instrument accordingly afterwards.
 ; Doing certain things in a different order might drastically speed up several parts that end up being redundant or even overwritten later during certain effects like AUTOFILTER or BASS16.
 ; Let's say, process 16-bit here... in such case, there won't be anything stopping the player to know it can safely skip a channel's instrument if it was going to be overwritten anyway...
 ; This is purely speculation, however, so what is done here currently does the job, at least. This is still very different from the original RMT driver code as it is.
@@ -1089,29 +1109,29 @@ rmt_p3
 	
 dodex	
 	lda trackn_instrhb,x
-	beq dexnext			; Process the next channel's bytes immediately if empty
+	beq dexnext						; An empty instrument has high byte $00. Process the next channel's bytes immediately.
 	sta p_ns+1
 	lda trackn_instrdb,x
 	sta p_ns
 	ldy trackn_instridx,x
-	lda (p_ns),y				; Volume byte	
-	sta trackn_volumeenvelope,x	; sta reg1
+	lda (p_ns),y					; Get volume byte
+	sta trackn_volumeenvelope,x		; Was "sta reg1"
 	iny
-	lda (p_ns),y			; Command and distortion byte
-	sta trackn_command,x	; sta reg2
+	lda (p_ns),y					; Get command and distortion byte
+	sta trackn_command,x			; Was "sta reg2"
 	iny
-	lda (p_ns),y					; $XY parameter byte
-	sta trackn_effectparameter,x	; sta reg3
+	lda (p_ns),y					; Get $XY parameter byte
+	sta trackn_effectparameter,x	; Was "sta reg3"
 	iny
 	tya
 	cmp trackn_instrlen,x
-	bcc dodex_a
-	beq dodex_a
-; An instrument goto is executed => sets trackn_instrreachend
-	lda #$80
+	bcc pp2
+	beq pp2
+	lda #$80						; An instrument goto is executed => sets trackn_instrreachend
 	sta trackn_instrreachend,x
+
 	lda trackn_instrlop,x
-dodex_a
+pp2
 	sta trackn_instridx,x
 
 	IFT FEAT_AUDCTLMANUALSET&&FEAT_COMMAND7		; POSSIBLE IMPROVEMENT: process the Two-Tone Filter commands here instead, leaving CMD7 only useful for Volume Only checks later
@@ -1129,10 +1149,13 @@ dex_xy
 	
 dexnext
 	dex
-	bpl dodex			; Continue until x is negative
+	bpl dodex						; Continue until <X> is negative
 	
-; FORCE ALL INSTRUMENTS TO USE THE SAME AUDCTL TO NOT OVERLAP IN PRIORITY-- DOESNT WORK LIKE THAT FUCK, HOW COULD I FORCE A AUDCTL CLEAR ON A CHANNEL ABOVE ONE I AM USING?
-; Ideally... what would be even better is to have a global effect channel... y'know, like a music tracker? That could also be useful for setting certain global values like tempo, note offset, etc
+; FORCE ALL INSTRUMENTS TO USE THE SAME AUDCTL TO NOT OVERLAP IN PRIORITY
+; DOESNT WORK LIKE THAT FUCK, HOW COULD I FORCE A AUDCTL CLEAR ON A CHANNEL ABOVE ONE I AM USING?
+; Ideally... what would be even better is to have a global effect channel...
+; y'know, like a music tracker? That could also be useful for setting certain
+; global values like tempo, note offset, etc.
 
 pp0	
 
@@ -1156,9 +1179,9 @@ pp0
 			sta g_flag+3			; ch4
 			tya						; Get the AUDCTL back for the BIT tests below 
 pp0_a	
-			bit CH1_179
+			bit AUDCTL_CH1_179
 			beq pp0_d			; BNE => 1.79mhz, BEQ => Nothing, skip the next BIT test 	
-			bit JOIN_12
+			bit AUDCTL_JOIN_12
 			bne pp0_b			; BNE => 16-bit, BEQ => 1.79mhz 
 			ldx #$40			; 1.79mhz pointer
 			bne pp0_c			; Unconditional 
@@ -1169,9 +1192,9 @@ pp0_b
 pp0_c		
 			stx g_flag+0			; Flag set in ch1
 pp0_d 
-			bit CH3_179 
+			bit AUDCTL_CH3_179 
 			beq pp0_g			; BNE => 1.79mhz, BEQ => Nothing, skip the next BIT test 
-			bit JOIN_34
+			bit AUDCTL_JOIN_34
 			bne pp0_e			; BNE => 16-bit, BEQ => 1.79mhz 
 			ldx #$40			; 1.79mhz pointer
 			bne pp0_f			; Unconditional 
@@ -1180,7 +1203,7 @@ pp0_e
 			stx g_flag+3		; Flag set in ch4 
 			dex					; #$80 becomes #$7F 
 pp0_f		
-			stx g_flag+2			; Flag set in ch3 
+			stx g_flag+2		; Flag set in ch3 
 pp0_g 
 		EIF
 	
@@ -1200,9 +1223,9 @@ pp0_g
 				sta g_flag+3+4			; ch4
 				tya						; Get the AUDCTL back for the BIT tests below 
 pp0_h	
-				bit CH1_179
+				bit AUDCTL_CH1_179
 				beq pp0_k			; BNE => 1.79mhz, BEQ => Nothing, skip the next BIT test 	
-				bit JOIN_12
+				bit AUDCTL_JOIN_12
 				bne pp0_i			; BNE => 16-bit, BEQ => 1.79mhz 
 				ldx #$40			; 1.79mhz pointer
 				bne pp0_j			; Unconditional 
@@ -1211,11 +1234,11 @@ pp0_i
 				stx g_flag+1+4		; Flag set in ch2
 				dex					; #$80 becomes #$7F
 pp0_j		
-				stx g_flag+0+4			; Flag set in ch1
+				stx g_flag+0+4		; Flag set in ch1
 pp0_k 
-				bit CH3_179 
+				bit AUDCTL_CH3_179 
 				beq pp0_n			; BNE => 1.79mhz, BEQ => Nothing, skip the next BIT test 
-				bit JOIN_34
+				bit AUDCTL_JOIN_34
 				bne pp0_l			; BNE => 16-bit, BEQ => 1.79mhz 
 				ldx #$40			; 1.79mhz pointer
 				bne pp0_m			; Unconditional 
@@ -1224,7 +1247,7 @@ pp0_l
 				stx g_flag+3+4		; Flag set in ch4 
 				dex					; #$80 becomes #$7F 
 pp0_m		
-				stx g_flag+2+4			; Flag set in ch3 
+				stx g_flag+2+4		; Flag set in ch3 
 pp0_n 
 			EIF	
 		EIF
@@ -1239,14 +1262,14 @@ pp0_n
 pp0_o
 	ldx #TRACKS-1			; Must get the tracks value again before the next part
 
-pp1					; Copying the values to the zeropage to make things faster... but not all bytes need this...
+pp1							; Copying the values to the zeropage to make things faster... but not all bytes need this...
 
-; OPTIMIZATION: reg1 is now free to use for a different purpose!
+; OPTIMIZATION: reg1 is now free to be used for a different purpose!
 
 	lda trackn_instrhb,x
 	bne pp1b				; Continue if not equal 
 	jmp ppnext				; Skip this channel and process the next one
-pp1b						; V: pp1_b
+pp1b
 	lda g_flag,x			; AUDCTL flags
 	sta reg1				; Backup to the zeropage for quicker accesses
 	lda trackn_command,x	; Command and distortion byte
@@ -1254,7 +1277,6 @@ pp1b						; V: pp1_b
 	lda trackn_effectparameter,x	; $XY parameter byte
 	sta reg3				; Backup to the zeropage for quicker accesses
 	
-pp2
 	lda trackn_volumeenvelope,x	; Volume envelope byte
 
 	IFT TRACKS>4
@@ -1276,15 +1298,15 @@ pp2s
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
-; Start of manual tables code (unfinished)...
+; Start of manual tables code (unfinished).
 
 	IFT FEAT_TABLE_MANUAL		; Manual tuning table loaded from instruments, this is currently not fully implemented into RMT...
 		lda trackn_pointertable,x
-		beq do_tuning_tables		; A value of 0 means no pointer will be used, thus, can be skipped immediately
+		beq do_tuning_tables	; A value of 0 means no pointer will be used, thus, can be skipped immediately
 		tay
 		and #$0F
 		ora #$B0
-		sta p_nr+1			; Bx00, where x is manipulated
+		sta p_nr+1				; Bx00, where x is manipulated
 ; hack for Reverse-16 proof of concept, won't be used later
 		lda #0
 		cpx #1
@@ -1308,11 +1330,11 @@ getdist
 		jmp store_tables_lsb_b
 	EIF
 	
-; End of manual tables code...
-	
+; End of manual tables code.
+
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
-	
-; Start of the tuning tables code...
+
+; Start of the tuning tables code.
 
 ;
 ; POSSIBLE IMPROVEMENT: make a JMP table indexed by X, instead of these dumb 1 by 1 checks... now done?
@@ -1324,8 +1346,8 @@ getdist
 ;
 
 do_tuning_tables
-	lda reg2		; Distortion and Command
-	and #$0E		; Only keep the Distortion bits
+	lda reg2		; Get dstortion and command.
+	and #$0e		; Only keep the distortion bits.
 	tay				; Will be used for the tables MSB pointer, and the Distortion itself	
 		
 	IFT FEAT_AUDCTLMANUALSET	; !!!! big block begins here
@@ -1342,10 +1364,10 @@ do_tuning_tables
 			lda #0				; The 16-bit LSB flag was set, so first load 0
 			sta trackn_audc,x	; Then mute the channel
 			; sta trackn_bass16,x	; and reset the LSB value before the next call-- BUG? if this is not done, the channel seems to outputs garbage on certain commands, why does this happen?
-			jmp ppnext		; And finish this one early, there is nothing else to do here!
+			jmp ppnext			; And finish this one early, there is nothing else to do here!
 		EIF
 
-check_index			; IMPROVEMENT: the flags system should work much better this time!
+check_index						; IMPROVEMENT: the flags system should work much better this time!
 		txa
 		IFT TRACKS>4			; Stereo mode 	
 			cpx #4				; Are we in the right POKEY channels?
@@ -1356,7 +1378,7 @@ check_index_a
 		asl @ 
 		asl @ 
 		sta c_index+1
-		lda reg1		; Load the channel flag back in memory for the upcoming checks
+		lda reg1				; Load the channel flag back in memory for the upcoming checks
 c_index	bcc *
 		jmp check_ch1 
 		nop
@@ -2022,7 +2044,7 @@ cmd0b3c
 cmd0c
 	sta trackn_audf,x	; Store into audf
 	
-; End of instruments commands code...
+; End of instruments commands code,
 	
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 	
