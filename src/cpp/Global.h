@@ -116,7 +116,7 @@ struct TViewState {
 
 extern TViewState g_view;
 
-extern int g_timerGlobalCount; // Initialised once, ticking forever
+extern int g_timerGlobalCount; // Initialized once, ticking forever
 extern long g_playtime; //1 yes, 0 no
 
 extern UINT g_mousebutt; //mouse button

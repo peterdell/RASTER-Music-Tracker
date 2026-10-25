@@ -69,14 +69,14 @@ int CSongExporter::BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigne
                 optimal = i;
             }
 
-            message.Format("Compressing %i bytes, bruteforcing optimisation pattern %i... Current best: %i bytes with optimisation pattern %i", srclen, i, bestScore, optimal);
+            message.Format("Compressing %i bytes, bruteforcing optimization pattern %i... Current best: %i bytes with optimization pattern %i", srclen, i, bestScore, optimal);
             SetStatusBarText(message);
         }
 
         result = lzssData.LZSS_SAP(src, srclen, dst, optimal);
 
         // Bruteforcing was completed, display some stats
-        message.Format("Done... %i bytes were shrunk to %i bytes using the optimisation pattern %i", srclen, bestScore, optimal);
+        message.Format("Done... %i bytes were shrunk to %i bytes using the optimization pattern %i", srclen, bestScore, optimal);
         SetStatusBarText(message);
     }
 

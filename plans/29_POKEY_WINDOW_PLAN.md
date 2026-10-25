@@ -51,7 +51,7 @@ image, the resize, the timer and the paint - not the input parts.
 Three couplings that a separate window makes wrong:
 
 - `isEnabled(VIEW_POKEYREGS)` returns `view.volumeAnalyzer` - the item is
-  greyed while the analyzer is off, for no reason that survives the move.
+  grayed while the analyzer is off, for no reason that survives the move.
 - `SongUI` clears `DEBUG_POKEY` when the tracker window is under 960
   pixels wide (1220 in the instruments part) - a rule about the tracker's
   own layout.
@@ -120,7 +120,7 @@ no modeless window yet**, so this is the first.
 ### W1 - the shared paint loop
 
 Extract from `TrackerPanel` what a second panel needs: the canvas image,
-`resizeCanvas`, the device-scale blit and the timer. No behaviour change;
+`resizeCanvas`, the device-scale blit and the timer. No behavior change;
 the reference screenshot tests (`SongUITest`) are the net that proves it.
 
 ### W2 - `PokeyPanel` and `PokeyWindow`

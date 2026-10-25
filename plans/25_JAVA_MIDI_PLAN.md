@@ -117,7 +117,7 @@ Plus `EditMode::MIDI_CH15_MODE`, shown as "EXPLORER MODE (MIDI CH15)".
   five lines above). Fix in both languages (the standing rule), noted in
   the change history.
 - `Midi_Song.cpp:47-52`: the drums branch is unreachable (see above). Dead
-  code, not a behaviour bug - port as a comment, not as code.
+  code, not a behavior bug - port as a comment, not as code.
 
 ## 2. What the Java port already has
 

@@ -48,7 +48,7 @@ public:
     bool ExportLZSS(CSongExport& songExport, std::ofstream& ou);
 
     /// <summary>
-    /// Generate a SAP-R data stream, compress it and optimise the compression further by removing redundancy.
+    /// Generate a SAP-R data stream, compress it and optimize the compression further by removing redundancy.
     /// Ideally, this will be used to find and merge duplicated songline buffers, for a compromise between speed and memory.
     /// The output streams may get considerably smaller, at the cost of having an index to keep track of, in order to reconstruct the stream properly.
     /// </summary>
@@ -98,7 +98,7 @@ public:
 private:
     static void StrToAtariVideo(char* txt, int count);
 
-    // A dumb SAP-R LZSS optimisations bruteforcer, returns the optimal value and buffer
+    // A dumb SAP-R LZSS optimizations bruteforcer, returns the optimal value and buffer
     static int BruteforceOptimalLZSS(unsigned char* src, int srclen, unsigned char* dst);
 
     static bool ShowXEXExportDialog(const CSong& song, CXEXFile& xexFile);

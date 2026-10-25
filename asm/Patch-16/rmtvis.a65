@@ -21,7 +21,7 @@ STEREOMODE	equ 0	; 0 => compile RMTplayer for 4 tracks Mono
 			; 4 => compile RMTplayer for 8 tracks Dual Mono LR1 LR2 LR3 LR4
 
 ; the player is assembled as for the Simple RMT Player: -d:FEAT_IS_TRACKER=0 -d:FEAT_IS_SIMPLEP=1 on the command line
-; no XEX/SAP export hacks in the player: its XEX hack changes the rasterbar colour at loop+1, here loop is not that
+; no XEX/SAP export hacks in the player: its XEX hack changes the rasterbar color at loop+1, here loop is not that
 
 EXPORTXEX	equ 0
 EXPORTSAP	equ 0
@@ -63,7 +63,7 @@ VISDATA equ $9000       ; all the data like text strings, lookup tables for note
 
 ;*******************************************************************;
 ;* begin code for the visual player                                *;
-;* initialisation and clear memory before executing the next parts *;
+;* initialization and clear memory before executing the next parts *;
 ;*******************************************************************;
 
 	; (the file was always hw.a65; "hw.asm" never existed, so this did not assemble)
@@ -73,9 +73,9 @@ VISDATA equ $9000       ; all the data like text strings, lookup tables for note
         org $8000                           ; RMT Visualizer address, this leaves 16k for the RMT module, should be plenty for most cases
 start
         mwa #dlist rDLISTL                  ; Display Lists address
-	;mva rRANDOM v_colour1              ; random colours, used during VBI, RASTERMUSICTRACKER, LOOP, etc
-	;mva rRANDOM v_colour2
-	;mva rRANDOM v_colour3
+	;mva rRANDOM v_color1              ; random colors, used during VBI, RASTERMUSICTRACKER, LOOP, etc
+	;mva rRANDOM v_color2
+	;mva rRANDOM v_color3
 	jsr rmt_silence                     ; flush all POKEY registers in case leftover data is present
 
 ; make all old_ bytes non-zero to force drawing the screen at least once
@@ -102,10 +102,10 @@ start_loop
 start_loop2        
         jsr wait_for_vblank                 ; wait for vblank, a simple subroutine but works
         mwa #dlist rDLISTL                  ; for some reason, the display list address must be loaded each frame, or garbage is output...
-        ;mva v_colour2 rCOLBK
-        mva #0 rCOLBK                       ; black background colour, must also be written each frame for some reason, most likely related to DLIST...
+        ;mva v_color2 rCOLBK
+        mva #0 rCOLBK                       ; black background color, must also be written each frame for some reason, most likely related to DLIST...
 start_loop3 
-        stx rCOLPF2                         ; the value from index x is written in the playfield colour 2 register for a simple fadeing effect
+        stx rCOLPF2                         ; the value from index x is written in the playfield color 2 register for a simple fadeing effect
         dey                                 ; decrement index y, once per frame
         bne start_loop2                     ; return to the wait for vblank part if index y is not 0
         txa                                 ; copy the value of index x to the accumulator
@@ -117,10 +117,10 @@ start_loop4
         jsr wait_for_vblank                 ; start of the second subloop, start with a wait for vblank
         mwa #dlist rDLISTL                  ; load the display list address again, for the reason mentioned above
         mva #>FONT rCHBASE                  ; load the font address into the character register, same things apply to it
-        ;mva v_colour2 rCOLBK
-        mva #0 rCOLBK                       ; load the colour black, then write in the background colour register
-        sta rCOLPF2                         ; as well as the playfield colour 2 register
-        mva #15 rCOLPF1                     ; write the value 15 (or $0F), white colour, into the playfield colour register 1
+        ;mva v_color2 rCOLBK
+        mva #0 rCOLBK                       ; load the color black, then write in the background color register
+        sta rCOLPF2                         ; as well as the playfield color 2 register
+        mva #15 rCOLPF1                     ; write the value 15 (or $0F), white color, into the playfield color register 1
         cpy #40                             ; is the value of index y 40?
         beq start_loop5                     ; yes, skip ahead, so no more than 40 characters are drawn on the screen
         mva txt_start,y scr,y               ; draw the text from txt_start, index y is used for the position on screen, the pointer to the text, and the number of characters left
@@ -137,8 +137,8 @@ start_rmt
 	ldx #<MODUL		            ; low byte of RMT module to index x
 	ldy #>MODUL		            ; high byte of RMT module to index y
 	lda #STARTLINE		            ; starting song line 0-255 to the accumulator
-	jsr rmt_init                        ; initialise the player routines
-	tay                                 ; initialisation returns instrument speed (1..4 => from 1/screen to 4/screen), transfer to index y
+	jsr rmt_init                        ; initialize the player routines
+	tay                                 ; initialization returns instrument speed (1..4 => from 1/screen to 4/screen), transfer to index y
 screen_init	
 	mva tabpp-1,y acpapx2               ; sync counter spacing
 	mva #255 KEY		            ; no key pressed
@@ -148,12 +148,12 @@ screen_init
 	mva #1 rPRIOR                       ; all players above playfield
 	sta rGRACTL                         ; and turn on missiles
 	mva #0 rNMIEN	                    ; write to NMI enable register (disable)
-	sta rCOLBK                          ; also write the colour black to background colour register
-	sta rCOLPF2                         ; and to the playfield colour register 2
-	;mva v_colour2 rCOLBK 
-	mva #$0F rCOLPF1                    ; colour white written to the playfield colour register 1 for characters on screen
-	ldx #$6C                            ; funny gradient purple colours on missiles, from brighter to darker
-	stx rCOLPM0                         ; write the value of index x in missile colour register 0
+	sta rCOLBK                          ; also write the color black to background color register
+	sta rCOLPF2                         ; and to the playfield color register 2
+	;mva v_color2 rCOLBK 
+	mva #$0F rCOLPF1                    ; color white written to the playfield color register 1 for characters on screen
+	ldx #$6C                            ; funny gradient purple colors on missiles, from brighter to darker
+	stx rCOLPM0                         ; write the value of index x in missile color register 0
 	:2 dex                              ; decrement index x twice
 	stx rCOLPM1                         ; write again to the next missile, and so on
 	:2 dex
@@ -184,7 +184,7 @@ region_is_pal
 	ldx #50                             ; 50 frames per second
 region_done
 	stx v_region                        ; framerate used for the song timer
-	sty ppap                            ; value used for screen synchronisation
+	sty ppap                            ; value used for screen synchronization
 	
 ; graphical elements are now being loaded, includes most text strings and graphic tiles used for displaying a lot of information during playback
 
@@ -245,7 +245,7 @@ credits_info
 ; loop for displaying a bunch of repeated elements every few lines for each audio channel
 
 l0
-	mwa #scr zTMP0                      ; initialise the screen position for the next part	
+	mwa #scr zTMP0                      ; initialize the screen position for the next part	
 l1
 	ldy #40                             ; index y will be used for the screen position relative to the offset (zTMP0) here
 	mva #"C"-$20 (zTMP0),y+             ; draw character 'C', increment index y
@@ -280,7 +280,7 @@ l1_c
 	EIF                                 ; endif
 	bne l1                              ; continue drawing the screen elements until x is the wanted value
 	
-; initialise the missile position and appearance on the screen
+; initialize the missile position and appearance on the screen
 
 l2	
 	lda #1                              ; different values affect in strange ways, but 1 makes the missiles 1 pixel wide
@@ -299,10 +299,10 @@ l2_b
 	tax                                 ; overwrite index x with the new value
 	pla                                 ; pull the backup from the stack to the accumulator
 	dey                                 ; decrement index y
-	bne l2_a                            ; keep going until all missiles have been initialised with the parameters above
+	bne l2_a                            ; keep going until all missiles have been initialized with the parameters above
 
 ;******************************************************;
-;* main code loop, everything has been initialised    *;
+;* main code loop, everything has been initialized    *;
 ;* execution will continue from this block infinitely *;
 ;******************************************************;
 
@@ -345,13 +345,13 @@ acpapx2	equ *-1
 	scs:inx
 	stx cku
 
-; change the colour for the rasterbar, and run the player routines
+; change the color for the rasterbar, and run the player routines
 
 play_loop
-	;mva v_colour1 rCOLBK            ; random colour 1 for rasterbar
+	;mva v_color1 rCOLBK            ; random color 1 for rasterbar
 	lda #$69                        ; a nice purpleish pink
 	sta rWSYNC                      ; wait for horizontal sync
-	sta rCOLBK                      ; background colour
+	sta rCOLBK                      ; background color
         jsr rmt_play                    ; setpokey then 1 play
 
 ; songline position (pattern order) for the display and the timer, as the player computes it for the Simple RMT Player:
@@ -371,10 +371,10 @@ play_loop
 	ror v_ord
 	EIF
 	dec v_ord
-	;mva v_colour2 rCOLBK            ; random colour 2 for background
-	lda #0                          ; black colour
+	;mva v_color2 rCOLBK            ; random color 2 for background
+	lda #0                          ; black color
 	sta rWSYNC                      ; wait for horizontal sync
-	sta rCOLBK                      ; background colour
+	sta rCOLBK                      ; background color
 
 ; check for keyboard input
 
@@ -400,8 +400,8 @@ stopmusic
 ;************************************************************;
 
 vbi
-        ;mva v_colour3 rCOLBK            ; funny rasterbar, during (extended) vbi
-        mva #$9F rCOLBK                 ; debug colour
+        ;mva v_color3 rCOLBK            ; funny rasterbar, during (extended) vbi
+        mva #$9F rCOLBK                 ; debug color
 	:4 mva mistmp+# rHPOSM0+#       ; update missiles
 	mwa #dlist rDLISTL              ; update display list
         jsr timecounterstart            ; update the time counter
@@ -460,7 +460,7 @@ clear_tiles_2
 	;jsr clrft
 	;EIF
 
-        mva #$98 rCOLBK                 ; debug colour
+        mva #$98 rCOLBK                 ; debug color
 	
 ; print time (minutes:seconds)
 
@@ -976,7 +976,7 @@ vbis4_b
         mva v_audctl2 old_audctl2
         EIF	
 vbis4_c
-        mva #$64 rCOLBK   ; debug colour
+        mva #$64 rCOLBK   ; debug color
 	;mva #0 rCOLBK
 	pla
 	tay
@@ -1055,7 +1055,7 @@ print_joined_corners
 
 timecounterstart
         ldx v_frame            ; load the frame count
-        ldy #0                 ; initialisation of timer, both for checks and reset of timer when needed
+        ldy #0                 ; initialization of timer, both for checks and reset of timer when needed
         cpy v_abeat            ; are we on row 0?
         bne secondcounter      ; no, continue counting time
         cpy v_ord              ; are we on pattern order 0? This is assumed to be song start
@@ -1088,7 +1088,7 @@ timecountereset                ; store the values of 0 in all variables to reset
         sty v_frame            ; 0 frame, 60 of these are needed for 1 second in NTSC, 50 in PAL
         sty v_second           ; 0 second, 60 are needed for a minute
         sty v_minute           ; 0 minute, this one counts up to 99 then overflows back to 0 with the current code
-        rts                    ; since we're now set to 00:00, the timer initialisation is now finished
+        rts                    ; since we're now set to 00:00, the timer initialization is now finished
 
 ; print text from data tables, useful for things like Polys, Clocks, Notes, etc
 
@@ -1127,9 +1127,9 @@ hexchars
         IFT STEREOMODE==1
 dli
 	pha
-	;mva #$3F rCOLBK    ; debug colour
+	;mva #$3F rCOLBK    ; debug color
 	:4 mva mistmp+4+# rHPOSM0+#
-	;mva #$78 rCOLBK    ; debug colour
+	;mva #$78 rCOLBK    ; debug color
 	pla
 	rti
 	EIF

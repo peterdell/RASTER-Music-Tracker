@@ -110,7 +110,7 @@ public final class PokeyStream {
 	}
 
 	public void callFromPlay(PlayMode playerState, int trackLine, int songLine) {
-		// The SAP-R dumper initialisation flag was set
+		// The SAP-R dumper initialization flag was set
 		if (recordState == StreamState.START) {
 			Arrays.fill(playCount, 0); // Reset lines play counter first
 			if (playerState == PlayMode.PLAY_BLOCK) {
@@ -214,7 +214,7 @@ public final class PokeyStream {
 			return;
 		}
 		if (recordState == StreamState.START) {
-			return; // Too soon, must first be initialised to get a constant rate every time, this prevents writing garbage in memory for the first few frames
+			return; // Too soon, must first be initialized to get a constant rate every time, this prevents writing garbage in memory for the first few frames
 		}
 
 		int offsetIntoBuffer = frameCounter * frameSize; // 4 AUDC, 4 AUDF, 1 AUDCTL + Second POKEY if used

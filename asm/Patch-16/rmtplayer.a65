@@ -65,7 +65,7 @@ VLINE		equ 10		; nice round numbers fit well with multiples of 8 for every xVBI.
 
 	ERT VLINE>155		; VLINE cannot be higher than 155!
 
-; rasterbar colour
+; rasterbar color
 
 RASTERBAR	equ $69		; $69 is a nice purpleish hue
 
@@ -146,7 +146,7 @@ check_region
 	ldx #187		; PAL is detected, adjust the speed from NTSC to PAL
 	EIF			; endif
 region_done
-	stx $0490		; memory location used for screen synchronisation(?) in Altirra
+	stx $0490		; memory location used for screen synchronization(?) in Altirra
 	ldx #<MODUL		; low byte of RMT module to X reg
 	ldy #>MODUL		; hi byte of RMT module to Y reg
 	pla
@@ -179,16 +179,16 @@ subtune
 	
 	org $3A00		; at some point this will no longer fit...
 start       
-	ldx #0			; disable playfield and the black colour value
+	ldx #0			; disable playfield and the black color value
 	stx SDMCTL		; write to Shadow Direct Memory Access Control address
 	jsr wait_vblank		; wait for vblank before continuing
-	stx COLOR4		; Shadow COLBK (background colour), black
-	stx COLOR2		; Shadow COLPF2 (playfield colour 2), black
+	stx COLOR4		; Shadow COLBK (background color), black
+	stx COLOR2		; Shadow COLPF2 (playfield color 2), black
 	mwa #dlist SDLSTL	; Start Address of the Display List
 	mva #>FONT rCHBASE      ; load the font address into the character register, same things apply to it
-	mwa #line_0 DISPLAY	; initialise the Display List indirect memory address for later
+	mwa #line_0 DISPLAY	; initialize the Display List indirect memory address for later
 
-set_colours
+set_colors
 	lda #74
 	sta COLOR3
 	lda #223
@@ -198,7 +198,7 @@ set_colours
 	
 ;-----------------
 		
-	jsr module_init 	; first initialise the player variables, initialisation returns instrument speed
+	jsr module_init 	; first initialize the player variables, initialization returns instrument speed
 	tay			; use the instrument speed as an offset
 	
 ;-----------------
@@ -321,7 +321,7 @@ subonetotiming
 	
 region_done
 	sty region_byte		; set region flag to print later
-	stx ppap		; value used for screen synchronisation
+	stx ppap		; value used for screen synchronization
 	sei			; Set Interrupt Disable Status
 	mwa VVBLKI oldvbi       ; vbi address backup
 	mwa #vbi VVBLKI		; write our own vbi address to it	
@@ -331,7 +331,7 @@ region_done
 	
 ;-----------------
 
-; print instrument speed, done once per initialisation
+; print instrument speed, done once per initialization
 
 	ldy #4			; 4 characters buffer 
 	lda #0
@@ -353,7 +353,7 @@ is_rmt4
 	
 ;-----------------
 	
-; print region, done once per initialisation
+; print region, done once per initialization
 
 	ldy #4			; 4 characters buffer 
 	lda #0
@@ -370,7 +370,7 @@ is_NTSC
 is_DONE				
 	sty v_second		; Y is 0, reset the timer with it
 	sty v_minute
-	stx v_frame		; X is either 50 or 60, defined by the region initialisation
+	stx v_frame		; X is either 50 or 60, defined by the region initialization
 	stx framecount
 ready_to_play
 	ldy #7			; enough characters buffer, used to set the PLAY status display 
@@ -385,11 +385,11 @@ wait_sync
 
 ;-----------------
 
-; main loop, code runs from here ad infinitum after initialisation
+; main loop, code runs from here ad infinitum after initialization
 
 loop
-	ldy #RASTERBAR		; custom rasterbar colour
-rasterbar_colour equ *-1
+	ldy #RASTERBAR		; custom rasterbar color
+rasterbar_color equ *-1
 acpapx1
 	lda spap
 	ldx #0
@@ -427,14 +427,14 @@ check_rasterbar_flag
 	lda #0			; lda #$80 to display the rasterbar by default, 0 sets it hidden otherwise 
 rasterbar_toggler equ *-1
 	bpl do_rmtplay		; a positive value means the rasterbar is not displayed 
-	sty COLBK		; background colour
-	sty COLPF2		; playfield colour 2
+	sty COLBK		; background color
+	sty COLPF2		; playfield color 2
 do_rmtplay
 	jsr rmt_play		; setpokey + 1 play
-	ldy #$00		; black colour value
+	ldy #$00		; black color value
 	sty WSYNC		; horizontal sync
-	sty COLBK		; background colour
-	sty COLPF2		; playfield colour 2 
+	sty COLBK		; background color
+	sty COLPF2		; playfield color 2 
 	beq loop                ; unconditional
 
 ;-----------------
@@ -547,7 +547,7 @@ play_pause_button_toggle_b
 
 ;-----------------
 
-; RMT Stop, similar to pause, but then Play will start from the beginning, just like if it was initialised again 
+; RMT Stop, similar to pause, but then Play will start from the beginning, just like if it was initialized again 
 
 stop_toggle
 	jsr stop_pause_reset		; pause the player and clear the AUDC registers 
@@ -558,7 +558,7 @@ stop_toggle
 	sty v_minute			; reset the minutes counter
 	sty v_ord			; reset the order counter
 	sty v_abeat 			; reset the rows counter
-	lda framecount			; number of frames defined at initialisation  
+	lda framecount			; number of frames defined at initialization  
 	sta v_frame			; reset the frames counter 
 	ldx #16				; offset by 16 for STOP characters
 	bne play_pause_button_toggle_a ; finish in the play_pause code from here, unconditional 
@@ -614,7 +614,7 @@ calculate_time
 	dec v_frame		; decrement the frame counter
 	bne notimetolose	; not 0 -> a second did not yet pass
 	lda #0
-framecount equ *-1		; 50 or 60, defined by the region initialisation
+framecount equ *-1		; 50 or 60, defined by the region initialization
 	sta v_frame		; reset the frame counter
 	bne addasecond		; unconditional
 	nop
@@ -749,8 +749,8 @@ v_ord	equ *-1
 
 begindraw
 	mwa #mode_6+2 DISPLAY	; set the position on screen, offset by 2 in order to be centered
-	lda #$c0		; change the colour to red 
-	sta colour_bar 
+	lda #$c0		; change the color to red 
+	sta color_bar 
 	ldx #TRACKS-1
 	
 ;	; debug code!!!!
@@ -867,7 +867,7 @@ draw_1_bar
 
 draw_line1
 	ora #0
-colour_bar equ *-1 
+color_bar equ *-1 
 
 draw_nothing
 	sta (DISPLAY),y 
@@ -886,12 +886,12 @@ verify_line
 	cpx #1
 	bcc change_line23	; below 1 
 change_line4
-	lda #$40		; change the colour to green 
-	bne colour_changed 
+	lda #$40		; change the color to green 
+	bne color_changed 
 change_line23 
-	lda #$00 		; change the colour to yellow 
-colour_changed
-	sta colour_bar		; new colour is set for the next line 
+	lda #$00 		; change the color to yellow 
+color_changed
+	sta color_bar		; new color is set for the next line 
 	jmp do_index_line 	; repeat the process for the next line until all lines were drawn  
 	
 decay_buffer
@@ -1023,7 +1023,7 @@ stopmusic
 
 ;----------------- 
 
-; initialise the player, also reset the player if called from full stop
+; initialize the player, also reset the player if called from full stop
 
 module_init	
 	ldx #<MODUL		; low byte of RMT module to X reg

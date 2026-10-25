@@ -43,7 +43,7 @@ anchoring F1-F3 ran. Results:
   a 34,482-byte compressed register stream (25.5% of the raw 135,432
   bytes), no RMT module inside. The normalization rules are not even
   lost knowledge: they live in THIS repository's C++ source, in
-  `CCompressLzss::Optimise_AUDC/AUDCTL/AUDF` (src/cpp/lzss_sap.cpp,
+  `CCompressLzss::Optimize_AUDC/AUDCTL/AUDF` (src/cpp/lzss_sap.cpp,
   inherited from the 1.34 line). Applying exactly the `AUDC_AUDF`
   optimization level (AUDC: zero silent channels' AUDC, clear the
   noise-type bit $40 when pure-tone $20 is set; AUDF: zero silent
@@ -51,7 +51,7 @@ anchoring F1-F3 ran. Results:
   untouched) to our RMT 1.36 SAP-R reference turns the comparison
   from 0 identical frames (27,539 differing bytes) into 4,329 of
   7,524 identical frames - every AUDC diff and every silent-channel
-  diff is accounted for. Applying `Optimise_AUDCTL` as well makes the
+  diff is accounted for. Applying `Optimize_AUDCTL` as well makes the
   match WORSE, so the party export did not use it - consistent with
   the AUDCTL residual below. The residuals (4,282 bytes):
   - **Tuning tables, the plan's own theme:** 3,703 AUDF bytes differ
@@ -206,7 +206,7 @@ sheet ("Tracker Driver:" line) stays the manual stand-in.
 2. DONE 2026-10-11: the F2 diagnosis confirmed the working
    hypothesis. The XEX is VinsCool's VUPlayer 2.0 LZSS stream player;
    the normalization is this repository's own
-   `CCompressLzss::Optimise_AUDC/AUDF` (lzss_sap.cpp) at the
+   `CCompressLzss::Optimize_AUDC/AUDF` (lzss_sap.cpp) at the
    `AUDC_AUDF` level, and it accounts for every AUDC and
    silent-channel diff. Remaining, documented in F2: a +-1 AUDF
    tuning-table remap (1.34's generated tables vs 1.36's fixed

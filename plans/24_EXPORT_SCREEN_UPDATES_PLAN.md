@@ -48,13 +48,13 @@ inside the export command:
    sound again through the shared POKEY - the cause of the WAV export crash
    fixed in C1 by stopping the timer inside `ExportWAV` only.
 7. After the dump, the LZSS stage (`CSongExporter::ExportLZSS`,
-   `SongExporterCore.cpp`) brute-forces 8 optimisation patterns with one
+   `SongExporterCore.cpp`) brute-forces 8 optimization patterns with one
    `RefreshScreen()` after each - 8 redraws, harmless; the XEX export
    repeats the dump per subsong.
 8. The dump leaves its traces: `m_songactiveline`/`m_trackactiveline` were
    set to the start line and `g_playtime` was counted up, so after an export
    the cursor is no longer where the user left it. (To be confirmed by
-   hand; the Java port ports the same behaviour.)
+   hand; the Java port ports the same behavior.)
 
 In a script run (`Rmt.exe /SCRIPT`) the window exists but is hidden, so
 `Invalidate()` produces no `WM_PAINT` and the cost is not paid. The noise

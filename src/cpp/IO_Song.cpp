@@ -431,7 +431,7 @@ void CSong::FileImport() {
     // All channels ON (unmute all)
     g_ChannelControl.SetAllChannelsOn();
 
-    // Initialise RMT routine
+    // Initialize RMT routine
     ReInitSound();
 }
 

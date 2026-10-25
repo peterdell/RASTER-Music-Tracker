@@ -15,7 +15,7 @@ public:
     BOOL OnKeyDown(int vk, int shift, int control);
 
     // The Pokey menu's explorer items (Rmt.rc ID_POKEY_*): the same operations as the keys. Until 2026-09-30 the 50 items had no
-    // handlers, so MFC always greyed them; CRmtView::OnCmdMsg routes them here in the explorer mode.
+    // handlers, so MFC always grayed them; CRmtView::OnCmdMsg routes them here in the explorer mode.
     static bool IsCommand(UINT id);
     BOOL OnCommand(UINT id);
 

@@ -78,7 +78,7 @@ TEST_F(TuningPitchTest, GetPOKEYPitchPolyNoiseModeReturnsZeroOnInvalidModulo) {
 
 // GetTruePitch()/CalculateDeltaAUDF() were private but pure (no global
 // reads - see Tuning.h), made public purely for testability (same
-// reasoning/pattern as CCompressLzss::Optimise_AUDC/AUDCTL/AUDF). Reuse the
+// reasoning/pattern as CCompressLzss::Optimize_AUDC/AUDCTL/AUDF). Reuse the
 // same test-only-constructed CTuning instance/fixture as above.
 
 TEST_F(TuningPitchTest, GetTruePitchEqualTemperamentBaseNote) {

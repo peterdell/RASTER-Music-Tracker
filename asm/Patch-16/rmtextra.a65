@@ -10,9 +10,9 @@ GetInstrumentY2			; 6502_jsr() was called by RMT with values in memory...
         tya 			; transfer the index y to the accumulator
         asl @ 			; shift the accumulator left 1 bit, essentially multiplying the value by 2
         sta trackn_instrx2,x	; store in memory, positive value means new instrument to intialise
-        bmi SkipInstrumentY2	; if negative, there is no new instrument to initialise
+        bmi SkipInstrumentY2	; if negative, there is no new instrument to initialize
         tay 			; transfer the accumulator back to index y for the next step
-        jmp SetUpInstrumentY2	; new instrument to initialise with the values in memory. The subroutine will end with a rts, meaning the instrument has been set up and ready to use
+        jmp SetUpInstrumentY2	; new instrument to initialize with the values in memory. The subroutine will end with a rts, meaning the instrument has been set up and ready to use
 SkipInstrumentY2       
         rts 			; 6502_jsr() ends upon hitting a RTS, the subroutine finished early, no new instrument was set up
 

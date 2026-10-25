@@ -235,8 +235,8 @@ int CLzss::lzop_encode(struct bf* b, const struct lzop* lz, int pos, int lpos) {
 CCompressLzss::CCompressLzss() {
 }
 
-// Optimise the AUDC bytes
-void CCompressLzss::Optimise_AUDC(uint8_t* buf) {
+// Optimize the AUDC bytes
+void CCompressLzss::Optimize_AUDC(uint8_t* buf) {
     for (int i = 0; i < 4; i++) {
         int audc = i * 2 + 1;
         int vol = buf[audc] & 0x0F;
@@ -253,8 +253,8 @@ void CCompressLzss::Optimise_AUDC(uint8_t* buf) {
     }
 }
 
-// Optimise the AUDCTL bytes, based on the values of AUDC
-void CCompressLzss::Optimise_AUDCTL(uint8_t* buf) {
+// Optimize the AUDCTL bytes, based on the values of AUDC
+void CCompressLzss::Optimize_AUDCTL(uint8_t* buf) {
     // CH1 is mute, disable High Pass Filter in CH1+3
     if (!(buf[1] & 0x0F)) {
         buf[8] &= 0xFB;
@@ -286,8 +286,8 @@ void CCompressLzss::Optimise_AUDCTL(uint8_t* buf) {
     }
 }
 
-// Optimise the AUDF bytes, based on the values of AUDCTL and AUDC
-void CCompressLzss::Optimise_AUDF(uint8_t* buf) {
+// Optimize the AUDF bytes, based on the values of AUDCTL and AUDC
+void CCompressLzss::Optimize_AUDF(uint8_t* buf) {
     for (int i = 0; i < 4; i++) {
         int audf = i * 2;
         int audc = audf + 1;
@@ -327,7 +327,7 @@ void CCompressLzss::Optimise_AUDF(uint8_t* buf) {
     }
 }
 
-int CCompressLzss::Optimize(const int registers, const unsigned char* src, const size_t srcSize, const SAPROptimization optimisation, uint8_t** data) {
+int CCompressLzss::Optimize(const int registers, const unsigned char* src, const size_t srcSize, const SAPROptimization optimization, uint8_t** data) {
     static constexpr size_t BUFFER_SIZE = 128 * 1024; // 128 k
     // TODO: Why not srcSize
 
@@ -350,43 +350,43 @@ int CCompressLzss::Optimize(const int registers, const unsigned char* src, const
             registerArray[i] = src[srcIndex + i];
         }
 
-        // Apply desired optimisations to the buffered bytes
-        switch (optimisation) {
+        // Apply desired optimizations to the buffered bytes
+        switch (optimization) {
         case SAPROptimization::AUDC:
-            Optimise_AUDC(registerArray);
+            Optimize_AUDC(registerArray);
             break;
 
         case SAPROptimization::AUDCTL:
-            Optimise_AUDCTL(registerArray);
+            Optimize_AUDCTL(registerArray);
             break;
 
         case SAPROptimization::AUDF:
-            Optimise_AUDF(registerArray);
+            Optimize_AUDF(registerArray);
             break;
 
         case SAPROptimization::AUDC_AUDF:
-            Optimise_AUDC(registerArray);
-            Optimise_AUDF(registerArray);
+            Optimize_AUDC(registerArray);
+            Optimize_AUDF(registerArray);
             break;
 
         case SAPROptimization::AUDCTL_AUDC:
-            Optimise_AUDC(registerArray);
-            Optimise_AUDCTL(registerArray);
+            Optimize_AUDC(registerArray);
+            Optimize_AUDCTL(registerArray);
             break;
 
         case SAPROptimization::AUDCTL_AUDF:
-            Optimise_AUDCTL(registerArray);
-            Optimise_AUDF(registerArray);
+            Optimize_AUDCTL(registerArray);
+            Optimize_AUDF(registerArray);
             break;
 
         case SAPROptimization::ALL:
-            Optimise_AUDC(registerArray);
-            Optimise_AUDCTL(registerArray);
-            Optimise_AUDF(registerArray);
+            Optimize_AUDC(registerArray);
+            Optimize_AUDCTL(registerArray);
+            Optimize_AUDF(registerArray);
             break;
         }
 
-        // Write the processed bytes once the optimisations were applied to them
+        // Write the processed bytes once the optimizations were applied to them
         for (int i = 0; i < REGISTERS; i++) {
             data[i][destIndex] = registerArray[i];
         }
@@ -534,15 +534,15 @@ int CCompressLzss::Compress(uint8_t** data, const int sz, unsigned char* dst, co
 }
 
 // Hacked up version of main() by VinsCool, stripping out most options that aren't needed for RMT
-int CCompressLzss::LZSS_SAP(const byte* src, const size_t srclen, unsigned char* dst, SAPROptimization optimisation) {
-    return LZSS_SAP(REGISTERS, src, srclen, dst, optimisation);
+int CCompressLzss::LZSS_SAP(const byte* src, const size_t srclen, unsigned char* dst, SAPROptimization optimization) {
+    return LZSS_SAP(REGISTERS, src, srclen, dst, optimization);
 }
 
-int CCompressLzss::LZSS_SAP(const int registers, const byte* src, const size_t srclen, unsigned char* dst, SAPROptimization optimisation) {
+int CCompressLzss::LZSS_SAP(const int registers, const byte* src, const size_t srclen, unsigned char* dst, SAPROptimization optimization) {
 
     uint8_t* data[REGISTERS];
 
-    auto sz = Optimize(registers, src, srclen, optimisation, data);
+    auto sz = Optimize(registers, src, srclen, optimization, data);
 
     int show_stats = 2; // Full Verbose for debugging purposes
     int bits_set = 0;

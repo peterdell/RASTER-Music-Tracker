@@ -139,7 +139,7 @@ here.
 
 - HiDPI: `RmtToolBars.iconScale()` = the device scale rounded (1 below
   150%, 2 from 150%, 3 from 250%), the 32x30 button images enlarged
-  nearest-neighbour (`scaled()`) and drawn 1:1 in device pixels by
+  nearest-neighbor (`scaled()`) and drawn 1:1 in device pixels by
   `PixelIcon` (Swing's own fractional scaling removed in the paint, as the
   canvas does), the combo box height with them - decision 3, a deliberate
   improvement over the DPI-unaware MFC toolbar.

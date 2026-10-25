@@ -21,7 +21,7 @@ Changes in RMT 2.00 (Planned)
 Changes in RMT 1.37 (Planned)
 -----------------------------
 
-- Use the larger 12x24 character set for the tracker display, so the screen is readable on today's high resolution monitors. The glyph sheet "gfx-12x24.bmp" is in the repository beside the 8x16 one the programs draw with today, but it holds a single row of 128 glyphs: the colour bands, the 8x8 miniature font and the small icons that the 8x16 sheet carries would have to be generated for it, and the drawing code takes the cell size from constants in two places.
+- Use the larger 12x24 character set for the tracker display, so the screen is readable on today's high resolution monitors. The glyph sheet "gfx-12x24.bmp" is in the repository beside the 8x16 one the programs draw with today, but it holds a single row of 128 glyphs: the color bands, the 8x8 miniature font and the small icons that the 8x16 sheet carries would have to be generated for it, and the drawing code takes the cell size from constants in two places.
 - Have an additional ".ini" file as an intermediate step to the RMT file format version 2. There, the module-specific settings from the "RMT.ini" and "Tuning.ini" could be preserved. Also, the file's existence indicates it is an RMT in 1.34 format.
 
 Changes in RMT 1.36
@@ -84,7 +84,7 @@ Changes in RMT 1.36
 - Keyboard layout "QWERTZ" (Options > Keyboard Layout) for the German keyboard: the note keys by key position as on QWERTY, with Y and Z exchanged and the keys ü + ö ´ - taking the places of [ ] ; = /. Until now German users had the lowest C under the 6. A first start (no rmt.ini) picks the layout from the keyboard language: German QWERTZ, French AZERTY, else QWERTY. (Build 2026-09-30)
 
 **Pokey Explorer**
-- The Pokey menu's items (the registers, the AUDCTL bits, two-tone, channel, divisor) work in the Pokey Explorer mode; they had no handlers and were always greyed. The hint for "Channel 3 > AUDC2 > Decrease" reads Y, the key that works (Z was the German keyboard's view of the same position). (Build 2026-09-30)
+- The Pokey menu's items (the registers, the AUDCTL bits, two-tone, channel, divisor) work in the Pokey Explorer mode; they had no handlers and were always grayed. The hint for "Channel 3 > AUDC2 > Decrease" reads Y, the key that works (Z was the German keyboard's view of the same position). (Build 2026-09-30)
 - The Pokey Explorer's keys are key positions on every layout: on QWERTZ the Z under the 6 decreases AUDC2 (the QWERTY Y), on AZERTY the A decreases AUDF0 (the QWERTY Q) and the , is the two-tone key (the QWERTY M); + and - stay + and -. (Build 2026-09-30)
 - Fixed: in the Pokey Explorer mode, Backspace (previous channel) did nothing. (Build 2026-09-30)
 
@@ -361,7 +361,7 @@ A lot of his changes helped me a lot to get unstuck on a bunch of things I was u
 - Fix a bug where holding SHIFT through CAPSLOCK caused instrument name cursor to function backwards, now having CAPSLOCK active won't cause any conflict with the arrow keys while SHIFT is held
 - Tiny change to the is_editing_infos boolean, making sure it's actually only setting 1 when the cursor is on the Song Name area, while the Speed values will always return 0
 - Fix a design oversight where editing in the "Track lines boundaries go to next/previous song lines" parameter being disabled would not take the pattern size into account and overflow past the "END" rows
-- Make sure the selection block cursor won't cross pattern boundaries, fixing both a graphical bug and the awkward block selection behaviour where it would also overflow into the next/previous pattern
+- Make sure the selection block cursor won't cross pattern boundaries, fixing both a graphical bug and the awkward block selection behavior where it would also overflow into the next/previous pattern
 - Allow tracks to be navigated with LEFT and RIGHT keys seamlessly, making all Tracks columns (Note, Instrument, Volume and Speed) accessible unconditionally
 - Force the Instrument column to insert a note if the note keys are used on empty rows, effectively making it behave the same as the Note column. Will use the original instrument number function otherwise
 - Two-Tone Filter can now display its volume output in a unique color, final design to decide later
@@ -374,11 +374,11 @@ A lot of his changes helped me a lot to get unstuck on a bunch of things I was u
 - Adjust the minimal window size to accomodate the new TRACKS UI dimensions
 - Preliminary new colors and themeing (thanks PG for the help and suggestions!)
 - 256 colors bitmap support
-- Tweak the DrawAnalyser() function in order to draw the mute/shadow/full volume bars with unique colors matching the background
+- Tweak the DrawAnalyzer() function in order to draw the mute/shadow/full volume bars with unique colors matching the background
 - Highlight GOTO lines in the SONG block to make them easier to see (thanks PG for the idea!)
 - Fix the config dialog update to not reset the sound routine if no region setting was changed, same for the HW/SW Soundbuffer setting. This was an oversight by Vin, oops
 - Move the SONG block depending on the window size. This was the last 1.30 feature that was not backported yet since I took a different approach with the offset displacement handler
-- Fix a tiny bit the Volume Analyser in the Instrument Editor screen, the volume bars were 3 pixels off relative to the tracks below it
+- Fix a tiny bit the Volume Analyzer in the Instrument Editor screen, the volume bars were 3 pixels off relative to the tracks below it
 - Add experimental register state visualiser/debug informations display, works for the few elements in place, but a lot of the design has yet made
 - Add few more windows size parameters in order to move the SONG block accordingly, and hide the registers view block if it is too large to display properly
 - Fix a small bug related to the WINDOW_OFFSET variable which would run into a conflict with another parameter and cause the UI to flicker as a result
@@ -386,10 +386,10 @@ A lot of his changes helped me a lot to get unstuck on a bunch of things I was u
 - Create a Distortion C formulae for 15khz, 64khz and 1.79mhz modes. Accurate frequencies computed in real time!
 - Create a Distortion 2 formula only for 1.79mhz mode, same as above!
 - Worked around all missing modes by going directly into the Pure (Distortion A) frequencies formulae
-- Fix a memory leak in the initialisation of the Registers Visualiser causing glitched characters to pop up at random
+- Fix a memory leak in the initialization of the Registers Visualiser causing glitched characters to pop up at random
 - Rewrote the Registers Viewer entirely to make it fit inside a single for() loop, since this caused random corruption in the data being read elsewhere despite sharing the exact same variables
 - Fix a tiny mistake where not having the POKEY Chip registers option checked in the View menu would not display the Registers on the right, while the POKEY REGISTERS text shown above was still there
-- Fix the Registers View initialisation, which potentially leaked memory by writing characters out of bounds
+- Fix the Registers View initialization, which potentially leaked memory by writing characters out of bounds
 - Add Distortion 2 64khz and 15khz formulae
 - Add Distortion 0 and 8 POLY9 formulae for 1.79mhz and 64khz
 - Rudimentary cents off calculation. Needs improvements
@@ -436,11 +436,11 @@ A lot of his changes helped me a lot to get unstuck on a bunch of things I was u
 - Tweak global shortcuts further to avoid any conflicts with PROVE keys in stereo (CTRL+SHIFT+NOTEKEY)
 - Add HOME and END keys support in PROVE mode, HOME to the first line, and END for the last
 - Re-add the SONG Lines shortcuts "Insert New Unused Pattern", "Duplicate Pattern", "Set Goto Line"", now I realise those were nice to have there too
-- Tweak Block Selection behaviour, so now manual selection using SHIFT+UP/DOWN in tracks follow the same logic used by CTRL+A, allowing selection of all valid track lines properly
+- Tweak Block Selection behavior, so now manual selection using SHIFT+UP/DOWN in tracks follow the same logic used by CTRL+A, allowing selection of all valid track lines properly
 - Tweak TrackUp() and TrackDown(), to make sure "going past boundaries move Song Line to the Next/Previous position" is properly happening only if the configuration is also enabled
 - Also Treak the Tracks up/down code further so having a block selection active could never go past the boundaries, and just not move further on the active line, regardless of the boundary setting active
-- Make the Home and End keys in tracks have a much smarter behaviour, where holding SHIFT for a Selection Block will match the improved logic done a bit earlier
-- Also allow END to either go to the last wise loop line/end line or actual last line, replicating the behaviour of HOME which goes either to the first line in track, or first line in a Wise Loop
+- Make the Home and End keys in tracks have a much smarter behavior, where holding SHIFT for a Selection Block will match the improved logic done a bit earlier
+- Also allow END to either go to the last wise loop line/end line or actual last line, replicating the behavior of HOME which goes either to the first line in track, or first line in a Wise Loop
 - Force the Tracks ENTER key case to always move down, to prevent the Selection Block's last line to get stuck, caused by the improved logic's check for the last line while the block is also active
 - Update the manual to match this version's differences and new design
 - Correct some English grammar in menus, update strings to better reflect the changes done
@@ -1271,7 +1271,7 @@ Improvements
 - Block toolbar is showed by default.
 - Much more summary information in the About box.
 - Text parameters editing was changed a bit. Because of ShiftKey is used for playing
-  the notes, You have to press the CapsLock key for switch to "normal" ShiftKey behaviour
+  the notes, You have to press the CapsLock key for switch to "normal" ShiftKey behavior
   (i.e. ShiftKey+Key for entering uppercase and other (!@#$%^&*()_+:"<>?|) characters).
   CapsLock mode is turned off automatically when text editing is over by pressing the Tab key
   or Enter key.

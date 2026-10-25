@@ -58,13 +58,13 @@ void CSongUI::DrawInstrumentHook(int ANALYZER2_X, int ANALYZER_Y, int g1, int g2
 }
 
 /// <summary>
-/// Draw a volume analyser above each track
+/// Draw a volume analyzer above each track
 /// </summary>
 void CSongUI::DrawVolumeAnalyzer() {
 
     if (!g_view.volumeAnalyzer) {
         return;
-    } //the analyser won't be displayed without the setting enabled first
+    } //the analyzer won't be displayed without the setting enabled first
 
     const auto stereo = m_song->IsStereo();
     const int MINIMAL_WIDTH_TRACKS = (stereo && g_active_ti == Part::PART_TRACKS) ? 1420 : 960;
@@ -115,7 +115,7 @@ void CSongUI::DrawVolumeAnalyzer() {
         // Max rise is 10 pixels
         const auto memory = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
 
-        // Clear the area where the analyser is to be drawn
+        // Clear the area where the analyzer is to be drawn
         canvasXY->FillSolidRect(ANALYZER_X, ANALYZER_Y - ANALYZER_HP, g_tracks4_8 * 16 * 8 - 34, ANALYZER_H + ANALYZER_HP, CRGBColor::BACKGROUND);
 
         // Left/Mono Channel
@@ -189,7 +189,7 @@ void CSongUI::DrawVolumeAnalyzer() {
             vol = audc & 0x0f; // Volume in lower nibble
             a = channelNr * 16 * 8; // X offset
 
-            // Draw the background box of the volume analyser for this channel
+            // Draw the background box of the volume analyzer for this channel
             // 15 unit wide, each unit is 6 pixels (ANALYZER_S)
             // Default color is RGB(44, 60, 102) - Dark blue
             canvasXY->FillSolidRect(ANALYZER_X + a + 2, ANALYZER_Y, 15 * ANALYZER_S, ANALYZER_H, RGB(R[channelNr], G[channelNr], col[channelNr]));
@@ -302,7 +302,7 @@ void CSongUI::DrawVolumeAnalyzer() {
 
                 vol = audc & 0x0f; // Volume in lower nibble
 
-                // Draw the background box of the volume analyser for this channel
+                // Draw the background box of the volume analyzer for this channel
                 // 15 unit wide, each unit is 6 pixels (ANALYZER_S)
                 // Default color is RGB(44, 60, 102) - Dark blue
                 canvasXY->FillSolidRect(ANALYZER2_X + channelNr * 3 * 8, ANALYZER2_Y, 15 * ANALYZER2_S, ANALYZER2_H, RGB(R[channelNr], G[channelNr], col[channelNr]));

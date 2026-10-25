@@ -128,7 +128,7 @@ because the checked-in one was not evidence.
 `ADDRESS = 0x3000; // RMTPLAYR_TABLES;` - but `RMTPLAYR_TABLES` is
 `$B000`. The address is right and deliberate (the view shows the driver's
 own code and variables); the comment pointed at an unrelated name.
-Corrected in both, with no change in behaviour. It is the kind of claim
+Corrected in both, with no change in behavior. It is the kind of claim
 H3's test now makes impossible to leave wrong where a real constant is
 involved.
 

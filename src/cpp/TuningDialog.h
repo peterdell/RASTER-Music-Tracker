@@ -24,7 +24,7 @@ private:
 protected:
     virtual void DoDataExchange(CDataExchange* pDX); // DDX/DDV support
 
-    // backup values loaded during initialisation, which can then be retrieved in case the dialog was canceled
+    // backup values loaded during initialization, which can then be retrieved in case the dialog was canceled
     TTuningSettings m_tuningSettingsBackup;
 
     // Implementation

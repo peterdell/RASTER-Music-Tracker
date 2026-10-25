@@ -28,7 +28,7 @@ public final class PokeyView {
 	}
 
 	static ExplorerValues explorerValues(int audf, boolean join16bit, boolean clock179, boolean clock15) {
-		// Always initialised to 1 to avoid a division by 0 error
+		// Always initialized to 1 to avoid a division by 0 error
 		int modoffset = 1;
 		int coarseDivisor = 1;
 

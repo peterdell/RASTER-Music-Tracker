@@ -33,7 +33,7 @@ public final class SongExporter {
 	 * (up to the start of the detected loop), and the looped section (the
 	 * loop's own body) separately - mirrors {@code CSongExporter::ExportLZSS}
 	 * exactly, including its default {@link SapROptimization#AUDC}
-	 * optimisation (C++'s {@code LZSS_SAP}'s own default argument).
+	 * optimization (C++'s {@code LZSS_SAP}'s own default argument).
 	 */
 	public static LzssExportResult exportLzss(PokeyStream pokeyStream) {
 		CompressLzss lzssData = new CompressLzss();
@@ -70,7 +70,7 @@ public final class SongExporter {
 	/**
 	 * Tries every {@link SapROptimization} and keeps the smallest result -
 	 * mirrors {@code CSongExporter::BruteforceOptimalLZSS} exactly (which
-	 * recomputes the winning optimisation a second time into a shared
+	 * recomputes the winning optimization a second time into a shared
 	 * output buffer; this port just keeps the already-computed {@code byte[]}
 	 * from the loop itself, since {@link CompressLzss#compress} returns a
 	 * fresh array per call rather than writing into a caller-supplied one).
@@ -79,8 +79,8 @@ public final class SongExporter {
 	 */
 	private static byte[] bruteforceOptimalLzss(CompressLzss lzssData, byte[] src) {
 		byte[] best = null;
-		for (SapROptimization optimisation : SapROptimization.values()) {
-			byte[] candidate = lzssData.compress(src, optimisation);
+		for (SapROptimization optimization : SapROptimization.values()) {
+			byte[] candidate = lzssData.compress(src, optimization);
 			if (best == null || candidate.length < best.length) {
 				best = candidate;
 			}
@@ -292,7 +292,7 @@ public final class SongExporter {
 		// Additional patches from the Export Dialog...
 		mem[VUPlayer.SONG_SPEED] = (byte) xexFile.instrumentSpeed; // Song speed
 		mem[VUPlayer.RASTER_BAR] = (byte) (xexFile.displayRasterbar ? 0x80 : 0x00); // Display the rasterbar for CPU level
-		mem[VUPlayer.COLOR] = (byte) xexFile.rasterbarColor; // Rasterbar colour
+		mem[VUPlayer.COLOR] = (byte) xexFile.rasterbarColor; // Rasterbar color
 		mem[VUPlayer.STEREO_FLAG] = (byte) (xexFile.stereo ? 0xFF : 0x00); // Is the song stereo?
 		mem[VUPlayer.SONGTOTAL] = (byte) subsongs; // Total number of subtunes
 		if (!xexFile.autoRegion) { // Automatically adjust speed between regions?

@@ -74,7 +74,7 @@ signature. The user does not test driver replacements on macOS
 
 ### 2.2 Finding the content root
 
-The content root can no longer be recognised by `resources/` - that moved
+The content root can no longer be recognized by `resources/` - that moved
 into the jar. Instead: start at the jar's folder and walk up at most four
 levels, taking the first folder that contains `songs` or `rmt.ini`. One
 rule, no platform branch, and it covers all three depths (one level up on

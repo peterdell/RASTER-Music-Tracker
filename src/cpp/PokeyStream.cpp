@@ -88,7 +88,7 @@ int CPokeyStream::SwitchIntoStop() {
 }
 
 void CPokeyStream::CallFromPlay(int playerState, int trackLine, int songLine) {
-    // The SAP-R dumper initialisation flag was set
+    // The SAP-R dumper initialization flag was set
     if (m_recordState == STREAM_STATE::START) {
         memset(m_PlayCount, 0, sizeof(m_PlayCount)); // Reset lines play counter first
         if (playerState == PLAY_BLOCK) {
@@ -158,7 +158,7 @@ void CPokeyStream::Record() {
         return;
     }
     if (m_recordState == STREAM_STATE::START) {
-        return; // Too soon, must first be initialised to get a constant rate every time, this prevents writing garbage in memory for the first few frames
+        return; // Too soon, must first be initialized to get a constant rate every time, this prevents writing garbage in memory for the first few frames
     }
 
     int offsetIntoSAPRBuffer = m_FrameCounter * m_FrameSize; // 4 AUDC, 4 AUDF, 1 AUDCTL + Second POKEY if used

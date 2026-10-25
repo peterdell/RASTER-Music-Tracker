@@ -6,8 +6,8 @@ import java.io.ByteArrayOutputStream;
  * Ported from CCompressLzss/CLzss (src/cpp/lzss_sap.h/.cpp) - an optimal
  * LZSS compressor for SAP-R register-dump music files (by DMSC, C++-ported
  * for RMT by VinsCool). Covers exactly what {@code LzssTests.cpp}
- * exercises: the three {@code Optimise_*} passes and the compressor's one
- * real call shape (C++'s {@code LZSS_SAP(src, srclen, dst, optimisation)}
+ * exercises: the three {@code Optimize_*} passes and the compressor's one
+ * real call shape (C++'s {@code LZSS_SAP(src, srclen, dst, optimization)}
  * four-argument overload, always run with {@code opt='6'}/
  * {@code format_version=0}).
  *
@@ -55,7 +55,7 @@ public final class CompressLzss {
 
 	private static final int REGISTERS = 9;
 
-	public void optimiseAudc(byte[] buf) {
+	public void optimizeAudc(byte[] buf) {
 		for (int i = 0; i < 4; i++) {
 			int audc = i * 2 + 1;
 			int value = unsignedByte(buf, audc);
@@ -74,7 +74,7 @@ public final class CompressLzss {
 		}
 	}
 
-	public void optimiseAudctl(byte[] buf) {
+	public void optimizeAudctl(byte[] buf) {
 		// CH1 is mute, disable High Pass Filter in CH1+3
 		if ((unsignedByte(buf, 1) & 0x0F) == 0) {
 			buf[8] &= 0xFB;
@@ -107,7 +107,7 @@ public final class CompressLzss {
 		}
 	}
 
-	public void optimiseAudf(byte[] buf) {
+	public void optimizeAudf(byte[] buf) {
 		for (int i = 0; i < 4; i++) {
 			int audf = i * 2;
 			int audc = audf + 1;
@@ -145,13 +145,13 @@ public final class CompressLzss {
 		}
 	}
 
-	public byte[] compress(byte[] src, SapROptimization optimisation) {
-		byte[][] data = optimize(src, optimisation);
+	public byte[] compress(byte[] src, SapROptimization optimization) {
+		byte[][] data = optimize(src, optimization);
 		int sz = data[0].length;
 		return doCompress(data, sz);
 	}
 
-	private byte[][] optimize(byte[] src, SapROptimization optimisation) {
+	private byte[][] optimize(byte[] src, SapROptimization optimization) {
 		int frameCount = src.length / REGISTERS;
 		byte[][] data = new byte[REGISTERS][frameCount];
 
@@ -163,32 +163,32 @@ public final class CompressLzss {
 			// AUDC3, AUDCTL
 			System.arraycopy(src, srcIndex, frame, 0, REGISTERS);
 
-			switch (optimisation) {
+			switch (optimization) {
 			case AUDC:
-				optimiseAudc(frame);
+				optimizeAudc(frame);
 				break;
 			case AUDCTL:
-				optimiseAudctl(frame);
+				optimizeAudctl(frame);
 				break;
 			case AUDF:
-				optimiseAudf(frame);
+				optimizeAudf(frame);
 				break;
 			case AUDC_AUDF:
-				optimiseAudc(frame);
-				optimiseAudf(frame);
+				optimizeAudc(frame);
+				optimizeAudf(frame);
 				break;
 			case AUDCTL_AUDC:
-				optimiseAudc(frame);
-				optimiseAudctl(frame);
+				optimizeAudc(frame);
+				optimizeAudctl(frame);
 				break;
 			case AUDCTL_AUDF:
-				optimiseAudctl(frame);
-				optimiseAudf(frame);
+				optimizeAudctl(frame);
+				optimizeAudf(frame);
 				break;
 			case ALL:
-				optimiseAudc(frame);
-				optimiseAudctl(frame);
-				optimiseAudf(frame);
+				optimizeAudc(frame);
+				optimizeAudctl(frame);
+				optimizeAudf(frame);
 				break;
 			case NONE:
 				break;

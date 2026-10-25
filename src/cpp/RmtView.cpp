@@ -707,7 +707,7 @@ void CRmtView::ResetRMTConfig()
     g_view.blockToolbar = TRUE;						// Display the Block Toolbar 
     g_view.statusBar = TRUE;						// Display the Status Bar
     g_view.playTimeCounter = TRUE;					// Display the Play Time and BPM Counter
-    g_view.volumeAnalyzer = TRUE;					// Display the Volume Analyser Bars
+    g_view.volumeAnalyzer = TRUE;					// Display the Volume Analyzer Bars
     g_view.pokeyRegisters = TRUE;					// Display the POKEY Registers (TODO: Move the Detailed Registers to its own entry) 
     g_view.instrumentEditHelp = TRUE;				// Display useful info when editing various parts of an instrument
     g_view.smoothScrolling = TRUE;				// Smoothly scroll the track and song line data is smooth during playback 
@@ -730,7 +730,7 @@ void CRmtView::ResetRMTConfig()
     g_Midi.m_TouchResponse = 0;					// MIDI Touch response
     g_Midi.m_VolumeOffset = 0;					// MIDI Volume offset
     g_Midi.m_NoteOff = 0;						// MIDI Note Off 
-    g_Midi.MidiInit();							// MIDI must be initialised just in case 
+    g_Midi.MidiInit();							// MIDI must be initialized just in case 
     WriteRMTConfig();							// Write the default configuration file 
 }
 
@@ -1012,7 +1012,7 @@ void CRmtView::Resize()
     }
 
 
-    // Initialise the parameters for the resized screen
+    // Initialize the parameters for the resized screen
     CDC* dc = GetDC();
     m_mem_bitmap.CreateCompatibleBitmap(dc, m_width, m_height);
     m_mem_dc.CreateCompatibleDC(dc);
@@ -1082,7 +1082,7 @@ void CRmtView::OnInitialUpdate()
 
     g_Song.SetRMTTitle();
 
-    // RMTView Timer Initialisation
+    // RMTView Timer Initialization
     m_timerDisplay = SetTimer(1, 16, NULL);
 
     //Displays the ABOUT dialog if there is no Pokey or 6502 initialized...
@@ -1091,7 +1091,7 @@ void CRmtView::OnInitialUpdate()
         AfxGetApp()->GetMainWnd()->PostMessage(WM_COMMAND, ID_HELP_ABOUT_APP, 0); // ID_HELP_ABOUT had no handler
     }
 
-    //Initialise MIDI
+    //Initialize MIDI
     g_Midi.MidiInit();
     g_Midi.MidiOn();
 
@@ -1111,7 +1111,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
     // Store the last known mouse XY coordinates and buttons used
     StoreMouseInformation(point.x, point.y, mousebutt, wheelzDelta);
 
-    //TODO: make those parameters global so they won't have to be re-initialised in multiple functions separately
+    //TODO: make those parameters global so they won't have to be re-initialized in multiple functions separately
     const auto stereo = g_Song.IsStereo();
     int MINIMAL_WIDTH_TRACKS = (stereo && g_active_ti == Part::PART_TRACKS) ? 1420 : 960;
     int MINIMAL_WIDTH_INSTRUMENTS = (stereo && g_active_ti == Part::PART_INSTRUMENTS) ? 1220 : 1220;
@@ -2894,8 +2894,8 @@ void CRmtView::OnEditActivatePokeyExplorerMode()
 }
 
 // The Pokey menu's 50 explorer items (registers, AUDCTL bits, two-tone, channel, divisor) had no handlers until
-// 2026-09-30 - MFC greyed them permanently. They run the same CPokeyController operations as the keys, in the
-// explorer mode only (enabled there, greyed elsewhere).
+// 2026-09-30 - MFC grayed them permanently. They run the same CPokeyController operations as the keys, in the
+// explorer mode only (enabled there, grayed elsewhere).
 BOOL CRmtView::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo)
 {
     if (CPokeyController::IsCommand(nID))

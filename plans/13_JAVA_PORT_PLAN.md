@@ -190,7 +190,7 @@ been checked at the time:
   hazardous once the rest of the test project had grown around it.
 - `GetTruePitch`/`CalculateDeltaAUDF`/`GenerateTable` moved from `private`
   to `public` in `Tuning.h` (one-line comment, matching the established
-  `CCompressLzss::Optimise_*` visibility-only precedent) - `GetTruePitch`/
+  `CCompressLzss::Optimize_*` visibility-only precedent) - `GetTruePitch`/
   `CalculateDeltaAUDF` are pure regardless; `GenerateTable` still reads
   `g_tuning` directly (unchanged), but that's fine once it's initialized.
 - `test/TuningInitStub.cpp` (the old link-only empty-body `InitTuning()`)
@@ -846,10 +846,10 @@ far. No C++ changes needed; `lzssp.h` (532 lines of unrelated Atari player
 memory-address constants, not used by the compressor at all) turned out to
 be a red herring when first scoping this batch.
 
-- Covers exactly what `LzssTests.cpp` exercises: the three `Optimise_*`
-  passes (`optimiseAudc`/`optimiseAudctl`/`optimiseAudf`) and the
+- Covers exactly what `LzssTests.cpp` exercises: the three `Optimize_*`
+  passes (`optimizeAudc`/`optimizeAudctl`/`optimizeAudf`) and the
   compressor's one real call shape - C++'s `LZSS_SAP(src, srclen, dst,
-  optimisation)` four-argument overload, always run with `opt='6'`/
+  optimization)` four-argument overload, always run with `opt='6'`/
   `format_version=0`.
 - **New `SapROptimization`** (was `SAPROptimization`): a plain Java enum -
   unlike some other ported enums, no test needs a synthetic out-of-range
@@ -875,13 +875,13 @@ be a red herring when first scoping this batch.
   reproduced; the `stat_len`/`stat_off` histograms that exist solely to
   feed that dump are dropped along with it.
 - **A real unsigned-vs-signed pitfall caught before running any test**:
-  `Optimise_AUDF`'s "two-tone" check compares a raw register byte's
+  `Optimize_AUDF`'s "two-tone" check compares a raw register byte's
   *magnitude* (`buf[1] < 0xF0`), unlike every other comparison in this
   file (which mask with `&` first, safe under Java's signed-byte
   sign-extension regardless). A literal port would silently invert the
   comparison for any byte `>= 0x80`. Fixed by reusing this project's
   established `unsignedByte(byte[], int)` helper (as in `Instruments`) for
-  every register-buffer read in all three `Optimise_*` methods, not just
+  every register-buffer read in all three `Optimize_*` methods, not just
   this one, for consistency.
 - **A fragile contract preserved as-is, manifesting differently**: neither
   version requires `src`'s length to be an exact multiple of the 9-byte

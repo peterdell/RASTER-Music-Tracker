@@ -37,7 +37,7 @@ struct bf {
 };
 
 // ----------------------------------------------------------------------------
-// SAP-R optimisations pattern, for optimal data compression to LZSS
+// SAP-R optimizations pattern, for optimal data compression to LZSS
 // This is a set of combinations that may or may not provide better compression ratios
 // Results vary wildly between any given stream of bytes, due to many variables at play
 // Bruteforcing each pattern is more or less a requirement for optimal results
@@ -99,22 +99,22 @@ public:
 class CCompressLzss {
 public:
     CCompressLzss();
-    int LZSS_SAP(const byte* src, const size_t srclen, unsigned char* dst, SAPROptimization optimisation = SAPROptimization::AUDC);
+    int LZSS_SAP(const byte* src, const size_t srclen, unsigned char* dst, SAPROptimization optimization = SAPROptimization::AUDC);
 
-    int LZSS_SAP(const int registers, const byte* src, const size_t srclen, unsigned char* dst, SAPROptimization optimisation);
+    int LZSS_SAP(const int registers, const byte* src, const size_t srclen, unsigned char* dst, SAPROptimization optimization);
 
     // Public for testability: each transforms a single 9-byte SAP-R register
     // frame in place and has no dependency on the rest of LZSS_SAP()'s state,
     // so characterization tests call them directly instead of only
     // indirectly through the full compressed output.
-    void Optimise_AUDC(uint8_t* buf);
-    void Optimise_AUDCTL(uint8_t* buf);
-    void Optimise_AUDF(uint8_t* buf);
+    void Optimize_AUDC(uint8_t* buf);
+    void Optimize_AUDCTL(uint8_t* buf);
+    void Optimize_AUDF(uint8_t* buf);
 
 private:
     CLzss lzss;
 
-    int Optimize(const int registers, const unsigned char* src, const size_t srcSize, const SAPROptimization optimisation, uint8_t** data);
+    int Optimize(const int registers, const unsigned char* src, const size_t srcSize, const SAPROptimization optimization, uint8_t** data);
 
     int Compress(uint8_t** data, const int sz, unsigned char* dst, const int show_stats, const bool force_last_literal, FILE* log);
 };

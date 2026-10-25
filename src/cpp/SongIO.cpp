@@ -629,7 +629,7 @@ bool CSong::LoadTxt(std::istream& in) {
                         v = 256;
                     }
                     g_Tracks.SetMaxTrackLength(v);
-                    g_Tracks.InitTracks(); // Reinitialise
+                    g_Tracks.InitTracks(); // Reinitialize
                 } else if (strcmp(line, "MAINSPEED:") == 0) {
                     // Set the play speed: MAINSPEED: 01-FF
                     int v = Hexstr(value, 2);

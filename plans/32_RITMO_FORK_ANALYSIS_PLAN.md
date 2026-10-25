@@ -16,7 +16,7 @@ is Gianluca Renzi's fork of this repository: the C++ program ported from
 MFC to Qt6, so that the C++ line runs natively on Linux, Windows and macOS.
 This project is retiring its C++ program in favour of the Java port, so the
 fork's direction is not ours - but 150 commits of real work on the shared
-code may contain fixes we want. This plan analyses what was done there and
+code may contain fixes we want. This plan analyzes what was done there and
 decides, change by change, what flows back.
 
 ## 1. The two lines, measured
@@ -40,7 +40,7 @@ pre-move flat layout, so their diffs map onto `src/cpp/` here by name.
 
 The flow is already two-way: their `7af613d` ("Port RMT 1.36 bug fixes
 from the MSVC/Java repository (batch 1)") takes fixes from here. Changes
-of theirs that originated here must be recognised in R1, not re-imported.
+of theirs that originated here must be recognized in R1, not re-imported.
 
 Both repositories are GPL-3.0 and RITMO's README names the fork
 relationship, so code may be taken verbatim where that is the easiest
@@ -55,7 +55,7 @@ form; each fix still lands through this project's own conventions
   replaces it. What does not apply any more is new C++-only capability
   (plan 24's E2 decision), so their Qt, CMake, PortAudio and packaging
   work is read for understanding, not adopted.
-- **Behaviour differences that are really fixes**, found by reading their
+- **Behavior differences that are really fixes**, found by reading their
   diffs rather than their commit subjects.
 - **Ideas worth a note, not work**: their riscv64/ppc64/AppImage
   packaging answers the old RISC-V question for the C++ line; the Java
@@ -67,7 +67,7 @@ form; each fix still lands through this project's own conventions
 
 - **R1 - inventory.** Classify all 150 commits: Qt/MFC port mechanics,
   build and CI, documentation, originated-here (the `7af613d` family),
-  core behaviour change. The result is a table appended to this plan,
+  core behavior change. The result is a table appended to this plan,
   one row per `src`-touching commit with a verdict. Expected outcome:
   a short list of genuine candidates; the survey already surfaced
   these subjects:
@@ -77,7 +77,7 @@ form; each fix still lands through this project's own conventions
   | `2724160` | stripped RMT export end address | candidate |
   | `4e8b1f2` | loading TXT songs/instruments with LF line ends | candidate |
   | `b94585a` | fix the WAV export | likely superseded here by the ASAP 16-bit path - verify |
-  | `bbb1548` | driver re-initialised after ClearSong and import | may itself be a port of ours - verify origin |
+  | `bbb1548` | driver re-initialized after ClearSong and import | may itself be a port of ours - verify origin |
   | `ab338c1` | fix all compiler warnings | mine it for real bugs only; warning hygiene in retiring C++ is not worth porting |
   | `d1257b7` | 100 % CPU, exit segfault, cheaper redraw | Qt-specific; idea note at most |
 

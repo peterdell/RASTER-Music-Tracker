@@ -262,7 +262,7 @@ timer, so pressed-tone preview works with playback stopped).
 ## 6. Risks
 
 - The RMT routine may rely on zero-page or page-6 state the C++ `C6502_
-  Initialise` sets up; if `RMT_INIT` misbehaves under ASAP's CPU, the
+  Initialize` sets up; if `RMT_INIT` misbehaves under ASAP's CPU, the
   cross-check in B8a will show it first.
 - Timing: `SourceDataLine` latency on Windows (DirectSound/WASAPI mixer)
   can exceed C++'s 60 ms; the buffer size is the tuning knob.

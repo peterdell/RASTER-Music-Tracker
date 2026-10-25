@@ -53,7 +53,7 @@ public final class RmtSession {
 	/** The Effects/tools dialog's remembered effect and parameters ({@code g_effai}, {@code eff_ed}). */
 	public final org.atari.raster.rmt.model.BlockEffects.Settings blockEffectSettings = new org.atari.raster.rmt.model.BlockEffects.Settings();
 
-	/** {@code g_tracks4_8}: 4 (mono) or 8 (stereo). Starts at 8 as in C++ ("hardcoded to 8 to prevent ReInitSound() to run before RMT finished being initialised"); written through {@link #setTracks4_8}. */
+	/** {@code g_tracks4_8}: 4 (mono) or 8 (stereo). Starts at 8 as in C++ ("hardcoded to 8 to prevent ReInitSound() to run before RMT finished being initialized"); written through {@link #setTracks4_8}. */
 	public int tracks4_8 = 8;
 
 	/** {@code CSong::SetTracks()}: a change of the channel count re-initializes the sound. */

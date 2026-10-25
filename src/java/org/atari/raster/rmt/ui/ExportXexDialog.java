@@ -30,7 +30,7 @@ final class ExportXexDialog extends ModalDialog {
 	private static final long serialVersionUID = 1L;
 
 	/** {@code bar[]}: the 16 PAL hue names (NTSC names "may or may not be correct yet" in C++, left out there too). */
-	static final String[] COLOR_NAMES = { "Gray", "Rust", "Orange", "Red-orange", "Pink", "Purple", "Cobalt blue", "Blue", "Medium blue", "Dark blue", "Blue-grey", "Olive green", "Medium green", "Dark green", "Orange-green", "Brown" };
+	static final String[] COLOR_NAMES = { "Gray", "Rust", "Orange", "Red-orange", "Pink", "Purple", "Cobalt blue", "Blue", "Medium blue", "Dark blue", "Blue-gray", "Olive green", "Medium green", "Dark green", "Orange-green", "Brown" };
 
 	private final JTextArea editArea = new JTextArea(5, 44);
 	private final JTextArea previewArea = new JTextArea(4, 40);

@@ -48,6 +48,12 @@ Not ported: printing.
 - The port's plans and notes are in `plans/` (`13_JAVA_PORT_PLAN.md`, `18_JAVA_UI_PORT_PLAN.md`, `NOTES.md`).
 
 
+### Conventions
+
+- The whole project uses American English spelling - in source comments, identifiers, documentation and UI texts (color, gray, initialize, optimize, analyzer).
+  Excepted are the byte-pristine historical artifacts (`asm/Legacy`, `legacy/`), vendored third-party code (`lib/`, `src/cpp/asap/`), generated files carrying external label names (`src/cpp/lzssp.h`), external API names (the `C6502_Initialise`/`Pokey_Initialise` DLL exports), and verbatim quotes of all of these.
+
+
 ### Main features:
 
 Note that this is as of RMT 1.28 and not accurate for 1.34 and later!

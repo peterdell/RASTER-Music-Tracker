@@ -25,7 +25,7 @@ CSong::CSong() {
     // Attributes
     memset(m_songname, 0, SONG_NAME_MAX_LEN);
 
-    // Initialise Timer
+    // Initialize Timer
     m_quantization_note = -1; // init
     m_quantization_instr = -1;
     m_quantization_vol = -1;

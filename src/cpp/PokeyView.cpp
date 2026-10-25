@@ -255,7 +255,7 @@ void CPokeyView::Draw(const CSong& song, const CTuning& tuning, const bool explo
                     const int e_audfLow = audfLow;
                     const int e_audc = audc;
 
-                    // Always initialised to 1 to avoid a division by 0 error
+                    // Always initialized to 1 to avoid a division by 0 error
                     int e_modoffset = 1;
                     int e_coarse_divisor = 1;
 

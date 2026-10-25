@@ -30,7 +30,7 @@ import org.commonmark.renderer.text.TextContentRenderer;
  * as Markdown because that is what is maintained and what GitHub shows; the
  * distributions ship HTML, because their users have no Markdown reader.
  * This class converts every {@code *.md} of the source folder to
- * {@code <name>.html} in the target folder (CommonMark with GitHub-flavoured
+ * {@code <name>.html} in the target folder (CommonMark with GitHub-flavored
  * tables, one page template, links between the pages rewritten from
  * {@code .md} to {@code .html}), copies the images ({@code *.gif},
  * {@code *.png}, the {@code img/} folder) and the HTML files that have no

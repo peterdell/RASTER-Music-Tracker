@@ -7,7 +7,7 @@
 ;*
 ;*
 ;* TO DO: A lot... So much to re-order and cleanup...
-;* I must recalculate everything, once the full code cleanup and optimisation is done.
+;* I must recalculate everything, once the full code cleanup and optimization is done.
 ;* Currently, all infos are incorrect due to the massive amount of changes I have done into the code.
 ;* I apologise for the inconvenience, I am doing my best to clean everything to make sense again.
 ;*
@@ -293,7 +293,7 @@ trackn_tablelop		org *+TRACKS	;table repeat
 trackn_tablespeeda	org *+TRACKS	;current table speed
 
 	IFT FEAT_FILTER
-trackn_filter		org *+TRACKS		; Frequency shift of the filtering generator. POTENTIAL OPTIMISATION: it is NOT necessary to use all tracks... only channel 1 and 2 will use it to offset the other...
+trackn_filter		org *+TRACKS		; Frequency shift of the filtering generator. POTENTIAL OPTIMIZATION: it is NOT necessary to use all tracks... only channel 1 and 2 will use it to offset the other...
 	EIF
 
 	IFT FEAT_FULL_16BIT||FEAT_BASS16	;* EXPERIMENTAL METHOD: full 16-bit values, Sawtooth and Filter may also benefit from this approach...
@@ -327,7 +327,7 @@ track_endvariables
 ; Start of the RMT data
 ; TODO: Maybe this could be moved elsewhere, much like the tuning tables?
 	
-	org PLAYER-$0200	; I need to improve the label organisation here as well, also do I really need to org there? my memory is hazy, why did even do this...?
+	org PLAYER-$0200	; I need to improve the label organization here as well, also do I really need to org there? my memory is hazy, why did even do this...?
 	
 	IFT FEAT_AUDCTLMANUALSET
 AUDCTLBITS	; bits to test for AUDCTL lookup tables
@@ -402,7 +402,7 @@ volumetab
 RASTERMUSICTRACKER
 	; Initialize
 	;
-	; Must be run first, to clear memory and initialise the player.
+	; Must be run first, to clear memory and initialize the player.
 	; Once this is done, run rmt_play afterwards, or Set_Pokey if you want to manually time certain things.
 	; IN:  <X>=module address low byte, Y=module address high byte, <A>=starting song line(0-255)
 	; OUT: <A>=the instrument speed (1= 1 time per VBI (normal), 2 = 2 times per VBI, 3 = 3 times per VBI, ...
@@ -421,7 +421,7 @@ RASTERMUSICTRACKER
 
 	; Play3
 	; R: ;(without SetPokey, Song and Track handling) from the instrument processing on
-	; Similar to rmt_play, but will also skip SetPokey and the instruments/songlines/tracklines initialisation.
+	; Similar to rmt_play, but will also skip SetPokey and the instruments/songlines/tracklines initialization.
 	jmp rmt_p3
 
 	; Set Silence
@@ -642,9 +642,9 @@ nn0										; Before jumping to nn0 from elsewhere, ensure that <X>=0.
 ;   on the first pass (via GetSongLine...) x=0, jumping to nn0 from elsewhere requires ldx #0 before the jump
 
 	IFT FEAT_IS_SIMPLEP
-		IFT EXPORTXEX					; Simple RMT Player hack for colour cycling, change the rasterbar colour every new pattern played
-			lda loop+1					; the #RASTERBAR colour defined will be loaded there specifically
-			add #16						; offset the value by #$10 for a simple colour shuffle
+		IFT EXPORTXEX					; Simple RMT Player hack for color cycling, change the rasterbar color every new pattern played
+			lda loop+1					; the #RASTERBAR color defined will be loaded there specifically
+			add #16						; offset the value by #$10 for a simple color shuffle
 			sta loop+1   				; store back where it was loaded, overwriting the previous value
 			lda p_song					; calculate the songline position below, this is done once every new songline
 			sub MODUL+14 				; TODO: relocate this code elsewhere, so toggling it would be easier
@@ -860,7 +860,7 @@ p2x0
 InitOfNewSetInstrumentsOnly	;CAUTION! Before jumping to InitOfNewSetInstrumentsOnly, ldx #TRACKS-1 must be loaded
 p2x1 	
 	ldy trackn_instrx2,x
-	bmi p2x0		; If bit 7 i set, there is no new instrument to initialise for this channel
+	bmi p2x0		; If bit 7 i set, there is no new instrument to initialize for this channel
 	
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
@@ -1055,7 +1055,7 @@ rmt_p3
 	ldx #TRACKS-1
 
 ;*
-;* Aggressive initialisation every new player call here, the method was originally done to get the AUDCTL early, but many things can be exploited here the same way.
+;* Aggressive initialization every new player call here, the method was originally done to get the AUDCTL early, but many things can be exploited here the same way.
 ;* Combining the aggressive init and rmt_p3 in 1 thing, this is now an even more aggressive approach! 
 ;*
 ;* POSSIBLE IMPROVEMENT: process ALL effect commands here instead... Meaning there won't be workarounds necessary later, for several commands.
@@ -1219,7 +1219,7 @@ pp0_o
 
 pp1					; copying the values to the zeropage to make things faster... but not all bytes need this...
 
-;* OPTIMISATION: reg1 is now free to use for a different purpose! 
+;* OPTIMIZATION: reg1 is now free to use for a different purpose! 
 
 	lda trackn_instrhb,x
 	bne pp1b			; continue if not equal 
@@ -1691,7 +1691,7 @@ cmd5ax
 		ldy reg3						; Get the #$XY instrument parameter.
 		bne cmd5a						; Jump aheead if not zero. 
 		sta trackn_portafrqa,x			; Else, set the current portamento pitch instantly.
-		;* BUG: Portamento is never initialised if the #$XY parameter is not on the very first player call! 
+		;* BUG: Portamento is never initialized if the #$XY parameter is not on the very first player call! 
 cmd5a
 		lda trackn_portafrqa,x			; is the current frequency set to 0?
 		bne cmd5b				; if not, it's most likely correctly set
@@ -2102,7 +2102,7 @@ ppnext	;jumped to when the instrument is not initialized
 rmt_p4
 	ldy #0					; will be used to mute channels and reset the flags
 
-;* end of mainloop code... everything below will be conditionally assembled for easy optimisation.
+;* end of mainloop code... everything below will be conditionally assembled for easy optimization.
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
@@ -2312,7 +2312,7 @@ do_sawtooth_a
 		sta v_audctl				; store the new AUDCTL value, left POKEY
 do_sawtooth_b
 
-		IFT FEAT_COMMAND6			; Sawtooth CMD6 hack... could be optimised much better, or maybe moved into the commands? 
+		IFT FEAT_COMMAND6			; Sawtooth CMD6 hack... could be optimized much better, or maybe moved into the commands? 
 			lda reg2				; Command and Distortion
 			and #$70				; keep the Command bits only
 			cmp #$60				; CMD6?

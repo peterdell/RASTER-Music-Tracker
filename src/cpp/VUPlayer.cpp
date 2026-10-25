@@ -13,7 +13,7 @@ void VUPlayer::PatchMemoryForSAP_B(byte* memory, const CSong& song, int subsongs
     // Patch: change a $00 to $FF to force the LOOP flag to be infinite
     memory[VUPlayer::LOOP_FLAG] = 0xFF;
 
-    // SAP initialisation patch: the SAP player calls INIT with the subtune number in A
+    // SAP initialization patch: the SAP player calls INIT with the subtune number in A
     byte sapbytes[14] =
         {
             0x8D, LZSSP_SONGIDX & 0xff, LZSSP_SONGIDX >> 8, // STA SongIdx

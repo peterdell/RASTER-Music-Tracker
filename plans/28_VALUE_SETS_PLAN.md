@@ -42,7 +42,7 @@ and the example `com.wudsn.tools.base.atari.Platform`.
   `setValue(T)`/`getValue()` plus an `addActionListener` that suppresses
   the event while `setValue` runs. That last part alone removes a class of
   bugs from the dialogs, which today guard index changes by hand.
-- `DataType` has no value set flavour; `ElementFactory.createLabel(
+- `DataType` has no value set flavor; `ElementFactory.createLabel(
   DataType, JComponent)` works with any component, so the existing label
   code stays as it is. `DataTypes.OptionsDialog_KeyboardLayout` can take
   `KeyboardLayout.class` as its value class instead of `String.class`.
@@ -159,7 +159,7 @@ and stay `if`/`else`.
 extends com.wudsn.tools.base.ValueSets`) and `ValueSets.properties` next
 to it (English only, decision 6.1); `pom.xml` already copies `src/java` resources (verify the
 `.properties` include pattern, `Actions.properties` is packaged the same
-way). No behaviour change yet. A `ValueSetsTest` that loads the container
+way). No behavior change yet. A `ValueSetsTest` that loads the container
 and asserts every text is non-empty comes with V2.
 
 ### V2 - `AssemblerFormat` (the smallest, proves the pattern) - DONE 2026-10-01
@@ -180,7 +180,7 @@ Ids as today, sort keys the C++ order, texts the six display names plus
 one for `NONE`/`UNPATCHED_WITH_TUNING` (they exist but are not offered).
 An `int` attribute per instance for the ini value (the C++ enum's number,
 i.e. today's ordinal) with `getInstance(int)`; `RmtConfig` uses it, and an
-unknown number keeps today's behaviour. The dialog gets
+unknown number keeps today's behavior. The dialog gets
 `ValueSetField<>(TrackerDriverVersion.getSelectableValues())` and loses
 `DRIVER_VERSIONS`, `DRIVER_VERSION_NAMES` and `indexOf`. The script's
 `parseDriverVersion` iterates `getValues()` instead of `values()` and

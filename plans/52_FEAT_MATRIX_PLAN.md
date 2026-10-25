@@ -81,5 +81,5 @@ configurations are affected.
   A branch that needs two or more simultaneously non-default values
   stays dark; named combinations can be added to the matrix if one
   turns up.
-- The matrix proves assembly outcomes, not runtime behaviour of the
+- The matrix proves assembly outcomes, not runtime behavior of the
   non-default configurations.

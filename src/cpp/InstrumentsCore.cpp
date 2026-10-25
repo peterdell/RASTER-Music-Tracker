@@ -18,8 +18,8 @@ extern CAtari g_Atari;
 
 /// <summary>
 /// CInstruments Class Object constructor
-/// The struct TInstrument will be initialised in order to use Instruments
-/// TODO: Initialise more parameters, set #define values to static constants
+/// The struct TInstrument will be initialized in order to use Instruments
+/// TODO: Initialize more parameters, set #define values to static constants
 /// </summary>
 CInstruments::CInstruments() : canvasXY(nullptr) {
     // Value-initialize (zero) every element - plain `new[]` would leave
@@ -102,7 +102,7 @@ void CInstruments::RecalculateFlag(int instr) {
 
     BYTE flags = 0;
 
-    // Analyse the instrument envelope for the Autofilter, Bass16 and Portamento flags
+    // Analyze the instrument envelope for the Autofilter, Bass16 and Portamento flags
     for (int i = 0; i <= ti->parameters[PAR_ENV_LENGTH]; i++) {
         // Autofilter?
         if (ti->envelope[i][EnvelopeParameter::FILTER]) {
@@ -120,7 +120,7 @@ void CInstruments::RecalculateFlag(int instr) {
         }
     }
 
-    // Analyse the instrument parameters for the AUDCTL flag
+    // Analyze the instrument parameters for the AUDCTL flag
     for (int i = PAR_AUDCTL_15KHZ; i <= PAR_AUDCTL_POLY9; i++) {
         // AUDCTL?
         if (ti->parameters[i]) {

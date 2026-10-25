@@ -36,7 +36,7 @@ outright. `ID_FILE_PRINT_DIRECT` had a handler but no menu item at all.
 `ID_FILE_PRINT*` are MFC's own IDs from `afxres.h`, not RMT's, so
 `resource.h` had nothing to remove.
 
-**Java** - present, greyed, and refusing:
+**Java** - present, grayed, and refusing:
 
 | Where | What |
 | ----------------------------------- | ------------------------------------------------ |
@@ -86,7 +86,7 @@ key table.
   `CrossProgramExportTest` confirms the port writes the same file. The
   `CONTROL+P` row is gone from `doc/rmt_en.md`'s key table, and 1.36's
   printing entry in `doc/rmt_changes.md` now says the entries are gone
-  from both programs rather than greyed in one.
+  from both programs rather than grayed in one.
 - **P5. `Ctrl+P` is deliberately unassigned.** DONE, by decision. It is
   free and stays free: no editor function is moved onto it, since the
   three that were moved off Ctrl+N/Ctrl+O/Ctrl+P on 2026-09-28 have been
@@ -104,7 +104,7 @@ key table.
 - **`notAvailable("Printing")` was the wrong message for Properties.**
   Removing the three ids left `FILE_PROPERTIES` alone in a case that
   reported the feature as "Printing". It now says "Song properties",
-  which is what the command is - the behaviour (disabled, and refusing
+  which is what the command is - the behavior (disabled, and refusing
   if reached) is unchanged.
 
 ## Verification

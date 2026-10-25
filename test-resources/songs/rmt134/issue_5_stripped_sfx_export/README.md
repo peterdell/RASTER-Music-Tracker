@@ -22,4 +22,4 @@ ImportExportTest.exportStrippedRmtWithSfxKeepsAnSfxOnlyModule pins the
 fix: with SFX support, the export at the original address $6800
 reproduces testsfx.rmt byte for byte, and a relocation keeps its full
 length; without SFX support, stripping an SFX-only module down to the
-header remains the correct behaviour.
+header remains the correct behavior.

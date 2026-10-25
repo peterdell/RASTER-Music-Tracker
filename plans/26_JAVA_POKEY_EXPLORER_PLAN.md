@@ -68,7 +68,7 @@ AUDCTL > Bit 0-7, SKCTL > Two Tone Mode, Debug Channel > Next/Previous,
 Divisor > +-0.1/1.0 - 50 items with the keys as hints, and the accelerator
 table `IDR_POKEY_EXPLORER` (appended to the accelerators for the command
 table dump). **None of the 50 items has an `ON_COMMAND` handler**, so MFC
-shows them all greyed and clicking is impossible; only the keys of 1.2
+shows them all grayed and clicking is impossible; only the keys of 1.2
 work, and only in the explorer mode. (The Java menu reproduces that: the
 items exist and are disabled.)
 

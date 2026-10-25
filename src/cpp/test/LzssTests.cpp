@@ -6,68 +6,68 @@
 
 // SAP-R register frame layout: AUDF0,AUDC0,AUDF1,AUDC1,AUDF2,AUDC2,AUDF3,AUDC3,AUDCTL
 
-TEST(OptimiseAudcTest, ZeroVolumeClearsDistortionBits) {
+TEST(OptimizeAudcTest, ZeroVolumeClearsDistortionBits) {
     CCompressLzss compressor;
     uint8_t buf[9] = {0, 0x30, 0, 0, 0, 0, 0, 0, 0}; // AUDC0: dist=0x30, vol=0
-    compressor.Optimise_AUDC(buf);
+    compressor.Optimize_AUDC(buf);
     EXPECT_EQ(buf[1], 0x00);
 }
 
-TEST(OptimiseAudcTest, NoiseTypeBitClearedWhenBit5DistortionSet) {
+TEST(OptimizeAudcTest, NoiseTypeBitClearedWhenBit5DistortionSet) {
     CCompressLzss compressor;
     uint8_t buf[9] = {0, 0xE5, 0, 0, 0, 0, 0, 0, 0}; // AUDC0: dist=0xE0 (bit5 set), vol=5
-    compressor.Optimise_AUDC(buf);
+    compressor.Optimize_AUDC(buf);
     EXPECT_EQ(buf[1], 0xA5); // bit 0x40 cleared
 }
 
-TEST(OptimiseAudcTest, DistortionAtOrAboveF0IsLeftUntouched) {
+TEST(OptimizeAudcTest, DistortionAtOrAboveF0IsLeftUntouched) {
     CCompressLzss compressor;
     uint8_t buf[9] = {0, 0xF5, 0, 0, 0, 0, 0, 0, 0}; // dist=0xF0, vol=5 (two-tone filter range)
-    compressor.Optimise_AUDC(buf);
+    compressor.Optimize_AUDC(buf);
     EXPECT_EQ(buf[1], 0xF5);
 }
 
-TEST(OptimiseAudcTlTest, MutingAllChannelsClearsFilterAndClockBits) {
+TEST(OptimizeAudcTlTest, MutingAllChannelsClearsFilterAndClockBits) {
     CCompressLzss compressor;
     // AUDC0/1/3 muted (volume nibble 0), AUDC2 has volume 5, AUDCTL all bits set.
     uint8_t buf[9] = {0, 0x00, 0, 0x00, 0, 0x05, 0, 0x00, 0xFF};
-    compressor.Optimise_AUDCTL(buf);
+    compressor.Optimize_AUDCTL(buf);
     EXPECT_EQ(buf[8], 0xA9);
 }
 
-TEST(OptimiseAudcTlTest, NoMutedChannelsLeavesAudctlUntouched) {
+TEST(OptimizeAudcTlTest, NoMutedChannelsLeavesAudctlUntouched) {
     CCompressLzss compressor;
     uint8_t buf[9] = {0, 0x01, 0, 0x02, 0, 0x03, 0, 0x04, 0xFF};
-    compressor.Optimise_AUDCTL(buf);
+    compressor.Optimize_AUDCTL(buf);
     EXPECT_EQ(buf[8], 0xFF);
 }
 
-TEST(OptimiseAudfTest, MutedChannelsWithNoConflictingAudctlBitsAreZeroed) {
+TEST(OptimizeAudfTest, MutedChannelsWithNoConflictingAudctlBitsAreZeroed) {
     CCompressLzss compressor;
     uint8_t buf[9] = {0xAB, 0x00, 0xCD, 0x00, 0xEF, 0x00, 0x12, 0x00, 0x00};
-    compressor.Optimise_AUDF(buf);
+    compressor.Optimize_AUDF(buf);
     EXPECT_EQ(buf[0], 0);
     EXPECT_EQ(buf[2], 0);
     EXPECT_EQ(buf[4], 0);
     EXPECT_EQ(buf[6], 0);
 }
 
-TEST(OptimiseAudfTest, MutedChannelsPreserveAudfWhenAudctlNeedsThem) {
+TEST(OptimizeAudfTest, MutedChannelsPreserveAudfWhenAudctlNeedsThem) {
     // AUDCTL bit 0x04 keeps AUDF0 (case 0) and AUDF2 (case 2), but not
     // AUDF1 (case 1, needs 0x02/0x10) or AUDF3 (case 3, needs 0x02/0x08).
     CCompressLzss compressor;
     uint8_t buf[9] = {0xAB, 0x00, 0xCD, 0x00, 0xEF, 0x00, 0x12, 0x00, 0x04};
-    compressor.Optimise_AUDF(buf);
+    compressor.Optimize_AUDF(buf);
     EXPECT_EQ(buf[0], 0xAB);
     EXPECT_EQ(buf[2], 0);
     EXPECT_EQ(buf[4], 0xEF);
     EXPECT_EQ(buf[6], 0);
 }
 
-TEST(OptimiseAudfTest, NonZeroVolumeLeavesAudfUntouched) {
+TEST(OptimizeAudfTest, NonZeroVolumeLeavesAudfUntouched) {
     CCompressLzss compressor;
     uint8_t buf[9] = {0xAB, 0x01, 0xCD, 0x02, 0xEF, 0x03, 0x12, 0x04, 0x00};
-    compressor.Optimise_AUDF(buf);
+    compressor.Optimize_AUDF(buf);
     EXPECT_EQ(buf[0], 0xAB);
     EXPECT_EQ(buf[2], 0xCD);
     EXPECT_EQ(buf[4], 0xEF);
@@ -81,10 +81,10 @@ TEST(OptimiseAudfTest, NonZeroVolumeLeavesAudfUntouched) {
 
 namespace {
 
-std::vector<uint8_t> Compress(const std::vector<uint8_t>& src, SAPROptimization optimisation) {
+std::vector<uint8_t> Compress(const std::vector<uint8_t>& src, SAPROptimization optimization) {
     CCompressLzss compressor;
     std::vector<uint8_t> dest(src.size() * 3 + 64, 0);
-    int compressedSize = compressor.LZSS_SAP(src.data(), src.size(), dest.data(), optimisation);
+    int compressedSize = compressor.LZSS_SAP(src.data(), src.size(), dest.data(), optimization);
     dest.resize(compressedSize);
     return dest;
 }
@@ -154,7 +154,7 @@ TEST(LzssTest, RepeatingAndVaryingFrames) {
 
 TEST(LzssTest, AllOptimizationsAppliedToMutedChannels) {
     // All 4 channels muted (volume nibble 0) and AUDCTL all-bits-set: the
-    // AUDC/AUDCTL/AUDF optimisation passes should all fire before
+    // AUDC/AUDCTL/AUDF optimization passes should all fire before
     // compression, so the compressed output differs from the equivalent
     // input run through SAPROptimization::NONE.
     std::vector<uint8_t> src{

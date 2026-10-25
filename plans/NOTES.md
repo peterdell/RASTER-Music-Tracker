@@ -251,7 +251,7 @@ Added tests for the SAP-R LZSS compressor (11 more, 54 total, all passing):
 - `lzss_sap.cpp` needed no cleanup split — it only includes `lzss_sap.h` (which
   includes `StdAfx.h` for basic types, not `Global.h`), so it was already free of the
   `Global.h` coupling problem hit with `Tuning.cpp`.
-- `CCompressLzss::Optimise_AUDC`/`Optimise_AUDCTL`/`Optimise_AUDF` were `private`.
+- `CCompressLzss::Optimize_AUDC`/`Optimize_AUDCTL`/`Optimize_AUDF` were `private`.
   Since each is a small, pure, single-9-byte-frame transform with no dependency on
   the rest of the class's state, and this codebase has no LZSS *decoder* to invert
   `LZSS_SAP()`'s output and recover their effect indirectly, the only way to test them
@@ -259,7 +259,7 @@ Added tests for the SAP-R LZSS compressor (11 more, 54 total, all passing):
   test-only constructor): moved these three method declarations from `private` to
   `public` in `lzss_sap.h`.** Purely a visibility change — no behavior change, and
   `LZSS_SAP()` still calls them exactly as before internally. Added 8 hand-verified
-  tests (`OptimiseAudcTest`, `OptimiseAudcTlTest`, `OptimiseAudfTest`) — these were
+  tests (`OptimizeAudcTest`, `OptimizeAudcTlTest`, `OptimizeAudfTest`) — these were
   straightforward to hand-derive since the bit logic is simple masking, unlike
   `CTuning`'s branching modulo arithmetic.
 - Added 3 end-to-end `LzssTest` cases for `LZSS_SAP()` itself (the actual LZSS
@@ -2592,7 +2592,7 @@ build clean and all 123 tests pass.
     before recommending the Java-side deferral.
     - Moved `GetTruePitch`/`CalculateDeltaAUDF`/`GenerateTable` from
       `private` to `public` in `Tuning.h` (matching the
-      `CCompressLzss::Optimise_*` visibility-only precedent).
+      `CCompressLzss::Optimize_*` visibility-only precedent).
     - Deleted the now-obsolete `test/TuningInitStub.cpp` (empty-body link
       stub for `InitTuning()`); `test/RmtTests.vcxproj` now links the real
       `TuningTables.cpp`. Added `test/TuningTablesStub.cpp` for
@@ -3105,7 +3105,7 @@ build clean and all 123 tests pass.
     - Omitted all diagnostic `fprintf`/stats-histogram code - it only ever
       wrote to a log stream, never affecting the returned buffer or size.
     - **Caught a real unsigned/signed pitfall before running any test**:
-      `Optimise_AUDF`'s two-tone check does a raw magnitude comparison
+      `Optimize_AUDF`'s two-tone check does a raw magnitude comparison
       (`buf[1] < 0xF0`), unlike every other comparison in the file (which
       mask first, safe regardless of Java's signed-byte sign extension). A
       literal port would have silently inverted this comparison for any
@@ -4536,7 +4536,7 @@ build clean and all 123 tests pass.
   - **2026-09-27**: Phase B, batch B9c (polish) - B9 and Phase B complete.
     - HiDPI toolbar: `RmtToolBars.iconScale()` rounds the default screen's
       device scale (1 below 150%, 2 from 150%, 3 from 250%), `scaled()`
-      enlarges the 32x30 button images nearest-neighbour by it, and
+      enlarges the 32x30 button images nearest-neighbor by it, and
       `PixelIcon` draws the enlarged image 1:1 in device pixels (Swing is
       told the logical size, the paint removes the scaling transform - the
       canvas's own technique). A first version let Swing scale the 2x image
@@ -4848,9 +4848,9 @@ build clean and all 123 tests pass.
     tables verified against the code (`CRmtView::OnKeyDown`, the
     accelerator table, `InfoKey`/`InstrKey`/`ProveKey`/`TrackKey`/`SongKey`
     in `GUI_Song.cpp`). Corrected in `doc/rmt_en.md`:
-    - "SHIFT+ESC reinitialises the sound output": there is no Shift+Esc;
+    - "SHIFT+ESC reinitializes the sound output": there is no Shift+Esc;
       Esc stops, and the option "ESC resets Atari sound" (default on)
-      reinitialises the routines - one row now says so.
+      reinitializes the routines - one row now says so.
     - "PAGE UP/DOWN: next/previous song line": true in SONG, INFO and
       INSTRUMENT EDIT; in TRACK EDIT they move by the highlight step within
       the track and CONTROL+PAGE UP/DOWN change the song line - the row
@@ -4977,7 +4977,7 @@ build clean and all 123 tests pass.
     `doc/rmt_action_infos.md` regenerated; both programs' tables identical.
     The user-facing entries since the port started moved to their own
     section of `doc/rmt_changes.md` ("Changes in RMT 1.35 since the start
-    of the Java port"), the file's mixed line endings normalised.
+    of the Java port"), the file's mixed line endings normalized.
   - **2026-09-28**: the GitHub release workflow's Linux and macOS jobs
     failed (run 36358858017, a manual test build of 2026-09-27): two test
     assumptions of the Windows machine. `RmtCommandLineTest` passed a
@@ -5005,13 +5005,13 @@ build clean and all 123 tests pass.
     heading rename "RMT Scripting". Caveats reported: `RMT_VERSION_STRING`
     is the `.rmw` format marker (both `LoadRMW`s compare it exactly), so
     `.rmw` files saved by 1.35 report "Incorrect version" in 1.36 - the
-    original's behaviour at every version step, kept; the help URLs point
+    original's behavior at every version step, kept; the help URLs point
     at a branch `1.36` of raster-atari-org that does not exist yet.
     Verified: Release build of `Rmt.sln` (416 C++ tests), `mvn -o clean
     package` (594 Java tests), `compare_exports.ps1` - every export
     identical, the `.rmw` files included.
   - **2026-09-29**: `plans/25_JAVA_MIDI_PLAN.md` written (MIDI input for
-    the Java port, M0-M5, with the C++ handler `CSong::MidiEvent` analysed
+    the Java port, M0-M5, with the C++ handler `CSong::MidiEvent` analyzed
     channel by channel). The user: "apply the fix. The rest remains
     deferred for now." Applied: (1) the Java quantization branch of
     `Song.playVBI` (M0) - `SongInput.insertNote` had set the quantized note
@@ -5088,7 +5088,7 @@ build clean and all 123 tests pass.
     enabled in the explorer mode only. C++: `OnPreviousChannel` fixed (no
     decrement - Backspace did nothing), `CPokeyController::IsCommand/
     OnCommand` + `CRmtView::OnCmdMsg` route the 50 `ID_POKEY_*` menu items
-    (never handled before - MFC greyed them) to the controller in the
+    (never handled before - MFC grayed them) to the controller in the
     explorer mode, `Rmt.rc` hint Z -> Y for AUDC2 decrease (menu label and
     `IDR_POKEY_EXPLORER`), `PokeyControllerTests.cpp` (7 tests, the same
     table as `PokeyControllerTest`). Docs: manual section "Pokey

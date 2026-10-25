@@ -222,7 +222,7 @@ sawtooth_audctl_mono
 	ora #4				; high pass filter, CH1
 	sta v_audctl
 sawtooth_audctl_done
-	IFT FEAT_COMMAND6		; Sawtooth CMD6 hack... could be optimised much better, or maybe moved into the commands? ---> 36 bytes saved if not used
+	IFT FEAT_COMMAND6		; Sawtooth CMD6 hack... could be optimized much better, or maybe moved into the commands? ---> 36 bytes saved if not used
 	lda reg2
 	and #$70
 	cmp #$60			; CMD6
@@ -501,7 +501,7 @@ sawtooth_audctl_mono
 	ora v_audctl			; combine the existing AUDCTL value to it
 	sta v_audctl			; store the new AUDCTL value, left POKEY
 sawtooth_audctl_done
-	IFT FEAT_COMMAND6		; Sawtooth CMD6 hack... could be optimised much better, or maybe moved into the commands? 
+	IFT FEAT_COMMAND6		; Sawtooth CMD6 hack... could be optimized much better, or maybe moved into the commands? 
 	lda reg2
 	and #$70
 	cmp #$60			; CMD6
@@ -788,7 +788,7 @@ do_tuning_tables
 	jmp do_bass16		;* process the BASS16 code there
 	EIF
 check_flags
-	lda trackn_flags,x	; flags previously set during the aggressive rmt_p3 initialisation, they are unconditional
+	lda trackn_flags,x	; flags previously set during the aggressive rmt_p3 initialization, they are unconditional
 	beq store_tables_lsb	; #$00 = 64khz flag, unconditional
 	IFT FEAT_FULL_16BIT 
 	bmi check_valid_16bit	; #$80 = Valid 16-bit flag, #$FF = Invalid 16-bit flag, unconditional
@@ -876,9 +876,9 @@ ch_index equ *-1
 	
 	and #$0F
 	tax
-	bne getcolourfull
+	bne getcolorful
 	beq drawloop
-getcolourfull
+getcolorful
 	lda #255	; red?
 	
 	bne drawloop1
@@ -919,8 +919,8 @@ finishedloop
 
 begindraw
 	mwa #mode_6+2 DISPLAY	; set the position on screen, offset by 2 in order to be centered
-	lda #$c0		; change the colour to red 
-	sta colour_bar 
+	lda #$c0		; change the color to red 
+	sta color_bar 
 	ldx #TRACKS-1
 	
 ;	; debug code!!!!
@@ -1037,7 +1037,7 @@ draw_1_bar
 
 draw_line1
 	ora #0
-colour_bar equ *-1 
+color_bar equ *-1 
 
 draw_nothing
 	sta (DISPLAY),y 
@@ -1056,12 +1056,12 @@ verify_line
 	cpx #1
 	bcc change_line23	; below 1 
 change_line4
-	lda #$40		; change the colour to green 
-	bne colour_changed 
+	lda #$40		; change the color to green 
+	bne color_changed 
 change_line23 
-	lda #$00 		; change the colour to yellow 
-colour_changed
-	sta colour_bar		; new colour is set for the next line 
+	lda #$00 		; change the color to yellow 
+color_changed
+	sta color_bar		; new color is set for the next line 
 	jmp do_index_line 	; repeat the process for the next line until all lines were drawn  
 	
 decay_buffer

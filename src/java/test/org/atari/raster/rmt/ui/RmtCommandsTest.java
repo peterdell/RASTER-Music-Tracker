@@ -433,7 +433,7 @@ class RmtCommandsTest {
 	/** File > Properties..., the song's own settings - out of the Options dialog since plan 44. */
 	@Test
 	void modulePropertiesCommandEditsACopyAndAppliesItOnlyOnOK() {
-		assertTrue(commands.isEnabled(RmtCommandId.FILE_PROPERTIES)); // greyed in C++ until it had a dialog
+		assertTrue(commands.isEnabled(RmtCommandId.FILE_PROPERTIES)); // grayed in C++ until it had a dialog
 		host.okPressed = false;
 		commands.execute(RmtCommandId.FILE_PROPERTIES);
 		assertEquals(List.of("editModuleProperties"), host.calls);

@@ -3,7 +3,7 @@
 Status: DONE 2026-10-14, S1-S5. `File > Properties` and its `Alt+Enter`
 accelerator existed in both programs' menus and did nothing: a
 `MENUITEM` and an accelerator in `Rmt.rc` with no handler behind them at
-all, so the entry was greyed in C++, and the Java port routed it to
+all, so the entry was grayed in C++, and the Java port routed it to
 `host.notAvailable` and reported it disabled. The command slot was
 already reserved in both programs - this plan gave it its dialog.
 
@@ -137,7 +137,7 @@ it did.
 ## Verification
 
 - 450 C++ tests and 705 Java tests pass (three new ones: the dialog's
-  round trip, the command's OK/Cancel behaviour and
+  round trip, the command's OK/Cancel behavior and
   `applyModuleProperties`); both C++ projects build with no errors and no
   warnings.
 - `doc/rmt_action_infos.md` regenerated from `Rmt.exe` changed in exactly

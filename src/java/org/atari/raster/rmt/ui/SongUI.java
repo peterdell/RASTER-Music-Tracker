@@ -138,7 +138,7 @@ public final class SongUI {
 	}
 
 	/**
-	 * Draw a volume analyser above each track, and the tuning/POKEY register
+	 * Draw a volume analyzer above each track, and the tuning/POKEY register
 	 * panel ({@link PokeyView}) to the right of the tracks.
 	 *
 	 * <p>C++ also contains an "instrument edit mode" variant (smaller boxes
@@ -153,7 +153,7 @@ public final class SongUI {
 	public void drawVolumeAnalyzer() {
 		if (!session.options.view.volumeAnalyzer) {
 			return;
-		} // the analyser won't be displayed without the setting enabled first
+		} // the analyzer won't be displayed without the setting enabled first
 
 		Song song = session.song;
 		UiState ui = session.uiState;
@@ -201,7 +201,7 @@ public final class SongUI {
 			// Max rise is 10 pixels
 			final byte[] memory = session.atari.getMemory();
 
-			// Clear the area where the analyser is to be drawn
+			// Clear the area where the analyzer is to be drawn
 			canvasXY.fillSolidRect(ANALYZER_X, ANALYZER_Y - ANALYZER_HP, tracks4_8 * 16 * 8 - 34, ANALYZER_H + ANALYZER_HP, RgbColor.BACKGROUND);
 
 			// Left/Mono Channel
@@ -275,7 +275,7 @@ public final class SongUI {
 				vol = audc & 0x0f; // Volume in lower nibble
 				a = channelNr * 16 * 8; // X offset
 
-				// Draw the background box of the volume analyser for this channel
+				// Draw the background box of the volume analyzer for this channel
 				// 15 unit wide, each unit is 6 pixels (ANALYZER_S)
 				// Default color is RGB(44, 60, 102) - Dark blue
 				canvasXY.fillSolidRect(ANALYZER_X + a + 2, ANALYZER_Y, 15 * ANALYZER_S, ANALYZER_H, new Color(R[channelNr], G[channelNr], col[channelNr]));

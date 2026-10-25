@@ -353,7 +353,7 @@ public final class SongIO {
 						// Set how long a track is: MAXTRACKLEN: 00-FF
 						int v = IOHelpers.hexstr(value, 0, 2);
 						song.tracks.setMaxTrackLength(v == 0 ? 256 : v);
-						song.tracks.initTracks(); // reinitialise
+						song.tracks.initTracks(); // reinitialize
 					}
 					case "MAINSPEED:" -> {
 						// Set the play speed: MAINSPEED: 01-FF

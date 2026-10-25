@@ -420,7 +420,7 @@ volumetab
 RASTERMUSICTRACKER
 	; Initialize
 	;
-	; Must be run first, to clear memory and initialise the player.
+	; Must be run first, to clear memory and initialize the player.
 	; Once this is done, run rmt_play afterwards, or Set_Pokey if you want to manually time certain things.
 	; IN:  <X>=module address low byte, Y=module address high byte, <A>=starting song line(0-255)
 	; OUT: <A>=the instrument speed (1= 1 time per VBI (normal), 2 = 2 times per VBI, 3 = 3 times per VBI, ...
@@ -439,7 +439,7 @@ RASTERMUSICTRACKER
 
 	; Play3
 	; R: ;(without SetPokey, Song and Track handling) from the instrument processing on
-	; Similar to rmt_play, but will also skip SetPokey and the instruments/songlines/tracklines initialisation.
+	; Similar to rmt_play, but will also skip SetPokey and the instruments/songlines/tracklines initialization.
 	jmp rmt_p3
 
 	; Set Silence

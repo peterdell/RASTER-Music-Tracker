@@ -160,7 +160,7 @@ void CSong::ClearSong(int numOfTracks) {
     // Changes in the module
     g_changes = 0;
 
-    // Initialise RMT routine
+    // Initialize RMT routine
     g_Atari.Init(IsNTSC());
     g_AtariTrackerDriver->Init();
 }
@@ -835,7 +835,7 @@ void CSong::SongClearUnusedTracksAndParts(int& clearedtracks, int& truncatedtrac
     BOOL trackused[TRACKSNUM]{};
     TTrack* tr;
 
-    // Initialise
+    // Initialize
     for (i = 0; i < TRACKSNUM; i++) {
         tracklen[i] = -1;
         trackused[i] = FALSE;
@@ -957,7 +957,7 @@ int CSong::SongClearDuplicatedTracks() {
         }
     }
 
-    //analyse the song and make changes to the deleted tracks
+    //analyze the song and make changes to the deleted tracks
     for (int sline = 0; sline < SONGLEN; sline++) {
         for (ch = 0; ch < g_tracks4_8; ch++) {
             int n = m_song[sline][ch];
@@ -1147,7 +1147,7 @@ void CSong::RenumberAllInstruments(int type) {
 
     int order = 0;
 
-    //analyse all tracks
+    //analyze all tracks
     for (i = 0; i < TRACKSNUM; i++) {
         tr = g_Tracks.GetTrack(i);
         int tlen = tr->len;
@@ -1546,7 +1546,7 @@ void CSong::InstrChangeApply(const TInstrChangeParams& p, CString* resultMsg) {
     int onlysonglinefrom = p.onlysonglinefrom;
     int onlysonglineto = p.onlysonglineto;
 
-    // Initialise memory
+    // Initialize memory
     memset(track_yn, 0, TRACKSNUM);
     for (i = 0; i < TRACKSNUM; i++) {
         track_column[i] = track_line[i] = -1;
@@ -1608,7 +1608,7 @@ void CSong::InstrChangeApply(const TInstrChangeParams& p, CString* resultMsg) {
     double instrcoef = (sinstrto - sinstrfrom > 0) ? (double)(dinstrto - dinstrfrom) / (sinstrto - sinstrfrom) : 0;
 
     for (i = 0; i < TRACKSNUM; i++) {
-        track_changeto[i] = -1; // initialise
+        track_changeto[i] = -1; // initialize
 
         // It wants to change only some and this one is not
         if (onlysomething && ((track_yn[i] & 1) != 1)) {
@@ -1670,7 +1670,7 @@ void CSong::InstrChangeApply(const TInstrChangeParams& p, CString* resultMsg) {
         if (changes) {
             // Create a new track if the track occurs both inside and outside the area
             if (track_yn[i] & 2) {
-                memset(tracks, 0, TRACKSNUM); // Initialise memory
+                memset(tracks, 0, TRACKSNUM); // Initialize memory
                 MarkTF_USED(tracks);
                 MarkTF_NOEMPTY(tracks);
                 k = FindNearTrackBySongLineAndColumn(track_line[i], track_column[i], tracks);

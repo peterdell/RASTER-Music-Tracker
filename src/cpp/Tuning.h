@@ -70,7 +70,7 @@ public:
     // otherwise pure (or, for GenerateTable(), coupled only via the global
     // tuning state it already reads directly) - made public so tests can
     // exercise them individually, matching the pattern already used for
-    // CCompressLzss::Optimise_AUDC/AUDCTL/AUDF (lzss_sap.h). No behavior
+    // CCompressLzss::Optimize_AUDC/AUDCTL/AUDF (lzss_sap.h). No behavior
     // change, just visibility.
     Pitch GetTruePitch(double tuning, Temperament temperament, int basenote, int semitone);
     void GenerateTable(byte* table, int length, int semitone, Timbre timbre, int audctl);

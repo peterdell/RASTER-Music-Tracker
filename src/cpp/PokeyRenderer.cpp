@@ -24,7 +24,7 @@ extern LPDIRECTSOUNDBUFFER g_lpdsbPrimary;
 
 BOOL CXPokey::InitSoundInternal(const bool ntsc, const bool stereo, const WORD channels, const DWORD samplesPerSec, const WORD bitsPerSample) {
 
-    DeInitSound(); // Just in case, everything must be cleared before initialising
+    DeInitSound(); // Just in case, everything must be cleared before initializing
 
     this->ntsc = ntsc;
     this->stereo = stereo;
@@ -106,7 +106,7 @@ BOOL CXPokey::InitSoundInternal(const bool ntsc, const bool stereo, const WORD c
 
     m_LoadPos = (m_WriteCursorStart + latencySize) & (BUFFER_SIZE - 1); //initial latency (in hundredths of a second)
 
-    // Initialise the POKEY emulation plugin once the sound interface is ready
+    // Initialize the POKEY emulation plugin once the sound interface is ready
     m_pokey.InitSound();
     m_pokey.InitPokeys(ntsc, stereo, samplesPerSec);
 

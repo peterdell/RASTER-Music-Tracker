@@ -126,7 +126,7 @@ void CTuning::GenerateTable(byte* table, int length, int semitone, Timbre timbre
 
     const TTuningSettings& tuning = g_Song.GetTuningSettings();
 
-    //generate the table using all the initialised parameters
+    //generate the table using all the initialized parameters
     for (int i = 0; i < length; i++) {
         //get the current semitone
         auto note = i + semitone;
@@ -272,7 +272,7 @@ void CTuning::InitTuning() {
     CUSTOM[12] = (double)tuning.ratios.OCTAVE;
 
     //Generate all lookup tables used by the RMT driver for tuning purposes
-    //TODO: optimise this procedure, even if right now this is much better than what it used to be
+    //TODO: optimize this procedure, even if right now this is much better than what it used to be
 
     //Distortion 2, at 0xB000
     GenerateTable(m_table_memory + 0x000, 64, dist_2_bell.table_64khz * g_notesperoctave, Timbre::BELL, 0x00);

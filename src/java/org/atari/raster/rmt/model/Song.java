@@ -993,7 +993,7 @@ public final class Song {
 		double instrcoef = (sinstrto - sinstrfrom > 0) ? (double) (dinstrto - dinstrfrom) / (sinstrto - sinstrfrom) : 0;
 
 		for (int i = 0; i < Tracks.TRACKSNUM; i++) {
-			trackChangeTo[i] = -1; // initialise
+			trackChangeTo[i] = -1; // initialize
 
 			// It wants to change only some and this one is not
 			if (onlysomething && (trackYn[i] & 1) != 1) {
@@ -1880,7 +1880,7 @@ public final class Song {
 			}
 		}
 
-		// Analyse the song and make changes to the deleted tracks
+		// Analyze the song and make changes to the deleted tracks
 		for (int sline = 0; sline < SONGLEN; sline++) {
 			for (int ch = 0; ch < tracks4_8; ch++) {
 				int n = song[sline][ch];
@@ -2101,7 +2101,7 @@ public final class Song {
 
 		int order = 0;
 
-		// Analyse all tracks
+		// Analyze all tracks
 		for (int i = 0; i < Tracks.TRACKSNUM; i++) {
 			Track tr = tracks.getTrack(i);
 			for (int j = 0; j < tr.len; j++) {

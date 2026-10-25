@@ -256,7 +256,7 @@ public final class RmtConfig {
 		session.options.keyboardLayout = defaultKeyboardLayout.get(); // the first start: the system's keyboard language (since 2026-09-30)
 		session.setNTSC(false); // NTSC (60Hz)
 		session.song.setTrackerDriverVersion(TrackerDriverVersion.PATCH16); // Tracker driver version
-		session.midi.midiInit(); // MIDI must be initialised just in case
+		session.midi.midiInit(); // MIDI must be initialized just in case
 		writeRMTConfig(session); // Write the default configuration file
 	}
 

@@ -18,13 +18,13 @@ class CompressLzssTest {
 	}
 
 	@Nested
-	class OptimiseAudcTest {
+	class OptimizeAudcTest {
 
 		@Test
 		void zeroVolumeClearsDistortionBits() {
 			// AUDC0: dist=0x30, vol=0
 			byte[] buf = bytes(0, 0x30, 0, 0, 0, 0, 0, 0, 0);
-			new CompressLzss().optimiseAudc(buf);
+			new CompressLzss().optimizeAudc(buf);
 			assertEquals((byte) 0x00, buf[1]);
 		}
 
@@ -32,7 +32,7 @@ class CompressLzssTest {
 		void noiseTypeBitClearedWhenBit5DistortionSet() {
 			// AUDC0: dist=0xE0 (bit5 set), vol=5
 			byte[] buf = bytes(0, 0xE5, 0, 0, 0, 0, 0, 0, 0);
-			new CompressLzss().optimiseAudc(buf);
+			new CompressLzss().optimizeAudc(buf);
 			assertEquals((byte) 0xA5, buf[1]); // bit 0x40 cleared
 		}
 
@@ -40,37 +40,37 @@ class CompressLzssTest {
 		void distortionAtOrAboveF0IsLeftUntouched() {
 			// dist=0xF0, vol=5 (two-tone filter range)
 			byte[] buf = bytes(0, 0xF5, 0, 0, 0, 0, 0, 0, 0);
-			new CompressLzss().optimiseAudc(buf);
+			new CompressLzss().optimizeAudc(buf);
 			assertEquals((byte) 0xF5, buf[1]);
 		}
 	}
 
 	@Nested
-	class OptimiseAudctlTest {
+	class OptimizeAudctlTest {
 
 		@Test
 		void mutingAllChannelsClearsFilterAndClockBits() {
 			// AUDC0/1/3 muted (volume nibble 0), AUDC2 has volume 5, AUDCTL all bits set.
 			byte[] buf = bytes(0, 0x00, 0, 0x00, 0, 0x05, 0, 0x00, 0xFF);
-			new CompressLzss().optimiseAudctl(buf);
+			new CompressLzss().optimizeAudctl(buf);
 			assertEquals((byte) 0xA9, buf[8]);
 		}
 
 		@Test
 		void noMutedChannelsLeavesAudctlUntouched() {
 			byte[] buf = bytes(0, 0x01, 0, 0x02, 0, 0x03, 0, 0x04, 0xFF);
-			new CompressLzss().optimiseAudctl(buf);
+			new CompressLzss().optimizeAudctl(buf);
 			assertEquals((byte) 0xFF, buf[8]);
 		}
 	}
 
 	@Nested
-	class OptimiseAudfTest {
+	class OptimizeAudfTest {
 
 		@Test
 		void mutedChannelsWithNoConflictingAudctlBitsAreZeroed() {
 			byte[] buf = bytes(0xAB, 0x00, 0xCD, 0x00, 0xEF, 0x00, 0x12, 0x00, 0x00);
-			new CompressLzss().optimiseAudf(buf);
+			new CompressLzss().optimizeAudf(buf);
 			assertEquals((byte) 0, buf[0]);
 			assertEquals((byte) 0, buf[2]);
 			assertEquals((byte) 0, buf[4]);
@@ -82,7 +82,7 @@ class CompressLzssTest {
 			// AUDCTL bit 0x04 keeps AUDF0 (case 0) and AUDF2 (case 2), but not
 			// AUDF1 (case 1, needs 0x02/0x10) or AUDF3 (case 3, needs 0x02/0x08).
 			byte[] buf = bytes(0xAB, 0x00, 0xCD, 0x00, 0xEF, 0x00, 0x12, 0x00, 0x04);
-			new CompressLzss().optimiseAudf(buf);
+			new CompressLzss().optimizeAudf(buf);
 			assertEquals((byte) 0xAB, buf[0]);
 			assertEquals((byte) 0, buf[2]);
 			assertEquals((byte) 0xEF, buf[4]);
@@ -92,7 +92,7 @@ class CompressLzssTest {
 		@Test
 		void nonZeroVolumeLeavesAudfUntouched() {
 			byte[] buf = bytes(0xAB, 0x01, 0xCD, 0x02, 0xEF, 0x03, 0x12, 0x04, 0x00);
-			new CompressLzss().optimiseAudf(buf);
+			new CompressLzss().optimizeAudf(buf);
 			assertEquals((byte) 0xAB, buf[0]);
 			assertEquals((byte) 0xCD, buf[2]);
 			assertEquals((byte) 0xEF, buf[4]);
@@ -137,7 +137,7 @@ class CompressLzssTest {
 	@Test
 	void allOptimizationsAppliedToMutedChannels() {
 		// All 4 channels muted (volume nibble 0) and AUDCTL all-bits-set: the
-		// AUDC/AUDCTL/AUDF optimisation passes should all fire before
+		// AUDC/AUDCTL/AUDF optimization passes should all fire before
 		// compression, so the compressed output differs from the equivalent
 		// input run through SapROptimization.NONE.
 		byte[] src = bytes(

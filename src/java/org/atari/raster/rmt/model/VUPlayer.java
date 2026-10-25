@@ -72,7 +72,7 @@ public final class VUPlayer {
 		// Patch: change a $00 to $FF to force the LOOP flag to be infinite
 		memory[LOOP_FLAG] = (byte) 0xFF;
 
-		// SAP initialisation patch: the SAP player calls INIT with the subtune number in A
+		// SAP initialization patch: the SAP player calls INIT with the subtune number in A
 		byte[] sapBytes = {
 				(byte) 0x8D, (byte) (SONGIDX & 0xff), (byte) (SONGIDX >> 8), // STA SongIdx
 				(byte) 0xA2, (byte) 0x00, // LDX #0
