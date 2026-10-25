@@ -591,8 +591,8 @@ class InstrumentFrequencyTest : public InstrumentsCoreTest {
 
     void SetUp() override {
         for (int i = 0; i < 8; i++) {
-            g_Atari.SetByteAt(RMTPLAYR_TABBEGANDDISTOR + i * 2, kPageMsbs[i]);
-            g_Atari.SetByteAt(RMTPLAYR_DISTORTIONS + i * 2, i * 2 * 0x10); // the AUDC half, unused here
+            g_Atari.SetByteAt(RMTPLAYR_FRQTAB_HI_TAB + i * 2, kPageMsbs[i]);
+            g_Atari.SetByteAt(RMTPLAYR_DISTORTION_TAB + i * 2, i * 2 * 0x10); // the AUDC half, unused here
         }
     }
 

@@ -32,8 +32,8 @@ bool CFrequencyTables::HasDispatchTable(const byte* memory, TrackerDriverVersion
         // rmt_driver_v6.obx passes; in the other six these bytes are their own
         // frequency-table data, which lies far outside $B0-$B4.
         for (int i = 0; i < 8; i++) {
-            const byte pageMsb = memory[RMTPLAYR_TABBEGANDDISTOR + i * 2];
-            const byte audc = memory[RMTPLAYR_DISTORTIONS + i * 2];
+            const byte pageMsb = memory[RMTPLAYR_FRQTAB_HI_TAB + i * 2];
+            const byte audc = memory[RMTPLAYR_DISTORTION_TAB + i * 2];
             if (pageMsb < (RMTPLAYR_PAGE_DISTORTION_2 >> 8) || pageMsb > (RMTPLAYR_PAGE_DISTORTION_E >> 8)) {
                 return false;
             }
@@ -86,10 +86,11 @@ MemoryAddress CFrequencyTables::GetTableAddress(const byte* memory, TrackerDrive
             return 0;
         }
 
-        // tabbeganddistor holds eight (page MSB, AUDC) pairs, indexed by
+        // frqtab_hi_tab/distortion_tab hold eight (page MSB, AUDC) pairs,
+        // indexed by
         // distortion/2; only the page MSB is of interest here, the AUDC the
         // player writes to POKEY is the caller's own business.
-        MemoryAddress page = (MemoryAddress)(memory[RMTPLAYR_TABBEGANDDISTOR + (distortion >> 1) * 2] << 8);
+        MemoryAddress page = (MemoryAddress)(memory[RMTPLAYR_FRQTAB_HI_TAB + (distortion >> 1) * 2] << 8);
         switch (mode) {
         case Mode::Clock179MHz:
             return page + 0x40;
@@ -147,6 +148,6 @@ int CFrequencyTables::GetDistortionAudc(const byte* memory, TrackerDriverVersion
     }
 
     // Both layouts keep the AUDC in the second byte of each pair.
-    const MemoryAddress table = version == TrackerDriverVersion::PATCH16 ? RMTPLAYR_DISTORTIONS : (MemoryAddress)(LEGACY_TABBEGANDDISTOR + 1);
+    const MemoryAddress table = version == TrackerDriverVersion::PATCH16 ? RMTPLAYR_DISTORTION_TAB : (MemoryAddress)(LEGACY_TABBEGANDDISTOR + 1);
     return memory[table + (distortion >> 1) * 2];
 }

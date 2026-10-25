@@ -172,11 +172,13 @@
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
-; STEREOMODE	equ 0..3			;0 => compile RMTplayer for 4 tracks mono
-;									;1 => compile RMTplayer for 8 tracks stereo
-;									;2 => compile RMTplayer for 4 tracks stereo L1 R2 R3 L4
-;									;3 => compile RMTplayer for 4 tracks stereo L1 L2 R3 R4
-;
+; The following equates must be defined by the caller:
+; 
+; STEREOMODE	equ 0..4	;0 => 4 tracks mono   with one POKEY chip  L1 L2 L3 L4 (Default)
+;							;1 => 8 tracks stereo with two POKEY chips L1 L2 L3 L4 R1 R2 R3 R4
+;							;2 => 4 tracks mono   with two POKEY chips L1 R2 R3 L4
+;							;3 => 4 tracks mono   with two POKEY chips L1 L2 R3 R4
+;							;4 => 4 tracks mono   with two POKEY chips LR1 LR2 LR3 LR4
 
 ; RMT FEATures definitions file
 ; For optimizations of RMT player routine to concrete RMT module only!
@@ -201,7 +203,7 @@ INSTRPAR		equ 12		; Number of the instrument's "main" parameters => the table st
 
 ; RMT ZeroPage addresses
 	org 203
-	
+
 p_tis
 p_instrstable		org *+2		; ptr to instrument table ptrs
 p_trackslbstable	org *+2		; ptr to low byte of track ptrs
@@ -349,16 +351,16 @@ AUDCTL_HPF_CH2	dta $02	; Bit 1
 AUDCTL_CLOCK15	dta $01	; Bit 0
 	EIF	
 
-tabbeganddistor ; The start offsets into "tabfrq" and distortion values for the individual instrument distortions
-; V: TABLES_MSB
-DISTORTIONS equ *+1
+;tabbeganddistor						; The start offsets into "frqtab" and distortion values for the individual instrument distortions
+frqtab_hi_tab							; The high-bytes of the frequency tables.
+distortion_tab equ *+1					; The POKEY distortion values for the instrument distortion values.
 	dta >PAGE_DISTORTION_A,$00			; Noise 0
 	dta >PAGE_DISTORTION_2,$20			; Noise 2
 	dta >PAGE_DISTORTION_4,$40 			; Noise 4
 	dta >PAGE_DISTORTION_A,$a0			; 16-bit bass (if not g1 or g3, then bass tab 1)
 	dta >PAGE_DISTORTION_A,$80			; Noise 8
 	dta >PAGE_DISTORTION_A,$a0			; Pure tones
-	dta >PAGE_DISTORTION_C,$c0			; Bass tab
+	dta >PAGE_DISTORTION_C,$c0			; Bass tab1
 	dta >PAGE_DISTORTION_E,$c0			; Bass tab2
 	
 	IFT FEAT_EFFECTVIBRATO
@@ -1465,16 +1467,16 @@ get_16bit_flag
 	
 store_tables_lsb
 	sta p_nr				; Tables LSB pointer, divided in slices of 64 bytes each	
-	lda tabbeganddistor,y	; 64khz, 1.79mhz and 16-bit all use their flag directly, #$00, #$40 and #$80 are valid pointers! 
+	lda frqtab_hi_tab,y		; 64khz, 1.79mhz and 16-bit all use their flag directly, #$00, #$40 and #$80 are valid pointers! 
 	
 store_tables_lsb_a
-	sta p_nr+1		; Tables MSB pointer, which is the memory page used for tables divided based on their Distortion
+	sta p_nr+1				; Tables MSB pointer, which is the memory page used for tables divided based on their Distortion
 	
 store_tables_lsb_b
-	lda tmp				; Get volume value backup.
-	ora DISTORTIONS,y	; Merge the Distortion and Volume values
+	lda tmp					; Get volume value backup.
+	ora distortion_tab,y	; Merge the Distortion and Volume values
 store_tables_lsb_c
-	sta trackn_audc,x	; Update the channel's AUDC for the next rmt_set_pokey subroutine call
+	sta trackn_audc,x		; Update the channel's AUDC for the next rmt_set_pokey subroutine call
 	
 ; End of tuning tables code...
 
@@ -2633,8 +2635,10 @@ v_skctl equ *-1
 		stx $d201+6
 		sta $d210+6
 		stx $d211+6
+
 		sty $d208
 		sty $d218
+
 		IFT FEAT_TWO_TONE
 			lda #$03
 v_skctl equ *-1	

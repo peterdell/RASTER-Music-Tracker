@@ -10,7 +10,7 @@ package org.atari.raster.rmt.model;
  * (plans/40_DRIVER_TABLE_LAYOUTS_PLAN.md):
  *
  * <p>{@link TrackerDriverVersion#PATCH16} (asm/Patch-16/rmtplayr.a65) chooses
- * in two steps: its {@code tabbeganddistor} dispatch table (named {@code TABLES_MSB} by Patch16 before plans/53 realigned the labels) maps the distortion to
+ * in two steps: its {@code frqtab_hi_tab} dispatch table (named {@code TABLES_MSB} by Patch16 before plans/53 realigned the labels, {@code tabbeganddistor} until 2026-10-25) maps the distortion to
  * one of the five 256-byte pages at $B000, then {@code store_tables_lsb} picks
  * a 64-byte slice by the channel's clock - 64 kHz at +$00, 1.79 MHz at +$40,
  * 16-bit at +$80 - while {@code check_15khz} takes the two 15 kHz tables from
@@ -40,7 +40,7 @@ package org.atari.raster.rmt.model;
 public final class FrequencyTables {
 
 	/**
-	 * {@code RMTPLAYR_TABBEGANDDISTOR}: eight (page MSB, AUDC) pairs, indexed by
+	 * {@code RMTPLAYR_FRQTAB_HI_TAB}: eight (page MSB, AUDC) pairs, indexed by
 	 * distortion / 2.
 	 *
 	 * <p>C++ takes this from src/cpp/tracker_obx.h, the header MADS generates
@@ -49,7 +49,10 @@ public final class FrequencyTables {
 	 * instead. Same for the two v1-family addresses below and
 	 * {@link Atari}'s frequency-table addresses.
 	 */
-	public static final int PATCH16_TABBEGANDDISTOR = 0x3208;
+	public static final int PATCH16_FRQTAB_HI_TAB = 0x3208;
+
+	/** {@code RMTPLAYR_DISTORTION_TAB}: the AUDC half of the pairs, at the odd bytes. */
+	public static final int PATCH16_DISTORTION_TAB = PATCH16_FRQTAB_HI_TAB + 1;
 
 	/**
 	 * {@code tabbeganddistor}: the v1-family layout's eight (offset, AUDC)
@@ -109,8 +112,8 @@ public final class FrequencyTables {
 			// only rmt_driver_v6.obx passes; in the other six these bytes are
 			// their own frequency-table data, far outside $B0-$B4.
 			for (int i = 0; i < 8; i++) {
-				int pageMsb = atariMemory[PATCH16_TABBEGANDDISTOR + i * 2] & 0xFF;
-				int audc = atariMemory[PATCH16_TABBEGANDDISTOR + 1 + i * 2] & 0xFF;
+				int pageMsb = atariMemory[PATCH16_FRQTAB_HI_TAB + i * 2] & 0xFF;
+				int audc = atariMemory[PATCH16_DISTORTION_TAB + i * 2] & 0xFF;
 				if (pageMsb < (Atari.RMT_FRQTAB_POLY5_64KHZ >> 8) || pageMsb > (Atari.RMT_FRQTAB_GRITTY_64KHZ >> 8)) {
 					return false;
 				}
@@ -182,7 +185,7 @@ public final class FrequencyTables {
 
 			// Only the page MSB is of interest here; the AUDC the player writes
 			// to POKEY is the caller's own business.
-			int page = (atariMemory[PATCH16_TABBEGANDDISTOR + (distortion >> 1) * 2] & 0xFF) << 8;
+			int page = (atariMemory[PATCH16_FRQTAB_HI_TAB + (distortion >> 1) * 2] & 0xFF) << 8;
 			switch (mode) {
 			case CLOCK_179MHZ:
 				return page + 0x40;
@@ -262,7 +265,7 @@ public final class FrequencyTables {
 		}
 
 		// Both layouts keep the AUDC in the second byte of each pair.
-		int table = version == TrackerDriverVersion.PATCH16 ? PATCH16_TABBEGANDDISTOR : LEGACY_TABBEGANDDISTOR;
+		int table = version == TrackerDriverVersion.PATCH16 ? PATCH16_FRQTAB_HI_TAB : LEGACY_TABBEGANDDISTOR;
 		return atariMemory[table + 1 + (distortion >> 1) * 2] & 0xFF;
 	}
 }

@@ -630,8 +630,8 @@ class InstrumentsTest {
 		void setUpMemory() {
 			atariMemory = new byte[0x10000];
 			for (int i = 0; i < 8; i++) {
-				atariMemory[FrequencyTables.PATCH16_TABBEGANDDISTOR + i * 2] = (byte) PAGE_MSBS[i];
-				atariMemory[FrequencyTables.PATCH16_TABBEGANDDISTOR + i * 2 + 1] = (byte) (i * 2 * 0x10); // the AUDC half, unused here
+				atariMemory[FrequencyTables.PATCH16_FRQTAB_HI_TAB + i * 2] = (byte) PAGE_MSBS[i];
+				atariMemory[FrequencyTables.PATCH16_DISTORTION_TAB + i * 2] = (byte) (i * 2 * 0x10); // the AUDC half, unused here
 			}
 		}
 
