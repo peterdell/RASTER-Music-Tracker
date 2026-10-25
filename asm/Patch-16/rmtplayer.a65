@@ -1,18 +1,18 @@
-;************************************************;
-;* Simple RMT Player                            *;
-;* For SAP and XEX music exports from RMT       *;
-;* Recreation from disassembled code            *;
-;* Original version by Raster/C.P.U., 2003-2004 *;
-;* Recreation by VinsCool                       *;
-;* Version 5, 25-02-2022                        *;
-;************************************************;
+;------------------------------------------------;
+; Simple RMT Player
+; For SAP and XEX music exports from RMT
+; Recreation from disassembled code
+; Original version by Raster/C.P.U., 2003-2004
+; Recreation by VinsCool
+; Version 5, 25-02-2022
+;------------------------------------------------;
 
 ; The driver labels follow the current rmtplayr.a65 (adapted per the RITMO fork's 96321b1;
 ; plans/32_RITMO_FORK_ANALYSIS_PLAN.md) - the old names no longer assembled.
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
-;* start of dasmplayer definitions...
+; Start of dasmplayer definitions...
 
 ; Export format, Atari Executable (XEX/OBX) or SAP
 
@@ -23,8 +23,8 @@ EXPORTXEX	equ 1
 EXPORTSAP	equ 0
 .endif
 
-	ERT [EXPORTXEX+EXPORTSAP]=0	;* No format defined!
-	ERT [EXPORTXEX+EXPORTSAP]=2	;* Only 1 format can be defined!
+	ERT [EXPORTXEX+EXPORTSAP]=0	; No format defined!
+	ERT [EXPORTXEX+EXPORTSAP]=2	; Only 1 format can be defined!
 
 ; starting line for songs when loaded, useful for playing from different lines or subtunes
 
@@ -42,11 +42,11 @@ REGIONPLAYBACK	equ 0		; 0 => PAL - the bundled music.rmt (Captain Future Theme b
 .ifndef STEREOMODE		; a default: the bundled music.rmt is an RMT8 stereo module
 STEREOMODE	equ 1
 .endif
-				;* 0 => compile RMTplayer for 4 tracks mono
-				;* 1 => compile RMTplayer for 8 tracks stereo
-				;* 2 => compile RMTplayer for 4 tracks stereo L1 R2 R3 L4
-				;* 3 => compile RMTplayer for 4 tracks stereo L1 L2 R3 R4
-				;* 4 => compile RMTplayer for 8 tracks Dual Mono LR1 LR2 LR3 LR4
+				; 0 => compile RMTplayer for 4 tracks mono
+				; 1 => compile RMTplayer for 8 tracks stereo
+				; 2 => compile RMTplayer for 4 tracks stereo L1 R2 R3 L4
+				; 3 => compile RMTplayer for 4 tracks stereo L1 L2 R3 R4
+				; 4 => compile RMTplayer for 8 tracks Dual Mono LR1 LR2 LR3 LR4
 
 ; screen line for synchronization, important to set with a good value to get smooth execution
 
@@ -106,11 +106,11 @@ NMIEN	equ $D40E
 
 FONT    equ $bc00       	; custom font location
 
-;* end of dasmplayer definitions...
+; End of dasmplayer definitions...
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
-;* start of SAP format...
+; Start of SAP format...
 
 	IFT EXPORTSAP
 	opt h- 
@@ -161,11 +161,11 @@ subtune
 ;	dta $00,$0A,$20		; subtune line, can be as many as wanted, however, the SAP specs limit at 32
 	EIF
 	
-;* end of SAP format...
+; End of SAP format...
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
-;* start of XEX format...
+; Start of XEX format...
 
 	IFT EXPORTXEX
 	
@@ -1222,7 +1222,7 @@ line_6	dta d"VUPlayer by VinsCool                "
 	run start
 	EIF 
 	
-;* end of XEX format...
+; End of XEX format...
 	
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 

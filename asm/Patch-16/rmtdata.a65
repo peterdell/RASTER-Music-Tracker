@@ -1,8 +1,8 @@
-;* Include with 'rmtplayr.a65'
+; Include with 'rmtplayr.a65'
 	
 	org TABLES	; $B000
 	
-;* Big re-organization in progress, nothing is definitive currently!
+; Big re-organization in progress, nothing is definitive currently!
 
 ; Each memory page are bound to a specific purpose, and must be memory alligned
 ; Due to the current implementation, it is imperative all tables are at the expected addresses!

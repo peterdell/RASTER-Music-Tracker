@@ -52,6 +52,9 @@ Not ported: printing.
 
 - The whole project uses American English spelling - in source comments, identifiers, documentation and UI texts (color, gray, initialize, optimize, analyzer).
   Excepted are the byte-pristine historical artifacts (`asm/Legacy`, `legacy/`), vendored third-party code (`lib/`, `src/cpp/asap/`, `src/cpp/test/googletest/`), generated files carrying external label names (`src/cpp/lzssp.h`), external API names (the `C6502_Initialise`/`Pokey_Initialise` DLL exports), and verbatim quotes of all of these.
+- A non-empty `;` comment has a space behind the `;` as separator, and its first word, if a regular word, starts uppercase (`; Reset the table pointers`).
+  Mnemonics, identifiers and other notation stay as they are (`; lda #1`, `; audctl`, `; y=1`), as do decorative lines (`;------`), commented-out code, and a comment line that continues the previous line's sentence.
+  `;*` comments are not used: outside the byte-pristine `asm/Legacy`, they become plain `;` comments (star-run box borders become dash runs of the same length).
 
 
 ### Main features:

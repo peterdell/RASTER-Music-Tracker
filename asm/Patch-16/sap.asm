@@ -1,13 +1,13 @@
-;***************************************************************************************************************;
-;* Simple RMT2SAP Creator                                                                                      *;
-;* By VinsCool, 05-10-2021                                                                                     *;
-;* Based on the SAP specs listed at https://asap.sourceforge.net/sap-format.html                               *;
-;*                                                                                                             *;
-;* Include with Simple RMT Player (dasmplayer.asm) to export .sap files instead of Atari executables (.obx)    *;
-;* Edit the text with the information you want, a maximum of 120 characters per argument is supported          *;
-;* Use "<?>" for unknown values, although this is entirely optional, it's simply for the SAP format convention *;
-;* SPACING is the CR/LF (Carriage Return, Line Feed) word, merely put this between each argument               *;
-;***************************************************************************************************************;
+;---------------------------------------------------------------------------------------------------------------;
+; Simple RMT2SAP Creator
+; By VinsCool, 05-10-2021
+; Based on the SAP specs listed at https://asap.sourceforge.net/sap-format.html
+;
+; Include with Simple RMT Player (dasmplayer.asm) to export .sap files instead of Atari executables (.obx)
+; Edit the text with the information you want, a maximum of 120 characters per argument is supported
+; Use "<?>" for unknown values, although this is entirely optional, it's simply for the SAP format convention
+; SPACING is the CR/LF (Carriage Return, Line Feed) word, merely put this between each argument
+;---------------------------------------------------------------------------------------------------------------;
 	
 SPACING	equ $0A0D
 

@@ -369,7 +369,7 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
         strAsmStartLabel = "RMT_SONG_DATA";
     }
 
-    strCode.Format("; Cut and paste the data from the line ';* --------BEGIN--------'  to the line ';* --------END--------'\n; into rmt_feat%s\n",
+    strCode.Format("; Cut and paste the data from the line '; --------BEGIN--------'  to the line '; --------END--------'\n; into rmt_feat%s\n",
                    assemblerFormat == ATASM ? ".asm" : "./65");
 
     CString str;
@@ -659,7 +659,7 @@ void CASMFileExporter::ComposeRMTFEATstring(
     s.Format("%s\t\t%s %i\t\t;(%i times)\n", str, equal, (var > 0), var); \
     dest += s;
 
-    dest.Format(";* --------BEGIN--------\n;* %s\n", filename);
+    dest.Format("; --------BEGIN--------\n; %s\n", filename);
     //
     int usedCommand[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     int usedCommand7_VolumeOnly = 0;
@@ -849,6 +849,6 @@ void CASMFileExporter::ComposeRMTFEATstring(
     DEST(usedEffectVibrato, "FEAT_EFFECTVIBRATO");
     DEST(usedEffectFrequencyShift, "FEAT_EFFECTFSHIFT");
 
-    dest += ";* --------END--------\n";
+    dest += "; --------END--------\n";
     dest.Replace("\n", "\x0d\x0a");
 }

@@ -41,6 +41,7 @@ Changes in RMT 1.36
 **Exports**
 - Fixed (Java port): a WAV exported from a song using the Two-Tone filter played without the filter - the exported players translate the effect's AUDC bit into SKCTL writes, the WAV renderer did not. It now applies exactly the per-chip translation the LZSS player performs, proven by a replay-equality test. Found while fixing GitHub issue #30. (Build 2026-10-22)
 - Fixed: "Export As RMT Stripped Song File" with "SFX Support" checked did the opposite of its word since RMT 1.34 - it stripped every instrument no track refers to, although keeping them is exactly what the checkbox is for (sound effects trigger instruments directly, without a track). An SFX-only module - instruments, no tracks - exported as an unusable 30-byte husk; it keeps all its instruments now, and unchecked exports still strip the unused ones. GitHub issue #5, reported with an example module by rra; an automatic test round-trips that module. (Build 2026-10-25)
+- The ASM export's feature-definition section is framed by plain "; --------BEGIN--------" / "; --------END--------" comment lines now, instead of ";*" ones, matching the comment style of the player sources it is pasted into. (Build 2026-10-25)
 
 ### Changes from 2026-10-05 to 2026-10-15
 

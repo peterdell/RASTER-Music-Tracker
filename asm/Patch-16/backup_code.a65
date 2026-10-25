@@ -1,10 +1,10 @@
 ; BACKUP OF CODE FOR HIJACKED TABLES
 ; DO NOT DELETE
 
-;* here is the starting point of the new hijack code here only if AUDCTLMANUALSET is also enabled, otherwise, skip it entirely!
-;* major improvements: use of BIT instructions from a small lookup table
-;* much better structure, cleaner code, etc	
-;* potential improvement? a lot... But this will be for another day, hehehe
+; Here is the starting point of the new hijack code here only if AUDCTLMANUALSET is also enabled, otherwise, skip it entirely!
+; Major improvements: use of BIT instructions from a small lookup table
+; Much better structure, cleaner code, etc
+; Potential improvement? a lot... But this will be for another day, hehehe
 
 	IFT FEAT_FULL_TABLES_HIJACK||FEAT_AGGRESSIVE_INIT			; this should be for the entire block here...
 	
@@ -395,8 +395,8 @@ pp2sno
 	and #$0e
 	tay
 	
-;* start of yet another method to hijack tables...
-;* this should be much, much more efficient this time!
+; Start of yet another method to hijack tables...
+; This should be much, much more efficient this time!
 
 	IFT FEAT_BASS16
 	cpy #$06			; distortion 6?
@@ -672,9 +672,9 @@ getdist
 	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;* ORIGINAL
+; ORIGINAL
 
-	IFT STEREOMODE==1		;* L1 L2 L3 L4 R1 R2 R3 R4
+	IFT STEREOMODE==1		; L1 L2 L3 L4 R1 R2 R3 R4
 	lda trackn_audf+0+4
 	ldx trackn_audf+0
 	sta $d210
@@ -720,9 +720,9 @@ v_skctl2 equ *-1
 	sty $d21f		
 	EIF
 	
-;* OFFSET CHIPS
+; OFFSET CHIPS
 
-	IFT STEREOMODE==1		;* L1 L2 L3 L4 R1 R2 R3 R4
+	IFT STEREOMODE==1		; L1 L2 L3 L4 R1 R2 R3 R4
 	lda trackn_audf+0
 	ldx trackn_audc+0
 	sta $d200
@@ -773,8 +773,8 @@ v_skctl2 equ *-1
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;* start of the tuning tables code... Should be much faster and efficient this time...
-;* reg1 could be used for a temporary variable now...
+; Start of the tuning tables code... Should be much faster and efficient this time...
+; reg1 could be used for a temporary variable now...
 
 do_tuning_tables
 	lda reg2		; Distortion and Command
@@ -785,7 +785,7 @@ do_tuning_tables
 	bne check_flags		; no check if not equal
 	lda tmp			; volume backup
 	beq check_flags		; no check if equal
-	jmp do_bass16		;* process the BASS16 code there
+	jmp do_bass16		; Process the BASS16 code there
 	EIF
 check_flags
 	lda trackn_flags,x	; flags previously set during the aggressive rmt_p3 initialization, they are unconditional
@@ -805,7 +805,7 @@ no_saw
 go_saw
 	lda tmp			; volume backup
 	beq no_saw		; no sawtooth at volume 0!
-	jmp do_sawtooth		;* process the Sawtooth code there
+	jmp do_sawtooth		; Process the Sawtooth code there
 	EIF
 check_15khz			; #$01 = 15khz flag, unconditional
 	cpy #$0C		; are we in Distortion C/E?
@@ -857,7 +857,7 @@ store_tables_lsb_b
 store_tables_lsb_c
 	sta trackn_audc,x	; update the channel's AUDC for the next SetPokey subroutine call
 	
-;* end of tuning tables code...
+; End of tuning tables code...
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

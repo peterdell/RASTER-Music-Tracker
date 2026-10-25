@@ -1,10 +1,10 @@
-;******************************************************;
-;* MUSIC init & play                                  *;
-;* Example by Raster/C.P.U., 2003-2004                *;
-;* RMT Visualizer by Pigu-A, 3-10-2018 (uncertain)    *;
-;* Additions and improvements by VinsCool, 22-09-2021 *;
-;* Version 0.7 - Work in Progress...                  *;
-;******************************************************;
+;------------------------------------------------------;
+; MUSIC init & play
+; Example by Raster/C.P.U., 2003-2004
+; RMT Visualizer by Pigu-A, 3-10-2018 (uncertain)
+; Additions and improvements by VinsCool, 22-09-2021
+; Version 0.7 - Work in Progress...
+;------------------------------------------------------;
 
 ; starting line for songs when loaded, useful for playing from different lines or subtunes
 
@@ -61,10 +61,10 @@ SETVBV	equ $e45c       ; set system timers during the VBLANK routine
 FONT    equ $bc00       ; custom font location
 VISDATA equ $9000       ; all the data like text strings, lookup tables for notes, etc
 
-;*******************************************************************;
-;* begin code for the visual player                                *;
-;* initialization and clear memory before executing the next parts *;
-;*******************************************************************;
+;-------------------------------------------------------------------;
+; Begin code for the visual player
+; Initialization and clear memory before executing the next parts
+;-------------------------------------------------------------------;
 
 	; (the file was always hw.a65; "hw.asm" never existed, so this did not assemble)
 	icl "hw.a65"                        ; a8 hardware registers
@@ -301,10 +301,10 @@ l2_b
 	dey                                 ; decrement index y
 	bne l2_a                            ; keep going until all missiles have been initialized with the parameters above
 
-;******************************************************;
-;* main code loop, everything has been initialized    *;
-;* execution will continue from this block infinitely *;
-;******************************************************;
+;------------------------------------------------------;
+; Main code loop, everything has been initialized
+; Execution will continue from this block infinitely
+;------------------------------------------------------;
 
 mainloop
 	mwa VVBLKI oldvbi    ; backup the old vbi address (could it be moved elsewhere if startloop uses it own?)
@@ -394,10 +394,10 @@ stopmusic
 	mva #$40 rNMIEN                 ; enable vbi interrupts
 	jmp (10)			; DOSVEC => exit to DOS
 
-;************************************************************;
-;* begin vbi routines                                       *;
-;* most of the information to display on screen starts here *;
-;************************************************************;
+;------------------------------------------------------------;
+; Begin vbi routines
+; Most of the information to display on screen starts here
+;------------------------------------------------------------;
 
 vbi
         ;mva v_color3 rCOLBK            ; funny rasterbar, during (extended) vbi
@@ -1177,9 +1177,9 @@ clear_volume_next
         bne clear_volume_loop         ; not yet, redo the same loop with the next channel
         rts                           ; and done
 
-;******************************************************************************;
-;* Most of this part is data used to display text, and some other misc infos. *;
-;******************************************************************************;
+;------------------------------------------------------------------------------;
+; Most of this part is data used to display text, and some other misc infos.
+;------------------------------------------------------------------------------;
 
         org VISDATA
 

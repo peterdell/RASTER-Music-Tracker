@@ -16,7 +16,11 @@ artifact; U3 merges the comments into `asm/Patch-16`.
 This folder is the LIVING, readable source of the unpatched player:
 with all comments English, there is no reason to strip them anymore, so
 `rmt_bez_poznamek.php`'s strip process does not apply here and comments
-and formatting may be edited freely. The standing invariant, checked
+and formatting may be edited freely. Raster's `;*` (public) vs `;`
+(private) comment markers were part of that strip process and have been
+edited away since (2026-10-25): all comments are plain `;` comments now,
+per the project comment style in the root `README.md`. The `;*` markers
+survive only in `asm/Legacy`. The standing invariant, checked
 after every edit, is the assembled binary:
 
 - Assembling `rmt_ata.a65` reproduces

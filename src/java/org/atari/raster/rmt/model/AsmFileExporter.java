@@ -328,7 +328,7 @@ public final class AsmFileExporter {
 			strAsmStartLabel = "RMT_SONG_DATA";
 		}
 
-		strCode.append(String.format("; Cut and paste the data from the line ';* --------BEGIN--------'  to the line ';* --------END--------'\n; into rmt_feat%s\n", isAtasm ? ".asm" : "./65"));
+		strCode.append(String.format("; Cut and paste the data from the line '; --------BEGIN--------'  to the line '; --------END--------'\n; into rmt_feat%s\n", isAtasm ? ".asm" : "./65"));
 
 		strCode.append(composeRMTFEATstring(song, instruments, tracks, tracks4_8, "", instrumentSavedFlags, sfx, gvf, nos, assemblerFormat));
 
@@ -545,7 +545,7 @@ public final class AsmFileExporter {
 			boolean globalVolumeFade, boolean noStartingSongLine, AssemblerFormat assemblerFormat) {
 		String equal = assemblerFormat.getEqualDirective();
 
-		StringBuilder dest = new StringBuilder(String.format(";* --------BEGIN--------\n;* %s\n", filename));
+		StringBuilder dest = new StringBuilder(String.format("; --------BEGIN--------\n; %s\n", filename));
 
 		int[] usedCommand = new int[8];
 		int usedCommand7VolumeOnly = 0;
@@ -696,7 +696,7 @@ public final class AsmFileExporter {
 		appendFeature(dest, equal, "FEAT_EFFECTVIBRATO", usedEffectVibrato);
 		appendFeature(dest, equal, "FEAT_EFFECTFSHIFT", usedEffectFrequencyShift);
 
-		dest.append(";* --------END--------\n");
+		dest.append("; --------END--------\n");
 
 		return dest.toString().replace("\n", "\r\n");
 	}
