@@ -288,21 +288,21 @@ trackn_audc	org *+TRACKS
 trackn_audctl		org *+TRACKS
 	EIF
 
-; v_audctl		org *+1						;the lda #... parameter is overwritten directly in the code
-; v_audctl2		org *+1						;the lda #... parameter is overwritten directly in the code
+; v_audctl		org *+1						; The lda #... parameter is overwritten directly in the code
+; v_audctl2		org *+1						; The lda #... parameter is overwritten directly in the code
 ;
 ;	IFT FEAT_CONSTANTSPEED==0
-; v_speed			org *+1					;the parameter of lda #$ff is overwritten directly in the code
+; v_speed			org *+1					; The parameter of lda #$ff is overwritten directly in the code
 ;	EIF
 v_aspeed		org *+1
-; v_bspeed		org *+1						;buffer speed (until the changed speed is known to apply)
-;											;the parameter of lda #$ff is overwritten directly in the code
+; v_bspeed		org *+1						; The buffer speed (until the changed speed is known to apply)
+;											; The parameter of lda #$ff is overwritten directly in the code
 ;	IFT FEAT_INSTRSPEED==0||FEAT_INSTRSPEED>1
-; v_instrspeed	org *+1						;the parameter of lda #$ff is overwritten directly in the code
-; v_ainstrspeed	org *+1						;the parameter of lda #$ff is overwritten directly in the code
+; v_instrspeed	org *+1						; The parameter of lda #$ff is overwritten directly in the code
+; v_ainstrspeed	org *+1						; The parameter of lda #$ff is overwritten directly in the code
 ;	EIF
-; v_maxtracklen	org *+1						;the parameter of cmp #$ff is overwritten directly in the code
-; v_abeat			org *+1					;the parameter of lda #$ff is overwritten directly in the code
+; v_maxtracklen	org *+1						; The parameter of cmp #$ff is overwritten directly in the code
+; v_abeat			org *+1					; The parameter of lda #$ff is overwritten directly in the code
 track_endvariables
 
 ; End of RMT definitions.
@@ -783,11 +783,11 @@ oo1x
 	bne oo1 				; X stays at #TRACKS-1, which is used below
 
 	IFT FEAT_CONSTANTSPEED==0
-	lda #$ff			; Speed from the buffer (the parameter is self-modified)
-v_bspeed equ *-1	; The parameter is self-modified
-	sta v_speed				; Only now (after all tracks are processed) is it written to the overall speed
+		lda #$ff				; Set the song speed from the buffer
+v_bspeed equ *-1				; The parameter is self-modified
+		sta v_speed				; Only now (after all tracks are processed) is it written to the overall speed.
 	ELS
-	lda #FEAT_CONSTANTSPEED
+		lda #FEAT_CONSTANTSPEED
 	EIF
 	sta v_aspeed			; And to the current one too
 
@@ -802,9 +802,9 @@ oo2										; Note/command is 62 or 63.
 	and #$c0				; Top two bits
 	beq oo62_b				; Zero => the next byte is the pause size => branch
 
-	asl @					; xy000000 => C y0000000
+	asl @					;   xy000000 => C y0000000
 	rol @					; C y0000000 => C 0000000x
-	rol @					; C 0000000x => 000000xy
+	rol @					; C 0000000x =>   000000xy
 	sta trackn_pause,x
 	jmp oo1x
 
@@ -1124,8 +1124,10 @@ pp2s
 	sta trackn_audc,x
 ;
 ;	jmp InstrumentsEffects
-; returnfromInstrumentsEffects
-; <InstrumentsEffects>
+;---------------------------------------------------------------------------------------------------------------------------------------------;
+	
+; Start of the instruments effect code.
+
 InstrumentsEffects				; X holds the track number 7-0
 	IFT FEAT_EFFECTS
 	lda trackn_effdelay,x

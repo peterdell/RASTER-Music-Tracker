@@ -198,9 +198,6 @@ PLAYER			equ $3100	; VUPlayer export driver
 PLAYER			equ $3400	; Start of the standard player, also used for "tracker.obx". Beware that the memory before it is used, about $400 (1 KB).
 	EIF
 
-
-TABLES			equ $B000	; This may be moved elsewhere if necessary 
-
 INSTRPAR		equ 12		; Number of the instrument's "main" parameters => the table starts at byte 12, the envelope after the table end
 
 ; RMT ZeroPage addresses
@@ -294,7 +291,7 @@ trackn_tablelop		org *+TRACKS	; Table repeat
 trackn_tablespeeda	org *+TRACKS	; The current table speed
 
 	IFT FEAT_FILTER
-trackn_filter		org *+TRACKS		; Frequency shift of the filtering generator. POTENTIAL OPTIMIZATION: it is NOT necessary to use all tracks... only channel 1 and 2 will use it to offset the other...
+trackn_filter		org *+TRACKS		; The frequency shift of the filtering generator. POTENTIAL OPTIMIZATION: it is NOT necessary to use all tracks... only channel 1 and 2 will use it to offset the other...
 	EIF
 
 	IFT FEAT_FULL_16BIT||FEAT_BASS16	; EXPERIMENTAL METHOD: full 16-bit values, Sawtooth and Filter may also benefit from this approach...
@@ -799,9 +796,9 @@ oo1x
 	bne oo1 				; X stays at #TRACKS-1, which is used below
 
 	IFT FEAT_CONSTANTSPEED==0
-		lda #$ff					; The song/buffer speed as immediate operand is is changed by the code.
-v_bspeed equ *-1					; ptr to #$ff location in the code	;V: smc_bspeed
-		sta v_speed
+		lda #$ff				; Set the song speed from the buffer
+v_bspeed equ *-1				; The parameter is self-modified
+		sta v_speed				; Only now (after all tracks are processed) is it written to the overall speed.
 	ELS
 		lda #FEAT_CONSTANTSPEED
 	EIF
@@ -1457,19 +1454,12 @@ store_tables_lsb_c
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 	
-; Start of instruments effect code...
-	
-; returnfromInstrumentsEffects
-; <InstrumentsEffects>
+; Start of the instruments effect code.
+
 InstrumentsEffects	; X holds the track number 7-0
 	IFT FEAT_EFFECTS
 		lda trackn_effdelay,x
 		beq ei2	; =0 => no effects
-	
-; Possible improvement: use CMP #2 instead? This could save a CLC instruction...
-;	cmp #2			; if A >= 2 -> skip, 
-;	bcs ei1			; if A < 2 -> carry flag not set, so it must be A = 1, 0 was done with beq ei2
-	
 		cmp #1	; The delay decreases down to one at most
 		bne ei1	; The delay decreases down to one at most
 		lda trackn_shiftfrq,x
