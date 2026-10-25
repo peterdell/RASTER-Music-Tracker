@@ -168,6 +168,8 @@
 ;							;1 => 8 tracks stereo with two POKEY chips L1 L2 L3 L4 R1 R2 R3 R4
 ;							;2 => 4 tracks mono   with two POKEY chips L1 R2 R3 L4
 ;							;3 => 4 tracks mono   with two POKEY chips L1 L2 R3 R4
+pokey_left = $d200
+pokey_right = $d210
 
 ; RMT FEATures definitions file
 ; For optimizations of RMT player routine to concrete RMT module only!
@@ -207,9 +209,9 @@ frqaddcmd2			org *+1
 	EIF
 
 	IFT TRACKS>4
-	org PLAYER-$400+$40			; $3040
+		org PLAYER-$400+$40		; $3040
 	ELS
-	org PLAYER-$400+$e0			; $30e0
+		org PLAYER-$400+$e0		; $30e0
 	EIF
 
 track_variables
@@ -316,14 +318,14 @@ track_endvariables
 
 
 tabbeganddistor							; The start offsets into "frqtab" and distortion values for the individual instrument distortions
- dta frqtabpure-frqtab,$00				; Noise 0
- dta frqtabpure-frqtab,$20				; Noise 2
- dta frqtabpure-frqtab,$40				; Noise 4
- dta frqtabbass1-frqtab,$c0				; 16-bit bass (if not g1 or g3, then bass tab 1)
- dta frqtabpure-frqtab,$80				; Noise 8
- dta frqtabpure-frqtab,$a0				; Pure tones
- dta frqtabbass1-frqtab,$c0				; Bass tab1
- dta frqtabbass2-frqtab,$c0				; Bass tab2
+	dta frqtabpure-frqtab,$00			; Noise 0
+	dta frqtabpure-frqtab,$20			; Noise 2
+	dta frqtabpure-frqtab,$40			; Noise 4
+	dta frqtabbass1-frqtab,$c0			; 16-bit bass (if not g1 or g3, then bass tab 1)
+	dta frqtabpure-frqtab,$80			; Noise 8
+	dta frqtabpure-frqtab,$a0			; Pure tones
+	dta frqtabbass1-frqtab,$c0			; Bass tab1
+	dta frqtabbass2-frqtab,$c0			; Bass tab2
 
 		IFT FEAT_EFFECTVIBRATO
 vibtabbeg
@@ -347,10 +349,10 @@ vibtabnext
 ;
 	IFT FEAT_BASS16
 frqtabbasslo
-	dta $F2,$33,$96,$E2,$38,$8C,$00,$6A,$E8,$6A,$EF,$80,$08,$AE,$46,$E6
-	dta $95,$41,$F6,$B0,$6E,$30,$F6,$BB,$84,$52,$22,$F4,$C8,$A0,$7A,$55
-	dta $34,$14,$F5,$D8,$BD,$A4,$8D,$77,$60,$4E,$38,$27,$15,$06,$F7,$E8
-	dta $DB,$CF,$C3,$B8,$AC,$A2,$9A,$90,$88,$7F,$78,$70,$6A,$64,$5E,$00
+		dta $F2,$33,$96,$E2,$38,$8C,$00,$6A,$E8,$6A,$EF,$80,$08,$AE,$46,$E6
+		dta $95,$41,$F6,$B0,$6E,$30,$F6,$BB,$84,$52,$22,$F4,$C8,$A0,$7A,$55
+		dta $34,$14,$F5,$D8,$BD,$A4,$8D,$77,$60,$4E,$38,$27,$15,$06,$F7,$E8
+		dta $DB,$CF,$C3,$B8,$AC,$A2,$9A,$90,$88,$7F,$78,$70,$6A,$64,$5E,$00
 	EIF
 ;	The high bytes (frqtabbasshi) come after the frqtab tables, so that frqtab sits on a page boundary
 
@@ -382,10 +384,10 @@ frqtabpure
 ;
 	IFT FEAT_BASS16
 frqtabbasshi
-	dta $0D,$0D,$0C,$0B,$0B,$0A,$0A,$09,$08,$08,$07,$07,$07,$06,$06,$05
-	dta $05,$05,$04,$04,$04,$04,$03,$03,$03,$03,$03,$02,$02,$02,$02,$02
-	dta $02,$02,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$00,$00
-	dta $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+		dta $0D,$0D,$0C,$0B,$0B,$0A,$0A,$09,$08,$08,$07,$07,$07,$06,$06,$05
+		dta $05,$05,$04,$04,$04,$04,$03,$03,$03,$03,$03,$02,$02,$02,$02,$02
+		dta $02,$02,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$01,$00,$00
+		dta $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 	EIF
 
 		org PLAYER-$0100		; 256 bytes before the player.
@@ -472,7 +474,7 @@ rmt_set_pokeyv
 	; Activates a note with a given instrument on a given channel.
 	; This overrides the instrument currently played by the song.
 	; IN: <A>=note(0,..,60), <X>=channel(0,..,3 in mono or 0,..,7 in stereo), <Y>=instrument*2 (0,2,4,..,126) 
-	jmp rmt_sfx	
+		jmp rmt_sfx	
 	EIF
 	
 ; End of the RMT jump table.
@@ -495,19 +497,19 @@ rmt_init
 	IFT [track_endvariables-track_variables]>255
 ;		There are more than 255 trackn variables, but less than 513.
 ;		So clear from the front and 256 bytes from the end |>--->----|
-	ldy #0
-	tya
+		ldy #0
+		tya
 ri0	sta track_variables,y
-	sta track_endvariables-$100,y
-	iny
-	bne ri0
+		sta track_endvariables-$100,y
+		iny
+		bne ri0
 	ELS
 		; Clear from the back  |----<|
 		ldy #track_endvariables-track_variables	; Number of bytes to clear
-	lda #0
+		lda #0
 ri0		sta track_variables-1,y		; Shifted down by 1, so n down to 1 suffices and bne can be used
-	dey
-	bne ri0	
+		dey
+		bne ri0	
 	EIF	
 
 	; Parse the RMT module data
@@ -634,9 +636,9 @@ si1		sta $d200,y
 		bpl si1
 	EIF
 	IFT FEAT_INSTRSPEED==0			; Return the instrument speed for the fall-through from "rmt_init". Not relevant/guaranteed for "rmt_silence" itself.
-	lda v_instrspeed
+		lda v_instrspeed
 	ELS
-	lda #FEAT_INSTRSPEED
+		lda #FEAT_INSTRSPEED
 	EIF
 	rts
 
@@ -753,7 +755,7 @@ oo1i
 	; Not a command so store the note (0-60).
 	sta trackn_note,x				; Set the track note.
 	IFT FEAT_BASS16	
-	sta trackn_outnote,x			; If nothing changes it anymore, it stays the same as note.
+		sta trackn_outnote,x		; If nothing changes it anymore, it stays the same as note.
 	EIF
 
 	; Get the instrument number, multiplied by 2.
@@ -777,11 +779,11 @@ oo1a								; Process volume data
 	ror reg1
 	lda reg1
 	IFT FEAT_GLOBALVOLUMEFADE
-	sec
-	sbc #$00				; Self-modified parameter
+		sec
+		sbc #$00			; Self-modified parameter
 RMTGLOBALVOLUMEFADE equ *-1
-	bcs voig	; >=0
-	lda #0		; <0 => must zero it
+		bcs voig	; >=0
+		lda #0	; <0 => must zero it
 voig
 	EIF
 	and #$f0				; vvvv0000
@@ -825,14 +827,14 @@ oo62_b
 oo63
 	lda reg1
 	IFT FEAT_CONSTANTSPEED==0
-	bmi oo63_1X
+		bmi oo63_1X
 ; oo63_0X
 ; note=63 (+top bit 0) (speed, byte)
-	iny
-	lda (p_ns),y
+		iny
+		lda (p_ns),y
 		sta v_bspeed			; Set the song speed to the buffered speed.
-	inc trackn_idx,x			; For next time
-	jmp oo1i					; Immediately continues to the next pair in the track
+		inc trackn_idx,x		; For next time
+		jmp oo1i				; Immediately continues to the next pair in the track
 oo63_1X
 	EIF
 	cmp #255		; 192+63(go) => 255 (=END, ends all tracks and advances in the song)
@@ -872,10 +874,10 @@ p2x1
 rmt_sfx
 		sta trackn_note,x		; Set trackn_note.
 		IFT FEAT_BASS16	
-		sta trackn_outnote,x	; If nothing changes it anymore, it stays the same as note.
+			sta trackn_outnote,x	; If nothing changes it anymore, it stays the same as note.
 		EIF
 		lda #$f0				; sfx note volume*16
-	RMTSFXVOLUME equ *-1		; label for sfx note volume parameter overwriting
+		RMTSFXVOLUME equ *-1	; label for sfx note volume parameter overwriting
 		sta trackn_volume,x		; Sets the volume
 		EIF						; Fall-though to SetUpInstrumentY2 with <Y> = instrument number *2, <X> = track number
 	
@@ -922,57 +924,57 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 	lda (p_nt),y
 	sta trackn_tabletypespeed,x			; tmss ssss (type mode speed)
 	IFT FEAT_TABLETYPE||FEAT_TABLEMODE
-	and #$3f							; 00ss ssss -tablespeed $00-$3f
+		and #$3f						; 00ss ssss -tablespeed $00-$3f
 	EIF
 	sta trackn_tablespeeda,x
 	IFT FEAT_TABLEMODE	
-	lda (p_nt),y
-	and #$40							; 0m00 0000 (mode only)
-	sta trackn_tablemode,x
+		lda (p_nt),y
+		and #$40						; 0m00 0000 (mode only)
+		sta trackn_tablemode,x
 	EIF
 ; y=4
 	IFT FEAT_AUDCTLMANUALSET
-	iny	; #5	
-	lda (p_nt),y
-	sta trackn_audctl,x						; audctl
-	iny										; #6
+		iny	; #5	
+		lda (p_nt),y
+		sta trackn_audctl,x					; audctl
+		iny									; #6
 	ELS
-	ldy #6
+		ldy #6
 	EIF
 ; y=6
 	lda (p_nt),y
 	sta trackn_volumeslidedepth,x			; Volume decay on every "goto" in the instrument
 ; y=6 still
 	IFT FEAT_VOLUMEMIN
-	iny ; #7
-	lda (p_nt),y	; mmmm 0000 volume minimum for the volume decay
+		iny	; #7
+		lda (p_nt),y	; mmmm 0000 volume minimum for the volume decay
 ;	and #$f0								; Not required bits are already 0.
-	sta trackn_volumemin,x
-	IFT FEAT_EFFECTS
-	iny	; #8
-	EIF ; /FEAT_EFFECTS
+		sta trackn_volumemin,x
+		IFT FEAT_EFFECTS
+			iny	; #8
+		EIF	; /FEAT_EFFECTS
 	ELS ; else FEAT_VOLUMEMIN
-	IFT FEAT_EFFECTS
-	ldy #8
-	EIF ; /FEAT_EFFECTS
+		IFT FEAT_EFFECTS
+			ldy #8
+		EIF	; /FEAT_EFFECTS
 	EIF
 ; y=8 (careful, Y=8 only with FEAT_EFFECTS !!! (otherwise not needed)
 	IFT FEAT_EFFECTS
-	lda (p_nt),y								; effdelay
-	sta trackn_effdelay,x
-	IFT FEAT_EFFECTVIBRATO
-	iny ; #9
-	lda (p_nt),y	; effvibrato  0000 00vv  ($0-$3)
+		lda (p_nt),y							; effdelay
+		sta trackn_effdelay,x
+		IFT FEAT_EFFECTVIBRATO
+			iny	; #9
+			lda (p_nt),y	; effvibrato  0000 00vv  ($0-$3)
 ;	and #$03								; Not required bits are already 0.
-	tay
-	lda vibtabbeg,y
-	sta trackn_effvibratoa,x
-	EIF
-	IFT FEAT_EFFECTFSHIFT
-	ldy #10									; Byte 10
-	lda (p_nt),y							; effshift
-	sta trackn_effshift,x
-	EIF ; /FEAT_EFFECTFSHIFT
+			tay
+			lda vibtabbeg,y
+			sta trackn_effvibratoa,x
+		EIF
+		IFT FEAT_EFFECTFSHIFT
+			ldy #10							; Byte 10
+			lda (p_nt),y					; effshift
+			sta trackn_effshift,x
+		EIF	; /FEAT_EFFECTFSHIFT
 	EIF	; /FEAT_EFFECTS
 
 ;	Note: byte 11 is free, reserved for future extensions
@@ -1030,17 +1032,17 @@ rmt_p1
 ;	Are the instruments running faster than VBI?
 
 	IFT FEAT_INSTRSPEED==0||FEAT_INSTRSPEED>1
-	dec v_ainstrspeed
-	bne rmt_p3						; Continue to the instrument envelope processing
+		dec v_ainstrspeed
+		bne rmt_p3					; Continue to the instrument envelope processing
 									; (skipping the classic track processing)
 	EIF
 	IFT FEAT_INSTRSPEED==0
-	lda #$ff						; The parameter is self-modified
+		lda #$ff					; The parameter is self-modified
 v_instrspeed	equ *-1
-	sta v_ainstrspeed
+		sta v_ainstrspeed
 	ELI FEAT_INSTRSPEED>1
-	lda #FEAT_INSTRSPEED
-	sta v_ainstrspeed
+		lda #FEAT_INSTRSPEED
+		sta v_ainstrspeed
 	EIF
 
 
@@ -1104,12 +1106,12 @@ pp2
 
 	lda reg1				; The instrument's volume envelope [rrrr llll] (R right, L left)
 	IFT TRACKS>4
-	cpx #4					; Is it channel 4-7?
-	bcc pp2s				; No, it is 0-3 => branch and use 0000 llll directly
-	lsr @					; Yes => shift rrrrllll
-	lsr @
-	lsr @
-	lsr @					; =>0000rrrr
+		cpx #4				; Is it channel 4-7?
+		bcc pp2s			; No, it is 0-3 => branch and use 0000 llll directly
+		lsr @				; Yes => shift rrrrllll
+		lsr @
+		lsr @
+		lsr @				; =>0000rrrr
 pp2s
 	EIF	
 
@@ -1135,28 +1137,28 @@ pp2s
 
 InstrumentsEffects				; X holds the track number 7-0
 	IFT FEAT_EFFECTS
-	lda trackn_effdelay,x
-	beq ei2						; =0 => no effects
-	cmp #1						; The delay decreases down to one at most
-	bne ei1						; The delay decreases down to one at most
-	lda trackn_shiftfrq,x
-	IFT FEAT_EFFECTFSHIFT
-	clc
-	adc trackn_effshift,x
-	EIF
-	IFT FEAT_EFFECTVIBRATO
-	clc
-	ldy trackn_effvibratoa,x	; Active vibrato index
-	adc vib0,y
-	EIF
-	sta trackn_shiftfrq,x
-	IFT FEAT_EFFECTVIBRATO
-	lda vibtabnext,y			; Vibrato step
-	sta trackn_effvibratoa,x
-	EIF
-	jmp ei2
+		lda trackn_effdelay,x
+		beq ei2					; =0 => no effects
+		cmp #1					; The delay decreases down to one at most
+		bne ei1					; The delay decreases down to one at most
+		lda trackn_shiftfrq,x
+		IFT FEAT_EFFECTFSHIFT
+			clc
+			adc trackn_effshift,x
+		EIF
+		IFT FEAT_EFFECTVIBRATO
+			clc
+			ldy trackn_effvibratoa,x	; Active vibrato index
+			adc vib0,y
+		EIF
+		sta trackn_shiftfrq,x
+		IFT FEAT_EFFECTVIBRATO
+			lda vibtabnext,y	; Vibrato step
+			sta trackn_effvibratoa,x
+		EIF
+		jmp ei2
 ei1
-	dec trackn_effdelay,x		; The delay is greater than 1, so decrease it
+		dec trackn_effdelay,x	; The delay is greater than 1, so decrease it
 ei2
 	EIF ; /FEAT_EFFECTS
 ; Table
@@ -1172,9 +1174,9 @@ ei2c
 	cmp trackn_tablea,x
 	bne ei2c2					; Not at the end yet
 	IFT FEAT_TABLEGO
-	lda trackn_tablelop,x		; Table lop
+		lda trackn_tablelop,x	; Table lop
 	ELS
-	lda #INSTRPAR				; All loops always jump to 0 => fixed start of all loops (byte 12)
+		lda #INSTRPAR			; All loops always jump to 0 => fixed start of all loops (byte 12)
 	EIF
 	sta trackn_tablea,x
 	bne ei2a					; ! always branches
@@ -1189,16 +1191,16 @@ ei2a
 	ldy trackn_tablea,x		; 0-7
 	lda (p_nt),y
 	IFT FEAT_TABLEMODE	
-	ldy trackn_tablemode,x	; Table mode? ($00/$40)
-	beq ei2e				; ==$00 => sets tablenote/tableshift
-	clc						; ==$40 => adds to tablenote/tableshift
-	adc trackn_tablenote,x
+		ldy trackn_tablemode,x	; Table mode? ($00/$40)
+		beq ei2e			; ==$00 => sets tablenote/tableshift
+		clc					; ==$40 => adds to tablenote/tableshift
+		adc trackn_tablenote,x
 ei2e
 	EIF
 	sta trackn_tablenote,x
 	lda trackn_tabletypespeed,x	; tmss ssss
 	IFT FEAT_TABLETYPE||FEAT_TABLEMODE	
-	and #$3f					; 00ss ssss - speed only
+		and #$3f				; 00ss ssss - speed only
 	EIF
 ei2f
 	sec
@@ -1212,9 +1214,9 @@ ei3
 	lda trackn_volume,x					; Top 4 bits
 	beq ei4								; Volume already zero => branch
 	IFT FEAT_VOLUMEMIN
-	cmp trackn_volumemin,x				; At the minimum?
-	beq ei4								; Yes => branch (no more decay)
-	bcc ei4								; Even smaller => branch (no more decay)
+		cmp trackn_volumemin,x			; At the minimum?
+		beq ei4							; Yes => branch (no more decay)
+		bcc ei4							; Even smaller => branch (no more decay)
 	EIF
 	tay									; Stashes the volume into Y
 	lda trackn_volumeslidevalue,x
@@ -1229,62 +1231,62 @@ ei3
 ei4
 ; </InstrumentsEffects>
 	IFT FEAT_COMMAND2
-	lda #0
-	sta frqaddcmd2				; Initialization of the frequency shift by command 2
+		lda #0
+		sta frqaddcmd2			; Initialization of the frequency shift by command 2
 	EIF
 ;	<1>
 	IFT FEAT_COMMAND1||FEAT_COMMAND2||FEAT_COMMAND3||FEAT_COMMAND4||FEAT_COMMAND5||FEAT_COMMAND6||FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY
 ; Are there any commands other than COMMAND 0 at all?
 ; Yes, there are!
-	lda reg2
-	IFT FEAT_FILTER||FEAT_BASS16
-	sta trackn_command,x		; Used only for filtering and/or 16-bit bass
-	EIF
+		lda reg2
+		IFT FEAT_FILTER||FEAT_BASS16
+			sta trackn_command,x	; Used only for filtering and/or 16-bit bass
+		EIF
 		and #$70					; Mask out non-relevent bits for command "0ccc 0000".
 ;	<2>
-	IFT 1==[FEAT_COMMAND1+FEAT_COMMAND2+FEAT_COMMAND3+FEAT_COMMAND4+FEAT_COMMAND5+FEAT_COMMAND6+[FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY]]
+		IFT 1==[FEAT_COMMAND1+FEAT_COMMAND2+FEAT_COMMAND3+FEAT_COMMAND4+FEAT_COMMAND5+FEAT_COMMAND6+[FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY]]
 	; There is exactly one command other than command 0
-	beq cmd0		; If it is zero after and #$70, cmd0 is handled (which sits after all the commands)
+			beq cmd0	; If it is zero after and #$70, cmd0 is handled (which sits after all the commands)
 					; and after this, only that single command present gets compiled (the only one other than command 0)
-	ELS ; There are two or more commands besides command 0 (i.e. 3 or more in total)
-	lsr @
-	lsr @				; /4 (=>0,4,8,...)
-	sta jmx+1
+		ELS	; There are two or more commands besides command 0 (i.e. 3 or more in total)
+			lsr @
+			lsr @		; /4 (=>0,4,8,...)
+			sta jmx+1
 jmx	bcc *
-	jmp cmd0
-	nop
-	jmp cmd1
-	IFT FEAT_COMMAND2||FEAT_COMMAND3||FEAT_COMMAND4||FEAT_COMMAND5||FEAT_COMMAND6||FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY
-		nop
-		jmp cmd2
-	EIF
-	IFT FEAT_COMMAND3||FEAT_COMMAND4||FEAT_COMMAND5||FEAT_COMMAND6||FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY
-		nop
-		jmp cmd3
-	EIF
-	IFT FEAT_COMMAND4||FEAT_COMMAND5||FEAT_COMMAND6||FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY
-		nop
-		jmp cmd4
-	EIF
-	IFT FEAT_COMMAND5||FEAT_COMMAND6||FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY
-		nop
-		jmp cmd5
-	EIF
-	IFT FEAT_COMMAND6||FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY
-		nop
-		jmp cmd6
-	EIF
-	IFT FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY
-		nop
-		jmp cmd7
-	EIF
-	EIF ; </2>
+			jmp cmd0
+			nop
+			jmp cmd1
+			IFT FEAT_COMMAND2||FEAT_COMMAND3||FEAT_COMMAND4||FEAT_COMMAND5||FEAT_COMMAND6||FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY
+				nop
+				jmp cmd2
+			EIF
+			IFT FEAT_COMMAND3||FEAT_COMMAND4||FEAT_COMMAND5||FEAT_COMMAND6||FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY
+				nop
+				jmp cmd3
+			EIF
+			IFT FEAT_COMMAND4||FEAT_COMMAND5||FEAT_COMMAND6||FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY
+				nop
+				jmp cmd4
+			EIF
+			IFT FEAT_COMMAND5||FEAT_COMMAND6||FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY
+				nop
+				jmp cmd5
+			EIF
+			IFT FEAT_COMMAND6||FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY
+				nop
+				jmp cmd6
+			EIF
+			IFT FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY
+				nop
+				jmp cmd7
+			EIF
+		EIF	; </2>
 	ELS ; <1ELSE> no, there are no commands other than COMMAND 0 at all, so nothing is compiled until cmd0
 	; Still has to add filling trackn_command,x, if needed
-	IFT FEAT_FILTER||FEAT_BASS16
-	lda reg2
-	sta trackn_command,x		; Used only for filtering and/or 16-bit bass
-	EIF
+		IFT FEAT_FILTER||FEAT_BASS16
+			lda reg2
+			sta trackn_command,x	; Used only for filtering and/or 16-bit bass
+		EIF
 	EIF ; </1>
 	
 ; End of instruments effects code.
@@ -1295,41 +1297,41 @@ jmx	bcc *
 ; Note: The instrument effects code falls through to this.
 	
 ; cmd0 comes last of the commands as an optimization, so it can continue straight to pp9
-;~~~~~~~~
+
 cmd1	; Play FRQ n
 	IFT FEAT_COMMAND1
-	lda reg3
-;	sta trackn_audf,x			; OPTIMIZATION
-;	jmp pp9						; OPTIMIZATION
-	jmp cmd0c					; OPTIMIZATION: after cmd0c it does sta trackn_audf,x and continues straight on without the jump to pp9
+		lda reg3
+;		sta trackn_audf,x		; OPTIMIZATION
+;		jmp pp9					; OPTIMIZATION
+		jmp cmd0c				; OPTIMIZATION: after cmd0c it does sta trackn_audf,x and continues straight on without the jump to pp9
 	EIF
 
 
 cmd2	; Play NOTE + FRQ_n		[+shiftfrq]
 	IFT FEAT_COMMAND2
-	lda reg3
-	sta frqaddcmd2				; Frequency shift by command 2
-	lda trackn_note,x
-	jmp cmd0a
+		lda reg3
+		sta frqaddcmd2			; Frequency shift by command 2
+		lda trackn_note,x
+		jmp cmd0a
 	EIF
 
 cmd3	; NOTE = NOTE + NOTE_n	;play CMD 0 00
 	IFT FEAT_COMMAND3
-	lda trackn_note,x
-	clc
-	adc reg3
-	sta trackn_note,x
-	jmp cmd0a
+		lda trackn_note,x
+		clc
+		adc reg3
+		sta trackn_note,x
+		jmp cmd0a
 	EIF
 
 cmd4	; shiftfrq = shiftfrq + FRQ_n	;play CMD 0 00
 	IFT FEAT_COMMAND4
-	lda trackn_shiftfrq,x
-	clc
-	adc reg3
-	sta trackn_shiftfrq,x
-	lda trackn_note,x
-	jmp cmd0a
+		lda trackn_shiftfrq,x
+		clc
+		adc reg3
+		sta trackn_shiftfrq,x
+		lda trackn_note,x
+		jmp cmd0a
 	EIF
 
 cmd5	; Set destination portamento XY (X-speed, Y-depth), XY==00 =>set actual_portamento_frq=destination_portamento_frq
@@ -1341,90 +1343,89 @@ cmd5	; Set destination portamento XY (X-speed, Y-depth), XY==00 =>set actual_por
 
 			lda (p_nr),y						; This is the actual note base frequency, or AUDF.
 			clc									; Clear carry flag.
-	adc trackn_tablenote,x						; Here as a frequency
-	jmp cmd5ax
-	EIF		; FEAT_TABLETYPE
+			adc trackn_tablenote,x				; Here as a frequency
+			jmp cmd5ax
+		EIF	; FEAT_TABLETYPE
 
 cmd5a1
-	lda trackn_note,x
-	clc
-	adc trackn_tablenote,x
-	cmp #61
-	bcc cmd5a2						; OK 0-60 => branch
-	lda #63
+		lda trackn_note,x
+		clc
+		adc trackn_tablenote,x
+		cmp #61
+		bcc cmd5a2					; OK 0-60 => branch
+		lda #63
 cmd5a2
-	tay
-	lda (p_nr),y
+		tay
+		lda (p_nr),y
 cmd5ax
-	sta trackn_portafrqc,x			; Target portamento frq
-	ldy reg3						; =00?
-	bne cmd5a						; No => branch
-	sta trackn_portafrqa,x			; Current portamento frq
+		sta trackn_portafrqc,x		; Target portamento frq
+		ldy reg3					; =00?
+		bne cmd5a					; No => branch
+		sta trackn_portafrqa,x		; Current portamento frq
 cmd5a
-	tya
-	lsr @
-	lsr @
-	lsr @
-	lsr @
-	sta trackn_portaspeed,x
-	sta trackn_portaspeeda,x
-	lda reg3
-	and #$0f
-	sta trackn_portadepth,x
-	lda trackn_note,x
-	jmp cmd0a
+cmd5b
+		tya							; Transfer the #$XY parameter to the accumulator
+		lsr @						; Divide by 16
+		lsr @
+		lsr @
+		lsr @
+		sta trackn_portaspeed,x		; Set the portamento speed with the new value
+		sta trackn_portaspeeda,x
+		lda reg3					; #$XY parameter again
+		and #$0f					; Only keep the Y values
+		sta trackn_portadepth,x		; Set the portamento pitch offset to process each step
+		lda trackn_note,x			; Current note
+		jmp cmd0a					; Finish everything else like normal from there
 	ELI FEAT_COMMAND5
 ; Command 5 is present, but portamento is never used
-;	jmp pp9					;<--this was not quite right (caused a spike at tone start)
-	lda trackn_note,x		; Behaves like a standard command 0
-	jmp cmd0a				; Without shifting the note by the parameter
+		lda trackn_note,x	; Behaves like a standard command 0
+		jmp cmd0a			; Without shifting the note by the parameter
 	EIF
-;~~~~~~~~
+
 cmd6	; filtershiftfrq = filtershiftfrq + FRQ_n
 	IFT FEAT_COMMAND6&&FEAT_FILTER
-	lda reg3
-	clc
-	adc trackn_filter,x
-	sta trackn_filter,x
-	lda trackn_note,x
-	jmp cmd0a
-	ELI FEAT_COMMAND6
+		lda reg3					; Get the $XY parameter for the effect command.
+		clc							; Clear the carry flag.
+		adc trackn_filter,x			; Add it to the frequency offset currently in memory.
+		sta trackn_filter,x			; Overwrite the frequency offset with the new value.
+		lda trackn_note,x			; Get the current note for this instrument.
+		jmp cmd0a					; Process the remaining of CMD0 without adding the $XY value to it.
+	ELI FEAT_COMMAND6				; CMD6 alone is essentially no command at all, regardless of the $XY value.
 ; Command 6 is present, but the filter is never used
-;	jmp pp9					;<--this is not quite right either
-	lda trackn_note,x		; Behaves like a standard command 0
-	jmp cmd0a				; Without shifting the note by the parameter
+		lda trackn_note,x			; Behaves like a standard command 0
+		jmp cmd0a					; Without shifting the note by the parameter
 	EIF	
-;~~~~~~~~
-cmd7	; NOTE = NOTE_n		;play CMD 0 00
+
+cmd7	; NOTE = NOTE_n				;play CMD 0 00
 	IFT FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY
-	IFT FEAT_COMMAND7SETNOTE
-	lda reg3
-	IFT FEAT_COMMAND7VOLUMEONLY
-	cmp #$80				; $80 => volume only?
-	beq cmd7a
-	EIF
-	sta trackn_note,x
-	jmp cmd0a
-	EIF
-	IFT FEAT_COMMAND7VOLUMEONLY
+		IFT FEAT_COMMAND7SETNOTE
+			lda reg3
+			IFT FEAT_COMMAND7VOLUMEONLY
+				cmp #$80		; $80 => volume only?
+				beq cmd7a
+			EIF
+			sta trackn_note,x
+			jmp cmd0a
+		EIF
+		IFT FEAT_COMMAND7VOLUMEONLY
 cmd7a
-	lda trackn_audc,x
-	ora #$f0				; 111 1 vvvv
-	sta trackn_audc,x
-	lda trackn_note,x
-	jmp cmd0a
-	EIF
+			lda trackn_audc,x
+			ora #$f0			; 111 1 vvvv
+			sta trackn_audc,x
+			lda trackn_note,x
+			jmp cmd0a
+		EIF
 	EIF
 
 ; cmd0 comes last of the commands as an optimization, so it can continue straight to pp9
-cmd0	; Play NOTE + NOTE_n		[+shiftfrq]
+cmd0							; Play NOTE + NOTE_n		[+shiftfrq]
 	lda trackn_note,x
 	clc
 	adc reg3
 cmd0a
 	IFT FEAT_TABLETYPE
-	ldy trackn_tabletypespeed,x	; Type? (the top bit decides)
-	bmi cmd0b					; =$80 => frequency => branch
+		ldy trackn_tabletypespeed,x	; Type? (the top bit decides)
+		bmi cmd0b					; =$80 => frequency => branch
 	EIF
 	clc
 	adc trackn_tablenote,x		; Table note shift
@@ -1435,41 +1436,41 @@ cmd0a
 	lda #63						; More than 60 => note 63
 cmd0a1
 	IFT FEAT_BASS16
-	sta trackn_outnote,x		; Resulting note
+		sta trackn_outnote,x	; Resulting note
 	EIF
 	tay
 	lda (p_nr),y					; Note frequency table
 	clc
 	adc trackn_shiftfrq,x
 	IFT FEAT_COMMAND2
-	clc
-	adc frqaddcmd2				; Possible shift by command 2
+		clc
+		adc frqaddcmd2			; Possible shift by command 2
 	EIF
 ;	sta trackn_audf,x			;store into audf;  OPTIMIZATION: moved down after cmd0c
 	IFT FEAT_TABLETYPE		
-	jmp cmd0c					; OPTIMIZATION: after cmd0c it does sta trackn_audf,x and continues straight on without the jump to pp9
+		jmp cmd0c				; OPTIMIZATION: after cmd0c it does sta trackn_audf,x and continues straight on without the jump to pp9
 cmd0b
-	cmp #61						; Note range 0-60
-	bcc cmd0b1					; OK (0-60) => branch
-	lda #0
-	sta trackn_audc,x			; Silence
-	lda #63						; More than 60 => note 63
+		cmp #61					; Note range 0-60
+		bcc cmd0b1				; OK (0-60) => branch
+		lda #0
+		sta trackn_audc,x		; Silence
+		lda #63					; More than 60 => note 63
 cmd0b1
-	tay
-	lda trackn_shiftfrq,x
-	clc
-	adc trackn_tablenote,x		; Here as a frequency
-	clc
-	adc (p_nr),y					; Note frequency table
-	IFT FEAT_COMMAND2
-	clc
-	adc frqaddcmd2				; Possible shift by command 2
-	EIF
+		tay
+		lda trackn_shiftfrq,x
+		clc
+		adc trackn_tablenote,x	; Here as a frequency
+		clc
+		adc (p_nr),y				; Note frequency table
+		IFT FEAT_COMMAND2
+			clc
+			adc frqaddcmd2		; Possible shift by command 2
+		EIF
 ;	sta trackn_audf,x			;OPTIMIZATION: moved a bit lower after cmd0c
 ;	jmp pp9						;OPTIMIZATION: continues straight on (through cmd0c)
-	EIF		; /FEAT_TABLETYPE
+	EIF							; /FEAT_TABLETYPE
 
-; ~~~~~~~~ CAUTION! not terminated, continues on (the jmp pp9 was removed)
+; CAUTION! Routine is not terminated, falls-through because the "jmp pp9" was removed.
 cmd0c
 	sta trackn_audf,x			; Store into audf
 
@@ -1516,9 +1517,9 @@ pp10
 		beq pp11					; If $00, the flag is not set and portamento will be skipped
 
 
-		lda trackn_portafrqa,x		; Load the current portamento frequency in memory
-		clc							; Clear the carry flag 
-		adc trackn_shiftfrq,x		; add to it the shiftfrq/vibrato pitch
+		lda trackn_portafrqa,x		; Load the current portamento frequency in memory.
+		clc							; Clear the carry flag .
+		adc trackn_shiftfrq,x		; Add to it the shiftfrq/vibrato pitch.
 pp10d
 
 		sta trackn_audf,x			; Update the channel AUDF with the new value if portamento was processed.
@@ -1540,34 +1541,37 @@ ppnext								; Jumped to when the instrument is not initialized
 rmt_p4
 ; First puts the AUDCTL together
 	IFT FEAT_AUDCTLMANUALSET
-	lda trackn_audctl+0		; Always only TRACKS 0-3 (for POKEY 1)
-	ora trackn_audctl+1
-	ora trackn_audctl+2
-	ora trackn_audctl+3
-	tax
+		lda trackn_audctl+0	; Always only TRACKS 0-3 (for POKEY 1)
+		ora trackn_audctl+1
+		ora trackn_audctl+2
+		ora trackn_audctl+3
+		tax
 	ELS
-	ldx #0					; Without FEAT_AUDCTLMANUALSET, sets X=0 directly
+		ldx #0				; Without FEAT_AUDCTLMANUALSET, sets X=0 directly
 	EIF
 qq1
 	stx v_audctl			; Finished audctl -> initializes v_audctl (compared later for the filter's priority over 16-bit bass)
-; Additional operations for filters and 16-bit bass
+
+; Additional operations for filters and 16-bit bass.
+
 ; Filters
 	IFT FEAT_FILTER
-		IFT FEAT_FILTERG0L
-			lda trackn_command+0	; track0
-			bpl qq2					; Top bit==0 => no filtering
-			lda trackn_audc+0		; Take audc
-			and #$0f				; Volume 0-15 only
-			beq qq2					; Zero => no filtering
+		IFT FEAT_FILTERG0L			; Track 0/Channel 1 is filtered through channel 3
+			lda trackn_command+0	; AUTOFILTER command bit 7 set for track 0?
+			bpl qq2					; Bit 7 not set, no filtering.
+			lda trackn_audc+0		; Get the current AUDC value from track 0.
+			and #$0f				; Only keep the volume value from the byte
+			beq qq2					; If the volume is 0, skip filtering,
+			
 			; With filtering
 			lda trackn_audf+0		; Frequency of g0
 			clc
 			adc trackn_filter+0		; Shift for filtering
 			sta trackn_audf+2		; g0 is filtered through g2
 			IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG2L
-			lda trackn_audc+2		; g2 volume state?
-			and #$10				; Volume only?
-			bne qq1a				; Yes => branch
+				lda trackn_audc+2	; g2 volume state?
+				and #$10			; Volume only?
+				bne qq1a			; Yes => branch
 			EIF
 			lda #0
 			sta trackn_audc+2		; g2 gets zero volume
@@ -1605,10 +1609,10 @@ qq2a
 		EIF							; FEAT_FILTERG1L
 qq3
 
-	IFT FEAT_FILTERG0L||FEAT_FILTERG1L
-	cpx v_audctl			; Did it change? (is filter g0-g2 or g1-g3 active)?
-	bne qq5					; Yes => branch (no 16-bit bass then)
-	EIF
+		IFT FEAT_FILTERG0L||FEAT_FILTERG1L
+			cpx v_audctl	; Did it change? (is filter g0-g2 or g1-g3 active)?
+			bne qq5			; Yes => branch (no 16-bit bass then)
+		EIF
 	EIF						; FEAT_FILTER
 
 ; 16-bit bass
@@ -1673,139 +1677,139 @@ qq5
 	IFT TRACKS>4
 ; The same, in the variant for the second POKEY
 ; First puts the AUDCTL together
-	IFT FEAT_AUDCTLMANUALSET
-	lda trackn_audctl+4		; Always only TRACKS 4-7 (for POKEY 2)
-	ora trackn_audctl+5
-	ora trackn_audctl+6
-	ora trackn_audctl+7
-	tax
-	ELS
-	ldx #0					; Without FEAT_AUDCTLMANUALSET, sets X=0 directly
-	EIF
-	stx v_audctl2			; Finished audctl2 -> initializes v_audctl (compared later for the filter's priority over 16-bit bass)
+		IFT FEAT_AUDCTLMANUALSET
+			lda trackn_audctl+4	; Always only TRACKS 4-7 (for POKEY 2)
+			ora trackn_audctl+5
+			ora trackn_audctl+6
+			ora trackn_audctl+7
+			tax
+		ELS
+			ldx #0			; Without FEAT_AUDCTLMANUALSET, sets X=0 directly
+		EIF
+		stx v_audctl2		; Finished audctl2 -> initializes v_audctl (compared later for the filter's priority over 16-bit bass)
 ; Additional operations for filters and 16-bit bass
 ; Filters
-	IFT FEAT_FILTER
-	IFT FEAT_FILTERG0R
-	lda trackn_command+0+4	; track0R
-	bpl qs2					; Top bit==0 => no filtering
-	lda trackn_audc+0+4		; Take audc
-	and #$0f				; Volume 0-15 only
-	beq qs2					; Zero => no filtering
+		IFT FEAT_FILTER
+			IFT FEAT_FILTERG0R
+				lda trackn_command+0+4	; track0R
+				bpl qs2		; Top bit==0 => no filtering
+				lda trackn_audc+0+4	; Take audc
+				and #$0f	; Volume 0-15 only
+				beq qs2		; Zero => no filtering
 	; With filtering
-	lda trackn_audf+0+4		; Frequency of g0R
-	clc
-	adc trackn_filter+0+4	; Shift for filtering
-	sta trackn_audf+2+4		; g0R is filtered through g2R
-	IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG2R
-	lda trackn_audc+2+4		; g2R volume state?
-	and #$10				; Volume only?
-	bne qs1a				; Yes => branch
-	EIF
-	lda #0
-	sta trackn_audc+2+4		; g2R gets zero volume
+				lda trackn_audf+0+4	; Frequency of g0R
+				clc
+				adc trackn_filter+0+4	; Shift for filtering
+				sta trackn_audf+2+4	; g0R is filtered through g2R
+				IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG2R
+					lda trackn_audc+2+4	; g2R volume state?
+					and #$10	; Volume only?
+					bne qs1a	; Yes => branch
+				EIF
+				lda #0
+				sta trackn_audc+2+4	; g2R gets zero volume
 qs1a
-	txa
-	ora #4					; bit2 audctl (filter g0-g2)
-	tax
-	EIF		; FEAT_FILTERG0R
+				txa
+				ora #4		; bit2 audctl (filter g0-g2)
+				tax
+			EIF	; FEAT_FILTERG0R
 qs2
-	IFT FEAT_FILTERG1R
-	lda trackn_command+1+4	; track1R
-	bpl qs3					; Top bit==0 => no filtering
-	lda trackn_audc+1+4		; Take audc
-	and #$0f				; Volume 0-15 only
-	beq qs3					; Zero => no filtering
+			IFT FEAT_FILTERG1R
+				lda trackn_command+1+4	; track1R
+				bpl qs3		; Top bit==0 => no filtering
+				lda trackn_audc+1+4	; Take audc
+				and #$0f	; Volume 0-15 only
+				beq qs3		; Zero => no filtering
 	; With filtering
-	lda trackn_audf+1+4		; Frequency of g1R
-	clc
-	adc trackn_filter+1+4	; Shift for filtering
-	sta trackn_audf+3+4		; g1R is filtered through g3R
-	IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG3R
-	lda trackn_audc+3+4		; g3R volume state?
-	and #$10				; Volume only?
-	bne qs2a				; Yes => branch
-	EIF
-	lda #0
-	sta trackn_audc+3+4		; g3R gets zero volume
+				lda trackn_audf+1+4	; Frequency of g1R
+				clc
+				adc trackn_filter+1+4	; Shift for filtering
+				sta trackn_audf+3+4	; g1R is filtered through g3R
+				IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG3R
+					lda trackn_audc+3+4	; g3R volume state?
+					and #$10	; Volume only?
+					bne qs2a	; Yes => branch
+				EIF
+				lda #0
+				sta trackn_audc+3+4	; g3R gets zero volume
 qs2a
-	txa
-	ora #2					; bit1 audctl (filter g1-g3)
-	tax
-	EIF		; FEAT_FILTERG1R
+				txa
+				ora #$02		; bit1 audctl (filter g1-g3)
+				tax
+			EIF	; FEAT_FILTERG1R
 qs3
-	IFT FEAT_FILTERG0R||FEAT_FILTERG1R
-	cpx v_audctl2			; Did it change? (is filter g0R-g2R or g1R-g3R active)?
-	bne qs5					; Yes => branch (no 16-bit bass then)
-	EIF
-	EIF		; FEAT_FILTER
+			IFT FEAT_FILTERG0R||FEAT_FILTERG1R
+				cpx v_audctl2	; Did it change? (is filter g0R-g2R or g1R-g3R active)?
+				bne qs5		; Yes => branch (no 16-bit bass then)
+			EIF
+		EIF									; FEAT_FILTER
 ; 16-bit bass
-	IFT FEAT_BASS16
-	IFT FEAT_BASS16G1R
-	lda trackn_command+1+4	; track1R
-	and #$0e				; 0000 ddd0
-	cmp #6					; Type 6 => 16-bit bass
-	bne qs4
-	lda trackn_audc+1+4		; Take audc
-	and #$0f				; Volume 0-15 only
-	beq qs4					; Zero => no 16-bit bass
-	ldy trackn_outnote+1+4
-	lda frqtabbasslo,y
-	sta trackn_audf+0+4		; lo g0R
-	lda frqtabbasshi,y
-	sta trackn_audf+1+4		; hi g1R
-	IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG0R
-	lda trackn_audc+0+4		; g0R volume state?
-	and #$10				; Volume only?
-	bne qs3a				; Yes => branch
-	EIF
-	lda #0
-	sta trackn_audc+0+4		; g0R gets zero volume
+		IFT FEAT_BASS16
+			IFT FEAT_BASS16G1R
+				lda trackn_command+1+4	; track1R
+				and #$0e	; 0000 ddd0
+				cmp #6		; Type 6 => 16-bit bass
+				bne qs4
+				lda trackn_audc+1+4	; Take audc
+				and #$0f	; Volume 0-15 only
+				beq qs4		; Zero => no 16-bit bass
+				ldy trackn_outnote+1+4
+				lda frqtabbasslo,y
+				sta trackn_audf+0+4	; lo g0R
+				lda frqtabbasshi,y
+				sta trackn_audf+1+4	; hi g1R
+				IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG0R
+					lda trackn_audc+0+4	; g0R volume state?
+					and #$10	; Volume only?
+					bne qs3a	; Yes => branch
+				EIF
+				lda #0
+				sta trackn_audc+0+4	; g0R gets zero volume
 qs3a
-	txa
-	ora #$50				; Joins g0-g1 16-bit
-	tax
-	EIF		; FEAT_BASS16G1R
+				txa
+				ora #$50	; Joins g0-g1 16-bit
+				tax
+			EIF	; FEAT_BASS16G1R
 qs4
-	IFT FEAT_BASS16G3R
-	lda trackn_command+3+4	; track3R
-	and #$0e				; 0000 ddd0
-	cmp #6					; Type 6 => 16-bit bass
-	bne qs5
-	lda trackn_audc+3+4		; Take audc
-	and #$0f				; Volume 0-15 only
-	beq qs5					; Zero => no 16-bit bass
-	ldy trackn_outnote+3+4
-	lda frqtabbasslo,y
-	sta trackn_audf+2+4		; lo g2R
-	lda frqtabbasshi,y
-	sta trackn_audf+3+4		; hi g3R
-	IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG2R
-	lda trackn_audc+2+4		; g2R volume state?
-	and #$10				; Volume only?
-	bne qs4a				; Yes => branch
-	EIF
-	lda #0
-	sta trackn_audc+2+4		; g2R gets zero volume
+			IFT FEAT_BASS16G3R
+				lda trackn_command+3+4	; track3R
+				and #$0e	; 0000 ddd0
+				cmp #6		; Type 6 => 16-bit bass
+				bne qs5
+				lda trackn_audc+3+4	; Take audc
+				and #$0f	; Volume 0-15 only
+				beq qs5		; Zero => no 16-bit bass
+				ldy trackn_outnote+3+4
+				lda frqtabbasslo,y
+				sta trackn_audf+2+4	; lo g2R
+				lda frqtabbasshi,y
+				sta trackn_audf+3+4	; hi g3R
+				IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG2R
+					lda trackn_audc+2+4	; g2R volume state?
+					and #$10	; Volume only?
+					bne qs4a	; Yes => branch
+				EIF
+				lda #0
+				sta trackn_audc+2+4	; g2R gets zero volume
 qs4a
-	txa
-	ora #$28				; Joins g2-g3 16-bit
-	tax
-	EIF		; FEAT_BASS16G3R
-	EIF		; FEAT_BASS16
+				txa
+				ora #$28	; Joins g2-g3 16-bit
+				tax
+			EIF	; FEAT_BASS16G3R
+		EIF	; FEAT_BASS16
 qs5
 ;
-	stx v_audctl2			; R
+		stx v_audctl2		; R
 	EIF
 ;
 ;
 rmt_p5
 ;------------------------------------------------------------------------------------------
 	IFT FEAT_INSTRSPEED==0||FEAT_INSTRSPEED>1
-	lda #$ff			; The parameter is self-modified   v_ainstrspeed	;returns the actual instrument speed (for X vbi, countdown X to 1)
+		lda #$ff		; The parameter is self-modified   v_ainstrspeed	;returns the actual instrument speed (for X vbi, countdown X to 1)
 v_ainstrspeed equ *-1
 	ELS
-	lda #1					; For instrspeed 1 always returns #1
+		lda #1				; For instrspeed 1 always returns #1
 	EIF
 	rts
 ;	END
@@ -1821,144 +1825,147 @@ v_ainstrspeed equ *-1
 ; Start of the rmt_set_pokey routine to update the POKEY hardware registers.
 rmt_set_pokey
 
+;	ldy #$00
+;v_audctl equ *-1			; Not possible in "Unpatched" due to diffent register usage.
+
 	IFT STEREOMODE==1		; L1 L2 L3 L4 R1 R2 R3 R4
 ; Write to the two POKEYs, stereo (always the right register first, then immediately the left)
-	ldy #$ff				; The parameter is self-modified
+		ldy #$ff			; The parameter is self-modified
 v_audctl2 equ *-1
 
-	lda trackn_audf+0+4		; AUDF0
-	ldx trackn_audf+0
-	sta $d210
-	stx $d200
-	lda trackn_audc+0+4		; AUDC0
-	ldx trackn_audc+0
-	sta $d211
-	stx $d201
+		lda trackn_audf+0+4	; AUDF0
+		ldx trackn_audf+0
+		sta $d210
+		stx $d200
+		lda trackn_audc+0+4	; AUDC0
+		ldx trackn_audc+0
+		sta $d211
+		stx $d201
 
-	lda trackn_audf+1+4		; AUDF1
-	ldx trackn_audf+1
-	sta $d212
-	stx $d202
+		lda trackn_audf+1+4	; AUDF1
+		ldx trackn_audf+1
+		sta $d212
+		stx $d202
 
-	lda trackn_audc+1+4		; AUDC1
-	ldx trackn_audc+1
-	sta $d213
-	stx $d203
+		lda trackn_audc+1+4	; AUDC1
+		ldx trackn_audc+1
+		sta $d213
+		stx $d203
 
-	lda trackn_audf+2+4		; AUDF2
-	ldx trackn_audf+2
-	sta $d214
-	stx $d204
+		lda trackn_audf+2+4	; AUDF2
+		ldx trackn_audf+2
+		sta $d214
+		stx $d204
 
-	lda trackn_audc+2+4		; AUDC2
-	ldx trackn_audc+2
-	sta $d215
-	stx $d205
+		lda trackn_audc+2+4	; AUDC2
+		ldx trackn_audc+2
+		sta $d215
+		stx $d205
 
-	lda trackn_audf+3+4		; AUDF3
-	ldx trackn_audf+3
-	sta $d216
-	stx $d206
+		lda trackn_audf+3+4	; AUDF3
+		ldx trackn_audf+3
+		sta $d216
+		stx $d206
 
-	lda trackn_audc+3+4		; AUDC3
-	ldx trackn_audc+3
-	sta $d217
-	stx $d207
+		lda trackn_audc+3+4	; AUDC3
+		ldx trackn_audc+3
+		sta $d217
+		stx $d207
 
-	lda #$ff				; AUDCTL
+		lda #$ff			; AUDCTL
 v_audctl equ *-1
-	sty $d218				; <Y> was set above.
-	sta $d208
+		sty $d218			; <Y> was set above.
+		sta $d208
 
 	ELI STEREOMODE==0		; L1 L2 L3 L4
 ; Write to POKEY, mono - left side only
 ;
-	ldy #$ff				; The parameter is self-modified
+		ldy #$ff			; The parameter is self-modified
 v_audctl equ *-1
 ;
-	lda trackn_audf+0
-	ldx trackn_audc+0
-	sta $d200
-	stx $d201
+		lda trackn_audf+0
+		ldx trackn_audc+0
+		sta $d200
+		stx $d201
 
-	lda trackn_audf+1
-	ldx trackn_audc+1
-	sta $d200+2
-	stx $d201+2
+		lda trackn_audf+1
+		ldx trackn_audc+1
+		sta $d200+2
+		stx $d201+2
 
-	lda trackn_audf+2
-	ldx trackn_audc+2
-	sta $d200+4
-	stx $d201+4
+		lda trackn_audf+2
+		ldx trackn_audc+2
+		sta $d200+4
+		stx $d201+4
 
-	lda trackn_audf+3
-	ldx trackn_audc+3
-	sta $d200+6
-	stx $d201+6
+		lda trackn_audf+3
+		ldx trackn_audc+3
+		sta $d200+6
+		stx $d201+6
 
-	sty $d208
+		sty $d208
 
 	ELI STEREOMODE==2		; L1 R2 R3 L4
 
-	ldy #$ff				; The parameter is self-modified
+		ldy #$ff			; The parameter is self-modified
 v_audctl equ *-1
 
-	lda trackn_audf+0
-	ldx trackn_audc+0
-	sta $d200
-	stx $d201
-	sta $d210				; The frequency into the right one too (in case R2 plays 16-bit bass 2+1)
+		lda trackn_audf+0
+		ldx trackn_audc+0
+		sta $d200
+		stx $d201
+		sta $d210			; The frequency into the right one too (in case R2 plays 16-bit bass 2+1)
 
-	lda trackn_audf+1
-	ldx trackn_audc+1
-	sta $d210+2
-	stx $d211+2
+		lda trackn_audf+1
+		ldx trackn_audc+1
+		sta $d210+2
+		stx $d211+2
 
-	lda trackn_audf+2
-	ldx trackn_audc+2
-	sta $d210+4
-	stx $d211+4
-	sta $d200+4				; The frequency into the left one too (in case L1 plays filter 1+3 or L4 plays 16-bit bass 4+3)
+		lda trackn_audf+2
+		ldx trackn_audc+2
+		sta $d210+4
+		stx $d211+4
+		sta $d200+4			; The frequency into the left one too (in case L1 plays filter 1+3 or L4 plays 16-bit bass 4+3)
 
-	lda trackn_audf+3
-	ldx trackn_audc+3
-	sta $d200+6
-	stx $d201+6
-	sta $d210+6				; The frequency into the right one too (in case R2 plays filter 2+4)
+		lda trackn_audf+3
+		ldx trackn_audc+3
+		sta $d200+6
+		stx $d201+6
+		sta $d210+6			; The frequency into the right one too (in case R2 plays filter 2+4)
 
-	sty $d218
-	sty $d208
+		sty $d218
+		sty $d208
 
 	ELI STEREOMODE==3		; L1 L2 R3 R4
 ; Write for L1 L2 R3 R4
 ;
-	ldy #$ff				; The parameter is self-modified
+		ldy #$ff			; The parameter is self-modified
 v_audctl equ *-1
 ;
-	lda trackn_audf+0
-	ldx trackn_audc+0
-	sta $d200
-	stx $d201
+		lda trackn_audf+0
+		ldx trackn_audc+0
+		sta $d200
+		stx $d201
 
-	lda trackn_audf+1
-	ldx trackn_audc+1
-	sta $d200+2
-	stx $d201+2
+		lda trackn_audf+1
+		ldx trackn_audc+1
+		sta $d200+2
+		stx $d201+2
 
-	lda trackn_audf+2
-	ldx trackn_audc+2
-	sta $d210+4
-	stx $d211+4
-	sta $d200+4				; The frequency into the left one too (in case L1 plays filter 1+3)
+		lda trackn_audf+2
+		ldx trackn_audc+2
+		sta $d210+4
+		stx $d211+4
+		sta $d200+4			; The frequency into the left one too (in case L1 plays filter 1+3)
 
-	lda trackn_audf+3
-	ldx trackn_audc+3
-	sta $d210+6
-	stx $d211+6
-	sta $d200+6				; The frequency into the left one too (in case L2 plays filter 2+4)
+		lda trackn_audf+3
+		ldx trackn_audc+3
+		sta $d210+6
+		stx $d211+6
+		sta $d200+6			; The frequency into the left one too (in case L2 plays filter 2+4)
 
-	sty $d218
-	sty $d208
+		sty $d218
+		sty $d208
 
 	EIF
 
