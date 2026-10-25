@@ -182,7 +182,7 @@ TRACKS		equ 4
 	EIF
 
 PLAYER			equ $3400	; Start of the standard player, also used for "tracker.obx". Beware that the memory before it is used, about $400 (1 KB).
-INSTRPAR	equ 12				; Number of the instrument's "main" parameters => the table starts at byte 12, the envelope after the table end
+INSTRPAR	equ 12			; Number of the instrument's "main" parameters => the table starts at byte 12, the envelope after the table end
 
 ; RMT ZeroPage addresses
 	org 203
@@ -193,9 +193,9 @@ p_trackslbstable	org *+2		; ptr to low byte of track ptrs
 p_trackshbstable	org *+2		; ptr to high byte of track ptrs
 p_song				org *+2		; ptr to song data
 
-p_ns					org *+2
-p_nr					org *+2
-p_nt					org *+2
+p_ns				org *+2
+p_nr				org *+2
+p_nt				org *+2
 reg1				org *+1
 reg2				org *+1
 reg3				org *+1
@@ -206,9 +206,9 @@ frqaddcmd2			org *+1
 	EIF
 
 	IFT TRACKS>4
-	org PLAYER-$400+$40				; $3040
+	org PLAYER-$400+$40			; $3040
 	ELS
-	org PLAYER-$400+$e0				; $30e0
+	org PLAYER-$400+$e0			; $30e0
 	EIF
 
 track_variables
@@ -314,7 +314,7 @@ track_endvariables
 		org PLAYER-$100-$140-$40+2
 
 
-tabbeganddistor ; The start offsets into "tabfrq" and distortion values for the individual instrument distortions
+tabbeganddistor							; The start offsets into "tabfrq" and distortion values for the individual instrument distortions
  dta frqtabpure-frqtab,$00				; Noise 0
  dta frqtabpure-frqtab,$20				; Noise 2
  dta frqtabpure-frqtab,$40				; Noise 4
@@ -637,7 +637,7 @@ si1		sta $d200,y
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
 GetSongLine		; Get songline, then get track line, then initialize new instruments
-	ldx #0							; Set the current beat in to 0.
+	ldx #0		; Set the current beat in to 0.
 	stx v_abeat	
 nn0								; Before jumping to nn0 from elsewhere, ensure that <X>=0.
 ;   Next line in the song
@@ -750,7 +750,7 @@ oo1i
 
 	; Get the instrument number, multiplied by 2.
 	iny
-	lda (p_ns),y						; instrx2 = (data & 0xfc) >> 1
+	lda (p_ns),y					; instrx2 = (data & 0xfc) >> 1
 	lsr @							; 0iiiiiiX
 	and #$3f*2						; 0iiiiii0
 	sta trackn_instrx2,x			; Set the track instrument.
@@ -822,7 +822,7 @@ oo63
 ; note=63 (+top bit 0) (speed, byte)
 	iny
 	lda (p_ns),y
-		sta v_bspeed				; Set the song speed to the buffered speed.
+		sta v_bspeed			; Set the song speed to the buffered speed.
 	inc trackn_idx,x			; For next time
 	jmp oo1i					; Immediately continues to the next pair in the track
 oo63_1X
@@ -899,7 +899,7 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 	lda (p_nt),y
 	sta trackn_tablelop,x
 	iny ; #2
-	ELS					; /TABLEGO else
+	ELS	; /TABLEGO else
 	ldy #2
 	EIF					; /TABLEGO
 ; y=2
@@ -927,7 +927,7 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 	iny	; #5	
 	lda (p_nt),y
 	sta trackn_audctl,x						; audctl
-	iny ; #6
+	iny										; #6
 	ELS
 	ldy #6
 	EIF
@@ -937,7 +937,7 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 ; y=6 still
 	IFT FEAT_VOLUMEMIN
 	iny ; #7
-	lda (p_nt),y								; mmmm 0000 volume minimum for the volume decay
+	lda (p_nt),y	; mmmm 0000 volume minimum for the volume decay
 ;	and #$f0								; Not required bits are already 0.
 	sta trackn_volumemin,x
 	IFT FEAT_EFFECTS
@@ -954,7 +954,7 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 	sta trackn_effdelay,x
 	IFT FEAT_EFFECTVIBRATO
 	iny ; #9
-	lda (p_nt),y								; effvibrato  0000 00vv  ($0-$3)
+	lda (p_nt),y	; effvibrato  0000 00vv  ($0-$3)
 ;	and #$03								; Not required bits are already 0.
 	tay
 	lda vibtabbeg,y
@@ -962,7 +962,7 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 	EIF
 	IFT FEAT_EFFECTFSHIFT
 	ldy #10									; Byte 10
-	lda (p_nt),y								; effshift
+	lda (p_nt),y							; effshift
 	sta trackn_effshift,x
 	EIF ; /FEAT_EFFECTFSHIFT
 	EIF	; /FEAT_EFFECTS
@@ -983,7 +983,7 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 	tay								; <Y>:=<A>=$00, carry stays C=1
 ; y=0
 	lda (p_nt),y			    		; Carry stays C=1.
-	sta trackn_tableend,x   		; Carry stays C=1.
+	sta trackn_tableend,x				; Carry stays C=1.
 ;	clc								; Carry stays C=1. Saves 2 cycles compared to "clc:adc #1"
 	adc #0							; <A>:=<A>+1 because C=1.
 	sta trackn_instridx,x			; The envelope starts 1 byte after the table
@@ -991,8 +991,8 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 ; And now the remaining parameters
 	lda #INSTRPAR							; 12
 	sta trackn_tablea,x						; Starts from table entry 0 (=byte 12)
-	tay	; ldy #INSTRPAR	
-	lda (p_nt),y								; Note 0 of the instrument table	(=byte 12)
+	tay										; ldy #INSTRPAR	
+	lda (p_nt),y							; Note 0 of the instrument table	(=byte 12)
 	sta trackn_tablenote,x					; If tableend=0 => only this ever remains
 
 xata_rtshere				; rmt_ata.a65 writes an "rts" instruction onto this label so that
@@ -1116,12 +1116,12 @@ pp2s
 	sta tmp				; Backup the final volume (0-15) in "tmp". This is faster than PHA/PLA.
 						; It will be used to comnpute the AUDC value a bit later.
 	lda reg2
-	and #$0e			; Distortion 0000 ddd0
-	tay					; Even values
-	lda tabbeganddistor,y		; Offset into the tabfrq table 0,64,128,192
+	and #$0e				; Distortion 0000 ddd0
+	tay						; Even values
+	lda tabbeganddistor,y	; Offset into the tabfrq table 0,64,128,192
 	sta p_nr				; Low byte for setting the frequency from the table
-	lda tmp				; Takes from tmp (final volume 0-15) (faster than PHA and then PLA)
-	ora tabbeganddistor+1,y		; Noise value for the respective instrument distortion $00,$20,$..
+	lda tmp					; Takes from tmp (final volume 0-15) (faster than PHA and then PLA)
+	ora tabbeganddistor+1,y	; Noise value for the respective instrument distortion $00,$20,$..
 	sta trackn_audc,x
 ;
 ;	jmp InstrumentsEffects
@@ -1336,8 +1336,8 @@ cmd5	; Set destination portamento XY (X-speed, Y-depth), XY==00 =>set actual_por
 			ldy trackn_note,x				; Bit 8 is 1: frequency shift mode.
 
 			lda (p_nr),y						; This is the actual note base frequency, or AUDF.
-			clc								; Clear carry flag.
-	adc trackn_tablenote,x			; Here as a frequency
+			clc									; Clear carry flag.
+	adc trackn_tablenote,x						; Here as a frequency
 	jmp cmd5ax
 	EIF		; FEAT_TABLETYPE
 cmd5a1
