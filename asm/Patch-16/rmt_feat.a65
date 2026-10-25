@@ -25,7 +25,7 @@ EXPORTSAP		equ 0
 ; ------------------------------------------------------------------------------------------------------------
 
 ; STEREO MODE MUST ALWAYS BE 1 IF THE OUTPUT IS INTENDED FOR USE AS RMT DRIVER BINARY, ELSE IT WILL BE BROKEN!
-	
+
 			IFT FEAT_IS_TRACKER
 STEREOMODE		equ 1
 			ELI !FEAT_IS_SIMPLEP	; dasmplayer.asm has its own definition there so it could be ignored here
@@ -36,7 +36,7 @@ STEREOMODE		equ 0
 						; 3 => compile RMTplayer for 4 tracks stereo L1 L2 R3 R4
 						; 4 => compile RMTplayer for 8 tracks Dual Mono LR1 LR2 LR3 LR4
 			EIF
-			
+
 ; Stereo mode may also be defined from a different location (game/demo, dasmplayer.asm, etc), comment it out if necessary
 
 ; ------------------------------------------------------------------------------------------------------------

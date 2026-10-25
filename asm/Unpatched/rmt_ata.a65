@@ -1,12 +1,12 @@
 ;
 ;3000, 3400
 STEREOMODE	equ 1
-	icl "rmt.a65"	
+	icl "rmt.a65"
 
 ;3d00		a=note0-63,x=trackindex0-7,y=instrument0-63
 	org $3d00
 	sta trackn_note,x		;sets trackn_note
-	IFT FEAT_BASS16	
+	IFT FEAT_BASS16
 	sta trackn_outnote,x	;(if nothing changes it anymore, it stays the same as note)
 	EIF
 	tya
@@ -18,7 +18,7 @@ STEREOMODE	equ 1
 	;jsr-rts
 usi1
 	rts
-	
+
 	org xata_rtshere		;patches the RMT routine's code so SetUpInstrumentY2 can be called as a subroutine
 	rts
 

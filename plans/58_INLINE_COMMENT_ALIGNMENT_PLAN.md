@@ -93,6 +93,19 @@ Open points to decide before execution:
    should lines separated only by a blank line or a whole-line comment
    count as one block? Proposed: strictly consecutive first; blocks can
    be a second pass if the result still looks ragged.
+   RESOLVED 2026-10-26: the block pass ran with the refined rule - blocks
+   bridge blank lines, the exempt directive/label class, bare ";" spacers
+   and prose narration comments, and break on ";---" separator runs,
+   section-marker comments ("Start of"/"End of", unified from "END of")
+   and code without an inline comment. 26 + 15 lines unified.
+   Two follow-up passes the same day: (a) floating comments - indented
+   whole-line narration like "; With filtering" - snap to their block's
+   comment column (74 + 8 lines; continuations tied to the previous
+   line's comment column are left alone); (b) cross-file twin-block
+   unification - blocks paired through lines whose code and comment text
+   are unique and identical in both players take the wider of the two
+   columns (193 block pairs, 139 lines). Twin lines sharing their column
+   across the files went from 242 of 374 to 365 of 374.
 3. **Stray spaces in code.** Normalize a trailing space before the
    code-to-comment gap (the `trackn_portaspeed ` case) while touching the
    line anyway? Proposed: yes - the space is invisible and breaks the

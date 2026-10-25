@@ -2,7 +2,7 @@
 ;	RMT_MSX
 ;
 RASTERMUSICTRACKER	equ $3400
-video equ $3f00	
+video equ $3f00
 video4th equ video+3*40
 video5th equ video+4*40
 color equ video+200
@@ -113,7 +113,7 @@ waipap
 ;
 	jsr RASTERMUSICTRACKER+3
 	;returned the actual instrspeed in A
-;	
+;
 	ldx #0					;black
 	stx $d01a
 	stx $d018
@@ -164,6 +164,6 @@ dl
 	dta 64+2,a(video)
 	dta 2,2
 	dta 64+2
-dlx dta a(video4th)	
+dlx dta a(video4th)
 	dta 65,a(dl)
 ;

@@ -3,7 +3,7 @@
 TABLES            equ $B000
 
     org TABLES
-    
+
 ; Big re-organization in progress, nothing is definitive currently!
 
 ; Each memory page are bound to a specific purpose, and must be memory aligned
@@ -24,9 +24,9 @@ TABLES            equ $B000
 ; carries the same bytes as constants and copies them.
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
-PAGE_DISTORTION_2    ; in order: 64khz, 1.79mhz, and 16-bit (hi and lo) tables, 256 bytes 
+PAGE_DISTORTION_2    ; in order: 64khz, 1.79mhz, and 16-bit (hi and lo) tables, 256 bytes
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
-    
+
 ; Poly5 Table, 64khz, Distortion 2
 
 frqtabpoly5_64khz
@@ -45,8 +45,8 @@ frqtabpoly5_179mhz
     dta $33,$2F,$2D,$2A,$27,$25,$23,$20,$1E,$1C,$1A,$19
     dta $17,$16,$14,$13,$12,$10,$0F,$0E,$0D,$0C,$0B,$0A
     dta $0A,$09,$08,$07,$07,$06,$06,$05,$05,$04,$04,$03
-    dta $03,$02,$02,$02 
-    
+    dta $03,$02,$02,$02
+
 ; Poly5 Table, 16-bit, Distortion 2
 
 frqtabpoly5_16bit
@@ -58,9 +58,9 @@ frqtabpoly5_16bit
     dta a($0014,$0013,$0011,$0010)
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
-PAGE_DISTORTION_4    ; in order: 64khz, 1.79mhz, and 16-bit (hi and lo) tables, 256 bytes 
+PAGE_DISTORTION_4    ; in order: 64khz, 1.79mhz, and 16-bit (hi and lo) tables, 256 bytes
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
-    
+
 ; 64khz, Distortion 4
 
 frqtabdist4_64khz
@@ -70,7 +70,7 @@ frqtabdist4_64khz
     dta $02,$02,$02,$02,$00,$00,$00,$00,$00,$00,$00,$00
     dta $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
     dta $00,$00,$00,$00
-        
+
 ; 1.79mhz, Distortion 4
 
 frqtabdist4_179mhz
@@ -79,8 +79,8 @@ frqtabdist4_179mhz
     dta $53,$4D,$4A,$44,$41,$3E,$3B,$35,$32,$2F,$2C,$2C
     dta $26,$26,$23,$20,$20,$1D,$1D,$17,$17,$17,$14,$14
     dta $11,$11,$11,$0E,$0E,$0E,$0E,$0E,$08,$08,$08,$08
-    dta $08,$08,$05,$05 
-    
+    dta $08,$08,$05,$05
+
 ; 16-bit, Distortion 4
 
 frqtabdist4_16bit
@@ -89,12 +89,12 @@ frqtabdist4_16bit
     dta a($0050,$004A,$0047,$0041,$003E,$003B,$0038,$0032,$002F,$002C,$0029,$0029)
     dta a($0023,$0023,$0020,$001D,$001D,$001A,$001A,$0014,$0014,$0014,$0011,$0011)
     dta a($000E,$000E,$000E,$000B,$000B,$000B,$000B,$000B,$0005,$0005,$0005,$0005)
-    dta a($0005,$0005,$0002,$0002) 
+    dta a($0005,$0005,$0002,$0002)
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
-PAGE_DISTORTION_A    ; in order: 64khz, 1.79mhz, and 16-bit (hi and lo) tables, 256 bytes 
+PAGE_DISTORTION_A    ; in order: 64khz, 1.79mhz, and 16-bit (hi and lo) tables, 256 bytes
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
-    
+
 ; Pure Table, 64khz, Distortion A
 
 frqtabpure_64khz
@@ -113,7 +113,7 @@ frqtabpure_179mhz
     dta $31,$2E,$2B,$28,$26,$24,$21,$1F,$1D,$1B,$1A,$18
     dta $16,$15,$14,$12,$11,$10,$0F,$0E,$0D,$0C,$0B,$0A    ; copied from Poly5 1.79mhz, mostly
     dta $09,$08,$08,$07,$06,$06,$05,$05,$04,$04,$03,$03
-    dta $03,$02,$02,$02 
+    dta $03,$02,$02,$02
 
 ; Pure Table, 16-bit, Distortion A
 
@@ -126,7 +126,7 @@ frqtabpure_16bit
     dta a($0347,$0317,$02EA,$02C0)
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
-PAGE_DISTORTION_C    ; in order: 64khz, 1.79mhz, and 16-bit (hi and lo) tables, 256 bytes 
+PAGE_DISTORTION_C    ; in order: 64khz, 1.79mhz, and 16-bit (hi and lo) tables, 256 bytes
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
 ; Buzzy Bass Table, 64khz, Distortion C
@@ -147,7 +147,7 @@ frqtabbuzzy_179mhz
     dta $50,$4D,$4A,$44,$3E,$3B,$35,$35,$32,$2F,$2C,$26
     dta $26,$23,$23,$20,$1D,$1D,$1D,$17,$17,$14,$14,$11
     dta $11,$11,$0E,$0E,$0E,$0E,$0E,$08,$08,$08,$08,$08    ; copied from Poly5 1.79mhz, mostly
-    dta $08,$05,$05,$05 
+    dta $08,$05,$05,$05
 
 ; Poly4 Buzzy Table, 16-bit, Distortion C
 
@@ -165,8 +165,8 @@ PAGE_DISTORTION_E    ; in order: 64khz, 1.79mhz, and 16-bit (hi and lo) tables, 
 
 ; Gritty Bass Table, 64khz, Distortion C
 
-frqtabgritty_64khz 
-        dta $FF,$F3,$E4,$D8,$CD,$C0,$B5,$AB,$A2,$99,$91,$88 
+frqtabgritty_64khz
+        dta $FF,$F3,$E4,$D8,$CD,$C0,$B5,$AB,$A2,$99,$91,$88
         dta $7F,$79,$73,$6C,$66,$60,$5A,$55,$51,$4C,$48,$43
         dta $3F,$3C,$39,$34,$33,$30,$2D,$2A,$28,$25,$24,$21
         dta $1F,$1E,$1C,$1B,$19,$16,$16,$15,$12,$12,$12,$10
@@ -194,7 +194,7 @@ frqtabgritty_16bit
     dta a($006A,$0063,$005E,$0057)
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
-PAGE_EXTRA_0    ; in order: Sawtooth tables, and 15khz tables for Distortion A and C, 256 bytes 
+PAGE_EXTRA_0    ; in order: Sawtooth tables, and 15khz tables for Distortion A and C, 256 bytes
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
 ; Croissant Sawtooth, use on Channel 1 or 3, must be muted on channel 3
@@ -252,7 +252,7 @@ clarinet_lo
     dta $19,$74,$CF,$1B,$76,$D1,$59,$B4,$4B,$D3,$6A,$F2
     dta $89,$4D,$E4,$7B,$3F,$03,$9A,$5E,$22,$E6,$AA,$7D
     dta $41,$14,$E7,$BA,$9C,$7E,$42,$24,$06,$F2,$D9,$BB
-    dta $9D,$8E,$70,$61      
+    dta $9D,$8E,$70,$61
 
 ; Clarinet Harmonic Table, Reverse-16 hi, Distortion A
 
@@ -267,5 +267,5 @@ clarinet_hi
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
-; and that's all... I guess 
+; and that's all... I guess
 

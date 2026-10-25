@@ -3,7 +3,7 @@
 ;
 STEREOMODE	equ 0				;to assemble RMT for 4 tracks mono
 	icl "rmt.a65"
-	
+
 MODUL equ $4000
 ;
 	org $394e		;$3961	;$3965		;$395f		;$3987		;$399d		;$39a0

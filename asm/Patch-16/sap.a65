@@ -8,12 +8,12 @@
 ; Use "<?>" for unknown values, although this is entirely optional, it's simply for the SAP format convention
 ; SPACING is the CR/LF (Carriage Return, Line Feed) word, merely put this between each argument
 ;---------------------------------------------------------------------------------------------------------------;
-	
+
 SPACING	equ $0A0D
 
 ; SAP header
 
-	org $0000		; XASM yells at me without an ORG here... 
+	org $0000		; XASM yells at me without an ORG here...
 SAP	dta c"SAP"		; SAP are the characters used to define the format at the start of every .sap file
 	dta a(SPACING)		; IMPORTANT, must be at the end of EVERY argument to generate proper SAP exports
 
@@ -23,15 +23,15 @@ SAP	dta c"SAP"		; SAP are the characters used to define the format at the start 
 AUTHOR	dta c"AUTHOR "
 	dta c'"Christian Duesterhoeft (Buddy)"'
 	dta a(SPACING)
-	
+
 NAME	dta c"NAME "
 	dta c'"Captain Future Theme"'
 	dta a(SPACING)
-	
+
 DATE	dta c"DATE "
 	dta c'"13/08/2024"'
 	dta a(SPACING)
-	
+
 SONGS	;dta c"SONGS "		; optional argument
 	;dta c"3"
 	;dta a(SPACING)
@@ -49,30 +49,30 @@ STEREO	dta c"STEREO"
 NTSC	;dta c"NTSC"
 	;dta a(SPACING)
 	;EIF
-	
+
 TYPE	dta c"TYPE B"
 	dta a(SPACING)
-	
+
 FASTPLAY
 	;dta c"FASTPLAY "	; optional argument, and useless in Altirra with my own hijacked stuff
 	;dta c"312"		; must be manually edited for now. 312 for PAL 50hz and 262 for NTSC 60hz are most common
 	;dta a(SPACING)
-	
+
 INIT	dta c"INIT "		; SAP init address, very important to have set up correctly, or else bad things happen
 	dta c"3E00"		; the same address used for Simple RMT Player, because why not
 	dta a(SPACING)
-	
+
 PLAYER_	dta c"PLAYER "		; rmtplay jump address
 	dta c"3103"		; rmt_play = PLAYER+3, PLAYER is $3100 for the Simple RMT Player (FEAT_IS_SIMPLEP; RITMO 96321b1)
 	dta a(SPACING)
-	
+
 TIME	;dta c"TIME "		; optional argument
 	;dta c"69:42.00 "	; Minutes:Seconds.Miliseconds format
 	;dta c"LOOP"		; optional
 	;dta a(SPACING)
-	
+
 ENDHEADER
 	dta $FF,$FF		; Atari header before assembly, very important to keep!
-	
+
 ; and that's all :D
 
