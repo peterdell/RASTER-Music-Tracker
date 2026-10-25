@@ -592,7 +592,7 @@ ri1	lda (p_ns),y
 		plp							; Pull the saved flags, we need the carry flag (PLP #3A/B).
 		adc p_song+1				; The carry flag was set by the low-byte addition.
 		sta p_song+1
-	EIF 							; End of IFT FEAT_NOSTARTINGSONGLINE==0
+	EIF							; FEAT_NOSTARTINGSONGLINE==0
 
 ;	jsr GetSongLine
 ;	jsr GetTrackLine
@@ -786,7 +786,7 @@ oo1a								; Process volume data
 		sbc #$00			; Self-modified parameter
 RMTGLOBALVOLUMEFADE equ *-1
 		bcs voig	; >=0
-		lda #0	; <0 => must zero it
+		lda #0		; <0 => must zero it
 voig
 	EIF
 	and #$f0				; vvvv0000
@@ -882,7 +882,7 @@ rmt_sfx
 		lda #$f0				; sfx note volume*16
 		RMTSFXVOLUME equ *-1	; label for sfx note volume parameter overwriting
 		sta trackn_volume,x		; Sets the volume
-		EIF						; Fall-though to SetUpInstrumentY2 with <Y> = instrument number *2, <X> = track number
+		EIF						; Fall-through to SetUpInstrumentY2 with <Y> = instrument number *2, <X> = track number
 	
 ; End of RMT_SFX code.
 
@@ -955,11 +955,11 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 		sta trackn_volumemin,x
 		IFT FEAT_EFFECTS
 			iny	; #8
-		EIF	; /FEAT_EFFECTS
-	ELS ; else FEAT_VOLUMEMIN
+		EIF	; FEAT_EFFECTS
+	ELS ; FEAT_VOLUMEMIN
 		IFT FEAT_EFFECTS
 			ldy #8
-		EIF	; /FEAT_EFFECTS
+		EIF	; FEAT_EFFECTS
 	EIF
 ; y=8 (careful, Y=8 only with FEAT_EFFECTS !!! (otherwise not needed)
 	IFT FEAT_EFFECTS
@@ -977,8 +977,8 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 			ldy #10							; Byte 10
 			lda (p_nt),y					; effshift
 			sta trackn_effshift,x
-		EIF	; /FEAT_EFFECTFSHIFT
-	EIF	; /FEAT_EFFECTS
+		EIF	; FEAT_EFFECTFSHIFT
+	EIF	; FEAT_EFFECTS
 
 ;	Note: byte 11 is free, reserved for future extensions
 ;	By now Y holds who-knows-what ;-)
@@ -1163,7 +1163,7 @@ InstrumentsEffects				; X holds the track number 7-0
 ei1
 		dec trackn_effdelay,x	; The delay is greater than 1, so decrease it
 ei2
-	EIF ; /FEAT_EFFECTS
+	EIF ; FEAT_EFFECTS
 ; Table
 	ldy trackn_tableend,x
 	cpy #INSTRPAR+1				; <13?
@@ -1195,8 +1195,8 @@ ei2a
 	lda (p_nt),y
 	IFT FEAT_TABLEMODE	
 		ldy trackn_tablemode,x	; Table mode? ($00/$40)
-		beq ei2e			; ==$00 => sets tablenote/tableshift
-		clc					; ==$40 => adds to tablenote/tableshift
+		beq ei2e				; ==$00 => sets tablenote/tableshift
+		clc						; ==$40 => adds to tablenote/tableshift
 		adc trackn_tablenote,x
 ei2e
 	EIF
@@ -1237,7 +1237,6 @@ ei4
 		lda #0
 		sta frqaddcmd2			; Initialization of the frequency shift by command 2
 	EIF
-;	<1>
 	IFT FEAT_COMMAND1||FEAT_COMMAND2||FEAT_COMMAND3||FEAT_COMMAND4||FEAT_COMMAND5||FEAT_COMMAND6||FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY
 ; Are there any commands other than COMMAND 0 at all?
 ; Yes, there are!
@@ -1246,7 +1245,6 @@ ei4
 			sta trackn_command,x	; Used only for filtering and/or 16-bit bass
 		EIF
 		and #$70					; Mask out non-relevent bits for command "0ccc 0000".
-;	<2>
 		IFT 1==[FEAT_COMMAND1+FEAT_COMMAND2+FEAT_COMMAND3+FEAT_COMMAND4+FEAT_COMMAND5+FEAT_COMMAND6+[FEAT_COMMAND7SETNOTE||FEAT_COMMAND7VOLUMEONLY]]
 	; There is exactly one command other than command 0
 			beq cmd0	; If it is zero after and #$70, cmd0 is handled (which sits after all the commands)
@@ -1283,14 +1281,14 @@ jmx	bcc *
 				nop
 				jmp cmd7
 			EIF
-		EIF	; </2>
-	ELS ; <1ELSE> no, there are no commands other than COMMAND 0 at all, so nothing is compiled until cmd0
+		EIF	; Exactly one command other than command 0
+	ELS ; No, there are no commands other than COMMAND 0 at all, so nothing is compiled until cmd0
 	; Still has to add filling trackn_command,x, if needed
 		IFT FEAT_FILTER||FEAT_BASS16
 			lda reg2
 			sta trackn_command,x	; Used only for filtering and/or 16-bit bass
 		EIF
-	EIF ; </1>
+	EIF ; Any commands other than COMMAND 0
 	
 ; End of instruments effects code.
 	
@@ -1471,7 +1469,7 @@ cmd0b1
 		EIF
 ;	sta trackn_audf,x			;OPTIMIZATION: moved a bit lower after cmd0c
 ;	jmp pp9						;OPTIMIZATION: continues straight on (through cmd0c)
-	EIF							; /FEAT_TABLETYPE
+	EIF							; FEAT_TABLETYPE
 
 ; CAUTION! Routine is not terminated, falls-through because the "jmp pp9" was removed.
 cmd0c
@@ -1536,7 +1534,7 @@ pp11
 ppnext								; Jumped to when the instrument is not initialized
 	dex								; OPTIMIZATION (x--)
 	bmi rmt_p4						; OPTIMIZATION
-	jmp pp1		; Loop
+	jmp pp1							; Loop
 
 ;---------------------------------------------------------------------
 
@@ -1695,19 +1693,19 @@ qq5
 		IFT FEAT_FILTER
 			IFT FEAT_FILTERG0R
 				lda trackn_command+0+4	; track0R
-				bpl qs2		; Top bit==0 => no filtering
+				bpl qs2				; Top bit==0 => no filtering
 				lda trackn_audc+0+4	; Take audc
-				and #$0f	; Volume 0-15 only
-				beq qs2		; Zero => no filtering
+				and #$0f			; Volume 0-15 only
+				beq qs2				; Zero => no filtering
 	; With filtering
 				lda trackn_audf+0+4	; Frequency of g0R
 				clc
 				adc trackn_filter+0+4	; Shift for filtering
-				sta trackn_audf+2+4	; g0R is filtered through g2R
+				sta trackn_audf+2+4		; g0R is filtered through g2R
 				IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG2R
 					lda trackn_audc+2+4	; g2R volume state?
-					and #$10	; Volume only?
-					bne qs1a	; Yes => branch
+					and #$10			; Volume only?
+					bne qs1a			; Yes => branch
 				EIF
 				lda #0
 				sta trackn_audc+2+4	; g2R gets zero volume
@@ -1719,19 +1717,19 @@ qs1a
 qs2
 			IFT FEAT_FILTERG1R
 				lda trackn_command+1+4	; track1R
-				bpl qs3		; Top bit==0 => no filtering
+				bpl qs3				; Top bit==0 => no filtering
 				lda trackn_audc+1+4	; Take audc
-				and #$0f	; Volume 0-15 only
-				beq qs3		; Zero => no filtering
+				and #$0f			; Volume 0-15 only
+				beq qs3				; Zero => no filtering
 	; With filtering
 				lda trackn_audf+1+4	; Frequency of g1R
 				clc
 				adc trackn_filter+1+4	; Shift for filtering
-				sta trackn_audf+3+4	; g1R is filtered through g3R
+				sta trackn_audf+3+4		; g1R is filtered through g3R
 				IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG3R
 					lda trackn_audc+3+4	; g3R volume state?
-					and #$10	; Volume only?
-					bne qs2a	; Yes => branch
+					and #$10			; Volume only?
+					bne qs2a			; Yes => branch
 				EIF
 				lda #0
 				sta trackn_audc+3+4	; g3R gets zero volume
@@ -1743,7 +1741,7 @@ qs2a
 qs3
 			IFT FEAT_FILTERG0R||FEAT_FILTERG1R
 				cpx v_audctl2	; Did it change? (is filter g0R-g2R or g1R-g3R active)?
-				bne qs5		; Yes => branch (no 16-bit bass then)
+				bne qs5			; Yes => branch (no 16-bit bass then)
 			EIF
 		EIF									; FEAT_FILTER
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
@@ -1757,8 +1755,8 @@ qs3
 				cmp #6		; Type 6 => 16-bit bass
 				bne qs4
 				lda trackn_audc+1+4	; Take audc
-				and #$0f	; Volume 0-15 only
-				beq qs4		; Zero => no 16-bit bass
+				and #$0f			; Volume 0-15 only
+				beq qs4				; Zero => no 16-bit bass
 				ldy trackn_outnote+1+4
 				lda frqtabbasslo,y
 				sta trackn_audf+0+4	; lo g0R
@@ -1766,8 +1764,8 @@ qs3
 				sta trackn_audf+1+4	; hi g1R
 				IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG0R
 					lda trackn_audc+0+4	; g0R volume state?
-					and #$10	; Volume only?
-					bne qs3a	; Yes => branch
+					and #$10			; Volume only?
+					bne qs3a			; Yes => branch
 				EIF
 				lda #0
 				sta trackn_audc+0+4	; g0R gets zero volume
@@ -1783,8 +1781,8 @@ qs4
 				cmp #6		; Type 6 => 16-bit bass
 				bne qs5
 				lda trackn_audc+3+4	; Take audc
-				and #$0f	; Volume 0-15 only
-				beq qs5		; Zero => no 16-bit bass
+				and #$0f			; Volume 0-15 only
+				beq qs5				; Zero => no 16-bit bass
 				ldy trackn_outnote+3+4
 				lda frqtabbasslo,y
 				sta trackn_audf+2+4	; lo g2R
@@ -1792,8 +1790,8 @@ qs4
 				sta trackn_audf+3+4	; hi g3R
 				IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG2R
 					lda trackn_audc+2+4	; g2R volume state?
-					and #$10	; Volume only?
-					bne qs4a	; Yes => branch
+					and #$10			; Volume only?
+					bne qs4a			; Yes => branch
 				EIF
 				lda #0
 				sta trackn_audc+2+4	; g2R gets zero volume

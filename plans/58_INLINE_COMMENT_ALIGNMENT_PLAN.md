@@ -1,6 +1,13 @@
 # Plan 58: Vertical alignment of inline comments in the player sources
 
-Status: APPLIED (2026-10-25) - variant A with all three proposed answers,
+Status: APPLIED (2026-10-25). Addendum (same day, user's decision): bare
+`EIF`/`ELS` directive lines and label-only lines with a trailing comment
+are their own class - exempt from run alignment and transparent to runs
+(runs bridge across them) - and their comments carry no marker prefixes:
+`EIF ; FEAT_X`, not `EIF ; /FEAT_X`, no "else"/"<1>"/"end of" wording,
+since the directive itself says what ends or branches. With that class
+in place the aligner reruns leave zero genuinely ragged runs in either
+player. First applied as variant A with all three proposed answers,
 per the user's decision. 155 lines realigned in rmtplayr.a65 (15 outlier
 lines kept at their own one-tab gap), 20 in rmt.a65 (2 outliers); every
 remaining unaligned run is outlier-explained. All proofs green.

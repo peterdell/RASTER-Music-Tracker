@@ -369,8 +369,8 @@ distortion_tab equ *+1					; The POKEY distortion values for the instrument dist
 	IFT FEAT_EFFECTVIBRATO
 vibtabbeg 
 		dta 0,vib1-vib0,vib2-vib0,vib3-vib0
-vib0	dta 0			; No vibrato
-vib1	dta 1,-1,-1,1	; Small vibrato
+vib0	dta 0				; No vibrato
+vib1	dta 1,-1,-1,1		; Small vibrato
 vib2	dta 1,0,-1,-1,0,1	; Middle vibrato
 vib3	dta 1,1,0,-1,-1,-1,-1,0,1,1	; Big vibrato
 vibtabnext
@@ -582,7 +582,7 @@ ri1	lda (p_ns),y
 		plp							; Pull the saved flags, we need the carry flag (PLP #3A/B).
 		adc p_song+1				; The carry flag was set by the low-byte addition.
 		sta p_song+1
-	EIF								; End of IFT FEAT_NOSTARTINGSONGLINE==0
+	EIF								; FEAT_NOSTARTINGSONGLINE==0
 
 ;	jsr GetSongLine
 ;	jsr GetTrackLine
@@ -808,7 +808,7 @@ oo1a								; Process volume data
 		sbc #$00	; Self-modified parameter
 RMTGLOBALVOLUMEFADE equ *-1
 		bcs voig	; >=0
-		lda #0	; <0 => must zero it
+		lda #0		; <0 => must zero it
 voig
 	EIF
 	and #$f0			; vvvv0000
@@ -901,7 +901,7 @@ rmt_sfx
 		lda #$f0			; sfx note volume*16
 RMTSFXVOLUME equ *-1		; label for sfx note volume parameter overwriting
 		sta trackn_volume,x	; Sets the volume
-	EIF						; Fall-though to SetUpInstrumentY2 with <Y> = instrument number *2, <X> = track number
+	EIF						; Fall-through to SetUpInstrumentY2 with <Y> = instrument number *2, <X> = track number
 	
 ; End of RMT_SFX code.
 
@@ -972,16 +972,16 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 ; y=6 still
 	IFT FEAT_VOLUMEMIN
 		iny	; #7
-		lda (p_nt),y				; mmmm 0000 volume minimum for the volume decay
+		lda (p_nt),y	; mmmm 0000 volume minimum for the volume decay
 ;	and #$f0						; Not required bits are already 0.
 		sta trackn_volumemin,x
 		IFT FEAT_EFFECTS
 			iny	; #8
-		EIF	; /FEAT_EFFECTS
-	ELS	; else FEAT_VOLUMEMIN
+		EIF	; FEAT_EFFECTS
+	ELS	; FEAT_VOLUMEMIN
 		IFT FEAT_EFFECTS
 			ldy #8
-		EIF	; /FEAT_EFFECTS
+		EIF	; FEAT_EFFECTS
 	EIF
 ; y=8 (careful, Y=8 only with FEAT_EFFECTS !!! (otherwise not needed)
 	IFT FEAT_EFFECTS
@@ -996,18 +996,18 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 			sta trackn_effvibratoa,x
 		EIF
 		IFT FEAT_EFFECTFSHIFT
-			ldy #10	; Byte 10
+			ldy #10			; Byte 10
 			lda (p_nt),y	; effshift
 			sta trackn_effshift,x
-		EIF	; /FEAT_EFFECTFSHIFT
-	EIF ; /FEAT_EFFECTS
+		EIF	; FEAT_EFFECTFSHIFT
+	EIF ; FEAT_EFFECTS
 
 ;	Note: byte 11 was free in Unpatched and is used in Patch16.
 	IFT FEAT_TABLE_MANUAL	; Manual tuning table loaded from instruments, based on the unused 12th byte, this is not yet fully implemented into RMT
 		ldy #11
 		lda (p_nt),y
 		sta trackn_pointertable,x
-	EIF	;
+	EIF
 
 ;	By now Y holds who-knows-what ;-)
 
@@ -1275,12 +1275,12 @@ pp1							; Copying the values to the zeropage to make things faster... but not 
 	bne pp1b				; Continue if not equal 
 	jmp ppnext				; Skip this channel and process the next one
 pp1b
-	lda g_flag,x			; AUDCTL flags
-	sta reg1				; Backup to the zeropage for quicker accesses
-	lda trackn_command,x	; Command and distortion byte
-	sta reg2				; Backup to the zeropage for quicker accesses
+	lda g_flag,x					; AUDCTL flags
+	sta reg1						; Backup to the zeropage for quicker accesses
+	lda trackn_command,x			; Command and distortion byte
+	sta reg2						; Backup to the zeropage for quicker accesses
 	lda trackn_effectparameter,x	; $XY parameter byte
-	sta reg3				; Backup to the zeropage for quicker accesses
+	sta reg3						; Backup to the zeropage for quicker accesses
 	
 	lda trackn_volumeenvelope,x	; Volume envelope byte
 
@@ -1454,8 +1454,8 @@ check_15khz
 check_15khz_b
 		lda #<frqtabbuzzy_15khz	; Distortion C 15khz table LSB
 check_15khz_c
-		sta p_nr			; Low byte for setting the frequency from the table
-		lda #>PAGE_EXTRA_0	; Tables MSB pointer, it's the same one regardless of the table used
+		sta p_nr				; Low byte for setting the frequency from the table
+		lda #>PAGE_EXTRA_0		; Tables MSB pointer, it's the same one regardless of the table used
 		bne store_tables_lsb_a	; Unconditional 
 	
 		IFT FEAT_FULL_16BIT 
@@ -1466,7 +1466,7 @@ get_16bit_flag
 			beq goto_bass16	; Yes! finish from there 
 		EIF
 	
-	EIF			; !!! end of condition FEAT_AUDCTLMANUALSET
+	EIF			; FEAT_AUDCTLMANUALSET
 	
 store_tables_lsb
 	sta p_nr				; Tables LSB pointer, divided in slices of 64 bytes each	
@@ -1512,7 +1512,7 @@ InstrumentsEffects	; X holds the track number 7-0
 ei1
 		dec trackn_effdelay,x	; The delay is greater than 1, so decrease it
 ei2
-	EIF	; /FEAT_EFFECTS
+	EIF	; FEAT_EFFECTS
 ; Table
 	ldy trackn_tableend,x
 	cpy #INSTRPAR+1	; <13?
@@ -1627,7 +1627,7 @@ jmx			bcc *
 				jmp cmd7
 			EIF
 		EIF
-	EIF	; </1>
+	EIF	; Any commands other than COMMAND 0
 	
 ; End of instruments effects code.
 	
@@ -1976,8 +1976,8 @@ cmd0b1add
 			clc
 			adc tmp
 			sta trackn_bass16-1,x	; LSB 16-bit channel, update early here
-			bcc cmd0b1adddone	; No overflow, done
-			inc trackn_audf,x	; Increment the MSB if the value went past #$FF
+			bcc cmd0b1adddone		; No overflow, done
+			inc trackn_audf,x		; Increment the MSB if the value went past #$FF
 cmd0b1adddone	
 			jmp pp9				; Done
 cmd0b1sub
@@ -1985,8 +1985,8 @@ cmd0b1sub
 			clc
 			adc tmp
 			sta trackn_bass16-1,x	; LSB 16-bit channel, update early here
-			bcs cmd0b1adddone	; No overflow, done
-			dec trackn_audf,x	; Decrement the MSB if the value went past #$00
+			bcs cmd0b1adddone		; No overflow, done
+			dec trackn_audf,x		; Decrement the MSB if the value went past #$00
 cmd0b1subdone	
 			jmp pp9				; Done 	
 		EIF
@@ -2034,7 +2034,7 @@ cmd0b3c
 		bpl cmd0c
 		lda #$00					; If overflow, force #$00! 
 
-	EIF								; /FEAT_TABLETYPE
+	EIF								; FEAT_TABLETYPE
 	
 ; CAUTION! Routine is not terminated, falls-through because the "jmp pp9" was removed.
 cmd0c
@@ -2155,7 +2155,7 @@ rmt_p4
 ; It could be moved right in the channels index bit right where the initial flag check is done!
 ; UPDATE2: nevermind, this might fail on empty instrument channels, so better keep it here...
 
-	IFT FEAT_FULL_16BIT||FEAT_BASS16	;----
+	IFT FEAT_FULL_16BIT||FEAT_BASS16
 bb1	
 		lda g_flag+1
 		bpl bb2						; Not 16-bit flag, do nothing here	
@@ -2185,7 +2185,7 @@ bs3
 			sty trackn_bass16+0+4
 			sty trackn_bass16+2+4
 		EIF
-	EIF					;----
+	EIF					; FEAT_FULL_16BIT||FEAT_BASS16
 
 ; End of 16-bit flag code...
 	
@@ -2232,10 +2232,10 @@ qq1c
 qq2
 		IFT FEAT_FILTERG1L
 			lda trackn_command+1	; track1
-			bpl qq3		; Top bit==0 => no filtering
+			bpl qq3				; Top bit==0 => no filtering
 			lda trackn_audc+1	; Take audc
-			and #$0f	; Volume 0-15 only
-			beq qq3		; Zero => no filtering
+			and #$0f			; Volume 0-15 only
+			beq qq3				; Zero => no filtering
 ; With filtering
 			lda trackn_audf+1	; Frequency of g1
 			clc
@@ -2267,10 +2267,10 @@ qq3
 qs1
 		IFT FEAT_FILTERG0R
 			lda trackn_command+0+4	; track0R
-			bpl qs2		; Top bit==0 => no filtering
+			bpl qs2				; Top bit==0 => no filtering
 			lda trackn_audc+0+4	; Take audc
-			and #$0f	; Volume 0-15 only
-			beq qs2		; Zero => no filtering
+			and #$0f			; Volume 0-15 only
+			beq qs2				; Zero => no filtering
 ; With filtering
 			lda trackn_audf+0+4	; Frequency of g0R
 			clc
@@ -2295,10 +2295,10 @@ qs1c
 qs2
 		IFT FEAT_FILTERG1R
 			lda trackn_command+1+4	; track1R
-			bpl qs3		; Top bit==0 => no filtering
+			bpl qs3				; Top bit==0 => no filtering
 			lda trackn_audc+1+4	; Take audc
-			and #$0f	; Volume 0-15 only
-			beq qs3		; Zero => no filtering
+			and #$0f			; Volume 0-15 only
+			beq qs3				; Zero => no filtering
 ; With filtering
 			lda trackn_audf+1+4	; Frequency of g1R
 			clc
