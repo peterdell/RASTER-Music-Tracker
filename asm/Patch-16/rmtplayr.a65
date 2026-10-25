@@ -1801,7 +1801,7 @@ cmd7d
 					bcs cmd7f		; Carry flag still set, unconditional
 				EIF
 cmd7e
-				sta v_skctl		; SKCTL, Left POKEY
+				sta v_skctl			; SKCTL, Left POKEY
 			ELS
 				IFT FEAT_COMMAND7VOLUMEONLY	
 					lda reg3
@@ -1820,7 +1820,7 @@ cmd7a
 				bne cmd7f		; Unconditional
 			EIF
 		ELS
-			lda trackn_note,x	; This is the expected variable in memory
+			lda trackn_note,x
 			jmp cmd0a 
 		EIF
 	EIF
@@ -1844,7 +1844,7 @@ cmd0a
 	lda #63				; More than 60 => note 63
 cmd0a1
 	tay
-	
+
 cmd0a1_a 	
 	IFT FEAT_FULL_16BIT||FEAT_BASS16
 		lda reg1
@@ -1885,12 +1885,13 @@ cmd0a1sub
 cmd0a1subdone	
 		jmp pp9			; Done	
 	EIF
-	
+
 cmd0a2	; Sawtooth is so unlikely to even range the low #$FF frequencies that applying the vibrato fixes is pointless!
 	IFT FEAT_FULL_SAWTOOTH&&FEAT_AUDCTLMANUALSET
-		cmp #$41		; 1.79mhz => Sawtooth?
-		bne cmd0a3		; No Sawtooth for sure
-		lda (p_nr),y	; Note frequency table
+		cmp #$41			; 1.79mhz => Sawtooth?
+		bne cmd0a3			; No Sawtooth for sure
+
+		lda (p_nr),y		; Note frequency table
 		clc
 		adc trackn_shiftfrq,x
 		IFT FEAT_COMMAND2
@@ -1913,50 +1914,50 @@ cmd0a3
 
 	lda trackn_shiftfrq,x	; Vibrato, and some other shifts use this value 
 	IFT FEAT_COMMAND2 
-		clc				; Clear carry 
-		adc frqaddcmd2	; If the CMD2 feature is also enabled, add that value as well 
+		clc					; Clear carry 
+		adc frqaddcmd2		; If the CMD2 feature is also enabled, add that value as well 
 	EIF 
-	sta tmp			; Temporary, for faster operation below
+	sta tmp					; Temporary, for faster operation below
 cmd0a3a
-	lda (p_nr),y		; This is the actual note base frequency, or AUDF 
-	clc					; Clear carry 
-	bpl cmd0a3c			; If the value is positive, branch and finish there
+	lda (p_nr),y			; This is the actual note base frequency, or AUDF 
+	clc						; Clear carry 
+	bpl cmd0a3c				; If the value is positive, branch and finish there
 cmd0a3b
 	adc tmp
 	bvs cmd0a4
 	bmi cmd0a4
-	lda #$FF		; If overflow, force #$FF!
+	lda #$FF				; If overflow, force #$FF!
 	bne cmd0a4
 cmd0a3c
 	adc tmp
 	bvs cmd0a4
 	bpl cmd0a4
-	lda #0			; If overflow, force #$00!
+	lda #0					; If overflow, force #$00!
 cmd0a4 
 
 	IFT FEAT_TABLETYPE
-	jmp cmd0c	; OPTIMIZATION: after cmd0c it does sta trackn_audf,x and continues straight on without the jump to pp9
+	jmp cmd0c				; OPTIMIZATION: after cmd0c it does sta trackn_audf,x and continues straight on without the jump to pp9
 cmd0b
-	cmp #61		; Note range 0-60
-	bcc cmd0b1	; OK (0-60) => branch
+	cmp #61					; Note range 0-60
+	bcc cmd0b1				; OK (0-60) => branch
 	lda #0
-	sta trackn_audc,x	; Silence
-	lda #63				; More than 60 => note 63
+	sta trackn_audc,x		; Silence
+	lda #63					; More than 60 => note 63
 cmd0b1
 	tay
 
 cmd0b1_a 
 	IFT FEAT_FULL_16BIT||FEAT_BASS16
 		lda reg1 
-		beq cmd0b3		; No 16-bit flag set
-		bpl cmd0b2		; Sawtooth flag set (maybe) 
+		beq cmd0b3				; No 16-bit flag set
+		bpl cmd0b2				; Sawtooth flag set (maybe) 
 		tya
-		asl @			; Offset for the 16-bit addressing!!!
+		asl @					; Offset for the 16-bit addressing!!!
 		tay
-		iny			; Offset to load the MSB value first
+		iny						; Offset to load the MSB value first
 		lda (p_nr),y
-		dey					; Offset to load the LSB value later
-		sta trackn_audf,x	; Get and store the MSB channel early
+		dey						; Offset to load the LSB value later
+		sta trackn_audf,x		; Get and store the MSB channel early
 		lda trackn_shiftfrq,x
 		clc
 		adc trackn_tablenote,x
@@ -1965,8 +1966,8 @@ cmd0b1_a
 			clc
 			adc frqaddcmd2
 		EIF
-		sta tmp			; Get and store the frequency shift early, combined if CMD2 is also enabled
-		bmi cmd0b1sub	; Will subtract 1 from the MSB if negative on overflow
+		sta tmp					; Get and store the frequency shift early, combined if CMD2 is also enabled
+		bmi cmd0b1sub			; Will subtract 1 from the MSB if negative on overflow
 cmd0b1add
 		lda (p_nr),y
 		clc
@@ -1975,7 +1976,7 @@ cmd0b1add
 		bcc cmd0b1adddone		; No overflow, done
 		inc trackn_audf,x		; Increment the MSB if the value went past #$FF
 cmd0b1adddone	
-		jmp pp9			; Done
+		jmp pp9					; Done
 cmd0b1sub
 		lda (p_nr),y
 		clc
@@ -1984,13 +1985,13 @@ cmd0b1sub
 		bcs cmd0b1adddone		; No overflow, done
 		dec trackn_audf,x		; Decrement the MSB if the value went past #$00
 cmd0b1subdone	
-		jmp pp9			; Done 	
+		jmp pp9					; Done 	
 	EIF
 	
 cmd0b2	; Sawtooth is so unlikely to even range the low #$FF frequencies that applying the vibrato fixes is pointless!
 	IFT FEAT_FULL_SAWTOOTH&&FEAT_AUDCTLMANUALSET
-		cmp #$41					; 1.79mhz => Sawtooth?
-		bne cmd0b3					; No Sawtooth for sure 
+		cmp #$41				; 1.79mhz => Sawtooth?
+		bne cmd0b3				; No Sawtooth for sure 
 		lda trackn_shiftfrq,x
 		clc
 		adc trackn_tablenote,x	; Here as a frequency
@@ -2032,13 +2033,13 @@ cmd0b3b
 	adc tmp
 	bvs cmd0c
 	bmi cmd0c
-	lda #$FF						; If overflow, force #$FF!
+	lda #$ff						; If overflow, force #$ff!
 	bne cmd0c
 cmd0b3c
 	adc tmp
 	bvs cmd0c
 	bpl cmd0c
-	lda #0							; If overflow, force #$00! 
+	lda #$00						; If overflow, force #$00! 
 
 	EIF	; /FEAT_TABLETYPE
 	
@@ -2046,7 +2047,8 @@ cmd0b3c
 cmd0c
 	sta trackn_audf,x	; Store into audf
 
-; End of instruments commands code,
+; End of instruments commands code.
+; Falls trough to pp9
 	
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 	
@@ -2056,7 +2058,7 @@ cmd0c
 ; POTENTIAL IMPROVEMENT: process the command in a different order? Add CMD2 pitch, and Vibrato Fix?
 ; Maybe even set a flag to make sure the "reached" pitch clears the portamento mode?
 ; That way, it won't try to process it infinitely and possibly output incorrect pitch...
-	
+
 pp9
 ; Portamento effect processing
 	IFT FEAT_PORTAMENTO
@@ -2100,9 +2102,9 @@ pp10a
 ;		clc							; Clear the carry flag 
 ;		adc trackn_shiftfrq,x		; add to it the shiftfrq/vibrato pitch
 
-	; TODO: add support for CMD2 offset, and fix vibrato when TableFreq is also involved, they have been ignored here!
-	; looks like the CMD0, and CMD1 were also ignored??? but why?
-	; seems like the Table of Freqs mode is broken? Adding Negative values
+; TODO: add support for CMD2 offset, and fix vibrato when TableFreq is also involved, they have been ignored here!
+; looks like the CMD0, and CMD1 were also ignored??? but why?
+; seems like the Table of Freqs mode is broken? Adding Negative values
 
 		lda trackn_shiftfrq,x		; Vibrato, and some other shifts use this value 
 		IFT FEAT_COMMAND2 
@@ -2134,12 +2136,13 @@ pp11
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 	
-; part of mainloop code... this is an extra step added for the purpose of clearning the memory from 16-bit or Sawtooth addresses when unused.
-	
+; Part of mainloop code. 
+; This is an extra step added for the purpose of clearning the memory from 16-bit or Sawtooth addresses when unused.
+
 ppnext			; Jumped to when the instrument is not initialized
 	dex			; OPTIMIZATION (x--)
 	bmi rmt_p4	; OPTIMIZATION
-	jmp pp1
+	jmp pp1		; Loop
 
 ;---------------------------------------------------------------------
 
@@ -2225,9 +2228,9 @@ qq1b
 			sta trackn_audf+2		; Set the new filter frequency. 
 			sty trackn_filter+0		; Reset that value until a new CMD6 overwrites it
 qq1c
-			txa					; Get the AUDCTL into the accumulator
-			ora #4				; Set the AUDCTL High Pass Filter Ch1+3 bit
-			tax					; Transfer AUDCTL back into X to process the next channel the exact same way
+			txa					; Get the AUDCTL into the accumulator.
+			ora #$04			; Set the AUDCTL High Pass Filter Ch1+3 bit 2.
+			tax					; Transfer AUDCTL back into <X> to process the next channel the exact same way.
 		EIF						; FEAT_FILTERG0L
 	
 qq2
@@ -2254,11 +2257,11 @@ qq2b
 			sta trackn_audf+3	; g1 is filtered through g3
 			sty trackn_filter+1
 qq2c
-			txa
-			ora #2	; bit1 audctl (filter g1-g3)
-			tax
+			txa						; Get the AUDCTL into the accumulator.
+			ora #$02				; Set the AUDCTL High Pass Filter Ch2+4 bit 1.
+			tax			 			; Transfer AUDCTL back into <X> to process the next channel the exact same way.
 
-		EIF	; FEAT_FILTERG1L
+		EIF							; FEAT_FILTERG1L
 qq3
 		stx v_audctl
 	EIF

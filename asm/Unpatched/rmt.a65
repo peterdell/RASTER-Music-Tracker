@@ -1299,8 +1299,8 @@ jmx	bcc *
 cmd1	; Play FRQ n
 	IFT FEAT_COMMAND1
 	lda reg3
-;	sta trackn_audf,x			;OPTIMIZATION
-;	jmp pp9						;OPTIMIZATION
+;	sta trackn_audf,x			; OPTIMIZATION
+;	jmp pp9						; OPTIMIZATION
 	jmp cmd0c					; OPTIMIZATION: after cmd0c it does sta trackn_audf,x and continues straight on without the jump to pp9
 	EIF
 
@@ -1344,6 +1344,7 @@ cmd5	; Set destination portamento XY (X-speed, Y-depth), XY==00 =>set actual_por
 	adc trackn_tablenote,x						; Here as a frequency
 	jmp cmd5ax
 	EIF		; FEAT_TABLETYPE
+
 cmd5a1
 	lda trackn_note,x
 	clc
@@ -1472,10 +1473,10 @@ cmd0b1
 cmd0c
 	sta trackn_audf,x			; Store into audf
 
-; End of instruments commands code,
+; End of instruments commands code.
+; Falls trough to pp9
 	
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
-; and continues on
 pp9
 ; Portamento effect processing
 	IFT FEAT_PORTAMENTO
@@ -1514,9 +1515,10 @@ pp10
 		and #$01					; Portamento is bit 0 in "0000 000s".
 		beq pp11					; If $00, the flag is not set and portamento will be skipped
 
-		lda trackn_portafrqa,x
-		clc
-		adc trackn_shiftfrq,x		; Portamento is affected by shifting too
+
+		lda trackn_portafrqa,x		; Load the current portamento frequency in memory
+		clc							; Clear the carry flag 
+		adc trackn_shiftfrq,x		; add to it the shiftfrq/vibrato pitch
 pp10d
 
 		sta trackn_audf,x			; Update the channel AUDF with the new value if portamento was processed.
@@ -1530,7 +1532,7 @@ pp11
 ppnext								; Jumped to when the instrument is not initialized
 	dex								; OPTIMIZATION (x--)
 	bmi rmt_p4						; OPTIMIZATION
-	jmp pp1
+	jmp pp1		; Loop
 
 ;---------------------------------------------------------------------
 
@@ -1551,117 +1553,118 @@ qq1
 ; Additional operations for filters and 16-bit bass
 ; Filters
 	IFT FEAT_FILTER
-	IFT FEAT_FILTERG0L
-	lda trackn_command+0	; track0
-	bpl qq2					; Top bit==0 => no filtering
-	lda trackn_audc+0		; Take audc
-	and #$0f				; Volume 0-15 only
-	beq qq2					; Zero => no filtering
-	; With filtering
-	lda trackn_audf+0		; Frequency of g0
-	clc
-	adc trackn_filter+0		; Shift for filtering
-	sta trackn_audf+2		; g0 is filtered through g2
-	IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG2L
-	lda trackn_audc+2		; g2 volume state?
-	and #$10				; Volume only?
-	bne qq1a				; Yes => branch
-	EIF
-	lda #0
-	sta trackn_audc+2		; g2 gets zero volume
+		IFT FEAT_FILTERG0L
+			lda trackn_command+0	; track0
+			bpl qq2					; Top bit==0 => no filtering
+			lda trackn_audc+0		; Take audc
+			and #$0f				; Volume 0-15 only
+			beq qq2					; Zero => no filtering
+			; With filtering
+			lda trackn_audf+0		; Frequency of g0
+			clc
+			adc trackn_filter+0		; Shift for filtering
+			sta trackn_audf+2		; g0 is filtered through g2
+			IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG2L
+			lda trackn_audc+2		; g2 volume state?
+			and #$10				; Volume only?
+			bne qq1a				; Yes => branch
+			EIF
+			lda #0
+			sta trackn_audc+2		; g2 gets zero volume
 qq1a
-	txa
-	ora #4					; bit2 audctl (filter g0-g2)
-	tax
-	EIF		; FEAT_FILTERG0L
+qq1c
+			txa					; Get the AUDCTL into the accumulator.
+			ora #$04			; Set the AUDCTL High Pass Filter Ch1+3 bit 2.
+			tax					; Transfer AUDCTL back into <X> to process the next channel the exact same way.
+		EIF						; FEAT_FILTERG0L
 
 qq2
-	IFT FEAT_FILTERG1L
-		lda trackn_command+1	; track1
-		bpl qq3					; Top bit==0 => no filtering
-		lda trackn_audc+1		; Take audc
-		and #$0f				; Volume 0-15 only
-		beq qq3					; Zero => no filtering
-		; With filtering
-		lda trackn_audf+1		; Frequency of g1
-		clc
-		adc trackn_filter+1		; Shift for filtering
-		sta trackn_audf+3		; g1 is filtered through g3
-		IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG3L	
-			lda trackn_audc+3	; g3 volume state?
-			and #$10			; Volume only?
-			bne qq2a			; Yes => branch
-		EIF
-			lda #0
-			sta trackn_audc+3	; g3 gets zero volume
+		IFT FEAT_FILTERG1L
+			lda trackn_command+1	; track1
+			bpl qq3					; Top bit==0 => no filtering
+			lda trackn_audc+1		; Take audc
+			and #$0f				; Volume 0-15 only
+			beq qq3					; Zero => no filtering
+			; With filtering
+			lda trackn_audf+1		; Frequency of g1
+			clc
+			adc trackn_filter+1		; Shift for filtering
+			sta trackn_audf+3		; g1 is filtered through g3
+			IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG3L	
+				lda trackn_audc+3	; g3 volume state?
+				and #$10			; Volume only?
+				bne qq2a			; Yes => branch
+			EIF
+				lda #0
+				sta trackn_audc+3	; g3 gets zero volume
 qq2a
-		txa
-		ora #2					; bit1 audctl (filter g1-g3)
-		tax
-
-	EIF		; FEAT_FILTERG1L
+			txa						; Get the AUDCTL into the accumulator.
+			ora #$02				; Set the AUDCTL High Pass Filter Ch2+4 bit 1.
+			tax			 			; Transfer AUDCTL back into <X> to process the next channel the exact same way.
+	
+		EIF							; FEAT_FILTERG1L
 qq3
 
 	IFT FEAT_FILTERG0L||FEAT_FILTERG1L
 	cpx v_audctl			; Did it change? (is filter g0-g2 or g1-g3 active)?
 	bne qq5					; Yes => branch (no 16-bit bass then)
 	EIF
-	EIF		; FEAT_FILTER
+	EIF						; FEAT_FILTER
 
 ; 16-bit bass
 	IFT FEAT_BASS16
-	IFT FEAT_BASS16G1L	
-	lda trackn_command+1	; track1
-	and #$0e				; 0000 ddd0
-	cmp #6					; Type 6 => 16-bit bass
-	bne qq4
-	lda trackn_audc+1		; Take audc
-	and #$0f				; Volume 0-15 only
-	beq qq4					; Zero => no 16-bit bass
-	ldy trackn_outnote+1
-	lda frqtabbasslo,y
-	sta trackn_audf+0		; lo g0
-	lda frqtabbasshi,y
-	sta trackn_audf+1		; hi g1
-	IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG0L	
-	lda trackn_audc+0		; g0 volume state?
-	and #$10				; Volume only?
-	bne qq3a				; Yes => branch
-	EIF
-	lda #0
-	sta trackn_audc+0		; g0 gets zero volume
+		IFT FEAT_BASS16G1L	
+			lda trackn_command+1	; track1
+			and #$0e				; 0000 ddd0
+			cmp #6					; Type 6 => 16-bit bass
+			bne qq4
+			lda trackn_audc+1		; Take audc
+			and #$0f				; Volume 0-15 only
+			beq qq4					; Zero => no 16-bit bass
+			ldy trackn_outnote+1
+			lda frqtabbasslo,y
+			sta trackn_audf+0		; lo g0
+			lda frqtabbasshi,y
+			sta trackn_audf+1		; hi g1
+			IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG0L	
+				lda trackn_audc+0	; g0 volume state?
+				and #$10			; Volume only?
+				bne qq3a			; Yes => branch
+			EIF
+			lda #0
+			sta trackn_audc+0		; g0 gets zero volume
 qq3a
-	txa
-	ora #$50				; Joins g0-g1 16-bit
-	tax
-	EIF		; FEAT_BASS16G1L
+			txa
+			ora #$50				; Joins g0-g1 16-bit
+			tax
+		EIF		; FEAT_BASS16G1L
 qq4
-
-	IFT FEAT_BASS16G3L
-	lda trackn_command+3	; track3
-	and #$0e				; 0000 ddd0
-	cmp #6					; Type 6 => 16-bit bass
-	bne qq5
-	lda trackn_audc+3		; Take audc
-	and #$0f				; Volume 0-15 only
-	beq qq5					; Zero => no 16-bit bass
-	ldy trackn_outnote+3
-	lda frqtabbasslo,y
-	sta trackn_audf+2		; lo g2
-	lda frqtabbasshi,y
-	sta trackn_audf+3		; hi g3
-	IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG2L	
-	lda trackn_audc+2		; g2 volume state?
-	and #$10				; Volume only?
-	bne qq4a				; Yes => branch
-	EIF
-	lda #0
-	sta trackn_audc+2		; g2 gets zero volume
+	
+		IFT FEAT_BASS16G3L
+			lda trackn_command+3	; track3
+			and #$0e				; 0000 ddd0
+			cmp #6					; Type 6 => 16-bit bass
+			bne qq5
+			lda trackn_audc+3		; Take audc
+			and #$0f				; Volume 0-15 only
+			beq qq5					; Zero => no 16-bit bass
+			ldy trackn_outnote+3
+			lda frqtabbasslo,y
+			sta trackn_audf+2		; lo g2
+			lda frqtabbasshi,y
+			sta trackn_audf+3		; hi g3
+			IFT FEAT_COMMAND7VOLUMEONLY&&FEAT_VOLUMEONLYG2L	
+				lda trackn_audc+2	; g2 volume state?
+				and #$10			; Volume only?
+				bne qq4a			; Yes => branch
+			EIF
+			lda #0
+			sta trackn_audc+2		; g2 gets zero volume
 qq4a
-	txa
-	ora #$28				; Joins g2-g3 16-bit
-	tax
-	EIF		; FEAT_BASS16G3L	
+			txa
+			ora #$28				; Joins g2-g3 16-bit
+			tax
+		EIF		; FEAT_BASS16G3L	
 	EIF		; FEAT_BASS16
 qq5
 ;
