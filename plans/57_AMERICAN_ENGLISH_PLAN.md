@@ -41,7 +41,10 @@ colorful) across:
 ## Exclusions (recorded in README.md's Conventions section)
 
 - Byte-pristine historical artifacts: `asm/Legacy`, `legacy/`.
-- Vendored third-party code: `lib/`, `src/cpp/asap/`.
+- Vendored third-party code: `lib/`, `src/cpp/asap/`,
+  `src/cpp/test/googletest/` (three googletest comment lines slipped
+  into the first commit and were reverted right after - vendored code
+  stays verbatim).
 - Generated files carrying external label names: `src/cpp/lzssp.h`
   (`LZSSP_RASTERBAR_COLOUR` etc. are VUPlayer's own labels) and the
   comments citing those defines.
