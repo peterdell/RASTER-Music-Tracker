@@ -238,8 +238,8 @@ class ImportExportTest {
 	 */
 	@Test
 	void exportStrippedRmtWithSfxKeepsAnSfxOnlyModule() throws IOException {
-		assertTrue(files.fileOpen(TestSongs.ISSUE5_SFX_ONLY, false));
-		byte[] original = Files.readAllBytes(TestSongs.ISSUE5_SFX_ONLY);
+		assertTrue(files.fileOpen(TestSongs.ISSUE_5_STRIPPED_SFX_EXPORT, false));
+		byte[] original = Files.readAllBytes(TestSongs.ISSUE_5_STRIPPED_SFX_EXPORT);
 
 		// With SFX support, all nine instruments survive: at the original
 		// address $6800 the export reproduces the module byte for byte,

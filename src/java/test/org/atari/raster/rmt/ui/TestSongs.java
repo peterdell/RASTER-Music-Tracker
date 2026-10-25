@@ -31,12 +31,13 @@ final class TestSongs {
 
 	/** Makary's Two-Tone filter example (github issue #30), mono, instrument speed 2 - the
 	 * envelope editor's $7FE command drives SKCTL to $8B; see its README.md for the added pause. */
-	static final Path MAKARY_TWO_TONE_FILTER = ROOT.resolve("rmt134").resolve("makary_two_tone_filter")
+	static final Path ISSUE_30_TWO_TONE_FILTER = ROOT.resolve("rmt134").resolve("issue_30_two_tone_filter")
 			.resolve("Makary_Two_Tone_Filter.rmt");
 
 	/** rra's SFX-only module (github issue #5): 9 instruments, no tracks or song lines, stripped,
 	 * at $6800 - exercises "Export as Stripped RMT" with SFX support; see its README.md. */
-	static final Path ISSUE5_SFX_ONLY = ROOT.resolve("issues").resolve("issue5_sfx_only").resolve("testsfx.rmt");
+	static final Path ISSUE_5_STRIPPED_SFX_EXPORT = ROOT.resolve("rmt134").resolve("issue_5_stripped_sfx_export")
+			.resolve("testsfx.rmt");
 
 	private TestSongs() {
 	}

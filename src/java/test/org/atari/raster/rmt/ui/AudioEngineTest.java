@@ -123,7 +123,7 @@ class AudioEngineTest {
 	@Test
 	void theMakaryTwoToneSongRaisesSkctlDuringLivePlayback() throws IOException {
 		RmtSession session = new RmtSession();
-		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(TestSongs.MAKARY_TWO_TONE_FILTER, false));
+		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(TestSongs.ISSUE_30_TWO_TONE_FILTER, false));
 		AudioEngine engine = new AudioEngine(session);
 		session.song.play(PlayMode.PLAY_SONG, false, 0, session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard);
 		for (int f = 0; f < 100 && session.atari.getByteAt(0xD20F) != 0x8B; f++) {

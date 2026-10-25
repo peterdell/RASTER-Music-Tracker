@@ -23,7 +23,7 @@ class TestSongsTest {
 		assertTrue(Files.isRegularFile(TestSongs.REBB_STARS));
 		assertTrue(Files.isRegularFile(TestSongs.WHY_DO_YOU_DANCE_WITH_ME));
 		assertTrue(Files.isRegularFile(TestSongs.CAPTAIN_FUTURE_THEME));
-		assertTrue(Files.isRegularFile(TestSongs.MAKARY_TWO_TONE_FILTER));
+		assertTrue(Files.isRegularFile(TestSongs.ISSUE_30_TWO_TONE_FILTER));
 	}
 
 	@Test
