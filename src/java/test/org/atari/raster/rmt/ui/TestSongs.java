@@ -34,6 +34,10 @@ final class TestSongs {
 	static final Path MAKARY_TWO_TONE_FILTER = ROOT.resolve("rmt134").resolve("makary_two_tone_filter")
 			.resolve("Makary_Two_Tone_Filter.rmt");
 
+	/** rra's SFX-only module (github issue #5): 9 instruments, no tracks or song lines, stripped,
+	 * at $6800 - exercises "Export as Stripped RMT" with SFX support; see its README.md. */
+	static final Path ISSUE5_SFX_ONLY = ROOT.resolve("issues").resolve("issue5_sfx_only").resolve("testsfx.rmt");
+
 	private TestSongs() {
 	}
 }

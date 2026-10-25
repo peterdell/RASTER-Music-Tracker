@@ -61,7 +61,12 @@ bool CRmtExporter::ExportAsStrippedRMTApply(CSong& song, std::ostream& ou, int t
         song.MakeModule(
             exportTempDescription.mem,
             exportTempDescription.targetAddrOfModule,
-            sfxSupport ? SongIOType::RMTSTRIPPED : SongIOType::RMT,
+            // SFX support keeps all non-empty instruments (sound effects
+            // trigger instruments directly, without any track referencing
+            // them); without it, unused instruments are stripped. The two
+            // iotypes were swapped here since 1.34, so an SFX-only module
+            // (instruments, no tracks) exported to a 30-byte husk (issue #5).
+            sfxSupport ? SongIOType::RMT : SongIOType::RMTSTRIPPED,
             exportTempDescription.instrumentSavedFlags,
             exportTempDescription.trackSavedFlags);
     if (exportTempDescription.firstByteAfterModule < 0) {

@@ -70,7 +70,12 @@ public final class RmtExporter {
 		byte[] mem = new byte[Atari.MEMORY_SIZE];
 		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
-		int firstByteAfterModule = SongIO.makeModule(song, mem, targetAddrOfModule, sfxSupport ? SongIOType.RMTSTRIPPED : SongIOType.RMT, instrumentSavedFlags, trackSavedFlags, tracks4_8);
+		// SFX support keeps all non-empty instruments (sound effects trigger
+		// instruments directly, without any track referencing them); without
+		// it, unused instruments are stripped. The two iotypes were swapped
+		// here since 1.34, so an SFX-only module (instruments, no tracks)
+		// exported to a 30-byte husk (issue #5).
+		int firstByteAfterModule = SongIO.makeModule(song, mem, targetAddrOfModule, sfxSupport ? SongIOType.RMT : SongIOType.RMTSTRIPPED, instrumentSavedFlags, trackSavedFlags, tracks4_8);
 		if (firstByteAfterModule < 0) {
 			return null;
 		}

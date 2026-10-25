@@ -24,6 +24,7 @@ import org.atari.raster.rmt.model.ExportProgress;
 import org.atari.raster.rmt.model.MessageAnswer;
 import org.atari.raster.rmt.model.MessageButtons;
 import org.atari.raster.rmt.model.Messages;
+import org.atari.raster.rmt.model.RmtExporter;
 import org.atari.raster.rmt.model.SongIOType;
 
 /** {@code FileImport()}/{@code FileExportAs()} flows, headless: the dialogs are the scripted stub, the importers/exporters the real ones. */
@@ -226,6 +227,38 @@ class ImportExportTest {
 		assertFalse(Files.exists(cancelled));
 		assertEquals("W:Export aborted", messages.log.get(messages.log.size() - 1));
 		assertEquals(1, host.lastInitialFilterIndex); // the last export type preselected
+	}
+
+	/**
+	 * Issue #5 (raster-atari-org): an SFX-only module - instruments, no
+	 * tracks or song lines - must survive "Export as Stripped RMT" with SFX
+	 * support. The RMT/RMTSTRIPPED iotypes were swapped on the SFX flag since
+	 * 1.34, so every instrument not referenced by a track was stripped and
+	 * the 465-byte module exported as a 30-byte husk.
+	 */
+	@Test
+	void exportStrippedRmtWithSfxKeepsAnSfxOnlyModule() throws IOException {
+		assertTrue(files.fileOpen(TestSongs.ISSUE5_SFX_ONLY, false));
+		byte[] original = Files.readAllBytes(TestSongs.ISSUE5_SFX_ONLY);
+
+		// With SFX support, all nine instruments survive: at the original
+		// address $6800 the export reproduces the module byte for byte,
+		// and a relocation to $6400 keeps its full length (the issue's
+		// repro, which produced 30 bytes before the fix).
+		byte[] withSfx = RmtExporter.exportAsStrippedRMTApply(session.song, 0x6800, true, session.tracks4_8);
+		assertArrayEquals(original, withSfx);
+		byte[] relocated = RmtExporter.exportAsStrippedRMTApply(session.song, 0x6400, true, session.tracks4_8);
+		assertNotNull(relocated);
+		assertEquals(original.length, relocated.length);
+		assertEquals(0x00, relocated[2] & 0xFF); // relocated to $6400
+		assertEquals(0x64, relocated[3] & 0xFF);
+
+		// Without SFX support the stripping itself is correct: no track
+		// uses any instrument, so only the header and the empty song's
+		// goto line remain (what the broken SFX export used to produce).
+		byte[] stripped = RmtExporter.exportAsStrippedRMTApply(session.song, 0x6400, false, session.tracks4_8);
+		assertNotNull(stripped);
+		assertEquals(30, stripped.length);
 	}
 
 	@Test

@@ -35,6 +35,9 @@ Changes in RMT 1.36
 **User Interface**
 - The tuning dialog's ratio fields (the 13 numerator/denominator pairs) are only enabled when the custom temperament is selected - every other temperament plays its own preset table, so typing ratios had no effect there. (Build 2026-10-17)
 
+**Exports**
+- Fixed: "Export As RMT Stripped Song File" with "SFX Support" checked did the opposite of its word since RMT 1.34 - it stripped every instrument no track refers to, although keeping them is exactly what the checkbox is for (sound effects trigger instruments directly, without a track). An SFX-only module - instruments, no tracks - exported as an unusable 30-byte husk; it keeps all its instruments now, and unchecked exports still strip the unused ones. GitHub issue #5, reported with an example module by rra; an automatic test round-trips that module. (Build 2026-10-25)
+
 ### Changes from 2026-10-05 to 2026-10-15
 
 **User Interface**
