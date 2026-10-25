@@ -164,12 +164,13 @@
 
 ; The following equates must be defined by the caller:
 ;
-; STEREOMODE	equ 0..3	;0 => 4 tracks mono   with one POKEY chip  L1 L2 L3 L4 (Default)
-;							;1 => 8 tracks stereo with two POKEY chips L1 L2 L3 L4 R1 R2 R3 R4
-;							;2 => 4 tracks mono   with two POKEY chips L1 R2 R3 L4
-;							;3 => 4 tracks mono   with two POKEY chips L1 L2 R3 R4
-pokey_left = $d200
-pokey_right = $d210
+; STEREOMODE	equ 0..4	;0 => 4 tracks mono   with one POKEY chip  (L):   L1 L2 L3 L4 (Default)
+;							;1 => 8 tracks stereo with two POKEY chips (L/R): L1 L2 L3 L4 R1 R2 R3 R4
+;							;2 => 4 tracks mono   with two POKEY chips (L/R): L1 R2 R3 L4
+;							;3 => 4 tracks mono   with two POKEY chips (L/R): L1 L2 R3 R4
+
+pokey_left  	equ $d200
+pokey_right		equ $d210
 
 ; RMT FEATures definitions file
 ; For optimizations of RMT player routine to concrete RMT module only!
@@ -614,24 +615,24 @@ rmt_silence
 	; Reset POKEY
 	IFT STEREOMODE>0			; For 1, 2 and 3 alike
 		lda #0
-		sta $d208			; AUDCTL
-		sta $d218
+		sta pokey_left+$8			; AUDCTL
+		sta pokey_right+$8
 		ldy #3
-		sty $d20f			; SKCTL
-		sty $d21f
+		sty pokey_left+$f			; SKCTL
+		sty pokey_right+$f
 
 		ldy #8				; Clear AUDFx & AUDCx
-si1		sta $d200,y
-		sta $d210,y
+si1		sta pokey_left+$0,y
+		sta pokey_right+$0,y
 		dey
 		bpl si1
 	ELS
 		lda #0
-		sta $d208
+		sta pokey_left+$8
 		ldy #3
-		sty $d20f
+		sty pokey_left+$f
 		ldy #8
-si1		sta $d200,y
+si1		sta pokey_left+$0,y
 		dey
 		bpl si1
 	EIF
@@ -1743,7 +1744,10 @@ qs3
 				bne qs5		; Yes => branch (no 16-bit bass then)
 			EIF
 		EIF									; FEAT_FILTER
-; 16-bit bass
+;---------------------------------------------------------------------------------------------------------------------------------------------;
+	
+; Start of 16-bit bass (BASS16) code.
+
 		IFT FEAT_BASS16
 			IFT FEAT_BASS16G1R
 				lda trackn_command+1+4	; track1R
@@ -1801,8 +1805,8 @@ qs5
 ;
 		stx v_audctl2		; R
 	EIF
-;
-;
+
+; End of the 16-bit bass (BASS16) code.
 rmt_p5
 ;------------------------------------------------------------------------------------------
 	IFT FEAT_INSTRSPEED==0||FEAT_INSTRSPEED>1
@@ -1812,14 +1816,7 @@ v_ainstrspeed equ *-1
 		lda #1				; For instrspeed 1 always returns #1
 	EIF
 	rts
-;	END
-;
-;
-;
-;
-;
-;
-;
+
 ;==========================================================================================
 	
 ; Start of the rmt_set_pokey routine to update the POKEY hardware registers.
@@ -1835,47 +1832,47 @@ v_audctl2 equ *-1
 
 		lda trackn_audf+0+4	; AUDF0
 		ldx trackn_audf+0
-		sta $d210
-		stx $d200
+		sta pokey_right+$0
+		stx pokey_left+$0
 		lda trackn_audc+0+4	; AUDC0
 		ldx trackn_audc+0
-		sta $d211
-		stx $d201
+		sta pokey_right+$1
+		stx pokey_left+$1
 
 		lda trackn_audf+1+4	; AUDF1
 		ldx trackn_audf+1
-		sta $d212
-		stx $d202
+		sta pokey_right+$2
+		stx pokey_left+$2
 
 		lda trackn_audc+1+4	; AUDC1
 		ldx trackn_audc+1
-		sta $d213
-		stx $d203
+		sta pokey_right+$3
+		stx pokey_left+$3
 
 		lda trackn_audf+2+4	; AUDF2
 		ldx trackn_audf+2
-		sta $d214
-		stx $d204
+		sta pokey_right+$4
+		stx pokey_left+$4
 
 		lda trackn_audc+2+4	; AUDC2
 		ldx trackn_audc+2
-		sta $d215
-		stx $d205
+		sta pokey_right+$5
+		stx pokey_left+$5
 
 		lda trackn_audf+3+4	; AUDF3
 		ldx trackn_audf+3
-		sta $d216
-		stx $d206
+		sta pokey_right+$6
+		stx pokey_left+$6
 
 		lda trackn_audc+3+4	; AUDC3
 		ldx trackn_audc+3
-		sta $d217
-		stx $d207
+		sta pokey_right+$7
+		stx pokey_left+$7
 
 		lda #$ff			; AUDCTL
 v_audctl equ *-1
-		sty $d218			; <Y> was set above.
-		sta $d208
+		sty pokey_right+$8			; <Y> was set above.
+		sta pokey_left+$8
 
 	ELI STEREOMODE==0		; L1 L2 L3 L4
 ; Write to POKEY, mono - left side only
@@ -1885,25 +1882,25 @@ v_audctl equ *-1
 ;
 		lda trackn_audf+0
 		ldx trackn_audc+0
-		sta $d200
-		stx $d201
+		sta pokey_left+$0
+		stx pokey_left+$1
 
 		lda trackn_audf+1
 		ldx trackn_audc+1
-		sta $d200+2
-		stx $d201+2
+		sta pokey_left+$0+2
+		stx pokey_left+$1+2
 
 		lda trackn_audf+2
 		ldx trackn_audc+2
-		sta $d200+4
-		stx $d201+4
+		sta pokey_left+$0+4
+		stx pokey_left+$1+4
 
 		lda trackn_audf+3
 		ldx trackn_audc+3
-		sta $d200+6
-		stx $d201+6
+		sta pokey_left+$0+6
+		stx pokey_left+$1+6
 
-		sty $d208
+		sty pokey_left+$8
 
 	ELI STEREOMODE==2		; L1 R2 R3 L4
 
@@ -1912,29 +1909,29 @@ v_audctl equ *-1
 
 		lda trackn_audf+0
 		ldx trackn_audc+0
-		sta $d200
-		stx $d201
-		sta $d210			; The frequency into the right one too (in case R2 plays 16-bit bass 2+1)
+		sta pokey_left+$0
+		stx pokey_left+$1
+		sta pokey_right+$0			; The frequency into the right one too (in case R2 plays 16-bit bass 2+1)
 
 		lda trackn_audf+1
 		ldx trackn_audc+1
-		sta $d210+2
-		stx $d211+2
+		sta pokey_right+$0+2
+		stx pokey_right+$1+2
 
 		lda trackn_audf+2
 		ldx trackn_audc+2
-		sta $d210+4
-		stx $d211+4
-		sta $d200+4			; The frequency into the left one too (in case L1 plays filter 1+3 or L4 plays 16-bit bass 4+3)
+		sta pokey_right+$0+4
+		stx pokey_right+$1+4
+		sta pokey_left+$0+4			; The frequency into the left one too (in case L1 plays filter 1+3 or L4 plays 16-bit bass 4+3)
 
 		lda trackn_audf+3
 		ldx trackn_audc+3
-		sta $d200+6
-		stx $d201+6
-		sta $d210+6			; The frequency into the right one too (in case R2 plays filter 2+4)
+		sta pokey_left+$0+6
+		stx pokey_left+$1+6
+		sta pokey_right+$0+6			; The frequency into the right one too (in case R2 plays filter 2+4)
 
-		sty $d218
-		sty $d208
+		sty pokey_right+$8
+		sty pokey_left+$8
 
 	ELI STEREOMODE==3		; L1 L2 R3 R4
 ; Write for L1 L2 R3 R4
@@ -1944,28 +1941,28 @@ v_audctl equ *-1
 ;
 		lda trackn_audf+0
 		ldx trackn_audc+0
-		sta $d200
-		stx $d201
+		sta pokey_left+$0
+		stx pokey_left+$1
 
 		lda trackn_audf+1
 		ldx trackn_audc+1
-		sta $d200+2
-		stx $d201+2
+		sta pokey_left+$0+2
+		stx pokey_left+$1+2
 
 		lda trackn_audf+2
 		ldx trackn_audc+2
-		sta $d210+4
-		stx $d211+4
-		sta $d200+4			; The frequency into the left one too (in case L1 plays filter 1+3)
+		sta pokey_right+$0+4
+		stx pokey_right+$1+4
+		sta pokey_left+$0+4			; The frequency into the left one too (in case L1 plays filter 1+3)
 
 		lda trackn_audf+3
 		ldx trackn_audc+3
-		sta $d210+6
-		stx $d211+6
-		sta $d200+6			; The frequency into the left one too (in case L2 plays filter 2+4)
+		sta pokey_right+$0+6
+		stx pokey_right+$1+6
+		sta pokey_left+$0+6			; The frequency into the left one too (in case L2 plays filter 2+4)
 
-		sty $d218
-		sty $d208
+		sty pokey_right+$8
+		sty pokey_left+$8
 
 	EIF
 
