@@ -200,8 +200,8 @@ strings:
 ;
 ; how to use:
 ;
-; MSB offset: AND with $0F (%00001111), ORA with $B0, then write into nr+1
-; LSB offset: AND with $C0 (%11000000), then write into nr
+; MSB offset: AND with $0F (%00001111), ORA with $B0, then write into p_nr+1
+; LSB offset: AND with $C0 (%11000000), then write into p_nr
 ;
 ; The steps of $40 fit nicely into a division of 4, 64 possible values per subpage, and 4 subpages (tables) per page
 ; Bits 5 and 4 currently have no purpose, but they could have some cool features too

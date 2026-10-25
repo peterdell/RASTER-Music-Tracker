@@ -193,9 +193,9 @@ p_trackslbstable	org *+2		; ptr to low byte of track ptrs
 p_trackshbstable	org *+2		; ptr to high byte of track ptrs
 p_song				org *+2		; ptr to song data
 
-ns					org *+2
-nr					org *+2
-nt					org *+2
+p_ns					org *+2
+p_nr					org *+2
+p_nt					org *+2
 reg1				org *+1
 reg2				org *+1
 reg3				org *+1
@@ -212,8 +212,8 @@ frqaddcmd2			org *+1
 	EIF
 
 track_variables
-trackn_db				org *+TRACKS	; Low byte of address for each track's data
-trackn_hb				org *+TRACKS	; High byte of address to each track's data
+trackn_lo				org *+TRACKS	; Low byte of address for each track's data
+trackn_hi				org *+TRACKS	; High byte of address for each track's data
 trackn_idx				org *+TRACKS	; Track index
 trackn_pause			org *+TRACKS	; Track pause (in rows). 1 = new note, 0 = nothing new
 trackn_note				org *+TRACKS	; 0-59
@@ -444,15 +444,15 @@ RASTERMUSICTRACKER
 
 	; Set Silence
 	;
-	; Sets all Pokey registers to their initial values.
+	; Sets all POKEY registers to their initial values.
 	; This is also last part of "rmt_init".
 	; IN:  n/a
 	; OUT: n/a
 	jmp rmt_silence
 
-	; Set Pokey Registers
+	; Set POKEY Registers
 	;
-	; Copies the contents of the shadow Pokey registers (v_audctl, v_skctl, trackn_audf,x etc) into the hardware registers.
+	; Copies the contents of the shadow POKEY registers (v_audctl, v_skctl, trackn_audf,x etc) into the hardware registers.
 	; This is call as the first step in "rmt_play".
 	; IN:  n/a
 	; OUT: n/a
@@ -477,8 +477,8 @@ RASTERMUSICTRACKER
 ; Y = High byte of the RMT module
 
 rmt_init
-	stx ns
-	sty ns+1
+	stx p_ns
+	sty p_ns+1
 	IFT FEAT_NOSTARTINGSONGLINE==0
 		pha	; Push the start song line to the stack for now (PHA #1).
 	EIF
@@ -505,20 +505,20 @@ ri0		sta track_variables-1,y		; Shifted down by 1, so n down to 1 suffices and b
 	; Parse the RMT module data
 	; The track length is at offset +4
 	ldy #4
-	lda (ns),y
+	lda (p_ns),y
 	sta v_maxtracklen	; Set the maximum track length.
 
 	; The song speed is at offset +5
 	iny	
 	IFT FEAT_CONSTANTSPEED==0
-		lda (ns),y
+		lda (p_ns),y
 		sta v_speed			; Set the default track speed
 	EIF
 	
 	; The instrument speed is at offset +6
 	IFT FEAT_INSTRSPEED==0
 		iny	; #6
-		lda (ns),y
+		lda (p_ns),y
 		sta v_instrspeed		; Set the instrument speed
 		sta v_ainstrspeed
 	ELI FEAT_INSTRSPEED>1
@@ -535,7 +535,7 @@ ri0		sta track_variables-1,y		; Shifted down by 1, so n down to 1 suffices and b
 	; -> SongData			2 bytes
 
 	ldy #8							; Starting from offset 8
-ri1	lda (ns),y
+ri1	lda (p_ns),y
 	sta p_tis-8,y
 	iny
 	cpy #8+8						; Copy 2*4 = 8 bytes
@@ -654,10 +654,10 @@ nn1
 
 	; Get the ptr to the track data and store it in p_trackslbstable
 	tay
-	lda (p_trackslbstable),y		; trackn_db[x] = p_trackslbstable[y]
-	sta trackn_db,x
-	lda (p_trackshbstable),y		; trackn_hb[x] = p_trackshbstable[y]
-	sta trackn_hb,x
+	lda (p_trackslbstable),y		; trackn_lo[x] = p_trackslbstable[y]
+	sta trackn_lo,x
+	lda (p_trackshbstable),y		; trackn_hi[x] = p_trackshbstable[y]
+	sta trackn_hi,x
 
 	lda #0
 	sta trackn_idx,x				; Reset the track index to 0.
@@ -722,10 +722,10 @@ oo1
 
 	; Setup the pointer to the track data.
 oo1b
-	lda trackn_db,x					; (ns) = trackn_db/hi[x]
-	sta ns
-	lda trackn_hb,x
-	sta ns+1
+	lda trackn_lo,x					; (p_ns) = trackn_lo/hi[x]
+	sta p_ns
+	lda trackn_hi,x
+	sta p_ns+1
 oo1i
 	ldy trackn_idx,x				; <Y> = current index into track data (34 ... 12).
 	inc trackn_idx,x				; Increment the track index for next call.
@@ -735,7 +735,7 @@ oo1i
 	; 61 - Volume only
 	; 62 = Pause/empty line
 	; 63 - Speed, go loop or end
-	lda (ns),y						; vvnnnnnn iiiiiivv		(v=volume,n=note,i=instrument)
+	lda (p_ns),y						; vvnnnnnn iiiiiivv		(v=volume,n=note,i=instrument)
 	sta reg1
 	and #$3f						; 0-63
 	cmp #61							; 61-63 are special notes, i.e. commands.
@@ -750,7 +750,7 @@ oo1i
 
 	; Get the instrument number, multiplied by 2.
 	iny
-	lda (ns),y						; instrx2 = (data & 0xfc) >> 1
+	lda (p_ns),y						; instrx2 = (data & 0xfc) >> 1
 	lsr @							; 0iiiiiiX
 	and #$3f*2						; 0iiiiii0
 	sta trackn_instrx2,x			; Set the track instrument.
@@ -762,7 +762,7 @@ oo1a								; Process volume data
 	; Get the volume
 	ldy trackn_idx,x				; <Y> := track index
 	inc trackn_idx,x				; Move to the next data point in the track
-	lda (ns),y
+	lda (p_ns),y
 	lsr @
 	ror reg1
 	lsr @
@@ -810,7 +810,7 @@ oo2										; Note/command is 62 or 63.
 
 oo62_b
 	iny
-	lda (ns),y
+	lda (p_ns),y
 	sta trackn_pause,x
 	inc trackn_idx,x		; For next time
 	jmp oo1x
@@ -821,7 +821,7 @@ oo63
 ; oo63_0X
 ; note=63 (+top bit 0) (speed, byte)
 	iny
-	lda (ns),y
+	lda (p_ns),y
 		sta v_bspeed				; Set the song speed to the buffered speed.
 	inc trackn_idx,x			; For next time
 	jmp oo1i					; Immediately continues to the next pair in the track
@@ -832,7 +832,7 @@ oo63_1X
 
 ; note=63 (top two bits 10)
 	iny
-	lda (ns),y
+	lda (p_ns),y
 	sta trackn_idx,x
 	jmp oo1i		; Immediately continues to the next pair in the track
 oo63_11
@@ -879,11 +879,11 @@ rmt_sfx
 SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track number
 	lda (p_instrstable),y
 	sta trackn_instrdb,x		; Set the instrument table pointer.
-	sta nt
+	sta p_nt
 	iny
 	lda (p_instrstable),y
 	sta trackn_instrhb,x
-	sta nt+1
+	sta p_nt+1
 
 	IFT FEAT_FILTER	
 		lda #1					; This is the RMT 1.28 value.
@@ -896,48 +896,48 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 	ELS
 	ldy #1	; y=1				;without FEAT_FILTER, must do ldy #1
 	EIF
-	lda (nt),y
+	lda (p_nt),y
 	sta trackn_tablelop,x
 	iny ; #2
 	ELS					; /TABLEGO else
 	ldy #2
 	EIF					; /TABLEGO
 ; y=2
-	lda (nt),y
+	lda (p_nt),y
 	sta trackn_instrlen,x
 ; y=2 still
 	iny ; #3
-	lda (nt),y
+	lda (p_nt),y
 	sta trackn_instrlop,x
 ; y=3
 	iny ; #4
-	lda (nt),y
+	lda (p_nt),y
 	sta trackn_tabletypespeed,x			; tmss ssss (type mode speed)
 	IFT FEAT_TABLETYPE||FEAT_TABLEMODE
 	and #$3f							; 00ss ssss -tablespeed $00-$3f
 	EIF
 	sta trackn_tablespeeda,x
 	IFT FEAT_TABLEMODE	
-	lda (nt),y
+	lda (p_nt),y
 	and #$40							; 0m00 0000 (mode only)
 	sta trackn_tablemode,x
 	EIF
 ; y=4
 	IFT FEAT_AUDCTLMANUALSET
 	iny	; #5	
-	lda (nt),y
+	lda (p_nt),y
 	sta trackn_audctl,x						; audctl
 	iny ; #6
 	ELS
 	ldy #6
 	EIF
 ; y=6
-	lda (nt),y
+	lda (p_nt),y
 	sta trackn_volumeslidedepth,x			; Volume decay on every "goto" in the instrument
 ; y=6 still
 	IFT FEAT_VOLUMEMIN
 	iny ; #7
-	lda (nt),y								; mmmm 0000 volume minimum for the volume decay
+	lda (p_nt),y								; mmmm 0000 volume minimum for the volume decay
 ;	and #$f0								; Not required bits are already 0.
 	sta trackn_volumemin,x
 	IFT FEAT_EFFECTS
@@ -950,11 +950,11 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 	EIF
 ; y=8 (careful, Y=8 only with FEAT_EFFECTS !!! (otherwise not needed)
 	IFT FEAT_EFFECTS
-	lda (nt),y								; effdelay
+	lda (p_nt),y								; effdelay
 	sta trackn_effdelay,x
 	IFT FEAT_EFFECTVIBRATO
 	iny ; #9
-	lda (nt),y								; effvibrato  0000 00vv  ($0-$3)
+	lda (p_nt),y								; effvibrato  0000 00vv  ($0-$3)
 ;	and #$03								; Not required bits are already 0.
 	tay
 	lda vibtabbeg,y
@@ -962,7 +962,7 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 	EIF
 	IFT FEAT_EFFECTFSHIFT
 	ldy #10									; Byte 10
-	lda (nt),y								; effshift
+	lda (p_nt),y								; effshift
 	sta trackn_effshift,x
 	EIF ; /FEAT_EFFECTFSHIFT
 	EIF	; /FEAT_EFFECTS
@@ -982,7 +982,7 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 
 	tay								; <Y>:=<A>=$00, carry stays C=1
 ; y=0
-	lda (nt),y			    		; Carry stays C=1.
+	lda (p_nt),y			    		; Carry stays C=1.
 	sta trackn_tableend,x   		; Carry stays C=1.
 ;	clc								; Carry stays C=1. Saves 2 cycles compared to "clc:adc #1"
 	adc #0							; <A>:=<A>+1 because C=1.
@@ -992,7 +992,7 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 	lda #INSTRPAR							; 12
 	sta trackn_tablea,x						; Starts from table entry 0 (=byte 12)
 	tay	; ldy #INSTRPAR	
-	lda (nt),y								; Note 0 of the instrument table	(=byte 12)
+	lda (p_nt),y								; Note 0 of the instrument table	(=byte 12)
 	sta trackn_tablenote,x					; If tableend=0 => only this ever remains
 
 xata_rtshere				; rmt_ata.a65 writes an "rts" instruction onto this label so that
@@ -1011,11 +1011,10 @@ xata_rtshere				; rmt_ata.a65 writes an "rts" instruction onto this label so tha
 
 ; Called every 1/50 sec.
 rmt_play
-;
-rmt_p0
-;------------------------------------------------------------------------------------------
-; Setting the POKEY registers
 
+rmt_p0
+
+;	Set the POKEY registers.
 	jsr rmt_set_pokey
 
 rmt_p1
@@ -1068,24 +1067,24 @@ rmt_p3
 ;------------------------------------------------------------------------------------------
 ; Envelope processing
 	lda #>frqtab
-	sta nr+1
+	sta p_nr+1
 ;	ldx #0						;OPTIMIZATION from 0->7 (x++)
 xtracks05sub1	ldx #TRACKS-1	; OPTIMIZATION to 7->0 (x--)  ...for the envelope processing the order may be swapped
-;	stx nr			(the low byte is set during the envelope processing)
+;	stx p_nr			(the low byte is set during the envelope processing)
 pp1
 	lda trackn_instrhb,x
 	beq go_ppnext						; A bit above is go_ppnext jmp ppnext
-	sta ns+1
+	sta p_ns+1
 	lda trackn_instrdb,x
-	sta ns
+	sta p_ns
 	ldy trackn_instridx,x
-	lda (ns),y
+	lda (p_ns),y
 	sta reg1
 	iny
-	lda (ns),y
+	lda (p_ns),y
 	sta reg2
 	iny
-	lda (ns),y
+	lda (p_ns),y
 	sta reg3
 	iny
 	tya
@@ -1100,6 +1099,7 @@ pp1b
 pp2	sta trackn_instridx,x
 	lda reg1				; The instrument's volume envelope [rrrr llll] (R right, L left)
 	IFT TRACKS>4
+
 	cpx #4					; Is it channel 4-7?
 	bcc pp2s				; No, it is 0-3 => branch and use 0000 llll directly
 	lsr @					; Yes => shift rrrrllll
@@ -1108,6 +1108,7 @@ pp2	sta trackn_instridx,x
 	lsr @					; =>0000rrrr
 pp2s
 	EIF	
+
 	and #$0f				; 0000llll (low 4 bits)
 	ora trackn_volume,x		; vvvv0000
 	tay
@@ -1118,7 +1119,7 @@ pp2s
 	and #$0e			; Distortion 0000 ddd0
 	tay					; Even values
 	lda tabbeganddistor,y		; Offset into the tabfrq table 0,64,128,192
-	sta nr				; Low byte for setting the frequency from the table
+	sta p_nr				; Low byte for setting the frequency from the table
 	lda tmp				; Takes from tmp (final volume 0-15) (faster than PHA and then PLA)
 	ora tabbeganddistor+1,y		; Noise value for the respective instrument distortion $00,$20,$..
 	sta trackn_audc,x
@@ -1178,11 +1179,11 @@ ei2c2
 ei2a
 
 	lda trackn_instrdb,x
-	sta nt
+	sta p_nt
 	lda trackn_instrhb,x
-	sta nt+1
+	sta p_nt+1
 	ldy trackn_tablea,x		; 0-7
-	lda (nt),y
+	lda (p_nt),y
 	IFT FEAT_TABLEMODE	
 	ldy trackn_tablemode,x	; Table mode? ($00/$40)
 	beq ei2e				; ==$00 => sets tablenote/tableshift
@@ -1334,7 +1335,7 @@ cmd5	; Set destination portamento XY (X-speed, Y-depth), XY==00 =>set actual_por
 			bpl cmd5a1						; Bit 7 is 0: note shift mode (notes table mode)
 			ldy trackn_note,x				; Bit 8 is 1: frequency shift mode.
 
-			lda (nr),y						; This is the actual note base frequency, or AUDF.
+			lda (p_nr),y						; This is the actual note base frequency, or AUDF.
 			clc								; Clear carry flag.
 	adc trackn_tablenote,x			; Here as a frequency
 	jmp cmd5ax
@@ -1348,7 +1349,7 @@ cmd5a1
 	lda #63
 cmd5a2
 	tay
-	lda (nr),y
+	lda (p_nr),y
 cmd5ax
 	sta trackn_portafrqc,x			; Target portamento frq
 	ldy reg3						; =00?
@@ -1432,7 +1433,7 @@ cmd0a1
 	sta trackn_outnote,x		; Resulting note
 	EIF
 	tay
-	lda (nr),y					; Note frequency table
+	lda (p_nr),y					; Note frequency table
 	clc
 	adc trackn_shiftfrq,x
 	IFT FEAT_COMMAND2
@@ -1454,7 +1455,7 @@ cmd0b1
 	clc
 	adc trackn_tablenote,x		; Here as a frequency
 	clc
-	adc (nr),y					; Note frequency table
+	adc (p_nr),y					; Note frequency table
 	IFT FEAT_COMMAND2
 	clc
 	adc frqaddcmd2				; Possible shift by command 2

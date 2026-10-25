@@ -51,8 +51,8 @@ Variables and pointers:
 | `p_trackslbstable` | `ptrTracksTblLo` | zero-page ptr to the track ptrs, low bytes |
 | `p_trackshbstable` | `ptrTracksTblHi` | zero-page ptr to the track ptrs, high bytes |
 | `p_song` | `ptrSongLines` | zero-page ptr to the song data |
-| `trackn_db` | `trackn_TblLo` | per-track data address, low byte |
-| `trackn_hb` | `trackn_TblHi` | per-track data address, high byte |
+| `trackn_lo` | `trackn_TblLo` | per-track data address, low byte |
+| `trackn_hi` | `trackn_TblHi` | per-track data address, high byte |
 | `v_speed` | `smc_speed` | self-modified operand: speed |
 | `v_bspeed` | `smc_bspeed` | self-modified operand: buffered speed |
 | `v_abeat` | `smc_abeat` | self-modified operand: current beat (row) |

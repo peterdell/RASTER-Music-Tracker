@@ -179,9 +179,9 @@ check_clock15
 	
 hijack_15
 	lda tabbeganddistor_15khz+1,y	; new method to fetch tables between entries, since they use steps of 2 bytes
-	sta nr 
+	sta p_nr 
 	lda #>frqtab_15khz
-	sta nr+1
+	sta p_nr+1
 	jmp pp2syes
 	
 hijack_179a
@@ -198,9 +198,9 @@ hijack_179a
 	
 hijack_179b
 	lda tabbeganddistor_179mhz,y
-	sta nr 
+	sta p_nr 
 	lda #>frqtab_179mhz
-	sta nr+1
+	sta p_nr+1
 	jmp pp2syes
 	
 hijack_sawtooth
@@ -244,11 +244,11 @@ sawtooth_reverse
 	EIF
 hijack_sawtooth_done
 	lda #>frqtab_extra
-	sta nr+1
+	sta p_nr+1
 	sta sawtoothtables+1		; for the other channel later, also used as a check if it is enabled
 saw_ch1
 	lda #<frqtabsawtooth_ch1
-	sta nr 
+	sta p_nr 
 saw_ch2	
 	lda #<frqtabsawtooth_ch2
 	sta sawtoothtables
@@ -274,13 +274,13 @@ do16bit
 
 	IFT FEAT_FULL_16BIT
 	lda tabbeganddistor_16bit_hi,y
-	sta nr 
+	sta p_nr 
 	lda tabbeganddistor_16bit_lo+1,y	
 	sta pointer16bitlo	
 	ELS
 	IFT FEAT_BASS16
 	lda #<frqtabpure_hi
-	sta nr
+	sta p_nr
 	lda #<frqtabpure_lo
 	sta pointer16bitlo
 	EIF
@@ -303,7 +303,7 @@ page_store_hi
 	lda #>frqtab_16bit_A_2
 	EIF
 	EIF
-	sta nr+1
+	sta p_nr+1
 	sta pointer16bitlo+1		; this value can also be used to identify if 16-bit mode is active or not, since it will never be 0
 	lda #0				
 	sta trackn_audc-1,x		; update the next channel's AUDC early, it will always be volume 0, and Distortion won't matter
@@ -360,11 +360,11 @@ bass16_audctl_mono
 	sta v_audctl
 do_bass16
 	lda #<frqtabpure_hi
-	sta nr
+	sta p_nr
 	lda #<frqtabpure_lo
 	sta pointer16bitlo		
 	lda #>frqtab_16bit_A_2
-	sta nr+1
+	sta p_nr+1
 	sta pointer16bitlo+1		; this value can also be used to identify if 16-bit mode is active or not, since it will never be 0
 	lda #0				
 	sta trackn_audc-1,x		; update the next channel's AUDC early, it will always be volume 0, and Distortion won't matter
@@ -444,9 +444,9 @@ test_15
 	bne test_none			; if #$01, 15khz mode in any channel, no further test necessary, else, branch to no hijack
 hijack_15
 	lda tabbeganddistor_15khz+1,y	; new method to fetch tables between entries, since they use steps of 2 bytes
-	sta nr 
+	sta p_nr 
 	lda #>frqtab_15khz
-	sta nr+1
+	sta p_nr+1
 	jmp pp2syes	
 hijack_sawtooth
 	IFT FEAT_FULL_SAWTOOTH	
@@ -457,14 +457,14 @@ hijack_sawtooth
 	EIF
 hijack_179
 	lda tabbeganddistor_179mhz,y
-	sta nr 
+	sta p_nr 
 	lda #>frqtab_179mhz
-	sta nr+1
+	sta p_nr+1
 	jmp pp2syes	
 hijack_16	
 	IFT FEAT_FULL_16BIT	
 	lda tabbeganddistor_16bit_hi,y
-	sta nr 
+	sta p_nr 
 	lda tabbeganddistor_16bit_lo+1,y	
 	sta pointer16bitlo	
 	cpy #$0B			; what page should be used?
@@ -475,7 +475,7 @@ page_C_E_hi
 page_A_2_hi	
 	lda #>frqtab_16bit_A_2
 page_store_hi
-	sta nr+1
+	sta p_nr+1
 	sta pointer16bitlo+1		; this value can also be used to identify if 16-bit mode is active or not, since it will never be 0
 	lda #0				
 	sta trackn_audc-1,x		; update the next channel's AUDC early, it will always be volume 0, and Distortion won't matter
@@ -523,11 +523,11 @@ sawtooth_reverse
 	EIF
 hijack_sawtooth_done
 	lda #>frqtab_extra
-	sta nr+1
+	sta p_nr+1
 	sta sawtoothtables+1		; for the other channel later, also used as a check if it is enabled
 saw_ch1
 	lda #<frqtabsawtooth_ch1
-	sta nr 
+	sta p_nr 
 saw_ch2	
 	lda #<frqtabsawtooth_ch2
 	sta sawtoothtables
@@ -601,11 +601,11 @@ do_bass16_b
 	jmp hijack_16			; process the remaining of the 16-bit code from there
 	ELS
 	lda #>frqtab_16bit_A_2
-	sta nr+1
+	sta p_nr+1
 	sta pointer16bitlo+1		; this value can also be used to identify if 16-bit mode is active or not, since it will never be 0
 bass16_ch1	
 	lda #<frqtabpure_hi
-	sta nr
+	sta p_nr
 bass16_ch2
 	lda #<frqtabpure_lo
 	sta pointer16bitlo	
@@ -621,9 +621,9 @@ bass16_dist
 	
 no_hijack
 	lda #>frqtab_64khz
-	sta nr+1
+	sta p_nr+1
 	lda tabbeganddistor_64khz,y
-	sta nr
+	sta p_nr
 pp2syes	
 	lda tmp
 	ora DISTORTIONS+1,y		; new method to fetch distortions between entries, since they use steps of 2 bytes
@@ -642,7 +642,7 @@ pp2sdone
 	tay
 	and #$0F
 	ora #$B0
-	sta nr+1	;Bx00, where x is manipulated
+	sta p_nr+1	;Bx00, where x is manipulated
 	
 ; hack for Reverse-16 proof of concept, won't be used later		
 	lda #0
@@ -653,7 +653,7 @@ pp2sdone
 	tya
 	and #$C0
 stayzero	
-	sta nr		;B0x0, where is manipulated
+	sta p_nr		;B0x0, where is manipulated
 	
 ; hack for Reverse-16 proof of concept, won't be used later	 
 	cpx #0
@@ -815,7 +815,7 @@ check_15khz			; #$01 = 15khz flag, unconditional
 check_15khz_b
 	lda #<frqtabbuzzy_15khz	; Distortion C 15khz table LSB
 check_15khz_c
-	sta nr
+	sta p_nr
 	lda #>PAGE_EXTRA_0	; tables MSB pointer, it's the same one regardless of the table used
 	bne store_tables_lsb_a	; unconditional 
 	IFT FEAT_FULL_16BIT
@@ -830,7 +830,7 @@ hellyes
 	jmp process_bass16	; BASS16 happens even with volume 0!
 	EIF
 valid_16bit_a
-	sta nr			; 16-bit hi LSB
+	sta p_nr			; 16-bit hi LSB
 	lda #$C0		; 64 bytes further for the 16-bit LSB table
 	sta pointer16bitlo  	; 16-bit lo LSB
 	lda #0			; no volume output, Distortion won't matter
@@ -847,10 +847,10 @@ hellno				; Invalid 16-bit flag!
 	jmp ppnext 		; skip this channel entirely 
 	EIF
 store_tables_lsb
-	sta nr			; tables LSB pointer, divided in slices of 64 bytes each
+	sta p_nr			; tables LSB pointer, divided in slices of 64 bytes each
 	lda tabbeganddistor,y
 store_tables_lsb_a
-	sta nr+1		; tables MSB pointer, which is the memory page used for tables divided based on their Distortion
+	sta p_nr+1		; tables MSB pointer, which is the memory page used for tables divided based on their Distortion
 store_tables_lsb_b
 	lda tmp			; volume value backup
 	ora DISTORTIONS,y	; merge the Distortion and Volume values
