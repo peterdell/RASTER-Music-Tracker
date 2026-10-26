@@ -6,11 +6,11 @@ video equ $3f00
 video4th equ video+3*40
 video5th equ video+4*40
 color equ video+200
-vcaddition equ video+201		;RMTracker prepares this hardcoded
+vcaddition equ video+201		; RMTracker prepares this hardcoded
 MODUL equ $4000
 ;
-VCOUNT	equ $d40b				;vertical screen lines counter address
-NTSC	equ 53268          		;PAL=0/NTSC=$e
+VCOUNT	equ $d40b				; Vertical screen lines counter address
+NTSC	equ 53268          		; PAL=0/NTSC=$e
 ;
 	org $3e00
 start
@@ -22,7 +22,7 @@ start
 	jsr Pau
 ;
 ;	ldx #0
-	;x=0 from earlier
+							; x=0 from earlier
 	stx 712
 	stx 710
 	ldx #12
@@ -32,8 +32,8 @@ start
 ;
 	ldx #<MODUL
 	ldy #>MODUL
-	lda #0					;song line 0-255
-	jsr RASTERMUSICTRACKER	;returns in A how many times to call per 1 vbi (1,2,3,4)
+	lda #0					; Song line 0-255
+	jsr RASTERMUSICTRACKER	; Returns in A how many times to call per 1 vbi (1,2,3,4)
 ;	tay
 ;	lda tabpp-1,y
 ;	pha
@@ -45,18 +45,18 @@ start
 ;	and #$7f			;without the top bit
 ;	sta acpapx2+1		;sync counter spacing
 	ldx #0
-	lda vcaddition		;RMTracker already prepares this hardcoded
+	lda vcaddition			; RMTracker already prepares this hardcoded
 ;	cmp #133
 ;	bcc via1	;<133 => branch
-	bpl via1	;<128 => branch
-	;e.g. for 156
-	inx			;x=1
-	lsr @		;A=78
+	bpl via1				; <128 => branch
+							; e.g. for 156
+	inx						; x=1
+	lsr @					; A=78
 via1
-	stx xwaimultip		;0 or 1
-	sta acpapx2+1		;sync counter spacing
+	stx xwaimultip			; 0 or 1
+	sta acpapx2+1			; Sync counter spacing
 	ldx #16+0
-	stx acpapx1+1		;sync counter init
+	stx acpapx1+1			; Sync counter init
 ;
 	ldx #34
 	stx 559
@@ -67,90 +67,90 @@ uvop
 	dex
 	bne uvop
 ;
-	ldx #156		;for a PAL computer
+	ldx #156		; For a PAL computer
 	lda NTSC
 	and #$0e
 	beq ispal
-	ldx #132		;deliberately 1 more for divisibility by 2,3,4 ; correctly it should be 131 ;for an NTSC computer
+	ldx #132		; Deliberately 1 more for divisibility by 2,3,4 ; correctly it should be 131 ;for an NTSC computer
 ispal
 	stx xscreenlines1
 	stx xscreenlines2
 ;
-	sei			;disable IRQ
+	sei				; Disable IRQ
 	ldx #0
-	stx 54286	;disable NMI  (turns the OS VBI off!)
+	stx 54286		; Disable NMI  (turns the OS VBI off!)
 ;
-	;ldx #255
-; not needed, the upper one is watched (VBI is off)
+					; ldx #255
+; Not needed, the upper one is watched (VBI is off)
 ;	dex ;x=255
 ;	stx 764
 ;
 lop
-	ldx #$00			;self-mod. param
+	ldx #$00		; Self-mod. param
 xwaimultip equ *-1
 loopmulti
-acpapx1	lda #$ff				;self-modified param.
+acpapx1	lda #$ff	; Self-modified param.
 	clc
-acpapx2	adc #$ff				;self-modified param.
+acpapx2	adc #$ff	; Self-modified param.
 ;	bcs lop3	;>255 (overflowed) (at most 78 is added, so it cannot overflow)
 xscreenlines1 equ *+1
-	cmp #$ff	;156 or 132 (instead of 131)	;self-modified param.
+	cmp #$ff		; 156 or 132 (instead of 131)	;self-modified param.
 	bcc lop4
 lop3
 xscreenlines2 equ *+1
-	sbc #$ff	;156 or 132 (instead of 131)	;self-modified param.
+	sbc #$ff	; 156 or 132 (instead of 131)	;self-modified param.
 lop4
 	sta acpapx1+1
-	ldy color					;prepares it in Y
+	ldy color	; Prepares it in Y
 waipap
 	cmp VCOUNT
 	bne waipap
 	dex
 	bpl loopmulti
 ;
-	sty $d01a					;Y was prepared a bit above
+	sty $d01a	; Y was prepared a bit above
 	sty $d018
 ;
 	jsr RASTERMUSICTRACKER+3
-	;returned the actual instrspeed in A
+				; Returned the actual instrspeed in A
 ;
-	ldx #0					;black
+	ldx #0		; Black
 	stx $d01a
 	stx $d018
-;vbi is off; 	sta 77					;Attract (needs zeroing even with CRITIC set)
+; VBI is off; 	sta 77					;Attract (needs zeroing even with CRITIC set)
 ;
 	ldx #<video4th
-	lda $d20f				;SKCTL
-	and #$08				;shift pressed?
-	bne noshift				;1 => not pressed => branch
-;shift is pressed
+	lda $d20f					; SKCTL
+	and #$08					; Shift pressed?
+	bne noshift					; 1 => not pressed => branch
+; Shift is pressed
 	ldx #<video5th
 noshift
-	stx dlx			;overwrites the video db for the 4th line
+	stx dlx						; Overwrites the video db for the 4th line
 ;
-	lda $d209		;must use the upper one, IRQ is off (formerly 764)
-	cmp #28					;ESC?
+	lda $d209					; Must use the upper one, IRQ is off (formerly 764)
+	cmp #28						; ESC?
 	bne lop
 ;
 escape
-	jsr RASTERMUSICTRACKER+9			;SILENCE
+	jsr RASTERMUSICTRACKER+9	; SILENCE
 	ldx #64
-	stx 54286	;enable NMI (OS VBI!)
+	stx 54286					; Enable NMI (OS VBI!)
 	cli
 	ldx #0
 	stx 559
-	dex	;#255
+	dex			; #255
 	stx 764
 	jsr Pau
-	jmp (10)			;DOS
+	jmp (10)	; DOS
 ;
-;tabpp	dta 156,78,52,39	;song meant for PAL
+; tabpp	dta 156,78,52,39	;song meant for PAL
 ;		dta 131,66,44,33	;song meant for NTSC
-;line counter spacing table for instrument speed from 1 to 4
+; Line counter spacing table for instrument speed from 1 to 4
 ;
-;the value shifting the VCOUNT synchronization value is prepared directly by RMTracker!
+; The value shifting the VCOUNT synchronization value is prepared directly by RMTracker!
 ;
-;tabpp  dta $80+78,$00+78,$00+52,$00+39		;$00+ once, $80+ twice
+; tabpp  dta $80+78,$00+78,$00+52,$00+39		;$00+ once, $80+ twice
 ;
 ;
 Pau	lda 20

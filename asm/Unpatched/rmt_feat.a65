@@ -5,8 +5,8 @@
 ; --------BEGIN--------
 
 FEAT_SFX			equ 0			; 0 => No SFX support, 1 => SFX support
-FEAT_GLOBALVOLUMEFADE		equ 0			; 0 => No RMTGLOBALVOLUMEFADE support, 1=> RMTGLOBALVOLUMEFADE support (+7 bytes)
-FEAT_NOSTARTINGSONGLINE		equ 0			; 0 => Init with starting songline, 1=> no starting songline (start from songline 0 always), cca 22 or 24 bytes
+FEAT_GLOBALVOLUMEFADE		equ 0	; 0 => No RMTGLOBALVOLUMEFADE support, 1=> RMTGLOBALVOLUMEFADE support (+7 bytes)
+FEAT_NOSTARTINGSONGLINE		equ 0	; 0 => Init with starting songline, 1=> no starting songline (start from songline 0 always), cca 22 or 24 bytes
 FEAT_INSTRSPEED		equ 0			; cca 21 or 5 bytes
 FEAT_CONSTANTSPEED	equ 0			; cca 28 bytes
 
@@ -20,9 +20,9 @@ FEAT_COMMAND4		equ 1			; cca 15 bytes
 FEAT_COMMAND5		equ 1			; cca 67 bytes
 FEAT_COMMAND6		equ 1			; cca 15 bytes
 ; COMMAND7 SETNOTE (i.e. command 7 with parameter != $80)
-FEAT_COMMAND7SETNOTE		equ 1		; cca 12 bytes
+FEAT_COMMAND7SETNOTE		equ 1	; cca 12 bytes
 ; COMMAND7 VOLUMEONLY (i.e. command 7 with parameter == $80)
-FEAT_COMMAND7VOLUMEONLY		equ 1		; cca 74 bytes
+FEAT_COMMAND7VOLUMEONLY		equ 1	; cca 74 bytes
 ; PORTAMENTO
 FEAT_PORTAMENTO		equ 1			; cca 138 bytes and quicker whole RMT routine
 

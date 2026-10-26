@@ -1,26 +1,26 @@
 ;
 ;	RMT_SAP8
 ;
-STEREOMODE	equ 1			;assembled for a stereo module
+STEREOMODE	equ 1			; Assembled for a stereo module
 	icl "rmt.a65"
 
 MODUL equ $4000
 ;
-	org $3a5a		;$3a6d	;$3a72		;$3a6c		;$3a94		;$3aaa		;$3aa8
+	org $3a5a				; $3a6d	;$3a72		;$3a6c		;$3a94		;$3aaa		;$3aa8
 start
-	ert start!=RMTPLAYEREND ;the SAP8 init routine does not follow immediately after the RMT routine
-	;MUST FIX, AND CAUTION - THE SAP ROUTINE'S START ADDRESS IS STATED IN THE C CODE INSIDE RMT TRACKER
+	ert start!=RMTPLAYEREND	; The SAP8 init routine does not follow immediately after the RMT routine
+							; MUST FIX, AND CAUTION - THE SAP ROUTINE'S START ADDRESS IS STATED IN THE C CODE INSIDE RMT TRACKER
 ;
-	tax												;CAUTION: the tracker overwrites the first 4 bytes with instructions
-	lda subsongs,x			;song line 0-255	;NOP NOP LDA#value     if there are no multiple subsongs
+	tax						; CAUTION: the tracker overwrites the first 4 bytes with instructions
+	lda subsongs,x			; Song line 0-255	;NOP NOP LDA#value     if there are no multiple subsongs
 	ldx #<MODUL
 	ldy #>MODUL
-	jmp RASTERMUSICTRACKER	;jsrrts!
-	;sta vbinspeed			;how many times to call per 1 vbi
-	;rts
+	jmp RASTERMUSICTRACKER	; jsrrts!
+							; sta vbinspeed			;how many times to call per 1 vbi
+							; rts
 ;
 subsongs
-;CAUTION: the tracker appends the possible subsong positions here
-;so if this routine's length changes, the tracker must be adjusted:
-;at the start of the routine int CSong::Export the value
-;int adr_subsongs = adr_init+11;
+; CAUTION: the tracker appends the possible subsong positions here
+; So if this routine's length changes, the tracker must be adjusted:
+; at the start of the routine int CSong::Export the value
+; int adr_subsongs = adr_init+11;

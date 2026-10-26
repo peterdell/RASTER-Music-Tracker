@@ -1,4 +1,4 @@
-; include with 'rmtplayr.a65'
+; Include with 'rmtplayr.a65'
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
@@ -6,15 +6,15 @@
 
         org $3D00
 GetInstrumentY2			; 6502_jsr() was called by RMT with values in memory...
-        sta trackn_note,x	; store as the new note value
-        tya 			; transfer the index y to the accumulator
-        asl @ 			; shift the accumulator left 1 bit, essentially multiplying the value by 2
-        sta trackn_instrx2,x	; store in memory, positive value means new instrument to intialise
-        bmi SkipInstrumentY2	; if negative, there is no new instrument to initialize
-        tay 			; transfer the accumulator back to index y for the next step
-        jmp SetUpInstrumentY2	; new instrument to initialize with the values in memory. The subroutine will end with a rts, meaning the instrument has been set up and ready to use
+        sta trackn_note,x		; Store as the new note value
+        tya						; Transfer the index y to the accumulator
+        asl @					; Shift the accumulator left 1 bit, essentially multiplying the value by 2
+        sta trackn_instrx2,x	; Store in memory, positive value means new instrument to intialise
+        bmi SkipInstrumentY2	; If negative, there is no new instrument to initialize
+        tay						; Transfer the accumulator back to index y for the next step
+        jmp SetUpInstrumentY2	; New instrument to initialize with the values in memory. The subroutine will end with a rts, meaning the instrument has been set up and ready to use
 SkipInstrumentY2
-        rts 			; 6502_jsr() ends upon hitting a RTS, the subroutine finished early, no new instrument was set up
+        rts						; 6502_jsr() ends upon hitting a RTS, the subroutine finished early, no new instrument was set up
 
 ; End of GetInstrumentY2 code...
 
@@ -24,9 +24,9 @@ SkipInstrumentY2
 
         org $3E00
 SetInstrumentVolume 		; 6502_jsr() was called by RMT with values in memory...
-        :4 asl @ 		; shift the accumulator left 1 bit, 4 times, essentially multiplying the value by 16
-        sta trackn_volume,x	; store the new value in memory, which will be used for the volume lookup table during playback
-        rts 			; 6502_jsr() ends upon hitting a RTS, the volume value was updated
+        :4 asl @			; Shift the accumulator left 1 bit, 4 times, essentially multiplying the value by 16
+        sta trackn_volume,x	; Store the new value in memory, which will be used for the volume lookup table during playback
+        rts					; 6502_jsr() ends upon hitting a RTS, the volume value was updated
 
 ; End of SetInstrumentVolume code...
 
@@ -36,7 +36,7 @@ SetInstrumentVolume 		; 6502_jsr() was called by RMT with values in memory...
 
         org $3E80
 StopInstrument                  ; 6502_jsr() was called by RMT with values in memory...
-        lda #0 			; zeroes will be written to the current channel's variables to stop it playing...
+        lda #0 			; Zeroes will be written to the current channel's variables to stop it playing...
         sta trackn_volume,x
         sta trackn_instrhb,x
         sta trackn_instrdb,x
@@ -55,13 +55,13 @@ StopInstrument                  ; 6502_jsr() was called by RMT with values in me
 
 ; Start of plaintext data... this is totally useless, and purely cosmetic. Use only for RMT version 1.32.06 and above...
 
-       dta $00			; allign memory for the DriverVersion label...
+       dta $00		; Align memory for the DriverVersion label...
 ;	org $????		; could be set anywhere... not yet decided...
 DriverVersion
 	dta c"Patch 16-3.4 by VinsCool"
-	dta $00			; allign memory, and text terminator
+	dta $00			; Align memory, and text terminator
 	dta c"Hello Bitches... :3 Please don't mind me I am testing bytes overflow... is it dead?"
-	dta $00			; allign memory, and easter egg... hehehehe ;)
+	dta $00			; Align memory, and easter egg... hehehehe ;)
 
 ; End of plaintext data...
 

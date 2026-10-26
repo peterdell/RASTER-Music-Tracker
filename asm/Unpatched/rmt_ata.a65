@@ -1,65 +1,65 @@
 ;
-;3000, 3400
+; 3000, 3400
 STEREOMODE	equ 1
 	icl "rmt.a65"
 
-;3d00		a=note0-63,x=trackindex0-7,y=instrument0-63
+; 3d00		a=note0-63,x=trackindex0-7,y=instrument0-63
 	org $3d00
-	sta trackn_note,x		;sets trackn_note
+	sta trackn_note,x		; Sets trackn_note
 	IFT FEAT_BASS16
-	sta trackn_outnote,x	;(if nothing changes it anymore, it stays the same as note)
+	sta trackn_outnote,x	; (if nothing changes it anymore, it stays the same as note)
 	EIF
 	tya
 	asl @
 	sta trackn_instrx2,x
-	bmi usi1				;if the instrument number *2 is >127 => the instrument setup is skipped (for compatibility with the routine)
+	bmi usi1				; If the instrument number *2 is >127 => the instrument setup is skipped (for compatibility with the routine)
 	tay
-	jmp SetUpInstrumentY2	;Y holds the instrument number *2, X the track number
-	;jsr-rts
+	jmp SetUpInstrumentY2	; Y holds the instrument number *2, X the track number
+							; jsr-rts
 usi1
 	rts
 
-	org xata_rtshere		;patches the RMT routine's code so SetUpInstrumentY2 can be called as a subroutine
+	org xata_rtshere		; Patches the RMT routine's code so SetUpInstrumentY2 can be called as a subroutine
 	rts
 
 
-;3e00		a=volume0-15,x=trackindex0-7
+; 3e00		a=volume0-15,x=trackindex0-7
 	org $3e00
 	asl @
 	asl @
 	asl @
 	asl @
-	sta trackn_volume,x		;sets the volume
+	sta trackn_volume,x		; Sets the volume
 	rts
 
-;3e80		x=trackindex0-7
+; 3e80		x=trackindex0-7
 	org $3e80
 	lda #0
-	sta trackn_volume,x		;zeroes the volume
-	sta trackn_instrhb,x	;zeroes the instrument's HB => turns the instrument processing off
-	sta trackn_instrdb,x	;zeroes the DB too (extra, just so it does not stay nonzero; not required)
-	sta trackn_audc,x		;silences the respective sound generator
+	sta trackn_volume,x		; Zeroes the volume
+	sta trackn_instrhb,x	; Zeroes the instrument's HB => turns the instrument processing off
+	sta trackn_instrdb,x	; Zeroes the DB too (extra, just so it does not stay nonzero; not required)
+	sta trackn_audc,x		; Silences the respective sound generator
 	rts
 
-;module 3f00
+; module 3f00
 	org $3f00
 ;
 INSTR	equ $4000
 SONG	equ $8000
 MODUL
 ;
-	dta c"RMT8"						;4b head "RMT" + "4" (4tracks mono) or "8" (8tracks stereo)
-	dta 64							;1b max track length 0-255; (0=256)
-	dta 64							;1b track speed
-	dta 1							;1b instr speed 1-4  (1=1x/vbi,2=2x/vbi,3=3x/vbi,4=4x4vbi)
-	dta 0							;1b reserved
-	dta a(instrumentsaddr)			;2b
-	dta a(0)						;(tracksaddrdbytes)				;2b
-	dta a(0)						;(tracksaddrhbytes)				;2b
-	dta a(songaddr)					;2b
+	dta c"RMT8"				; 4b head "RMT" + "4" (4tracks mono) or "8" (8tracks stereo)
+	dta 64					; 1b max track length 0-255; (0=256)
+	dta 64					; 1b track speed
+	dta 1					; 1b instr speed 1-4  (1=1x/vbi,2=2x/vbi,3=3x/vbi,4=4x4vbi)
+	dta 0					; 1b reserved
+	dta a(instrumentsaddr)	; 2b
+	dta a(0)				; (tracksaddrdbytes)				;2b
+	dta a(0)				; (tracksaddrhbytes)				;2b
+	dta a(songaddr)			; 2b
 ;									;======= 16b
 ;
-instrumentsaddr						;(used most often, so they cross a page boundary as little as possible)
+instrumentsaddr						; (used most often, so they cross a page boundary as little as possible)
 	dta a(INSTR+$0000)
 	dta a(INSTR+$0100)
 	dta a(INSTR+$0200)
@@ -128,13 +128,13 @@ instrumentsaddr						;(used most often, so they cross a page boundary as little 
 	dta a(INSTR+$3e00)
 	dta a(INSTR+$3f00)
 ;
-;...
+; ...
 ;
-;tracksaddr
+; tracksaddr
 ;	dta a(track00)
-;...
+; ...
 ;
 songaddr
 	dta 255,255,255,255,255,255,255,255
-	dta 254,0,a(songaddr)	;254=go,line=0,adrline0=songaddr
-;...
+	dta 254,0,a(songaddr)	; 254=go,line=0,adrline0=songaddr
+; ...
