@@ -11,8 +11,8 @@ TABLES            equ $B000
 ; This will be refined over time, so for now this is what it is
 
 ; Every table below except the two Sawtooth ones is what RMT's own tuning
-; generator produces for its default settings: PAL (1773447 Hz), base tuning
-; 440.83751645933 Hz, base note 3 (C-), temperament 0 (equal). RMT overwrites
+; generator produces for its default settings: PAL (1773447 Hz), A4 frequency
+; 440.83751645933 Hz, base note 3 (A-), temperament 0 (equal). RMT overwrites
 ; this whole page in memory with freshly generated tables, so these bytes are
 ; what a STANDALONE build plays - the Simple RMT Player, or any project
 ; assembling this driver with its own module. They are kept equal to the

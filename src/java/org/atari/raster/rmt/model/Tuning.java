@@ -116,11 +116,11 @@ public final class Tuning {
 	 * @param tuning the anchor pitch (in Hertz) the tonic's octave chain is placed by - {@link #calculateBaseFrequency}'s conversion of the A4 reference pitch (for the base note A- the two coincide)
 	 * @param temperament the temperament used in calculations - a preset plays its own multipliers, {@link Temperament#CUSTOM} the cents {@link #initTuning} converted
 	 * @param basenote base note/key from which the tuning is calculated, typically it is the key of A- or C-
-	 * @param semitone semitones added to base note for calculating higher pitches
+	 * @param semitone the note to calculate, in semitones counted upward like RMT's note numbers (C- = 0); generateTable() passes its first semitone plus the table index
 	 * @return true audio pitch for a given note (in Hertz)
 	 */
 	public double getTruePitch(double tuning, Temperament temperament, int basenote, int semitone) {
-		int note = (semitone + basenote) % NOTES_PER_OCTAVE; // current note
+		int degree = (semitone + basenote) % NOTES_PER_OCTAVE; // the note's degree: semitones above the tonic within the octave, 0-11
 		double ratio;
 		double octave = 2; // an octave is the frequency of a note multiplied by 2
 
@@ -131,9 +131,9 @@ public final class Tuning {
 		}
 		if (temperament.isCustom()) { // custom temperament will be used using ratio
 			octave = custom[NOTES_PER_OCTAVE];
-			ratio = custom[note];
+			ratio = custom[degree];
 		} else { // any temperament preset will be used
-			ratio = temperament.getMultiplier(note);
+			ratio = temperament.getMultiplier(degree);
 		}
 		double multi = Math.pow(octave, (semitone + basenote) / NOTES_PER_OCTAVE); // integer division, matching C++'s int/int then trunc()
 		return (tuning / 64) * (multi * ratio);
@@ -239,12 +239,12 @@ public final class Tuning {
 	 * @param table memory the table will be written into, typically the emulated Atari memory
 	 * @param offset starting index within table to write at (C++ passes a pre-offset pointer instead)
 	 * @param length length of the table in number of semitones, 16-bit tables use twice as many bytes
-	 * @param semitone number of semitones above base note, useful for transposing a table to a different key/octave
+	 * @param firstSemitone the semitone (see getTruePitch()) of the table's first entry - a whole number of octaves for the tables RMT generates
 	 * @param timbre POKEY sound timbre output using the Distortion as well as the modulo of the Frequency
 	 * @param audctl POKEY modes used to generate the frequencies, typically, 15Khz/64Khz clock, 1.79mHz clock, 16-bit mode, etc
 	 * @param tuningSettings the base tuning/temperament/basenote to generate the table from (C++ reads these from the g_tuning global instead)
 	 */
-	public void generateTable(byte[] table, int offset, int length, int semitone, Timbre timbre, int audctl, TuningSettings tuningSettings) {
+	public void generateTable(byte[] table, int offset, int length, int firstSemitone, Timbre timbre, int audctl, TuningSettings tuningSettings) {
 		double divisor = 1;
 		int coarseDivisor = 1;
 		int cycle = 1;
@@ -318,8 +318,8 @@ public final class Tuning {
 		// TuningTables.cpp's GenerateTable() before omitting.
 		double baseFrequency = calculateBaseFrequency(tuningSettings);
 		for (int i = 0; i < length; i++) {
-			int note = i + semitone;
-			double pitch = getTruePitch(baseFrequency, tuningSettings.temperament, tuningSettings.basenote.getNumber(), note);
+			int semitone = firstSemitone + i;
+			double pitch = getTruePitch(baseFrequency, tuningSettings.temperament, tuningSettings.basenote.getNumber(), semitone);
 			int audf = getAUDF(pitch, coarseDivisor, divisor, cycle);
 
 			boolean mod3 = (audf + cycle) % 3 == 0;

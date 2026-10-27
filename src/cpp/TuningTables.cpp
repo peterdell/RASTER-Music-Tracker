@@ -19,10 +19,10 @@ extern CSong g_Song;
 /// <summary> Generate a POKEY Frequencies lookup table using the given parameters </summary>
 /// <param name = "table"> Memory address the table will be written to, typically the emulated Atari memory </param>
 /// <param name = "length"> Length of the table in number of semitones, 16-bit tables will use twice number of bytes </param>
-/// <param name = "semitone"> Number of semitones above base note, useful for transposing a table to a different key/octave </param>
+/// <param name = "firstSemitone"> The semitone (see GetTruePitch()) of the table's first entry - a whole number of octaves for the tables RMT generates </param>
 /// <param name = "timbre"> POKEY sound timbre output using the Distortion as well as the modulo of the Frequency </param>
 /// <param name = "audctl"> POKEY modes used to generate the frequencies, typically, 15Khz/64Khz clock, 1.79mHz clock, 16-bit mode, etc </param>
-void CTuning::GenerateTable(byte* table, int length, int semitone, Timbre timbre, int audctl) {
+void CTuning::GenerateTable(byte* table, int length, int firstSemitone, Timbre timbre, int audctl) {
     //variables for pitch calculation, divisors must never be 0!
     double divisor = 1;
     int coarse_divisor = 1;
@@ -132,10 +132,10 @@ void CTuning::GenerateTable(byte* table, int length, int semitone, Timbre timbre
     //generate the table using all the initialized parameters
     for (int i = 0; i < length; i++) {
         //get the current semitone
-        auto note = i + semitone;
+        auto semitone = firstSemitone + i;
 
         //calculate the reference pitch using the semitone as an offset
-        auto pitch = GetTruePitch(baseFrequency, tuning.temperament, tuning.basenote, note);
+        auto pitch = GetTruePitch(baseFrequency, tuning.temperament, tuning.basenote, semitone);
 
         //get the nearest POKEY frequency using the reference pitch
         auto audf = GetAUDF(pitch, coarse_divisor, divisor, cycle);

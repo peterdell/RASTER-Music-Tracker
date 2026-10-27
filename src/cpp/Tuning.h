@@ -80,8 +80,8 @@ public:
     // change, just visibility.
     Pitch GetTruePitch(double tuning, Temperament temperament, int basenote, int semitone);
     double CalculateBaseFrequency(const TTuningSettings& tuning);
-    double GetTemperamentCents(Temperament temperament, int note) const;
-    void GenerateTable(byte* table, int length, int semitone, Timbre timbre, int audctl);
+    double GetTemperamentCents(Temperament temperament, int degree) const;
+    void GenerateTable(byte* table, int length, int firstSemitone, Timbre timbre, int audctl);
     AUDF CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_divisor, double divisor, int cycle, Timbre timbre) const;
 
 private:

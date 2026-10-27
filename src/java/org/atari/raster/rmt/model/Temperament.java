@@ -210,24 +210,24 @@ public final class Temperament extends ValueSet {
 	}
 
 	/**
-	 * The frequency multiplier for the note {@code note} (0-11) semitones
-	 * above the tonic; 1 for the unison, below 2 otherwise - the octave is
+	 * The frequency multiplier for the degree {@code degree}, the note 0-11
+	 * semitones above the tonic; 1 for the unison, below 2 otherwise - the octave is
 	 * fixed at 2:1. {@link #CUSTOM} is played from the cents and carries
 	 * none, so asking it is a caller error.
 	 */
-	public double getMultiplier(int note) {
+	public double getMultiplier(int degree) {
 		if (multipliers == null) {
 			throw new IllegalStateException("The temperament '" + getId() + "' has no multipliers.");
 		}
-		return multipliers[note];
+		return multipliers[degree];
 	}
 
 	/**
-	 * The note {@code note} (0-11) semitones above the tonic in musical cents,
+	 * The degree {@code degree} (the note 0-11 semitones above the tonic) in musical cents,
 	 * {@code CENTS_PER_OCTAVE * log2(multiplier)}. {@link #CUSTOM}'s cents are
 	 * the user's {@link TuningCents}, so asking it is a caller error.
 	 */
-	public double getCents(int note) {
-		return Tuning.CENTS_PER_OCTAVE * Math.log(getMultiplier(note)) / Math.log(2);
+	public double getCents(int degree) {
+		return Tuning.CENTS_PER_OCTAVE * Math.log(getMultiplier(degree)) / Math.log(2);
 	}
 }

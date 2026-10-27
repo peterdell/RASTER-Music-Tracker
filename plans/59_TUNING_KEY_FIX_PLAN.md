@@ -1,6 +1,9 @@
 # Plan 59: Tuning by key - fix the temperament definition, logic and dialog
 
-Status: IN PROGRESS (2026-10-27) - steps 1, 3 and 4 are committed
+Status: DONE 2026-10-27 (closed by the user) - steps 1-4 implemented,
+the close-out decisions are recorded in "Close-out (2026-10-27)" below;
+the original K1-K6 checklist was superseded by the steps. History: steps
+1, 3 and 4 are committed
 (23ecea8, 09b796d, c0ed1c4); step 2 is defined below - the base tuning
 field becomes the A4 frequency, with the tonic frequency derived from
 it inside the table generation (ivop's new poc,
@@ -381,6 +384,39 @@ runtime those numbers never reached the table, `getInstanceWithFallback`
 maps them to EQUAL first. Java-only by design: C++ keeps its
 `temperament_preset` table in Tuning.h (it has no Temperament class and
 is being phased out); behavior is unchanged in both programs.
+
+## Close-out (2026-10-27)
+
+The user's decisions on the points left after steps 1-4:
+
+- **Documentation repairs: DONE.** `asm/Patch-16/rmtdata.a65`'s header
+  said "base tuning ... base note 3 (C-)"; it names the A4 frequency and
+  base note 3 (A-) now (byte-identical). The semitone/note naming is
+  consistent in both programs: `semitone` is the note to calculate,
+  counted upward like RMT's note numbers (C- = 0), in both
+  `generateTable()` (whose parameter is `firstSemitone`, the table's
+  first entry) and `getTruePitch()`; `degree` is a note's position
+  within the octave, 0-11 semitones above the tonic, in `getTruePitch()`,
+  `Temperament.getMultiplier()`/`getCents()` and C++'s
+  `GetTemperamentCents()`.
+- **Transposition: NOT REQUIRED.** A module-level transposition is not
+  needed; transposing is a pattern-editor matter (open decision 4).
+- **AtariAge reply (K6): DONE** manually by the user.
+- **Internals rewrite: DROPPED.** Computing one array of note pitches
+  once (ivop's `calculate_midi_frequencies()`) and having
+  `generateTable()` only look them up would change nothing: since steps
+  2 and 4 `getTruePitch()` already computes ivop's formula for presets
+  and the custom temperament, about 1,100 `pow()` calls per tuning change
+  cost nothing, and moving equal temperament onto the common formula
+  would change the last floating-point bits and could flip an AUDF at a
+  rounding boundary - breaking the bit-identical shipped tables. Without
+  that, the array is a mere cache. Its copy-offset transposition was
+  ruled out too. Worth revisiting only for a feature that needs all note
+  frequencies at once (a frequency display, MIDI pitch bends).
+- **K5's port of the poc as a Java test reference class: DROPPED.** The
+  poc's results are asserted directly in both programs' tests.
+
+Plan 59 is CLOSED.
 
 ## Open decisions
 
