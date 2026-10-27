@@ -1,5 +1,8 @@
 # Plan: kicking off the C++-to-Java port
 
+Status: DONE 2026-10-27 (closed by the user). Phases A and B done
+2026-09-27; this plan has no further phases.
+
 ## Context
 
 `plans/OVERALL_PLAN.md`'s ultimate goal, now that the characterization-
