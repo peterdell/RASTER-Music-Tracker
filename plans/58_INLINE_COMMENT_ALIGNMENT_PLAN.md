@@ -1,6 +1,8 @@
 # Plan 58: Vertical alignment of inline comments in the player sources
 
-Status: APPLIED (2026-10-25). Addendum (same day, user's decision): bare
+Status: DONE 2026-10-27 (closed by the user: all commits made, and the
+current alignment is as good as the code allows - the few twin blocks
+with differing columns stay as they are). APPLIED 2026-10-25. Addendum (same day, user's decision): bare
 `EIF`/`ELS` directive lines and label-only lines with a trailing comment
 are their own class - exempt from run alignment and transparent to runs
 (runs bridge across them) - and their comments carry no marker prefixes:
@@ -131,4 +133,5 @@ feature-flag matrix. No C++/Java is involved.
 - [x] A4. Apply the realignment script to both files (155 + 20 lines).
 - [x] A5. Run the full proof chain - all seven targets byte-identical,
       xasm/driver checks and the feature-flag matrix green.
-- [ ] A6. Commit on the user's word.
+- [x] A6. Committed on the user's word (75cfc0b and the follow-up
+      alignment commits through 8985bf5 and 5387c75).

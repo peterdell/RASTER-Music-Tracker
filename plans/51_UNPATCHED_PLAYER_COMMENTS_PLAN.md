@@ -1,7 +1,9 @@
 # Plan 51: Raster's player commentary, translated and merged into Patch-16
 
-Status: U1 and U2 DONE 2026-10-22; U3 mechanical pass DONE 2026-10-23,
-review pass open.
+Status: DONE 2026-10-27 (closed by the user). U1 and U2 DONE 2026-10-22;
+U3 mechanical pass DONE 2026-10-23. The remaining review items are not
+plan work: the `;V:`, `;R:` and `TODO:` markers left in the player
+sources are open points for future, independent changes to the player.
 
 U3 groundwork (the comparison the user asked for first): Patch-16 vs
 the stripped 1.28 rmtplayr.a65, normalized code diff - 69% of the
