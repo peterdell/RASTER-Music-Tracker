@@ -2459,9 +2459,10 @@ bass16_pointer equ *-1
 rmt_set_pokey
 
 	ldy #$00
-v_audctl equ *-1			; Left POKEY AUDCTL is loaded as the very first thing, for all STEREOMODE variations
+v_audctl equ *-1				; Left POKEY AUDCTL is loaded as the very first thing, for all STEREOMODE variations
+
 	IFT STEREOMODE==1			; L1 L2 L3 L4 R1 R2 R3 R4
-; Write to the two POKEYs, stereo (always the right register first, then immediately the left)
+								; Write to the two POKEYs, stereo (always the right register first, then immediately the left)
 
 		lda trackn_audf+0+4		; AUDF0
 		ldx trackn_audf+0
@@ -2559,13 +2560,13 @@ v_skctl equ *-1
 		ldx trackn_audc+2
 		sta pokey_right+$0+4
 		stx pokey_right+$1+4
-		sta pokey_left+$0+4			; The frequency into the left one too (in case L1 plays filter 1+3 or L4 plays 16-bit bass 4+3)
+		sta pokey_left+$0+4		; The frequency into the left one too (in case L1 plays filter 1+3 or L4 plays 16-bit bass 4+3)
 
 		lda trackn_audf+3
 		ldx trackn_audc+3
 		sta pokey_left+$0+6
 		stx pokey_left+$1+6
-		sta pokey_right+$0+6		; The frequency into the right one too (in case R2 plays filter 2+4)
+		sta pokey_right+$0+6	; The frequency into the right one too (in case R2 plays filter 2+4)
 
 		sty pokey_right+$8
 		sty pokey_left+$8
@@ -2576,7 +2577,7 @@ v_skctl equ *-1
 			sta pokey_left+$f
 			sta pokey_right+$f
 		EIF
-	ELI STEREOMODE==3				; L1 L2 R3 R4
+	ELI STEREOMODE==3			; L1 L2 R3 R4
 		lda trackn_audf+0
 		ldx trackn_audc+0
 		sta pokey_left+$0
@@ -2591,13 +2592,13 @@ v_skctl equ *-1
 		ldx trackn_audc+2
 		sta pokey_right+$0+4
 		stx pokey_right+$1+4
-		sta pokey_left+$0+4			; The frequency into the left one too (in case L1 plays filter 1+3)
+		sta pokey_left+$0+4		; The frequency into the left one too (in case L1 plays filter 1+3)
 
 		lda trackn_audf+3
 		ldx trackn_audc+3
 		sta pokey_right+$0+6
 		stx pokey_right+$1+6
-		sta pokey_left+$0+6			; The frequency into the left one too (in case L2 plays filter 2+4)
+		sta pokey_left+$0+6		; The frequency into the left one too (in case L2 plays filter 2+4)
 
 		sty pokey_right+$8
 		sty pokey_left+$8
@@ -2609,7 +2610,7 @@ v_skctl equ *-1
 			sta pokey_right+$f
 		EIF
 
-	ELI STEREOMODE==4				; LR1 LR2 LR3 LR4
+	ELI STEREOMODE==4			; LR1 LR2 LR3 LR4
 		lda trackn_audf+0
 		ldx trackn_audc+0
 		sta pokey_left+$0
