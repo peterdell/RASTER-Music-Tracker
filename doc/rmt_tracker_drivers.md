@@ -70,6 +70,28 @@ Despite that, this is probably the most "feature-rich" version of the RMT driver
 All that came at the cost of extra memory usage and heavier CPU load, so this is no longer an "optimal" driver.
 This is currently the default RMT driver version included and used by RMT 1.34 and later.
 
+## Tuning
+
+Selecting this driver enables the tuning settings (File > Properties... >
+Tuning...); all other drivers play their own built-in frequency tables, so
+the button is disabled for them. The settings are stored with the module.
+
+| Setting           | Default                                                    | Description |
+|-------------------|------------------------------------------------------------|-------------|
+| A4 base frequency | 440.83751645933 Hz for PAL<br>444.8957788679134 Hz for NTSC | The reference pitch of the note A-4, in Hertz. The defaults are RMT's traditional tuning, not concert pitch 440 Hz: the frequency tables the Patch 16 player ships were generated with exactly these values (the section below asserts that equality). The hand-made tables of the RMT 1.28 era drivers are close to, but not byte-identical with, the generated ones. |
+| Base note         | A- (3)                                                     | The key the temperament is tuned to: the note that receives the temperament's unison ratio (the tonic). Stored as a number, C- = 0 counting downward, so A- = 3. |
+| Temperament       | Equal Temperament (Default)                                | Equal temperament, one of 21 historical presets (each verified against its source file in the [Scala scale archive](https://www.huygens-fokker.org/microtonality/scales.html)), or a custom temperament entered in musical cents. |
+
+The two default base frequencies are in the exact ratio of the NTSC and PAL
+machine clocks (1789773 / 1773447) and therefore produce bit-identical
+frequency tables: every generated pitch is proportional to the base
+frequency, and every POKEY divider is computed from the quotient
+clock / pitch, so scaling the base frequency by the clock ratio cancels out
+exactly - before any rounding. This holds for every temperament, base note
+and custom tuning, not only for equal temperament. It is why one player
+binary serves both systems, and why switching a module between PAL and NTSC
+multiplies the base frequency by exactly this ratio.
+
 ## The Frequency Table Page of Patch 16 at $B000
 
 Patch 16 is the only included tracker driver version that keeps its
@@ -118,8 +140,9 @@ the last section of this page.
 The content of the block is assembled into the driver binary
 byte-for-byte from the data statements in `asm/Patch-16/rmtdata.a65`,
 and those statements hold exactly what RMT's own tuning system
-generates for its default settings: PAL, base tuning 440.83751645933
-Hz, base note 3, equal temperament. Tests on both the C++ and the
+generates for its default PAL tuning settings mentioned above.
+
+Tests on both the C++ and the
 Java side assert that equality, so the two cannot drift apart
 unnoticed. The two "Croissant Sawtooth" tables are the exception:
 they are hand-crafted, no formula produces them, and RMT carries the
