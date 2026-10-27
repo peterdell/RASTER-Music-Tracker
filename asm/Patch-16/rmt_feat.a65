@@ -105,7 +105,4 @@ FEAT_EFFECTVIBRATO	equ 1			; cca 65 bytes and quicker whole RMT routine
 FEAT_EFFECTFSHIFT	equ 1			; cca 11 bytes and quicker whole RMT routine
 ; (btw - if no one from this two effect is used, it will save cca 102 bytes)
 
-; Manual tuning table loaded from instruments, this is experimental code, do not use unless you have a reason to try it out!
-FEAT_TABLE_MANUAL	equ 0			; Patch16 addition by Vin, unsure how many bytes are involved
-
 ; --------END--------
