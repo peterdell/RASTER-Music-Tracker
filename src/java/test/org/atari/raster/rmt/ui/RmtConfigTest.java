@@ -252,7 +252,7 @@ class RmtConfigTest {
 
 		assertEquals(1, messages.warnings.size());
 		assertTrue(messages.warnings.get(0).contains("RMT will use the default Tuning parameters."));
-		assertEquals(440.83751645933, session.song.getTuningSettings().basetuning);
+		assertEquals(TuningSettings.PAL_A4_FREQUENCY, session.song.getTuningSettings().basetuning);
 		assertEquals(400, session.song.getTuningSettings().cents.values[4]); // reset to the equal default
 		assertEquals(DEFAULT_TUNING_INI, Files.readString(dir.resolve("tuning.ini"), RmtConfig.CHARSET).replace(System.lineSeparator(), "\n"));
 	}
@@ -339,12 +339,13 @@ class RmtConfigTest {
 		assertEquals(7, RmtConfig.atoi("+7.9"));
 		assertEquals(Integer.MAX_VALUE, RmtConfig.atoi("99999999999"));
 		assertEquals(0.0, RmtConfig.atof("abc"));
-		assertEquals(440.83751645933, RmtConfig.atof("440.83751645933"));
+		assertEquals(TuningSettings.PAL_A4_FREQUENCY, RmtConfig.atof("440.83751645933"));
 		assertEquals(1.5e3, RmtConfig.atof(" 1.5e3 "));
 		assertEquals(0.5, RmtConfig.atof(".5"));
 		// std::setprecision(16) on the default float format
-		assertEquals("440.83751645933", RmtConfig.formatDouble(440.83751645933));
-		assertEquals("444.895778867913", RmtConfig.formatDouble(444.895778867913));
+		assertEquals("440.83751645933", RmtConfig.formatDouble(TuningSettings.PAL_A4_FREQUENCY));
+		// The NTSC default: 16 significant digits round-trip it
+		assertEquals("444.8957788679134", RmtConfig.formatDouble(TuningSettings.NTSC_A4_FREQUENCY));
 		assertEquals("440", RmtConfig.formatDouble(440));
 		assertEquals("6.875", RmtConfig.formatDouble(6.875));
 		assertEquals("7040", RmtConfig.formatDouble(7040));

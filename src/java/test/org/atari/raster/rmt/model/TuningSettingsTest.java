@@ -11,7 +11,7 @@ class TuningSettingsTest {
 	void initializePal() {
 		TuningSettings settings = new TuningSettings();
 		settings.initialize(false);
-		assertEquals(440.83751645933, settings.basetuning);
+		assertEquals(TuningSettings.PAL_A4_FREQUENCY, settings.basetuning);
 		assertEquals(BaseNote.A, settings.basenote);
 		assertEquals(Temperament.EQUAL, settings.temperament);
 	}
@@ -20,7 +20,7 @@ class TuningSettingsTest {
 	void initializeNtsc() {
 		TuningSettings settings = new TuningSettings();
 		settings.initialize(true);
-		assertEquals(444.895778867913, settings.basetuning);
+		assertEquals(TuningSettings.NTSC_A4_FREQUENCY, settings.basetuning);
 		assertEquals(BaseNote.A, settings.basenote);
 		assertEquals(Temperament.EQUAL, settings.temperament);
 	}

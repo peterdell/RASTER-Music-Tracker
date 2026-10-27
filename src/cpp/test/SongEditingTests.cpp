@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 
+#include "Atari.h"
 #include "Song.h"
 #include "Clipboard.h"
 #include "TuningTypes.h"
@@ -1071,13 +1072,13 @@ TEST_F(SongEditingTest, TheTrackerDriverVersionDefaultsToPatchSixteenAndKeepsWha
 TEST_F(SongEditingTest, ResetTuningVariablesUsesTheNtscOrPalBaseTuning) {
     song.SetNTSC(TRUE);
     song.ResetTuningVariables();
-    EXPECT_DOUBLE_EQ(song.GetTuningSettings().basetuning, 444.895778867913);
+    EXPECT_DOUBLE_EQ(song.GetTuningSettings().basetuning, TTuningSettings::NTSC_A4_FREQUENCY);
     EXPECT_EQ(song.GetTuningSettings().basenote, 3);
     EXPECT_EQ(song.GetTuningSettings().temperament, 0);
 
     song.SetNTSC(FALSE);
     song.ResetTuningVariables();
-    EXPECT_DOUBLE_EQ(song.GetTuningSettings().basetuning, 440.83751645933);
+    EXPECT_DOUBLE_EQ(song.GetTuningSettings().basetuning, TTuningSettings::PAL_A4_FREQUENCY);
 }
 
 // --- InstrInfo ---

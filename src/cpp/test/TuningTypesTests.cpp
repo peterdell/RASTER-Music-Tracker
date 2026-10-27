@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 
+#include "Atari.h"
 #include "TuningTypes.h"
 
 // Mirrored by Java's TuningCentsTest.
@@ -24,7 +25,7 @@ protected:
 
 TEST_F(TuningSettingsTest, InitializePal) {
     settings.Initialize(false);
-    EXPECT_DOUBLE_EQ(settings.basetuning, 440.83751645933);
+    EXPECT_DOUBLE_EQ(settings.basetuning, TTuningSettings::PAL_A4_FREQUENCY);
     EXPECT_EQ(settings.basenote, 3);
     EXPECT_EQ(settings.temperament, 0);
     EXPECT_DOUBLE_EQ(settings.cents.values[11], 1100);
@@ -32,5 +33,5 @@ TEST_F(TuningSettingsTest, InitializePal) {
 
 TEST_F(TuningSettingsTest, InitializeNtsc) {
     settings.Initialize(true);
-    EXPECT_DOUBLE_EQ(settings.basetuning, 444.895778867913);
+    EXPECT_DOUBLE_EQ(settings.basetuning, TTuningSettings::NTSC_A4_FREQUENCY);
 }

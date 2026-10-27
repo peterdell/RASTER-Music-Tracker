@@ -82,19 +82,19 @@ TEST_F(TuningPitchTest, GetPOKEYPitchPolyNoiseModeReturnsZeroOnInvalidModulo) {
 // same test-only-constructed CTuning instance/fixture as above.
 
 TEST_F(TuningPitchTest, GetTruePitchEqualTemperamentBaseNote) {
-    EXPECT_DOUBLE_EQ(tuning.GetTruePitch(440.83751645933, CTuning::NO_TEMPERAMENT, 3, 0), 8.1913611114619442);
+    EXPECT_DOUBLE_EQ(tuning.GetTruePitch(TTuningSettings::PAL_A4_FREQUENCY, CTuning::NO_TEMPERAMENT, 3, 0), 8.1913611114619442);
 }
 
 TEST_F(TuningPitchTest, GetTruePitchEqualTemperamentOneOctaveUpIsDouble) {
     // semitone=12 is exactly one octave above semitone=0 (same note, multi
     // doubles) - characterizes the octave-doubling relationship explicitly.
-    EXPECT_DOUBLE_EQ(tuning.GetTruePitch(440.83751645933, CTuning::NO_TEMPERAMENT, 3, 12), 16.382722222923899);
+    EXPECT_DOUBLE_EQ(tuning.GetTruePitch(TTuningSettings::PAL_A4_FREQUENCY, CTuning::NO_TEMPERAMENT, 3, 12), 16.382722222923899);
 }
 
 TEST_F(TuningPitchTest, GetTruePitchPresetTemperamentUsesTwelveNotePresetRow) {
     // Temperament 1 = Thomas Young 1799's Well Temperament no.1, a full
     // 12-note-per-octave preset row.
-    EXPECT_DOUBLE_EQ(tuning.GetTruePitch(440.83751645933, 1, 3, 0), 8.1809110925559629);
+    EXPECT_DOUBLE_EQ(tuning.GetTruePitch(TTuningSettings::PAL_A4_FREQUENCY, 1, 3, 0), 8.1809110925559629);
 }
 
 TEST_F(TuningPitchTest, GetTruePitchPresetTemperamentDetectsShorterPresetRow) {
@@ -102,7 +102,7 @@ TEST_F(TuningPitchTest, GetTruePitchPresetTemperamentDetectsShorterPresetRow) {
     // entries (indices 0..5) instead of the usual 13, characterizing the
     // ragged-row notesnum-detection scan (GetTruePitch's own for-loop that
     // finds the first zero/padding entry) rather than always assuming 12.
-    EXPECT_DOUBLE_EQ(tuning.GetTruePitch(440.83751645933, 24, 3, 0), 10.31063157500196);
+    EXPECT_DOUBLE_EQ(tuning.GetTruePitch(TTuningSettings::PAL_A4_FREQUENCY, 24, 3, 0), 10.31063157500196);
 }
 
 TEST_F(TuningPitchTest, CalculateDeltaAUDFDefaultBranchStepsByOne) {
@@ -263,6 +263,6 @@ TEST_F(TuningInitTuningTest, GetTruePitchCustomTemperamentUsesCentsPopulatedByIn
     // after SetUp()'s InitTuning() call.
     // The cents defaults are equal temperament (0, 100, ..., 1100), so the
     // custom path reproduces the equal-temperament pitch.
-    EXPECT_DOUBLE_EQ(tuning.GetTruePitch(440.83751645933, CTuning::TUNING_CUSTOM, 3, 0), 8.191361111461944);
-    EXPECT_DOUBLE_EQ(tuning.GetTruePitch(440.83751645933, CTuning::TUNING_CUSTOM, 3, 0), tuning.GetTruePitch(440.83751645933, 0, 3, 0));
+    EXPECT_DOUBLE_EQ(tuning.GetTruePitch(TTuningSettings::PAL_A4_FREQUENCY, CTuning::TUNING_CUSTOM, 3, 0), 8.191361111461944);
+    EXPECT_DOUBLE_EQ(tuning.GetTruePitch(TTuningSettings::PAL_A4_FREQUENCY, CTuning::TUNING_CUSTOM, 3, 0), tuning.GetTruePitch(TTuningSettings::PAL_A4_FREQUENCY, 0, 3, 0));
 }

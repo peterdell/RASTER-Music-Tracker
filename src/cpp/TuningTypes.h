@@ -19,6 +19,19 @@ struct TTuningCents {
 
 struct TTuningSettings {
 
+    // The default A-4 reference pitch, RMT's traditional tuning rather than
+    // concert pitch 440 Hz: the Patch 16 player's shipped frequency tables
+    // were generated with exactly this value.
+    static constexpr double PAL_A4_FREQUENCY = 440.83751645933;
+
+    // The PAL default scaled by exactly the machine-clock ratio - the same
+    // conversion CRmtView::SetNTSC() applies - so the two defaults generate
+    // bit-identical frequency tables by construction (444.8957788679134,
+    // which both config writers' 16 significant digits round-trip; a decimal
+    // literal here was truncated once). Defined in TuningTypes.cpp, where
+    // CAtari's clock constants are visible.
+    static const double NTSC_A4_FREQUENCY;
+
     double basetuning;
     int basenote; // 3 = A-
     int temperament = 0; // each preset is assigned to a number. 0 means no Temperament, any value that is not assigned defaults to custom

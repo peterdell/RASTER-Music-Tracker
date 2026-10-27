@@ -1,7 +1,11 @@
 #include "TuningTypes.h"
 
+#include "Atari.h"
+
+const double TTuningSettings::NTSC_A4_FREQUENCY = TTuningSettings::PAL_A4_FREQUENCY * CAtari::FREQ_17_NTSC / CAtari::FREQ_17_PAL;
+
 void TTuningSettings::Initialize(bool ntsc) {
-    basetuning = ntsc ? 444.895778867913 : 440.83751645933;
+    basetuning = ntsc ? NTSC_A4_FREQUENCY : PAL_A4_FREQUENCY;
     basenote = 3;
     temperament = 0;
     cents.Initialize();
