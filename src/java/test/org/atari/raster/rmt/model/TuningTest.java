@@ -1,5 +1,6 @@
 package org.atari.raster.rmt.model;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -226,6 +227,24 @@ class TuningTest {
 			tuningSettings.initialize(false); // PAL, the ratios inside included
 			memory = new byte[0x600];
 			tuning.initTuning(memory, tuningSettings);
+		}
+
+		@Test
+		void generatesTheIdenticalPageForTheNtscDefaultsOnTheNtscClock() {
+			// The NTSC default is the PAL default scaled by exactly the
+			// clock ratio (TuningSettings.NTSC_A4_FREQUENCY): every pitch is
+			// proportional to the base tuning and every AUDF is computed
+			// from clock / pitch, so the scaling cancels before any rounding
+			// and the whole page is bit-identical - the invariant that lets
+			// one player binary serve both systems
+			// (doc/rmt_tracker_drivers.md, "Tuning"). It holds for the
+			// custom temperament's cents too, which setUp()'s initialize()
+			// included.
+			TuningSettings ntscSettings = new TuningSettings();
+			ntscSettings.initialize(true);
+			byte[] ntscMemory = new byte[0x600];
+			new Tuning(Atari.FREQ_17_NTSC).initTuning(ntscMemory, ntscSettings);
+			assertArrayEquals(memory, ntscMemory);
 		}
 
 		@Test

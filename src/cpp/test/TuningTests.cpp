@@ -18,6 +18,8 @@ extern CSong g_Song;
 //
 // PAL POKEY clock, matching CAtari::FREQ_17_PAL in Atari.h.
 static constexpr int PAL_CLOCK = 1773447;
+// NTSC POKEY clock, matching CAtari::FREQ_17_NTSC in Atari.h.
+static constexpr int NTSC_CLOCK = 1789773;
 
 class TuningPitchTest : public ::testing::Test {
   protected:
@@ -215,6 +217,21 @@ class TuningInitTuningTest : public ::testing::Test {
         tuning.InitTuning(PAL_CLOCK, memory.data());
     }
 };
+
+TEST_F(TuningInitTuningTest, GeneratesTheIdenticalPageForTheNtscDefaultsOnTheNtscClock) {
+    // The NTSC default is the PAL default scaled by exactly the clock ratio
+    // (TTuningSettings::NTSC_A4_FREQUENCY): every pitch is proportional to
+    // the base tuning and every AUDF is computed from clock / pitch, so the
+    // scaling cancels before any rounding and the whole page is
+    // bit-identical - the invariant that lets one player binary serve both
+    // systems (doc/rmt_tracker_drivers.md, "Tuning"). It holds for the
+    // custom temperament's cents too, which Initialize() included.
+    g_Song.GetTuningSettings().Initialize(true); // NTSC
+    CTuning ntscTuning{NTSC_CLOCK};
+    std::vector<byte> ntscMemory = std::vector<byte>(0x600, 0);
+    ntscTuning.InitTuning(NTSC_CLOCK, ntscMemory.data());
+    EXPECT_EQ(memory, ntscMemory);
+}
 
 TEST_F(TuningInitTuningTest, PopulatesTheDistortionTwoBellTableAtOffsetZero) {
     EXPECT_EQ(memory[0x000], 62);
