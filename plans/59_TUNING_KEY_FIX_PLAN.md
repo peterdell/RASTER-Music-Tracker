@@ -1,6 +1,10 @@
 # Plan 59: Tuning by key - fix the temperament definition, logic and dialog
 
-Status: IN PROGRESS (2026-10-26) - ivop's feedback arrived (see
+Status: IN PROGRESS (2026-10-27) - step 1 is committed (23ecea8); step 2
+is defined below: the base tuning field becomes the A4 frequency, with
+the tonic frequency derived from it inside the table generation
+(ivop's new poc, `others/Ivop/tuning_poc2.c`, 2026-10-27).
+Earlier history: ivop's feedback arrived (see
 others/Ivop/tuning_poc.md, "Continued conversation"): decisions 2 and 3
 are settled - drop all seven non-fitting presets (pentatonic and Aeolic
 are scales, not temperaments, so they are dropped rather than mapped),
@@ -181,6 +185,74 @@ the number that doubles as the C-notation offset 3; read/written by
 - [ ] K6. Changelog (Drivers and Tuning), documentation, and a reply in the
       AtariAge conversation.
 
+## Step 2: the base tuning field becomes the A4 frequency (2026-10-27)
+
+Decided by the user 2026-10-27, prompted by ivop's new poc version
+(`others/Ivop/tuning_poc2.c`; thread print
+`others/Ivop/RMT Tuning - AtariAge Forums.pdf`), which adds `-a`: specify
+the tonic note plus the frequency of **A4** instead of the tonic's own
+frequency, and derive the tonic frequency through the temperament.
+
+**The finding**: today's "Base tuning (Hz)" field is mathematically the
+frequency of the *base note* (the formula anchors the index where
+`(semitone + basenote) % 12 == 0`, the unison), but everything about it
+says VinsCool meant the A4 reference pitch: the dialog's example values
+(440, 432, 443.9, 440.83751645933, 444.895778867913) are all historical
+or POKEY-friendly A4 pitches, his parameter comment reads "usually the
+A-4 note" (`Tuning.cpp`), and the Patch-16 history says "base tuning
+(440hz currently)". The two readings coincide only while the base note
+is A - the default, which is why the difference was never noticed. With
+a non-A key, the user today has to compute the tonic frequency by hand
+(Kirnberger III in C at concert pitch = enter 263.18).
+
+**The design**: keep exactly the two existing fields - no radio button,
+no second entry style (ivop's old-style `-f` stays unexposed):
+
+- The field means the **frequency of A4**, always. Rename its label to
+  say so (`DataTypes.properties`, `Rmt.rc`); the example text already
+  fits.
+- Inside the table generation (`InitTuning()` in both programs, in
+  lockstep), derive the tonic frequency from A4 with ivop's
+  `calculate_base_frequency()`: normalize the tonic into the octave
+  at/below A4 (remembering the power-of-two correction - octaves are
+  exactly 2:1, so the tonic's octave is irrelevant), take the
+  temperament's multiplier for the tonic-to-A4 interval,
+  `tonic = A4 / m[interval]`, correction back on. Switching key or
+  temperament thereby re-derives the tonic with A4 held fixed - the
+  recomputation lives in the model, invisible to the dialog.
+
+**Behavior changes** (both by design, changelog-worthy):
+
+1. Non-A key under a non-equal temperament: the absolute pitch changes -
+   previously the entered number silently became the tonic's frequency.
+2. Equal temperament: the base note stops transposing the instrument
+   (equal is key-invariant, so with A4 fixed the key is audibly a
+   no-op). Today `basenote` acts as a global transposition there; a
+   saved non-A equal-temperament setup changes pitch. A dedicated
+   transpose feature stays a possible later complement (open decision 4).
+
+For the default base note A nothing changes at all (`m[0] = 1`), which
+covers virtually every existing module and Tuning.ini.
+
+**Steps**:
+
+- [ ] A1. Confirm the intent with VinsCool in the AtariAge conversation
+      (expected yes; the K1 probe numbers and the field's example values
+      make the case).
+- [ ] A2. Core, lockstep: the A4-to-tonic derivation in
+      `TuningTables.cpp`/`Tuning.java` per `calculate_base_frequency()`;
+      the C- notation offset and the descending BaseNote numbers are
+      already correct (K1) and stay.
+- [ ] A3. Dialog texts: relabel "Base tuning (Hz)" as the A4 frequency
+      in both programs; no field or layout changes.
+- [ ] A4. Tests: poc2-verified goldens (Kirnberger III, key C, A4 440 ->
+      tonic 263.18...; the three `-b 48/60/72` invocations produce the
+      same table, i.e. the tonic's octave is irrelevant); base note A
+      stays bit-identical to step 1's output; C++/Java parity.
+- [ ] A5. Changelog (Drivers and Tuning) covering both behavior changes;
+      Tuning.ini keeps its format (`BASETUNING` keeps its name, the
+      meaning change is documented).
+
 ## Open decisions
 
 1. RESOLVED 2026-10-26 (user): lockstep - the fix lands in Tuning.cpp and
@@ -207,7 +279,13 @@ the number that doubles as the C-notation offset 3; read/written by
 ## References
 
 - `others/Ivop/tuning_poc.md` (full conversation extract),
-  `others/Ivop/tuning_poc.c` (the poc), both local and untracked.
+  `others/Ivop/tuning_poc.c` (the poc), `others/Ivop/tuning_poc2.c`
+  (poc with the `-a` A4-frequency option and
+  `calculate_base_frequency()`), `others/Ivop/RMT Tuning - AtariAge
+  Forums.pdf` (thread print, 2026-10-27), all local and untracked.
+- https://www.dolmetsch.com/musictheory27t.htm (ivop's cross-check:
+  always tunes the key of C to a given A4 pitch; its Kirnberger III
+  (1776) (IT & D 12.04 (DH)) matches poc `-t 1`).
 - `src/cpp/Tuning.cpp`/`.h`, `src/java/org/atari/raster/rmt/model/Tuning.java`,
   `TuningSettings.java`, `src/java/org/atari/raster/rmt/ui/TuningDialog.java`.
 - plans/37_TUNING_COMPATIBILITY_PLAN.md (tuning table compatibility
