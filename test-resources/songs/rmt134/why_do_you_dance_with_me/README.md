@@ -11,8 +11,11 @@ Tuning:         Custom, and not expressible in RMT's tuning settings - the
                 sharper, the 64-byte table at $31c0 rebuilt), where RMT's
                 generated tables at $b000 cannot reach. Playing this
                 module through any driver RMT ships therefore does not
-                reproduce the party release; plan 36's F3 records how far
-                the comparison got and why.
+                reproduce the party release. Confirmed tick by tick (plan
+                36 F3): RMT's classic driver with only these tables and
+                the one distortion entry transplanted reproduces the
+                party release exactly - 24320 of 24320 player ticks, both
+                POKEYs, every register.
 Source:         https://ftp.pigwa.net/stuff/parties/prods/Silly_Venture,2021.12.08-12,Gdansk,Poland/atari_xl_music/whydoyou.zip
 
 Why_Do_You_Dance_With_Me-original-SV2k21WE.xex is WHYDOYOU.XEX from
@@ -24,3 +27,11 @@ the classic v1-family driver with retuned frequency tables and one
 changed distortion-table entry; the module plays at instrument
 speed 4 (FASTPLAY 78). The recovered driver and tuning details are in
 plans/36_MODULE_PROVENANCE_PLAN.md.
+
+Why_Do_You_Dance_With_Me-original.sapr is the composer's sound, not an
+RMT export: a tick-accurate recording of the party XEX (AltirraBridge,
+build/record_sapr_bridge.py --stereo --tick-scanlines 78), cut to one
+pass from the music's first tick and stored in RMT's chip order with
+the FASTPLAY 78 header, so it compares row for row with RMT's own SAP-R
+exports. RMT cannot produce this stream from the .rmt alone, because
+no shipped driver plays the composer's tables.

@@ -285,3 +285,24 @@ The file format version "2" structure is as follows:
 	    
 	>
 
+### Open Proposal: Content of the `TUN` Segment
+
+Status: **open** - a proposal, not yet a decision. Nothing reads or writes this segment yet.
+
+The `TUN` segment exists because a module's sound depends on frequency data that the version "1" file does not carry. The test tune "Why Do You Dance With Me?" (Silly Venture 2k21 WE, `test-resources/songs/rmt134/why_do_you_dance_with_me`) shows exactly which data is needed. Its party release plays through RMT's classic driver, and only three changes separate the composer's sound from that driver: a fully rebuilt 64-byte frequency table, a retuned pure-tone table and one changed entry of the distortion dispatch table (`$C0` -> `$A0`: one instrument distortion plays pure tones instead of buzzy ones). With exactly these bytes transplanted into RMT's classic driver, RMT reproduces the release in all 24320 of 24320 player ticks (`plans/36_MODULE_PROVENANCE_PLAN.md`, F3). Three conclusions follow for the segment's content:
+
+- **Tuning settings are not enough.** RMT's tuning settings (A4 frequency, base note, temperament, custom cents) only drive the Patch 16 table generator; the classic driver ignores them. And even a generator only produces the tables its formula yields, while composers also use hand-made tables. The segment must therefore be able to carry the **explicit tables**.
+- **Frequency tables are not enough either.** The distortion dispatch table, which maps each instrument distortion to its frequency table and its AUDC value, is part of the same picture and must be carryable as well.
+- **Tables only have a meaning together with their driver's layout.** The classic driver keeps its dispatch table at `$3182` and its frequency tables on the page at `$3200`; Patch 16 uses its own page at `$B000`. The same bytes mean different things in each, so the segment must name the layout it targets.
+
+Proposed content, after the common `TUN1` header:
+
+- **Driver layout**: the tracker driver version the tables belong to, using RMT's driver numbers (for example `1` for the classic driver, `6` for Patch 16).
+- **Settings (optional)**: A4 frequency, base note, temperament and the 12 custom cents values - for modules whose tables are generated, so a tracker can show and edit the tuning instead of only carrying bytes.
+- **Explicit tables (optional, repeatable)**: blocks of offset, length and data, relative to the driver layout's table area. Explicit blocks take precedence over tables generated from the settings.
+
+Open questions:
+
+- Binary layout versus text in the style of the metadata segment.
+- Whether a segment may hold settings and explicit tables at the same time, and how a tracker presents a module whose tables no longer match its settings.
+- How `TUN` relates to `PLR`. An embedded player with its tables is complete for playback (goal `G5`) - it is exactly what the party release above does. But a tracker cannot simply run such a player in place of its own driver: transplanting that release's whole player into RMT failed, because its code differs exactly where RMT's tracker-only hooks live. A tracker would have to take the tables from `PLR` and keep its own driver code, or `PLR` would have to guarantee the tracker's entry points as well.

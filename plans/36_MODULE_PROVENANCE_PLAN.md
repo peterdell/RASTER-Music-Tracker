@@ -1,6 +1,9 @@
 # Plan 36: An .rmt does not define its own sound - the missing driver and tuning information
 
-Status: IN PROGRESS 2026-10-11. The four original XEXs are
+Status: DONE 2026-10-28. All three tunes are anchored to their
+originals: F3 was completed tick by tick (see "F3 completed" below),
+and F4's last reference is committed. History: IN PROGRESS 2026-10-11.
+The four original XEXs are
 transferred into the fixture folders (F4, approved by the user - for
 Delta both the 1.0b and the 1.28 build, as they differ) and the
 anchoring F1-F3 ran. Results:
@@ -119,11 +122,45 @@ anchoring F1-F3 ran. Results:
   finest step). The F1/F2 method and verdicts are unaffected
   (instrument speed 1 there).
 
-Net: one of three tunes is anchored to its original. Captain Future
+Net (2026-10-11): one of three tunes is anchored to its original. Captain Future
 shows real divergence between its 1.34 export player and the current
 chain; Why Do You Dance With Me is reproduced down to the recovered
 driver and tables, but its byte-level verdict waits on tick-accurate
 recording (open decision 3).
+
+**Later corrections and completion:**
+
+- **F2's +-1 AUDF remap** was traced by plan 37 (T1-T4) to an
+  initialization-order bug in RMT 1.36, not to a settings or table
+  difference: at the 1.34 default settings RMT 1.36 generates tables
+  byte-identical to the RMT 1.34.00 release (see the fixture README).
+- **F3 completed (2026-10-28) - ANCHORED, tick by tick.** Plan 33's V7
+  had meanwhile given the recorder tick-accurate sampling (AltirraBridge
+  SCANLINES, record_sapr_bridge.py --tick-scanlines), which removes
+  open decision 3's obstacle. Three runs:
+  1. The party XEX recorded with --stereo --tick-scanlines 78: 24520
+     ticks, the music starting 190 ticks in, chips in swapped order.
+  2. Against RMT's SAP-R export with the classic (unpatched) driver:
+     AUDC and AUDCTL identical in 21492 of 24320 ticks; every other
+     difference is the composer's data - AUDC2 $C0 -> $A0 at the same
+     volume in 2828 ticks per chip (the changed distortion entry), and
+     AUDF values remapped consistently per (chip, channel, distortion,
+     clock mode), apart from keys where RMT's own table maps several
+     notes to one value.
+  3. Against the same export with the original player's DATA
+     transplanted into the classic driver ($3189, the 64-byte table at
+     $31C0-$31FF, the retuned table at $3280-$32FF): **24320 of 24320
+     ticks identical, both POKEYs, every register.** (Transplanting
+     the whole player segment fails instead: its few differing code
+     bytes, at $35FC and the tail $3A5A-$3A64, sit where RMT's
+     tracker-only code lives, so RMT's calls land in foreign code.)
+  The verdict: the composer's sound is RMT's classic driver plus his
+  own tuning data, which the .rmt cannot carry - the plan's thesis in
+  its purest form. F4's last reference, the one-pass recording, is
+  committed as Why_Do_You_Dance_With_Me-original.sapr (option a: the
+  composer's sound, which RMT cannot render from the .rmt alone; it is
+  byte-identical to run 3's stream). The probes (analysis script,
+  transplant probe) were kept out of the repository.
 
 Scope: verification of the POKEY streams against the original XEX
 files, ONLY. Fixing the format gap itself (driver/tuning fields in a
@@ -213,7 +250,8 @@ sheet ("Tracker Driver:" line) stays the manual stand-in.
    tables) and one AUDCTL $20 bit in the 573 intro frames - resolved
    the same day as stale export-session state baked into the party
    dump (see F2), not a driver difference.
-3. F3 follow-up: a byte-level verdict for FASTPLAY (instrument speed
+3. RESOLVED 2026-10-28: tick-accurate recording exists since plan 33
+   V7, and F3 was completed with it. Original text: F3 follow-up: a byte-level verdict for FASTPLAY (instrument speed
    > 1) tunes needs tick-accurate recording - e.g. sub-frame stepping
    in AltirraBridge (an upstream follow-up in the spirit of PR #96),
    or sampling the POKEY shadow per driver call instead of per frame.
