@@ -1176,7 +1176,7 @@ pp0_a
 			bit AUDCTL_JOIN_12
 			bne pp0_b			; BNE => 16-bit, BEQ => 1.79mhz
 			ldx #$40			; 1.79mhz pointer
-			bne pp0_c			; Unconditional
+			bne pp0_c			; Unconditional branch
 pp0_b
 			ldx #$80			; 16-bit pointer
 			stx g_flag+1		; Flag set in ch2
@@ -1189,7 +1189,7 @@ pp0_d
 			bit AUDCTL_JOIN_34
 			bne pp0_e			; BNE => 16-bit, BEQ => 1.79mhz
 			ldx #$40			; 1.79mhz pointer
-			bne pp0_f			; Unconditional
+			bne pp0_f			; Unconditional branch
 pp0_e
 			ldx #$80			; 16-bit pointer
 			stx g_flag+3		; Flag set in ch4
@@ -1199,7 +1199,7 @@ pp0_f
 pp0_g
 		EIF
 
-		IFT TRACKS>4			; Stereo
+		IFT TRACKS>4			; Stereo, same code again for offset +4
 			lda trackn_audctl+4
 			ora trackn_audctl+5
 			ora trackn_audctl+6
@@ -1220,7 +1220,7 @@ pp0_h
 				bit AUDCTL_JOIN_12
 				bne pp0_i		; BNE => 16-bit, BEQ => 1.79mhz
 				ldx #$40		; 1.79mhz pointer
-				bne pp0_j		; Unconditional
+				bne pp0_j		; Unconditional branch
 pp0_i
 				ldx #$80		; 16-bit pointer
 				stx g_flag+1+4	; Flag set in ch2
@@ -1233,7 +1233,7 @@ pp0_k
 				bit AUDCTL_JOIN_34
 				bne pp0_l		; BNE => 16-bit, BEQ => 1.79mhz
 				ldx #$40		; 1.79mhz pointer
-				bne pp0_m		; Unconditional
+				bne pp0_m		; Unconditional branch
 pp0_l
 				ldx #$80		; 16-bit pointer
 				stx g_flag+3+4	; Flag set in ch4
@@ -2063,7 +2063,7 @@ pp10b
 		adc tmp
 		bvs pp10d
 		bmi pp10d
-		lda #$FF					; If overflow, force #$FF!
+		lda #$ff					; If overflow, force #$ff!
 		bne pp10d
 pp10c
 		adc tmp
@@ -2092,7 +2092,7 @@ ppnext								; Jumped to when the instrument is not initialized
 
 
 rmt_p4
-	ldy #0					; Will be used to mute channels and reset the flags
+	ldy #0							; Will be used to mute channels and reset the flags
 
 ; End of mainloop code... everything below will be conditionally assembled for easy optimization.
 

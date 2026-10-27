@@ -1513,7 +1513,7 @@ pp10
 
 
 		lda trackn_portafrqa,x		; Load the current portamento frequency in memory.
-		clc							; Clear the carry flag .
+		clc							; Clear the carry flag.
 		adc trackn_shiftfrq,x		; Add to it the shiftfrq/vibrato pitch.
 pp10d
 
