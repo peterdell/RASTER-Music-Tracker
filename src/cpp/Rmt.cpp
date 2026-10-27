@@ -119,7 +119,7 @@ BOOL CRmtApp::InitInstance()
     }
 
 
-    g_Song.GetTuningSettings().Initialize(g_Song.IsNTSC()); // the ratios inside included
+    g_Song.GetTuningSettings().Initialize(g_Song.IsNTSC()); // the cents inside included
 
     // Intitilaize the Atari computer.
     g_Atari.Init(g_Song.IsNTSC());

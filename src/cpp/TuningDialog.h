@@ -12,7 +12,15 @@ public:
     // Dialog Data
     enum { IDD = IDD_TUNING };
 
-    TTuningSettings m_tuningSettings; // the ratios inside included
+    TTuningSettings m_tuningSettings; // the cents inside included
+
+    // The temperament combo's 23 entries (plan 59 retired seven presets):
+    // the combo index maps to the stable temperament number through
+    // TEMPERAMENT_NUMBERS; names match Java's ValueSets.properties.
+    static const int TEMPERAMENT_COUNT = 23;
+    static const int TEMPERAMENT_NUMBERS[TEMPERAMENT_COUNT];
+    static const char* const TEMPERAMENT_NAMES[TEMPERAMENT_COUNT];
+    static int TemperamentIndexOf(int temperament);
 
     // Show the dialog
     void Show(const BOOL test);

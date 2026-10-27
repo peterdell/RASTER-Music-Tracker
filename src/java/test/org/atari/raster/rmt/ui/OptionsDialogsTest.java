@@ -142,43 +142,44 @@ class OptionsDialogsTest {
 	void tuningDialogRoundTripsAndOnlyTestOrOKReachTheSession() {
 		session.song.getTuningSettings().basetuning = 432;
 		session.song.getTuningSettings().temperament = Temperament.CUSTOM;
-		session.song.getTuningSettings().ratios.maj7th = new IntegerFraction(243, 128);
+		session.song.getTuningSettings().cents.values[11] = 1109.775004326937; // 243/128 in cents
 		TuningDialog dialog = new TuningDialog(null, session);
 		dialog.dataToUi();
 
 		List<JTextField> fields = find(dialog, JTextField.class);
-		assertEquals(1 + 2 * 13, fields.size());
+		assertEquals(1 + 12, fields.size()); // the base tuning and the 12 cents (plan 59)
 		assertEquals("432", fields.get(0).getText());
 		List<JComboBox> combos = find(dialog, JComboBox.class);
 		assertEquals(BaseNote.A, combos.get(0).getSelectedItem());
 		assertEquals(Temperament.CUSTOM, combos.get(1).getSelectedItem());
-		assertEquals("Custom Temperament with RA/TIO", combos.get(1).getSelectedItem().toString()); // a combo box shows toString()
-		assertEquals("243", fields.get(1 + 2 * 11).getText()); // Major 7th numerator
-		assertEquals("128", fields.get(2 + 2 * 11).getText());
-		assertEquals("2", fields.get(1 + 2 * 12).getText()); // Octave
+		assertEquals("Custom Temperament in Cents", combos.get(1).getSelectedItem().toString()); // a combo box shows toString()
+		assertEquals("0", fields.get(1).getText()); // the tonic, fixed at 0 cents
+		assertFalse(fields.get(1).isEnabled(), "the tonic stays 0 cents");
+		assertTrue(fields.get(2).isEnabled(), "custom enables the other cents");
+		assertEquals("1109.775004326937", fields.get(1 + 11).getText()); // Major 7th
 
 		fields.get(0).setText("440");
-		fields.get(1 + 2 * 12).setText("4"); // Octave 4/1
+		fields.get(1 + 11).setText("1100.5");
 		dialog.dataFromUi();
 		assertEquals(440, dialog.settings.basetuning);
-		assertEquals(new IntegerFraction(4, 1), dialog.settings.ratios.octave);
+		assertEquals(1100.5, dialog.settings.cents.values[11]);
 		assertEquals(432, session.song.getTuningSettings().basetuning); // not applied yet
 
 		button(dialog, "Test").doClick();
 		assertEquals(440, session.song.getTuningSettings().basetuning);
-		assertEquals(new IntegerFraction(4, 1), session.song.getTuningSettings().ratios.octave);
+		assertEquals(1100.5, session.song.getTuningSettings().cents.values[11]);
 
 		button(dialog, "Reset").doClick();
 		assertEquals(432, session.song.getTuningSettings().basetuning); // the backup
-		assertEquals(new IntegerFraction(2, 1), session.song.getTuningSettings().ratios.octave);
+		assertEquals(1109.775004326937, session.song.getTuningSettings().cents.values[11]);
 		assertEquals("440", fields.get(0).getText()); // the fields keep what was typed, as in C++
 
 		fields.get(0).setText("5"); // DDV_MinMaxDouble 6.875..7040
 		assertFalse(dialog.validateOK());
 		fields.get(0).setText("7040");
-		fields.get(2 + 2 * 12).setText("0"); // a zero denominator is refused (C++ would divide by it)
+		fields.get(1 + 11).setText("1300"); // cents are 0-1200
 		assertFalse(dialog.validateOK());
-		fields.get(2 + 2 * 12).setText("1");
+		fields.get(1 + 11).setText("1100");
 		assertTrue(dialog.validateOK());
 	}
 
@@ -191,13 +192,14 @@ class OptionsDialogsTest {
 		List<JTextField> fields = find(dialog, JTextField.class);
 		assertTrue(fields.get(0).isEnabled()); // the base tuning is independent of the temperament
 		for (int i = 1; i < fields.size(); i++) {
-			assertFalse(fields.get(i).isEnabled(), "a preset plays its own table, the ratios are not used");
+			assertFalse(fields.get(i).isEnabled(), "a preset plays its own table, the cents are not used");
 		}
 
 		List<JComboBox> combos = find(dialog, JComboBox.class);
 		combos.get(1).setSelectedItem(Temperament.CUSTOM);
-		for (int i = 1; i < fields.size(); i++) {
-			assertTrue(fields.get(i).isEnabled(), "the custom temperament is played from the ratios");
+		assertFalse(fields.get(1).isEnabled(), "the tonic stays fixed at 0 cents");
+		for (int i = 2; i < fields.size(); i++) {
+			assertTrue(fields.get(i).isEnabled(), "the custom temperament is played from the cents");
 		}
 
 		combos.get(1).setSelectedItem(Temperament.WERCKMEISTER_III);
@@ -227,7 +229,7 @@ class OptionsDialogsTest {
 	void theComboEntriesMatchTheCppResources() {
 		assertEquals(12, BaseNote.getValues().size());
 		assertEquals("A-", BaseNote.getInstance(3).getText()); // the default basenote
-		assertEquals(30, Temperament.getValues().size()); // 0 equal + 28 presets + custom (TUNING_PRESETS = 29 is the custom index)
+		assertEquals(23, Temperament.getValues().size()); // 0 equal + 21 presets + custom; plan 59 retired seven presets (TUNING_PRESETS = 29 stays the custom index)
 		assertEquals(org.atari.raster.rmt.model.Tuning.TUNING_CUSTOM, Temperament.CUSTOM.getNumber());
 		// the driver versions are a value set now: the six the dialog offers, with their texts from ValueSets.properties
 		assertEquals(6, TrackerDriverVersion.getSelectableValues().size());

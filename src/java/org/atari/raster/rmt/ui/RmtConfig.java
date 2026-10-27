@@ -16,7 +16,7 @@ import org.atari.raster.rmt.model.RmtVersion;
 import org.atari.raster.rmt.model.KeyboardLayout;
 import org.atari.raster.rmt.model.Temperament;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
-import org.atari.raster.rmt.model.TuningRatios;
+import org.atari.raster.rmt.model.TuningCents;
 import org.atari.raster.rmt.model.TuningSettings;
 
 /**
@@ -277,9 +277,15 @@ public final class RmtConfig {
 		parseTuningConfig(lines, session.song.getTuningSettings());
 	}
 
-	/** The parsing half of {@code ReadTuningConfig()}: {@code NAME = value} for the settings, {@code NAME = numerator / denominator} for the ratios. */
+	/**
+	 * The parsing half of {@code ReadTuningConfig()}: {@code NAME = value} for
+	 * the settings and the cents. A pre-plan-59 file carries the custom
+	 * temperament as fractions ({@code NAME = numerator / denominator}); those
+	 * migrate on read via {@code 1200*log2(numerator/denominator)}, and the
+	 * fixed OCTAVE line is ignored.
+	 */
 	static void parseTuningConfig(List<String> lines, TuningSettings tuning) {
-		TuningRatios ratios = tuning.ratios;
+		TuningCents cents = tuning.cents;
 		for (String line : lines) {
 			int eq = line.indexOf('=');
 			if (eq < 0) {
@@ -303,19 +309,19 @@ public final class RmtConfig {
 			case "BASENOTE" -> tuning.basenote = BaseNote.getInstanceWithFallback(atoi(value));
 			case "TEMPERAMENT" -> tuning.temperament = Temperament.getInstanceWithFallback(atoi(value));
 			// RATIOS
-			case "UNISON" -> ratios.unison = readIntegerFraction(value, value2);
-			case "MIN_2ND" -> ratios.min2nd = readIntegerFraction(value, value2);
-			case "MAJ_2ND" -> ratios.maj2nd = readIntegerFraction(value, value2);
-			case "MIN_3RD" -> ratios.min3rd = readIntegerFraction(value, value2);
-			case "MAJ_3RD" -> ratios.maj3rd = readIntegerFraction(value, value2);
-			case "PERF_4TH" -> ratios.perf4th = readIntegerFraction(value, value2);
-			case "TRITONE" -> ratios.tritone = readIntegerFraction(value, value2);
-			case "PERF_5TH" -> ratios.perf5th = readIntegerFraction(value, value2);
-			case "MIN_6TH" -> ratios.min6th = readIntegerFraction(value, value2);
-			case "MAJ_6TH" -> ratios.maj6th = readIntegerFraction(value, value2);
-			case "MIN_7TH" -> ratios.min7th = readIntegerFraction(value, value2);
-			case "MAJ_7TH" -> ratios.maj7th = readIntegerFraction(value, value2); // missing from C++ 1.35's read list although written - fixed in both
-			case "OCTAVE" -> ratios.octave = readIntegerFraction(value, value2);
+			case "UNISON" -> cents.values[0] = readCents(value, value2);
+			case "MIN_2ND" -> cents.values[1] = readCents(value, value2);
+			case "MAJ_2ND" -> cents.values[2] = readCents(value, value2);
+			case "MIN_3RD" -> cents.values[3] = readCents(value, value2);
+			case "MAJ_3RD" -> cents.values[4] = readCents(value, value2);
+			case "PERF_4TH" -> cents.values[5] = readCents(value, value2);
+			case "TRITONE" -> cents.values[6] = readCents(value, value2);
+			case "PERF_5TH" -> cents.values[7] = readCents(value, value2);
+			case "MIN_6TH" -> cents.values[8] = readCents(value, value2);
+			case "MAJ_6TH" -> cents.values[9] = readCents(value, value2);
+			case "MIN_7TH" -> cents.values[10] = readCents(value, value2);
+			case "MAJ_7TH" -> cents.values[11] = readCents(value, value2);
+			case "OCTAVE" -> { /* fixed at 1200 (2:1) since plan 59; old files carry the line */ }
 			default -> {
 				// unknown names are skipped, as in C++
 			}
@@ -323,14 +329,22 @@ public final class RmtConfig {
 		}
 	}
 
-	/** {@code ReadIntegerFraction()}: a zero denominator becomes 1/1. */
-	private static IntegerFraction readIntegerFraction(String value, String value2) {
+	/**
+	 * A cents value, read directly ({@code NAME = 386.313714}) or migrated
+	 * from a pre-plan-59 fraction line ({@code NAME = 5 / 4} becomes
+	 * {@code 1200*log2(5/4)}); the old format's zero denominator meant 1/1,
+	 * so it becomes 0 cents, as does a non-positive numerator.
+	 */
+	private static double readCents(String value, String value2) {
+		if (value2.isEmpty()) {
+			return atof(value);
+		}
 		int numerator = atoi(value);
 		int denominator = atoi(value2);
-		if (denominator == 0) {
-			return new IntegerFraction(1, 1);
+		if (denominator == 0 || numerator <= 0) {
+			return 0;
 		}
-		return new IntegerFraction(numerator, denominator);
+		return 1200 * Math.log((double) numerator / denominator) / Math.log(2);
 	}
 
 	/** {@code CRmtView::WriteTuningConfig()}. */
@@ -340,7 +354,7 @@ public final class RmtConfig {
 
 	/** The text {@code WriteTuningConfig()} produces, with {@code \n} line ends. */
 	static String formatTuningConfig(TuningSettings tuning) {
-		TuningRatios ratios = tuning.ratios;
+		TuningCents cents = tuning.cents;
 		StringBuilder os = new StringBuilder();
 		os.append("# RMT CONFIGURATION FILE\n");
 		os.append("# ").append(RmtVersion.RMT_VERSION_STRING).append('\n');
@@ -350,20 +364,10 @@ public final class RmtConfig {
 		line(os, "BASENOTE", tuning.basenote.getNumber());
 		line(os, "TEMPERAMENT", tuning.temperament.getNumber());
 
-		os.append("\n# RATIOS\n\n");
-		writeIntegerFraction(os, "UNISON", ratios.unison);
-		writeIntegerFraction(os, "MIN_2ND", ratios.min2nd);
-		writeIntegerFraction(os, "MAJ_2ND", ratios.maj2nd);
-		writeIntegerFraction(os, "MIN_3RD", ratios.min3rd);
-		writeIntegerFraction(os, "MAJ_3RD", ratios.maj3rd);
-		writeIntegerFraction(os, "PERF_4TH", ratios.perf4th);
-		writeIntegerFraction(os, "TRITONE", ratios.tritone);
-		writeIntegerFraction(os, "PERF_5TH", ratios.perf5th);
-		writeIntegerFraction(os, "MIN_6TH", ratios.min6th);
-		writeIntegerFraction(os, "MAJ_6TH", ratios.maj6th);
-		writeIntegerFraction(os, "MIN_7TH", ratios.min7th);
-		writeIntegerFraction(os, "MAJ_7TH", ratios.maj7th);
-		writeIntegerFraction(os, "OCTAVE", ratios.octave);
+		os.append("\n# CENTS\n\n");
+		for (int i = 0; i < TuningCents.COUNT; i++) {
+			centsLine(os, TuningCents.NAMES[i], cents.values[i]);
+		}
 		return os.toString();
 	}
 
@@ -403,9 +407,9 @@ public final class RmtConfig {
 		out.append(name).append(" = ").append(value).append('\n');
 	}
 
-	/** {@code WriteIntegerFraction()}. */
-	private static void writeIntegerFraction(StringBuilder out, String name, IntegerFraction f) {
-		out.append(name).append(" = ").append(f.numerator).append(" / ").append(f.denominator).append('\n');
+	/** One cents line, where {@code WriteIntegerFraction()} wrote a fraction before plan 59. */
+	private static void centsLine(StringBuilder out, String name, double value) {
+		out.append(name).append(" = ").append(formatDouble(value)).append('\n');
 	}
 
 	/** C's {@code atoi}: the leading integer, 0 if there is none. */

@@ -21,13 +21,13 @@ public final class TuningSettings {
 	public double basetuning;
 	public BaseNote basenote = BaseNote.A;
 	public Temperament temperament = Temperament.EQUAL;
-	/** The interval ratios {@link Temperament#CUSTOM} is played from - part of the tuning settings, not a sibling of them. */
-	public final TuningRatios ratios = new TuningRatios();
+	/** The cents {@link Temperament#CUSTOM} is played from - part of the tuning settings, not a sibling of them. */
+	public final TuningCents cents = new TuningCents();
 
 	public void initialize(boolean ntsc) {
 		basetuning = ntsc ? 444.895778867913 : 440.83751645933;
 		basenote = BaseNote.A;
 		temperament = Temperament.EQUAL;
-		ratios.initialize();
+		cents.initialize();
 	}
 }

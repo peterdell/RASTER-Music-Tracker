@@ -56,7 +56,7 @@ CInstruments g_Instruments;
 CTrackClipboard g_TrackClipboard;
 CSong g_Song;
 
-// Real TTuningSettings/TTuningRatios globals for CSong::ResetTuningVariables()/
+// Real TTuningSettings/TTuningCents globals for CSong::ResetTuningVariables()/
 // MakeModule()/DecodeModule() (see SongEditing.cpp) - both structs are
 // already globals-free and tested (TuningTypesTests.cpp), so real instances
 // are safe to link directly.

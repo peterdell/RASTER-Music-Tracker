@@ -1,8 +1,32 @@
 # Plan 59: Tuning by key - fix the temperament definition, logic and dialog
 
-Status: PAUSED (2026-10-25) - awaiting ivop's feedback before the open
-decisions are settled and implementation starts. The K2 preset inventory
-is already done (see "Preset inventory" below).
+Status: IN PROGRESS (2026-10-26) - ivop's feedback arrived (see
+others/Ivop/tuning_poc.md, "Continued conversation"): decisions 2 and 3
+are settled - drop all seven non-fitting presets (pentatonic and Aeolic
+are scales, not temperaments, so they are dropped rather than mapped),
+and the dialog becomes key-only. The user overruled one part of ivop's
+recommendation the same day: the custom tuning stays, redefined to store
+the 12 tonic-based multipliers directly as doubles instead of fractions
+(see open decision 3 below). A transposition field or a transpose-song
+editor dialog can come later. All decisions were settled; K1 then FALSIFIED the premise (2026-10-26):
+the current getTruePitch() produces exactly ivop's poc output for Thomas
+Young no.1 in key A AND key C (verified to every displayed digit; probe
+in out/k1, poc as reference). BaseNote's numbers DESCEND (C=0, B=1,
+A#=2, A=3), so (semitone + basenote) % 12 is precisely the distance
+above the tonic - the tonic reads ratio[0] in every key, and
+octave^((s+b) div 12) anchors the tonic at the base frequency. The
+thread's analysis assumed basenote B = 2. The key parameter works today;
+the "out of tune in every key but A" bug does not exist. Implementation
+was then rescoped: the user chose the simplification subset ("step 1"),
+DONE 2026-10-26 in both programs - the seven non-fitting presets are
+retired (their numbers stay reserved; persisted selections fall back to
+equal in both programs), and the custom temperament stores 12
+tonic-based cents doubles instead of the 13 fractions (dialogs reworked,
+Tuning.ini migrates old fraction lines via 1200*log2(n/d), the custom
+display text is "Custom Temperament in Cents"). The internals rewrite
+(MIDI table, uniform rows) stays skipped - the key handling was proven
+correct; the documentation repairs (rmtdata.a65's wrong "(C-)" aside,
+the semitone/note naming confusion) remain open as a possible follow-up.
 Direction decided in the AtariAge conversation
 "RMT Tuning" (JAC!, ivop, VinsCool, 2026-10-15 to 10-23; prints, ivop's
 proof of concept `tuning_poc.c` and the full extract `tuning_poc.md` are
@@ -121,10 +145,14 @@ the number that doubles as the C-notation offset 3; read/written by
       non-equal presets change *by design* for keys other than A - capture
       before/after examples for the commit message and changelog).
 - [ ] K2. Data model: convert `TEMPERAMENT_PRESETS` to uniform 12-multiplier
-      rows; inventory which of the 29 presets exceed 12 notes and drop them;
-      map the pentatonic preset; adjust the `Temperament` value set and
-      `ValueSets.properties`; migrate persisted temperament selections
-      (rmt.ini/Tuning.ini and the module's tuning block).
+      rows; drop the seven non-fitting presets (ivop, 2026-10-26: the five
+      incompatible ones, plus pentatonic and Aeolic - scales, not
+      temperaments); redefine the custom temperament to 12 tonic-based
+      cents doubles (tonic 0, octave 1200), persisted in Tuning.ini as
+      ASCII doubles, with existing fractions migrated via
+      1200*log2(n/d); adjust the `Temperament` value set and
+      `ValueSets.properties`; a persisted dropped preset falls back to
+      equal, with a changelog note.
 - [ ] K3. Core logic, C++ and Java in lockstep (`Tuning.cpp`,
       `Tuning.java`): MIDI frequency table from tonic + multipliers,
       lookup replacing `getTruePitch()`, divider conversion in the copy
@@ -132,9 +160,13 @@ the number that doubles as the C-notation offset 3; read/written by
       transposition; the C- notation offset 3 becomes one named, documented
       constant.
 - [ ] K4. Dialog (`TuningDialog.java` and the C++ tuning dialog): the
-      current "Base Note" field becomes Key (tonic), with transposition
-      exposed separately (open decision 3); ratio fields stay enabled for
-      the custom temperament only (already done, Build 2026-10-17).
+      current "Base Note" field becomes Key (tonic); no transposition
+      field for now. The 13 RA/TIO fraction pairs become 12 multiplier
+      cents fields holding doubles (tonic 0 read-only, octave fixed at
+      1200), enabled
+      for the custom temperament only; existing custom fractions migrate
+      to their evaluated double values (user's overrule of ivop's
+      leave-it-out recommendation, 2026-10-26).
 - [ ] K5. Tests: port `tuning_poc.c` to Java as the tests' reference
       implementation (a test-source class, e.g. `TuningReference`, with
       the poc's data and conversions and the "three scale notations"
@@ -151,22 +183,26 @@ the number that doubles as the C-notation offset 3; read/written by
 
 ## Open decisions
 
-1. **C++ scope**: C++ is being phased out, but tuning output feeds the
-   cross-program equality tests, so while both programs live the fix must
-   land in both - confirm, or decide to freeze the C++ tuning (and exclude
-   it from the affected comparisons) instead.
-2. **Dropped presets**: which of the 29 presets have more than 12 notes,
-   and is dropping them acceptable to users (K2 inventories them first).
-3. **Dialog shape**: whether Transposition gets its own field in the tuning
-   dialog or stays where today's base-note shift is used; the 13th custom
-   ratio pair (the octave) in light of the fixed 2:1 octave; VinsCool's
-   idea of showing the decimal value beside each fraction, or allowing a
-   fixed value to override a fraction (optional, may be deferred).
-4. **Retune vs transpose semantics**: the table is *retuned* in the key
-   (note names keep their meaning); a possible later complement is a
-   transpose-all-patterns command that skips percussion/fixed-frequency
-   instruments via an instrument flag (ivop's suggestion, out of scope
-   here).
+1. RESOLVED 2026-10-26 (user): lockstep - the fix lands in Tuning.cpp and
+   Tuning.java identically while both programs ship.
+2. RESOLVED 2026-10-26 (ivop): drop all seven non-fitting presets -
+   the five incompatible ones, and pentatonic/Aeolic too, because they
+   are scales (note selections), not temperaments.
+3. RESOLVED 2026-10-26 (ivop, amended by the user's overrule the same
+   day): key only, no transposition field (that part stands - a
+   transpose field or transpose-song dialog can come later). But the
+   custom tuning STAYS, redefined (user, final): it stores 12
+   tonic-based values in MUSICAL CENTS as doubles (tonic fixed at 0,
+   octave fixed at 1200 = 2:1), the notation of the musicological
+   literature (Kirnberger III: 0, 90.225, 193.157, ...; equal is 0, 100,
+   ..., 1100), converted to multipliers by 2^(cents/1200) at table
+   generation. The dialog's 13 fraction pairs become 12 cents fields
+   (the first read-only 0); Tuning.ini persists the doubles as ASCII;
+   existing custom fractions migrate via 1200*log2(numerator/denominator).
+4. **Retune vs transpose semantics**: resolved by 3 - the table is
+   *retuned* in the key; the transpose-all-patterns editor command
+   (skipping percussion/fixed-frequency instruments via an instrument
+   flag) stays a possible later complement, out of scope here.
 
 ## References
 

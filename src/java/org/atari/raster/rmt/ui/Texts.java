@@ -31,7 +31,7 @@ public final class Texts extends NLS {
 	// TuningDialog (IDD_TUNING)
 	public static String TuningDialog_Title;
 	public static String TuningDialog_GroupGeneral;
-	public static String TuningDialog_GroupRatios;
+	public static String TuningDialog_GroupCents;
 
 	// FileNewDialog (IDD_FILE_NEW)
 	public static String FileNewDialog_Title;

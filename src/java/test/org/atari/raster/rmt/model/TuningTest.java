@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Mirrors src/cpp/test/TuningTests.cpp exactly, including GenerateTable()/
  * InitTuning() (see Tuning's own javadoc for why those two are redesigned to
- * take explicit TuningSettings/TuningRatios parameters here instead of
+ * take explicit TuningSettings parameters here instead of
  * reading C++ globals). Expected values are the same golden-master captures
  * used on the C++ side - CTuning's own test coverage was extended first
  * specifically so this batch would have real values to port against, not
@@ -295,12 +295,15 @@ class TuningTest {
 		}
 
 		@Test
-		void getTruePitchCustomTemperamentUsesRatiosPopulatedByInitTuning() {
+		void getTruePitchCustomTemperamentUsesCentsPopulatedByInitTuning() {
 			// TUNING_CUSTOM reads Tuning's private custom[] array, only ever
-			// populated as a side effect of initTuning() (from the settings' ratios) -
-			// there's no public setter, so this can only be characterized
-			// here, after setUp()'s initTuning() call.
-			assertEquals(8.1036308172670957, tuning.getTruePitch(440.83751645933, Tuning.TUNING_CUSTOM, 3, 0));
+			// populated as a side effect of initTuning() (from the settings'
+			// cents since plan 59) - there's no public setter, so this can
+			// only be characterized here, after setUp()'s initTuning() call.
+			// The cents defaults are equal temperament (0, 100, ..., 1100),
+			// so the custom path reproduces the equal-temperament pitch.
+			assertEquals(8.191361111461944, tuning.getTruePitch(440.83751645933, Tuning.TUNING_CUSTOM, 3, 0));
+			assertEquals(tuning.getTruePitch(440.83751645933, Tuning.NO_TEMPERAMENT, 3, 0), tuning.getTruePitch(440.83751645933, Tuning.TUNING_CUSTOM, 3, 0));
 		}
 
 		@Test

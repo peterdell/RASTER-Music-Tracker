@@ -135,13 +135,14 @@ class ValueSetsTest {
 	void theTemperamentsHaveTheirTextsAndNumbers() {
 		List<Temperament> all = Temperament.getValues();
 		assertTextsAreLoaded(all);
-		assertEquals(Tuning.TUNING_CUSTOM + 1, all.size());
-		for (int i = 0; i < all.size(); i++) {
-			assertEquals(i, all.get(i).getNumber(), "getValues() keeps the number order");
+		assertEquals(23, all.size()); // 30 before plan 59 retired seven presets
+		for (int i = 1; i < all.size(); i++) {
+			assertTrue(all.get(i - 1).getNumber() < all.get(i).getNumber(), "getValues() keeps the number order");
 		}
 		assertEquals("Equal Temperament (Default)", Temperament.EQUAL.getText());
-		assertEquals("Tempérament Égal a Quintes Justes", Temperament.EGAL_QUINTES_JUSTES.getText());
-		assertEquals("Custom Temperament with RA/TIO", Temperament.CUSTOM.getText());
+		assertNull(Temperament.getInstance(5), "Egal a Quintes Justes is retired (plan 59)");
+		assertEquals(Temperament.EQUAL, Temperament.getInstanceWithFallback(5));
+		assertEquals("Custom Temperament in Cents", Temperament.CUSTOM.getText());
 		assertSame(Temperament.WERCKMEISTER_III, Temperament.getInstance(4));
 		assertSame(Temperament.BACH, Temperament.getInstance("BACH"));
 		assertTrue(Temperament.CUSTOM.isCustom());

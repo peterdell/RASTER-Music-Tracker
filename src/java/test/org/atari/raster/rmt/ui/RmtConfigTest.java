@@ -21,7 +21,7 @@ import org.atari.raster.rmt.model.Temperament;
 import org.atari.raster.rmt.model.MessageButtons;
 import org.atari.raster.rmt.model.Messages;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
-import org.atari.raster.rmt.model.TuningRatios;
+import org.atari.raster.rmt.model.TuningCents;
 import org.atari.raster.rmt.model.TuningSettings;
 
 /** rmt.ini / tuning.ini: the exact text C++ writes, the C++ parser's behavior, and the missing-file paths. */
@@ -81,7 +81,7 @@ class RmtConfigTest {
 			VIEW_DEBUGDISPLAY = 0
 			""";
 
-	/** The default tuning.ini - note the ratios as C++ writes them before IntegerFraction's normalization (40/38 etc.); Java writes them reduced. */
+	/** The default tuning.ini: the custom temperament's cents (plan 59), defaulting to equal temperament. */
 	static final String DEFAULT_TUNING_INI = """
 			# RMT CONFIGURATION FILE
 			# RASTER Music Tracker 1.36
@@ -92,20 +92,37 @@ class RmtConfigTest {
 			BASENOTE = 3
 			TEMPERAMENT = 0
 
+			# CENTS
+
+			UNISON = 0
+			MIN_2ND = 100
+			MAJ_2ND = 200
+			MIN_3RD = 300
+			MAJ_3RD = 400
+			PERF_4TH = 500
+			TRITONE = 600
+			PERF_5TH = 700
+			MIN_6TH = 800
+			MAJ_6TH = 900
+			MIN_7TH = 1000
+			MAJ_7TH = 1100
+			""";
+
+	/** A pre-plan-59 tuning.ini with the custom temperament as fractions - migrated to cents on read. */
+	static final String OLD_FRACTION_TUNING_INI = """
+			# RMT CONFIGURATION FILE
+			# RASTER Music Tracker 1.35
+
+			# TUNING
+
+			TUNING = 432
+			BASENOTE = 0
+			TEMPERAMENT = 30
+
 			# RATIOS
 
-			UNISON = 1 / 1
-			MIN_2ND = 20 / 19
-			MAJ_2ND = 10 / 9
-			MIN_3RD = 20 / 17
 			MAJ_3RD = 5 / 4
-			PERF_4TH = 4 / 3
-			TRITONE = 60 / 43
-			PERF_5TH = 3 / 2
-			MIN_6TH = 30 / 19
-			MAJ_6TH = 5 / 3
-			MIN_7TH = 30 / 17
-			MAJ_7TH = 15 / 8
+			MAJ_7TH = 243 / 128
 			OCTAVE = 2 / 1
 			""";
 
@@ -180,8 +197,7 @@ class RmtConfigTest {
 		written.song.getTuningSettings().basetuning = 432.5;
 		written.song.getTuningSettings().basenote = BaseNote.F;
 		written.song.getTuningSettings().temperament = Temperament.CUSTOM;
-		written.song.getTuningSettings().ratios.maj7th = new IntegerFraction(243, 128);
-		written.song.getTuningSettings().ratios.octave = new IntegerFraction(4, 2);
+		written.song.getTuningSettings().cents.values[11] = 1109.775004326937; // 243/128 in cents
 
 		RmtConfig config = new RmtConfig(dir);
 		config.writeRMTConfig(written);
@@ -200,8 +216,7 @@ class RmtConfigTest {
 		assertEquals(RmtConfig.formatTuningConfig(written.song.getTuningSettings()), RmtConfig.formatTuningConfig(read.song.getTuningSettings()));
 		assertTrue(read.song.isNTSC());
 		assertEquals("C:\\Music\\Songs = mine", read.options.defaultSongsPath); // only the first '=' splits
-		assertEquals(new IntegerFraction(243, 128), read.song.getTuningSettings().ratios.maj7th); // MAJ_7TH is read back (C++ 1.35 only wrote it)
-		assertEquals(2, read.song.getTuningSettings().ratios.octave.numerator); // normalized by IntegerFraction
+		assertEquals(1109.775004326937, read.song.getTuningSettings().cents.values[11]); // MAJ_7TH is read back (C++ 1.35 only wrote it)
 	}
 
 	@Test
@@ -229,7 +244,7 @@ class RmtConfigTest {
 	void aMissingTuningIniResetsTheTuningAndWritesTheDefaults(@TempDir Path dir) throws IOException {
 		RmtSession session = new RmtSession();
 		session.song.getTuningSettings().basetuning = 999;
-		session.song.getTuningSettings().ratios.octave = new IntegerFraction(3, 1);
+		session.song.getTuningSettings().cents.values[4] = 350; // off the default
 		RecordingMessages messages = new RecordingMessages();
 		session.messages.setHandler(messages);
 
@@ -238,7 +253,7 @@ class RmtConfigTest {
 		assertEquals(1, messages.warnings.size());
 		assertTrue(messages.warnings.get(0).contains("RMT will use the default Tuning parameters."));
 		assertEquals(440.83751645933, session.song.getTuningSettings().basetuning);
-		assertEquals(new IntegerFraction(2, 1), session.song.getTuningSettings().ratios.octave);
+		assertEquals(400, session.song.getTuningSettings().cents.values[4]); // reset to the equal default
 		assertEquals(DEFAULT_TUNING_INI, Files.readString(dir.resolve("tuning.ini"), RmtConfig.CHARSET).replace(System.lineSeparator(), "\n"));
 	}
 
@@ -267,32 +282,42 @@ class RmtConfigTest {
 		assertEquals("My Device = 2", o.midiDevice);
 
 		TuningSettings tuning = new TuningSettings();
-		TuningRatios ratios = tuning.ratios;
-		ratios.initialize();
+		TuningCents cents = tuning.cents;
+		cents.initialize();
 		RmtConfig.parseTuningConfig(List.of(
 				"TUNING = 432.5Hz", // atof: the leading number
 				"BASENOTE = 9", //
 				"TEMPERAMENT = 29", //
-				"PERF_5TH = 3 / 2", //
-				"OCTAVE = 4 / 0", // a zero denominator becomes 1/1
-				"MAJ_3RD = 5", // no '/': C++'s value2 is unset; treated as 0 -> 1/1
+				"PERF_5TH = 3 / 2", // an old fraction line migrates to cents
+				"OCTAVE = 4 / 0", // the octave is fixed since plan 59; the line is ignored
+				"MAJ_3RD = 386.3137138648348", // the new format: cents directly
 				"MIN_2ND = 40 / 38"), tuning);
 		assertEquals(432.5, tuning.basetuning);
 		assertEquals(BaseNote.D_SHARP, tuning.basenote); // number 9
 		assertEquals(Temperament.CUSTOM, tuning.temperament); // number 29
-		assertEquals(new IntegerFraction(3, 2), ratios.perf5th);
-		assertEquals(new IntegerFraction(1, 1), ratios.octave);
-		assertEquals(new IntegerFraction(1, 1), ratios.maj3rd);
-		assertEquals(new IntegerFraction(20, 19), ratios.min2nd);
-		assertEquals(new IntegerFraction(10, 9), ratios.maj2nd); // untouched
+		assertEquals(701.9550008653874, cents.values[7], 1e-12); // 3/2 in cents
+		assertEquals(386.3137138648348, cents.values[4]);
+		assertEquals(88.80069773253213, cents.values[1], 1e-12); // 40/38
+		assertEquals(200, cents.values[2]); // untouched default
+	}
+
+	/** A pre-plan-59 tuning.ini migrates: fractions become cents, the retired OCTAVE line is ignored. */
+	@Test
+	void anOldFractionTuningIniMigratesToCents() {
+		TuningSettings tuning = new TuningSettings();
+		tuning.cents.initialize();
+		RmtConfig.parseTuningConfig(OLD_FRACTION_TUNING_INI.lines().toList(), tuning);
+		assertEquals(432, tuning.basetuning);
+		assertEquals(BaseNote.C, tuning.basenote);
+		assertEquals(Temperament.CUSTOM, tuning.temperament); // 30 >= 29 is custom
+		assertEquals(386.3137138648348, tuning.cents.values[4], 1e-12); // 5/4
+		assertEquals(1109.775004326937, tuning.cents.values[11], 1e-12); // 243/128
 	}
 
 	/** The ini file can carry any number; the mapping guards where C++ reads out of bounds (plans/48_TUNING_VALUE_SETS_PLAN.md). */
 	@Test
 	void strayTuningNumbersMapToCustomEqualAndTheDefaultBaseNote() {
 		TuningSettings tuning = new TuningSettings();
-		TuningRatios ratios = tuning.ratios;
-		ratios.initialize();
 		RmtConfig.parseTuningConfig(List.of(
 				"BASENOTE = 99", // unknown -> the default A
 				"TEMPERAMENT = 35"), tuning); // >= 29 is custom, C++'s own semantic
@@ -300,6 +325,9 @@ class RmtConfigTest {
 		assertEquals(Temperament.CUSTOM, tuning.temperament);
 
 		RmtConfig.parseTuningConfig(List.of("TEMPERAMENT = -1"), tuning); // a guard, C++ reads its preset table out of bounds
+		assertEquals(Temperament.EQUAL, tuning.temperament);
+
+		RmtConfig.parseTuningConfig(List.of("TEMPERAMENT = 26"), tuning); // a retired preset (plan 59)
 		assertEquals(Temperament.EQUAL, tuning.temperament);
 	}
 

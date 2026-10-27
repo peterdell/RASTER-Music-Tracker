@@ -202,7 +202,7 @@ TEST_F(TuningGenerateTableTest, GeneratesASixteenBitJoinedTableUsingTwoBytesPerE
 
 // InitTuning() orchestrates GenerateTable() across all 13 lookup tables. Its
 // MessageBox+exit(1) guard (basetuning == 0) is never reached here because
-// SetUp() always initializes g_Song.GetTuningSettings() (the ratios inside included) first - deliberately
+// SetUp() always initializes g_Song.GetTuningSettings() (the cents inside included) first - deliberately
 // not characterized directly since that would terminate the whole test
 // process (same hazard already documented in AtariStub.cpp/13_JAVA_PORT_PLAN.md
 // for CAtari::Init(bool)).
@@ -255,10 +255,14 @@ TEST_F(TuningInitTuningTest, PopulatesTheFifteenKhzBuzzyCTableAtOffsetFiveC0) {
     EXPECT_EQ(memory[0x5C1], 178);
 }
 
-TEST_F(TuningInitTuningTest, GetTruePitchCustomTemperamentUsesRatiosPopulatedByInitTuning) {
+TEST_F(TuningInitTuningTest, GetTruePitchCustomTemperamentUsesCentsPopulatedByInitTuning) {
     // TUNING_CUSTOM reads CTuning's private CUSTOM[] array, only ever
-    // populated as a side effect of InitTuning() (from the settings' ratios) -
+    // populated as a side effect of InitTuning() (from the settings'
+    // cents since plan 59) -
     // there's no public setter, so this can only be characterized here,
     // after SetUp()'s InitTuning() call.
-    EXPECT_DOUBLE_EQ(tuning.GetTruePitch(440.83751645933, CTuning::TUNING_CUSTOM, 3, 0), 8.1036308172670957);
+    // The cents defaults are equal temperament (0, 100, ..., 1100), so the
+    // custom path reproduces the equal-temperament pitch.
+    EXPECT_DOUBLE_EQ(tuning.GetTruePitch(440.83751645933, CTuning::TUNING_CUSTOM, 3, 0), 8.191361111461944);
+    EXPECT_DOUBLE_EQ(tuning.GetTruePitch(440.83751645933, CTuning::TUNING_CUSTOM, 3, 0), tuning.GetTruePitch(440.83751645933, 0, 3, 0));
 }

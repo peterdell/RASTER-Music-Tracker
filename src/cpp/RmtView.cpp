@@ -734,13 +734,30 @@ void CRmtView::ResetRMTConfig()
     WriteRMTConfig();							// Write the default configuration file 
 }
 
-boolean ReadIntegerFraction(const char* name, const char* value, const char* value2, const char* wantedName, CIntegerFraction& fraction) {
+// A retired preset number (plan 59: 5, 14, 24-28) falls back to equal, the
+// same guard Java's Temperament.getInstanceWithFallback() applies.
+int SanitizeTemperament(int temperament) {
+    switch (temperament) {
+    case 5: case 14: case 24: case 25: case 26: case 27: case 28:
+        return 0;
+    default:
+        return temperament;
+    }
+}
+
+// A cents value, read directly ("NAME = 386.313714") or migrated from a
+// pre-plan-59 fraction line ("NAME = 5 / 4" becomes 1200*log2(5/4)); the old
+// format's zero denominator meant 1/1, so it becomes 0 cents, as does a
+// non-positive numerator.
+boolean ReadCents(const char* name, const char* value, const char* value2, const char* wantedName, double& cents) {
     if (strcmp(wantedName, name) == 0) {
-        fraction.numerator = atoi(value);  fraction.denominator = atoi(value2);
-        if (fraction.denominator == 0) {
-            fraction.numerator = 1;
-            fraction.denominator = 1;
+        if (value2 == nullptr) {
+            cents = atof(value);
+            return true;
         }
+        int numerator = atoi(value);
+        int denominator = atoi(value2);
+        cents = (denominator == 0 || numerator <= 0) ? 0 : 1200.0 * log2((double)numerator / denominator);
         return true;
     };
     return false;
@@ -772,39 +789,39 @@ void CRmtView::ReadTuningConfig()
         tmp[-1] = 0;				// Offset by 1 to compensate the Space   
         name = line;				// Name set to the current line, terminated by tmp 
         value = tmp + 2;			// Offset by 1 to compensate the Space 
-        if (div)					// The div pointer is used to get the 2nd Ratio value 
+        if (div)					// The div pointer is used to get the 2nd value of an old fraction line 
         {
             div[-1] = 0;			// Same as above, offset by 1 to compensate the Space(s) 
             value2 = div + 2;
+        }
+        else
+        {
+            value2 = nullptr;		// A cents line has no '/' (plan 59)
         }
 
         // TUNING 
         TTuningSettings& tuning = g_Song.GetTuningSettings();
         if (NAME("TUNING")) { tuning.basetuning = atof(value); continue; }
         if (NAME("BASENOTE")) { tuning.basenote = atoi(value); continue; }
-        if (NAME("TEMPERAMENT")) { tuning.temperament = atoi(value); continue; }
+        if (NAME("TEMPERAMENT")) { tuning.temperament = SanitizeTemperament(atoi(value)); continue; }
 
-        // RATIOS
-        if (ReadIntegerFraction(name, value, value2, "UNISON", tuning.ratios.UNISON)) { continue; }
-        if (ReadIntegerFraction(name, value, value2, "MIN_2ND", tuning.ratios.MIN_2ND)) { continue; }
-        if (ReadIntegerFraction(name, value, value2, "MAJ_2ND", tuning.ratios.MAJ_2ND)) { continue; }
-        if (ReadIntegerFraction(name, value, value2, "MIN_3RD", tuning.ratios.MIN_3RD)) { continue; }
-        if (ReadIntegerFraction(name, value, value2, "MAJ_3RD", tuning.ratios.MAJ_3RD)) { continue; }
-        if (ReadIntegerFraction(name, value, value2, "PERF_4TH", tuning.ratios.PERF_4TH)) { continue; }
-        if (ReadIntegerFraction(name, value, value2, "TRITONE", tuning.ratios.TRITONE)) { continue; }
-        if (ReadIntegerFraction(name, value, value2, "PERF_5TH", tuning.ratios.PERF_5TH)) { continue; }
-        if (ReadIntegerFraction(name, value, value2, "MIN_6TH", tuning.ratios.MIN_6TH)) { continue; }
-        if (ReadIntegerFraction(name, value, value2, "MAJ_6TH", tuning.ratios.MAJ_6TH)) { continue; }
-        if (ReadIntegerFraction(name, value, value2, "MIN_7TH", tuning.ratios.MIN_7TH)) { continue; }
-        if (ReadIntegerFraction(name, value, value2, "MAJ_7TH", tuning.ratios.MAJ_7TH)) { continue; }
-        if (ReadIntegerFraction(name, value, value2, "OCTAVE", tuning.ratios.OCTAVE)) { continue; }
+        // CENTS
+        if (ReadCents(name, value, value2, "UNISON", tuning.cents.values[0])) { continue; }
+        if (ReadCents(name, value, value2, "MIN_2ND", tuning.cents.values[1])) { continue; }
+        if (ReadCents(name, value, value2, "MAJ_2ND", tuning.cents.values[2])) { continue; }
+        if (ReadCents(name, value, value2, "MIN_3RD", tuning.cents.values[3])) { continue; }
+        if (ReadCents(name, value, value2, "MAJ_3RD", tuning.cents.values[4])) { continue; }
+        if (ReadCents(name, value, value2, "PERF_4TH", tuning.cents.values[5])) { continue; }
+        if (ReadCents(name, value, value2, "TRITONE", tuning.cents.values[6])) { continue; }
+        if (ReadCents(name, value, value2, "PERF_5TH", tuning.cents.values[7])) { continue; }
+        if (ReadCents(name, value, value2, "MIN_6TH", tuning.cents.values[8])) { continue; }
+        if (ReadCents(name, value, value2, "MAJ_6TH", tuning.cents.values[9])) { continue; }
+        if (ReadCents(name, value, value2, "MIN_7TH", tuning.cents.values[10])) { continue; }
+        if (ReadCents(name, value, value2, "MAJ_7TH", tuning.cents.values[11])) { continue; }
+        if (NAME("OCTAVE")) { continue; } // fixed at 1200 (2:1) since plan 59; old files carry the line
 
     }
     in.close();
-}
-
-void WriteIntegerFraction(std::ostream& os, const char* id, const CIntegerFraction& fraction) {
-    os << id << " = " << fraction.numerator << " / " << fraction.denominator << std::endl;
 }
 
 void CRmtView::WriteTuningConfig()
@@ -831,20 +848,14 @@ void CRmtView::WriteTuningConfig()
     os << "BASENOTE = " << tuning.basenote << std::endl;
     os << "TEMPERAMENT = " << tuning.temperament << std::endl;
 
-    os << "\n# RATIOS\n" << std::endl;
-    WriteIntegerFraction(os, "UNISON", tuning.ratios.UNISON);
-    WriteIntegerFraction(os, "MIN_2ND", tuning.ratios.MIN_2ND);
-    WriteIntegerFraction(os, "MAJ_2ND", tuning.ratios.MAJ_2ND);
-    WriteIntegerFraction(os, "MIN_3RD", tuning.ratios.MIN_3RD);
-    WriteIntegerFraction(os, "MAJ_3RD", tuning.ratios.MAJ_3RD);
-    WriteIntegerFraction(os, "PERF_4TH", tuning.ratios.PERF_4TH);
-    WriteIntegerFraction(os, "TRITONE", tuning.ratios.TRITONE);
-    WriteIntegerFraction(os, "PERF_5TH", tuning.ratios.PERF_5TH);
-    WriteIntegerFraction(os, "MIN_6TH", tuning.ratios.MIN_6TH);
-    WriteIntegerFraction(os, "MAJ_6TH", tuning.ratios.MAJ_6TH);
-    WriteIntegerFraction(os, "MIN_7TH", tuning.ratios.MIN_7TH);
-    WriteIntegerFraction(os, "MAJ_7TH", tuning.ratios.MAJ_7TH);
-    WriteIntegerFraction(os, "OCTAVE", tuning.ratios.OCTAVE);
+    os << "\n# CENTS\n" << std::endl;
+    static const char* const CENTS_NAMES[TTuningCents::COUNT] = {
+        "UNISON", "MIN_2ND", "MAJ_2ND", "MIN_3RD", "MAJ_3RD", "PERF_4TH",
+        "TRITONE", "PERF_5TH", "MIN_6TH", "MAJ_6TH", "MIN_7TH", "MAJ_7TH"
+    };
+    for (int i = 0; i < TTuningCents::COUNT; i++) {
+        os << CENTS_NAMES[i] << " = " << tuning.cents.values[i] << std::endl;
+    }
 
     os.close();
 }

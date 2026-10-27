@@ -36,6 +36,8 @@ Changes in RMT 1.36
 - The tuning dialog's ratio fields (the 13 numerator/denominator pairs) are only enabled when the custom temperament is selected - every other temperament plays its own preset table, so typing ratios had no effect there. (Build 2026-10-17)
 
 **Drivers and Tuning**
+- Seven of the temperament presets in the tuning dialog are gone: 19-EDO, the Bohlen 4:7:10 scale, the two African xylophone scales, "Tempérament Égal a Quintes Justes", the major pentatonic and the Ancient Greek Aeolic. None of them fits a 12-note scale with a 2:1 octave - the last two are scales (note selections), not temperaments at all (thanks to ivop for the analysis). A saved selection of one of them plays as equal temperament now. (Build 2026-10-26)
+- The custom temperament is entered in musical cents now - one value per semitone above the base note, 0-1200, the notation tuning references use (100 cents = one equal-tempered semitone) - instead of the former 13 numerator/denominator fractions, which cannot express every temperament (some contain square roots). An existing Tuning.ini with fractions is converted automatically on the first start. (Build 2026-10-26)
 - Fixed (Java port): the Two-Tone filter (the $7FE/$7FD command in the envelope editor, SKCTL=$8B) was inaudible in live playback, although every export carried it - the copy from the tracker's POKEY shadow to the sound chips forwarded the nine AUDF/AUDC/AUDCTL bytes but never SKCTL, the register the filter lives in. Both SKCTL registers now reach the chips. The Windows program was never broken: its Altirra plugin link carries every POKEY write. GitHub issue #30, reported with an example module by Makary. (Build 2026-10-22)
 
 **Exports**

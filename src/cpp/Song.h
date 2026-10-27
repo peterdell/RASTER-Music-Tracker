@@ -39,7 +39,7 @@ public:
     TrackerDriverVersion GetTrackerDriverVersion() const;
     void SetTrackerDriverVersion(const TrackerDriverVersion trackerDriverVersion);
     // How the notes of this module are tuned: the base tuning, the base note,
-    // the temperament and the interval ratios of a custom one. Song-scoped
+    // the temperament and the cents of a custom one. Song-scoped
     // like IsNTSC() and the driver version, persisted in tuning.ini and not
     // in the module (plans/44_SONG_PROPERTIES_DIALOG_PLAN.md). Everything
     // that turns a note into a POKEY frequency reads them, so they are

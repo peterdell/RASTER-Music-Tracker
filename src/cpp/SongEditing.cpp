@@ -1368,7 +1368,7 @@ void CSong::SetTracks(const int tracksNum) {
 }
 
 void CSong::ResetTuningVariables() {
-    // Reset all tuning variables (the ratios inside included)
+    // Reset all tuning variables (the cents inside included)
     m_tuning.Initialize(IsNTSC());
 }
 

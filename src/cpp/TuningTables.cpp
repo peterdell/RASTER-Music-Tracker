@@ -4,7 +4,7 @@
 // Backported to RMT with additional improvements
 //
 // The two methods here are the only parts of CTuning that read the song's
-// tuning (g_Song.GetTuningSettings(), the ratios inside included), g_notesperoctave and the
+// tuning (g_Song.GetTuningSettings(), the cents inside included), g_notesperoctave and the
 // emulated Atari memory, so they're kept in a separate translation unit from the rest of
 // CTuning's pure pitch-math methods (Tuning.cpp) — that lets tests link
 // against the pure math without pulling in Global.h's much larger dependency
@@ -254,22 +254,12 @@ void CTuning::InitTuning() {
         }
     }
 
-    // calculate the custom ratio used for each semitone
-    //TODO: restructure this to something much better, and flexible
-    //these individual variables are just too uncomfortable to use that way
-    CUSTOM[0] = (double)tuning.ratios.UNISON;
-    CUSTOM[1] = (double)tuning.ratios.MIN_2ND;
-    CUSTOM[2] = (double)tuning.ratios.MAJ_2ND;
-    CUSTOM[3] = (double)tuning.ratios.MIN_3RD;
-    CUSTOM[4] = (double)tuning.ratios.MAJ_3RD;
-    CUSTOM[5] = (double)tuning.ratios.PERF_4TH;
-    CUSTOM[6] = (double)tuning.ratios.TRITONE;
-    CUSTOM[7] = (double)tuning.ratios.PERF_5TH;
-    CUSTOM[8] = (double)tuning.ratios.MIN_6TH;
-    CUSTOM[9] = (double)tuning.ratios.MAJ_6TH;
-    CUSTOM[10] = (double)tuning.ratios.MIN_7TH;
-    CUSTOM[11] = (double)tuning.ratios.MAJ_7TH;
-    CUSTOM[12] = (double)tuning.ratios.OCTAVE;
+    // Calculate the custom multiplier for each semitone from its cents
+    // value (plan 59): 2^(cents/1200). The octave is fixed at 2:1.
+    for (int i = 0; i < TTuningCents::COUNT; i++) {
+        CUSTOM[i] = pow(2.0, tuning.cents.values[i] / 1200.0);
+    }
+    CUSTOM[12] = 2;
 
     //Generate all lookup tables used by the RMT driver for tuning purposes
     //TODO: optimize this procedure, even if right now this is much better than what it used to be

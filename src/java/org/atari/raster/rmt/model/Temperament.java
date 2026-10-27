@@ -33,7 +33,6 @@ public final class Temperament extends ValueSet {
 	public static final Temperament YOUNG_1799_NO2;
 	public static final Temperament YOUNG_1807;
 	public static final Temperament WERCKMEISTER_III;
-	public static final Temperament EGAL_QUINTES_JUSTES;
 	public static final Temperament ALEMBERT_ROUSSEAU;
 	public static final Temperament ARON_NEIDHARDT;
 	public static final Temperament ATOM_SCHISMA;
@@ -42,7 +41,6 @@ public final class Temperament extends ValueSet {
 	public static final Temperament BARNES;
 	public static final Temperament BETHISY;
 	public static final Temperament BIG_GULP;
-	public static final Temperament BOHLEN;
 	public static final Temperament WEDDING_CAKE;
 	public static final Temperament UPSIDE_DOWN_WEDDING_CAKE;
 	public static final Temperament PYTHAGOREAN;
@@ -52,11 +50,6 @@ public final class Temperament extends ValueSet {
 	public static final Temperament BACH;
 	public static final Temperament VALLOTTI_YOUNG;
 	public static final Temperament VALLOTTI_YOUNG_WERCKMEISTER_III;
-	public static final Temperament DELAUBENFELS;
-	public static final Temperament AEOLIC;
-	public static final Temperament BAPARE;
-	public static final Temperament YASWA;
-	public static final Temperament EDO19;
 	public static final Temperament CUSTOM;
 
 	// Instances, in declaration order (= the order of getNumber())
@@ -72,7 +65,12 @@ public final class Temperament extends ValueSet {
 		YOUNG_1799_NO2 = add("YOUNG_1799_NO2", 2);
 		YOUNG_1807 = add("YOUNG_1807", 3);
 		WERCKMEISTER_III = add("WERCKMEISTER_III", 4);
-		EGAL_QUINTES_JUSTES = add("EGAL_QUINTES_JUSTES", 5);
+		// 5, 14 and 24-28 are retired (plan 59): Egal a Quintes Justes,
+		// Bohlen, pentatonic, Aeolic, Bapare, Yaswa and 19-EDO do not fit the
+		// 12-note, 2:1-octave model (the last five are scales or
+		// stretched-octave sets, not temperaments). Their numbers stay
+		// reserved; an ini carrying one falls back to EQUAL via
+		// getInstanceWithFallback().
 		ALEMBERT_ROUSSEAU = add("ALEMBERT_ROUSSEAU", 6);
 		ARON_NEIDHARDT = add("ARON_NEIDHARDT", 7);
 		ATOM_SCHISMA = add("ATOM_SCHISMA", 8);
@@ -81,7 +79,6 @@ public final class Temperament extends ValueSet {
 		BARNES = add("BARNES", 11);
 		BETHISY = add("BETHISY", 12);
 		BIG_GULP = add("BIG_GULP", 13);
-		BOHLEN = add("BOHLEN", 14);
 		WEDDING_CAKE = add("WEDDING_CAKE", 15);
 		UPSIDE_DOWN_WEDDING_CAKE = add("UPSIDE_DOWN_WEDDING_CAKE", 16);
 		PYTHAGOREAN = add("PYTHAGOREAN", 17);
@@ -91,11 +88,6 @@ public final class Temperament extends ValueSet {
 		BACH = add("BACH", 21);
 		VALLOTTI_YOUNG = add("VALLOTTI_YOUNG", 22);
 		VALLOTTI_YOUNG_WERCKMEISTER_III = add("VALLOTTI_YOUNG_WERCKMEISTER_III", 23);
-		DELAUBENFELS = add("DELAUBENFELS", 24);
-		AEOLIC = add("AEOLIC", 25);
-		BAPARE = add("BAPARE", 26);
-		YASWA = add("YASWA", 27);
-		EDO19 = add("EDO19", 28);
 		CUSTOM = add("CUSTOM", Tuning.TUNING_CUSTOM);
 		initializeClass(Temperament.class, ValueSets.class);
 	}
@@ -139,7 +131,8 @@ public final class Temperament extends ValueSet {
 	 * a number &gt;= {@link Tuning#TUNING_CUSTOM} is {@link #CUSTOM} - C++'s
 	 * own semantic ("any value that is not assigned defaults to custom") -
 	 * and a negative number is {@link #EQUAL}, a deliberate guard where C++
-	 * reads its preset table out of bounds.
+	 * reads its preset table out of bounds. A retired preset number
+	 * (plan 59) falls back to {@link #EQUAL} too.
 	 */
 	public static Temperament getInstanceWithFallback(int number) {
 		if (number >= Tuning.TUNING_CUSTOM) {
@@ -148,7 +141,8 @@ public final class Temperament extends ValueSet {
 		if (number < 0) {
 			return EQUAL;
 		}
-		return getInstance(number);
+		Temperament result = getInstance(number);
+		return result != null ? result : EQUAL; // a retired preset (plan 59)
 	}
 
 	/** The stored value: the ini file's {@code TEMPERAMENT} line, the C++ combo index, the {@code Tuning.TEMPERAMENT_PRESETS} row for 1-28. */
@@ -156,7 +150,7 @@ public final class Temperament extends ValueSet {
 		return number;
 	}
 
-	/** Whether this is {@link #CUSTOM}, the only temperament played from the {@link TuningRatios}. */
+	/** Whether this is {@link #CUSTOM}, the only temperament played from the {@link TuningCents}. */
 	public boolean isCustom() {
 		return this == CUSTOM;
 	}

@@ -499,20 +499,12 @@ public final class Tuning {
 			notesPerOctave = computeNotesPerOctave(tuningSettings.temperament.getNumber());
 		}
 
-		// calculate the custom ratio used for each semitone
-		custom[0] = tuningSettings.ratios.unison.doubleValue();
-		custom[1] = tuningSettings.ratios.min2nd.doubleValue();
-		custom[2] = tuningSettings.ratios.maj2nd.doubleValue();
-		custom[3] = tuningSettings.ratios.min3rd.doubleValue();
-		custom[4] = tuningSettings.ratios.maj3rd.doubleValue();
-		custom[5] = tuningSettings.ratios.perf4th.doubleValue();
-		custom[6] = tuningSettings.ratios.tritone.doubleValue();
-		custom[7] = tuningSettings.ratios.perf5th.doubleValue();
-		custom[8] = tuningSettings.ratios.min6th.doubleValue();
-		custom[9] = tuningSettings.ratios.maj6th.doubleValue();
-		custom[10] = tuningSettings.ratios.min7th.doubleValue();
-		custom[11] = tuningSettings.ratios.maj7th.doubleValue();
-		custom[12] = tuningSettings.ratios.octave.doubleValue();
+		// Calculate the custom multiplier for each semitone from its cents
+		// value (plan 59): 2^(cents/1200). The octave is fixed at 2:1.
+		for (int i = 0; i < TuningCents.COUNT; i++) {
+			custom[i] = Math.pow(2, tuningSettings.cents.values[i] / 1200);
+		}
+		custom[12] = 2;
 
 		// Generate all lookup tables used by the RMT driver for tuning purposes.
 
