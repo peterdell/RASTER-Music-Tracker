@@ -259,14 +259,42 @@ CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_div
     return audf;
 }
 
+/// <summary>
+/// The anchor to feed GetTruePitch()'s tuning parameter so that the note A
+/// always sounds at the A4 reference pitch (basetuning), whatever the key -
+/// plan 59 step 2, the port of ivop's calculate_base_frequency()
+/// (others/Ivop/tuning_poc2.c): the temperament's multiplier for the interval
+/// from the tonic up to A divides the A4 frequency, and the power of two
+/// re-anchors the octave. A- is nine semitones above C- and the base note
+/// numbers count downward from C = 0, so that interval is (9 + basenote) % 12.
+/// For the base note A- the interval is the unison, so the anchor is the A4
+/// frequency itself, bit-exactly - the tables of every module with the
+/// default base note are unchanged. For the custom temperament this reads the
+/// multipliers InitTuning() computed from the cents, so it is only valid
+/// after that computation - which is the only caller (GenerateTable()).
+/// </summary>
+double CTuning::CalculateBaseFrequency(const TTuningSettings& tuning) {
+    int toA = A_SEMITONES_ABOVE_C + tuning.basenote;
+    int interval = toA % NOTES_PER_OCTAVE; //semitones from the tonic up to the next A
+    double multiplier;
+    if (tuning.temperament == NO_TEMPERAMENT) {
+        multiplier = pow(2.0, (double)interval / NOTES_PER_OCTAVE);
+    } else if (tuning.temperament >= TUNING_CUSTOM) {
+        multiplier = CUSTOM[interval];
+    } else {
+        multiplier = temperament_preset[tuning.temperament][interval];
+    }
+    return tuning.basetuning * pow(2.0, 1 - toA / NOTES_PER_OCTAVE) / multiplier; //integer division: 1 - 1 = 0 octaves for the keys C#- through A-
+}
+
 /// <summary> Calculate the true audio pitch output using the given parameters </summary>
-/// <param name = "tuning"> Tuning base pitch (in Hertz), usually the A-4 note </param>
+/// <param name = "tuning"> The anchor pitch (in Hertz) the tonic's octave chain is placed by - CalculateBaseFrequency()'s conversion of the A4 reference pitch (for the base note A- the two coincide) </param>
 /// <param name = "temperament"> Temperament used in calculations, 0 for Equal Temperament, 1 to 29 (inclusive) for Presets, otherwise Custom Ratio will be assumed </param>
 /// <param name = "basenote"> Base note/key from which the tuning is calculated, typically it is the key of A- or C- </param>
 /// <param name = "semitone"> Semitones added to base note for calculating higher pitches </param>
 /// <returns> True audio pitch for a given note (in Hertz) </returns>
 double CTuning::GetTruePitch(double tuning, Temperament temperament, int basenote, int semitone) {
-    int notesnum = 12; //unless specified otherwise
+    int notesnum = NOTES_PER_OCTAVE; //unless specified otherwise
     int note = (semitone + basenote) % notesnum; //current note
     double ratio = 0; //will be used for calculations
     double octave = 2; //an octave is usually the frequency of a note multiplied by 2
@@ -274,7 +302,7 @@ double CTuning::GetTruePitch(double tuning, Temperament temperament, int basenot
 
     //Equal temperament is generated using the 12th root of 2
     if (temperament == NO_TEMPERAMENT) {
-        ratio = pow(2.0, 1.0 / 12.0);
+        ratio = pow(2.0, 1.0 / NOTES_PER_OCTAVE);
         return (tuning / 64) * pow(ratio, semitone + basenote);
     }
     if (temperament >= TUNING_CUSTOM) { //custom temperament will be used using ratio

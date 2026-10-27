@@ -83,10 +83,41 @@ public final class Tuning {
 		this.clockFrequency = clockFrequency;
 	}
 
+	/** A- is nine semitones above C-; the {@link BaseNote} numbers count downward from C = 0, so the interval from the tonic up to the next A is (9 + basenote) % 12. */
+	static final int A_SEMITONES_ABOVE_C = 9;
+
+	/**
+	 * The anchor to feed {@link #getTruePitch}'s {@code tuning} parameter so
+	 * that the note A always sounds at the A4 reference pitch
+	 * {@code tuningSettings.basetuning}, whatever the key - plan 59 step 2,
+	 * the port of ivop's {@code calculate_base_frequency()}
+	 * (others/Ivop/tuning_poc2.c): the temperament's multiplier for the
+	 * interval from the tonic up to A divides the A4 frequency, and the power
+	 * of two re-anchors the octave. For the base note A- the interval is the
+	 * unison, so the anchor is the A4 frequency itself, bit-exactly - the
+	 * tables of every module with the default base note are unchanged. For
+	 * the custom temperament this reads the multipliers {@link #initTuning}
+	 * computed from the cents, so it is only valid after that computation -
+	 * which is the only caller ({@code generateTable}).
+	 */
+	double calculateBaseFrequency(TuningSettings tuningSettings) {
+		int toA = A_SEMITONES_ABOVE_C + tuningSettings.basenote.getNumber();
+		int interval = toA % NOTES_PER_OCTAVE; // semitones from the tonic up to the next A
+		double multiplier;
+		if (tuningSettings.temperament == Temperament.EQUAL) {
+			multiplier = Math.pow(2, (double) interval / NOTES_PER_OCTAVE);
+		} else if (tuningSettings.temperament.isCustom()) {
+			multiplier = custom[interval];
+		} else {
+			multiplier = tuningSettings.temperament.getMultiplier(interval);
+		}
+		return tuningSettings.basetuning * Math.pow(2, 1 - toA / NOTES_PER_OCTAVE) / multiplier; // integer division: 1 - 1 = 0 octaves for the keys C#- through A-
+	}
+
 	/**
 	 * Calculate the true audio pitch output using the given parameters.
 	 *
-	 * @param tuning tuning base pitch (in Hertz), usually the A-4 note
+	 * @param tuning the anchor pitch (in Hertz) the tonic's octave chain is placed by - {@link #calculateBaseFrequency}'s conversion of the A4 reference pitch (for the base note A- the two coincide)
 	 * @param temperament the temperament used in calculations - a preset plays its own multipliers, {@link Temperament#CUSTOM} the cents {@link #initTuning} converted
 	 * @param basenote base note/key from which the tuning is calculated, typically it is the key of A- or C-
 	 * @param semitone semitones added to base note for calculating higher pitches
@@ -289,9 +320,10 @@ public final class Tuning {
 		// MOD73 are computed in the C++ source but never actually read by any
 		// branch below - dropped here as dead code, verified against
 		// TuningTables.cpp's GenerateTable() before omitting.
+		double baseFrequency = calculateBaseFrequency(tuningSettings);
 		for (int i = 0; i < length; i++) {
 			int note = i + semitone;
-			double pitch = getTruePitch(tuningSettings.basetuning, tuningSettings.temperament, tuningSettings.basenote.getNumber(), note);
+			double pitch = getTruePitch(baseFrequency, tuningSettings.temperament, tuningSettings.basenote.getNumber(), note);
 			int audf = getAUDF(pitch, coarseDivisor, divisor, cycle);
 
 			boolean mod3 = (audf + cycle) % 3 == 0;

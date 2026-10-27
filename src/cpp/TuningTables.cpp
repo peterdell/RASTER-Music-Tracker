@@ -126,13 +126,16 @@ void CTuning::GenerateTable(byte* table, int length, int semitone, Timbre timbre
 
     const TTuningSettings& tuning = g_Song.GetTuningSettings();
 
+    //the anchor that places the note A at the A4 reference pitch (plan 59 step 2)
+    auto baseFrequency = CalculateBaseFrequency(tuning);
+
     //generate the table using all the initialized parameters
     for (int i = 0; i < length; i++) {
         //get the current semitone
         auto note = i + semitone;
 
         //calculate the reference pitch using the semitone as an offset
-        auto pitch = GetTruePitch(tuning.basetuning, tuning.temperament, tuning.basenote, note);
+        auto pitch = GetTruePitch(baseFrequency, tuning.temperament, tuning.basenote, note);
 
         //get the nearest POKEY frequency using the reference pitch
         auto audf = GetAUDF(pitch, coarse_divisor, divisor, cycle);
@@ -242,7 +245,7 @@ void CTuning::InitTuning() {
         exit(1);
     }
 
-    g_notesperoctave = 12; //by default, an octave uses 12 semitones...
+    g_notesperoctave = NOTES_PER_OCTAVE; //by default, an octave uses 12 semitones...
 
     if (tuning.temperament > NO_TEMPERAMENT && tuning.temperament < TUNING_CUSTOM) { //...unless it is specified otherwise in the Temperament presets
         for (int i = 0; i < PRESETS_LENGTH; i++) {
@@ -259,7 +262,7 @@ void CTuning::InitTuning() {
     for (int i = 0; i < TTuningCents::COUNT; i++) {
         CUSTOM[i] = pow(2.0, tuning.cents.values[i] / 1200.0);
     }
-    CUSTOM[12] = 2;
+    CUSTOM[NOTES_PER_OCTAVE] = 2;
 
     //Generate all lookup tables used by the RMT driver for tuning purposes
     //TODO: optimize this procedure, even if right now this is much better than what it used to be

@@ -107,6 +107,65 @@ TEST_F(TuningPitchTest, GetTruePitchPresetTemperamentDetectsShorterPresetRow) {
     EXPECT_DOUBLE_EQ(tuning.GetTruePitch(TTuningSettings::PAL_A4_FREQUENCY, 24, 3, 0), 10.31063157500196);
 }
 
+// Plan 59 step 2: whatever the key and temperament, the note A (index 9 and
+// its octaves) sounds at the A4 reference pitch.
+TEST_F(TuningPitchTest, CalculateBaseFrequencyAnchorsTheNoteAAtTheA4Frequency) {
+    for (int basenote = 0; basenote < NOTES_PER_OCTAVE; basenote++) {
+        for (CTuning::Temperament temperament : {CTuning::NO_TEMPERAMENT, 1, 17}) {
+            TTuningSettings settings;
+            settings.Initialize(false);
+            settings.basenote = basenote;
+            settings.temperament = temperament;
+            double anchor = tuning.CalculateBaseFrequency(settings);
+            EXPECT_NEAR(tuning.GetTruePitch(anchor, temperament, basenote, CTuning::A_SEMITONES_ABOVE_C), settings.basetuning / 32, 1e-9)
+                << "temperament " << temperament << " basenote " << basenote;
+        }
+    }
+}
+
+// Plan 59 step 2: for the default base note A- the anchor is the A4 frequency
+// itself, bit-exactly - pre-step-2 modules are unchanged.
+TEST_F(TuningPitchTest, CalculateBaseFrequencyIsTheIdentityForTheBaseNoteA) {
+    TTuningSettings settings;
+    settings.Initialize(false);
+    settings.temperament = 4; // Werckmeister III
+    EXPECT_EQ(tuning.CalculateBaseFrequency(settings), settings.basetuning);
+}
+
+// tuning_poc2: ./poc -T 3 -b 60 -a 440.0 (Young No. 1, key C, A4 = 440)
+// prints C4 = 262.57, E4 = 329.24, A4 = 440.00. Index 0 is C, 4 is E, 9 is A;
+// RMT's pitches sit five octaves below the poc's MIDI octave 4 (times 32).
+TEST_F(TuningPitchTest, KeyCWithA4FourFortyMatchesIvopsPoc) {
+    TTuningSettings settings;
+    settings.Initialize(false);
+    settings.basetuning = 440;
+    settings.basenote = 0; // C-
+    settings.temperament = 1; // Young No. 1
+    double anchor = tuning.CalculateBaseFrequency(settings);
+    EXPECT_NEAR(tuning.GetTruePitch(anchor, settings.temperament, 0, 0) * 32, 262.57, 0.005);
+    EXPECT_NEAR(tuning.GetTruePitch(anchor, settings.temperament, 0, 4) * 32, 329.24, 0.005);
+    EXPECT_NEAR(tuning.GetTruePitch(anchor, settings.temperament, 0, CTuning::A_SEMITONES_ABOVE_C) * 32, 440.00, 0.005);
+}
+
+// Plan 59 step 2's deliberate behavior change: with A4 anchoring, equal
+// temperament is key-invariant - the base note no longer transposes.
+TEST_F(TuningPitchTest, EqualTemperamentIsKeyInvariantWithA4Anchoring) {
+    TTuningSettings reference;
+    reference.Initialize(false); // base note A-
+    double referenceAnchor = tuning.CalculateBaseFrequency(reference);
+    for (int basenote = 0; basenote < NOTES_PER_OCTAVE; basenote++) {
+        TTuningSettings settings;
+        settings.Initialize(false);
+        settings.basenote = basenote;
+        double anchor = tuning.CalculateBaseFrequency(settings);
+        for (int semitone = 0; semitone < 2 * NOTES_PER_OCTAVE; semitone++) {
+            EXPECT_NEAR(tuning.GetTruePitch(anchor, CTuning::NO_TEMPERAMENT, basenote, semitone),
+                        tuning.GetTruePitch(referenceAnchor, CTuning::NO_TEMPERAMENT, reference.basenote, semitone), 1e-9)
+                << "basenote " << basenote << " semitone " << semitone;
+        }
+    }
+}
+
 TEST_F(TuningPitchTest, CalculateDeltaAUDFDefaultBranchStepsByOne) {
     // Timbre::BELL - distortion 0x20, neither the 0x40 nor 0xC0 special
     // cases, so the "simplest delta method" (+-1) applies.
@@ -217,6 +276,19 @@ class TuningInitTuningTest : public ::testing::Test {
         tuning.InitTuning(PAL_CLOCK, memory.data());
     }
 };
+
+TEST_F(TuningInitTuningTest, CalculateBaseFrequencyUsesTheCustomCents) {
+    // Only valid after InitTuning() filled CUSTOM[] (SetUp() did, from the
+    // default cents = equal temperament), so the custom anchor for the key of
+    // C equals the equal-temperament one.
+    TTuningSettings settings = g_Song.GetTuningSettings();
+    settings.basenote = 0; // C-
+    settings.temperament = CTuning::TUNING_CUSTOM;
+    double anchor = tuning.CalculateBaseFrequency(settings);
+    EXPECT_NEAR(anchor, 2 * settings.basetuning / pow(2.0, (double)CTuning::A_SEMITONES_ABOVE_C / NOTES_PER_OCTAVE), 1e-9);
+    settings.temperament = CTuning::NO_TEMPERAMENT;
+    EXPECT_NEAR(anchor, tuning.CalculateBaseFrequency(settings), 1e-9);
+}
 
 TEST_F(TuningInitTuningTest, GeneratesTheIdenticalPageForTheNtscDefaultsOnTheNtscClock) {
     // The NTSC default is the PAL default scaled by exactly the clock ratio

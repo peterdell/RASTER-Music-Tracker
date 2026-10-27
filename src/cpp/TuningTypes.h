@@ -1,5 +1,10 @@
 #pragma once
 
+// The twelve semitones of the 2:1 octave - the one place the 12 is defined
+// (mirrors Java's Tuning.NOTES_PER_OCTAVE). After plan 59 retired the presets
+// that do not fit (step 1), every selectable temperament has this many notes.
+constexpr int NOTES_PER_OCTAVE = 12;
+
 // The twelve tonic-based values of the custom temperament, in musical cents
 // (1 cent = 1/1200 octave, 100 cents = one equal-tempered semitone).
 // values[0] is the tonic and always 0; the octave is fixed at 1200 (2:1) and
@@ -9,7 +14,7 @@
 // multiplier m converts as cents = 1200*log2(m); the table generation
 // applies 2^(cents/1200). Mirrored by Java's TuningCents.
 struct TTuningCents {
-    static const int COUNT = 12;
+    static const int COUNT = NOTES_PER_OCTAVE; // one cents value per semitone
 
     // cents above the tonic, by semitone; values[0] stays 0
     double values[COUNT];

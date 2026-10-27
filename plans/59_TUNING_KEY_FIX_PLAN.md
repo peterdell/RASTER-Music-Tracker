@@ -1,9 +1,13 @@
 # Plan 59: Tuning by key - fix the temperament definition, logic and dialog
 
-Status: IN PROGRESS (2026-10-27) - step 1 is committed (23ecea8); step 2
-is defined below: the base tuning field becomes the A4 frequency, with
-the tonic frequency derived from it inside the table generation
-(ivop's new poc, `others/Ivop/tuning_poc2.c`, 2026-10-27).
+Status: IN PROGRESS (2026-10-27) - steps 1, 3 and 4 are committed
+(23ecea8, 09b796d, c0ed1c4); step 2 is defined below - the base tuning
+field becomes the A4 frequency, with the tonic frequency derived from
+it inside the table generation (ivop's new poc,
+`others/Ivop/tuning_poc2.c`) - and its intent question (A1) is
+CONFIRMED by VinsCool 2026-10-27 ("Tuning from A-" was "what was
+intended from the beginning"); A2-A5 IMPLEMENTED the same day, so
+step 2 is complete - see the checked steps below.
 Earlier history: ivop's feedback arrived (see
 others/Ivop/tuning_poc.md, "Continued conversation"): decisions 2 and 3
 are settled - drop all seven non-fitting presets (pentatonic and Aeolic
@@ -236,22 +240,37 @@ covers virtually every existing module and Tuning.ini.
 
 **Steps**:
 
-- [ ] A1. Confirm the intent with VinsCool in the AtariAge conversation
-      (expected yes; the K1 probe numbers and the field's example values
-      make the case).
-- [ ] A2. Core, lockstep: the A4-to-tonic derivation in
-      `TuningTables.cpp`/`Tuning.java` per `calculate_base_frequency()`;
-      the C- notation offset and the descending BaseNote numbers are
-      already correct (K1) and stay.
-- [ ] A3. Dialog texts: relabel "Base tuning (Hz)" as the A4 frequency
-      in both programs; no field or layout changes.
-- [ ] A4. Tests: poc2-verified goldens (Kirnberger III, key C, A4 440 ->
-      tonic 263.18...; the three `-b 48/60/72` invocations produce the
-      same table, i.e. the tonic's octave is irrelevant); base note A
-      stays bit-identical to step 1's output; C++/Java parity.
-- [ ] A5. Changelog (Drivers and Tuning) covering both behavior changes;
-      Tuning.ini keeps its format (`BASETUNING` keeps its name, the
-      meaning change is documented).
+- [x] A1. CONFIRMED by VinsCool 2026-10-27 (tuning-thread-3.txt): "Yeah
+      Ivo's code effectively does what was intended from the beginning
+      (Tuning from A-)." He also grounded the defaults - "computed from
+      a bruteforcing tool a long time ago as the 'optimal' POKEY Equal
+      Temperament close to ~440hz", still recommended - and confirmed
+      the PAL/NTSC table identity ("the purpose of that was to keep the
+      intervals identical"), which both programs' tests pin since
+      2026-10-27.
+- [x] A2. DONE 2026-10-27, lockstep: `CalculateBaseFrequency()`/
+      `calculateBaseFrequency()` (the port of ivop's
+      `calculate_base_frequency()`) in `Tuning.cpp`/`Tuning.java`,
+      called once per generated table in `GenerateTable()`/
+      `generateTable()`: anchor = A4 * 2^(1 - (9+basenote)/12) /
+      m[(9+basenote)%12]. For the base note A- it is the identity,
+      bit-exactly, so every pre-step-2 module (default base note)
+      generates unchanged tables - the shipped-page tests prove it.
+- [x] A3. DONE 2026-10-27: the label is "A4 frequency (Hz)" in both
+      programs (DataTypes.properties, Rmt.rc; "A4 base frequency" did
+      not fit the C++ dialog's label width, and the drivers doc follows
+      the shorter name).
+- [x] A4. DONE 2026-10-27: poc2 goldens (Young No. 1 `-T 3 -b 60 -a
+      440.0`: C4 = 262.57, E4 = 329.24, A4 = 440.00) asserted in both
+      programs; the A-anchoring invariant for every key and sampled
+      temperaments; base-note-A identity (bit-exact); equal
+      temperament's key invariance (the deliberate loss of the
+      transposition side effect); the custom-cents branch after
+      InitTuning. Base note A byte-identity via the existing
+      shipped-page and PAL/NTSC tests.
+- [x] A5. DONE 2026-10-27: changelog entry (Drivers and Tuning, Build
+      2026-10-27) covering the rename, the derivation and both behavior
+      changes; Tuning.ini keeps its format and `BASETUNING` its name.
 
 ## Step 3: consistent temperament names and ordering (2026-10-27)
 
@@ -392,7 +411,9 @@ is being phased out); behavior is unchanged in both programs.
   `others/Ivop/tuning_poc.c` (the poc), `others/Ivop/tuning_poc2.c`
   (poc with the `-a` A4-frequency option and
   `calculate_base_frequency()`), `others/Ivop/RMT Tuning - AtariAge
-  Forums.pdf` (thread print, 2026-10-27), all local and untracked.
+  Forums.pdf` (thread print, 2026-10-27),
+  `others/Ivop/tuning-thread-3.txt` (VinsCool's step 2 confirmation,
+  2026-10-27), all local and untracked.
 - https://www.dolmetsch.com/musictheory27t.htm (ivop's cross-check:
   always tunes the key of C to a given A4 pitch; its Kirnberger III
   (1776) (IT & D 12.04 (DH)) matches poc `-t 1`).

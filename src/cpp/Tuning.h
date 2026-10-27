@@ -7,6 +7,7 @@
 #include "StdAfx.h"
 
 #include "C6502.h"
+#include "TuningTypes.h"
 
 // Timbre definitions, used for tuning calculations
 // The values also define which is the appropriate Distortion (AUDC) to use
@@ -47,6 +48,11 @@ public:
     static constexpr Temperament TUNING_CUSTOM = TUNING_PRESETS; // Custom Temperament using Ratio is assumed otherwise
     static constexpr size_t PRESETS_LENGTH = 20 + 1; // Length of the largest preset table, used for the 2 dimensional array boundaries
 
+    // A- is nine semitones above C-; the base note numbers count downward
+    // from C = 0, so the interval from the tonic up to the next A is
+    // (A_SEMITONES_ABOVE_C + basenote) % NOTES_PER_OCTAVE.
+    static constexpr int A_SEMITONES_ABOVE_C = 9;
+
     typedef double Pitch;
     typedef int AUDF; // Can be 8-bit or 16-bit
 
@@ -73,6 +79,7 @@ public:
     // CCompressLzss::Optimize_AUDC/AUDCTL/AUDF (lzss_sap.h). No behavior
     // change, just visibility.
     Pitch GetTruePitch(double tuning, Temperament temperament, int basenote, int semitone);
+    double CalculateBaseFrequency(const TTuningSettings& tuning);
     void GenerateTable(byte* table, int length, int semitone, Timbre timbre, int audctl);
     AUDF CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_divisor, double divisor, int cycle, Timbre timbre) const;
 
@@ -183,7 +190,7 @@ private:
     byte* m_table_memory;
 
     //Custom tuning ratio is generated in this array, so this is not a constant
-    double CUSTOM[13] = {0};
+    double CUSTOM[NOTES_PER_OCTAVE + 1] = {0}; //the twelve multipliers plus the octave
 
     /*
         const TTuning dist_2_bell{ 12, 0, 48, 24 };

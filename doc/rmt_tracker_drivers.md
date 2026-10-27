@@ -78,7 +78,7 @@ the button is disabled for them. The settings are stored with the module.
 
 | Setting           | Default                                                    | Description |
 |-------------------|------------------------------------------------------------|-------------|
-| A4 base frequency | 440.83751645933 Hz for PAL<br>444.8957788679134 Hz for NTSC | The reference pitch of the note A-4, in Hertz. The defaults are RMT's traditional tuning, not concert pitch 440 Hz: the frequency tables the Patch 16 player ships were generated with exactly these values (the section below asserts that equality). The hand-made tables of the RMT 1.28 era drivers are close to, but not byte-identical with, the generated ones. |
+| A4 frequency | 440.83751645933 Hz for PAL<br>444.8957788679134 Hz for NTSC | The reference pitch of the note A-4, in Hertz. The defaults are RMT's traditional tuning, not concert pitch 440 Hz: the frequency tables the Patch 16 player ships were generated with exactly these values (the section below asserts that equality). The hand-made tables of the RMT 1.28 era drivers are close to, but not byte-identical with, the generated ones. |
 | Base note         | A- (3)                                                     | The key the temperament is tuned to: the note that receives the temperament's unison ratio (the tonic). Stored as a number, C- = 0 counting downward, so A- = 3. |
 | Temperament       | Equal Temperament (Default)                                | Equal temperament, one of 21 historical presets (each verified against its source file in the [Scala scale archive](https://www.huygens-fokker.org/microtonality/scales.html)), or a custom temperament entered in musical cents. |
 
