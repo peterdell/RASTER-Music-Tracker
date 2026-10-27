@@ -16,8 +16,8 @@ package org.atari.raster.rmt.model;
  */
 public final class TuningCents {
 
-	/** The number of semitones per octave. */
-	public static final int COUNT = 12;
+	/** One cents value per semitone of the octave ({@link Tuning#NOTES_PER_OCTAVE}, the central definition of the 12). */
+	public static final int COUNT = Tuning.NOTES_PER_OCTAVE;
 
 	/**
 	 * The ini file's key per semitone above the tonic - the interval names

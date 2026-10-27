@@ -16,6 +16,7 @@ import org.atari.raster.rmt.model.Song;
 import org.atari.raster.rmt.model.SongInfo;
 import org.atari.raster.rmt.model.TrackClipboard;
 import org.atari.raster.rmt.model.Tracks;
+import org.atari.raster.rmt.model.Tuning;
 import org.atari.raster.rmt.model.UndoType;
 
 /**
@@ -1231,7 +1232,7 @@ public final class SongInput {
 		int note = noteKey(vk);
 
 		if (note >= 0) {
-			int i = note + song.getOctave() * 12;
+			int i = note + song.getOctave() * Tuning.NOTES_PER_OCTAVE;
 			if (i >= 0 && i < Notes.NOTESNUM) { // only within limits
 				song.setPlayPressedTonesTNIV(song.getActiveColumn(), i, song.getActiveInstr(), song.getVolume());
 				if ((control || ui.editMode == EditMode.JAM_STEREO_MODE) && song.getTracks(tracks4_8) > 4) {
@@ -1533,7 +1534,7 @@ public final class SongInput {
 				note = song.trackGetNote();
 				if (note >= 0) { // is there a note?
 					blockDeselect();
-					note = (note % 12) + ((j - 1) * 12); // changes its octave according to the number pressed on the numblock
+					note = (note % Tuning.NOTES_PER_OCTAVE) + ((j - 1) * Tuning.NOTES_PER_OCTAVE); // changes its octave according to the number pressed on the numblock
 					if (note >= 0 && note < Notes.NOTESNUM) {
 						int instr = song.trackGetInstr();
 						int vol = song.trackGetVol();
@@ -2055,7 +2056,7 @@ public final class SongInput {
 	/** C++'s {@code insertnotes:} label: enters {@code note} (in the current octave) with the active instrument and volume, or quantizes it during follow-play. */
 	private void insertNote(int note) {
 		Song song = session.song;
-		int i = note + song.getOctave() * 12;
+		int i = note + song.getOctave() * Tuning.NOTES_PER_OCTAVE;
 		if (i >= 0 && i < Notes.NOTESNUM) { // only within limits
 			blockDeselect();
 			// Quantization

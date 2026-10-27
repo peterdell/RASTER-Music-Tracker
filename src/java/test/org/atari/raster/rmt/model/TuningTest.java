@@ -89,29 +89,25 @@ class TuningTest {
 
 	@Test
 	void getTruePitchEqualTemperamentBaseNote() {
-		assertEquals(8.1913611114619442, tuning.getTruePitch(TuningSettings.PAL_A4_FREQUENCY, Tuning.NO_TEMPERAMENT, 3, 0));
+		assertEquals(8.1913611114619442, tuning.getTruePitch(TuningSettings.PAL_A4_FREQUENCY, Temperament.EQUAL, 3, 0));
 	}
 
 	@Test
 	void getTruePitchEqualTemperamentOneOctaveUpIsDouble() {
 		// semitone=12 is exactly one octave above semitone=0 (same note, multi
 		// doubles) - characterizes the octave-doubling relationship explicitly.
-		assertEquals(16.382722222923899, tuning.getTruePitch(TuningSettings.PAL_A4_FREQUENCY, Tuning.NO_TEMPERAMENT, 3, 12));
+		assertEquals(16.382722222923899, tuning.getTruePitch(TuningSettings.PAL_A4_FREQUENCY, Temperament.EQUAL, 3, 12));
 	}
 
 	@Test
-	void getTruePitchPresetTemperamentUsesTwelveNotePresetRow() {
-		// Temperament 1 = Thomas Young 1799's Well Temperament no.1, a full
-		// 12-note-per-octave preset row.
-		assertEquals(8.1809110925559629, tuning.getTruePitch(TuningSettings.PAL_A4_FREQUENCY, 1, 3, 0));
-	}
-
-	@Test
-	void getTruePitchPresetTemperamentDetectsShorterPresetRow() {
-		// Temperament 24 = "Optimally consonant major pentatonic" - only 6
-		// entries instead of the usual 13, characterizing the ragged-row
-		// notes-per-octave detection scan rather than always assuming 12.
-		assertEquals(10.31063157500196, tuning.getTruePitch(TuningSettings.PAL_A4_FREQUENCY, 24, 3, 0));
+	void getTruePitchPresetTemperamentUsesItsMultipliers() {
+		// The golden value captured from C++ for temperament number 1; the
+		// multipliers live on the Temperament instance since plan 59 step 4.
+		// (The step 1 retirement made every surviving preset 12-note with a
+		// 2:1 octave, so the C++ ragged-row notes-per-octave scan - once
+		// characterized here through the retired pentatonic row 24 - has no
+		// Java counterpart anymore.)
+		assertEquals(8.1809110925559629, tuning.getTruePitch(TuningSettings.PAL_A4_FREQUENCY, Temperament.YOUNG_1799_NO1, 3, 0));
 	}
 
 	@Test
@@ -315,14 +311,15 @@ class TuningTest {
 
 		@Test
 		void getTruePitchCustomTemperamentUsesCentsPopulatedByInitTuning() {
-			// TUNING_CUSTOM reads Tuning's private custom[] array, only ever
-			// populated as a side effect of initTuning() (from the settings'
-			// cents since plan 59) - there's no public setter, so this can
-			// only be characterized here, after setUp()'s initTuning() call.
-			// The cents defaults are equal temperament (0, 100, ..., 1100),
-			// so the custom path reproduces the equal-temperament pitch.
-			assertEquals(8.191361111461944, tuning.getTruePitch(TuningSettings.PAL_A4_FREQUENCY, Tuning.TUNING_CUSTOM, 3, 0));
-			assertEquals(tuning.getTruePitch(TuningSettings.PAL_A4_FREQUENCY, Tuning.NO_TEMPERAMENT, 3, 0), tuning.getTruePitch(TuningSettings.PAL_A4_FREQUENCY, Tuning.TUNING_CUSTOM, 3, 0));
+			// The custom temperament reads Tuning's private custom[] array,
+			// only ever populated as a side effect of initTuning() (from the
+			// settings' cents since plan 59) - there's no public setter, so
+			// this can only be characterized here, after setUp()'s
+			// initTuning() call. The cents defaults are equal temperament
+			// (0, 100, ..., 1100), so the custom path reproduces the
+			// equal-temperament pitch.
+			assertEquals(8.191361111461944, tuning.getTruePitch(TuningSettings.PAL_A4_FREQUENCY, Temperament.CUSTOM, 3, 0));
+			assertEquals(tuning.getTruePitch(TuningSettings.PAL_A4_FREQUENCY, Temperament.EQUAL, 3, 0), tuning.getTruePitch(TuningSettings.PAL_A4_FREQUENCY, Temperament.CUSTOM, 3, 0));
 		}
 
 		@Test

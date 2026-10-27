@@ -340,6 +340,29 @@ Resolved earlier the same day by the numeric verification: Young No. 1
 carries 1800 and No. 2 carries 1799, per their verified source files;
 Zarlino is Schulter's schulter_zarte84n.scl; Equal pinned first.
 
+## Step 4: the preset multipliers live on the Temperament instances (2026-10-27)
+
+Decided and implemented 2026-10-27 (user): Java's
+`Tuning.TEMPERAMENT_PRESETS` table moved onto the `Temperament` value
+set - each of the 21 presets carries its twelve tonic-based multipliers
+(unison 1 first, octave fixed at 2:1, accessed via `getMultiplier(note)`),
+with its Scala source file named in the comment above it. The data is a
+natural attribute of the value set (the project's value-set rule), and
+the move dissolves the machinery that existed only for the number
+indexing: the seven retired presets' dead rows, the ragged-row padding
+(`PRESETS_LENGTH`) and the notes-per-octave scan
+(`computeNotesPerOctave()` - after step 1 every surviving preset is
+12-note/2:1, so it is the constant 12 now). `getTruePitch()` takes the
+`Temperament` instance instead of the raw number; EQUAL keeps its
+computed 2^(n/12) branch and CUSTOM the runtime cents, so the generated
+tables stay bit-identical (enforced by the golden-master tests, the
+shipped-page test and the PAL/NTSC equality test). The golden test of
+the retired pentatonic row 24 was removed with the dead rows - at
+runtime those numbers never reached the table, `getInstanceWithFallback`
+maps them to EQUAL first. Java-only by design: C++ keeps its
+`temperament_preset` table in Tuning.h (it has no Temperament class and
+is being phased out); behavior is unchanged in both programs.
+
 ## Open decisions
 
 1. RESOLVED 2026-10-26 (user): lockstep - the fix lands in Tuning.cpp and

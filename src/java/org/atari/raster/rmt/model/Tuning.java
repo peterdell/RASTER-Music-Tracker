@@ -18,7 +18,7 @@ package org.atari.raster.rmt.model;
  * <p>Expected values for this class's tests were captured by first adding
  * the equivalent golden-master characterization tests to CTuning itself
  * (src/cpp/test/TuningTests.cpp) - the safest way to port arithmetic this
- * intricate (modulo-driven branching, a ragged 29-row preset table) without
+ * intricate (modulo-driven branching, the preset multipliers - on their Temperament instances since plan 59 step 4) without
  * either hand-deriving expected values or trusting an unverified transcription.
  */
 public final class Tuning {
@@ -26,7 +26,16 @@ public final class Tuning {
 	public static final int NO_TEMPERAMENT = 0; // No temperament assumes the value of 0, as Equal Temperament
 	public static final int TUNING_PRESETS = 29; // Total number of temperaments available
 	public static final int TUNING_CUSTOM = TUNING_PRESETS; // Custom Temperament using Ratio is assumed otherwise
-	public static final int PRESETS_LENGTH = 21; // Length of the largest preset table
+
+	/**
+	 * The twelve semitones of the 2:1 octave - the one place the 12 is
+	 * defined ({@link TuningCents#COUNT} is this constant). After plan 59
+	 * retired the presets that do not fit (step 1), every temperament has
+	 * this many notes, so C++'s per-preset notes-per-octave scan
+	 * (g_notesperoctave) is a constant here; the preset multipliers
+	 * themselves live on their {@link Temperament} instances (step 4).
+	 */
+	public static final int NOTES_PER_OCTAVE = 12;
 
 	// Multiply by notes per octave to transpose the table. dist_4_buzzy/
 	// dist_c_unstable exist in the C++ source (Tuning.h) but are never
@@ -64,113 +73,11 @@ public final class Tuning {
 		0x37, 0x4E, 0x34, 0x53};
 	// clang-format on
 
-	// clang-format off
-	// The row comments are the verbatim description lines of each row's Scala
-	// archive source file; the dialog shows the proper names of
-	// ValueSets.properties instead. Every row was verified numerically
-	// against its .scl file, named per row in plans/59_TUNING_KEY_FIX_PLAN.md
-	// (step 3).
-	private static final double[][] TEMPERAMENT_PRESETS = {
-		// No Temperament for the first slot, leave it empty
-		row(0),
-
-		// Thomas Young 1799's Well Temperament no.1
-		row(1, 1.055709, 1.119770, 1.187690, 1.253887, 1.334739, 1.407637, 1.496513, 1.583581, 1.675715, 1.781546, 1.878851, 2),
-
-		// Thomas Young 1799's Well Temperament no.2
-		row(1, 1.055880, 1.119929, 1.187865, 1.254242, 1.334839, 1.407840, 1.496616, 1.583819, 1.676105, 1.781797, 1.879240, 2),
-
-		// Thomas Young 1807's Well Temperament
-		row(1, 1.053497, 1.119929, 1.185185, 1.254242, 1.333333, 1.404663, 1.496616, 1.580246, 1.676105, 1.777777, 1.877119, 2),
-
-		// Andreas Werckmeister's temperament III (the most famous one, 1681)
-		row(1, 1.053497, 1.117403, 1.185185, 1.252827, 1.333333, 1.404663, 1.494927, 1.580246, 1.670436, 1.777777, 1.879240, 2),
-
-		// Temperament Egal a Quintes Justes
-		row(1, 1.059634, 1.122824, 1.189782, 1.260734, 1.335916, 1.415582, 1.5, 1.589451, 1.684236, 1.784674, 1.891101, 2.003875),
-
-		// Alembert's and Rousseau's Temperament Ordinaire (1752/1767)
-		row(1, 1.051120, 1.118034, 1.181176, 1.250000, 1.331828, 1.403077, 1.495348, 1.574901, 1.671850, 1.773766, 1.872883, 2),
-
-		// Aron - Neidhardt equal beating well temperament
-		row(1, 1.053497, 1.118144, 1.185185, 1.250031, 1.333333, 1.404663, 1.496112, 1.580246, 1.672002, 1.777777, 1.872885, 2),
-
-		// Atom Schisma Scale
-		row(1, 1.059459, 1.122463, 1.189204, 1.259924, 1.334838, 1.414207, 1.498308, 1.587396, 1.681796, 1.781794, 1.887755, 2),
-
-		// 12-tET approximation with minimal order 17 beats
-		row(1, 1.058823, 1.125000, 1.187500, 1.250000, 1.333333, 1.416666, 1.500000, 1.588235, 1.666666, 1.777777, 1.888888, 2),
-
-		// Paul Bailey's modern well temperament (2002)
-		row(1, 1.054892, 1.119671, 1.186774, 1.254242, 1.335183, 1.406531, 1.498302, 1.582329, 1.676250, 1.780202, 1.881407, 2),
-
-		// John Barnes' temperament (1977) made after analysis of Wohltemperierte Klavier, 1/6 P
-		row(1, 1.055880, 1.119929, 1.187865, 1.254242, 1.336348, 1.407840, 1.496616, 1.583819, 1.676105, 1.781797, 1.881364, 2),
-
-		// Bethisy temperament ordinaire, see Pierre-Yves Asselin: Musique et temperament
-		row(1, 1.051418, 1.118034, 1.181509, 1.250000, 1.331953, 1.403475, 1.495348, 1.575346, 1.671850, 1.774101, 1.872884, 2),
-
-		// Big Gulp
-		row(1, 1.031250, 1.125000, 1.166666, 1.250000, 1.312500, 1.375000, 1.500000, 1.546875, 1.687500, 1.750000, 1.875000, 2),
-
-		// 12-tone scale by Bohlen generated from the 4:7:10 triad, Acustica 39/2, 1978
-		row(1, 1.100000, 1.200000, 1.304347, 1.428571, 1.571428, 1.750000, 1.909090, 2.100000, 2.300000, 2.500000, 2.750000, 3),
-
-		// This scale may also be called the "Wedding Cake"
-		row(1, 1.125000, 1.171875, 1.250000, 1.333333, 1.406250, 1.500000, 1.562500, 1.666666, 1.687500, 1.777777, 1.875000, 2),
-
-		// Upside-Down Wedding Cake (divorce cake)
-		row(1, 1.066666, 1.125000, 1.200000, 1.280000, 1.333333, 1.500000, 1.600000, 1.687500, 1.777777, 1.800000, 1.920000, 2),
-
-		// 12-tone Pythagorean scale
-		row(1, 1.067871, 1.125000, 1.185185, 1.265625, 1.333333, 1.423828, 1.500000, 1.601806, 1.687500, 1.777777, 1.898437, 2),
-
-		// Robert Schneider, scale of log(4)..log(16), 1/1 = 264Hz
-		row(1, 1.160964, 1.292481, 1.403677, 1.500000, 1.584962, 1.660964, 1.729715, 1.792481, 1.850219, 1.903677, 1.953445, 2),
-
-		// Zarlino's Temperament Extraordinaire, 1024-tET mapping
-		row(1, 1.041450, 1.116652, 1.180385, 1.247756, 1.337855, 1.393309, 1.494930, 1.567469, 1.669316, 1.777781, 1.865308, 2),
-
-		// Fokker's 7-limit 12-tone just scale
-		row(1, 1.071428, 1.125000, 1.166666, 1.250000, 1.333333, 1.406250, 1.500000, 1.607142, 1.666666, 1.750000, 1.875000, 2),
-
-		// Bach temperament, a'=400 Hz
-		row(1, 1.052192, 1.118997, 1.183716, 1.250521, 1.334029, 1.402922, 1.498956, 1.578288, 1.670146, 1.776618, 1.874739, 2),
-
-		// Vallotti & Young scale (Vallotti version) also known as Tartini-Vallotti (1754)
-		row(1, 1.055880, 1.119929, 1.187865, 1.254242, 1.336348, 1.407840, 1.496616, 1.583819, 1.676105, 1.781797, 1.877119, 2),
-
-		// Vallotti-Young and Werckmeister III, 10 cents 5-limit lesfip scale
-		row(1, 1.051637, 1.117298, 1.187060, 1.248356, 1.336846, 1.399836, 1.495457, 1.580099, 1.669531, 1.783574, 1.867613, 2),
-
-		// Optimally consonant major pentatonic, John deLaubenfels (2001)
-		row(1, 1.118042, 1.250019, 1.496879, 1.670166, 2),
-
-		// Ancient Greek Aeolic, also tritriadic scale of the 54:64:81 triad
-		row(1, 1.125000, 1.185185, 1.333333, 1.500000, 1.580246, 1.777777, 2),
-
-		// African Bapare xylophone (idiophone; loose log)
-		row(1, 1.076737, 1.200942, 1.336382, 1.497441, 1.670175, 1.932988, 2.174725, 2.285484, 2.525670, 2.738400),
-
-		// African Yaswa xylophones (idiophone; calabash resonators with membrane)
-		row(1, 1.128312, 1.271619, 1.486239, 1.707240, 1.936341, 2.015074, 2.215296, 2.419988, 2.871225, 3.220980),
-
-		// 19-EDO generated using Scale Workshop
-		row(1, 1.037155, 1.075690, 1.115657, 1.157110, 1.200102, 1.244692, 1.290939, 1.338904, 1.388651, 1.440246, 1.493759, 1.549259, 1.606822, 1.666524, 1.728443, 1.792664, 1.859270, 1.928352, 2),
-	};
-	// clang-format on
-
-	private static double[] row(double... values) {
-		double[] result = new double[PRESETS_LENGTH];
-		System.arraycopy(values, 0, result, 0, values.length);
-		return result;
-	}
-
 	private final int clockFrequency;
 
 	// Custom tuning ratio is generated into this array by initTuning(), so
 	// it's not a constant.
-	private final double[] custom = new double[13];
+	private final double[] custom = new double[NOTES_PER_OCTAVE + 1]; // the twelve multipliers plus the octave
 
 	public Tuning(int clockFrequency) {
 		this.clockFrequency = clockFrequency;
@@ -180,51 +87,29 @@ public final class Tuning {
 	 * Calculate the true audio pitch output using the given parameters.
 	 *
 	 * @param tuning tuning base pitch (in Hertz), usually the A-4 note
-	 * @param temperament temperament used in calculations, 0 for Equal Temperament, 1 to 29 (inclusive) for presets, otherwise Custom Ratio is assumed
+	 * @param temperament the temperament used in calculations - a preset plays its own multipliers, {@link Temperament#CUSTOM} the cents {@link #initTuning} converted
 	 * @param basenote base note/key from which the tuning is calculated, typically it is the key of A- or C-
 	 * @param semitone semitones added to base note for calculating higher pitches
 	 * @return true audio pitch for a given note (in Hertz)
 	 */
-	public double getTruePitch(double tuning, int temperament, int basenote, int semitone) {
-		int notesnum = 12; // unless specified otherwise
-		int note = (semitone + basenote) % notesnum; // current note
+	public double getTruePitch(double tuning, Temperament temperament, int basenote, int semitone) {
+		int note = (semitone + basenote) % NOTES_PER_OCTAVE; // current note
 		double ratio;
-		double octave = 2; // an octave is usually the frequency of a note multiplied by 2
-		double multi;
+		double octave = 2; // an octave is the frequency of a note multiplied by 2
 
 		// Equal temperament is generated using the 12th root of 2
-		if (temperament == NO_TEMPERAMENT) {
-			ratio = Math.pow(2.0, 1.0 / 12.0);
+		if (temperament == Temperament.EQUAL) {
+			ratio = Math.pow(2.0, 1.0 / NOTES_PER_OCTAVE);
 			return (tuning / 64) * Math.pow(ratio, semitone + basenote);
 		}
-		if (temperament >= TUNING_CUSTOM) { // custom temperament will be used using ratio
-			octave = custom[notesnum];
+		if (temperament.isCustom()) { // custom temperament will be used using ratio
+			octave = custom[NOTES_PER_OCTAVE];
 			ratio = custom[note];
 		} else { // any temperament preset will be used
-			notesnum = computeNotesPerOctave(temperament);
-			octave = TEMPERAMENT_PRESETS[temperament][notesnum];
-			note = (semitone + basenote) % notesnum;
-			ratio = TEMPERAMENT_PRESETS[temperament][note];
+			ratio = temperament.getMultiplier(note);
 		}
-		multi = Math.pow(octave, (semitone + basenote) / notesnum); // integer division, matching C++'s int/int then trunc()
+		double multi = Math.pow(octave, (semitone + basenote) / NOTES_PER_OCTAVE); // integer division, matching C++'s int/int then trunc()
 		return (tuning / 64) * (multi * ratio);
-	}
-
-	// Shared by getTruePitch()'s preset branch and initTuning() - both scan
-	// for the first zero/padding entry in a temperament_preset row to find
-	// how many notes per octave that preset actually defines (C++ duplicates
-	// this loop in both CTuning::GetTruePitch() and CTuning::InitTuning();
-	// unified here since nothing depends on keeping them separate).
-	private int computeNotesPerOctave(int temperament) {
-		int notesPerOctave = 12;
-		for (int i = 0; i < PRESETS_LENGTH; i++) {
-			if (TEMPERAMENT_PRESETS[temperament][i] != 0) {
-				continue;
-			}
-			notesPerOctave = i - 1;
-			break;
-		}
-		return notesPerOctave;
 	}
 
 	/**
@@ -406,7 +291,7 @@ public final class Tuning {
 		// TuningTables.cpp's GenerateTable() before omitting.
 		for (int i = 0; i < length; i++) {
 			int note = i + semitone;
-			double pitch = getTruePitch(tuningSettings.basetuning, tuningSettings.temperament.getNumber(), tuningSettings.basenote.getNumber(), note);
+			double pitch = getTruePitch(tuningSettings.basetuning, tuningSettings.temperament, tuningSettings.basenote.getNumber(), note);
 			int audf = getAUDF(pitch, coarseDivisor, divisor, cycle);
 
 			boolean mod3 = (audf + cycle) % 3 == 0;
@@ -498,49 +383,43 @@ public final class Tuning {
 			throw new IllegalStateException("An invalid tuning has been detected: basetuning is zero.");
 		}
 
-		int notesPerOctave = 12; // by default, an octave uses 12 semitones...
-		if (tuningSettings.temperament != Temperament.EQUAL && !tuningSettings.temperament.isCustom()) {
-			// ...unless it is specified otherwise in the Temperament presets
-			notesPerOctave = computeNotesPerOctave(tuningSettings.temperament.getNumber());
-		}
-
 		// Calculate the custom multiplier for each semitone from its cents
 		// value (plan 59): 2^(cents/1200). The octave is fixed at 2:1.
 		for (int i = 0; i < TuningCents.COUNT; i++) {
 			custom[i] = Math.pow(2, tuningSettings.cents.values[i] / 1200);
 		}
-		custom[12] = 2;
+		custom[NOTES_PER_OCTAVE] = 2;
 
 		// Generate all lookup tables used by the RMT driver for tuning purposes.
 
 		// Distortion 2, at 0xB000
-		generateTable(tableMemory, 0x000, 64, DIST_2_BELL.table64khz() * notesPerOctave, Timbre.BELL, 0x00, tuningSettings);
-		generateTable(tableMemory, 0x040, 64, DIST_2_BELL.table179mhz() * notesPerOctave, Timbre.BELL, 0x40, tuningSettings);
-		generateTable(tableMemory, 0x080, 64, DIST_2_BELL.table16bit() * notesPerOctave, Timbre.BELL, 0x50, tuningSettings);
+		generateTable(tableMemory, 0x000, 64, DIST_2_BELL.table64khz() * NOTES_PER_OCTAVE, Timbre.BELL, 0x00, tuningSettings);
+		generateTable(tableMemory, 0x040, 64, DIST_2_BELL.table179mhz() * NOTES_PER_OCTAVE, Timbre.BELL, 0x40, tuningSettings);
+		generateTable(tableMemory, 0x080, 64, DIST_2_BELL.table16bit() * NOTES_PER_OCTAVE, Timbre.BELL, 0x50, tuningSettings);
 		// no 15kHz table...
 
 		// Distortion 4 (Smooth), at 0xB100
-		generateTable(tableMemory, 0x100, 64, DIST_4_SMOOTH.table64khz() * notesPerOctave, Timbre.SMOOTH_4, 0x00, tuningSettings);
-		generateTable(tableMemory, 0x140, 64, DIST_4_SMOOTH.table179mhz() * notesPerOctave, Timbre.SMOOTH_4, 0x40, tuningSettings);
-		generateTable(tableMemory, 0x180, 64, DIST_4_SMOOTH.table16bit() * notesPerOctave, Timbre.SMOOTH_4, 0x50, tuningSettings);
+		generateTable(tableMemory, 0x100, 64, DIST_4_SMOOTH.table64khz() * NOTES_PER_OCTAVE, Timbre.SMOOTH_4, 0x00, tuningSettings);
+		generateTable(tableMemory, 0x140, 64, DIST_4_SMOOTH.table179mhz() * NOTES_PER_OCTAVE, Timbre.SMOOTH_4, 0x40, tuningSettings);
+		generateTable(tableMemory, 0x180, 64, DIST_4_SMOOTH.table16bit() * NOTES_PER_OCTAVE, Timbre.SMOOTH_4, 0x50, tuningSettings);
 		// no 15kHz table...
 
 		// Distortion A (Pure), at 0xB200
-		generateTable(tableMemory, 0x200, 64, DIST_A_PURE.table64khz() * notesPerOctave, Timbre.PURE_A, 0x00, tuningSettings);
-		generateTable(tableMemory, 0x240, 64, DIST_A_PURE.table179mhz() * notesPerOctave, Timbre.PURE_A, 0x40, tuningSettings);
-		generateTable(tableMemory, 0x280, 64, DIST_A_PURE.table16bit() * notesPerOctave, Timbre.PURE_A, 0x50, tuningSettings);
-		generateTable(tableMemory, 0x580, 64, DIST_A_PURE.table15khz() * notesPerOctave, Timbre.PURE_A, 0x01, tuningSettings);
+		generateTable(tableMemory, 0x200, 64, DIST_A_PURE.table64khz() * NOTES_PER_OCTAVE, Timbre.PURE_A, 0x00, tuningSettings);
+		generateTable(tableMemory, 0x240, 64, DIST_A_PURE.table179mhz() * NOTES_PER_OCTAVE, Timbre.PURE_A, 0x40, tuningSettings);
+		generateTable(tableMemory, 0x280, 64, DIST_A_PURE.table16bit() * NOTES_PER_OCTAVE, Timbre.PURE_A, 0x50, tuningSettings);
+		generateTable(tableMemory, 0x580, 64, DIST_A_PURE.table15khz() * NOTES_PER_OCTAVE, Timbre.PURE_A, 0x01, tuningSettings);
 
 		// Distortion C (Buzzy), at 0xB300
-		generateTable(tableMemory, 0x300, 64, DIST_C_BUZZY.table64khz() * notesPerOctave, Timbre.BUZZY_C, 0x00, tuningSettings);
-		generateTable(tableMemory, 0x340, 64, DIST_C_BUZZY.table179mhz() * notesPerOctave, Timbre.BUZZY_C, 0x40, tuningSettings);
-		generateTable(tableMemory, 0x380, 64, DIST_C_BUZZY.table16bit() * notesPerOctave, Timbre.BUZZY_C, 0x50, tuningSettings);
-		generateTable(tableMemory, 0x5C0, 64, DIST_C_BUZZY.table15khz() * notesPerOctave, Timbre.BUZZY_C, 0x01, tuningSettings);
+		generateTable(tableMemory, 0x300, 64, DIST_C_BUZZY.table64khz() * NOTES_PER_OCTAVE, Timbre.BUZZY_C, 0x00, tuningSettings);
+		generateTable(tableMemory, 0x340, 64, DIST_C_BUZZY.table179mhz() * NOTES_PER_OCTAVE, Timbre.BUZZY_C, 0x40, tuningSettings);
+		generateTable(tableMemory, 0x380, 64, DIST_C_BUZZY.table16bit() * NOTES_PER_OCTAVE, Timbre.BUZZY_C, 0x50, tuningSettings);
+		generateTable(tableMemory, 0x5C0, 64, DIST_C_BUZZY.table15khz() * NOTES_PER_OCTAVE, Timbre.BUZZY_C, 0x01, tuningSettings);
 
 		// Distortion C (Gritty), at 0xB400
-		generateTable(tableMemory, 0x400, 64, DIST_C_GRITTY.table64khz() * notesPerOctave, Timbre.GRITTY_C, 0x00, tuningSettings);
-		generateTable(tableMemory, 0x440, 64, DIST_C_GRITTY.table179mhz() * notesPerOctave, Timbre.GRITTY_C, 0x40, tuningSettings);
-		generateTable(tableMemory, 0x480, 64, DIST_C_GRITTY.table16bit() * notesPerOctave, Timbre.GRITTY_C, 0x50, tuningSettings);
+		generateTable(tableMemory, 0x400, 64, DIST_C_GRITTY.table64khz() * NOTES_PER_OCTAVE, Timbre.GRITTY_C, 0x00, tuningSettings);
+		generateTable(tableMemory, 0x440, 64, DIST_C_GRITTY.table179mhz() * NOTES_PER_OCTAVE, Timbre.GRITTY_C, 0x40, tuningSettings);
+		generateTable(tableMemory, 0x480, 64, DIST_C_GRITTY.table16bit() * NOTES_PER_OCTAVE, Timbre.GRITTY_C, 0x50, tuningSettings);
 		// no 15kHz table...
 
 		// Sawtooth, at 0xB500 and 0xB540 - hand-made, not generated (see SAWTOOTH_TABLES)

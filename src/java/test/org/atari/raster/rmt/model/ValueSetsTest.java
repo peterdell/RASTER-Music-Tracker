@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -147,6 +148,24 @@ class ValueSetsTest {
 		assertSame(Temperament.BACH, Temperament.getInstance("BACH"));
 		assertTrue(Temperament.CUSTOM.isCustom());
 		assertFalse(Temperament.EQUAL.isCustom());
+	}
+
+	/** Plan 59 step 4: each preset carries its twelve tonic-based multipliers; the equal temperament (computed) and the custom temperament (played from the cents) carry none. */
+	@Test
+	void thePresetsCarryTheirMultipliers() {
+		for (Temperament temperament : Temperament.getValues()) {
+			if (temperament == Temperament.EQUAL || temperament.isCustom()) {
+				assertThrows(IllegalStateException.class, () -> temperament.getMultiplier(0));
+				continue;
+			}
+			assertEquals(1.0, temperament.getMultiplier(0), "the unison of " + temperament.getId());
+			for (int note = 1; note < Tuning.NOTES_PER_OCTAVE; note++) {
+				double multiplier = temperament.getMultiplier(note);
+				assertTrue(multiplier > 1 && multiplier < 2, temperament.getId() + " note " + note + ": " + multiplier);
+			}
+		}
+		// A golden spot check: Young No. 1's minor second, per young1.scl (plan 59 step 3)
+		assertEquals(1.055709, Temperament.YOUNG_1799_NO1.getMultiplier(1));
 	}
 
 	/** A number nobody owns maps per C++'s semantic (&gt;= 29 is custom) or to a guard value. */

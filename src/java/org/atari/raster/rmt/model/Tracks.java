@@ -394,9 +394,9 @@ public final class Tracks {
 		int n = note + tuning;
 
 		if (n < 0) {
-			n += ((-n - 1) / 12 + 1) * 12;
+			n += ((-n - 1) / Tuning.NOTES_PER_OCTAVE + 1) * Tuning.NOTES_PER_OCTAVE;
 		} else if (n >= Notes.NOTESNUM) {
-			n -= ((n - Notes.NOTESNUM) / 12 + 1) * 12;
+			n -= ((n - Notes.NOTESNUM) / Tuning.NOTES_PER_OCTAVE + 1) * Tuning.NOTES_PER_OCTAVE;
 		}
 		return n;
 	}
@@ -1005,7 +1005,7 @@ public final class Tracks {
 			default -> noteBase = -1;
 			}
 			char octaveChar = content.length() > 2 ? content.charAt(2) : '\0';
-			int note = (noteBase >= 0 && octaveChar >= '1' && octaveChar <= '6') ? noteBase + (octaveChar - '1') * 12 : noteBase;
+			int note = (noteBase >= 0 && octaveChar >= '1' && octaveChar <= '6') ? noteBase + (octaveChar - '1') * Tuning.NOTES_PER_OCTAVE : noteBase;
 
 			at.note[idx] = isValidNote(note) ? note : -1;
 			int instrVal = IOHelpers.hexstr(content, 4, 2);
