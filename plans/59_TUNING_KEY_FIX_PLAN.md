@@ -253,6 +253,93 @@ covers virtually every existing module and Tuning.ini.
       Tuning.ini keeps its format (`BASETUNING` keeps its name, the
       meaning change is documented).
 
+## Step 3: consistent temperament names and ordering (2026-10-27)
+
+Requested by the user 2026-10-27: the texts are inconsistent (some start
+with a number, some with a name) and so is the sorting; the custom
+temperament must always be the last entry. IMPLEMENTED 2026-10-27 in
+both programs: `ValueSets.properties` carries the names below;
+`TuningDialog.temperamentsInDisplayOrder()` pins Equal first and Custom
+last and sorts the 21 presets by display text (Collator, é as e); C++'s
+`TEMPERAMENT_NAMES`/`TEMPERAMENT_NUMBERS` are hard-coded to the same
+order, pinned cross-program by
+`OptionsDialogsTest.theTemperamentComboOrderIsPinnedAndMatchesTheCpp`.
+The data-row comments in `Tuning.java`/`Tuning.h` keep the verbatim
+Scala description lines as the source record, with a pointer comment
+above each table; changelog entry Build 2026-10-27.
+
+**The finding**: the 21 preset texts are verbatim *description lines*
+from the Scala scale archive (huygens-fokker.org/docs/scalesdir.txt),
+inherited through VinsCool's POKEY Frequencies Calculator - they were
+never designed as names, which is why they read like prose ("This Scale
+May Also be Called the..."). Every preset was located in the archive;
+the most notable find: "Bach Temperament, A- = 400hz" is
+`sparschuh-squiggle_clavichord.scl` - Andreas Sparschuh's "squiggle"
+Bach reconstruction, hence the odd 400 Hz, not a temperament by Bach.
+
+All 21 rows were verified NUMERICALLY against the archive (2026-10-27,
+user's suggestion): each `TEMPERAMENT_PRESETS` row equals its .scl
+file's degrees converted to multipliers and rounded to 6 decimals (max
+difference < 1e-6 everywhere; script kept in the job tmp folder, the
+archive is https://www.huygens-fokker.org/docs/scales.zip). So every
+grounding below is exact, including Zarlino.
+
+**Naming convention** (applies to `ValueSets.properties` and C++
+`TuningDialog.cpp`'s `TEMPERAMENT_NAMES`, in lockstep):
+
+1. The name leads: person or scale name first, never a leading number
+   or an article of prose.
+2. The kind follows (Well Temperament / Temperament / Scale as the
+   source calls it); the year last, in parentheses.
+3. No possessives or description phrasing ("Thomas Young 1799's",
+   "Made After Analysis of", "Also Known as").
+4. Typography: "No. 1" (not "no.1"), "A4 = 400 Hz" (not "A- = 400hz"),
+   Title Case, French accents kept (é).
+
+**Proposed texts** (number: current -> proposed, grounding):
+
+| # | Proposed | Grounding (Scala file / Wikipedia) |
+|---|----------|------------------------------------|
+| 0 | Equal Temperament (Default) | unchanged |
+| 1 | Young Well Temperament No. 1 (1800) | young1.scl "Thomas Young well temperament no.1 (1800), 1/12 and 3/16 synt. comma" - verified numerically; Wikipedia: described in Young's July 1799 letter, read/published 1800 |
+| 2 | Young Well Temperament No. 2 (1799) | young2.scl "Thomas Young well temperament no.2 (1799)" - verified numerically |
+| 3 | Young Well Temperament (1807) | young.scl: "(1807), also Luigi Malerbi nr.2 (1794)" |
+| 4 | Werckmeister III Well Temperament (1691) | werck3.scl says 1681; Wikipedia: Musikalische Temperatur is 1691 - propose 1691 |
+| 6 | d'Alembert-Rousseau Tempérament Ordinaire (1752/1767) | alembert-rousseau.scl |
+| 7 | Aron-Neidhardt Equal Beating Well Temperament | aron-neidhardt.scl |
+| 8 | Atom Schisma Scale | atomschis.scl, unchanged |
+| 9 | Equal Temperament Approximation (Minimal Order 17 Beats) | b12_17.scl "12-tET approximation with minimal order 17 beats" - the number moves out of first position, and it sorts next to Equal Temperament |
+| 10 | Bailey Modern Well Temperament (2002) | bailey_well2.scl "Paul Bailey's modern well temperament (2002)" |
+| 11 | Barnes Well-Tempered Clavier Temperament (1977) | barnes.scl "...made after analysis of Wohltemperierte Klavier, 1/6 P" |
+| 12 | Béthizy Tempérament Ordinaire (1754) | bethizy.scl "Jean Laurent de Béthizy temperament ordinaire (1754)" - note the z, and the year was missing |
+| 13 | Big Gulp | biggulp.scl, unchanged |
+| 15 | Wedding Cake | pyramid.scl "This scale may also be called the 'Wedding Cake'" |
+| 16 | Upside-Down Wedding Cake (Divorce Cake) | pyramid_down.scl |
+| 17 | Pythagorean Scale | pyth_12.scl "12-tone Pythagorean scale" - "12 Tone" dropped, all presets are 12-tone |
+| 18 | Schneider Logarithmic Scale, log(4) to log(16) | schneider_log.scl "Robert Schneider, scale of log(4) .. log(16), 1/1=264Hz" |
+| 19 | Zarlino Tempérament Extraordinaire (Schulter) | schulter_zarte84n.scl "Zarlino temperament extraordinaire, 1024-tET mapping" - verified numerically; Margo Schulter's 12-note temperament extraordinaire on Zarlino's 2/7-comma meantone (Tuning.java's row comment even names the 1024-tET mapping), not a tuning by Zarlino himself, hence the attribution |
+| 20 | Fokker 7-Limit Just Scale | fokker_12.scl "Fokker's 7-limit 12-tone just scale" |
+| 21 | Bach Temperament by Sparschuh (A4 = 400 Hz) | sparschuh-squiggle_clavichord.scl "Bach temperament, a'=400 Hz" - the attribution was missing entirely |
+| 22 | Vallotti Temperament (1754) | vallotti.scl "Vallotti & Young scale (Vallotti version) also known as Tartini-Vallotti (1754)"; Wikipedia: "Vallotti" is the common name |
+| 23 | Vallotti-Young/Werckmeister III Lesfip Scale (5-Limit, 10 Cents) | val-werck.scl |
+| 29 | Custom Temperament in Cents | unchanged, always the last entry |
+
+**Ordering** (user, 2026-10-27): Equal Temperament (Default) is pinned
+as the first entry, Custom Temperament in Cents as the last; the 21
+presets in between are alphabetical by display text, case-insensitive
+(the standing rule for RMT's value lists). The order is display-only -
+the stored numbers
+and Tuning.ini stay untouched; Java keeps `Temperament.getValues()` in
+number order and the dialogs sort for display, C++ sorts
+`TEMPERAMENT_NAMES`/`TEMPERAMENT_NUMBERS` jointly.
+
+**Sub-decisions, all resolved 2026-10-27 (user)**: Werckmeister III
+carries 1691 (Wikipedia's Musikalische Temperatur date; Scala's 1681 is
+not corroborated); the spelling is Béthizy with z, per the source file.
+Resolved earlier the same day by the numeric verification: Young No. 1
+carries 1800 and No. 2 carries 1799, per their verified source files;
+Zarlino is Schulter's schulter_zarte84n.scl; Equal pinned first.
+
 ## Open decisions
 
 1. RESOLVED 2026-10-26 (user): lockstep - the fix lands in Tuning.cpp and

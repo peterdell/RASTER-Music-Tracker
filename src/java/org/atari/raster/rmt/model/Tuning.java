@@ -65,6 +65,11 @@ public final class Tuning {
 	// clang-format on
 
 	// clang-format off
+	// The row comments are the verbatim description lines of each row's Scala
+	// archive source file; the dialog shows the proper names of
+	// ValueSets.properties instead. Every row was verified numerically
+	// against its .scl file, named per row in plans/59_TUNING_KEY_FIX_PLAN.md
+	// (step 3).
 	private static final double[][] TEMPERAMENT_PRESETS = {
 		// No Temperament for the first slot, leave it empty
 		row(0),

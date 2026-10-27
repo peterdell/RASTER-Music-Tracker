@@ -64,35 +64,39 @@ void TuningDlg::DoDataExchange(CDataExchange* pDX)
     }
 }
 
-// The combo entries in number order; must match Java's Temperament value
-// set and ValueSets.properties (plan 59 retired numbers 5, 14 and 24-28).
+// The combo entries (plan 59 step 3): Equal pinned first, Custom pinned
+// last, the 21 presets in between alphabetical by name - the same order
+// Java's TuningDialog.temperamentsInDisplayOrder() computes, pinned by
+// OptionsDialogsTest. The names match ValueSets.properties; each preset's
+// values were verified against its Scala archive source file (see
+// plans/59_TUNING_KEY_FIX_PLAN.md, step 3).
 const int TuningDlg::TEMPERAMENT_NUMBERS[TEMPERAMENT_COUNT] = {
-    0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22, 23, CTuning::TUNING_CUSTOM
+    0, 7, 8, 21, 10, 11, 12, 13, 6, 9, 20, 17, 18, 16, 22, 23, 15, 4, 3, 1, 2, 19, CTuning::TUNING_CUSTOM
 };
 
 const char* const TuningDlg::TEMPERAMENT_NAMES[TEMPERAMENT_COUNT] = {
     "Equal Temperament (Default)",
-    "Thomas Young 1799's Well Temperament no.1",
-    "Thomas Young 1799's Well Temperament no.2",
-    "Thomas Young 1807's Well Temperament",
-    "Andreas Werckmeister's Temperament III (1681)",
-    "d'Alembert and Rousseau Tempérament Ordinaire (1752/1767)",
-    "Aron - Neidhardt Equal Beating Well Temperament",
+    "Aron-Neidhardt Equal Beating Well Temperament",
     "Atom Schisma Scale",
-    "12-TET Approximation with Minimal Order 17 Beats",
-    "Paul Bailey's Modern Well Temperament (2002)",
-    "John Barnes' Temperament (1977) Made After Analysis of Wohltemperierte Klavier",
-    "Bethisy Tempérament Ordinaire",
+    "Bach Temperament by Sparschuh (A4 = 400 Hz)",
+    "Bailey Modern Well Temperament (2002)",
+    "Barnes Well-Tempered Clavier Temperament (1977)",
+    "Béthizy Tempérament Ordinaire (1754)",
     "Big Gulp",
-    "This Scale May Also be Called the \"Wedding Cake\"",
-    "Upside Down Wedding Cake (Divorce Cake)",
-    "12 Tone Pythagorean Scale",
-    "Robert Schneider, Scale of Log(4) ..Log(16)",
-    "Zarlino Tempérament Extraordinaire",
-    "Fokker's 7-Limit 12-Tone Just Scale",
-    "Bach Temperament, A- = 400hz",
-    "Vallotti & Young Scale (Vallotti Version), Also Known as Tartini-Vallotti (1754)",
-    "Vallotti-Young and Werckmeister III, 10 Cents 5-Limit Lesfip Scale",
+    "d'Alembert-Rousseau Tempérament Ordinaire (1752/1767)",
+    "Equal Temperament Approximation (Minimal Order 17 Beats)",
+    "Fokker 7-Limit Just Scale",
+    "Pythagorean Scale",
+    "Schneider Logarithmic Scale, log(4) to log(16)",
+    "Upside-Down Wedding Cake (Divorce Cake)",
+    "Vallotti Temperament (1754)",
+    "Vallotti-Young/Werckmeister III Lesfip Scale (5-Limit, 10 Cents)",
+    "Wedding Cake",
+    "Werckmeister III Well Temperament (1691)",
+    "Young Well Temperament (1807)",
+    "Young Well Temperament No. 1 (1800)",
+    "Young Well Temperament No. 2 (1799)",
+    "Zarlino Tempérament Extraordinaire (Schulter)",
     "Custom Temperament in Cents"
 };
 

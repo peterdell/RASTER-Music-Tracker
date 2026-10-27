@@ -225,6 +225,23 @@ class OptionsDialogsTest {
 		assertEquals("C:\\tracks", dialog.pathTracks);
 	}
 
+	/** Plan 59 step 3: Equal pinned first, Custom pinned last, the 21 presets alphabetical - and the exact order C++'s TEMPERAMENT_NUMBERS/TEMPERAMENT_NAMES hard-code. */
+	@Test
+	void theTemperamentComboOrderIsPinnedAndMatchesTheCpp() {
+		java.util.List<Temperament> order = TuningDialog.temperamentsInDisplayOrder();
+		assertEquals(23, order.size());
+		int[] numbers = { 0, 7, 8, 21, 10, 11, 12, 13, 6, 9, 20, 17, 18, 16, 22, 23, 15, 4, 3, 1, 2, 19, 29 };
+		for (int i = 0; i < numbers.length; i++) {
+			assertEquals(numbers[i], order.get(i).getNumber(), "TEMPERAMENT_NUMBERS[" + i + "] (" + order.get(i).getText() + ")");
+		}
+		// Spot checks of the renamed texts (plan 59 step 3, grounded in the Scala archive)
+		assertEquals("Béthizy Tempérament Ordinaire (1754)", Temperament.getInstance(12).getText());
+		assertEquals("Bach Temperament by Sparschuh (A4 = 400 Hz)", Temperament.BACH.getText());
+		assertEquals("Zarlino Tempérament Extraordinaire (Schulter)", Temperament.ZARLINO.getText());
+		assertEquals("Young Well Temperament No. 1 (1800)", Temperament.getInstance(1).getText());
+		assertEquals("Werckmeister III Well Temperament (1691)", Temperament.WERCKMEISTER_III.getText());
+	}
+
 	@Test
 	void theComboEntriesMatchTheCppResources() {
 		assertEquals(12, BaseNote.getValues().size());

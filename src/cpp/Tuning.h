@@ -86,6 +86,10 @@ private:
     const TTuning dist_c_gritty{1, 0, 6, 2};
     const TTuning dist_c_unstable{3, 0, 8, 2};
 
+    // The row comments are the description lines of each row's Scala archive
+    // source file; the dialog shows the proper names of TEMPERAMENT_NAMES
+    // (TuningDialog.cpp) instead. Every row was verified numerically against
+    // its .scl file, named per row in plans/59_TUNING_KEY_FIX_PLAN.md (step 3).
     const double temperament_preset[TUNING_PRESETS][PRESETS_LENGTH] =
         {
             //No Temperament for the first slot, leave it empty

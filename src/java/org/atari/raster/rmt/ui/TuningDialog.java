@@ -1,6 +1,10 @@
 package org.atari.raster.rmt.ui;
 
 import java.awt.BorderLayout;
+import java.text.Collator;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -49,7 +53,7 @@ final class TuningDialog extends ModalDialog {
 	private final JTextField baseTuningField = new JTextField(12);
 	/** {@code IDC_BASENOTE}/{@code IDC_TEMPERAMENT}, holding the {@link BaseNote}/{@link Temperament} instances rather than combo indexes. */
 	private final ValueSetField<BaseNote> baseNoteCombo = new ValueSetField<>(BaseNote.getValues());
-	private final ValueSetField<Temperament> temperamentCombo = new ValueSetField<>(Temperament.getValues());
+	private final ValueSetField<Temperament> temperamentCombo = new ValueSetField<>(temperamentsInDisplayOrder());
 	private final JTextField[] centsFields = new JTextField[TuningCents.COUNT];
 	private boolean filled;
 
@@ -93,6 +97,25 @@ final class TuningDialog extends ModalDialog {
 		reset.addActionListener(e -> onTuningReset());
 		addButtonBarButton(reset); // inserted at the front each time, so add in reverse order
 		addButtonBarButton(test);
+	}
+
+	/**
+	 * The temperament combo's display order (plan 59 step 3): the equal
+	 * temperament - the default - pinned first, the custom temperament pinned
+	 * last, and the presets in between alphabetical by display text, the
+	 * standing order for RMT's value lists. Display only - the stored
+	 * numbers ({@code Temperament.getNumber()}) are untouched, and C++'s
+	 * {@code TEMPERAMENT_NAMES} is hard-coded to this same order.
+	 */
+	static List<Temperament> temperamentsInDisplayOrder() {
+		List<Temperament> result = new ArrayList<>(Temperament.getValues());
+		result.remove(Temperament.EQUAL);
+		result.remove(Temperament.CUSTOM);
+		Collator collator = Collator.getInstance(Locale.ENGLISH); // é sorts as e (Béthizy)
+		result.sort((temperament1, temperament2) -> collator.compare(temperament1.getText(), temperament2.getText()));
+		result.add(0, Temperament.EQUAL);
+		result.add(Temperament.CUSTOM);
+		return result;
 	}
 
 	static void copy(TuningSettings from, TuningSettings to) {

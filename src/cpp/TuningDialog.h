@@ -16,7 +16,9 @@ public:
 
     // The temperament combo's 23 entries (plan 59 retired seven presets):
     // the combo index maps to the stable temperament number through
-    // TEMPERAMENT_NUMBERS; names match Java's ValueSets.properties.
+    // TEMPERAMENT_NUMBERS; names match Java's ValueSets.properties. Display
+    // order (plan 59 step 3): Equal pinned first, Custom pinned last, the
+    // presets in between alphabetical by name.
     static const int TEMPERAMENT_COUNT = 23;
     static const int TEMPERAMENT_NUMBERS[TEMPERAMENT_COUNT];
     static const char* const TEMPERAMENT_NAMES[TEMPERAMENT_COUNT];
