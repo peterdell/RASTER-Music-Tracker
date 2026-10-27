@@ -166,6 +166,16 @@ TEST_F(TuningPitchTest, EqualTemperamentIsKeyInvariantWithA4Anchoring) {
     }
 }
 
+// The cents the tuning dialog shows for the selected temperament,
+// CENTS_PER_OCTAVE * log2(multiplier) - 100 per semitone for equal temperament.
+TEST_F(TuningPitchTest, GetTemperamentCentsForEqualAndPresets) {
+    for (int note = 0; note < NOTES_PER_OCTAVE; note++) {
+        EXPECT_NEAR(tuning.GetTemperamentCents(CTuning::NO_TEMPERAMENT, note), (double)note * CENTS_PER_OCTAVE / NOTES_PER_OCTAVE, 1e-9);
+    }
+    EXPECT_DOUBLE_EQ(tuning.GetTemperamentCents(1, 0), 0.0);
+    EXPECT_NEAR(tuning.GetTemperamentCents(1, 1), CENTS_PER_OCTAVE * log2(1.055709), 1e-12); // Young No. 1's minor second
+}
+
 TEST_F(TuningPitchTest, CalculateDeltaAUDFDefaultBranchStepsByOne) {
     // Timbre::BELL - distortion 0x20, neither the 0x40 nor 0xC0 special
     // cases, so the "simplest delta method" (+-1) applies.

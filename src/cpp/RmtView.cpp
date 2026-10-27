@@ -757,7 +757,7 @@ boolean ReadCents(const char* name, const char* value, const char* value2, const
         }
         int numerator = atoi(value);
         int denominator = atoi(value2);
-        cents = (denominator == 0 || numerator <= 0) ? 0 : 1200.0 * log2((double)numerator / denominator);
+        cents = (denominator == 0 || numerator <= 0) ? 0 : CENTS_PER_OCTAVE * log2((double)numerator / denominator);
         return true;
     };
     return false;

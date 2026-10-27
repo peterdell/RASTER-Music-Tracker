@@ -152,9 +152,9 @@ class ValueSetsTest {
 
 	/** Plan 59 step 4: each preset carries its twelve tonic-based multipliers; the equal temperament (computed) and the custom temperament (played from the cents) carry none. */
 	@Test
-	void thePresetsCarryTheirMultipliers() {
+	void theTemperamentsCarryTheirMultipliers() {
 		for (Temperament temperament : Temperament.getValues()) {
-			if (temperament == Temperament.EQUAL || temperament.isCustom()) {
+			if (temperament.isCustom()) {
 				assertThrows(IllegalStateException.class, () -> temperament.getMultiplier(0));
 				continue;
 			}
@@ -166,6 +166,19 @@ class ValueSetsTest {
 		}
 		// A golden spot check: Young No. 1's minor second, per young1.scl (plan 59 step 3)
 		assertEquals(1.055709, Temperament.YOUNG_1799_NO1.getMultiplier(1));
+		// Equal temperament's are computed, bit-exactly as the A4 derivation used to compute them inline
+		assertEquals(Math.pow(2, 7.0 / Tuning.NOTES_PER_OCTAVE), Temperament.EQUAL.getMultiplier(7));
+	}
+
+	/** The cents the tuning dialog shows for the selected temperament, CENTS_PER_OCTAVE * log2(multiplier) - 100 per semitone for equal temperament; the custom cents are the user's own. */
+	@Test
+	void theTemperamentsGiveTheirCents() {
+		for (int note = 0; note < Tuning.NOTES_PER_OCTAVE; note++) {
+			assertEquals((double) note * Tuning.CENTS_PER_OCTAVE / Tuning.NOTES_PER_OCTAVE, Temperament.EQUAL.getCents(note), 1e-9);
+		}
+		assertEquals(0.0, Temperament.YOUNG_1799_NO1.getCents(0));
+		assertEquals(Tuning.CENTS_PER_OCTAVE * Math.log(1.055709) / Math.log(2), Temperament.YOUNG_1799_NO1.getCents(1), 1e-12);
+		assertThrows(IllegalStateException.class, () -> Temperament.CUSTOM.getCents(1));
 	}
 
 	/** A number nobody owns maps per C++'s semantic (&gt;= 29 is custom) or to a guard value. */

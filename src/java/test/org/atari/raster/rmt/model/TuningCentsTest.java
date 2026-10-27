@@ -19,7 +19,7 @@ class TuningCentsTest {
 	@Test
 	void defaultsAreEqualTemperament() {
 		for (int i = 0; i < TuningCents.COUNT; i++) {
-			assertEquals(i * 100, cents.values[i], "semitone " + i);
+			assertEquals(i * Tuning.CENTS_PER_OCTAVE / Tuning.NOTES_PER_OCTAVE, cents.values[i], "semitone " + i);
 		}
 	}
 

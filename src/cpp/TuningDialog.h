@@ -31,6 +31,19 @@ private:
     // Display "Test" button in Song mode
     BOOL m_test;
 
+    // The cents fields show the selected temperament's cents: computed and
+    // read-only for equal temperament and the presets, editable only for the
+    // custom temperament. What was typed for the custom temperament is kept
+    // here while another temperament is shown.
+    static const int CENTS_FIELD_IDS[TTuningCents::COUNT];
+    CString m_customCentsText[TTuningCents::COUNT];
+    int m_shownTemperament = -1; // the temperament number the fields show, -1 for none yet
+    void ShowCents();
+    CString CustomCentsText(int i);
+    bool CustomCentsTextsValid();
+    static CString FormatCents(double cents);
+    static bool ParseCents(const CString& text, double& cents);
+
 protected:
     virtual void DoDataExchange(CDataExchange* pDX); // DDX/DDV support
 

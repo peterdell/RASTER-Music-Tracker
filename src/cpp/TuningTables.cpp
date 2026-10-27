@@ -260,7 +260,7 @@ void CTuning::InitTuning() {
     // Calculate the custom multiplier for each semitone from its cents
     // value (plan 59): 2^(cents/1200). The octave is fixed at 2:1.
     for (int i = 0; i < TTuningCents::COUNT; i++) {
-        CUSTOM[i] = pow(2.0, tuning.cents.values[i] / 1200.0);
+        CUSTOM[i] = pow(2.0, tuning.cents.values[i] / CENTS_PER_OCTAVE);
     }
     CUSTOM[NOTES_PER_OCTAVE] = 2;
 

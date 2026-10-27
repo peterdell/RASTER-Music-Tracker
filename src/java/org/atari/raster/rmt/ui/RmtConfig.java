@@ -16,6 +16,7 @@ import org.atari.raster.rmt.model.RmtVersion;
 import org.atari.raster.rmt.model.KeyboardLayout;
 import org.atari.raster.rmt.model.Temperament;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
+import org.atari.raster.rmt.model.Tuning;
 import org.atari.raster.rmt.model.TuningCents;
 import org.atari.raster.rmt.model.TuningSettings;
 
@@ -344,7 +345,7 @@ public final class RmtConfig {
 		if (denominator == 0 || numerator <= 0) {
 			return 0;
 		}
-		return 1200 * Math.log((double) numerator / denominator) / Math.log(2);
+		return Tuning.CENTS_PER_OCTAVE * Math.log((double) numerator / denominator) / Math.log(2);
 	}
 
 	/** {@code CRmtView::WriteTuningConfig()}. */

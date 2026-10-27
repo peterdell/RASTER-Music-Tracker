@@ -1,6 +1,8 @@
 package org.atari.raster.rmt.ui;
 
 import java.awt.BorderLayout;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,16 +20,19 @@ import com.wudsn.tools.base.gui.ModalDialog;
 import com.wudsn.tools.base.gui.ValueSetField;
 import org.atari.raster.rmt.model.BaseNote;
 import org.atari.raster.rmt.model.Temperament;
+import org.atari.raster.rmt.model.Tuning;
 import org.atari.raster.rmt.model.TuningCents;
 import org.atari.raster.rmt.model.TuningSettings;
 
 /**
- * "Tuning" - the port of {@code TuningDlg} ({@code IDD_TUNING}): the base
- * tuning, base note and temperament, and the 12 custom-temperament values
- * in musical cents (plan 59; they replaced the numerator/denominator
- * fraction pairs), enabled only while the custom temperament is selected
- * (a preset plays its own table). The unison is the tonic and fixed at 0,
- * the octave at 1200 (2:1). Its button semantics are C++'s: Test applies
+ * "Tuning" - the port of {@code TuningDlg} ({@code IDD_TUNING}): the A4
+ * frequency, base note and temperament, and 12 cents fields showing the
+ * selected temperament's notes in musical cents (plan 59; the custom
+ * values replaced the numerator/denominator fraction pairs): computed and
+ * read-only for equal temperament and the presets, editable only for the
+ * custom temperament, whose typed values are kept while another
+ * temperament is shown. The unison is the tonic and fixed at 0, the octave
+ * at 1200 (2:1). Its button semantics are C++'s: Test applies
  * the fields to the session and regenerates the frequency tables
  * ({@code g_Tuning.InitTuning()}), Reset restores the values the dialog was
  * opened with (into the session only - the fields keep what was typed, as
@@ -55,6 +60,10 @@ final class TuningDialog extends ModalDialog {
 	private final ValueSetField<BaseNote> baseNoteCombo = new ValueSetField<>(BaseNote.getValues());
 	private final ValueSetField<Temperament> temperamentCombo = new ValueSetField<>(temperamentsInDisplayOrder());
 	private final JTextField[] centsFields = new JTextField[TuningCents.COUNT];
+	/** The custom temperament's cents as typed, kept while the fields show another temperament's cents. */
+	private final String[] customCentsTexts = new String[TuningCents.COUNT];
+	/** The temperament whose cents the fields currently show. */
+	private Temperament shownTemperament;
 	private boolean filled;
 
 	TuningDialog(JFrame parent, RmtSession session) {
@@ -82,8 +91,7 @@ final class TuningDialog extends ModalDialog {
 			DialogSupport.add(centsGroup, centsFields[i], 1, i, 1, true);
 		}
 		centsFields[0].setEditable(false); // the tonic is always 0 cents
-		temperamentCombo.addActionListener(e -> updateCentsFieldsEnabled());
-		updateCentsFieldsEnabled();
+		temperamentCombo.addActionListener(e -> showCents());
 
 		JPanel content = new JPanel();
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
@@ -133,20 +141,72 @@ final class TuningDialog extends ModalDialog {
 		filled = true;
 		baseTuningField.setText(RmtConfig.formatDouble(settings.basetuning));
 		baseNoteCombo.setValue(settings.basenote); // always a valid instance - the config read already mapped stray numbers
-		temperamentCombo.setValue(settings.temperament);
 		for (int i = 0; i < TuningCents.COUNT; i++) {
-			centsFields[i].setText(RmtConfig.formatDouble(settings.cents.values[i]));
+			customCentsTexts[i] = RmtConfig.formatDouble(settings.cents.values[i]);
 		}
-		updateCentsFieldsEnabled(); // setSelectedIndex above fires no event when the selection did not change
+		shownTemperament = null;
+		temperamentCombo.setValue(settings.temperament);
+		showCents(); // setSelectedIndex above fires no event when the selection did not change
 	}
 
-	/** Only the custom temperament plays the cents fields, so they are only enabled there; the tonic stays fixed at 0. */
-	private void updateCentsFieldsEnabled() {
-		Temperament temperament = temperamentCombo.getValue();
-		boolean enabled = temperament != null && temperament.isCustom();
-		for (int i = 0; i < centsFields.length; i++) {
-			centsFields[i].setEnabled(enabled && i > 0);
+	/**
+	 * The fields show the cents of the selected temperament: computed and
+	 * read-only for equal temperament and the presets, the user's own and
+	 * editable for the custom temperament (the tonic stays fixed at 0). What
+	 * was typed for the custom temperament is kept while another
+	 * temperament is shown, and comes back when it is selected again.
+	 */
+	private void showCents() {
+		Temperament selected = temperamentCombo.getValue();
+		if (selected == null || selected == shownTemperament) {
+			return;
 		}
+		if (isCustomShown()) {
+			for (int i = 0; i < TuningCents.COUNT; i++) {
+				customCentsTexts[i] = centsFields[i].getText();
+			}
+		}
+		for (int i = 0; i < TuningCents.COUNT; i++) {
+			centsFields[i].setText(selected.isCustom() ? customCentsTexts[i] : formatCents(selected.getCents(i)));
+			centsFields[i].setEnabled(selected.isCustom() && i > 0);
+		}
+		shownTemperament = selected;
+	}
+
+	private boolean isCustomShown() {
+		return shownTemperament != null && shownTemperament.isCustom();
+	}
+
+	/** The custom temperament's cents text of note {@code i}: the field while the custom temperament is shown, the kept text otherwise. */
+	private String customCentsText(int i) {
+		return isCustomShown() ? centsFields[i].getText() : customCentsTexts[i];
+	}
+
+	/**
+	 * A computed cents value for display, rounded to 3 decimals: the presets'
+	 * multipliers carry 6 decimals (their Scala sources' rounding), which is
+	 * worth about 0.001 cents - more digits would be noise.
+	 */
+	static String formatCents(double cents) {
+		return BigDecimal.valueOf(cents).setScale(3, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
+	}
+
+	private static Double parseCents(String text) {
+		try {
+			return Double.valueOf(text.trim());
+		} catch (NumberFormatException | NullPointerException ex) {
+			return null;
+		}
+	}
+
+	private boolean customCentsTextsValid() {
+		for (int i = 1; i < TuningCents.COUNT; i++) {
+			Double cents = parseCents(customCentsText(i));
+			if (cents == null || cents.isNaN() || cents < 0 || cents > Tuning.CENTS_PER_OCTAVE) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/** {@code UpdateData(TRUE)}: the fields into the working copy - only after {@link #validateOK()} said they parse. */
@@ -160,7 +220,7 @@ final class TuningDialog extends ModalDialog {
 		settings.temperament = temperamentCombo.getValue();
 		settings.cents.values[0] = 0;
 		for (int i = 1; i < TuningCents.COUNT; i++) {
-			settings.cents.values[i] = DialogSupport.parseDouble(centsFields[i]);
+			settings.cents.values[i] = parseCents(customCentsText(i)); // the custom cents, whichever temperament is shown
 		}
 	}
 
@@ -170,13 +230,7 @@ final class TuningDialog extends ModalDialog {
 		if (tuning == null || tuning.isNaN() || tuning < TuningSettings.BASETUNING_MIN || tuning > TuningSettings.BASETUNING_MAX) {
 			return false;
 		}
-		for (int i = 1; i < TuningCents.COUNT; i++) {
-			Double cents = DialogSupport.parseDouble(centsFields[i]);
-			if (cents == null || cents.isNaN() || cents < 0 || cents > 1200) {
-				return false;
-			}
-		}
-		return true;
+		return customCentsTextsValid();
 	}
 
 	/** The DDV checks with MFC's prompts. */
@@ -184,8 +238,16 @@ final class TuningDialog extends ModalDialog {
 		if (!DialogSupport.validateDouble(this, baseTuningField, TuningSettings.BASETUNING_MIN, TuningSettings.BASETUNING_MAX)) {
 			return false;
 		}
+		if (customCentsTextsValid()) {
+			return true;
+		}
+		// An invalid custom value is hidden while another temperament is
+		// shown: switch back to the custom temperament, so the prompt can
+		// point at the offending field.
+		temperamentCombo.setValue(Temperament.CUSTOM);
+		showCents();
 		for (int i = 1; i < TuningCents.COUNT; i++) {
-			if (!DialogSupport.validateDouble(this, centsFields[i], 0, 1200)) {
+			if (!DialogSupport.validateDouble(this, centsFields[i], 0, Tuning.CENTS_PER_OCTAVE)) {
 				return false;
 			}
 		}

@@ -32,7 +32,7 @@ public final class TuningCents {
 	/** The default is equal temperament: 0, 100, ..., 1100. */
 	public void initialize() {
 		for (int i = 0; i < COUNT; i++) {
-			values[i] = i * 100;
+			values[i] = i * Tuning.CENTS_PER_OCTAVE / Tuning.NOTES_PER_OCTAVE;
 		}
 	}
 

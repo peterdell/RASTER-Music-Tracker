@@ -80,6 +80,7 @@ public:
     // change, just visibility.
     Pitch GetTruePitch(double tuning, Temperament temperament, int basenote, int semitone);
     double CalculateBaseFrequency(const TTuningSettings& tuning);
+    double GetTemperamentCents(Temperament temperament, int note) const;
     void GenerateTable(byte* table, int length, int semitone, Timbre timbre, int audctl);
     AUDF CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_divisor, double divisor, int cycle, Timbre timbre) const;
 
@@ -99,8 +100,12 @@ private:
     // its .scl file, named per row in plans/59_TUNING_KEY_FIX_PLAN.md (step 3).
     const double temperament_preset[TUNING_PRESETS][PRESETS_LENGTH] =
         {
-            //No Temperament for the first slot, leave it empty
-            {0},
+            //Equal temperament: its multipliers are computed, 2^(n/12), not tabulated.
+            //GetTruePitch() keeps its own equal formula (bit-exact tables) and never
+            //reads this row; CalculateBaseFrequency() and GetTemperamentCents() do.
+            {pow(2.0, 0.0 / NOTES_PER_OCTAVE), pow(2.0, 1.0 / NOTES_PER_OCTAVE), pow(2.0, 2.0 / NOTES_PER_OCTAVE), pow(2.0, 3.0 / NOTES_PER_OCTAVE),
+             pow(2.0, 4.0 / NOTES_PER_OCTAVE), pow(2.0, 5.0 / NOTES_PER_OCTAVE), pow(2.0, 6.0 / NOTES_PER_OCTAVE), pow(2.0, 7.0 / NOTES_PER_OCTAVE),
+             pow(2.0, 8.0 / NOTES_PER_OCTAVE), pow(2.0, 9.0 / NOTES_PER_OCTAVE), pow(2.0, 10.0 / NOTES_PER_OCTAVE), pow(2.0, 11.0 / NOTES_PER_OCTAVE), 2},
 
             //Thomas Young 1799's Well Temperament no.1
             {1, 1.055709, 1.119770, 1.187690, 1.253887, 1.334739, 1.407637, 1.496513, 1.583581, 1.675715, 1.781546, 1.878851, 2},

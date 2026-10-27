@@ -276,15 +276,18 @@ CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_div
 double CTuning::CalculateBaseFrequency(const TTuningSettings& tuning) {
     int toA = A_SEMITONES_ABOVE_C + tuning.basenote;
     int interval = toA % NOTES_PER_OCTAVE; //semitones from the tonic up to the next A
-    double multiplier;
-    if (tuning.temperament == NO_TEMPERAMENT) {
-        multiplier = pow(2.0, (double)interval / NOTES_PER_OCTAVE);
-    } else if (tuning.temperament >= TUNING_CUSTOM) {
-        multiplier = CUSTOM[interval];
-    } else {
-        multiplier = temperament_preset[tuning.temperament][interval];
-    }
+    double multiplier = tuning.temperament >= TUNING_CUSTOM ? CUSTOM[interval] : temperament_preset[tuning.temperament][interval];
     return tuning.basetuning * pow(2.0, 1 - toA / NOTES_PER_OCTAVE) / multiplier; //integer division: 1 - 1 = 0 octaves for the keys C#- through A-
+}
+
+/// <summary>
+/// The note (0-11 semitones above the tonic) of an equal or preset temperament
+/// in musical cents, CENTS_PER_OCTAVE * log2(multiplier). The tuning dialog
+/// shows these for the selected temperament; the custom temperament's cents are
+/// the user's own (TTuningCents), so it is not asked here.
+/// </summary>
+double CTuning::GetTemperamentCents(Temperament temperament, int note) const {
+    return CENTS_PER_OCTAVE * log2(temperament_preset[temperament][note]);
 }
 
 /// <summary> Calculate the true audio pitch output using the given parameters </summary>

@@ -24,6 +24,7 @@ import org.atari.raster.rmt.model.KeyboardLayout;
 import org.atari.raster.rmt.model.BaseNote;
 import org.atari.raster.rmt.model.Temperament;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
+import org.atari.raster.rmt.model.Tuning;
 
 /**
  * The three B6 dialogs' data binding and validation, driven through their
@@ -206,6 +207,51 @@ class OptionsDialogsTest {
 		for (int i = 1; i < fields.size(); i++) {
 			assertFalse(fields.get(i).isEnabled());
 		}
+	}
+
+	@Test
+	void tuningDialogShowsTheCentsOfTheSelectedTemperament() {
+		session.song.getTuningSettings().temperament = Temperament.CUSTOM;
+		session.song.getTuningSettings().cents.values[4] = 386.3137138648348; // 5/4 in cents
+		TuningDialog dialog = new TuningDialog(null, session);
+		dialog.dataToUi();
+		List<JTextField> fields = find(dialog, JTextField.class);
+		List<JComboBox> combos = find(dialog, JComboBox.class);
+		assertEquals("386.3137138648348", fields.get(1 + 4).getText()); // the custom temperament shows the stored cents
+		fields.get(1 + 7).setText("701.955"); // typed for the custom temperament
+
+		combos.get(1).setSelectedItem(Temperament.EQUAL);
+		for (int i = 0; i < Tuning.NOTES_PER_OCTAVE; i++) {
+			assertEquals(String.valueOf(i * Tuning.CENTS_PER_OCTAVE / Tuning.NOTES_PER_OCTAVE), fields.get(1 + i).getText(), "equal temperament note " + i);
+			assertFalse(fields.get(1 + i).isEnabled());
+		}
+
+		combos.get(1).setSelectedItem(Temperament.YOUNG_1799_NO1);
+		assertEquals(TuningDialog.formatCents(Temperament.YOUNG_1799_NO1.getCents(1)), fields.get(2).getText());
+		assertTrue(fields.get(2).getText().matches("\\d+\\.\\d{1,3}"), "rounded to 3 decimals: " + fields.get(2).getText());
+		assertFalse(fields.get(2).isEnabled(), "a preset's cents are read-only");
+
+		// OK with a preset selected: the custom cents survive, including what was typed
+		dialog.dataFromUi();
+		assertEquals(Temperament.YOUNG_1799_NO1, dialog.settings.temperament);
+		assertEquals(386.3137138648348, dialog.settings.cents.values[4]);
+		assertEquals(701.955, dialog.settings.cents.values[7]);
+
+		combos.get(1).setSelectedItem(Temperament.CUSTOM);
+		assertEquals("701.955", fields.get(1 + 7).getText()); // what was typed comes back
+		assertTrue(fields.get(1 + 7).isEnabled());
+	}
+
+	@Test
+	void tuningDialogRejectsAnInvalidCustomValueHiddenBehindAPreset() {
+		session.song.getTuningSettings().temperament = Temperament.CUSTOM;
+		TuningDialog dialog = new TuningDialog(null, session);
+		dialog.dataToUi();
+		List<JTextField> fields = find(dialog, JTextField.class);
+		fields.get(2).setText("abc");
+		find(dialog, JComboBox.class).get(1).setSelectedItem(Temperament.EQUAL);
+		assertEquals("100", fields.get(2).getText());
+		assertFalse(dialog.validateOK(), "the hidden custom value is still checked");
 	}
 
 	@Test

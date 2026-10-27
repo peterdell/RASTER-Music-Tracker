@@ -37,6 +37,9 @@ public final class Tuning {
 	 */
 	public static final int NOTES_PER_OCTAVE = 12;
 
+	/** The musical cents of the 2:1 octave (one equal-tempered semitone is {@code CENTS_PER_OCTAVE / NOTES_PER_OCTAVE} = 100): a multiplier m is {@code CENTS_PER_OCTAVE * log2(m)} cents. */
+	public static final int CENTS_PER_OCTAVE = 1200;
+
 	// Multiply by notes per octave to transpose the table. dist_4_buzzy/
 	// dist_c_unstable exist in the C++ source (Tuning.h) but are never
 	// actually used by InitTuning() there either - omitted here as dead code.
@@ -103,14 +106,7 @@ public final class Tuning {
 	double calculateBaseFrequency(TuningSettings tuningSettings) {
 		int toA = A_SEMITONES_ABOVE_C + tuningSettings.basenote.getNumber();
 		int interval = toA % NOTES_PER_OCTAVE; // semitones from the tonic up to the next A
-		double multiplier;
-		if (tuningSettings.temperament == Temperament.EQUAL) {
-			multiplier = Math.pow(2, (double) interval / NOTES_PER_OCTAVE);
-		} else if (tuningSettings.temperament.isCustom()) {
-			multiplier = custom[interval];
-		} else {
-			multiplier = tuningSettings.temperament.getMultiplier(interval);
-		}
+		double multiplier = tuningSettings.temperament.isCustom() ? custom[interval] : tuningSettings.temperament.getMultiplier(interval);
 		return tuningSettings.basetuning * Math.pow(2, 1 - toA / NOTES_PER_OCTAVE) / multiplier; // integer division: 1 - 1 = 0 octaves for the keys C#- through A-
 	}
 
@@ -418,7 +414,7 @@ public final class Tuning {
 		// Calculate the custom multiplier for each semitone from its cents
 		// value (plan 59): 2^(cents/1200). The octave is fixed at 2:1.
 		for (int i = 0; i < TuningCents.COUNT; i++) {
-			custom[i] = Math.pow(2, tuningSettings.cents.values[i] / 1200);
+			custom[i] = Math.pow(2, tuningSettings.cents.values[i] / CENTS_PER_OCTAVE);
 		}
 		custom[NOTES_PER_OCTAVE] = 2;
 

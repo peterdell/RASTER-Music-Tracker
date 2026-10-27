@@ -303,7 +303,7 @@ void CPokeyView::Draw(const CSong& song, const CTuning& tuning, const bool explo
                     canvas->At(17, channelRow).PrintMini("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
                 } else {
                     // Most of the lines below could get some improvements...
-                    const double centnum = 1200 * log2(PITCH / basetuning);
+                    const double centnum = CENTS_PER_OCTAVE * log2(PITCH / basetuning);
                     const int notenum = (int)round(centnum * 0.01) + 60;
                     const int octave = (((notenum + 96) - basenote) / g_notesperoctave) - 8;
                     const int cents = (int)round(centnum - (notenum - 60) * 100);

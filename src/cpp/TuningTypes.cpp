@@ -14,6 +14,6 @@ void TTuningSettings::Initialize(bool ntsc) {
 // The default is equal temperament: 0, 100, ..., 1100.
 void TTuningCents::Initialize() {
     for (int i = 0; i < COUNT; i++) {
-        values[i] = i * 100.0;
+        values[i] = i * CENTS_PER_OCTAVE / NOTES_PER_OCTAVE;
     }
 }

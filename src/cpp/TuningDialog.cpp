@@ -50,19 +50,38 @@ void TuningDlg::DoDataExchange(CDataExchange* pDX)
         DDX_CBIndex(pDX, IDC_TEMPERAMENT, sel);
     }
     // The 12 custom-temperament values in musical cents (plan 59): the
-    // tonic is fixed at 0, the octave at 1200 (2:1) and has no field.
-    static const int CENTS_FIELD_IDS[TTuningCents::COUNT] = {
-        IDC_UNISON_L, IDC_MINOR_2ND_L, IDC_MAJOR_2ND_L, IDC_MINOR_3RD_L, IDC_MAJOR_3RD_L, IDC_PERFECT_4TH_L,
-        IDC_TRITONE_L, IDC_PERFECT_5TH_L, IDC_MINOR_6TH_L, IDC_MAJOR_6TH_L, IDC_MINOR_7TH_L, IDC_MAJOR_7TH_L
-    };
+    // tonic is fixed at 0, the octave at 1200 (2:1) and has no field. The
+    // fields show the selected temperament (ShowCents() fills them, also
+    // initially), so only saving reads them - and only the custom values,
+    // whichever temperament is shown.
+    if (!pDX->m_bSaveAndValidate) {
+        return;
+    }
     m_tuningSettings.cents.values[0] = 0;
-    for (int i = 0; i < TTuningCents::COUNT; i++) {
-        DDX_Text(pDX, CENTS_FIELD_IDS[i], m_tuningSettings.cents.values[i]);
-        if (i > 0) {
-            DDV_MinMaxDouble(pDX, m_tuningSettings.cents.values[i], 0, 1200);
+    if (m_shownTemperament != CTuning::TUNING_CUSTOM) {
+        if (CustomCentsTextsValid()) {
+            for (int i = 1; i < TTuningCents::COUNT; i++) {
+                ParseCents(m_customCentsText[i], m_tuningSettings.cents.values[i]);
+            }
+            return;
         }
+        // An invalid custom value is hidden while another temperament is
+        // shown: switch back to the custom temperament, so the DDV prompt
+        // below can point at the offending field.
+        ((CComboBox*)GetDlgItem(IDC_TEMPERAMENT))->SetCurSel(TemperamentIndexOf(CTuning::TUNING_CUSTOM));
+        ShowCents();
+        m_tuningSettings.temperament = CTuning::TUNING_CUSTOM;
+    }
+    for (int i = 1; i < TTuningCents::COUNT; i++) {
+        DDX_Text(pDX, CENTS_FIELD_IDS[i], m_tuningSettings.cents.values[i]);
+        DDV_MinMaxDouble(pDX, m_tuningSettings.cents.values[i], 0, CENTS_PER_OCTAVE);
     }
 }
+
+const int TuningDlg::CENTS_FIELD_IDS[TTuningCents::COUNT] = {
+    IDC_UNISON_L, IDC_MINOR_2ND_L, IDC_MAJOR_2ND_L, IDC_MINOR_3RD_L, IDC_MAJOR_3RD_L, IDC_PERFECT_4TH_L,
+    IDC_TRITONE_L, IDC_PERFECT_5TH_L, IDC_MINOR_6TH_L, IDC_MAJOR_6TH_L, IDC_MINOR_7TH_L, IDC_MAJOR_7TH_L
+};
 
 // The combo entries (plan 59 step 3): Equal pinned first, Custom pinned
 // last, the 21 presets in between alphabetical by name - the same order
@@ -133,8 +152,15 @@ BOOL TuningDlg::OnInitDialog()
     }
     temperament->SetCurSel(TemperamentIndexOf(m_tuningSettings.temperament));
 
-    // The combo selection is set, enable the cents fields accordingly
-    OnTemperamentChanged();
+    // The custom cents as the fields will show them when the custom
+    // temperament is selected - in DDX_Text's own number format
+    for (int i = 0; i < TTuningCents::COUNT; i++) {
+        m_customCentsText[i].Format("%.*g", DBL_DIG, m_tuningSettings.cents.values[i]);
+    }
+
+    // The combo selection is set, show its cents
+    m_shownTemperament = -1;
+    ShowCents();
 
     return TRUE;  // return TRUE unless you set the focus to a control
     // EXCEPTION: OCX Property Pages should return FALSE
@@ -168,18 +194,82 @@ void TuningDlg::OnTuningReset()
 
 void TuningDlg::OnTemperamentChanged()
 {
-    // Only the custom temperament plays the cents fields, so they are only
-    // enabled there; the tonic (unison) stays fixed at 0 cents.
-    static const int centsFieldIds[] = {
-        IDC_MINOR_2ND_L, IDC_MAJOR_2ND_L, IDC_MINOR_3RD_L, IDC_MAJOR_3RD_L, IDC_PERFECT_4TH_L, IDC_TRITONE_L,
-        IDC_PERFECT_5TH_L, IDC_MINOR_6TH_L, IDC_MAJOR_6TH_L, IDC_MINOR_7TH_L, IDC_MAJOR_7TH_L
-    };
+    ShowCents();
+}
+
+// The fields show the cents of the selected temperament: computed and
+// read-only for equal temperament and the presets, the user's own and
+// editable for the custom temperament (the tonic stays fixed at 0). What was
+// typed for the custom temperament is kept while another temperament is
+// shown, and comes back when it is selected again.
+void TuningDlg::ShowCents()
+{
     int sel = ((CComboBox*)GetDlgItem(IDC_TEMPERAMENT))->GetCurSel();
-    BOOL enable = sel >= 0 && TEMPERAMENT_NUMBERS[sel] == CTuning::TUNING_CUSTOM;
-    GetDlgItem(IDC_UNISON_L)->EnableWindow(FALSE);
-    for (int id : centsFieldIds) {
-        GetDlgItem(id)->EnableWindow(enable);
+    if (sel < 0) {
+        return;
     }
+    int selected = TEMPERAMENT_NUMBERS[sel];
+    if (selected == m_shownTemperament) {
+        return;
+    }
+    if (m_shownTemperament == CTuning::TUNING_CUSTOM) {
+        for (int i = 0; i < TTuningCents::COUNT; i++) {
+            GetDlgItemText(CENTS_FIELD_IDS[i], m_customCentsText[i]);
+        }
+    }
+    bool custom = selected == CTuning::TUNING_CUSTOM;
+    for (int i = 0; i < TTuningCents::COUNT; i++) {
+        SetDlgItemText(CENTS_FIELD_IDS[i], custom ? m_customCentsText[i] : FormatCents(g_Tuning.GetTemperamentCents(selected, i)));
+        GetDlgItem(CENTS_FIELD_IDS[i])->EnableWindow(custom && i > 0);
+    }
+    m_shownTemperament = selected;
+}
+
+// The custom temperament's cents text of note i: the field while the custom
+// temperament is shown, the kept text otherwise.
+CString TuningDlg::CustomCentsText(int i)
+{
+    if (m_shownTemperament == CTuning::TUNING_CUSTOM) {
+        CString text;
+        GetDlgItemText(CENTS_FIELD_IDS[i], text);
+        return text;
+    }
+    return m_customCentsText[i];
+}
+
+bool TuningDlg::CustomCentsTextsValid()
+{
+    for (int i = 1; i < TTuningCents::COUNT; i++) {
+        double cents;
+        if (!ParseCents(CustomCentsText(i), cents) || cents < 0 || cents > CENTS_PER_OCTAVE) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// A computed cents value for display, rounded to 3 decimals: the presets'
+// multipliers carry 6 decimals (their Scala sources' rounding), which is
+// worth about 0.001 cents - more digits would be noise.
+CString TuningDlg::FormatCents(double cents)
+{
+    CString text;
+    text.Format("%.3f", cents);
+    text.TrimRight('0');
+    text.TrimRight('.');
+    return text;
+}
+
+bool TuningDlg::ParseCents(const CString& text, double& cents)
+{
+    CString trimmed = text;
+    trimmed.Trim();
+    if (trimmed.IsEmpty()) {
+        return false;
+    }
+    char* end = nullptr;
+    cents = strtod(trimmed, &end);
+    return end != nullptr && *end == 0 && !isnan(cents);
 }
 
 void TuningDlg::OnCancel()

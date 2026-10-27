@@ -298,7 +298,7 @@ public final class PokeyView {
 						canvas.at(17, channelRow).printMini("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
 					} else {
 						// Most of the lines below could get some improvements...
-						final double centnum = 1200 * (Math.log(PITCH / basetuning) / Math.log(2));
+						final double centnum = Tuning.CENTS_PER_OCTAVE * (Math.log(PITCH / basetuning) / Math.log(2));
 						final int notenum = (int) cRound(centnum * 0.01) + 60;
 						final int octave = (((notenum + 96) - basenote) / notesPerOctave) - 8;
 						final int cents = (int) cRound(centnum - (notenum - 60) * 100);

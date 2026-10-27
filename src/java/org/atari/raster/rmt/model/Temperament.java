@@ -64,15 +64,16 @@ public final class Temperament extends ValueSet {
 
 	// Instance attributes
 	private final int number;
-	/** The preset's twelve tonic-based frequency multipliers ({@code multipliers[0]} = 1, the unison), or {@code null} for {@link #EQUAL} and {@link #CUSTOM}. */
+	/** The twelve tonic-based frequency multipliers ({@code multipliers[0]} = 1, the unison), or {@code null} for {@link #CUSTOM}. */
 	private final double[] multipliers;
 
 	static {
 		values = new LinkedHashMap<String, Temperament>();
-		// Equal temperament is computed (2^(n/12)), not tabulated, so the
-		// generated tables stay bit-exact; the custom temperament is played
-		// from the runtime TuningCents. Neither carries multipliers.
-		EQUAL = add("EQUAL", Tuning.NO_TEMPERAMENT);
+		// Equal temperament's multipliers are computed, 2^(n/12), not
+		// tabulated (Tuning.getTruePitch() keeps its own equal formula, so the
+		// generated tables stay bit-exact); the custom temperament is played
+		// from the runtime TuningCents and carries none.
+		EQUAL = add("EQUAL", Tuning.NO_TEMPERAMENT, equalMultipliers());
 		// young1.scl: Thomas Young well temperament no.1 (1800), 1/12 and 3/16 synt. comma
 		YOUNG_1799_NO1 = add("YOUNG_1799_NO1", 1, 1, 1.055709, 1.119770, 1.187690, 1.253887, 1.334739, 1.407637, 1.496513, 1.583581, 1.675715, 1.781546, 1.878851);
 		// young2.scl: Thomas Young well temperament no.2 (1799)
@@ -131,7 +132,15 @@ public final class Temperament extends ValueSet {
 		this.multipliers = multipliers;
 	}
 
-	/** A value without multipliers: the equal temperament (computed) and the custom temperament (played from the cents). */
+	private static double[] equalMultipliers() {
+		double[] result = new double[Tuning.NOTES_PER_OCTAVE];
+		for (int note = 0; note < result.length; note++) {
+			result[note] = Math.pow(2, (double) note / Tuning.NOTES_PER_OCTAVE);
+		}
+		return result;
+	}
+
+	/** A value without multipliers: the custom temperament, played from the cents. */
 	private static Temperament add(String id, int number) {
 		Temperament result = new Temperament(id, number, null);
 		values.put(result.getId(), result);
@@ -201,16 +210,24 @@ public final class Temperament extends ValueSet {
 	}
 
 	/**
-	 * The preset's frequency multiplier for the note {@code note} (0-11)
-	 * semitones above the tonic; 1 for the unison, below 2 otherwise - the
-	 * octave is fixed at 2:1. Only the 21 presets carry multipliers:
-	 * {@link #EQUAL} is computed and {@link #CUSTOM} is played from the
-	 * cents, so asking either is a caller error.
+	 * The frequency multiplier for the note {@code note} (0-11) semitones
+	 * above the tonic; 1 for the unison, below 2 otherwise - the octave is
+	 * fixed at 2:1. {@link #CUSTOM} is played from the cents and carries
+	 * none, so asking it is a caller error.
 	 */
 	public double getMultiplier(int note) {
 		if (multipliers == null) {
 			throw new IllegalStateException("The temperament '" + getId() + "' has no multipliers.");
 		}
 		return multipliers[note];
+	}
+
+	/**
+	 * The note {@code note} (0-11) semitones above the tonic in musical cents,
+	 * {@code CENTS_PER_OCTAVE * log2(multiplier)}. {@link #CUSTOM}'s cents are
+	 * the user's {@link TuningCents}, so asking it is a caller error.
+	 */
+	public double getCents(int note) {
+		return Tuning.CENTS_PER_OCTAVE * Math.log(getMultiplier(note)) / Math.log(2);
 	}
 }

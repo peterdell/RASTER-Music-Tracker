@@ -14,7 +14,7 @@ protected:
 
 TEST_F(TuningCentsTest, DefaultsAreEqualTemperament) {
     for (int i = 0; i < TTuningCents::COUNT; i++) {
-        EXPECT_DOUBLE_EQ(cents.values[i], i * 100.0) << "semitone " << i;
+        EXPECT_DOUBLE_EQ(cents.values[i], i * CENTS_PER_OCTAVE / NOTES_PER_OCTAVE) << "semitone " << i;
     }
 }
 
