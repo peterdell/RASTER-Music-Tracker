@@ -306,10 +306,6 @@ trackn_bass16			org *+TRACKS
 g_flag			org *+TRACKS
 	EIF
 
-	IFT FEAT_TABLE_MANUAL					; TODO: Patch16-only, never implemented in RMT
-trackn_pointertable	org *+TRACKS
-	EIF
-
 	IFT FEAT_AUDCTLMANUALSET
 trackn_audctl		org *+TRACKS
 	EIF
@@ -999,13 +995,7 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 		EIF						; FEAT_EFFECTFSHIFT
 	EIF							; FEAT_EFFECTS
 
-;	Note: byte 11 was free in Unpatched and is used in Patch16.
-	IFT FEAT_TABLE_MANUAL			; Manual tuning table loaded from instruments, based on the unused 12th byte, this is not yet fully implemented into RMT
-		ldy #11
-		lda (p_nt),y
-		sta trackn_pointertable,x
-	EIF
-
+;	Note: byte 11 is free, reserved for future extensions.
 ;	By now Y holds who-knows-what ;-)
 
 	lda #128						; The volume decay is "rounded" (i.e. it starts from +128/256)
@@ -1297,43 +1287,7 @@ pp2s
 	lda volumetab,y
 	sta tmp							; Backup the final volume (0-15) in "tmp". This is faster than PHA/PLA.
 									; It will be used to compute the AUDC value a bit later.
-
-;---------------------------------------------------------------------------------------------------------------------------------------------;
-
-; Start of manual tables code (unfinished).
-
-	IFT FEAT_TABLE_MANUAL		; Manual tuning table loaded from instruments, this is currently not fully implemented into RMT...
-		lda trackn_pointertable,x
-		beq do_tuning_tables	; A value of 0 means no pointer will be used, thus, can be skipped immediately
-		tay
-		and #$0F
-		ora #$B0
-		sta p_nr+1				; Bx00, where x is manipulated
-; hack for Reverse-16 proof of concept, won't be used later
-		lda #0
-		cpx #1
-		bne stayzero
-; End hack
-		tya
-		and #$C0
-stayzero
-		sta p_nr				; B0x0, where is manipulated
-								; hack for Reverse-16 proof of concept, won't be used later
-		cpx #0
-		bne getdist
-		lda tmp
-		ora #$C0
-		jmp store_tables_lsb_c
-	; End of Reverse-16 hack, what is below should always be the same
-getdist
-		lda reg2
-		and #$0e				; Distortion 0000 ddd0
-		tay						; Even values
-		jmp store_tables_lsb_b
-	EIF
-
-; End of manual tables code.
-
+									
 ;---------------------------------------------------------------------------------------------------------------------------------------------;
 
 ; Start of the tuning tables code.

@@ -977,7 +977,7 @@ SetUpInstrumentY2				; IN: <Y> holds the instrument number *2, <X> the track num
 		EIF						; FEAT_EFFECTFSHIFT
 	EIF							; FEAT_EFFECTS
 
-;	Note: byte 11 is free, reserved for future extensions
+;	Note: byte 11 is free, reserved for future extensions.
 ;	By now Y holds who-knows-what ;-)
 
 	lda #128						; The volume decay is "rounded" (i.e. it starts from +128/256)
