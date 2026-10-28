@@ -36,10 +36,16 @@ class RmtModuleTest {
 	/** The load address the comparisons use: RMT's default. */
 	static final int LOAD = RmtModuleFile.DEFAULT_LOAD_ADDRESS;
 
+	/** The track length of the built songs: the editor's default. */
+	static final int TRACK_LENGTH = 64;
+
+	/** The song speed of the built songs. */
+	static final int SONG_SPEED = 6;
+
 	/** A song the way {@code SongIOTest} builds one. */
 	static Song newSong() {
 		Tracks tracks = new Tracks();
-		tracks.setMaxTrackLength(64);
+		tracks.setMaxTrackLength(TRACK_LENGTH);
 		tracks.initTracks();
 		Instruments instruments = new Instruments();
 		instruments.initInstruments();
@@ -176,7 +182,7 @@ class RmtModuleTest {
 		RmtModule module = read(TestSongs.DELTA).module();
 		RmtModule.Instrument first = module.instruments().values().iterator().next();
 		assertEquals(first.length(), first.toBytes().length);
-		assertEquals(RmtModule.Instrument.PARAMETERS_LENGTH + first.noteTable().length + first.envelope().size() * 3, first.length());
+		assertEquals(RmtModule.Instrument.PARAMETERS_LENGTH + first.noteTable().length + first.envelope().size() * RmtModule.Instrument.ENVELOPE_ENTRY_LENGTH, first.length());
 		assertTrue(first.tableLoop() < first.noteTable().length);
 		assertTrue(first.envelopeLoop() < first.envelope().size());
 		// The struct's limits are the editor's
@@ -216,34 +222,44 @@ class RmtModuleTest {
 
 	@Test
 	void theTrackWalkerKnowsTheFourEventKinds() {
-		// note C-1 instrument 2 volume 15, volume only 9, pause 3, pause 7, speed 5, end
-		RmtModule.Track track = RmtModule.Track.of(new byte[] { (byte) 0xc0, (byte) 0x0b, (byte) 0x7d, 0x02, (byte) 0xfe, 0x3e, 0x07, 0x3f, 0x05, (byte) 0xff });
+		int shift = RmtModule.Track.HIGH_BITS_SHIFT;
+		byte noteC1Instrument2Volume15 = (byte) ((15 & 3) << shift), noteParameter = (byte) ((2 << 2) | (15 >> 2));
+		byte volumeOnly9 = (byte) (((9 & 3) << shift) | RmtModule.Track.VOLUME_ONLY), volumeParameter = (byte) (9 >> 2);
+		byte pause3 = (byte) ((3 << shift) | RmtModule.Track.PAUSE);
+		byte pauseCounted = (byte) RmtModule.Track.PAUSE, pauseCount7 = 7;
+		byte speed = (byte) (RmtModule.Track.CONTROL | RmtModule.Track.CONTROL_SPEED), speed5 = 5;
+		byte jump = (byte) (RmtModule.Track.CONTROL | RmtModule.Track.CONTROL_JUMP);
+		byte end = (byte) (RmtModule.Track.CONTROL | RmtModule.Track.CONTROL_END);
+		RmtModule.Track track = RmtModule.Track.of(new byte[] { noteC1Instrument2Volume15, noteParameter, volumeOnly9, volumeParameter, pause3, pauseCounted, pauseCount7, speed, speed5, end });
 		assertEquals(1 + 1 + 3 + 7, track.lineCount());
 		// a track that fills its length has no end marker
-		assertEquals(2, RmtModule.Track.of(new byte[] { 0x00, 0x00, 0x3d, 0x00 }).lineCount());
+		assertEquals(2, RmtModule.Track.of(new byte[] { 0, 0, (byte) RmtModule.Track.VOLUME_ONLY, 0 }).lineCount());
 		// a jump ends the track
-		assertEquals(1, RmtModule.Track.of(new byte[] { 0x00, 0x00, (byte) 0xbf, 0x00 }).lineCount());
-		assertEquals(0, RmtModule.Track.of(new byte[] { 0x3e, 0x00 }).lineCount()); // a pause of 0 lines ends the track
+		assertEquals(1, RmtModule.Track.of(new byte[] { 0, 0, jump, 0 }).lineCount());
+		assertEquals(0, RmtModule.Track.of(new byte[] { pauseCounted, 0 }).lineCount()); // a pause of 0 lines ends the track
 	}
 
 	@Test
 	void malformedBytesAreRejectedWithTheReason() {
-		assertThrows(RmtModule.FormatException.class, () -> RmtModule.Track.of(new byte[] { 0x7f }), "$7f is not an event");
-		assertThrows(RmtModule.FormatException.class, () -> RmtModule.Track.of(new byte[] { 0x00 }), "a note cut short");
-		assertThrows(RmtModule.FormatException.class, () -> RmtModule.Track.of(new byte[] { (byte) 0xff, 0x00 }), "a byte after the end");
-		assertThrows(RmtModule.FormatException.class, () -> RmtModule.Track.of(new byte[] { (byte) 0xbf, 0x05 }), "a jump outside the track");
+		byte nonEvent = (byte) (RmtModule.Track.CONTROL | (1 << RmtModule.Track.HIGH_BITS_SHIFT)); // $7f: the one control kind that does not exist
+		byte end = (byte) (RmtModule.Track.CONTROL | RmtModule.Track.CONTROL_END);
+		byte jump = (byte) (RmtModule.Track.CONTROL | RmtModule.Track.CONTROL_JUMP);
+		assertThrows(RmtModule.FormatException.class, () -> RmtModule.Track.of(new byte[] { nonEvent }), "$7f is not an event");
+		assertThrows(RmtModule.FormatException.class, () -> RmtModule.Track.of(new byte[] { 0 }), "a note cut short");
+		assertThrows(RmtModule.FormatException.class, () -> RmtModule.Track.of(new byte[] { end, 0 }), "a byte after the end");
+		assertThrows(RmtModule.FormatException.class, () -> RmtModule.Track.of(new byte[] { jump, 5 }), "a jump outside the track");
 
 		byte[] module = RmtModuleCodec.fromSong(newSongWithOneNote(), SongIOType.RMT, RmtModule.CHANNELS_MONO).toBytes(LOAD);
 		byte[] mem = new byte[Atari.MEMORY_SIZE];
 		System.arraycopy(module, 0, mem, LOAD, module.length);
 		RmtModule.parse(mem, LOAD, LOAD + module.length); // valid as built
 		assertRejected(mem, module.length, 0, 'X', "RMT");
-		assertRejected(mem, module.length, 3, '6', "RMT4 or RMT8");
-		assertRejected(mem, module.length, 5, 0, "song speed is 0");
-		assertRejected(mem, module.length, 6, 9, "instrument speed 9");
-		assertRejected(mem, module.length, 7, 0, "Format version 0");
-		assertRejected(mem, module.length, 7, 2, "format version 2");
-		assertRejected(mem, module.length, 14, 0xff, "track sequence table");
+		assertRejected(mem, module.length, RmtModule.Offset.CHANNELS, '6', "RMT4 or RMT8");
+		assertRejected(mem, module.length, RmtModule.Offset.SONG_SPEED, 0, "song speed is 0");
+		assertRejected(mem, module.length, RmtModule.Offset.INSTRUMENT_SPEED, RmtModule.MAX_INSTRUMENT_SPEED + 1, "instrument speed 9");
+		assertRejected(mem, module.length, RmtModule.Offset.FORMAT_VERSION, 0, "Format version 0");
+		assertRejected(mem, module.length, RmtModule.Offset.FORMAT_VERSION, RmtModule.FORMAT_VERSION + 1, "format version 2");
+		assertRejected(mem, module.length, RmtModule.Offset.SONG, RmtModule.MAX_BYTE, "track sequence table"); // the low byte alone points past the module
 	}
 
 	private static void assertRejected(byte[] mem, int length, int offset, int value, String reason) {
@@ -255,14 +271,14 @@ class RmtModuleTest {
 
 	private static Song newSongWithOneNote() {
 		Song song = newSong();
-		song.setMainSpeed(6);
+		song.setMainSpeed(SONG_SPEED);
 		song.setInstrumentSpeed(1);
 		song.setTracks(RmtModule.CHANNELS_MONO);
 		Track track = song.tracks.getTrack(0);
 		track.note[0] = 12;
 		track.instr[0] = 0;
 		track.volume[0] = 15;
-		track.len = 64;
+		track.len = TRACK_LENGTH;
 		song.song[0][0] = 0;
 		song.songGo[1] = 0;
 		return song;
@@ -270,7 +286,7 @@ class RmtModuleTest {
 
 	@Test
 	void aStereoGoToAsTheLastLineTakesFourBytesLikeRmtWrites() {
-		RmtModule module = new RmtModule(RmtModule.CHANNELS_STEREO, 64, 6, 1, RmtModule.FORMAT_VERSION, Map.of(), Map.of(),
+		RmtModule module = new RmtModule(RmtModule.CHANNELS_STEREO, TRACK_LENGTH, SONG_SPEED, 1, RmtModule.FORMAT_VERSION, Map.of(), Map.of(),
 				List.of(RmtModule.SongLine.tracks(0, 1, 2, 3, 4, 5, 6, 7), RmtModule.SongLine.goTo(0)));
 		assertEquals(RmtModule.CHANNELS_STEREO + RmtModule.SongLine.GO_TO_LENGTH, module.songDataLength());
 		byte[] bytes = module.toBytes(LOAD);

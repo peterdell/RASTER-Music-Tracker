@@ -57,7 +57,7 @@ public final class RmtModuleCodec {
 		}
 
 		boolean stereo = song.isStereo(tracks4_8);
-		byte[] scratch = new byte[256];
+		byte[] scratch = new byte[Math.max(RmtModule.Track.MAX_LENGTH, RmtModule.Instrument.MAX_LENGTH)];
 		Map<Integer, RmtModule.Instrument> instruments = new TreeMap<>();
 		for (int i = 0; i < Instruments.INSTRSNUM; i++) {
 			if (instrumentSavedFlags[i] != 0) {
