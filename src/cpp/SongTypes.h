@@ -37,7 +37,7 @@ struct TBookmark {
 struct TTrackInfo {
     int count; // total occurrences of the track across all columns/songlines
     int lines; // songlines the track appears in (goto lines excluded)
-    int usedincolumn[SONGTRACKS]; // per-column occurrence count (only columns < g_tracks4_8 are ever incremented)
+    int usedincolumn[SONGTRACKS]; // per-column occurrence count (only columns < the song's channel count are ever incremented)
 };
 
 // Input parameters for CSong::InstrChangeApply() - mirrors CInstrumentChangeDlg's

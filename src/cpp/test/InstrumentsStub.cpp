@@ -1,9 +1,3 @@
-// Provides storage for g_tracks4_8 (declared via Global.h, which
-// InstrumentsAtaFormat.cpp includes for exactly this global), so tests can
-// read/write it directly to switch between mono/stereo envelope-volume
-// packing without linking the rest of Global.cpp's global state.
-int g_tracks4_8 = 4;
-
 // CInstruments::ClearInstrument()/MemorizeOctaveAndVolume()/
 // RememberOctaveAndVolume() used to be stubbed here too, but their only
 // real dependencies (g_AtariTrackerDriver, via Update()'s InstrumentTurnOff();

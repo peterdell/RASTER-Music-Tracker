@@ -1,12 +1,16 @@
 # Plan 61: The channel count is a property of the song
 
-Status: DONE 2026-10-29 (Java only). Proposed 2026-10-28, naming decided
-by the user the same day (see Design and Naming). M1 (the model, commit
-22ed858), M2 (the session, c1acc37), the counts as `RmtModule.Channels`
-with a `Song.Channels` proxy for locality (c10f053, the user's addition),
-M3 (the texts). 749 tests green after each step; `tracks4_8` survives in
-the sources only inside `{@code g_tracks4_8}` origin notes. Done before
-plan 60 M2, as recommended.
+Status: DONE 2026-10-29 in both programs. M4 (added 2026-10-29 on the
+user's word: the C++ program gets the same treatment, as a milestone of
+this plan rather than a plan of its own, since every decision below
+applies verbatim) is done the same day: 457 C++ tests and the
+cross-program export comparison green. Proposed 2026-10-28, naming decided by the user the
+same day (see Design and Naming). M1 (the model, commit 22ed858), M2
+(the session, c1acc37), the counts as `RmtModule.Channels` with a
+`Song.Channels` proxy for locality (c10f053, the user's addition), M3
+(the texts, 6b431b3). 749 tests green after each step; `tracks4_8`
+survives in the Java sources only inside `{@code g_tracks4_8}` origin
+notes. Done before plan 60 M2, as recommended.
 
 The Java port keeps the mono/stereo indicator (`tracks4_8`, 4 or 8)
 outside the model, as a public field of the UI's `RmtSession`, and
@@ -233,6 +237,56 @@ flat 1-8 in the key table, each being CH1-CH4 of one POKEY.
   for the codec and exporter signatures: an export that silently used
   the wrong channel count fails them.
 - No asm, C++ or driver change: the plan-51 proof chain is not needed.
+
+## M4 - the C++ program (2026-10-29)
+
+The same treatment for `g_tracks4_8` (`Global.h`: `extern int
+g_tracks4_8; // TODO Move out`), 202 occurrences in 24 files:
+
+- `CSong` stores `m_channels` (default `Channels::STEREO`, as the global
+  started at 8) with `GetChannels()`, `IsMono()`, `IsStereo()` as exact
+  comparisons and `SetChannels()`, which rejects anything but the two
+  counts with `std::invalid_argument` (the codebase throws elsewhere)
+  and keeps `SetTracks()`'s `ReInitSound()` on a change - in C++ the
+  song can reach `g_Atari`, so there is no reason to invent
+  `syncSound()` there. The constants are the nested
+  `CSong::Channels::MONO`/`STEREO` (`static constexpr`), the C++
+  spelling of `Song.Channels`. `GetTracks()`/`SetTracks()` go.
+- Inside `CSong` the reads become `m_channels`; `ClearSong(int
+  channels)`, `Songswitch4_8(int newChannels)` and the importers' saved
+  `originalChannels` follow the Java shapes. The RMW main-parameter
+  table (`DEFINE_MAINPARAMS`) points at a local `channels` instead of
+  the global; `LoadRMW` validates it and fails on a count no driver
+  plays, then `SetChannels()`.
+- `CInstruments`' codec methods (`InstrToAta`, `AtaToInstr`,
+  `AtaV0ToInstr`) and `SetEnvelopeVolume` take an explicit
+  `BOOL stereo`, exactly as the Java `Instruments` does, which keeps
+  `InstrumentsAtaFormat.cpp` free of the song; `CSong` passes
+  `IsStereo()`, the GUI passes `g_Song.IsStereo()`. The runtime half
+  (`IO_Instruments.cpp`: `Update()` writing the driver's bytes, the RTI
+  save/load) and the drawing code (`GUI_Instruments.cpp`) read
+  `g_Song.IsStereo()` directly, the one song there is - the C++
+  equivalent of `attachAtari(atari, song::isStereo)`.
+- The non-member readers (`RmtView.cpp`, `MainFrm.cpp`,
+  `effectsdlg.cpp`, `GUI_Song.cpp`, `SongUI.cpp`,
+  `ASMFileExporterCore.cpp`) read `g_Song`/`song`/`m_song` with the
+  same audit rule as the Java ui: counts for loops and layout, `IsMono()`
+  for the mono layout, `IsStereo()` for the right side.
+- Tests: the fixtures that set `g_tracks4_8 = 4` call
+  `song.SetChannels(CSong::Channels::MONO)` (`UndoTests` on `g_Song`),
+  the `EXPECT_EQ(g_tracks4_8, n)` assertions read `song.GetChannels()`,
+  `InstrumentsTests` pass `TRUE`/`FALSE` where they flipped the global,
+  `SongTests` proves the default, both predicates and the rejection of
+  6 and 16; `InstrumentsStub.cpp` loses the global's storage.
+- Found on the way: `Rmt.vcxproj` passed `STEREO` as a preprocessor
+  definition in all 26 configurations (beside `NO_CONSOL_SOUND` and
+  `NO_VOL_ONLY`, from Raster's original project), so `Channels::STEREO`
+  expanded to `1`. No source tests any of the three; `STEREO` is removed
+  from the project, the other two stay as they are (dead, but harmless
+  and not this plan's).
+- Proof: the Release build, the C++ tests, and `CrossProgramExportTest`
+  (every script through both programs, byte for byte) - the reason M4
+  is worth doing while the C++ program still exists.
 
 ## Open decisions
 

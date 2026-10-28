@@ -22,7 +22,7 @@ extern CInstruments g_Instruments;
 //----------------------------------------------
 
 int CSong::ImportTMC(std::ifstream& in) {
-    auto originalg_tracks4_8 = GetTracks();
+    auto originalChannels = m_channels;
 
     TImportTMCHeader header;
     if (!ImportTMCParseHeader(in, header)) {
@@ -65,7 +65,7 @@ int CSong::ImportTMC(std::ifstream& in) {
 
     if (imfdlg.DoModal() != IDOK) {
         //did not give Ok, so it deletes
-        ClearSong(originalg_tracks4_8); //returns the original value
+        ClearSong(originalChannels); //returns the original value
         SendInformationMessage("Import...", "Module import aborted.");
     }
 
@@ -83,7 +83,7 @@ int CSong::ImportTMC(std::ifstream& in) {
 // around them, showing its two real dialogs.
 
 int CSong::ImportMOD(std::ifstream& in) {
-    int originalg_tracks4_8 = GetTracks(); //keeps the original value for Abort
+    int originalChannels = m_channels; //keeps the original value for Abort
 
     TImportMODHeader header;
     if (!ImportMODParseHeader(in, header)) {
@@ -184,7 +184,7 @@ int CSong::ImportMOD(std::ifstream& in) {
 
     if (imfdlg.DoModal() != IDOK) {
         //did not give Ok, so it deletes
-        ClearSong(originalg_tracks4_8); //returns the original value
+        ClearSong(originalChannels); //returns the original value
         SendInformationMessage("Import...", "Module import aborted.");
     }
 

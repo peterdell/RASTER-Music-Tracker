@@ -6,13 +6,14 @@
 #include "IOHelpers.h"
 
 #include "Instruments.h"
+#include "Song.h"
 
 #include "Global.h"
 
 #include "TextColors.h"
 
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
-extern int g_tracks4_8; // TODO Move out
+extern CSong g_Song;
 
 /// <summary>
 /// Draw instrument:
@@ -68,7 +69,7 @@ void CInstruments::DrawInstrument(int instrNr) {
     }
 
     // For 8 channels draw the "VOLUME R:" header and volume markers
-    if (g_tracks4_8 > 4) {
+    if (g_Song.IsStereo()) {
         canvasXY->TextXY(shenv[0].name, shenv[0].xpos, shenv[0].ypos, TextColor::WHITE); //"VOLUME R:"
         canvasXY->TextDownXY("\x0e\x0e\x0e\x0e", InstrumentGUIPosition::ENV_X + 11 * 8 - 1, InstrumentGUIPosition::ENV_Y - 2 * 16, TextColor::GRAY);
         canvasXY->MoveTo(InstrumentGUIPosition::ENV_X + 12 * 8 - 1, InstrumentGUIPosition::ENV_Y + 2 * 16 - 1);
@@ -459,7 +460,7 @@ BOOL CInstruments::GetGUIArea(int instrNr, InstrumentGUIZone zone, CRect& rect) 
 
     case InstrumentGUIZone::ENVELOPE_RIGHT_ENVELOPE:
         //right channel volume curve (upper)
-        if (g_tracks4_8 <= 4) {
+        if (g_Song.IsMono()) {
             return 0;
         }
         rect.SetRect(InstrumentGUIPosition::ENV_X + 12 * 8, InstrumentGUIPosition::ENV_Y - 2 * 16 + 4, InstrumentGUIPosition::ENV_X + 12 * 8 + len * 8, InstrumentGUIPosition::ENV_Y - 2 * 16 + 4 + 4 * 16);
@@ -472,7 +473,7 @@ BOOL CInstruments::GetGUIArea(int instrNr, InstrumentGUIZone zone, CRect& rect) 
 
     case InstrumentGUIZone::ENVELOPE_RIGHT_VOL_NUMS:
         //envelope area of volume numbers for right channel
-        if (g_tracks4_8 <= 4) {
+        if (g_Song.IsMono()) {
             return 0;
         }
         rect.SetRect(InstrumentGUIPosition::ENV_X + 12 * 8, InstrumentGUIPosition::ENV_Y - 2 * 16 + 0 + 4 * 16, InstrumentGUIPosition::ENV_X + 12 * 8 + len * 8, InstrumentGUIPosition::ENV_Y - 2 * 16 + 0 + 4 * 16 + 16);
@@ -529,7 +530,7 @@ void CInstruments::DrawEnv(int e, int it) {
         canvasXY->FillSolidRect(x, InstrumentGUIPosition::ENV_Y + 3 * 16 + 4 + 4 * (15 - volL), 8, volL * 4, fillColor);
     }
 
-    if (g_tracks4_8 > 4 && volR) {
+    if (g_Song.IsStereo() && volR) {
         canvasXY->FillSolidRect(x, InstrumentGUIPosition::ENV_Y - 2 * 16 + 4 + 4 * (15 - volR), 8, volR * 4, fillColor);
     }
 
@@ -551,7 +552,7 @@ void CInstruments::DrawEnv(int e, int it) {
         }
 
         if (j == 0) {
-            if (g_tracks4_8 > 4) {
+            if (g_Song.IsStereo()) {
                 canvasXY->TextXY(s, x, InstrumentGUIPosition::ENV_Y + 2 * 16, color); // Volume R is out of the box
             }
         } else {

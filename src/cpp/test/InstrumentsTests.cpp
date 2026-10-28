@@ -5,7 +5,6 @@
 #include "Instruments.h"
 #include "Notes.h"
 
-extern int g_tracks4_8; // TODO Move out (see Instruments.cpp/IO_Instruments.cpp)
 extern CAtari g_Atari; // real, linked, cheap global (see AtariStub.cpp) - needed by GetFrequency()
 
 namespace {
@@ -63,18 +62,13 @@ void SetUpSampleInstrument(CInstruments& instruments) {
 class InstrumentAtaFormatTest : public ::testing::Test {
   protected:
     CInstruments instruments;
-
-    void TearDown() override {
-        g_tracks4_8 = 4; // restore the default so other tests aren't affected
-    }
 };
 
 TEST_F(InstrumentAtaFormatTest, InstrToAtaMonoEncodesExactBytes) {
-    g_tracks4_8 = 4; // mono
     SetUpSampleInstrument(instruments);
 
     unsigned char ata[32] = {0};
-    BYTE size = instruments.InstrToAta(kInstr, ata, sizeof(ata));
+    BYTE size = instruments.InstrToAta(kInstr, ata, sizeof(ata), FALSE);
 
     ASSERT_EQ(size, 20);
     const unsigned char expected[20] = {
@@ -88,14 +82,13 @@ TEST_F(InstrumentAtaFormatTest, InstrToAtaMonoEncodesExactBytes) {
 // mono-encoded instrument loses the original, distinct VOLUMER value - this
 // characterizes that intentional lossiness rather than treating it as a bug.
 TEST_F(InstrumentAtaFormatTest, AtaToInstrMonoRoundTripLosesVolumeR) {
-    g_tracks4_8 = 4; // mono
     SetUpSampleInstrument(instruments);
 
     unsigned char ata[32] = {0};
-    BYTE size = instruments.InstrToAta(kInstr, ata, sizeof(ata));
+    BYTE size = instruments.InstrToAta(kInstr, ata, sizeof(ata), FALSE);
 
     constexpr int kDecoded = 1;
-    ASSERT_TRUE(instruments.AtaToInstr(ata, kDecoded));
+    ASSERT_TRUE(instruments.AtaToInstr(ata, kDecoded, FALSE));
     TInstrument* decoded = instruments.GetInstrument(kDecoded);
 
     EXPECT_EQ(decoded->parameters[PAR_TBL_LENGTH], 1);
@@ -125,11 +118,10 @@ TEST_F(InstrumentAtaFormatTest, AtaToInstrMonoRoundTripLosesVolumeR) {
 // The stereo path stores both volume nibbles separately, so (unlike mono)
 // VOLUMER round-trips exactly.
 TEST_F(InstrumentAtaFormatTest, AtaToInstrStereoRoundTripPreservesBothVolumes) {
-    g_tracks4_8 = 8; // stereo
     SetUpSampleInstrument(instruments);
 
     unsigned char ata[32] = {0};
-    BYTE size = instruments.InstrToAta(kInstr, ata, sizeof(ata));
+    BYTE size = instruments.InstrToAta(kInstr, ata, sizeof(ata), TRUE);
 
     ASSERT_EQ(size, 20);
     const unsigned char expected[20] = {
@@ -138,7 +130,7 @@ TEST_F(InstrumentAtaFormatTest, AtaToInstrStereoRoundTripPreservesBothVolumes) {
     EXPECT_EQ(memcmp(ata, expected, size), 0);
 
     constexpr int kDecoded = 1;
-    ASSERT_TRUE(instruments.AtaToInstr(ata, kDecoded));
+    ASSERT_TRUE(instruments.AtaToInstr(ata, kDecoded, TRUE));
     TInstrument* decoded = instruments.GetInstrument(kDecoded);
 
     EXPECT_EQ(decoded->envelope[0][EnvelopeParameter::VOLUMER], 3);
@@ -154,11 +146,10 @@ TEST_F(InstrumentAtaFormatTest, AtaToInstrRejectsOutOfBoundsEnvelope) {
     ata[2] = 12 + 1 + (ENVELOPE_MAX_COLUMNS) * 3; // envelopeLength == ENVELOPE_MAX_COLUMNS -> out of bounds
     ata[3] = ata[2];
 
-    EXPECT_FALSE(instruments.AtaToInstr(ata, kInstr));
+    EXPECT_FALSE(instruments.AtaToInstr(ata, kInstr, FALSE));
 }
 
 TEST_F(InstrumentAtaFormatTest, AtaV0ToInstrDecodesOldFormat) {
-    g_tracks4_8 = 4; // mono
     unsigned char ata[32] = {0};
     for (int i = 0; i < 8; i++) {
         ata[i] = i + 1; // note table 1..8
@@ -178,7 +169,7 @@ TEST_F(InstrumentAtaFormatTest, AtaV0ToInstrDecodesOldFormat) {
     ata[20] = 0x61;
     ata[21] = 0x8F; // envelope entry 1
 
-    ASSERT_TRUE(instruments.AtaV0ToInstr(ata, kInstr));
+    ASSERT_TRUE(instruments.AtaV0ToInstr(ata, kInstr, FALSE));
     TInstrument* ai = instruments.GetInstrument(kInstr);
 
     for (int i = 0; i < 8; i++) {
@@ -231,7 +222,6 @@ class InstrumentsCoreTest : public ::testing::Test {
     CInstruments instruments;
 
     void TearDown() override {
-        g_tracks4_8 = 4;
         g_keyboard_RememberOctavesAndVolumes = FALSE;
     }
 };
@@ -264,22 +254,20 @@ TEST_F(InstrumentsCoreTest, ClearInstrumentIgnoresOutOfRangeIndex) {
 }
 
 TEST_F(InstrumentsCoreTest, SetEnvelopeVolumeSetsLeftChannelInMonoModeRegardlessOfRightFlag) {
-    g_tracks4_8 = 4; // mono
     TInstrument* ai = instruments.GetInstrument(kInstr);
     ai->parameters[PAR_ENV_LENGTH] = 1;
 
-    instruments.SetEnvelopeVolume(kInstr, TRUE, 0, 9);
+    instruments.SetEnvelopeVolume(kInstr, TRUE, 0, 9, FALSE);
 
     EXPECT_EQ(ai->envelope[0][EnvelopeParameter::VOLUMEL], 9);
     EXPECT_EQ(ai->envelope[0][EnvelopeParameter::VOLUMER], 0);
 }
 
 TEST_F(InstrumentsCoreTest, SetEnvelopeVolumeSetsRightChannelInStereoModeWhenRequested) {
-    g_tracks4_8 = 8; // stereo
     TInstrument* ai = instruments.GetInstrument(kInstr);
     ai->parameters[PAR_ENV_LENGTH] = 1;
 
-    instruments.SetEnvelopeVolume(kInstr, TRUE, 0, 9);
+    instruments.SetEnvelopeVolume(kInstr, TRUE, 0, 9, TRUE);
 
     EXPECT_EQ(ai->envelope[0][EnvelopeParameter::VOLUMER], 9);
     EXPECT_EQ(ai->envelope[0][EnvelopeParameter::VOLUMEL], 0);
@@ -289,8 +277,8 @@ TEST_F(InstrumentsCoreTest, SetEnvelopeVolumeIgnoresOutOfRangePosition) {
     TInstrument* ai = instruments.GetInstrument(kInstr);
     ai->parameters[PAR_ENV_LENGTH] = 1;
 
-    instruments.SetEnvelopeVolume(kInstr, FALSE, -1, 9);
-    instruments.SetEnvelopeVolume(kInstr, FALSE, 2, 9); // > PAR_ENV_LENGTH + 1
+    instruments.SetEnvelopeVolume(kInstr, FALSE, -1, 9, FALSE);
+    instruments.SetEnvelopeVolume(kInstr, FALSE, 2, 9, FALSE); // > PAR_ENV_LENGTH + 1
 
     EXPECT_EQ(ai->envelope[0][EnvelopeParameter::VOLUMEL], 0);
 }
@@ -299,8 +287,8 @@ TEST_F(InstrumentsCoreTest, SetEnvelopeVolumeIgnoresOutOfRangeVolume) {
     TInstrument* ai = instruments.GetInstrument(kInstr);
     ai->parameters[PAR_ENV_LENGTH] = 1;
 
-    instruments.SetEnvelopeVolume(kInstr, FALSE, 0, -1);
-    instruments.SetEnvelopeVolume(kInstr, FALSE, 0, 16);
+    instruments.SetEnvelopeVolume(kInstr, FALSE, 0, -1, FALSE);
+    instruments.SetEnvelopeVolume(kInstr, FALSE, 0, 16, FALSE);
 
     EXPECT_EQ(ai->envelope[0][EnvelopeParameter::VOLUMEL], 0);
 }

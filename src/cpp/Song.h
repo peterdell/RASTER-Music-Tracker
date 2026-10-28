@@ -26,9 +26,23 @@ public:
     ~CSong();
 
     CString GetName() const;
-    int GetTracks() const;
+    // The physical POKEY channels the song is written for, across one or two
+    // POKEYs: the song columns L1-L4 and R1-R4 are CH1-CH4 of the left and,
+    // in stereo, the right POKEY - the module header's channel digit
+    // (plans/61_SONG_CHANNELS_PLAN.md; the global g_tracks4_8 before).
+    // The counts are the tracker driver's: every current driver plays 4
+    // or 8 channels, so SetChannels() accepts exactly these.
+    struct Channels {
+        static constexpr int MONO = 4;
+        static constexpr int STEREO = 8;
+    };
+    int GetChannels() const;
+    bool IsMono() const;
+    // There is a right POKEY: for the places that mean exactly that - the
+    // volume nibbles, the POKEY pair, the right-side layout; the number of
+    // columns is GetChannels().
     bool IsStereo() const;
-    void SetTracks(const int tracksNum);
+    void SetChannels(const int channels);
     BOOL IsNTSC() const;
     void SetNTSC(const BOOL ntsc);
     // Which build of the player routines this module is composed against -
@@ -54,7 +68,7 @@ public:
     void StopTimer();
     void ChangeTimer(int ms);
 
-    void ClearSong(int numoftracks);
+    void ClearSong(int channels);
 
     // Extracted from ClearSong(): pushes g_SkipLinesAfterNoteInsert into the
     // main frame's combo box, if the app's main window exists. A real MFC
@@ -320,7 +334,7 @@ public:
     // Extracted from TracksOrderChange(): the dialog-independent reorder
     // work, once the confirmed range/order are known.
     void TracksOrderChangeApply(int fromline, int toline, const int tracksorder[SONGTRACKS]);
-    void Songswitch4_8(int tracks4_8);
+    void Songswitch4_8(int newChannels);
     int GetEffectiveMaxtracklen();
     int GetSmallestMaxtracklen(int songline);
     void ChangeMaxtracklen(int maxtracklen);
@@ -421,6 +435,7 @@ private:
     EditArea m_infoact = EditArea::NAME; // Which part of the info area is active for editing: 0 = name,
     char m_songname[SONG_NAME_MAX_LEN + 1] = {};
     BOOL m_ntsc = FALSE;
+    int m_channels = Channels::STEREO;
     TrackerDriverVersion m_trackerDriverVersion = TrackerDriverVersion::PATCH16;
     TTuningSettings m_tuning = {};
     int m_songnamecur = 0;

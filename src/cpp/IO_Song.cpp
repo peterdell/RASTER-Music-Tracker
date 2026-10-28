@@ -138,7 +138,7 @@ BOOL CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges) {
     }
 
     // Deletes the current song
-    ClearSong(g_tracks4_8);
+    ClearSong(m_channels);
 
     auto loadedOk = false;
     switch (filterIndex) {
@@ -161,7 +161,7 @@ BOOL CSong::FileOpen(const char* filename, BOOL warnOfUnsavedChanges) {
 
     if (!loadedOk) {
         // Something in the Load... function failed
-        ClearSong(GetTracks()); // Erases everything
+        ClearSong(m_channels); // Erases everything
         SetRMTTitle();
         return FALSE;
     }
@@ -340,7 +340,7 @@ void CSong::FileNew() {
     SetRMTTitle();
 
     // Automatically create 1 songline of empty patterns
-    for (int i = 0; i < g_tracks4_8; i++) {
+    for (int i = 0; i < m_channels; i++) {
         m_song[0][i] = i;
     }
 
@@ -420,7 +420,7 @@ void CSong::FileImport() {
     m_filename = "";
 
     if (importResult == FALSE) { // Import failed?
-        ClearSong(g_tracks4_8); // Delete everything
+        ClearSong(m_channels); // Delete everything
     } else {
         m_speed = m_mainSpeed; // Init speed
 
@@ -840,7 +840,7 @@ bool CSong::CheckBeforeFileSave() {
             last = i;
         } else {
             trx[i] = 0;
-            for (j = 0; j < g_tracks4_8; j++) {
+            for (j = 0; j < m_channels; j++) {
                 if (m_song[i][j] >= 0 && m_song[i][j] < TRACKSNUM) {
                     trx[i] = 1;
                     last = i; //tracks

@@ -33,8 +33,6 @@ BOOL g_shiftkey;
 BOOL g_controlkey;
 BOOL g_altkey; //unfinished implementation, doesn't work yet for some reason
 
-int g_tracks4_8 = 8; // TODO Move out // Had to be hardcoded to 8 to prevent "ReInitSound()" to run before RMT finished being initialized, otherwise it would crash lol
-
 BOOL volatile g_screenupdate = 0;
 BOOL volatile g_rmtroutine; // => TODO: PokeyRenderer?
 

@@ -100,7 +100,7 @@ void CSongUI::DrawVolumeAnalyzer() {
     int R[8];
     int G[8];
     int yUp = 7;
-    for (int i = 0; i < m_song->GetTracks(); i++) {
+    for (int i = 0; i < m_song->GetChannels(); i++) {
         col[i] = 102;
         R[i] = 44;
         G[i] = 60;
@@ -116,7 +116,7 @@ void CSongUI::DrawVolumeAnalyzer() {
         const auto memory = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
 
         // Clear the area where the analyzer is to be drawn
-        canvasXY->FillSolidRect(ANALYZER_X, ANALYZER_Y - ANALYZER_HP, g_tracks4_8 * 16 * 8 - 34, ANALYZER_H + ANALYZER_HP, CRGBColor::BACKGROUND);
+        canvasXY->FillSolidRect(ANALYZER_X, ANALYZER_Y - ANALYZER_HP, m_song->GetChannels() * 16 * 8 - 34, ANALYZER_H + ANALYZER_HP, CRGBColor::BACKGROUND);
 
         // Left/Mono Channel
         // Draw which channels are joined by highpass filters or normal channel join
@@ -180,7 +180,7 @@ void CSongUI::DrawVolumeAnalyzer() {
             yUp -= 2;
         } // Two tone mode (join channel 5 + 6)
 
-        for (int channelNr = 0; channelNr < m_song->GetTracks(); channelNr++) {
+        for (int channelNr = 0; channelNr < m_song->GetChannels(); channelNr++) {
             audf = memory[idx[channelNr]]; // Get the frequency
             audc = memory[idx[channelNr] + 1]; // Get audio control, Bits: 0-3 = volume, 4 = Volume only, 5-7 = Distortion
             int skctl1 = memory[0xd20f]; // Two tone mode Mono
@@ -229,7 +229,7 @@ void CSongUI::DrawVolumeAnalyzer() {
             // In instrument drawing mode
 
             // Clear the area where the mini volume controls are to be drawn
-            canvasXY->FillSolidRect(ANALYZER2_X, ANALYZER2_Y - ANALYZER2_HP, g_tracks4_8 * 3 * 8 - 8, ANALYZER2_H + ANALYZER2_HP, CRGBColor::BACKGROUND);
+            canvasXY->FillSolidRect(ANALYZER2_X, ANALYZER2_Y - ANALYZER2_HP, m_song->GetChannels() * 3 * 8 - 8, ANALYZER2_H + ANALYZER2_HP, CRGBColor::BACKGROUND);
 
             const auto memory = g_AtariTrackerDriver->GetAtari()->GetConstMemoryAt(0);
 
@@ -295,7 +295,7 @@ void CSongUI::DrawVolumeAnalyzer() {
                 yUp -= 2;
             } // Two tone mode (join channel 5 + 6)
 
-            for (int channelNr = 0; channelNr < g_tracks4_8; channelNr++) {
+            for (int channelNr = 0; channelNr < m_song->GetChannels(); channelNr++) {
                 audc = memory[idx[channelNr] + 1]; // Get the frequency
                 int skctl1 = memory[0xd20f]; // Two tone mode Mono
                 int skctl2 = memory[0xd21f]; // Two tone mode Stereo
@@ -423,7 +423,7 @@ void CSongUI::DrawSong() {
 
             // For each track that is part of the song draw its number
             szBuffer[2] = 0;
-            for (j = 0, k = 32; j < g_tracks4_8; j++, k += 24) {
+            for (j = 0, k = 32; j < m_song->GetChannels(); j++, k += 24) {
                 if ((t = m_song->m_song[line][j]) >= 0) {
                     szBuffer[0] = CharH4(t);
                     szBuffer[1] = CharL4(t);
@@ -488,7 +488,7 @@ void CSongUI::DrawSong() {
         canvasXY->TextXY(szBuffer, k, CRmtScreenLayout::SONG_Y, color);
     }
     szBuffer[0] = 'R';
-    for (i = 4; i < m_song->GetTracks(); i++, k += 24) {
+    for (i = 4; i < m_song->GetChannels(); i++, k += 24) {
         szBuffer[1] = i + 49 - 4; //character 1-4
         if (g_ChannelControl.IsChannelOn(i)) {
             if (m_song->m_trackactivecol == i) {
@@ -688,7 +688,7 @@ void CSongUI::DrawTracks() {
         }
         canvasXY->TextXY(s, CRmtScreenLayout::TRACKS_X, y, color);
 
-        for (int j = 0; j < g_tracks4_8; j++, x += 16 * 8) {
+        for (int j = 0; j < m_song->GetChannels(); j++, x += 16 * 8) {
             //track in the current line of the song
             sl = songactiveline + oob;
             if (sl < 0 || sl > 255) {
@@ -718,7 +718,7 @@ void CSongUI::DrawTracks() {
     x = CRmtScreenLayout::TRACKS_X + 5 * 8;
     y = (CRmtScreenLayout::TRACKS_Y + 3 * 16) + smooth_y;
 
-    for (i = 0; i < g_tracks4_8; i++, x += 16 * 8) {
+    for (i = 0; i < m_song->GetChannels(); i++, x += 16 * 8) {
         s[8] = tnames[i * 2];
         s[9] = tnames[i * 2 + 1];
 

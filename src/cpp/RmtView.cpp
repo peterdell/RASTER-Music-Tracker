@@ -1128,13 +1128,13 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
     int MINIMAL_WIDTH_INSTRUMENTS = (stereo && g_active_ti == Part::PART_INSTRUMENTS) ? 1220 : 1220;
     int WINDOW_OFFSET = (g_width < 1320 && stereo && g_active_ti == Part::PART_TRACKS) ? -250 : 0;	//test displacement with the window size
     int INSTRUMENT_OFFSET = (g_active_ti == Part::PART_INSTRUMENTS && stereo) ? -250 : 0;
-    if (g_tracks4_8 == 4 && g_active_ti == Part::PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) INSTRUMENT_OFFSET = 260;
-    int SONG_OFFSET = CRmtScreenLayout::SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((g_tracks4_8 == 4) ? -200 : 310);	//displace the SONG block depending on certain parameters
+    if (g_Song.IsMono() && g_active_ti == Part::PART_INSTRUMENTS && g_width > MINIMAL_WIDTH_INSTRUMENTS - 220) INSTRUMENT_OFFSET = 260;
+    int SONG_OFFSET = CRmtScreenLayout::SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + (g_Song.IsMono() ? -200 : 310);	//displace the SONG block depending on certain parameters
 
     int linescount = (WINDOW_OFFSET) ? 5 : 9;	//songlines displayed depend on the window offset, if it's displaced to the left side, only 5 lines will be visible, else, 9 will be displayed
 
     //SONG PARTS
-    CRect rec(SONG_OFFSET + 6 * 8, CRmtScreenLayout::SONG_Y + 16, SONG_OFFSET + 6 * 8 + g_tracks4_8 * 3 * 8 - 8, CRmtScreenLayout::SONG_Y + 16 + linescount * 16);
+    CRect rec(SONG_OFFSET + 6 * 8, CRmtScreenLayout::SONG_Y + 16, SONG_OFFSET + 6 * 8 + g_Song.GetChannels() * 3 * 8 - 8, CRmtScreenLayout::SONG_Y + 16 + linescount * 16);
     if (rec.PtInRect(point))
     {
         //Song
@@ -1154,7 +1154,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
         return 5;
     }
 
-    rec.SetRect(SONG_OFFSET + 6 * 8, CRmtScreenLayout::SONG_Y, SONG_OFFSET + 6 * 8 + g_tracks4_8 * 3 * 8 - 8, CRmtScreenLayout::SONG_Y + 16);
+    rec.SetRect(SONG_OFFSET + 6 * 8, CRmtScreenLayout::SONG_Y, SONG_OFFSET + 6 * 8 + g_Song.GetChannels() * 3 * 8 - 8, CRmtScreenLayout::SONG_Y + 16);
     if (rec.PtInRect(point))
     {
         //over Song L1-R4 for channel on/off/solo/inversion
@@ -1162,7 +1162,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
         if (i < 0) i = 0;
         else
         {
-            if (i >= g_tracks4_8) i = g_tracks4_8 - 1;
+            if (i >= g_Song.GetChannels()) i = g_Song.GetChannels() - 1;
         }
         px = i;
         SetCursor(m_cursorChanbelOnOff);
@@ -1214,7 +1214,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
         return 6;
     }
 
-    rec.SetRect(384, 48, 384 + 8 * ((g_tracks4_8 == 8) ? 15 : 13), 48 + 16);
+    rec.SetRect(384, 48, 384 + 8 * (g_Song.IsStereo() ? 15 : 13), 48 + 16);
     if (rec.PtInRect(point))
     {
         //MONO-4-TRACKS or STEREO-8-TRACKS
@@ -1339,14 +1339,14 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
     //LOWER PARTS
     if (g_active_ti == Part::PART_TRACKS)
     {
-        rec.SetRect(CRmtScreenLayout::TRACKS_X + 3 * 16, CRmtScreenLayout::TRACKS_Y - 12, CRmtScreenLayout::TRACKS_X + 3 * 8 + g_tracks4_8 * 8 * 16, CRmtScreenLayout::TRACKS_Y + 32);
+        rec.SetRect(CRmtScreenLayout::TRACKS_X + 3 * 16, CRmtScreenLayout::TRACKS_Y - 12, CRmtScreenLayout::TRACKS_X + 3 * 8 + g_Song.GetChannels() * 8 * 16, CRmtScreenLayout::TRACKS_Y + 32);
 
         if (rec.PtInRect(point))
         {
             i = (point.x - (CRmtScreenLayout::TRACKS_X + 5 * 8)) / (8 * 16);
             if (i < 0) i = 0;
             else
-                if (i >= g_tracks4_8) i = g_tracks4_8 - 1;
+                if (i >= g_Song.GetChannels()) i = g_Song.GetChannels() - 1;
             px = i;
 
             SetCursor(m_cursorChanbelOnOff);
@@ -1362,7 +1362,7 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
             return 1;
         }
         //the number of tracklines is adjusted based on the window height
-        rec.SetRect(CRmtScreenLayout::TRACKS_X + 6 * 8, CRmtScreenLayout::TRACKS_Y + 48, CRmtScreenLayout::TRACKS_X + 3 * 8 + g_tracks4_8 * 8 * 16, CRmtScreenLayout::TRACKS_Y + 48 + g_tracklines * 16);
+        rec.SetRect(CRmtScreenLayout::TRACKS_X + 6 * 8, CRmtScreenLayout::TRACKS_Y + 48, CRmtScreenLayout::TRACKS_X + 3 * 8 + g_Song.GetChannels() * 8 * 16, CRmtScreenLayout::TRACKS_Y + 48 + g_tracklines * 16);
         if (rec.PtInRect(point))
         {
             SetCursor(m_cursorGoto);
@@ -1402,13 +1402,13 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
                 {
                     // Set the volume
                     g_Undo.ChangeInstrument(activeInstrNum, 0, UETYPE_INSTRDATA);
-                    g_Instruments.SetEnvelopeVolume(activeInstrNum, 0, px, py);
+                    g_Instruments.SetEnvelopeVolume(activeInstrNum, 0, px, py, g_Song.IsStereo());
                 }
                 if (g_mousebutt & MK_RBUTTON) //compares g_mousebutt to make it work while moving
                 {
                     // Clear the volume
                     g_Undo.ChangeInstrument(activeInstrNum, 0, UETYPE_INSTRDATA);
-                    g_Instruments.SetEnvelopeVolume(activeInstrNum, 0, px, 0);
+                    g_Instruments.SetEnvelopeVolume(activeInstrNum, 0, px, 0, g_Song.IsStereo());
                 }
                 return 2;
             }
@@ -1425,13 +1425,13 @@ int CRmtView::MouseAction(CPoint point, UINT mousebutt, short wheelzDelta = 0)
                 {
                     // Set the volume
                     g_Undo.ChangeInstrument(activeInstrNum, 0, UETYPE_INSTRDATA);
-                    g_Instruments.SetEnvelopeVolume(activeInstrNum, 1, px, py);
+                    g_Instruments.SetEnvelopeVolume(activeInstrNum, 1, px, py, g_Song.IsStereo());
                 }
                 if (g_mousebutt & MK_RBUTTON) //compares g_mousebutt to make it work while moving
                 {
                     // Clear the volume
                     g_Undo.ChangeInstrument(activeInstrNum, 0, UETYPE_INSTRDATA);
-                    g_Instruments.SetEnvelopeVolume(activeInstrNum, 1, px, 0);
+                    g_Instruments.SetEnvelopeVolume(activeInstrNum, 1, px, 0, g_Song.IsStereo());
                 }
                 return 3;
             }
@@ -1938,22 +1938,22 @@ void CRmtView::OnUpdateInstrumentPastespecialInsertvolenvsandenvparstocurpos(CCm
 
 void CRmtView::OnUpdateInstrumentPastespecialVolumelenvelopeonly(CCmdUI* pCmdUI)
 {
-    pCmdUI->Enable(g_tracks4_8 > 4);	//L only
+    pCmdUI->Enable(g_Song.IsStereo());	//L only
 }
 
 void CRmtView::OnUpdateInstrumentPastespecialVolumerenvelopeonly(CCmdUI* pCmdUI)
 {
-    pCmdUI->Enable(g_tracks4_8 > 4);	//R only
+    pCmdUI->Enable(g_Song.IsStereo());	//R only
 }
 
 void CRmtView::OnUpdateInstrumentPastespecialVolumertolenvelopeonly(CCmdUI* pCmdUI)
 {
-    pCmdUI->Enable(g_tracks4_8 > 4); //R to L
+    pCmdUI->Enable(g_Song.IsStereo()); //R to L
 }
 
 void CRmtView::OnUpdateInstrumentPastespecialVolumeltorenvelopeonly(CCmdUI* pCmdUI)
 {
-    pCmdUI->Enable(g_tracks4_8 > 4); //L to R
+    pCmdUI->Enable(g_Song.IsStereo()); //L to R
 }
 
 void CRmtView::OnTrackCopy()
@@ -2409,7 +2409,7 @@ void CRmtView::OnUpdateChan1_4(CCmdUI* pCmdUI)
 
 void CRmtView::OnUpdateChan5_8(CCmdUI* pCmdUI)
 {
-    pCmdUI->Enable((g_tracks4_8 > 4));
+    pCmdUI->Enable(g_Song.IsStereo());
 }
 
 void CRmtView::OnMidiOnOff()
@@ -2651,13 +2651,13 @@ void CRmtView::OnSongTracksorderchange()
 
 void CRmtView::OnUpdateSongSongswitch4_8(CCmdUI* pCmdUI)
 {
-    pCmdUI->SetText((g_tracks4_8 <= 4) ? "Switch song to Stereo 8 tracks..." : "Switch song to Mono 4 tracks...");
+    pCmdUI->SetText(g_Song.IsMono() ? "Switch song to Stereo 8 tracks..." : "Switch song to Mono 4 tracks...");
 }
 
 void CRmtView::OnSongSongswitch4_8()
 {
     g_Song.Stop();
-    g_Song.Songswitch4_8((g_tracks4_8 <= 4) ? 8 : 4);
+    g_Song.Songswitch4_8(g_Song.IsMono() ? CSong::Channels::STEREO : CSong::Channels::MONO);
 }
 
 void CRmtView::OnSongSongchangemaximallengthoftracks()

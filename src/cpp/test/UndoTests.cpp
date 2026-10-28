@@ -15,14 +15,13 @@ extern CUndo g_Undo;
 extern CSong g_Song;
 extern CTracks g_Tracks;
 extern CInstruments g_Instruments;
-extern int g_tracks4_8;
 extern Part g_activepart;
 extern BOOL g_changes;
 
 class UndoTest : public ::testing::Test {
   protected:
     void SetUp() override {
-        g_tracks4_8 = 4;
+        g_Song.SetChannels(CSong::Channels::MONO);
         g_Tracks.SetMaxTrackLength(64);
         g_Tracks.InitTracks();
         g_Instruments.InitInstruments();

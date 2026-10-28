@@ -29,8 +29,8 @@ extern CTrackClipboard g_TrackClipboard;
 
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
-int GetTracks() {
-    return g_Song.GetTracks();
+int GetChannels() {
+    return g_Song.GetChannels();
 };
 
 // ----------------------------------------------------------------------------
@@ -574,7 +574,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control) {
             i = ai->editEnvelopeY;
             if (i > 0) {
                 i--;
-                if (i == 0 && GetTracks() <= 4) {
+                if (i == 0 && g_Song.IsMono()) {
                     i = 7; //mono mode
                 }
             } else {
@@ -599,7 +599,7 @@ BOOL CSong::InstrKey(int vk, int shift, int control) {
             if (i < 7) {
                 i++;
             } else {
-                i = (GetTracks() > 4) ? 0 : 1;
+                i = g_Song.IsStereo() ? 0 : 1;
             }
             ai->editEnvelopeY = i;
             return 1;
@@ -1046,7 +1046,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control) {
         int i = note + m_octave * 12;
         if (i >= 0 && i < CNotes::NOTESNUM) { //only within limits
             SetPlayPressedTonesTNIV(m_trackactivecol, i, m_activeinstr, m_volume);
-            if ((control || IsEditMode(EditMode::JAM_STEREO_MODE)) && GetTracks() > 4) {
+            if ((control || IsEditMode(EditMode::JAM_STEREO_MODE)) && g_Song.IsStereo()) {
                 //with control or in prove2 => stereo test
                 SetPlayPressedTonesTNIV((m_trackactivecol + 4) & 0x07, i, m_activeinstr, m_volume);
             }
@@ -1238,7 +1238,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control) {
         } else if (g_activepart == Part::PART_SONG) { //song lines
             int i, j, la = 0;
             for (j = 0; j < SONGLEN; j++) {
-                for (i = 0; i < GetTracks(); i++) {
+                for (i = 0; i < GetChannels(); i++) {
                     if (m_song[j][i] >= 0) {
                         la = j;
                         break;
@@ -1257,7 +1257,7 @@ BOOL CSong::ProveKey(int vk, int shift, int control) {
             int instr, vol;
             if ((BOOL)control != (BOOL)g_keyboard_swapenter) { //control+Enter => plays a whole line (all tracks)
                 //for all track columns except the active track column
-                for (int i = 0; i < GetTracks(); i++) {
+                for (int i = 0; i < GetChannels(); i++) {
                     if (i != m_trackactivecol) {
                         TrackGetLoopingNoteInstrVol(m_song[m_songactiveline][i], note, instr, vol);
                         if (note >= 0) { //is there a note?
@@ -1802,7 +1802,7 @@ TrackKeyOk:
             }
             if (!shift && (BOOL)control != (BOOL)g_keyboard_swapenter) { //control+Enter => plays a whole line (all tracks)
                 //for all track columns except the active track column
-                for (i = 0; i < GetTracks(); i++) {
+                for (i = 0; i < GetChannels(); i++) {
                     if (i != m_trackactivecol) {
                         TrackGetLoopingNoteInstrVol(m_song[m_songactiveline][i], note, instr, vol);
                         if (note >= 0) { //is there a note?
@@ -1973,7 +1973,7 @@ BOOL CSong::TrackCursorGoto(CPoint point) {
 
     //if (y >= 0 && y < g_Tracks.m_maxtracklen)
     if (y >= 0 && y < GetSmallestMaxtracklen(m_songactiveline)) { //variable pattern size, to prevent clicking "out of bounds" with the new tracks display
-        if (xch >= 0 && xch < GetTracks()) {
+        if (xch >= 0 && xch < GetChannels()) {
             m_trackactivecol = xch;
         }
         if (m_play && m_followplay) { //prevents moving at all during play+follow
@@ -2136,7 +2136,7 @@ BOOL CSong::SongKey(int vk, int shift, int control) {
     case VK_END: {
         int i, j, la = 0;
         for (j = 0; j < SONGLEN; j++) {
-            for (i = 0; i < GetTracks(); i++) {
+            for (i = 0; i < GetChannels(); i++) {
                 if (m_song[j][i] >= 0) {
                     la = j;
                     break;
@@ -2197,7 +2197,7 @@ BOOL CSong::SongCursorGoto(CPoint point) {
     xch = ((point.x + 4) / (3 * 8));
     y = (point.y + 0) / 16 - 2 + m_songactiveline;
     if (y >= 0 && y < SONGLEN) {
-        if (xch >= 0 && xch < GetTracks()) {
+        if (xch >= 0 && xch < GetChannels()) {
             m_trackactivecol = xch;
         }
         if (y != m_songactiveline) {

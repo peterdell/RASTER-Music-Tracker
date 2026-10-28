@@ -18,7 +18,6 @@
 #include <fstream>
 #include <filesystem>
 
-extern int g_tracks4_8;
 extern CTracks g_Tracks;
 extern CInstruments g_Instruments;
 extern CTrackClipboard g_TrackClipboard;
@@ -46,7 +45,7 @@ void WriteBinaryBlock(std::ostream& out, const unsigned char* mem, WORD fromAddr
 // Exercises the CSong/CTrackClipboard editing methods implemented in
 // SongEditing.cpp/ClipboardCore.cpp - see plans/NOTES.md for the Song.cpp/
 // IO_Song.cpp triage that identified this "safe cluster" (only touches
-// g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, all confirmed
+// g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, all confirmed
 // cheap). g_Undo's ChangeTrack/ChangeSong now have real behavior too (see
 // plans/09_UNDO_PLAN.md, UndoTests.cpp) - these methods call them only to
 // *record* an edit for later undo, so the tests below still only assert on
@@ -63,7 +62,7 @@ class SongEditingTest : public ::testing::Test {
     CSong song;
 
     void SetUp() override {
-        g_tracks4_8 = 4;
+        song.SetChannels(CSong::Channels::MONO); // the C++ tests' g_tracks4_8 = 4 before plan 61
         // CTracks::InitTracks() doesn't reset m_maxTrackLength (only clears
         // track data), so a prior test's ChangeMaxtracklen() call would
         // otherwise leak into every later test - reset it first so
@@ -91,10 +90,6 @@ class SongEditingTest : public ::testing::Test {
         BlankSong(g_Song);
         g_Song.SongSetActiveLine(0);
         g_Song.SetActiveLine(0);
-    }
-
-    void TearDown() override {
-        g_tracks4_8 = 4;
     }
 
     static void BlankSong(CSong& s) {
@@ -175,7 +170,7 @@ TEST_F(SongEditingTest, ActiveInstrPrevAndNextStepAndWrapAt6Bits) {
 TEST_F(SongEditingTest, TrackLeftWrapsColumnAndCursorAtZero) {
     song.TrackLeft(false);
     int* cursor = song.GetUECursor(Part::PART_TRACKS);
-    EXPECT_EQ(cursor[2], g_tracks4_8 - 1); // column wrapped
+    EXPECT_EQ(cursor[2], song.GetChannels() - 1); // column wrapped
     EXPECT_EQ(cursor[3], 3); // cursor wrapped to the previous speed column
     delete[] cursor;
 }
@@ -191,7 +186,7 @@ TEST_F(SongEditingTest, TrackRightAdvancesCursorWithoutChangingColumn) {
 TEST_F(SongEditingTest, TrackLeftColumnModeSkipsTheCursorAndMovesColumnDirectly) {
     song.TrackLeft(true);
     int* cursor = song.GetUECursor(Part::PART_TRACKS);
-    EXPECT_EQ(cursor[2], g_tracks4_8 - 1);
+    EXPECT_EQ(cursor[2], song.GetChannels() - 1);
     EXPECT_EQ(cursor[3], 0); // cursor untouched in column mode
     delete[] cursor;
 }
@@ -1032,19 +1027,19 @@ TEST_F(SongEditingTest, SetBookmarkFailsWhenTheActiveTrackLineIsOutOfBounds) {
     EXPECT_FALSE(song.SetBookmark());
 }
 
-// --- SetTracks / SetNTSC ---
+// --- SetChannels / SetNTSC ---
 // Both call ReInitSound() when the value actually changes, which is a
 // no-op stub here (see SongEditingStub.cpp) - real g_AtariTrackerDriver/
 // g_Pokey hardware simulation, not something these tests exercise.
 
-TEST_F(SongEditingTest, SetTracksUpdatesTheGlobalTrackCountWhenChanged) {
-    song.SetTracks(8);
-    EXPECT_EQ(g_tracks4_8, 8);
+TEST_F(SongEditingTest, SetChannelsStoresTheChannelCountWhenChanged) {
+    song.SetChannels(CSong::Channels::STEREO);
+    EXPECT_EQ(song.GetChannels(), CSong::Channels::STEREO);
 }
 
-TEST_F(SongEditingTest, SetTracksLeavesTheGlobalTrackCountUnchangedWhenSame) {
-    song.SetTracks(4); // SetUp() already set g_tracks4_8 to 4
-    EXPECT_EQ(g_tracks4_8, 4);
+TEST_F(SongEditingTest, SetChannelsLeavesTheChannelCountUnchangedWhenSame) {
+    song.SetChannels(CSong::Channels::MONO); // SetUp() already set mono
+    EXPECT_EQ(song.GetChannels(), CSong::Channels::MONO);
 }
 
 // --- GetTrackerDriverVersion / SetTrackerDriverVersion ---
@@ -1320,7 +1315,7 @@ TEST_F(SongEditingTest, LoadTxtRoundTripsTheModuleHeaderAndTheSongData) {
     ASSERT_TRUE(loaded.LoadTxt(in));
 
     // The [MODULE] header block parses correctly...
-    EXPECT_EQ(g_tracks4_8, 4); // RMT: 04 round-trips g_tracks4_8 via SetTracks()
+    EXPECT_EQ(song.GetChannels(), 4); // RMT: 04 round-trips the channel count via SetChannels()
     TInfo loadedInfo = {};
     loaded.GetSongInfoPars(&loadedInfo);
     EXPECT_EQ(loadedInfo.mainspeed, 6);
@@ -1431,7 +1426,7 @@ TEST_F(SongEditingTest, SaveRMWWritesEachMainParameterAsExactlyFourBytes) {
     offset += sizeof(paramCount);
     ASSERT_EQ(paramCount, 31);
 
-    int firstParam; // g_tracks4_8, 4 from this fixture's SetUp()
+    int firstParam; // the channel count, 4 from this fixture's SetUp()
     memcpy(&firstParam, content.data() + offset, sizeof(firstParam));
     EXPECT_EQ(firstParam, 4);
 
@@ -2397,24 +2392,24 @@ TEST_F(SongEditingTest, SongMaketracksduplicateLeavesTheTrackUnchangedWhenCancel
 }
 
 TEST_F(SongEditingTest, Songswitch4_8LeavesStateUnchangedWhenCancelled) {
-    song.SetTracks(8);
+    song.SetChannels(8);
     (*song.GetSong())[0][4] = 5; // an R1 column entry that would be erased if confirmed
 
     SetTestQuestionAnswer(MessageAnswer::Cancel);
     song.Songswitch4_8(4);
 
-    EXPECT_EQ(g_tracks4_8, 8); // unchanged
+    EXPECT_EQ(song.GetChannels(), 8); // unchanged
     EXPECT_EQ((*song.GetSong())[0][4], 5); // unchanged
 }
 
 TEST_F(SongEditingTest, Songswitch4_8ClearsStereoColumnsWhenConfirmed) {
-    song.SetTracks(8);
+    song.SetChannels(8);
     (*song.GetSong())[0][4] = 5; // R1 column entry
 
     SetTestQuestionAnswer(MessageAnswer::Yes);
     song.Songswitch4_8(4);
 
-    EXPECT_EQ(g_tracks4_8, 4);
+    EXPECT_EQ(song.GetChannels(), 4);
     EXPECT_EQ((*song.GetSong())[0][4], -1); // R1-R4 columns cleared
 }
 
@@ -2422,7 +2417,7 @@ TEST_F(SongEditingTest, Songswitch4_8SwitchesToStereoWhenConfirmed) {
     SetTestQuestionAnswer(MessageAnswer::Yes);
     song.Songswitch4_8(8);
 
-    EXPECT_EQ(g_tracks4_8, 8);
+    EXPECT_EQ(song.GetChannels(), 8);
 }
 
 // --- PlayPressedTones ---
@@ -2578,10 +2573,10 @@ TEST_F(SongEditingTest, ClearSongResetsSongDataAndPositionBackToDefaults) {
 
 TEST_F(SongEditingTest, ClearSongSetsTheTrackCount) {
     song.ClearSong(8);
-    EXPECT_EQ(g_tracks4_8, 8);
+    EXPECT_EQ(song.GetChannels(), 8);
 
     song.ClearSong(4);
-    EXPECT_EQ(g_tracks4_8, 4);
+    EXPECT_EQ(song.GetChannels(), 4);
 }
 
 // --- TracksOrderChangeApply ---
@@ -2704,7 +2699,7 @@ TEST_F(SongEditingTest, ImportTMCApplyConvertsANoteIntoTheDestinationTrack) {
     // only one used here, so it never exceeds its own initial value of 0.
     EXPECT_EQ(result.numoftracks, 0);
 
-    EXPECT_EQ(g_tracks4_8, 4); // no stereo columns (4-7) used -> mono module
+    EXPECT_EQ(song.GetChannels(), 4); // no stereo columns (4-7) used -> mono module
     EXPECT_EQ((*song.GetSong())[0][0], 0); // track 0 placed at songline 0, column 0
 
     TTrack* track0 = g_Tracks.GetTrack(0);
@@ -2813,7 +2808,7 @@ TEST_F(SongEditingTest, ImportMODApplyConvertsANoteIntoTheDestinationTrack) {
 
     EXPECT_EQ(result.destnum, 1); // only channel 0 produced a non-empty track
     EXPECT_EQ(result.nonemptysamples, 1); // only sample #1 has real length
-    EXPECT_EQ(g_tracks4_8, 4); // rmttype=4
+    EXPECT_EQ(song.GetChannels(), 4); // rmttype=4
 
     EXPECT_EQ((*song.GetSong())[0][0], 0); // track 0 placed at songline 0, column 0
     EXPECT_EQ((*song.GetSong())[0][1], -1);

@@ -42,14 +42,14 @@ void CSong::MidiEvent(DWORD dwParam, bool hasFocus) {
 
     if (chn > 0 && chn < 9) {
         //2-10 channels (chn = 1-9) are used for multitimbral L1-L4, R1-R4
-        int atc = (chn - 1) % g_tracks4_8; //atari track 0-7 (resp. 0-3 in mono)
+        int atc = (chn - 1) % m_channels; //atari track 0-7 (resp. 0-3 in mono)
         int note, vol;
         if (cmd == 0x90) {
             if (chn == 9) { //unreachable: this block is chn 1-8 (the Java port left it out)
                 //channel 10 (chn=9) ...drums channel
                 if (pr2 > 0) { //"note on" any non-zero volume
                     // planned
-                    // make a record of all g_midi _.... ch [0 to g_tracks4_8] into the track and move the line one step lower
+                    // make a record of all g_midi _.... ch [0 to m_channels] into the track and move the line one step lower
                 }
             } else {
                 //channel 2-9 (chn=1-8)
@@ -155,7 +155,7 @@ void CSong::MidiEvent(DWORD dwParam, bool hasFocus) {
                     memory[RMTPLAYR_TRACKN_AUDF + o] &= 0x0F;
                     memory[RMTPLAYR_TRACKN_AUDF + o] |= pr2 << 4;
 
-                    //g_pokey.MemToPokey(g_tracks4_8);
+                    //g_pokey.MemToPokey(m_channels);
                     break;
 
                 case 72: //Knob C2, AUDF1/AUDF3 upper 4 bits
@@ -295,7 +295,7 @@ void CSong::MidiEvent(DWORD dwParam, bool hasFocus) {
         //default notes input event, which is mostly copied from the CH0 code. This is a very terrible approach, and will eventually be replaced (see above)
         if (chn == 15 && !IsEditMode(EditMode::MIDI_CH15_MODE)) {
 
-            int atc = m_heldkeys % g_tracks4_8; //atari track 0-7 (resp. 0-3 in mono)
+            int atc = m_heldkeys % m_channels; //atari track 0-7 (resp. 0-3 in mono)
 
             if (cmd == 0x80) { //key off
                 //key off
@@ -388,7 +388,7 @@ void CSong::MidiEvent(DWORD dwParam, bool hasFocus) {
                     Prove_midi_test:
                         //SetPlayPressedTonesTNIV(m_trackactivecol, note, m_activeinstr, vol);
                         SetPlayPressedTonesTNIV(atc, note, m_activeinstr, vol);
-                        //	if ((IsEditMode(PROVE_JAM_STEREO_MODE) || g_controlkey) && g_tracks4_8 > 4)
+                        //	if ((IsEditMode(PROVE_JAM_STEREO_MODE) || g_controlkey) && m_channels > 4)
                         //	{	//with control or in prove2 => stereo test
                         //		SetPlayPressedTonesTNIV((m_trackactivecol + 4) & 0x07, note, m_activeinstr, vol);
                         //	}

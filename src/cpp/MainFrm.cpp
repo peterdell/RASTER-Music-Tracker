@@ -220,6 +220,6 @@ void CMainFrame::OnRestoreFocusToMainWindow()
 void CMainFrame::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 {
     // Not perfect... manual resizing is required if the window is smaller than minimal
-    lpMMI->ptMinTrackSize.x = (g_tracks4_8 == 8) ? 1120 : 800;
+    lpMMI->ptMinTrackSize.x = g_Song.IsStereo() ? 1120 : 800;
     lpMMI->ptMinTrackSize.y = 600;
 }

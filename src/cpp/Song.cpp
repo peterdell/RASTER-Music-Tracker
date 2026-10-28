@@ -26,17 +26,15 @@ extern CAtariTrackerDriver* g_AtariTrackerDriver;
 extern CInstruments g_Instruments;
 extern CXPokey g_Pokey;
 
-// These two should be song attributes instead
-
-extern int g_tracks4_8;
+// This should be a song attribute instead
 CSongTimer g_SongTimer;
 
 // ----------------------------------------------------------------------------
 
-// CSong(), ~CSong(), GetName(), GetTracks(), and IsStereo() are implemented
+// CSong(), ~CSong(), GetName(), GetChannels(), IsMono(), and IsStereo() are implemented
 // in SongCore.cpp (no Global.h dependency).
 
-// CSong::SetTracks() is implemented in SongEditing.cpp.
+// CSong::SetChannels() is implemented in SongEditing.cpp.
 
 // IsNTSC() is implemented in SongCore.cpp.
 
@@ -86,15 +84,15 @@ void CSong::SyncSkipLinesAfterNoteInsertComboBox() {
 
 //---
 
-// CSong::GetSubsongParts() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::GetSubsongParts() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
 /// <summary>
 /// Mark all tracks that are referenced in the song as USED
 /// </summary>
 /// <param name="arrayTRACKSNUM">Array where each used track if marked off</param>
-// CSong::MarkTF_USED() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::MarkTF_USED() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::MarkTF_NOEMPTY() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::MarkTF_NOEMPTY() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
 // CSong::ResetTuningVariables() is implemented in SongEditing.cpp.
 
@@ -128,11 +126,11 @@ void CSong::SyncSkipLinesAfterNoteInsertComboBox() {
 
 // CSong::PlayPressedTones() is implemented in SongEditing.cpp.
 
-// CSong::ActiveInstrSet() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::ActiveInstrSet() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::ActiveInstrPrev() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::ActiveInstrPrev() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::ActiveInstrNext() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::ActiveInstrNext() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
 // GetActiveInstr(), GetActiveColumn(), GetActiveLine(), GetPlayLine(),
 // SetActiveLine(), and SetPlayLine() are implemented in SongCore.cpp.
@@ -141,15 +139,15 @@ void CSong::SyncSkipLinesAfterNoteInsertComboBox() {
 
 // CSong::TrackDown() is implemented in SongEditing.cpp.
 
-// CSong::TrackLeft() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::TrackLeft() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::TrackRight() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::TrackRight() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::RespectBoundaries() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::RespectBoundaries() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::TrackGetLoopingNoteInstrVol() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::TrackGetLoopingNoteInstrVol() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::GetUECursor() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::GetUECursor() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
 // CSong::SetUECursor() is implemented in SongEditing.cpp.
 
@@ -167,24 +165,24 @@ void CSong::SyncSkipLinesAfterNoteInsertComboBox() {
 
 // CSong::SongSubsongNext() is implemented in SongEditing.cpp.
 
-// CSong::SongTrackSet() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::SongTrackSet() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::SongTrackSetByNum() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::SongTrackSetByNum() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::SongTrackDec() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::SongTrackDec() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::SongTrackInc() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::SongTrackInc() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::SongTrackEmpty() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::SongTrackEmpty() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::SongTrackGoOnOff() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::SongTrackGoOnOff() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
 // SongGetGo() (both overloads), SongTrackGoDec(), and SongTrackGoInc() are
 // implemented in SongCore.cpp.
 
-// CSong::SongInsertLine() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::SongInsertLine() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::SongDeleteLine() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::SongDeleteLine() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
 BOOL CSong::SongInsertCopyOrCloneOfSongLines(int& line) {
     int n = (line > 0) ? line - 1 : 0;
@@ -218,27 +216,27 @@ BOOL CSong::SongInsertCopyOrCloneOfSongLines(int& line) {
 
 //--clipboard functions
 
-// CSong::TrackCopy() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::TrackCopy() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::TrackPaste() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::TrackPaste() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::TrackDelete() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::TrackDelete() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::TrackCut() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::TrackCut() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::TrackCopyFromTo() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::TrackCopyFromTo() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::TrackSwapFromTo() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::TrackSwapFromTo() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::BlockPaste() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::BlockPaste() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::InstrCopy() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::InstrCopy() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
 // CSong::InstrPaste() is implemented in SongEditing.cpp.
 
-// CSong::InstrCut() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::InstrCut() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::InstrDelete() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::InstrDelete() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
 // CSong::InstrInfo() is implemented in SongEditing.cpp.
 
@@ -284,11 +282,11 @@ void CSong::InstrChange(int instr) {
 
 // CSong::TrackInfo() is implemented in SongEditing.cpp.
 
-// CSong::SongCopyLine() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::SongCopyLine() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::SongPasteLine() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::SongPasteLine() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::SongClearLine() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::SongClearLine() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
 void CSong::TracksOrderChange() {
     // Stop the sound first
@@ -314,7 +312,7 @@ void CSong::TracksOrderChange() {
     m_TracksOrderChange_songlineto = t;
 
     int c = 0;
-    for (int i = 0; i < g_tracks4_8; i++) {
+    for (int i = 0; i < m_channels; i++) {
         if (dlg.m_tracksorder[i] < 0) {
             c++;
         }
@@ -336,31 +334,31 @@ void CSong::TracksOrderChange() {
 // confirmation prompt (SendQuestionMessage()) is now safe to trigger in
 // tests via the test-injectable answer hook (see plans/08_MESSAGEBOX_REFACTOR_PLAN.md).
 
-// CSong::GetEffectiveMaxtracklen() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::GetEffectiveMaxtracklen() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::GetSmallestMaxtracklen() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::GetSmallestMaxtracklen() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::ChangeMaxtracklen() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::ChangeMaxtracklen() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
 // CSong::TracksAllBuildLoops() and TracksAllExpandLoops() are implemented in SongEditing.cpp (only touch g_Tracks, plus a call to Stop() that's a no-op unless Play() was called first).
 
-// CSong::SongClearUnusedTracksAndParts() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::SongClearUnusedTracksAndParts() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::SongClearDuplicatedTracks() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::SongClearDuplicatedTracks() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::SongClearUnusedTracks() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::SongClearUnusedTracks() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::RenumberAllTracks() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::RenumberAllTracks() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::ClearAllInstrumentsUnusedInAnyTrack() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::ClearAllInstrumentsUnusedInAnyTrack() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::RenumberAllInstruments() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::RenumberAllInstruments() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
 //
 //--------------------------------------------------------------------------------------
 //
 
-// CSong::SetBookmark() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::SetBookmark() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
 // CSong::Play() is implemented in SongEditing.cpp.
 
@@ -404,10 +402,10 @@ void CSong::TimerRoutine() {
     g_timerGlobalCount++; // Increment by one each time Timer Routine was processed
 }
 
-// CSong::BLOCKSETBEGIN() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::BLOCKSETBEGIN() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::BLOCKSETEND() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::BLOCKSETEND() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::BLOCKDESELECT() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::BLOCKDESELECT() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).
 
-// CSong::ISBLOCKSELECTED() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard/g_tracks4_8, not Global.h's wider dependency graph).
+// CSong::ISBLOCKSELECTED() is implemented in SongEditing.cpp (only touches g_Tracks/g_Instruments/g_Undo/g_TrackClipboard, not Global.h's wider dependency graph).

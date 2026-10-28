@@ -5,9 +5,13 @@
 #include "IOHelpers.h"
 
 #include "Instruments.h"
+#include "Song.h"
 #include "SongTypes.h"
 
 extern CAtari g_Atari;
+// The one song there is: whether it is stereo decides the envelope volume
+// packing of the bytes written for the driver and of an RTI file.
+extern CSong g_Song;
 
 int CInstruments::SaveAll(std::ostream& ou, InstrumentIOType iotype) {
     for (int i = 0; i < INSTRSNUM; i++) {
@@ -41,7 +45,7 @@ int CInstruments::SaveInstrument(int instr, std::ostream& ou, InstrumentIOType i
         ou.write(ai->name, sizeof(ai->name)); //name 32 byte + 33 is a binary zero terminating string
         const auto length = ATARI_MAX_INSTR_LENGTH;
         unsigned char ibf[length];
-        BYTE len = InstrToAta(instr, ibf, length);
+        BYTE len = InstrToAta(instr, ibf, length, g_Song.IsStereo());
         ou.write((char*)&len, sizeof(len)); // instrument length in Atari bytes
         if (len > 0) {
             ou.write((const char*)&ibf, len);
@@ -146,9 +150,9 @@ int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType i
             in.read((char*)&ibf, len);
             BOOL r;
             if (version == 0) {
-                r = AtaV0ToInstr(ibf, instr);
+                r = AtaV0ToInstr(ibf, instr, g_Song.IsStereo());
             } else {
-                r = AtaToInstr(ibf, instr);
+                r = AtaToInstr(ibf, instr, g_Song.IsStereo());
             }
             Update(instr); // writes to Atari RAM
             if (!r) {
@@ -319,7 +323,7 @@ int CInstruments::LoadInstrument(int instr, std::istream& in, InstrumentIOType i
 void CInstruments::Update(int instr) {
     auto memory = g_Atari.GetMemoryAt(0x4000 + instr * 256);
     //g_rmtroutine = FALSE;			//turn off RMT routines	// editing in real time is smoother without this switch
-    InstrToAta(instr, memory, ATARI_MAX_INSTR_LENGTH);
+    InstrToAta(instr, memory, ATARI_MAX_INSTR_LENGTH, g_Song.IsStereo());
     //g_rmtroutine = TRUE;			//RMT routines are turned on
 
     RecalculateFlag(instr);

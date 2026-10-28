@@ -2,13 +2,12 @@
 
 #include "Instruments.h"
 
-#include "Global.h"
-
-// InstrToAta()/AtaToInstr()/AtaV0ToInstr() only need g_tracks4_8 (mono/stereo
-// envelope volume packing) from Global.h, unlike the rest of
-// IO_Instruments.cpp (Update() needs g_Atari), so they're kept separate to
-// keep this half directly testable - same pattern as
-// Tuning.cpp/TuningTables.cpp and Tracks.cpp/TracksEdit.cpp.
+// InstrToAta()/AtaToInstr()/AtaV0ToInstr() take the one fact they need from
+// outside - whether the song is stereo (the envelope volume packing) - as a
+// parameter, unlike the rest of IO_Instruments.cpp (Update() needs g_Atari
+// and the song), so they're kept separate to keep this half directly
+// testable - same pattern as Tuning.cpp/TuningTables.cpp and
+// Tracks.cpp/TracksEdit.cpp.
 
 /// <summary>
 /// Define information about each instrument parameter (not envelope table)
@@ -57,7 +56,7 @@ const Tshenv shenv[ENVROWS] =
         {9, 0x01, 1, -1, "PORTAMENTO:", InstrumentGUIPosition::ENV_X + 0 * 8, InstrumentGUIPosition::ENV_Y + 14 * 16, "ENV_PORTAMENTO:"} //portamento *
 };
 
-BYTE CInstruments::InstrToAta(int instr, unsigned char* ata, int max) {
+BYTE CInstruments::InstrToAta(int instr, unsigned char* ata, int max, BOOL stereo) {
     TInstrument* ai = GetInstrument(instr);
     int i, j;
     int* par = ai->parameters;
@@ -101,7 +100,6 @@ BYTE CInstruments::InstrToAta(int instr, unsigned char* ata, int max) {
     }
 
     //envelope is behind the table
-    BOOL stereo = (g_tracks4_8 > 4);
     int len = par[PAR_ENV_LENGTH];
     for (i = 0, j = tablelast + 1; i <= len; i++, j += 3) {
         int* env = (int*)&ai->envelope[i];
@@ -116,7 +114,7 @@ BYTE CInstruments::InstrToAta(int instr, unsigned char* ata, int max) {
     return tablelast + 1 + (len + 1) * 3; //returns the data length of the instrument
 }
 
-BOOL CInstruments::AtaV0ToInstr(unsigned char* ata, int instr) {
+BOOL CInstruments::AtaV0ToInstr(unsigned char* ata, int instr, BOOL stereo) {
     //OLD INSTRUMENT VERSION
     TInstrument* ai = GetInstrument(instr);
     int i, j;
@@ -150,7 +148,6 @@ BOOL CInstruments::AtaV0ToInstr(unsigned char* ata, int instr) {
     par[PAR_VIBRATO] = ata[14] & 0x03;
     par[PAR_FREQ_SHIFT] = ata[15];
     //
-    BOOL stereo = (g_tracks4_8 > 4);
     for (i = 0, j = 16; i <= len; i++, j += 3) {
         int* env = ai->envelope[i];
         env[EnvelopeParameter::VOLUMER] = (stereo) ? (ata[j] >> 4) : (ata[j] & 0x0f); //if mono, then VOLUME R = VOLUME L
@@ -171,7 +168,7 @@ BOOL CInstruments::AtaV0ToInstr(unsigned char* ata, int instr) {
 /// <param name="mem">Start of the instrument definition structure</param>
 /// <param name="instrumentNr">Which instrument # is this</param>
 /// <returns></returns>
-BOOL CInstruments::AtaToInstr(unsigned char* mem, int instrumentNr) {
+BOOL CInstruments::AtaToInstr(unsigned char* mem, int instrumentNr, BOOL stereo) {
     TInstrument* ai = GetInstrument(instrumentNr);
 
     int noteTableLength = mem[0] - 12;
@@ -218,7 +215,6 @@ BOOL CInstruments::AtaToInstr(unsigned char* mem, int instrumentNr) {
     }
 
     // Envelope
-    BOOL stereo = (g_tracks4_8 > 4);
     int ptrEnvelopeEntry = mem[0] + 1; // location in Atari memory where envelope data is parsed from
 
     for (int i = 0; i <= par[PAR_ENV_LENGTH]; i++, ptrEnvelopeEntry += 3) {

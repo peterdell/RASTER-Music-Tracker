@@ -507,7 +507,7 @@ BOOL CSongTracksOrderDlg::OnInitDialog()
     CDialog::OnInitDialog();
 
     m_fromtrack = m_totrack = -1;
-    if (g_tracks4_8 <= 4)
+    if (g_Song.IsMono())
     {
         for (int i = 0; i < 4; i++)
         {
@@ -532,7 +532,7 @@ void CSongTracksOrderDlg::OnPaint()
     const int tids[8] = { IDC_L1,IDC_L2,IDC_L3,IDC_L4,IDC_R1,IDC_R2,IDC_R3,IDC_R4 };
     const int tidd[8] = { IDC_L1D,IDC_L2D,IDC_L3D,IDC_L4D,IDC_R1D,IDC_R2D,IDC_R3D,IDC_R4D };
 
-    for (int i = 0; i < g_tracks4_8; i++)
+    for (int i = 0; i < g_Song.GetChannels(); i++)
     {
         int z = m_tracksorder[i];
         if (z >= 0)
@@ -958,7 +958,7 @@ void CInstrumentChangeDlg::OnCheckSomeChannelsOnly()
             CString s;
             s = "Only in ";
             int j = 0;
-            for (int i = 0; i < g_tracks4_8; i++)
+            for (int i = 0; i < g_Song.GetChannels(); i++)
             {
                 if (m_onlychannels & (1 << i))
                 {
@@ -1532,7 +1532,7 @@ BOOL CChannelsSelectionDlg::OnInitDialog()
     CDialog::OnInitDialog();
 
     m_channelyes = 0;
-    if (g_tracks4_8 <= 4)
+    if (g_Song.IsMono())
     {
         for (int i = 4; i < 8; i++) ((CButton*)GetDlgItem(idcchan[i]))->EnableWindow(0);
     }

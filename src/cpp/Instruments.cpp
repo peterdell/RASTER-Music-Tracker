@@ -6,7 +6,6 @@
 #include "Notes.h"
 
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
-extern int g_tracks4_8; // TODO Move out
 
 // shpar[]/shenv[] (parameter/envelope-row descriptor tables) moved to
 // InstrumentsAtaFormat.cpp: pure compile-time data (InstrumentGUIPosition's
@@ -57,7 +56,7 @@ void CInstruments::ClearInstrument(int instrNr) {
 /// <param name="right">True - then use the stereo/right channels</param>
 /// <param name="px">X position in the envelope</param>
 /// <param name="newVolume">volume level to set</param>
-void CInstruments::SetEnvelopeVolume(int instr, BOOL right, int px, int newVolume) {
+void CInstruments::SetEnvelopeVolume(int instr, BOOL right, int px, int newVolume, BOOL stereo) {
     TInstrument* ti = GetInstrument(instr);
     if (!ti) {
         return;
@@ -71,7 +70,7 @@ void CInstruments::SetEnvelopeVolume(int instr, BOOL right, int px, int newVolum
         return;
     }
 
-    int ep = (right && g_tracks4_8 > 4) ? EnvelopeParameter::VOLUMER : EnvelopeParameter::VOLUMEL;
+    int ep = (right && stereo) ? EnvelopeParameter::VOLUMER : EnvelopeParameter::VOLUMEL;
     ti->envelope[px][ep] = newVolume;
 
     // Recalc some info about the updated instrument

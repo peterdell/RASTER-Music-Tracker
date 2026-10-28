@@ -6,7 +6,7 @@
 #include "Notes.h"
 
 // The CInstruments methods here have no dependency on Global.h (unlike the
-// rest of Instruments.cpp, which reads g_AtariTrackerDriver/g_tracks4_8/
+// rest of Instruments.cpp, which reads g_AtariTrackerDriver/
 // g_keyboard_RememberOctavesAndVolumes), so they're kept separate to keep
 // this half of the class testable without linking those globals - same
 // pattern as Tuning.cpp/TuningTables.cpp and Tracks.cpp/TracksEdit.cpp.

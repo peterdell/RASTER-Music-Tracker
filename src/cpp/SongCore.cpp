@@ -15,11 +15,9 @@
 // Instruments.cpp/InstrumentsCore.cpp+InstrumentsAtaFormat.cpp.
 //
 // SongToAta()/AtaToSong() (originally in IO_Song.cpp) are included here too:
-// they only need the trivial g_tracks4_8 global besides CSong's own m_song/
-// m_songgo members.
+// they only need CSong's own m_channels/m_song/m_songgo members.
 
 extern CAtari g_Atari;
-extern int g_tracks4_8; // TODO Move out (see Instruments.cpp/IO_Instruments.cpp)
 
 CSong::CSong() {
     // Attributes
@@ -44,12 +42,16 @@ CString CSong::GetName() const {
     return result;
 }
 
-int CSong::GetTracks() const {
-    return g_tracks4_8;
+int CSong::GetChannels() const {
+    return m_channels;
+}
+
+bool CSong::IsMono() const {
+    return m_channels == Channels::MONO;
 }
 
 bool CSong::IsStereo() const {
-    return (GetTracks() > 4);
+    return m_channels == Channels::STEREO;
 }
 
 BOOL CSong::IsNTSC() const {

@@ -128,9 +128,9 @@ void SetStatusBarText(const char*) {
 
 // Link-only stub: the real CSong::ReInitSound() lives in Song.cpp (not
 // linked here - it needs g_AtariTrackerDriver/g_Pokey, real Atari hardware
-// simulation) and is reachable through CSong::SetTracks() (see
-// SongEditing.cpp), which calls it only when the track count actually
-// changes. Tests characterize SetTracks()'s own effect (the g_tracks4_8
+// simulation) and is reachable through CSong::SetChannels() (see
+// SongEditing.cpp), which calls it only when the channel count actually
+// changes. Tests characterize SetChannels()'s own effect (the m_channels
 // assignment), not the resulting sound reinitialization.
 void CSong::ReInitSound() {
 }

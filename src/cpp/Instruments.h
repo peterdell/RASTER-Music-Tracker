@@ -28,7 +28,7 @@ public:
     void CheckInstrumentParameters(int instr);
     void RecalculateFlag(int instr);
     BOOL CalculateNotEmpty(int instr);
-    void SetEnvelopeVolume(int instr, BOOL right, int px, int py);
+    void SetEnvelopeVolume(int instr, BOOL right, int px, int py, BOOL stereo);
     int GetFrequency(int instr, int note, TrackerDriverVersion trackerDriverVersion);
     int GetNote(int instr, int note);
     void MemorizeOctaveAndVolume(int instr, int oct, int vol);
@@ -65,10 +65,12 @@ public:
     int SaveInstrument(int instr, std::ostream& ou, InstrumentIOType iotype);
     int LoadInstrument(int instr, std::istream& in, InstrumentIOType iotype);
 
-    BYTE InstrToAta(int instr, unsigned char* ata, int max);
-    BOOL AtaToInstr(unsigned char* ata, int instr);
+    // stereo: whether the song has a right POKEY (CSong::IsStereo()) - the
+    // envelope packs one volume nibble per entry in mono, two in stereo.
+    BYTE InstrToAta(int instr, unsigned char* ata, int max, BOOL stereo);
+    BOOL AtaToInstr(unsigned char* ata, int instr, BOOL stereo);
 
-    BOOL AtaV0ToInstr(unsigned char* ata, int instr); // Due to the loading of the old version
+    BOOL AtaV0ToInstr(unsigned char* ata, int instr, BOOL stereo); // Due to the loading of the old version
 
 private:
     CCanvasXY* canvasXY;

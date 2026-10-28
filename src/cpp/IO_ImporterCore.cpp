@@ -19,7 +19,7 @@
 // and returning the stats its confirmation dialog displays. The
 // dialog-showing thin wrapper (ImportTMC() itself) stays behind in
 // IO_Importer.cpp. Only touches already-safe globals (g_Instruments,
-// g_Tracks) plus CSong's own already-safe methods (ClearSong/SetTracks/
+// g_Tracks) plus CSong's own already-safe methods (ClearSong/SetChannels/
 // TracksAllBuildLoops/SongClearUnusedTracksAndParts).
 
 extern CInstruments g_Instruments;
@@ -888,7 +888,7 @@ void CSong::ImportTMCApply(const TImportTMCHeader& header, BOOL usetable, BOOL o
     }
 
     if (!stereomodul) { //mono module
-        SetTracks(4);
+        SetChannels(4);
     }
 
     result.numoftracks = numoftracks;
@@ -1050,7 +1050,7 @@ void CSong::ImportMODApply(std::istream& in, const TImportMODHeader& header, int
     int i, j;
     BYTE a;
 
-    SetTracks(rmttype); //produce RMT4 or RMT8
+    SetChannels(rmttype); //produce RMT4 or RMT8
 
     //song name
     for (j = 0; j < 20 && (a = mem[j]); j++) {

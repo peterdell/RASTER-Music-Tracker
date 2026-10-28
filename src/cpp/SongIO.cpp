@@ -26,7 +26,6 @@
 
 extern CInstruments g_Instruments;
 extern CTracks g_Tracks;
-extern int g_tracks4_8;
 extern WORD g_rmtstripped_adr_module;
 extern BOOL volatile g_rmtroutine;
 extern BOOL g_changes;
@@ -53,7 +52,7 @@ extern BOOL g_keyboard_RememberOctavesAndVolumes;
 
 #define RMWMAINPARAMSCOUNT 31 //
 #define DEFINE_MAINPARAMS int* mainparams[RMWMAINPARAMSCOUNT] = {                           \
-                              &g_tracks4_8,                                                 \
+                              &channels,                                                    \
                               (int*)&m_speed, (int*)&m_mainSpeed, (int*)&m_instrumentSpeed, \
                               (int*)&m_songactiveline, (int*)&m_songplayline,               \
                               (int*)&m_trackactiveline, (int*)&m_trackplayline,             \
@@ -81,8 +80,8 @@ int CSong::SongToAta(unsigned char* dest, int max, int adr) {
     int apos = 0, len = 0, go = -1;
     ;
     for (int sline = 0; sline < SONGLEN; sline++) {
-        apos = sline * g_tracks4_8;
-        if (apos + g_tracks4_8 > max) {
+        apos = sline * m_channels;
+        if (apos + m_channels > max) {
             return len; //if it had a buffer overflow
         }
 
@@ -90,22 +89,22 @@ int CSong::SongToAta(unsigned char* dest, int max, int adr) {
             //there is a goto line
             dest[apos] = 254; //go command
             dest[apos + 1] = go; //number where to jump
-            WORD goadr = adr + (go * g_tracks4_8);
+            WORD goadr = adr + (go * m_channels);
             dest[apos + 2] = goadr & 0xff; //low byte
             dest[apos + 3] = (goadr >> 8); //high byte
-            if (g_tracks4_8 > 4) {
-                for (int j = 4; j < g_tracks4_8; j++) {
+            if (m_channels > 4) {
+                for (int j = 4; j < m_channels; j++) {
                     dest[apos + j] = 255; //to make sure this is the correct line
                 }
             }
-            len = sline * g_tracks4_8 + 4; //this is the end for now (goto has 4 bytes for 8 tracks)
+            len = sline * m_channels + 4; //this is the end for now (goto has 4 bytes for 8 tracks)
         } else {
             //there are track numbers
-            for (int i = 0; i < g_tracks4_8; i++) {
+            for (int i = 0; i < m_channels; i++) {
                 j = m_song[sline][i];
                 if (j >= 0 && j < TRACKSNUM) {
                     dest[apos + i] = j;
-                    len = (sline + 1) * g_tracks4_8; //this is the end for now
+                    len = (sline + 1) * m_channels; //this is the end for now
                 } else {
                     dest[apos + i] = 255; //--
                 }
@@ -127,13 +126,13 @@ BOOL CSong::AtaToSong(unsigned char* sour, int len, int adr) {
             //m_songgo[line]=sour[i+1];  //the driver took it by the number in channel 1
             //but more importantly, it's a vector, so it's better done that way
             int ptr = sour[i + 2] | (sour[i + 3] << 8); //goto vector
-            int go = (ptr - adr) / g_tracks4_8;
-            if (go >= 0 && go < (len / g_tracks4_8) && go < SONGLEN) {
+            int go = (ptr - adr) / m_channels;
+            if (go >= 0 && go < (len / m_channels) && go < SONGLEN) {
                 m_songgo[line] = go;
             } else {
                 m_songgo[line] = 0; //place of invalid jump and jump to line 0
             }
-            i += g_tracks4_8;
+            i += m_channels;
             if (i >= len) {
                 return 1; //this is the end of goto
             }
@@ -147,7 +146,7 @@ BOOL CSong::AtaToSong(unsigned char* sour, int len, int adr) {
         }
 
         col++;
-        if (col >= g_tracks4_8) {
+        if (col >= m_channels) {
             line++;
             if (line >= SONGLEN) {
                 return 1; //so that it does not overflow
@@ -174,7 +173,7 @@ int CSong::MakeModule(unsigned char* mem, int addr, SongIOType iotype, BYTE* ins
     // 6: Instrument speed
     // 7: RMT version (1 for now)
     strncpy((char*)(mem + addr), "RMT", 3);
-    mem[addr + 3] = g_tracks4_8 + '0'; // 4 or 8
+    mem[addr + 3] = m_channels + '0'; // 4 or 8
     mem[addr + 4] = g_Tracks.GetMaxTrackLength() & 0xff;
     mem[addr + 5] = m_mainSpeed & 0xff;
     mem[addr + 6] = m_instrumentSpeed; // 1-4 player calls per frame
@@ -241,7 +240,7 @@ int CSong::MakeModule(unsigned char* mem, int addr, SongIOType iotype, BYTE* ins
     for (i = 0; i < numInstruments; i++) {
         if (instrumentSavedFlags[i]) {
             // Create instrument data
-            int thisInstrumentLength = g_Instruments.InstrToAta(i, mem + ptrInstrumentData, ATARI_MAX_INSTR_LENGTH);
+            int thisInstrumentLength = g_Instruments.InstrToAta(i, mem + ptrInstrumentData, ATARI_MAX_INSTR_LENGTH, IsStereo());
 
             // Save where the instrument data is to be found
             mem[ptrInstruments + i * 2] = ptrInstrumentData & 0xff; // lo byte
@@ -331,7 +330,7 @@ int CSong::DecodeModule(unsigned char* mem, int fromAddr, int endAddr, BYTE* ins
     if (data != '4' && data != '8') {
         return 0; //it is not RMT4 or RMT8
     }
-    SetTracks(data & 0x0F); // Store how many channels this module uses
+    SetChannels(data & 0x0F); // Store how many channels this module uses
 
     // 5th byte: track length
     data = mem[addr + 4];
@@ -386,9 +385,9 @@ int CSong::DecodeModule(unsigned char* mem, int fromAddr, int endAddr, BYTE* ins
 
         // Depending on the file version load the instrument data into g_Instruments
         if (version == 0) {
-            loadState = g_Instruments.AtaV0ToInstr(mem + ptrOneInstrument, instrumentNr);
+            loadState = g_Instruments.AtaV0ToInstr(mem + ptrOneInstrument, instrumentNr, IsStereo());
         } else {
-            loadState = g_Instruments.AtaToInstr(mem + ptrOneInstrument, instrumentNr);
+            loadState = g_Instruments.AtaToInstr(mem + ptrOneInstrument, instrumentNr, IsStereo());
         }
 
         g_Instruments.Update(instrumentNr); //writes to Atari ram
@@ -444,6 +443,7 @@ bool CSong::SaveRMW(std::ostream& ou) {
     //
     ou.write((char*)m_songname, sizeof(m_songname));
     //
+    int channels = m_channels;
     DEFINE_MAINPARAMS;
 
     int p = RMWMAINPARAMSCOUNT; // Number of stored parameters
@@ -482,6 +482,7 @@ bool CSong::LoadRMW(std::istream& in) {
     //
     in.read((char*)m_songname, sizeof(m_songname));
     //
+    int channels = m_channels;
     DEFINE_MAINPARAMS;
     int p = 0;
     in.read((char*)&p, sizeof(p)); //read the number of main parameters
@@ -490,6 +491,10 @@ bool CSong::LoadRMW(std::istream& in) {
         // not sizeof(mainparams[0]).
         in.read((char*)mainparams[i], sizeof(int));
     }
+    if (channels != Channels::MONO && channels != Channels::STEREO) {
+        return false; // a channel count no tracker driver plays
+    }
+    SetChannels(channels);
 
     // Read the complete song and songgo
     in.read((char*)m_song, sizeof(m_song));
@@ -506,7 +511,7 @@ bool CSong::SaveTxt(std::ostream& ou) {
     char bf[16];
     nambf = m_songname;
     nambf.TrimRight();
-    s.Format("[MODULE]\nRMT: %X\nNAME: %s\nMAXTRACKLEN: %02X\nMAINSPEED: %02X\nINSTRSPEED: %X\nVERSION: %02X\n", g_tracks4_8, (LPCTSTR)nambf, g_Tracks.GetMaxTrackLength(), m_mainSpeed, m_instrumentSpeed, RMTFormatVersion::V1);
+    s.Format("[MODULE]\nRMT: %X\nNAME: %s\nMAXTRACKLEN: %02X\nMAINSPEED: %02X\nINSTRSPEED: %X\nVERSION: %02X\n", m_channels, (LPCTSTR)nambf, g_Tracks.GetMaxTrackLength(), m_mainSpeed, m_instrumentSpeed, RMTFormatVersion::V1);
     ou << s << "\n"; //gap
     ou << "[SONG]\n";
     int i, j;
@@ -517,7 +522,7 @@ bool CSong::SaveTxt(std::ostream& ou) {
             songLength = i;
             continue;
         }
-        for (j = 0; j < g_tracks4_8; j++) {
+        for (j = 0; j < m_channels; j++) {
             if (m_song[i][j] >= 0 && m_song[i][j] < TRACKSNUM) {
                 songLength = i;
                 break;
@@ -532,7 +537,7 @@ bool CSong::SaveTxt(std::ostream& ou) {
             ou << s;
             continue;
         }
-        for (j = 0; j < g_tracks4_8; j++) {
+        for (j = 0; j < m_channels; j++) {
             int t = m_song[i][j];
             if (t >= 0 && t < TRACKSNUM) {
                 bf[0] = CharH4(t);
@@ -542,7 +547,7 @@ bool CSong::SaveTxt(std::ostream& ou) {
             }
             bf[2] = 0;
             ou << bf;
-            if (j + 1 == g_tracks4_8) {
+            if (j + 1 == m_channels) {
                 ou << "\n"; //for the last end of the line
             } else {
                 ou << " "; //between them
@@ -607,12 +612,12 @@ bool CSong::LoadTxt(std::istream& in) {
                 if (strcmp(line, "RMT:") == 0) {
                     // RMT version indicator: 4 or 8
                     int v = Hexstr(value, 2);
-                    if (v <= 4) {
-                        v = 4;
+                    if (v <= Channels::MONO) {
+                        v = Channels::MONO;
                     } else {
-                        v = 8;
+                        v = Channels::STEREO;
                     }
-                    SetTracks(v);
+                    SetChannels(v);
                 } else if (strcmp(line, "NAME:") == 0) {
                     // Set the name of the song.
                     Trimstr(value);
@@ -678,7 +683,7 @@ bool CSong::LoadTxt(std::istream& in) {
                     }
                     continue;
                 }
-                for (i = 0; i < g_tracks4_8; i++) {
+                for (i = 0; i < m_channels; i++) {
                     // Parse the track
                     int track = Hexstr(line + i * 3, 2);
                     if (track >= 0 && track < TRACKSNUM) {

@@ -2,7 +2,7 @@
 
 #include "Song.h"
 
-extern int g_tracks4_8; // TODO Move out (see Instruments.cpp/IO_Instruments.cpp)
+#include <stdexcept>
 
 // Only the CSong methods implemented in SongCore.cpp are exercised here (see
 // plans/NOTES.md for the Song.cpp/IO_Song.cpp triage) - everything else
@@ -14,7 +14,7 @@ class SongCoreTest : public ::testing::Test {
     CSong song;
 
     void SetUp() override {
-        g_tracks4_8 = 4;
+        song.SetChannels(CSong::Channels::MONO); // the C++ tests' g_tracks4_8 = 4 before plan 61
         // CSong's constructor doesn't fully reset song data (that's
         // ClearSong()'s job, not moved to SongCore.cpp), and the default
         // member initializers added to Song.h zero everything rather than
@@ -30,10 +30,6 @@ class SongCoreTest : public ::testing::Test {
             (*songGoArr)[line] = -1;
         }
     }
-
-    void TearDown() override {
-        g_tracks4_8 = 4; // restore the default
-    }
 };
 
 TEST_F(SongCoreTest, NewSongHasEmptyNameAndZeroedCursorState) {
@@ -44,14 +40,19 @@ TEST_F(SongCoreTest, NewSongHasEmptyNameAndZeroedCursorState) {
     EXPECT_FALSE(song.IsNTSC());
 }
 
-TEST_F(SongCoreTest, GetTracksAndIsStereoFollowGlobalTrackCount) {
-    g_tracks4_8 = 4;
-    EXPECT_EQ(song.GetTracks(), 4);
+TEST_F(SongCoreTest, TheChannelCountStartsStereoAndTakesOnlyTheDriversCounts) {
+    CSong fresh;
+    EXPECT_EQ(fresh.GetChannels(), CSong::Channels::STEREO);
+    EXPECT_TRUE(fresh.IsStereo());
+    EXPECT_FALSE(fresh.IsMono());
+
+    EXPECT_EQ(song.GetChannels(), CSong::Channels::MONO); // SetUp()
+    EXPECT_TRUE(song.IsMono());
     EXPECT_FALSE(song.IsStereo());
 
-    g_tracks4_8 = 8;
-    EXPECT_EQ(song.GetTracks(), 8);
-    EXPECT_TRUE(song.IsStereo());
+    EXPECT_THROW(song.SetChannels(6), std::invalid_argument);
+    EXPECT_THROW(song.SetChannels(16), std::invalid_argument);
+    EXPECT_EQ(song.GetChannels(), CSong::Channels::MONO); // a rejected count changes nothing
 }
 
 TEST_F(SongCoreTest, GetInstrumentSpeedReflectsSongInfoPars) {
@@ -196,6 +197,7 @@ TEST_F(SongCoreTest, SongToAtaAndAtaToSongRoundTripTrackData) {
     int size = song.SongToAta(dest, sizeof(dest), 0x4000);
 
     CSong decoded;
+    decoded.SetChannels(CSong::Channels::MONO); // as DecodeModule() sets it from the header before AtaToSong()
     ASSERT_TRUE(decoded.AtaToSong(dest, size, 0x4000));
     EXPECT_EQ((*decoded.GetSong())[0][0], 5);
     EXPECT_EQ((*decoded.GetSong())[0][1], 10);
@@ -217,6 +219,7 @@ TEST_F(SongCoreTest, SongToAtaAndAtaToSongRoundTripGotoLine) {
     // represents how much of the module's song section is being decoded,
     // not SongToAta()'s own (smaller) "bytes actually used" return value.
     CSong decoded;
+    decoded.SetChannels(CSong::Channels::MONO); // as DecodeModule() sets it from the header before AtaToSong()
     ASSERT_TRUE(decoded.AtaToSong(dest, 8, 0x4000));
     EXPECT_EQ(decoded.SongGetGo(0), 1);
 }
