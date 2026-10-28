@@ -58,7 +58,7 @@ class RmtModuleTest {
 	}
 
 	static byte[] makeModule(Song song, int address, SongIOType iotype, int tracks4_8) {
-		byte[] mem = new byte[Atari.MEMORY_SIZE];
+		byte[] mem = new byte[Memory.SIZE];
 		int end = SongIO.makeModule(song, mem, address, iotype, new byte[Instruments.INSTRSNUM], new byte[Tracks.TRACKSNUM], tracks4_8);
 		assertTrue(end > 0, "makeModule failed");
 		return Arrays.copyOfRange(mem, address, end);
@@ -104,7 +104,7 @@ class RmtModuleTest {
 			RmtModule module = read(path).module();
 			byte[] relocated = module.toBytes(0x6000); // any address other than the default
 			assertEquals(module.length(), relocated.length);
-			byte[] mem = new byte[Atari.MEMORY_SIZE];
+			byte[] mem = new byte[Memory.SIZE];
 			System.arraycopy(relocated, 0, mem, 0x6000, relocated.length);
 			assertEquals(module, RmtModule.parse(mem, 0x6000, 0x6000 + relocated.length), path.toString());
 			assertFalse(Arrays.equals(relocated, module.toBytes(RmtModuleFile.DEFAULT_LOAD_ADDRESS)), "the pointers differ by address");
@@ -132,7 +132,7 @@ class RmtModuleTest {
 		for (Path path : fixtures()) {
 			Song original = newSong();
 			int tracks4_8 = SongIO.loadRMT(original, Files.readAllBytes(path)).tracks4_8();
-			byte[] mem = new byte[Atari.MEMORY_SIZE];
+			byte[] mem = new byte[Memory.SIZE];
 			int end = SongIO.makeModule(original, mem, LOAD, SongIOType.RMT, new byte[Instruments.INSTRSNUM], new byte[Tracks.TRACKSNUM], tracks4_8);
 
 			Song viaContainer = newSong();
@@ -156,7 +156,7 @@ class RmtModuleTest {
 			Song song = newSong();
 			byte[] data = Files.readAllBytes(path);
 			int tracks4_8 = SongIO.loadRMT(song, data).tracks4_8();
-			byte[] mem = new byte[Atari.MEMORY_SIZE];
+			byte[] mem = new byte[Memory.SIZE];
 			byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
 			int end = SongIO.makeModule(song, mem, LOAD, SongIOType.RMT, instrumentSavedFlags, new byte[Tracks.TRACKSNUM], tracks4_8);
 			byte[] expected = RmtExporter.exportAsRMT(song, song.instruments, mem, LOAD, end, instrumentSavedFlags);
@@ -208,14 +208,14 @@ class RmtModuleTest {
 		assertEquals(Song.SONGTRACKS, RmtModule.CHANNELS_STEREO);
 		assertEquals(RmtFormatVersion.V1, RmtModule.FORMAT_VERSION);
 		assertEquals(0x4000, RmtModuleFile.DEFAULT_LOAD_ADDRESS);
-		assertEquals(Atari.MEMORY_SIZE - 1, RmtModule.MAX_ADDRESS);
+		assertEquals(Atari.MEMORY_SIZE - 1, Memory.MAX_ADDRESS);
 	}
 
 	@Test
 	void aModuleMayEndExactlyAtTheLastAddress() throws IOException {
 		RmtModule module = read(TestSongs.DELTA).module();
-		int lastFit = RmtModule.MAX_ADDRESS - module.length() + 1;
-		assertEquals(RmtModule.MAX_ADDRESS, new RmtModuleFile(module, lastFit, null, null).loadAddress() + module.length() - 1);
+		int lastFit = Memory.MAX_ADDRESS - module.length() + 1;
+		assertEquals(Memory.MAX_ADDRESS, new RmtModuleFile(module, lastFit, null, null).loadAddress() + module.length() - 1);
 		assertThrows(RmtModule.FormatException.class, () -> new RmtModuleFile(module, lastFit + 1, null, null));
 		assertThrows(RmtModule.FormatException.class, () -> module.toBytes(lastFit + 1));
 	}
@@ -250,7 +250,7 @@ class RmtModuleTest {
 		assertThrows(RmtModule.FormatException.class, () -> RmtModule.Track.of(new byte[] { jump, 5 }), "a jump outside the track");
 
 		byte[] module = RmtModuleCodec.fromSong(newSongWithOneNote(), SongIOType.RMT, RmtModule.CHANNELS_MONO).toBytes(LOAD);
-		byte[] mem = new byte[Atari.MEMORY_SIZE];
+		byte[] mem = new byte[Memory.SIZE];
 		System.arraycopy(module, 0, mem, LOAD, module.length);
 		RmtModule.parse(mem, LOAD, LOAD + module.length); // valid as built
 		assertRejected(mem, module.length, 0, 'X', "RMT");
@@ -259,7 +259,7 @@ class RmtModuleTest {
 		assertRejected(mem, module.length, RmtModule.Offset.INSTRUMENT_SPEED, RmtModule.MAX_INSTRUMENT_SPEED + 1, "instrument speed 9");
 		assertRejected(mem, module.length, RmtModule.Offset.FORMAT_VERSION, 0, "Format version 0");
 		assertRejected(mem, module.length, RmtModule.Offset.FORMAT_VERSION, RmtModule.FORMAT_VERSION + 1, "format version 2");
-		assertRejected(mem, module.length, RmtModule.Offset.SONG, RmtModule.MAX_BYTE, "track sequence table"); // the low byte alone points past the module
+		assertRejected(mem, module.length, RmtModule.Offset.SONG, Memory.MAX_BYTE, "track sequence table"); // the low byte alone points past the module
 	}
 
 	private static void assertRejected(byte[] mem, int length, int offset, int value, String reason) {
@@ -291,7 +291,7 @@ class RmtModuleTest {
 		assertEquals(RmtModule.CHANNELS_STEREO + RmtModule.SongLine.GO_TO_LENGTH, module.songDataLength());
 		byte[] bytes = module.toBytes(LOAD);
 		assertEquals(RmtModule.HEADER_LENGTH + module.songDataLength(), bytes.length);
-		byte[] mem = new byte[Atari.MEMORY_SIZE];
+		byte[] mem = new byte[Memory.SIZE];
 		System.arraycopy(bytes, 0, mem, LOAD, bytes.length);
 		assertEquals(module, RmtModule.parse(mem, LOAD, LOAD + bytes.length));
 	}

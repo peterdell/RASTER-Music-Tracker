@@ -13,7 +13,8 @@ import java.util.TreeMap;
  * values, the instruments and tracks by number, and the song lines -
  * doc/rmt_format.md's structs, one Java type each. The module is free of
  * addresses: the header's four table addresses and the pointer tables
- * follow from the layout and the load address, so {@link #write} computes
+ * follow from the layout and the load address (the 16-bit space of
+ * {@link Memory}), so {@link #write} computes
  * them for any load address (which is how a module is relocated) and
  * {@link #parse} validates them.
  *
@@ -49,15 +50,6 @@ public final class RmtModule {
 
 	/** The header's first three bytes. */
 	public static final String SIGNATURE = "RMT";
-
-	/** The last address of the 16-bit address space the module's pointers live in (the spec's "virtual 64k address space"). */
-	public static final int MAX_ADDRESS = 0xffff;
-
-	/** The highest value a byte field holds. */
-	public static final int MAX_BYTE = 0xff;
-
-	/** The bytes of an address word (low byte first). */
-	public static final int WORD_LENGTH = 2;
 
 	/** The offsets within the header (doc/rmt_format.md, "Module Header Struct"). */
 	public static final class Offset {
@@ -103,7 +95,7 @@ public final class RmtModule {
 	public static final int FORMAT_VERSION = RmtFormatVersion.V1;
 
 	/** The highest song speed the header byte can hold (frames per song line). */
-	public static final int MAX_SONG_SPEED = MAX_BYTE;
+	public static final int MAX_SONG_SPEED = Memory.MAX_BYTE;
 
 	/** The most instruments a module can hold - the editor's {@code Instruments.INSTRSNUM}. */
 	public static final int MAX_INSTRUMENTS = 64;
@@ -192,40 +184,40 @@ public final class RmtModule {
 				throw new FormatException("The module does not start with \"" + SIGNATURE + "\".");
 			}
 		}
-		int channelByte = unsignedByte(mem, fromAddr + Offset.CHANNELS);
+		int channelByte = Memory.unsignedByte(mem, fromAddr + Offset.CHANNELS);
 		if (channelByte != '0' + CHANNELS_MONO && channelByte != '0' + CHANNELS_STEREO) {
 			throw new FormatException("The header is \"RMT" + (char) channelByte + "\", not RMT4 or RMT8.");
 		}
 		int channels = channelByte - '0';
-		int trackLengthByte = unsignedByte(mem, fromAddr + Offset.TRACK_LENGTH);
+		int trackLengthByte = Memory.unsignedByte(mem, fromAddr + Offset.TRACK_LENGTH);
 		int trackLength = trackLengthByte == 0 ? MAX_TRACK_LENGTH : trackLengthByte;
-		int songSpeed = unsignedByte(mem, fromAddr + Offset.SONG_SPEED);
+		int songSpeed = Memory.unsignedByte(mem, fromAddr + Offset.SONG_SPEED);
 		if (songSpeed < 1) {
 			throw new FormatException("The song speed is 0.");
 		}
-		int instrumentSpeed = unsignedByte(mem, fromAddr + Offset.INSTRUMENT_SPEED);
+		int instrumentSpeed = Memory.unsignedByte(mem, fromAddr + Offset.INSTRUMENT_SPEED);
 		if (instrumentSpeed < 1 || instrumentSpeed > MAX_INSTRUMENT_SPEED) {
 			throw new FormatException("The instrument speed " + instrumentSpeed + " is not 1-" + MAX_INSTRUMENT_SPEED + ".");
 		}
-		int formatVersion = unsignedByte(mem, fromAddr + Offset.FORMAT_VERSION);
+		int formatVersion = Memory.unsignedByte(mem, fromAddr + Offset.FORMAT_VERSION);
 		if (formatVersion == 0) {
 			throw new FormatException("Format version 0 (the pre-release instrument layout) is not represented by this container.");
 		}
 		if (formatVersion > FORMAT_VERSION) {
 			throw new FormatException("The format version " + formatVersion + " is above " + FORMAT_VERSION + ".");
 		}
-		int ptrInstruments = word(mem, fromAddr + Offset.INSTRUMENTS_TABLE);
-		int ptrTracksLow = word(mem, fromAddr + Offset.TRACKS_LOW_TABLE);
-		int ptrTracksHigh = word(mem, fromAddr + Offset.TRACKS_HIGH_TABLE);
-		int ptrSong = word(mem, fromAddr + Offset.SONG);
+		int ptrInstruments = Memory.word(mem, fromAddr + Offset.INSTRUMENTS_TABLE);
+		int ptrTracksLow = Memory.word(mem, fromAddr + Offset.TRACKS_LOW_TABLE);
+		int ptrTracksHigh = Memory.word(mem, fromAddr + Offset.TRACKS_HIGH_TABLE);
+		int ptrSong = Memory.word(mem, fromAddr + Offset.SONG);
 		requireInside(ptrInstruments, fromAddr + HEADER_LENGTH, endAddr, "instruments table");
 		requireInside(ptrTracksLow, ptrInstruments, endAddr, "low-byte track addresses table");
 		requireInside(ptrTracksHigh, ptrTracksLow, endAddr, "high-byte track addresses table");
 		requireInside(ptrSong, ptrTracksHigh, endAddr, "track sequence table");
-		if ((ptrTracksLow - ptrInstruments) % WORD_LENGTH != 0) {
+		if ((ptrTracksLow - ptrInstruments) % Memory.WORD_LENGTH != 0) {
 			throw new FormatException("The instruments table has an odd length, " + (ptrTracksLow - ptrInstruments) + ".");
 		}
-		int instrumentCount = (ptrTracksLow - ptrInstruments) / WORD_LENGTH;
+		int instrumentCount = (ptrTracksLow - ptrInstruments) / Memory.WORD_LENGTH;
 		int trackCount = ptrTracksHigh - ptrTracksLow;
 		if (instrumentCount > MAX_INSTRUMENTS) {
 			throw new FormatException("The instruments table has " + instrumentCount + " entries, more than " + MAX_INSTRUMENTS + ".");
@@ -236,7 +228,7 @@ public final class RmtModule {
 
 		Map<Integer, Instrument> instruments = new TreeMap<>();
 		for (int number = 0; number < instrumentCount; number++) {
-			int ptr = word(mem, ptrInstruments + number * WORD_LENGTH);
+			int ptr = Memory.word(mem, ptrInstruments + number * Memory.WORD_LENGTH);
 			if (ptr == 0) {
 				continue; // an absent instrument
 			}
@@ -250,7 +242,7 @@ public final class RmtModule {
 
 		Map<Integer, Track> tracks = new TreeMap<>();
 		for (int number = 0; number < trackCount; number++) {
-			int ptr = splitWord(mem, ptrTracksLow + number, ptrTracksHigh + number);
+			int ptr = Memory.splitWord(mem, ptrTracksLow + number, ptrTracksHigh + number);
 			if (ptr == 0) {
 				continue; // an absent track
 			}
@@ -258,7 +250,7 @@ public final class RmtModule {
 			// present track starts, the last one where the song lines start.
 			int end = ptrSong;
 			for (int next = number + 1; next < trackCount; next++) {
-				int nextPtr = splitWord(mem, ptrTracksLow + next, ptrTracksHigh + next);
+				int nextPtr = Memory.splitWord(mem, ptrTracksLow + next, ptrTracksHigh + next);
 				if (nextPtr != 0) {
 					end = nextPtr;
 					break;
@@ -279,39 +271,6 @@ public final class RmtModule {
 		return new RmtModule(channels, trackLength, songSpeed, instrumentSpeed, formatVersion, instruments, tracks, songLines);
 	}
 
-	/** The byte at {@code mem[offset]}, 0-255. */
-	private static int unsignedByte(byte[] mem, int offset) {
-		return mem[offset] & MAX_BYTE;
-	}
-
-	/** The address word at {@code mem[offset]}, low byte first. */
-	private static int word(byte[] mem, int offset) {
-		return splitWord(mem, offset, offset + 1);
-	}
-
-	/** An address word whose low and high bytes lie at two offsets - the track addresses tables keep them apart. */
-	private static int splitWord(byte[] mem, int lowOffset, int highOffset) {
-		return unsignedByte(mem, lowOffset) | (unsignedByte(mem, highOffset) << BITS_PER_BYTE);
-	}
-
-	private static final int BITS_PER_BYTE = 8;
-
-	/** The low byte of an address word. */
-	private static byte lowByte(int word) {
-		return (byte) word;
-	}
-
-	/** The high byte of an address word. */
-	private static byte highByte(int word) {
-		return (byte) (word >> BITS_PER_BYTE);
-	}
-
-	/** Writes the address word at {@code mem[offset]}, low byte first. */
-	private static void writeWord(byte[] mem, int offset, int word) {
-		mem[offset] = lowByte(word);
-		mem[offset + 1] = highByte(word);
-	}
-
 	private static void requireInside(int address, int min, int max, String what) {
 		if (address < min || address > max) {
 			throw new FormatException("The " + what + " at $" + Integer.toHexString(address) + " lies outside $" + Integer.toHexString(min) + "-$" + Integer.toHexString(max) + ".");
@@ -329,13 +288,13 @@ public final class RmtModule {
 		int pos = songAddr;
 		while (pos < endAddr) {
 			int lineNumber = lines.size();
-			if (unsignedByte(mem, pos) == SongLine.GO_TO_MARKER) {
+			if (Memory.unsignedByte(mem, pos) == SongLine.GO_TO_MARKER) {
 				if (pos + SongLine.GO_TO_LENGTH > endAddr) {
 					throw new FormatException("The go to line " + lineNumber + " is cut short.");
 				}
-				int target = unsignedByte(mem, pos + SongLine.Offset.TARGET);
-				int ptr = word(mem, pos + SongLine.Offset.ADDRESS);
-				if (ptr != ((songAddr + target * channels) & MAX_ADDRESS)) {
+				int target = Memory.unsignedByte(mem, pos + SongLine.Offset.TARGET);
+				int ptr = Memory.word(mem, pos + SongLine.Offset.ADDRESS);
+				if (ptr != ((songAddr + target * channels) & Memory.MAX_ADDRESS)) {
 					throw new FormatException("The go to line " + lineNumber + " targets line " + target + " but addresses $" + Integer.toHexString(ptr) + ".");
 				}
 				lines.add(SongLine.goTo(target));
@@ -345,7 +304,7 @@ public final class RmtModule {
 				}
 				int[] numbers = new int[channels];
 				for (int channel = 0; channel < channels; channel++) {
-					numbers[channel] = unsignedByte(mem, pos + channel);
+					numbers[channel] = Memory.unsignedByte(mem, pos + channel);
 				}
 				lines.add(SongLine.tracks(numbers));
 			}
@@ -381,7 +340,7 @@ public final class RmtModule {
 
 	/** The module's length in bytes when written. */
 	public int length() {
-		int length = HEADER_LENGTH + instrumentTableEntries() * WORD_LENGTH + trackTableEntries() * WORD_LENGTH; // a track's address is a word too, split over the two tables
+		int length = HEADER_LENGTH + instrumentTableEntries() * Memory.WORD_LENGTH + trackTableEntries() * Memory.WORD_LENGTH; // a track's address is a word too, split over the two tables
 		for (Instrument instrument : instruments.values()) {
 			length += instrument.length();
 		}
@@ -398,8 +357,8 @@ public final class RmtModule {
 	 */
 	public int write(byte[] mem, int loadAddress) {
 		int end = loadAddress + length();
-		if (loadAddress < 0 || end - 1 > MAX_ADDRESS || end > mem.length) {
-			throw new FormatException("The module of " + length() + " bytes does not fit at $" + Integer.toHexString(loadAddress) + ": its last byte would lie beyond $" + Integer.toHexString(MAX_ADDRESS) + ".");
+		if (loadAddress < 0 || end - 1 > Memory.MAX_ADDRESS || end > mem.length) {
+			throw new FormatException("The module of " + length() + " bytes does not fit at $" + Integer.toHexString(loadAddress) + ": its last byte would lie beyond $" + Integer.toHexString(Memory.MAX_ADDRESS) + ".");
 		}
 		for (int i = 0; i < SIGNATURE.length(); i++) {
 			mem[loadAddress + i] = (byte) SIGNATURE.charAt(i);
@@ -413,7 +372,7 @@ public final class RmtModule {
 		int instrumentEntries = instrumentTableEntries();
 		int trackEntries = trackTableEntries();
 		int ptrInstruments = loadAddress + HEADER_LENGTH;
-		int ptrTracksLow = ptrInstruments + instrumentEntries * WORD_LENGTH;
+		int ptrTracksLow = ptrInstruments + instrumentEntries * Memory.WORD_LENGTH;
 		int ptrTracksHigh = ptrTracksLow + trackEntries;
 		int ptrData = ptrTracksHigh + trackEntries;
 
@@ -424,7 +383,7 @@ public final class RmtModule {
 				ptr = ptrData;
 				ptrData = instrument.write(mem, ptrData);
 			}
-			writeWord(mem, ptrInstruments + number * WORD_LENGTH, ptr);
+			Memory.writeWord(mem, ptrInstruments + number * Memory.WORD_LENGTH, ptr);
 		}
 		for (int number = 0; number < trackEntries; number++) {
 			Track track = tracks.get(number);
@@ -433,16 +392,16 @@ public final class RmtModule {
 				ptr = ptrData;
 				ptrData = track.write(mem, ptrData);
 			}
-			mem[ptrTracksLow + number] = lowByte(ptr);
-			mem[ptrTracksHigh + number] = highByte(ptr);
+			mem[ptrTracksLow + number] = Memory.lowByte(ptr);
+			mem[ptrTracksHigh + number] = Memory.highByte(ptr);
 		}
 		int ptrSong = ptrData;
 		writeSongLines(mem, ptrSong);
 
-		writeWord(mem, loadAddress + Offset.INSTRUMENTS_TABLE, ptrInstruments);
-		writeWord(mem, loadAddress + Offset.TRACKS_LOW_TABLE, ptrTracksLow);
-		writeWord(mem, loadAddress + Offset.TRACKS_HIGH_TABLE, ptrTracksHigh);
-		writeWord(mem, loadAddress + Offset.SONG, ptrSong);
+		Memory.writeWord(mem, loadAddress + Offset.INSTRUMENTS_TABLE, ptrInstruments);
+		Memory.writeWord(mem, loadAddress + Offset.TRACKS_LOW_TABLE, ptrTracksLow);
+		Memory.writeWord(mem, loadAddress + Offset.TRACKS_HIGH_TABLE, ptrTracksHigh);
+		Memory.writeWord(mem, loadAddress + Offset.SONG, ptrSong);
 		return end;
 	}
 
@@ -452,10 +411,10 @@ public final class RmtModule {
 		for (SongLine line : songLines) {
 			if (line.isGoTo()) {
 				int target = line.goToTarget();
-				int ptr = (songAddr + target * channels) & MAX_ADDRESS;
+				int ptr = (songAddr + target * channels) & Memory.MAX_ADDRESS;
 				mem[pos] = (byte) SongLine.GO_TO_MARKER;
 				mem[pos + SongLine.Offset.TARGET] = (byte) target;
-				writeWord(mem, pos + SongLine.Offset.ADDRESS, ptr);
+				Memory.writeWord(mem, pos + SongLine.Offset.ADDRESS, ptr);
 				for (int channel = SongLine.GO_TO_LENGTH; channel < channels && pos + channel < end; channel++) {
 					mem[pos + channel] = (byte) SongLine.EMPTY; // the padding of a stereo go to line
 				}
@@ -591,7 +550,7 @@ public final class RmtModule {
 				throw new IllegalArgumentException("A song line has " + CHANNELS_MONO + " or " + CHANNELS_STEREO + " channels, not " + trackNumbers.length + ".");
 			}
 			for (int number : trackNumbers) {
-				if (number < 0 || number > MAX_BYTE) {
+				if (number < 0 || number > Memory.MAX_BYTE) {
 					throw new IllegalArgumentException("A track number is a byte, not " + number + ".");
 				}
 			}
@@ -600,7 +559,7 @@ public final class RmtModule {
 
 		/** A "go to" line: the song continues at line {@code target} (0-255). */
 		public static SongLine goTo(int target) {
-			if (target < 0 || target > MAX_BYTE) {
+			if (target < 0 || target > Memory.MAX_BYTE) {
 				throw new IllegalArgumentException("A go to target is a byte, not " + target + ".");
 			}
 			return new SongLine(null, target);
@@ -757,7 +716,7 @@ public final class RmtModule {
 			int pos = 0;
 			int line = 0;
 			while (pos < bytes.length) {
-				int first = unsignedByte(bytes, pos);
+				int first = Memory.unsignedByte(bytes, pos);
 				int kind = first & EVENT_MASK;
 				int high = first & HIGH_BITS_MASK;
 				if (kind <= MAX_NOTE || kind == VOLUME_ONLY) {
@@ -770,7 +729,7 @@ public final class RmtModule {
 						pos += EVENT_LENGTH;
 					} else {
 						requireSecondByte(bytes, pos, "pause");
-						int count = unsignedByte(bytes, pos + 1);
+						int count = Memory.unsignedByte(bytes, pos + 1);
 						pos += EVENT_WITH_PARAMETER_LENGTH;
 						if (count == 0) {
 							return end(bytes, pos, line); // a pause of 0 lines ends the track
@@ -782,7 +741,7 @@ public final class RmtModule {
 					pos += EVENT_WITH_PARAMETER_LENGTH;
 				} else if (high == CONTROL_JUMP) {
 					requireSecondByte(bytes, pos, "jump");
-					int target = unsignedByte(bytes, pos + 1);
+					int target = Memory.unsignedByte(bytes, pos + 1);
 					if (target >= bytes.length) {
 						throw new FormatException("The jump at offset " + pos + " targets offset " + target + ", outside the track.");
 					}
@@ -1108,7 +1067,7 @@ public final class RmtModule {
 		}
 
 		private static void requireByte(int value, String what) {
-			requireRange(value, MAX_BYTE, what);
+			requireRange(value, Memory.MAX_BYTE, what);
 		}
 
 		private static void requireRange(int value, int max, String what) {
@@ -1126,10 +1085,10 @@ public final class RmtModule {
 			if (available < PARAMETERS_LENGTH + 1) {
 				throw new FormatException("Only " + available + " bytes remain, fewer than the parameters and one table entry.");
 			}
-			int tlen = unsignedByte(mem, offset + Offset.TABLE_END);
-			int tgo = unsignedByte(mem, offset + Offset.TABLE_LOOP);
-			int elen = unsignedByte(mem, offset + Offset.ENVELOPE_END);
-			int ego = unsignedByte(mem, offset + Offset.ENVELOPE_LOOP);
+			int tlen = Memory.unsignedByte(mem, offset + Offset.TABLE_END);
+			int tgo = Memory.unsignedByte(mem, offset + Offset.TABLE_LOOP);
+			int elen = Memory.unsignedByte(mem, offset + Offset.ENVELOPE_END);
+			int ego = Memory.unsignedByte(mem, offset + Offset.ENVELOPE_LOOP);
 			if (tlen < PARAMETERS_LENGTH) {
 				throw new FormatException("The table end pointer " + tlen + " lies before the table's start at " + PARAMETERS_LENGTH + ".");
 			}
@@ -1150,13 +1109,13 @@ public final class RmtModule {
 			byte[] noteTable = Arrays.copyOfRange(mem, offset + PARAMETERS_LENGTH, offset + tlen + 1);
 			List<Envelope> envelope = new ArrayList<>();
 			for (int entry = offset + envelopeStart; entry <= offset + elen; entry += ENVELOPE_ENTRY_LENGTH) {
-				envelope.add(new Envelope(unsignedByte(mem, entry + Envelope.Offset.VOLUME), unsignedByte(mem, entry + Envelope.Offset.CONTROL), unsignedByte(mem, entry + Envelope.Offset.XY)));
+				envelope.add(new Envelope(Memory.unsignedByte(mem, entry + Envelope.Offset.VOLUME), Memory.unsignedByte(mem, entry + Envelope.Offset.CONTROL), Memory.unsignedByte(mem, entry + Envelope.Offset.XY)));
 			}
-			int tableControl = unsignedByte(mem, offset + Offset.TABLE_CONTROL);
+			int tableControl = Memory.unsignedByte(mem, offset + Offset.TABLE_CONTROL);
 			return new Instrument(noteTable, tgo - PARAMETERS_LENGTH, envelope, (ego - envelopeStart) / ENVELOPE_ENTRY_LENGTH, tableControl & MAX_TABLE_SPEED,
-					(tableControl >> TABLE_MODE_SHIFT) & BIT_MASK, tableControl >> TABLE_TYPE_SHIFT, unsignedByte(mem, offset + Offset.AUDCTL), unsignedByte(mem, offset + Offset.VOLUME_SLIDE),
-					unsignedByte(mem, offset + Offset.VOLUME_MINIMUM) >> HIGH_NIBBLE_SHIFT, unsignedByte(mem, offset + Offset.DELAY), unsignedByte(mem, offset + Offset.VIBRATO),
-					unsignedByte(mem, offset + Offset.FREQUENCY_SHIFT), unsignedByte(mem, offset + Offset.UNUSED));
+					(tableControl >> TABLE_MODE_SHIFT) & BIT_MASK, tableControl >> TABLE_TYPE_SHIFT, Memory.unsignedByte(mem, offset + Offset.AUDCTL), Memory.unsignedByte(mem, offset + Offset.VOLUME_SLIDE),
+					Memory.unsignedByte(mem, offset + Offset.VOLUME_MINIMUM) >> HIGH_NIBBLE_SHIFT, Memory.unsignedByte(mem, offset + Offset.DELAY), Memory.unsignedByte(mem, offset + Offset.VIBRATO),
+					Memory.unsignedByte(mem, offset + Offset.FREQUENCY_SHIFT), Memory.unsignedByte(mem, offset + Offset.UNUSED));
 		}
 
 		/** The struct's length in bytes: the parameters, the table and the envelope. */

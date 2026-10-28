@@ -39,8 +39,8 @@ public final class RmtModuleFile {
 		if (instrumentNames != null && instrumentNames.size() != module.instruments().size()) {
 			throw new IllegalArgumentException("There are " + instrumentNames.size() + " instrument names for " + module.instruments().size() + " instruments.");
 		}
-		if (loadAddress < 0 || loadAddress + module.length() - 1 > RmtModule.MAX_ADDRESS) {
-			throw new RmtModule.FormatException("The module of " + module.length() + " bytes does not fit at $" + Integer.toHexString(loadAddress) + ": its last byte would lie beyond $" + Integer.toHexString(RmtModule.MAX_ADDRESS) + ".");
+		if (loadAddress < 0 || loadAddress + module.length() - 1 > Memory.MAX_ADDRESS) {
+			throw new RmtModule.FormatException("The module of " + module.length() + " bytes does not fit at $" + Integer.toHexString(loadAddress) + ": its last byte would lie beyond $" + Integer.toHexString(Memory.MAX_ADDRESS) + ".");
 		}
 		this.module = module;
 		this.loadAddress = loadAddress;
@@ -59,7 +59,7 @@ public final class RmtModuleFile {
 	 * (a short segment) is empty.
 	 */
 	public static RmtModuleFile read(byte[] data) {
-		byte[] mem = new byte[Atari.MEMORY_SIZE];
+		byte[] mem = new byte[Memory.SIZE];
 		AtariIO.BinaryBlockResult moduleBlock = AtariIO.loadBinaryBlock(data, 0, mem);
 		if (moduleBlock.length() <= 0) {
 			throw new RmtModule.FormatException("The file does not start with a binary load segment.");
@@ -93,7 +93,7 @@ public final class RmtModuleFile {
 
 	/** The file's bytes: the module's segment with the {@code $ffff} marker, then the names segment unless stripped. */
 	public byte[] write() {
-		byte[] mem = new byte[Atari.MEMORY_SIZE];
+		byte[] mem = new byte[Memory.SIZE];
 		int firstByteAfterModule = module.write(mem, loadAddress);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		out.writeBytes(AtariIO.saveBinaryBlock(mem, loadAddress, firstByteAfterModule - 1, true));
