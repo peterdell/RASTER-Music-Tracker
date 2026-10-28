@@ -5,7 +5,6 @@ import org.atari.raster.rmt.model.Instruments;
 import org.atari.raster.rmt.model.MessageAnswer;
 import org.atari.raster.rmt.model.MessageButtons;
 import org.atari.raster.rmt.model.Notes;
-import org.atari.raster.rmt.model.RmtModule;
 import org.atari.raster.rmt.model.Song;
 import org.atari.raster.rmt.model.Track;
 import org.atari.raster.rmt.model.Tracks;
@@ -202,7 +201,7 @@ public final class SongDialogs {
 	/** {@code OnSongSongswitch4_8()}: the model asks its own question; a switch re-initializes the sound ({@code SetTracks()} -> {@code ReInitSound()}, here {@link RmtSession#syncSound()}) and the window's minimum size. */
 	public void songswitch4_8() {
 		stop();
-		if (session.song.songswitch4_8(session.song.isMono() ? RmtModule.CHANNELS_STEREO : RmtModule.CHANNELS_MONO, session.undo, session.messages)) {
+		if (session.song.songswitch4_8(session.song.isMono() ? Song.Channels.STEREO : Song.Channels.MONO, session.undo, session.messages)) {
 			session.syncSound();
 			host.songLayoutChanged();
 		}

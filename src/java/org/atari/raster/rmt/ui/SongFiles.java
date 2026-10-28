@@ -550,7 +550,7 @@ public final class SongFiles {
 		if (choice == null) {
 			return;
 		}
-		session.song.fileNewApply(choice.maxTrackLength(), choice.stereo() ? 8 : 4, session.undo);
+		session.song.fileNewApply(choice.maxTrackLength(), choice.stereo() ? Song.Channels.STEREO : Song.Channels.MONO, session.undo);
 		session.syncSound();
 		session.uiState.changes = false; // ClearSong
 		session.exportSettings.resetOnClearSong();

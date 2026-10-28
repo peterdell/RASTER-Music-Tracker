@@ -16,6 +16,7 @@ import org.atari.raster.rmt.model.KeyboardLayout;
 import org.atari.raster.rmt.model.MessageAnswer;
 import org.atari.raster.rmt.model.Part;
 import org.atari.raster.rmt.model.PlayMode;
+import org.atari.raster.rmt.model.Song;
 import org.atari.raster.rmt.model.TestSongs;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
 
@@ -360,7 +361,7 @@ class RmtCommandsTest {
 
 		host.nextScript = script;
 		commands.execute(RmtCommandId.TOOLS_RUN_SCRIPT);
-		assertEquals(4, session.song.getChannels(), "Delta.rmt (mono) was opened");
+		assertEquals(Song.Channels.MONO, session.song.getChannels(), "Delta.rmt (mono) was opened");
 		assertTrue(host.calls.contains("chooseScriptFile") && host.calls.contains("updateMinimumSize"), host.calls.toString());
 		assertEquals(1, boxes.size(), boxes.toString());
 		assertTrue(boxes.get(0).startsWith("I:Script:Script 'open.rmtscript' finished.") && boxes.get(0).contains("hello"), boxes.get(0));

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import org.atari.raster.rmt.model.AtariCpu;
 import org.atari.raster.rmt.model.PlayMode;
+import org.atari.raster.rmt.model.Song;
 import org.atari.raster.rmt.model.TestSongs;
 
 /** The frame step of {@link AudioEngine} driven by hand (no audio line): what C++'s {@code TimerRoutine()} does per tick. */
@@ -157,7 +158,7 @@ class AudioEngineTest {
 		int bytes = engine.renderFrame();
 		assertTrue(bytes >= 733 * 4 && bytes <= 737 * 4, "one NTSC frame is ~735 blocks, was " + bytes / 4);
 
-		session.song.setChannels(8); // a writer that doesn't call reInitSound(): the engine catches up at the top of the frame
+		session.song.setChannels(Song.Channels.STEREO); // a writer that doesn't call reInitSound(): the engine catches up at the top of the frame
 		bytes = engine.renderFrame();
 		assertTrue(cpu.isStereo());
 		assertTrue(bytes >= 733 * 4 && bytes <= 737 * 4, "still one frame of 2-channel output, was " + bytes / 4);

@@ -112,7 +112,7 @@ class TmcImporterTest {
 		// its own initial value of 0.
 		assertEquals(0, result.numOfTracks());
 
-		assertEquals(4, song.getChannels()); // no stereo columns (4-7) used -> mono module
+		assertEquals(Song.Channels.MONO, song.getChannels()); // no stereo columns (4-7) used -> mono module
 		assertEquals(0, song.getSong()[0][0]); // track 0 placed at songline 0, column 0
 
 		Track track0 = tracks.getTrack(0);

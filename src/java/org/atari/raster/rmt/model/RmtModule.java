@@ -85,11 +85,22 @@ public final class RmtModule {
 		}
 	}
 
-	/** The channels of a mono module ({@code RMT4}); RMT's {@code tracks4_8 == 4}. */
-	public static final int CHANNELS_MONO = 4;
+	/**
+	 * The channel counts the format knows, the header's digit: one POKEY's
+	 * four channels or two POKEYs' eight. They are also the counts the
+	 * tracker drivers play, so {@link Song#setChannels} accepts exactly these.
+	 */
+	public static final class Channels {
 
-	/** The channels of a stereo module ({@code RMT8}); RMT's {@code tracks4_8 == 8}. */
-	public static final int CHANNELS_STEREO = 8;
+		/** A mono module ({@code RMT4}): CH1-CH4 of one POKEY. */
+		public static final int MONO = 4;
+
+		/** A stereo module ({@code RMT8}): CH1-CH4 of the left and of the right POKEY. */
+		public static final int STEREO = 8;
+
+		private Channels() {
+		}
+	}
 
 	/** The format version this container represents ({@link RmtFormatVersion#V1}). */
 	public static final int FORMAT_VERSION = RmtFormatVersion.V1;
@@ -116,7 +127,7 @@ public final class RmtModule {
 	private final List<SongLine> songLines;
 
 	/**
-	 * @param channels 4 ({@code RMT4}, mono) or 8 ({@code RMT8}, stereo) - RMT's {@code tracks4_8}
+	 * @param channels {@link Channels#MONO} ({@code RMT4}) or {@link Channels#STEREO} ({@code RMT8})
 	 * @param trackLength the length of every track in lines, 1-{@link #MAX_TRACK_LENGTH}
 	 * @param songSpeed frames per song line, 1-255
 	 * @param instrumentSpeed player calls per frame, 1-{@link #MAX_INSTRUMENT_SPEED}
@@ -127,8 +138,8 @@ public final class RmtModule {
 	 */
 	public RmtModule(int channels, int trackLength, int songSpeed, int instrumentSpeed, int formatVersion, Map<Integer, Instrument> instruments, Map<Integer, Track> tracks,
 			List<SongLine> songLines) {
-		if (channels != CHANNELS_MONO && channels != CHANNELS_STEREO) {
-			throw new FormatException("The module has " + channels + " channels, not " + CHANNELS_MONO + " (RMT4) or " + CHANNELS_STEREO + " (RMT8).");
+		if (channels != Channels.MONO && channels != Channels.STEREO) {
+			throw new FormatException("The module has " + channels + " channels, not " + Channels.MONO + " (RMT4) or " + Channels.STEREO + " (RMT8).");
 		}
 		if (trackLength < 1 || trackLength > MAX_TRACK_LENGTH) {
 			throw new FormatException("The track length " + trackLength + " is not 1-" + MAX_TRACK_LENGTH + ".");
@@ -185,7 +196,7 @@ public final class RmtModule {
 			}
 		}
 		int channelByte = Memory.unsignedByte(mem, fromAddr + Offset.CHANNELS);
-		if (channelByte != '0' + CHANNELS_MONO && channelByte != '0' + CHANNELS_STEREO) {
+		if (channelByte != '0' + Channels.MONO && channelByte != '0' + Channels.STEREO) {
 			throw new FormatException("The header is \"RMT" + (char) channelByte + "\", not RMT4 or RMT8.");
 		}
 		int channels = channelByte - '0';
@@ -546,8 +557,8 @@ public final class RmtModule {
 
 		/** A line of track numbers, one per channel (4 or 8), each 0-255. */
 		public static SongLine tracks(int... trackNumbers) {
-			if (trackNumbers.length != CHANNELS_MONO && trackNumbers.length != CHANNELS_STEREO) {
-				throw new IllegalArgumentException("A song line has " + CHANNELS_MONO + " or " + CHANNELS_STEREO + " channels, not " + trackNumbers.length + ".");
+			if (trackNumbers.length != Channels.MONO && trackNumbers.length != Channels.STEREO) {
+				throw new IllegalArgumentException("A song line has " + Channels.MONO + " or " + Channels.STEREO + " channels, not " + trackNumbers.length + ".");
 			}
 			for (int number : trackNumbers) {
 				if (number < 0 || number > Memory.MAX_BYTE) {

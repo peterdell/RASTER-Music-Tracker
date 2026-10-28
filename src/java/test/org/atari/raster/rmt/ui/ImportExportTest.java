@@ -25,6 +25,7 @@ import org.atari.raster.rmt.model.MessageAnswer;
 import org.atari.raster.rmt.model.MessageButtons;
 import org.atari.raster.rmt.model.Messages;
 import org.atari.raster.rmt.model.RmtExporter;
+import org.atari.raster.rmt.model.Song;
 import org.atari.raster.rmt.model.SongIOType;
 import org.atari.raster.rmt.model.TestSongs;
 
@@ -123,7 +124,7 @@ class ImportExportTest {
 		assertTrue(host.lastFinishedInfo.startsWith("1 tracks, 1 instruments, "), host.lastFinishedInfo);
 		assertTrue(host.lastFinishedInfo.contains("\nOptimization: Loops in "), host.lastFinishedInfo);
 		assertTrue(host.lastFinishedInfo.contains("\nOptimization: Cleared "), host.lastFinishedInfo);
-		assertEquals(4, session.song.getChannels()); // RMT4 chosen
+		assertEquals(Song.Channels.MONO, session.song.getChannels()); // RMT4 chosen
 		assertEquals(0, session.song.getSong()[0][0]);
 		assertEquals("", session.song.getFilename());
 		assertEquals(mod.toString(), host.importedFileName);
@@ -138,7 +139,7 @@ class ImportExportTest {
 		files.fileImport();
 		assertEquals(SongFiles.FILTER_MOD, host.lastInitialFilterIndex); // "Restore the last imported file type"
 		assertEquals("I:Import...:Module import aborted.", messages.log.get(messages.log.size() - 1));
-		assertEquals(4, session.song.getChannels()); // ClearSong(originalg_tracks4_8)
+		assertEquals(Song.Channels.MONO, session.song.getChannels()); // ClearSong(originalg_tracks4_8)
 		assertEquals(-1, session.song.getSong()[0][0]);
 	}
 
@@ -149,7 +150,7 @@ class ImportExportTest {
 		host.answer(mod, SongFiles.FILTER_MOD);
 		files.fileImport();
 		assertEquals("E:Error:Bad file format.", messages.log.get(0));
-		assertEquals(8, session.song.getChannels()); // ParseHeader's ClearSong(8), then FileImport's ClearSong
+		assertEquals(Song.Channels.STEREO, session.song.getChannels()); // ParseHeader's ClearSong(8), then FileImport's ClearSong
 
 		byte[] noId = minimalMod();
 		noId[1080] = 'X';
@@ -173,7 +174,7 @@ class ImportExportTest {
 		assertEquals(List.of("open:Import Song File", "importTmc", "importFinished:tmc"), host.calls);
 		assertTrue(host.lastImportInfo.startsWith("TMC module: "), host.lastImportInfo);
 		assertTrue(host.lastFinishedInfo.endsWith(" songlines"), host.lastFinishedInfo);
-		assertEquals(4, session.song.getChannels()); // only column 0 used: the importer settles on mono
+		assertEquals(Song.Channels.MONO, session.song.getChannels()); // only column 0 used: the importer settles on mono
 		assertEquals(0, session.song.getSong()[0][0]);
 
 		Files.write(tmc, new byte[] { 1, 2 });

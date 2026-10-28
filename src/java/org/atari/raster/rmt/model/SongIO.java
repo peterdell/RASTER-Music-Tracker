@@ -295,7 +295,7 @@ public final class SongIO {
 	 * return" reasoning; a {@code "RMT:"} line sets the song's channel count.
 	 */
 	public static void loadTxt(Song song, String text, Undo undo) {
-		song.clearSong(RmtModule.CHANNELS_STEREO, undo); // always clear 8 tracks
+		song.clearSong(Song.Channels.STEREO, undo); // always clear 8 tracks
 
 		song.tracks.initTracks();
 
@@ -341,7 +341,7 @@ public final class SongIO {
 					case "RMT:" -> {
 						// RMT version indicator: 4 or 8
 						int v = IOHelpers.hexstr(value, 0, 2);
-						song.setChannels(v <= RmtModule.CHANNELS_MONO ? RmtModule.CHANNELS_MONO : RmtModule.CHANNELS_STEREO);
+						song.setChannels(v <= Song.Channels.MONO ? Song.Channels.MONO : Song.Channels.STEREO);
 					}
 					case "NAME:" -> {
 						// Set the name of the song.
@@ -543,7 +543,7 @@ public final class SongIO {
 	 * {@link Instruments#loadAllRmw}/{@link Tracks#loadAllRmw}.
 	 */
 	public static LoadRmwResult loadRMW(Song song, byte[] data, Undo undo) {
-		song.clearSong(RmtModule.CHANNELS_STEREO, undo); // always clear 8 tracks
+		song.clearSong(Song.Channels.STEREO, undo); // always clear 8 tracks
 
 		int[] uiParams = new int[RMW_UI_PARAMS_COUNT];
 		int nl = indexOf(data, (byte) '\n', 0);
@@ -582,7 +582,7 @@ public final class SongIO {
 			pos += 4;
 		}
 
-		if (mainParams[0] != RmtModule.CHANNELS_MONO && mainParams[0] != RmtModule.CHANNELS_STEREO) {
+		if (mainParams[0] != Song.Channels.MONO && mainParams[0] != Song.Channels.STEREO) {
 			return new LoadRmwResult(false, uiParams); // a channel count no tracker driver plays
 		}
 		song.setChannels(mainParams[0]);

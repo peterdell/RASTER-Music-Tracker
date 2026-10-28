@@ -6,7 +6,6 @@ import org.atari.raster.rmt.model.AtariTrackerDriver;
 import org.atari.raster.rmt.model.ChannelControl;
 import org.atari.raster.rmt.model.Instruments;
 import org.atari.raster.rmt.model.Messages;
-import org.atari.raster.rmt.model.RmtModule;
 import org.atari.raster.rmt.model.Song;
 import org.atari.raster.rmt.model.TrackClipboard;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
@@ -143,7 +142,7 @@ public final class RmtSession {
 		// to $4000 + instr * 256 for the driver.
 		instruments.attachAtari(atari, song::isStereo);
 
-		song.clearSong(RmtModule.CHANNELS_STEREO, undo);
+		song.clearSong(Song.Channels.STEREO, undo);
 		channelControl.setAllChannelsOn();
 		undo.setChangeListener(() -> uiState.changes = true); // CUndo::InsertEvent's g_changes = 1
 		song.setPlayTimeResetListener(() -> uiState.playTime = 0); // g_playtime = 0 in Play() and ClearSong()

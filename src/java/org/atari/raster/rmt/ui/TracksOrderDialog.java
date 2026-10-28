@@ -12,7 +12,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
-import org.atari.raster.rmt.model.RmtModule;
+import org.atari.raster.rmt.model.Song;
 
 import com.wudsn.tools.base.gui.ModalDialog;
 
@@ -101,7 +101,7 @@ final class TracksOrderDialog extends ModalDialog {
 		diagram.add(nothing);
 		diagram.setPreferredSize(new Dimension(x0 + 8 * (bw + gap) + 32 + 80 + 8, 96 + bh + 8));
 
-		boolean stereo = channels == RmtModule.CHANNELS_STEREO;
+		boolean stereo = channels == Song.Channels.STEREO;
 		JPanel presets = new JPanel(new java.awt.GridLayout(3, 2, 4, 4));
 		presets.add(preset("Mono-->stereo", new int[] { 0, 3, 4, 7, 1, 2, 5, 6 }, stereo));
 		presets.add(preset("Copy left-->right", new int[] { 0, 1, 2, 3, 0, 1, 2, 3 }, stereo));

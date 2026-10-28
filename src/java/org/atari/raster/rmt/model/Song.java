@@ -165,30 +165,47 @@ public final class Song {
 	/**
 	 * The physical POKEY channels the song is written for, across one or two
 	 * POKEYs: the song columns L1-L4 and R1-R4 are CH1-CH4 of the left and,
-	 * in stereo, the right POKEY. {@link RmtModule#CHANNELS_MONO} (4) or
-	 * {@link RmtModule#CHANNELS_STEREO} (8), the module header's channel
+	 * in stereo, the right POKEY. {@link Channels#MONO} (4) or
+	 * {@link Channels#STEREO} (8), the module header's channel
 	 * digit; C++ kept it as the global {@code g_tracks4_8}, starting at 8.
 	 */
-	private int channels = RmtModule.CHANNELS_STEREO;
+	private int channels = Channels.STEREO;
+
+	/**
+	 * The channel counts a song can be written for: the format's
+	 * {@link RmtModule.Channels}, at hand for the callers of
+	 * {@link #setChannels} and {@link #clearSong}.
+	 */
+	public static final class Channels {
+
+		/** {@link RmtModule.Channels#MONO}: one POKEY. */
+		public static final int MONO = RmtModule.Channels.MONO;
+
+		/** {@link RmtModule.Channels#STEREO}: the POKEY pair. */
+		public static final int STEREO = RmtModule.Channels.STEREO;
+
+		private Channels() {
+		}
+	}
 
 	/** The number of song columns: {@link #channels}. */
 	public int getChannels() {
 		return channels;
 	}
 
-	/** Whether the song is written for one POKEY ({@link RmtModule#CHANNELS_MONO}). */
+	/** Whether the song is written for one POKEY ({@link Channels#MONO}). */
 	public boolean isMono() {
-		return channels == RmtModule.CHANNELS_MONO;
+		return channels == Channels.MONO;
 	}
 
 	/**
 	 * Whether the song is written for the POKEY pair
-	 * ({@link RmtModule#CHANNELS_STEREO}): there is a right side. For the
+	 * ({@link Channels#STEREO}): there is a right side. For the
 	 * places that mean exactly that - the volume nibbles, the POKEY pair,
 	 * the WAV export; the number of columns is {@link #getChannels()}.
 	 */
 	public boolean isStereo() {
-		return channels == RmtModule.CHANNELS_STEREO;
+		return channels == Channels.STEREO;
 	}
 
 	/**
@@ -199,8 +216,8 @@ public final class Song {
 	 * widen.
 	 */
 	public void setChannels(int channels) {
-		if (channels != RmtModule.CHANNELS_MONO && channels != RmtModule.CHANNELS_STEREO) {
-			throw new IllegalArgumentException("The channel count must be " + RmtModule.CHANNELS_MONO + " or " + RmtModule.CHANNELS_STEREO + ", not " + channels + ".");
+		if (channels != Channels.MONO && channels != Channels.STEREO) {
+			throw new IllegalArgumentException("The channel count must be " + Channels.MONO + " or " + Channels.STEREO + ", not " + channels + ".");
 		}
 		this.channels = channels;
 	}
@@ -2745,7 +2762,7 @@ public final class Song {
 		stop(undo);
 
 		StringBuilder wrn = new StringBuilder("Warning: Undo operation won't be possible!!!\n");
-		if (newChannels == RmtModule.CHANNELS_MONO) {
+		if (newChannels == Channels.MONO) {
 			int p = 0;
 			for (int i = 0; i < SONGLEN; i++) {
 				for (int j = 4; j < 8; j++) {
@@ -2768,13 +2785,13 @@ public final class Song {
 		undo.clear();
 
 		setChannels(newChannels);
-		if (newChannels == RmtModule.CHANNELS_MONO) {
-			if (trackActiveCol >= RmtModule.CHANNELS_MONO) {
-				trackActiveCol = RmtModule.CHANNELS_MONO - 1;
+		if (newChannels == Channels.MONO) {
+			if (trackActiveCol >= Channels.MONO) {
+				trackActiveCol = Channels.MONO - 1;
 				trackActiveCur = 0;
 			}
 			for (int i = 0; i < SONGLEN; i++) {
-				for (int j = RmtModule.CHANNELS_MONO; j < RmtModule.CHANNELS_STEREO; j++) {
+				for (int j = Channels.MONO; j < Channels.STEREO; j++) {
 					song[i][j] = -1;
 				}
 			}

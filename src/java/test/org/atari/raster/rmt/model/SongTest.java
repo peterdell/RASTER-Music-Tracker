@@ -43,18 +43,18 @@ class SongTest {
 
 	@Test
 	void theChannelCountStartsStereoAndTakesOnlyTheDriversCounts() {
-		assertEquals(RmtModule.CHANNELS_STEREO, song.getChannels());
+		assertEquals(Song.Channels.STEREO, song.getChannels());
 		assertTrue(song.isStereo());
 		assertFalse(song.isMono());
 
-		song.setChannels(RmtModule.CHANNELS_MONO);
-		assertEquals(4, song.getChannels());
+		song.setChannels(Song.Channels.MONO);
+		assertEquals(Song.Channels.MONO, song.getChannels());
 		assertTrue(song.isMono());
 		assertFalse(song.isStereo());
 
 		assertThrows(IllegalArgumentException.class, () -> song.setChannels(6));
 		assertThrows(IllegalArgumentException.class, () -> song.setChannels(16));
-		assertEquals(4, song.getChannels(), "a rejected count changes nothing");
+		assertEquals(Song.Channels.MONO, song.getChannels(), "a rejected count changes nothing");
 	}
 
 	@Test

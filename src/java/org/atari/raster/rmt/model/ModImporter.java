@@ -108,7 +108,7 @@ public final class ModImporter {
 	 */
 	public static ParseHeaderResult parseHeader(byte[] data, Song song, Tracks tracks, Undo undo) {
 		tracks.setMaxTrackLength(64);
-		song.clearSong(8, undo);
+		song.clearSong(Song.Channels.STEREO, undo);
 
 		if (data.length < 1084) {
 			return new ParseHeaderResult(1, data, 0, 0, 0, 0, 0, 0, 0, 0);

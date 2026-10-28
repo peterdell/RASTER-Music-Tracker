@@ -77,7 +77,7 @@ class RmtModuleTest {
 	@Test
 	void theFixturesAreWhatTheirReadmesSay() throws IOException {
 		RmtModuleFile delta = read(TestSongs.DELTA);
-		assertEquals(RmtModule.CHANNELS_MONO, delta.module().channels());
+		assertEquals(RmtModule.Channels.MONO, delta.module().channels());
 		assertEquals(RmtModuleFile.DEFAULT_LOAD_ADDRESS, delta.loadAddress());
 		assertTrue(delta.isStripped(), "Raster's own export carries no names");
 		RmtModuleFile captain = read(TestSongs.CAPTAIN_FUTURE_THEME);
@@ -94,7 +94,7 @@ class RmtModuleTest {
 		int empty = RmtModule.SongLine.EMPTY;
 		assertEquals(List.of(RmtModule.SongLine.tracks(empty, empty, empty, empty), RmtModule.SongLine.goTo(0)), sfx.module().songLines());
 		RmtModuleFile why = read(TestSongs.WHY_DO_YOU_DANCE_WITH_ME);
-		assertEquals(RmtModule.CHANNELS_STEREO, why.module().channels());
+		assertEquals(RmtModule.Channels.STEREO, why.module().channels());
 		assertEquals(4, why.module().instrumentSpeed());
 	}
 
@@ -204,7 +204,7 @@ class RmtModuleTest {
 		assertEquals(Instruments.INSTRSNUM, RmtModule.MAX_INSTRUMENTS);
 		assertEquals(Tracks.TRACKSNUM, RmtModule.MAX_TRACKS);
 		assertEquals(Song.SONGLEN, RmtModule.MAX_SONG_LINES);
-		assertEquals(Song.SONGTRACKS, RmtModule.CHANNELS_STEREO);
+		assertEquals(Song.SONGTRACKS, RmtModule.Channels.STEREO);
 		assertEquals(RmtFormatVersion.V1, RmtModule.FORMAT_VERSION);
 		assertEquals(0x4000, RmtModuleFile.DEFAULT_LOAD_ADDRESS);
 		assertEquals(Atari.MEMORY_SIZE - 1, Memory.MAX_ADDRESS);
@@ -272,7 +272,7 @@ class RmtModuleTest {
 		Song song = newSong();
 		song.setMainSpeed(SONG_SPEED);
 		song.setInstrumentSpeed(1);
-		song.setChannels(RmtModule.CHANNELS_MONO);
+		song.setChannels(Song.Channels.MONO);
 		Track track = song.tracks.getTrack(0);
 		track.note[0] = 12;
 		track.instr[0] = 0;
@@ -285,9 +285,9 @@ class RmtModuleTest {
 
 	@Test
 	void aStereoGoToAsTheLastLineTakesFourBytesLikeRmtWrites() {
-		RmtModule module = new RmtModule(RmtModule.CHANNELS_STEREO, TRACK_LENGTH, SONG_SPEED, 1, RmtModule.FORMAT_VERSION, Map.of(), Map.of(),
+		RmtModule module = new RmtModule(RmtModule.Channels.STEREO, TRACK_LENGTH, SONG_SPEED, 1, RmtModule.FORMAT_VERSION, Map.of(), Map.of(),
 				List.of(RmtModule.SongLine.tracks(0, 1, 2, 3, 4, 5, 6, 7), RmtModule.SongLine.goTo(0)));
-		assertEquals(RmtModule.CHANNELS_STEREO + RmtModule.SongLine.GO_TO_LENGTH, module.songDataLength());
+		assertEquals(RmtModule.Channels.STEREO + RmtModule.SongLine.GO_TO_LENGTH, module.songDataLength());
 		byte[] bytes = module.toBytes(LOAD);
 		assertEquals(RmtModule.HEADER_LENGTH + module.songDataLength(), bytes.length);
 		byte[] mem = new byte[Memory.SIZE];

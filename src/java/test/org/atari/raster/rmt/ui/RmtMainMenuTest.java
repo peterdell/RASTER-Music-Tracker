@@ -13,6 +13,7 @@ import java.util.List;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
+import org.atari.raster.rmt.model.Song;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -127,7 +128,7 @@ class RmtMainMenuTest {
 		assertEquals("Switch song to Mono 4 tracks...", ((JMenuItem) menu.getButtons(RmtCommandId.SONG_SONG_TOGGLE_TRACK_NUMBER).get(0)).getText());
 
 		session.channelControl.toggleChannelOnOff(0);
-		session.song.setChannels(4);
+		session.song.setChannels(Song.Channels.MONO);
 		menu.updateStates(commands);
 		assertFalse(menu.getButtons(RmtCommandId.CHANNELS_CHANNEL1).get(0).isSelected());
 		assertEquals("Switch song to Stereo 8 tracks...", ((JMenuItem) menu.getButtons(RmtCommandId.SONG_SONG_TOGGLE_TRACK_NUMBER).get(0)).getText());

@@ -44,7 +44,7 @@ class SongIOTest {
 		}
 
 		song = new Song(instruments, tracks);
-		song.setChannels(4); // the C++ tests' g_tracks4_8 = 4
+		song.setChannels(Song.Channels.MONO); // the C++ tests' g_tracks4_8 = 4
 		undo = new Undo(tracks, instruments, song, new TrackClipboard());
 		messages = new Messages();
 
@@ -105,7 +105,7 @@ class SongIOTest {
 		int size = SongIO.songToAta(song, dest, dest.length, 0x4000);
 
 		Song decoded = new Song(new Instruments(), new Tracks());
-		decoded.setChannels(4); // as decodeModule sets it from the header before ataToSong
+		decoded.setChannels(Song.Channels.MONO); // as decodeModule sets it from the header before ataToSong
 		assertTrue(SongIO.ataToSong(decoded, dest, size, 0x4000));
 		assertEquals(5, decoded.getSong()[0][0]);
 		assertEquals(10, decoded.getSong()[0][1]);
@@ -129,7 +129,7 @@ class SongIOTest {
 		// is being decoded, not songToAta()'s own (smaller) "bytes actually
 		// used" return value.
 		Song decoded = new Song(new Instruments(), new Tracks());
-		decoded.setChannels(4); // as decodeModule sets it from the header before ataToSong
+		decoded.setChannels(Song.Channels.MONO); // as decodeModule sets it from the header before ataToSong
 		assertTrue(SongIO.ataToSong(decoded, dest, 8, 0x4000));
 		assertEquals(1, decoded.songGetGo(0));
 	}
@@ -229,7 +229,7 @@ class SongIOTest {
 		SongIO.loadTxt(loaded, text, loadedUndo);
 
 		// The [MODULE] header block parses correctly...
-		assertEquals(4, loaded.getChannels()); // RMT: 04 round-trips the channel count via setChannels()
+		assertEquals(Song.Channels.MONO, loaded.getChannels()); // RMT: 04 round-trips the channel count via setChannels()
 		SongInfo loadedInfo = new SongInfo();
 		loaded.getSongInfoPars(loadedInfo);
 		assertEquals(6, loadedInfo.mainSpeed);
@@ -490,7 +490,7 @@ class SongIOTest {
 		Song decoded = new Song(instruments, tracks);
 		SongIO.LoadRmtResult loaded = SongIO.loadRMT(decoded, blocks.toByteArray());
 		assertTrue(loaded.success());
-		assertEquals(4, decoded.getChannels());
+		assertEquals(Song.Channels.MONO, decoded.getChannels());
 
 		assertEquals("TestSong", decoded.getName());
 		// Unlike getName(), the raw instrument name field isn't trimmed -

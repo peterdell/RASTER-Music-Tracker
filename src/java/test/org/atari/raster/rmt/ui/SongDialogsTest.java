@@ -205,14 +205,14 @@ class SongDialogsTest {
 
 	@Test
 	void monoStereoSwitchGoesThroughTheModelsQuestionAndTellsTheHost() {
-		assertEquals(4, session.song.getChannels());
+		assertEquals(Song.Channels.MONO, session.song.getChannels());
 		messages.answer = MessageAnswer.CANCEL;
 		dialogs.songswitch4_8();
-		assertEquals(4, session.song.getChannels());
+		assertEquals(Song.Channels.MONO, session.song.getChannels());
 		assertEquals(0, host.layoutChangedCount);
 		messages.answer = MessageAnswer.YES;
 		dialogs.songswitch4_8();
-		assertEquals(8, session.song.getChannels());
+		assertEquals(Song.Channels.STEREO, session.song.getChannels());
 		assertEquals(1, host.layoutChangedCount);
 		assertFalse(messages.log.isEmpty());
 	}

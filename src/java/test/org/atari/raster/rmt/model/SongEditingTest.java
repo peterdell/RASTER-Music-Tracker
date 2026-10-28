@@ -46,7 +46,7 @@ class SongEditingTest {
 		}
 
 		song = new Song(instruments, tracks);
-		song.setChannels(4); // the C++ tests' g_tracks4_8 = 4
+		song.setChannels(Song.Channels.MONO); // the C++ tests' g_tracks4_8 = 4
 		clipboard = new TrackClipboard();
 		undo = new Undo(tracks, instruments, song, clipboard);
 		messages = new Messages();
@@ -1225,10 +1225,10 @@ class SongEditingTest {
 
 	@Test
 	void setChannelsStoresTheChannelCount() {
-		song.setChannels(8);
-		assertEquals(8, song.getChannels());
-		song.setChannels(4);
-		assertEquals(4, song.getChannels());
+		song.setChannels(Song.Channels.STEREO);
+		assertEquals(Song.Channels.STEREO, song.getChannels());
+		song.setChannels(Song.Channels.MONO);
+		assertEquals(Song.Channels.MONO, song.getChannels());
 	}
 
 	// --- getTrackerDriverVersion / setTrackerDriverVersion ---
@@ -1246,7 +1246,7 @@ class SongEditingTest {
 		song.setTrackerDriverVersion(TrackerDriverVersion.UNPATCHED);
 		assertEquals(TrackerDriverVersion.UNPATCHED, song.getTrackerDriverVersion());
 
-		song.clearSong(4, undo); // loading or clearing a module leaves it alone, as it does isNTSC()
+		song.clearSong(Song.Channels.MONO, undo); // loading or clearing a module leaves it alone, as it does isNTSC()
 		assertEquals(TrackerDriverVersion.UNPATCHED, song.getTrackerDriverVersion());
 	}
 
@@ -1294,7 +1294,7 @@ class SongEditingTest {
 
 		assertTrue(song.setBookmark());
 
-		song.clearSong(4, undo);
+		song.clearSong(Song.Channels.MONO, undo);
 
 		assertEquals(-1, song.getSong()[0][0]);
 		assertEquals(-1, song.getSongGo()[2]);
@@ -1322,10 +1322,10 @@ class SongEditingTest {
 
 	@Test
 	void clearSongSetsTheChannelCount() {
-		song.clearSong(8, undo);
-		assertEquals(8, song.getChannels());
-		song.clearSong(4, undo);
-		assertEquals(4, song.getChannels());
+		song.clearSong(Song.Channels.STEREO, undo);
+		assertEquals(Song.Channels.STEREO, song.getChannels());
+		song.clearSong(Song.Channels.MONO, undo);
+		assertEquals(Song.Channels.MONO, song.getChannels());
 	}
 
 	// --- RmtExporter.exportAsRMT ---
@@ -1681,35 +1681,35 @@ class SongEditingTest {
 
 	@Test
 	void songswitch4_8LeavesStateUnchangedWhenCancelled() {
-		song.setChannels(8);
+		song.setChannels(Song.Channels.STEREO);
 		song.getSong()[0][4] = 5; // an R1 column entry that would be erased if confirmed
 
 		messages.setTestQuestionAnswer(MessageAnswer.CANCEL);
 		assertFalse(song.songswitch4_8(4, undo, messages));
 
-		assertEquals(8, song.getChannels()); // unchanged
+		assertEquals(Song.Channels.STEREO, song.getChannels()); // unchanged
 		assertEquals(5, song.getSong()[0][4]); // unchanged
 	}
 
 	@Test
 	void songswitch4_8ClearsStereoColumnsWhenConfirmed() {
-		song.setChannels(8);
+		song.setChannels(Song.Channels.STEREO);
 		song.getSong()[0][4] = 5; // R1 column entry
 
 		messages.setTestQuestionAnswer(MessageAnswer.YES);
 		assertTrue(song.songswitch4_8(4, undo, messages));
 
-		assertEquals(4, song.getChannels());
+		assertEquals(Song.Channels.MONO, song.getChannels());
 		assertEquals(-1, song.getSong()[0][4]); // R1-R4 columns cleared
 	}
 
 	@Test
 	void songswitch4_8SwitchesToStereoWhenConfirmed() {
-		song.setChannels(4);
+		song.setChannels(Song.Channels.MONO);
 		messages.setTestQuestionAnswer(MessageAnswer.YES);
 		assertTrue(song.songswitch4_8(8, undo, messages));
 
-		assertEquals(8, song.getChannels());
+		assertEquals(Song.Channels.STEREO, song.getChannels());
 	}
 
 	// --- playPressedTones ---
@@ -2186,7 +2186,7 @@ class SongEditingTest {
 		song.getSongGo()[1] = 0; // guarantees a fast loop
 
 		useRealAtari(true);
-		song.setChannels(8);
+		song.setChannels(Song.Channels.STEREO);
 		ChannelControl channelControl = new ChannelControl(8);
 		PokeyStream pokeyStream = new PokeyStream();
 		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, atariTrackerDriver, channelControl, clipboard, undo);

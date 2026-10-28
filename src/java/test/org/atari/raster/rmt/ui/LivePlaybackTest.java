@@ -17,6 +17,7 @@ import org.atari.raster.rmt.model.Instruments;
 import org.atari.raster.rmt.model.PlayMode;
 import org.atari.raster.rmt.model.PokeyStream;
 import org.atari.raster.rmt.model.RmtExporter;
+import org.atari.raster.rmt.model.Song;
 import org.atari.raster.rmt.model.SongIOType;
 import org.atari.raster.rmt.model.TestSongs;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
@@ -87,7 +88,7 @@ class LivePlaybackTest {
 	void aTripleSpeedSongFromAsmaMatchesAsapTickForTick() throws IOException {
 		RmtSession session = new RmtSession();
 		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(TestSongs.REBB_STARS, false));
-		assertEquals(4, session.song.getChannels());
+		assertEquals(Song.Channels.MONO, session.song.getChannels());
 		assertEquals(3, session.song.getInstrumentSpeed());
 		session.atariTrackerDriver.loadRMTRoutines(TrackerDriverVersion.UNPATCHED);
 		byte[] dump = dump(session);
@@ -128,7 +129,7 @@ class LivePlaybackTest {
 	private static RmtSession open() throws IOException {
 		RmtSession session = new RmtSession();
 		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(DELTA, false));
-		assertEquals(4, session.song.getChannels());
+		assertEquals(Song.Channels.MONO, session.song.getChannels());
 		return session;
 	}
 

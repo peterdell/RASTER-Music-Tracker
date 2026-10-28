@@ -60,7 +60,7 @@ public final class TmcImporter {
 	 */
 	public static ParseHeaderResult parseHeader(byte[] data, Song song, Tracks tracks, Undo undo) {
 		tracks.setMaxTrackLength(64); // track length is 64
-		song.clearSong(8, undo); // standard TMC is 8 tracks, clear everything
+		song.clearSong(Song.Channels.STEREO, undo); // standard TMC is 8 tracks, clear everything
 
 		byte[] mem = new byte[Atari.MEMORY_SIZE];
 		AtariIO.BinaryBlockResult block = AtariIO.loadBinaryBlock(data, 0, mem);
@@ -693,7 +693,7 @@ public final class TmcImporter {
 		}
 
 		if (!stereoModul) { // mono module
-			song.setChannels(RmtModule.CHANNELS_MONO);
+			song.setChannels(Song.Channels.MONO);
 		}
 
 		int optiTracks = 0;

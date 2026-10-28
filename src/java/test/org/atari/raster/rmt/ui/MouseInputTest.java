@@ -14,6 +14,7 @@ import org.atari.raster.rmt.model.EnvelopeParameter;
 import org.atari.raster.rmt.model.Instrument;
 import org.atari.raster.rmt.model.InstrumentSection;
 import org.atari.raster.rmt.model.Part;
+import org.atari.raster.rmt.model.Song;
 
 /** Logic-level tests of {@code MouseAction}: click/move/wheel at logical positions taken from the screen layout, assert the model and the chosen cursor. */
 class MouseInputTest {
@@ -268,7 +269,7 @@ class MouseInputTest {
 	void theRightChannelZonesExistOnlyForAStereoSong() {
 		InstrumentsUI instrumentsUI = new InstrumentsUI(session);
 		assertTrue(instrumentsUI.getGUIArea(0, InstrumentsUI.Zone.ENVELOPE_RIGHT_ENVELOPE) != null);
-		session.song.setChannels(4);
+		session.song.setChannels(Song.Channels.MONO);
 		assertTrue(instrumentsUI.getGUIArea(0, InstrumentsUI.Zone.ENVELOPE_RIGHT_ENVELOPE) == null);
 		assertTrue(instrumentsUI.getGUIArea(0, InstrumentsUI.Zone.ENVELOPE_RIGHT_VOL_NUMS) == null);
 	}
