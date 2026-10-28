@@ -28,7 +28,7 @@ The following terms are used in the documentation. Outside of this documentation
 - Instrument - A logical device to create a characteristic sound at different pitches.
 - Pattern - A sequence of notes and their attributes (e.g., length, effects, ...) to be played on an instrument.
 - Track - A logical voice. Patterns can be assigned to tracks for replay.
-- Channel - A physical output to create sound. Tracks can be assigned to channels for replay.
+- Channel - A physical output to create sound. Tracks can be assigned to channels for replay. A POKEY has the four channels CH1-CH4; RMT numbers the channels of a song L1-L4 and R1-R4 (1-8 in the key table), each being CH1-CH4 of the left or, in stereo, the right POKEY.
 - Mono - Mono indicates that all channels are combined into a single output.
 - Stereo - Stereo indicates that the channels are split between two different outputs called "left" and "right".
 - Song - A piece of music created in a tracker. It consists of a sequence of patterns and may be divided into subsongs. In RMT, the song is the sequence of tracks that is edited in the SONG EDIT screen; other trackers call that sequence the "order list".

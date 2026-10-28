@@ -16,8 +16,9 @@ import org.atari.raster.rmt.model.Tracks;
  * globals as session state or explicit parameters: {@code g_RmtHasFocus} is
  * the {@code hasFocus} parameter (the window's focus state, {@code true}
  * from a script), {@code g_shiftkey}/{@code g_controlkey}/{@code g_activepart}/
- * {@code g_prove} are the {@link UiState}, {@code g_tracks4_8},
- * {@code g_respectvolume}, {@code g_SkipLinesAfterNoteInsert} the session's,
+ * {@code g_prove} are the {@link UiState}, {@code g_tracks4_8} the song's
+ * channel count, {@code g_respectvolume}/{@code g_SkipLinesAfterNoteInsert}
+ * the session's,
  * {@code g_Midi}'s channel arrays are {@link RmtMidi}'s. The {@code CSong}
  * members that only the MIDI code uses ({@code m_mod_wheel},
  * {@code m_vol_slider}, {@code m_heldkeys}, {@code m_midi_distortion},

@@ -928,7 +928,9 @@ No C++ changes needed. This is the first direct `SongTest`; previously
   these last two methods take/build).
 - **`g_tracks4_8` becomes an explicit parameter** on every method that
   reads it in C++ (`getTracks`, `isStereo`, `songToAta`, `ataToSong`),
-  matching the established idiom.
+  matching the established idiom. (Superseded 2026-10-29 by plan 61: the
+  count is a fact of the song's data, so `Song` stores it as `channels`
+  and the parameter is gone.)
 - **One always-true C++ `BOOL` return dropped, for consistency with an
   existing sibling**: `PlayPressedTonesInit()`'s C++ return is
   unconditionally `TRUE`, exactly like `SetPlayPressedTonesSilence()`

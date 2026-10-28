@@ -1,8 +1,12 @@
 # Plan 61: The channel count is a property of the song
 
-Status: PROPOSED 2026-10-28 (Java only), naming decided by the user the
-same day (see Design and Naming); waits for the go. Recommended to run
-before plan 60 M2, which it simplifies.
+Status: DONE 2026-10-29 (Java only). Proposed 2026-10-28, naming decided
+by the user the same day (see Design and Naming). M1 (the model, commit
+22ed858), M2 (the session, c1acc37), the counts as `RmtModule.Channels`
+with a `Song.Channels` proxy for locality (c10f053, the user's addition),
+M3 (the texts). 749 tests green after each step; `tracks4_8` survives in
+the sources only inside `{@code g_tracks4_8}` origin notes. Done before
+plan 60 M2, as recommended.
 
 The Java port keeps the mono/stereo indicator (`tracks4_8`, 4 or 8)
 outside the model, as a public field of the UI's `RmtSession`, and

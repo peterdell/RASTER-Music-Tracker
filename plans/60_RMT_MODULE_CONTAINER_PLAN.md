@@ -102,7 +102,8 @@ Operations:
 
 ### `RmtModuleCodec` - between `Song` and `RmtModule`
 
-`fromSong(Song, SongIOType, tracks4_8)` and `toSong(RmtModule, Song)`,
+`fromSong(Song, SongIOType)` and `toSong(RmtModule, Song)` (the channel
+count is the song's since plan 61),
 reusing the per-entity codecs that exist
 (`Instruments.instrToAta`/`ataToInstr`/`ataV0ToInstr`,
 `Tracks.trackToAta`/`ataToTrack`, `SongIO.songToAta`/`ataToSong`)
