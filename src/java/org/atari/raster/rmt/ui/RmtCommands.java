@@ -721,7 +721,7 @@ public final class RmtCommands {
 		Song.TrackInfo info = new Song.TrackInfo();
 		session.song.trackInfo(track, info);
 		StringBuilder s = new StringBuilder(String.format("Track: %02X\nUsing in song:\n", track));
-		for (int ch = 0; ch < session.tracks4_8; ch++) {
+		for (int ch = 0; ch < session.song.getChannels(); ch++) {
 			s.append(cnames[ch]).append(": ").append(info.usedInColumn[ch]).append("   ");
 		}
 		s.append("\nUsed in ").append(info.lines).append(" songlines, globally ").append(info.count).append(" times.");
@@ -733,7 +733,7 @@ public final class RmtCommands {
 		Song song = session.song;
 		UiState ui = session.uiState;
 		TrackClipboard clipboard = session.clipboard;
-		boolean stereo = session.tracks4_8 > 4;
+		boolean stereo = song.isStereo();
 		int activeTrack = song.songGetActiveTrack();
 
 		return switch (id) {
@@ -805,7 +805,7 @@ public final class RmtCommands {
 		return switch (id) {
 		case EDIT_UNDO -> session.undo.getUndoSteps() > 0 ? "&Undo (" + session.undo.getUndoSteps() + ")" : "&Undo";
 		case EDIT_REDO -> session.undo.getRedoSteps() > 0 ? "&Redo (" + session.undo.getRedoSteps() + ")" : "&Redo";
-		case SONG_SONG_TOGGLE_TRACK_NUMBER -> session.tracks4_8 <= 4 ? "Switch song to Stereo 8 tracks..." : "Switch song to Mono 4 tracks...";
+		case SONG_SONG_TOGGLE_TRACK_NUMBER -> session.song.isMono() ? "Switch song to Stereo 8 tracks..." : "Switch song to Mono 4 tracks...";
 		default -> null;
 		};
 	}

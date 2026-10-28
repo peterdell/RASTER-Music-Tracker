@@ -107,7 +107,7 @@ public final class MouseInput {
 		Song song = session.song;
 		UiState ui = session.uiState;
 		RmtOptions options = session.options;
-		int tracks4_8 = session.tracks4_8;
+		int channels = session.song.getChannels();
 		int i;
 		int px;
 		int py;
@@ -122,15 +122,15 @@ public final class MouseInput {
 		final int MINIMAL_WIDTH_INSTRUMENTS = 1220;
 		final int WINDOW_OFFSET = (ui.width < 1320 && stereo && ui.activeTi == Part.PART_TRACKS) ? -250 : 0; // test displacement with the window size
 		int INSTRUMENT_OFFSET = (ui.activeTi == Part.PART_INSTRUMENTS && stereo) ? -250 : 0;
-		if (tracks4_8 == 4 && ui.activeTi == Part.PART_INSTRUMENTS && ui.width > MINIMAL_WIDTH_INSTRUMENTS - 220) {
+		if (song.isMono() && ui.activeTi == Part.PART_INSTRUMENTS && ui.width > MINIMAL_WIDTH_INSTRUMENTS - 220) {
 			INSTRUMENT_OFFSET = 260;
 		}
-		final int SONG_OFFSET = RmtScreenLayout.SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + ((tracks4_8 == 4) ? -200 : 310); // displace the SONG block depending on certain parameters
+		final int SONG_OFFSET = RmtScreenLayout.SONG_X + WINDOW_OFFSET + INSTRUMENT_OFFSET + (song.isMono() ? -200 : 310); // displace the SONG block depending on certain parameters
 
 		final int linescount = (WINDOW_OFFSET != 0) ? 5 : 9; // songlines displayed depend on the window offset
 
 		// SONG PARTS
-		if (ptInRect(SONG_OFFSET + 6 * 8, RmtScreenLayout.SONG_Y + 16, SONG_OFFSET + 6 * 8 + tracks4_8 * 3 * 8 - 8, RmtScreenLayout.SONG_Y + 16 + linescount * 16, x, y)) {
+		if (ptInRect(SONG_OFFSET + 6 * 8, RmtScreenLayout.SONG_Y + 16, SONG_OFFSET + 6 * 8 + channels * 3 * 8 - 8, RmtScreenLayout.SONG_Y + 16 + linescount * 16, x, y)) {
 			// Song
 			ui.cursor = RmtCursor.GOTO;
 
@@ -149,14 +149,14 @@ public final class MouseInput {
 			return 5;
 		}
 
-		if (ptInRect(SONG_OFFSET + 6 * 8, RmtScreenLayout.SONG_Y, SONG_OFFSET + 6 * 8 + tracks4_8 * 3 * 8 - 8, RmtScreenLayout.SONG_Y + 16, x, y)) {
+		if (ptInRect(SONG_OFFSET + 6 * 8, RmtScreenLayout.SONG_Y, SONG_OFFSET + 6 * 8 + channels * 3 * 8 - 8, RmtScreenLayout.SONG_Y + 16, x, y)) {
 			// over Song L1-R4 for channel on/off/solo/inversion
 			i = (x + 4 - (SONG_OFFSET + 6 * 8)) / (8 * 3);
 			if (i < 0) {
 				i = 0;
 			} else {
-				if (i >= tracks4_8) {
-					i = tracks4_8 - 1;
+				if (i >= channels) {
+					i = channels - 1;
 				}
 			}
 			px = i;
@@ -198,7 +198,7 @@ public final class MouseInput {
 			return 6;
 		}
 
-		if (ptInRect(384, 48, 384 + 8 * ((tracks4_8 == 8) ? 15 : 13), 48 + 16, x, y)) {
+		if (ptInRect(384, 48, 384 + 8 * (song.isStereo() ? 15 : 13), 48 + 16, x, y)) {
 			// MONO-4-TRACKS or STEREO-8-TRACKS
 			ui.cursor = RmtCursor.DIALOG;
 			if ((mousebutt & MK_LBUTTON) != 0) {
@@ -293,12 +293,12 @@ public final class MouseInput {
 
 		// LOWER PARTS
 		if (ui.activeTi == Part.PART_TRACKS) {
-			if (ptInRect(RmtScreenLayout.TRACKS_X + 3 * 16, RmtScreenLayout.TRACKS_Y - 12, RmtScreenLayout.TRACKS_X + 3 * 8 + tracks4_8 * 8 * 16, RmtScreenLayout.TRACKS_Y + 32, x, y)) {
+			if (ptInRect(RmtScreenLayout.TRACKS_X + 3 * 16, RmtScreenLayout.TRACKS_Y - 12, RmtScreenLayout.TRACKS_X + 3 * 8 + channels * 8 * 16, RmtScreenLayout.TRACKS_Y + 32, x, y)) {
 				i = (x - (RmtScreenLayout.TRACKS_X + 5 * 8)) / (8 * 16);
 				if (i < 0) {
 					i = 0;
-				} else if (i >= tracks4_8) {
-					i = tracks4_8 - 1;
+				} else if (i >= channels) {
+					i = channels - 1;
 				}
 				px = i;
 
@@ -313,7 +313,7 @@ public final class MouseInput {
 				return 1;
 			}
 			// the number of tracklines is adjusted based on the window height
-			if (ptInRect(RmtScreenLayout.TRACKS_X + 6 * 8, RmtScreenLayout.TRACKS_Y + 48, RmtScreenLayout.TRACKS_X + 3 * 8 + tracks4_8 * 8 * 16, RmtScreenLayout.TRACKS_Y + 48 + ui.trackLines * 16, x, y)) {
+			if (ptInRect(RmtScreenLayout.TRACKS_X + 6 * 8, RmtScreenLayout.TRACKS_Y + 48, RmtScreenLayout.TRACKS_X + 3 * 8 + channels * 8 * 16, RmtScreenLayout.TRACKS_Y + 48 + ui.trackLines * 16, x, y)) {
 				ui.cursor = RmtCursor.GOTO;
 				if ((mousebutt & MK_LBUTTON) != 0) {
 					trackCursorGoto(x - (RmtScreenLayout.TRACKS_X + 6 * 8), y - (RmtScreenLayout.TRACKS_Y + 48));

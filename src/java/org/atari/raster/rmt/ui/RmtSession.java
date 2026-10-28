@@ -6,6 +6,7 @@ import org.atari.raster.rmt.model.AtariTrackerDriver;
 import org.atari.raster.rmt.model.ChannelControl;
 import org.atari.raster.rmt.model.Instruments;
 import org.atari.raster.rmt.model.Messages;
+import org.atari.raster.rmt.model.RmtModule;
 import org.atari.raster.rmt.model.Song;
 import org.atari.raster.rmt.model.TrackClipboard;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
@@ -17,15 +18,14 @@ import org.atari.raster.rmt.model.Undo;
  * The model composition root plus the UI state objects - everything C++
  * keeps as the {@code g_Song}/{@code g_Tracks}/{@code g_Instruments}/
  * {@code g_Undo}/{@code g_TrackClipboard}/{@code g_ChannelControl}/
- * {@code g_AtariTrackerDriver}/{@code g_tracks4_8} globals, wired the way
+ * {@code g_AtariTrackerDriver} globals, wired the way
  * {@code CRmtApp::InitInstance()} wires them (and exactly as every model
  * test's {@code setUp()} does). It is an ordinary object handed to the
  * window, the panel and the drawing/input classes - not a static singleton.
  *
- * <p>{@link #tracks4_8} is the one mutable model-wide value: the model
- * never stores it (every method takes it as a parameter), so the UI keeps
- * it here and updates it whenever a load or a mono/stereo switch returns a
- * new one.
+ * <p>C++'s {@code g_tracks4_8} is the song's channel count
+ * ({@link Song#getChannels()}, plan 61); the session only keeps the POKEY
+ * pair in step with it, through {@link #syncSound()}.
  */
 public final class RmtSession {
 
@@ -52,17 +52,6 @@ public final class RmtSession {
 	public final PokeyController pokeyController;
 	/** The Effects/tools dialog's remembered effect and parameters ({@code g_effai}, {@code eff_ed}). */
 	public final org.atari.raster.rmt.model.BlockEffects.Settings blockEffectSettings = new org.atari.raster.rmt.model.BlockEffects.Settings();
-
-	/** {@code g_tracks4_8}: 4 (mono) or 8 (stereo). Starts at 8 as in C++ ("hardcoded to 8 to prevent ReInitSound() to run before RMT finished being initialized"); written through {@link #setTracks4_8}. */
-	public int tracks4_8 = 8;
-
-	/** {@code CSong::SetTracks()}: a change of the channel count re-initializes the sound. */
-	public void setTracks4_8(int tracksNum) {
-		if (tracksNum != tracks4_8) {
-			tracks4_8 = tracksNum;
-			reInitSound();
-		}
-	}
 
 	/**
 	 * The one lock between the EDT and the {@link AudioEngine} thread (C++
@@ -142,7 +131,7 @@ public final class RmtSession {
 		// The emulated 6502 + POKEY pair the tracker driver runs on (C++'s
 		// C6502/CAtari + the POKEY DLL); the Atari's 64K is the CPU's memory.
 		// ClearSong(8) below makes the song stereo, so the POKEY pair starts
-		// stereo and follows g_tracks4_8 from then on (AudioEngine, B8b).
+		// stereo and follows the song's channel count from then on (syncSound).
 		atari = new Atari(new AtariCpu(song.isNTSC(), true));
 		atari.init(song.isNTSC(), song.getTuningSettings());
 		tuning = new Tuning(atari.getClockFrequency());
@@ -151,11 +140,10 @@ public final class RmtSession {
 		loadTrackerDriver(song.getTrackerDriverVersion()); // the song's default; InitInstance runs before rmt.ini is read
 		atariTrackerDriver.init();
 		// CInstruments::Update() also writes each instrument's Atari bytes
-		// to $4000 + instr * 256 for the driver (stereo = g_tracks4_8 == 8).
-		instruments.attachAtari(atari, () -> tracks4_8 == 8);
+		// to $4000 + instr * 256 for the driver.
+		instruments.attachAtari(atari, song::isStereo);
 
-		song.clearSong(8, undo);
-		setTracks4_8(song.getChannels());
+		song.clearSong(RmtModule.CHANNELS_STEREO, undo);
 		channelControl.setAllChannelsOn();
 		undo.setChangeListener(() -> uiState.changes = true); // CUndo::InsertEvent's g_changes = 1
 		song.setPlayTimeResetListener(() -> uiState.playTime = 0); // g_playtime = 0 in Play() and ClearSong()
@@ -164,9 +152,22 @@ public final class RmtSession {
 	/** {@code CRmtView::SetNTSC()}: rescales the base tuning between the two clocks and switches the song ("TODO code... well 3 times.." in C++); {@code CSong::SetNTSC()} re-initializes the sound on a change. */
 	public void setNTSC(boolean ntsc) {
 		song.getTuningSettings().basetuning = ntsc ? (song.getTuningSettings().basetuning * Atari.FREQ_17_NTSC) / Atari.FREQ_17_PAL : (song.getTuningSettings().basetuning * Atari.FREQ_17_PAL) / Atari.FREQ_17_NTSC;
-		boolean changed = song.isNTSC() != ntsc;
 		song.setNTSC(ntsc);
-		if (changed) {
+		syncSound();
+	}
+
+	/**
+	 * {@code ReInitSound()} when the POKEY pair is out of step with the
+	 * song's video standard or channel count. C++ re-initialized inside
+	 * {@code SetTracks()}/{@code SetNTSC()}; here the song changes first and
+	 * the session follows - synchronously after a load, new, import or
+	 * mono/stereo switch, and at the top of every {@link AudioEngine} frame,
+	 * so the exports that render through the driver never see a pair that
+	 * does not match the song.
+	 */
+	public void syncSound() {
+		AtariCpu cpu = atari.getCpu();
+		if (cpu.isNTSC() != song.isNTSC() || cpu.isStereo() != song.isStereo()) {
 			reInitSound();
 		}
 	}
@@ -177,10 +178,8 @@ public final class RmtSession {
 	 * re-initialized for the song's video standard and channel count
 	 * ({@code CXPokey::ReInitSound}), the tuning tables regenerated
 	 * ({@code g_Atari.Init}), the driver reset ({@code g_AtariTrackerDriver->Init}).
-	 * Called, as in C++, from {@link #setTracks4_8}/{@link #setNTSC}/the
-	 * import and the options dialog; {@link AudioEngine} also calls it when
-	 * it finds the pair out of step at the top of a frame (a safety net for a
-	 * direct {@link #tracks4_8} write).
+	 * Called from {@link #syncSound()} on a change, and directly by the
+	 * import and the options dialog, as in C++.
 	 */
 	public void reInitSound() {
 		atari.getCpu().initialize(song.isNTSC(), song.isStereo());

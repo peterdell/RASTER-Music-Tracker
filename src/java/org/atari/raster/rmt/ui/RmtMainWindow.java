@@ -232,7 +232,7 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 	/** {@code CMainFrame::OnGetMinMaxInfo()}: 800x600 for a mono song, 1120x600 for a stereo one. */
 	@Override
 	public void updateMinimumSize() {
-		getFrame().setMinimumSize(new Dimension(session.tracks4_8 == 8 ? 1120 : 800, 600));
+		getFrame().setMinimumSize(new Dimension(session.song.isStereo() ? 1120 : 800, 600));
 	}
 
 	/** {@code FileImport()}'s "Imported ..." window text, until {@link #updateTitle} has a reason to replace it. */
@@ -484,7 +484,7 @@ public final class RmtMainWindow implements RmtCommands.Host, SongFiles.Host, So
 
 	@Override
 	public SongDialogs.TracksOrderChoice showTracksOrder(String songLineFrom, String songLineTo) {
-		return session.unlocked(() -> new TracksOrderDialog(getFrame(), session.tracks4_8, songLineFrom, songLineTo).showDialog());
+		return session.unlocked(() -> new TracksOrderDialog(getFrame(), session.song.getChannels(), songLineFrom, songLineTo).showDialog());
 	}
 
 	@Override

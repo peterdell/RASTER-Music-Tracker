@@ -186,7 +186,7 @@ public final class SongDialogs {
 		song.setTracksOrderChangeSonglineRange(f, t);
 
 		int c = 0;
-		for (int i = 0; i < session.tracks4_8; i++) {
+		for (int i = 0; i < session.song.getChannels(); i++) {
 			if (dlg.tracksOrder()[i] < 0) {
 				c++;
 			}
@@ -199,11 +199,11 @@ public final class SongDialogs {
 		song.tracksOrderChangeApply(f, t, dlg.tracksOrder());
 	}
 
-	/** {@code OnSongSongswitch4_8()}: the model asks its own question; a switch re-initializes the sound ({@code SetTracks()} -> {@code ReInitSound()}, through {@link RmtSession#setTracks4_8}) and the window's minimum size. */
+	/** {@code OnSongSongswitch4_8()}: the model asks its own question; a switch re-initializes the sound ({@code SetTracks()} -> {@code ReInitSound()}, here {@link RmtSession#syncSound()}) and the window's minimum size. */
 	public void songswitch4_8() {
 		stop();
 		if (session.song.songswitch4_8(session.song.isMono() ? RmtModule.CHANNELS_STEREO : RmtModule.CHANNELS_MONO, session.undo, session.messages)) {
-			session.setTracks4_8(session.song.getChannels());
+			session.syncSound();
 			host.songLayoutChanged();
 		}
 	}

@@ -130,7 +130,7 @@ public final class InstrumentsUI {
 	 */
 	public java.awt.Rectangle getGUIArea(int instrNr, Zone zone) {
 		Instruments instruments = session.instruments;
-		boolean stereo = session.tracks4_8 > 4;
+		boolean stereo = session.song.isStereo();
 		final int len = (instruments.getParameter(instrNr, Instrument.PAR_ENV_LENGTH) & 0xFF) + 1;
 		final int tabl = (instruments.getParameter(instrNr, Instrument.PAR_TBL_LENGTH) & 0xFF) + 1;
 
@@ -370,7 +370,7 @@ public final class InstrumentsUI {
 	public void drawInstrument(int instrNr) {
 		Instruments instruments = session.instruments;
 		UiState ui = session.uiState;
-		boolean stereo = session.tracks4_8 > 4;
+		boolean stereo = session.song.isStereo();
 		int i;
 
 		Instrument t = instruments.getInstrument(instrNr);
@@ -601,7 +601,7 @@ public final class InstrumentsUI {
 
 	void drawEnv(int e, int it) {
 		Instrument in = session.instruments.getInstrument(it);
-		boolean stereo = session.tracks4_8 > 4;
+		boolean stereo = session.song.isStereo();
 		int volR = in.envelope[e][EnvelopeParameter.VOLUMER] & 0x0f; // Volume Right
 		int volL = in.envelope[e][EnvelopeParameter.VOLUMEL] & 0x0f; // Volume Left/Mono
 		TextColor color;

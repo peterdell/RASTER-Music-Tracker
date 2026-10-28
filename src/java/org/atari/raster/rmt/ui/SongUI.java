@@ -157,7 +157,7 @@ public final class SongUI {
 
 		Song song = session.song;
 		UiState ui = session.uiState;
-		int tracks4_8 = session.tracks4_8;
+		int channels = session.song.getChannels();
 		final boolean stereo = isStereo();
 		final int MINIMAL_WIDTH_TRACKS = (stereo && ui.activeTi == Part.PART_TRACKS) ? 1420 : 960;
 		final int MINIMAL_WIDTH_INSTRUMENTS = 1220;
@@ -202,7 +202,7 @@ public final class SongUI {
 			final byte[] memory = session.atari.getMemory();
 
 			// Clear the area where the analyzer is to be drawn
-			canvasXY.fillSolidRect(ANALYZER_X, ANALYZER_Y - ANALYZER_HP, tracks4_8 * 16 * 8 - 34, ANALYZER_H + ANALYZER_HP, RgbColor.BACKGROUND);
+			canvasXY.fillSolidRect(ANALYZER_X, ANALYZER_Y - ANALYZER_HP, channels * 16 * 8 - 34, ANALYZER_H + ANALYZER_HP, RgbColor.BACKGROUND);
 
 			// Left/Mono Channel
 			// Draw which channels are joined by highpass filters or normal channel join
@@ -344,7 +344,7 @@ public final class SongUI {
 	public void drawSong() {
 		Song song = session.song;
 		UiState ui = session.uiState;
-		int tracks4_8 = session.tracks4_8;
+		int channels = session.song.getChannels();
 		int[][] songLines = song.getSong();
 		int[] songGo = song.getSongGo();
 		int line;
@@ -414,7 +414,7 @@ public final class SongUI {
 				canvasXY.textXY(hex2(line) + ":", SONG_OFFSET_X + 16, y, color);
 
 				// For each track that is part of the song draw its number
-				for (j = 0, k = 32; j < tracks4_8; j++, k += 24) {
+				for (j = 0, k = 32; j < channels; j++, k += 24) {
 					String number = ((t = songLines[line][j]) >= 0) ? hex2(t) : "--"; // No track here so draw "--"
 
 					if (line == song.songGetActiveLine() && j == song.getActiveColumn()) {
@@ -522,7 +522,7 @@ public final class SongUI {
 		TrackClipboard clipboard = session.clipboard;
 		UiState ui = session.uiState;
 		RmtOptions options = session.options;
-		int tracks4_8 = session.tracks4_8;
+		int channels = session.song.getChannels();
 		int[][] songLines = song.getSong();
 		int[] songGo = song.getSongGo();
 		int i;
@@ -644,7 +644,7 @@ public final class SongUI {
 			}
 			canvasXY.textXY(new String(s), RmtScreenLayout.TRACKS_X, y, color);
 
-			for (int j = 0; j < tracks4_8; j++, x += 16 * 8) {
+			for (int j = 0; j < channels; j++, x += 16 * 8) {
 				// track in the current line of the song
 				sl = wrapSongline(songActiveLine + oob);
 
@@ -670,7 +670,7 @@ public final class SongUI {
 		x = RmtScreenLayout.TRACKS_X + 5 * 8;
 		y = (RmtScreenLayout.TRACKS_Y + 3 * 16) + smoothY;
 
-		for (i = 0; i < tracks4_8; i++, x += 16 * 8) {
+		for (i = 0; i < channels; i++, x += 16 * 8) {
 			header[8] = tnames.charAt(i * 2);
 			header[9] = tnames.charAt(i * 2 + 1);
 

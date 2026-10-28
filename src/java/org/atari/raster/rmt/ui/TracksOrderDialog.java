@@ -12,6 +12,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import org.atari.raster.rmt.model.RmtModule;
+
 import com.wudsn.tools.base.gui.ModalDialog;
 
 /**
@@ -35,12 +37,12 @@ final class TracksOrderDialog extends ModalDialog {
 	/** {@code m_tracksorder}. */
 	final int[] tracksOrder = new int[8];
 	private int fromTrack = -1;
-	private final int tracks4_8;
+	private final int channels;
 	private final JPanel diagram;
 
-	TracksOrderDialog(JFrame parent, int tracks4_8, String songLineFrom, String songLineTo) {
+	TracksOrderDialog(JFrame parent, int channels, String songLineFrom, String songLineTo) {
 		super(parent, Texts.TracksOrderDialog_Title);
-		this.tracks4_8 = tracks4_8;
+		this.channels = channels;
 		fromField.setText(songLineFrom);
 		toField.setText(songLineTo);
 
@@ -51,7 +53,7 @@ final class TracksOrderDialog extends ModalDialog {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
-				for (int i = 0; i < TracksOrderDialog.this.tracks4_8; i++) {
+				for (int i = 0; i < TracksOrderDialog.this.channels; i++) {
 					int z = tracksOrder[i];
 					if (z >= 0) {
 						Rectangle s = fromButtons[z].getBounds();
@@ -87,7 +89,7 @@ final class TracksOrderDialog extends ModalDialog {
 				diagram.repaint();
 			});
 			diagram.add(toButtons[i]);
-			if (i >= 4 && tracks4_8 <= 4) {
+			if (i >= channels) {
 				fromButtons[i].setEnabled(false);
 				toButtons[i].setEnabled(false);
 			}
@@ -99,11 +101,12 @@ final class TracksOrderDialog extends ModalDialog {
 		diagram.add(nothing);
 		diagram.setPreferredSize(new Dimension(x0 + 8 * (bw + gap) + 32 + 80 + 8, 96 + bh + 8));
 
+		boolean stereo = channels == RmtModule.CHANNELS_STEREO;
 		JPanel presets = new JPanel(new java.awt.GridLayout(3, 2, 4, 4));
-		presets.add(preset("Mono-->stereo", new int[] { 0, 3, 4, 7, 1, 2, 5, 6 }, tracks4_8 > 4));
-		presets.add(preset("Copy left-->right", new int[] { 0, 1, 2, 3, 0, 1, 2, 3 }, tracks4_8 > 4));
-		presets.add(preset("Mono<--stereo", new int[] { 0, 4, 5, 1, 2, 6, 7, 3 }, tracks4_8 > 4));
-		presets.add(preset("Copy left<--right", new int[] { 4, 5, 6, 7, 4, 5, 6, 7 }, tracks4_8 > 4));
+		presets.add(preset("Mono-->stereo", new int[] { 0, 3, 4, 7, 1, 2, 5, 6 }, stereo));
+		presets.add(preset("Copy left-->right", new int[] { 0, 1, 2, 3, 0, 1, 2, 3 }, stereo));
+		presets.add(preset("Mono<--stereo", new int[] { 0, 4, 5, 1, 2, 6, 7, 3 }, stereo));
+		presets.add(preset("Copy left<--right", new int[] { 4, 5, 6, 7, 4, 5, 6, 7 }, stereo));
 		presets.add(preset("Default", new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, true));
 		presets.add(preset("Clear all", new int[] { -1, -1, -1, -1, -1, -1, -1, -1 }, true));
 

@@ -87,7 +87,7 @@ class LivePlaybackTest {
 	void aTripleSpeedSongFromAsmaMatchesAsapTickForTick() throws IOException {
 		RmtSession session = new RmtSession();
 		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(TestSongs.REBB_STARS, false));
-		assertEquals(4, session.tracks4_8);
+		assertEquals(4, session.song.getChannels());
 		assertEquals(3, session.song.getInstrumentSpeed());
 		session.atariTrackerDriver.loadRMTRoutines(TrackerDriverVersion.UNPATCHED);
 		byte[] dump = dump(session);
@@ -128,7 +128,7 @@ class LivePlaybackTest {
 	private static RmtSession open() throws IOException {
 		RmtSession session = new RmtSession();
 		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(DELTA, false));
-		assertEquals(4, session.tracks4_8);
+		assertEquals(4, session.song.getChannels());
 		return session;
 	}
 

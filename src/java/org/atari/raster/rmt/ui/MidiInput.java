@@ -74,7 +74,7 @@ public final class MidiInput {
 		Song song = session.song;
 		UiState ui = session.uiState;
 		RmtOptions options = session.options;
-		int tracks4_8 = session.tracks4_8;
+		int channels = session.song.getChannels();
 		byte[] memory = session.atari.getMemory();
 
 		int cmd = status & 0xF0;
@@ -94,7 +94,7 @@ public final class MidiInput {
 
 		if (chn > 0 && chn < 9) {
 			// 2-10 channels (chn = 1-9) are used for multitimbral L1-L4, R1-R4
-			int atc = (chn - 1) % tracks4_8; // atari track 0-7 (resp. 0-3 in mono)
+			int atc = (chn - 1) % channels; // atari track 0-7 (resp. 0-3 in mono)
 			if (cmd == 0x90) {
 				// (C++ tests "chn == 9 ... drums channel" here - unreachable inside chn < 9, not ported)
 				// channel 2-9 (chn=1-8)
@@ -143,7 +143,7 @@ public final class MidiInput {
 
 			// default notes input event, which is mostly copied from the CH0 code. This is a very terrible approach, and will eventually be replaced (see above)
 			if (chn == 15 && ui.editMode != EditMode.MIDI_CH15_MODE) {
-				int atc = heldKeys % tracks4_8; // atari track 0-7 (resp. 0-3 in mono)
+				int atc = heldKeys % channels; // atari track 0-7 (resp. 0-3 in mono)
 
 				if (cmd == 0x80) { // key off
 					heldKeys--;

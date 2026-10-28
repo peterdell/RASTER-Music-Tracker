@@ -127,7 +127,6 @@ class RmtMainMenuTest {
 		assertEquals("Switch song to Mono 4 tracks...", ((JMenuItem) menu.getButtons(RmtCommandId.SONG_SONG_TOGGLE_TRACK_NUMBER).get(0)).getText());
 
 		session.channelControl.toggleChannelOnOff(0);
-		session.tracks4_8 = 4;
 		session.song.setChannels(4);
 		menu.updateStates(commands);
 		assertFalse(menu.getButtons(RmtCommandId.CHANNELS_CHANNEL1).get(0).isSelected());

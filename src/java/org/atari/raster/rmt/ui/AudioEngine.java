@@ -151,12 +151,9 @@ public final class AudioEngine implements Runnable {
 		Song song = session.song;
 		AtariCpu cpu = session.atari.getCpu();
 		AtariTrackerDriver driver = session.atariTrackerDriver;
-		boolean stereo = song.isStereo();
-
 		// ReInitSound(): the POKEY pair follows the song's video standard and channel count
-		if (cpu.isNTSC() != song.isNTSC() || cpu.isStereo() != stereo) {
-			session.reInitSound();
-		}
+		session.syncSound();
+		boolean stereo = song.isStereo();
 
 		// Things that are solved 1x for vbi
 		song.playVBI(driver, session.uiState.respectVolume, session.undo);

@@ -318,7 +318,7 @@ class SongIOTest {
 		offset += 4;
 		assertEquals(31, paramCount);
 
-		int firstParam = readIntLE(out, offset); // tracks4_8, passed as 4
+		int firstParam = readIntLE(out, offset); // the channel count, 4
 		assertEquals(4, firstParam);
 
 		// If each parameter were (incorrectly) 8 bytes, this offset would land

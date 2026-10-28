@@ -86,7 +86,7 @@ class SongFilesTest {
 	@Test
 	void openByFileNameFollowsTheExtensionAndTheDialogTheFilterIndex() {
 		assertTrue(files.fileOpen(DELTA, false));
-		assertEquals(4, session.tracks4_8);
+		assertEquals(4, session.song.getChannels());
 		assertEquals(SongIOType.RMT, session.song.getIOType());
 		assertEquals(DELTA.toString(), session.song.getFilename());
 		assertEquals(DELTA.toAbsolutePath().getParent().toString(), session.options.lastSongsPath);
@@ -114,7 +114,7 @@ class SongFilesTest {
 		Files.write(junk, new byte[] { 1, 2, 3 });
 		assertFalse(files.fileOpen(junk, false));
 		assertEquals("", session.song.getFilename());
-		assertEquals(8, session.tracks4_8);
+		assertEquals(8, session.song.getChannels());
 
 		assertFalse(files.fileOpen(dir.resolve("song.xyz"), false)); // no filter for the extension
 	}
@@ -150,7 +150,7 @@ class SongFilesTest {
 			RmtSession reread = new RmtSession();
 			reread.messages.setHandler(new RecordingMessages());
 			assertTrue(new SongFiles(reread, new StubSongFilesHost()).fileOpen(saved, false));
-			assertEquals(4, reread.tracks4_8);
+			assertEquals(4, reread.song.getChannels());
 			assertEquals(session.song.getName(), reread.song.getName());
 			for (int t = 0; t < 8; t++) {
 				for (int line = 0; line < 64; line++) {
@@ -223,7 +223,7 @@ class SongFilesTest {
 		host.nextFileNew = new SongFiles.FileNewChoice(32, false);
 		messages.answer = MessageAnswer.NO; // don't save the changes
 		files.fileNew();
-		assertEquals(4, session.tracks4_8);
+		assertEquals(4, session.song.getChannels());
 		assertEquals(32, session.tracks.getMaxTrackLength());
 		for (int i = 0; i < 4; i++) {
 			assertEquals(i, session.song.getSong()[0][i]);
@@ -234,7 +234,7 @@ class SongFilesTest {
 
 		host.nextFileNew = null; // cancelled
 		files.fileNew();
-		assertEquals(4, session.tracks4_8);
+		assertEquals(4, session.song.getChannels());
 	}
 
 	@Test

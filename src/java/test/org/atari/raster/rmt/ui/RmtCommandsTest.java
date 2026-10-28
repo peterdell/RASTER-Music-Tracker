@@ -360,7 +360,7 @@ class RmtCommandsTest {
 
 		host.nextScript = script;
 		commands.execute(RmtCommandId.TOOLS_RUN_SCRIPT);
-		assertEquals(4, session.tracks4_8, "Delta.rmt (mono) was opened");
+		assertEquals(4, session.song.getChannels(), "Delta.rmt (mono) was opened");
 		assertTrue(host.calls.contains("chooseScriptFile") && host.calls.contains("updateMinimumSize"), host.calls.toString());
 		assertEquals(1, boxes.size(), boxes.toString());
 		assertTrue(boxes.get(0).startsWith("I:Script:Script 'open.rmtscript' finished.") && boxes.get(0).contains("hello"), boxes.get(0));

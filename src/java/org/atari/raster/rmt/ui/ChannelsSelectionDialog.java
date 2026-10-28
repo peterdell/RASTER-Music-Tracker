@@ -17,14 +17,14 @@ final class ChannelsSelectionDialog extends ModalDialog {
 
 	private final JCheckBox[] boxes = new JCheckBox[8];
 
-	ChannelsSelectionDialog(JFrame parent, int tracks4_8) {
+	ChannelsSelectionDialog(JFrame parent, int channels) {
 		super(parent, Texts.ChannelsSelectionDialog_Title);
 		JPanel left = DialogSupport.createGroup("Left");
 		JPanel right = DialogSupport.createGroup("Right");
 		for (int i = 0; i < 8; i++) {
 			boxes[i] = new JCheckBox(NAMES[i]);
 			DialogSupport.add(i < 4 ? left : right, boxes[i], i % 4, 0, 1, false);
-			if (i >= 4 && tracks4_8 <= 4) {
+			if (i >= channels) {
 				boxes[i].setEnabled(false);
 			}
 		}

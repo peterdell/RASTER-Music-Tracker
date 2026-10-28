@@ -351,12 +351,12 @@ final class InstrumentChangeDialog extends ModalDialog {
 	private void onCheckSomeChannelsOnly() {
 		if (check5.isSelected()) {
 			check4.setSelected(false);
-			int channelyes = new ChannelsSelectionDialog((JFrame) getOwner(), session.tracks4_8).showDialog();
+			int channelyes = new ChannelsSelectionDialog((JFrame) getOwner(), session.song.getChannels()).showDialog();
 			if (channelyes > 0) {
 				onlyChannels = channelyes;
 				StringBuilder s = new StringBuilder("Only in ");
 				int j = 0;
-				for (int i = 0; i < session.tracks4_8; i++) {
+				for (int i = 0; i < session.song.getChannels(); i++) {
 					if ((onlyChannels & (1 << i)) != 0) {
 						if (j > 0) {
 							s.append(',');
