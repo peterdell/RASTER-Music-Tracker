@@ -5,6 +5,7 @@ import org.atari.raster.rmt.model.Instruments;
 import org.atari.raster.rmt.model.MessageAnswer;
 import org.atari.raster.rmt.model.MessageButtons;
 import org.atari.raster.rmt.model.Notes;
+import org.atari.raster.rmt.model.RmtModule;
 import org.atari.raster.rmt.model.Song;
 import org.atari.raster.rmt.model.Track;
 import org.atari.raster.rmt.model.Tracks;
@@ -77,7 +78,7 @@ public final class SongDialogs {
 		int n = (line > 0) ? line - 1 : 0;
 		InsertCopyChoice dlg = host.showInsertCopyOrClone(n, n, line);
 		if (dlg != null) {
-			if (!song.songInsertCopyOrCloneOfSongLinesApply(line, dlg.lineFrom(), dlg.lineTo(), dlg.cloneTracks(), dlg.tuning(), dlg.volumePercent(), session.undo, session.tracks4_8, session.clipboard)) {
+			if (!song.songInsertCopyOrCloneOfSongLinesApply(line, dlg.lineFrom(), dlg.lineTo(), dlg.cloneTracks(), dlg.tuning(), dlg.volumePercent(), session.undo, session.clipboard)) {
 				// C++ names the exact guard (song-range overrun / no empty track left to clone into) - the model's boolean can't
 				session.messages.sendErrorMessage("Warning", "The copy or clone could not be completed: the song line range overruns the song, or there is no empty track left to clone into.");
 			}
@@ -162,7 +163,7 @@ public final class SongDialogs {
 		if (p == null) {
 			return; // Change all the instrument occurences
 		}
-		String result = song.instrChangeApply(p, session.undo, session.tracks4_8);
+		String result = song.instrChangeApply(p, session.undo);
 		session.messages.sendInformationMessage("Instrument changes", result);
 	}
 
@@ -195,15 +196,14 @@ public final class SongDialogs {
 				return;
 			}
 		}
-		song.tracksOrderChangeApply(f, t, dlg.tracksOrder(), session.tracks4_8);
+		song.tracksOrderChangeApply(f, t, dlg.tracksOrder());
 	}
 
 	/** {@code OnSongSongswitch4_8()}: the model asks its own question; a switch re-initializes the sound ({@code SetTracks()} -> {@code ReInitSound()}, through {@link RmtSession#setTracks4_8}) and the window's minimum size. */
 	public void songswitch4_8() {
 		stop();
-		int before = session.tracks4_8;
-		session.setTracks4_8(session.song.songswitch4_8(before, before <= 4 ? 8 : 4, session.undo, session.messages));
-		if (session.tracks4_8 != before) {
+		if (session.song.songswitch4_8(session.song.isMono() ? RmtModule.CHANNELS_STEREO : RmtModule.CHANNELS_MONO, session.undo, session.messages)) {
+			session.setTracks4_8(session.song.getChannels());
 			host.songLayoutChanged();
 		}
 	}
@@ -211,7 +211,7 @@ public final class SongDialogs {
 	/** {@code OnSongSongchangemaximallengthoftracks()}. */
 	public void changeMaxTrackLength() {
 		stop();
-		int ma = session.song.getEffectiveMaxtracklen(session.tracks4_8);
+		int ma = session.song.getEffectiveMaxtracklen();
 		String info = "Current value: " + session.tracks.getMaxTrackLength() + "\nComputed effective value for current song: " + ma;
 		int chosen = host.showChangeMaxTrackLength(info, ma);
 		if (chosen >= 0) {
@@ -228,7 +228,7 @@ public final class SongDialogs {
 			// Hide the tracks and song
 			session.undo.changeTrack(0, 0, UndoType.UETYPE_TRACKSALL, -1);
 			session.undo.changeSong(0, 0, UndoType.UETYPE_SONGDATA, 1);
-			session.song.renumberAllTracks(type, session.tracks4_8); // Type = 1 -> Order by songcolumns, Type = 2 -> Order by songlines
+			session.song.renumberAllTracks(type); // Type = 1 -> Order by songcolumns, Type = 2 -> Order by songlines
 		}
 	}
 

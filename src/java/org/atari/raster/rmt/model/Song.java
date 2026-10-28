@@ -23,13 +23,14 @@ package org.atari.raster.rmt.model;
  * of a C++ {@code friend}; the stateful editing operations stay here, with
  * the invariants they maintain.
  *
- * <p><b>{@code g_tracks4_8} becomes an explicit parameter</b> on every
- * method that reads it in C++ ({@link #getTracks}, {@link #isStereo},
- * {@link SongIO#songToAta}, {@link SongIO#ataToSong}, {@link #getSubsongParts},
- * {@link #markTfUsed}, {@link #trackLeft}, {@link #trackRight},
- * {@link #respectBoundaries}, {@link #getSmallestMaxtracklen}), matching
- * this project's established idiom for globals a ported method actually
- * needs. Likewise {@code g_keyboard_RememberOctavesAndVolumes} becomes an
+ * <p><b>{@code g_tracks4_8} is the song's channel count</b> (plan 61,
+ * {@link #getChannels()}): the mono/stereo indicator C++ kept as a global
+ * is a fact of the song's data - the module header stores it - so the song
+ * stores it and every method reads it there. {@link #setChannels(int)}
+ * replaces {@code SetTracks()}; its {@code ReInitSound()} side effect is
+ * the session's, which re-initializes the sound when it finds the POKEY
+ * pair out of step with the song.
+ * {@code g_keyboard_RememberOctavesAndVolumes} becomes an
  * explicit parameter on {@link #activeInstrSet}/{@link #activeInstrPrev}/
  * {@link #activeInstrNext}, matching {@link Instruments}'s own treatment
  * of the same setting.
@@ -161,12 +162,47 @@ public final class Song {
 		return new String(songName, 0, end).stripTrailing();
 	}
 
-	public int getTracks(int tracks4_8) {
-		return tracks4_8;
+	/**
+	 * The physical POKEY channels the song is written for, across one or two
+	 * POKEYs: the song columns L1-L4 and R1-R4 are CH1-CH4 of the left and,
+	 * in stereo, the right POKEY. {@link RmtModule#CHANNELS_MONO} (4) or
+	 * {@link RmtModule#CHANNELS_STEREO} (8), the module header's channel
+	 * digit; C++ kept it as the global {@code g_tracks4_8}, starting at 8.
+	 */
+	private int channels = RmtModule.CHANNELS_STEREO;
+
+	/** The number of song columns: {@link #channels}. */
+	public int getChannels() {
+		return channels;
 	}
 
-	public boolean isStereo(int tracks4_8) {
-		return getTracks(tracks4_8) > 4;
+	/** Whether the song is written for one POKEY ({@link RmtModule#CHANNELS_MONO}). */
+	public boolean isMono() {
+		return channels == RmtModule.CHANNELS_MONO;
+	}
+
+	/**
+	 * Whether the song is written for the POKEY pair
+	 * ({@link RmtModule#CHANNELS_STEREO}): there is a right side. For the
+	 * places that mean exactly that - the volume nibbles, the POKEY pair,
+	 * the WAV export; the number of columns is {@link #getChannels()}.
+	 */
+	public boolean isStereo() {
+		return channels == RmtModule.CHANNELS_STEREO;
+	}
+
+	/**
+	 * {@code CSong::SetTracks()} without its {@code ReInitSound()}, which is
+	 * the session's reaction to the change. The valid counts are the tracker
+	 * driver's - every current driver plays 4 or 8 channels - so anything
+	 * else is rejected here, in the one place a driver for more POKEYs would
+	 * widen.
+	 */
+	public void setChannels(int channels) {
+		if (channels != RmtModule.CHANNELS_MONO && channels != RmtModule.CHANNELS_STEREO) {
+			throw new IllegalArgumentException("The channel count must be " + RmtModule.CHANNELS_MONO + " or " + RmtModule.CHANNELS_STEREO + ", not " + channels + ".");
+		}
+		this.channels = channels;
 	}
 
 	public boolean isNTSC() {
@@ -481,7 +517,7 @@ public final class Song {
 	}
 
 	/** Finds each subsong (a run of songlines reachable via goto chains) that contains at least one used track, returning the songline each one starts at. */
-	public SubsongParts getSubsongParts(int tracks4_8) {
+	public SubsongParts getSubsongParts() {
 		int[] songp = new int[SONGLEN];
 		int lastgo = -1;
 		for (int i = 0; i < SONGLEN; i++) {
@@ -505,7 +541,7 @@ public final class Song {
 						apos = n;
 					} else {
 						if (!ok) {
-							for (int j = 0; j < tracks4_8; j++) {
+							for (int j = 0; j < channels; j++) {
 								if (song[apos][j] >= 0) {
 									result.append(String.format("%02X ", apos));
 									ok = true;
@@ -529,10 +565,10 @@ public final class Song {
 	}
 
 	/** Marks every track referenced by a non-goto songline as {@link TrackFlag#TF_USED}. */
-	public void markTfUsed(byte[] used, int tracks4_8) {
+	public void markTfUsed(byte[] used) {
 		for (int i = 0; i < SONGLEN; i++) {
 			if (songGo[i] < 0) {
-				for (int channelNr = 0; channelNr < tracks4_8; channelNr++) {
+				for (int channelNr = 0; channelNr < channels; channelNr++) {
 					int tr = song[i][channelNr];
 					if (tr >= 0 && tr < Tracks.TRACKSNUM) {
 						used[tr] = TrackFlag.TF_USED;
@@ -575,7 +611,7 @@ public final class Song {
 	 *
 	 * @param column when true, skip the sub-column cursor and move the column directly (matching C++'s goto-driven fallthrough)
 	 */
-	public void trackLeft(boolean column, int tracks4_8, Undo undo) {
+	public void trackLeft(boolean column, Undo undo) {
 		undo.separator();
 		boolean wrapColumn;
 		if (column) {
@@ -592,13 +628,13 @@ public final class Song {
 		if (wrapColumn) {
 			trackActiveCol--;
 			if (trackActiveCol < 0) {
-				trackActiveCol = tracks4_8 - 1;
+				trackActiveCol = channels - 1;
 			}
 		}
 	}
 
-	/** Moves the track cursor right, wrapping the column at {@code tracks4_8}. See {@link #trackLeft} for the {@code column} parameter and the dropped return value. */
-	public void trackRight(boolean column, int tracks4_8, Undo undo) {
+	/** Moves the track cursor right, wrapping the column at the channel count. See {@link #trackLeft} for the {@code column} parameter and the dropped return value. */
+	public void trackRight(boolean column, Undo undo) {
 		undo.separator();
 		boolean wrapColumn;
 		if (column) {
@@ -614,14 +650,14 @@ public final class Song {
 		}
 		if (wrapColumn) {
 			trackActiveCol++;
-			if (trackActiveCol >= tracks4_8) {
+			if (trackActiveCol >= channels) {
 				trackActiveCol = 0;
 			}
 		}
 	}
 
-	/** Clamps the active song/track line back into bounds - e.g. after {@code tracks4_8} shrinks a track's effective length. */
-	public void respectBoundaries(int tracks4_8) {
+	/** Clamps the active song/track line back into bounds - e.g. after a channel count change shrinks a track's effective length. */
+	public void respectBoundaries() {
 		int songline = songGetActiveLine();
 		if (songline > SONGLEN) {
 			songline = SONGLEN - 1;
@@ -630,7 +666,7 @@ public final class Song {
 			songline = 0;
 		}
 
-		int length = getSmallestMaxtracklen(songline, tracks4_8);
+		int length = getSmallestMaxtracklen(songline);
 		int line = getActiveLine();
 		if (line > length) {
 			line = length - 1;
@@ -644,7 +680,7 @@ public final class Song {
 	}
 
 	/** The shortest length among the tracks used on {@code songline} (0 for a goto line). Pulled forward from the not-yet-ported {@code GetEffectiveMaxtracklen}/{@code ChangeMaxtracklen} batch since {@link #respectBoundaries} needs it. */
-	public int getSmallestMaxtracklen(int songline, int tracks4_8) {
+	public int getSmallestMaxtracklen(int songline) {
 		int max = 256;
 		int min = tracks.getMaxTrackLength();
 		int p = 0;
@@ -653,7 +689,7 @@ public final class Song {
 			return 0; // goto line is ignored
 		}
 
-		for (int i = 0; i < tracks4_8; i++) {
+		for (int i = 0; i < channels; i++) {
 			int t = song[songline][i];
 			int m = tracks.getLength(t);
 			if (m < 0) {
@@ -904,7 +940,7 @@ public final class Song {
 	 *
 	 * @return a human-readable summary of what changed
 	 */
-	public String instrChangeApply(InstrChangeParams p, Undo undo, int tracks4_8) {
+	public String instrChangeApply(InstrChangeParams p, Undo undo) {
 		StringBuilder s = new StringBuilder();
 
 		stop(undo); // Stop playing before processing further
@@ -958,7 +994,7 @@ public final class Song {
 				if (isSongGo(j)) {
 					continue;
 				}
-				for (int i = 0; i < tracks4_8; i++) {
+				for (int i = 0; i < channels; i++) {
 					int t = song[j][i];
 					if (!tracks.isValidTrack(t)) {
 						continue;
@@ -1058,7 +1094,7 @@ public final class Song {
 				// Create a new track if the track occurs both inside and outside the area
 				if ((trackYn[i] & 2) != 0) {
 					byte[] used = new byte[Tracks.TRACKSNUM];
-					markTfUsed(used, tracks4_8);
+					markTfUsed(used);
 					markTfNoEmpty(used);
 					int k = findNearTrackBySongLineAndColumn(trackLine[i], trackColumn[i], used);
 
@@ -1095,7 +1131,7 @@ public final class Song {
 				if (isSongGo(j)) {
 					continue;
 				}
-				for (int i = 0; i < tracks4_8; i++) {
+				for (int i = 0; i < channels; i++) {
 					int t = song[j][i];
 					if (!tracks.isValidTrack(t)) {
 						continue;
@@ -1134,7 +1170,7 @@ public final class Song {
 	 * range. Only the {@code tinfo != NULL} branch of C++'s dual-mode
 	 * {@code TrackInfo} is ported - see {@link #instrInfo}'s javadoc for why.
 	 */
-	public void trackInfo(int track, TrackInfo info, int tracks4_8) {
+	public void trackInfo(int track, TrackInfo info) {
 		if (track < 0 || track >= Tracks.TRACKSNUM) {
 			return;
 		}
@@ -1149,7 +1185,7 @@ public final class Song {
 			}
 
 			boolean thisline = false;
-			for (int ch = 0; ch < tracks4_8; ch++) {
+			for (int ch = 0; ch < channels; ch++) {
 				int n = song[sline][ch];
 				if (n == track) {
 					trackUsedInColumn[ch]++;
@@ -1426,9 +1462,9 @@ public final class Song {
 	 * whole-track clipboard). After a successful paste, resets the block
 	 * selection to the pasted range.
 	 */
-	public void blockPaste(int special, TrackClipboard clipboard, Tracks tracks, Undo undo, int tracks4_8) {
+	public void blockPaste(int special, TrackClipboard clipboard, Tracks tracks, Undo undo) {
 		undo.changeTrack(songGetActiveTrack(), trackActiveLine, UndoType.UETYPE_TRACKDATA, 1);
-		int lines = clipboard.blockPasteToTrack(songGetActiveTrack(), trackActiveLine, special, tracks, this, tracks4_8);
+		int lines = clipboard.blockPasteToTrack(songGetActiveTrack(), trackActiveLine, special, tracks, this);
 		if (lines > 0) {
 			int lastLine = trackActiveLine + lines - 1;
 			// resets the beginning of the block to this location
@@ -1490,11 +1526,11 @@ public final class Song {
 	}
 
 	/** Inserts a blank songline at {@code line}, shifting {@code line} and everything after it down by one (the last line falls off the end). */
-	public void songInsertLine(int line, Undo undo, int tracks4_8) {
+	public void songInsertLine(int line, Undo undo) {
 		undo.changeSong(line, trackActiveCol, UndoType.UETYPE_SONGDATA, 0);
 
 		for (int i = SONGLEN - 2; i >= line; i--) {
-			for (int j = 0; j < tracks4_8; j++) {
+			for (int j = 0; j < channels; j++) {
 				song[i + 1][j] = song[i][j];
 			}
 			int go = songGo[i];
@@ -1503,7 +1539,7 @@ public final class Song {
 			}
 			songGo[i + 1] = go;
 		}
-		for (int j = 0; j < tracks4_8; j++) {
+		for (int j = 0; j < channels; j++) {
 			song[line][j] = -1;
 		}
 		songGo[line] = -1;
@@ -1521,11 +1557,11 @@ public final class Song {
 	}
 
 	/** Removes songline {@code line}, shifting everything after it up by one (a fresh blank line appears at the end). */
-	public void songDeleteLine(int line, Undo undo, int tracks4_8) {
+	public void songDeleteLine(int line, Undo undo) {
 		undo.changeSong(line, trackActiveCol, UndoType.UETYPE_SONGDATA, 0);
 
 		for (int i = line; i < SONGLEN - 1; i++) {
-			for (int j = 0; j < tracks4_8; j++) {
+			for (int j = 0; j < channels; j++) {
 				song[i][j] = song[i + 1][j];
 			}
 			int go = songGo[i + 1];
@@ -1539,7 +1575,7 @@ public final class Song {
 				songGo[i]--;
 			}
 		}
-		for (int j = 0; j < tracks4_8; j++) {
+		for (int j = 0; j < channels; j++) {
 			song[SONGLEN - 1][j] = -1;
 		}
 		songGo[SONGLEN - 1] = -1;
@@ -1551,27 +1587,27 @@ public final class Song {
 		}
 	}
 
-	public void songCopyLine(int tracks4_8) {
-		for (int i = 0; i < tracks4_8; i++) {
+	public void songCopyLine() {
+		for (int i = 0; i < channels; i++) {
 			songLineClipboard[i] = song[songActiveLine][i];
 		}
 		songGoClipboard = songGo[songActiveLine];
 	}
 
-	public void songPasteLine(Undo undo, int tracks4_8) {
+	public void songPasteLine(Undo undo) {
 		if (songGoClipboard < -1) {
 			return;
 		}
 		undo.changeSong(songActiveLine, trackActiveCol, UndoType.UETYPE_SONGDATA);
-		for (int i = 0; i < tracks4_8; i++) {
+		for (int i = 0; i < channels; i++) {
 			song[songActiveLine][i] = songLineClipboard[i];
 		}
 		songGo[songActiveLine] = songGoClipboard;
 	}
 
-	public void songClearLine(Undo undo, int tracks4_8) {
+	public void songClearLine(Undo undo) {
 		undo.changeSong(songActiveLine, trackActiveCol, UndoType.UETYPE_SONGDATA);
-		for (int i = 0; i < tracks4_8; i++) {
+		for (int i = 0; i < channels; i++) {
 			song[songActiveLine][i] = -1;
 		}
 		songGo[songActiveLine] = -1;
@@ -1590,11 +1626,11 @@ public final class Song {
 	 * C++'s {@code int& line} parameter is never actually reassigned in the
 	 * method body, so it's a plain {@code int} here.
 	 */
-	public boolean songInsertCopyOrCloneOfSongLinesApply(int line, int linefrom, int lineto, boolean clone, int tuning, int volumep, Undo undo, int tracks4_8, TrackClipboard clipboard) {
+	public boolean songInsertCopyOrCloneOfSongLinesApply(int line, int linefrom, int lineto, boolean clone, int tuning, int volumep, Undo undo, TrackClipboard clipboard) {
 		blockDeselect(clipboard); // the block is deselected only if it is OK
 
 		byte[] used = new byte[Tracks.TRACKSNUM];
-		markTfUsed(used, tracks4_8);
+		markTfUsed(used);
 		markTfNoEmpty(used);
 		int[] clonedTo = new int[Tracks.TRACKSNUM];
 		java.util.Arrays.fill(clonedTo, -1);
@@ -1619,13 +1655,13 @@ public final class Song {
 				return false; // guard-only: song-range overrun
 			}
 
-			songInsertLine(des, undo, tracks4_8); // inserted blank line
+			songInsertLine(des, undo); // inserted blank line
 
 			if (clone && !sngo) {
 				undo.separator(-1); // associates the previous insert lines to the next change
 				undo.changeTrack(0, 0, UndoType.UETYPE_TRACKSALL, 1); // with separator
 
-				for (int j = 0; j < tracks4_8; j++) {
+				for (int j = 0; j < channels; j++) {
 					int k = song[sou][j]; // original track
 					int d;
 					if (k < 0) {
@@ -1650,7 +1686,7 @@ public final class Song {
 			} else {
 				// Copies
 				songGo[des] = songGo[sou];
-				for (int j = 0; j < tracks4_8; j++) {
+				for (int j = 0; j < channels; j++) {
 					song[des][j] = song[sou][j];
 				}
 			}
@@ -1720,7 +1756,7 @@ public final class Song {
 	}
 
 	/** The largest "shortest track length on a songline" across the whole song (ignoring goto lines and songlines with no valid tracks). */
-	public int getEffectiveMaxtracklen(int tracks4_8) {
+	public int getEffectiveMaxtracklen() {
 		int max = 1;
 		for (int so = 0; so < SONGLEN; so++) {
 			if (songGo[so] >= 0) {
@@ -1728,7 +1764,7 @@ public final class Song {
 			}
 			int min = tracks.getMaxTrackLength();
 			int p = 0;
-			for (int i = 0; i < tracks4_8; i++) {
+			for (int i = 0; i < channels; i++) {
 				int t = song[so][i];
 				int m = tracks.getLength(t);
 				if (m < 0) {
@@ -1773,7 +1809,7 @@ public final class Song {
 	}
 
 	/** Truncates every track down to the length it's actually used at across the song, then deletes any track not referenced by the song at all. */
-	public ClearUnusedResult songClearUnusedTracksAndParts(int tracks4_8) {
+	public ClearUnusedResult songClearUnusedTracksAndParts() {
 		int ttracks = 0;
 		int tbeats = 0;
 		int ctracks = 0;
@@ -1788,7 +1824,7 @@ public final class Song {
 
 			int nejkratsi = tracks.getMaxTrackLength();
 
-			for (int ch = 0; ch < tracks4_8; ch++) {
+			for (int ch = 0; ch < channels; ch++) {
 				int n = song[sline][ch];
 				if (!tracks.isValidTrack(n)) {
 					continue; // invalid track is ignored
@@ -1804,7 +1840,7 @@ public final class Song {
 			}
 
 			// "nejkratsi" is the shortest track in this song line
-			for (int ch = 0; ch < tracks4_8; ch++) {
+			for (int ch = 0; ch < channels; ch++) {
 				int n = song[sline][ch];
 				if (!tracks.isValidTrack(n)) {
 					continue;
@@ -1859,7 +1895,7 @@ public final class Song {
 	}
 
 	/** Merges every pair of byte-identical tracks (keeping the lower-numbered one), remapping the song to point at the survivor. Returns the number of tracks merged away. */
-	public int songClearDuplicatedTracks(int tracks4_8) {
+	public int songClearDuplicatedTracks() {
 		int[] trackto = new int[Tracks.TRACKSNUM];
 		java.util.Arrays.fill(trackto, -1);
 
@@ -1882,7 +1918,7 @@ public final class Song {
 
 		// Analyze the song and make changes to the deleted tracks
 		for (int sline = 0; sline < SONGLEN; sline++) {
-			for (int ch = 0; ch < tracks4_8; ch++) {
+			for (int ch = 0; ch < channels; ch++) {
 				int n = song[sline][ch];
 				if (n < 0 || n >= Tracks.TRACKSNUM) {
 					continue;
@@ -1897,14 +1933,14 @@ public final class Song {
 	}
 
 	/** Deletes every track not referenced anywhere in the song (goto lines excluded). Returns the number of tracks deleted. */
-	public int songClearUnusedTracks(int tracks4_8) {
+	public int songClearUnusedTracks() {
 		boolean[] trackused = new boolean[Tracks.TRACKSNUM];
 
 		for (int sline = 0; sline < SONGLEN; sline++) {
 			if (songGo[sline] >= 0) {
 				continue; // goto line is ignored
 			}
-			for (int ch = 0; ch < tracks4_8; ch++) {
+			for (int ch = 0; ch < channels; ch++) {
 				int n = song[sline][ch];
 				if (n < 0 || n >= Tracks.TRACKSNUM) {
 					continue;
@@ -1966,7 +2002,7 @@ public final class Song {
 	}
 
 	/** Renumbers every track referenced by the song into a compact range starting at 0 - {@code type=1} orders by column-then-line, {@code type=2} by line-then-column. A no-op for any other {@code type}. */
-	public void renumberAllTracks(int type, int tracks4_8) {
+	public void renumberAllTracks(int type) {
 		int[] movetrackfrom = new int[Tracks.TRACKSNUM];
 		int[] movetrackto = new int[Tracks.TRACKSNUM];
 		java.util.Arrays.fill(movetrackfrom, -1);
@@ -1980,7 +2016,7 @@ public final class Song {
 				if (songGo[sline] >= 0) {
 					continue;
 				}
-				for (int i = 0; i < tracks4_8; i++) {
+				for (int i = 0; i < channels; i++) {
 					int n = song[sline][i];
 					if (n < 0 || n >= Tracks.TRACKSNUM) {
 						continue;
@@ -1994,7 +2030,7 @@ public final class Song {
 			}
 		} else if (type == 1) {
 			// Vertically in columns
-			for (int i = 0; i < tracks4_8; i++) {
+			for (int i = 0; i < channels; i++) {
 				for (int sline = 0; sline < SONGLEN; sline++) {
 					if (songGo[sline] >= 0) {
 						continue;
@@ -2025,7 +2061,7 @@ public final class Song {
 
 		// Precisely numbered in the song
 		for (int sline = 0; sline < SONGLEN; sline++) {
-			for (int i = 0; i < tracks4_8; i++) {
+			for (int i = 0; i < channels; i++) {
 				int n = song[sline][i];
 				if (n < 0 || n >= Tracks.TRACKSNUM) {
 					continue;
@@ -2253,15 +2289,15 @@ public final class Song {
 	 * {@code [fromline, toline]} per {@code tracksorder} (a negative entry
 	 * clears that column).
 	 */
-	public void tracksOrderChangeApply(int fromline, int toline, int[] tracksorder, int tracks4_8) {
+	public void tracksOrderChangeApply(int fromline, int toline, int[] tracksorder) {
 		int[] buff = new int[SONGTRACKS];
 
 		for (int i = fromline; i <= toline; i++) {
-			for (int j = 0; j < tracks4_8; j++) {
+			for (int j = 0; j < channels; j++) {
 				buff[j] = song[i][j];
 				song[i][j] = -1;
 			}
-			for (int j = 0; j < tracks4_8; j++) {
+			for (int j = 0; j < channels; j++) {
 				int z = tracksorder[j];
 				song[i][j] = z >= 0 ? buff[z] : -1;
 			}
@@ -2278,19 +2314,7 @@ public final class Song {
 		return false;
 	}
 
-	/**
-	 * Returns the new {@code tracks4_8} value (the caller is responsible for
-	 * storing it, matching every other {@code tracks4_8}-touching method's
-	 * explicit-parameter treatment). C++'s conditional {@code ReInitSound()}
-	 * call (real {@code g_AtariTrackerDriver}/{@code g_Pokey} hardware
-	 * reinit, no-op-stubbed in every test) is dropped entirely, leaving this
-	 * an identity transform.
-	 */
-	public int setTracks(int tracksNum) {
-		return tracksNum;
-	}
-
-	/** Drops C++'s conditional {@code ReInitSound()} call - see {@link #setTracks}'s javadoc for why. */
+	/** Drops C++'s conditional {@code ReInitSound()} call - see {@link #setChannels}'s javadoc for why. */
 	public void setNTSC(boolean ntsc) {
 		if (ntsc != this.ntsc) {
 			this.ntsc = ntsc;
@@ -2340,23 +2364,21 @@ public final class Song {
 	 * The data half of {@code CSong::FileNew()} after the dialog: the new
 	 * maximal track length, an empty mono/stereo song, one song line of
 	 * empty patterns ({@code m_song[0][i] = i}), a "go to line 0" on line 1,
-	 * and the undo history cleared. Returns the new {@code tracks4_8}; the
-	 * "all channels on" and the title are the caller's.
+	 * and the undo history cleared; the "all channels on" and the title are
+	 * the caller's.
 	 */
-	public int fileNewApply(int maxTrackLength, int numOfTracks, Undo undo) {
+	public void fileNewApply(int maxTrackLength, int channels, Undo undo) {
 		tracks.setMaxTrackLength(maxTrackLength);
-		int tracks4_8 = clearSong(numOfTracks, undo);
-		for (int i = 0; i < tracks4_8; i++) {
+		clearSong(channels, undo);
+		for (int i = 0; i < channels; i++) {
 			song[0][i] = i; // Automatically create 1 songline of empty patterns
 		}
 		songGo[1] = 0; // Set the goto to the first line
 		undo.clear(); // Delete undo history
-		return tracks4_8;
 	}
 
 	/**
-	 * Resets the song to empty and RMT into a default state. Returns the new
-	 * {@code tracks4_8} value (see {@link #setTracks}'s javadoc for why).
+	 * Resets the song to empty and RMT into a default state.
 	 *
 	 * <p>Omits several globals/a real MFC call C++'s version touches, with
 	 * no Java equivalent and nothing observing them here:
@@ -2376,9 +2398,9 @@ public final class Song {
 	 * {@link Song} - matches {@code Instruments.Update()}'s established
 	 * omission for the same reason).
 	 */
-	public int clearSong(int numOfTracks, Undo undo) {
+	public void clearSong(int channels, Undo undo) {
 		stop(undo);
-		int tracks4_8 = setTracks(numOfTracks);
+		setChannels(channels);
 
 		playPressedTonesInit();
 		resetPlayTime(); // g_playtime = 0
@@ -2432,8 +2454,6 @@ public final class Song {
 		instruments.initInstruments();
 
 		undo.init();
-
-		return tracks4_8;
 	}
 
 	public void resetTuningVariables() {
@@ -2520,14 +2540,14 @@ public final class Song {
 	}
 
 	/** Moves the active track line up by {@code lines}, wrapping to the bottom of the pattern once it goes below zero. */
-	public void trackUp(int lines, int tracks4_8, boolean keyboardUpDownContinue, Undo undo, TrackClipboard clipboard) {
+	public void trackUp(int lines, boolean keyboardUpDownContinue, Undo undo, TrackClipboard clipboard) {
 		if (playMode != PlayMode.PLAY_STOP && followplay) {
 			return; // prevents moving at all during play+follow
 		}
 
 		undo.separator();
 		trackActiveLine -= lines;
-		int trlen = getSmallestMaxtracklen(songActiveLine, tracks4_8);
+		int trlen = getSmallestMaxtracklen(songActiveLine);
 
 		if (trackActiveLine < 0) {
 			if (isBlockSelected(clipboard)) {
@@ -2537,7 +2557,7 @@ public final class Song {
 			if (keyboardUpDownContinue) {
 				blockDeselect(clipboard);
 				songUp(undo, clipboard);
-				trlen = getSmallestMaxtracklen(songActiveLine, tracks4_8);
+				trlen = getSmallestMaxtracklen(songActiveLine);
 			}
 			trackActiveLine = trackActiveLine + trlen;
 			if (trackActiveLine < 0) {
@@ -2550,7 +2570,7 @@ public final class Song {
 	}
 
 	/** Moves the active track line down by {@code lines}, wrapping to the top of the pattern once it reaches the end. */
-	public void trackDown(int lines, boolean stoponlastline, int tracks4_8, boolean keyboardUpDownContinue, Undo undo, TrackClipboard clipboard) {
+	public void trackDown(int lines, boolean stoponlastline, boolean keyboardUpDownContinue, Undo undo, TrackClipboard clipboard) {
 		if (playMode != PlayMode.PLAY_STOP && followplay) {
 			return; // prevents moving at all during play+follow
 		}
@@ -2561,7 +2581,7 @@ public final class Song {
 
 		undo.separator();
 		trackActiveLine += lines;
-		int trlen = getSmallestMaxtracklen(songActiveLine, tracks4_8);
+		int trlen = getSmallestMaxtracklen(songActiveLine);
 		if (trlen == 0) {
 			trlen = tracks.getMaxTrackLength(); // in case the smallest max track length returned zero (e.g. from a goto line)
 		}
@@ -2575,7 +2595,7 @@ public final class Song {
 			if (keyboardUpDownContinue) {
 				blockDeselect(clipboard);
 				songDown(undo, clipboard);
-				trlen = getSmallestMaxtracklen(songActiveLine, tracks4_8);
+				trlen = getSmallestMaxtracklen(songActiveLine);
 			}
 			if (trackActiveLine < 0) {
 				trackActiveLine = lines;
@@ -2592,19 +2612,19 @@ public final class Song {
 	 * calls on the failure path - guard-only, the boolean return alone conveys
 	 * success/failure (matches this class's established pattern).
 	 */
-	public boolean songPrepareNewLine(int line, int sourceline, boolean alsoemptycolumns, Undo undo, int tracks4_8) {
+	public boolean songPrepareNewLine(int line, int sourceline, boolean alsoemptycolumns, Undo undo) {
 		if (sourceline < 0) {
 			sourceline = line + sourceline; // for -1 it is line-1
 		}
 
-		songInsertLine(line, undo, tracks4_8);
+		songInsertLine(line, undo);
 
 		byte[] used = new byte[Tracks.TRACKSNUM];
-		markTfUsed(used, tracks4_8);
+		markTfUsed(used);
 		markTfNoEmpty(used);
 
 		int count = 0;
-		for (int i = 0; i < tracks4_8; i++) {
+		for (int i = 0; i < channels; i++) {
 			if (!alsoemptycolumns && sourceline >= 0 && song[sourceline][i] < 0) {
 				continue;
 			}
@@ -2616,7 +2636,7 @@ public final class Song {
 			}
 		}
 
-		return count >= tracks4_8;
+		return count >= channels;
 	}
 
 	/**
@@ -2624,7 +2644,7 @@ public final class Song {
 	 * empty track. Drops C++'s guard-only {@code SendErrorMessage} call on
 	 * the failure path (matches this class's established pattern).
 	 */
-	public boolean songPutnewemptyunusedtrack(Undo undo, int tracks4_8) {
+	public boolean songPutnewemptyunusedtrack(Undo undo) {
 		int line = songGetActiveLine();
 		if (songGo[line] >= 0) {
 			return false; // it can't be done on the "GO TO LINE" line
@@ -2637,7 +2657,7 @@ public final class Song {
 		song[line][cl] = -1; // at current position in song --
 
 		byte[] used = new byte[Tracks.TRACKSNUM];
-		markTfUsed(used, tracks4_8);
+		markTfUsed(used);
 		markTfNoEmpty(used);
 
 		int k;
@@ -2665,7 +2685,7 @@ public final class Song {
 	 * {@code plans/08_MESSAGEBOX_REFACTOR_PLAN.md}) - previously deferred
 	 * solely because of that prompt.
 	 */
-	public boolean songMaketracksduplicate(Undo undo, int tracks4_8, Messages messages) {
+	public boolean songMaketracksduplicate(Undo undo, Messages messages) {
 		int line = songGetActiveLine();
 		if (songGo[line] >= 0) {
 			return false; // it can't be done on the "GO TO LINE" line
@@ -2681,7 +2701,7 @@ public final class Song {
 		song[line][cl] = -1; // at current position in song --
 
 		byte[] used = new byte[Tracks.TRACKSNUM];
-		markTfUsed(used, tracks4_8);
+		markTfUsed(used);
 		markTfNoEmpty(used);
 
 		int k;
@@ -2715,19 +2735,17 @@ public final class Song {
 	/**
 	 * Switches between 4-track mono and 8-track stereo mode, after a
 	 * user-confirmed {@link Messages#sendQuestionMessage} prompt. Returns
-	 * the resulting {@code tracks4_8} - {@code currentTracks4_8} unchanged
-	 * if the user doesn't confirm, or {@link #setTracks}'s result otherwise
-	 * (see that method's javadoc for why {@code tracks4_8} is a return
-	 * value here rather than a stored field). Omits C++'s trailing
+	 * whether the switch happened - false if the user did not confirm; the
+	 * caller re-initializes the sound and the layout. Omits C++'s trailing
 	 * {@code g_Atari.Init()} call - no {@code Atari} collaborator is held
 	 * by {@link Song}, matching this class's established omission of the
 	 * same call elsewhere (e.g. {@link #clearSong}).
 	 */
-	public int songswitch4_8(int currentTracks4_8, int newTracks4_8, Undo undo, Messages messages) {
+	public boolean songswitch4_8(int newChannels, Undo undo, Messages messages) {
 		stop(undo);
 
 		StringBuilder wrn = new StringBuilder("Warning: Undo operation won't be possible!!!\n");
-		if (newTracks4_8 == 4) {
+		if (newChannels == RmtModule.CHANNELS_MONO) {
 			int p = 0;
 			for (int i = 0; i < SONGLEN; i++) {
 				for (int j = 4; j < 8; j++) {
@@ -2744,28 +2762,24 @@ public final class Song {
 
 		MessageAnswer res = messages.sendQuestionMessage("Song switch mono/stereo", wrn.toString(), MessageButtons.YES_NO_CANCEL);
 		if (res != MessageAnswer.YES) {
-			return currentTracks4_8;
+			return false;
 		}
 
 		undo.clear();
 
-		int tracks4_8 = currentTracks4_8;
-		if (newTracks4_8 == 4) {
-			if (trackActiveCol >= 4) {
-				trackActiveCol = 3;
+		setChannels(newChannels);
+		if (newChannels == RmtModule.CHANNELS_MONO) {
+			if (trackActiveCol >= RmtModule.CHANNELS_MONO) {
+				trackActiveCol = RmtModule.CHANNELS_MONO - 1;
 				trackActiveCur = 0;
 			}
-			tracks4_8 = setTracks(4);
 			for (int i = 0; i < SONGLEN; i++) {
-				for (int j = 4; j < 8; j++) {
+				for (int j = RmtModule.CHANNELS_MONO; j < RmtModule.CHANNELS_STEREO; j++) {
 					song[i][j] = -1;
 				}
 			}
-		} else if (newTracks4_8 == 8) {
-			tracks4_8 = setTracks(8);
 		}
-
-		return tracks4_8;
+		return true;
 	}
 
 	/**
@@ -2937,12 +2951,12 @@ public final class Song {
 	 * falling back to {@code PLAY_TRACK} behavior when nothing is selected,
 	 * exactly as C++ does.
 	 */
-	public boolean play(PlayMode mode, boolean follow, int special, Undo undo, int tracks4_8, AtariTrackerDriver atariTrackerDriver, TrackClipboard clipboard) {
-		return play(mode, follow, special, undo, tracks4_8, atariTrackerDriver, clipboard, null);
+	public boolean play(PlayMode mode, boolean follow, int special, Undo undo, AtariTrackerDriver atariTrackerDriver, TrackClipboard clipboard) {
+		return play(mode, follow, special, undo, atariTrackerDriver, clipboard, null);
 	}
 
 	/** {@code pokeyStream} defaults to {@code null} on the other overload, matching every pre-existing call site; only {@link #dumpSongToPokeyStream} passes a real one. */
-	public boolean play(PlayMode mode, boolean follow, int special, Undo undo, int tracks4_8, AtariTrackerDriver atariTrackerDriver, TrackClipboard clipboard, PokeyStream pokeyStream) {
+	public boolean play(PlayMode mode, boolean follow, int special, Undo undo, AtariTrackerDriver atariTrackerDriver, TrackClipboard clipboard, PokeyStream pokeyStream) {
 		undo.separator();
 
 		if (mode == PlayMode.PLAY_BOOKMARK && !isBookmark()) {
@@ -3026,7 +3040,7 @@ public final class Song {
 		}
 
 		followplay = follow;
-		playBeat(tracks4_8, atariTrackerDriver, pokeyStream); // sets m_speeda
+		playBeat(atariTrackerDriver, pokeyStream); // sets m_speeda
 		speeda++; // (Original comment by Raster, April 27, 2003) adds 1 to m_speed, for what the real thing will take place in Init
 		if (followplay) { // cursor following the player
 			trackActiveLine = trackPlayLine;
@@ -3043,8 +3057,8 @@ public final class Song {
 	}
 
 	/** {@code special} defaults to 0, matching C++'s default argument. */
-	public boolean play(PlayMode mode, boolean follow, Undo undo, int tracks4_8, AtariTrackerDriver atariTrackerDriver, TrackClipboard clipboard) {
-		return play(mode, follow, 0, undo, tracks4_8, atariTrackerDriver, clipboard);
+	public boolean play(PlayMode mode, boolean follow, Undo undo, AtariTrackerDriver atariTrackerDriver, TrackClipboard clipboard) {
+		return play(mode, follow, 0, undo, atariTrackerDriver, clipboard);
 	}
 
 	// --- DumpSongToPokeyStream (Song_DumpSong.cpp) ---
@@ -3079,8 +3093,8 @@ public final class Song {
 	 * closing comment). On a memory-only {@link Atari} (no CPU) the recorded
 	 * registers stay zero, as in the C++ test build.
 	 */
-	public void dumpSongToPokeyStream(PokeyStream pokeyStream, PlayMode initialPlayMode, int songLine, int trackLine, int tracks4_8, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
-		dumpSongToPokeyStream(pokeyStream, initialPlayMode, songLine, trackLine, tracks4_8, atariTrackerDriver, channelControl, clipboard, undo, ExportProgress.NONE);
+	public void dumpSongToPokeyStream(PokeyStream pokeyStream, PlayMode initialPlayMode, int songLine, int trackLine, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
+		dumpSongToPokeyStream(pokeyStream, initialPlayMode, songLine, trackLine, atariTrackerDriver, channelControl, clipboard, undo, ExportProgress.NONE);
 	}
 
 	/**
@@ -3089,7 +3103,7 @@ public final class Song {
 	 * that was cancelled leaves an incomplete stream behind, so the caller
 	 * must check {@link ExportProgress#isCancelled()} before using it.
 	 */
-	public void dumpSongToPokeyStream(PokeyStream pokeyStream, PlayMode initialPlayMode, int songLine, int trackLine, int tracks4_8, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo, ExportProgress progress) {
+	public void dumpSongToPokeyStream(PokeyStream pokeyStream, PlayMode initialPlayMode, int songLine, int trackLine, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo, ExportProgress progress) {
 		int savedSongActiveLine = songActiveLine; // the dump plays from its own start line and must not move the cursor (as C++ since 2026-09-28)
 		int savedTrackActiveLine = trackActiveLine;
 		stop(undo); // Make sure RMT is stopped
@@ -3097,14 +3111,14 @@ public final class Song {
 		channelControl.setAllChannelsOff();
 
 		// Activate stream recording mode.
-		pokeyStream.startRecording(this, tracks4_8, atariTrackerDriver);
+		pokeyStream.startRecording(this, atariTrackerDriver);
 
 		// Play song using the chosen playback parameters. C++ sets the
 		// *active* lines, which PLAY_FROM (the XEX exporter's per-subsong
 		// mode) then starts from; PLAY_SONG starts at 0 regardless.
 		songActiveLine = songLine;
 		trackActiveLine = trackLine;
-		play(initialPlayMode, followplay, 0, undo, tracks4_8, atariTrackerDriver, clipboard, pokeyStream);
+		play(initialPlayMode, followplay, 0, undo, atariTrackerDriver, clipboard, pokeyStream);
 
 		// The frame count goes out about four times a second, by wall clock, as
 		// the C++ status text does - not once per frame, which would cost more
@@ -3116,7 +3130,7 @@ public final class Song {
 			}
 
 			// 1 VBI of module playback (play() above cleared any pending quantized note, so the volume rule cannot matter here - false)
-			playVBI(tracks4_8, atariTrackerDriver, pokeyStream, false, undo);
+			playVBI(atariTrackerDriver, pokeyStream, false, undo);
 
 			// Multiple RMT routine calls will be processed if needed
 			for (int i = 0; i < instrumentSpeed; i++) {
@@ -3177,16 +3191,16 @@ public final class Song {
 	 * {@code tracks.getMaxTrackLength()} fallback - ends a track early) does
 	 * get a {@link PokeyStream}, via the overload below.
 	 */
-	public boolean playBeat(int tracks4_8, AtariTrackerDriver atariTrackerDriver) {
-		return playBeat(tracks4_8, atariTrackerDriver, null);
+	public boolean playBeat(AtariTrackerDriver atariTrackerDriver) {
+		return playBeat(atariTrackerDriver, null);
 	}
 
 	/** {@code pokeyStream} defaults to {@code null} on the other overload, matching every pre-existing call site; only {@link #dumpSongToPokeyStream} passes a real one. */
-	public boolean playBeat(int tracks4_8, AtariTrackerDriver atariTrackerDriver, PokeyStream pokeyStream) {
+	public boolean playBeat(AtariTrackerDriver atariTrackerDriver, PokeyStream pokeyStream) {
 		int[] note = new int[SONGTRACKS];
 		int[] instr = new int[SONGTRACKS];
 		int[] vol = new int[SONGTRACKS];
-		for (int t = 0; t < tracks4_8; t++) {
+		for (int t = 0; t < channels; t++) {
 			note[t] = -1;
 			instr[t] = -1;
 			vol[t] = -1;
@@ -3195,7 +3209,7 @@ public final class Song {
 		int lineSpeed;
 		trackLine: while (true) {
 			lineSpeed = speed;
-			for (int t = 0; t < tracks4_8; t++) {
+			for (int t = 0; t < channels; t++) {
 				int tt = songGetTrack(songPlayLine, t);
 				Track tr = tracks.getTrack(tt);
 				if (tr == null) {
@@ -3241,7 +3255,7 @@ public final class Song {
 		speeda = speed = lineSpeed;
 
 		// Active note, instrument and volume settings
-		for (int t = 0; t < tracks4_8; t++) {
+		for (int t = 0; t < channels; t++) {
 			int n = note[t];
 			int i = instr[t];
 			int v = vol[t];
@@ -3275,12 +3289,12 @@ public final class Song {
 	 * this branch out (its comment said no caller set the note - untrue
 	 * since the UI port: such a note was silently lost).
 	 */
-	public boolean playVBI(int tracks4_8, AtariTrackerDriver atariTrackerDriver, boolean respectVolume, Undo undo) {
-		return playVBI(tracks4_8, atariTrackerDriver, null, respectVolume, undo);
+	public boolean playVBI(AtariTrackerDriver atariTrackerDriver, boolean respectVolume, Undo undo) {
+		return playVBI(atariTrackerDriver, null, respectVolume, undo);
 	}
 
 	/** {@code pokeyStream} defaults to {@code null} on the other overload, matching every pre-existing call site; only {@link #dumpSongToPokeyStream} passes a real one. */
-	public boolean playVBI(int tracks4_8, AtariTrackerDriver atariTrackerDriver, PokeyStream pokeyStream, boolean respectVolume, Undo undo) {
+	public boolean playVBI(AtariTrackerDriver atariTrackerDriver, PokeyStream pokeyStream, boolean respectVolume, Undo undo) {
 		if (playMode == PlayMode.PLAY_STOP) {
 			return false; // not playing
 		}
@@ -3302,7 +3316,7 @@ public final class Song {
 			songPlayNextLine(pokeyStream);
 		}
 
-		playBeat(tracks4_8, atariTrackerDriver, pokeyStream); // 1 pattern track line play
+		playBeat(atariTrackerDriver, pokeyStream); // 1 pattern track line play
 
 		if (speeda == speed && followplay) { // playing and following the player
 			trackActiveLine = trackPlayLine;

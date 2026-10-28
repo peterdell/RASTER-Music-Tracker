@@ -46,6 +46,7 @@ class SongEditingTest {
 		}
 
 		song = new Song(instruments, tracks);
+		song.setChannels(4); // the C++ tests' g_tracks4_8 = 4
 		clipboard = new TrackClipboard();
 		undo = new Undo(tracks, instruments, song, clipboard);
 		messages = new Messages();
@@ -65,7 +66,7 @@ class SongEditingTest {
 
 	@Test
 	void getSubsongPartsReturnsZeroWhenSongHasNoGotoLines() {
-		Song.SubsongParts result = song.getSubsongParts(4);
+		Song.SubsongParts result = song.getSubsongParts();
 		assertEquals(0, result.count());
 		assertEquals("", result.parts());
 	}
@@ -75,7 +76,7 @@ class SongEditingTest {
 		song.getSong()[0][0] = 5; // a used track at line 0
 		song.getSongGo()[1] = 0; // line 1: "goto line 0" - closes the loop
 
-		Song.SubsongParts result = song.getSubsongParts(4);
+		Song.SubsongParts result = song.getSubsongParts();
 		assertEquals(1, result.count());
 		assertEquals("00 ", result.parts());
 	}
@@ -89,7 +90,7 @@ class SongEditingTest {
 		song.getSong()[1][0] = 7;
 
 		byte[] flags = new byte[Tracks.TRACKSNUM];
-		song.markTfUsed(flags, 4);
+		song.markTfUsed(flags);
 
 		assertEquals(TrackFlag.TF_USED, flags[3]);
 		assertEquals(0, flags[7]);
@@ -132,7 +133,7 @@ class SongEditingTest {
 
 	@Test
 	void trackLeftWrapsColumnAndCursorAtZero() {
-		song.trackLeft(false, 4, undo);
+		song.trackLeft(false, undo);
 		int[] cursor = song.getUECursor(Part.PART_TRACKS);
 		assertEquals(4 - 1, cursor[2]); // column wrapped
 		assertEquals(3, cursor[3]); // cursor wrapped to the previous speed column
@@ -140,7 +141,7 @@ class SongEditingTest {
 
 	@Test
 	void trackRightAdvancesCursorWithoutChangingColumn() {
-		song.trackRight(false, 4, undo);
+		song.trackRight(false, undo);
 		int[] cursor = song.getUECursor(Part.PART_TRACKS);
 		assertEquals(0, cursor[2]); // column unchanged
 		assertEquals(1, cursor[3]); // cursor advanced
@@ -148,7 +149,7 @@ class SongEditingTest {
 
 	@Test
 	void trackLeftColumnModeSkipsTheCursorAndMovesColumnDirectly() {
-		song.trackLeft(true, 4, undo);
+		song.trackLeft(true, undo);
 		int[] cursor = song.getUECursor(Part.PART_TRACKS);
 		assertEquals(4 - 1, cursor[2]);
 		assertEquals(0, cursor[3]); // cursor untouched in column mode
@@ -162,7 +163,7 @@ class SongEditingTest {
 		song.getSong()[0][0] = 0;
 		song.setActiveLine(20); // out of bounds for an 8-line track
 
-		song.respectBoundaries(4);
+		song.respectBoundaries();
 
 		assertEquals(7, song.getActiveLine()); // clamped to length - 1
 	}
@@ -290,7 +291,7 @@ class SongEditingTest {
 		p.onlysonglinefrom = -1;
 		p.onlysonglineto = -1;
 
-		String resultMsg = song.instrChangeApply(p, undo, 4);
+		String resultMsg = song.instrChangeApply(p, undo);
 
 		assertEquals(15, tr.note[0]);
 		assertEquals(3, tr.instr[0]);
@@ -330,7 +331,7 @@ class SongEditingTest {
 		p.onlysonglinefrom = -1;
 		p.onlysonglineto = -1;
 
-		song.instrChangeApply(p, undo, 4);
+		song.instrChangeApply(p, undo);
 
 		assertEquals(15, tr0.note[0]); // changed
 		assertEquals(10, tr1.note[0]); // untouched, restricted to track 0 only
@@ -346,7 +347,7 @@ class SongEditingTest {
 		song.getSong()[1][2] = 5;
 
 		Song.TrackInfo info = new Song.TrackInfo();
-		song.trackInfo(5, info, 4);
+		song.trackInfo(5, info);
 
 		assertEquals(2, info.count);
 		assertEquals(2, info.lines);
@@ -363,10 +364,10 @@ class SongEditingTest {
 		info.lines = 99;
 		java.util.Arrays.fill(info.usedInColumn, 1);
 
-		song.trackInfo(-1, info, 4);
+		song.trackInfo(-1, info);
 		assertEquals(99, info.count);
 
-		song.trackInfo(Tracks.TRACKSNUM, info, 4);
+		song.trackInfo(Tracks.TRACKSNUM, info);
 		assertEquals(99, info.count);
 	}
 
@@ -377,7 +378,7 @@ class SongEditingTest {
 		song.getSong()[0][0] = 1;
 		song.getSong()[1][0] = 2;
 
-		song.songInsertLine(1, undo, 4);
+		song.songInsertLine(1, undo);
 
 		assertEquals(1, song.getSong()[0][0]); // untouched
 		assertEquals(-1, song.getSong()[1][0]); // newly inserted, empty
@@ -389,7 +390,7 @@ class SongEditingTest {
 		song.getSong()[0][0] = 1;
 		song.getSong()[1][0] = 2;
 
-		song.songDeleteLine(0, undo, 4);
+		song.songDeleteLine(0, undo);
 
 		assertEquals(2, song.getSong()[0][0]); // shifted up
 		assertEquals(-1, song.getSong()[Song.SONGLEN - 1][0]); // vacated slot at the end
@@ -403,7 +404,7 @@ class SongEditingTest {
 	void songInsertCopyOrCloneOfSongLinesApplyCopiesTheSourceLineWhenNotCloning() {
 		song.getSong()[0][0] = 5;
 
-		assertTrue(song.songInsertCopyOrCloneOfSongLinesApply(1, 0, 0, false, 0, 100, undo, 4, clipboard));
+		assertTrue(song.songInsertCopyOrCloneOfSongLinesApply(1, 0, 0, false, 0, 100, undo, clipboard));
 
 		assertEquals(5, song.getSong()[0][0]); // source untouched
 		assertEquals(5, song.getSong()[1][0]); // copy landed at the insert point, same track number
@@ -420,7 +421,7 @@ class SongEditingTest {
 
 		// tuning=0, volumep=100 - no actual edit, just characterizes that
 		// cloning creates a distinct track rather than reusing track 5.
-		assertTrue(song.songInsertCopyOrCloneOfSongLinesApply(1, 0, 0, true, 0, 100, undo, 4, clipboard));
+		assertTrue(song.songInsertCopyOrCloneOfSongLinesApply(1, 0, 0, true, 0, 100, undo, clipboard));
 
 		assertEquals(5, song.getSong()[0][0]); // source untouched
 		int clonedTrack = song.getSong()[1][0];
@@ -806,7 +807,7 @@ class SongEditingTest {
 
 		song.getSong()[0][0] = 6; // switch the active track to an empty one
 
-		song.blockPaste(0, clipboard, tracks, undo, 4);
+		song.blockPaste(0, clipboard, tracks, undo);
 
 		assertEquals(3, tracks.getTrack(6).note[0]);
 	}
@@ -963,11 +964,11 @@ class SongEditingTest {
 	@Test
 	void songCopyLineAndPasteLineRoundTripLineData() {
 		song.getSong()[0][0] = 5;
-		song.songCopyLine(4);
+		song.songCopyLine();
 
 		song.getSong()[0][0] = -1; // overwrite before pasting back
 
-		song.songPasteLine(undo, 4);
+		song.songPasteLine(undo);
 
 		assertEquals(5, song.getSong()[0][0]);
 	}
@@ -977,7 +978,7 @@ class SongEditingTest {
 		song.getSong()[0][0] = 5;
 		song.songTrackGoOnOff(undo); // also set a GO to confirm it gets cleared too
 
-		song.songClearLine(undo, 4);
+		song.songClearLine(undo);
 
 		assertEquals(-1, song.getSong()[0][0]);
 		assertEquals(-1, song.songGetGo());
@@ -992,13 +993,13 @@ class SongEditingTest {
 		tracks.getTrack(0).len = 32;
 		tracks.getTrack(1).len = 16;
 
-		assertEquals(16, song.getSmallestMaxtracklen(0, 4));
+		assertEquals(16, song.getSmallestMaxtracklen(0));
 	}
 
 	@Test
 	void getSmallestMaxtracklenReturnsZeroForAGotoLine() {
 		song.songTrackGoOnOff(undo);
-		assertEquals(0, song.getSmallestMaxtracklen(0, 4));
+		assertEquals(0, song.getSmallestMaxtracklen(0));
 	}
 
 	@Test
@@ -1006,7 +1007,7 @@ class SongEditingTest {
 		song.getSong()[0][0] = 0;
 		tracks.getTrack(0).len = 40;
 
-		assertEquals(40, song.getEffectiveMaxtracklen(4));
+		assertEquals(40, song.getEffectiveMaxtracklen());
 	}
 
 	@Test
@@ -1029,7 +1030,7 @@ class SongEditingTest {
 		song.getSong()[0][0] = 0;
 		tracks.getTrack(1).note[0] = 1;
 
-		Song.ClearUnusedResult result = song.songClearUnusedTracksAndParts(4);
+		Song.ClearUnusedResult result = song.songClearUnusedTracksAndParts();
 
 		assertEquals(1, result.clearedTracks());
 		assertTrue(tracks.isEmptyTrack(1));
@@ -1041,7 +1042,7 @@ class SongEditingTest {
 		tracks.getTrack(1).note[0] = 5; // identical to track 0
 		song.getSong()[0][0] = 1; // song points at the duplicate
 
-		int cleared = song.songClearDuplicatedTracks(4);
+		int cleared = song.songClearDuplicatedTracks();
 
 		assertEquals(1, cleared);
 		assertEquals(0, song.getSong()[0][0]); // remapped to the surviving track
@@ -1052,7 +1053,7 @@ class SongEditingTest {
 		song.getSong()[0][0] = 0;
 		tracks.getTrack(1).note[0] = 1;
 
-		int cleared = song.songClearUnusedTracks(4);
+		int cleared = song.songClearUnusedTracks();
 
 		assertEquals(1, cleared);
 		assertTrue(tracks.isEmptyTrack(1));
@@ -1101,7 +1102,7 @@ class SongEditingTest {
 		song.getSong()[0][0] = 5;
 		tracks.getTrack(5).note[0] = 9;
 
-		song.renumberAllTracks(1, 4); // 1 = vertically in columns
+		song.renumberAllTracks(1); // 1 = vertically in columns
 
 		assertEquals(9, tracks.getTrack(0).note[0]);
 		assertEquals(0, song.getSong()[0][0]);
@@ -1181,7 +1182,7 @@ class SongEditingTest {
 		song.getSong()[1][3] = 41;
 
 		int[] tracksorder = { 1, 0, -1, 3, -1, -1, -1, -1 };
-		song.tracksOrderChangeApply(0, 1, tracksorder, 4);
+		song.tracksOrderChangeApply(0, 1, tracksorder);
 
 		assertEquals(20, song.getSong()[0][0]); // new col0 <- old col1
 		assertEquals(10, song.getSong()[0][1]); // new col1 <- old col0
@@ -1223,9 +1224,11 @@ class SongEditingTest {
 	// every C++ test too.
 
 	@Test
-	void setTracksReturnsTheNewTrackCount() {
-		assertEquals(8, song.setTracks(8));
-		assertEquals(4, song.setTracks(4));
+	void setChannelsStoresTheChannelCount() {
+		song.setChannels(8);
+		assertEquals(8, song.getChannels());
+		song.setChannels(4);
+		assertEquals(4, song.getChannels());
 	}
 
 	// --- getTrackerDriverVersion / setTrackerDriverVersion ---
@@ -1318,9 +1321,11 @@ class SongEditingTest {
 	}
 
 	@Test
-	void clearSongSetsTheTrackCount() {
-		assertEquals(8, song.clearSong(8, undo));
-		assertEquals(4, song.clearSong(4, undo));
+	void clearSongSetsTheChannelCount() {
+		song.clearSong(8, undo);
+		assertEquals(8, song.getChannels());
+		song.clearSong(4, undo);
+		assertEquals(4, song.getChannels());
 	}
 
 	// --- RmtExporter.exportAsRMT ---
@@ -1348,7 +1353,7 @@ class SongEditingTest {
 		byte[] instrSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
 		int targetAddrOfModule = 0x4000;
-		int firstByteAfterModule = SongIO.makeModule(song, mem, targetAddrOfModule, SongIOType.RMT, instrSavedFlags, trackSavedFlags, 4);
+		int firstByteAfterModule = SongIO.makeModule(song, mem, targetAddrOfModule, SongIOType.RMT, instrSavedFlags, trackSavedFlags);
 		assertTrue(firstByteAfterModule > 0);
 
 		byte[] out = RmtExporter.exportAsRMT(song, instruments, mem, targetAddrOfModule, firstByteAfterModule, instrSavedFlags);
@@ -1380,7 +1385,7 @@ class SongEditingTest {
 		tracks.getTrack(5).note[0] = 10;
 		tracks.getTrack(5).instr[0] = 2;
 
-		byte[] out = RmtExporter.exportAsStrippedRMTApply(song, 0x4000, false, 4);
+		byte[] out = RmtExporter.exportAsStrippedRMTApply(song, 0x4000, false);
 		assertTrue(out != null);
 
 		byte[] mem = new byte[Atari.MEMORY_SIZE];
@@ -1391,8 +1396,8 @@ class SongEditingTest {
 		byte[] instrLoadedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackLoadedFlags = new byte[Tracks.TRACKSNUM];
 		Song decoded = new Song(instruments, tracks);
-		SongIO.DecodeModuleResult result = SongIO.decodeModule(decoded, mem, block.fromAddr(), block.toAddr() + 1, instrLoadedFlags, trackLoadedFlags);
-		assertTrue(result.version() > 0);
+		int version = SongIO.decodeModule(decoded, mem, block.fromAddr(), block.toAddr() + 1, instrLoadedFlags, trackLoadedFlags);
+		assertTrue(version > 0);
 	}
 
 	@Test
@@ -1408,7 +1413,7 @@ class SongEditingTest {
 		tracks.getTrack(5).note[0] = 10;
 		tracks.getTrack(5).instr[0] = 2;
 
-		byte[] out = RmtExporter.exportAsStrippedRMTApply(song, 0x5000, true, 4);
+		byte[] out = RmtExporter.exportAsStrippedRMTApply(song, 0x5000, true);
 		assertTrue(out != null);
 
 		byte[] mem = new byte[Atari.MEMORY_SIZE];
@@ -1419,8 +1424,8 @@ class SongEditingTest {
 		byte[] instrLoadedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackLoadedFlags = new byte[Tracks.TRACKSNUM];
 		Song decoded = new Song(instruments, tracks);
-		SongIO.DecodeModuleResult result = SongIO.decodeModule(decoded, mem, block.fromAddr(), block.toAddr() + 1, instrLoadedFlags, trackLoadedFlags);
-		assertTrue(result.version() > 0);
+		int version = SongIO.decodeModule(decoded, mem, block.fromAddr(), block.toAddr() + 1, instrLoadedFlags, trackLoadedFlags);
+		assertTrue(version > 0);
 	}
 
 	// --- AsmFileExporter.exportAsAsmApply ---
@@ -1435,8 +1440,7 @@ class SongEditingTest {
 		tr.note[0] = 10;
 		tr.instr[0] = 2;
 
-		String out = AsmFileExporter.exportAsAsmApply(song, instruments, tracks, new byte[Atari.MEMORY_SIZE], messages, "",
-				4, 1 /* Tracks only */, 1 /* notes */, 1 /* notes only */);
+		String out = AsmFileExporter.exportAsAsmApply(song, instruments, tracks, new byte[Atari.MEMORY_SIZE], messages, "", 1 /* Tracks only */, 1 /* notes */, 1 /* notes only */);
 
 		assertTrue(out.contains(";ASM notation source"));
 		assertTrue(out.contains(";Track $05"));
@@ -1458,9 +1462,9 @@ class SongEditingTest {
 		tr.instr[0] = 2;
 		byte[] noDriver = new byte[Atari.MEMORY_SIZE];
 
-		assertNull(AsmFileExporter.exportAsAsmApply(song, instruments, tracks, noDriver, messages, "", 4, 1,
+		assertNull(AsmFileExporter.exportAsAsmApply(song, instruments, tracks, noDriver, messages, "", 1,
 				2 /* frequencies */, 1));
-		assertNotNull(AsmFileExporter.exportAsAsmApply(song, instruments, tracks, noDriver, messages, "", 4, 1,
+		assertNotNull(AsmFileExporter.exportAsAsmApply(song, instruments, tracks, noDriver, messages, "", 1,
 				1 /* indices */, 1));
 	}
 
@@ -1484,10 +1488,10 @@ class SongEditingTest {
 		byte[] instrSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
 		int targetAddrOfModule = 0x4000;
-		int firstByteAfterModule = SongIO.makeModule(song, mem, targetAddrOfModule, SongIOType.RMT, instrSavedFlags, trackSavedFlags, 4);
+		int firstByteAfterModule = SongIO.makeModule(song, mem, targetAddrOfModule, SongIOType.RMT, instrSavedFlags, trackSavedFlags);
 		assertTrue(firstByteAfterModule > 0);
 
-		AsmFileExporter.Result result = AsmFileExporter.buildRelocatableAsm(song, instruments, tracks, 4, mem, targetAddrOfModule, firstByteAfterModule, instrSavedFlags, "MY_SONG", "", "", "",
+		AsmFileExporter.Result result = AsmFileExporter.buildRelocatableAsm(song, instruments, tracks, mem, targetAddrOfModule, firstByteAfterModule, instrSavedFlags, "MY_SONG", "", "", "",
 				AssemblerFormat.XASM, false, false, false, false);
 		assertTrue(result.success());
 
@@ -1516,13 +1520,13 @@ class SongEditingTest {
 		byte[] instrSavedFlagsStripped = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlagsStripped = new byte[Tracks.TRACKSNUM];
 		int targetAddrOfModule = 0x4000;
-		int firstByteAfterModule = SongIO.makeModule(song, memStripped, targetAddrOfModule, SongIOType.RMT, instrSavedFlagsStripped, trackSavedFlagsStripped, 4);
+		int firstByteAfterModule = SongIO.makeModule(song, memStripped, targetAddrOfModule, SongIOType.RMT, instrSavedFlagsStripped, trackSavedFlagsStripped);
 		assertTrue(firstByteAfterModule > 0);
 
 		// exportDescWithSFX's content doesn't matter here - sfxSupport is false below
 		AsmFileExporter.RelocatableAsmExportParams params = new AsmFileExporter.RelocatableAsmExportParams("MY_SONG", false, false, false, "", "", "", AssemblerFormat.XASM, false, false, false);
 
-		AsmFileExporter.Result result = AsmFileExporter.exportAsRelocatableAsmForRmtPlayerApply(song, instruments, tracks, 4, memStripped, targetAddrOfModule, firstByteAfterModule,
+		AsmFileExporter.Result result = AsmFileExporter.exportAsRelocatableAsmForRmtPlayerApply(song, instruments, tracks, memStripped, targetAddrOfModule, firstByteAfterModule,
 				instrSavedFlagsStripped, memStripped, targetAddrOfModule, firstByteAfterModule, instrSavedFlagsStripped, params);
 
 		assertTrue(result.success());
@@ -1587,21 +1591,21 @@ class SongEditingTest {
 	@Test
 	void trackUpMovesActiveLineUpWithinBounds() {
 		song.setActiveLine(5);
-		song.trackUp(2, 4, false, undo, clipboard);
+		song.trackUp(2, false, undo, clipboard);
 		assertEquals(3, song.getActiveLine());
 	}
 
 	@Test
 	void trackUpWrapsToTheBottomWhenGoingBelowZero() {
 		song.setActiveLine(1);
-		song.trackUp(3, 4, false, undo, clipboard); // 1-3=-2, keyboardUpDownContinue is off, so -2 + trlen(64) = 62
+		song.trackUp(3, false, undo, clipboard); // 1-3=-2, keyboardUpDownContinue is off, so -2 + trlen(64) = 62
 		assertEquals(62, song.getActiveLine());
 	}
 
 	@Test
 	void trackDownMovesActiveLineDownWithinBounds() {
 		song.setActiveLine(3);
-		song.trackDown(2, false, 4, false, undo, clipboard); // stoponlastline=false avoids trackGetLastLine()'s -1-for-no-track edge case
+		song.trackDown(2, false, false, undo, clipboard); // stoponlastline=false avoids trackGetLastLine()'s -1-for-no-track edge case
 		assertEquals(5, song.getActiveLine());
 	}
 
@@ -1609,7 +1613,7 @@ class SongEditingTest {
 
 	@Test
 	void songPrepareNewLineFillsTheNewLineWithUnusedTracks() {
-		assertTrue(song.songPrepareNewLine(2, -1, true, undo, 4));
+		assertTrue(song.songPrepareNewLine(2, -1, true, undo));
 
 		// With nothing else in the song, each column gets the next free track.
 		assertEquals(0, song.getSong()[2][0]);
@@ -1622,7 +1626,7 @@ class SongEditingTest {
 	void songPutnewemptyunusedtrackAssignsAFreeTrackToTheActivePosition() {
 		song.songSetActiveLine(0); // getActiveColumn() defaults to column 0
 
-		assertTrue(song.songPutnewemptyunusedtrack(undo, 4));
+		assertTrue(song.songPutnewemptyunusedtrack(undo));
 
 		assertEquals(0, song.getSong()[0][0]); // first free track assigned
 	}
@@ -1634,7 +1638,7 @@ class SongEditingTest {
 		song.songSetActiveLine(0);
 		song.getSongGo()[0] = 1; // songline 0 is a goto line
 
-		assertFalse(song.songMaketracksduplicate(undo, 4, messages));
+		assertFalse(song.songMaketracksduplicate(undo, messages));
 	}
 
 	@Test
@@ -1642,7 +1646,7 @@ class SongEditingTest {
 		song.songSetActiveLine(0); // getActiveColumn() defaults to column 0
 		song.getSong()[0][0] = -1; // no track at the active position
 
-		assertFalse(song.songMaketracksduplicate(undo, 4, messages));
+		assertFalse(song.songMaketracksduplicate(undo, messages));
 	}
 
 	@Test
@@ -1654,7 +1658,7 @@ class SongEditingTest {
 		tracks.getTrack(5).instr[0] = 2;
 
 		messages.setTestQuestionAnswer(MessageAnswer.OK);
-		assertTrue(song.songMaketracksduplicate(undo, 4, messages));
+		assertTrue(song.songMaketracksduplicate(undo, messages));
 
 		int newTrack = song.getSong()[0][0];
 		assertTrue(newTrack != 5); // moved to a different, free track
@@ -1670,42 +1674,42 @@ class SongEditingTest {
 		tracks.getTrack(5).note[0] = 10;
 
 		messages.setTestQuestionAnswer(MessageAnswer.CANCEL);
-		assertFalse(song.songMaketracksduplicate(undo, 4, messages));
+		assertFalse(song.songMaketracksduplicate(undo, messages));
 
 		assertEquals(5, song.getSong()[0][0]); // unchanged
 	}
 
 	@Test
 	void songswitch4_8LeavesStateUnchangedWhenCancelled() {
-		int tracks4_8 = song.setTracks(8);
+		song.setChannels(8);
 		song.getSong()[0][4] = 5; // an R1 column entry that would be erased if confirmed
 
 		messages.setTestQuestionAnswer(MessageAnswer.CANCEL);
-		tracks4_8 = song.songswitch4_8(tracks4_8, 4, undo, messages);
+		assertFalse(song.songswitch4_8(4, undo, messages));
 
-		assertEquals(8, tracks4_8); // unchanged
+		assertEquals(8, song.getChannels()); // unchanged
 		assertEquals(5, song.getSong()[0][4]); // unchanged
 	}
 
 	@Test
 	void songswitch4_8ClearsStereoColumnsWhenConfirmed() {
-		int tracks4_8 = song.setTracks(8);
+		song.setChannels(8);
 		song.getSong()[0][4] = 5; // R1 column entry
 
 		messages.setTestQuestionAnswer(MessageAnswer.YES);
-		tracks4_8 = song.songswitch4_8(tracks4_8, 4, undo, messages);
+		assertTrue(song.songswitch4_8(4, undo, messages));
 
-		assertEquals(4, tracks4_8);
+		assertEquals(4, song.getChannels());
 		assertEquals(-1, song.getSong()[0][4]); // R1-R4 columns cleared
 	}
 
 	@Test
 	void songswitch4_8SwitchesToStereoWhenConfirmed() {
-		int tracks4_8 = 4;
+		song.setChannels(4);
 		messages.setTestQuestionAnswer(MessageAnswer.YES);
-		tracks4_8 = song.songswitch4_8(tracks4_8, 8, undo, messages);
+		assertTrue(song.songswitch4_8(8, undo, messages));
 
-		assertEquals(8, tracks4_8);
+		assertEquals(8, song.getChannels());
 	}
 
 	// --- playPressedTones ---
@@ -1750,7 +1754,7 @@ class SongEditingTest {
 		song.songSetActiveLine(3);
 		song.setActiveLine(4);
 
-		assertTrue(song.play(PlayMode.PLAY_TRACK, false, undo, 4, atariTrackerDriver, clipboard));
+		assertTrue(song.play(PlayMode.PLAY_TRACK, false, undo, atariTrackerDriver, clipboard));
 
 		assertEquals(PlayMode.PLAY_TRACK, song.getPlayMode());
 		assertEquals(3, song.songGetPlayLine()); // songPlayLine = songActiveLine
@@ -1773,7 +1777,7 @@ class SongEditingTest {
 		tr.instr[0] = 3;
 		tr.volume[0] = 10;
 
-		assertTrue(song.playBeat(4, atariTrackerDriver));
+		assertTrue(song.playBeat( atariTrackerDriver));
 		assertEquals(3, atariTrackerDriver.getRmtInstrument(0));
 	}
 
@@ -1785,7 +1789,7 @@ class SongEditingTest {
 		song.songSetPlayLine(0);
 		song.setPlayLine(5); // speeda defaults to 0, so "speeda--" makes the "too soon" check fail and it proceeds
 
-		assertTrue(song.playVBI(4, atariTrackerDriver, false, undo));
+		assertTrue(song.playVBI( atariTrackerDriver, false, undo));
 		assertEquals(6, song.getPlayLine());
 	}
 
@@ -1814,7 +1818,7 @@ class SongEditingTest {
 		Track tr = followPlayAtLine2();
 		song.setQuantization(20, 3, 9);
 
-		assertTrue(song.playVBI(4, atariTrackerDriver, false, undo));
+		assertTrue(song.playVBI( atariTrackerDriver, false, undo));
 
 		assertEquals(3, song.getActiveLine()); // the cursor followed the player
 		assertEquals(20, tr.note[3]);
@@ -1824,7 +1828,7 @@ class SongEditingTest {
 
 		// the note is cancelled: another VBI at the next line enters nothing
 		song.setSpeeda(1);
-		assertTrue(song.playVBI(4, atariTrackerDriver, false, undo));
+		assertTrue(song.playVBI( atariTrackerDriver, false, undo));
 		assertEquals(-1, tr.note[4]);
 	}
 
@@ -1834,7 +1838,7 @@ class SongEditingTest {
 		tr.volume[3] = 4;
 		song.setQuantization(20, 3, 9);
 
-		assertTrue(song.playVBI(4, atariTrackerDriver, true, undo));
+		assertTrue(song.playVBI( atariTrackerDriver, true, undo));
 
 		assertEquals(20, tr.note[3]);
 		assertEquals(4, tr.volume[3]); // g_respectvolume: the line's volume wins over the typed one
@@ -1848,7 +1852,7 @@ class SongEditingTest {
 		tr.volume[3] = 12;
 		song.setQuantization(-2, -1, -1); // the MIDI note off
 
-		assertTrue(song.playVBI(4, atariTrackerDriver, false, undo));
+		assertTrue(song.playVBI( atariTrackerDriver, false, undo));
 
 		assertEquals(-1, tr.note[3]);
 		assertEquals(-1, tr.instr[3]);
@@ -1861,7 +1865,7 @@ class SongEditingTest {
 		song.setFollowPlayMode(false);
 		song.setQuantization(20, 3, 9);
 
-		assertTrue(song.playVBI(4, atariTrackerDriver, false, undo));
+		assertTrue(song.playVBI( atariTrackerDriver, false, undo));
 
 		assertEquals(-1, tr.note[3]);
 		assertEquals(0, song.getActiveLine()); // the cursor did not follow
@@ -1918,7 +1922,7 @@ class SongEditingTest {
 		song.songSetActiveLine(1); // the dump plays from line 0 and must not move the cursor
 		song.setActiveLine(1);
 
-		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
+		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, atariTrackerDriver, channelControl, clipboard, undo);
 
 		assertEquals(PlayMode.PLAY_STOP, song.getPlayMode());
 		assertEquals(1, song.songGetActiveLine());
@@ -1971,9 +1975,9 @@ class SongEditingTest {
 		ChannelControl channelControl = new ChannelControl(4);
 
 		PokeyStream fromLineOne = new PokeyStream();
-		song.dumpSongToPokeyStream(fromLineOne, PlayMode.PLAY_FROM, 1, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
+		song.dumpSongToPokeyStream(fromLineOne, PlayMode.PLAY_FROM, 1, 0, atariTrackerDriver, channelControl, clipboard, undo);
 		PokeyStream fromTheStart = new PokeyStream();
-		song.dumpSongToPokeyStream(fromTheStart, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
+		song.dumpSongToPokeyStream(fromTheStart, PlayMode.PLAY_SONG, 0, 0, atariTrackerDriver, channelControl, clipboard, undo);
 
 		int audf1FromLineOne = fromLineOne.getFrameBytes(1, 0)[0] & 0xFF;
 		int audf1FromTheStart = fromTheStart.getFrameBytes(1, 0)[0] & 0xFF;
@@ -2009,7 +2013,7 @@ class SongEditingTest {
 		useRealAtari();
 		ChannelControl channelControl = new ChannelControl(4);
 		PokeyStream pokeyStream = new PokeyStream();
-		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
+		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, atariTrackerDriver, channelControl, clipboard, undo);
 
 		SapFile sapFile = new SapFile();
 		sapFile.setAuthor("RCoder");
@@ -2066,7 +2070,7 @@ class SongEditingTest {
 		sapFile.setDate("01/01/2000");
 
 		// The exporter dumps the song itself now, one dump per subtune, as the XEX export does
-		byte[] out = SapFileExporter.exportSapBLzss(sapFile, song, 4, atariTrackerDriver, channelControl, clipboard, undo);
+		byte[] out = SapFileExporter.exportSapBLzss(sapFile, song, atariTrackerDriver, channelControl, clipboard, undo);
 
 		String header = new String(out, 0, Math.min(out.length, 200), java.nio.charset.StandardCharsets.US_ASCII);
 		assertTrue(header.contains("TYPE B"));
@@ -2100,7 +2104,7 @@ class SongEditingTest {
 		useRealAtari();
 		ChannelControl channelControl = new ChannelControl(4);
 		PokeyStream pokeyStream = new PokeyStream();
-		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
+		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, atariTrackerDriver, channelControl, clipboard, undo);
 
 		byte[] out = WaveFileExporter.exportWav(pokeyStream, false, false, song.getInstrumentSpeed());
 
@@ -2149,7 +2153,7 @@ class SongEditingTest {
 		useRealAtari();
 		ChannelControl channelControl = new ChannelControl(4);
 		PokeyStream pokeyStream = new PokeyStream();
-		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
+		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, atariTrackerDriver, channelControl, clipboard, undo);
 
 		byte[] out = WaveFileExporter.exportWav(pokeyStream, false, false, song.getInstrumentSpeed());
 
@@ -2182,9 +2186,10 @@ class SongEditingTest {
 		song.getSongGo()[1] = 0; // guarantees a fast loop
 
 		useRealAtari(true);
+		song.setChannels(8);
 		ChannelControl channelControl = new ChannelControl(8);
 		PokeyStream pokeyStream = new PokeyStream();
-		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 8, atariTrackerDriver, channelControl, clipboard, undo);
+		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, atariTrackerDriver, channelControl, clipboard, undo);
 		assertEquals(pokeyStream.getFirstCountPoint() * 18, pokeyStream.getFrameBytes(pokeyStream.getFirstCountPoint(), 0).length); // stereo: 18 bytes/frame
 
 		byte[] out = WaveFileExporter.exportWav(pokeyStream, false, true, 1);
@@ -2232,7 +2237,7 @@ class SongEditingTest {
 		useRealAtari();
 		ChannelControl channelControl = new ChannelControl(4);
 		PokeyStream pokeyStream = new PokeyStream();
-		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, 4, atariTrackerDriver, channelControl, clipboard, undo);
+		song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, atariTrackerDriver, channelControl, clipboard, undo);
 
 		SongExporter.LzssExportResult result = SongExporter.exportLzss(pokeyStream);
 
@@ -2265,7 +2270,7 @@ class SongEditingTest {
 		instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL] = 10;
 		song.getSongGo()[1] = 0; // guarantees a fast loop
 
-		XexFile xexFile = XexFile.fromSong(song, 4);
+		XexFile xexFile = XexFile.fromSong(song);
 		xexFile.autoRegion = true; // skips the NOP-patching branch, simplifying the test
 		xexFile.displayRasterbar = false;
 		xexFile.rasterbarColor = 0;
@@ -2273,7 +2278,7 @@ class SongEditingTest {
 
 		useRealAtari();
 		ChannelControl channelControl = new ChannelControl(4);
-		byte[] out = SongExporter.exportXexLzss(song, 4, xexFile, atariTrackerDriver, channelControl, clipboard, undo);
+		byte[] out = SongExporter.exportXexLzss(song, xexFile, atariTrackerDriver, channelControl, clipboard, undo);
 
 		// The output is a reconstructed Atari binary (headers + raw data, not
 		// text) - just confirm a substantial amount of it actually landed,

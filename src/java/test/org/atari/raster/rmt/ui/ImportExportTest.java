@@ -246,9 +246,9 @@ class ImportExportTest {
 		// address $6800 the export reproduces the module byte for byte,
 		// and a relocation to $6400 keeps its full length (the issue's
 		// repro, which produced 30 bytes before the fix).
-		byte[] withSfx = RmtExporter.exportAsStrippedRMTApply(session.song, 0x6800, true, session.tracks4_8);
+		byte[] withSfx = RmtExporter.exportAsStrippedRMTApply(session.song, 0x6800, true);
 		assertArrayEquals(original, withSfx);
-		byte[] relocated = RmtExporter.exportAsStrippedRMTApply(session.song, 0x6400, true, session.tracks4_8);
+		byte[] relocated = RmtExporter.exportAsStrippedRMTApply(session.song, 0x6400, true);
 		assertNotNull(relocated);
 		assertEquals(original.length, relocated.length);
 		assertEquals(0x00, relocated[2] & 0xFF); // relocated to $6400
@@ -257,7 +257,7 @@ class ImportExportTest {
 		// Without SFX support the stripping itself is correct: no track
 		// uses any instrument, so only the header and the empty song's
 		// goto line remain (what the broken SFX export used to produce).
-		byte[] stripped = RmtExporter.exportAsStrippedRMTApply(session.song, 0x6400, false, session.tracks4_8);
+		byte[] stripped = RmtExporter.exportAsStrippedRMTApply(session.song, 0x6400, false);
 		assertNotNull(stripped);
 		assertEquals(30, stripped.length);
 	}
@@ -395,7 +395,7 @@ class ImportExportTest {
 		openDelta();
 		List<Integer> reported = new ArrayList<>();
 		org.atari.raster.rmt.model.PokeyStream stream = new org.atari.raster.rmt.model.PokeyStream();
-		session.song.dumpSongToPokeyStream(stream, org.atari.raster.rmt.model.PlayMode.PLAY_SONG, 0, 0, session.tracks4_8,
+		session.song.dumpSongToPokeyStream(stream, org.atari.raster.rmt.model.PlayMode.PLAY_SONG, 0, 0,
 			session.atariTrackerDriver, session.channelControl, session.clipboard, session.undo, new ExportProgress() {
 				@Override
 				public void framesRecorded(int frames) {

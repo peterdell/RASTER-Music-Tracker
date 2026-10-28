@@ -392,7 +392,7 @@ public final class TrackerPanel extends JPanel {
 			}
 			resizeCanvas(deviceWidth, deviceHeight);
 			session.locked(() -> {
-				session.song.respectBoundaries(session.tracks4_8);
+				session.song.respectBoundaries();
 				songUI.drawAll();
 			});
 		}

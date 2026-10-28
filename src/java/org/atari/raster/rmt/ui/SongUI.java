@@ -62,7 +62,7 @@ public final class SongUI {
 	}
 
 	private boolean isStereo() {
-		return session.song.isStereo(session.tracks4_8);
+		return session.song.isStereo();
 	}
 
 	private boolean isPlaying() {
@@ -186,7 +186,7 @@ public final class SongUI {
 		int[] R = new int[8];
 		int[] G = new int[8];
 		int yUp = 7;
-		for (int i = 0; i < song.getTracks(tracks4_8); i++) {
+		for (int i = 0; i < song.getChannels(); i++) {
 			col[i] = 102;
 			R[i] = 44;
 			G[i] = 60;
@@ -266,7 +266,7 @@ public final class SongUI {
 				yUp -= 2;
 			} // Two tone mode (join channel 5 + 6)
 
-			for (int channelNr = 0; channelNr < song.getTracks(tracks4_8); channelNr++) {
+			for (int channelNr = 0; channelNr < song.getChannels(); channelNr++) {
 				audf = memory[idx[channelNr]] & 0xFF; // Get the frequency
 				audc = memory[idx[channelNr] + 1] & 0xFF; // Get audio control, Bits: 0-3 = volume, 4 = Volume only, 5-7 = Distortion
 				int skctl1 = memory[0xd20f] & 0xFF; // Two tone mode Mono
@@ -367,7 +367,7 @@ public final class SongUI {
 			// Map the current track's playline into the number range -8 -> 7
 			// This gives a Y position shift to draw the song line info
 			// y_offset = line * 16 / track_length
-			patternLen = song.getSmallestMaxtracklen(song.songGetPlayLine(), tracks4_8);
+			patternLen = song.getSmallestMaxtracklen(song.songGetPlayLine());
 			if (patternLen == 0) {
 				patternLen = session.tracks.getMaxTrackLength(); // fallback to whatever is in memory instead if the value returned is invalid
 			}
@@ -461,7 +461,7 @@ public final class SongUI {
 		for (i = 0; i < 4; i++, k += 24) {
 			canvasXY.textXY("L" + (char) (i + '1'), k, RmtScreenLayout.SONG_Y, getChannelNameColor(i)); // character 1-4
 		}
-		for (i = 4; i < song.getTracks(tracks4_8); i++, k += 24) {
+		for (i = 4; i < song.getChannels(); i++, k += 24) {
 			canvasXY.textXY("R" + (char) (i + 49 - 4), k, RmtScreenLayout.SONG_Y, getChannelNameColor(i)); // character 1-4
 		}
 	}
@@ -579,13 +579,13 @@ public final class SongUI {
 			int oob = 0;
 
 			int sl = songActiveLine; // offset by the oob songline counter when needed
-			int ln = song.getSmallestMaxtracklen(sl, tracks4_8);
+			int ln = song.getSmallestMaxtracklen(sl);
 
 			if (line < 0) {
 				do { // minusline:
 					oob--;
 					sl = wrapSongline(songActiveLine + oob);
-					ln = song.getSmallestMaxtracklen(sl, tracks4_8);
+					ln = song.getSmallestMaxtracklen(sl);
 
 					line += ln;
 				} while (line < 0);
@@ -595,7 +595,7 @@ public final class SongUI {
 					oob++;
 					line -= ln;
 					sl = wrapSongline(songActiveLine + oob);
-					ln = song.getSmallestMaxtracklen(sl, tracks4_8);
+					ln = song.getSmallestMaxtracklen(sl);
 
 					if (ln == 0) {
 						isGoto = true;
@@ -698,7 +698,7 @@ public final class SongUI {
 			int lineEnd = y + ui.trackLines * 16;
 
 			if (isGoto) {
-				lineEnd = y + (8 - ui.cursorActView + song.getSmallestMaxtracklen(songActiveLine, tracks4_8)) * 16 + smoothY;
+				lineEnd = y + (8 - ui.cursorActView + song.getSmallestMaxtracklen(songActiveLine)) * 16 + smoothY;
 			}
 
 			canvasXY.moveTo(RmtScreenLayout.TRACKS_X + 50 * 11 - 3, y);

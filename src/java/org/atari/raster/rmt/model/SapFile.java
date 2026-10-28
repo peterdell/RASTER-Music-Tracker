@@ -169,11 +169,11 @@ public final class SapFile {
 	 * so tests are deterministic), stereo/NTSC, and FASTPLAY for instrument
 	 * speeds above 1; then normalized.
 	 */
-	public void init(Song song, int tracks4_8, String date) {
+	public void init(Song song, String date) {
 		author = "???";
 		name = song.getName();
 		this.date = date;
-		stereo = song.isStereo(tracks4_8);
+		stereo = song.isStereo();
 		ntsc = song.isNTSC();
 		if (song.getInstrumentSpeed() > 1) {
 			fastplay = switch (song.getInstrumentSpeed()) {

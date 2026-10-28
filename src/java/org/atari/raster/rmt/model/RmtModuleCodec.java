@@ -31,10 +31,11 @@ public final class RmtModuleCodec {
 	 *
 	 * @throws RmtModule.FormatException for a track too event-dense to encode in 256 bytes (the one failure {@code makeModule} knows), or a song speed/instrument speed outside the header's range
 	 */
-	public static RmtModule fromSong(Song song, SongIOType iotype, int tracks4_8) {
+	public static RmtModule fromSong(Song song, SongIOType iotype) {
+		int channels = song.getChannels();
 		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
-		song.markTfUsed(trackSavedFlags, tracks4_8); // mark all tracks as used
+		song.markTfUsed(trackSavedFlags); // mark all tracks as used
 		if (iotype == SongIOType.RMT) {
 			song.markTfNoEmpty(trackSavedFlags); // in addition to the used ones, all non-empty tracks
 		}
@@ -56,7 +57,7 @@ public final class RmtModuleCodec {
 			}
 		}
 
-		boolean stereo = song.isStereo(tracks4_8);
+		boolean stereo = song.isStereo();
 		byte[] scratch = new byte[Math.max(RmtModule.Track.MAX_LENGTH, RmtModule.Instrument.MAX_LENGTH)];
 		Map<Integer, RmtModule.Instrument> instruments = new TreeMap<>();
 		for (int i = 0; i < Instruments.INSTRSNUM; i++) {
@@ -85,8 +86,8 @@ public final class RmtModuleCodec {
 				lines.add(RmtModule.SongLine.goTo(song.songGo[line]));
 				last = line;
 			} else {
-				int[] numbers = new int[tracks4_8];
-				for (int channel = 0; channel < tracks4_8; channel++) {
+				int[] numbers = new int[channels];
+				for (int channel = 0; channel < channels; channel++) {
 					int number = song.song[line][channel];
 					numbers[channel] = number >= 0 && number < Tracks.TRACKSNUM ? number : RmtModule.SongLine.EMPTY;
 				}
@@ -97,12 +98,12 @@ public final class RmtModuleCodec {
 				}
 			}
 		}
-		return new RmtModule(tracks4_8, song.tracks.getMaxTrackLength(), song.mainSpeed, song.instrumentSpeed, RmtFormatVersion.V1, instruments, tracks, lines.subList(0, last + 1));
+		return new RmtModule(channels, song.tracks.getMaxTrackLength(), song.mainSpeed, song.instrumentSpeed, RmtFormatVersion.V1, instruments, tracks, lines.subList(0, last + 1));
 	}
 
 	/** The {@code .rmt} file of the song as RMT saves it: the module with every non-empty track and instrument, and the names segment. */
-	public static RmtModuleFile fileFromSong(Song song, int tracks4_8, int loadAddress) {
-		RmtModule module = fromSong(song, SongIOType.RMT, tracks4_8);
+	public static RmtModuleFile fileFromSong(Song song, int loadAddress) {
+		RmtModule module = fromSong(song, SongIOType.RMT);
 		List<String> instrumentNames = new ArrayList<>();
 		for (int number : module.instruments().keySet()) {
 			instrumentNames.add(Song.nameToString(song.instruments.getName(number)).stripTrailing());
@@ -114,18 +115,17 @@ public final class RmtModuleCodec {
 	 * The module into the song - {@code SongIO.decodeModule}'s effect: the
 	 * channel count, track length and speeds, every instrument and track
 	 * decoded in place, the song lines set; the lines beyond the module's
-	 * are left as they are, as {@code decodeModule} leaves them. Returns
-	 * the song's {@code tracks4_8}, the module's channel count.
+	 * are left as they are, as {@code decodeModule} leaves them.
 	 *
 	 * @throws RmtModule.FormatException if an instrument's or a track's bytes do not decode
 	 */
-	public static int toSong(RmtModule module, Song song) {
-		int tracks4_8 = song.setTracks(module.channels());
+	public static void toSong(RmtModule module, Song song) {
+		song.setChannels(module.channels());
 		song.tracks.setMaxTrackLength(module.trackLength());
 		song.mainSpeed = module.songSpeed();
 		song.instrumentSpeed = module.instrumentSpeed();
 		song.tracks.initTracks();
-		boolean stereo = song.isStereo(tracks4_8);
+		boolean stereo = song.isStereo();
 		for (Map.Entry<Integer, RmtModule.Instrument> entry : module.instruments().entrySet()) {
 			if (!song.instruments.ataToInstr(entry.getValue().toBytes(), entry.getKey(), stereo)) {
 				throw new RmtModule.FormatException("Instrument " + entry.getKey() + " does not decode.");
@@ -141,20 +141,19 @@ public final class RmtModuleCodec {
 		// SongIO.ataToSong's rules: a go to beyond the complete lines (a
 		// final stereo go to line is not one) or beyond the song jumps to 0.
 		List<RmtModule.SongLine> lines = module.songLines();
-		int completeLines = module.songDataLength() / tracks4_8;
+		int completeLines = module.songDataLength() / song.getChannels();
 		for (int line = 0; line < lines.size() && line < Song.SONGLEN; line++) {
 			RmtModule.SongLine songLine = lines.get(line);
 			if (songLine.isGoTo()) {
 				int target = songLine.goToTarget();
 				song.songGo[line] = target < completeLines && target < Song.SONGLEN ? target : 0;
 			} else {
-				for (int channel = 0; channel < tracks4_8; channel++) {
+				for (int channel = 0; channel < song.getChannels(); channel++) {
 					int number = songLine.trackNumber(channel);
 					song.song[line][channel] = number < Tracks.TRACKSNUM ? number : -1;
 				}
 			}
 		}
-		return tracks4_8;
 	}
 
 	/** The names of a non-stripped file into the song, space-padded as {@code SongIO.loadRMT} stores them; a stripped file leaves them alone. */

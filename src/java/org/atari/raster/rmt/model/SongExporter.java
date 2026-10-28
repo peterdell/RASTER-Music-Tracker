@@ -143,7 +143,7 @@ public final class SongExporter {
 	 * (ported from the RITMO fork's b243f10;
 	 * plans/32_RITMO_FORK_ANALYSIS_PLAN.md).
 	 */
-	public static LzssSubtunes buildLzssSubtunes(Song song, int tracks4_8, int[] subtune, byte[] mem, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
+	public static LzssSubtunes buildLzssSubtunes(Song song, int[] subtune, byte[] mem, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
 		int lzssChunk = 0; // Subtune size will be added to be used as the offset to the next one
 		int lzssTotal = 0; // Final offset for LZSS bytes to export
 		int framesCount = 0;
@@ -159,7 +159,7 @@ public final class SongExporter {
 			byte[] buf3 = new byte[0];
 
 			PokeyStream pokeyStream = new PokeyStream();
-			song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_FROM, subtune[count], 0, tracks4_8, atariTrackerDriver, channelControl, clipboard, undo);
+			song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_FROM, subtune[count], 0, atariTrackerDriver, channelControl, clipboard, undo);
 
 			// There is an Intro section
 			if (pokeyStream.getThirdCountPoint() > 0) {
@@ -241,8 +241,8 @@ public final class SongExporter {
 		return new LzssSubtunes(lzssTotal, framesCount);
 	}
 
-	public static byte[] exportXexLzss(Song song, int tracks4_8, XexFile xexFile, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
-		Song.SubsongParts subsongParts = song.getSubsongParts(tracks4_8);
+	public static byte[] exportXexLzss(Song song, XexFile xexFile, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
+		Song.SubsongParts subsongParts = song.getSubsongParts();
 		int subsongs = subsongParts.count();
 		String parts = subsongParts.parts();
 		int[] subtune = new int[subsongs];
@@ -261,7 +261,7 @@ public final class SongExporter {
 			throw new IllegalStateException("Fatal error with RMT LZSS system routines.\nCouldn't load '" + SapFileExporter.vuPlayerPath() + "'.");
 		}
 
-		LzssSubtunes built = buildLzssSubtunes(song, tracks4_8, subtune, mem, atariTrackerDriver, channelControl, clipboard, undo);
+		LzssSubtunes built = buildLzssSubtunes(song, subtune, mem, atariTrackerDriver, channelControl, clipboard, undo);
 		int lzssTotal = built.lzssTotal();
 		int framesCount = built.framesCount();
 

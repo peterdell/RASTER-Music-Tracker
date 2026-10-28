@@ -94,8 +94,8 @@ public final class ModImporter {
 		}
 	}
 
-	/** Mirrors C++'s {@code TImportMODResult} output-parameter struct, plus {@code tracks4_8} - see {@link TmcImporter.ApplyResult}'s javadoc for why. */
-	public record ApplyResult(int tracks4_8, int destNum, int nonEmptySamples, int songLines, int optiTracks, int optiBeats, int clearedTracks, int truncatedTracks, int truncatedBeats) {
+	/** Mirrors C++'s {@code TImportMODResult} output-parameter struct; the channel count is the song's, as for {@link TmcImporter.ApplyResult}. */
+	public record ApplyResult(int destNum, int nonEmptySamples, int songLines, int optiTracks, int optiBeats, int clearedTracks, int truncatedTracks, int truncatedBeats) {
 	}
 
 	/**
@@ -188,7 +188,7 @@ public final class ModImporter {
 		int maxPat = header.maxPat();
 		int moduleLength = mem.length;
 
-		int tracks4_8 = song.setTracks(rmttype); // produce RMT4 or RMT8
+		song.setChannels(rmttype); // produce RMT4 or RMT8
 
 		// song name - matches C++ exactly: only characters up to the first
 		// zero byte (max 20) are written; the rest of the song name is left
@@ -811,13 +811,13 @@ public final class ModImporter {
 		int truncatedTracks = 0;
 		int truncatedBeats = 0;
 		if (xTruncateUnusedParts) {
-			Song.ClearUnusedResult r = song.songClearUnusedTracksAndParts(tracks4_8);
+			Song.ClearUnusedResult r = song.songClearUnusedTracksAndParts();
 			clearedTracks = r.clearedTracks();
 			truncatedTracks = r.truncatedTracks();
 			truncatedBeats = r.truncatedBeats();
 		}
 
-		return new ApplyResult(tracks4_8, destNum, nonEmptySamples, dsline, optiTracks, optiBeats, clearedTracks, truncatedTracks, truncatedBeats);
+		return new ApplyResult(destNum, nonEmptySamples, dsline, optiTracks, optiBeats, clearedTracks, truncatedTracks, truncatedBeats);
 	}
 
 	/**

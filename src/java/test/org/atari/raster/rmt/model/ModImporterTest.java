@@ -118,7 +118,7 @@ class ModImporterTest {
 
 		assertEquals(1, result.destNum()); // only channel 0 produced a non-empty track
 		assertEquals(1, result.nonEmptySamples()); // only sample #1 has real length
-		assertEquals(4, result.tracks4_8()); // rmttype=4
+		assertEquals(4, song.getChannels()); // rmttype=4
 
 		assertEquals(0, song.getSong()[0][0]); // track 0 placed at songline 0, column 0
 		assertEquals(-1, song.getSong()[0][1]);

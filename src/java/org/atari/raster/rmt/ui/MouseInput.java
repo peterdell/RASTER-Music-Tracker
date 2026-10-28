@@ -118,7 +118,7 @@ public final class MouseInput {
 		ui.mouseButton = mousebutt;
 		ui.mouseWheelDelta = wheelDelta;
 
-		final boolean stereo = song.isStereo(tracks4_8);
+		final boolean stereo = song.isStereo();
 		final int MINIMAL_WIDTH_INSTRUMENTS = 1220;
 		final int WINDOW_OFFSET = (ui.width < 1320 && stereo && ui.activeTi == Part.PART_TRACKS) ? -250 : 0; // test displacement with the window size
 		int INSTRUMENT_OFFSET = (ui.activeTi == Part.PART_INSTRUMENTS && stereo) ? -250 : 0;
@@ -572,8 +572,8 @@ public final class MouseInput {
 
 		int line = (y + 0) / 16 - 8 + ui.cursorActView;
 
-		if (line >= 0 && line < song.getSmallestMaxtracklen(song.songGetActiveLine(), session.tracks4_8)) { // variable pattern size, to prevent clicking "out of bounds" with the new tracks display
-			if (xch >= 0 && xch < song.getTracks(session.tracks4_8)) {
+		if (line >= 0 && line < song.getSmallestMaxtracklen(song.songGetActiveLine())) { // variable pattern size, to prevent clicking "out of bounds" with the new tracks display
+			if (xch >= 0 && xch < song.getChannels()) {
 				song.setActiveColumn(xch);
 			}
 			if (!(song.getPlayMode() != PlayMode.PLAY_STOP && song.getFollowPlayMode())) { // prevents moving at all during play+follow
@@ -602,7 +602,7 @@ public final class MouseInput {
 		int xch = (x + 4) / (3 * 8);
 		int line = (y + 0) / 16 - 2 + song.songGetActiveLine();
 		if (line >= 0 && line < Song.SONGLEN) {
-			if (xch >= 0 && xch < song.getTracks(session.tracks4_8)) {
+			if (xch >= 0 && xch < song.getChannels()) {
 				song.setActiveColumn(xch);
 			}
 			if (line != song.songGetActiveLine()) {
@@ -614,7 +614,7 @@ public final class MouseInput {
 					song.songSetActiveLine(line);
 					song.setPlayLine(0);
 					song.setActiveLine(0);
-					song.play(mode, song.getFollowPlayMode(), session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard); // continue playing using the correct parameters
+					song.play(mode, song.getFollowPlayMode(), session.undo, session.atariTrackerDriver, session.clipboard); // continue playing using the correct parameters
 				} else {
 					song.songSetActiveLine(line);
 				}

@@ -269,6 +269,7 @@ class MouseInputTest {
 		InstrumentsUI instrumentsUI = new InstrumentsUI(session);
 		assertTrue(instrumentsUI.getGUIArea(0, InstrumentsUI.Zone.ENVELOPE_RIGHT_ENVELOPE) != null);
 		session.tracks4_8 = 4;
+		session.song.setChannels(4);
 		assertTrue(instrumentsUI.getGUIArea(0, InstrumentsUI.Zone.ENVELOPE_RIGHT_ENVELOPE) == null);
 		assertTrue(instrumentsUI.getGUIArea(0, InstrumentsUI.Zone.ENVELOPE_RIGHT_VOL_NUMS) == null);
 	}

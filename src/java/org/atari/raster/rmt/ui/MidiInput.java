@@ -292,7 +292,7 @@ public final class MidiInput {
 		}
 		if (play) {
 			song.setPlayPressedTonesTNIV(playTrack, note, activeInstr, vol);
-			if (channel1 && (ui.editMode == EditMode.JAM_STEREO_MODE || ui.controlKey) && song.isStereo(session.tracks4_8)) { // with control or in prove2 => stereo test
+			if (channel1 && (ui.editMode == EditMode.JAM_STEREO_MODE || ui.controlKey) && song.isStereo()) { // with control or in prove2 => stereo test
 				song.setPlayPressedTonesTNIV((playTrack + 4) & 0x07, note, activeInstr, vol);
 			}
 		}
@@ -362,7 +362,7 @@ public final class MidiInput {
 			if (pr2 == 0) {
 				break; // no key press
 			}
-			song.play(PlayMode.PLAY_TRACK, song.getFollowPlayMode(), session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard);
+			song.play(PlayMode.PLAY_TRACK, song.getFollowPlayMode(), session.undo, session.atariTrackerDriver, session.clipboard);
 			break;
 
 		case 116: // STOP key
@@ -376,14 +376,14 @@ public final class MidiInput {
 			if (pr2 == 0) {
 				break; // no key press
 			}
-			song.play(PlayMode.PLAY_SONG, song.getFollowPlayMode(), session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard);
+			song.play(PlayMode.PLAY_SONG, song.getFollowPlayMode(), session.undo, session.atariTrackerDriver, session.clipboard);
 			break;
 
 		case 118: // REC key
 			if (pr2 == 0) {
 				break; // no key press
 			}
-			session.uiState.switchEditMode(EditMode.MIDI_CH15_MODE, song.isStereo(session.tracks4_8));
+			session.uiState.switchEditMode(EditMode.MIDI_CH15_MODE, song.isStereo());
 			break;
 
 		case 123:

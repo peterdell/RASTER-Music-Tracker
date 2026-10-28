@@ -257,7 +257,8 @@ public final class SongFiles {
 	}
 
 	private void clearSong(int numOfTracks) {
-		session.setTracks4_8(session.song.clearSong(numOfTracks, session.undo));
+		session.song.clearSong(numOfTracks, session.undo);
+		session.setTracks4_8(session.song.getChannels());
 		session.uiState.changes = false;
 		session.exportSettings.resetOnClearSong();
 	}
@@ -353,13 +354,14 @@ public final class SongFiles {
 			SongIO.LoadRmtResult r = SongIO.loadRMT(song, data);
 			loadedOk = r.success();
 			if (loadedOk) {
-				session.setTracks4_8(r.tracks4_8());
+				session.setTracks4_8(song.getChannels());
 				session.exportSettings.rmtStrippedAddress = r.moduleAddress(); // The main block of the module is OK => take its boot address
 			}
 			ioType = SongIOType.RMT;
 		}
 		case FILTER_TXT -> {
-			session.setTracks4_8(SongIO.loadTxt(song, new String(data, TEXT_CHARSET), session.undo).tracks4_8());
+			SongIO.loadTxt(song, new String(data, TEXT_CHARSET), session.undo);
+			session.setTracks4_8(song.getChannels());
 			loadedOk = true; // LoadTxt "does not mean the resultant data is valid"
 			ioType = SongIOType.TXT;
 		}
@@ -367,7 +369,7 @@ public final class SongFiles {
 			SongIO.LoadRmwResult r = SongIO.loadRMW(song, data, session.undo);
 			loadedOk = r.success();
 			if (loadedOk) {
-				session.setTracks4_8(r.tracks4_8());
+				session.setTracks4_8(song.getChannels());
 				applyRmwUiParams(r.uiParams());
 			}
 			ioType = SongIOType.RMW;
@@ -398,7 +400,7 @@ public final class SongFiles {
 		}
 
 		// If the RMT module hasn't met the conditions required to be valid, it won't be saved/overwritten
-		if (song.getIOType() == SongIOType.RMT && !SongIO.checkBeforeFileSave(song, session.tracks4_8, session.messages)) {
+		if (song.getIOType() == SongIOType.RMT && !SongIO.checkBeforeFileSave(song, session.messages)) {
 			session.messages.sendWarningMessage("Warning", "Warning!\nNo data has been saved!");
 			host.songChanged();
 			return;
@@ -406,11 +408,11 @@ public final class SongFiles {
 
 		byte[] content = switch (song.getIOType()) {
 		case RMT -> saveRmtBytes();
-		case TXT -> textBytes(SongIO.saveTxt(song, session.tracks4_8));
+		case TXT -> textBytes(SongIO.saveTxt(song));
 		case RMW -> {
 			// Remembers the current octave and volume for the active instrument (for saving to RMW)
 			session.instruments.memorizeOctaveAndVolume(song.getActiveInstr(), song.getOctave(), song.getVolume(), session.options.keyboardRememberOctavesAndVolumes);
-			yield SongIO.saveRMW(song, session.tracks4_8, rmwUiParams());
+			yield SongIO.saveRMW(song, rmwUiParams());
 		}
 		default -> null;
 		};
@@ -486,7 +488,7 @@ public final class SongFiles {
 		int targetAddrOfModule = 0x4000; // Standard RMT modules are set to start @ $4000
 		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
-		int maxAddr = SongIO.makeModule(session.song, mem, targetAddrOfModule, SongIOType.RMT, instrumentSavedFlags, trackSavedFlags, session.tracks4_8);
+		int maxAddr = SongIO.makeModule(session.song, mem, targetAddrOfModule, SongIOType.RMT, instrumentSavedFlags, trackSavedFlags);
 		if (maxAddr < 0) {
 			return null; // If the module could not be created, the export process is immediately aborted
 		}
@@ -548,7 +550,8 @@ public final class SongFiles {
 		if (choice == null) {
 			return;
 		}
-		session.setTracks4_8(session.song.fileNewApply(choice.maxTrackLength(), choice.stereo() ? 8 : 4, session.undo));
+		session.song.fileNewApply(choice.maxTrackLength(), choice.stereo() ? 8 : 4, session.undo);
+		session.setTracks4_8(session.song.getChannels());
 		session.uiState.changes = false; // ClearSong
 		session.exportSettings.resetOnClearSong();
 		host.songChanged();
@@ -564,7 +567,7 @@ public final class SongFiles {
 		}
 		Path path = ensureFileExtension(choice.path(), INSTRUMENT_FILTERS, 1);
 		session.options.lastInstrumentsPath = folderOf(path);
-		byte[] data = session.instruments.saveInstrumentRti(session.song.getActiveInstr(), session.song.isStereo(session.tracks4_8));
+		byte[] data = session.instruments.saveInstrumentRti(session.song.getActiveInstr(), session.song.isStereo());
 		try {
 			Files.write(path, data);
 		} catch (IOException ex) {
@@ -589,7 +592,7 @@ public final class SongFiles {
 			session.messages.sendErrorMessage("Open error", "Can't open this file: " + choice.path());
 			return;
 		}
-		if (!session.instruments.loadInstrumentRti(activeInstr, data, session.song.isStereo(session.tracks4_8))) {
+		if (!session.instruments.loadInstrumentRti(activeInstr, data, session.song.isStereo())) {
 			session.messages.sendErrorMessage("Data error", "Failed to load RTI format (standard version 0)");
 		}
 	}
@@ -746,7 +749,7 @@ public final class SongFiles {
 
 		ModImporter.ApplyResult result = ModImporter.apply(header, rmttype, trackOrder, dlg.shiftDownOctave(), dlg.portamento(), dlg.fullVolumeRange(), dlg.volumeIncrease(), dlg.decreaseInstrument(), dlg.optimizeLoops(), dlg.truncateUnusedParts(), session.song, session.tracks,
 				session.instruments, session.undo);
-		session.setTracks4_8(result.tracks4_8());
+		session.setTracks4_8(session.song.getChannels());
 
 		// FINAL DIALOGUE AFTER IMPORT
 		String finished = result.destNum() + " tracks, " + result.nonEmptySamples() + " instruments, " + result.songLines() + " songlines";
@@ -793,7 +796,7 @@ public final class SongFiles {
 		}
 
 		TmcImporter.ApplyResult result = TmcImporter.apply(header, dlg.useTable(), dlg.optimizeLoops(), dlg.truncateUnusedParts(), session.song, session.tracks, session.instruments, session.undo);
-		session.setTracks4_8(result.tracks4_8());
+		session.setTracks4_8(session.song.getChannels());
 
 		// FINAL DIALOGUE AFTER IMPORT
 		String finished = result.numOfTracks() + " tracks, " + result.nonEmptyInstruments() + " instruments, " + result.songLines() + " songlines";
@@ -853,7 +856,7 @@ public final class SongFiles {
 		stop();
 
 		// Verify the integrity of the .rmt module to save first, so it won't be saved if it's not meeting the conditions for it
-		if (!SongIO.checkBeforeFileSave(song, session.tracks4_8, session.messages)) {
+		if (!SongIO.checkBeforeFileSave(song, session.messages)) {
 			session.messages.sendWarningMessage("Warning", "Warning!\nNo data has been saved!");
 			return null;
 		}
@@ -928,7 +931,7 @@ public final class SongFiles {
 		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
 		int targetAddrOfModule = 0x4000; // Standard RMT modules are set to start @ $4000
-		int maxAddr = SongIO.makeModule(session.song, mem, targetAddrOfModule, iotype, instrumentSavedFlags, trackSavedFlags, session.tracks4_8);
+		int maxAddr = SongIO.makeModule(session.song, mem, targetAddrOfModule, iotype, instrumentSavedFlags, trackSavedFlags);
 		if (maxAddr < 0) {
 			return null;
 		}
@@ -938,7 +941,7 @@ public final class SongFiles {
 	/** {@code CSongContainer::GetPokeyStream()}: the whole song recorded once from its start. */
 	private PokeyStream generatePokeyStream() {
 		PokeyStream pokeyStream = new PokeyStream();
-		session.song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, session.tracks4_8, session.atariTrackerDriver, session.channelControl, session.clipboard, session.undo, progress);
+		session.song.dumpSongToPokeyStream(pokeyStream, PlayMode.PLAY_SONG, 0, 0, session.atariTrackerDriver, session.channelControl, session.clipboard, session.undo, progress);
 		return pokeyStream;
 	}
 
@@ -966,7 +969,7 @@ public final class SongFiles {
 			es.rmtStrippedGlobalVolumeFade = dlg.globalVolumeFade();
 			es.rmtStrippedNoStartingSongLine = dlg.noStartingSongLine();
 			es.asmFormat = dlg.assemblerFormat();
-			byte[] out = RmtExporter.exportAsStrippedRMTApply(song, es.rmtStrippedAddress, es.rmtStrippedSfx, session.tracks4_8);
+			byte[] out = RmtExporter.exportAsStrippedRMTApply(song, es.rmtStrippedAddress, es.rmtStrippedSfx);
 			if (out == null) {
 				return false;
 			}
@@ -981,7 +984,7 @@ public final class SongFiles {
 			}
 			es.prefixForAllAsmLabels = dlg.prefixForAllAsmLabels();
 			String code = AsmFileExporter.exportAsAsmApply(song, session.instruments, session.tracks, session.atari.getMemory(), session.messages,
-					es.prefixForAllAsmLabels, session.tracks4_8, dlg.exportType(), dlg.notesIndexOrFreq(), dlg.durationsType());
+					es.prefixForAllAsmLabels, dlg.exportType(), dlg.notesIndexOrFreq(), dlg.durationsType());
 			if (code == null) {
 				return false; // the reason is already reported
 			}
@@ -1009,7 +1012,7 @@ public final class SongFiles {
 			es.rmtStrippedSfx = p.sfxSupport();
 			es.rmtStrippedGlobalVolumeFade = p.globalVolumeFade();
 			es.rmtStrippedNoStartingSongLine = p.noStartingSongLine();
-			AsmFileExporter.Result r = AsmFileExporter.exportAsRelocatableAsmForRmtPlayerApply(song, session.instruments, session.tracks, session.tracks4_8, exportDesc.mem(), exportDesc.targetAddrOfModule(), exportDesc.firstByteAfterModule(),
+			AsmFileExporter.Result r = AsmFileExporter.exportAsRelocatableAsmForRmtPlayerApply(song, session.instruments, session.tracks, exportDesc.mem(), exportDesc.targetAddrOfModule(), exportDesc.firstByteAfterModule(),
 					exportDesc.instrumentSavedFlags(), withSfx.mem(), withSfx.targetAddrOfModule(), withSfx.firstByteAfterModule(), withSfx.instrumentSavedFlags(), p);
 			if (!r.success()) {
 				return false;
@@ -1049,7 +1052,7 @@ public final class SongFiles {
 				return false;
 			}
 			try {
-				Files.write(fn, SapFileExporter.exportSapBLzss(sapFile, song, session.tracks4_8, session.atariTrackerDriver, session.channelControl, session.clipboard, session.undo));
+				Files.write(fn, SapFileExporter.exportSapBLzss(sapFile, song, session.atariTrackerDriver, session.channelControl, session.clipboard, session.undo));
 			} catch (IllegalStateException ex) { // the driver file missing, or the LZSS data too big for memory - C++'s two error boxes
 				session.messages.sendErrorMessage("Export aborted", ex.getMessage());
 				return false;
@@ -1057,12 +1060,12 @@ public final class SongFiles {
 			return true;
 		}
 		case LZSS_XEX -> {
-			XexFile xexFile = XexFile.fromSong(song, session.tracks4_8);
+			XexFile xexFile = XexFile.fromSong(song);
 			if (!showXexDialog(xexFile)) {
 				return false;
 			}
 			try {
-				Files.write(fn, SongExporter.exportXexLzss(song, session.tracks4_8, xexFile, session.atariTrackerDriver, session.channelControl, session.clipboard, session.undo));
+				Files.write(fn, SongExporter.exportXexLzss(song, xexFile, session.atariTrackerDriver, session.channelControl, session.clipboard, session.undo));
 			} catch (IllegalStateException ex) {
 				session.messages.sendErrorMessage("Export aborted", ex.getMessage());
 				return false;
@@ -1074,7 +1077,7 @@ public final class SongFiles {
 			PokeyStream pokeyStream = generatePokeyStream();
 			session.atariTrackerDriver.init(); // Reset the Atari memory
 			session.channelControl.setAllChannelsOn();
-			Files.write(fn, WaveFileExporter.exportWav(pokeyStream, song.isNTSC(), song.isStereo(session.tracks4_8), song.getInstrumentSpeed()));
+			Files.write(fn, WaveFileExporter.exportWav(pokeyStream, song.isNTSC(), song.isStereo(), song.getInstrumentSpeed()));
 			// The closing mute that C++ carried with a doubting TODO is gone
 			// in both programs: it left the tracker silent after a WAV
 			// export (plans/32_RITMO_FORK_ANALYSIS_PLAN.md).
@@ -1089,8 +1092,8 @@ public final class SongFiles {
 	/** {@code CSAPFileExportDialog::Show()}: {@code sapFile.Init(song)}, the dialog, then the subsong list parsed as hex song line numbers. */
 	private boolean showSapDialog(SapFile sapFile) {
 		Song song = session.song;
-		sapFile.init(song, session.tracks4_8, today());
-		SapChoice dlg = host.showExportSap(sapFile, song.getSubsongParts(session.tracks4_8).parts().trim());
+		sapFile.init(song, today());
+		SapChoice dlg = host.showExportSap(sapFile, song.getSubsongParts().parts().trim());
 		if (dlg == null) {
 			return false;
 		}

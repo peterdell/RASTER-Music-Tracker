@@ -146,7 +146,7 @@ class SongDialogsTest {
 
 	@Test
 	void changeMaxTrackLengthOffersTheEffectiveValueAndApplies() {
-		int effective = session.song.getEffectiveMaxtracklen(session.tracks4_8);
+		int effective = session.song.getEffectiveMaxtracklen();
 		host.nextMaxTrackLength = -1;
 		dialogs.changeMaxTrackLength();
 		assertEquals("maxTrackLength:" + effective + ":Current value: " + session.tracks.getMaxTrackLength() + "|Computed effective value for current song: " + effective, host.calls.get(0));

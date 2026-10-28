@@ -36,9 +36,9 @@ package org.atari.raster.rmt.model;
  * read the global {@code g_Song} rather than any particular {@code CSong}
  * instance - a pre-existing coupling in {@code CTrackClipboard} itself
  * (see {@code SongEditing.cpp}'s own header comment), not introduced by
- * this port. {@link Tracks}/{@code tracks4_8} likewise become explicit
- * parameters, matching this project's established idiom for globals a
- * ported method needs.
+ * this port. {@link Tracks} likewise becomes an explicit parameter,
+ * matching this project's established idiom for globals a ported method
+ * needs.
  *
  * <p><b>{@code m_trackcopy}/copying entire tracks is NOT modeled here</b> -
  * {@link Song}'s {@code trackCopy}/{@code trackPaste}/{@code trackCut}
@@ -176,13 +176,13 @@ public final class TrackClipboard {
 		return 0;
 	}
 
-	public int blockPasteToTrack(int trackNumber, int line, int special, Tracks tracks, Song song, int tracks4_8) {
+	public int blockPasteToTrack(int trackNumber, int line, int special, Tracks tracks, Song song) {
 		Track ts = track;
 		Track td = tracks.getTrack(trackNumber);
 
 		int bfro = -1;
 		int bto = -1;
-		int smallmax = song.getSmallestMaxtracklen(selSongLine, tracks4_8);
+		int smallmax = song.getSmallestMaxtracklen(selSongLine);
 
 		// A block is selected, so the Paste will be placed in the line position
 		if (isBlockSelected() && isTrackSelected()) {

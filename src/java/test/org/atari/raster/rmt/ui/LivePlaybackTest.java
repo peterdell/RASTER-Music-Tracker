@@ -50,7 +50,7 @@ class LivePlaybackTest {
 		}
 		assertEquals(3, atari.getByteAt(0xD20F), "SKCTL after init");
 
-		assertTrue(session.song.play(PlayMode.PLAY_SONG, false, 0, session.undo, session.tracks4_8, driver, session.clipboard));
+		assertTrue(session.song.play(PlayMode.PLAY_SONG, false, 0, session.undo, driver, session.clipboard));
 		driver.play();
 
 		boolean anyVolume = false;
@@ -135,7 +135,7 @@ class LivePlaybackTest {
 	/** The production SAP-R dump up to the loop point: {@code frames * 9} bytes, one AUDF1..AUDCTL frame per driver tick. */
 	private static byte[] dump(RmtSession session) {
 		PokeyStream stream = new PokeyStream();
-		session.song.dumpSongToPokeyStream(stream, PlayMode.PLAY_SONG, 0, 0, session.tracks4_8, session.atariTrackerDriver, session.channelControl, session.clipboard, session.undo);
+		session.song.dumpSongToPokeyStream(stream, PlayMode.PLAY_SONG, 0, 0, session.atariTrackerDriver, session.channelControl, session.clipboard, session.undo);
 		int frames = stream.getFirstCountPoint();
 		assertTrue(frames > 100, "frames before the loop point: " + frames);
 		return stream.getFrameBytes(frames, 0);
@@ -146,7 +146,7 @@ class LivePlaybackTest {
 		byte[] mem = new byte[Atari.MEMORY_SIZE];
 		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
-		int end = SongIO.makeModule(session.song, mem, 0x4000, SongIOType.RMT, instrumentSavedFlags, trackSavedFlags, session.tracks4_8);
+		int end = SongIO.makeModule(session.song, mem, 0x4000, SongIOType.RMT, instrumentSavedFlags, trackSavedFlags);
 		byte[] module = RmtExporter.exportAsRMT(session.song, session.instruments, mem, 0x4000, end, instrumentSavedFlags);
 		ASAP asap = new ASAP();
 		try {

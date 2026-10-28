@@ -182,14 +182,14 @@ public final class PokeyStream {
 	 * plain {@code byte[]}, doubled in place by {@link #record} when it
 	 * fills up (via {@code Arrays.copyOf}).
 	 */
-	public void startRecording(Song song, int tracks4_8, AtariTrackerDriver driver) {
+	public void startRecording(Song song, AtariTrackerDriver driver) {
 		this.driver = driver;
 
 		recordState = StreamState.START;
 
 		streamBuffer = new byte[0xFFFFF];
 
-		frameSize = song.isStereo(tracks4_8) ? 18 : 9;
+		frameSize = song.isStereo() ? 18 : 9;
 		frameCounter = 0;
 		songlineCounter = 0;
 		Arrays.fill(playCount, 0);

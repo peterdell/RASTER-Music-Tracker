@@ -29,7 +29,7 @@ class AudioEngineTest {
 	void aFrameAdvancesPlaybackCountsTimeAndRendersOneFrameOfStereoSamples() throws IOException {
 		RmtSession session = openDelta();
 		AudioEngine engine = new AudioEngine(session);
-		session.song.play(PlayMode.PLAY_SONG, false, 0, session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard);
+		session.song.play(PlayMode.PLAY_SONG, false, 0, session.undo, session.atariTrackerDriver, session.clipboard);
 		assertEquals(0, session.uiState.playTime, "Play() resets g_playtime");
 
 		int speed = session.song.getSpeed();
@@ -67,7 +67,7 @@ class AudioEngineTest {
 		RmtSession session = openDelta();
 		AudioEngine engine = new AudioEngine(session);
 		AtariCpu cpu = session.atari.getCpu();
-		session.song.play(PlayMode.PLAY_SONG, false, 0, session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard);
+		session.song.play(PlayMode.PLAY_SONG, false, 0, session.undo, session.atariTrackerDriver, session.clipboard);
 		engine.renderFrame();
 		int sounding = -1;
 		for (int ch = 0; ch < 4; ch++) {
@@ -126,7 +126,7 @@ class AudioEngineTest {
 		RmtSession session = new RmtSession();
 		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(TestSongs.ISSUE_30_TWO_TONE_FILTER, false));
 		AudioEngine engine = new AudioEngine(session);
-		session.song.play(PlayMode.PLAY_SONG, false, 0, session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard);
+		session.song.play(PlayMode.PLAY_SONG, false, 0, session.undo, session.atariTrackerDriver, session.clipboard);
 		for (int f = 0; f < 100 && session.atari.getByteAt(0xD20F) != 0x8B; f++) {
 			engine.renderFrame();
 		}
@@ -157,7 +157,7 @@ class AudioEngineTest {
 		int bytes = engine.renderFrame();
 		assertTrue(bytes >= 733 * 4 && bytes <= 737 * 4, "one NTSC frame is ~735 blocks, was " + bytes / 4);
 
-		session.tracks4_8 = 8; // a writer that doesn't call reInitSound(): the engine catches up at the top of the frame
+		session.song.setChannels(8); // a writer that doesn't call reInitSound(): the engine catches up at the top of the frame
 		bytes = engine.renderFrame();
 		assertTrue(cpu.isStereo());
 		assertTrue(bytes >= 733 * 4 && bytes <= 737 * 4, "still one frame of 2-channel output, was " + bytes / 4);
@@ -167,7 +167,7 @@ class AudioEngineTest {
 	void startAndStopWithoutAnAudioDeviceKeepPacingTheModel() throws IOException, InterruptedException {
 		RmtSession session = openDelta();
 		AudioEngine engine = new AudioEngine(session);
-		session.song.play(PlayMode.PLAY_SONG, false, 0, session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard);
+		session.song.play(PlayMode.PLAY_SONG, false, 0, session.undo, session.atariTrackerDriver, session.clipboard);
 		engine.start();
 		long deadline = System.currentTimeMillis() + 3000;
 		while (session.locked(() -> session.uiState.playTime) < 3 && System.currentTimeMillis() < deadline) {

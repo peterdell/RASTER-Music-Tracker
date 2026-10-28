@@ -57,9 +57,9 @@ class RmtModuleTest {
 		return song;
 	}
 
-	static byte[] makeModule(Song song, int address, SongIOType iotype, int tracks4_8) {
+	static byte[] makeModule(Song song, int address, SongIOType iotype) {
 		byte[] mem = new byte[Memory.SIZE];
-		int end = SongIO.makeModule(song, mem, address, iotype, new byte[Instruments.INSTRSNUM], new byte[Tracks.TRACKSNUM], tracks4_8);
+		int end = SongIO.makeModule(song, mem, address, iotype, new byte[Instruments.INSTRSNUM], new byte[Tracks.TRACKSNUM]);
 		assertTrue(end > 0, "makeModule failed");
 		return Arrays.copyOfRange(mem, address, end);
 	}
@@ -117,11 +117,10 @@ class RmtModuleTest {
 			Song song = newSong();
 			SongIO.LoadRmtResult loaded = SongIO.loadRMT(song, Files.readAllBytes(path));
 			assertTrue(loaded.success(), path.toString());
-			int tracks4_8 = loaded.tracks4_8();
 			for (SongIOType iotype : new SongIOType[] { SongIOType.RMT, SongIOType.RMTSTRIPPED }) {
-				RmtModule module = RmtModuleCodec.fromSong(song, iotype, tracks4_8);
+				RmtModule module = RmtModuleCodec.fromSong(song, iotype);
 				for (int address : new int[] { RmtModuleFile.DEFAULT_LOAD_ADDRESS, 0x2e00 }) {
-					assertArrayEquals(makeModule(song, address, iotype, tracks4_8), module.toBytes(address), path + " " + iotype + " at $" + Integer.toHexString(address));
+					assertArrayEquals(makeModule(song, address, iotype), module.toBytes(address), path + " " + iotype + " at $" + Integer.toHexString(address));
 				}
 			}
 		}
@@ -131,19 +130,19 @@ class RmtModuleTest {
 	void toSongDecodesExactlyAsDecodeModuleDoes() throws IOException {
 		for (Path path : fixtures()) {
 			Song original = newSong();
-			int tracks4_8 = SongIO.loadRMT(original, Files.readAllBytes(path)).tracks4_8();
+			assertTrue(SongIO.loadRMT(original, Files.readAllBytes(path)).success(), path.toString());
 			byte[] mem = new byte[Memory.SIZE];
-			int end = SongIO.makeModule(original, mem, LOAD, SongIOType.RMT, new byte[Instruments.INSTRSNUM], new byte[Tracks.TRACKSNUM], tracks4_8);
+			int end = SongIO.makeModule(original, mem, LOAD, SongIOType.RMT, new byte[Instruments.INSTRSNUM], new byte[Tracks.TRACKSNUM]);
 
 			Song viaContainer = newSong();
-			int containerTracks = RmtModuleCodec.toSong(RmtModule.parse(mem, LOAD, end), viaContainer);
+			RmtModuleCodec.toSong(RmtModule.parse(mem, LOAD, end), viaContainer);
 			Song viaDecodeModule = newSong();
-			SongIO.DecodeModuleResult decoded = SongIO.decodeModule(viaDecodeModule, mem, LOAD, end, new byte[Instruments.INSTRSNUM], new byte[Tracks.TRACKSNUM]);
+			int version = SongIO.decodeModule(viaDecodeModule, mem, LOAD, end, new byte[Instruments.INSTRSNUM], new byte[Tracks.TRACKSNUM]);
 
-			assertEquals(decoded.tracks4_8(), containerTracks, path.toString());
-			assertEquals(RmtFormatVersion.V1, decoded.version());
+			assertEquals(viaDecodeModule.getChannels(), viaContainer.getChannels(), path.toString());
+			assertEquals(RmtFormatVersion.V1, version);
 			// The same song state generates the same module again
-			assertArrayEquals(makeModule(viaDecodeModule, LOAD, SongIOType.RMT, tracks4_8), makeModule(viaContainer, LOAD, SongIOType.RMT, tracks4_8), path.toString());
+			assertArrayEquals(makeModule(viaDecodeModule, LOAD, SongIOType.RMT), makeModule(viaContainer, LOAD, SongIOType.RMT), path.toString());
 			assertEquals(viaDecodeModule.mainSpeed, viaContainer.mainSpeed);
 			assertEquals(viaDecodeModule.instrumentSpeed, viaContainer.instrumentSpeed);
 			assertEquals(viaDecodeModule.tracks.getMaxTrackLength(), viaContainer.tracks.getMaxTrackLength());
@@ -155,12 +154,12 @@ class RmtModuleTest {
 		for (Path path : fixtures()) {
 			Song song = newSong();
 			byte[] data = Files.readAllBytes(path);
-			int tracks4_8 = SongIO.loadRMT(song, data).tracks4_8();
+			assertTrue(SongIO.loadRMT(song, data).success(), path.toString());
 			byte[] mem = new byte[Memory.SIZE];
 			byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
-			int end = SongIO.makeModule(song, mem, LOAD, SongIOType.RMT, instrumentSavedFlags, new byte[Tracks.TRACKSNUM], tracks4_8);
+			int end = SongIO.makeModule(song, mem, LOAD, SongIOType.RMT, instrumentSavedFlags, new byte[Tracks.TRACKSNUM]);
 			byte[] expected = RmtExporter.exportAsRMT(song, song.instruments, mem, LOAD, end, instrumentSavedFlags);
-			assertArrayEquals(expected, RmtModuleCodec.fileFromSong(song, tracks4_8, LOAD).write(), path.toString());
+			assertArrayEquals(expected, RmtModuleCodec.fileFromSong(song, LOAD).write(), path.toString());
 		}
 	}
 
@@ -169,10 +168,10 @@ class RmtModuleTest {
 		RmtModuleFile file = read(TestSongs.ISSUE_30_TWO_TONE_FILTER);
 		assertEquals("Makary - Two-Tone Filter", file.songName());
 		Song song = newSong();
-		int tracks4_8 = RmtModuleCodec.toSong(file.module(), song);
+		RmtModuleCodec.toSong(file.module(), song);
 		RmtModuleCodec.namesToSong(file, song);
 		assertEquals(file.songName(), song.getName());
-		RmtModuleFile again = RmtModuleCodec.fileFromSong(song, tracks4_8, file.loadAddress());
+		RmtModuleFile again = RmtModuleCodec.fileFromSong(song, file.loadAddress());
 		assertEquals(file.songName(), again.songName());
 		assertEquals(file.instrumentNames(), again.instrumentNames());
 	}
@@ -249,7 +248,7 @@ class RmtModuleTest {
 		assertThrows(RmtModule.FormatException.class, () -> RmtModule.Track.of(new byte[] { end, 0 }), "a byte after the end");
 		assertThrows(RmtModule.FormatException.class, () -> RmtModule.Track.of(new byte[] { jump, 5 }), "a jump outside the track");
 
-		byte[] module = RmtModuleCodec.fromSong(newSongWithOneNote(), SongIOType.RMT, RmtModule.CHANNELS_MONO).toBytes(LOAD);
+		byte[] module = RmtModuleCodec.fromSong(newSongWithOneNote(), SongIOType.RMT).toBytes(LOAD);
 		byte[] mem = new byte[Memory.SIZE];
 		System.arraycopy(module, 0, mem, LOAD, module.length);
 		RmtModule.parse(mem, LOAD, LOAD + module.length); // valid as built
@@ -273,7 +272,7 @@ class RmtModuleTest {
 		Song song = newSong();
 		song.setMainSpeed(SONG_SPEED);
 		song.setInstrumentSpeed(1);
-		song.setTracks(RmtModule.CHANNELS_MONO);
+		song.setChannels(RmtModule.CHANNELS_MONO);
 		Track track = song.tracks.getTrack(0);
 		track.note[0] = 12;
 		track.instr[0] = 0;

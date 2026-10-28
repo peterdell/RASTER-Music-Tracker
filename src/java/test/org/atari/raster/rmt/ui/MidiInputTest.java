@@ -152,7 +152,7 @@ class MidiInputTest {
 		assertEquals(4, song.getActiveLine(), "no cursor move while following");
 
 		song.setSpeeda(1);
-		assertTrue(song.playVBI(session.tracks4_8, session.atariTrackerDriver, false, session.undo));
+		assertTrue(song.playVBI( session.atariTrackerDriver, false, session.undo));
 		assertEquals(24, track0.note[5]);
 		assertEquals(3, track0.instr[5]);
 		assertEquals(12, track0.volume[5]);

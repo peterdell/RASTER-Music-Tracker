@@ -59,7 +59,7 @@ class SongUITest {
 		session.options.scalingPercentage = 100;
 		session.options.view.debugDisplay = true;
 		TrackerPanel.computeLayout(session.uiState, session.options, WIDTH, HEIGHT);
-		session.song.respectBoundaries(session.tracks4_8);
+		session.song.respectBoundaries();
 
 		BufferedImage frame = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
 		CanvasXY canvasXY = new CanvasXY(sheet, session.uiState);

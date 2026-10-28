@@ -44,6 +44,7 @@ class SongIOTest {
 		}
 
 		song = new Song(instruments, tracks);
+		song.setChannels(4); // the C++ tests' g_tracks4_8 = 4
 		undo = new Undo(tracks, instruments, song, new TrackClipboard());
 		messages = new Messages();
 
@@ -81,7 +82,7 @@ class SongIOTest {
 		song.getSong()[0][3] = 20;
 
 		byte[] dest = new byte[Song.SONGLEN * 4];
-		int size = SongIO.songToAta(song, dest, dest.length, 0x4000, 4);
+		int size = SongIO.songToAta(song, dest, dest.length, 0x4000);
 
 		assertEquals(4, size);
 		assertEquals(5, dest[0]);
@@ -101,10 +102,11 @@ class SongIOTest {
 		song.getSong()[0][3] = 20;
 
 		byte[] dest = new byte[Song.SONGLEN * 4];
-		int size = SongIO.songToAta(song, dest, dest.length, 0x4000, 4);
+		int size = SongIO.songToAta(song, dest, dest.length, 0x4000);
 
 		Song decoded = new Song(new Instruments(), new Tracks());
-		assertTrue(SongIO.ataToSong(decoded, dest, size, 0x4000, 4));
+		decoded.setChannels(4); // as decodeModule sets it from the header before ataToSong
+		assertTrue(SongIO.ataToSong(decoded, dest, size, 0x4000));
 		assertEquals(5, decoded.getSong()[0][0]);
 		assertEquals(10, decoded.getSong()[0][1]);
 		assertEquals(15, decoded.getSong()[0][2]);
@@ -116,7 +118,7 @@ class SongIOTest {
 		song.getSongGo()[0] = 1; // line 0: "goto line 1"
 
 		byte[] dest = new byte[Song.SONGLEN * 4];
-		int size = SongIO.songToAta(song, dest, dest.length, 0x4000, 4);
+		int size = SongIO.songToAta(song, dest, dest.length, 0x4000);
 
 		assertEquals(4, size);
 		assertEquals((byte) 254, dest[0]); // go command marker
@@ -127,7 +129,8 @@ class SongIOTest {
 		// is being decoded, not songToAta()'s own (smaller) "bytes actually
 		// used" return value.
 		Song decoded = new Song(new Instruments(), new Tracks());
-		assertTrue(SongIO.ataToSong(decoded, dest, 8, 0x4000, 4));
+		decoded.setChannels(4); // as decodeModule sets it from the header before ataToSong
+		assertTrue(SongIO.ataToSong(decoded, dest, 8, 0x4000));
 		assertEquals(1, decoded.songGetGo(0));
 	}
 
@@ -162,16 +165,16 @@ class SongIOTest {
 		byte[] instrSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
 
-		int endAddr = SongIO.makeModule(song, mem, 0, SongIOType.RMT, instrSavedFlags, trackSavedFlags, 4);
+		int endAddr = SongIO.makeModule(song, mem, 0, SongIOType.RMT, instrSavedFlags, trackSavedFlags);
 		assertTrue(endAddr > 0);
 		assertTrue(endAddr <= mem.length);
 
 		Song decoded = new Song(instruments, tracks);
 		byte[] instrLoadedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackLoadedFlags = new byte[Tracks.TRACKSNUM];
-		SongIO.DecodeModuleResult result = SongIO.decodeModule(decoded, mem, 0, endAddr, instrLoadedFlags, trackLoadedFlags);
+		int version = SongIO.decodeModule(decoded, mem, 0, endAddr, instrLoadedFlags, trackLoadedFlags);
 
-		assertEquals(RmtFormatVersion.V1, result.version());
+		assertEquals(RmtFormatVersion.V1, version);
 		assertEquals(5, decoded.getSong()[0][0]);
 		// decodeModule() decodes back into the same shared tracks/instruments
 		// it was encoded from (there's only one in production too).
@@ -194,7 +197,7 @@ class SongIOTest {
 
 		song.getSong()[0][0] = 5; // only line 0 has data - the rest stay "--"
 
-		String text = SongIO.saveTxt(song, 4);
+		String text = SongIO.saveTxt(song);
 
 		assertTrue(text.contains("[MODULE]"));
 		assertTrue(text.contains("[SONG]"));
@@ -219,14 +222,14 @@ class SongIOTest {
 
 		song.getSong()[0][0] = 5;
 
-		String text = SongIO.saveTxt(song, 4);
+		String text = SongIO.saveTxt(song);
 
 		Song loaded = new Song(instruments, tracks);
 		Undo loadedUndo = new Undo(tracks, instruments, loaded, new TrackClipboard());
-		SongIO.LoadTxtResult result = SongIO.loadTxt(loaded, text, loadedUndo);
+		SongIO.loadTxt(loaded, text, loadedUndo);
 
 		// The [MODULE] header block parses correctly...
-		assertEquals(4, result.tracks4_8()); // RMT: 04 round-trips tracks4_8 via setTracks()
+		assertEquals(4, loaded.getChannels()); // RMT: 04 round-trips the channel count via setChannels()
 		SongInfo loadedInfo = new SongInfo();
 		loaded.getSongInfoPars(loadedInfo);
 		assertEquals(6, loadedInfo.mainSpeed);
@@ -268,13 +271,13 @@ class SongIOTest {
 		tr.instr[0] = 2;
 		tr.volume[0] = 8;
 
-		String text = SongIO.saveTxt(song, 4);
+		String text = SongIO.saveTxt(song);
 		assertTrue(text.contains("[INSTRUMENT]"));
 		assertTrue(text.contains("[TRACK]"));
 
 		Song loaded = new Song(instruments, tracks);
 		Undo loadedUndo = new Undo(tracks, instruments, loaded, new TrackClipboard());
-		assertTrue(SongIO.loadTxt(loaded, text, loadedUndo).tracks4_8() > 0);
+		SongIO.loadTxt(loaded, text, loadedUndo);
 
 		assertEquals("Lead", new String(instruments.getInstrument(2).name).stripTrailing());
 		assertEquals(10, instruments.getInstrument(2).envelope[0][EnvelopeParameter.VOLUMEL]);
@@ -289,7 +292,7 @@ class SongIOTest {
 
 	@Test
 	void saveRMWWritesTheVersionStringFirst() {
-		byte[] out = SongIO.saveRMW(song, 4);
+		byte[] out = SongIO.saveRMW(song);
 
 		String prefix = new String(out, 0, RmtVersion.RMT_VERSION_STRING.length(), java.nio.charset.StandardCharsets.US_ASCII);
 		assertEquals(RmtVersion.RMT_VERSION_STRING, prefix);
@@ -306,7 +309,7 @@ class SongIOTest {
 	void saveRMWWritesEachMainParameterAsExactlyFourBytes() {
 		song.getSong()[0][0] = 5; // the first value after the main-parameters block
 
-		byte[] out = SongIO.saveRMW(song, 4);
+		byte[] out = SongIO.saveRMW(song);
 
 		int offset = RmtVersion.RMT_VERSION_STRING.length() + 1; // version line + '\n'
 		offset += SongInfo.SONG_NAME_MAX_LEN + 1; // songName plus the extra C++ byte
@@ -348,7 +351,7 @@ class SongIOTest {
 		song.getSong()[0][0] = 5;
 		song.getSongGo()[2] = 7;
 
-		byte[] out = SongIO.saveRMW(song, 4);
+		byte[] out = SongIO.saveRMW(song);
 
 		Song loaded = new Song(instruments, tracks);
 		Undo loadedUndo = new Undo(tracks, instruments, loaded, new TrackClipboard());
@@ -391,7 +394,7 @@ class SongIOTest {
 		tr.instr[0] = 2;
 		tr.volume[0] = 8;
 
-		byte[] out = SongIO.saveRMW(song, 4);
+		byte[] out = SongIO.saveRMW(song);
 
 		Song loaded = new Song(instruments, tracks);
 		Undo loadedUndo = new Undo(tracks, instruments, loaded, new TrackClipboard());
@@ -417,7 +420,7 @@ class SongIOTest {
 			uiParams[i] = 100 + i;
 		}
 
-		byte[] out = SongIO.saveRMW(song, 4, uiParams);
+		byte[] out = SongIO.saveRMW(song, uiParams);
 
 		int offset = RmtVersion.RMT_VERSION_STRING.length() + 1 + SongInfo.SONG_NAME_MAX_LEN + 1 + 4;
 		assertEquals(100, readIntLE(out, offset + SongIO.RMW_UI_PARAMS_INDEX * 4));
@@ -429,7 +432,7 @@ class SongIOTest {
 		assertTrue(result.success());
 		assertArrayEquals(uiParams, result.uiParams());
 
-		assertArrayEquals(new int[SongIO.RMW_UI_PARAMS_COUNT], SongIO.loadRMW(loaded, SongIO.saveRMW(song, 4), loadedUndo).uiParams()); // the overload without them writes zeros
+		assertArrayEquals(new int[SongIO.RMW_UI_PARAMS_COUNT], SongIO.loadRMW(loaded, SongIO.saveRMW(song), loadedUndo).uiParams()); // the overload without them writes zeros
 	}
 
 	// --- loadRMT ---
@@ -464,7 +467,7 @@ class SongIOTest {
 		byte[] instrSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
 		int fromAddr = 0x100;
-		int endAddr = SongIO.makeModule(song, mem, fromAddr, SongIOType.RMT, instrSavedFlags, trackSavedFlags, 4);
+		int endAddr = SongIO.makeModule(song, mem, fromAddr, SongIOType.RMT, instrSavedFlags, trackSavedFlags);
 		assertTrue(endAddr > 0);
 
 		java.io.ByteArrayOutputStream blocks = new java.io.ByteArrayOutputStream();
@@ -487,7 +490,7 @@ class SongIOTest {
 		Song decoded = new Song(instruments, tracks);
 		SongIO.LoadRmtResult loaded = SongIO.loadRMT(decoded, blocks.toByteArray());
 		assertTrue(loaded.success());
-		assertEquals(4, loaded.tracks4_8());
+		assertEquals(4, decoded.getChannels());
 
 		assertEquals("TestSong", decoded.getName());
 		// Unlike getName(), the raw instrument name field isn't trimmed -
@@ -537,14 +540,14 @@ class SongIOTest {
 	void checkBeforeFileSavePassesAValidSongSilently() {
 		aValidOneLineSong();
 		List<String> calls = record(MessageAnswer.CANCEL);
-		assertTrue(SongIO.checkBeforeFileSave(song, 4, messages));
+		assertTrue(SongIO.checkBeforeFileSave(song, messages));
 		assertTrue(calls.isEmpty(), calls.toString());
 	}
 
 	@Test
 	void checkBeforeFileSaveRefusesAnEmptySong() {
 		List<String> calls = record(MessageAnswer.CANCEL);
-		assertFalse(SongIO.checkBeforeFileSave(song, 4, messages));
+		assertFalse(SongIO.checkBeforeFileSave(song, messages));
 		assertEquals(1, calls.size());
 		assertTrue(calls.get(0).startsWith("error: Error: Song is empty."), calls.get(0));
 	}
@@ -554,7 +557,7 @@ class SongIOTest {
 		song.getSong()[0][0] = 0;
 		song.getSongGo()[1] = 2; // past itself, the last used line
 		List<String> calls = record(MessageAnswer.CANCEL);
-		assertFalse(SongIO.checkBeforeFileSave(song, 4, messages));
+		assertFalse(SongIO.checkBeforeFileSave(song, messages));
 		assertTrue(calls.get(0).contains("Go to line over last used song line"), calls.get(0));
 
 		setUp();
@@ -562,7 +565,7 @@ class SongIOTest {
 		song.getSongGo()[1] = 2;
 		song.getSongGo()[2] = 0; // a "go to line" pointing at another one
 		calls = record(MessageAnswer.CANCEL);
-		assertFalse(SongIO.checkBeforeFileSave(song, 4, messages));
+		assertFalse(SongIO.checkBeforeFileSave(song, messages));
 		assertTrue(calls.get(0).contains("Recursive \"go to line\" to \"go to line\""), calls.get(0));
 	}
 
@@ -570,7 +573,7 @@ class SongIOTest {
 	void checkBeforeFileSaveAppendsTheMissingFinalGoToAfterAnInformationBox() {
 		song.getSong()[0][0] = 0; // a track on the last used line, no "go to" anywhere
 		List<String> calls = record(MessageAnswer.CANCEL);
-		assertTrue(SongIO.checkBeforeFileSave(song, 4, messages));
+		assertTrue(SongIO.checkBeforeFileSave(song, messages));
 		assertEquals(1, calls.size());
 		assertTrue(calls.get(0).startsWith("information: "), calls.get(0));
 		assertEquals(0, song.getSongGo()[1]); // the appended "go to line 0"
@@ -583,7 +586,7 @@ class SongIOTest {
 		song.getSongGo()[1] = 0;
 		song.getSongGo()[2] = 0;
 		List<String> calls = record(MessageAnswer.YES);
-		assertTrue(SongIO.checkBeforeFileSave(song, 4, messages));
+		assertTrue(SongIO.checkBeforeFileSave(song, messages));
 		assertTrue(calls.get(0).contains("More \"go to line\" on subsequent lines"), calls.get(0));
 		assertTrue(calls.get(0).contains("Ignore warnings and save anyway?"), calls.get(0));
 
@@ -592,6 +595,6 @@ class SongIOTest {
 		song.getSongGo()[1] = 0;
 		song.getSongGo()[2] = 0;
 		record(MessageAnswer.NO);
-		assertFalse(SongIO.checkBeforeFileSave(song, 4, messages));
+		assertFalse(SongIO.checkBeforeFileSave(song, messages));
 	}
 }

@@ -145,7 +145,7 @@ final class BlockEffectDialog extends ModalDialog {
 			if (session.song.getPlayMode() != PlayMode.PLAY_STOP) {
 				session.song.stop(session.undo);
 			} else {
-				session.song.play(PlayMode.PLAY_BLOCK, session.song.getFollowPlayMode(), session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard);
+				session.song.play(PlayMode.PLAY_BLOCK, session.song.getFollowPlayMode(), session.undo, session.atariTrackerDriver, session.clipboard);
 			}
 		});
 	}

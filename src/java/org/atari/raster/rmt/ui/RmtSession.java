@@ -154,7 +154,8 @@ public final class RmtSession {
 		// to $4000 + instr * 256 for the driver (stereo = g_tracks4_8 == 8).
 		instruments.attachAtari(atari, () -> tracks4_8 == 8);
 
-		setTracks4_8(song.clearSong(8, undo));
+		song.clearSong(8, undo);
+		setTracks4_8(song.getChannels());
 		channelControl.setAllChannelsOn();
 		undo.setChangeListener(() -> uiState.changes = true); // CUndo::InsertEvent's g_changes = 1
 		song.setPlayTimeResetListener(() -> uiState.playTime = 0); // g_playtime = 0 in Play() and ClearSong()
@@ -182,7 +183,7 @@ public final class RmtSession {
 	 * direct {@link #tracks4_8} write).
 	 */
 	public void reInitSound() {
-		atari.getCpu().initialize(song.isNTSC(), song.isStereo(tracks4_8));
+		atari.getCpu().initialize(song.isNTSC(), song.isStereo());
 		atari.init(song.isNTSC(), song.getTuningSettings());
 		atariTrackerDriver.init();
 	}

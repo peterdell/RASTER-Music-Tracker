@@ -145,7 +145,7 @@ final class ExportRelocatableAsmDialog extends ModalDialog {
 		int len = desc.length();
 		infoLabel.setText(String.format("Length $%04X (%d bytes)", len, len));
 		AsmFileExporter.RelocatableAsmExportParams p = getParams();
-		AsmFileExporter.Result r = AsmFileExporter.buildRelocatableAsm(session.song, session.instruments, session.tracks, session.tracks4_8, desc.mem(), desc.targetAddrOfModule(), desc.firstByteAfterModule(), desc.instrumentSavedFlags(), "",
+		AsmFileExporter.Result r = AsmFileExporter.buildRelocatableAsm(session.song, session.instruments, session.tracks, desc.mem(), desc.targetAddrOfModule(), desc.firstByteAfterModule(), desc.instrumentSavedFlags(), "",
 				p.wantRelocatableTracks() ? p.strAsmTracksLabel() : "", p.wantRelocatableSongLines() ? p.strAsmSongLinesLabel() : "", p.wantRelocatableInstruments() ? p.strAsmInstrumentsLabel() : "", p.assemblerFormat(), sfx, false, false, true); // Just give me the size info
 		featArea.setText(r.success() ? r.code() : "");
 		featArea.setCaretPosition(0);

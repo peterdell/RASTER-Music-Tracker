@@ -124,7 +124,7 @@ public final class RmtCommands {
 
 	private void play(PlayMode mode) {
 		Song song = session.song;
-		song.play(mode, song.getFollowPlayMode(), session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard);
+		song.play(mode, song.getFollowPlayMode(), session.undo, session.atariTrackerDriver, session.clipboard);
 	}
 
 	private void stop() {
@@ -136,7 +136,7 @@ public final class RmtCommands {
 	}
 
 	private void switchEditMode() {
-		session.uiState.switchEditMode(EditMode.EDIT_MODE, session.song.isStereo(session.tracks4_8));
+		session.uiState.switchEditMode(EditMode.EDIT_MODE, session.song.isStereo());
 	}
 
 	/**
@@ -284,7 +284,6 @@ public final class RmtCommands {
 		UiState ui = session.uiState;
 		RmtOptions options = session.options;
 		TrackClipboard clipboard = session.clipboard;
-		int tracks4_8 = session.tracks4_8;
 
 		switch (id) {
 		// --- File ---
@@ -386,21 +385,21 @@ public final class RmtCommands {
 		case CHANNELS_TOGGLE_ALL_CHANNELS_ON_OFF -> session.channelControl.toggleAllChannelsOnOff();
 
 		// --- Song ---
-		case SONG_COPY_LINE -> song.songCopyLine(tracks4_8);
-		case SONG_PASTE_LINE -> song.songPasteLine(session.undo, tracks4_8);
-		case SONG_CLEAR_LINE -> song.songClearLine(session.undo, tracks4_8);
+		case SONG_COPY_LINE -> song.songCopyLine();
+		case SONG_PASTE_LINE -> song.songPasteLine(session.undo);
+		case SONG_CLEAR_LINE -> song.songClearLine(session.undo);
 		case SONG_SET_BOOKMARK -> song.setBookmark();
 		case SONG_CLEAR_BOOKMARK -> song.clearBookmark();
-		case SONG_DELETEACTUALLINE -> song.songDeleteLine(song.songGetActiveLine(), session.undo, tracks4_8);
-		case SONG_INSERTNEWEMPTYLINE -> song.songInsertLine(song.songGetActiveLine(), session.undo, tracks4_8);
+		case SONG_DELETEACTUALLINE -> song.songDeleteLine(song.songGetActiveLine(), session.undo);
+		case SONG_INSERTNEWEMPTYLINE -> song.songInsertLine(song.songGetActiveLine(), session.undo);
 		case SONG_INSERTNEWLINEWITHUNUSEDTRACKS -> {
 			int line = song.songGetActiveLine();
-			song.songPrepareNewLine(line, -1, true, session.undo, tracks4_8);
+			song.songPrepareNewLine(line, -1, true, session.undo);
 			song.songSetActiveLine(line);
 		}
 		case SONG_INSERTCOPYORCLONEOFSONGLINES -> songDialogs.insertCopyOrCloneOfSongLines();
-		case SONG_PUTNEWEMPTYUNUSEDTRACK -> song.songPutnewemptyunusedtrack(session.undo, tracks4_8);
-		case SONG_MAKETRACKSDUPLICATE -> song.songMaketracksduplicate(session.undo, tracks4_8, session.messages);
+		case SONG_PUTNEWEMPTYUNUSEDTRACK -> song.songPutnewemptyunusedtrack(session.undo);
+		case SONG_MAKETRACKSDUPLICATE -> song.songMaketracksduplicate(session.undo, session.messages);
 		case SONG_SONG_TOGGLE_TRACK_NUMBER -> songDialogs.songswitch4_8();
 		case SONG_TRACKSORDERCHANGE -> songDialogs.tracksOrderChange();
 		case SONG_SONGCHANGEMAXIMALLENGTHOFTRACKS -> songDialogs.changeMaxTrackLength();
@@ -527,7 +526,7 @@ public final class RmtCommands {
 			}
 			session.undo.changeTrack(0, 0, UndoType.UETYPE_TRACKSALL, -1);
 			session.undo.changeSong(0, 0, UndoType.UETYPE_SONGDATA, 1);
-			int clearedtracks = song.songClearDuplicatedTracks(tracks4_8);
+			int clearedtracks = song.songClearDuplicatedTracks();
 			info("Clear all duplicated tracks", "Deleted " + clearedtracks + " duplicated tracks.");
 		}
 		case TRACK_CLEARALLTRACKSUNUSEDINSONG -> {
@@ -536,7 +535,7 @@ public final class RmtCommands {
 				return;
 			}
 			session.undo.changeTrack(0, 0, UndoType.UETYPE_TRACKSALL);
-			int clearedtracks = song.songClearUnusedTracks(tracks4_8);
+			int clearedtracks = song.songClearUnusedTracks();
 			info("Clear all unused tracks", "Deleted " + clearedtracks + " tracks unused in song.");
 		}
 		case TRACK_ALLTRACKSCLEANUP -> {
@@ -554,10 +553,10 @@ public final class RmtCommands {
 			clipboard.blockRestoreFromBackup(session.tracks);
 		}
 		case BLOCK_COPY -> songInput.trackKey(VirtualKey.VK_C, false, true); // Ctrl+C
-		case BLOCK_PASTE -> song.blockPaste(0, clipboard, session.tracks, session.undo, tracks4_8); // Paste normal
-		case BLOCK_PASTESPECIAL_MERGEWITHCURRENTCONTENT -> song.blockPaste(1, clipboard, session.tracks, session.undo, tracks4_8); // paste special - merge
-		case BLOCK_PASTESPECIAL_VOLUMEVALUESONLY -> song.blockPaste(2, clipboard, session.tracks, session.undo, tracks4_8); // paste special - volumes only
-		case BLOCK_PASTESPECIAL_SPEEDVALUESONLY -> song.blockPaste(3, clipboard, session.tracks, session.undo, tracks4_8); // paste special - speeds only
+		case BLOCK_PASTE -> song.blockPaste(0, clipboard, session.tracks, session.undo); // Paste normal
+		case BLOCK_PASTESPECIAL_MERGEWITHCURRENTCONTENT -> song.blockPaste(1, clipboard, session.tracks, session.undo); // paste special - merge
+		case BLOCK_PASTESPECIAL_VOLUMEVALUESONLY -> song.blockPaste(2, clipboard, session.tracks, session.undo); // paste special - volumes only
+		case BLOCK_PASTESPECIAL_SPEEDVALUESONLY -> song.blockPaste(3, clipboard, session.tracks, session.undo); // paste special - speeds only
 		case BLOCK_CUT -> songInput.trackKey(VirtualKey.VK_X, false, true); // Ctrl+X
 		case BLOCK_DELETE -> songInput.trackKey(VirtualKey.VK_DELETE, false, true); // Del
 		case BLOCK_EXCHANGE -> songInput.trackKey(VirtualKey.VK_E, false, true); // Ctrl+E
@@ -668,7 +667,6 @@ public final class RmtCommands {
 	/** {@code OnSongSizeoptimization()}: the whole chain of size optimizations, with its summary box. */
 	private void sizeOptimization() {
 		Song song = session.song;
-		int tracks4_8 = session.tracks4_8;
 		if (!askYes("All size optimizations", "Are you sure you want to delete all tracks and instruments unused in song,\ntruncate unused tracks and rebuild wise tracks loops,\ndelete all duplicated tracks, renumber all tracks and instruments\nand change maximal tracks length to effective computed value?")) {
 			return;
 		}
@@ -685,7 +683,7 @@ public final class RmtCommands {
 
 		// Find the effective length of maxtracklen and shorten it if necessary
 		int maxtracklen = session.tracks.getMaxTrackLength();
-		int effemaxtracklen = song.getEffectiveMaxtracklen(tracks4_8);
+		int effemaxtracklen = song.getEffectiveMaxtracklen();
 		if (effemaxtracklen < maxtracklen) {
 			song.changeMaxtracklen(effemaxtracklen);
 			chmaxtl = true;
@@ -695,17 +693,17 @@ public final class RmtCommands {
 		Song.TracksAllLoopResult opti = song.tracksAllBuildLoops(session.undo);
 
 		// And until the end, don't use the tracks and their parts
-		Song.ClearUnusedResult cleared = song.songClearUnusedTracksAndParts(tracks4_8);
+		Song.ClearUnusedResult cleared = song.songClearUnusedTracksAndParts();
 
 		// And only now (after clearing unused tracks) it will remove unused instruments
 		int clearedinstruments = song.clearAllInstrumentsUnusedInAnyTrack();
 
 		// And now it eliminates double tracks and corrects their occurrences in the song
 		// (may have been created by previous edits)
-		int duplicatedtracks = song.songClearDuplicatedTracks(tracks4_8);
+		int duplicatedtracks = song.songClearDuplicatedTracks();
 
 		// Now refines the tracks (to remove any gaps)
-		song.renumberAllTracks(1, tracks4_8);
+		song.renumberAllTracks(1);
 
 		// And now refines the instruments (to remove any gaps)
 		song.renumberAllInstruments(1);
@@ -721,7 +719,7 @@ public final class RmtCommands {
 	String trackInfoText(int track) {
 		final String[] cnames = { "L1", "L2", "L3", "L4", "R1", "R2", "R3", "R4" };
 		Song.TrackInfo info = new Song.TrackInfo();
-		session.song.trackInfo(track, info, session.tracks4_8);
+		session.song.trackInfo(track, info);
 		StringBuilder s = new StringBuilder(String.format("Track: %02X\nUsing in song:\n", track));
 		for (int ch = 0; ch < session.tracks4_8; ch++) {
 			s.append(cnames[ch]).append(": ").append(info.usedInColumn[ch]).append("   ");

@@ -68,7 +68,7 @@ public final class SapFileExporter {
 	 * loaded, or the LZSS data doesn't fit in memory - both guard-only C++
 	 * error paths that show a {@code MessageBox} and return {@code false}.
 	 */
-	public static byte[] exportSapBLzss(SapFile sapFile, Song song, int tracks4_8, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
+	public static byte[] exportSapBLzss(SapFile sapFile, Song song, AtariTrackerDriver atariTrackerDriver, ChannelControl channelControl, TrackClipboard clipboard, Undo undo) {
 		byte[] memory = new byte[Atari.MEMORY_SIZE];
 		byte[] vuPlayerData = RmtAtariBinaries.getVUPlayerBinary();
 		if (vuPlayerData == null) { // C++'s GetVUPlayerBinary() failure box
@@ -84,12 +84,12 @@ public final class SapFileExporter {
 		if (subtunes.length == 0) {
 			subtunes = new int[] { 0 };
 		}
-		SongExporter.LzssSubtunes built = SongExporter.buildLzssSubtunes(song, tracks4_8, subtunes, memory, atariTrackerDriver, channelControl, clipboard, undo);
+		SongExporter.LzssSubtunes built = SongExporter.buildLzssSubtunes(song, subtunes, memory, atariTrackerDriver, channelControl, clipboard, undo);
 
 		sapFile.setSongs(subtunes.length);
 		sapFile.setInitAddress(VUPlayer.INIT_SAP);
 		sapFile.setPlayerAddress(VUPlayer.DO_PLAY_ADDR);
-		VUPlayer.patchMemoryForSapB(memory, song, tracks4_8, subtunes.length);
+		VUPlayer.patchMemoryForSapB(memory, song, subtunes.length);
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		out.writeBytes(sapFile.export().getBytes(StandardCharsets.US_ASCII));

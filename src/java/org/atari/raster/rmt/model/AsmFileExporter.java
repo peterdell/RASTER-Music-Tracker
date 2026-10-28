@@ -13,9 +13,9 @@ package org.atari.raster.rmt.model;
  *
  * <p>Static methods taking {@link Song}/{@link Instruments}/{@link Tracks}
  * explicitly (matching C++'s own free-standing exporter class shape, not a
- * {@link Song} method), plus {@code tracks4_8}/{@code g_PrefixForAllAsmLabels}
- * as explicit parameters (this project's established idiom for globals a
- * ported method needs - the latter is normally a stored global the
+ * {@link Song} method), plus {@code g_PrefixForAllAsmLabels} as an
+ * explicit parameter (this project's established idiom for globals a
+ * ported method needs - it is normally a stored global the
  * dialog-driving wrapper writes to before calling {@link #exportAsAsmApply};
  * a caller here just passes whatever value it wants read).
  *
@@ -64,7 +64,7 @@ public final class AsmFileExporter {
 	 *         {@code messages} the same way
 	 */
 	public static String exportAsAsmApply(Song song, Instruments instruments, Tracks tracks, byte[] atariMemory, Messages messages,
-			String prefixForAllAsmLabels, int tracks4_8, int exportType, int notesIndexOrFreq, int durationsType) {
+			String prefixForAllAsmLabels, int exportType, int notesIndexOrFreq, int durationsType) {
 		// Which player's tables a frequency comes from is the song's own
 		// setting, the same way its region is
 		// (plans/41_DRIVER_VERSION_IS_A_SONG_PROPERTY_PLAN.md).
@@ -87,7 +87,7 @@ public final class AsmFileExporter {
 		int maxova = 16; // maximal amount of data per line
 
 		byte[] tracksFlags = new byte[Tracks.TRACKSNUM];
-		song.markTfUsed(tracksFlags, tracks4_8);
+		song.markTfUsed(tracksFlags);
 
 		ou.append(";ASM notation source");
 		ou.append(EOL).append("XXX\tequ $FF\t;empty note value");
@@ -159,7 +159,7 @@ public final class AsmFileExporter {
 			}
 		} else if (exportType == 2) { // Whole song
 			String[] cnames = { "L1", "L2", "L3", "L4", "R1", "R2", "R3", "R4" };
-			for (int clm = 0; clm < song.getTracks(tracks4_8); clm++) {
+			for (int clm = 0; clm < song.getChannels(); clm++) {
 				boolean[] finished = new boolean[Song.SONGLEN];
 				int sline = 0;
 				ou.append(EOL).append(String.format(";Song column %s", cnames[clm]));
@@ -175,7 +175,7 @@ public final class AsmFileExporter {
 						continue;
 					}
 					int trackslen = tracks.getMaxTrackLength();
-					for (int i = 0; i < song.getTracks(tracks4_8); i++) {
+					for (int i = 0; i < song.getChannels(); i++) {
 						int at = song.getSong()[sline][i];
 						if (at < 0 || at >= Tracks.TRACKSNUM) {
 							continue;
@@ -283,7 +283,7 @@ public final class AsmFileExporter {
 	 * {@code exportDescWithSFX} applies ({@code p.sfxSupport()} selects), and
 	 * appends it (plus a trailing {@link #EOL}) to the returned code.
 	 */
-	public static Result exportAsRelocatableAsmForRmtPlayerApply(Song song, Instruments instruments, Tracks tracks, int tracks4_8, byte[] memStripped, int targetAddrOfModuleStripped,
+	public static Result exportAsRelocatableAsmForRmtPlayerApply(Song song, Instruments instruments, Tracks tracks, byte[] memStripped, int targetAddrOfModuleStripped,
 			int firstByteAfterModuleStripped, byte[] instrumentSavedFlagsStripped, byte[] memWithSFX, int targetAddrOfModuleWithSFX, int firstByteAfterModuleWithSFX,
 			byte[] instrumentSavedFlagsWithSFX, RelocatableAsmExportParams p) {
 		byte[] mem = p.sfxSupport() ? memWithSFX : memStripped;
@@ -291,7 +291,7 @@ public final class AsmFileExporter {
 		int firstByteAfterModule = p.sfxSupport() ? firstByteAfterModuleWithSFX : firstByteAfterModuleStripped;
 		byte[] instrumentSavedFlags = p.sfxSupport() ? instrumentSavedFlagsWithSFX : instrumentSavedFlagsStripped;
 
-		Result r = buildRelocatableAsm(song, instruments, tracks, tracks4_8, mem, targetAddrOfModule, firstByteAfterModule, instrumentSavedFlags, p.strAsmLabelForStartOfSong(),
+		Result r = buildRelocatableAsm(song, instruments, tracks, mem, targetAddrOfModule, firstByteAfterModule, instrumentSavedFlags, p.strAsmLabelForStartOfSong(),
 				p.wantRelocatableTracks() ? p.strAsmTracksLabel() : "", p.wantRelocatableSongLines() ? p.strAsmSongLinesLabel() : "",
 				p.wantRelocatableInstruments() ? p.strAsmInstrumentsLabel() : "", p.assemblerFormat(), p.sfxSupport(), p.globalVolumeFade(), p.noStartingSongLine(), false);
 
@@ -309,7 +309,7 @@ public final class AsmFileExporter {
 	 * corruption/format-mismatch guard, not something any valid
 	 * {@link SongIO#makeModule} output should ever trigger.
 	 */
-	public static Result buildRelocatableAsm(Song song, Instruments instruments, Tracks tracks, int tracks4_8, byte[] mem, int targetAddrOfModule, int firstByteAfterModule,
+	public static Result buildRelocatableAsm(Song song, Instruments instruments, Tracks tracks, byte[] mem, int targetAddrOfModule, int firstByteAfterModule,
 			byte[] instrumentSavedFlags, String strAsmStartLabel, String strTracksLabel, String strSongLinesLabel, String strInstrumentsLabel, AssemblerFormat assemblerFormat, boolean sfx,
 			boolean gvf, boolean nos, boolean wantSizeInfoOnly) {
 		StringBuilder strModuleSequence = new StringBuilder("\nSequence of modules:\n  Header\n");
@@ -330,7 +330,7 @@ public final class AsmFileExporter {
 
 		strCode.append(String.format("; Cut and paste the data from the line '; --------BEGIN--------'  to the line '; --------END--------'\n; into rmt_feat%s\n", isAtasm ? ".asm" : "./65"));
 
-		strCode.append(composeRMTFEATstring(song, instruments, tracks, tracks4_8, "", instrumentSavedFlags, sfx, gvf, nos, assemblerFormat));
+		strCode.append(composeRMTFEATstring(song, instruments, tracks, "", instrumentSavedFlags, sfx, gvf, nos, assemblerFormat));
 
 		int start = targetAddrOfModule;
 		int end = firstByteAfterModule;
@@ -541,8 +541,9 @@ public final class AsmFileExporter {
 	 * used on which channel. C++'s {@code trackSavedFlags} parameter is
 	 * dropped - see this class's javadoc.
 	 */
-	public static String composeRMTFEATstring(Song song, Instruments instruments, Tracks tracks, int tracks4_8, String filename, byte[] instrumentSavedFlags, boolean soundFXSupport,
+	public static String composeRMTFEATstring(Song song, Instruments instruments, Tracks tracks, String filename, byte[] instrumentSavedFlags, boolean soundFXSupport,
 			boolean globalVolumeFade, boolean noStartingSongLine, AssemblerFormat assemblerFormat) {
+		int channels = song.getChannels();
 		String equal = assemblerFormat.getEqualDirective();
 
 		StringBuilder dest = new StringBuilder(String.format("; --------BEGIN--------\n; %s\n", filename));
@@ -571,7 +572,7 @@ public final class AsmFileExporter {
 			if (song.getSongGo()[songLineNr] >= 0) {
 				continue; // goto line
 			}
-			for (int channelNr = 0; channelNr < tracks4_8; channelNr++) {
+			for (int channelNr = 0; channelNr < channels; channelNr++) {
 				int trackNr = song.getSong()[songLineNr][channelNr];
 				if (trackNr < 0 || trackNr >= Tracks.TRACKSNUM) {
 					continue;
@@ -599,7 +600,7 @@ public final class AsmFileExporter {
 					if (cmd == 7) { // AUDCTL
 						if (ai.envelope[j][EnvelopeParameter.X] == 0x08 && ai.envelope[j][EnvelopeParameter.Y] == 0x00) {
 							usedCommand7VolumeOnly++;
-							for (int channelNr = 0; channelNr < tracks4_8; channelNr++) {
+							for (int channelNr = 0; channelNr < channels; channelNr++) {
 								if (instrumentUsedOnChannelX[instrumentNr][channelNr] != 0) {
 									usedCommand7VolumeOnlyOnChannelX[channelNr]++;
 								}
@@ -615,7 +616,7 @@ public final class AsmFileExporter {
 
 					if (ai.envelope[j][EnvelopeParameter.FILTER] != 0) {
 						usedFilter++;
-						for (int channelNr = 0; channelNr < tracks4_8; channelNr++) {
+						for (int channelNr = 0; channelNr < channels; channelNr++) {
 							if (instrumentUsedOnChannelX[instrumentNr][channelNr] != 0) {
 								usedFilterOnChannelX[channelNr]++;
 							}
@@ -624,7 +625,7 @@ public final class AsmFileExporter {
 
 					if (ai.envelope[j][EnvelopeParameter.DISTORTION] == 6) {
 						usedBass16++;
-						for (int channelNr = 0; channelNr < tracks4_8; channelNr++) {
+						for (int channelNr = 0; channelNr < channels; channelNr++) {
 							if (instrumentUsedOnChannelX[instrumentNr][channelNr] != 0) {
 								usedBass16OnChannelX[channelNr]++;
 							}

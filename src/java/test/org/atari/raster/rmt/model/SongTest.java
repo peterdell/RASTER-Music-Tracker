@@ -2,6 +2,7 @@ package org.atari.raster.rmt.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -41,12 +42,19 @@ class SongTest {
 	}
 
 	@Test
-	void getTracksAndIsStereoFollowGlobalTrackCount() {
-		assertEquals(4, song.getTracks(4));
-		assertFalse(song.isStereo(4));
+	void theChannelCountStartsStereoAndTakesOnlyTheDriversCounts() {
+		assertEquals(RmtModule.CHANNELS_STEREO, song.getChannels());
+		assertTrue(song.isStereo());
+		assertFalse(song.isMono());
 
-		assertEquals(8, song.getTracks(8));
-		assertTrue(song.isStereo(8));
+		song.setChannels(RmtModule.CHANNELS_MONO);
+		assertEquals(4, song.getChannels());
+		assertTrue(song.isMono());
+		assertFalse(song.isStereo());
+
+		assertThrows(IllegalArgumentException.class, () -> song.setChannels(6));
+		assertThrows(IllegalArgumentException.class, () -> song.setChannels(16));
+		assertEquals(4, song.getChannels(), "a rejected count changes nothing");
 	}
 
 	@Test

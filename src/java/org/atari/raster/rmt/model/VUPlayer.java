@@ -63,7 +63,7 @@ public final class VUPlayer {
 	 * {@code VUPlayer::PatchMemoryForSAP_B} exactly, including the
 	 * repeated-write oddity documented in this class's own javadoc.
 	 */
-	public static void patchMemoryForSapB(byte[] memory, Song song, int tracks4_8, int subsongs) {
+	public static void patchMemoryForSapB(byte[] memory, Song song, int subsongs) {
 		// Patch: change a JMP [label] to a RTS with 2 NOPs
 		memory[RTS_NOP] = (byte) 0x60;
 		memory[RTS_NOP + 1] = (byte) 0xEA;
@@ -83,7 +83,7 @@ public final class VUPlayer {
 		System.arraycopy(sapBytes, 0, memory, INIT_SAP, sapBytes.length);
 
 		memory[SONG_SPEED] = (byte) song.getInstrumentSpeed(); // Song speed
-		memory[STEREO_FLAG] = (byte) (song.isStereo(tracks4_8) ? 0xFF : 0x00); // Is the song stereo?
+		memory[STEREO_FLAG] = (byte) (song.isStereo() ? 0xFF : 0x00); // Is the song stereo?
 		memory[SONGTOTAL] = (byte) subsongs; // Total number of subtunes
 	}
 }

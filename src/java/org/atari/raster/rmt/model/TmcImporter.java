@@ -47,8 +47,8 @@ public final class TmcImporter {
 	public record ParseHeaderResult(boolean ok, byte[] mem, int bfrom) {
 	}
 
-	/** Mirrors C++'s {@code TImportTMCResult} output-parameter struct, plus {@code tracks4_8} - {@link #apply} may change it via {@link Song#setTracks}, and (matching this port's established "no stored global" idiom) the caller needs the resulting value back. */
-	public record ApplyResult(int tracks4_8, int numOfTracks, int nonEmptyInstruments, int songLines, int optiTracks, int optiBeats, int clearedTracks, int truncatedTracks, int truncatedBeats) {
+	/** Mirrors C++'s {@code TImportTMCResult} output-parameter struct; the channel count {@link #apply} settles on is the song's ({@link Song#setChannels}). */
+	public record ApplyResult(int numOfTracks, int nonEmptyInstruments, int songLines, int optiTracks, int optiBeats, int clearedTracks, int truncatedTracks, int truncatedBeats) {
 	}
 
 	/**
@@ -692,9 +692,8 @@ public final class TmcImporter {
 			song.getSongGo()[line + 1] = line; // no, so it adds an endless loop to the end
 		}
 
-		int tracks4_8 = 8;
 		if (!stereoModul) { // mono module
-			tracks4_8 = song.setTracks(4);
+			song.setChannels(RmtModule.CHANNELS_MONO);
 		}
 
 		int optiTracks = 0;
@@ -709,13 +708,13 @@ public final class TmcImporter {
 		int truncatedTracks = 0;
 		int truncatedBeats = 0;
 		if (truncateUnusedParts) {
-			Song.ClearUnusedResult r = song.songClearUnusedTracksAndParts(tracks4_8);
+			Song.ClearUnusedResult r = song.songClearUnusedTracksAndParts();
 			clearedTracks = r.clearedTracks();
 			truncatedTracks = r.truncatedTracks();
 			truncatedBeats = r.truncatedBeats();
 		}
 
-		return new ApplyResult(tracks4_8, numOfTracks, nonEmptyInstruments, line, optiTracks, optiBeats, clearedTracks, truncatedTracks, truncatedBeats);
+		return new ApplyResult(numOfTracks, nonEmptyInstruments, line, optiTracks, optiBeats, clearedTracks, truncatedTracks, truncatedBeats);
 	}
 
 	private static int ub(byte[] mem, int index) {

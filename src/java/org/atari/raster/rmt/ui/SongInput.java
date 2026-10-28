@@ -123,7 +123,7 @@ public final class SongInput {
 
 	/** {@code TrackUp(lines)} */
 	private void trackUp(int lines) {
-		session.song.trackUp(lines, session.tracks4_8, session.options.keyboardUpDownContinue, session.undo, session.clipboard);
+		session.song.trackUp(lines, session.options.keyboardUpDownContinue, session.undo, session.clipboard);
 	}
 
 	/**
@@ -135,16 +135,16 @@ public final class SongInput {
 	boolean trackDown(int lines, boolean stopOnLastLine) {
 		Song song = session.song;
 		boolean moves = !isPlayingAndFollowing() && !(!session.options.keyboardUpDownContinue && stopOnLastLine && song.getActiveLine() + lines > song.trackGetLastLine());
-		song.trackDown(lines, stopOnLastLine, session.tracks4_8, session.options.keyboardUpDownContinue, session.undo, session.clipboard);
+		song.trackDown(lines, stopOnLastLine, session.options.keyboardUpDownContinue, session.undo, session.clipboard);
 		return moves;
 	}
 
 	private void trackLeft(boolean column) {
-		session.song.trackLeft(column, session.tracks4_8, session.undo);
+		session.song.trackLeft(column, session.undo);
 	}
 
 	private void trackRight(boolean column) {
-		session.song.trackRight(column, session.tracks4_8, session.undo);
+		session.song.trackRight(column, session.undo);
 	}
 
 	private void songUp() {
@@ -188,18 +188,18 @@ public final class SongInput {
 
 		case VK_MEDIA_PLAY_PAUSE:
 			if (session.song.getPlayMode() == PlayMode.PLAY_STOP) {
-				session.song.play(PlayMode.PLAY_SONG, session.song.getFollowPlayMode(), session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard); // play song from start
+				session.song.play(PlayMode.PLAY_SONG, session.song.getFollowPlayMode(), session.undo, session.atariTrackerDriver, session.clipboard); // play song from start
 			} else {
 				session.song.stop(session.undo); // if playing, stop
 			}
 			break;
 
 		case VK_MEDIA_NEXT_TRACK:
-			session.song.play(PlayMode.PLAY_SEEK_NEXT, session.song.getFollowPlayMode(), session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard); // seek next and play from track
+			session.song.play(PlayMode.PLAY_SEEK_NEXT, session.song.getFollowPlayMode(), session.undo, session.atariTrackerDriver, session.clipboard); // seek next and play from track
 			break;
 
 		case VK_MEDIA_PREV_TRACK:
-			session.song.play(PlayMode.PLAY_SEEK_PREV, session.song.getFollowPlayMode(), session.undo, session.tracks4_8, session.atariTrackerDriver, session.clipboard); // seek prev and play from track
+			session.song.play(PlayMode.PLAY_SEEK_PREV, session.song.getFollowPlayMode(), session.undo, session.atariTrackerDriver, session.clipboard); // seek prev and play from track
 			break;
 
 		case VK_SHIFT:
@@ -841,7 +841,7 @@ public final class SongInput {
 				i = ai.editEnvelopeY;
 				if (i > 0) {
 					i--;
-					if (i == 0 && song.getTracks(session.tracks4_8) <= 4) {
+					if (i == 0 && song.getChannels() <= 4) {
 						i = 7; // mono mode
 					}
 				} else {
@@ -865,7 +865,7 @@ public final class SongInput {
 				if (i < 7) {
 					i++;
 				} else {
-					i = (song.getTracks(session.tracks4_8) > 4) ? 0 : 1;
+					i = (song.getChannels() > 4) ? 0 : 1;
 				}
 				ai.editEnvelopeY = i;
 				return true;
@@ -1223,7 +1223,6 @@ public final class SongInput {
 		Song song = session.song;
 		UiState ui = session.uiState;
 		Tracks tracks = session.tracks;
-		int tracks4_8 = session.tracks4_8;
 
 		if (ui.editMode == EditMode.POKEY_EXPLORER_MODE) { // POKEY EXPLORER MODE: FULL CONTROL OVER THE POKEY (IGNORE RMT ROUTINES EXCEPT RMT_SET_POKEY)
 			return session.pokeyController.onKeyDown(vk, shift, control, session.options.keyboardLayout);
@@ -1235,7 +1234,7 @@ public final class SongInput {
 			int i = note + song.getOctave() * Tuning.NOTES_PER_OCTAVE;
 			if (i >= 0 && i < Notes.NOTESNUM) { // only within limits
 				song.setPlayPressedTonesTNIV(song.getActiveColumn(), i, song.getActiveInstr(), song.getVolume());
-				if ((control || ui.editMode == EditMode.JAM_STEREO_MODE) && song.getTracks(tracks4_8) > 4) {
+				if ((control || ui.editMode == EditMode.JAM_STEREO_MODE) && song.getChannels() > 4) {
 					// with control or in prove2 => stereo test
 					song.setPlayPressedTonesTNIV((song.getActiveColumn() + 4) & 0x07, i, song.getActiveInstr(), song.getVolume());
 				}
@@ -1379,7 +1378,7 @@ public final class SongInput {
 					break; // prevents moving at all during play+follow
 				} else {
 					int line = ((song.getActiveLine() + session.options.trackLinePrimaryHighlight) / session.options.trackLinePrimaryHighlight) * session.options.trackLinePrimaryHighlight;
-					if (line > song.getSmallestMaxtracklen(song.songGetActiveLine(), tracks4_8) - 1) {
+					if (line > song.getSmallestMaxtracklen(song.songGetActiveLine()) - 1) {
 						line -= session.options.trackLinePrimaryHighlight;
 					}
 					song.setActiveLine(line);
@@ -1420,7 +1419,7 @@ public final class SongInput {
 			if (ui.activePart == Part.PART_TRACKS) {
 				if (control != session.options.keyboardSwapEnter) { // control+Enter => plays a whole line (all tracks)
 					// for all track columns except the active track column
-					for (int i = 0; i < song.getTracks(tracks4_8); i++) {
+					for (int i = 0; i < song.getChannels(); i++) {
 						if (i != song.getActiveColumn()) {
 							playLineColumn(i, song.songGetTrack(song.songGetActiveLine(), i));
 						}
@@ -1459,7 +1458,7 @@ public final class SongInput {
 		int[] songGo = song.getSongGo();
 		int la = 0;
 		for (int j = 0; j < Song.SONGLEN; j++) {
-			for (int i = 0; i < song.getTracks(session.tracks4_8); i++) {
+			for (int i = 0; i < song.getChannels(); i++) {
 				if (songLines[j][i] >= 0) {
 					la = j;
 					break;
@@ -1486,7 +1485,6 @@ public final class SongInput {
 		TrackClipboard clipboard = session.clipboard;
 		UiState ui = session.uiState;
 		RmtOptions options = session.options;
-		int tracks4_8 = session.tracks4_8;
 		int note;
 		int i;
 		int j;
@@ -1723,7 +1721,7 @@ public final class SongInput {
 			} else {
 				blockDeselect();
 				int line = ((song.getActiveLine() + options.trackLinePrimaryHighlight) / options.trackLinePrimaryHighlight) * options.trackLinePrimaryHighlight;
-				if (line > song.getSmallestMaxtracklen(song.songGetActiveLine(), tracks4_8) - 1) {
+				if (line > song.getSmallestMaxtracklen(song.songGetActiveLine()) - 1) {
 					line -= options.trackLinePrimaryHighlight;
 				}
 				song.setActiveLine(line);
@@ -1770,7 +1768,7 @@ public final class SongInput {
 				// selection of the whole track (from 0 to the length of that track)
 				clipboard.blockDeselect();
 				clipboard.blockSetBegin(song.getActiveColumn(), song.songGetActiveTrack(), 0, tracks, song);
-				clipboard.blockSetEnd(song.getSmallestMaxtracklen(song.songGetActiveLine(), tracks4_8) - 1, tracks);
+				clipboard.blockSetEnd(song.getSmallestMaxtracklen(song.songGetActiveLine()) - 1, tracks);
 			}
 			break;
 
@@ -1802,14 +1800,14 @@ public final class SongInput {
 		case VK_M:
 			if (control && !shift) {
 				blockDeselect();
-				song.blockPaste(1, clipboard, tracks, session.undo, tracks4_8); // paste merge
+				song.blockPaste(1, clipboard, tracks, session.undo); // paste merge
 			}
 			break;
 
 		case VK_V:
 			if (control && !shift) {
 				blockDeselect();
-				song.blockPaste(0, clipboard, tracks, session.undo, tracks4_8); // classic paste
+				song.blockPaste(0, clipboard, tracks, session.undo); // classic paste
 			}
 			break;
 
@@ -1838,14 +1836,14 @@ public final class SongInput {
 		case VK_T: // was Ctrl+N (now New) until 2026-09-28
 			blockDeselect();
 			if (control && !shift) {
-				song.songPutnewemptyunusedtrack(session.undo, tracks4_8);
+				song.songPutnewemptyunusedtrack(session.undo);
 			}
 			break;
 
 		case VK_D:
 			blockDeselect();
 			if (control && !shift) {
-				song.songMaketracksduplicate(session.undo, tracks4_8, session.messages);
+				song.songMaketracksduplicate(session.undo, session.messages);
 			}
 			break;
 
@@ -1920,7 +1918,7 @@ public final class SongInput {
 			}
 			if (!shift && control != options.keyboardSwapEnter) { // control+Enter => plays a whole line (all tracks)
 				// for all track columns except the active track column
-				for (i = 0; i < song.getTracks(tracks4_8); i++) {
+				for (i = 0; i < song.getChannels(); i++) {
 					if (i != song.getActiveColumn()) {
 						playLineColumn(i, song.songGetTrack(song.songGetActiveLine(), i));
 					}
@@ -2108,7 +2106,6 @@ public final class SongInput {
 	boolean songKey(int vk, boolean shift, boolean control) {
 		Song song = session.song;
 		UiState ui = session.uiState;
-		int tracks4_8 = session.tracks4_8;
 		boolean isgo = song.songGetGo() >= 0;
 
 		if (!control && numbKey(vk) >= 0) {
@@ -2169,7 +2166,7 @@ public final class SongInput {
 			}
 			// falls through
 		case VK_DELETE:
-			song.songDeleteLine(song.songGetActiveLine(), session.undo, tracks4_8);
+			song.songDeleteLine(song.songGetActiveLine(), session.undo);
 			break;
 
 		case VK_I: // Control+VK_I:
@@ -2178,7 +2175,7 @@ public final class SongInput {
 			}
 			// falls through
 		case VK_INSERT:
-			song.songInsertLine(song.songGetActiveLine(), session.undo, tracks4_8);
+			song.songInsertLine(song.songGetActiveLine(), session.undo);
 			break;
 
 		case VK_K: // Control+K (was Ctrl+O, now Open)
@@ -2189,20 +2186,20 @@ public final class SongInput {
 
 		case VK_J: // Control+J (was Ctrl+P, now Print)
 			if (control) {
-				song.songPrepareNewLine(song.songGetActiveLine(), -1, true, session.undo, tracks4_8);
+				song.songPrepareNewLine(song.songGetActiveLine(), -1, true, session.undo);
 			}
 			break;
 
 		case VK_T: // Control+T (was Ctrl+N, now New)
 			if (control) {
-				song.songPutnewemptyunusedtrack(session.undo, tracks4_8);
+				song.songPutnewemptyunusedtrack(session.undo);
 			}
 			break;
 
 		case VK_D: // Control+VK_D
 			blockDeselect();
 			if (control) {
-				song.songMaketracksduplicate(session.undo, tracks4_8, session.messages);
+				song.songMaketracksduplicate(session.undo, session.messages);
 			}
 			break;
 

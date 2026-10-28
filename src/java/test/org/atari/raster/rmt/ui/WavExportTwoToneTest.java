@@ -31,7 +31,7 @@ class WavExportTwoToneTest {
 		RmtSession session = new RmtSession();
 		assertTrue(new SongFiles(session, new StubSongFilesHost()).fileOpen(TestSongs.ISSUE_30_TWO_TONE_FILTER, false));
 		PokeyStream stream = new PokeyStream();
-		session.song.dumpSongToPokeyStream(stream, PlayMode.PLAY_SONG, 0, 0, session.tracks4_8, session.atariTrackerDriver, session.channelControl, session.clipboard, session.undo);
+		session.song.dumpSongToPokeyStream(stream, PlayMode.PLAY_SONG, 0, 0, session.atariTrackerDriver, session.channelControl, session.clipboard, session.undo);
 		int frames = stream.getFirstCountPoint();
 		byte[] bytes = stream.getFrameBytes(frames, 0);
 

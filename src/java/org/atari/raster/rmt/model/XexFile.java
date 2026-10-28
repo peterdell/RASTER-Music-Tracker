@@ -51,10 +51,10 @@ public final class XexFile {
 	}
 
 	/** Mirrors {@code CXEXFile::InitFromSong} (minus the dropped dead fields - see class javadoc). */
-	public static XexFile fromSong(Song song, int tracks4_8) {
+	public static XexFile fromSong(Song song) {
 		XexFile xexFile = new XexFile();
 		xexFile.instrumentSpeed = song.getInstrumentSpeed();
-		xexFile.stereo = song.isStereo(tracks4_8);
+		xexFile.stereo = song.isStereo();
 		xexFile.ntsc = song.isNTSC();
 		return xexFile;
 	}

@@ -26,11 +26,12 @@ public final class SongIO {
 	}
 
 	/** Encodes {@code song}/{@code songGo} into the Atari module's song-data byte format, returning the number of bytes actually used. */
-	public static int songToAta(Song song, byte[] dest, int max, int adr, int tracks4_8) {
+	public static int songToAta(Song song, byte[] dest, int max, int adr) {
+		int channels = song.getChannels();
 		int len = 0;
 		for (int sline = 0; sline < Song.SONGLEN; sline++) {
-			int apos = sline * tracks4_8;
-			if (apos + tracks4_8 > max) {
+			int apos = sline * channels;
+			if (apos + channels > max) {
 				return len; // buffer overflow
 			}
 
@@ -39,22 +40,22 @@ public final class SongIO {
 				// There is a goto line
 				dest[apos] = (byte) 254; // go command
 				dest[apos + 1] = (byte) go; // number where to jump
-				int goadr = (adr + go * tracks4_8) & 0xFFFF;
+				int goadr = (adr + go * channels) & 0xFFFF;
 				dest[apos + 2] = (byte) (goadr & 0xff); // low byte
 				dest[apos + 3] = (byte) (goadr >> 8); // high byte
-				if (tracks4_8 > 4) {
-					for (int j = 4; j < tracks4_8; j++) {
+				if (channels > 4) {
+					for (int j = 4; j < channels; j++) {
 						dest[apos + j] = (byte) 255; // to make sure this is the correct line
 					}
 				}
-				len = sline * tracks4_8 + 4; // this is the end for now (goto has 4 bytes for 8 tracks)
+				len = sline * channels + 4; // this is the end for now (goto has 4 bytes for 8 tracks)
 			} else {
 				// There are track numbers
-				for (int i = 0; i < tracks4_8; i++) {
+				for (int i = 0; i < channels; i++) {
 					int j = song.song[sline][i];
 					if (j >= 0 && j < Tracks.TRACKSNUM) {
 						dest[apos + i] = (byte) j;
-						len = (sline + 1) * tracks4_8; // this is the end for now
+						len = (sline + 1) * channels; // this is the end for now
 					} else {
 						dest[apos + i] = (byte) 255;
 					}
@@ -68,7 +69,8 @@ public final class SongIO {
 	 * Decodes the Atari module's song-data byte format (the {@link #songToAta} counterpart) into {@code song}/{@code songGo}.
 	 * Always returns {@code true} (C++'s {@code BOOL} return is unconditional in every branch of the original).
 	 */
-	public static boolean ataToSong(Song song, byte[] sour, int len, int adr, int tracks4_8) {
+	public static boolean ataToSong(Song song, byte[] sour, int len, int adr) {
+		int channels = song.getChannels();
 		int i = 0;
 		int col = 0;
 		int line = 0;
@@ -79,13 +81,13 @@ public final class SongIO {
 				song.song[line][col] = b;
 			} else if (b == 254 && col == 0) {
 				int ptr = unsignedByte(sour, i + 2) | (unsignedByte(sour, i + 3) << 8); // goto vector
-				int go = (ptr - adr) / tracks4_8;
-				if (go >= 0 && go < (len / tracks4_8) && go < Song.SONGLEN) {
+				int go = (ptr - adr) / channels;
+				if (go >= 0 && go < (len / channels) && go < Song.SONGLEN) {
 					song.songGo[line] = go;
 				} else {
 					song.songGo[line] = 0; // place of invalid jump and jump to line 0
 				}
-				i += tracks4_8;
+				i += channels;
 				if (i >= len) {
 					return true; // this is the end of goto
 				}
@@ -99,7 +101,7 @@ public final class SongIO {
 			}
 
 			col++;
-			if (col >= tracks4_8) {
+			if (col >= channels) {
 				line++;
 				if (line >= Song.SONGLEN) {
 					return true; // so that it does not overflow
@@ -120,13 +122,13 @@ public final class SongIO {
 	 * to line 0 (after an information box). Returns whether saving may
 	 * proceed. The boxes go through {@code messages}.
 	 */
-	public static boolean checkBeforeFileSave(Song song, int tracks4_8, Messages messages) {
+	public static boolean checkBeforeFileSave(Song song, Messages messages) {
 		// Try to create a module
 		byte[] mem = new byte[65536];
 		int adrModule = 0x4000;
 		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
-		if (makeModule(song, mem, adrModule, SongIOType.RMT, instrumentSavedFlags, trackSavedFlags, tracks4_8) < 0) {
+		if (makeModule(song, mem, adrModule, SongIOType.RMT, instrumentSavedFlags, trackSavedFlags) < 0) {
 			return false; // Dump out if the module could not be created
 		}
 
@@ -142,7 +144,7 @@ public final class SongIO {
 				last = i;
 			} else {
 				trx[i] = 0;
-				for (int j = 0; j < tracks4_8; j++) {
+				for (int j = 0; j < song.getChannels(); j++) {
 					if (song.song[i][j] >= 0 && song.song[i][j] < Tracks.TRACKSNUM) {
 						trx[i] = 1;
 						last = i; // tracks
@@ -219,11 +221,12 @@ public final class SongIO {
 	 * "IO_Instruments.cpp/IO_Tracks.cpp" write-up) are now ported as
 	 * {@link Instruments#saveAllTxt}/{@link Tracks#saveAllTxt}.
 	 */
-	public static String saveTxt(Song song, int tracks4_8) {
+	public static String saveTxt(Song song) {
+		int channels = song.getChannels();
 		StringBuilder s = new StringBuilder();
 
 		s.append("[MODULE]\n");
-		s.append(String.format("RMT: %X\n", tracks4_8));
+		s.append(String.format("RMT: %X\n", channels));
 		s.append("NAME: ").append(song.getName()).append("\n");
 		s.append(String.format("MAXTRACKLEN: %02X\n", song.tracks.getMaxTrackLength()));
 		s.append(String.format("MAINSPEED: %02X\n", song.mainSpeed));
@@ -239,7 +242,7 @@ public final class SongIO {
 				songLength = i;
 				continue;
 			}
-			for (int j = 0; j < tracks4_8; j++) {
+			for (int j = 0; j < channels; j++) {
 				if (song.song[i][j] >= 0 && song.song[i][j] < Tracks.TRACKSNUM) {
 					songLength = i;
 					break;
@@ -253,14 +256,14 @@ public final class SongIO {
 				s.append(String.format("Go to line %02X\n", song.songGo[i]));
 				continue;
 			}
-			for (int j = 0; j < tracks4_8; j++) {
+			for (int j = 0; j < channels; j++) {
 				int t = song.song[i][j];
 				if (t >= 0 && t < Tracks.TRACKSNUM) {
 					s.append(IOHelpers.charH4(t)).append(IOHelpers.charL4(t));
 				} else {
 					s.append("--");
 				}
-				if (j + 1 == tracks4_8) {
+				if (j + 1 == channels) {
 					s.append("\n"); // for the last end of the line
 				} else {
 					s.append(" "); // between them
@@ -277,10 +280,6 @@ public final class SongIO {
 		return s.toString();
 	}
 
-	/** C++'s output parameter {@code g_tracks4_8} (mutated via {@code SetTracks()} if a {@code "RMT:"} line is found). Always succeeds - C++'s {@code LoadTxt} has no failure return, matching {@link Song#playPressedTonesInit}'s established "drop the always-true return" reasoning. */
-	public record LoadTxtResult(int tracks4_8) {
-	}
-
 	/**
 	 * Decodes RMT's plain-text {@code .txt} format (the {@link #saveTxt}
 	 * counterpart) from {@code text}, taking the whole file content
@@ -290,10 +289,13 @@ public final class SongIO {
 	 *
 	 * <p>The {@code [INSTRUMENT]}/{@code [TRACK]} segments now decode via
 	 * {@link Instruments#loadInstrumentTxt}/{@link Tracks#loadTrackTxt}
-	 * (previously skipped - see {@link #saveTxt}'s javadoc).
+	 * (previously skipped - see {@link #saveTxt}'s javadoc). Always succeeds -
+	 * C++'s {@code LoadTxt} has no failure return, matching
+	 * {@link Song#playPressedTonesInit}'s established "drop the always-true
+	 * return" reasoning; a {@code "RMT:"} line sets the song's channel count.
 	 */
-	public static LoadTxtResult loadTxt(Song song, String text, Undo undo) {
-		int tracks4_8 = song.clearSong(8, undo); // always clear 8 tracks
+	public static void loadTxt(Song song, String text, Undo undo) {
+		song.clearSong(RmtModule.CHANNELS_STEREO, undo); // always clear 8 tracks
 
 		song.tracks.initTracks();
 
@@ -339,7 +341,7 @@ public final class SongIO {
 					case "RMT:" -> {
 						// RMT version indicator: 4 or 8
 						int v = IOHelpers.hexstr(value, 0, 2);
-						tracks4_8 = song.setTracks(v <= 4 ? 4 : 8);
+						song.setChannels(v <= RmtModule.CHANNELS_MONO ? RmtModule.CHANNELS_MONO : RmtModule.CHANNELS_STEREO);
 					}
 					case "NAME:" -> {
 						// Set the name of the song.
@@ -399,7 +401,7 @@ public final class SongIO {
 						}
 						continue;
 					}
-					for (int i = 0; i < tracks4_8; i++) {
+					for (int i = 0; i < song.getChannels(); i++) {
 						int track = IOHelpers.hexstr(content, i * 3, 2);
 						if (track >= 0 && track < Tracks.TRACKSNUM) {
 							song.song[idx][i] = track;
@@ -417,7 +419,6 @@ public final class SongIO {
 			}
 		}
 
-		return new LoadTxtResult(tracks4_8);
 	}
 
 	private static final int RMW_MAIN_PARAMS_COUNT = 31;
@@ -481,12 +482,12 @@ public final class SongIO {
 	public static final int RMW_UI_PARAMS_INDEX = 8;
 	public static final int RMW_UI_PARAMS_COUNT = 16;
 
-	public static byte[] saveRMW(Song song, int tracks4_8) {
-		return saveRMW(song, tracks4_8, new int[RMW_UI_PARAMS_COUNT]);
+	public static byte[] saveRMW(Song song) {
+		return saveRMW(song, new int[RMW_UI_PARAMS_COUNT]);
 	}
 
 	/** {@code uiParams}: the 16 UI settings in the order the class javadoc lists. */
-	public static byte[] saveRMW(Song song, int tracks4_8, int[] uiParams) {
+	public static byte[] saveRMW(Song song, int[] uiParams) {
 		if (uiParams.length != RMW_UI_PARAMS_COUNT) {
 			throw new IllegalArgumentException("uiParams must have " + RMW_UI_PARAMS_COUNT + " entries, not " + uiParams.length);
 		}
@@ -503,7 +504,7 @@ public final class SongIO {
 
 		writeIntLE(out, RMW_MAIN_PARAMS_COUNT);
 		int[] mainParams = new int[RMW_MAIN_PARAMS_COUNT];
-		int[] own = { tracks4_8, song.speed, song.mainSpeed, song.instrumentSpeed, song.songActiveLine, song.songPlayLine, song.trackActiveLine, song.trackPlayLine };
+		int[] own = { song.getChannels(), song.speed, song.mainSpeed, song.instrumentSpeed, song.songActiveLine, song.songPlayLine, song.trackActiveLine, song.trackPlayLine };
 		System.arraycopy(own, 0, mainParams, 0, own.length);
 		System.arraycopy(uiParams, 0, mainParams, RMW_UI_PARAMS_INDEX, RMW_UI_PARAMS_COUNT); // the 16 UI settings - see the javadoc
 		int[] rest = { song.trackActiveCol, song.trackActiveCur, song.activeInstr, song.volume, song.octave, song.infoAct.ordinal(), song.songNameCursor };
@@ -528,8 +529,8 @@ public final class SongIO {
 		return out.toByteArray();
 	}
 
-	/** {@code success} is C++'s own {@code bool} return; {@code tracks4_8} is C++'s output parameter {@code g_tracks4_8}, {@code uiParams} the 16 UI settings the file carries (see {@link #saveRMW(song, int, int[])}) - both only meaningful when {@code success}. */
-	public record LoadRmwResult(boolean success, int tracks4_8, int[] uiParams) {
+	/** {@code success} is C++'s own {@code bool} return; {@code uiParams} the 16 UI settings the file carries (see {@link #saveRMW(Song, int[])}) - only meaningful when {@code success}. */
+	public record LoadRmwResult(boolean success, int[] uiParams) {
 	}
 
 	/**
@@ -542,12 +543,12 @@ public final class SongIO {
 	 * {@link Instruments#loadAllRmw}/{@link Tracks#loadAllRmw}.
 	 */
 	public static LoadRmwResult loadRMW(Song song, byte[] data, Undo undo) {
-		int tracks4_8 = song.clearSong(8, undo); // always clear 8 tracks
+		song.clearSong(RmtModule.CHANNELS_STEREO, undo); // always clear 8 tracks
 
 		int[] uiParams = new int[RMW_UI_PARAMS_COUNT];
 		int nl = indexOf(data, (byte) '\n', 0);
 		if (nl < 0) {
-			return new LoadRmwResult(false, tracks4_8, uiParams);
+			return new LoadRmwResult(false, uiParams);
 		}
 		String fileVersion = new String(data, 0, nl, java.nio.charset.StandardCharsets.US_ASCII);
 		int pos = nl + 1;
@@ -555,7 +556,7 @@ public final class SongIO {
 			// Guard-only: version mismatch. C++'s SendErrorMessage isn't
 			// reproduced - Song holds no Messages reference (matches
 			// instrChangeApply's established reasoning).
-			return new LoadRmwResult(false, tracks4_8, uiParams);
+			return new LoadRmwResult(false, uiParams);
 		}
 
 		for (int i = 0; i < SongInfo.SONG_NAME_MAX_LEN; i++) {
@@ -571,7 +572,7 @@ public final class SongIO {
 		// same as C++ leaving a not-yet-overwritten local variable at its
 		// pre-existing (clearSong()-defaulted) value.
 		int[] mainParams = {
-				tracks4_8, song.speed, song.mainSpeed, song.instrumentSpeed,
+				song.getChannels(), song.speed, song.mainSpeed, song.instrumentSpeed,
 				song.songActiveLine, song.songPlayLine, song.trackActiveLine, song.trackPlayLine,
 				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 				song.trackActiveCol, song.trackActiveCur, song.activeInstr, song.volume, song.octave, song.infoAct.ordinal(), song.songNameCursor
@@ -581,7 +582,10 @@ public final class SongIO {
 			pos += 4;
 		}
 
-		tracks4_8 = song.setTracks(mainParams[0]);
+		if (mainParams[0] != RmtModule.CHANNELS_MONO && mainParams[0] != RmtModule.CHANNELS_STEREO) {
+			return new LoadRmwResult(false, uiParams); // a channel count no tracker driver plays
+		}
+		song.setChannels(mainParams[0]);
 		song.speed = mainParams[1];
 		song.mainSpeed = mainParams[2];
 		song.instrumentSpeed = mainParams[3];
@@ -613,7 +617,7 @@ public final class SongIO {
 		pos = song.instruments.loadAllRmw(data, pos);
 		song.tracks.loadAllRmw(data, pos);
 
-		return new LoadRmwResult(true, tracks4_8, uiParams);
+		return new LoadRmwResult(true, uiParams);
 	}
 
 	/**
@@ -628,15 +632,8 @@ public final class SongIO {
 	 * failure paths (corrupted first block; {@link #decodeModule} rejecting
 	 * it) return {@code success == false} without reproducing their
 	 * {@code SendErrorMessage} calls either.
-	 *
-	 * <p>Returns the module's own {@code tracks4_8} (4 or 8, from the
-	 * {@code RMT4}/{@code RMT8} header) alongside the success flag, the way
-	 * {@link #loadRMW} does - C++ stores it into {@code g_tracks4_8} inside
-	 * {@link #decodeModule}, and the caller here is responsible for keeping
-	 * it. On failure it is whatever {@link #decodeModule} got to (-1 if it
-	 * never read a header).
 	 */
-	public record LoadRmtResult(boolean success, int tracks4_8, int moduleAddress) {
+	public record LoadRmtResult(boolean success, int moduleAddress) {
 	}
 
 	public static LoadRmtResult loadRMT(Song song, byte[] data) {
@@ -644,21 +641,20 @@ public final class SongIO {
 
 		AtariIO.BinaryBlockResult mainBlock = AtariIO.loadBinaryBlock(data, 0, mem);
 		if (mainBlock.length() <= 0) {
-			return new LoadRmtResult(false, -1, 0); // did not retrieve any data in the first block
+			return new LoadRmtResult(false, 0); // did not retrieve any data in the first block
 		}
 
 		byte[] instrumentLoadedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackLoadedFlags = new byte[Tracks.TRACKSNUM];
-		DecodeModuleResult decodeResult = decodeModule(song, mem, mainBlock.fromAddr(), mainBlock.toAddr() + 1, instrumentLoadedFlags, trackLoadedFlags);
-		int tracks4_8 = decodeResult.tracks4_8();
-		if (decodeResult.version() == 0) {
-			return new LoadRmtResult(false, tracks4_8, 0); // bad RMT data format or old tracker version
+		int version = decodeModule(song, mem, mainBlock.fromAddr(), mainBlock.toAddr() + 1, instrumentLoadedFlags, trackLoadedFlags);
+		if (version == 0) {
+			return new LoadRmtResult(false, 0); // bad RMT data format or old tracker version
 		}
 
 		// RMT - now read the second block with names
 		AtariIO.BinaryBlockResult namesBlock = AtariIO.loadBinaryBlock(data, mainBlock.inputBytesConsumed(), mem);
 		if (namesBlock.length() < 1) {
-			return new LoadRmtResult(true, tracks4_8, mainBlock.fromAddr()); // stripped RMT module - song/instrument names are missing, not a failure
+			return new LoadRmtResult(true, mainBlock.fromAddr()); // stripped RMT module - song/instrument names are missing, not a failure
 		}
 
 		// Parse the song name (until we hit the terminating zero)
@@ -696,7 +692,7 @@ public final class SongIO {
 			addrInstrumentNames += nameIdx + 1; // +1 is zero behind the name
 		}
 
-		return new LoadRmtResult(true, tracks4_8, mainBlock.fromAddr()); // The main block of the module is OK => take its boot address (C++: g_rmtstripped_adr_module = fromAddr)
+		return new LoadRmtResult(true, mainBlock.fromAddr()); // The main block of the module is OK => take its boot address (C++: g_rmtstripped_adr_module = fromAddr)
 	}
 
 	private static final int ATARI_MAX_INSTR_OR_TRACK_LENGTH = 256; // matches C++'s ATARI_MAX_INSTR_LENGTH/ATARI_MAX_TRACK_LENGTH (SongTypes.h) - both happen to be 256
@@ -715,7 +711,7 @@ public final class SongIO {
 	 * scratch buffer first, then {@code arraycopy}s the actual encoded length
 	 * into {@code mem} at the right offset.
 	 */
-	public static int makeModule(Song song, byte[] mem, int addr, SongIOType iotype, byte[] instrumentSavedFlags, byte[] trackSavedFlags, int tracks4_8) {
+	public static int makeModule(Song song, byte[] mem, int addr, SongIOType iotype, byte[] instrumentSavedFlags, byte[] trackSavedFlags) {
 		java.util.Arrays.fill(instrumentSavedFlags, (byte) 0);
 		java.util.Arrays.fill(trackSavedFlags, (byte) 0);
 
@@ -728,7 +724,7 @@ public final class SongIO {
 		mem[addr] = 'R';
 		mem[addr + 1] = 'M';
 		mem[addr + 2] = 'T';
-		mem[addr + 3] = (byte) (tracks4_8 + '0'); // 4 or 8
+		mem[addr + 3] = (byte) (song.getChannels() + '0'); // 4 or 8
 		mem[addr + 4] = (byte) (song.tracks.getMaxTrackLength() & 0xff);
 		mem[addr + 5] = (byte) (song.mainSpeed & 0xff);
 		mem[addr + 6] = (byte) song.instrumentSpeed; // 1-4 player calls per frame
@@ -736,7 +732,7 @@ public final class SongIO {
 
 		// Note: when saving in RMT format ALL non-empty tracks and non-empty
 		// instruments will be stored; in other formats only the USED ones will be.
-		song.markTfUsed(trackSavedFlags, tracks4_8); // mark all tracks as used
+		song.markTfUsed(trackSavedFlags); // mark all tracks as used
 		if (iotype == SongIOType.RMT) {
 			song.markTfNoEmpty(trackSavedFlags); // in addition to the used ones, all non-empty tracks
 		}
@@ -793,7 +789,7 @@ public final class SongIO {
 		// Saves instrument data and writes their beginnings to the table
 		for (int i = 0; i < numInstruments; i++) {
 			if (instrumentSavedFlags[i] != 0) {
-				int thisInstrumentLength = song.instruments.instrToAta(i, scratch, song.isStereo(tracks4_8));
+				int thisInstrumentLength = song.instruments.instrToAta(i, scratch, song.isStereo());
 				System.arraycopy(scratch, 0, mem, ptrInstrumentData, thisInstrumentLength);
 
 				mem[ptrInstruments + i * 2] = (byte) (ptrInstrumentData & 0xff); // lo byte
@@ -835,7 +831,7 @@ public final class SongIO {
 		// Just after the track data we store the song lines
 		int ptrSongData = ptrTrackData;
 		byte[] songScratch = new byte[mem.length - ptrSongData];
-		int thisSongLength = songToAta(song, songScratch, songScratch.length, ptrSongData, tracks4_8);
+		int thisSongLength = songToAta(song, songScratch, songScratch.length, ptrSongData);
 		System.arraycopy(songScratch, 0, mem, ptrSongData, thisSongLength);
 
 		int endOfModule = ptrSongData + thisSongLength;
@@ -853,10 +849,6 @@ public final class SongIO {
 		return endOfModule; // address of the first byte past the last one used
 	}
 
-	/** {@code version} is the method's own {@code int} return value (0 on failure - ambiguous with a genuinely-decoded version-0 file, an existing C++ design wart, not introduced here); {@code tracks4_8} is C++'s {@code g_tracks4_8} global, mutated as a side effect of a successful header parse. */
-	public record DecodeModuleResult(int version, int tracks4_8) {
-	}
-
 	/**
 	 * Decodes an Atari RMT module byte format at {@code mem[fromAddr..endAddr)}
 	 * back into this {@link Song} (plus the shared {@code Tracks}/
@@ -870,8 +862,13 @@ public final class SongIO {
 	 * input directly from {@code mem} at a pointer offset; since Java arrays
 	 * can't be sliced without copying, each gets a
 	 * {@code Arrays.copyOfRange} view instead.
+	 *
+	 * <p>Returns the module's format version, 0 on failure - ambiguous with a
+	 * genuinely decoded version-0 file, an existing C++ design wart, not
+	 * introduced here. The song's channel count is set as soon as the header
+	 * names it, as C++ sets {@code g_tracks4_8}, whatever follows.
 	 */
-	public static DecodeModuleResult decodeModule(Song song, byte[] mem, int fromAddr, int endAddr, byte[] instrumentLoadedFlags, byte[] trackLoadedFlags) {
+	public static int decodeModule(Song song, byte[] mem, int fromAddr, int endAddr, byte[] instrumentLoadedFlags, byte[] trackLoadedFlags) {
 		int addr = fromAddr;
 
 		java.util.Arrays.fill(instrumentLoadedFlags, (byte) 0);
@@ -879,15 +876,15 @@ public final class SongIO {
 
 		// Check that the header starts with "RMT"
 		if (mem[addr] != 'R' || mem[addr + 1] != 'M' || mem[addr + 2] != 'T') {
-			return new DecodeModuleResult(0, -1); // there is no RMT
+			return 0; // there is no RMT
 		}
 
 		// 4th byte: # of channels (4 or 8)
 		int channelByte = unsignedByte(mem, addr + 3);
 		if (channelByte != '4' && channelByte != '8') {
-			return new DecodeModuleResult(0, -1); // it is not RMT4 or RMT8
+			return 0; // it is not RMT4 or RMT8
 		}
-		int tracks4_8 = song.setTracks(channelByte & 0x0F); // store how many channels this module uses
+		song.setChannels(channelByte & 0x0F); // store how many channels this module uses
 
 		// 5th byte: track length
 		int trackLenByte = unsignedByte(mem, addr + 4);
@@ -897,20 +894,20 @@ public final class SongIO {
 		int mainSpeedByte = unsignedByte(mem, addr + 5);
 		song.mainSpeed = mainSpeedByte;
 		if (mainSpeedByte < 1) {
-			return new DecodeModuleResult(0, tracks4_8); // there can be no zero speed
+			return 0; // there can be no zero speed
 		}
 
 		// 7th byte: instrument speed
 		int instrSpeedByte = unsignedByte(mem, addr + 6);
 		if (instrSpeedByte < 1 || instrSpeedByte > 8) {
-			return new DecodeModuleResult(0, tracks4_8); // less than 1 or greater than 8
+			return 0; // less than 1 or greater than 8
 		}
 		song.instrumentSpeed = instrSpeedByte;
 
 		// 8th byte: RMT format version nr.
 		int version = unsignedByte(mem, addr + 7);
 		if (version > RmtFormatVersion.V1) {
-			return new DecodeModuleResult(0, tracks4_8); // above the currently supported one
+			return 0; // above the currently supported one
 		}
 
 		// Now tracks.getMaxTrackLength() is set to the value in the RMT
@@ -928,7 +925,7 @@ public final class SongIO {
 		int numTracks = ptrTracksHigh - ptrTracksLow;
 		int lengthSong = endAddr - ptrSong;
 
-		boolean stereo = song.isStereo(tracks4_8);
+		boolean stereo = song.isStereo();
 
 		// Decoding of individual instruments
 		for (int instrumentNr = 0; instrumentNr < numInstruments; instrumentNr++) {
@@ -945,7 +942,7 @@ public final class SongIO {
 			song.instruments.update(instrumentNr); // writes to Atari ram (the display-hint half of it - see Instruments.update)
 
 			if (!loadState) {
-				return new DecodeModuleResult(0, tracks4_8); // some problem with the instrument => END
+				return 0; // some problem with the instrument => END
 			}
 
 			instrumentLoadedFlags[instrumentNr] = 1;
@@ -974,7 +971,7 @@ public final class SongIO {
 			int trackLength = ptrTrackEnd - ptrTrack;
 			byte[] trackData = java.util.Arrays.copyOfRange(mem, ptrTrack, mem.length);
 			if (!song.tracks.ataToTrack(trackData, trackLength, trackNr)) {
-				return new DecodeModuleResult(0, tracks4_8); // some problem with the track => END
+				return 0; // some problem with the track => END
 			}
 
 			trackLoadedFlags[trackNr] = 1;
@@ -982,10 +979,10 @@ public final class SongIO {
 
 		// Decode song
 		byte[] songData = java.util.Arrays.copyOfRange(mem, ptrSong, mem.length);
-		if (!ataToSong(song, songData, lengthSong, ptrSong, tracks4_8)) {
-			return new DecodeModuleResult(0, tracks4_8); // some problem with the song => END
+		if (!ataToSong(song, songData, lengthSong, ptrSong)) {
+			return 0; // some problem with the song => END
 		}
 
-		return new DecodeModuleResult(version, tracks4_8);
+		return version;
 	}
 }

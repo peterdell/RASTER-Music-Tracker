@@ -147,7 +147,7 @@ final class ExportStrippedRmtDialog extends ModalDialog {
 		exportAddr = adr;
 		infoLabel.setText(String.format("=>  $%04X - $%04X , length $%04X (%d bytes)", exportAddr, exportAddr + len - 1, len, len));
 		warningLabel.setText("<html>Warning:<br>" + (sfx ? "This output file doesn't contain song name and names of all instruments." : "This output file doesn't contain any unused or empty tracks and instruments, song name and names of all instruments.") + "</html>");
-		String feat = AsmFileExporter.composeRMTFEATstring(session.song, session.instruments, session.tracks, session.tracks4_8, filename, desc.instrumentSavedFlags(), sfx, gvfBox.isSelected(), nosBox.isSelected(), getAssemblerFormat());
+		String feat = AsmFileExporter.composeRMTFEATstring(session.song, session.instruments, session.tracks, filename, desc.instrumentSavedFlags(), sfx, gvfBox.isSelected(), nosBox.isSelected(), getAssemblerFormat());
 		featArea.setText(feat);
 		featArea.setCaretPosition(0);
 	}
