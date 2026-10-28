@@ -16,6 +16,7 @@ import org.atari.raster.rmt.model.KeyboardLayout;
 import org.atari.raster.rmt.model.MessageAnswer;
 import org.atari.raster.rmt.model.Part;
 import org.atari.raster.rmt.model.PlayMode;
+import org.atari.raster.rmt.model.TestSongs;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
 
 /** The command handlers and their enable/check logic, headless: the host is a recorder, the message boxes answer through Messages' test hook. */

@@ -26,6 +26,7 @@ import org.atari.raster.rmt.model.MessageButtons;
 import org.atari.raster.rmt.model.Messages;
 import org.atari.raster.rmt.model.RmtExporter;
 import org.atari.raster.rmt.model.SongIOType;
+import org.atari.raster.rmt.model.TestSongs;
 
 /** {@code FileImport()}/{@code FileExportAs()} flows, headless: the dialogs are the scripted stub, the importers/exporters the real ones. */
 class ImportExportTest {

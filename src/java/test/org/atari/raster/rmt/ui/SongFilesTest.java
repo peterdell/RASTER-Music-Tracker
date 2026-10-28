@@ -19,6 +19,7 @@ import org.atari.raster.rmt.model.MessageAnswer;
 import org.atari.raster.rmt.model.MessageButtons;
 import org.atari.raster.rmt.model.Messages;
 import org.atari.raster.rmt.model.SongIOType;
+import org.atari.raster.rmt.model.TestSongs;
 
 /** The file flows of IO_Song.cpp, headless: the dialogs are a scripted stub, the message boxes a recorder. */
 class SongFilesTest {

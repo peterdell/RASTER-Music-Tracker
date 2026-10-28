@@ -18,6 +18,7 @@ import org.atari.raster.rmt.model.PlayMode;
 import org.atari.raster.rmt.model.PokeyStream;
 import org.atari.raster.rmt.model.RmtExporter;
 import org.atari.raster.rmt.model.SongIOType;
+import org.atari.raster.rmt.model.TestSongs;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
 import org.atari.raster.rmt.model.Tracks;
 

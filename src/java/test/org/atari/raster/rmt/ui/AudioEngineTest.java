@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import org.atari.raster.rmt.model.AtariCpu;
 import org.atari.raster.rmt.model.PlayMode;
+import org.atari.raster.rmt.model.TestSongs;
 
 /** The frame step of {@link AudioEngine} driven by hand (no audio line): what C++'s {@code TimerRoutine()} does per tick. */
 class AudioEngineTest {

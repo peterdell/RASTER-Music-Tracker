@@ -14,6 +14,7 @@ import org.atari.raster.rmt.model.Atari;
 import org.atari.raster.rmt.model.AtariCpu;
 import org.atari.raster.rmt.model.PlayMode;
 import org.atari.raster.rmt.model.PokeyStream;
+import org.atari.raster.rmt.model.TestSongs;
 import org.atari.raster.rmt.model.WaveFileExporter;
 
 /**

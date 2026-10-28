@@ -7,7 +7,9 @@ Speed:          Song speed 8, instrument speed 1, track length 2.
 Channels:       Mono (RMT4), module at $6800-$69CA (465 bytes), format
                 version 1, stripped (no name block).
 
-An SFX-only module: 9 instruments and NO tracks or song lines - the
+An SFX-only module: 10 instruments (0-9) and nothing that plays - eleven
+one-event audition tracks (0-9 and 16) that no song line references, and a
+song of one empty line looping to itself (plan 60 read the file) - the
 instruments exist solely to be triggered directly as sound effects
 (RASTERMUSICTRACKER+15, FEAT_SFX). The issue: since RMT 1.34, "Export
 As RMT Stripped Song File" with "SFX Support" checked stripped every

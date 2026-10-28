@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import org.atari.raster.rmt.model.Part;
 import org.atari.raster.rmt.model.PlayMode;
+import org.atari.raster.rmt.model.TestSongs;
 
 /**
  * Full-frame tests of {@link SongUI#drawAll} - the first frame of the

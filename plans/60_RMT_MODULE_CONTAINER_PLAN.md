@@ -1,7 +1,8 @@
 # Plan 60: A container class for the RMT module (format version 1)
 
-Status: DECIDED 2026-10-28 (user), M1 to be implemented first; see the
-open decisions below for the four answers.
+Status: M1 DONE 2026-10-28 (uncommitted until the user's word); M2 and M3
+wait for its review. Decided 2026-10-28 (user), see the open decisions
+below for the four answers and the addendum on nesting.
 
 A class in the Java port that represents an RMT module as
 `doc/rmt_format.md` describes it (the GitHub copy the user named,
@@ -51,7 +52,14 @@ same bytes.
 
 ### `RmtModule` - the module, as content
 
-Mirrors the spec's structs, one Java type per struct:
+Mirrors the spec's structs, one Java type per struct - nested in
+`RmtModule` as `RmtModule.SongLine`, `RmtModule.Track`,
+`RmtModule.Instrument` (with `Instrument.Envelope`) and the
+`RmtModule.FormatException` (user, 2026-10-28, during M1: the parts have
+no meaning outside the module, and the nesting mirrors the spec; static
+nested classes, whose names shadow the editor's `Instrument`/`Track`
+inside `RmtModule` - the container needs neither, and its own
+`NOTE_TABLE_MAX`/`ENVELOPE_MAX` are asserted equal to the editor's):
 
 - **Header** (the "Module Header Struct"): `tracks` (4 or 8, from
   `RMT4`/`RMT8`), `trackLength` (1-256, the byte's 0 meaning 256),
@@ -122,7 +130,19 @@ wrappers over the container (M2), so the many callers and the
 
 ## Steps
 
-- [ ] M1. `RmtModule`, `RmtModuleFile` and `RmtModuleCodec` with
+- [x] M1. DONE 2026-10-28. `RmtModule` (with its nested structs),
+      `RmtModuleFile`, `RmtModuleCodec` and `RmtModuleTest` (11 tests):
+      all six fixtures read and write back byte for byte; relocation to
+      $6000 round-trips; `fromSong` + `write` equals `makeModule()` for
+      both iotypes at two addresses; `toSong` yields `decodeModule()`'s
+      song state; `fileFromSong` equals `exportAsRMT()`; typed struct,
+      walker and rejection tests. Found on the way: four of the six
+      fixtures are stripped (Delta, RebbStars, Why Do You Dance With Me,
+      testsfx - only Captain Future Theme and Makary's carry names), and
+      testsfx holds 10 instruments (its README said 9) plus eleven
+      one-event audition tracks and a one-line looping song (its README
+      said none - corrected to "nothing that plays"). Original text:
+      `RmtModule`, `RmtModuleFile` and `RmtModuleCodec` with
       `parse`/`write`/`read` and `fromSong`/`toSong`, plus the tests
       that make the spec executable: every `.rmt` under
       `test-resources/songs` parses, and writing it back at its own
@@ -153,7 +173,28 @@ test unchanged; no asm or C++ changes, so no byte-identity chain.
 
 ## Open decisions
 
-All four decided by the user 2026-10-28:
+All four decided by the user 2026-10-28, plus two addenda the same day:
+
+5. **Constants for the format's attributes and values** (user's request,
+   with the proposal's recommendations accepted): on `RmtModule` -
+   `SIGNATURE`, `CHANNELS_MONO`/`CHANNELS_STEREO`, `HEADER_LENGTH`,
+   `FORMAT_VERSION`, `MAX_TRACK_LENGTH`, `MAX_SONG_SPEED`,
+   `MAX_INSTRUMENT_SPEED`, `MAX_INSTRUMENTS`, `MAX_TRACKS`,
+   `MAX_SONG_LINES`; on `SongLine` - `GO_TO_MARKER`, `EMPTY`,
+   `GO_TO_LENGTH`; on `Track` - the event codes (`MAX_NOTE`,
+   `VOLUME_ONLY`, `PAUSE`, `CONTROL`, `CONTROL_SPEED`/`JUMP`/`END`, the
+   two masks, `MAX_LENGTH`); on `Instrument` - `PARAMETERS_LENGTH`,
+   `ENVELOPE_ENTRY_LENGTH`, `MAX_NOTE_TABLE_ENTRIES`,
+   `MAX_ENVELOPE_ENTRIES`, `MAX_TABLE_SPEED`, `MAX_VIBRATO`,
+   `MAX_VOLUME`; on `RmtModuleFile` - `DEFAULT_LOAD_ADDRESS`. The
+   container defines its own limits (the format's), and a test asserts
+   they equal the editor's constants; `DEFAULT_LOAD_ADDRESS` is the
+   file's, not the content's; today's literals in `SongIO`, `Tracks`
+   and `SongFiles` are replaced in M2.
+6. **Naming style** (user): `MAX_` is a prefix, never a suffix; hex
+   values are lower case (`$fe`, `0xfe`) in code, comments and messages.
+
+The original four:
 
 1. **Names: `RmtModule` and `RmtModuleFile`** (plain `Module` collides
    with `java.lang.Module`; `RmtModuleV1` was the alternative for a
