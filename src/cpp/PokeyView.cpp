@@ -19,12 +19,12 @@ void CPokeyView::Draw(const CSong& song, const CTuning& tuning, const bool explo
     static constexpr int explorerRow = pokey2Row + pokeyRows;
 
     // Tuning
-    const double basetuning = g_Song.GetTuningSettings().basetuning;
-    const int basenote = g_Song.GetTuningSettings().basenote;
-    const int reverse_basenote = (24 - basenote) % g_notesperoctave;
+    const double a4Frequency = g_Song.GetTuningSettings().a4Frequency;
+    const int tonic = g_Song.GetTuningSettings().tonic;
+    const int reverse_tonic = (24 - tonic) % g_notesperoctave;
     canvas->ColorMini(TextMiniColor::GRAY).At(0, tuningRow).PrintMini("A- TUNING:       HZ, PAL  , FREQ:        HZ, CYCLES: ");
-    canvas->PrintfMini(2, "%s", CNotes::GetNote(reverse_basenote)); //overwrite A- with the given basenote
-    canvas->ColorMini(TextMiniColor::WHITE).AtColumn(11).PrintfMini(10, "%3.2f", basetuning);
+    canvas->PrintfMini(2, "%s", CNotes::GetNote(reverse_tonic)); //overwrite A- with the given tonic
+    canvas->ColorMini(TextMiniColor::WHITE).AtColumn(11).PrintfMini(10, "%3.2f", a4Frequency);
     canvas->ColorMini(TextMiniColor::BLUE).AtColumn(21).PrintMini(atari.IsNTSC() ? "NTSC" : "PAL");
     canvas->ColorMini(TextMiniColor::WHITE);
     canvas->AtColumn(34).PrintfMini(7, "%d", atari.GetClockFrequency());
@@ -303,15 +303,15 @@ void CPokeyView::Draw(const CSong& song, const CTuning& tuning, const bool explo
                     canvas->At(17, channelRow).PrintMini("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
                 } else {
                     // Most of the lines below could get some improvements...
-                    const double centnum = CENTS_PER_OCTAVE * log2(PITCH / basetuning);
+                    const double centnum = CENTS_PER_OCTAVE * log2(PITCH / a4Frequency);
                     const int notenum = (int)round(centnum * 0.01) + 60;
-                    const int octave = (((notenum + 96) - basenote) / g_notesperoctave) - 8;
+                    const int octave = (((notenum + 96) - tonic) / g_notesperoctave) - 8;
                     const int cents = (int)round(centnum - (notenum - 60) * 100);
 
                     canvas->ColorMini(TextMiniColor::WHITE).At(49, channelRow).PrintfMini(3, "%03d", cents);
                     canvas->ColorMini(TextMiniColor::GRAY).PrintMini((cents >= 0) ? "+" : "-");
 
-                    int note = ((notenum + 96) - basenote) % g_notesperoctave;
+                    int note = ((notenum + 96) - tonic) % g_notesperoctave;
                     if (note < 0) {
                         note *= -1; // Invert the negative to prevent going out of bounds
                     }

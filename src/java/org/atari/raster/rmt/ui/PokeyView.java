@@ -10,7 +10,7 @@ import org.atari.raster.rmt.model.TuningSettings;
  * tuning line and per-POKEY register dump ("POKEY REGISTERS") drawn to the
  * right of the tracks screen. Reads the register shadow at
  * {@code $D200}/{@code $D210} from the emulated Atari's memory and the
- * tuning globals ({@code g_tuning.basetuning/basenote},
+ * tuning globals ({@code g_tuning.a4Frequency/tonic},
  * {@code g_notesperoctave}) from the explicitly passed objects.
  *
  * <p>In the Pokey Explorer mode ({@code explorerMode}) three rows below the
@@ -72,12 +72,12 @@ public final class PokeyView {
 		final int explorerRow = pokey2Row + pokeyRows;
 
 		// Tuning
-		final double basetuning = tuningSettings.basetuning;
-		final int basenote = tuningSettings.basenote.getNumber();
-		final int reverseBasenote = (24 - basenote) % notesPerOctave;
+		final double a4Frequency = tuningSettings.a4Frequency;
+		final int tonic = tuningSettings.tonic.getNumber();
+		final int reverseTonic = (24 - tonic) % notesPerOctave;
 		canvas.colorMini(TextMiniColor.GRAY).at(0, tuningRow).printMini("A- TUNING:       HZ, PAL  , FREQ:        HZ, CYCLES: ");
-		canvas.printfMini(2, "%s", Notes.getNote(reverseBasenote)); // overwrite A- with the given basenote
-		canvas.colorMini(TextMiniColor.WHITE).atColumn(11).printfMini(10, "%3.2f", basetuning);
+		canvas.printfMini(2, "%s", Notes.getNote(reverseTonic)); // overwrite A- with the given tonic
+		canvas.colorMini(TextMiniColor.WHITE).atColumn(11).printfMini(10, "%3.2f", a4Frequency);
 		canvas.colorMini(TextMiniColor.BLUE).atColumn(21).printMini(atari.isNTSC() ? "NTSC" : "PAL");
 		canvas.colorMini(TextMiniColor.WHITE);
 		canvas.atColumn(34).printfMini(7, "%d", atari.getClockFrequency());
@@ -298,15 +298,15 @@ public final class PokeyView {
 						canvas.at(17, channelRow).printMini("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
 					} else {
 						// Most of the lines below could get some improvements...
-						final double centnum = Tuning.CENTS_PER_OCTAVE * (Math.log(PITCH / basetuning) / Math.log(2));
+						final double centnum = Tuning.CENTS_PER_OCTAVE * (Math.log(PITCH / a4Frequency) / Math.log(2));
 						final int notenum = (int) cRound(centnum * 0.01) + 60;
-						final int octave = (((notenum + 96) - basenote) / notesPerOctave) - 8;
+						final int octave = (((notenum + 96) - tonic) / notesPerOctave) - 8;
 						final int cents = (int) cRound(centnum - (notenum - 60) * 100);
 
 						canvas.colorMini(TextMiniColor.WHITE).at(49, channelRow).printfMini(3, "%03d", cents);
 						canvas.colorMini(TextMiniColor.GRAY).printMini((cents >= 0) ? "+" : "-");
 
-						int note = ((notenum + 96) - basenote) % notesPerOctave;
+						int note = ((notenum + 96) - tonic) % notesPerOctave;
 						if (note < 0) {
 							note *= -1; // Invert the negative to prevent going out of bounds
 						}

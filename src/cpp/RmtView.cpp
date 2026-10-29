@@ -801,12 +801,12 @@ void CRmtView::ReadTuningConfig()
 
         // TUNING 
         TTuningSettings& tuning = g_Song.GetTuningSettings();
-        if (NAME("TUNING")) { tuning.basetuning = atof(value); continue; }
-        if (NAME("BASENOTE")) { tuning.basenote = atoi(value); continue; }
+        if (NAME("A4_FREQUENCY") || NAME("TUNING")) { tuning.a4Frequency = atof(value); continue; } // TUNING: the name before plan 62
+        if (NAME("TONIC") || NAME("BASENOTE")) { tuning.tonic = atoi(value); continue; } // BASENOTE: the name before plan 62
         if (NAME("TEMPERAMENT")) { tuning.temperament = SanitizeTemperament(atoi(value)); continue; }
 
         // CENTS
-        if (ReadCents(name, value, value2, "UNISON", tuning.cents.values[0])) { continue; }
+        if (NAME("UNISON")) { continue; } // the tonic's cents, always 0; no longer written since plan 62
         if (ReadCents(name, value, value2, "MIN_2ND", tuning.cents.values[1])) { continue; }
         if (ReadCents(name, value, value2, "MAJ_2ND", tuning.cents.values[2])) { continue; }
         if (ReadCents(name, value, value2, "MIN_3RD", tuning.cents.values[3])) { continue; }
@@ -844,16 +844,16 @@ void CRmtView::WriteTuningConfig()
     const TTuningSettings& tuning = g_Song.GetTuningSettings();
 
     os << "\n# TUNING\n" << std::endl;
-    os << "TUNING = " << tuning.basetuning << std::endl;
-    os << "BASENOTE = " << tuning.basenote << std::endl;
+    os << "A4_FREQUENCY = " << tuning.a4Frequency << std::endl;
+    os << "TONIC = " << tuning.tonic << std::endl;
     os << "TEMPERAMENT = " << tuning.temperament << std::endl;
 
     os << "\n# CENTS\n" << std::endl;
     static const char* const CENTS_NAMES[TTuningCents::COUNT] = {
-        "UNISON", "MIN_2ND", "MAJ_2ND", "MIN_3RD", "MAJ_3RD", "PERF_4TH",
+        nullptr, "MIN_2ND", "MAJ_2ND", "MIN_3RD", "MAJ_3RD", "PERF_4TH",
         "TRITONE", "PERF_5TH", "MIN_6TH", "MAJ_6TH", "MIN_7TH", "MAJ_7TH"
     };
-    for (int i = 0; i < TTuningCents::COUNT; i++) {
+    for (int i = 1; i < TTuningCents::COUNT; i++) { // the tonic's 0 has no line (plan 62)
         os << CENTS_NAMES[i] << " = " << tuning.cents.values[i] << std::endl;
     }
 
@@ -1614,7 +1614,7 @@ const char FlaToCha[] = { 0x67,0x68,0x69,109,0x64,0x65,0x66,107,0x61,0x62,0x63,0
 
 void CRmtView::SetNTSC(const bool ntsc) {
     // TODO  code... well 3 times..
-    g_Song.GetTuningSettings().basetuning = (ntsc) ? (g_Song.GetTuningSettings().basetuning * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_Song.GetTuningSettings().basetuning * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
+    g_Song.GetTuningSettings().a4Frequency = (ntsc) ? (g_Song.GetTuningSettings().a4Frequency * CAtari::FREQ_17_NTSC) / CAtari::FREQ_17_PAL : (g_Song.GetTuningSettings().a4Frequency * CAtari::FREQ_17_PAL) / CAtari::FREQ_17_NTSC;
     g_Song.SetNTSC(ntsc);
 
 }

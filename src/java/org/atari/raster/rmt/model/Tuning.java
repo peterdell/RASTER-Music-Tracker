@@ -11,7 +11,7 @@ package org.atari.raster.rmt.model;
  * substitution (same judgment call as IntegerFraction's immutability), not a
  * behavior change: every value production reads there is still
  * supplied by the caller here, just explicitly. Their C++ MessageBox+exit(1)
- * guard (basetuning == 0) becomes an IllegalStateException, matching
+ * guard (a4Frequency == 0) becomes an IllegalStateException, matching
  * IntegerFraction's own precedent for translating a fatal C++ precondition into a
  * Java exception instead of terminating the process.
  *
@@ -86,48 +86,48 @@ public final class Tuning {
 		this.clockFrequency = clockFrequency;
 	}
 
-	/** A- is nine semitones above C-; the {@link BaseNote} numbers count downward from C = 0, so the interval from the tonic up to the next A is (9 + basenote) % 12. */
+	/** A- is nine semitones above C-; the {@link Tonic} numbers count downward from C = 0, so the interval from the tonic up to the next A is (9 + tonic) % 12. */
 	static final int A_SEMITONES_ABOVE_C = 9;
 
 	/**
 	 * The anchor to feed {@link #getTruePitch}'s {@code tuning} parameter so
 	 * that the note A always sounds at the A4 reference pitch
-	 * {@code tuningSettings.basetuning}, whatever the key - plan 59 step 2,
+	 * {@code tuningSettings.a4Frequency}, whatever the key - plan 59 step 2,
 	 * the port of ivop's {@code calculate_base_frequency()}
 	 * (others/Ivop/tuning_poc2.c): the temperament's multiplier for the
 	 * interval from the tonic up to A divides the A4 frequency, and the power
-	 * of two re-anchors the octave. For the base note A- the interval is the
-	 * unison, so the anchor is the A4 frequency itself, bit-exactly - the
-	 * tables of every module with the default base note are unchanged. For
+	 * of two re-anchors the octave. For the tonic A- the interval is 0
+	 * cents, so the anchor is the A4 frequency itself, bit-exactly - the
+	 * tables of every module with the default tonic are unchanged. For
 	 * the custom temperament this reads the multipliers {@link #initTuning}
 	 * computed from the cents, so it is only valid after that computation -
 	 * which is the only caller ({@code generateTable}).
 	 */
-	double calculateBaseFrequency(TuningSettings tuningSettings) {
-		int toA = A_SEMITONES_ABOVE_C + tuningSettings.basenote.getNumber();
+	double calculateTonicFrequency(TuningSettings tuningSettings) {
+		int toA = A_SEMITONES_ABOVE_C + tuningSettings.tonic.getNumber();
 		int interval = toA % NOTES_PER_OCTAVE; // semitones from the tonic up to the next A
 		double multiplier = tuningSettings.temperament.isCustom() ? custom[interval] : tuningSettings.temperament.getMultiplier(interval);
-		return tuningSettings.basetuning * Math.pow(2, 1 - toA / NOTES_PER_OCTAVE) / multiplier; // integer division: 1 - 1 = 0 octaves for the keys C#- through A-
+		return tuningSettings.a4Frequency * Math.pow(2, 1 - toA / NOTES_PER_OCTAVE) / multiplier; // integer division: 1 - 1 = 0 octaves for the keys C#- through A-
 	}
 
 	/**
 	 * Calculate the true audio pitch output using the given parameters.
 	 *
-	 * @param tuning the anchor pitch (in Hertz) the tonic's octave chain is placed by - {@link #calculateBaseFrequency}'s conversion of the A4 reference pitch (for the base note A- the two coincide)
+	 * @param tuning the anchor pitch (in Hertz) the tonic's octave chain is placed by - {@link #calculateTonicFrequency}'s conversion of the A4 reference pitch (for the tonic A- the two coincide)
 	 * @param temperament the temperament used in calculations - a preset plays its own multipliers, {@link Temperament#CUSTOM} the cents {@link #initTuning} converted
-	 * @param basenote base note/key from which the tuning is calculated, typically it is the key of A- or C-
+	 * @param tonic the key the tables are tuned to, typically A- or C-
 	 * @param semitone the note to calculate, in semitones counted upward like RMT's note numbers (C- = 0); generateTable() passes its first semitone plus the table index
 	 * @return true audio pitch for a given note (in Hertz)
 	 */
-	public double getTruePitch(double tuning, Temperament temperament, int basenote, int semitone) {
-		int degree = (semitone + basenote) % NOTES_PER_OCTAVE; // the note's degree: semitones above the tonic within the octave, 0-11
+	public double getTruePitch(double tuning, Temperament temperament, int tonic, int semitone) {
+		int degree = (semitone + tonic) % NOTES_PER_OCTAVE; // the note's degree: semitones above the tonic within the octave, 0-11
 		double ratio;
 		double octave = 2; // an octave is the frequency of a note multiplied by 2
 
 		// Equal temperament is generated using the 12th root of 2
 		if (temperament == Temperament.EQUAL) {
 			ratio = Math.pow(2.0, 1.0 / NOTES_PER_OCTAVE);
-			return (tuning / 64) * Math.pow(ratio, semitone + basenote);
+			return (tuning / 64) * Math.pow(ratio, semitone + tonic);
 		}
 		if (temperament.isCustom()) { // custom temperament will be used using ratio
 			octave = custom[NOTES_PER_OCTAVE];
@@ -135,7 +135,7 @@ public final class Tuning {
 		} else { // any temperament preset will be used
 			ratio = temperament.getMultiplier(degree);
 		}
-		double multi = Math.pow(octave, (semitone + basenote) / NOTES_PER_OCTAVE); // integer division, matching C++'s int/int then trunc()
+		double multi = Math.pow(octave, (semitone + tonic) / NOTES_PER_OCTAVE); // integer division, matching C++'s int/int then trunc()
 		return (tuning / 64) * (multi * ratio);
 	}
 
@@ -242,7 +242,7 @@ public final class Tuning {
 	 * @param firstSemitone the semitone (see getTruePitch()) of the table's first entry - a whole number of octaves for the tables RMT generates
 	 * @param timbre POKEY sound timbre output using the Distortion as well as the modulo of the Frequency
 	 * @param audctl POKEY modes used to generate the frequencies, typically, 15Khz/64Khz clock, 1.79mHz clock, 16-bit mode, etc
-	 * @param tuningSettings the base tuning/temperament/basenote to generate the table from (C++ reads these from the g_tuning global instead)
+	 * @param tuningSettings the A4 frequency/tonic/temperament to generate the table from (C++ reads these from the g_tuning global instead)
 	 */
 	public void generateTable(byte[] table, int offset, int length, int firstSemitone, Timbre timbre, int audctl, TuningSettings tuningSettings) {
 		double divisor = 1;
@@ -316,10 +316,10 @@ public final class Tuning {
 		// MOD73 are computed in the C++ source but never actually read by any
 		// branch below - dropped here as dead code, verified against
 		// TuningTables.cpp's GenerateTable() before omitting.
-		double baseFrequency = calculateBaseFrequency(tuningSettings);
+		double tonicFrequency = calculateTonicFrequency(tuningSettings);
 		for (int i = 0; i < length; i++) {
 			int semitone = firstSemitone + i;
-			double pitch = getTruePitch(baseFrequency, tuningSettings.temperament, tuningSettings.basenote.getNumber(), semitone);
+			double pitch = getTruePitch(tonicFrequency, tuningSettings.temperament, tuningSettings.tonic.getNumber(), semitone);
 			int audf = getAUDF(pitch, coarseDivisor, divisor, cycle);
 
 			boolean mod3 = (audf + cycle) % 3 == 0;
@@ -401,14 +401,14 @@ public final class Tuning {
 	 * Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into the given memory buffer.
 	 *
 	 * @param tableMemory buffer to write the lookup tables into, typically the emulated Atari memory (at least 0x600 bytes)
-	 * @param tuningSettings the base tuning/temperament/basenote and the custom-temperament ratios to generate the tables from (C++ reads these from the g_tuning/g_tuningRatios globals instead)
+	 * @param tuningSettings the A4 frequency/tonic/temperament and the custom-temperament ratios to generate the tables from (C++ reads these from the g_tuning/g_tuningRatios globals instead)
 	 */
 	public void initTuning(byte[] tableMemory, TuningSettings tuningSettings) {
-		if (tuningSettings.basetuning == 0) {
-			// if base tuning is 0.0, the C++ original shows a MessageBox and
+		if (tuningSettings.a4Frequency == 0) {
+			// if the A4 frequency is 0.0, the C++ original shows a MessageBox and
 			// calls exit(1) to avoid crashing later - not appropriate for a
 			// Java library class, so this throws instead.
-			throw new IllegalStateException("An invalid tuning has been detected: basetuning is zero.");
+			throw new IllegalStateException("An invalid tuning has been detected: a4Frequency is zero.");
 		}
 
 		// Calculate the custom multiplier for each semitone from its cents

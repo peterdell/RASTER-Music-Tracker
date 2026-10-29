@@ -62,7 +62,7 @@ TEST(AtariTest, InstanceClockAndCycleCountFollowIsNtscDefaultingToPal) {
 
 // CAtari::Init(bool) calls g_Tuning.InitTuning() to populate *this
 // instance's own* memory (via GetMemoryAt(), not the shared g_Atari global)
-// with pitch tables - safe as long as g_Song.GetTuningSettings().basetuning is set first (the
+// with pitch tables - safe as long as g_Song.GetTuningSettings().a4Frequency is set first (the
 // same guard already characterized in TuningTests.cpp). These reuse the
 // exact golden-master byte values already captured there for the
 // Distortion-2 (Bell) table at RMT_FRQTABLES+0x000/0x001, since the point

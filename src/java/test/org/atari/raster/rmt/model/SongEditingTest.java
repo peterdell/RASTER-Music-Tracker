@@ -1253,18 +1253,18 @@ class SongEditingTest {
 	// --- resetTuningVariables ---
 
 	@Test
-	void resetTuningVariablesUsesTheNtscOrPalBaseTuning() {
+	void resetTuningVariablesUsesTheNtscOrPalA4Frequency() {
 		TuningSettings tuning = song.getTuningSettings();
 
 		song.setNTSC(true);
 		song.resetTuningVariables();
-		assertEquals(TuningSettings.NTSC_A4_FREQUENCY, tuning.basetuning, 0.0);
-		assertEquals(BaseNote.A, tuning.basenote);
+		assertEquals(TuningSettings.NTSC_A4_FREQUENCY, tuning.a4Frequency, 0.0);
+		assertEquals(Tonic.A, tuning.tonic);
 		assertEquals(Temperament.EQUAL, tuning.temperament);
 
 		song.setNTSC(false);
 		song.resetTuningVariables();
-		assertEquals(TuningSettings.PAL_A4_FREQUENCY, tuning.basetuning, 0.0);
+		assertEquals(TuningSettings.PAL_A4_FREQUENCY, tuning.a4Frequency, 0.0);
 	}
 	// --- clearSong ---
 	// clearSong()'s only real hazard in C++ (a real MFC AfxGetMainWnd()/

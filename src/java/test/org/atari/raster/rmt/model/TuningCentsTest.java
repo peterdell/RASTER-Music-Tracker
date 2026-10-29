@@ -26,7 +26,7 @@ class TuningCentsTest {
 	@Test
 	void namesCoverEverySemitone() {
 		assertEquals(TuningCents.COUNT, TuningCents.NAMES.length);
-		assertEquals("UNISON", TuningCents.NAMES[0]);
+		assertEquals(null, TuningCents.NAMES[0]); // the tonic has no key (plan 62)
 		assertEquals("MAJ_7TH", TuningCents.NAMES[11]);
 	}
 

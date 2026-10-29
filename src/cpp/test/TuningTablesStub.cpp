@@ -2,7 +2,7 @@
 
 // Real, linked definition for CTuning::GenerateTable()/InitTuning() (see
 // ..\TuningTables.cpp, now linked directly - see TuningTests.cpp for why
-// this is safe: as long as a test sets the song's base tuning to something
+// this is safe: as long as a test sets the song's A4 frequency to something
 // nonzero before calling InitTuning(), its MessageBox+exit(1) guard is
 // never reached). Global.cpp itself isn't linked here (it pulls in the
 // live timer, MIDI, real Atari hardware access), so this one global needs

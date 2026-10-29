@@ -33,6 +33,7 @@ Changes in RMT 1.36
 ### Changes since 2026-10-16
 
 **User Interface**
+- The tuning dialog's fields are named for what they mean: "Base Note" is now "Tonic" - the key the frequency tables are tuned to - and so is the first cents row, formerly "Unison", which always holds the tonic's 0 cents. Tuning.ini writes the keys A4_FREQUENCY and TONIC instead of TUNING and BASENOTE and no longer writes the always-0 UNISON line; a Tuning.ini with the old names is still read. (Build 2026-10-29)
 - The tuning dialog's cents fields show the selected temperament now: 0, 100, ..., 1100 for equal temperament and each note's cents (rounded to 3 decimals) for a preset, read-only, so the temperaments can be compared at a glance. Only the custom temperament's cents are editable; what was typed for it is kept while another temperament is shown. Before, the fields always showed the custom values, even for a temperament that does not use them. (Build 2026-10-27)
 - The tuning dialog's ratio fields (the 13 numerator/denominator pairs) are only enabled when the custom temperament is selected - every other temperament plays its own preset table, so typing ratios had no effect there. (Build 2026-10-17)
 

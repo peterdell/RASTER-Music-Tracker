@@ -127,7 +127,7 @@ void CTuning::GenerateTable(byte* table, int length, int firstSemitone, Timbre t
     const TTuningSettings& tuning = g_Song.GetTuningSettings();
 
     //the anchor that places the note A at the A4 reference pitch (plan 59 step 2)
-    auto baseFrequency = CalculateBaseFrequency(tuning);
+    auto tonicFrequency = CalculateTonicFrequency(tuning);
 
     //generate the table using all the initialized parameters
     for (int i = 0; i < length; i++) {
@@ -135,7 +135,7 @@ void CTuning::GenerateTable(byte* table, int length, int firstSemitone, Timbre t
         auto semitone = firstSemitone + i;
 
         //calculate the reference pitch using the semitone as an offset
-        auto pitch = GetTruePitch(baseFrequency, tuning.temperament, tuning.basenote, semitone);
+        auto pitch = GetTruePitch(tonicFrequency, tuning.temperament, tuning.tonic, semitone);
 
         //get the nearest POKEY frequency using the reference pitch
         auto audf = GetAUDF(pitch, coarse_divisor, divisor, cycle);
@@ -240,8 +240,8 @@ static const byte sawtooth_tables[128] = {
 /// <summary> Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into the emulated Atari memory </summary>
 void CTuning::InitTuning() {
     const TTuningSettings& tuning = g_Song.GetTuningSettings();
-    if (!tuning.basetuning) { //if base tuning is 0.0, make sure to reset it, else the program could crash!
-        SendErrorMessage("Program error", "An invalid tuning has been detected!\n\nBasetuning is zero. ");
+    if (!tuning.a4Frequency) { //if the A4 frequency is 0.0, make sure to reset it, else the program could crash!
+        SendErrorMessage("Program error", "An invalid tuning has been detected!\n\nThe A4 frequency is zero. ");
         exit(1);
     }
 

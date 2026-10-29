@@ -22,9 +22,11 @@ public final class TuningCents {
 	/**
 	 * The ini file's key per semitone above the tonic - the interval names
 	 * the former fraction lines used, so an old Tuning.ini reads naturally
-	 * into the new model.
+	 * into the new model. The tonic itself (always 0) has no key (plan 62):
+	 * {@code TONIC} is the key of the tonic note, and an old {@code UNISON}
+	 * line is read and ignored.
 	 */
-	public static final String[] NAMES = { "UNISON", "MIN_2ND", "MAJ_2ND", "MIN_3RD", "MAJ_3RD", "PERF_4TH", "TRITONE", "PERF_5TH", "MIN_6TH", "MAJ_6TH", "MIN_7TH", "MAJ_7TH" };
+	public static final String[] NAMES = { null, "MIN_2ND", "MAJ_2ND", "MIN_3RD", "MAJ_3RD", "PERF_4TH", "TRITONE", "PERF_5TH", "MIN_6TH", "MAJ_6TH", "MIN_7TH", "MAJ_7TH" };
 
 	/** Cents above the tonic, by semitone; {@code values[0]} stays 0. */
 	public final double[] values = new double[COUNT];

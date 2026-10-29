@@ -42,8 +42,8 @@ struct TTuningSettings {
     // CAtari's clock constants are visible.
     static const double NTSC_A4_FREQUENCY;
 
-    double basetuning;
-    int basenote; // 3 = A-
+    double a4Frequency;
+    int tonic; // 3 = A-
     int temperament = 0; // each preset is assigned to a number. 0 means no Temperament, any value that is not assigned defaults to custom
     TTuningCents cents; // the cents the custom temperament is played from - part of the tuning settings, not a sibling of them
 

@@ -261,23 +261,23 @@ CTuning::AUDF CTuning::CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_div
 
 /// <summary>
 /// The anchor to feed GetTruePitch()'s tuning parameter so that the note A
-/// always sounds at the A4 reference pitch (basetuning), whatever the key -
+/// always sounds at the A4 reference pitch (a4Frequency), whatever the key -
 /// plan 59 step 2, the port of ivop's calculate_base_frequency()
 /// (others/Ivop/tuning_poc2.c): the temperament's multiplier for the interval
 /// from the tonic up to A divides the A4 frequency, and the power of two
-/// re-anchors the octave. A- is nine semitones above C- and the base note
-/// numbers count downward from C = 0, so that interval is (9 + basenote) % 12.
-/// For the base note A- the interval is the unison, so the anchor is the A4
+/// re-anchors the octave. A- is nine semitones above C- and the tonic
+/// numbers count downward from C = 0, so that interval is (9 + tonic) % 12.
+/// For the tonic A- the interval is 0 cents, so the anchor is the A4
 /// frequency itself, bit-exactly - the tables of every module with the
-/// default base note are unchanged. For the custom temperament this reads the
+/// default tonic are unchanged. For the custom temperament this reads the
 /// multipliers InitTuning() computed from the cents, so it is only valid
 /// after that computation - which is the only caller (GenerateTable()).
 /// </summary>
-double CTuning::CalculateBaseFrequency(const TTuningSettings& tuning) {
-    int toA = A_SEMITONES_ABOVE_C + tuning.basenote;
+double CTuning::CalculateTonicFrequency(const TTuningSettings& tuning) {
+    int toA = A_SEMITONES_ABOVE_C + tuning.tonic;
     int interval = toA % NOTES_PER_OCTAVE; //semitones from the tonic up to the next A
     double multiplier = tuning.temperament >= TUNING_CUSTOM ? CUSTOM[interval] : temperament_preset[tuning.temperament][interval];
-    return tuning.basetuning * pow(2.0, 1 - toA / NOTES_PER_OCTAVE) / multiplier; //integer division: 1 - 1 = 0 octaves for the keys C#- through A-
+    return tuning.a4Frequency * pow(2.0, 1 - toA / NOTES_PER_OCTAVE) / multiplier; //integer division: 1 - 1 = 0 octaves for the keys C#- through A-
 }
 
 /// <summary>
@@ -291,14 +291,14 @@ double CTuning::GetTemperamentCents(Temperament temperament, int degree) const {
 }
 
 /// <summary> Calculate the true audio pitch output using the given parameters </summary>
-/// <param name = "tuning"> The anchor pitch (in Hertz) the tonic's octave chain is placed by - CalculateBaseFrequency()'s conversion of the A4 reference pitch (for the base note A- the two coincide) </param>
+/// <param name = "tuning"> The anchor pitch (in Hertz) the tonic's octave chain is placed by - CalculateTonicFrequency()'s conversion of the A4 reference pitch (for the tonic A- the two coincide) </param>
 /// <param name = "temperament"> Temperament used in calculations, 0 for Equal Temperament, 1 to 29 (inclusive) for Presets, otherwise Custom Ratio will be assumed </param>
-/// <param name = "basenote"> Base note/key from which the tuning is calculated, typically it is the key of A- or C- </param>
+/// <param name = "tonic"> The key the tables are tuned to, typically A- or C- </param>
 /// <param name = "semitone"> The note to calculate, in semitones counted upward like RMT's note numbers (C- = 0); GenerateTable() passes its first semitone plus the table index </param>
 /// <returns> True audio pitch for a given note (in Hertz) </returns>
-double CTuning::GetTruePitch(double tuning, Temperament temperament, int basenote, int semitone) {
+double CTuning::GetTruePitch(double tuning, Temperament temperament, int tonic, int semitone) {
     int notesnum = NOTES_PER_OCTAVE; //unless specified otherwise
-    int degree = (semitone + basenote) % notesnum; //the note's degree: semitones above the tonic within the octave
+    int degree = (semitone + tonic) % notesnum; //the note's degree: semitones above the tonic within the octave
     double ratio = 0; //will be used for calculations
     double octave = 2; //an octave is usually the frequency of a note multiplied by 2
     double multi = 1; //octave multiplyer for the ratio
@@ -306,7 +306,7 @@ double CTuning::GetTruePitch(double tuning, Temperament temperament, int basenot
     //Equal temperament is generated using the 12th root of 2
     if (temperament == NO_TEMPERAMENT) {
         ratio = pow(2.0, 1.0 / NOTES_PER_OCTAVE);
-        return (tuning / 64) * pow(ratio, semitone + basenote);
+        return (tuning / 64) * pow(ratio, semitone + tonic);
     }
     if (temperament >= TUNING_CUSTOM) { //custom temperament will be used using ratio
         octave = CUSTOM[notesnum];
@@ -320,10 +320,10 @@ double CTuning::GetTruePitch(double tuning, Temperament temperament, int basenot
             break;
         }
         octave = temperament_preset[temperament][notesnum];
-        degree = (semitone + basenote) % notesnum;
+        degree = (semitone + tonic) % notesnum;
         ratio = temperament_preset[temperament][degree];
     }
-    multi = pow(octave, trunc((semitone + basenote) / notesnum));
+    multi = pow(octave, trunc((semitone + tonic) / notesnum));
     return (tuning / 64) * (multi * ratio);
 }
 

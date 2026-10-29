@@ -23,7 +23,7 @@ class RmtSessionTest {
 	 * memory; the session regenerates the tables afterwards so the tuning
 	 * settings win (plan 37, T2). Both copies are deliberately equal at the
 	 * default settings (T7), so a changed setting is the only tell: doubling
-	 * the base tuning halves every frequency, taking the bell-1.79 table's
+	 * the A4 frequency halves every frequency, taking the bell-1.79 table's
 	 * first byte from the shipped $D6 to $69. Mirrors the C++ test in
 	 * AtariTrackerDriverTests.cpp, where the regeneration sits inside
 	 * LoadRMTRoutines itself.
@@ -33,7 +33,7 @@ class RmtSessionTest {
 		RmtSession session = new RmtSession();
 		assertEquals(0xD6, session.atari.getByteAt(org.atari.raster.rmt.model.Atari.RMT_FRQTABLES + 0x040));
 
-		session.song.getTuningSettings().basetuning *= 2;
+		session.song.getTuningSettings().a4Frequency *= 2;
 		// The driver switch is the Options dialog's path and the rmtscript
 		// "set driver" command; it loads the binary again, so the
 		// regeneration has to run again after it.

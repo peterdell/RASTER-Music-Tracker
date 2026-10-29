@@ -1064,16 +1064,16 @@ TEST_F(SongEditingTest, TheTrackerDriverVersionDefaultsToPatchSixteenAndKeepsWha
 // The tuning belongs to the song it is reset on, so the assertions read it
 // off this fixture's own instance - before plan 44 it was a global, and the
 // test could read it anywhere.
-TEST_F(SongEditingTest, ResetTuningVariablesUsesTheNtscOrPalBaseTuning) {
+TEST_F(SongEditingTest, ResetTuningVariablesUsesTheNtscOrPalA4Frequency) {
     song.SetNTSC(TRUE);
     song.ResetTuningVariables();
-    EXPECT_DOUBLE_EQ(song.GetTuningSettings().basetuning, TTuningSettings::NTSC_A4_FREQUENCY);
-    EXPECT_EQ(song.GetTuningSettings().basenote, 3);
+    EXPECT_DOUBLE_EQ(song.GetTuningSettings().a4Frequency, TTuningSettings::NTSC_A4_FREQUENCY);
+    EXPECT_EQ(song.GetTuningSettings().tonic, 3);
     EXPECT_EQ(song.GetTuningSettings().temperament, 0);
 
     song.SetNTSC(FALSE);
     song.ResetTuningVariables();
-    EXPECT_DOUBLE_EQ(song.GetTuningSettings().basetuning, TTuningSettings::PAL_A4_FREQUENCY);
+    EXPECT_DOUBLE_EQ(song.GetTuningSettings().a4Frequency, TTuningSettings::PAL_A4_FREQUENCY);
 }
 
 // --- InstrInfo ---

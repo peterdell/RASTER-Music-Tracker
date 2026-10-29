@@ -64,7 +64,7 @@ public final class Temperament extends ValueSet {
 
 	// Instance attributes
 	private final int number;
-	/** The twelve tonic-based frequency multipliers ({@code multipliers[0]} = 1, the unison), or {@code null} for {@link #CUSTOM}. */
+	/** The twelve tonic-based frequency multipliers ({@code multipliers[0]} = 1, the tonic's), or {@code null} for {@link #CUSTOM}. */
 	private final double[] multipliers;
 
 	static {
@@ -147,10 +147,10 @@ public final class Temperament extends ValueSet {
 		return result;
 	}
 
-	/** A preset: the twelve tonic-based frequency multipliers, the unison 1 first; the octave is fixed at 2:1 and not stored. */
+	/** A preset: the twelve tonic-based frequency multipliers, the tonic's 1 first; the octave is fixed at 2:1 and not stored. */
 	private static Temperament add(String id, int number, double... multipliers) {
 		if (multipliers.length != TuningCents.COUNT || multipliers[0] != 1) {
-			throw new IllegalArgumentException("Parameter 'multipliers' must hold the 12 tonic-based values starting with the unison 1.");
+			throw new IllegalArgumentException("Parameter 'multipliers' must hold the 12 tonic-based values starting with the tonic's 1.");
 		}
 		Temperament result = new Temperament(id, number, multipliers);
 		values.put(result.getId(), result);
@@ -211,7 +211,7 @@ public final class Temperament extends ValueSet {
 
 	/**
 	 * The frequency multiplier for the degree {@code degree}, the note 0-11
-	 * semitones above the tonic; 1 for the unison, below 2 otherwise - the octave is
+	 * semitones above the tonic; 1 for the tonic, below 2 otherwise - the octave is
 	 * fixed at 2:1. {@link #CUSTOM} is played from the cents and carries
 	 * none, so asking it is a caller error.
 	 */

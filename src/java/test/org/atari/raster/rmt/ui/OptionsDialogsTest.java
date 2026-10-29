@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import org.atari.raster.rmt.model.IntegerFraction;
 import org.atari.raster.rmt.model.KeyboardLayout;
-import org.atari.raster.rmt.model.BaseNote;
+import org.atari.raster.rmt.model.Tonic;
 import org.atari.raster.rmt.model.Temperament;
 import org.atari.raster.rmt.model.TrackerDriverVersion;
 import org.atari.raster.rmt.model.Tuning;
@@ -141,17 +141,17 @@ class OptionsDialogsTest {
 
 	@Test
 	void tuningDialogRoundTripsAndOnlyTestOrOKReachTheSession() {
-		session.song.getTuningSettings().basetuning = 432;
+		session.song.getTuningSettings().a4Frequency = 432;
 		session.song.getTuningSettings().temperament = Temperament.CUSTOM;
 		session.song.getTuningSettings().cents.values[11] = 1109.775004326937; // 243/128 in cents
 		TuningDialog dialog = new TuningDialog(null, session);
 		dialog.dataToUi();
 
 		List<JTextField> fields = find(dialog, JTextField.class);
-		assertEquals(1 + 12, fields.size()); // the base tuning and the 12 cents (plan 59)
+		assertEquals(1 + 12, fields.size()); // the A4 frequency and the 12 cents (plan 59)
 		assertEquals("432", fields.get(0).getText());
 		List<JComboBox> combos = find(dialog, JComboBox.class);
-		assertEquals(BaseNote.A, combos.get(0).getSelectedItem());
+		assertEquals(Tonic.A, combos.get(0).getSelectedItem());
 		assertEquals(Temperament.CUSTOM, combos.get(1).getSelectedItem());
 		assertEquals("Custom Temperament in Cents", combos.get(1).getSelectedItem().toString()); // a combo box shows toString()
 		assertEquals("0", fields.get(1).getText()); // the tonic, fixed at 0 cents
@@ -162,16 +162,16 @@ class OptionsDialogsTest {
 		fields.get(0).setText("440");
 		fields.get(1 + 11).setText("1100.5");
 		dialog.dataFromUi();
-		assertEquals(440, dialog.settings.basetuning);
+		assertEquals(440, dialog.settings.a4Frequency);
 		assertEquals(1100.5, dialog.settings.cents.values[11]);
-		assertEquals(432, session.song.getTuningSettings().basetuning); // not applied yet
+		assertEquals(432, session.song.getTuningSettings().a4Frequency); // not applied yet
 
 		button(dialog, "Test").doClick();
-		assertEquals(440, session.song.getTuningSettings().basetuning);
+		assertEquals(440, session.song.getTuningSettings().a4Frequency);
 		assertEquals(1100.5, session.song.getTuningSettings().cents.values[11]);
 
 		button(dialog, "Reset").doClick();
-		assertEquals(432, session.song.getTuningSettings().basetuning); // the backup
+		assertEquals(432, session.song.getTuningSettings().a4Frequency); // the backup
 		assertEquals(1109.775004326937, session.song.getTuningSettings().cents.values[11]);
 		assertEquals("440", fields.get(0).getText()); // the fields keep what was typed, as in C++
 
@@ -191,7 +191,7 @@ class OptionsDialogsTest {
 		dialog.dataToUi();
 
 		List<JTextField> fields = find(dialog, JTextField.class);
-		assertTrue(fields.get(0).isEnabled()); // the base tuning is independent of the temperament
+		assertTrue(fields.get(0).isEnabled()); // the A4 frequency is independent of the temperament
 		for (int i = 1; i < fields.size(); i++) {
 			assertFalse(fields.get(i).isEnabled(), "a preset plays its own table, the cents are not used");
 		}
@@ -290,8 +290,8 @@ class OptionsDialogsTest {
 
 	@Test
 	void theComboEntriesMatchTheCppResources() {
-		assertEquals(12, BaseNote.getValues().size());
-		assertEquals("A-", BaseNote.getInstance(3).getText()); // the default basenote
+		assertEquals(12, Tonic.getValues().size());
+		assertEquals("A-", Tonic.getInstance(3).getText()); // the default tonic
 		assertEquals(23, Temperament.getValues().size()); // 0 equal + 21 presets + custom; plan 59 retired seven presets (TUNING_PRESETS = 29 stays the custom index)
 		assertEquals(org.atari.raster.rmt.model.Tuning.TUNING_CUSTOM, Temperament.CUSTOM.getNumber());
 		// the driver versions are a value set now: the six the dialog offers, with their texts from ValueSets.properties

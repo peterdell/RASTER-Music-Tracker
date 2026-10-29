@@ -46,7 +46,7 @@ class AtariTrackerDriverTest : public ::testing::Test {
     // LoadRMTRoutines() regenerates the tuning tables after the load (the
     // driver binary carries a static copy it must not win with - plan 37,
     // T2), and CTuning::InitTuning() exits the process on an uninitialized
-    // basetuning, so the tuning globals are set up like AtariTests.cpp does.
+    // a4Frequency, so the tuning globals are set up like AtariTests.cpp does.
     void SetUp() override {
         g_Song.GetTuningSettings().Initialize(false); // PAL
     }
@@ -79,9 +79,9 @@ TEST_F(AtariTrackerDriverTest, LoadRMTRoutinesRegeneratesTheTuningTablesOverTheD
     // writes it into the Atari's memory - so the regeneration after the load
     // must win, as it did in RMT 1.34.00 (plan 37, T1/T2). The two copies are
     // deliberately equal at the default settings (T7), which makes a changed
-    // setting the only tell: doubling the base tuning halves every frequency,
+    // setting the only tell: doubling the A4 frequency halves every frequency,
     // taking the bell-1.79 table's first byte from the shipped $D6 to $69.
-    g_Song.GetTuningSettings().basetuning *= 2;
+    g_Song.GetTuningSettings().a4Frequency *= 2;
 
     EXPECT_GT(driver.LoadRMTRoutines(TrackerDriverVersion::PATCH16), 0);
 

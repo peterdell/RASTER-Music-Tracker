@@ -21,7 +21,7 @@ void C6502::JSR(C6502::Address&, C6502::Register&, C6502::Register&, C6502::Regi
 // Real, default-constructed CTuning (cheap and safe - see TuningTests.cpp).
 // CAtari::Init(bool) calls g_Tuning.InitTuning(...), but tests never call
 // that overload either (it would hit the same MessageBox+exit(1) guard
-// characterized for CTuning::InitTuning() earlier if the song's base tuning is
+// characterized for CTuning::InitTuning() earlier if the song's A4 frequency is
 // still 0, which it is by default), so this only needs to exist for linking.
 CTuning g_Tuning;
 

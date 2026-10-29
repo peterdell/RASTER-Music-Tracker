@@ -148,9 +148,9 @@ public final class RmtSession {
 		song.setPlayTimeResetListener(() -> uiState.playTime = 0); // g_playtime = 0 in Play() and ClearSong()
 	}
 
-	/** {@code CRmtView::SetNTSC()}: rescales the base tuning between the two clocks and switches the song ("TODO code... well 3 times.." in C++); {@code CSong::SetNTSC()} re-initializes the sound on a change. */
+	/** {@code CRmtView::SetNTSC()}: rescales the A4 frequency between the two clocks and switches the song ("TODO code... well 3 times.." in C++); {@code CSong::SetNTSC()} re-initializes the sound on a change. */
 	public void setNTSC(boolean ntsc) {
-		song.getTuningSettings().basetuning = ntsc ? (song.getTuningSettings().basetuning * Atari.FREQ_17_NTSC) / Atari.FREQ_17_PAL : (song.getTuningSettings().basetuning * Atari.FREQ_17_PAL) / Atari.FREQ_17_NTSC;
+		song.getTuningSettings().a4Frequency = ntsc ? (song.getTuningSettings().a4Frequency * Atari.FREQ_17_NTSC) / Atari.FREQ_17_PAL : (song.getTuningSettings().a4Frequency * Atari.FREQ_17_PAL) / Atari.FREQ_17_NTSC;
 		song.setNTSC(ntsc);
 		syncSound();
 	}

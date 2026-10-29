@@ -5,8 +5,8 @@
 const double TTuningSettings::NTSC_A4_FREQUENCY = TTuningSettings::PAL_A4_FREQUENCY * CAtari::FREQ_17_NTSC / CAtari::FREQ_17_PAL;
 
 void TTuningSettings::Initialize(bool ntsc) {
-    basetuning = ntsc ? NTSC_A4_FREQUENCY : PAL_A4_FREQUENCY;
-    basenote = 3;
+    a4Frequency = ntsc ? NTSC_A4_FREQUENCY : PAL_A4_FREQUENCY;
+    tonic = 3;
     temperament = 0;
     cents.Initialize();
 }

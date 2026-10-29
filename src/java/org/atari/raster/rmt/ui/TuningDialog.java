@@ -18,7 +18,7 @@ import javax.swing.JTextField;
 import com.wudsn.tools.base.gui.ElementFactory;
 import com.wudsn.tools.base.gui.ModalDialog;
 import com.wudsn.tools.base.gui.ValueSetField;
-import org.atari.raster.rmt.model.BaseNote;
+import org.atari.raster.rmt.model.Tonic;
 import org.atari.raster.rmt.model.Temperament;
 import org.atari.raster.rmt.model.Tuning;
 import org.atari.raster.rmt.model.TuningCents;
@@ -26,12 +26,12 @@ import org.atari.raster.rmt.model.TuningSettings;
 
 /**
  * "Tuning" - the port of {@code TuningDlg} ({@code IDD_TUNING}): the A4
- * frequency, base note and temperament, and 12 cents fields showing the
+ * frequency, tonic and temperament, and 12 cents fields showing the
  * selected temperament's notes in musical cents (plan 59; the custom
  * values replaced the numerator/denominator fraction pairs): computed and
  * read-only for equal temperament and the presets, editable only for the
  * custom temperament, whose typed values are kept while another
- * temperament is shown. The unison is the tonic and fixed at 0, the octave
+ * temperament is shown. The tonic's row is fixed at 0, the octave
  * at 1200 (2:1). Its button semantics are C++'s: Test applies
  * the fields to the session and regenerates the frequency tables
  * ({@code g_Tuning.InitTuning()}), Reset restores the values the dialog was
@@ -39,7 +39,7 @@ import org.atari.raster.rmt.model.TuningSettings;
  * in C++), OK is Test-then-close, Cancel (and closing the window) is
  * Reset-then-close.
  *
- * <p>Validation: the base tuning must be 6.875-7040 ({@code
+ * <p>Validation: the A4 frequency must be 6.875-7040 ({@code
  * DDV_MinMaxDouble}); each cents value must be 0-1200.
  */
 final class TuningDialog extends ModalDialog {
@@ -47,7 +47,7 @@ final class TuningDialog extends ModalDialog {
 	private static final long serialVersionUID = 1L;
 
 	/** The cents rows' labels, by semitone above the tonic. */
-	static final String[] CENTS_NAMES = { "Unison", "Minor 2nd", "Major 2nd", "Minor 3rd", "Major 3rd", "Perfect 4th", "Tritone", "Perfect 5th", "Minor 6th", "Major 6th", "Minor 7th", "Major 7th" };
+	static final String[] CENTS_NAMES = { "Tonic", "Minor 2nd", "Major 2nd", "Minor 3rd", "Major 3rd", "Perfect 4th", "Tritone", "Perfect 5th", "Minor 6th", "Major 6th", "Minor 7th", "Major 7th" };
 
 	private final RmtSession session;
 	/** {@code m_tuningSettings}: the dialog's working copy. */
@@ -55,9 +55,9 @@ final class TuningDialog extends ModalDialog {
 	/** {@code m_tuningSettingsBackup}: what Reset restores. */
 	private final TuningSettings settingsBackup = new TuningSettings();
 
-	private final JTextField baseTuningField = new JTextField(12);
-	/** {@code IDC_BASENOTE}/{@code IDC_TEMPERAMENT}, holding the {@link BaseNote}/{@link Temperament} instances rather than combo indexes. */
-	private final ValueSetField<BaseNote> baseNoteCombo = new ValueSetField<>(BaseNote.getValues());
+	private final JTextField a4FrequencyField = new JTextField(12);
+	/** {@code IDC_TONIC}/{@code IDC_TEMPERAMENT}, holding the {@link Tonic}/{@link Temperament} instances rather than combo indexes. */
+	private final ValueSetField<Tonic> tonicCombo = new ValueSetField<>(Tonic.getValues());
 	private final ValueSetField<Temperament> temperamentCombo = new ValueSetField<>(temperamentsInDisplayOrder());
 	private final JTextField[] centsFields = new JTextField[TuningCents.COUNT];
 	/** The custom temperament's cents as typed, kept while the fields show another temperament's cents. */
@@ -75,11 +75,11 @@ final class TuningDialog extends ModalDialog {
 		copy(session.song.getTuningSettings(), settingsBackup);
 
 		JPanel general = DialogSupport.createGroup(Texts.TuningDialog_GroupGeneral);
-		DialogSupport.add(general, ElementFactory.createLabel(DataTypes.TuningDialog_BaseTuning, baseTuningField), 0, 0, 1, false);
-		DialogSupport.add(general, baseTuningField, 1, 0, 1, true);
-		DialogSupport.add(general, ElementFactory.createLabel(DataTypes.TuningDialog_BaseNote, baseNoteCombo), 2, 0, 1, false);
-		DialogSupport.add(general, baseNoteCombo, 3, 0, 1, false);
-		JLabel examples = new JLabel(DataTypes.TuningDialog_BaseTuning.getToolTip()); // the resource's static example text
+		DialogSupport.add(general, ElementFactory.createLabel(DataTypes.TuningDialog_A4Frequency, a4FrequencyField), 0, 0, 1, false);
+		DialogSupport.add(general, a4FrequencyField, 1, 0, 1, true);
+		DialogSupport.add(general, ElementFactory.createLabel(DataTypes.TuningDialog_Tonic, tonicCombo), 2, 0, 1, false);
+		DialogSupport.add(general, tonicCombo, 3, 0, 1, false);
+		JLabel examples = new JLabel(DataTypes.TuningDialog_A4Frequency.getToolTip()); // the resource's static example text
 		DialogSupport.add(general, examples, 0, 1, 4, false);
 		DialogSupport.add(general, ElementFactory.createLabel(DataTypes.TuningDialog_Temperament, temperamentCombo), 0, 2, 1, false);
 		DialogSupport.add(general, temperamentCombo, 1, 2, 3, true);
@@ -127,8 +127,8 @@ final class TuningDialog extends ModalDialog {
 	}
 
 	static void copy(TuningSettings from, TuningSettings to) {
-		to.basetuning = from.basetuning;
-		to.basenote = from.basenote;
+		to.a4Frequency = from.a4Frequency;
+		to.tonic = from.tonic;
 		to.temperament = from.temperament;
 		to.cents.copyFrom(from.cents);
 	}
@@ -139,8 +139,8 @@ final class TuningDialog extends ModalDialog {
 			return; // keep whatever the user typed across a Test/OK round trip
 		}
 		filled = true;
-		baseTuningField.setText(RmtConfig.formatDouble(settings.basetuning));
-		baseNoteCombo.setValue(settings.basenote); // always a valid instance - the config read already mapped stray numbers
+		a4FrequencyField.setText(RmtConfig.formatDouble(settings.a4Frequency));
+		tonicCombo.setValue(settings.tonic); // always a valid instance - the config read already mapped stray numbers
 		for (int i = 0; i < TuningCents.COUNT; i++) {
 			customCentsTexts[i] = RmtConfig.formatDouble(settings.cents.values[i]);
 		}
@@ -215,8 +215,8 @@ final class TuningDialog extends ModalDialog {
 		if (!validateFields()) {
 			return;
 		}
-		settings.basetuning = DialogSupport.parseDouble(baseTuningField);
-		settings.basenote = baseNoteCombo.getValue();
+		settings.a4Frequency = DialogSupport.parseDouble(a4FrequencyField);
+		settings.tonic = tonicCombo.getValue();
 		settings.temperament = temperamentCombo.getValue();
 		settings.cents.values[0] = 0;
 		for (int i = 1; i < TuningCents.COUNT; i++) {
@@ -226,8 +226,8 @@ final class TuningDialog extends ModalDialog {
 
 	/** The DDV checks, silently. */
 	private boolean fieldsValid() {
-		Double tuning = DialogSupport.parseDouble(baseTuningField);
-		if (tuning == null || tuning.isNaN() || tuning < TuningSettings.BASETUNING_MIN || tuning > TuningSettings.BASETUNING_MAX) {
+		Double tuning = DialogSupport.parseDouble(a4FrequencyField);
+		if (tuning == null || tuning.isNaN() || tuning < TuningSettings.MIN_A4_FREQUENCY || tuning > TuningSettings.MAX_A4_FREQUENCY) {
 			return false;
 		}
 		return customCentsTextsValid();
@@ -235,7 +235,7 @@ final class TuningDialog extends ModalDialog {
 
 	/** The DDV checks with MFC's prompts. */
 	private boolean validateFields() {
-		if (!DialogSupport.validateDouble(this, baseTuningField, TuningSettings.BASETUNING_MIN, TuningSettings.BASETUNING_MAX)) {
+		if (!DialogSupport.validateDouble(this, a4FrequencyField, TuningSettings.MIN_A4_FREQUENCY, TuningSettings.MAX_A4_FREQUENCY)) {
 			return false;
 		}
 		if (customCentsTextsValid()) {
@@ -285,7 +285,7 @@ final class TuningDialog extends ModalDialog {
 
 	/** {@code DoModal()}: OK is {@code OnOK() = OnTuningTest() + close}, anything else is {@code OnCancel() = OnTuningReset() + close}. */
 	void showDialog() {
-		showModal(baseTuningField);
+		showModal(a4FrequencyField);
 		if (okPressed) {
 			apply();
 		} else {

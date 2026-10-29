@@ -250,7 +250,7 @@ public final class Song {
 
 	/**
 	 * {@code CSong::GetTuningSettings()}: how the notes of this module are
-	 * tuned - the base tuning, the base note, the temperament and the custom
+	 * tuned - the A4 frequency, the tonic, the temperament and the custom
 	 * temperament's interval ratios. Song-scoped like {@link #isNTSC()} and
 	 * the driver version, persisted in {@code tuning.ini} and not in the
 	 * module (plans/44_SONG_PROPERTIES_DIALOG_PLAN.md). The instance is the

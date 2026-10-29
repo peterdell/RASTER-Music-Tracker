@@ -35,9 +35,9 @@ void TuningDlg::Show(const BOOL test) {
 void TuningDlg::DoDataExchange(CDataExchange* pDX)
 {
     CDialog::DoDataExchange(pDX);
-    DDX_Text(pDX, IDC_BASETUNING, m_tuningSettings.basetuning);
-    DDV_MinMaxDouble(pDX, m_tuningSettings.basetuning, 6.875, 7040);	//should be more than enough...
-    DDX_CBIndex(pDX, IDC_BASENOTE, m_tuningSettings.basenote);
+    DDX_Text(pDX, IDC_A4_FREQUENCY, m_tuningSettings.a4Frequency);
+    DDV_MinMaxDouble(pDX, m_tuningSettings.a4Frequency, 6.875, 7040);	//should be more than enough...
+    DDX_CBIndex(pDX, IDC_TONIC, m_tuningSettings.tonic);
     // The temperament combo index is not the temperament number anymore -
     // plan 59 retired seven presets, so the 23 entries map through
     // TEMPERAMENT_NUMBERS (OnInitDialog() fills the combo accordingly).
@@ -79,8 +79,8 @@ void TuningDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 const int TuningDlg::CENTS_FIELD_IDS[TTuningCents::COUNT] = {
-    IDC_UNISON_L, IDC_MINOR_2ND_L, IDC_MAJOR_2ND_L, IDC_MINOR_3RD_L, IDC_MAJOR_3RD_L, IDC_PERFECT_4TH_L,
-    IDC_TRITONE_L, IDC_PERFECT_5TH_L, IDC_MINOR_6TH_L, IDC_MAJOR_6TH_L, IDC_MINOR_7TH_L, IDC_MAJOR_7TH_L
+    IDC_TONIC_CENTS, IDC_MINOR_2ND_CENTS, IDC_MAJOR_2ND_CENTS, IDC_MINOR_3RD_CENTS, IDC_MAJOR_3RD_CENTS, IDC_PERFECT_4TH_CENTS,
+    IDC_TRITONE_CENTS, IDC_PERFECT_5TH_CENTS, IDC_MINOR_6TH_CENTS, IDC_MAJOR_6TH_CENTS, IDC_MINOR_7TH_CENTS, IDC_MAJOR_7TH_CENTS
 };
 
 // The combo entries (plan 59 step 3): Equal pinned first, Custom pinned

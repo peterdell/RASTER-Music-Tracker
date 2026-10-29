@@ -53,8 +53,8 @@ public final class DataTypes extends NLS {
 	public static DataType ExportSapDialog_Subsongs = new DataType(String.class);
 
 	// TuningDialog (IDD_TUNING)
-	public static DataType TuningDialog_BaseTuning = new DataType(Double.class);
-	public static DataType TuningDialog_BaseNote = new DataType(org.atari.raster.rmt.model.BaseNote.class);
+	public static DataType TuningDialog_A4Frequency = new DataType(Double.class);
+	public static DataType TuningDialog_Tonic = new DataType(org.atari.raster.rmt.model.Tonic.class);
 	public static DataType TuningDialog_Temperament = new DataType(org.atari.raster.rmt.model.Temperament.class);
 
 	static {

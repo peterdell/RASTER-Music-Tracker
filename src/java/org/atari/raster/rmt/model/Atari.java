@@ -33,7 +33,7 @@ import java.util.Arrays;
  *
  * <p><b>{@code Init(bool)} turned out not to need its deferral</b>: it
  * calls {@code g_Tuning.InitTuning()}, which is safe as long as
- * {@code g_tuning.basetuning} is set first (already characterized in
+ * {@code g_tuning.a4Frequency} is set first (already characterized in
  * {@code TuningTests.cpp}) - the same "re-verify instead of trusting the
  * old scoping note" finding as {@code CSong}'s constructor and
  * {@code CInstruments::GetFrequency} earlier in this project. Backfilled
@@ -140,7 +140,7 @@ public final class Atari {
 	 * Initialize the tuning variables, and generate the POKEY frequencies (AUDF) lookup tables into this instance's own memory.
 	 *
 	 * @param ntsc whether this is an NTSC (vs. PAL) machine
-	 * @param tuningSettings the base tuning/temperament/basenote and the custom-temperament ratios to generate the tables from (C++ reads these off g_Song instead)
+	 * @param tuningSettings the A4 frequency/tonic/temperament and the custom-temperament ratios to generate the tables from (C++ reads these off g_Song instead)
 	 */
 	public void init(boolean ntsc, TuningSettings tuningSettings) {
 		this.ntsc = ntsc;

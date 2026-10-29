@@ -158,7 +158,7 @@ class ValueSetsTest {
 				assertThrows(IllegalStateException.class, () -> temperament.getMultiplier(0));
 				continue;
 			}
-			assertEquals(1.0, temperament.getMultiplier(0), "the unison of " + temperament.getId());
+			assertEquals(1.0, temperament.getMultiplier(0), "the tonic of " + temperament.getId());
 			for (int note = 1; note < Tuning.NOTES_PER_OCTAVE; note++) {
 				double multiplier = temperament.getMultiplier(note);
 				assertTrue(multiplier > 1 && multiplier < 2, temperament.getId() + " note " + note + ": " + multiplier);
@@ -183,30 +183,30 @@ class ValueSetsTest {
 
 	/** A number nobody owns maps per C++'s semantic (&gt;= 29 is custom) or to a guard value. */
 	@Test
-	void strayTemperamentAndBaseNoteNumbersFallBack() {
+	void strayTemperamentAndTonicNumbersFallBack() {
 		assertSame(Temperament.CUSTOM, Temperament.getInstanceWithFallback(29));
 		assertSame(Temperament.CUSTOM, Temperament.getInstanceWithFallback(35));
 		assertSame(Temperament.EQUAL, Temperament.getInstanceWithFallback(-1));
 		assertSame(Temperament.BAILEY, Temperament.getInstanceWithFallback(10));
 		assertNull(Temperament.getInstance(30));
-		assertSame(BaseNote.A, BaseNote.getInstanceWithFallback(99));
-		assertSame(BaseNote.A, BaseNote.getInstanceWithFallback(-1));
-		assertSame(BaseNote.C_SHARP, BaseNote.getInstanceWithFallback(11));
+		assertSame(Tonic.A, Tonic.getInstanceWithFallback(99));
+		assertSame(Tonic.A, Tonic.getInstanceWithFallback(-1));
+		assertSame(Tonic.C_SHARP, Tonic.getInstanceWithFallback(11));
 	}
 
-	/** The 12 entries of the C++ IDC_BASENOTE combo, descending from C- (0) to C# (11); the default 3 is A-. */
+	/** The 12 entries of the C++ IDC_TONIC combo, descending from C- (0) to C# (11); the default 3 is A-. */
 	@Test
-	void theBaseNotesHaveTheirTextsAndNumbers() {
-		List<BaseNote> all = BaseNote.getValues();
+	void theTonicsHaveTheirTextsAndNumbers() {
+		List<Tonic> all = Tonic.getValues();
 		assertTextsAreLoaded(all);
 		assertEquals(12, all.size());
 		for (int i = 0; i < all.size(); i++) {
 			assertEquals(i, all.get(i).getNumber(), "getValues() keeps the number order");
 		}
-		assertEquals("C-", BaseNote.C.getText());
-		assertEquals("A-", BaseNote.A.getText());
-		assertEquals("C#", BaseNote.C_SHARP.getText());
-		assertSame(BaseNote.A, BaseNote.getInstance(3));
-		assertSame(BaseNote.G_SHARP, BaseNote.getInstance("G_SHARP"));
+		assertEquals("C-", Tonic.C.getText());
+		assertEquals("A-", Tonic.A.getText());
+		assertEquals("C#", Tonic.C_SHARP.getText());
+		assertSame(Tonic.A, Tonic.getInstance(3));
+		assertSame(Tonic.G_SHARP, Tonic.getInstance("G_SHARP"));
 	}
 }

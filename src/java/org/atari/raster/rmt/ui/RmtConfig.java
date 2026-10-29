@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.atari.raster.rmt.model.BaseNote;
+import org.atari.raster.rmt.model.Tonic;
 import org.atari.raster.rmt.model.IntegerFraction;
 import org.atari.raster.rmt.model.RmtVersion;
 import org.atari.raster.rmt.model.KeyboardLayout;
@@ -246,7 +246,7 @@ public final class RmtConfig {
 
 	/**
 	 * {@code CRmtView::ResetRMTConfig()}: the defaults ({@link RmtOptions#reset()}),
-	 * {@code SetNTSC(false)} (the view's, which rescales the base tuning even
+	 * {@code SetNTSC(false)} (the view's, which rescales the A4 frequency even
 	 * when the song already is PAL - harmless at start-up, where
 	 * {@link #readTuningConfig} follows and overwrites it), and the file
 	 * written so it exists next time, and {@code g_Midi.MidiInit()} (no
@@ -306,11 +306,11 @@ public final class RmtConfig {
 
 			switch (name) {
 			// TUNING
-			case "TUNING" -> tuning.basetuning = atof(value);
-			case "BASENOTE" -> tuning.basenote = BaseNote.getInstanceWithFallback(atoi(value));
+			case "A4_FREQUENCY", "TUNING" -> tuning.a4Frequency = atof(value); // TUNING: the name before plan 62
+			case "TONIC", "BASENOTE" -> tuning.tonic = Tonic.getInstanceWithFallback(atoi(value)); // BASENOTE: the name before plan 62
 			case "TEMPERAMENT" -> tuning.temperament = Temperament.getInstanceWithFallback(atoi(value));
 			// RATIOS
-			case "UNISON" -> cents.values[0] = readCents(value, value2);
+			case "UNISON" -> { /* the tonic's cents, always 0; no longer written since plan 62 */ }
 			case "MIN_2ND" -> cents.values[1] = readCents(value, value2);
 			case "MAJ_2ND" -> cents.values[2] = readCents(value, value2);
 			case "MIN_3RD" -> cents.values[3] = readCents(value, value2);
@@ -361,12 +361,12 @@ public final class RmtConfig {
 		os.append("# ").append(RmtVersion.RMT_VERSION_STRING).append('\n');
 
 		os.append("\n# TUNING\n\n");
-		os.append("TUNING = ").append(formatDouble(tuning.basetuning)).append('\n');
-		line(os, "BASENOTE", tuning.basenote.getNumber());
+		os.append("A4_FREQUENCY = ").append(formatDouble(tuning.a4Frequency)).append('\n');
+		line(os, "TONIC", tuning.tonic.getNumber());
 		line(os, "TEMPERAMENT", tuning.temperament.getNumber());
 
 		os.append("\n# CENTS\n\n");
-		for (int i = 0; i < TuningCents.COUNT; i++) {
+		for (int i = 1; i < TuningCents.COUNT; i++) { // the tonic's 0 has no line
 			centsLine(os, TuningCents.NAMES[i], cents.values[i]);
 		}
 		return os.toString();
@@ -432,7 +432,7 @@ public final class RmtConfig {
 		return m.find() ? Double.parseDouble(m.group(1)) : 0;
 	}
 
-	/** {@code os << std::setprecision(16) << double}: up to 16 significant digits, no trailing zeros, plain notation (the base tuning is 6.875-7040). */
+	/** {@code os << std::setprecision(16) << double}: up to 16 significant digits, no trailing zeros, plain notation (the A4 frequency is 6.875-7040). */
 	static String formatDouble(double value) {
 		if (Double.isNaN(value) || Double.isInfinite(value)) {
 			return Double.toString(value);

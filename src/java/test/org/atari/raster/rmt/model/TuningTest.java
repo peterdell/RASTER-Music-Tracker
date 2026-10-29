@@ -88,7 +88,7 @@ class TuningTest {
 	}
 
 	@Test
-	void getTruePitchEqualTemperamentBaseNote() {
+	void getTruePitchEqualTemperamentTonic() {
 		assertEquals(8.1913611114619442, tuning.getTruePitch(TuningSettings.PAL_A4_FREQUENCY, Temperament.EQUAL, 3, 0));
 	}
 
@@ -112,36 +112,36 @@ class TuningTest {
 
 	/** Plan 59 step 2: whatever the key and temperament, the note A (index 9 and its octaves) sounds at the A4 reference pitch. */
 	@Test
-	void calculateBaseFrequencyAnchorsTheNoteAAtTheA4Frequency() {
-		for (BaseNote basenote : BaseNote.getValues()) {
+	void calculateTonicFrequencyAnchorsTheNoteAAtTheA4Frequency() {
+		for (Tonic tonic : Tonic.getValues()) {
 			for (Temperament temperament : new Temperament[] { Temperament.EQUAL, Temperament.YOUNG_1799_NO1, Temperament.PYTHAGOREAN }) {
 				TuningSettings settings = new TuningSettings();
 				settings.initialize(false);
-				settings.basenote = basenote;
+				settings.tonic = tonic;
 				settings.temperament = temperament;
-				double anchor = tuning.calculateBaseFrequency(settings);
-				assertEquals(settings.basetuning / 32, tuning.getTruePitch(anchor, temperament, basenote.getNumber(), Tuning.A_SEMITONES_ABOVE_C), 1e-9, temperament.getId() + " in " + basenote.getId());
+				double anchor = tuning.calculateTonicFrequency(settings);
+				assertEquals(settings.a4Frequency / 32, tuning.getTruePitch(anchor, temperament, tonic.getNumber(), Tuning.A_SEMITONES_ABOVE_C), 1e-9, temperament.getId() + " in " + tonic.getId());
 			}
 		}
 	}
 
-	/** Plan 59 step 2: for the default base note A- the anchor is the A4 frequency itself, bit-exactly - pre-step-2 modules are unchanged. */
+	/** Plan 59 step 2: for the default tonic A- the anchor is the A4 frequency itself, bit-exactly - pre-step-2 modules are unchanged. */
 	@Test
-	void calculateBaseFrequencyIsTheIdentityForTheBaseNoteA() {
+	void calculateTonicFrequencyIsTheIdentityForTheTonicA() {
 		TuningSettings settings = new TuningSettings();
 		settings.initialize(false);
 		settings.temperament = Temperament.WERCKMEISTER_III;
-		assertEquals(settings.basetuning, tuning.calculateBaseFrequency(settings), 0.0);
+		assertEquals(settings.a4Frequency, tuning.calculateTonicFrequency(settings), 0.0);
 	}
 
 	/** tuning_poc2: ./poc -T 3 -b 60 -a 440.0 (Young No. 1, key C, A4 = 440) prints C4 = 262.57, E4 = 329.24, A4 = 440.00. */
 	@Test
 	void keyCWithA4FourFortyMatchesIvopsPoc() {
 		TuningSettings settings = new TuningSettings();
-		settings.basetuning = 440;
-		settings.basenote = BaseNote.C;
+		settings.a4Frequency = 440;
+		settings.tonic = Tonic.C;
 		settings.temperament = Temperament.YOUNG_1799_NO1;
-		double anchor = tuning.calculateBaseFrequency(settings);
+		double anchor = tuning.calculateTonicFrequency(settings);
 		// Index 0 is C, 4 is E, 9 is A; RMT's pitches sit five octaves below
 		// the poc's MIDI octave 4, so multiply by 2^5 = 32.
 		assertEquals(262.57, tuning.getTruePitch(anchor, settings.temperament, 0, 0) * 32, 0.005);
@@ -149,19 +149,19 @@ class TuningTest {
 		assertEquals(440.00, tuning.getTruePitch(anchor, settings.temperament, 0, Tuning.A_SEMITONES_ABOVE_C) * 32, 0.005);
 	}
 
-	/** Plan 59 step 2's deliberate behavior change: with A4 anchoring, equal temperament is key-invariant - the base note no longer transposes the instrument. */
+	/** Plan 59 step 2's deliberate behavior change: with A4 anchoring, equal temperament is key-invariant - the tonic no longer transposes the instrument. */
 	@Test
 	void equalTemperamentIsKeyInvariantWithA4Anchoring() {
 		TuningSettings reference = new TuningSettings();
-		reference.initialize(false); // base note A-
-		double referenceAnchor = tuning.calculateBaseFrequency(reference);
-		for (BaseNote basenote : BaseNote.getValues()) {
+		reference.initialize(false); // tonic A-
+		double referenceAnchor = tuning.calculateTonicFrequency(reference);
+		for (Tonic tonic : Tonic.getValues()) {
 			TuningSettings settings = new TuningSettings();
 			settings.initialize(false);
-			settings.basenote = basenote;
-			double anchor = tuning.calculateBaseFrequency(settings);
+			settings.tonic = tonic;
+			double anchor = tuning.calculateTonicFrequency(settings);
 			for (int semitone = 0; semitone < 2 * Tuning.NOTES_PER_OCTAVE; semitone++) {
-				assertEquals(tuning.getTruePitch(referenceAnchor, Temperament.EQUAL, reference.basenote.getNumber(), semitone), tuning.getTruePitch(anchor, Temperament.EQUAL, basenote.getNumber(), semitone), 1e-9, basenote.getId() + " semitone " + semitone);
+				assertEquals(tuning.getTruePitch(referenceAnchor, Temperament.EQUAL, reference.tonic.getNumber(), semitone), tuning.getTruePitch(anchor, Temperament.EQUAL, tonic.getNumber(), semitone), 1e-9, tonic.getId() + " semitone " + semitone);
 			}
 		}
 	}
@@ -285,7 +285,7 @@ class TuningTest {
 		void generatesTheIdenticalPageForTheNtscDefaultsOnTheNtscClock() {
 			// The NTSC default is the PAL default scaled by exactly the
 			// clock ratio (TuningSettings.NTSC_A4_FREQUENCY): every pitch is
-			// proportional to the base tuning and every AUDF is computed
+			// proportional to the A4 frequency and every AUDF is computed
 			// from clock / pitch, so the scaling cancels before any rounding
 			// and the whole page is bit-identical - the invariant that lets
 			// one player binary serve both systems
@@ -379,20 +379,20 @@ class TuningTest {
 		}
 
 		@Test
-		void calculateBaseFrequencyUsesTheCustomCents() {
+		void calculateTonicFrequencyUsesTheCustomCents() {
 			// Only valid after initTuning() filled custom[] (setUp() did, from
 			// the default cents = equal temperament), so the custom anchor for
 			// the key of C equals the equal-temperament one.
-			tuningSettings.basenote = BaseNote.C;
+			tuningSettings.tonic = Tonic.C;
 			tuningSettings.temperament = Temperament.CUSTOM;
-			double anchor = tuning.calculateBaseFrequency(tuningSettings);
-			assertEquals(2 * tuningSettings.basetuning / Math.pow(2, (double) Tuning.A_SEMITONES_ABOVE_C / Tuning.NOTES_PER_OCTAVE), anchor, 1e-9);
+			double anchor = tuning.calculateTonicFrequency(tuningSettings);
+			assertEquals(2 * tuningSettings.a4Frequency / Math.pow(2, (double) Tuning.A_SEMITONES_ABOVE_C / Tuning.NOTES_PER_OCTAVE), anchor, 1e-9);
 			tuningSettings.temperament = Temperament.EQUAL;
-			assertEquals(tuning.calculateBaseFrequency(tuningSettings), anchor, 1e-9);
+			assertEquals(tuning.calculateTonicFrequency(tuningSettings), anchor, 1e-9);
 		}
 
 		@Test
-		void initTuningThrowsWhenBasetuningIsZero() {
+		void initTuningThrowsWhenTheA4FrequencyIsZero() {
 			assertThrows(IllegalStateException.class, () -> tuning.initTuning(memory, new TuningSettings()));
 		}
 	}

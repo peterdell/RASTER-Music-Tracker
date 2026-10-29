@@ -48,9 +48,9 @@ public:
     static constexpr Temperament TUNING_CUSTOM = TUNING_PRESETS; // Custom Temperament using Ratio is assumed otherwise
     static constexpr size_t PRESETS_LENGTH = 20 + 1; // Length of the largest preset table, used for the 2 dimensional array boundaries
 
-    // A- is nine semitones above C-; the base note numbers count downward
+    // A- is nine semitones above C-; the tonic numbers count downward
     // from C = 0, so the interval from the tonic up to the next A is
-    // (A_SEMITONES_ABOVE_C + basenote) % NOTES_PER_OCTAVE.
+    // (A_SEMITONES_ABOVE_C + tonic) % NOTES_PER_OCTAVE.
     static constexpr int A_SEMITONES_ABOVE_C = 9;
 
     typedef double Pitch;
@@ -78,8 +78,8 @@ public:
     // exercise them individually, matching the pattern already used for
     // CCompressLzss::Optimize_AUDC/AUDCTL/AUDF (lzss_sap.h). No behavior
     // change, just visibility.
-    Pitch GetTruePitch(double tuning, Temperament temperament, int basenote, int semitone);
-    double CalculateBaseFrequency(const TTuningSettings& tuning);
+    Pitch GetTruePitch(double tuning, Temperament temperament, int tonic, int semitone);
+    double CalculateTonicFrequency(const TTuningSettings& tuning);
     double GetTemperamentCents(Temperament temperament, int degree) const;
     void GenerateTable(byte* table, int length, int firstSemitone, Timbre timbre, int audctl);
     AUDF CalculateDeltaAUDF(Pitch pitch, AUDF audf, int coarse_divisor, double divisor, int cycle, Timbre timbre) const;
@@ -102,7 +102,7 @@ private:
         {
             //Equal temperament: its multipliers are computed, 2^(n/12), not tabulated.
             //GetTruePitch() keeps its own equal formula (bit-exact tables) and never
-            //reads this row; CalculateBaseFrequency() and GetTemperamentCents() do.
+            //reads this row; CalculateTonicFrequency() and GetTemperamentCents() do.
             {pow(2.0, 0.0 / NOTES_PER_OCTAVE), pow(2.0, 1.0 / NOTES_PER_OCTAVE), pow(2.0, 2.0 / NOTES_PER_OCTAVE), pow(2.0, 3.0 / NOTES_PER_OCTAVE),
              pow(2.0, 4.0 / NOTES_PER_OCTAVE), pow(2.0, 5.0 / NOTES_PER_OCTAVE), pow(2.0, 6.0 / NOTES_PER_OCTAVE), pow(2.0, 7.0 / NOTES_PER_OCTAVE),
              pow(2.0, 8.0 / NOTES_PER_OCTAVE), pow(2.0, 9.0 / NOTES_PER_OCTAVE), pow(2.0, 10.0 / NOTES_PER_OCTAVE), pow(2.0, 11.0 / NOTES_PER_OCTAVE), 2},

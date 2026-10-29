@@ -53,7 +53,7 @@ public:
     // what a note would sound like needs it.
     TrackerDriverVersion GetTrackerDriverVersion() const;
     void SetTrackerDriverVersion(const TrackerDriverVersion trackerDriverVersion);
-    // How the notes of this module are tuned: the base tuning, the base note,
+    // How the notes of this module are tuned: the A4 frequency, the tonic,
     // the temperament and the cents of a custom one. Song-scoped
     // like IsNTSC() and the driver version, persisted in tuning.ini and not
     // in the module (plans/44_SONG_PROPERTIES_DIALOG_PLAN.md). Everything

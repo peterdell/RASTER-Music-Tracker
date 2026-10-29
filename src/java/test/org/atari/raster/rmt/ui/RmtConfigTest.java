@@ -13,7 +13,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import org.atari.raster.rmt.model.BaseNote;
+import org.atari.raster.rmt.model.Tonic;
 import org.atari.raster.rmt.model.IntegerFraction;
 import org.atari.raster.rmt.model.KeyboardLayout;
 import org.atari.raster.rmt.model.MessageAnswer;
@@ -88,13 +88,12 @@ class RmtConfigTest {
 
 			# TUNING
 
-			TUNING = 440.83751645933
-			BASENOTE = 3
+			A4_FREQUENCY = 440.83751645933
+			TONIC = 3
 			TEMPERAMENT = 0
 
 			# CENTS
 
-			UNISON = 0
 			MIN_2ND = 100
 			MAJ_2ND = 200
 			MIN_3RD = 300
@@ -194,8 +193,8 @@ class RmtConfigTest {
 		o.view.smoothScrolling = false;
 		o.view.debugDisplay = false;
 		written.song.setNTSC(true);
-		written.song.getTuningSettings().basetuning = 432.5;
-		written.song.getTuningSettings().basenote = BaseNote.F;
+		written.song.getTuningSettings().a4Frequency = 432.5;
+		written.song.getTuningSettings().tonic = Tonic.F;
 		written.song.getTuningSettings().temperament = Temperament.CUSTOM;
 		written.song.getTuningSettings().cents.values[11] = 1109.775004326937; // 243/128 in cents
 
@@ -243,7 +242,7 @@ class RmtConfigTest {
 	@Test
 	void aMissingTuningIniResetsTheTuningAndWritesTheDefaults(@TempDir Path dir) throws IOException {
 		RmtSession session = new RmtSession();
-		session.song.getTuningSettings().basetuning = 999;
+		session.song.getTuningSettings().a4Frequency = 999;
 		session.song.getTuningSettings().cents.values[4] = 350; // off the default
 		RecordingMessages messages = new RecordingMessages();
 		session.messages.setHandler(messages);
@@ -252,7 +251,7 @@ class RmtConfigTest {
 
 		assertEquals(1, messages.warnings.size());
 		assertTrue(messages.warnings.get(0).contains("RMT will use the default Tuning parameters."));
-		assertEquals(TuningSettings.PAL_A4_FREQUENCY, session.song.getTuningSettings().basetuning);
+		assertEquals(TuningSettings.PAL_A4_FREQUENCY, session.song.getTuningSettings().a4Frequency);
 		assertEquals(400, session.song.getTuningSettings().cents.values[4]); // reset to the equal default
 		assertEquals(DEFAULT_TUNING_INI, Files.readString(dir.resolve("tuning.ini"), RmtConfig.CHARSET).replace(System.lineSeparator(), "\n"));
 	}
@@ -292,8 +291,8 @@ class RmtConfigTest {
 				"OCTAVE = 4 / 0", // the octave is fixed since plan 59; the line is ignored
 				"MAJ_3RD = 386.3137138648348", // the new format: cents directly
 				"MIN_2ND = 40 / 38"), tuning);
-		assertEquals(432.5, tuning.basetuning);
-		assertEquals(BaseNote.D_SHARP, tuning.basenote); // number 9
+		assertEquals(432.5, tuning.a4Frequency);
+		assertEquals(Tonic.D_SHARP, tuning.tonic); // number 9
 		assertEquals(Temperament.CUSTOM, tuning.temperament); // number 29
 		assertEquals(701.9550008653874, cents.values[7], 1e-12); // 3/2 in cents
 		assertEquals(386.3137138648348, cents.values[4]);
@@ -307,21 +306,37 @@ class RmtConfigTest {
 		TuningSettings tuning = new TuningSettings();
 		tuning.cents.initialize();
 		RmtConfig.parseTuningConfig(OLD_FRACTION_TUNING_INI.lines().toList(), tuning);
-		assertEquals(432, tuning.basetuning);
-		assertEquals(BaseNote.C, tuning.basenote);
+		assertEquals(432, tuning.a4Frequency);
+		assertEquals(Tonic.C, tuning.tonic);
 		assertEquals(Temperament.CUSTOM, tuning.temperament); // 30 >= 29 is custom
 		assertEquals(386.3137138648348, tuning.cents.values[4], 1e-12); // 5/4
 		assertEquals(1109.775004326937, tuning.cents.values[11], 1e-12); // 243/128
 	}
 
+	/** A tuning.ini written before plan 62 reads with its old names; its tonic cents line is ignored, the tonic stays at 0. */
+	@Test
+	void aTuningIniWithTheOldNamesStillReads() {
+		TuningSettings tuning = new TuningSettings();
+		tuning.cents.initialize();
+		RmtConfig.parseTuningConfig(List.of("TUNING = 432", "BASENOTE = 11", "UNISON = 5", "MIN_2ND = 90"), tuning);
+		assertEquals(432, tuning.a4Frequency);
+		assertEquals(Tonic.C_SHARP, tuning.tonic); // number 11
+		assertEquals(0, tuning.cents.values[0]);
+		assertEquals(90, tuning.cents.values[1]);
+		String written = RmtConfig.formatTuningConfig(tuning);
+		assertTrue(written.contains("A4_FREQUENCY = 432\n"), written);
+		assertTrue(written.contains("TONIC = 11\n"), written);
+		assertFalse(written.contains("TUNING =") || written.contains("BASENOTE") || written.contains("UNISON"), written);
+	}
+
 	/** The ini file can carry any number; the mapping guards where C++ reads out of bounds (plans/48_TUNING_VALUE_SETS_PLAN.md). */
 	@Test
-	void strayTuningNumbersMapToCustomEqualAndTheDefaultBaseNote() {
+	void strayTuningNumbersMapToCustomEqualAndTheDefaultTonic() {
 		TuningSettings tuning = new TuningSettings();
 		RmtConfig.parseTuningConfig(List.of(
-				"BASENOTE = 99", // unknown -> the default A
+				"TONIC = 99", // unknown -> the default A
 				"TEMPERAMENT = 35"), tuning); // >= 29 is custom, C++'s own semantic
-		assertEquals(BaseNote.A, tuning.basenote);
+		assertEquals(Tonic.A, tuning.tonic);
 		assertEquals(Temperament.CUSTOM, tuning.temperament);
 
 		RmtConfig.parseTuningConfig(List.of("TEMPERAMENT = -1"), tuning); // a guard, C++ reads its preset table out of bounds
