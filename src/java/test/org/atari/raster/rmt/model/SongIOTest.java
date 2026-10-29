@@ -74,71 +74,8 @@ class SongIOTest {
 		return new String(name, 0, end);
 	}
 
-	// --- songToAta / ataToSong (from SongTest) ---
-
-	@Test
-	void songToAtaEncodesTrackDataThenFillsRestAsUnused() {
-		song.getSong()[0][0] = 5;
-		song.getSong()[0][1] = 10;
-		song.getSong()[0][2] = 15;
-		song.getSong()[0][3] = 20;
-
-		byte[] dest = new byte[Song.SONGLEN * 4];
-		int size = SongIO.songToAta(song, dest, dest.length, 0x4000);
-
-		assertEquals(4, size);
-		assertEquals(5, dest[0]);
-		assertEquals(10, dest[1]);
-		assertEquals(15, dest[2]);
-		assertEquals(20, dest[3]);
-		// Every other line is empty (-1), encoded as 255 per track slot.
-		assertEquals((byte) 255, dest[4]);
-		assertEquals((byte) 255, dest[Song.SONGLEN * 4 - 1]);
-	}
-
-	@Test
-	void songToAtaAndAtaToSongRoundTripTrackData() {
-		song.getSong()[0][0] = 5;
-		song.getSong()[0][1] = 10;
-		song.getSong()[0][2] = 15;
-		song.getSong()[0][3] = 20;
-
-		byte[] dest = new byte[Song.SONGLEN * 4];
-		int size = SongIO.songToAta(song, dest, dest.length, 0x4000);
-
-		Song decoded = new Song(new Instruments(), new Tracks());
-		decoded.setChannels(Song.Channels.MONO); // as decodeModule sets it from the header before ataToSong
-		assertTrue(SongIO.ataToSong(decoded, dest, size, 0x4000));
-		assertEquals(5, decoded.getSong()[0][0]);
-		assertEquals(10, decoded.getSong()[0][1]);
-		assertEquals(15, decoded.getSong()[0][2]);
-		assertEquals(20, decoded.getSong()[0][3]);
-	}
-
-	@Test
-	void songToAtaAndAtaToSongRoundTripGotoLine() {
-		song.getSongGo()[0] = 1; // line 0: "goto line 1"
-
-		byte[] dest = new byte[Song.SONGLEN * 4];
-		int size = SongIO.songToAta(song, dest, dest.length, 0x4000);
-
-		assertEquals(4, size);
-		assertEquals((byte) 254, dest[0]); // go command marker
-
-		// Decode using a byte range covering (at least) 2 lines, so the
-		// decoded goto target (line 1) is within bounds - ataToSong()'s
-		// "len" parameter represents how much of the module's song section
-		// is being decoded, not songToAta()'s own (smaller) "bytes actually
-		// used" return value.
-		Song decoded = new Song(new Instruments(), new Tracks());
-		decoded.setChannels(Song.Channels.MONO); // as decodeModule sets it from the header before ataToSong
-		assertTrue(SongIO.ataToSong(decoded, dest, 8, 0x4000));
-		assertEquals(1, decoded.songGetGo(0));
-	}
-
 	// --- makeModule / decodeModule ---
-	// Round-trip test, mirroring songToAta/ataToSong's approach in SongTest:
-	// lets the real encode/decode logic prove itself internally consistent
+	// Round-trip test: lets the real encode/decode logic prove itself internally consistent
 	// rather than hand-deriving the RMT header's byte layout.
 
 	@Test

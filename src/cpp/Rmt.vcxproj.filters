@@ -333,6 +333,15 @@
     <ClCompile Include="SongIO.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClCompile>
+    <ClCompile Include="RmtModule.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClCompile>
+    <ClCompile Include="RmtModuleFile.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClCompile>
+    <ClCompile Include="RmtModuleCodec.cpp">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClCompile>
     <ClCompile Include="RmtExporter.cpp">
       <Filter>Source Files\IO - Load/Save/Export/Import/Midi\RMT</Filter>
     </ClCompile>
@@ -577,6 +586,15 @@
     </ClInclude>
     <ClInclude Include="Shell.h">
       <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="RmtModule.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClInclude>
+    <ClInclude Include="RmtModuleFile.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
+    </ClInclude>
+    <ClInclude Include="RmtModuleCodec.h">
+      <Filter>Source Files\IO - Load/Save/Export/Import/Midi</Filter>
     </ClInclude>
     <ClInclude Include="Memory.h">
       <Filter>Source Files\Atari Sound Generator</Filter>

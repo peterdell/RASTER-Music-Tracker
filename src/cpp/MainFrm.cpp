@@ -4,6 +4,7 @@
 //
 
 #include "Global.h"
+#include <algorithm>
 #include "MainFrm.h"
 #include "Resource.h"
 #include "RmtView.h"
@@ -151,8 +152,8 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
         // make sure the window is not completely out of sight
         int max_x = GetSystemMetrics(SM_CXSCREEN) - GetSystemMetrics(SM_CXICON);
         int max_y = GetSystemMetrics(SM_CYSCREEN) - GetSystemMetrics(SM_CYICON);
-        cs.x = min(l, max_x);
-        cs.y = min(t, max_y);
+        cs.x = std::min(l, max_x);
+        cs.y = std::min(t, max_y);
     }
 
     if (!CFrameWnd::PreCreateWindow(cs))

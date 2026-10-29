@@ -13,9 +13,6 @@
 // testable without linking Song.cpp's much larger dependency graph - same
 // pattern as Tuning.cpp/TuningTables.cpp, Tracks.cpp/TracksEdit.cpp, and
 // Instruments.cpp/InstrumentsCore.cpp+InstrumentsAtaFormat.cpp.
-//
-// SongToAta()/AtaToSong() (originally in IO_Song.cpp) are included here too:
-// they only need CSong's own m_channels/m_song/m_songgo members.
 
 extern CAtari g_Atari;
 
@@ -213,6 +210,3 @@ BOOL CSong::SongPlayNextLine() {
     return 1;
 }
 
-// CSong::SongToAta() is implemented in SongIO.cpp.
-
-// CSong::AtaToSong() is implemented in SongIO.cpp.

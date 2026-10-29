@@ -1,6 +1,6 @@
 # Plan 60: A container class for the RMT module (format version 1)
 
-Status: DONE 2026-10-29 (M1 2026-10-28, M2-M4 2026-10-29); M5 is out of scope. Decided 2026-10-28 (user), see the open decisions
+Status: DONE 2026-10-29 (M1 2026-10-28, M2-M4 and M6, the C++ port, 2026-10-29); M5 is out of scope. Decided 2026-10-28 (user), see the open decisions
 below for the four answers and the addendum on nesting.
 
 A class in the Java port that represents an RMT module as
@@ -193,9 +193,35 @@ wrappers over the container (M2), so the many callers and the
       the track end conventions the walker enforces.
 - [ ] M5. Not in this plan, but kept possible by M1's segment list:
       version "2" (`RMX1` metadata, `TUN`, `PLR`).
+- [x] M6. DONE 2026-10-29, added the same day: the C++ program stays
+      longer than planned and is kept in sync (user). M1-M3 in C++, in
+      one step: `CMemory` (in `Memory.h`), `CRmtModule` (nested
+      `SongLine`, `Track`, `Instrument` with `Envelope`, `Layout`,
+      `FormatException`), `CRmtModuleFile` and `CRmtModuleCodec` (a
+      friend of `CSong`), with `RmtModuleTests.cpp` mirroring
+      `RmtModuleTest` (13 tests plus a `CMemory` test; the fixtures are
+      found from the test's source path). The equivalence tests passed
+      against the old `MakeModule`/`DecodeModule`/`ExportAsRMT` before
+      those became wrappers. Then `MakeModule`/`DecodeModule` are wrappers
+      over the container (`MakeModule` keeps its error box, now with the
+      container's reason), `ExportAsRMT`/`ExportAsStrippedRMTApply` write
+      through `CRmtModuleFile`, and `BuildRelocatableAsm` reads the
+      parsed module and its `Layout`. The C++ program now also rejects
+      format version 0 modules and songs with a speed outside the
+      header's range, as the Java port does since M2; doc/rmt_format.md
+      says so. 471 C++ tests and the cross-program export comparison
+      green, which covers the relocatable asm export in four variants.
+      Follow-ups (user): `NOMINMAX` is defined in every configuration of
+      both C++ projects (the Windows `min`/`max` macros had broken
+      `std::max`; `MainFrm.cpp`'s two macro uses are `std::min` now), and
+      `SongToAta`/`AtaToSong` - left without callers by the container -
+      are removed from both programs with their three tests each
+      (468 C++ and 746 Java tests green, cross-program comparison
+      included).
 
-Proof for every step: `mvn -o test` green, the cross-program export
-test unchanged; no asm or C++ changes, so no byte-identity chain.
+Proof for M1-M5: `mvn -o test` green, the cross-program export test
+unchanged; no asm or C++ changes, so no byte-identity chain. Proof for
+M6: the Release build, `RmtTests.exe` and the cross-program export test.
 
 ## Open decisions
 

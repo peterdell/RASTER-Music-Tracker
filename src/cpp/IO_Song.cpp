@@ -35,9 +35,6 @@ extern CXPokey g_Pokey;
 extern CRmtMidi g_Midi;
 extern CAtariTrackerDriver* g_AtariTrackerDriver;
 
-// SongToAta() and AtaToSong() are implemented in SongCore.cpp (no Global.h
-// dependency).
-
 /// <summary>
 /// Reload the currently loaded file
 /// </summary>

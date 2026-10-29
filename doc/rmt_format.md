@@ -62,7 +62,7 @@ A module without this segment is what RMT calls "stripped": "Export as Stripped 
 	$0c	WORD	Address of the high-byte table of the track addresses
 	$0e	WORD	Address of the track sequence table
 
-The format version $00 is the layout of RMT's pre-release versions, whose instruments are stored differently. The RMT 1.x program still reads it; the Java port rejects such modules. RMT 1.x writes $01.
+The format version $00 is the layout of RMT's pre-release versions, whose instruments are stored differently. RMT no longer reads such modules (since 2026-10-29). RMT 1.x writes $01.
 
 ### Order of the Structures
 

@@ -74,9 +74,8 @@ class AsmFileBuilderTest {
 
 	// buildSongData() encodes song lines (numTracks bytes each) plus an
 	// optional 4-byte "goto" sequence: 0xFE, an unused filler byte (the byte
-	// count always matches numTracks, mirroring CSong::SongToAta()/
-	// AtaToSong()'s own 4-byte goto encoding for an 8-track song halved for 4
-	// tracks here), then a little-endian absolute target address (relative
+	// count always matches numTracks, mirroring RmtModule's own 4-byte goto
+	// encoding for an 8-track song halved for 4 tracks here), then a little-endian absolute target address (relative
 	// to "start") that gets converted back to a "?line_NN" label reference.
 
 	@Test

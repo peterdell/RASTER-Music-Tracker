@@ -69,7 +69,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>NDEBUG;WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;WIN32;NOMINMAX;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -89,7 +89,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>_DEBUG;WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;WIN32;NOMINMAX;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -154,6 +154,9 @@
     <ClCompile Include="..\SongCore.cpp" />
     <ClCompile Include="..\PokeyController.cpp" />
     <ClCompile Include="..\SongIO.cpp" />
+    <ClCompile Include="..\RmtModule.cpp" />
+    <ClCompile Include="..\RmtModuleFile.cpp" />
+    <ClCompile Include="..\RmtModuleCodec.cpp" />
     <ClCompile Include="..\SongEditing.cpp" />
     <ClCompile Include="..\ClipboardCore.cpp" />
     <ClCompile Include="..\AtariIO.cpp" />
@@ -193,6 +196,7 @@
     <ClCompile Include="AtariTests.cpp" />
     <ClCompile Include="SongTests.cpp" />
     <ClCompile Include="SongEditingTests.cpp" />
+    <ClCompile Include="RmtModuleTests.cpp" />
     <ClCompile Include="UndoTests.cpp" />
     <ClCompile Include="AtariTrackerDriverTests.cpp" />
   </ItemGroup>

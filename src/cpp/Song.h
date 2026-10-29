@@ -21,6 +21,7 @@ class CSong {
 public:
     friend CASMFileExporter; // JAC! TODO Remove
     friend CSongUI;
+    friend class CRmtModuleCodec; // the module conversions read and write the song lines and speeds
 
     CSong();
     ~CSong();
@@ -246,8 +247,6 @@ public:
     void FileTrackSave();
     void FileTrackLoad();
 
-    int SongToAta(unsigned char* dest, int max, int adr);
-    BOOL AtaToSong(unsigned char* sour, int len, int adr);
 
     // SaveTxt()/SaveRMW()/LoadRMT()/LoadTxt()/LoadRMW() take
     // std::ostream&/std::istream& rather than std::ofstream&/std::ifstream& -

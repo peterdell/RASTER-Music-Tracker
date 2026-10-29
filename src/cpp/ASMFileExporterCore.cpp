@@ -1,10 +1,13 @@
 #include "StdAfx.h"
+#include <optional>
+#include <vector>
 #include "ASMFile.h"
 #include "ASMFileExporter.h"
 #include "ASMFileBuilder.h"
 #include "Atari.h"
 #include "FrequencyTables.h"
 #include "Messages.h"
+#include "RmtModule.h"
 #include "TrackerDriverVersion.h"
 
 // The CASMFileExporter methods here have no dialog/hazard of their own -
@@ -311,9 +314,6 @@ bool CASMFileExporter::ExportAsRelocatableAsmForRmtPlayerApply(CSong& song, std:
 // The code below handles the export of the RMT song data as relocatable
 // assembler source code.
 
-static int rword(unsigned char* data, int i) {
-    return data[i] | (data[i + 1] << 8);
-}
 
 /// <summary>
 /// Based on the rtm2atasm code
@@ -376,68 +376,34 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
     ComposeRMTFEATstring(song, str, "", exportDesc->instrumentSavedFlags, exportDesc->trackSavedFlags, sfx, gvf, nos, assemblerFormat);
     strCode += str;
     //
-    unsigned char* buf = &exportDesc->mem[exportDesc->targetAddrOfModule];
     int start = exportDesc->targetAddrOfModule;
-    int end = exportDesc->firstByteAfterModule;
-    int len = end - start;
+    std::optional<CRmtModule> parsed;
+    try {
+        parsed.emplace(CRmtModule::Parse(exportDesc->mem, start, exportDesc->firstByteAfterModule));
+    } catch (const CRmtModule::FormatException&) {
+        return 0;
+    }
+    const CRmtModule& module = *parsed;
+    if (module.GetInstruments().empty() || module.GetTracks().empty()) {
+        return 0; // the player source needs both
+    }
+    CRmtModule::Layout layout = module.GetLayout();
+    CRmtModule::Bytes moduleBytes = module.ToBytes(start);
+    unsigned char* buf = moduleBytes.data();
+    int len = layout.end;
+    char channelDigit = static_cast<char>(buf[CRmtModule::Offset::CHANNELS]);
     str.Format("; RMT%c file exported as relocatable source code\n"
                "; Original size: $%04x bytes @ $%04x\n",
-               buf[3], len, start);
+               channelDigit, len, start);
     strCode += str;
 
-    // Read parameters from file:
-    int numTracks = buf[3] - '0'; // RMTx - x is 4 or 8
-    int offsetInstrumentPtrTable = rword(buf, 8) - start; // This is where the instruments are stored (always directly after this table)
-    int offsetTrackPtrTableLow = rword(buf, 10) - start; // Track ptrs are broken up into lo and hi bytes
-    int offsetTrackPtrTableHigh = rword(buf, 12) - start;
-    int offsetSong = rword(buf, 14) - start; // The song tracks start here
-
-    int numInstruments = offsetTrackPtrTableLow - offsetInstrumentPtrTable;
-    int numtrk = offsetTrackPtrTableHigh - offsetTrackPtrTableLow;
-
-    // Read all tracks addresses searching for the lowest address
-    int first_track = 0xFFFF;
-    for (int i = 0; i < numtrk; i++) {
-        int x = buf[offsetTrackPtrTableLow + i] + (buf[offsetTrackPtrTableHigh + i] << 8);
-        if (x) {
-            x -= start;
-            if (x < 0 || x >= offsetSong) {
-                return 0;
-            }
-            if (x < first_track) {
-                first_track = x;
-            }
-        }
-    }
-    // Read all instrument addresses searching for the lowest address
-    int first_instr = 0xFFFF;
-    for (int i = 0; i < numInstruments; i += 2) {
-        int x = rword(buf, offsetInstrumentPtrTable + i);
-        if (x) {
-            x -= start;
-            if (x < 0 || x >= first_track) {
-                return 0;
-            }
-            if (x < first_instr) {
-                first_instr = x;
-            }
-        }
-    }
-    if (first_instr < 0 || first_instr >= len ||
-        first_track < 0 || first_track >= len) {
-        if (first_instr == 0xFFFF) {
-            strCode += "; No instrument data!\n";
-        }
-        if (first_track) {
-            return 0;
-        }
-    }
-    if (offsetTrackPtrTableHigh + numtrk != first_instr) {
-        return 0;
-    }
-    if (first_track < first_instr) {
-        return 0;
-    }
+    int numTracks = module.GetChannels();
+    int offsetInstrumentPtrTable = layout.instrumentsTable; // This is where the instruments are stored (always directly after this table)
+    int offsetTrackPtrTableLow = layout.tracksLowTable; // Track ptrs are broken up into lo and hi bytes
+    int offsetTrackPtrTableHigh = layout.tracksHighTable;
+    int offsetSong = layout.song; // The song tracks start here
+    int first_instr = layout.instrumentData;
+    int first_track = layout.trackData;
 
     // Write assembly output
     str.Format(
@@ -448,9 +414,9 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
     strCode += str;
 
     if (assemblerFormat == ATASM) {
-        str.Format("    {{byte}} \"RMT%c\"\n", buf[3]);
+        str.Format("    {{byte}} \"RMT%c\"\n", channelDigit);
     } else {
-        str.Format("    dta c'RMT%c'\n", buf[3]);
+        str.Format("    dta c'RMT%c'\n", channelDigit);
     }
     strCode += str;
 
@@ -459,14 +425,10 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
                "    {{byte}} $%02x            ; Song speed\n"
                "    {{byte}} $%02x            ; Player Frequency\n"
                "    {{byte}} $%02x            ; Format version\n",
-               buf[4], buf[4] // max track length
-               ,
-               buf[5] // song speed
-               ,
-               buf[6] // player frequency
-               ,
-               buf[7] // format version
-    );
+               buf[CRmtModule::Offset::TRACK_LENGTH], buf[CRmtModule::Offset::TRACK_LENGTH], // max track length
+               buf[CRmtModule::Offset::SONG_SPEED],
+               buf[CRmtModule::Offset::INSTRUMENT_SPEED], // player frequency
+               buf[CRmtModule::Offset::FORMAT_VERSION]);
     strCode += str;
     strCode += "; ptrs to tables\n";
     if (assemblerFormat == ATASM) {
@@ -490,67 +452,58 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
 
     // List of ptrs to instruments
     strCode += "\n; List of ptrs to instruments\n";
-    int instr_pos[65536];
-    memset(instr_pos, 0, sizeof(instr_pos));
+    std::vector<int> instr_pos(CMemory::SIZE);
     strCode += "?InstrumentsTable";
 
-    for (int i = 0; i < numInstruments; i += 2) {
-        int loc = rword(buf, i + offsetInstrumentPtrTable) - start;
-        if (loc >= first_instr && loc < first_track && loc < len) {
-            instr_pos[loc] = (i >> 1) + 1;
-            str.Format(assemblerFormat == ATASM ? "?Instrument_%d" : "a(?Instrument_%d)", i >> 1);
-        } else if (loc == -start) {
-            str = (assemblerFormat == ATASM ? "  $0000" : " a($0000)");
+    for (int number = 0; number < layout.InstrumentEntries(); number++) {
+        auto offset = layout.instruments.find(number);
+        if (offset != layout.instruments.end()) {
+            instr_pos[offset->second] = number + 1;
+            str.Format(assemblerFormat == ATASM ? "?Instrument_%d" : "a(?Instrument_%d)", number);
         } else {
-            return 0;
+            str = (assemblerFormat == ATASM ? "  $0000" : " a($0000)");
         }
 
         sizeIntro += 2; // 2 bytes per used instrument
 
         strCode += (assemblerFormat == ATASM ? "\n    .word " : "\n    dta ");
         strCode += str;
-        str.Format("\t\t; %s", g_Instruments.GetName(i >> 1));
+        str.Format("\t\t; %s", g_Instruments.GetName(number));
         strCode += str;
     }
     strCode += "\n";
     // List of tracks:
-    int track_pos[65536];
-    memset((void*)track_pos, 0, sizeof(track_pos));
+    std::vector<int> track_pos(CMemory::SIZE);
     strCode += "\n?TracksTblLo";
-    for (int i = 0; i < numtrk; i++) {
-        int loc = buf[i + offsetTrackPtrTableLow] + (buf[i + offsetTrackPtrTableHigh] << 8) - start;
-        if (i % 8 == 0) {
+    for (int number = 0; number < layout.TrackEntries(); number++) {
+        auto offset = layout.tracks.find(number);
+        if (number % 8 == 0) {
             strCode += (assemblerFormat == ATASM ? "\n    .byte " : "\n    dta ");
         } else {
             strCode += ",";
         }
-        if (loc >= first_track && loc < offsetSong && loc < len) {
-            track_pos[loc] = i + 1;
-            str.Format(assemblerFormat == ATASM ? "<?Track_%02x" : "l(__Track_%02x)", i);
+        if (offset != layout.tracks.end()) {
+            track_pos[offset->second] = number + 1;
+            str.Format(assemblerFormat == ATASM ? "<?Track_%02x" : "l(__Track_%02x)", number);
             strCode += str;
-        } else if (loc == -start) {
-            strCode += "$00";
         } else {
-            return 0;
+            strCode += "$00";
         }
 
         sizeIntro += 1; // 1 byte per used track
     }
     strCode += "\n?TracksTblHi";
-    for (int i = 0; i < numtrk; i++) {
-        int loc = buf[i + offsetTrackPtrTableLow] + (buf[i + offsetTrackPtrTableHigh] << 8) - start;
-        if (i % 8 == 0) {
+    for (int number = 0; number < layout.TrackEntries(); number++) {
+        if (number % 8 == 0) {
             strCode += (assemblerFormat == ATASM ? "\n    .byte " : "\n    dta ");
         } else {
             strCode += ",";
         }
-        if (loc >= first_track && loc < offsetSong && loc < len) {
-            str.Format(assemblerFormat == ATASM ? ">?Track_%02x" : "h(__Track_%02x)", i);
+        if (layout.tracks.count(number) != 0) {
+            str.Format(assemblerFormat == ATASM ? ">?Track_%02x" : "h(__Track_%02x)", number);
             strCode += str;
-        } else if (loc == -start) {
-            strCode += "$00";
         } else {
-            return 0;
+            strCode += "$00";
         }
 
         sizeIntro += 1; // 1 byte per used track
@@ -560,13 +513,13 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
 
     // First dump all the sequencial code, relocated data is dumped after this
     if (strInstrumentsLabel.IsEmpty()) {
-        sizeInstruments = CASMFileBuilder::BuildInstrumentData(str, "", buf, first_instr, first_track, instr_pos, assemblerFormat);
+        sizeInstruments = CASMFileBuilder::BuildInstrumentData(str, "", buf, first_instr, first_track, instr_pos.data(), assemblerFormat);
         strCode += str;
 
         strModuleSequence += "  Instruments\n";
     }
     if (strTracksLabel.IsEmpty()) {
-        sizeTrack = CASMFileBuilder::BuildTracksData(str, "", buf, first_track, offsetSong, track_pos, assemblerFormat);
+        sizeTrack = CASMFileBuilder::BuildTracksData(str, "", buf, first_track, offsetSong, track_pos.data(), assemblerFormat);
         if (sizeTrack == 0) {
             return 0;
         }
@@ -581,12 +534,12 @@ BOOL CASMFileExporter::BuildRelocatableAsm(
 
     // Dump the relocated data
     if (strInstrumentsLabel.IsEmpty() == false) {
-        sizeInstruments = CASMFileBuilder::BuildInstrumentData(str, strInstrumentsLabel, buf, first_instr, first_track, instr_pos, assemblerFormat);
+        sizeInstruments = CASMFileBuilder::BuildInstrumentData(str, strInstrumentsLabel, buf, first_instr, first_track, instr_pos.data(), assemblerFormat);
         strCode += str;
         strModuleSequence += "Relocated Instruments\n";
     }
     if (strTracksLabel.IsEmpty() == false) {
-        sizeTrack = CASMFileBuilder::BuildTracksData(str, strTracksLabel, buf, first_track, offsetSong, track_pos, assemblerFormat);
+        sizeTrack = CASMFileBuilder::BuildTracksData(str, strTracksLabel, buf, first_track, offsetSong, track_pos.data(), assemblerFormat);
         if (sizeTrack == 0) {
             return 0;
         }

@@ -2,7 +2,7 @@ package org.atari.raster.rmt.model;
 
 /**
  * The file formats of the song: the module codec ({@link #makeModule}/
- * {@link #decodeModule} with {@link #songToAta}/{@link #ataToSong}), the
+ * {@link #decodeModule}, wrappers over {@link RmtModuleCodec}), the
  * {@code .rmt}, {@code .txt} and {@code .rmw} load/save pairs, and the
  * {@link #checkBeforeFileSave} gate. All of it lived on {@link Song} until
  * plan 45 moved it here: these are stateless transformations between bytes
@@ -23,94 +23,6 @@ public final class SongIO {
 
 	private static int unsignedByte(byte[] buf, int index) {
 		return buf[index] & 0xFF;
-	}
-
-	/** Encodes {@code song}/{@code songGo} into the Atari module's song-data byte format, returning the number of bytes actually used. */
-	public static int songToAta(Song song, byte[] dest, int max, int adr) {
-		int channels = song.getChannels();
-		int len = 0;
-		for (int sline = 0; sline < Song.SONGLEN; sline++) {
-			int apos = sline * channels;
-			if (apos + channels > max) {
-				return len; // buffer overflow
-			}
-
-			int go = song.songGo[sline];
-			if (go >= 0) {
-				// There is a goto line
-				dest[apos] = (byte) 254; // go command
-				dest[apos + 1] = (byte) go; // number where to jump
-				int goadr = (adr + go * channels) & 0xFFFF;
-				dest[apos + 2] = (byte) (goadr & 0xff); // low byte
-				dest[apos + 3] = (byte) (goadr >> 8); // high byte
-				if (channels > 4) {
-					for (int j = 4; j < channels; j++) {
-						dest[apos + j] = (byte) 255; // to make sure this is the correct line
-					}
-				}
-				len = sline * channels + 4; // this is the end for now (goto has 4 bytes for 8 tracks)
-			} else {
-				// There are track numbers
-				for (int i = 0; i < channels; i++) {
-					int j = song.song[sline][i];
-					if (j >= 0 && j < Tracks.TRACKSNUM) {
-						dest[apos + i] = (byte) j;
-						len = (sline + 1) * channels; // this is the end for now
-					} else {
-						dest[apos + i] = (byte) 255;
-					}
-				}
-			}
-		}
-		return len;
-	}
-
-	/**
-	 * Decodes the Atari module's song-data byte format (the {@link #songToAta} counterpart) into {@code song}/{@code songGo}.
-	 * Always returns {@code true} (C++'s {@code BOOL} return is unconditional in every branch of the original).
-	 */
-	public static boolean ataToSong(Song song, byte[] sour, int len, int adr) {
-		int channels = song.getChannels();
-		int i = 0;
-		int col = 0;
-		int line = 0;
-		while (i < len) {
-			int b = unsignedByte(sour, i);
-			// C++ also checks "b >= 0", tautological for its unsigned char b.
-			if (b < Tracks.TRACKSNUM) {
-				song.song[line][col] = b;
-			} else if (b == 254 && col == 0) {
-				int ptr = unsignedByte(sour, i + 2) | (unsignedByte(sour, i + 3) << 8); // goto vector
-				int go = (ptr - adr) / channels;
-				if (go >= 0 && go < (len / channels) && go < Song.SONGLEN) {
-					song.songGo[line] = go;
-				} else {
-					song.songGo[line] = 0; // place of invalid jump and jump to line 0
-				}
-				i += channels;
-				if (i >= len) {
-					return true; // this is the end of goto
-				}
-				line++;
-				if (line >= Song.SONGLEN) {
-					return true;
-				}
-				continue;
-			} else {
-				song.song[line][col] = -1;
-			}
-
-			col++;
-			if (col >= channels) {
-				line++;
-				if (line >= Song.SONGLEN) {
-					return true; // so that it does not overflow
-				}
-				col = 0;
-			}
-			i++;
-		}
-		return true;
 	}
 
 	/**
@@ -737,14 +649,8 @@ public final class SongIO {
 	 * display-hint half is done); no {@code Atari} dependency is modeled on
 	 * {@link Song}, and no test observes it.
 	 *
-	 * <p>C++ reads {@code InstrToAta}/{@code TrackToAta}/{@link #ataToSong}'s
-	 * input directly from {@code mem} at a pointer offset; since Java arrays
-	 * can't be sliced without copying, each gets a
-	 * {@code Arrays.copyOfRange} view instead.
-	 *
-	 * <p>Returns the module's format version, 0 on failure - ambiguous with a
-	 * genuinely decoded version-0 file, an existing C++ design wart, not
-	 * introduced here.
+	 * <p>Returns the module's format version, 0 on failure - unambiguous,
+	 * since a format version 0 module is rejected.
 	 *
 	 * <p>Since plan 60 M2 a wrapper over the container -
 	 * {@link RmtModule#parse}, then {@link RmtModuleCodec#toSong} - so a

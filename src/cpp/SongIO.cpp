@@ -1,5 +1,5 @@
 // The file formats of the song: the module codec (MakeModule()/
-// DecodeModule() with SongToAta()/AtaToSong()) and the RMT/TXT/RMW
+// DecodeModule(), wrappers over CRmtModuleCodec) and the RMT/TXT/RMW
 // load/save methods, all still CSong members - C++ spreads the class over
 // translation units. They moved here from SongEditing.cpp and SongCore.cpp
 // with plan 45, mirroring the Java port's SongIO class, so the two
@@ -20,6 +20,7 @@
 
 #include "AtariIO.h"
 #include "IOHelpers.h"
+#include "RmtModuleCodec.h"
 #include "RmtVersion.h"
 #include "Messages.h"
 #include <fstream>
@@ -75,366 +76,54 @@ extern BOOL g_keyboard_RememberOctavesAndVolumes;
                               (int*)&m_infoact, &m_songnamecur}
 
 
-int CSong::SongToAta(unsigned char* dest, int max, int adr) {
-    int j;
-    int apos = 0, len = 0, go = -1;
-    ;
-    for (int sline = 0; sline < SONGLEN; sline++) {
-        apos = sline * m_channels;
-        if (apos + m_channels > max) {
-            return len; //if it had a buffer overflow
-        }
-
-        if ((go = m_songgo[sline]) >= 0) {
-            //there is a goto line
-            dest[apos] = 254; //go command
-            dest[apos + 1] = go; //number where to jump
-            WORD goadr = adr + (go * m_channels);
-            dest[apos + 2] = goadr & 0xff; //low byte
-            dest[apos + 3] = (goadr >> 8); //high byte
-            if (m_channels > 4) {
-                for (int j = 4; j < m_channels; j++) {
-                    dest[apos + j] = 255; //to make sure this is the correct line
-                }
-            }
-            len = sline * m_channels + 4; //this is the end for now (goto has 4 bytes for 8 tracks)
-        } else {
-            //there are track numbers
-            for (int i = 0; i < m_channels; i++) {
-                j = m_song[sline][i];
-                if (j >= 0 && j < TRACKSNUM) {
-                    dest[apos + i] = j;
-                    len = (sline + 1) * m_channels; //this is the end for now
-                } else {
-                    dest[apos + i] = 255; //--
-                }
-            }
-        }
-    }
-    return len;
-}
-
-BOOL CSong::AtaToSong(unsigned char* sour, int len, int adr) {
-    int i = 0;
-    int col = 0, line = 0;
-    unsigned char b;
-    while (i < len) {
-        b = sour[i];
-        if (b >= 0 && b < TRACKSNUM) {
-            m_song[line][col] = b;
-        } else if (b == 254 && col == 0) { //go command only in 0 track
-            //m_songgo[line]=sour[i+1];  //the driver took it by the number in channel 1
-            //but more importantly, it's a vector, so it's better done that way
-            int ptr = sour[i + 2] | (sour[i + 3] << 8); //goto vector
-            int go = (ptr - adr) / m_channels;
-            if (go >= 0 && go < (len / m_channels) && go < SONGLEN) {
-                m_songgo[line] = go;
-            } else {
-                m_songgo[line] = 0; //place of invalid jump and jump to line 0
-            }
-            i += m_channels;
-            if (i >= len) {
-                return 1; //this is the end of goto
-            }
-            line++;
-            if (line >= SONGLEN) {
-                return 1;
-            }
-            continue;
-        } else {
-            m_song[line][col] = -1;
-        }
-
-        col++;
-        if (col >= m_channels) {
-            line++;
-            if (line >= SONGLEN) {
-                return 1; //so that it does not overflow
-            }
-            col = 0;
-        }
-        i++;
-    }
-    return 1;
-}
-
+// Encodes the song into the RMT module format at mem[addr...] (per iotype's
+// save-all-vs-save-used rule) and returns the address of the first byte past
+// the module, or -1 if the song does not make a module - a track too
+// event-dense to encode, a speed outside the header's range, or a module that
+// does not fit at addr. Since plans/60_RMT_MODULE_CONTAINER_PLAN.md M6 a
+// wrapper over the container: CRmtModuleCodec::FromSong() decides what is
+// saved and CRmtModule::Write() lays it out. The flags mark the instruments
+// and tracks the module holds.
 int CSong::MakeModule(unsigned char* mem, int addr, SongIOType iotype, BYTE* instrumentSavedFlags, BYTE* trackSavedFlags) {
-    int i, j;
-    TTrack* tr;
-
-    // Clear the instrument and tracks used flags
     memset(instrumentSavedFlags, 0, INSTRSNUM);
     memset(trackSavedFlags, 0, TRACKSNUM);
-
-    // Write out the RMT header (part 1)
-    // 0: RMT4 or RMT8
-    // 4: Track length
-    // 5: Song speed
-    // 6: Instrument speed
-    // 7: RMT version (1 for now)
-    strncpy((char*)(mem + addr), "RMT", 3);
-    mem[addr + 3] = m_channels + '0'; // 4 or 8
-    mem[addr + 4] = g_Tracks.GetMaxTrackLength() & 0xff;
-    mem[addr + 5] = m_mainSpeed & 0xff;
-    mem[addr + 6] = m_instrumentSpeed; // 1-4 player calls per frame
-    mem[addr + 7] = RMTFormatVersion::V1; // RMT format version number
-
-    // Note:
-    // When saving in RMT format ALL non-empty tracks and non-empty instruments will be stored
-    // In other formats only the USED tracks and USED instruments will be stored
-
-    MarkTF_USED(trackSavedFlags); // Mark all tracks as used
-    if (iotype == SongIOType::RMT) {
-        MarkTF_NOEMPTY(trackSavedFlags); // In addition to the used ones, all non-empty tracks are added to the RMT, all non-empty tracks
-    }
-
-    // Mark all used instruments in the tracks that will be saved
-    for (i = 0; i < TRACKSNUM; i++) {
-        if (trackSavedFlags[i] > 0) {
-            tr = g_Tracks.GetTrack(i);
-            for (j = 0; j < tr->len; j++) {
-                if (g_Tracks.IsValidInstrument(tr->instr[j])) {
-                    instrumentSavedFlags[tr->instr[j]] = IF_USED;
-                }
-            }
+    try {
+        CRmtModule module = CRmtModuleCodec::FromSong(*this, iotype);
+        int endOfModule = module.Write(mem, CMemory::SIZE, addr);
+        for (const auto& entry : module.GetInstruments()) {
+            instrumentSavedFlags[entry.first] = 1;
         }
-    }
-
-    if (iotype == SongIOType::RMT) {
-        // In addition to the instruments used in the tracks that are in the song, all non-empty instruments are stored in the RMT
-        for (i = 0; i < INSTRSNUM; i++) {
-            if (g_Instruments.CalculateNotEmpty(i)) {
-                instrumentSavedFlags[i] |= IF_NOEMPTY;
-            }
+        for (const auto& entry : module.GetTracks()) {
+            trackSavedFlags[entry.first] = 1;
         }
+        return endOfModule; // the address of the first byte past the last one used
+    } catch (const CRmtModule::FormatException& e) {
+        SendErrorMessage("Internal format problem.", CString("The song cannot be coded to the RMT module format.\n\n") + e.what());
+        return -1;
     }
-
-    //---
-    // Find how many tracks and instruments to save
-    int numTracks = 0;
-    for (i = TRACKSNUM - 1; i >= 0; i--) {
-        if (trackSavedFlags[i] > 0) {
-            numTracks = i + 1;
-            break;
-        }
-    }
-
-    int numInstruments = 0;
-    for (i = INSTRSNUM - 1; i >= 0; i--) {
-        if (instrumentSavedFlags[i] > 0) {
-            numInstruments = i + 1;
-            break;
-        }
-    }
-
-    // Calculate the offsets for instruments, tracks (lo & hi) and song lines
-    // RMT header is 16 bytes, so instrument ptrs start there
-    // Each instrument ptr is 2 bytes, and the track pointers are 2 bytes
-    // but split into low and high storage areas
-    int ptrInstruments = addr + 16;
-    int ptrTracksLoBytes = ptrInstruments + numInstruments * 2;
-    int ptrTracksHiBytes = ptrTracksLoBytes + numTracks;
-    int ptrInstrumentData = ptrTracksHiBytes + numTracks; // behind the track byte table
-
-    // Saves instrument data and writes their beginnings to the table
-    for (i = 0; i < numInstruments; i++) {
-        if (instrumentSavedFlags[i]) {
-            // Create instrument data
-            int thisInstrumentLength = g_Instruments.InstrToAta(i, mem + ptrInstrumentData, ATARI_MAX_INSTR_LENGTH, IsStereo());
-
-            // Save where the instrument data is to be found
-            mem[ptrInstruments + i * 2] = ptrInstrumentData & 0xff; // lo byte
-            mem[ptrInstruments + i * 2 + 1] = ptrInstrumentData >> 8; // hi byte
-
-            // Move where the next instruments data is to be saved
-            ptrInstrumentData += thisInstrumentLength;
-        } else {
-            // Oi, nothing to save here, just emit 0
-            // This happens if there are unused instruments between the used ones.
-            // Best to rearrange the instruments to be one continous block
-            mem[ptrInstruments + i * 2] = mem[ptrInstruments + i * 2 + 1] = 0;
-        }
-    }
-
-    // Just after of the instrument data we start with the track data
-    int ptrTrackData = ptrInstrumentData;
-
-    // Saves track data and write their beginnings to the table
-    for (i = 0; i < numTracks; i++) {
-        if (trackSavedFlags[i]) {
-            // Create the track data
-            int thisTrackLength = g_Tracks.TrackToAta(i, mem + ptrTrackData, ATARI_MAX_TRACK_LENGTH);
-
-            // Check that the track data is valid
-            if (thisTrackLength < 1) {
-                // Track cannot be saved to RMT
-                CString msg;
-                msg.Format("Fatal error in track %02X.\n\nThis track contains too many events (notes and speed commands),\nthat's why it can't be coded to RMT internal code format.", i);
-                SendErrorMessage("Internal format problem.", msg);
-                return -1;
-            }
-
-            // Save where the track data is to be found
-            mem[ptrTracksLoBytes + i] = ptrTrackData & 0xff; // lo byte
-            mem[ptrTracksHiBytes + i] = ptrTrackData >> 8; // hi byte
-
-            // Move where the next track's data is to be saved
-            ptrTrackData += thisTrackLength;
-        } else {
-            // Oi, nothing to save here, just emit 0
-            mem[ptrTracksLoBytes + i] = mem[ptrTracksHiBytes + i] = 0;
-        }
-    }
-
-    // Just after the track data we store the song lines
-    int ptrSongData = ptrTrackData;
-
-    int thisSongLength = SongToAta(mem + ptrSongData, 0x10000 - ptrSongData, ptrSongData);
-
-    int endOfModule = ptrSongData + thisSongLength;
-
-    // Writes computed pointers to the header
-    mem[addr + 8] = ptrInstruments & 0xff; // lo byte pointer to instrument table
-    mem[addr + 9] = ptrInstruments >> 8; // hi byte
-    //
-    mem[addr + 10] = ptrTracksLoBytes & 0xff; // lo byte pointer to low bytes of track data table
-    mem[addr + 11] = ptrTracksLoBytes >> 8; // hi byte
-    mem[addr + 12] = ptrTracksHiBytes & 0xff; // lo byte pointer to high bytes of track data table
-    mem[addr + 13] = ptrTracksHiBytes >> 8; // hi byte
-    //
-    mem[addr + 14] = ptrSongData & 0xff; // lo byte pointer to song data (arrangements of tracks)
-    mem[addr + 15] = ptrSongData >> 8; // hi byte
-
-    // Return the address of the first byte past the last one used
-    return endOfModule;
 }
 
+// Decodes the RMT module at mem[fromAddr..endAddr) into the song and returns
+// its format version, 0 on failure. Since plans/60_RMT_MODULE_CONTAINER_PLAN.md
+// M6 a wrapper over the container - CRmtModule::Parse(), then
+// CRmtModuleCodec::ToSong() - so a module the container rejects, format
+// version 0 included, leaves the song as it was.
 int CSong::DecodeModule(unsigned char* mem, int fromAddr, int endAddr, BYTE* instrumentLoadedFlags, BYTE* trackLoadedFlags) {
-    int addr = fromAddr;
-
     memset(instrumentLoadedFlags, 0, INSTRSNUM);
     memset(trackLoadedFlags, 0, TRACKSNUM);
-
-    unsigned char data;
-    int i, j;
-
-    BOOL loadState;
-
-    // Check that the header starts with "RMT"
-    if (strncmp((char*)(mem + addr), "RMT", 3) != 0) {
-        return 0; //there is no RMT
-    }
-
-    // 4th byte: # of channels (4 or 8)
-    data = mem[addr + 3];
-    if (data != '4' && data != '8') {
-        return 0; //it is not RMT4 or RMT8
-    }
-    SetChannels(data & 0x0F); // Store how many channels this module uses
-
-    // 5th byte: track length
-    data = mem[addr + 4];
-    g_Tracks.SetMaxTrackLength((data > 0) ? data : 256); //0 => 256
-
-    // 6th byte: song speed
-    data = mem[addr + 5];
-    m_mainSpeed = data;
-    if (data < 1) {
-        return 0; // there can be no zero speed
-    }
-
-    // 7th byte: Instrument speed
-    data = mem[addr + 6];
-    if (data < 1 || data > 8) {
-        return 0; // Instrument speed is less than 1 or greater than 8 (note: should be max 4, but allows up to 8 and will only display a warning)
-    }
-    m_instrumentSpeed = data;
-
-    // 8th byte: RMT format version nr.
-    int version = mem[addr + 7];
-    // TODO: Make "case" and support V2
-    if (version > RMTFormatVersion::V1) {
-        // the byte version is above the currently supported one
+    try {
+        CRmtModule module = CRmtModule::Parse(mem, fromAddr, endAddr);
+        CRmtModuleCodec::ToSong(module, *this);
+        for (const auto& entry : module.GetInstruments()) {
+            instrumentLoadedFlags[entry.first] = 1;
+        }
+        for (const auto& entry : module.GetTracks()) {
+            trackLoadedFlags[entry.first] = 1;
+        }
+        return module.GetFormatVersion();
+    } catch (const CRmtModule::FormatException&) {
         return 0;
     }
-
-    // Now g_Tracks.m_maxTrackLength is set to the value in the RMT header,
-    // so re-initialize the tracks to set all tracks to this new length
-    g_Tracks.InitTracks();
-
-    // Get various pointers
-    int ptrInstruments = mem[addr + 8] + (mem[addr + 9] << 8); // Get ptr to the instuments
-    int ptrTracksLow = mem[addr + 10] + (mem[addr + 11] << 8); // Get ptr to tracks table low
-    int ptrTracksHigh = mem[addr + 12] + (mem[addr + 13] << 8); // Get ptr to tracks table high
-    int ptrSong = mem[addr + 14] + (mem[addr + 15] << 8); // Get ptr to track list (the song)
-
-    // Calculate how long each of the sections are
-    int numInstruments = (ptrTracksLow - ptrInstruments) / 2;
-    int numTracks = (ptrTracksHigh - ptrTracksLow);
-    int lengthSong = endAddr - ptrSong;
-
-    // Decoding of individual instruments
-    for (int instrumentNr = 0; instrumentNr < numInstruments; instrumentNr++) {
-        // Get the ptr to an instruments configuration data
-        int ptrOneInstrument = mem[ptrInstruments + instrumentNr * 2] + (mem[ptrInstruments + instrumentNr * 2 + 1] << 8);
-
-        // Skip over empty instruments
-        if (ptrOneInstrument == 0) {
-            continue; // Empty instruments have a NULL ptr
-        }
-
-        // Depending on the file version load the instrument data into g_Instruments
-        if (version == 0) {
-            loadState = g_Instruments.AtaV0ToInstr(mem + ptrOneInstrument, instrumentNr, IsStereo());
-        } else {
-            loadState = g_Instruments.AtaToInstr(mem + ptrOneInstrument, instrumentNr, IsStereo());
-        }
-
-        g_Instruments.Update(instrumentNr); //writes to Atari ram
-
-        if (!loadState) {
-            return 0; // some problem with the instrument => END
-        }
-
-        // Mark the instrument as loaded
-        instrumentLoadedFlags[instrumentNr] = 1;
-    }
-
-    // Track data ptrs are split over two tables.  Low and high bytes, each indexed by the track number
-    // Decoding individual tracks
-    for (i = 0; i < numTracks; i++) {
-        int trackNr = i;
-        int ptrTrack = mem[ptrTracksLow + i] + (mem[ptrTracksHigh + i] << 8);
-        if (ptrTrack == 0) {
-            continue; // Omitted tracks have pointer of 0
-        }
-
-        // Identify the end of the track by the starting address of the next track,
-        // and at the end by the starting address of the song data that follows the data of the last track
-        int ptrTrackEnd = 0;
-        for (j = i; j < numTracks; j++) {
-            ptrTrackEnd = (j + 1 == numTracks) ? ptrSong : mem[ptrTracksLow + j + 1] + (mem[ptrTracksHigh + j + 1] << 8);
-            if (ptrTrackEnd != 0) {
-                break;
-            }
-            i++; //continue from the next and skip the omitted one
-        }
-
-        int trackLength = ptrTrackEnd - ptrTrack;
-        if (!g_Tracks.AtaToTrack(mem + ptrTrack, trackLength, trackNr)) {
-            return 0; //some problem with the track => END
-        }
-
-        // Mark the track as loaded
-        trackLoadedFlags[trackNr] = 1;
-    }
-
-    // Decoded song
-    if (!AtaToSong(mem + ptrSong, lengthSong, ptrSong)) {
-        return 0; //some problem with the song => END
-    }
-
-    return version;
 }
 
 bool CSong::SaveRMW(std::ostream& ou) {

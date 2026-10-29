@@ -1207,8 +1207,7 @@ TEST_F(SongEditingTest, TrackInfoLeavesTheOutputStructUntouchedForAnOutOfRangeTr
 }
 
 // --- MakeModule / DecodeModule ---
-// Round-trip test, mirroring SongToAta/AtaToSong's approach in SongTests.cpp:
-// lets the real encode/decode logic prove itself internally consistent
+// Round-trip test: lets the real encode/decode logic prove itself internally consistent
 // rather than hand-deriving the RMT header's byte layout.
 
 TEST_F(SongEditingTest, MakeModuleAndDecodeModuleRoundTripASimpleSong) {

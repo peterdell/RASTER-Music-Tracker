@@ -77,8 +77,7 @@ public final class RmtModuleCodec {
 			}
 		}
 
-		// The song lines up to the last one with a go to or a track - the
-		// lines SongIO.songToAta counts.
+		// The song lines up to the last one with a go to or a track.
 		List<RmtModule.SongLine> lines = new ArrayList<>();
 		int last = -1;
 		for (int line = 0; line < Song.SONGLEN; line++) {
@@ -138,7 +137,7 @@ public final class RmtModuleCodec {
 				throw new RmtModule.FormatException("Track " + entry.getKey() + " does not decode.");
 			}
 		}
-		// SongIO.ataToSong's rules: a go to beyond the complete lines (a
+		// A go to beyond the complete lines (a
 		// final stereo go to line is not one) or beyond the song jumps to 0.
 		List<RmtModule.SongLine> lines = module.songLines();
 		int completeLines = module.songDataLength() / song.getChannels();
