@@ -30,6 +30,23 @@ RMT module files are regular multi-segment binary load files. They start with a 
 	$02	WORD	Start address, default is $4000
 	$04	WORD 	End address
 
+The first segment holds the module, starting with the module header struct below. RMT saves its modules at $4000.
+
+### Segment Names (Optional)
+
+A module RMT saves has a second segment, which loads directly behind the first one. It holds the names, each terminated by a $00 byte:
+
+>
+	Type	Description
+	----	-----------
+	BYTE[]	Song name, at most 64 characters, terminated by $00
+	BYTE[]	Name of the first instrument present, at most 32 characters, terminated by $00
+	BYTE[]	Name of the next instrument present, ...
+
+The instruments present are the ones with an address other than $0000 in the instruments table, in the order of their numbers. Trailing spaces are not stored.
+
+A module without this segment is what RMT calls "stripped": "Export as Stripped RMT File" writes only the first segment, usually at another address and often with only the instruments and tracks the song uses, because a player needs nothing else. RMT loads a stripped module and keeps the default names.
+
 ### Module Header Struct
 
 >
@@ -44,6 +61,21 @@ RMT module files are regular multi-segment binary load files. They start with a 
 	$0a	WORD 	Address of the low-byte table of the track addresses
 	$0c	WORD	Address of the high-byte table of the track addresses
 	$0e	WORD	Address of the track sequence table
+
+The format version $00 is the layout of RMT's pre-release versions, whose instruments are stored differently. The RMT 1.x program still reads it; the Java port rejects such modules. RMT 1.x writes $01.
+
+### Order of the Structures
+
+RMT writes the structures in this order, without gaps, so the address of each one follows from the sizes of the ones before it:
+
+1. The module header struct.
+2. The instruments table, with one entry per instrument number up to the highest instrument present.
+3. The low-byte and then the high-byte table of the track addresses, with one entry per track number up to the highest track present.
+4. The instrument structs, in the order of their numbers.
+5. The track structs, in the order of their numbers.
+6. The track sequence table, up to the end of the segment.
+
+An absent instrument or track has the address $0000. A track's length is not stored: it ends where the next track present starts, and the last track ends where the track sequence table starts.
 
 
 ### Instrument Struct
@@ -112,6 +144,8 @@ RMT module files are regular multi-segment binary load files. They start with a 
 		if bit 6 is zero, 7 is set up:	next byte is track jump pointer (go to $00-$ff from the beginning of track data)
 		if bit 6-7 is set up:	END of track
 
+A track ends with its end marker ($ff), with a jump (which is always its last event), or with a counted pause of 0 beats ($3e followed by $00). A track whose events fill all lines has no end marker. A track has at most 256 bytes; the jump's target is an offset within those bytes. The byte $7f (note $3f with only bit 6 set) is not an event.
+
 ### Instruments Table
 
 >
@@ -153,6 +187,8 @@ RMT module files are regular multi-segment binary load files. They start with a 
 
 	if tracknumL1 is FE, then gotoline(BYTE)=tracknumL2, goto_pointer(WORD)=(tracknumL3,4)
 	Note: gotoline(BYTE) is not used in the player (but the tracker uses it)
+
+A "go to" line therefore takes four bytes: $fe, the target line, and the target line's address, which is the address of the track sequence table plus the target line times the number of channels (4 or 8). In an RMT8 module the remaining four bytes of the line are $ff - except when the "go to" line is the last line, where RMT stores only its four bytes and the segment ends there. When RMT loads a module, a "go to" line whose target lies beyond the module's lines jumps to line 0.
 
 
 RMT Module Format Version "2" (DRAFT 2026-01-06)<a id='rmt2'></a>

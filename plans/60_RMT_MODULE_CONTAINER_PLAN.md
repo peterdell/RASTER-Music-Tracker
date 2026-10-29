@@ -1,6 +1,6 @@
 # Plan 60: A container class for the RMT module (format version 1)
 
-Status: M1 DONE 2026-10-28, M2 and M3 DONE 2026-10-29; M4 open. Decided 2026-10-28 (user), see the open decisions
+Status: DONE 2026-10-29 (M1 2026-10-28, M2-M4 2026-10-29); M5 is out of scope. Decided 2026-10-28 (user), see the open decisions
 below for the four answers and the addendum on nesting.
 
 A class in the Java port that represents an RMT module as
@@ -178,7 +178,13 @@ wrappers over the container (M2), so the many callers and the
       xasm/atasm x the 8 relocation label combinations x full/size info)
       before and after - identical, the 32 refusals (testsfx stripped,
       which has neither) included - plus 749 tests green.
-- [ ] M4. `doc/rmt_format.md`, version "1" section, gets what the
+- [x] M4. DONE 2026-10-29: new sections "Segment Names (Optional)" (and
+      "stripped") and "Order of the Structures" (the layout, absent
+      entries as $0000, a track's length from the next track), notes on
+      format version $00 (the Java port rejects it, M2), the track end
+      conventions and the "go to" line's four bytes with the $ff padding
+      and the target-beyond-the-lines rule. Original text:
+      `doc/rmt_format.md`, version "1" section, gets what the
       container had to know and the document does not say: the optional
       second segment with the names (and that a module without it is
       what RMT calls "stripped"), format version 0 instruments (the

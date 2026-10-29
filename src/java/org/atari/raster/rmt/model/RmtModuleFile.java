@@ -11,10 +11,8 @@ import java.util.List;
  * holds the {@link RmtModule} at its load address, followed - unless the
  * module is "stripped" - by a second segment with the song's name and the
  * name of every instrument present, each terminated by a zero byte, the
- * instruments in number order. The second segment is RMT's own addition
- * to doc/rmt_format.md's version 1 (which the document does not describe
- * yet, plan 60 M4); it loads right after the module, which is where RMT
- * has always put it.
+ * instruments in number order (doc/rmt_format.md, "Segment Names"); it
+ * loads right after the module, which is where RMT has always put it.
  */
 public final class RmtModuleFile {
 
