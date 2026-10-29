@@ -1,7 +1,6 @@
 # Plan 60: A container class for the RMT module (format version 1)
 
-Status: M1 DONE 2026-10-28 (uncommitted until the user's word); M2 and M3
-wait for its review. Decided 2026-10-28 (user), see the open decisions
+Status: M1 DONE 2026-10-28, M2 DONE 2026-10-29; M3 and M4 open. Decided 2026-10-28 (user), see the open decisions
 below for the four answers and the addendum on nesting.
 
 A class in the Java port that represents an RMT module as
@@ -152,10 +151,22 @@ wrappers over the container (M2), so the many callers and the
       `parse(makeModule output)` + `toSong` yields the song state
       `decodeModule()` yields. One commit. The program does not use the
       classes yet (decision 3).
-- [ ] M2. LATER, after M1 is reviewed: `makeModule()`/`decodeModule()`/`loadRMT()`/`exportAsRMT()`/
-      `exportAsStrippedRMTApply()` delegate to the container; the
-      existing `SongIOTest`, the fixture round trips and the
-      cross-program export comparison pin that nothing changed.
+- [x] M2. DONE 2026-10-29. `makeModule()` and `decodeModule()` keep
+      their signatures and are wrappers over `RmtModuleCodec`/`RmtModule`
+      (`loadRMT()` goes through `decodeModule()`); `exportAsRMT()` and
+      `exportAsStrippedRMTApply()` write through `RmtModuleFile`
+      (`exportAsRMT` lost its now-redundant `Instruments` and saved-flags
+      parameters: the saved instruments are the ones the module holds).
+      `SongIO`'s and `SongFiles`' `0x4000`/`65536` literals are
+      `RmtModuleFile.DEFAULT_LOAD_ADDRESS`/`Memory.SIZE`. Two behavior
+      changes, both by design: format version 0 modules are rejected like
+      any other module the container does not represent (the user: the
+      version 0 path does not make sense; `ataV0ToInstr` stays for
+      version 0 `.rti` files), and a song with a speed outside the
+      header's range no longer makes a module - `SongIOTest`'s fixture
+      had song speed 0, which the old writer encoded and the old decoder
+      rejected; it gets the speeds `clearSong()` sets. 749 tests and the
+      cross-program export comparison green.
 - [ ] M3. LATER: `AsmFileExporter.buildRelocatableAsm()` reads the structure
       from a parsed `RmtModule` instead of re-parsing the bytes; its
       pointer checks move into `parse` (M1 already has them).

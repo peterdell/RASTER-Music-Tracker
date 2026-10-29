@@ -1356,7 +1356,7 @@ class SongEditingTest {
 		int firstByteAfterModule = SongIO.makeModule(song, mem, targetAddrOfModule, SongIOType.RMT, instrSavedFlags, trackSavedFlags);
 		assertTrue(firstByteAfterModule > 0);
 
-		byte[] out = RmtExporter.exportAsRMT(song, instruments, mem, targetAddrOfModule, firstByteAfterModule, instrSavedFlags);
+		byte[] out = RmtExporter.exportAsRMT(song, mem, targetAddrOfModule, firstByteAfterModule);
 
 		Song decoded = new Song(instruments, tracks);
 		assertTrue(SongIO.loadRMT(decoded, out).success());

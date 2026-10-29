@@ -148,7 +148,7 @@ class LivePlaybackTest {
 		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
 		int end = SongIO.makeModule(session.song, mem, 0x4000, SongIOType.RMT, instrumentSavedFlags, trackSavedFlags);
-		byte[] module = RmtExporter.exportAsRMT(session.song, session.instruments, mem, 0x4000, end, instrumentSavedFlags);
+		byte[] module = RmtExporter.exportAsRMT(session.song, mem, 0x4000, end);
 		ASAP asap = new ASAP();
 		try {
 			asap.load("song.rmt", module, module.length);

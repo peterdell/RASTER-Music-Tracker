@@ -45,6 +45,8 @@ class SongIOTest {
 
 		song = new Song(instruments, tracks);
 		song.setChannels(Song.Channels.MONO); // the C++ tests' g_tracks4_8 = 4
+		song.mainSpeed = 6; // a module needs speeds in the header's range, as clearSong() sets them
+		song.instrumentSpeed = 1;
 		undo = new Undo(tracks, instruments, song, new TrackClipboard());
 		messages = new Messages();
 

@@ -16,8 +16,8 @@ import java.util.TreeMap;
  * {@code SongIO.makeModule} is decided here: {@link SongIOType#RMT} keeps
  * every non-empty track and instrument, any other type only the used ones.
  *
- * <p>Until plan 60 M2, {@code SongIO.makeModule}/{@code decodeModule} stay
- * the program's codec; the tests prove the two agree byte for byte.
+ * <p>Since plan 60 M2 the program's codec: {@code SongIO.makeModule}/
+ * {@code decodeModule} and {@code RmtExporter} are wrappers over it.
  */
 public final class RmtModuleCodec {
 

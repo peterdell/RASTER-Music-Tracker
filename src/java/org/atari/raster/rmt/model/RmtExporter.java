@@ -1,5 +1,8 @@
 package org.atari.raster.rmt.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Ported from CRmtExporter (src/cpp/RmtExporter.h/.cpp, RmtExporterCore.cpp) -
  * {@link #exportAsRMT}/{@link #exportAsStrippedRMTApply} only, the
@@ -19,7 +22,7 @@ package org.atari.raster.rmt.model;
  * format is binary) - matches {@code saveRMW}/{@code loadRMW}'s established
  * byte-array-over-stream idiom; {@code null} signals
  * {@link #exportAsStrippedRMTApply}'s one guard-only failure (a track too
- * event-dense for {@link SongIO#makeModule} to encode).
+ * event-dense to encode).
  */
 public final class RmtExporter {
 
@@ -27,58 +30,41 @@ public final class RmtExporter {
 	}
 
 	/**
-	 * Encodes {@code mem[targetAddrOfModule..firstByteAfterModule)} (already
-	 * built by {@link SongIO#makeModule}) as the RMT module's first data
-	 * block, followed by a second block holding the song name and each
-	 * saved instrument's name (null-terminated, in index order) - mirrors
-	 * C++'s two {@code CAtariIO::SaveBinaryBlock} calls exactly. Reuses
-	 * {@code mem} as scratch space past {@code firstByteAfterModule} for the
-	 * names block, matching C++'s own in-place reuse of the same buffer.
+	 * The {@code .rmt} file of the module RMT built at
+	 * {@code mem[targetAddrOfModule..firstByteAfterModule)} (by
+	 * {@link SongIO#makeModule}): the module's segment, then the segment
+	 * with the song name and each saved instrument's name (null-terminated,
+	 * in number order) - C++'s two {@code CAtariIO::SaveBinaryBlock} calls.
+	 * Since plan 60 M2 written by {@link RmtModuleFile}; the saved
+	 * instruments are the ones the module holds.
 	 */
-	public static byte[] exportAsRMT(Song song, Instruments instruments, byte[] mem, int targetAddrOfModule, int firstByteAfterModule, byte[] instrumentSavedFlags) {
-		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
-		out.writeBytes(AtariIO.saveBinaryBlock(mem, targetAddrOfModule, firstByteAfterModule - 1, true));
-
-		int addrOfSongName = firstByteAfterModule;
-		byte[] nameBytes = song.getName().getBytes(java.nio.charset.StandardCharsets.US_ASCII);
-		System.arraycopy(nameBytes, 0, mem, addrOfSongName, nameBytes.length);
-		mem[addrOfSongName + nameBytes.length] = 0;
-		int addrInstrumentNames = addrOfSongName + nameBytes.length + 1;
-
-		for (int i = 0; i < Instruments.INSTRSNUM; i++) {
-			if (instrumentSavedFlags[i] != 0) {
-				String name = Song.nameToString(instruments.getName(i)).stripTrailing();
-				byte[] instrNameBytes = name.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
-				System.arraycopy(instrNameBytes, 0, mem, addrInstrumentNames, instrNameBytes.length);
-				mem[addrInstrumentNames + instrNameBytes.length] = 0;
-				addrInstrumentNames += instrNameBytes.length + 1;
-			}
+	public static byte[] exportAsRMT(Song song, byte[] mem, int targetAddrOfModule, int firstByteAfterModule) {
+		RmtModule module = RmtModule.parse(mem, targetAddrOfModule, firstByteAfterModule);
+		List<String> instrumentNames = new ArrayList<>();
+		for (int number : module.instruments().keySet()) {
+			instrumentNames.add(Song.nameToString(song.instruments.getName(number)).stripTrailing());
 		}
-
-		out.writeBytes(AtariIO.saveBinaryBlock(mem, addrOfSongName, addrInstrumentNames - 1, false));
-		return out.toByteArray();
+		return new RmtModuleFile(module, targetAddrOfModule, song.getName(), instrumentNames).write();
 	}
 
 	/**
-	 * Builds a module (via {@link SongIO#makeModule}, freshly, into its own
-	 * 64K scratch buffer) and encodes it as a single binary block - the
-	 * dialog-independent work {@code ExportAsStrippedRMT()} delegates to
-	 * once its target address/SFX-support parameters are confirmed.
-	 * Returns {@code null} if {@link SongIO#makeModule} fails.
+	 * The stripped module of the song at {@code targetAddrOfModule} as a
+	 * single binary block - the dialog-independent work
+	 * {@code ExportAsStrippedRMT()} delegates to once its target
+	 * address/SFX-support parameters are confirmed. Returns {@code null} if
+	 * the song does not make a module (see {@link SongIO#makeModule}).
 	 */
 	public static byte[] exportAsStrippedRMTApply(Song song, int targetAddrOfModule, boolean sfxSupport) {
-		byte[] mem = new byte[Atari.MEMORY_SIZE];
-		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
-		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
 		// SFX support keeps all non-empty instruments (sound effects trigger
 		// instruments directly, without any track referencing them); without
 		// it, unused instruments are stripped. The two iotypes were swapped
 		// here since 1.34, so an SFX-only module (instruments, no tracks)
 		// exported to a 30-byte husk (issue #5).
-		int firstByteAfterModule = SongIO.makeModule(song, mem, targetAddrOfModule, sfxSupport ? SongIOType.RMT : SongIOType.RMTSTRIPPED, instrumentSavedFlags, trackSavedFlags);
-		if (firstByteAfterModule < 0) {
+		try {
+			RmtModule module = RmtModuleCodec.fromSong(song, sfxSupport ? SongIOType.RMT : SongIOType.RMTSTRIPPED);
+			return RmtModuleFile.stripped(module, targetAddrOfModule).write();
+		} catch (RmtModule.FormatException e) {
 			return null;
 		}
-		return AtariIO.saveBinaryBlock(mem, targetAddrOfModule, firstByteAfterModule - 1, true);
 	}
 }

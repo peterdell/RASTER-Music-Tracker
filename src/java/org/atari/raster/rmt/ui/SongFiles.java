@@ -14,6 +14,7 @@ import org.atari.raster.rmt.model.AssemblerFormat;
 import org.atari.raster.rmt.model.EditMode;
 import org.atari.raster.rmt.model.ExportProgress;
 import org.atari.raster.rmt.model.Instruments;
+import org.atari.raster.rmt.model.Memory;
 import org.atari.raster.rmt.model.MessageAnswer;
 import org.atari.raster.rmt.model.MessageButtons;
 import org.atari.raster.rmt.model.ModImporter;
@@ -21,6 +22,7 @@ import org.atari.raster.rmt.model.Part;
 import org.atari.raster.rmt.model.PlayMode;
 import org.atari.raster.rmt.model.PokeyStream;
 import org.atari.raster.rmt.model.RmtExporter;
+import org.atari.raster.rmt.model.RmtModuleFile;
 import org.atari.raster.rmt.model.SapFile;
 import org.atari.raster.rmt.model.SapFileExporter;
 import org.atari.raster.rmt.model.Song;
@@ -484,15 +486,15 @@ public final class SongFiles {
 
 	/** {@code ExportV2(*this, out, SongIOType::RMT)}: the module built at $4000, then {@code ExportAsRMT}; {@code null} if the module can't be built. */
 	private byte[] saveRmtBytes() {
-		byte[] mem = new byte[65536];
-		int targetAddrOfModule = 0x4000; // Standard RMT modules are set to start @ $4000
+		byte[] mem = new byte[Memory.SIZE];
+		int targetAddrOfModule = RmtModuleFile.DEFAULT_LOAD_ADDRESS;
 		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
 		int maxAddr = SongIO.makeModule(session.song, mem, targetAddrOfModule, SongIOType.RMT, instrumentSavedFlags, trackSavedFlags);
 		if (maxAddr < 0) {
 			return null; // If the module could not be created, the export process is immediately aborted
 		}
-		return RmtExporter.exportAsRMT(session.song, session.instruments, mem, targetAddrOfModule, maxAddr, instrumentSavedFlags);
+		return RmtExporter.exportAsRMT(session.song, mem, targetAddrOfModule, maxAddr);
 	}
 
 	/** A text file as C++'s text-mode {@code ofstream} writes it (the TXT song and track saves): the platform's line ends, bytes 1:1. */
@@ -927,10 +929,10 @@ public final class SongFiles {
 
 	/** {@code MakeModule} into a fresh 64K image at $4000 for the given {@code iotype}; {@code null} if it fails. */
 	private ModuleDescription makeModule(SongIOType iotype) {
-		byte[] mem = new byte[65536];
+		byte[] mem = new byte[Memory.SIZE];
 		byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
 		byte[] trackSavedFlags = new byte[Tracks.TRACKSNUM];
-		int targetAddrOfModule = 0x4000; // Standard RMT modules are set to start @ $4000
+		int targetAddrOfModule = RmtModuleFile.DEFAULT_LOAD_ADDRESS;
 		int maxAddr = SongIO.makeModule(session.song, mem, targetAddrOfModule, iotype, instrumentSavedFlags, trackSavedFlags);
 		if (maxAddr < 0) {
 			return null;

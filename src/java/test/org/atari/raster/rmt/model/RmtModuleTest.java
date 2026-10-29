@@ -158,7 +158,7 @@ class RmtModuleTest {
 			byte[] mem = new byte[Memory.SIZE];
 			byte[] instrumentSavedFlags = new byte[Instruments.INSTRSNUM];
 			int end = SongIO.makeModule(song, mem, LOAD, SongIOType.RMT, instrumentSavedFlags, new byte[Tracks.TRACKSNUM]);
-			byte[] expected = RmtExporter.exportAsRMT(song, song.instruments, mem, LOAD, end, instrumentSavedFlags);
+			byte[] expected = RmtExporter.exportAsRMT(song, mem, LOAD, end);
 			assertArrayEquals(expected, RmtModuleCodec.fileFromSong(song, LOAD).write(), path.toString());
 		}
 	}
