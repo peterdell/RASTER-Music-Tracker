@@ -362,14 +362,67 @@ public final class RmtModule {
 	}
 
 	/**
-	 * Writes the module at {@code mem[loadAddress...]} in RMT's layout,
-	 * with every pointer relative to {@code loadAddress}; returns the
-	 * address of the first byte after the module.
+	 * Where RMT's layout puts each part of the module, as offsets from the
+	 * module's first byte: the header, the instruments table, the two track
+	 * addresses tables, the instruments' data in number order, the tracks'
+	 * data in number order, the song lines.
+	 *
+	 * @param instrumentsTable the instruments table, a word per entry
+	 * @param tracksLowTable the low bytes of the track addresses
+	 * @param tracksHighTable the high bytes of the track addresses
+	 * @param instrumentData the first instrument's data, where the tables end
+	 * @param trackData the first track's data, where the instruments' data ends
+	 * @param song the song lines, where the tracks' data ends
+	 * @param end the first offset after the module, its length
+	 * @param instruments each present instrument's offset, by number
+	 * @param tracks each present track's offset, by number
+	 */
+	public record Layout(int instrumentsTable, int tracksLowTable, int tracksHighTable, int instrumentData, int trackData, int song, int end, SortedMap<Integer, Integer> instruments,
+			SortedMap<Integer, Integer> tracks) {
+
+		/** The number of instruments table entries: up to the highest instrument number present. */
+		public int instrumentEntries() {
+			return (tracksLowTable - instrumentsTable) / Memory.WORD_LENGTH;
+		}
+
+		/** The number of entries of each track addresses table: up to the highest track number present. */
+		public int trackEntries() {
+			return tracksHighTable - tracksLowTable;
+		}
+	}
+
+	/** The module's layout - the one {@link #write} lays it out in. */
+	public Layout layout() {
+		int instrumentsTable = HEADER_LENGTH;
+		int tracksLowTable = instrumentsTable + instrumentTableEntries() * Memory.WORD_LENGTH;
+		int tracksHighTable = tracksLowTable + trackTableEntries();
+		int instrumentData = tracksHighTable + trackTableEntries();
+		int offset = instrumentData;
+		SortedMap<Integer, Integer> instrumentOffsets = new TreeMap<>();
+		for (Map.Entry<Integer, Instrument> entry : instruments.entrySet()) {
+			instrumentOffsets.put(entry.getKey(), offset);
+			offset += entry.getValue().length();
+		}
+		int trackData = offset;
+		SortedMap<Integer, Integer> trackOffsets = new TreeMap<>();
+		for (Map.Entry<Integer, Track> entry : tracks.entrySet()) {
+			trackOffsets.put(entry.getKey(), offset);
+			offset += entry.getValue().length();
+		}
+		return new Layout(instrumentsTable, tracksLowTable, tracksHighTable, instrumentData, trackData, offset, offset + songDataLength(), Collections.unmodifiableSortedMap(instrumentOffsets),
+				Collections.unmodifiableSortedMap(trackOffsets));
+	}
+
+	/**
+	 * Writes the module at {@code mem[loadAddress...]} in RMT's layout
+	 * ({@link #layout}), with every pointer relative to {@code loadAddress};
+	 * returns the address of the first byte after the module.
 	 */
 	public int write(byte[] mem, int loadAddress) {
-		int end = loadAddress + length();
+		Layout layout = layout();
+		int end = loadAddress + layout.end();
 		if (loadAddress < 0 || end - 1 > Memory.MAX_ADDRESS || end > mem.length) {
-			throw new FormatException("The module of " + length() + " bytes does not fit at $" + Integer.toHexString(loadAddress) + ": its last byte would lie beyond $" + Integer.toHexString(Memory.MAX_ADDRESS) + ".");
+			throw new FormatException("The module of " + layout.end() + " bytes does not fit at $" + Integer.toHexString(loadAddress) + ": its last byte would lie beyond $" + Integer.toHexString(Memory.MAX_ADDRESS) + ".");
 		}
 		for (int i = 0; i < SIGNATURE.length(); i++) {
 			mem[loadAddress + i] = (byte) SIGNATURE.charAt(i);
@@ -380,33 +433,27 @@ public final class RmtModule {
 		mem[loadAddress + Offset.INSTRUMENT_SPEED] = (byte) instrumentSpeed;
 		mem[loadAddress + Offset.FORMAT_VERSION] = (byte) formatVersion;
 
-		int instrumentEntries = instrumentTableEntries();
-		int trackEntries = trackTableEntries();
-		int ptrInstruments = loadAddress + HEADER_LENGTH;
-		int ptrTracksLow = ptrInstruments + instrumentEntries * Memory.WORD_LENGTH;
-		int ptrTracksHigh = ptrTracksLow + trackEntries;
-		int ptrData = ptrTracksHigh + trackEntries;
-
-		for (int number = 0; number < instrumentEntries; number++) {
-			Instrument instrument = instruments.get(number);
-			int ptr = 0;
-			if (instrument != null) {
-				ptr = ptrData;
-				ptrData = instrument.write(mem, ptrData);
+		int ptrInstruments = loadAddress + layout.instrumentsTable();
+		int ptrTracksLow = loadAddress + layout.tracksLowTable();
+		int ptrTracksHigh = loadAddress + layout.tracksHighTable();
+		for (int number = 0; number < layout.instrumentEntries(); number++) {
+			Integer offset = layout.instruments().get(number);
+			int ptr = offset == null ? 0 : loadAddress + offset;
+			if (offset != null) {
+				instruments.get(number).write(mem, ptr);
 			}
 			Memory.writeWord(mem, ptrInstruments + number * Memory.WORD_LENGTH, ptr);
 		}
-		for (int number = 0; number < trackEntries; number++) {
-			Track track = tracks.get(number);
-			int ptr = 0;
-			if (track != null) {
-				ptr = ptrData;
-				ptrData = track.write(mem, ptrData);
+		for (int number = 0; number < layout.trackEntries(); number++) {
+			Integer offset = layout.tracks().get(number);
+			int ptr = offset == null ? 0 : loadAddress + offset;
+			if (offset != null) {
+				tracks.get(number).write(mem, ptr);
 			}
 			mem[ptrTracksLow + number] = Memory.lowByte(ptr);
 			mem[ptrTracksHigh + number] = Memory.highByte(ptr);
 		}
-		int ptrSong = ptrData;
+		int ptrSong = loadAddress + layout.song();
 		writeSongLines(mem, ptrSong);
 
 		Memory.writeWord(mem, loadAddress + Offset.INSTRUMENTS_TABLE, ptrInstruments);

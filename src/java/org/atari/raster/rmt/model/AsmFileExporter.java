@@ -304,10 +304,11 @@ public final class AsmFileExporter {
 	/**
 	 * Disassembles an already-built RMT module ({@code mem[targetAddrOfModule..firstByteAfterModule)},
 	 * from {@link SongIO#makeModule}) back into relocatable assembler source,
-	 * based on the rmt2atasm tool. Fails ({@code success = false}) if the
-	 * module's internal pointer tables don't parse as expected - a
-	 * corruption/format-mismatch guard, not something any valid
-	 * {@link SongIO#makeModule} output should ever trigger.
+	 * based on the rmt2atasm tool. Since plan 60 M3 the module is read once,
+	 * by {@link RmtModule#parse}, and the offsets come from its
+	 * {@link RmtModule#layout}; fails ({@code success = false}) for a module
+	 * the container rejects and for one without instruments or tracks,
+	 * which the player source cannot do without.
 	 */
 	public static Result buildRelocatableAsm(Song song, Instruments instruments, Tracks tracks, byte[] mem, int targetAddrOfModule, int firstByteAfterModule,
 			byte[] instrumentSavedFlags, String strAsmStartLabel, String strTracksLabel, String strSongLinesLabel, String strInstrumentsLabel, AssemblerFormat assemblerFormat, boolean sfx,
@@ -333,76 +334,42 @@ public final class AsmFileExporter {
 		strCode.append(composeRMTFEATstring(song, instruments, tracks, "", instrumentSavedFlags, sfx, gvf, nos, assemblerFormat));
 
 		int start = targetAddrOfModule;
-		int end = firstByteAfterModule;
-		int len = end - start;
-		byte[] buf = java.util.Arrays.copyOfRange(mem, start, mem.length);
-
-		strCode.append(String.format("; RMT%c file exported as relocatable source code\n; Original size: $%04x bytes @ $%04x\n", (char) ub(buf, 3), len, start));
-
-		// Read parameters from file:
-		int numTracks = ub(buf, 3) - '0'; // RMTx - x is 4 or 8
-		int offsetInstrumentPtrTable = rword(buf, 8) - start; // This is where the instruments are stored (always directly after this table)
-		int offsetTrackPtrTableLow = rword(buf, 10) - start; // Track ptrs are broken up into lo and hi bytes
-		int offsetTrackPtrTableHigh = rword(buf, 12) - start;
-		int offsetSong = rword(buf, 14) - start; // The song tracks start here
-
-		int numInstruments = offsetTrackPtrTableLow - offsetInstrumentPtrTable;
-		int numtrk = offsetTrackPtrTableHigh - offsetTrackPtrTableLow;
-
-		// Read all tracks addresses searching for the lowest address
-		int firstTrack = 0xFFFF;
-		for (int i = 0; i < numtrk; i++) {
-			int x = ub(buf, offsetTrackPtrTableLow + i) + (ub(buf, offsetTrackPtrTableHigh + i) << 8);
-			if (x != 0) {
-				x -= start;
-				if (x < 0 || x >= offsetSong) {
-					return new Result(false, null);
-				}
-				if (x < firstTrack) {
-					firstTrack = x;
-				}
-			}
-		}
-		// Read all instrument addresses searching for the lowest address
-		int firstInstr = 0xFFFF;
-		for (int i = 0; i < numInstruments; i += 2) {
-			int x = rword(buf, offsetInstrumentPtrTable + i);
-			if (x != 0) {
-				x -= start;
-				if (x < 0 || x >= firstTrack) {
-					return new Result(false, null);
-				}
-				if (x < firstInstr) {
-					firstInstr = x;
-				}
-			}
-		}
-		if (firstInstr < 0 || firstInstr >= len || firstTrack < 0 || firstTrack >= len) {
-			if (firstInstr == 0xFFFF) {
-				strCode.append("; No instrument data!\n");
-			}
-			if (firstTrack != 0) {
-				return new Result(false, null);
-			}
-		}
-		if (offsetTrackPtrTableHigh + numtrk != firstInstr) {
+		RmtModule module;
+		try {
+			module = RmtModule.parse(mem, start, firstByteAfterModule);
+		} catch (RmtModule.FormatException e) {
 			return new Result(false, null);
 		}
-		if (firstTrack < firstInstr) {
-			return new Result(false, null);
+		if (module.instruments().isEmpty() || module.tracks().isEmpty()) {
+			return new Result(false, null); // the player source needs both
 		}
+		RmtModule.Layout layout = module.layout();
+		byte[] buf = module.toBytes(start);
+		int len = layout.end();
+		char channelDigit = (char) Memory.unsignedByte(buf, RmtModule.Offset.CHANNELS);
+
+		strCode.append(String.format("; RMT%c file exported as relocatable source code\n; Original size: $%04x bytes @ $%04x\n", channelDigit, len, start));
+
+		int numTracks = module.channels();
+		int offsetInstrumentPtrTable = layout.instrumentsTable(); // This is where the instruments are stored (always directly after this table)
+		int offsetTrackPtrTableLow = layout.tracksLowTable(); // Track ptrs are broken up into lo and hi bytes
+		int offsetTrackPtrTableHigh = layout.tracksHighTable();
+		int offsetSong = layout.song(); // The song tracks start here
+		int firstInstr = layout.instrumentData();
+		int firstTrack = layout.trackData();
 
 		// Write assembly output
 		strCode.append(String.format(".local\n%s\n?start\n", strAsmStartLabel));
 
 		if (isAtasm) {
-			strCode.append(String.format("    {{byte}} \"RMT%c\"\n", (char) ub(buf, 3)));
+			strCode.append(String.format("    {{byte}} \"RMT%c\"\n", channelDigit));
 		} else {
-			strCode.append(String.format("    dta c'RMT%c'\n", (char) ub(buf, 3)));
+			strCode.append(String.format("    dta c'RMT%c'\n", channelDigit));
 		}
 
 		strCode.append(String.format("?song_info\n    {{byte}} $%02x            ; Track length = %d\n    {{byte}} $%02x            ; Song speed\n"
-				+ "    {{byte}} $%02x            ; Player Frequency\n    {{byte}} $%02x            ; Format version\n", ub(buf, 4), ub(buf, 4), ub(buf, 5), ub(buf, 6), ub(buf, 7)));
+				+ "    {{byte}} $%02x            ; Player Frequency\n    {{byte}} $%02x            ; Format version\n", Memory.unsignedByte(buf, RmtModule.Offset.TRACK_LENGTH), Memory.unsignedByte(buf, RmtModule.Offset.TRACK_LENGTH),
+				Memory.unsignedByte(buf, RmtModule.Offset.SONG_SPEED), Memory.unsignedByte(buf, RmtModule.Offset.INSTRUMENT_SPEED), Memory.unsignedByte(buf, RmtModule.Offset.FORMAT_VERSION)));
 
 		strCode.append("; ptrs to tables\n");
 		if (isAtasm) {
@@ -418,56 +385,49 @@ public final class AsmFileExporter {
 
 		// List of ptrs to instruments
 		strCode.append("\n; List of ptrs to instruments\n");
-		int[] instrPos = new int[65536];
+		int[] instrPos = new int[Memory.SIZE];
 		strCode.append("?InstrumentsTable");
 
-		for (int i = 0; i < numInstruments; i += 2) {
-			int loc = rword(buf, i + offsetInstrumentPtrTable) - start;
+		for (int number = 0; number < layout.instrumentEntries(); number++) {
+			Integer offset = layout.instruments().get(number);
 			String str;
-			if (loc >= firstInstr && loc < firstTrack && loc < len) {
-				instrPos[loc] = (i >> 1) + 1;
-				str = String.format(isAtasm ? "?Instrument_%d" : "a(?Instrument_%d)", i >> 1);
-			} else if (loc == -start) {
-				str = isAtasm ? "  $0000" : " a($0000)";
+			if (offset != null) {
+				instrPos[offset] = number + 1;
+				str = String.format(isAtasm ? "?Instrument_%d" : "a(?Instrument_%d)", number);
 			} else {
-				return new Result(false, null);
+				str = isAtasm ? "  $0000" : " a($0000)";
 			}
 
 			sizeIntro += 2; // 2 bytes per used instrument
 
 			strCode.append(isAtasm ? "\n    .word " : "\n    dta ");
 			strCode.append(str);
-			strCode.append(String.format("\t\t; %s", Song.nameToString(instruments.getName(i >> 1))));
+			strCode.append(String.format("\t\t; %s", Song.nameToString(instruments.getName(number))));
 		}
 		strCode.append("\n");
 
 		// List of tracks:
-		int[] trackPos = new int[65536];
+		int[] trackPos = new int[Memory.SIZE];
 		strCode.append("\n?TracksTblLo");
-		for (int i = 0; i < numtrk; i++) {
-			int loc = ub(buf, i + offsetTrackPtrTableLow) + (ub(buf, i + offsetTrackPtrTableHigh) << 8) - start;
-			strCode.append(i % 8 == 0 ? (isAtasm ? "\n    .byte " : "\n    dta ") : ",");
-			if (loc >= firstTrack && loc < offsetSong && loc < len) {
-				trackPos[loc] = i + 1;
-				strCode.append(String.format(isAtasm ? "<?Track_%02x" : "l(__Track_%02x)", i));
-			} else if (loc == -start) {
-				strCode.append("$00");
+		for (int number = 0; number < layout.trackEntries(); number++) {
+			Integer offset = layout.tracks().get(number);
+			strCode.append(number % 8 == 0 ? (isAtasm ? "\n    .byte " : "\n    dta ") : ",");
+			if (offset != null) {
+				trackPos[offset] = number + 1;
+				strCode.append(String.format(isAtasm ? "<?Track_%02x" : "l(__Track_%02x)", number));
 			} else {
-				return new Result(false, null);
+				strCode.append("$00");
 			}
 
 			sizeIntro += 1; // 1 byte per used track
 		}
 		strCode.append("\n?TracksTblHi");
-		for (int i = 0; i < numtrk; i++) {
-			int loc = ub(buf, i + offsetTrackPtrTableLow) + (ub(buf, i + offsetTrackPtrTableHigh) << 8) - start;
-			strCode.append(i % 8 == 0 ? (isAtasm ? "\n    .byte " : "\n    dta ") : ",");
-			if (loc >= firstTrack && loc < offsetSong && loc < len) {
-				strCode.append(String.format(isAtasm ? ">?Track_%02x" : "h(__Track_%02x)", i));
-			} else if (loc == -start) {
-				strCode.append("$00");
+		for (int number = 0; number < layout.trackEntries(); number++) {
+			strCode.append(number % 8 == 0 ? (isAtasm ? "\n    .byte " : "\n    dta ") : ",");
+			if (layout.tracks().containsKey(number)) {
+				strCode.append(String.format(isAtasm ? ">?Track_%02x" : "h(__Track_%02x)", number));
 			} else {
-				return new Result(false, null);
+				strCode.append("$00");
 			}
 
 			sizeIntro += 1; // 1 byte per used track
@@ -704,13 +664,5 @@ public final class AsmFileExporter {
 
 	private static void appendFeature(StringBuilder dest, String equal, String label, int var) {
 		dest.append(String.format("%s\t\t%s %d\t\t;(%d times)\n", label, equal, (var > 0) ? 1 : 0, var));
-	}
-
-	private static int ub(byte[] buf, int i) {
-		return buf[i] & 0xFF;
-	}
-
-	private static int rword(byte[] buf, int i) {
-		return ub(buf, i) | (ub(buf, i + 1) << 8);
 	}
 }

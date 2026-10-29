@@ -1,6 +1,6 @@
 # Plan 60: A container class for the RMT module (format version 1)
 
-Status: M1 DONE 2026-10-28, M2 DONE 2026-10-29; M3 and M4 open. Decided 2026-10-28 (user), see the open decisions
+Status: M1 DONE 2026-10-28, M2 and M3 DONE 2026-10-29; M4 open. Decided 2026-10-28 (user), see the open decisions
 below for the four answers and the addendum on nesting.
 
 A class in the Java port that represents an RMT module as
@@ -167,9 +167,17 @@ wrappers over the container (M2), so the many callers and the
       had song speed 0, which the old writer encoded and the old decoder
       rejected; it gets the speeds `clearSong()` sets. 749 tests and the
       cross-program export comparison green.
-- [ ] M3. LATER: `AsmFileExporter.buildRelocatableAsm()` reads the structure
-      from a parsed `RmtModule` instead of re-parsing the bytes; its
-      pointer checks move into `parse` (M1 already has them).
+- [x] M3. DONE 2026-10-29. `AsmFileExporter.buildRelocatableAsm()`
+      reads the module once with `RmtModule.parse` (its own pointer
+      re-reading and sanity checks are gone) and takes every offset from
+      the new `RmtModule.Layout` (`layout()`), which `write()` now lays
+      the module out by, so the layout is computed in one place. The
+      data dump still emits bytes, from `module.toBytes`. A module
+      without instruments or tracks is refused, as before. Proof: a
+      temporary dump of all 384 outputs (6 fixtures x RMT/stripped x
+      xasm/atasm x the 8 relocation label combinations x full/size info)
+      before and after - identical, the 32 refusals (testsfx stripped,
+      which has neither) included - plus 749 tests green.
 - [ ] M4. `doc/rmt_format.md`, version "1" section, gets what the
       container had to know and the document does not say: the optional
       second segment with the names (and that a module without it is
